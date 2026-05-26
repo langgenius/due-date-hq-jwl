@@ -1,477 +1,517 @@
-# Page family canonical patterns
-
-**Date:** 2026-05-26
-**Source:** consolidated from /today, /alerts, /deadlines through
-the 66th–80th design passes (see `docs/dev-log/*-pass.md`).
-**Audience:** anyone landing a new list/index page (e.g. /clients,
-/rules/library, /opportunities, future surfaces) who wants the
-result to read as part of the same product family without
-re-deriving every decision.
-
-This doc is **prescriptive**, not exploratory — copy the shapes
-below verbatim, override only with a documented reason. Each
-section ends with the exact class string or file path you can
-paste in.
-
-## Layout primitives
-
-### 1. Outer container (page wrapper)
-
-Two variants. Use the **regular** one unless the page has a
-sticky pagination footer.
-
-**Regular** (used by /today, /alerts, /clients, /rules/library):
-
-```tsx
-<div className="mx-auto flex max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
-  <PageHeader ... />
-  ...content...
-</div>
-```
-
-**Sticky-footer variant** (used by /deadlines, anywhere with a
-pagination strip pinned to the viewport bottom):
-
-```tsx
-<div className="flex flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0 xl:h-screen xl:overflow-hidden">
-  <PageHeader ... />
-  ...content...
-</div>
-```
-
-Key differences:
-
-- `gap-4` (16px) vs `gap-6` (24px) — denser for the table-heavy
-  case.
-- `pb-0` vs `pb-4/6` — footer hugs the viewport bottom.
-- `xl:h-screen xl:overflow-hidden` — required when an inner
-  card needs `min-h-0 flex-1` to flex-fill the viewport height.
-
-### 2. PageHeader
-
-Canonical primitive: `@/components/patterns/page-header`. Three
-slots — title, actions, description.
-
-```tsx
-<PageHeader
-  title={
-    <span className="inline-flex items-center gap-2">
-      <Trans>Page name</Trans>
-      <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
-        <Trans>
-          {count} {countNoun}
-        </Trans>
-      </span>
-    </span>
-  }
-  description={t`Optional 1-line description.`}
-  actions={
-    <>
-      <Button variant="outline" size="sm">
-        …
-      </Button>
-      <Button variant="outline" size="sm">
-        …
-      </Button>
-    </>
-  }
-/>
-```
-
-**Title typography:** the primitive renders `text-2xl leading-7
-font-semibold text-text-primary` on an h1. Do not override.
-
-**Count chip:** the rounded pill after the title is the canonical
-qualifier ("17 open", "9 Clients", "3 ongoing"). Always use:
-
-```
-rounded-full bg-state-base-hover px-2 py-0.5
-text-xs font-medium tabular-nums text-text-secondary
-```
-
-**Description:** optional. The primitive renders it as
-`text-[13px] leading-5 text-text-secondary max-w-[1080px]`. Use
-sentence case. Skip entirely when the count chip already
-qualifies the page (e.g. /deadlines has chip + filter tabs, no
-description).
-
-**Actions:** right-aligned cluster of `<Button variant="outline"
-size="sm">`. Outline (not solid) so they read as secondary
-actions, not the page's primary CTA. Icon-prefixed via
-`data-icon="inline-start"`. **Export** uses `ArrowUpRightIcon`
-(data leaving the app); avoid `DownloadIcon` for export actions.
-
-### 3. Filter scope tabs (segmented scope row)
-
-For pages with scope tabs (status filters on /deadlines, ongoing/
-applied/dismissed on /alerts), use the `Tabs` primitive with this
-shape:
-
-```tsx
-<Tabs value={scope} onValueChange={setScope}>
-  <TabsList>
-    <TabsTrigger value="all">
-      <Trans>All</Trans>
-      <span className="ml-1 tabular-nums text-text-tertiary">{n}</span>
-    </TabsTrigger>
-    <TabsTrigger value="not_started">
-      <NotStartedIcon className="size-4" />
-      <Trans>Not started</Trans>
-      <span className="ml-1 tabular-nums text-text-tertiary">{n}</span>
-    </TabsTrigger>
-    ...
-  </TabsList>
-</Tabs>
-```
-
-Each trigger: optional leading icon (size-4), label, trailing
-tabular count. Active state has a 2px underline accent — the
-`Tabs` primitive handles it; don't customize.
-
-### 4. Filter chip row (secondary filters)
-
-The row below scope tabs. Pill-shaped pre-set filters ("Past
-due", "Due this week", "Needs evidence") + filter dropdowns
-("Sort by Date", state filter, etc.).
-
-**Pre-set chips:**
-
-```tsx
-<button className="rounded-full border border-divider-regular bg-background-default px-3 py-1 text-xs font-medium text-text-secondary hover:bg-state-base-hover data-[active=true]:bg-state-accent-hover data-[active=true]:border-state-accent-solid data-[active=true]:text-text-accent">
-  {label}
-</button>
-```
-
-**Filter dropdowns:** use the canonical `FilterTrigger`
-primitive (`@/components/patterns/filter-trigger`). It wraps a
-DropdownMenu trigger with the right chrome:
-
-```tsx
-<DropdownMenu>
-  <DropdownMenuTrigger
-    render={
-      <FilterTrigger active={hasFilter}>
-        <span className="text-text-tertiary">
-          <Trans>Sort by</Trans>
-        </span>
-        <span>{currentValueLabel}</span>
-      </FilterTrigger>
-    }
-  />
-  <DropdownMenuContent align="end" className="min-w-[180px]">
-    <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
-      <DropdownMenuRadioItem value="…">…</DropdownMenuRadioItem>
-    </DropdownMenuRadioGroup>
-  </DropdownMenuContent>
-</DropdownMenu>
-```
-
-`FilterTrigger` props:
-
-- `active`: boolean — when true, picks up the accent-tinted bg
-  - accent-solid border + accent text. Use for "filter
-    currently applied."
-- `hideChevron`: optional — suppress the trailing ChevronDown.
-
-**Show filter chips at ≥1 active filter** (not ≥2). The chip
-row should never sit empty just because exactly one filter is
-active.
-
-## Table-card frame (for any list with rows + pagination)
-
-The shared pattern from /deadlines. The card owns the height
-contract; rows fill the available space; pagination is pinned
-to the card bottom regardless of how many rows are on the page.
-
-### Frame
-
-```tsx
-<div
-  ref={setTableCardElement}
-  className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-divider-subtle"
->
-  {/* Rows-area: flex-1 so it fills the card vertically */}
-  <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background-default">
-    <Table className="rounded-none border-0 [&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:!align-middle [&_td]:break-words">
-      <TableHeader className="!bg-background-default-dimmed">
-        ...
-      </TableHeader>
-      <TableBody>...</TableBody>
-    </Table>
-  </div>
-  {/* Pagination: shrink-0 so it always sits at the card bottom */}
-  <div className="flex shrink-0 items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-6">
-    <span className="text-xs text-text-tertiary">
-      <Plural value={total} one="# deadline" other="# deadlines" />
-    </span>
-    <Pagination ... />
-  </div>
-</div>
-```
-
-**Why this shape:**
-
-- Border + `rounded-md` on the **wrapper** clipped via
-  `overflow-hidden` — Table and Pagination drop their own
-  borders + radii. The corners just work.
-- `flex-1 min-h-0` on the rows-area so it elastically fills
-  the card. On a partial page (3 rows), the rows sit at the
-  top, white space below, pagination at the bottom. Pagination
-  position is **stable across pages**.
-- `bg-background-default` on the rows-area so the empty space
-  on partial pages reads as the same white surface as the rows
-  above (not the page bg).
-- `border-t` is the pagination's only border — separator
-  hairline from the last data row.
-- `py-6` (24px) on the pagination strip — reads as a
-  deliberate card footer, not a squeezed toolbar.
-
-### Responsive page size
-
-Use the callback-ref hook `useResponsivePageSize()` (defined
-locally in `obligations.tsx`; promote to a shared module when
-the next consumer arrives). It returns `[pageSize, setElement]`:
-
-```tsx
-const [responsivePageSize, setTableCardElement] = useResponsivePageSize()
-// Attach the setter to the table-card ref:
-<div ref={setTableCardElement} className="...">
-```
-
-**Why callback ref, not `useRef`:** the table-card is rendered
-conditionally (inside loading/success ternaries). A
-`useRef<HTMLDivElement | null>(null)` would be `null` when the
-effect first runs; the page size would stay at the MIN forever.
-The callback ref re-fires when the element mounts later. See
-the 80th-pass dev log for the diagnostic.
-
-Constants tuned for the current row chrome:
-
-- `CLIENT_PAGE_SIZE_MIN = 8`
-- `CLIENT_PAGE_SIZE_MAX = 40`
-- `CLIENT_ROW_HEIGHT_PX = 48` (the `h-12` row height)
-- `INSIDE_CHROME_PX = 96` (TableHeader + Pagination + borders +
-  buffer). Subtracted from the table-card's `clientHeight`.
-
-### Row pattern
-
-```tsx
-<TableRow
-  role="button"
-  tabIndex={0}
-  className="h-12 group cursor-pointer border-l-2 border-l-transparent hover:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt data-[state=selected]:bg-state-accent-hover"
->
-```
-
-- **`h-12` fixed** (48px) — uniform row height regardless of
-  cell content (avatar vs `?` placeholder).
-- **`border-l-2 border-l-transparent`** — reserves a 2px left
-  rail slot. Cluster-grouped rows (same client cluster) flip
-  the color to `border-l-divider-regular` for a visible rail.
-- **`group`** — enables per-cell affordances (e.g. peek icon
-  fade-in on hover).
-- **Hover:** `bg-state-base-hover`. **Selected:**
-  `bg-state-accent-hover` via `data-state="selected"`.
-
-### TableHeader pattern
-
-```tsx
-<TableHeader className="!bg-background-default-dimmed">
-  <TableRow className="hover:bg-transparent">
-    <TableHead className="text-sm font-medium normal-case tracking-normal text-text-secondary">
-      Column name
-    </TableHead>
-    ...
-  </TableRow>
-</TableHeader>
-```
-
-- **Header bg:** `bg-background-default-dimmed` (a light blue-
-  tinted gray) — sits a step above the white body rows without
-  going full subtle-blue.
-- **Header text:** `text-sm font-medium normal-case
-tracking-normal text-text-secondary`. **NOT** uppercase, NOT
-  caption-tier. Reads as column headers, not kicker labels.
-- **Hover:** `hover:bg-transparent` on the header row — disables
-  the default cell hover, which would otherwise paint the
-  header on cursor pass.
-
-### Cell content rules
-
-- `whitespace-normal` + `break-words` on `<td>` so long client
-  names wrap rather than force horizontal scroll.
-- `align-middle` for vertical centering (the row is `h-12`,
-  cells should pin to the middle).
-- `px-2` (8px) horizontal padding on `<th>` and `<td>` — denser
-  than the primitive's default to fit more columns at scan
-  density.
-
-### Avatar + assignee column
-
-Use the canonical `AssigneeAvatar`/`AssigneeQuickPicker` pair.
-Both render at `size-8` (32px circle). Unassigned state is a
-dashed-outline circle with a `?` icon, doubling as a dropdown
-trigger for quick-pick (assigns the CLIENT, not the obligation).
-
-### Status pill column
-
-Right-most column. The pill itself is a colored chip per
-status — see `obligation-status-icon-vocabulary.md` for the
-canonical tone + icon mapping. Adjunct chips (Blocked-by,
-Rejected) appear inline next to the pill when relevant.
-
-## FloatingActionBar (bulk-select bottom bar)
-
-Canonical primitive: `@/components/patterns/floating-action-bar`.
-
-```tsx
-{
-  selectedCount > 0 ? (
-    <FloatingActionBar ariaLabel={t`Bulk actions`}>
-      <span className="text-sm font-medium">
-        <Plural value={selectedCount} one="# row selected" other="# rows selected" />
-      </span>
-      <Button variant="ghost">Action 1</Button>
-      <Button variant="ghost">Action 2</Button>
-      <Button variant="ghost">
-        <XIcon /> Clear
-      </Button>
-    </FloatingActionBar>
-  ) : null
-}
-```
-
-**Visual:** beige (`bg-state-warning-hover-alt`, ~#ffe4dd) with
-dark text. `bottom-12 left-1/2 -translate-x-1/2`. Soft shadow.
-`z-40` — above table headers + sticky pagination, below toasts.
-Child buttons should be `variant="ghost"` (the primitive scopes
-text-primary to `[&_button]`).
-
-## Sidebar
-
-### Notification badge on nav items
-
-For sidebar nav rows with a count (Alerts, Deadlines, Rule
-library):
-
-```tsx
-{
-  ...,
-  badge: count > 0 ? String(count) : undefined,
-  badgeTooltip: t`${count} active alerts`,
-}
-```
-
-Badge source: pull from the SAME query the destination page
-uses, so the sidebar count and the page chip always agree. For
-Alerts: `pulse.listHistory(50).length`, NOT `pulse.activeCount`
-(the latter excludes dismissed/applied which the page still
-shows).
-
-### Collapse / hover-expand contract
-
-Two states — collapsed (56px rail, icons-only) and expanded
-(220px, labels visible). Plus hover-expand: hovering a
-collapsed sidebar floats an overlay to 220px wide without
-shifting the page content.
-
-**Width transition:** 300ms with Apple's `swiftOut` curve
-`cubic-bezier(0.32, 0.72, 0, 1)`.
-
-**Layout flip (data-collapsed):** asymmetric. Collapsing flips
-the layout immediately (row goes vertical so content shrinks
-before width does). Expanding flips the layout AFTER the
-300ms width animation (so the horizontal row never paints in
-a too-narrow footprint).
-
-See `packages/ui/src/components/ui/sidebar.tsx` for the
-implementation — `renderedCollapsed` (delayed on expand) drives
-`data-collapsed`; `targetCollapsed` (immediate) drives the
-inner overlay width.
-
-## Section heading scale
-
-When you need section headings inside a page or panel:
-
-- **Page title (h1):** `text-2xl leading-7 font-semibold
-text-text-primary` — owned by `PageHeader`.
-- **Section title (h2):** `text-lg font-semibold tracking-tight
-text-text-primary` — for major sections like "Alerts" or
-  "Actions this week" on /today.
-- **Sub-section (h4):** `text-sm font-semibold text-text-primary`
-  — for clusters inside a panel (e.g. Applicability /
-  Due date / Evidence on the Rule drawer). **Do not use**
-  uppercase kicker labels (`text-caption uppercase
-tracking-wider`) — that style is retired.
-
-## Tone + status semantics
-
-Refer to:
-
-- `pulse-vocabulary.md` for alert severity + change-kind colors.
-- `obligation-status-icon-vocabulary.md` for status pill tone +
-  icon per state.
-- `filter-vs-badge-contract.md` for when to show a filter chip
-  vs a passive badge.
-- `inset-surface-design-system.md` for the inset-page-background
-  - paper-rises drawer canonical.
-
-## Empty states
+# Page family — canonical patterns
+
+**Type:** design guideline (companion to `DueDateHQ-DESIGN.md`)
+**Source:** consolidated from /today + /alerts + /deadlines through
+the 66th–80th passes.
+**Audience:** designers + engineers landing a new list/index page.
+**Authority:** prescriptive. Token references override raw values.
+
+The three reference pages converged on a shared vocabulary. This
+doc captures it as design intent + tokens, not as code. Engineers
+copy the **tokens**; if implementations diverge from these
+guidelines, the doc is right.
+
+---
+
+## §1. Direction
+
+These pages are **scan surfaces**. The CPA arrives to triage
+work, not to read. Design intent is therefore:
+
+- **Density over hero.** Surface as many actionable rows / cards
+  as the viewport can fit. No oversized titles, no decorative
+  hero band, no "marketing-page" empty top half.
+- **Filters precede content.** Scope tabs + chip row come
+  BEFORE the data so the user narrows before scanning.
+- **One card per page.** The data surface is a single bordered
+  frame, not a sequence of nested cards. Multiple cards =
+  decision fatigue.
+- **Pagination is structural, not decorative.** Always inside
+  the data frame, always at the same position, always
+  navigable by keyboard.
+- **Color is reserved for urgency.** Status pills, late-day
+  copy, and selected rows are the only places color appears
+  by default.
+
+The shared aesthetic is **Ramp × Linear, Light Workbench** (per
+`DueDateHQ-DESIGN.md` §0). Nothing in this doc overrides that
+positioning; everything refines it for list-page application.
+
+---
+
+## §2. Page-level layout
+
+### Intent
+
+Top-down rhythm: PageHeader → filter scope → filter chips →
+data card. No sidebar inside the page, no inset wrappers, no
+extra borders around the content area.
+
+### Tokens
+
+| Slot              | Token                                                                            |
+| ----------------- | -------------------------------------------------------------------------------- |
+| Outer padding (X) | `--space-page-x` (`px-4 md:px-6`)                                                |
+| Outer padding (Y) | `--space-page-y-top` / `--space-page-y-bottom` (`pt-6 md:pt-8` / `pb-4 md:pb-6`) |
+| Vertical rhythm   | `--space-section-gap` (`gap-6`); sticky-footer variant uses `gap-4`.             |
+| Max width         | `--max-w-page-wide`                                                              |
+| Background        | `--background-page` (inherits inset surface canonical)                           |
+
+### Restrictions
+
+- ❌ Do not nest a second `<div className="rounded-md border">`
+  wrapper around the content area. The data card below IS the
+  visible frame.
+- ❌ Do not introduce per-page `max-w` overrides. Use
+  `--max-w-page-wide` so all family pages share one column.
+- ❌ Do not add `bg-*` to the outer container. It should
+  inherit the inset surface tint.
+
+### Two variants
+
+| Variant       | Use when                                                                  | Differences                                                                          |
+| ------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Regular       | /today, /alerts, /clients, /rules/library, /opportunities                 | `gap-6`, `pb-4/6`. Content can grow past viewport.                                   |
+| Sticky-footer | /deadlines (and any page where the data card pins to the viewport bottom) | `gap-4`, `pb-0`, `xl:h-screen xl:overflow-hidden`. Inner card uses `flex-1 min-h-0`. |
+
+Pick exactly one; do not mix.
+
+---
+
+## §3. PageHeader
+
+### Intent
+
+Identify the page and qualify it with one number. Surface the
+1-2 primary cross-page actions to the right. Nothing else
+belongs in the header — no search, no filters, no metrics.
+
+### Tokens
+
+| Slot                | Token                                                                            |
+| ------------------- | -------------------------------------------------------------------------------- |
+| Title type          | `--text-page-title` (`text-2xl leading-7 font-semibold`, `text-text-primary`)    |
+| Count chip bg       | `--state-base-hover`                                                             |
+| Count chip text     | `--text-secondary`                                                               |
+| Count chip type     | `--text-caption` (`text-xs font-medium tabular-nums`)                            |
+| Count chip shape    | `--radius-full` + `--space-chip-x` (`px-2`) + `--space-chip-y` (`py-0.5`)        |
+| Description         | `--text-body-small` (`text-[13px] leading-5`, `text-text-secondary`, max-w 1080) |
+| Actions cluster gap | `--space-cluster-gap` (`gap-2`)                                                  |
+
+### Direction
+
+The title is a noun (`Deadlines`, `Alerts`, `Clients`). The
+count chip immediately to its right qualifies what the user is
+looking at (`17 open`, `3 ongoing`, `9 Clients`). Read order:
+noun → number → done.
+
+### Restrictions
+
+- ❌ Title in title-case (e.g. `Deadlines View`). Use a single
+  noun.
+- ❌ Count chip without `tabular-nums`. Digits must align across
+  pages and across loading states.
+- ❌ Actions cluster of more than 2 buttons. If three, the
+  third belongs in a dropdown.
+- ❌ `<Button variant="default">` (solid) in the actions slot.
+  Use `variant="outline"` — these are secondary actions, not
+  the page's primary CTA.
+- ❌ `DownloadIcon` for "Export" buttons. Export = data leaving
+  the app = `ArrowUpRightIcon` (matches Linear / Notion / Figma).
+- ❌ Description longer than one sentence. If two are needed,
+  the second is doing the count chip's job — drop it.
+
+### When to omit the description
+
+When the count chip + filter tabs below already qualify the
+page (e.g. /deadlines shows `17 open` + scope tabs that count
+each status). Adding a description on top of those is
+redundant chrome.
+
+---
+
+## §4. Filter scope tabs
+
+### Intent
+
+A segmented row of mutually-exclusive scopes — the primary axis
+on which the user splits the data. Examples:
+
+- /deadlines: All / Not started / Waiting on client / Blocked / In review / Filed / Completed
+- /alerts: Ongoing / Applied / Dismissed / All
+- /clients: usually omitted (only one scope = "all clients")
+
+### Tokens
+
+| Slot             | Token                                                   |
+| ---------------- | ------------------------------------------------------- |
+| Tab type         | `--text-tab` (`text-sm font-medium`)                    |
+| Tab icon size    | `--size-icon-sm` (`size-4`)                             |
+| Tab count type   | `--text-caption` + `tabular-nums`, `text-text-tertiary` |
+| Active indicator | 2px `--state-accent-solid` underline                    |
+| Tab gap          | `--space-cluster-gap`                                   |
+
+### Restrictions
+
+- ❌ More than 7 tabs. If you'd have 8+, fold the rarest into
+  an "Other" tab.
+- ❌ Tabs without counts when counts are knowable. A scope tab
+  without a count is a guess about whether to click it.
+- ❌ Custom active-state colors. The 2px accent underline is
+  the family signature.
+
+---
+
+## §5. Filter chip row
+
+### Intent
+
+Below the scope tabs. Carries two kinds of controls:
+
+1. **Pre-set filter chips** — pill buttons that toggle common
+   filter combinations (`Past due`, `Due this week`,
+   `Needs evidence`).
+2. **Filter dropdowns** — `FilterTrigger` for selections that
+   have many options (`Sort by`, `State`, `Source`, etc.).
+
+### Tokens
+
+| Slot                       | Token                                                           |
+| -------------------------- | --------------------------------------------------------------- |
+| Pre-set chip — bg          | `--background-default`                                          |
+| Pre-set chip — bg (hover)  | `--state-base-hover`                                            |
+| Pre-set chip — bg (active) | `--state-accent-hover`                                          |
+| Pre-set chip — border      | `--divider-regular` (inactive); `--state-accent-solid` (active) |
+| Pre-set chip — text        | `--text-secondary` (inactive); `--text-accent` (active)         |
+| Pre-set chip — shape       | `--radius-full`, `px-3 py-1`                                    |
+| Filter dropdown trigger    | `FilterTrigger` primitive                                       |
+
+### Direction
+
+- Pre-set chips on the left, filter dropdowns on the right.
+- Within each cluster, ordered by frequency of use.
+- Always-visible row — even when no filter is active. Empty
+  state of the row would hide the affordance.
+
+### Restrictions
+
+- ❌ Show pre-set chips only when ≥2 are active. The threshold
+  is **1** active filter — the row should never sit empty just
+  because exactly one chip is on.
+- ❌ Bespoke filter trigger chrome. Always use the
+  `FilterTrigger` primitive so the active/hover/open states
+  agree across the product.
+- ❌ Stacking multiple rows of chips. If you need more, the
+  set is too long — promote some to a Settings dialog.
+
+---
+
+## §6. Data card (table-card frame)
+
+### Intent
+
+A single bordered surface that contains the table AND the
+pagination. Reads as one frame. Owns its own height contract
+(flex-1 inside the page) so the page-size hook can measure it
+directly. Pagination is pinned to the bottom of the frame
+regardless of how many rows are on the current page.
+
+### Tokens
+
+| Slot                  | Token                                                                                         |
+| --------------------- | --------------------------------------------------------------------------------------------- |
+| Card border           | `--divider-subtle`                                                                            |
+| Card radius           | `--radius-md`                                                                                 |
+| Card bg               | inherits via rows-area (`--background-default`)                                               |
+| Rows-area bg          | `--background-default`                                                                        |
+| TableHeader bg        | `--background-default-dimmed` (light blue-tinted gray)                                        |
+| TableHeader type      | `--text-tablehead` (`text-sm font-medium normal-case tracking-normal`), `text-text-secondary` |
+| Row height            | `--row-height-table` (`h-12` = 48px)                                                          |
+| Row hover bg          | `--state-base-hover`                                                                          |
+| Row selected bg       | `--state-accent-hover`                                                                        |
+| Row left-rail (group) | 2px `--divider-regular`                                                                       |
+| Cell type             | `--text-body` (`text-sm`)                                                                     |
+| Cell padding (X)      | `--space-cell-x` (`px-2`)                                                                     |
+| Pagination border-top | `--divider-subtle`                                                                            |
+| Pagination padding    | `--space-pagination-y` (`py-6`) + `--space-cell-x` (`px-2`)                                   |
+
+### Direction
+
+- The data card is the ONLY card on the page. No additional
+  bordered surfaces.
+- Inside the card, TableHeader is the dimmed band at the top;
+  rows below sit on white; pagination is a hairline-separated
+  footer at the bottom.
+- The rows-area is **flex-1** so it elastically fills whatever
+  height remains after pagination. On a partial page (e.g. 3
+  rows on page 2), rows sit at the top, the rest of the
+  rows-area is white whitespace, pagination still at the
+  bottom. **Pagination position is stable across pages.**
+
+### Responsive page-size
+
+The number of rows per page is **derived from the card's
+measured height**, not configured. Direction:
+
+- Measure the card (the slot where rows live), not the page or
+  the queue column. Filter bars are NOT in the budget.
+- Use a callback ref so measurement fires on mount even when
+  the card is rendered conditionally (inside a loading ternary).
+- Subtract a stable chrome value (TableHeader + Pagination +
+  borders ≈ 96px) and divide by row height (48px).
+- Clamp between 8 and 40 rows so the page never collapses to
+  nothing or balloons past scan readability.
+
+Tokens: `--page-size-min` (8), `--page-size-max` (40),
+`--row-height-table` (48), `--inside-chrome-budget` (96).
+
+### Restrictions
+
+- ❌ `position: sticky` on the pagination strip. The flex-1
+  rows-area pattern is simpler and works on every row count.
+- ❌ A "table only" card without the pagination inside. The
+  two read as one.
+- ❌ Custom row heights. Use `--row-height-table`. Long
+  content wraps via `whitespace-normal break-words`; never
+  variable row heights.
+- ❌ Per-column `min-w-*` thresholds that force horizontal
+  scroll. The data must fit the card width via wrapping.
+- ❌ Uppercase kicker labels on TableHeader. Use
+  `--text-tablehead` sentence-case.
+- ❌ A magic-number `INSIDE_CHROME_PX` based on the queue
+  column. Measure the card directly.
+
+### Limitations
+
+- The flex-1 rows-area assumes the parent column has a defined
+  height (via the sticky-footer variant or via the regular
+  variant + adequate content above). On a short empty state,
+  the card might not look "filled" — that's expected; show an
+  empty state inside the rows-area.
+
+---
+
+## §7. FloatingActionBar
+
+### Intent
+
+A bottom-pinned bar that appears when ≥1 row is selected. It
+indicates batch-mode and surfaces the batch actions. Visually
+distinct from the page so the user feels they're in a
+different mode.
+
+### Tokens
+
+| Slot         | Token                                                                    |
+| ------------ | ------------------------------------------------------------------------ |
+| Bar bg       | `--state-warning-hover-alt` (a warm peach-cream `#ffe4dd`)               |
+| Bar border   | `--state-warning-border`                                                 |
+| Bar text     | `--text-primary`                                                         |
+| Bar shape    | `--radius-xl`                                                            |
+| Bar shadow   | `--shadow-floating` (16px y-offset, 48px blur, 18% black)                |
+| Bar position | `fixed bottom-12 left-1/2 -translate-x-1/2` (40px above viewport bottom) |
+| Bar z-index  | `--z-floating` (40) — above sticky table footers, below toasts           |
+| Button hover | `bg-black/5` (5% black tint)                                             |
+
+### Direction
+
+- Beige, not dark navy. The previous dark-navy bar felt
+  alarmist; beige reads as "different mode" without slamming
+  the page.
+- Centered horizontally so it doesn't anchor to either side.
+- 40px above the viewport bottom (not flush) so it reads as a
+  floating control surface, not a sticky footer.
+
+### Restrictions
+
+- ❌ Multiple FloatingActionBars on one page. Single bar; if
+  more actions are needed, fold into a dropdown inside it.
+- ❌ Solid color buttons inside. Use `variant="ghost"` so they
+  inherit text-primary against the beige.
+- ❌ Toast-style auto-dismiss. The bar stays as long as the
+  selection does.
+
+---
+
+## §8. Sidebar surface (cross-cutting)
+
+### Intent
+
+The sidebar is shared chrome across all family pages. Two
+contracts that the family relies on:
+
+1. **Notification badge counts** must agree between the
+   sidebar and the destination page.
+2. **Collapse / expand transitions** must never let content
+   visibly leak outside the painted sidebar.
+
+### Tokens
+
+| Slot                      | Token                                   |
+| ------------------------- | --------------------------------------- |
+| Sidebar width (expanded)  | `--sidebar-width` (220px)               |
+| Sidebar width (collapsed) | `--sidebar-width-collapsed` (56px)      |
+| Width transition          | `--transition-sidebar` (300ms swiftOut) |
+| Badge bg                  | `--state-base-hover-alt`                |
+| Badge text                | `--text-tertiary`                       |
+| Badge shape               | `--radius-full`                         |
+
+### Direction
+
+- Badge counts come from the SAME query the destination page
+  uses. For /rules/pulse the badge uses `pulse.listHistory`
+  (page = all alerts including dismissed/applied),
+  NOT `pulse.activeCount` (which excludes those).
+- Layout flip (`data-collapsed`) is **asymmetric**: immediate
+  on collapse (so the layout shrinks before the width does),
+  delayed on expand (so the expanded layout never paints
+  inside a too-narrow footprint).
+- Inner overlay has `overflow: hidden` as a belt-and-
+  suspenders clip — if timing ever drifts, content stays
+  inside the painted boundary.
+
+### Restrictions
+
+- ❌ Different badge sources between sidebar and page. The
+  numbers must always agree.
+- ❌ Symmetric collapse/expand timing. The asymmetry is what
+  prevents visible overflow during the width animation.
+
+---
+
+## §9. Section heading scale
+
+When you need section headings inside a card, panel, or
+section group:
+
+| Level          | Token                                                           | Use for                                                                        |
+| -------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Page title h1  | `--text-page-title`                                             | Owned by `PageHeader`. Do not roll your own.                                   |
+| Section h2     | `--text-section-title` (`text-lg font-semibold tracking-tight`) | Major page sections — "Alerts", "Actions this week" on /today.                 |
+| Sub-section h4 | `--text-subsection-title` (`text-sm font-semibold`)             | Clusters inside a panel — "Applicability", "Due date", "Evidence" in a drawer. |
+
+### Restrictions
+
+- ❌ Uppercase kicker eyebrows (`text-caption uppercase
+tracking-wider`). The family retired this style. Use
+  `--text-subsection-title` instead.
+- ❌ Section h2 inside a card frame. Cards already carry their
+  own framing — adding an h2 inside doubles the chrome.
+
+---
+
+## §10. Tone + color reservation
+
+Color usage on family pages follows `DueDateHQ-DESIGN.md` §7.
+The page-level summary:
+
+| Token color             | Reserved for                                                  |
+| ----------------------- | ------------------------------------------------------------- |
+| `--state-destructive-*` | Late dates, hard errors, blocked status                       |
+| `--state-warning-*`     | Due-soon dates, FloatingActionBar surface, soft warnings      |
+| `--state-accent-*`      | Selected rows, primary CTA hover, "filter applied" affordance |
+| `--state-success-*`     | Filed / completed / paid statuses, "all clear" empty states   |
+| `--text-tertiary`       | Caption-tier copy, kicker labels (when truly secondary)       |
+| `--text-secondary`      | Body-tier copy, header text                                   |
+
+### Restrictions
+
+- ❌ Red for "draft is not ready" — that's a pending state,
+  not an error. Use `--text-tertiary`.
+- ❌ Accent (blue) for status pills that aren't selected.
+  Status color comes from the status itself (success, warning,
+  destructive), not from accent.
+- ❌ Hex values. Always reference a token. If no token exists
+  for the shade you need, add one to the design system FIRST,
+  then reference it.
+
+---
+
+## §11. Empty states
 
 Two shapes — match the surface:
 
-**Section-internal** (inside a page or panel, e.g. "no alerts
-on /today"): `<div className="rounded-lg border
-border-dashed border-divider-regular py-8 text-center text-sm
-text-text-tertiary">...</div>`
+### Section-internal empty
 
-**Page-level** (the entire page has no content): use
-`SharedEmptyState` if the page expects content (e.g. "Import
-clients to get started"), otherwise the section-internal
-shape applies.
+For an empty card-inside-a-page (e.g. /today's Alerts section
+with no alerts). Token contract:
 
-## What NOT to use
+| Slot    | Token                                 |
+| ------- | ------------------------------------- |
+| Border  | `border-dashed` `--divider-regular`   |
+| Padding | `py-8`                                |
+| Type    | `--text-body-small` `--text-tertiary` |
+| Radius  | `--radius-md`                         |
 
-- ❌ Uppercase kicker labels (`text-caption uppercase
-tracking-wider`) on section headings. Use `text-sm
-font-semibold` instead.
-- ❌ `bg-background-subtle` on TableHeader. Use
-  `!bg-background-default-dimmed`.
-- ❌ Solid red/destructive tone for "informational pending"
-  states (e.g. "draft is not ready"). Use `text-text-tertiary`.
-- ❌ `position: sticky` on pagination inside a table card —
-  the `flex-1 min-h-0` rows-area pattern is simpler and works
-  on every page count.
-- ❌ Magic-number `INSIDE_CHROME_PX` based on the queue column.
-  Measure the table-card directly (the slot where rows go),
-  not a surrounding wrapper.
-- ❌ `useRef` for the page-size element when it's rendered
-  conditionally. Use a callback ref so the effect re-fires on
-  attach.
-- ❌ Dark navy `FloatingActionBar`. Use beige
-  (`bg-state-warning-hover-alt`).
-- ❌ `DownloadIcon` for "Export" actions. Use
-  `ArrowUpRightIcon` (data leaving the app).
+### Page-level empty
 
-## When to apply
+For an entire page with zero content (e.g. /clients with no
+clients). Use the shared `SharedEmptyState` primitive — it
+carries the canonical illustration + headline + CTA.
+
+### Restrictions
+
+- ❌ Custom empty-state illustrations per page. The shared
+  primitive is the source.
+- ❌ Empty states without a CTA. Every empty state must offer
+  a way out — import, create, or change filter.
+
+---
+
+## §12. When to apply
 
 Any new page that:
 
-- Renders a list/grid/table of N items as its primary content.
-- Has filters (scope tabs and/or chip row) above the data.
+- Renders a list / grid / table of N items as primary content,
+- Has filters (scope tabs and/or chip row) above the data,
 - Needs pagination, batch select, or row hover affordances.
 
-Examples where this should be applied next: /opportunities,
-/settings (where applicable), any future inbox-style surface.
+Examples where this should land next: /opportunities, future
+inbox-style surfaces, any new index page in /settings.
 
-## Cross-references
+For non-list surfaces (e.g. a single-entity detail page like
+/clients/[id]), refer to `clients-list-and-detail-critique-
+2026-05-22.md` and `inset-surface-design-system.md` instead.
 
-- Implementation: `apps/app/src/routes/obligations.tsx`
-  (/deadlines, the most complete reference)
-- Implementation: `apps/app/src/routes/dashboard.tsx` (/today)
-- Implementation: `apps/app/src/features/pulse/AlertsListPage.tsx`
-  (/alerts)
-- Primitives: `apps/app/src/components/patterns/filter-trigger.tsx`,
-  `floating-action-bar.tsx`, `page-header.tsx`
-- Dev logs: `docs/dev-log/2026-05-26-{sixty-sixth..eightieth}-pass.md`
-  for the per-iteration decisions that produced these patterns.
+---
+
+## §13. Verification checklist
+
+Before shipping a new page in the family, verify each:
+
+- [ ] Outer container uses the regular OR sticky-footer
+      variant — not a custom hybrid.
+- [ ] PageHeader has noun title + count chip; description
+      omitted if redundant; ≤2 outline actions.
+- [ ] Filter scope tabs (if present) carry icon + label + count.
+- [ ] Filter chip row uses `FilterTrigger` for dropdowns;
+      always-visible.
+- [ ] Data card is a single bordered frame containing the
+      table AND pagination.
+- [ ] Pagination position is the SAME on every page (verify
+      by paging to a partial page).
+- [ ] Row count adjusts with viewport height (verify by
+      shrinking the window).
+- [ ] No `position: sticky` on the pagination strip.
+- [ ] FloatingActionBar (if used) is beige, ghost buttons,
+      bottom-12.
+- [ ] Sidebar badge for this page matches the page's own
+      count chip.
+- [ ] No uppercase kicker labels.
+- [ ] All colors via tokens; no inline hex values.
+
+---
+
+## Related docs
+
+- `DueDateHQ-DESIGN.md` — visual system, color tokens,
+  typography scale (this doc layers on top of it).
+- `inset-surface-design-system.md` — inset page background +
+  paper-rises drawer canonical.
+- `pulse-vocabulary.md` — Pulse alert severity + change-kind.
+- `obligation-status-icon-vocabulary.md` — status pill tone +
+  icon per state.
+- `filter-vs-badge-contract.md` — when to show a filter chip
+  vs a passive badge.
+- `docs/dev-log/2026-05-26-{sixty-sixth..eightieth}-pass.md` —
+  the per-iteration decisions that produced these patterns.
