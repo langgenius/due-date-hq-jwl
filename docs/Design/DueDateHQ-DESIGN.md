@@ -568,10 +568,12 @@ Sidebar footer 只保留 workspace/account 持久状态：plan status + user men
 入口放在 Practice 导航；user menu 不承载 practice profile，除非后续新增真正的 user account
 profile。
 
-### 4.10 Status Pill Tone Ladder（2026-05-25 增补）
+### 4.10 Status Pill Tone Ladder（2026-05-25 增补，2026-05-26 navigational layer 追加）
 
 > 全审计与变更清单见 [`status-pill-audit-2026-05-25.md`](./status-pill-audit-2026-05-25.md)。
 > 这一节是 audit §3 的"硬裁定"，新加任何 chip / pill 必须先来这里对一遍 tone。
+>
+> **新加 chip 前的推荐路径**：先走 [audit §5.2 Red/Yellow/Green decision tree](./status-pill-audit-2026-05-25.md#52--the-red--yellow--green-decision-tree) — 从 CPA 的 3-色心智 ("red = act / yellow = attention / green = ok") 落到本节 6-tone token 的具体选择。然后回来确认 §4.10 表格的 shape + ornament 规则。Pulse alert dots 走更窄的 4-tone 子集 (`success`/`warning`/`info`/`error`)，唯一入口是 [`pulseAlertTone()`](./pulse-vocabulary.md#canonical-implementation-pulsealerttone)。三层模型不冲突，是同一个 ladder 的逐层 narrowing。
 
 App 里所有"X 是什么状态？"的 chip 都是
 `(tone, shape, ornament)` 三元组。先选 tone（语义），再选 shape（类别），最后

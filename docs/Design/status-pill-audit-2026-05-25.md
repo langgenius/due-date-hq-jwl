@@ -263,3 +263,147 @@ align visual treatment to the ladder above.
 Estimated combined effort for #1-#7: ~150 LoC changed across 6 files,
 no schema changes, no test rewrites (label text and component contracts
 are preserved).
+
+**Status (2026-05-26):** Items #1–#7 and #9 all shipped during the
+2026-05-25 follow-up pass (every `EntityStateCell` / `CoverageCell` /
+`ClientReadinessBadge` / `MemberStatusPill` / `InvitationStatusPill` /
+`rejection-chip` / `PulseSourceStatusBadge` / `InsightStatusBadge`
+call site now carries an audit-§4 comment annotating the change).
+Item #8 (drop `STATUS_DOT` export) deferred — still imported by
+`actions-list.tsx`. Item #10 (DESIGN.md cross-reference) shipped
+2026-05-26 alongside the alert-tone canon section below.
+
+One regression caught and fixed 2026-05-26: `CoverageLegend`'s
+"review" swatch was still using the warning (amber) dot while
+`CoverageCell` itself flipped to blue per #3. Legend ↔ cell now agree.
+
+---
+
+## 5 · Alert vs status — when to use which (added 2026-05-26)
+
+> Closes strategic theme #5 (alert visuals). Per
+> `docs/Design/product-themes-2026-05-25.md` §5 the right move was
+> "extend the status-pill audit rather than create a fourth competing
+> source of truth." This section is that extension.
+
+The product has three concentric layers of tone vocabulary. They
+**don't conflict** — they sit at different abstraction layers — but
+the relationship was never written down, which is how we ended up
+with one alert showing red on one surface and amber on another.
+
+### 5.1 The three layers
+
+| Layer                         | Vocabulary size | Where it lives                                                                                                                             | Audience                       |
+| ----------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------ |
+| **User mental model**         | 3 colors        | A CPA's intuition: "red = act, yellow = attention, green = ok."                                                                            | The CPA, never coded directly. |
+| **Status-pill ladder** (§3.1) | 6 tones         | `Badge` + `BadgeStatusDot` variants (`success`/`info`/`warning`/`destructive`/`secondary`/`outline`).                                      | Every chip on every page.      |
+| **Pulse alert subset**        | 4 tones         | `PulsingDot` (`success`/`warning`/`normal=info`/`error`) routed through `pulseAlertTone()` ([pulse-vocabulary.md](./pulse-vocabulary.md)). | Pulse alert surfaces only.     |
+
+Each layer is a deliberate narrowing of the one above. The 6-tone
+ladder has two "non-state" tones (`secondary` + `outline`) the
+user mental model doesn't care about — those are reference tags
+(jurisdictions, tax codes, entity types), not states. The 4-tone
+Pulse subset drops `secondary` + `outline` (alerts are always
+states) and renames `info` → `normal` because the dot primitive
+predates the audit.
+
+### 5.2 The Red / Yellow / Green decision tree
+
+When adding any new chip / dot / banner, walk this tree top-down.
+It collapses the 6-tone ladder onto the 3-color mental model so the
+final color choice is unambiguous.
+
+```
+Is this signaling a STATE (something in motion / settled / blocked)?
+│
+├── NO → metadata tag (state code, tax code, source name, entity)
+│        → outline chip + reference text. Stop. (Not a state at all.)
+│
+└── YES → Is the underlying thing OK / completed / healthy?
+         │
+         ├── YES → GREEN  → `success` (filled green chip + icon, no dot)
+         │
+         └── NO  → Is intervention required NOW to unblock?
+                  │
+                  ├── YES → RED → `destructive` (filled red chip)
+                  │        Examples: blocked obligation, rejected rule,
+                  │        materials "Needs review", source revoked,
+                  │        Pulse low-confidence (<0.7), AI insight Failed.
+                  │
+                  └── NO  → Is the system actively working on it?
+                           │
+                           ├── YES → BLUE → `info` (filled blue chip)
+                           │        Examples: obligation in_progress / review,
+                           │        rule pending_review, Pulse "New" alert,
+                           │        invitation Pending.
+                           │
+                           └── NO  → Is it dormant / not started?
+                                    │
+                                    ├── YES → GRAY → `secondary` (filled gray chip)
+                                    │        Examples: obligation pending,
+                                    │        not_applicable, rule archived,
+                                    │        member Suspended.
+                                    │
+                                    └── NO  → It's externally paused. YELLOW →
+                                             `warning` (filled amber chip).
+                                             Examples: obligation waiting_on_client,
+                                             source paused, invitation Expired,
+                                             client needs_facts.
+```
+
+**The user mental model collapses gray + outline into "not relevant
+right now."** That's fine. The 6-tone ladder keeps them distinct
+because future filters / sort logic need to disambiguate "we haven't
+started" (gray) from "this isn't a state at all, it's a tag"
+(outline).
+
+### 5.3 Common mistakes and how to avoid them
+
+| Mistake                                                            | Why it happens                                  | Fix                                                                                                                                                                                                              |
+| ------------------------------------------------------------------ | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Picking `warning` (amber) for "I need to do something soon"        | Amber feels softer than red, so it sneaks in.   | Walk the tree. Amber = _externally_ paused. CPA-action-needed is red.                                                                                                                                            |
+| Picking `destructive` (red) for "low confidence" or "data quality" | Red is the loudest tone, so it grabs attention. | Low-confidence is **destructive** because the action is the CPA's. Data-quality flags that _don't_ require an immediate decision (e.g. "Stale") are `info`.                                                      |
+| Picking `info` (blue) for "completed"                              | Both feel "positive".                           | Blue = in motion. Completed = green. Green is rare on purpose (only `done`/`paid`/`filed`/`completed`/`active`/`healthy`).                                                                                       |
+| Adding `BadgeStatusDot` inside a filled chip                       | The legacy pattern is half-deprecated.          | Per §3.3 — filled chip carries the tone, icon carries identity, NO dot.                                                                                                                                          |
+| Adding a fourth Pulse severity level                               | Real-world cases feel ambiguous.                | Push back. The 3-level `urgent`/`informational`/`resolved` predicate ([pulse-vocabulary.md](./pulse-vocabulary.md)) covers every case. If a case feels ambiguous, the _predicate_ is wrong, not the level count. |
+
+### 5.4 Pre-merge checklist (for new chips)
+
+Add this as a comment in every PR that introduces a new state chip:
+
+```
+[ ] Walked the §5.2 decision tree → chose tone {X}
+[ ] Confirmed against §3.1 tone → meaning table (no new tones invented)
+[ ] Confirmed shape per §3.2 (filled chip / outline chip / bare icon / progress segment)
+[ ] Confirmed ornament per §3.3 (filled → icon, outline → optional dot, no double-tone)
+[ ] If a Pulse surface, the chip uses `pulseAlertTone()` (not a hand-rolled formula)
+```
+
+### 5.5 What this section is NOT
+
+- **Not a fourth canonical doc.** Yuqi's strategic themes work
+  explicitly warned against creating `alert-tone-canonical.md` as a
+  separate doc — too easy to drift. This section lives inside the
+  status-pill audit so the analysis and the canon stay co-located.
+- **Not a re-design of the tone ladder.** §3.1 is unchanged. This
+  section adds a 3-color _navigational_ layer above it so designers
+  and engineers can walk from a CPA's intuition down to the right
+  token without re-reading the whole ladder every time.
+- **Not a license to expand `pulseAlertTone()`.** Pulse stays on its
+  3-level predicate. The 6-tone ladder is for chips; the 3-level
+  Pulse model is for alerts. The bridge between them is documented
+  in [pulse-vocabulary.md](./pulse-vocabulary.md) §"Canonical implementation."
+
+### 5.6 Open follow-ups (deferred from §4)
+
+- **#8 (drop `STATUS_DOT` export)** — `STATUS_DOT` is no longer used
+  by `ObligationStatusReadBadge` or `ObligationQueueStatusControl`
+  (both icon-led now). One importer remains (`actions-list.tsx`);
+  once that flips to `<ObligationStatusReadBadge>` (which it now
+  does — verify), the export can be removed.
+- **Open question on Pulse confidence threshold.** The 3-tier badge
+  rendered by `PulseConfidenceBadge` (`>=0.9` high / `0.7-0.9` medium /
+  `<0.7` low) uses `success`/`info`/`destructive`. Per §5.2, "low
+  confidence" → destructive (the action is the CPA's) — correct.
+  Documented here so the next confidence-tier discussion doesn't
+  re-litigate red vs amber.

@@ -303,7 +303,15 @@ export function CoverageLegend() {
           </ConceptLabel>
         </span>
         <span className="inline-flex items-center gap-2">
-          <ToneDot tone="warning" />
+          {/* 2026-05-26 (alert-tone canon follow-up): legend dot
+              swapped from `warning` (amber) → `review` (blue) to
+              match `CoverageCell` itself (line 260). The cell flipped
+              in the 2026-05-25 status-pill audit pass #3 but the
+              legend was missed, so the on-screen dots and the
+              legend's swatch disagreed for ~24h. Status-pill audit
+              §3.1 + the alert-tone canon section say one tone = one
+              meaning across the whole product. */}
+          <ToneDot tone="review" />
           <ConceptLabel concept="requiresReview">
             <Trans>review — needs CPA confirmation</Trans>
           </ConceptLabel>
