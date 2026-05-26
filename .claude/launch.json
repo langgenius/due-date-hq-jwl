@@ -20,6 +20,12 @@
       "port": 5188
     },
     {
+      "name": "app-5189",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-F", "@duedatehq/app", "dev", "--", "--port", "5189", "--strictPort"],
+      "port": 5189
+    },
+    {
       "name": "server-8787",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--dir", "apps/server", "exec", "wrangler", "dev", "--local", "--port", "8787"],

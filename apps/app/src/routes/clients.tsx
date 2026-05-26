@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import type { ClientCreateInput, ClientPublic, ObligationStatus } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import { PageHeader } from '@/components/patterns/page-header'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
@@ -314,14 +315,20 @@ export function ClientsRoute() {
   )
 
   return (
-    // 2026-05-25 (GitHub-density pass): outer gap-6 → gap-4,
-    // padding md:p-6 → md:p-5. /clients is a list page — the table
-    // is what CPAs scan; chrome around it should be efficient.
-    // 2026-05-25 (Yuqi page-title pass): top padding bumped to
-    // pt-6 md:pt-8 so the h1 lands on the same baseline as Today /
-    // Deadlines / Audit. Left/right/bottom kept tight per density
-    // pass above.
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-5">
+    // 2026-05-26 (Yuqi macro→micro audit, Fix #1 + Fix #6 / §2.1):
+    // /clients adopts the sticky-footer variant of the canonical
+    // outer container — same shape as /deadlines. Required by Phase 7
+    // (table-card frame + responsive page-size, §6) which assumes the
+    // parent column has a defined viewport-driven height so the inner
+    // card's `flex-1 min-h-0` rows-area can actually flex. Was Regular
+    // (`gap-6 pb-4 md:pb-6`); now Sticky-footer (`gap-4 pb-0
+    // xl:h-screen xl:overflow-hidden`).
+    <div
+      className={cn(
+        'mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'xl:h-screen xl:overflow-hidden',
+      )}
+    >
       <PageHeader
         title={
           <span className="inline-flex items-center gap-2">

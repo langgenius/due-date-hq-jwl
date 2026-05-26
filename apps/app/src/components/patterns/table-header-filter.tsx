@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { ChevronDownIcon, ListFilterIcon } from 'lucide-react'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
-import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -14,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Input } from '@duedatehq/ui/components/ui/input'
+
+import { FilterTrigger } from './filter-trigger'
 
 export interface TableFilterOption {
   value: string
@@ -81,20 +82,24 @@ function TableHeaderMultiFilter({
         disabled: disabled ?? false,
       })
     ) : (
-      <Button
-        variant={selectedCount > 0 ? 'accent' : 'outline'}
-        size="sm"
-        disabled={disabled}
-        className="max-w-52 justify-start"
-      >
+      // 2026-05-26 (Yuqi macro→micro audit, Fix #5 / §3.1): toolbar
+      // trigger now uses the canonical `FilterTrigger` primitive so
+      // /clients filter dropdowns read identically to /deadlines and
+      // /alerts (32px h-8, accent border+bg when active, divider
+      // border+default bg at rest). Previously the toolbar variant
+      // rendered a `Button variant="accent"|"outline"` with its own
+      // ChevronDown — visually adjacent but inconsistent.
+      <FilterTrigger active={selectedCount > 0} disabled={disabled} className="max-w-52">
         <span className="truncate">{label}</span>
         {selectedCount > 0 ? (
-          <Badge variant="outline" className="h-4 px-1.5 font-mono tabular-nums">
+          <Badge
+            variant="outline"
+            className="h-4 border-state-accent-solid px-1.5 font-mono text-text-accent tabular-nums"
+          >
             {selectedCount}
           </Badge>
         ) : null}
-        <ChevronDownIcon data-icon="inline-end" />
-      </Button>
+      </FilterTrigger>
     )
 
   function handleOpenChange(nextOpen: boolean) {
