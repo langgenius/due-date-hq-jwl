@@ -54,7 +54,6 @@ import {
 const SIDEBAR_WIDTH = '13.75rem' // 220px — DESIGN §Layout regions
 const SIDEBAR_WIDTH_COLLAPSED = '3.5rem' // 56px — icons-only rail
 const SIDEBAR_WIDTH_MOBILE = '17.5rem' // 280px — Sheet drawer is slightly wider
-const SIDEBAR_COLLAPSED_KEY = 'ddhq.sidebar.collapsed'
 
 type SidebarContextValue = {
   openMobile: boolean
@@ -64,20 +63,26 @@ type SidebarContextValue = {
   /**
    * 2026-05-25 (Yuqi sidebar collapse): desktop collapse state.
    * When true, the rail narrows to 56px and shows only icons +
-   * badge dots. Persisted in `localStorage[ddhq.sidebar.collapsed]`
-   * so the user's preference survives reloads. Mobile mode
-   * ignores this (the Sheet drawer is always full-width).
+   * badge dots. Mobile mode ignores this (the Sheet drawer is
+   * always full-width).
    *
-   * 2026-05-26 (Yuqi sidebar mechanism): `collapsed` is now the
+   * 2026-05-26 (Yuqi sidebar mechanism): `collapsed` is the
    * EFFECTIVE state, computed as `userCollapsed || autoCollapsed`.
    * Surfaces with a wide right detail panel (e.g. /deadlines'
    * obligation drawer) call `setAutoCollapsed(true)` on mount so
    * the rail temporarily narrows to give the panel room; on
-   * unmount they restore `false` and the user's persisted
-   * preference takes over again. The user's manual toggle still
-   * works during an auto-collapse — clicking expand sets BOTH
+   * unmount they restore `false` and the user's session state
+   * takes over again. The user's manual toggle still works
+   * during an auto-collapse — clicking expand sets BOTH
    * `userCollapsed` and `autoCollapsed` to false so the user
    * override wins for the rest of that panel session.
+   *
+   * 2026-05-26 (Yuqi default-expanded rule): `userCollapsed` is
+   * SESSION-ONLY — never written to localStorage. Every page
+   * reload returns to the default expanded state. Predictable
+   * baseline for new users and reloads alike; the collapse icon
+   * still works to narrow the rail mid-session, just doesn't
+   * outlive the session.
    */
   collapsed: boolean
   toggleCollapsed: () => void
@@ -129,22 +134,16 @@ export function useOptionalSidebar(): SidebarContextValue | null {
   return React.useContext(SidebarContext)
 }
 
-function readPersistedCollapsed(): boolean {
-  if (typeof window === 'undefined') return false
-  try {
-    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
-  // `userCollapsed` is the persisted preference — only changes when
-  // the user clicks the toggle button. Drives reloads and the user's
-  // baseline for every panel session.
-  const [userCollapsed, setUserCollapsed] = React.useState<boolean>(() => readPersistedCollapsed())
+  // 2026-05-26 (Yuqi: default expanded on every reload — no
+  // persistence): the sidebar always starts expanded on page load.
+  // `userCollapsed` is session-only — when the user clicks the
+  // collapse icon during a session, it flips locally, but the next
+  // reload returns to expanded. No localStorage write, no reads on
+  // mount. Predictable: "every fresh page = expanded sidebar."
+  const [userCollapsed, setUserCollapsed] = React.useState(false)
   // `autoCollapsed` is transient programmatic collapse driven by
   // route surfaces with a wide right panel. NEVER persisted —
   // closing the panel restores the user's preference.
@@ -176,22 +175,11 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     // The user's intent is to flip the EFFECTIVE state. If we're
     // currently collapsed (whether the user set it OR auto did),
     // clicking expand should expand — set BOTH flags to false so
-    // auto doesn't immediately re-collapse. If we're expanded,
-    // clicking collapse sets the persisted user preference.
+    // auto doesn't immediately re-collapse. Session-only state;
+    // no localStorage write — next page load returns to expanded.
     setUserCollapsed((prevUserCollapsed) => {
-      // `setUserCollapsed` is called inside a state setter, so we
-      // can't read the latest `autoCollapsed` here directly — but
-      // `prevUserCollapsed || autoCollapsed` is the rendered
-      // `collapsed` value at toggle time. Re-derive it.
       const prevEffective = prevUserCollapsed || autoCollapsed
-      const next = !prevEffective
-      try {
-        window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0')
-      } catch {
-        // ignore quota / disabled-storage failures; runtime state is the
-        // source of truth for the current session either way
-      }
-      return next
+      return !prevEffective
     })
     // If the user is overriding an auto-collapse, clear the auto
     // flag so it doesn't immediately reapply on the next render.
