@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { SendIcon } from 'lucide-react'
+import { Loader2Icon, SendIcon } from 'lucide-react'
 import { useParams } from 'react-router'
 import { toast } from 'sonner'
 
@@ -146,12 +146,26 @@ export function ReadinessPortalRoute() {
         </header>
 
         {portalQuery.isLoading ? (
+          // 2026-05-26 (Step 6 UX audit #167): bare text was the
+          // only loading affordance. Public-portal clients waiting
+          // 2+ seconds on a slow connection saw "Loading readiness
+          // check…" with no motion signal — read as a static page.
+          // Loader2 spin gives an unambiguous "system is working"
+          // beat.
           <Card>
-            <CardContent className="py-10 text-center text-sm text-text-tertiary">
+            <CardContent className="flex flex-col items-center gap-3 py-10 text-center text-sm text-text-tertiary">
+              <Loader2Icon className="size-5 animate-spin" aria-hidden />
               <Trans>Loading readiness check…</Trans>
             </CardContent>
           </Card>
         ) : portalQuery.isError || !portal ? (
+          // 2026-05-26 (Step 6 UX audit #168): expired/revoked
+          // link state left the client stranded with no path
+          // forward. Added explicit recovery copy pointing back
+          // to the CPA. The portal is the firm's contact surface
+          // so "contact your CPA" is the canonical next step —
+          // no app-side action makes sense from this dead-link
+          // state.
           <Card>
             <CardHeader>
               <CardTitle>
@@ -161,6 +175,14 @@ export function ReadinessPortalRoute() {
                 <Trans>This readiness link is expired, revoked, or invalid.</Trans>
               </CardDescription>
             </CardHeader>
+            <CardContent>
+              <p className="text-sm text-text-secondary">
+                <Trans>
+                  Contact your CPA to request a new link. They can re-send the readiness check from
+                  their workbench.
+                </Trans>
+              </p>
+            </CardContent>
           </Card>
         ) : (
           <Card>
@@ -222,9 +244,26 @@ export function ReadinessPortalRoute() {
                 )
               })}
               <Separator />
-              <Button onClick={submit} disabled={submitMutation.isPending}>
-                <SendIcon data-icon="inline-start" />
-                <Trans>Submit readiness response</Trans>
+              {/* 2026-05-26 (Step 6 UX audit #173): pending state
+                  had no motion signal — the button just disabled.
+                  Loader2 spin matches the cross-app submit-pending
+                  pattern + the label switches to "Submitting…" so
+                  the client knows something is happening. */}
+              <Button
+                onClick={submit}
+                disabled={submitMutation.isPending}
+                aria-busy={submitMutation.isPending}
+              >
+                {submitMutation.isPending ? (
+                  <Loader2Icon className="size-4 animate-spin" aria-hidden data-icon="inline-start" />
+                ) : (
+                  <SendIcon data-icon="inline-start" />
+                )}
+                {submitMutation.isPending ? (
+                  <Trans>Submitting…</Trans>
+                ) : (
+                  <Trans>Submit readiness response</Trans>
+                )}
               </Button>
             </CardContent>
           </Card>

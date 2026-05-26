@@ -400,7 +400,13 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
               </p>
             </div>
           </div>
-          <Badge variant="outline" className="font-mono tabular-nums text-xs">
+          {/* 2026-05-26 (Step 6 UX audit #112): `tabular-nums` has no
+              effect on role labels ("Owner", "Manager", "Coordinator")
+              because the values aren't numeric. Kept `font-mono` for
+              the badge's tech-stat aesthetic but dropped tabular-nums
+              so we're not advertising a typography feature the
+              content doesn't use. */}
+          <Badge variant="outline" className="font-mono text-xs">
             {currentRole}
           </Badge>
         </div>

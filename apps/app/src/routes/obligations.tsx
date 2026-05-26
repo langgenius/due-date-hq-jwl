@@ -1268,8 +1268,12 @@ export function ObligationQueueRoute() {
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         setRowSelection({})
-        toast.success(t`Bulk status updated`, {
-          description: t`${result.updatedCount} rows changed`,
+        // 2026-05-26 (Step 6 UX audit #49): "rows" is engineering-speak.
+        // CPAs say "deadlines" or "filings". Title also dropped the
+        // word "Bulk" — the description carries the count which is
+        // already the bulk signal.
+        toast.success(t`Status updated`, {
+          description: t`${result.updatedCount} deadlines changed`,
         })
       },
       onError: (err) => {
@@ -3291,9 +3295,20 @@ export function ObligationQueueRoute() {
           ) : isError ? (
             <div className="rounded-lg border border-state-destructive-border bg-state-destructive-hover p-4 text-sm text-text-destructive">
               <Trans>Couldn't load deadlines.</Trans>{' '}
-              <button type="button" className="underline" onClick={() => void listQuery.refetch()}>
+              {/* 2026-05-26 (Step 6 UX audit #147): retry uses the
+                  canonical `<Button variant="link">` instead of an
+                  ad-hoc `<button className="underline">`. Matches
+                  the parallel fix on dashboard + clients route
+                  error alerts. */}
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                className="h-auto p-0 align-baseline"
+                onClick={() => void listQuery.refetch()}
+              >
                 <Trans>Retry</Trans>
-              </button>
+              </Button>
             </div>
           ) : (
             // 2026-05-26 (Yuqi /deadlines feedback — "refactor the
@@ -5806,9 +5821,17 @@ export function ObligationQueueDetailDrawer({
         ) : detailQuery.isError || !detail || !row ? (
           <div className="rounded-lg border border-state-destructive-border bg-state-destructive-hover p-4 text-sm text-text-destructive">
             <Trans>Couldn't load deadline detail.</Trans>{' '}
-            <button type="button" className="underline" onClick={() => void detailQuery.refetch()}>
+            {/* 2026-05-26 (Step 6 UX audit #147): retry uses
+                `<Button variant="link">` for cross-app consistency. */}
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto p-0 align-baseline"
+              onClick={() => void detailQuery.refetch()}
+            >
               <Trans>Retry</Trans>
-            </button>
+            </Button>
           </div>
         ) : (
           <Tabs

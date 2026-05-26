@@ -186,9 +186,14 @@ function MigrationActivationIntro({
         ) : null}
       </div>
 
+      {/* 2026-05-26 (Step 6 UX audit #138): dropped the trailing
+          ArrowRight icon. The verb is "Skip", not "Continue" — the
+          forward-progression icon contradicted the skip semantic.
+          The "Return to Today" button on the permission-denied path
+          still keeps its ArrowRight because that action IS a
+          continuation. */}
       <Button variant="outline" size="sm" className="w-fit shrink-0" onClick={onSkip}>
         <Trans>Skip for now</Trans>
-        <ArrowRightIcon data-icon="inline-end" />
       </Button>
     </header>
   )

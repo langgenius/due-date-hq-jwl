@@ -410,8 +410,14 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
         setReviewNote('')
         void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.pulse.key() })
+        // 2026-05-26 (Step 6 UX audit #96): future tense "will be
+        // sent" suggested an action that hadn't happened yet, even
+        // though the API call already completed and queued the
+        // notifications server-side. Rephrased as a present-perfect
+        // status ("queued for…") so the toast describes the
+        // ACTUAL state of the world at toast-render time.
         toast.success(t`Review requested`, {
-          description: t`Owner and manager notifications and emails will be sent.`,
+          description: t`Notifications queued for owners and managers.`,
         })
       },
       onError: (err) => {
