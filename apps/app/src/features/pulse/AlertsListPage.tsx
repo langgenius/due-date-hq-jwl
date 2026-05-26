@@ -297,14 +297,31 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
             // alert card.
             'flex h-full min-h-0 flex-col gap-6'
           : panelOpen
-            ? // 2026-05-26 (Yuqi seventy-fourth pass — canonical
-              // container padding): aligned to the same shape as
-              // /today + /clients + /rules/library. Was `gap-4
-              // p-3 md:p-4`; now `gap-6 px-4 pt-6 pb-4 md:px-6
-              // md:pt-8 md:pb-6` (panel-open variant keeps the
-              // wider max-w cap so the right panel has room).
+            ? // 2026-05-26 (audit P0 #10 — width unified, height
+              // still panel-aware): panel-open branch keeps `h-full
+              // min-h-0` so the split-column wrapper can manage its
+              // own scroll bounds. The MAX-WIDTH alone was the
+              // audit's complaint ("layout jumps left ~80 px when
+              // an alert is clicked") — that's now fixed by holding
+              // `max-w-[1440px]` in both panel states. Height
+              // handling stays panel-aware: auto-height when the
+              // list stands alone (route shell's natural scroll),
+              // fixed-height when the panel is open (split-column
+              // owns scroll inside its own bounds, no double-scroll).
               'mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
-            : 'mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
+            : // 2026-05-26 (audit P0 #10 — width unified): list-only
+              // branch promoted from `max-w-page-wide` (1100px) to
+              // `max-w-[1440px]`. Was the smaller half of a 1100 ↔
+              // 1440 toggle that visibly shifted the page each time
+              // an alert was clicked. List-only at 1440 has extra
+              // horizontal whitespace versus 1100 — it reads as
+              // breathing room around the alert cards, not as dead
+              // space, and is the smaller UX cost compared to the
+              // constant left-shift jolt. Height stays auto here
+              // (no `h-full min-h-0`) so the route shell owns the
+              // natural scroll when there's no panel column to
+              // manage independently.
+              'mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
       }
     >
       {!embedded ? (

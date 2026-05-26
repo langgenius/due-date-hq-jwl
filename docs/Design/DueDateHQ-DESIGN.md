@@ -709,11 +709,20 @@ gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0
 └── NO  → Pattern A
 ```
 
+#### 宽度档（max-width）
+
+| 档                | 值                           | 谁在用                                                                                                                                                                 |
+| ----------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Standard**      | `max-w-page-wide` (≈ 1100px) | dashboard、/clients、/clients/[id]、/opportunities                                                                                                                     |
+| **Wide (opt-in)** | `max-w-[1440px]`             | /deadlines（dense table，多列）、/rules/library via `RulesPageShell.wide` prop（jurisdiction + 7 entity cols + tier）、/rules/pulse（list + 60% panel 在 1100 太挤）。 |
+
+**铁律**：**一个 route 只能选一档，不能在两档之间切换**。Pulse 之前在 panel 关闭时用 page-wide，panel 打开时用 1440 — 每次点击 alert 整个 page `mx-auto` 重新居中，整条 page 视觉左移 ~80px（audit P0 #10）。已统一到 1440。
+
 #### 禁止值
 
 - `md:pb-5` (20px) — 不在两种 pattern 内，singleton outlier。
 - `gap-5` (20px) — 用在 billing / migration entry-shell 是另一个 family；workbench 不用。
-- 不写 max-w cap — workbench 必须 `max-w-page-wide`（默认 1100px），rule library / deadlines 可以 opt-in `max-w-[1440px]` 但**整条路由不可两种宽度切换**（audit P0 #10 是这条规则的反例）。
+- 同一 route 两档宽度切换 — 见上文宽度档铁律。
 - 横向 `px-*` 不对齐 `md:px-6` — desktop 至少 24px 留白才不撞 sidebar。
 
 #### 其他 page family（不归这套 canon 管）
