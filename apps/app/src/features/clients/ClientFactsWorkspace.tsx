@@ -120,6 +120,7 @@ import {
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { InfoBanner } from '@/components/patterns/info-banner'
+import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
 import { PageHeader } from '@/components/patterns/page-header'
 import { RowActionsMenu, type RowActionsMenuItem } from '@/components/patterns/row-actions-menu'
 import { StateBadge } from '@/components/primitives/state-badge'
@@ -1918,6 +1919,55 @@ export function ClientDetailWorkspace({
     'tab',
     parseAsStringLiteral(['work', 'info', 'discover', 'activity'] as const).withDefault('work'),
   )
+  // 2026-05-26 (Yuqi tab-body follow-ups, Task 1): wire 1/2/3/4 as
+  // hotkeys for the four tabs. Mirrors the J/K cycle pattern in
+  // ClientCycleArrows — uses `useAppHotkey` (the project's canonical
+  // hotkey primitive), gates on `useKeyboardShortcutsBlocked` so the
+  // shortcuts stay quiet inside text inputs / dialogs / drawers, and
+  // registers `meta` so each shortcut shows up in the global
+  // ShortcutHelpDialog (the `?` sheet — that's Task 4 satisfied for
+  // free). No on-screen kbd hints yet — power users discover via `?`.
+  const shortcutsBlocked = useKeyboardShortcutsBlocked()
+  useAppHotkey('1', () => void setActiveTab('work'), {
+    enabled: !shortcutsBlocked,
+    meta: {
+      id: 'clients.tab.work',
+      name: 'Work tab',
+      description: "Switch to the client's Work tab (filing plan).",
+      category: 'navigate',
+      scope: 'route',
+    },
+  })
+  useAppHotkey('2', () => void setActiveTab('info'), {
+    enabled: !shortcutsBlocked,
+    meta: {
+      id: 'clients.tab.info',
+      name: 'Client info tab',
+      description: 'Switch to the Client info tab (posture, jurisdictions, risk).',
+      category: 'navigate',
+      scope: 'route',
+    },
+  })
+  useAppHotkey('3', () => void setActiveTab('discover'), {
+    enabled: !shortcutsBlocked,
+    meta: {
+      id: 'clients.tab.discover',
+      name: 'Opportunities tab',
+      description: 'Switch to the Opportunities tab (suggested forms + cues).',
+      category: 'navigate',
+      scope: 'route',
+    },
+  })
+  useAppHotkey('4', () => void setActiveTab('activity'), {
+    enabled: !shortcutsBlocked,
+    meta: {
+      id: 'clients.tab.activity',
+      name: 'Activity tab',
+      description: 'Switch to the Activity tab (AI summary, notes, audit log).',
+      category: 'navigate',
+      scope: 'route',
+    },
+  })
   // Obligation drawer is rendered as an in-route page panel (NOT a
   // modal Sheet) when launched from the filing plan below. State
   // lives on the shared provider so any surface — this page, the
@@ -2554,9 +2604,14 @@ export function ClientDetailWorkspace({
                   title={t`Suggested forms`}
                   summary={t`Forms the rule library can add without a new deadline`}
                 >
-                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
-                    <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
-                  </div>
+                  {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 3):
+                      drop the wrapper frame here — SuggestedFormsCatalogPanel
+                      renders its own canonical-shape frame plus its own
+                      "Forms catalog · N applicable" header bar, so the
+                      outer p-4 wrapper double-framed and added wasted
+                      padding. Matches how Future business cues below
+                      lets ClientOpportunitiesCard stand alone. */}
+                  <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
                 </TabSection>
 
                 <TabSection
@@ -2603,22 +2658,45 @@ export function ClientDetailWorkspace({
                 </TabSection>
 
                 <TabSection title={t`Notes`}>
-                  <div className="rounded-md border border-divider-regular bg-background-default px-4 py-3 text-sm text-text-secondary">
-                    {client.notes || (
-                      <span className="text-text-tertiary italic">
-                        <Trans>No notes.</Trans>
-                      </span>
-                    )}
-                  </div>
+                  {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 2 /
+                      Fix #10): when there are no notes, render the
+                      canonical EmptyState (dashed border + icon +
+                      title + description) instead of an italic
+                      "No notes." inside a solid frame. The italic
+                      pattern was a one-off — every other empty state
+                      on this page (Work plan, suggested forms,
+                      audit log) uses EmptyState, so Notes now joins.
+                      When notes ARE present, the solid frame stays
+                      because the content is body text the CPA
+                      authored, not a "nothing here" surface. */}
+                  {client.notes ? (
+                    <div className="rounded-md border border-divider-regular bg-background-default px-4 py-3 text-sm text-text-secondary">
+                      {client.notes}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      icon={ScrollTextIcon}
+                      title={<Trans>No notes yet</Trans>}
+                      description={
+                        <Trans>
+                          Capture context (preferred call window, sensitivities, history) so the
+                          next preparer doesn't start from scratch.
+                        </Trans>
+                      }
+                    />
+                  )}
                 </TabSection>
 
                 <TabSection
                   title={t`Activity log`}
                   summary={t`Recent audited changes for this client record`}
                 >
-                  {/* ClientActivityPanel renders each audit event as
-                      its own bordered row. No outer wrapper — would
-                      stack a frame around the per-row frames. */}
+                  {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 3):
+                      ClientActivityPanel now owns its own canonical
+                      outer frame internally (one frame, divide-y
+                      rows), matching the AI summary + Notes section
+                      treatment on this tab. No extra wrapper needed
+                      here — would double-frame. */}
                   <ClientActivityPanel
                     events={auditQuery.data?.events ?? []}
                     canReadAudit={canReadAudit}
@@ -3038,16 +3116,20 @@ function ClientWorkPlanPanel({
   )
   return (
     <TabSection title={t`Filing plan`} summary={subtitle}>
-      {/* 2026-05-24 (Figma replica): each year section is now wrapped
-          in its own framed block — `bg-background-soft` (#f9fafb) +
-          `rounded-xl` (12px) + a faint inset border. The column
-          header bar lives INSIDE the frame, paired with the rows it
-          legends. This replaces the prior single-column-header-above-
-          all-years shape. Trade-off: column legend repeats per year
-          (which the Figma accepts as the cost of self-contained
-          year cards) — but each section now reads as a self-
-          contained year card and scanning year-by-year is much
-          easier when there are 3+ years of history. */}
+      {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 3): each year
+          section is wrapped in its own framed block using the
+          canonical `rounded-md border-divider-regular
+          bg-background-default` shape. The column header bar lives
+          INSIDE the frame, paired with the rows it legends. This
+          replaces the earlier single-column-header-above-all-years
+          shape. Trade-off: column legend repeats per year, but each
+          section now reads as a self-contained year card and
+          scanning year-by-year is much easier when there are 3+
+          years of history. (Prior 2026-05-24 Figma-replica pass
+          used `bg-background-soft rounded-xl border-subtle`; that
+          was the only divergent frame on the page and got snapped
+          to canonical 2026-05-26 — see the comment on the year
+          section wrapper at FilingPlanYearSection.) */}
       {isLoading ? (
         <div className="grid gap-2">
           <Skeleton className="h-32 w-full" />
@@ -3782,26 +3864,35 @@ function ClientActivityPanel({
       />
     )
   }
+  // 2026-05-26 (Yuqi tab-body follow-ups, Task 3 — Activity tab
+  // section-frame unification): rows used to be individual
+  // `rounded-md border bg-background-section` cards inside a grid
+  // gap. That gave the Activity log a third visual dialect on the
+  // Activity tab (vs AI summary's outer-frame + Notes' outer-frame).
+  // Snapped to the canonical pattern: ONE outer canonical frame
+  // (`rounded-md border-divider-regular bg-background-default`)
+  // with `divide-y` between rows. Now matches the AI summary +
+  // Notes treatment on the same tab, and the page-family-canonical
+  // §9 rule (one section, one frame).
   return (
-    <div className="grid gap-2">
-      {events.map((event) => (
-        <div
-          key={event.id}
-          className="grid gap-1 rounded-md border border-divider-subtle bg-background-section p-3"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-sm font-medium text-text-primary">
-              {formatAuditActionLabel(event.action, actionLabels)}
-            </span>
-            <span className="text-xs tabular-nums text-text-tertiary">
-              {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}
-            </span>
-          </div>
-          <p className="text-xs text-text-tertiary">
-            {event.actorLabel ?? event.actorId ?? 'System'}
-          </p>
-        </div>
-      ))}
+    <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+      <ul className="divide-y divide-divider-subtle">
+        {events.map((event) => (
+          <li key={event.id} className="grid gap-1 px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm font-medium text-text-primary">
+                {formatAuditActionLabel(event.action, actionLabels)}
+              </span>
+              <span className="text-xs tabular-nums text-text-tertiary">
+                {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}
+              </span>
+            </div>
+            <p className="text-xs text-text-tertiary">
+              {event.actorLabel ?? event.actorId ?? 'System'}
+            </p>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -4086,7 +4177,28 @@ function ClientRiskSummaryPanel({
             )}
           </span>
         </div>
-      ) : null}
+      ) : (
+        // 2026-05-26 (Yuqi tab-body follow-ups, Task 2 / Fix #10):
+        // canonical EmptyState replaces a silent `null` return. The
+        // panel used to render the refresh button + nothing else when
+        // no insight existed yet, which left the section looking
+        // broken. Empty state explains the surface and tells the user
+        // what to expect.
+        <EmptyState
+          icon={SparklesIcon}
+          title={<Trans>No client summary yet</Trans>}
+          description={
+            canRefresh ? (
+              <Trans>
+                Run the AI summary to surface penalty exposure, recent activity, and tax-attribute
+                flags in one paragraph.
+              </Trans>
+            ) : (
+              <Trans>Upgrade to Practice AI to surface a one-paragraph client summary.</Trans>
+            )
+          }
+        />
+      )}
     </div>
   )
 }
@@ -4899,14 +5011,37 @@ function SuggestedFormsCatalogPanel({
   )
 
   if (rulesQuery.isLoading) {
+    // 2026-05-26 (Yuqi tab-body follow-ups, Task 3): loading
+    // skeleton frame snapped to canonical `border-divider-regular`
+    // so it reads at the same weight as the panel's resolved frame
+    // below.
     return (
-      <div className="rounded-md border border-divider-subtle bg-background-default p-4">
+      <div className="rounded-md border border-divider-regular bg-background-default p-4">
         <Skeleton className="mb-2 h-4 w-40" />
         <Skeleton className="h-3 w-72" />
       </div>
     )
   }
-  if (applicable.length === 0) return null
+  if (applicable.length === 0) {
+    // 2026-05-26 (Yuqi tab-body follow-ups, Task 2 / Fix #10):
+    // previously `return null` left the surrounding TabSection
+    // ("Suggested forms") with no body — the heading floated alone
+    // and a CPA couldn't tell whether the panel was loading, broken,
+    // or genuinely empty. Now we render the canonical EmptyState so
+    // the section reads cleanly as "nothing here yet, here's why."
+    return (
+      <EmptyState
+        icon={ClipboardCheckIcon}
+        title={<Trans>No applicable forms for this client</Trans>}
+        description={
+          <Trans>
+            No active rule in the catalog matches this client's entity type and filing jurisdiction.
+            Add a jurisdiction or check back after rule updates.
+          </Trans>
+        }
+      />
+    )
+  }
 
   function addDeadline(suggestion: SuggestedRule) {
     createMutation.mutate({
@@ -4916,7 +5051,13 @@ function SuggestedFormsCatalogPanel({
   }
 
   return (
-    <div className="rounded-md border border-divider-subtle bg-background-default">
+    // 2026-05-26 (Yuqi tab-body follow-ups, Task 3): outer frame
+    // border snapped from `border-divider-subtle` to the canonical
+    // `border-divider-regular` so the panel reads at the same
+    // tonal weight as the other section frames on this page
+    // (Filing plan year sections, Compliance posture, Risk profile,
+    // AI summary). page-family-canonical §9.
+    <div className="rounded-md border border-divider-regular bg-background-default">
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-medium text-text-primary">
