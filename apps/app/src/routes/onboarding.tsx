@@ -219,9 +219,14 @@ export function OnboardingRoute() {
         </Button>
       </form>
 
+      {/* 2026-05-26 (Step 6 UX audit #20): "Auto-saves" claim was a
+          lie — the form only saves on Continue. A first-time user
+          reading "Auto-saves" assumes mid-form network drops are
+          safe; they aren't. Replaced with "Saves on continue" which
+          truthfully describes the data-loss model. */}
       <p className="mt-4 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
         <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
-        <Trans>Encrypted · Auto-saves · Renamable later</Trans>
+        <Trans>Encrypted · Saves on continue · Renamable later</Trans>
       </p>
     </div>
   )

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLoaderData, useNavigate, useRevalidator, useSearchParams } from 'react-router'
+import { Link, useLoaderData, useNavigate, useRevalidator, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, Loader2Icon, MailIcon } from 'lucide-react'
@@ -121,8 +121,12 @@ export function AcceptInviteRoute() {
   }
 
   if (!id) {
+    // 2026-05-26 (Step 6 UX audit #9): without escape hatches, a
+    // user landing here with a broken invite link is stranded — no
+    // way to sign in normally, no way to go home. Surface both so
+    // the page never dead-ends.
     return (
-      <div className="flex w-full max-w-[420px] flex-col">
+      <div className="flex w-full max-w-[420px] flex-col gap-3">
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
@@ -132,6 +136,14 @@ export function AcceptInviteRoute() {
             <Trans>Ask the practice owner to send a new invitation.</Trans>
           </AlertDescription>
         </Alert>
+        <div className="flex flex-wrap gap-2">
+          <Button render={<Link to="/login" />}>
+            <Trans>Sign in</Trans>
+          </Button>
+          <Button variant="outline" render={<Link to="/" />}>
+            <Trans>Go to Today</Trans>
+          </Button>
+        </div>
       </div>
     )
   }

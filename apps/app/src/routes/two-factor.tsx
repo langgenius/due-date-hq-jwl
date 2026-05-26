@@ -69,14 +69,28 @@ export function TwoFactorRoute() {
                 value={code}
                 inputMode="numeric"
                 autoComplete="one-time-code"
+                autoFocus
+                aria-describedby="two-factor-code-helper"
                 onChange={(event) => setCode(event.target.value)}
               />
+              {/* 2026-05-26 (Step 6 UX audit #22, #23): inline helper
+                  text + autofocus. A user landing on the 2FA page
+                  expects the cursor to already be in the code field
+                  AND wants to know up-front that 6 digits are needed
+                  before the button stays disabled. */}
+              <p id="two-factor-code-helper" className="text-xs text-text-tertiary">
+                <Trans>6-digit code from your authenticator app.</Trans>
+              </p>
             </div>
             <Button type="submit" disabled={verifyMutation.isPending || code.trim().length < 6}>
               {verifyMutation.isPending ? (
                 <Loader2Icon className="size-4 animate-spin" aria-hidden />
               ) : null}
-              <Trans>Verify</Trans>
+              {/* 2026-05-26 (Step 6 UX audit #24): label switches to
+                  "Verifying…" while pending — matches the verb
+                  pattern used by every other submit-pending button in
+                  the app ("Saving…", "Creating…"). */}
+              {verifyMutation.isPending ? <Trans>Verifying…</Trans> : <Trans>Verify</Trans>}
             </Button>
           </form>
         </CardContent>
