@@ -1015,21 +1015,19 @@ function ActiveFilterChip({
   filter: Exclude<RowFilter, 'all'>
   onClear: () => void
 }) {
-  // 2026-05-26 (Yuqi step-8 data-finding audit — F-X11): chip labels +
-  // button labels now flow through useLingui. Previously these were raw
-  // English strings that the Lingui pipeline never extracted; zh-CN
-  // messages.po did not carry translations for them. The clear-button
-  // copy now reads "Clear filter" (singular) consistent with the active
-  // filter being a single state, and matches the verb-discipline used
-  // across the rest of the product.
+  // Step 6 cont R6.1/R6.2 + Step 8 F-X11: chip + button labels flow
+  // through useLingui so non-EN firms see translated copy. Kept the
+  // ternary shape (Step 6 cont) because the surrounding render reads
+  // `{label}` singular; Step 8's `labels` Record was added but its
+  // rendering reference was never updated, so it was inert.
   const { t } = useLingui()
-  const labels: Record<Exclude<RowFilter, 'all'>, string> = {
-    pending: t`Showing jurisdictions with pending rules`,
-    active: t`Showing jurisdictions with active rules`,
-  }
+  const label =
+    filter === 'pending'
+      ? t`Showing jurisdictions with pending rules`
+      : t`Showing jurisdictions with active rules`
   return (
     <div className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-state-accent-active-alt/40 bg-state-accent-tint/40 pr-1 pl-2.5 text-xs text-text-secondary">
-      <span>{labels[filter]}</span>
+      <span>{label}</span>
       <button
         type="button"
         onClick={onClear}
@@ -1976,12 +1974,16 @@ function RuleQueueModeToggle({
       onValueChange={(value) => onModeChange(value as RuleQueueMode)}
       className="!gap-0"
     >
+      {/* HEAD migrated to Tabs primitive (segmented control unification);
+          Step 6 cont R2.1 fixed the bug where the currently-selected
+          tab got disabled when its count hit zero. Applied R2.1's
+          guard `mode !== ...` to HEAD's Tabs primitive. */}
       <TabsList aria-label={t`Rule queue`} className="grid w-full grid-cols-2">
-        <TabsTrigger value="pending" disabled={pendingCount === 0}>
+        <TabsTrigger value="pending" disabled={pendingCount === 0 && mode !== 'pending'}>
           <Trans>Pending</Trans>
           <span className="text-caption tabular-nums text-text-tertiary">{pendingCount}</span>
         </TabsTrigger>
-        <TabsTrigger value="active" disabled={activeCount === 0}>
+        <TabsTrigger value="active" disabled={activeCount === 0 && mode !== 'active'}>
           <Trans>Active</Trans>
           <span className="text-caption tabular-nums text-text-tertiary">{activeCount}</span>
         </TabsTrigger>

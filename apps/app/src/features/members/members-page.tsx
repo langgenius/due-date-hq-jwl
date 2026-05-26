@@ -2,7 +2,8 @@ import { useState, type SyntheticEvent } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, EllipsisIcon, PlusIcon, ShieldCheckIcon } from 'lucide-react'
+import { AlertTriangleIcon, EllipsisIcon, Loader2, PlusIcon, ShieldCheckIcon } from 'lucide-react'
+import { toast } from 'sonner'
 import type {
   MemberInvitationPublic,
   MemberManagedRole,
@@ -73,6 +74,7 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
 import { RelativeTime } from '@/components/primitives/relative-time'
 import { orpc } from '@/lib/rpc'
+import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
   formatInvitationDate,
   invitationDescription,
@@ -1092,6 +1094,12 @@ function InviteMemberDialog({
       onSuccess: (next) => {
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
         void queryClient.invalidateQueries({ queryKey: membersKey })
+        // 2026-05-26 (step-6 ux-flow audit F6.1): the previous
+        // shape closed the dialog silently — the user had no
+        // confirmation the invite went out. Now toast.success
+        // names the invitee so the action lands.
+        const sentTo = email.trim()
+        toast.success(t`Invite sent to ${sentTo}`)
         setEmail('')
         setRole('manager')
         onOpenChange(false)
@@ -1163,9 +1171,20 @@ function InviteMemberDialog({
             </p>
           </div>
           {inviteMutation.isError ? (
-            <p role="alert" className="text-sm text-text-destructive">
-              {inviteMutation.error.message}
-            </p>
+            // 2026-05-26 (step-6 ux-flow audit F6.4): converted
+            // raw <p role=alert> to canonical Alert primitive +
+            // routed the message through rpcErrorMessage so the
+            // user gets a readable string instead of a raw RPC
+            // error code.
+            <Alert variant="destructive">
+              <AlertTitle>
+                <Trans>Couldn't send invite</Trans>
+              </AlertTitle>
+              <AlertDescription>
+                {rpcErrorMessage(inviteMutation.error) ??
+                  t`Check your network and try again. If this keeps happening, contact support.`}
+              </AlertDescription>
+            </Alert>
           ) : null}
           {seatsFull ? (
             <p id="members-seat-limit-note" role="alert" className="text-sm text-text-warning">
@@ -1173,15 +1192,21 @@ function InviteMemberDialog({
             </p>
           ) : null}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            {/* 2026-05-26 (step-6 ux-flow audit F6.2/F6.3): cancel
+                outline → ghost; send-invite announces aria-busy +
+                shows Loader2 spinner while pending. */}
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               <Trans>Cancel</Trans>
             </Button>
             <Button
               type="submit"
               variant="accent"
               disabled={seatsFull || inviteMutation.isPending}
-              aria-busy={inviteMutation.isPending || undefined}
+              aria-busy={inviteMutation.isPending}
             >
+              {inviteMutation.isPending ? (
+                <Loader2 data-icon="inline-start" className="animate-spin" />
+              ) : null}
               {inviteMutation.isPending ? <Trans>Sending…</Trans> : <Trans>Send invite</Trans>}
             </Button>
           </DialogFooter>

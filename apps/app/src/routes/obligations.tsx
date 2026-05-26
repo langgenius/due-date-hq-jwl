@@ -39,6 +39,7 @@ import {
   FileCheck,
   Hourglass,
   Loader,
+  Loader2,
   MessageSquareText,
   ArrowUpRightIcon,
   CalendarDaysIcon,
@@ -99,7 +100,7 @@ import {
   type ReadinessDocumentChecklistItemPublic,
   type ReadinessPreviewRequestEmailOutput,
 } from '@duedatehq/contracts'
-import { Alert, AlertDescription } from '@duedatehq/ui/components/ui/alert'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
@@ -3218,7 +3219,15 @@ export function ObligationQueueRoute() {
              */
             <FloatingActionBar ariaLabel={t`Bulk actions`}>
               <span className="text-xs font-medium tabular-nums text-text-primary">
-                <Plural value={selectedIds.length} one="# row selected" other="# rows selected" />
+                {/* 2026-05-26 (step-6 ux-flow audit Q4.1): "rows" is
+                    engineering-speak. CPAs say "deadlines". The prev
+                    audit shipped the toast fix but missed this
+                    counter chip. */}
+                <Plural
+                  value={selectedIds.length}
+                  one="# deadline selected"
+                  other="# deadlines selected"
+                />
               </span>
               <Separator orientation="vertical" className="mx-0.5 h-4" />
               <DropdownMenu>
@@ -3327,22 +3336,35 @@ export function ObligationQueueRoute() {
           ) : null}
 
           {isInitialLoading ? (
-            <EmptyPanel className="py-8 text-center">
-              <Trans>Loading deadlines…</Trans>
-            </EmptyPanel>
+            // Step 6 cont Q1.1/Q1.3: skeleton rows match the rest
+            // of the app's loading rhythm; role=status + aria-live
+            // for SR announce.
+            <div
+              role="status"
+              aria-live="polite"
+              aria-label={t`Loading deadlines`}
+              className="grid gap-2 rounded-md border border-divider-subtle bg-background-default p-3"
+            >
+              {Array.from({ length: 12 }).map((_, index) => (
+                <Skeleton key={index} className="h-8 w-full" />
+              ))}
+            </div>
           ) : isError ? (
-            // Step 1-5 reaudit migrated to Alert primitive; Step 6
-            // UX #147 swapped the bare-underline button for canonical
-            // `<Button variant="link">`. Both shipped here.
+            // Step 6 cont Q1.2: Alert primitive + Button-link retry
+            // with `disabled={isFetching}` so double-clicks don't
+            // double-fire.
             <Alert variant="destructive">
-              <AlertDescription>
-                <Trans>Couldn't load deadlines.</Trans>{' '}
+              <AlertTitle>
+                <Trans>Couldn't load deadlines.</Trans>
+              </AlertTitle>
+              <AlertDescription className="flex items-center gap-2">
+                <Trans>Check your network and try again.</Trans>
                 <Button
-                  type="button"
                   variant="link"
                   size="sm"
-                  className="h-auto p-0 align-baseline"
+                  className="h-auto p-0"
                   onClick={() => void listQuery.refetch()}
+                  disabled={listQuery.isFetching}
                 >
                   <Trans>Retry</Trans>
                 </Button>
@@ -4014,7 +4036,7 @@ export function ObligationQueueRoute() {
               <Trans>Export deadlines</Trans>
             </DialogTitle>
             <DialogDescription>
-              <Trans>Choose one option in each row. Export writes an audit event.</Trans>
+              <Trans>Pick a scope, format, and recipient.</Trans>
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
@@ -4058,22 +4080,34 @@ export function ObligationQueueRoute() {
                   onSelect={() => setExportScope('date_range')}
                 />
                 {exportScope === 'date_range' ? (
-                  <div className="grid gap-2 rounded-md border border-divider-subtle bg-background-subtle p-2 sm:grid-cols-2">
-                    <IsoDatePicker
-                      value={exportDateStart}
-                      invalid={!isValidIsoDate(exportDateStart)}
-                      ariaLabel={t`Export start date`}
-                      onValueChange={setExportDateStart}
-                    />
-                    <IsoDatePicker
-                      value={exportDateEnd}
-                      invalid={
-                        !isValidIsoDate(exportDateEnd) ||
-                        diffIsoDateDays(exportDateStart, exportDateEnd) < 0
-                      }
-                      ariaLabel={t`Export end date`}
-                      onValueChange={setExportDateEnd}
-                    />
+                  <div className="grid gap-2 rounded-md border border-divider-subtle bg-background-subtle p-2">
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <IsoDatePicker
+                        value={exportDateStart}
+                        invalid={!isValidIsoDate(exportDateStart)}
+                        ariaLabel={t`Export start date`}
+                        onValueChange={setExportDateStart}
+                      />
+                      <IsoDatePicker
+                        value={exportDateEnd}
+                        invalid={
+                          !isValidIsoDate(exportDateEnd) ||
+                          diffIsoDateDays(exportDateStart, exportDateEnd) < 0
+                        }
+                        ariaLabel={t`Export end date`}
+                        onValueChange={setExportDateEnd}
+                      />
+                    </div>
+                    {/* 2026-05-26 (step-6 ux-flow audit Q3.5): explain
+                        why the end date is invalid instead of just
+                        coloring it red. */}
+                    {isValidIsoDate(exportDateStart) &&
+                    isValidIsoDate(exportDateEnd) &&
+                    diffIsoDateDays(exportDateStart, exportDateEnd) < 0 ? (
+                      <p className="text-sm text-text-destructive" role="alert">
+                        <Trans>End date must be on or after the start date.</Trans>
+                      </p>
+                    ) : null}
                   </div>
                 ) : null}
               </div>
@@ -4155,6 +4189,13 @@ export function ObligationQueueRoute() {
             </ExportAxis>
 
             <ExportAxis label={t`Recipient`}>
+              {/* 2026-05-26 (step-6 ux-flow audit Q3.2): Email-to-self
+                  and Email-to-teammate were disabled options with
+                  apologetic copy. A list where 2/3 choices are dead
+                  reads as a half-built product. Hidden until the
+                  email pipeline lands — Download stays as the single
+                  live option. Restore the disabled-with-tooltip
+                  pattern once the backend mutation ships. */}
               <ExportAxisOption
                 selected={exportRecipient === 'download'}
                 icon={<DownloadIcon className="size-4" aria-hidden />}
@@ -4162,35 +4203,25 @@ export function ObligationQueueRoute() {
                 description={<Trans>Creates the file in this browser.</Trans>}
                 onSelect={() => setExportRecipient('download')}
               />
-              <ExportAxisOption
-                selected={exportRecipient === 'email_self'}
-                disabled
-                title={<Trans>Email to self</Trans>}
-                description={
-                  <Trans>Email delivery is not connected for deadline exports yet.</Trans>
-                }
-                onSelect={() => setExportRecipient('email_self')}
-              />
-              <ExportAxisOption
-                selected={exportRecipient === 'email_teammate'}
-                disabled
-                title={<Trans>Email to teammate</Trans>}
-                description={
-                  <Trans>Team recipient delivery will use the notification queue.</Trans>
-                }
-                onSelect={() => setExportRecipient('email_teammate')}
-              />
             </ExportAxis>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setExportModalOpen(false)}>
+            <Button variant="ghost" onClick={() => setExportModalOpen(false)}>
               <Trans>Cancel</Trans>
             </Button>
             <Button
               onClick={submitExport}
               disabled={exportMutation.isPending || !buildExportInput()}
+              aria-busy={exportMutation.isPending}
             >
-              {exportMutation.isPending ? <Trans>Exporting…</Trans> : <Trans>Export</Trans>}
+              {exportMutation.isPending ? (
+                <>
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Trans>Exporting…</Trans>
+                </>
+              ) : (
+                <Trans>Export</Trans>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -4202,15 +4233,25 @@ export function ObligationQueueRoute() {
               <Trans>Mark selected extended</Trans>
             </DialogTitle>
             <DialogDescription>
-              <Trans>The memo is stored on the audit trail for the bulk status change.</Trans>
+              {/* 2026-05-26 (step-6 ux-flow audit Q4.6): clarified
+                  that the memo is optional; if the user wants no
+                  audit-trail note they should know they can skip it. */}
+              <Trans>Add an optional memo to record why on the audit trail.</Trans>
             </DialogDescription>
           </DialogHeader>
-          <Textarea
-            aria-label={t`Extension memo`}
-            placeholder={t`Extension memo`}
-            value={extendedMemo}
-            onChange={(event) => setExtendedMemo(event.target.value)}
-          />
+          {/* 2026-05-26 (step-6 ux-flow audit Q4.5): visible label
+              for SR users (placeholder alone disappears on type). */}
+          <div className="grid gap-2">
+            <label htmlFor="extended-memo-textarea" className="text-sm font-medium">
+              <Trans>Memo</Trans>
+            </label>
+            <Textarea
+              id="extended-memo-textarea"
+              placeholder={t`e.g. Filed Form 7004 — client confirmed by phone`}
+              value={extendedMemo}
+              onChange={(event) => setExtendedMemo(event.target.value)}
+            />
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setExtendedMemoOpen(false)}>
               <Trans>Cancel</Trans>
@@ -4659,6 +4700,12 @@ export function ObligationQueueDetailDrawer({
   const legacyStatusLabels = useStatusLabels()
   const v2StatusLabels = useLifecycleV2StatusLabels()
   const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
+  // 2026-05-26 (step-6 ux-flow audit Q7.1): removed dead
+  // `_statusDropdownOptions` computation. The drawer-header status
+  // pill was retired and the dropdown-options value was being
+  // computed only to immediately `void` it. If the pill comes back,
+  // re-derive from LIFECYCLE_V2_STATUSES / ALL_STATUSES at that
+  // point — the cost is negligible.
   const [extensionDraft, setExtensionDraft] = useState({
     obligationId: '',
     memo: '',
@@ -7350,12 +7397,15 @@ function DeadlineInputRequestDialog({
   const { t } = useLingui()
   const selectedRecipient =
     recipients.find((recipient) => recipient.assigneeId === selectedRecipientUserId) ?? null
+  // 2026-05-26 (step-6 ux-flow audit Q6.3): keep role-specific
+  // labels — collapsing manager/preparer/coordinator to "Team
+  // member" hid information the rest of the app exposes.
   const roleLabels = {
     owner: t`Owner`,
     partner: t`Partner`,
-    manager: t`Team member`,
-    preparer: t`Team member`,
-    coordinator: t`Team member`,
+    manager: t`Manager`,
+    preparer: t`Preparer`,
+    coordinator: t`Coordinator`,
   } satisfies Record<MemberAssigneeOption['role'], string>
   const recipientTriggerText =
     selectedRecipient?.name ?? (loadingRecipients ? t`Loading team` : t`Choose recipient`)
@@ -7375,14 +7425,26 @@ function DeadlineInputRequestDialog({
         </DialogHeader>
         <div className="grid gap-4 px-6 py-5">
           <div className="grid gap-2">
-            <span className="text-sm font-medium text-text-primary">
+            {/* 2026-05-26 (step-6 ux-flow audit Q6.1): converted the
+                span "Recipient" tag to a real <label id> so the
+                DropdownMenuTrigger button can claim it via
+                aria-labelledby — SR users now hear "Recipient: Joe
+                Smith" instead of just the truncated trigger text. */}
+            <label
+              id="deadline-input-request-recipient-label"
+              className="text-sm font-medium text-text-primary"
+            >
               <Trans>Recipient</Trans>
-            </span>
+            </label>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
+                  // HEAD uses the canonical DropdownTriggerButton primitive
+                  // (post Step 1-5 reaudit). Step 6 cont's `aria-labelledby`
+                  // SR binding kept since the primitive accepts it.
                   <DropdownTriggerButton
                     size="lg"
+                    aria-labelledby="deadline-input-request-recipient-label"
                     disabled={loadingRecipients || recipients.length === 0}
                   >
                     <span className="truncate">{recipientTriggerText}</span>
@@ -7438,8 +7500,12 @@ function DeadlineInputRequestDialog({
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
             <Trans>Cancel</Trans>
           </Button>
-          <Button type="button" onClick={onSubmit} disabled={submitDisabled}>
-            <SendIcon data-icon="inline-start" />
+          <Button type="button" onClick={onSubmit} disabled={submitDisabled} aria-busy={submitting}>
+            {submitting ? (
+              <Loader2 data-icon="inline-start" className="animate-spin" />
+            ) : (
+              <SendIcon data-icon="inline-start" />
+            )}
             <Trans>Send request</Trans>
           </Button>
         </DialogFooter>
@@ -10587,29 +10653,58 @@ function PenaltyInputDialog({
             {row ? `${row.clientName} - ${formatTaxCode(row.taxType)}` : null}
           </DialogDescription>
         </DialogHeader>
+        {/* 2026-05-26 (step-6 ux-flow audit Q5.1/Q5.2): added real
+            <label> elements (placeholder alone disappears on type)
+            and inline helper text describing accepted formats. */}
         <div className="grid gap-3">
-          <Input
-            inputMode="decimal"
-            placeholder={t`Estimated tax due`}
-            value={draft.taxDue}
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, taxDue: event.target.value }))
-            }
-          />
-          <Input
-            inputMode="numeric"
-            placeholder={t`Owner count`}
-            value={draft.ownerCount}
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, ownerCount: event.target.value }))
-            }
-          />
+          <div className="grid gap-1.5">
+            <label htmlFor="penalty-tax-due" className="text-sm font-medium">
+              <Trans>Estimated tax due</Trans>
+            </label>
+            <Input
+              id="penalty-tax-due"
+              inputMode="decimal"
+              placeholder={t`e.g. 1,234.56`}
+              value={draft.taxDue}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, taxDue: event.target.value }))
+              }
+            />
+            <p className="text-xs text-text-tertiary">
+              <Trans>Dollars and cents.</Trans>
+            </p>
+          </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="penalty-owner-count" className="text-sm font-medium">
+              <Trans>Owner count</Trans>
+            </label>
+            <Input
+              id="penalty-owner-count"
+              inputMode="numeric"
+              placeholder={t`e.g. 2`}
+              value={draft.ownerCount}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, ownerCount: event.target.value }))
+              }
+            />
+            <p className="text-xs text-text-tertiary">
+              <Trans>Positive whole number.</Trans>
+            </p>
+          </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             <Trans>Cancel</Trans>
           </Button>
-          <Button onClick={save} disabled={mutation.isPending}>
+          {/* 2026-05-26 (step-6 ux-flow audit Q5.3): disable save
+              when both inputs are empty (no-op write polluted the
+              audit log). */}
+          <Button
+            onClick={save}
+            disabled={
+              mutation.isPending || (draft.taxDue.trim() === '' && draft.ownerCount.trim() === '')
+            }
+          >
             <Trans>Save changes</Trans>
           </Button>
         </DialogFooter>
@@ -11017,7 +11112,11 @@ function CalendarSyncPopover() {
                 size="sm"
                 onClick={() => upsertMutation.mutate({ scope: 'my', privacyMode: 'full' })}
                 disabled={upsertMutation.isPending}
+                aria-busy={upsertMutation.isPending}
               >
+                {upsertMutation.isPending ? (
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                ) : null}
                 <Trans>Enable subscription</Trans>
               </Button>
             </div>
