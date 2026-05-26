@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, HistoryIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
@@ -317,11 +317,17 @@ export function ClientsRoute() {
           <span className="inline-flex items-center gap-2">
             <Trans>Clients</Trans>
             {/* 2026-05-23: count chip next to the title gives a one-glance
-                "how many clients does this firm manage?" signal. Reads the
-                full unfiltered list (not the filtered subset) so it stays
-                stable as the user toggles action-strip chips. */}
+                "how many clients does this firm manage?" signal.
+                2026-05-26 (Yuqi /clients directory pivot brief): chip
+                copy drops the word "Client(s)" — the title already
+                says "Clients", a chip saying "47 Clients" reads as
+                repetitive. Matches the canonical title-chip pattern
+                (page-family-canonical §3) where the chip carries a
+                qualifier number only ("47") or noun+number when the
+                noun differs from the title (e.g. "17 open" on
+                /deadlines). */}
             <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium text-text-secondary tabular-nums">
-              <Plural value={clients.length} one="# Client" other="# Clients" />
+              {clients.length}
             </span>
           </span>
         }

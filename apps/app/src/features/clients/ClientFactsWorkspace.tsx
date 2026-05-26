@@ -321,24 +321,6 @@ function getOtherFilingStates(client: ClientPublic): string[] {
 }
 
 /**
- * Count of unique tax-type services the practice manages for this
- * client. Sums distinct tax codes across all filing profiles — a
- * single 1065 in CA + a single 1065 in NY counts as one service
- * (same form), so the number reads as scope-of-work, not row count.
- * Differs from `openCount` (in-flight obligations) on purpose: a
- * client can have 8 services and only 2 open this week.
- */
-function getClientServicesCount(client: ClientPublic): number {
-  const taxTypes = new Set<string>()
-  for (const profile of client.filingProfiles) {
-    for (const taxType of profile.taxTypes) {
-      if (taxType) taxTypes.add(taxType)
-    }
-  }
-  return taxTypes.size
-}
-
-/**
  * Single-line urgency label for the Next-due column in the clients
  * list. Replaces the previous 3-line composite cell (date + form +
  * readiness chip) flagged as "三行不友好" in the design review.
@@ -650,7 +632,11 @@ export function ClientFactsWorkspace({
   onEntityFilterChange,
   onStateFilterChange,
   onOwnerFilterChange,
-  onPulseFilterChange,
+  // 2026-05-26 (Yuqi /clients directory pivot brief): retired
+  // `onPulseFilterChange` consumer (was driving the Pulse hits
+  // StatTile click). Prop still typed for caller stability; will
+  // be removed end-to-end in a follow-up cleanup pass when the
+  // route's `handlePulseFilterChange` retires too.
   onImport,
   canImport,
 }: ClientFactsWorkspaceProps) {
@@ -957,33 +943,13 @@ export function ClientFactsWorkspace({
           cellClassName: 'w-[200px]',
         },
       },
-      {
-        id: 'servicesCount',
-        header: () => <span className="block text-right">{t`Services`}</span>,
-        cell: ({ row }) => {
-          const count = getClientServicesCount(row.original)
-          if (count === 0) {
-            return <span className="block text-right text-text-tertiary tabular-nums">—</span>
-          }
-          // Plain count — sum of unique tax types across filing
-          // profiles. No deep-link here because the destination is
-          // ambiguous (rules library? filing plan tab?); the row's
-          // own click handler opens the client detail, which is the
-          // right place to see services in context.
-          return (
-            <span
-              className="block text-right font-mono tabular-nums text-text-primary"
-              title={t`${count} tax-type services managed for this client`}
-            >
-              {count}
-            </span>
-          )
-        },
-        meta: {
-          headerClassName: 'w-[90px] text-right',
-          cellClassName: 'w-[90px] text-right',
-        },
-      },
+      // 2026-05-26 (Yuqi /clients directory pivot brief): `Services`
+      // column retired entirely. It rendered "—" for every typical
+      // firm (services counts are derivable from filing profiles
+      // which most firms don't fully fill in for the seed workflow),
+      // training the eye to scan past data. Removed end-to-end —
+      // `getClientServicesCount` helper also removed since this was
+      // its only consumer.
       {
         id: 'openObligations',
         header: ({ column }) => (
@@ -1035,10 +1001,18 @@ export function ClientFactsWorkspace({
         // (we don't have a routed view for closed obligations yet; the
         // client detail's Activity tab is the right destination when
         // we add that link).
+        // 2026-05-26 (Yuqi /clients directory pivot brief): renamed
+        // `Done` → `Filed YTD`. "Done" was ambiguous (filed?
+        // completed? all closed states?); "Filed YTD" rescopes the
+        // column to the YTD-filed slice the CPA actually wants to
+        // see at a glance. Cell rendering + sortingFn unchanged —
+        // the underlying `doneCount` already represents filed +
+        // closed-out terminal-state obligations, which is what
+        // "filed YTD" means in practice.
         id: 'doneObligations',
         header: ({ column }) => (
           <ColumnSortHeader
-            label={t`Done`}
+            label={t`Filed YTD`}
             sortState={column.getIsSorted()}
             onToggle={() => column.toggleSorting()}
             align="right"
@@ -1058,7 +1032,7 @@ export function ClientFactsWorkspace({
           return (
             <span
               className="block text-right tabular-nums text-text-secondary"
-              title={t`${count} filed or closed-out deadlines for this client`}
+              title={t`${count} deadlines filed or closed-out this year`}
             >
               {count}
             </span>
@@ -1119,26 +1093,14 @@ export function ClientFactsWorkspace({
     ],
   )
 
-  // Action-strip chip filters — local to this surface so they're not
-  // entangled with the URL state. Click "8 at risk" / "1 waiting on
-  // client" to narrow the table; click again to clear. The chips
-  // render with `active` state so the CPA sees which filter is on.
-  // Pulse hits + missing facts still route through the URL-backed
-  // parent filters (onPulseFilterChange / onReadinessFilterChange) so
-  // deep links continue to work for those.
-  const [atRiskActive, setAtRiskActive] = useState(false)
-  const [waitingActive, setWaitingActive] = useState(false)
-
-  const visibleClients = useMemo(() => {
-    if (!atRiskActive && !waitingActive) return filteredClients
-    return filteredClients.filter((client) => {
-      const summary = obligationSummariesByClient.get(client.id)
-      if (!summary) return false
-      if (atRiskActive && summary.overdueCount === 0) return false
-      if (waitingActive && summary.waitingOnClientCount === 0) return false
-      return true
-    })
-  }, [filteredClients, atRiskActive, waitingActive, obligationSummariesByClient])
+  // 2026-05-26 (Yuqi /clients directory pivot brief): the local
+  // `atRiskActive`/`waitingActive` state + the `visibleClients`
+  // narrowing memo were driven by the StatTile strip toggle. The
+  // strip retired (triage signals belong on /today + /deadlines);
+  // the local narrowing it powered also retires. The table now
+  // consumes `filteredClients` directly — URL-backed filters
+  // (states / entity / owner / search) are the only narrowing
+  // controls on /clients.
 
   // 2026-05-23: column sort state for the new sort-arrow indicators
   // (CLIENT / STATES / ENTITY / NEXT DUE / OPEN / DONE). Default sort
@@ -1147,7 +1109,7 @@ export function ClientFactsWorkspace({
   // "show me by ___" gesture) rather than something to deep-link.
   const [sorting, setSorting] = useState<SortingState>([])
   const table = useReactTable({
-    data: visibleClients,
+    data: filteredClients,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -1164,7 +1126,13 @@ export function ClientFactsWorkspace({
     // wasted columns that otherwise train the eye to scan past data.
     initialState: {
       columnVisibility: {
-        servicesCount: false,
+        // 2026-05-26 (Yuqi /clients directory pivot brief): `Opp.` (opportunities)
+        // demoted to hidden-by-default. The directory's primary job is find-and-open;
+        // an opportunity count earns its visual weight only when surfaced via the
+        // column-toggle UI for the rare CPA who actively triages opportunities here.
+        // `servicesCount` column was retired entirely (the cell rendered "—" for
+        // every typical firm and trained the eye to skip data).
+        opportunities: false,
       },
       pagination: {
         // 25-row pages — covers single-page rendering for most small/
@@ -1211,14 +1179,7 @@ export function ClientFactsWorkspace({
       <ClientsActionStrip
         isLoading={isLoading}
         needsFactsCount={factsModel.summary.needsFacts}
-        obligationSummariesByClient={obligationSummariesByClient}
-        pulseHitCount={pulseMatchesByClient.size}
-        atRiskActive={atRiskActive}
-        waitingActive={waitingActive}
         onFixNeedsFacts={() => setFixNeedsFactsOpen(true)}
-        onToggleAtRisk={() => setAtRiskActive((prev) => !prev)}
-        onToggleWaiting={() => setWaitingActive((prev) => !prev)}
-        onOpenPulseHits={() => onPulseFilterChange(['affected'])}
       />
 
       <FixNeedsFactsSheet
@@ -1515,204 +1476,51 @@ function ClientsFilterToolbar({
 function ClientsActionStrip({
   isLoading,
   needsFactsCount,
-  obligationSummariesByClient,
-  pulseHitCount,
-  atRiskActive,
-  waitingActive,
   onFixNeedsFacts,
-  onToggleAtRisk,
-  onToggleWaiting,
-  onOpenPulseHits,
 }: {
   isLoading: boolean
   needsFactsCount: number
-  obligationSummariesByClient: ReadonlyMap<string, ClientObligationListSummary>
-  pulseHitCount: number
-  atRiskActive: boolean
-  waitingActive: boolean
   onFixNeedsFacts: () => void
-  onToggleAtRisk: () => void
-  onToggleWaiting: () => void
-  onOpenPulseHits: () => void
 }) {
-  const { t } = useLingui()
-  const { atRiskCount, waitingOnClientCount } = useMemo(() => {
-    let atRisk = 0
-    let waiting = 0
-    for (const summary of obligationSummariesByClient.values()) {
-      if (summary.overdueCount > 0) atRisk += 1
-      if (summary.waitingOnClientCount > 0) waiting += 1
-    }
-    return { atRiskCount: atRisk, waitingOnClientCount: waiting }
-  }, [obligationSummariesByClient])
-
-  // 2026-05-25 (Yuqi /clients #9): retired the SurfaceSummaryStrip
-  // (4 dot-separated counts in one line) in favor of three card
-  // tiles matching the rule library's StatTile pattern. Each tile is
-  // a discrete surface; the eye finds them as distinct items rather
-  // than as run-on prose. Missing-facts moves entirely into the
-  // banner above (it was duplicated in both the strip and the
-  // banner) — banner now carries that single CTA cleanly.
+  // 2026-05-26 (Yuqi /clients directory pivot brief): the 3-tile
+  // StatTile strip (At risk / Waiting on client / Pulse hits) is
+  // retired. /clients is now a directory-first surface; the
+  // triage signals belong on /today and /deadlines where
+  // dollar-exposure context is also present. The needs-facts
+  // banner stays — it's actionable setup work specific to the
+  // directory itself, not a triage tile.
   const hasBanner = needsFactsCount > 0
-  const hasAnyMetric =
-    atRiskCount > 0 || waitingOnClientCount > 0 || pulseHitCount > 0 || needsFactsCount > 0
   if (isLoading) return <ClientsActionStripSkeleton />
-  if (!hasBanner && !hasAnyMetric && !isLoading) return null
+  if (!hasBanner) return null
 
   return (
-    // 2026-05-25 (Yuqi /clients #4): wrapper gap-3 → gap-2 so the
-    // strip below the banner sits 8px below instead of 12px. The
-    // banner + cards now read as one related cluster, not two
-    // separate sections.
-    <div className="flex flex-col gap-2">
-      {hasBanner ? (
-        // 2026-05-25 (Yuqi /clients fifth pass #1, #2): banner
-        // cleaned up. Dropped the 3px amber left rail (#2 — Yuqi
-        // explicitly: "remove the left stroke") AND the heavier
-        // shadow ring. Banner now sits at the standard
-        // `variant="warning"` weight — the amber bg alone is
-        // already a real callout against a white page. Drop the
-        // dotted underline + font-medium prose styling on the
-        // message so the banner reads as one cohesive amber
-        // block, not an underlined-link in a tinted box. Fix-now
-        // button switches to `variant="destructive"` (#1 — Yuqi
-        // "Fix now can be in red") — semantically appropriate
-        // since missing facts means the rule library is silently
-        // skipping these clients, which IS a destructive
-        // outcome until the CPA fixes it.
-        <Alert
-          variant="warning"
-          className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <div className="flex items-start gap-2">
-            <AlertTriangleIcon className="size-4 shrink-0 text-severity-medium" aria-hidden />
-            <AlertDescription className="text-text-primary">
-              <Plural
-                value={needsFactsCount}
-                one="# client is missing state or entity type — the rule library is skipping it."
-                other="# clients are missing state or entity type — the rule library is skipping them."
-              />
-            </AlertDescription>
-          </div>
-          <Button type="button" size="sm" variant="destructive" onClick={onFixNeedsFacts}>
-            <Trans>Fix now</Trans>
-          </Button>
-        </Alert>
-      ) : null}
-      {/* 2026-05-25 (Yuqi /clients fifth pass #3): tile sublabels
-          dropped to match the rule library StatTile exactly —
-          rule library only shows label + value (sublabel reserved
-          for the Watched-tile paused count). The /clients tiles
-          were carrying "overdue obligation" / "client owes docs"
-          / "client flagged by a Pulse alert" sublabels that
-          duplicated what the tile label already said and made
-          the tile rows visually heavier than the rule library
-          row. Now: label + value only. */}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <ClientsStatTile
-          label={t`At risk`}
-          value={atRiskCount}
-          tone="destructive"
-          active={atRiskActive}
-          {...(atRiskCount > 0 || atRiskActive ? { onClick: onToggleAtRisk } : {})}
-        />
-        <ClientsStatTile
-          label={t`Waiting on client`}
-          value={waitingOnClientCount}
-          tone="warning"
-          active={waitingActive}
-          {...(waitingOnClientCount > 0 || waitingActive ? { onClick: onToggleWaiting } : {})}
-        />
-        <ClientsStatTile
-          label={t`Pulse hits`}
-          value={pulseHitCount}
-          tone="review"
-          {...(pulseHitCount > 0 ? { onClick: onOpenPulseHits } : {})}
-        />
+    <Alert
+      variant="warning"
+      className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div className="flex items-start gap-2">
+        <AlertTriangleIcon className="size-4 shrink-0 text-severity-medium" aria-hidden />
+        <AlertDescription className="text-text-primary">
+          <Plural
+            value={needsFactsCount}
+            one="# client is missing state or entity type — the rule library is skipping it."
+            other="# clients are missing state or entity type — the rule library is skipping them."
+          />
+        </AlertDescription>
       </div>
-    </div>
+      <Button type="button" size="sm" variant="destructive" onClick={onFixNeedsFacts}>
+        <Trans>Fix now</Trans>
+      </Button>
+    </Alert>
   )
 }
 
+// 2026-05-26 (Yuqi /clients directory pivot brief): skeleton scoped
+// to the needs-facts banner only. The 3-tile skeleton retired with
+// the StatTile strip. `ClientsStatTile` + `ClientsStatTileSkeleton`
+// also retired — they were only used by the strip.
 function ClientsActionStripSkeleton() {
-  return (
-    <div className="flex flex-col gap-2" aria-busy="true">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <ClientsStatTileSkeleton />
-        <ClientsStatTileSkeleton />
-        <ClientsStatTileSkeleton />
-      </div>
-    </div>
-  )
-}
-
-// 2026-05-25 (Yuqi /clients #9): stat-tile primitive scoped to the
-// /clients action strip. Mirrors the rule library's StatTile shape
-// (uppercase caption label, big tabular number, optional subline)
-// but adds the `active` pressed-state visual that the strip's
-// filter chips relied on. Each tile can be inert, link, or button.
-function ClientsStatTile({
-  label,
-  value,
-  tone,
-  onClick,
-  active = false,
-}: {
-  label: string
-  value: number
-  tone: 'destructive' | 'warning' | 'review'
-  onClick?: () => void
-  active?: boolean
-}) {
-  const valueColor =
-    value === 0
-      ? 'text-text-muted'
-      : tone === 'destructive'
-        ? 'text-text-destructive'
-        : tone === 'warning'
-          ? 'text-text-warning'
-          : 'text-status-review'
-  const inner = (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
-        {label}
-      </span>
-      <div className="flex items-baseline gap-2">
-        <span className={cn('text-xl font-semibold tabular-nums', valueColor)}>{value}</span>
-      </div>
-    </div>
-  )
-  if (onClick) {
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        aria-pressed={active || undefined}
-        className={cn(
-          'inline-flex flex-col rounded-md border border-divider-subtle bg-background-default px-3 py-2 text-left transition-colors',
-          'hover:border-divider-regular hover:bg-state-base-hover',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-          active && 'border-state-accent-solid bg-state-accent-hover hover:bg-state-accent-hover',
-        )}
-      >
-        {inner}
-      </button>
-    )
-  }
-  return (
-    <div className="inline-flex flex-col rounded-md border border-divider-subtle bg-background-default px-3 py-2">
-      {inner}
-    </div>
-  )
-}
-
-function ClientsStatTileSkeleton() {
-  return (
-    <div className="inline-flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-default px-3 py-2">
-      <Skeleton className="h-3 w-24" />
-      <Skeleton className="h-6 w-8" />
-    </div>
-  )
+  return <Skeleton className="h-10 w-full" aria-busy="true" />
 }
 
 function ClientTableSkeleton() {
