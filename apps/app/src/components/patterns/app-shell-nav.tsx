@@ -428,7 +428,7 @@ function AddFirmDialog({
         {!canCreate ? (
           <div className="grid gap-4">
             <div className="rounded-md border border-divider-regular bg-background-subtle p-4">
-              <p className="font-mono text-xs uppercase tracking-[0.08em] text-text-tertiary">
+              <p className="text-xs uppercase tracking-[0.08em] text-text-tertiary">
                 <Trans>Practice workspaces</Trans>
               </p>
               <p className="mt-2 text-sm font-medium text-text-primary">
@@ -491,7 +491,7 @@ function AddFirmDialog({
                   setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
                 }
                 disabled={createMutation.isPending}
-                className="font-mono tabular-nums"
+                className="tabular-nums"
               />
               <p className="text-xs text-text-tertiary">
                 <Trans>Show work as due this many days before the statutory deadline.</Trans>
@@ -945,7 +945,7 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
               {item.tag ? (
                 <span
                   data-slot="sidebar-menu-tag"
-                  className="ml-auto font-mono text-xs tabular-nums text-text-muted"
+                  className="ml-auto text-xs tabular-nums text-text-muted"
                 >
                   {item.tag}
                 </span>

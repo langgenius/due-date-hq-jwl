@@ -1968,7 +1968,7 @@ export function ObligationQueueRoute() {
           const state = info.getValue<string | null>()
           if (!state) return <span className="text-text-tertiary">—</span>
           return (
-            <span className="inline-flex items-center gap-1.5 font-mono tabular-nums text-text-secondary">
+            <span className="inline-flex items-center gap-1.5 tabular-nums text-text-secondary">
               <StateBadge code={state} size="xs" aria-hidden />
               <span>{state}</span>
             </span>
@@ -7004,7 +7004,7 @@ export function ObligationQueueDetailDrawer({
                         <Trans>Workpapers</Trans>
                       </h3>
                       {detail.evidence.length > 0 ? (
-                        <span className="font-mono text-xs tabular-nums text-text-tertiary">
+                        <span className="text-xs tabular-nums text-text-tertiary">
                           {detail.evidence.length}
                         </span>
                       ) : null}
@@ -7246,7 +7246,7 @@ export function ObligationQueueDetailDrawer({
             <span>
               <Trans>Last updated</Trans>
             </span>
-            <span className="font-mono tabular-nums">
+            <span className="tabular-nums">
               {formatDateTimeWithTimezone(row.updatedAt, practiceTimezone)}
             </span>
           </span>
@@ -8872,7 +8872,7 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
       >
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
           <CheckCircle2Icon className="size-4 shrink-0 text-text-success" aria-hidden />
-          <span className="font-mono tabular-nums text-text-primary">{formatDate(filingIso)}</span>
+          <span className="tabular-nums text-text-primary">{formatDate(filingIso)}</span>
           {filingDays !== null && filingDays !== 0 ? (
             <>
               <span aria-hidden className="text-text-tertiary">

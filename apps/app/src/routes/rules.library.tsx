@@ -1159,7 +1159,7 @@ export function RulesLibraryRoute() {
           </Button>
           <Button size="sm" onClick={startReviewAll}>
             <Trans>Start review</Trans>
-            <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 font-mono text-xs tabular-nums text-text-accent">
+            <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 text-xs tabular-nums text-text-accent">
               {reviewCount}
             </span>
           </Button>
@@ -2539,7 +2539,7 @@ function GroupHeaderRow({
           />
           <span className="inline-flex items-center gap-1.5">
             <StateBadge code={group.jurisdiction} size="xs" title={group.jurisdiction} />
-            <span className="font-mono text-caption-xs uppercase tracking-wider text-text-secondary">
+            <span className="text-caption-xs uppercase tracking-wider text-text-secondary">
               {group.jurisdiction}
             </span>
           </span>
@@ -3264,14 +3264,14 @@ function RuleDetailKicker({ rule }: { rule: ObligationRule }) {
     <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
       <span className="inline-flex items-center gap-1.5">
         <StateBadge code={rule.jurisdiction} size="xs" title={rule.jurisdiction} />
-        <span className="font-mono text-caption-xs uppercase tracking-wider text-text-secondary">
+        <span className="text-caption-xs uppercase tracking-wider text-text-secondary">
           {rule.jurisdiction}
         </span>
       </span>
       <span aria-hidden>·</span>
       <span className="font-medium text-text-secondary">{rule.formName}</span>
       <span aria-hidden>·</span>
-      <span className="font-mono tabular-nums">
+      <span className="tabular-nums">
         <Trans>TY {rule.taxYear}</Trans>
         {rule.taxYear !== rule.applicableYear ? `–${rule.applicableYear}` : ''}
       </span>
@@ -3531,7 +3531,7 @@ function BatchReviewModal({
               review header; keeping both in normal flow reserves
               space for the count and the close affordance. */}
           <div className="flex shrink-0 items-center gap-2">
-            <span className="font-mono text-xs tabular-nums text-text-tertiary">
+            <span className="text-xs tabular-nums text-text-tertiary">
               <span className="text-text-secondary">{currentIndex + 1}</span> / {total}
             </span>
             <Button
