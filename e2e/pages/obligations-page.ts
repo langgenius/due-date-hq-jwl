@@ -2,11 +2,11 @@ import type { Locator, Page } from '@playwright/test'
 
 export class ObligationQueuePage {
   readonly heading: Locator
+  readonly searchButton: Locator
   readonly searchInput: Locator
-  readonly resetButton: Locator
+  readonly clearSearchButton: Locator
   readonly dueSortButton: Locator
   readonly statusFilterTrigger: Locator
-  readonly savedViewsButton: Locator
   // Calendar sync is now an in-place popover button on the Deadlines page
   // (it used to be a link to /deadlines/calendar). The dedicated route
   // still exists and is reachable via ⌘K → "Calendar sync".
@@ -15,17 +15,24 @@ export class ObligationQueuePage {
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Deadlines' })
-    this.searchInput = page.getByLabel('Search deadlines')
-    this.resetButton = page.getByRole('button', { name: 'Reset' })
-    this.dueSortButton = page.getByRole('button', { name: 'Sort Due' })
+    this.searchButton = page.getByRole('button', { name: 'Filter clients' })
+    this.searchInput = page.getByLabel('Filter deadlines')
+    this.clearSearchButton = page.getByRole('button', { name: 'Clear search' })
+    this.dueSortButton = page.getByRole('button', { name: 'Sort Internal Due' })
     this.statusFilterTrigger = page.getByRole('button', { name: /^Status(?:\s+\d+)?$/ })
-    this.savedViewsButton = page.getByRole('button', { name: 'Saved views' })
     this.calendarSyncButton = page.getByRole('button', { name: 'Calendar sync' })
     this.columnsButton = page.getByRole('button', { name: 'Columns' })
   }
 
   async goto(path = '/deadlines') {
     await this.page.goto(path)
+  }
+
+  async search(query: string) {
+    if (!(await this.searchInput.isVisible({ timeout: 250 }).catch(() => false))) {
+      await this.searchButton.click()
+    }
+    await this.searchInput.fill(query)
   }
 
   async openStatusFilter() {
@@ -54,10 +61,6 @@ export class ObligationQueuePage {
 
   selectRow(clientName: string) {
     return this.page.getByLabel(`Select ${clientName}`)
-  }
-
-  savedViewMenuItem(name: string) {
-    return this.page.getByRole('menuitem', { name })
   }
 
   columnVisibilityOption(name: string) {

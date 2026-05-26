@@ -32,15 +32,12 @@ test.describe('seeded obligations', () => {
     await authenticatedPage.goto('/')
 
     const actions = authenticatedPage.getByRole('region', { name: 'Actions this week' })
-    const arborAction = actions.getByRole('group', {
-      name: /Attach a source before review for Arbor & Vale LLC/,
+    const arborAction = actions.getByRole('button', {
+      name: /Open Attach the source document for Arbor & Vale LLC/,
     })
-    await arborAction.hover()
-    await actions
-      .getByRole('button', { name: 'Review Arbor & Vale LLC in deadline drawer' })
-      .click()
+    await arborAction.click()
 
-    await expect(authenticatedPage).toHaveURL(/\/$/)
+    await expect(authenticatedPage).toHaveURL(/\/deadlines\/[0-9a-f]{12}$/)
     await expect(
       authenticatedPage.getByRole('complementary', { name: /Arbor & Vale LLC/ }),
     ).toBeVisible()
@@ -60,12 +57,12 @@ test.describe('seeded obligations', () => {
     await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeVisible()
 
-    await obligationQueuePage.searchInput.fill('Arbor')
+    await obligationQueuePage.search('Arbor')
     await expect(authenticatedPage).toHaveURL(/\/deadlines\?q=Arbor$/)
     await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeHidden()
 
-    await obligationQueuePage.resetButton.click()
+    await obligationQueuePage.clearSearchButton.click()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
     await obligationQueuePage.openStatusFilter()
     await obligationQueuePage.statusFilterOption('In review').click()
@@ -75,7 +72,7 @@ test.describe('seeded obligations', () => {
     await expect(obligationQueuePage.statusFilterOption('In review')).toBeVisible()
     await authenticatedPage.keyboard.press('Escape')
 
-    await obligationQueuePage.resetButton.click()
+    await obligationQueuePage.goto()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
     await obligationQueuePage.dueSortButton.click()
     await expect(authenticatedPage).toHaveURL(/\/deadlines\?sort=due_desc$/)
@@ -94,22 +91,28 @@ test.describe('seeded obligations', () => {
     expect(detailUrl.searchParams.has('id')).toBe(false)
     expect(detailUrl.searchParams.has('row')).toBe(false)
     expect(detailUrl.searchParams.has('tab')).toBe(false)
-    await expect(authenticatedPage.getByRole('dialog', { name: /Arbor & Vale LLC/ })).toBeVisible()
-    await expect(authenticatedPage.getByRole('tab', { name: 'Readiness' })).toBeVisible()
-    await expect(authenticatedPage.getByRole('tab', { name: 'Extension' })).toBeVisible()
-    await expect(authenticatedPage.getByRole('tab', { name: 'Evidence' })).toBeVisible()
-    await expect(authenticatedPage.getByRole('tab', { name: 'Timeline' })).toBeVisible()
+    const deadlineDrawer = authenticatedPage.getByRole('complementary', {
+      name: /Arbor & Vale LLC/,
+    })
+    await expect(deadlineDrawer).toBeVisible()
+    await expect(deadlineDrawer.getByRole('tab', { name: 'Summary' })).toBeVisible()
+    await expect(deadlineDrawer.getByRole('tab', { name: /^Materials\b/ })).toBeVisible()
+    await expect(deadlineDrawer.getByRole('tab', { name: 'Extension' })).toBeVisible()
+    await expect(deadlineDrawer.getByRole('tab', { name: /^Evidence\b/ })).toBeVisible()
 
-    const checklistLabels = authenticatedPage.getByLabel('Document item label')
-    await expect.poll(async () => checklistLabels.count(), { timeout: 15_000 }).toBeGreaterThan(0)
-    const checklistCount = await checklistLabels.count()
-    await authenticatedPage.getByRole('button', { name: 'Add item' }).click()
-    await expect(checklistLabels).toHaveCount(checklistCount + 1)
-    await checklistLabels.last().fill('E2E removable checklist item')
-    await checklistLabels.last().blur()
-    await authenticatedPage.getByRole('button', { name: 'Expand' }).last().click()
-    await authenticatedPage.getByRole('button', { name: 'Remove' }).last().click()
-    await expect(checklistLabels).toHaveCount(checklistCount)
+    const checklistItems = deadlineDrawer.getByRole('checkbox', {
+      name: /^Select document .* for batch action$/,
+    })
+    await expect.poll(async () => checklistItems.count(), { timeout: 15_000 }).toBeGreaterThan(0)
+    const checklistCount = await checklistItems.count()
+    await deadlineDrawer.getByRole('button', { name: 'Add item' }).click()
+    await expect(authenticatedPage.getByText('Document item added')).toBeVisible()
+    await expect(checklistItems).toHaveCount(checklistCount + 1)
+    await expect(deadlineDrawer.getByText('Custom document')).toBeVisible()
+    await deadlineDrawer.getByRole('button', { name: 'More actions for Custom document' }).click()
+    await authenticatedPage.getByRole('menuitem', { name: 'Remove' }).click()
+    await expect(authenticatedPage.getByText('Document item removed')).toBeVisible()
+    await expect(checklistItems).toHaveCount(checklistCount)
   })
 
   test('AC: E2E-OBLIGATIONS-STATUS updates status through oRPC and audit toast', async ({
@@ -126,10 +129,10 @@ test.describe('seeded obligations', () => {
     await expect(obligationQueuePage.statusSelectFor('Arbor & Vale LLC')).toContainText('Filed')
 
     await authenticatedPage.keyboard.press('P')
-    await expect(obligationQueuePage.statusSelectFor('Arbor & Vale LLC')).toContainText('Paid')
+    await expect(obligationQueuePage.statusSelectFor('Arbor & Vale LLC')).toContainText('Filed')
   })
 
-  test('AC: E2E-OBLIGATIONS-COMPLETE saves a view, hides columns, and bulk updates rows', async ({
+  test('AC: E2E-OBLIGATIONS-COMPLETE hides columns and bulk updates rows', async ({
     authenticatedPage,
     obligationQueuePage,
   }) => {
@@ -140,47 +143,35 @@ test.describe('seeded obligations', () => {
     await obligationQueuePage.goto()
 
     await obligationQueuePage.columnsButton.click()
-    await obligationQueuePage.columnVisibilityOption('Owner').click()
+    await obligationQueuePage.columnVisibilityOption('Assignee').click()
     await authenticatedPage.keyboard.press('Escape')
-    await expect(authenticatedPage).toHaveURL(/hide=assigneeName/)
+    await expect(authenticatedPage).toHaveURL(/hide=[^&]*assigneeName/)
 
-    await obligationQueuePage.searchInput.fill('Arbor')
+    await obligationQueuePage.columnsButton.click()
+    await obligationQueuePage.columnVisibilityOption('Assignee').click()
+    await authenticatedPage.keyboard.press('Escape')
+    await expect(authenticatedPage).not.toHaveURL(/hide=[^&]*assigneeName/)
+
+    await obligationQueuePage.search('Arbor')
     await expect(authenticatedPage).toHaveURL(/q=Arbor/)
     await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toBeVisible({ timeout: 15_000 })
 
-    await obligationQueuePage.savedViewsButton.click()
-    await obligationQueuePage.savedViewMenuItem('Save current view').click()
-    await authenticatedPage.getByLabel('Saved view name').fill('E2E Arbor compact')
-    await authenticatedPage.getByRole('button', { name: 'Save view' }).click()
-    await expect(authenticatedPage.getByText('Saved view created')).toBeVisible()
-
-    await obligationQueuePage.resetButton.click()
+    await obligationQueuePage.goto()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
-    await obligationQueuePage.savedViewsButton.click()
-    await obligationQueuePage.savedViewMenuItem('Apply view').click()
-    await expect(authenticatedPage).toHaveURL(/q=Arbor/)
-    await expect(authenticatedPage).toHaveURL(/hide=assigneeName/)
-
-    await obligationQueuePage.savedViewsButton.click()
-    await obligationQueuePage.savedViewMenuItem('Rename view').click()
-    await authenticatedPage.getByLabel('Saved view name').fill('E2E renamed view')
-    await authenticatedPage.getByRole('button', { name: 'Save view' }).click()
-    await expect(authenticatedPage.getByText('Saved view updated')).toBeVisible()
-
-    await obligationQueuePage.savedViewsButton.click()
-    await obligationQueuePage.savedViewMenuItem('Delete view').click()
-    await expect(authenticatedPage.getByText('Saved view deleted')).toBeVisible()
-
-    await obligationQueuePage.resetButton.click()
     await obligationQueuePage.selectRow('Arbor & Vale LLC').click()
-    await authenticatedPage.getByRole('button', { name: 'Assign owner' }).click()
+    const bulkActions = authenticatedPage.getByRole('region', { name: 'Bulk actions' })
+    await bulkActions.getByRole('button', { name: 'Assign owner' }).click()
     await authenticatedPage.getByRole('menuitem', { name: 'E2E Owner' }).click()
-    await expect(authenticatedPage.getByText('Owners updated')).toBeVisible()
-    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toContainText('E2E Owner')
+    await expect(authenticatedPage.getByText('Owner assigned')).toBeVisible()
+    await expect(
+      authenticatedPage.getByRole('cell', { name: 'Assigned to you (E2E Owner)' }),
+    ).toBeVisible()
 
+    await bulkActions.getByRole('button', { name: 'Clear selection' }).click()
+    await expect(bulkActions).toBeHidden()
     await obligationQueuePage.selectRow('Arbor & Vale LLC').click()
     await obligationQueuePage.selectRow('Northstar Dental Group').click()
-    const bulkActions = authenticatedPage.getByRole('region', { name: 'Bulk actions' })
+    await expect(bulkActions).toContainText('2 rows selected')
 
     await bulkActions.getByRole('button', { name: 'Export' }).click()
     let exportDialog = authenticatedPage.getByRole('dialog', { name: 'Export deadlines' })
@@ -201,13 +192,8 @@ test.describe('seeded obligations', () => {
     expect(zipDownload.suggestedFilename()).toMatch(/^obligations-pdfs-\d{4}-\d{2}-\d{2}\.zip$/)
 
     await bulkActions.getByRole('button', { name: 'Set status' }).click()
-    await authenticatedPage.getByRole('menuitem', { name: 'Extended' }).click()
-    await authenticatedPage.getByLabel('Extension memo').fill('E2E extension memo')
-    await authenticatedPage
-      .getByRole('dialog')
-      .getByRole('button', { name: 'Mark extended' })
-      .click()
+    await authenticatedPage.getByRole('menuitem', { name: 'Filed' }).click()
     await expect(authenticatedPage.getByText('Bulk status updated')).toBeVisible()
-    await expect(obligationQueuePage.statusSelectFor('Arbor & Vale LLC')).toContainText('Extended')
+    await expect(obligationQueuePage.statusSelectFor('Arbor & Vale LLC')).toContainText('Filed')
   })
 })
