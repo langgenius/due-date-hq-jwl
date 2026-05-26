@@ -1,12 +1,37 @@
 # DueDateHQ · DESIGN.md
 
 > 文档类型：视觉设计系统（Single Source of Truth for UI）
-> 版本：v1.0
-> 日期：2026-04-23
+> 版本：**v2.0**
+> 日期：2026-05-26（v1.0 → v2.0 升级，整合 84/85 次设计 pass 沉淀的 canonical pattern）
 > 方向：**Ramp × Linear · Light Workbench**（浅色主导，暗色为镜像，不做方向 B 的 Bloomberg 终端风）
 > 对齐：PRD v2.0 §1.3 设计原则 + §5 核心页面规格 + §10 UI/UX 规范
 > 阅读对象：Designer / Frontend Engineer / AI coding agents（Cursor / v0 / Lovable）
 > 语言：中文说明 + 英文 token，所有代码注释为英文
+
+## v2.0 changelog (2026-05-26)
+
+Three passes worth of polish (83rd → 85th) have established a set of
+canonical patterns that didn't exist when v1.0 shipped on 2026-04-23.
+The patterns themselves are documented in dedicated spec docs (see
+**Companion docs** below); §16 of this file is the **dashboard /
+adoption index** so a code reader or AI agent can find the right spec
+without crawling every dev-log entry.
+
+Adoption status across the app is tracked separately in
+`docs/Design/design-system-drift-audit-2026-05-26.md` (per-pattern
+drift inventory + prioritized fix punch list).
+
+| Companion doc                                  | What it specifies                                                                          |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `page-family-canonical.md`                     | PageHeader / scope tabs / filter chip row / table-card frame / FloatingActionBar / sidebar |
+| `unified-table-surface-vocabulary.md`          | Cross-table chrome unification (`/deadlines`, `/clients`, `/rules/library`)                |
+| `inset-surface-design-system.md`               | Drawer canonical, surface hierarchy, radius scale, chip vocabulary                         |
+| `status-pill-audit-2026-05-25.md`              | Status pill tone ladder + shape rules                                                      |
+| `info-icon-audit-2026-05-25.md`                | When info icons belong + InfoBanner pattern                                                |
+| `filter-vs-badge-contract.md`                  | Filter chip vs filter dropdown decision rule                                               |
+| `icon-sizing.md`                               | Canonical icon size scale                                                                  |
+| `obligation-status-icon-vocabulary.md`         | Per-status icon + tone mapping                                                             |
+| `obligation-panel-v2-and-alerts-vocabulary.md` | Pulse / alert vocabulary across surfaces                                                   |
 
 ---
 
@@ -1119,6 +1144,184 @@ Done/Applied: Dify green-600 (#079455) ← only for completed
 - AppShell sidebar practice switcher（`147:3`）— 是租户身份槽，使用 `firm.monogram`
 - Route header（`Q1 2026 / Dashboard` 等）— 路由头不是品牌头
 - Row-level / button 内 — 与品牌识别无关
+
+---
+
+## 16. Canonical patterns (post-v1.0)
+
+The 84/85 polish passes formalized cross-surface rules that v1.0 didn't
+specify. Each rule lives in a dedicated spec doc (see v2.0 changelog
+table at the top); this section is the **adoption-time cheat sheet**.
+Reach for the spec doc when you need the full rationale; reach for this
+section when you need the rule in one line.
+
+### §16.1 PageHeader (canonical: `apps/app/src/components/patterns/page-header.tsx`)
+
+**Shape:**
+
+- Row 1 (eyebrow) — full header width. Breadcrumb left, optional
+  `eyebrowAside` far right. Examples: `< Clients` + `1 / 9` cycler on
+  `/clients/[id]`.
+- Row 2 — title block left (`<h1>` + optional description), actions
+  cluster far right. `lg:flex-row lg:items-end lg:justify-between`.
+- Title H1: `text-2xl leading-7 font-semibold text-text-primary` +
+  `min-w-0` so it can truncate when a right drawer narrows the column.
+- Actions cluster: no `flex-wrap` — single row at lg+, content
+  overflow-clips rather than wrapping into a 2nd row.
+
+**Use it on every protected route.** AppShell stopped rendering a
+route header strip; the route owns its own header. Drift from this
+shape (e.g. custom h1 + breadcrumb-as-text) is automatic P1 in the
+audit.
+
+### §16.2 Workbench table chrome
+
+Cross-table canonical rules (the unified vocabulary in
+`unified-table-surface-vocabulary.md`):
+
+| Aspect              | Canonical                                                                                                                                                                                                         |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wrapper             | `rounded-md border border-divider-subtle overflow-hidden`                                                                                                                                                         |
+| Row height          | `h-14` (every workbench table)                                                                                                                                                                                    |
+| TableBody bg        | `bg-background-default/50` (alpha-50 white — _do not remove_)                                                                                                                                                     |
+| TableHeader bg      | Primitive default (`bg-background-subtle`) — DO NOT override with `bg-background-default-dimmed` (the dimmed token is `rgb(... / 0.4)` — alpha-tinted, bleeds through when content scrolls behind sticky headers) |
+| Within-row border   | Primitive `border-b border-divider-subtle`. Weld (`border-b-0`) only when surface owns a logical sub-group (currently `/deadlines` same-client cluster)                                                           |
+| Primary title style | `text-base` regular weight, `text-text-primary`, hover-underline as row-affordance cue                                                                                                                            |
+| Late text           | `text-sm font-semibold`, verbose "N days late" (no shorthand)                                                                                                                                                     |
+| Click-to-detail     | Drawer (queue triage) · Route (sustained work) · Modal (reference) — destination follows task model                                                                                                               |
+| Footer pagination   | `px-2 py-6`, prev/next + page count, in the bottom toolbar zone                                                                                                                                                   |
+| Search affordance   | Collapsible ghost icon → input on click or `/` hotkey (`*SearchControl` per surface)                                                                                                                              |
+
+Adopted by `/deadlines`, `/clients`, `/rules/library`. Any new
+table-of-rows surface (e.g. `/audit`, `/workload`, `/notifications`)
+should match.
+
+### §16.3 Tabs vs segmented control
+
+| Pattern                 | When to use                                                                                 | Examples                                                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Tabs (line variant)** | "Different sections of the SAME entity" — each tab shows different CONTENT                  | `/clients/[id]` Work / Client info / Opportunities / Activity; deadline drawer Summary / Materials / Extension / Evidence |
+| **Segmented control**   | "Different views / filtered scopes of the SAME data" — each option re-filters the same list | `/deadlines` top scope tabs (Today / This week / Late / All); rule library segmented toggle                               |
+
+**Drawer tab styling** (canonical for `/deadlines` obligation drawer):
+
+- TabsList: `flex h-11 w-full justify-start gap-6 border-b border-divider-subtle bg-background-default text-sm`
+- TabsTrigger: `!flex-none !px-0 rounded-t text-text-secondary data-active:text-text-primary data-active:font-semibold after:!bg-accent-default`
+- Active underline at primitive default (`bottom-[-5px]`) — floats ~5px below trigger for 15-16px breathing room from text descender. **Do NOT pull to `after:!bottom-0`** — that crushed the descender clearance to ~9px.
+- Inactive text `text-text-secondary`; active text `text-text-primary` + semibold (biggest contrast jump).
+- Underline color is brand accent (`accent-default`), not text-active-black.
+
+### §16.4 Drawer / sheet canonical
+
+Single shared shape across `ObligationDrawer`, `PulseDetailDrawer`,
+`ClientDetailDrawer`:
+
+1. **Sticky header strip** at the body top — `sticky top-0 z-20 -mx-8 border-b border-divider-subtle bg-background-default px-8 py-3`. Holds the 3-up date strip / identity strip. Stays visible during body scroll.
+2. **Tab bar** (see §16.3) — sits **outside** the sticky strip so it scrolls with the body. `pt-3` above tabs gives 20px buffer from the sticky strip; `mt-0` on TabsContent keeps the gap below tight (`gap-2` from Tabs root only).
+3. **Body content** — `px-8 pt-0 pb-24` (pb-24 = sticky-footer overlap buffer). At panel mode, `flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable]`.
+4. **Sticky footer** — `sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 bg-background-default px-8 pt-4 pb-6`. **Asymmetric vertical padding** (16/24) is the canonical rhythm — top tight, bottom breathes.
+
+**Active stage card** (Summary tab body): `rounded-lg bg-background-section p-4`. **No outer ring.** The bg tint anchors the "deep-dive zone"; do not stack a border on top.
+
+**Inner Key-dates panel** (inside the active stage card): no chrome (no ring, no bg, no padding wrapper) — uppercase tag + dl rows only. The parent's tint provides the envelope. Avoids chrome-on-chrome.
+
+### §16.5 Sticky footer (universal)
+
+Every sticky drawer/sheet footer uses the asymmetric `pt-4 pb-6` rhythm. Set in three places — keep mirrored:
+
+- `SheetFooter` primitive: `mt-auto flex flex-col gap-2 px-6 pt-4 pb-6`
+- Obligation drawer panel-mode footer: `... bg-background-default px-8 pt-4 pb-6`
+- Pulse drawer SheetFooter override: `... bg-background-default px-12 pt-4 pb-6`
+
+### §16.6 Sidebar collapsed-mode parity
+
+App-shell header is hard-locked to `h-[72px] justify-center` regardless of mode. SidebarMenu, SidebarContent share gap-4 in both modes (no special collapsed override). SidebarMenuButton uses `overflow-visible` in collapsed mode so the badge dot can overhang at `-top-0.5 -right-0.5` (h-3.5 pill).
+
+### §16.7 Owner / assignee avatar
+
+Single helper: `getAssigneeTint(name)` from `apps/app/src/lib/assignee-tint.ts`. Canonical render is `size-8` (32px) round chip with `text-sm font-semibold uppercase` initials. Same person, same tint, on every surface. `isMine` overrides with accent palette.
+
+### §16.8 Count / state chips
+
+`CountDotChip` primitive (`apps/app/src/components/primitives/count-dot-chip.tsx`) is the canonical state-row review-count chip. Use it for rule-library section header counts and any "tone + N" inline indicator.
+
+Tab-badge count (e.g. Materials `14`, Evidence `0`): `inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-accent-hover-alt px-1 text-caption-xs font-medium leading-none tabular-nums text-text-accent`. Subtler than a destructive red — communicates magnitude without alarm.
+
+### §16.9 Active dot + hover-expand (rules library)
+
+Active section rows (non-selectable status groups in `/rules/library`) render a leading tone dot at the checkbox X-position. Pattern:
+
+- Outer flex `items-center` (not `items-start` — kills baseline drift)
+- Dot: `size-1.5 rounded-full`, color per `STATUS_TONE` (gray for active/verified to avoid clashing with entity-status green elsewhere in the row)
+- On row hover (`group-hover/row:inline`), reveal `STATUS_LABEL_SHORT[status]` text next to the dot. The dot "expands" into a word — maps to the user's mental model.
+
+### §16.10 Filter affordance (filter-vs-badge contract)
+
+| Cardinality                                            | Primitive                            | Surface                        |
+| ------------------------------------------------------ | ------------------------------------ | ------------------------------ |
+| Low fixed-vocab (3-8 options), PRIMARY navigation axis | `EntityChipRow`-style chip strip     | `/rules/library` entity chips  |
+| Multi filters coexisting on the same toolbar row       | `TableHeaderMultiFilter` (`toolbar`) | `/clients`, `/deadlines`       |
+| Triage shortcut chips (one-click "show me only X")     | `FilterTrigger` action chip strip    | `/deadlines` action-chip strip |
+
+**Rule**: one chip strip per page max (the primary axis). When multiple filters coexist, they all render as `TableHeaderMultiFilter` for visual coherence — mixing a chip row with dropdowns in the same row reads as two competing affordance models. `FilterTrigger` gained a `leadingIcon` prop for icon-led triggers (e.g. `ArrowUpDownIcon` on the Group-by control).
+
+### §16.11 Group-by section headers
+
+`/deadlines` Group-by control (Due date / Client) renders section headers between row groups. Sticky `bg-background-subtle` band, count chip per group, late-count chip when the group has overdue rows. Pattern is portable to any grouped table — if you add a Group-by axis to another surface, follow this shape.
+
+### §16.12 Status pill tone ladder (full spec: `status-pill-audit-2026-05-25.md`)
+
+Tone → semantic, never re-defined per surface:
+
+- `success` (green) — done / on track
+- `warning` (amber) — at risk / needs attention
+- `destructive` (red) — late / blocked / error (sparingly)
+- `accent` (purple) — review / in-progress
+- `muted` (gray) — default / not-yet-started / archived
+
+Shape → category:
+
+- **Filled** (`bg-state-X-solid text-text-inverted`) — currently active / live state
+- **Outline** (`border-state-X-border bg-state-X-hover text-text-X`) — informational / passive label
+- **Soft** (`bg-state-X-hover text-text-X`, no border) — quiet tag in dense rows
+
+Ornament rule: dot ONLY when the chip lives in a dense row where the word alone is hard to scan. Otherwise word + tone color is enough.
+
+### §16.13 Info icon vs InfoBanner
+
+- **Info icon** (`<CircleHelpIcon>` in popover) — quick definition / formula. Reserve for terms the user might not know.
+- **InfoBanner** (`apps/app/src/components/patterns/info-banner.tsx`) — page-level tip with optional CTA + per-key dismissal. Reserve for "the page is in a non-default state and here's how to fix it" (e.g., `/clients/[id]` needs-facts CTA).
+
+Spec doc enumerates which mounts dropped the redundant popover and which gained an InfoBanner.
+
+### §16.14 Floating action bar
+
+`apps/app/src/components/patterns/floating-action-bar.tsx`:
+`fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-wrap items-center gap-3 rounded-xl border border-divider-regular bg-background-default px-5 py-3 text-text-primary shadow-[0_20px_48px_-16px_rgb(0_0_0_/_0.18)]`.
+
+Currently used by `/rules/library` bulk-review (replaced earlier beige warning bar) and the obligation drawer materials-checklist multi-select. Floating pill at 48px from bottom; never docked.
+
+### §16.15 InfoBanner (page-level tip + CTA)
+
+`apps/app/src/components/patterns/info-banner.tsx`. Renders an inline tip card with optional CTA button and dismissKey (per-user, per-key dismissal). Used on `/clients/[id]` for needs-facts CTA, on `/deadlines` for system-state announcements. Replaces the older red-tinted "missing X" hero bars.
+
+### §16.16 Page layout shell
+
+Per-route shell shape (after `clients.$clientId.tsx` reference):
+
+```
+<div className={cn(
+  'flex w-full flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+  'xl:h-screen xl:overflow-hidden',
+)}>
+```
+
+- `w-full` (no `mx-auto max-w-page-wide` cap — the 1100px cap was the cause of header-column-narrowing bugs on `/clients/[id]`)
+- xl: locked viewport height + own scroll. Below xl: natural content-driven scroll.
+
+### §16.17 TabSection primitive
+
+`apps/app/src/components/patterns/tab-section.tsx` — canonical section header inside tab bodies. Single source of truth for `eyebrow + h2 + actions slot` rhythm. All `/clients/[id]` tab bodies use it; new tab bodies elsewhere should match.
 
 ---
 
