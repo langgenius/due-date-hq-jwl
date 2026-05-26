@@ -2544,13 +2544,33 @@ export function ClientDetailWorkspace({
                 </TabSection>
 
                 <TabSection title={t`Notes`}>
-                  <div className="rounded-md border border-divider-regular bg-background-default px-4 py-3 text-sm text-text-secondary">
-                    {client.notes || (
-                      <span className="text-text-tertiary italic">
-                        <Trans>No notes.</Trans>
-                      </span>
-                    )}
-                  </div>
+                  {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 2 /
+                      Fix #10): when there are no notes, render the
+                      canonical EmptyState (dashed border + icon +
+                      title + description) instead of an italic
+                      "No notes." inside a solid frame. The italic
+                      pattern was a one-off — every other empty state
+                      on this page (Work plan, suggested forms,
+                      audit log) uses EmptyState, so Notes now joins.
+                      When notes ARE present, the solid frame stays
+                      because the content is body text the CPA
+                      authored, not a "nothing here" surface. */}
+                  {client.notes ? (
+                    <div className="rounded-md border border-divider-regular bg-background-default px-4 py-3 text-sm text-text-secondary">
+                      {client.notes}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      icon={ScrollTextIcon}
+                      title={<Trans>No notes yet</Trans>}
+                      description={
+                        <Trans>
+                          Capture context (preferred call window, sensitivities, history) so the
+                          next preparer doesn't start from scratch.
+                        </Trans>
+                      }
+                    />
+                  )}
                 </TabSection>
 
                 <TabSection
@@ -3954,7 +3974,28 @@ function ClientRiskSummaryPanel({
             )}
           </span>
         </div>
-      ) : null}
+      ) : (
+        // 2026-05-26 (Yuqi tab-body follow-ups, Task 2 / Fix #10):
+        // canonical EmptyState replaces a silent `null` return. The
+        // panel used to render the refresh button + nothing else when
+        // no insight existed yet, which left the section looking
+        // broken. Empty state explains the surface and tells the user
+        // what to expect.
+        <EmptyState
+          icon={SparklesIcon}
+          title={<Trans>No client summary yet</Trans>}
+          description={
+            canRefresh ? (
+              <Trans>
+                Run the AI summary to surface penalty exposure, recent activity, and tax-attribute
+                flags in one paragraph.
+              </Trans>
+            ) : (
+              <Trans>Upgrade to Practice AI to surface a one-paragraph client summary.</Trans>
+            )
+          }
+        />
+      )}
     </div>
   )
 }
@@ -4774,7 +4815,26 @@ function SuggestedFormsCatalogPanel({
       </div>
     )
   }
-  if (applicable.length === 0) return null
+  if (applicable.length === 0) {
+    // 2026-05-26 (Yuqi tab-body follow-ups, Task 2 / Fix #10):
+    // previously `return null` left the surrounding TabSection
+    // ("Suggested forms") with no body — the heading floated alone
+    // and a CPA couldn't tell whether the panel was loading, broken,
+    // or genuinely empty. Now we render the canonical EmptyState so
+    // the section reads cleanly as "nothing here yet, here's why."
+    return (
+      <EmptyState
+        icon={ClipboardCheckIcon}
+        title={<Trans>No applicable forms for this client</Trans>}
+        description={
+          <Trans>
+            No active rule in the catalog matches this client's entity type and filing jurisdiction.
+            Add a jurisdiction or check back after rule updates.
+          </Trans>
+        }
+      />
+    )
+  }
 
   function addDeadline(suggestion: SuggestedRule) {
     createMutation.mutate({
