@@ -1,13 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import {
-  AlertCircle,
-  Astroid,
-  BriefcaseIcon,
-  Building2,
-  MoreHorizontal,
-  UserRound,
-} from 'lucide-react'
+import { AlertCircle, BriefcaseIcon, Building2, MoreHorizontal, UserRound } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import {
@@ -22,6 +15,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { StateBadge } from '@/components/primitives/state-badge'
 
 import { usePulseDetailQueryOptions } from '../api'
+import { PulseConfidencePill } from './PulseConfidencePill'
 import { PulseSourceBadge } from './PulseSourceBadge'
 import { PulseSourceStatusBadge } from './PulseSourceStatusBadge'
 import { PulseStatusBadge } from './PulseStatusBadge'
@@ -534,22 +528,9 @@ export function PulseAlertCard({
                     needs-review chip is fine because they appear
                     in different contexts (footer vs client chip
                     row). */}
-            {lowConfidence ? (
-              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-state-warning-hover px-2 text-xs font-medium uppercase tracking-wide text-text-warning">
-                <Astroid className="size-3" aria-hidden />
-                <Trans>Low</Trans>
-              </span>
-            ) : mediumConfidence ? (
-              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full border border-divider-subtle bg-background-section px-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
-                <Astroid className="size-3" aria-hidden />
-                <Trans>Medium</Trans>
-              </span>
-            ) : (
-              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-state-info-hover px-2 text-xs font-medium uppercase tracking-wide text-text-accent">
-                <Astroid className="size-3" aria-hidden />
-                <Trans>High</Trans>
-              </span>
-            )}
+            <PulseConfidencePill
+              confidence={lowConfidence ? 'low' : mediumConfidence ? 'medium' : 'high'}
+            />
           </div>
         </div>
       </div>

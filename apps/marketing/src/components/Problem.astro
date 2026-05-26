@@ -39,7 +39,7 @@ const { t } = Astro.props
       {t.cards.map((card) => (
         <article class="rounded-xl border border-components-card-border bg-components-card-bg p-4">
           <div class="flex items-center justify-between">
-            <span class:list={[badgeBase, badgeTone[marketingSeverityBadgeTone[card.severity]], 'font-mono tracking-[0.08em]']}>
+            <span class:list={[badgeBase, badgeTone[marketingSeverityBadgeTone[card.severity]], 'font-mono tracking-eyebrow']}>
               <span class:list={['inline-block size-2 shrink-0 rounded-full', statusDot[marketingSeverityDot[card.severity]]]}></span>
               {card.tag}
             </span>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { Astroid, MailIcon, MessageSquareIcon, RotateCcwIcon, XIcon } from 'lucide-react'
+import { MailIcon, MessageSquareIcon, RotateCcwIcon, XIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { FirmPublic, FirmRole, PulseFirmAlertStatus, PulseStatus } from '@duedatehq/contracts'
@@ -39,6 +39,7 @@ import { StateBadge, getJurisdictionName } from '@/components/primitives/state-b
 
 import { AffectedClientsTable } from './components/AffectedClientsTable'
 import { isVeryLowPulseConfidence } from './components/PulseConfidenceBadge'
+import { PulseConfidencePill } from './components/PulseConfidencePill'
 import { PulseReasonDialog } from './components/PulseReasonDialog'
 import { PulseSourceBadge } from './components/PulseSourceBadge'
 import { PulseSourceStatusBadge } from './components/PulseSourceStatusBadge'
@@ -634,17 +635,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                           collision with the Applied / Reviewed
                           status pills). */}
                     {!lowConfidence ? (
-                      mediumConfidence ? (
-                        <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full border border-divider-subtle bg-background-section px-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
-                          <Astroid className="size-3" aria-hidden />
-                          <Trans>Medium</Trans>
-                        </span>
-                      ) : (
-                        <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-state-info-hover px-2 text-xs font-medium uppercase tracking-wide text-text-accent">
-                          <Astroid className="size-3" aria-hidden />
-                          <Trans>High</Trans>
-                        </span>
-                      )
+                      <PulseConfidencePill confidence={mediumConfidence ? 'medium' : 'high'} />
                     ) : null}
                   </div>
                 </div>

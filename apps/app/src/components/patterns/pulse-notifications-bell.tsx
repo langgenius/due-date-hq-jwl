@@ -162,7 +162,7 @@ function PulseNotificationsBell() {
                 type="button"
                 onClick={() => markAllReadMutation.mutate(undefined)}
                 disabled={markAllReadMutation.isPending}
-                className="text-sm text-text-secondary hover:text-text-primary disabled:opacity-40"
+                className="rounded-sm text-sm text-text-secondary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-50"
               >
                 <Trans>Mark all read</Trans>
               </button>
@@ -226,7 +226,7 @@ function PulseNotificationsBell() {
           <Link
             to="/notifications"
             onClick={() => setOpen(false)}
-            className="inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
+            className="inline-flex items-center gap-1 rounded-sm text-base text-text-secondary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Trans>View all in Inbox</Trans>
             <ArrowUpRightIcon className="size-3.5" aria-hidden />

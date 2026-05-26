@@ -652,7 +652,7 @@ export function Step1Intake({
             </span>
             <button
               type="button"
-              className="h-8 shrink-0 rounded-sm border border-divider-regular bg-background-body px-2.5 text-sm font-medium text-text-primary transition hover:bg-background-subtle"
+              className="h-8 shrink-0 rounded-sm border border-divider-regular bg-background-body px-2.5 text-sm font-medium text-text-primary outline-none transition hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               onClick={switchToDetectedPreset}
             >
               <Trans>Switch preset</Trans>

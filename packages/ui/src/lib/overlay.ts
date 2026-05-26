@@ -12,7 +12,7 @@ export type OverlayItemVariant = 'default' | 'destructive'
 
 /* Highlightable row inside an overlay (menu item, select option). */
 export const overlayRowClassName =
-  'mx-1 flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 outline-hidden select-none data-highlighted:bg-state-base-hover data-disabled:cursor-not-allowed data-disabled:opacity-40'
+  'mx-1 flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 outline-hidden select-none data-highlighted:bg-state-base-hover data-disabled:cursor-not-allowed data-disabled:opacity-50'
 
 /* Adds destructive variant styling on top of overlayRowClassName. */
 export const overlayDestructiveClassName =

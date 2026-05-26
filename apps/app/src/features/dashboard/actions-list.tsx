@@ -769,7 +769,7 @@ function ActionsListHeader({ count, onOpenAll }: { count: number | null; onOpenA
           event.preventDefault()
           onOpenAll()
         }}
-        className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-tertiary"
+        className="inline-flex items-center gap-1 rounded-sm text-xs text-text-muted outline-none hover:text-text-tertiary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <Trans>All deadlines</Trans>
       </Link>

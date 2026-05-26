@@ -533,7 +533,7 @@ export function SidebarGroupLabel({ className, ...props }: React.ComponentProps<
       role="separator"
       aria-orientation="horizontal"
       className={cn(
-        'flex h-7 shrink-0 items-center px-3 text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary',
+        'flex h-7 shrink-0 items-center px-3 text-xs font-medium uppercase tracking-eyebrow text-text-tertiary',
         // 2026-05-26 (Yuqi collapsed-rail overflow fix): in collapsed
         // mode the row was `h-px` + `overflow: visible` + text content
         // ("RULE", "CLIENTS") still inside. The 11px uppercase glyphs

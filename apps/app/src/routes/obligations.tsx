@@ -3115,7 +3115,7 @@ export function ObligationQueueRoute() {
                           onClick={() => {
                             void setObligationQueueQuery({ hide: [] })
                           }}
-                          className="text-xs font-normal text-text-accent hover:underline"
+                          className="rounded-sm text-xs font-normal text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                         >
                           <Trans>Show all</Trans>
                         </button>
@@ -7314,7 +7314,7 @@ function DeadlineInputRequestDialog({
                   <button
                     type="button"
                     disabled={loadingRecipients || recipients.length === 0}
-                    className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-left text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-60 data-[state=open]:bg-state-base-hover"
+                    className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-left text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:bg-state-base-hover"
                   >
                     <span className="truncate">{recipientTriggerText}</span>
                     <ChevronDownIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />

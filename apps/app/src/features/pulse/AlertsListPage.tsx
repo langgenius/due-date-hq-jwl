@@ -933,7 +933,7 @@ function StateFilterPopover({
                   onSelect(activeState)
                   setOpen(false)
                 }}
-                className="text-text-accent hover:underline"
+                className="rounded-sm text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 <Trans>Clear</Trans>
               </button>
