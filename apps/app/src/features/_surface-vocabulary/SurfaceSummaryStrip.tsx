@@ -58,7 +58,7 @@ export function SurfaceSummaryStrip({
 }: SurfaceSummaryStripProps) {
   return (
     <div className="flex h-10 items-center gap-3 rounded-md border border-divider-regular bg-background-default px-4">
-      <span className="w-[88px] shrink-0 text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+      <span className="w-[88px] shrink-0 text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
         {label}
       </span>
       <div

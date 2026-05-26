@@ -103,7 +103,7 @@ export function StateRuleActivationSelector({
     <div className="mt-5 flex flex-col gap-2.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-caption font-medium tracking-[0.08em] text-text-secondary uppercase">
+          <p className="text-caption font-medium tracking-eyebrow text-text-secondary uppercase">
             <Trans>State rule coverage</Trans>
           </p>
           <p className="mt-1 text-sm leading-relaxed text-text-muted">

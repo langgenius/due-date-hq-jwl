@@ -43,6 +43,14 @@
   --text-hero: 56px;
   --text-hero--line-height: 1;
 
+  /* ===== Letter-spacing tokens ===========================================
+   * `--tracking-eyebrow` is the canonical for UPPERCASE phrases per
+   * DESIGN.md §3.3. Auto-generates the `tracking-eyebrow` Tailwind
+   * utility class. Tailwind defaults (tracking-tight/normal/wide/wider)
+   * stay available for non-eyebrow contexts.
+   * --------------------------------------------------------------------- */
+  --tracking-eyebrow: 0.08em;
+
   /* ===== Spacing ========================================================= */
   --space-0: 0px;
   --space-1: 4px;

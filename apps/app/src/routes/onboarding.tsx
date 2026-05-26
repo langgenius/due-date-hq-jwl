@@ -130,7 +130,7 @@ export function OnboardingRoute() {
         <div className="mt-8 flex flex-col gap-1.5">
           <label
             htmlFor="practice-name"
-            className="text-caption font-medium uppercase tracking-[0.08em] text-text-secondary"
+            className="text-caption font-medium uppercase tracking-eyebrow text-text-secondary"
           >
             <Trans>Practice name</Trans>
           </label>
@@ -170,7 +170,7 @@ export function OnboardingRoute() {
         <div className="mt-5 flex flex-col gap-1.5">
           <label
             htmlFor="internal-deadline-offset"
-            className="text-caption font-medium uppercase tracking-[0.08em] text-text-secondary"
+            className="text-caption font-medium uppercase tracking-eyebrow text-text-secondary"
           >
             <Trans>Internal deadline</Trans>
           </label>

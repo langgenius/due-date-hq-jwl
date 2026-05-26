@@ -1042,7 +1042,7 @@ function ActiveFilterChip({
 function EntityCoverageLegend() {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-tertiary">
-      <span className="font-medium uppercase tracking-[0.08em] text-text-muted">
+      <span className="font-medium uppercase tracking-eyebrow text-text-muted">
         <Trans>Legend</Trans>
       </span>
       <span className="inline-flex items-center gap-1.5">
@@ -2334,7 +2334,7 @@ function PreviewList({
 
 function BulkSectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="text-caption font-medium uppercase tracking-[0.08em] text-text-muted">
+    <p className="text-caption font-medium uppercase tracking-eyebrow text-text-muted">
       {children}
     </p>
   )

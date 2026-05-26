@@ -4171,7 +4171,7 @@ export function ObligationQueueRoute() {
 function ExportAxis({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="grid gap-2 md:grid-cols-[96px_minmax(0,1fr)] md:items-start">
-      <div className="pt-2 text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+      <div className="pt-2 text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
         {label}
       </div>
       <div role="radiogroup" aria-label={label} className="grid gap-2">
@@ -7028,7 +7028,7 @@ export function ObligationQueueDetailDrawer({
             needing a full divider. */}
         {row ? (
           <div className="mt-4 flex flex-col gap-2">
-            <p className="text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+            <p className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
               <Trans>Reference dates</Trans>
             </p>
             <StatutoryDatesPanel row={row} />

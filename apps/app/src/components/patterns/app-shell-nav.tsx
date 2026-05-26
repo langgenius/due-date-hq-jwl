@@ -278,7 +278,7 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
         <DropdownMenuContent align="start" side="bottom" sideOffset={6} className="w-64">
           <DropdownMenuGroup>
             <DropdownMenuLabel className="text-left">
-              <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+              <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
                 <Trans>Practices</Trans>
               </span>
             </DropdownMenuLabel>
@@ -428,7 +428,7 @@ function AddFirmDialog({
         {!canCreate ? (
           <div className="grid gap-4">
             <div className="rounded-md border border-divider-regular bg-background-subtle p-4">
-              <p className="text-xs uppercase tracking-[0.08em] text-text-tertiary">
+              <p className="text-xs uppercase tracking-eyebrow text-text-tertiary">
                 <Trans>Practice workspaces</Trans>
               </p>
               <p className="mt-2 text-sm font-medium text-text-primary">

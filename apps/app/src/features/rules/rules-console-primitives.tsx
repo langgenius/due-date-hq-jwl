@@ -147,7 +147,7 @@ export function SectionFrame({ className, children }: { className?: string; chil
 
 export function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="text-xs font-medium tracking-[0.08em] whitespace-pre text-text-tertiary uppercase">
+    <p className="text-xs font-medium tracking-eyebrow whitespace-pre text-text-tertiary uppercase">
       {children}
     </p>
   )

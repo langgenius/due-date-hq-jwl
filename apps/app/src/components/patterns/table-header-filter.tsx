@@ -192,7 +192,7 @@ function tableHeaderFilterTrigger({
       // 2026-05-26 (Yuqi /deadlines #5): dropped explicit
       // `text-xs font-medium tracking-wider uppercase text-text-tertiary`
       // — those should INHERIT from the parent <th>'s Table primitive
-      // styles (which set `text-xs font-medium tracking-[0.08em]
+      // styles (which set `text-xs font-medium tracking-eyebrow
       // uppercase text-text-tertiary`). Setting them locally with
       // `tracking-wider` (=0.05em) made the Client column header
       // render at a slightly different letter-spacing than the

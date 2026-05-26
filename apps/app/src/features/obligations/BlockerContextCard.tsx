@@ -58,7 +58,7 @@ export function BlockerContextCard({
       aria-label={t`Open blocking deadline: ${formatTaxCode(blocker.taxType)} for ${blocker.clientName}`}
     >
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+        <span className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
           <Trans>Blocked by</Trans>
         </span>
         <ArrowUpRightIcon

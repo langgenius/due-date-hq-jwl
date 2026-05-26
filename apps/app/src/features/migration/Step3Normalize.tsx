@@ -229,7 +229,7 @@ function ValueGroupRow({ group }: { group: NormalizationValueGroup }) {
       )}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
+        <span className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
           {formatFieldLabel(group.field, t)}
         </span>
         <span className="text-text-tertiary">·</span>

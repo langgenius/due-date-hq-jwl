@@ -180,7 +180,7 @@ function SettingsSection({
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-0.5">
-        <h2 className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+        <h2 className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
           {label}
         </h2>
         <p className="text-xs text-text-tertiary">{description}</p>

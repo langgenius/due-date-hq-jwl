@@ -72,7 +72,7 @@ export function Step4Preview({ summary }: Step4Props) {
         aria-label={t`Safety`}
         className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-section p-3"
       >
-        <h3 className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
+        <h3 className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
           <Trans>Safety</Trans>
         </h3>
         <ul className="flex flex-col gap-1.5 text-md text-text-primary">
@@ -185,7 +185,7 @@ export function Step4Preview({ summary }: Step4Props) {
           className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-components-badge-bg-red-soft p-3"
           data-slot="step4-bad-rows"
         >
-          <h3 className="text-xs font-medium tracking-[0.08em] text-text-destructive uppercase">
+          <h3 className="text-xs font-medium tracking-eyebrow text-text-destructive uppercase">
             {/* 2026-05-25 (Wizard #40 cross-step polish): aligned
                 with the canonical "needs review" phrase used in
                 Step 2 + Step 3. "Needs attention" was the lone

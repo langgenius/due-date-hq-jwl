@@ -10,7 +10,7 @@ import type { ReactNode } from 'react'
 export function SummaryMetric({ label, value }: { label: ReactNode; value: ReactNode }) {
   return (
     <div className="min-h-20 rounded-lg border border-divider-regular bg-background-section px-3 py-2">
-      <div className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
+      <div className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
         {label}
       </div>
       <div className="mt-2 text-lg font-semibold text-text-primary">{value}</div>

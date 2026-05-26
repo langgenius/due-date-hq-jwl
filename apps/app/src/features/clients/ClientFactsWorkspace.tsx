@@ -5455,7 +5455,7 @@ function SuggestedFormsCatalogPanel({
                       <p className="text-sm font-medium text-text-primary">
                         {suggestion.rule.formName}
                       </p>
-                      <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+                      <span className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
                         {suggestion.rule.jurisdiction}
                       </span>
                     </div>

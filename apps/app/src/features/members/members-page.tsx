@@ -625,11 +625,11 @@ function SeatStat({ data }: { data: MembersListOutput }) {
   const usedRatio = data.seatLimit > 0 ? Math.min(data.usedSeats / data.seatLimit, 1) : 0
   return (
     <div className="flex min-h-24 flex-col px-5 py-4">
-      <p className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+      <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
         <Trans>Seats used</Trans>
       </p>
       <div className="mt-1 flex items-baseline gap-1.5">
-        <span className="text-2xl leading-[30px] font-bold text-text-primary tabular-nums">
+        <span className="text-2xl leading-tight font-bold text-text-primary tabular-nums">
           {data.usedSeats}
         </span>
         <span className="text-sm font-medium text-text-muted">/ {data.seatLimit}</span>
@@ -650,8 +650,8 @@ function SeatStat({ data }: { data: MembersListOutput }) {
 function KpiStat({ label, value, detail }: { label: string; value: number; detail: string }) {
   return (
     <div className="flex min-h-24 flex-col px-5 py-4">
-      <p className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">{label}</p>
-      <span className="mt-1 text-2xl leading-[30px] font-bold text-text-primary tabular-nums">
+      <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">{label}</p>
+      <span className="mt-1 text-2xl leading-tight font-bold text-text-primary tabular-nums">
         {value}
       </span>
       <p className="mt-auto text-xs leading-[18px] text-text-muted">{detail}</p>
@@ -697,7 +697,7 @@ function MembersSectionHeader({
   return (
     // 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN §9
     // "uppercase kicker deprecated" violation): `font-medium
-    // tracking-[0.08em] uppercase` swapped for the canonical
+    // tracking-eyebrow uppercase` swapped for the canonical
     // `text-sm font-medium text-text-secondary` sub-section label.
     // Outer text-xs preserved for the right-side metadata that follows
     // (count chip + descriptor); the heading itself reads as a real

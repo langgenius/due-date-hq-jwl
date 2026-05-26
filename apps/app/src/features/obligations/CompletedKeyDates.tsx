@@ -68,7 +68,7 @@ export function CompletedKeyDates({
     //   this in `<div className="mt-3">`, so no margin is needed
     //   here.
     <div>
-      <p className="mb-1.5 text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+      <p className="mb-1.5 text-caption-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
         <Trans>Key dates</Trans>
       </p>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
