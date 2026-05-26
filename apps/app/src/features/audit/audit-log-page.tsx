@@ -704,7 +704,12 @@ export function AuditLogPage() {
 
           <Button variant="outline" size="sm" onClick={resetFilters} disabled={!filtersActive}>
             <FilterIcon data-icon="inline-start" />
-            <Trans>Reset</Trans>
+            {/* 2026-05-26 (Yuqi step-8 data-finding audit — F-X01):
+                label changed "Reset" → "Clear filters" so the verb is
+                identical to /deadlines, /alerts, /clients, and
+                /rules/library. Cross-surface muscle memory: one label
+                means one thing across the workbench. */}
+            <Trans>Clear filters</Trans>
           </Button>
         </CardContent>
       </Card>
@@ -748,7 +753,7 @@ export function AuditLogPage() {
               </h2>
               <p className="text-sm text-text-secondary">
                 {filtersActive ? (
-                  <Trans>Reset filters to return to the latest practice-wide events.</Trans>
+                  <Trans>Clear filters to return to the latest practice-wide events.</Trans>
                 ) : (
                   <Trans>
                     Deadline status updates and client imports will appear here when they write

@@ -1667,6 +1667,11 @@ function ClientsFilterToolbar({
           // 2026-05-26 (Yuqi /clients directory pivot brief): Reset
           // clears search alongside the structural filters so the
           // CPA returns to the full directory in one click.
+          // 2026-05-26 (Yuqi step-8 data-finding audit — F-X01/F-X12):
+          // label changed from "Reset" to "Clear filters" to align
+          // with /deadlines, /alerts, and /rules/library. "Reset"
+          // implied broader scope (density, columns, etc.) than the
+          // affordance actually has — only filters get cleared.
           onSearchChange('')
           onClientFilterChange([])
           onStateFilterChange([])
@@ -1674,7 +1679,7 @@ function ClientsFilterToolbar({
           onOwnerFilterChange([])
         }}
       >
-        <Trans>Reset</Trans>
+        <Trans>Clear filters</Trans>
       </Button>
     </div>
   )

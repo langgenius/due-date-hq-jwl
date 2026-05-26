@@ -1008,9 +1008,17 @@ function ActiveFilterChip({
   filter: Exclude<RowFilter, 'all'>
   onClear: () => void
 }) {
+  // 2026-05-26 (Yuqi step-8 data-finding audit — F-X11): chip labels +
+  // button labels now flow through useLingui. Previously these were raw
+  // English strings that the Lingui pipeline never extracted; zh-CN
+  // messages.po did not carry translations for them. The clear-button
+  // copy now reads "Clear filter" (singular) consistent with the active
+  // filter being a single state, and matches the verb-discipline used
+  // across the rest of the product.
+  const { t } = useLingui()
   const labels: Record<Exclude<RowFilter, 'all'>, string> = {
-    pending: 'Showing jurisdictions with pending rules',
-    active: 'Showing jurisdictions with active rules',
+    pending: t`Showing jurisdictions with pending rules`,
+    active: t`Showing jurisdictions with active rules`,
   }
   return (
     <div className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-state-accent-active-alt/40 bg-state-accent-tint/40 pr-1 pl-2.5 text-xs text-text-secondary">
@@ -1018,10 +1026,10 @@ function ActiveFilterChip({
       <button
         type="button"
         onClick={onClear}
-        aria-label="Clear filter"
+        aria-label={t`Clear filter`}
         className="inline-flex h-6 items-center gap-1 rounded px-1.5 text-xs font-medium text-text-accent outline-none hover:bg-background-default focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
-        Clear
+        <Trans>Clear filter</Trans>
         <XIcon aria-hidden className="size-3" />
       </button>
     </div>
