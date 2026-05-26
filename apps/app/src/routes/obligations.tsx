@@ -1312,43 +1312,27 @@ export function ObligationQueueRoute() {
 
   // Pure adjacency-based grouping (NO reordering): when the active
   // sort naturally places a client's obligations next to each other,
-  // collapse the Client cell on the continuation rows and weld the
-  // group with a borderless run. When the sort scatters them across
-  // the table, each row stands alone with its full Client name — the
-  // grouping doesn't force itself, it only surfaces what's already
-  // adjacent. Matches the 2026-05-21 wireframe: Bright Studio's two
-  // back-to-back +30d-late rows group; Northstar's 3 rows at +45d /
-  // +15d / +7d each stand alone with their own client name.
-  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass follow-up — kill
-  // auto-clustering): adjacent same-client rows are NO LONGER auto-
-  // grouped in default (group=due) mode. Yuqi's call: "remove the
-  // Magnolia Family Trust grouped client. The grouping by client is
-  // purely by sort by client." So continuation/within-group sets
-  // only populate when group === 'client'. In default mode, every
-  // row stands alone with its own client name + normal border, no
-  // left rail, no welded-block treatment.
+  // show the client name once on the first row, then render following
+  // deadlines as indented continuation rows. If the sort scatters a
+  // client's rows, each row stands alone with its own client name.
   const continuationRowIds = useMemo(() => {
     const set = new Set<string>()
-    if (group !== 'client') return set
     for (let i = 1; i < rows.length; i++) {
       if (rows[i]!.clientId === rows[i - 1]!.clientId) set.add(rows[i]!.id)
     }
     return set
-  }, [rows, group])
+  }, [rows])
   // "Within-group" = this row is NOT the last in its client group, i.e.
   // the NEXT row is a continuation (same client). Within-group rows
   // drop their bottom border so the group reads as a single visual
   // block. Group boundaries keep the border so the eye can find them.
-  // Same gate as continuationRowIds — only populated when grouping by
-  // client. In default mode, rows render with their full border each.
   const withinGroupRowIds = useMemo(() => {
     const set = new Set<string>()
-    if (group !== 'client') return set
     for (let i = 0; i < rows.length - 1; i++) {
       if (continuationRowIds.has(rows[i + 1]!.id)) set.add(rows[i]!.id)
     }
     return set
-  }, [rows, continuationRowIds, group])
+  }, [rows, continuationRowIds])
   // 2026-05-25 (Yuqi Deadlines #6): group headers. When 2+ adjacent
   // rows share a clientId, the FIRST row's id is keyed in this map
   // with the cluster's metadata (count + earliest internal due). The
@@ -1582,11 +1566,9 @@ export function ObligationQueueRoute() {
           )
         },
         cell: ({ row: tableRow, table }) => {
-          const isGroupedClientRow =
-            continuationRowIds.has(tableRow.original.id) ||
-            withinGroupRowIds.has(tableRow.original.id)
+          const isContinuation = continuationRowIds.has(tableRow.original.id)
           return (
-            <div className={cn(isGroupedClientRow && 'translate-x-[26px]')}>
+            <div className={cn(isContinuation && 'translate-x-[26px]')}>
               <Checkbox
                 aria-label={t`Select ${tableRow.original.clientName}`}
                 checked={tableRow.getIsSelected()}
@@ -1643,23 +1625,13 @@ export function ObligationQueueRoute() {
         ),
         cell: ({ row: tableRow, table }) => {
           const isContinuation = continuationRowIds.has(tableRow.original.id)
-          const isGroupedClientRow = isContinuation || withinGroupRowIds.has(tableRow.original.id)
-          // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #15/#16):
-          // continuation rows now render the full client name again
-          // instead of a `↳` glyph. Yuqi flagged the arrow as "this
-          // does not make sense" — even with the left rail + welded
-          // borders carrying the grouping cue, hiding the client name
-          // on rows 2+ made the column read inconsistently with the
-          // first row. Just write the name. The shift+click range-
-          // select gesture below still works on every row because
-          // the same handler is wired to every cell.
           // Shift+click the client name → range-select every row
           // sharing this clientId (2026-05-21). Matches the hybrid
           // multi-select model: filings-default, with a group-expand
           // keystroke for the one workflow (reassignment) that
           // naturally lives at the client level. Unshifted clicks
           // pass through to the row handler that opens the drawer.
-          const handleClientNameClick = (event: React.MouseEvent<HTMLSpanElement>) => {
+          const handleClientNameClick = (event: React.MouseEvent<HTMLElement>) => {
             if (!event.shiftKey) return
             event.preventDefault()
             event.stopPropagation()
@@ -1689,8 +1661,22 @@ export function ObligationQueueRoute() {
           // Marking the span as a button would make
           // `isObligationQueueRowControlClick` treat it as a control
           // and the row would only focus, not open.
+          if (isContinuation) {
+            return (
+              <div
+                className="min-w-0 pl-6"
+                onClick={handleClientNameClick}
+                onMouseDown={(event) => {
+                  if (event.shiftKey) event.preventDefault()
+                }}
+              >
+                <span className="sr-only">{tableRow.original.clientName}</span>
+                <span aria-hidden className="block h-px w-8 rounded-full bg-divider-regular" />
+              </div>
+            )
+          }
           return (
-            <div className={cn('flex min-w-0 items-center gap-1.5', isGroupedClientRow && 'pl-3')}>
+            <div className="flex min-w-0 items-center gap-1.5">
               <span
                 onClick={handleClientNameClick}
                 onMouseDown={(event) => {
@@ -2193,7 +2179,6 @@ export function ObligationQueueRoute() {
       taxTypeOptions,
       taxTypeQuery,
       updateStatus,
-      withinGroupRowIds,
     ],
   )
 
@@ -3618,6 +3603,10 @@ export function ObligationQueueRoute() {
                               >
                                 {tableRow.getVisibleCells().map((cell) => {
                                   const meta = cell.column.columnDef.meta
+                                  const indentContinuationCell =
+                                    continuationRowIds.has(tableRow.original.id) &&
+                                    cell.column.id !== 'select' &&
+                                    cell.column.id !== 'clientName'
                                   return (
                                     <TableCell
                                       key={cell.id}
@@ -3633,7 +3622,12 @@ export function ObligationQueueRoute() {
                                       // overrides via `meta.cellClassName`
                                       // that would otherwise win on
                                       // Tailwind specificity.
-                                      className={`align-middle ${density === 'compact' ? 'px-2 py-1.5' : ''} ${meta?.cellClassName ?? ''}`}
+                                      className={cn(
+                                        'align-middle',
+                                        density === 'compact' && 'px-2 py-1.5',
+                                        meta?.cellClassName,
+                                        indentContinuationCell && 'pl-4',
+                                      )}
                                     >
                                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </TableCell>
