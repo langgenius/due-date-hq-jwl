@@ -8,6 +8,8 @@ import {
   previewObligationsFromRules,
   STATE_RULE_JURISDICTIONS,
   type ObligationRule as CoreObligationRule,
+  type RuleGenerationClientFacts,
+  type RuleGenerationEntity,
   type RuleGenerationState,
 } from '@duedatehq/core/rules'
 import { requireTenant } from '../_context'
@@ -165,6 +167,47 @@ async function activeRuleForManualCreate(
   return null
 }
 
+type ManualRuleSelectionInput = {
+  ruleId: string
+  taxYear?: number | undefined
+}
+
+type ManualGenerationEntityOverride = {
+  entityType: RuleGenerationEntity
+  taxClassification?: NonNullable<RuleGenerationClientFacts['taxClassification']>
+}
+
+function manualGenerationEntityForRule(
+  rule: Pick<CoreObligationRule, 'entityApplicability'>,
+): ManualGenerationEntityOverride {
+  const entities = rule.entityApplicability
+  if (entities.includes('individual')) {
+    return { entityType: 'individual', taxClassification: 'individual' }
+  }
+  if (entities.includes('sole_prop')) {
+    return { entityType: 'sole_prop', taxClassification: 'disregarded_entity' }
+  }
+  if (entities.includes('c_corp')) {
+    return { entityType: 'c_corp', taxClassification: 'c_corp' }
+  }
+  if (entities.includes('s_corp')) {
+    return { entityType: 's_corp', taxClassification: 's_corp' }
+  }
+  if (entities.includes('partnership')) {
+    return { entityType: 'partnership', taxClassification: 'partnership' }
+  }
+  if (entities.includes('trust')) {
+    return { entityType: 'trust', taxClassification: 'trust' }
+  }
+  if (entities.includes('llc')) {
+    return { entityType: 'llc' }
+  }
+  if (entities.includes('any_business')) {
+    return { entityType: 'c_corp', taxClassification: 'c_corp' }
+  }
+  return { entityType: 'other' }
+}
+
 const createBatch = os.obligations.createBatch.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, MIGRATION_RUN_ROLES)
   const { scoped, tenant, userId } = requireTenant(context)
@@ -313,89 +356,60 @@ const createBatch = os.obligations.createBatch.handler(async ({ input, context }
   }
 })
 
-const createFromRule = os.obligations.createFromRule.handler(async ({ input, context }) => {
-  await requireCurrentFirmRole(context, MIGRATION_RUN_ROLES)
-  const { scoped, tenant, userId } = requireTenant(context)
+async function createManualObligationsFromRuleSelections(input: {
+  context: Parameters<typeof requireTenant>[0]
+  clientId: string
+  selections: readonly ManualRuleSelectionInput[]
+}) {
+  const { scoped, tenant, userId } = requireTenant(input.context)
 
-  const [client, rule] = await Promise.all([
+  const [client, selectedRules] = await Promise.all([
     scoped.clients.findById(input.clientId),
-    activeRuleForManualCreate(scoped, input.ruleId),
+    Promise.all(
+      input.selections.map(async (selection) => {
+        const rule = await activeRuleForManualCreate(scoped, selection.ruleId)
+        if (!rule) {
+          throw new ORPCError('NOT_FOUND', {
+            message: `Active rule ${selection.ruleId} was not found in current firm.`,
+          })
+        }
+        if (rule.dueDateLogic.kind === 'source_defined_calendar') {
+          throw new ORPCError('BAD_REQUEST', {
+            message: 'This rule needs review before it can create a deadline.',
+          })
+        }
+        const selectedRule =
+          selection.taxYear !== undefined && selection.taxYear !== rule.taxYear
+            ? (() => {
+                if (!canRetargetRuleTaxYear(rule)) {
+                  throw new ORPCError('BAD_REQUEST', {
+                    message: 'This rule cannot be reused for a different tax year yet.',
+                  })
+                }
+                return {
+                  ...rule,
+                  taxYear: selection.taxYear,
+                  applicableYear: selection.taxYear + (rule.applicableYear - rule.taxYear),
+                }
+              })()
+            : rule
+
+        return selectedRule
+      }),
+    ),
   ])
   if (!client) {
     throw new ORPCError('NOT_FOUND', {
       message: `Client ${input.clientId} not found in current firm.`,
     })
   }
-  if (!rule) {
-    throw new ORPCError('NOT_FOUND', {
-      message: `Active rule ${input.ruleId} was not found in current firm.`,
-    })
-  }
-  if (rule.dueDateLogic.kind === 'source_defined_calendar') {
-    throw new ORPCError('BAD_REQUEST', {
-      message: 'This rule needs review before it can create a deadline.',
-    })
-  }
-  const selectedRule =
-    input.taxYear !== undefined && input.taxYear !== rule.taxYear
-      ? (() => {
-          if (!canRetargetRuleTaxYear(rule)) {
-            throw new ORPCError('BAD_REQUEST', {
-              message: 'This rule cannot be reused for a different tax year yet.',
-            })
-          }
-          return {
-            ...rule,
-            taxYear: input.taxYear,
-            applicableYear: input.taxYear + (rule.applicableYear - rule.taxYear),
-          }
-        })()
-      : rule
 
   const profilesByClient = await scoped.filingProfiles.listByClients([client.id])
   const profiles = profilesByClient.get(client.id) ?? []
-  const matchingProfile =
-    selectedRule.jurisdiction === 'FED'
-      ? null
-      : (profiles.find((profile) => profile.state === selectedRule.jurisdiction) ?? null)
-  if (selectedRule.jurisdiction !== 'FED' && !matchingProfile) {
-    throw new ORPCError('BAD_REQUEST', {
-      message: `Client ${client.id} does not have a ${selectedRule.jurisdiction} filing profile.`,
-    })
-  }
-
-  const generationState =
-    selectedRule.jurisdiction !== 'FED'
-      ? selectedRule.jurisdiction
-      : (profiles.find((profile) => isRuleGenerationState(profile.state))?.state ??
-        (isRuleGenerationState(client.state) ? client.state : null))
-  if (!isRuleGenerationState(generationState)) {
-    throw new ORPCError('BAD_REQUEST', {
-      message: 'Client needs a filing jurisdiction before a rule can create a deadline.',
-    })
-  }
-
-  const previews = previewObligationsFromRules({
-    client: {
-      id: client.id,
-      entityType: client.entityType,
-      state: generationState,
-      taxTypes: [selectedRule.taxType],
-      taxPeriodSource: 'manual_cpa_confirmed',
-      ...(client.taxClassification ? { taxClassification: client.taxClassification } : {}),
-    },
-    rules: [selectedRule],
-  }).filter((preview) => preview.ruleId === selectedRule.id)
-
-  if (previews.every((preview) => !preview.dueDate)) {
-    throw new ORPCError('BAD_REQUEST', {
-      message: 'This rule did not produce a concrete due date for this client.',
-    })
-  }
-
+  const taxYears = [...new Set(selectedRules.map((rule) => rule.taxYear))]
   const duplicateRows = await scoped.obligations.listGeneratedByClientAndTaxYears({
     clientIds: [client.id],
-    taxYears: [selectedRule.taxYear],
+    taxYears,
   })
   const seenGeneratedKeys = new Set(
     duplicateRows
@@ -412,31 +426,70 @@ const createFromRule = os.obligations.createFromRule.handler(async ({ input, con
   )
 
   let duplicateCount = 0
-  const createInputs = previews.flatMap((preview) => {
-    if (!preview.dueDate) return []
-    const key = keyForGenerated({
-      clientId: client.id,
-      jurisdiction: preview.jurisdiction,
-      ruleId: selectedRule.id,
-      taxYear: selectedRule.taxYear,
-      rulePeriod: preview.period,
-    })
-    if (seenGeneratedKeys.has(key)) {
-      duplicateCount += 1
-      return []
+  const createInputs = selectedRules.flatMap((selectedRule) => {
+    const matchingProfile =
+      selectedRule.jurisdiction === 'FED'
+        ? null
+        : (profiles.find((profile) => profile.state === selectedRule.jurisdiction) ?? null)
+
+    const generationState =
+      selectedRule.jurisdiction !== 'FED'
+        ? selectedRule.jurisdiction
+        : (profiles.find((profile) => isRuleGenerationState(profile.state))?.state ??
+          (isRuleGenerationState(client.state) ? client.state : null))
+    if (!isRuleGenerationState(generationState)) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'Client needs a filing jurisdiction before a rule can create a deadline.',
+      })
     }
-    seenGeneratedKeys.add(key)
-    return [
-      buildRuleBackedCreateInput({
-        client,
-        profile: matchingProfile,
-        rule: selectedRule,
-        preview,
-        internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
-        now: new Date(),
-        generationSource: 'manual',
-      }),
-    ]
+
+    const manualEntity = manualGenerationEntityForRule(selectedRule)
+    const previews = previewObligationsFromRules({
+      client: {
+        id: client.id,
+        entityType: manualEntity.entityType,
+        state: generationState,
+        taxTypes: [selectedRule.taxType],
+        taxPeriodSource: 'manual_cpa_confirmed',
+        ...(manualEntity.taxClassification
+          ? { taxClassification: manualEntity.taxClassification }
+          : {}),
+      },
+      rules: [selectedRule],
+    }).filter((preview) => preview.ruleId === selectedRule.id)
+
+    if (previews.every((preview) => !preview.dueDate)) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: 'This rule did not produce a concrete due date for this client.',
+      })
+    }
+
+    return previews.flatMap((preview) => {
+      if (!preview.dueDate) return []
+      const key = keyForGenerated({
+        clientId: client.id,
+        jurisdiction: preview.jurisdiction,
+        ruleId: selectedRule.id,
+        taxYear: selectedRule.taxYear,
+        rulePeriod: preview.period,
+      })
+      if (seenGeneratedKeys.has(key)) {
+        duplicateCount += 1
+        return []
+      }
+      seenGeneratedKeys.add(key)
+      return [
+        buildRuleBackedCreateInput({
+          client,
+          profile: matchingProfile,
+          rule: selectedRule,
+          preview,
+          internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+          now: new Date(),
+          generationSource: 'manual',
+        }),
+      ]
+    })
   })
 
   if (createInputs.length === 0) {
@@ -481,7 +534,7 @@ const createFromRule = os.obligations.createFromRule.handler(async ({ input, con
     action: 'obligation.batch_created',
     after: {
       reason: 'rules.manual_create',
-      ruleIds: [selectedRule.id],
+      ruleIds: [...new Set(selectedRules.map((rule) => rule.id))],
       createdCount: ids.length,
       duplicateCount,
       clientCount: 1,
@@ -490,7 +543,7 @@ const createFromRule = os.obligations.createFromRule.handler(async ({ input, con
     reason: 'Created from the client rule catalog.',
   })
 
-  await enqueueDashboardBriefRefresh(context.env, {
+  await enqueueDashboardBriefRefresh(input.context.env, {
     firmId: tenant.firmId,
     reason: 'manual_refresh',
   }).catch(() => false)
@@ -508,6 +561,28 @@ const createFromRule = os.obligations.createFromRule.handler(async ({ input, con
     obligations: rows.map((row) => toObligationPublic(row, { client, asOfDate })),
     duplicateCount,
   }
+}
+
+const createFromRule = os.obligations.createFromRule.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, MIGRATION_RUN_ROLES)
+  return createManualObligationsFromRuleSelections({
+    context,
+    clientId: input.clientId,
+    selections: [
+      input.taxYear === undefined
+        ? { ruleId: input.ruleId }
+        : { ruleId: input.ruleId, taxYear: input.taxYear },
+    ],
+  })
+})
+
+const createFromRules = os.obligations.createFromRules.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, MIGRATION_RUN_ROLES)
+  return createManualObligationsFromRuleSelections({
+    context,
+    clientId: input.clientId,
+    selections: input.selections,
+  })
 })
 
 const listByClient = os.obligations.listByClient.handler(async ({ input, context }) => {
@@ -926,6 +1001,7 @@ const requestDeadlineTipRefresh = os.obligations.requestDeadlineTipRefresh.handl
 export const obligationsHandlers = {
   createBatch,
   createFromRule,
+  createFromRules,
   previewAnnualRollover,
   createAnnualRollover,
   updateDueDate,

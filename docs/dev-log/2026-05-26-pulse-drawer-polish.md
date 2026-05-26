@@ -48,6 +48,15 @@ The sticky footer (`min-h-16` + `py-4` ≈ 64-80px tall) was overlaying the last
 - Token table + code example + surface hierarchy diagram now reference `#f4f4f4` (was `#fafafa`).
 - Drawer canonical padding table updated to show asymmetric body padding `px-12 pt-10 pb-24`, with a "why" note explaining the sticky-footer overlap that forced the change.
 
+### Structured extraction stays internal
+
+`apps/app/src/features/pulse/components/PulseStructuredFields.tsx`:
+
+- Removed the review-only "Structured change" JSON block from the CPA-facing drawer. The field is an internal AI/source-ingest extraction payload, not user-facing evidence.
+- The drawer still shows the user-readable facts: Source, Scope, action mode, summary, and official source excerpt.
+- Added a focused component test so review-only alerts with `structuredChange: { note: ... }` do not render raw JSON or the internal note text.
+- Fixed the `/rules/pulse` header history link button to opt out of native-button semantics when rendering a React Router `Link`.
+
 ## Why
 
 Five small fixes that all came from Yuqi noticing specific things on the live UI:
@@ -57,6 +66,7 @@ Five small fixes that all came from Yuqi noticing specific things on the live UI
 - "header source/scope 有浅色背景吧" → bg-background-subtle on header
 - "下面 padding 可以更高,以防万一用户没有看到 sticky bar" → pb-24
 - "现在背景太浅了,看不出" → inset color rollback
+- "Structured change 是什么意思" → raw extraction fields stay out of the CPA surface
 
 ## Pending
 

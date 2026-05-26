@@ -51,3 +51,85 @@ rule family.
   dropdown-only with no search input, while Form / voucher still exposes search and keeps
   `Form 1040` in the suggested forms set.
 - `pnpm --filter @duedatehq/app build`
+
+## 2026-05-26 follow-up — multi-jurisdiction create
+
+### Context
+
+The single-jurisdiction Add deadline flow made a CPA pick one authority/form at a time,
+which did not reflect common federal + state filing setup. The underlying obligation model
+is still correct: one deadline row should represent one authority, rule, and form/voucher
+so status, evidence, payment, extension, and audit stay separable.
+
+### Shipped
+
+- Added `obligations.createFromRules` so the app can create several rule-backed deadline
+  rows in one audited manual batch.
+- Kept `obligations.createFromRule` as a compatibility wrapper over the same server path.
+- Kept Add deadline as a compact single-jurisdiction entry instead of rendering every state
+  as a checkbox. The jurisdiction input defaults from the client filing state, can be typed
+  to any other state, and has a separate `Federal` checkbox for creating the Federal companion
+  deadline in the same submit.
+- Restored the Form / voucher dropdown as a primary field and changed it to multi-select.
+  The dropdown auto-refreshes its selected forms when the category, jurisdiction, or Federal
+  companion checkbox changes.
+- Restored the rule-match feedback below the compact fields, including loading, matched rule,
+  review-required, and no-active-rule states for each selected jurisdiction.
+- Kept deadline categories open across client entity types. Add deadline is a manual CPA
+  selection surface, so a C corp client can still select individual categories and match an
+  active Form 1040 rule if the user chooses that workflow.
+- Allowed manual state-rule creation even when the client does not yet have that state in
+  filing profiles; the created deadline keeps the selected state jurisdiction and stores
+  `clientFilingProfileId: null`.
+- Disabled submit until every selected jurisdiction has an active rule-backed match, leaving
+  review-only or unavailable jurisdictions visible but not silently partially applied.
+- Verified the IA stays aligned with the existing "one rule generates one obligation row per
+  jurisdiction" model in `docs/IA/obligation-row-IA.md`; no design-doc semantic change was
+  needed.
+
+### Verification
+
+- `pnpm --filter @duedatehq/contracts test -- contracts.test.ts`
+- `pnpm --filter @duedatehq/server test -- src/procedures/obligations/index.test.ts`
+- `pnpm --filter @duedatehq/app test -- CreateObligationDialog.test.ts`
+- `pnpm --filter @duedatehq/app exec tsc --noEmit`
+- `pnpm --filter @duedatehq/server exec tsc --noEmit`
+- `pnpm --filter @duedatehq/contracts exec tsc --noEmit`
+- `pnpm check` passes with existing warnings in `PulseDetailDrawer.tsx`,
+  `packages/db/src/repo/migration.ts`, and `apps/app/src/routes/obligations.tsx`.
+- `pnpm format`
+- `pnpm --filter @duedatehq/app i18n:extract`
+- `pnpm --filter @duedatehq/app i18n:compile` still fails on the repo's existing 266
+  missing `zh-CN` translations after this change's new strings were translated.
+- Browser validation on `http://localhost:5173/clients/jhx-8982152e-26fc-4fd7-99e4-6b83011ad791`:
+  the C corp client defaults to no incompatible individual category, the category dropdown
+  excludes `Individual income tax return`, and selecting `C corporation income tax return`
+  auto-selected `Form 100, Form 1120` with `CA · Match` and `FED · Match`.
+
+## 2026-05-26 follow-up — manual category override
+
+### Context
+
+The prior follow-up filtered Add deadline categories by client entity type. Product direction
+changed: the dialog should expose all categories and let the CPA decide which deadline to add.
+
+### Shipped
+
+- Removed client entity-type filtering from the Deadline category picker.
+- Removed the Add deadline rule-match entity gate so a manually selected category can match an
+  active rule even when the client's entity type differs.
+- Updated manual rule-backed creation to calculate due dates from the selected rule's applicable
+  entity, while still saving the deadline against the actual client.
+
+### Verification
+
+- `pnpm --filter @duedatehq/app test -- CreateObligationDialog.test.ts`
+- `pnpm --filter @duedatehq/server test -- src/procedures/obligations/index.test.ts`
+- `pnpm --filter @duedatehq/app exec tsc --noEmit`
+- `pnpm --filter @duedatehq/server exec tsc --noEmit`
+- `pnpm --filter @duedatehq/app i18n:extract`
+- `pnpm format`
+- Browser validation on `http://localhost:5173/clients/jhx-8982152e-26fc-4fd7-99e4-6b83011ad791`:
+  the C corp client category dropdown includes `Individual income tax return`; selecting it
+  auto-selected `State individual income tax return, Form 1040`, showed `CA · Match` and
+  `FED · Match`, and enabled `Add 2 deadlines`.

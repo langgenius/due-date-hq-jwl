@@ -108,7 +108,12 @@ export function RulesPulseRoute() {
         panelOpen ? 'max-w-[1440px] min-w-[1440px] !pb-0 md:!pb-0' : 'max-w-page-wide min-w-0',
       )}
       actions={
-        <Button variant="ghost" size="sm" render={<Link to="/rules/pulse/history" />}>
+        <Button
+          nativeButton={false}
+          variant="ghost"
+          size="sm"
+          render={<Link to="/rules/pulse/history" />}
+        >
           <HistoryIcon data-icon="inline-start" />
           <Trans>Alert history</Trans>
         </Button>

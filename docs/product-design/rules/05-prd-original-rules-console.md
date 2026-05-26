@@ -142,6 +142,11 @@ Source watcher diagnostics no longer appear in Pulse Changes. CPA users use the
 Sources tab for watched/paused source inventory; fetch/parser failures stay in
 internal ingest metrics and runbooks.
 
+Pulse detail uses parsed fields only as product facts: source, jurisdiction,
+forms, entity types, due-date delta when applicable, and official source
+excerpt. Raw AI/source extraction payloads such as `structuredChange` remain
+internal and are not rendered directly to CPA users.
+
 ### Tab 5: Temporary
 
 **Purpose**: "Review applied Pulse exceptions that are temporarily
