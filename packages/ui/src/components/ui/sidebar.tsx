@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { PanelLeftIcon, PanelRightIcon } from 'lucide-react'
+import { PanelLeftIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 import { useIsMobile } from '@duedatehq/ui/hooks/use-mobile'
@@ -54,7 +54,6 @@ import {
 const SIDEBAR_WIDTH = '13.75rem' // 220px — DESIGN §Layout regions
 const SIDEBAR_WIDTH_COLLAPSED = '3.5rem' // 56px — icons-only rail
 const SIDEBAR_WIDTH_MOBILE = '17.5rem' // 280px — Sheet drawer is slightly wider
-const SIDEBAR_COLLAPSED_KEY = 'ddhq.sidebar.collapsed'
 
 type SidebarContextValue = {
   openMobile: boolean
@@ -64,20 +63,26 @@ type SidebarContextValue = {
   /**
    * 2026-05-25 (Yuqi sidebar collapse): desktop collapse state.
    * When true, the rail narrows to 56px and shows only icons +
-   * badge dots. Persisted in `localStorage[ddhq.sidebar.collapsed]`
-   * so the user's preference survives reloads. Mobile mode
-   * ignores this (the Sheet drawer is always full-width).
+   * badge dots. Mobile mode ignores this (the Sheet drawer is
+   * always full-width).
    *
-   * 2026-05-26 (Yuqi sidebar mechanism): `collapsed` is now the
+   * 2026-05-26 (Yuqi sidebar mechanism): `collapsed` is the
    * EFFECTIVE state, computed as `userCollapsed || autoCollapsed`.
    * Surfaces with a wide right detail panel (e.g. /deadlines'
    * obligation drawer) call `setAutoCollapsed(true)` on mount so
    * the rail temporarily narrows to give the panel room; on
-   * unmount they restore `false` and the user's persisted
-   * preference takes over again. The user's manual toggle still
-   * works during an auto-collapse — clicking expand sets BOTH
+   * unmount they restore `false` and the user's session state
+   * takes over again. The user's manual toggle still works
+   * during an auto-collapse — clicking expand sets BOTH
    * `userCollapsed` and `autoCollapsed` to false so the user
    * override wins for the rest of that panel session.
+   *
+   * 2026-05-26 (Yuqi default-expanded rule): `userCollapsed` is
+   * SESSION-ONLY — never written to localStorage. Every page
+   * reload returns to the default expanded state. Predictable
+   * baseline for new users and reloads alike; the collapse icon
+   * still works to narrow the rail mid-session, just doesn't
+   * outlive the session.
    */
   collapsed: boolean
   toggleCollapsed: () => void
@@ -100,6 +105,17 @@ type SidebarContextValue = {
    * page deep-links into a row.
    */
   notifySidebarNavigation: () => void
+  /**
+   * 2026-05-26 (Yuqi sidebar mental-model pass — immediate collapse):
+   * hover state lives in the provider so `toggleCollapsed` can reset
+   * it atomically when the user explicitly collapses. Without this,
+   * clicking the collapse icon while the cursor is inside the
+   * sidebar leaves the hover-peek overlay expanded — the user has
+   * to physically move their cursor out before the sidebar visibly
+   * shrinks. Explicit user intent should beat passive hover.
+   */
+  hovered: boolean
+  setHovered: (next: boolean) => void
 }
 
 const SidebarContext = React.createContext<SidebarContextValue | null>(null)
@@ -129,26 +145,26 @@ export function useOptionalSidebar(): SidebarContextValue | null {
   return React.useContext(SidebarContext)
 }
 
-function readPersistedCollapsed(): boolean {
-  if (typeof window === 'undefined') return false
-  try {
-    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
-  // `userCollapsed` is the persisted preference — only changes when
-  // the user clicks the toggle button. Drives reloads and the user's
-  // baseline for every panel session.
-  const [userCollapsed, setUserCollapsed] = React.useState<boolean>(() => readPersistedCollapsed())
+  // 2026-05-26 (Yuqi: default expanded on every reload — no
+  // persistence): the sidebar always starts expanded on page load.
+  // `userCollapsed` is session-only — when the user clicks the
+  // collapse icon during a session, it flips locally, but the next
+  // reload returns to expanded. No localStorage write, no reads on
+  // mount. Predictable: "every fresh page = expanded sidebar."
+  const [userCollapsed, setUserCollapsed] = React.useState(false)
   // `autoCollapsed` is transient programmatic collapse driven by
   // route surfaces with a wide right panel. NEVER persisted —
   // closing the panel restores the user's preference.
   const [autoCollapsed, setAutoCollapsedState] = React.useState(false)
+  // 2026-05-26 (Yuqi sidebar mental-model pass — immediate collapse):
+  // `hovered` lives in the provider so `toggleCollapsed` can reset
+  // it synchronously when the user explicitly collapses, beating the
+  // passive hover-peek. Sidebar's onMouseEnter/Leave still drive it
+  // via `setHovered` exposed through context.
+  const [hovered, setHovered] = React.useState(false)
   // 2026-05-26 (Yuqi sixty-ninth pass): one-shot absorber for
   // auto-collapse requests that arrive immediately after a
   // sidebar nav click. Ref (not state) because we don't want a
@@ -176,26 +192,26 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     // The user's intent is to flip the EFFECTIVE state. If we're
     // currently collapsed (whether the user set it OR auto did),
     // clicking expand should expand — set BOTH flags to false so
-    // auto doesn't immediately re-collapse. If we're expanded,
-    // clicking collapse sets the persisted user preference.
+    // auto doesn't immediately re-collapse. Session-only state;
+    // no localStorage write — next page load returns to expanded.
     setUserCollapsed((prevUserCollapsed) => {
-      // `setUserCollapsed` is called inside a state setter, so we
-      // can't read the latest `autoCollapsed` here directly — but
-      // `prevUserCollapsed || autoCollapsed` is the rendered
-      // `collapsed` value at toggle time. Re-derive it.
       const prevEffective = prevUserCollapsed || autoCollapsed
-      const next = !prevEffective
-      try {
-        window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? '1' : '0')
-      } catch {
-        // ignore quota / disabled-storage failures; runtime state is the
-        // source of truth for the current session either way
-      }
-      return next
+      return !prevEffective
     })
     // If the user is overriding an auto-collapse, clear the auto
     // flag so it doesn't immediately reapply on the next render.
     if (autoCollapsed) setAutoCollapsedState(false)
+    // 2026-05-26 (Yuqi sidebar mental-model pass — immediate
+    // collapse): explicit user toggle beats passive hover-peek.
+    // Without this reset, clicking the collapse icon while the
+    // cursor is inside the sidebar leaves the overlay expanded
+    // (because `targetCollapsed = collapsed && !hovered` keeps it
+    // false). User has to move their cursor out before the
+    // sidebar visibly shrinks — feels broken. The reset makes the
+    // sidebar collapse the moment they click; if they move the
+    // cursor out and back in, hover-peek activates normally on
+    // the next mouseenter.
+    setHovered(false)
   }, [autoCollapsed])
 
   const setAutoCollapsed = React.useCallback((next: boolean) => {
@@ -218,10 +234,28 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const notifySidebarNavigation = React.useCallback(() => {
-    // Clear any standing auto-collapse so the click visibly opens
-    // the rail, then arm the one-shot block to absorb the
-    // destination route's mount-effect auto-collapse.
+    // 2026-05-26 (Yuqi sidebar mental-model pass — nav click expands):
+    // every nav click lands the user on a new page with the sidebar
+    // FULLY expanded, regardless of prior collapse choice. Clicking
+    // a nav item is treated as "show me where I am, full context."
+    //
+    // Reset all three sources:
+    //   • userCollapsed = false — even if the user manually
+    //     collapsed earlier in the session, the nav click overrides
+    //     that intent. Their next collapse click can return to
+    //     collapsed.
+    //   • autoCollapsed = false — clear any standing drawer-driven
+    //     collapse so the destination page lands expanded.
+    //   • hovered = false — drop any active hover-peek state so
+    //     the new page isn't rendered with an overlay shadow.
+    //
+    // The one-shot ref absorbs the FIRST `setAutoCollapsed(true)`
+    // from the destination route's mount effect (e.g. /deadlines'
+    // panel mount). Without that block, the route would
+    // immediately re-collapse after this expand.
+    setUserCollapsed(false)
     setAutoCollapsedState(false)
+    setHovered(false)
     blockNextAutoCollapseRef.current = true
   }, [])
 
@@ -237,6 +271,8 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       toggleCollapsed,
       setAutoCollapsed,
       notifySidebarNavigation,
+      hovered,
+      setHovered,
     }),
     [
       visibleOpenMobile,
@@ -246,6 +282,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       toggleCollapsed,
       setAutoCollapsed,
       notifySidebarNavigation,
+      hovered,
     ],
   )
 
@@ -253,7 +290,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function Sidebar({ className, children, ...props }: React.ComponentProps<'aside'>) {
-  const { isMobile, openMobile, setOpenMobile, collapsed } = useSidebar()
+  const { isMobile, openMobile, setOpenMobile, collapsed, hovered, setHovered } = useSidebar()
 
   if (isMobile) {
     return (
@@ -313,56 +350,35 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
   //     descendant CSS (label hide/show, badge dot vs digits,
   //     centered icon button, etc.) follows what the user sees,
   //     not the persisted state.
-  const [hovered, setHovered] = React.useState(false)
+  // `hovered` + `setHovered` come from useSidebar() (provider) above,
+  // so that toggleCollapsed can atomically reset hover when the user
+  // explicitly collapses via icon / ⌘B.
   const targetCollapsed = collapsed && !hovered
-  // 2026-05-26 (Yuqi sidebar transition smoothness): `data-collapsed`
-  // drives CSS classes that change layout (row direction, padding,
-  // visibility, etc.) — these flip INSTANTLY when the value changes,
-  // while the sidebar's WIDTH animates over 300ms. The mismatch
-  // caused content to overflow the painted sidebar boundary mid-
-  // transition (e.g. the collapse-toggle leaking into page content
-  // during the expand animation).
+  // 2026-05-26 (Yuqi sidebar transition smoothness — v2):
   //
-  // Fix: split timing asymmetrically.
+  // Previous implementation delayed the `data-collapsed` flip by 300ms
+  // on expand to prevent content (e.g. the collapse toggle) from
+  // overflowing the rail during the width animation. That worked for
+  // the overflow case but created a worse visual: icons sat
+  // visibly "centered in the wide sidebar with no animation" for
+  // 300ms before snapping to their final left-aligned positions —
+  // looked like the animation had stopped mid-flight.
   //
-  //   • COLLAPSE (false → true): flip layout IMMEDIATELY so the row
-  //     direction changes to vertical, content shrinks horizontally,
-  //     THEN the width animates 220→56. Layout fits within the
-  //     shrinking footprint at every frame.
-  //
-  //   • EXPAND (true → false): hold the collapsed layout until the
-  //     width animation finishes 56→220, THEN flip layout to
-  //     horizontal. The expanded layout never paints inside a too-
-  //     narrow footprint.
-  //
-  // Implementation: track `renderedCollapsed` in state. On collapse
-  // it follows `targetCollapsed` immediately. On expand it follows
-  // after the width transition completes (300ms via setTimeout). The
-  // outer `overflow-hidden` clip on the inner overlay is the
-  // belt-and-suspenders backstop if the timer ever drifts.
-  //
-  // KEY INSIGHT: width and layout need different timing.
-  //   • Inner overlay WIDTH uses `targetCollapsed` directly — so
-  //     hover-expand is snappy (width starts changing immediately).
-  //   • `data-collapsed` (which drives layout direction, padding,
-  //     visibility) uses `renderedCollapsed` — delayed on expand so
-  //     the row stays in its narrow-friendly layout until the
-  //     painted area is wide enough.
-  const [renderedCollapsed, setRenderedCollapsed] = React.useState(targetCollapsed)
-  React.useEffect(() => {
-    if (targetCollapsed) {
-      setRenderedCollapsed(true)
-      return
-    }
-    const timer = window.setTimeout(() => setRenderedCollapsed(false), 300)
-    return () => window.clearTimeout(timer)
-  }, [targetCollapsed])
+  // New approach: flip `data-collapsed` IMMEDIATELY (in sync with
+  // the width transition start). The `overflow-hidden` on the inner
+  // overlay (line below) clips any momentary content overflow during
+  // the 300ms width grow, so the original "leak" concern is still
+  // covered. The icon position transitions cleanly because the label
+  // span has its own coordinated `transition-[opacity,max-width]`
+  // (see `sidebarMenuButtonVariants` below) at 240ms with the same
+  // ease curve — labels fade in as the sidebar widens, icons
+  // settle into their left-aligned positions, all in one motion.
   const overlayActive = collapsed && hovered
   return (
     <aside
       data-slot="sidebar"
       data-mobile="false"
-      data-collapsed={renderedCollapsed ? 'true' : 'false'}
+      data-collapsed={targetCollapsed ? 'true' : 'false'}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={cn(
@@ -593,6 +609,16 @@ const sidebarMenuButtonVariants = cva(
     // accent border, no `accent-text` label color.
     "data-[active=true]:bg-accent-tint data-[active=true]:text-text-accent [&[data-active=true]_svg:not([class*='text-'])]:text-text-accent",
     "aria-[current=page]:bg-accent-tint aria-[current=page]:text-text-accent [&[aria-current=page]_svg:not([class*='text-'])]:text-text-accent",
+    // 2026-05-26 (Yuqi sidebar status surface — bold pass):
+    // active-route marker in collapsed mode. A 3px-wide accent
+    // bar at the LEFT EDGE of the active tile signals "you are
+    // here" without needing labels. Combines with the bg-accent-tint
+    // tile so the active route reads both as a color-tinted square
+    // AND as the column's anchored marker, similar to Linear's
+    // active-route indicator. Only applies in collapsed mode; the
+    // expanded mode's full bg-tint already does the wayfinding job.
+    "group-data-[collapsed=true]/sidebar:data-[active=true]:before:absolute group-data-[collapsed=true]/sidebar:data-[active=true]:before:left-0 group-data-[collapsed=true]/sidebar:data-[active=true]:before:top-1/2 group-data-[collapsed=true]/sidebar:data-[active=true]:before:h-4 group-data-[collapsed=true]/sidebar:data-[active=true]:before:w-[3px] group-data-[collapsed=true]/sidebar:data-[active=true]:before:-translate-y-1/2 group-data-[collapsed=true]/sidebar:data-[active=true]:before:rounded-r-full group-data-[collapsed=true]/sidebar:data-[active=true]:before:bg-state-accent-solid group-data-[collapsed=true]/sidebar:data-[active=true]:before:content-['']",
+    "group-data-[collapsed=true]/sidebar:aria-[current=page]:before:absolute group-data-[collapsed=true]/sidebar:aria-[current=page]:before:left-0 group-data-[collapsed=true]/sidebar:aria-[current=page]:before:top-1/2 group-data-[collapsed=true]/sidebar:aria-[current=page]:before:h-4 group-data-[collapsed=true]/sidebar:aria-[current=page]:before:w-[3px] group-data-[collapsed=true]/sidebar:aria-[current=page]:before:-translate-y-1/2 group-data-[collapsed=true]/sidebar:aria-[current=page]:before:rounded-r-full group-data-[collapsed=true]/sidebar:aria-[current=page]:before:bg-state-accent-solid group-data-[collapsed=true]/sidebar:aria-[current=page]:before:content-['']",
     '[&>span:nth-child(2)]:flex-1 [&>span:nth-child(2)]:truncate',
     // 2026-05-26 (Yuqi sidebar smoothness pass): label span now
     // animates rather than hard-hides. Expanded → collapsed
@@ -742,6 +768,25 @@ export function SidebarMenuBadge({
   // badges (Alerts "3", Rule library "456") keep their red dot in
   // collapsed because they actually warrant attention. Expanded
   // mode still shows the inline gray count text.
+  // 2026-05-26 (Yuqi sidebar status surface — bold pass): collapsed
+  // rail becomes a status surface, not just a nav rail. Both tones
+  // now render their COUNT (not a dot) in collapsed mode as a small
+  // pill at the icon's top-right. The visual language separates
+  // urgent from inventory clearly:
+  //   • Urgent (red filled pill, white text, subtle pulse) — Alerts,
+  //     Rule library pending review. Calls for action.
+  //   • Inventory (neutral filled pill, secondary text, no pulse) —
+  //     Deadlines, Clients. Reference counts only. The numeric
+  //     framing (not a colored dot) makes it read as "count"
+  //     instead of "alert" — addresses Yuqi's earlier concern
+  //     that gray dots looked like alerts.
+  // The badge sits at -top-1/-right-1 so it overlaps the icon's
+  // corner slightly and reads as floating above it. A 2px border in
+  // the panel-bg color creates visual separation from the icon edge
+  // so it never blurs into the icon glyph. Numbers >99 still fit
+  // (up to 3 digits) at 10px font; 4-digit counts get clipped.
+  const collapsedBadgeBase =
+    'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:-top-1 group-data-[collapsed=true]/sidebar:-right-1 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:flex group-data-[collapsed=true]/sidebar:h-4 group-data-[collapsed=true]/sidebar:min-w-4 group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:rounded-full group-data-[collapsed=true]/sidebar:border-2 group-data-[collapsed=true]/sidebar:border-components-panel-bg group-data-[collapsed=true]/sidebar:px-1 group-data-[collapsed=true]/sidebar:text-[10px] group-data-[collapsed=true]/sidebar:font-semibold group-data-[collapsed=true]/sidebar:leading-none'
   if (tone === 'inventory') {
     return (
       <span
@@ -750,7 +795,8 @@ export function SidebarMenuBadge({
         className={cn(
           'pointer-events-none ml-1 inline-flex shrink-0 items-center font-mono text-xs font-medium tabular-nums text-text-tertiary',
           'group-data-[active=true]/menu-button:text-text-secondary group-aria-[current=page]/menu-button:text-text-secondary',
-          'group-data-[collapsed=true]/sidebar:hidden',
+          collapsedBadgeBase,
+          'group-data-[collapsed=true]/sidebar:bg-background-subtle group-data-[collapsed=true]/sidebar:text-text-secondary',
           className,
         )}
         {...props}
@@ -763,7 +809,13 @@ export function SidebarMenuBadge({
       data-tone="urgent"
       className={cn(
         'pointer-events-none ml-1 inline-flex shrink-0 items-center font-mono text-xs font-medium tabular-nums text-text-warning',
-        'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:right-1.5 group-data-[collapsed=true]/sidebar:top-1.5 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:size-1.5 group-data-[collapsed=true]/sidebar:overflow-hidden group-data-[collapsed=true]/sidebar:rounded-full group-data-[collapsed=true]/sidebar:bg-state-warning-solid group-data-[collapsed=true]/sidebar:p-0 group-data-[collapsed=true]/sidebar:text-transparent',
+        collapsedBadgeBase,
+        'group-data-[collapsed=true]/sidebar:bg-state-destructive-solid group-data-[collapsed=true]/sidebar:text-text-inverted',
+        // Subtle pulse on the urgent badge — communicates "fresh /
+        // needs attention" without being annoying. 2.4s cycle, 70%
+        // opacity at the trough so it never disappears entirely.
+        // `motion-reduce:animate-none` respects user preference.
+        'group-data-[collapsed=true]/sidebar:animate-[pulse_2.4s_ease-in-out_infinite] group-data-[collapsed=true]/sidebar:motion-reduce:animate-none',
         className,
       )}
       {...props}
@@ -835,18 +887,22 @@ export function SidebarTrigger({
  */
 export function SidebarCollapseToggle({ className }: { className?: string }) {
   const { collapsed, toggleCollapsed } = useSidebar()
-  const Icon = collapsed ? PanelRightIcon : PanelLeftIcon
+  // 2026-05-26 (Yuqi: no collapse icon when collapsed): collapse-only
+  // affordance — visible ONLY when the sidebar is expanded. When the
+  // sidebar is in any collapsed state (persistent OR drawer-pressure
+  // OR hover-peek — `collapsed` from context is the effective
+  // userCollapsed||autoCollapsed), the icon hides entirely. The
+  // expand path is: hover-peek (transient label preview), ⌘B
+  // (keyboard), or clicking any nav item (always lands on expanded
+  // sidebar per `notifySidebarNavigation`).
+  if (collapsed) return null
   return (
     <button
       type="button"
       onClick={toggleCollapsed}
-      aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      aria-expanded={!collapsed}
-      title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      // 2026-05-25 (Yuqi rail alignment fix): size-6 → size-8
-      // so the toggle matches the firm-switcher trigger and bell
-      // button hit-box. All three top-row buttons now render
-      // as 32×32 squares centered in the 56px rail.
+      aria-label="Collapse sidebar"
+      aria-expanded
+      title="Collapse sidebar"
       className={cn(
         'hidden size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors',
         'hover:bg-background-default-hover hover:text-text-secondary',
@@ -855,7 +911,7 @@ export function SidebarCollapseToggle({ className }: { className?: string }) {
         className,
       )}
     >
-      <Icon className="size-4" aria-hidden />
+      <PanelLeftIcon className="size-4" aria-hidden />
     </button>
   )
 }
