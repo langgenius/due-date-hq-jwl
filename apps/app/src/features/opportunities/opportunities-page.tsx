@@ -43,15 +43,17 @@ export function OpportunitiesPage() {
   const summary = opportunitiesQuery.data?.summary
 
   return (
-    // 2026-05-25 (Yuqi /opportunities #1): page padding + outer gap
-    // aligned with /clients and /rules/library — was `gap-6 p-4 md:p-6`,
-    // now `gap-4 p-3 md:p-5` for the GitHub-density rhythm Yuqi
-    // requested across table-bearing routes. Layout structure follows
-    // the same pattern as /clients: PageHeader → optional Alert →
-    // stat-tile row → flat list (no Card wrapper).
-    // 2026-05-25 (Yuqi page-title pass): top padding pt-6 md:pt-8
-    // so /opportunities h1 sits on the same baseline as the rest.
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-5">
+    // 2026-05-26 (audit P0 #2 — page-padding canon): snapped to
+    // Pattern A (scroll page) per DESIGN.md §5.5. /opportunities is
+    // a header-heavy scroll page (PageHeader → stat tiles → list →
+    // dismissed-disclosure) with no sticky footer, so it follows
+    // the same rhythm as dashboard / /rules/pulse / /rules/library:
+    //   `gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6`
+    // Previously: `gap-4 ... md:pb-5` — `gap-4` came from a 2026-05-25
+    // pass that treated this page as a dense-table surface (it isn't
+    // — no sticky pagination footer), and `md:pb-5` was the singleton
+    // off-canon value the audit's P0 #2 called out. Both fixed.
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
       <PageHeader title={<Trans>Opportunities</Trans>} />
 
       {opportunitiesQuery.isError ? (
