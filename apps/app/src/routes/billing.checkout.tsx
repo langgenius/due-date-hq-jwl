@@ -6,7 +6,6 @@ import type { FirmBillingCheckoutConfig } from '@duedatehq/contracts'
 import { useQueryStates } from 'nuqs'
 import {
   AlertCircleIcon,
-  ArrowLeftIcon,
   ArrowRightIcon,
   Building2Icon,
   CheckIcon,
@@ -31,6 +30,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { hasFirmPermission } from '@duedatehq/core/permissions'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { createCheckout } from '@/features/billing/api'
 import {
   billingPlanMonthlyEquivalent,
@@ -255,34 +255,39 @@ export function BillingCheckoutRoute() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-4 py-6 md:px-6">
-      <header className="flex flex-col gap-3">
-        <Link
-          to="/billing"
-          className="inline-flex w-fit items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
-        >
-          <ArrowLeftIcon className="size-3.5" aria-hidden />
-          <Trans>Back to billing</Trans>
-        </Link>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-primary text-text-inverted">
-              <CreditCardIcon className="size-4" aria-hidden />
+    // 2026-05-26 (86th pass, audit §16.1 P1): migrated custom
+    // `<header>` (Back-link + branded icon + h1 + Badge cluster) to
+    // canonical `<PageHeader>` with a breadcrumb back to `/billing`.
+    // Branded CreditCard icon stays inline with the title as a
+    // leading flourish; "Secure checkout" Badge moves to actions.
+    //
+    // Also dropped `gap-5` → `gap-4` to align with §16.16 canonical
+    // spacing scale (audit P2 swept here since the file was open).
+    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-4 px-4 py-6 md:px-6">
+      <PageHeader
+        breadcrumbs={[{ label: t`Billing`, to: '/billing' }, { label: t`Confirm checkout` }]}
+        title={
+          <span className="inline-flex min-w-0 items-center gap-3">
+            <span
+              aria-hidden
+              className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-primary text-text-inverted"
+            >
+              <CreditCardIcon className="size-4" />
             </span>
-            <div className="min-w-0">
-              <h1 className="text-2xl font-semibold tracking-normal text-text-primary">
-                <Trans>Confirm checkout</Trans>
-              </h1>
-              <p className="mt-1 max-w-[680px] text-sm leading-6 text-text-secondary">
-                <Trans>Review the practice subscription before opening secure checkout.</Trans>
-              </p>
-            </div>
-          </div>
+            <span className="truncate">
+              <Trans>Confirm checkout</Trans>
+            </span>
+          </span>
+        }
+        description={
+          <Trans>Review the practice subscription before opening secure checkout.</Trans>
+        }
+        actions={
           <Badge variant="info" className="font-mono tabular-nums text-xs">
             <Trans>Secure checkout</Trans>
           </Badge>
-        </div>
-      </header>
+        }
+      />
 
       {!owner ? (
         <Alert variant="destructive">

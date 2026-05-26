@@ -16,6 +16,7 @@ import {
 } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
+import { PageHeader } from '@/components/patterns/page-header'
 import { billingSearchParamsParsers } from '@/features/billing/model'
 import { useBillingSubscriptions, useCurrentFirm } from '@/features/billing/use-billing-data'
 
@@ -47,18 +48,23 @@ export function BillingSuccessRoute() {
           : activeSubscription?.plan
 
   return (
+    // 2026-05-26 (86th pass, audit §16.1 P1): migrated custom
+    // `<header><h1>` block to canonical `<PageHeader>`. Billing
+    // family already uses PageHeader on `/billing`; the post-checkout
+    // confirmation pages should match for shared family identity.
+    // Breadcrumb back to `/billing` so users have a clear path out
+    // of the confirmation flow.
     <div className="flex flex-col gap-6 p-4 md:p-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-normal text-text-primary">
-          <Trans>Payment confirmation</Trans>
-        </h1>
-        <p className="mt-1 text-sm text-text-secondary">
+      <PageHeader
+        breadcrumbs={[{ label: t`Billing`, to: '/billing' }, { label: t`Payment confirmation` }]}
+        title={<Trans>Payment confirmation</Trans>}
+        description={
           <Trans>
             The secure checkout has redirected back to DueDateHQ. We are confirming the
             subscription.
           </Trans>
-        </p>
-      </header>
+        }
+      />
 
       <Card className="max-w-3xl">
         <CardHeader>
