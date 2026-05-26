@@ -347,3 +347,186 @@ Pattern. Severity **P3**. shipped.
 **F7.4 — `calendar-page.tsx:338` "Disable feed" disabled-button shows "Disabling…" label but no Loader2 spinner.**
 Same pattern. Severity **P3**. shipped.
 
+---
+
+## M. Mobile breakpoint behavior
+
+### M1 — Sheet primitive width (`packages/ui/src/components/ui/sheet.tsx:65-69`)
+
+**M1.1 — Sheet defaults to `w-3/4` on mobile + `sm:max-w-sm` (384px) above sm.**
+On a 1440px wide laptop a side sheet is locked to 384px. The right-side detail drawer for /clients + /deadlines (when rendered as Sheet, not panel) is therefore a 384px column on a 1440px screen — ~27% of the viewport. That's tight for the data the drawer carries (client name, sub-status, timeline, tabs, evidence). Severity **P2**. Fix: `sm:max-w-md` (448px) or `sm:max-w-lg` (512px) for the right-side sheet. ⏳ deferred — needs design call on the canonical sheet width.
+
+**M1.2 — Sheet on mobile (sm and below) takes 75% width.**
+75% of a 375px iPhone is 281px. That's NARROWER than the sm-breakpoint sheet (384px). The mobile sheet is the worst-of-both-worlds: too narrow to read comfortably, leaves a 24% scrim that does nothing useful. Severity **P2**. Fix: `data-[side=right]:w-[calc(100vw-2rem)]` on mobile so the sheet takes the full viewport minus a small scrim peek. ⏳ deferred — needs design call.
+
+**M1.3 — No bottom-sheet variant.**
+The Sheet primitive supports `side=bottom` but no surface in the app uses it. On mobile, the canonical pattern for content drawers is a bottom sheet (Apple/Material) so the user's thumb can interact. Side sheets on mobile force the user to tilt their finger across the screen. Severity **P2**. Fix: add a `responsiveSide` prop that auto-switches to bottom on `useIsMobile() === true`. ⏳ deferred — feature work.
+
+### M2 — Queue at narrow viewports (`routes/obligations.tsx`)
+
+**M2.1 — `routes/obligations.tsx:3727-3749` Bottom-of-table kbd hints hidden below `md` (`hidden md:inline-flex`).**
+Reasonable since touch users can't use keyboard. ❌ not drift.
+
+**M2.2 — Queue toolbar has many controls (search / filters / sort / columns / group-by / density / export) that don't gracefully collapse on narrow viewports.**
+At md breakpoint the toolbar wraps to 2-3 rows, eating ~80px of vertical space. Severity **P2**. Fix: collapse secondary controls (group-by, density, columns) into a `⋯ More` button below md. ⏳ deferred — feature work.
+
+**M2.3 — Bulk action toolbar (`FloatingActionBar`) on mobile.**
+The bar renders `fixed bottom-10` (40px above viewport bottom). With 5+ action buttons (Assign / Set status / Snooze / Export / Clear) the bar is wider than a 375px mobile viewport and wraps awkwardly. Severity **P2**. Fix: at sm breakpoint, collapse to "N selected" + a single `⋯` Actions menu. ⏳ deferred — needs design call.
+
+### M3 — Touch-target sizes
+
+**M3.1 — Entity chips `h-7` (28px) in rule library are below the 44px Apple HIG / 48dp Material touch-target spec.**
+A CPA opening /rules/library on an iPad and trying to tap "Partnership" chip has a small hit zone. Severity **P2**. Fix: increase to `h-9` (36px) or expand the hit area via padding. ⏳ deferred — needs design call on the chip size for the whole product (changing the chip primitive ripples across /clients, /alerts, /deadlines).
+
+**M3.2 — Quick-filter chips at queue (`routes/obligations.tsx:11458` `ObligationQueueActionChip`) are `h-7` from the prev seventy-fifth-pass comment: "bumped from 22px → ~30px (px-3 py-1 text-sm)".**
+30px is closer but still under 44px. The seventy-fifth-pass touched it but didn't reach mobile-target spec. Severity **P3**. ⏳ deferred — same as M3.1.
+
+**M3.3 — Kbd `<kbd>` chips on rule-review modal are `h-4` (16px).**
+But these aren't interactive — they're decorative hints. ❌ not drift.
+
+### M4 — Sidebar collapse story
+
+**M4.1 — `apps/app/src/components/patterns/app-shell-nav.tsx:902-905` Sidebar handles isMobile + collapsed states.**
+The sidebar collapses to icon-only above sm, expands on hover (per the useSidebar pattern). Mobile renders as a Sheet drawer. Reasonable patterns. ❌ not drift.
+
+**M4.2 — On mobile the sidebar hamburger is the only nav surface — there's no bottom-nav tab bar (Apple/Material standard for mobile apps).**
+A CPA on an iPad using DueDateHQ has to open the hamburger every time they switch between Dashboard / Deadlines / Clients. Severity **P2**. Fix: add a bottom-tab nav at sm breakpoint with the 4-5 most-used surfaces. ⏳ deferred — feature work.
+
+---
+
+## H. Hotkey discoverability
+
+### H1 — Global hotkey help dialog (`components/patterns/keyboard-shell/ShortcutHelpDialog.tsx`)
+
+**H1.1 — `?` opens the help dialog.**
+Well-known Slack/Linear convention. The kbd hint chip on the queue toolbar advertises `?` for "all." ✅ shipped — existing.
+
+**H1.2 — `components/patterns/keyboard-shell/ShortcutHelpDialog.tsx:143-148` Available / Reserved counts use `font-mono`.**
+The recent audit-86-batch6-9 passes purged font-mono from non-kbd surfaces. The `{availableCount} available` chips are NOT kbd hints — they're metadata. Severity **P3**. Fix: drop `font-mono`. ⏳ deferred — judgment call (Yuqi may prefer mono for numeric badges).
+
+**H1.3 — `ShortcutHelpDialog.tsx:177-184` Category headers in the dialog body use `text-xs font-semibold uppercase`.**
+Uppercase chrome on every section header. Inconsistent with the recent kicker-cleanup passes. Severity **P3**. ⏳ deferred — needs design call.
+
+**H1.4 — No discoverability for hotkeys on a fresh load.**
+A first-time CPA who has never pressed `?` doesn't know hotkeys exist at all. The bottom-of-queue kbd hint advertises `?` but only AFTER they've reached the queue. The dashboard doesn't mention them. Severity **P2**. Fix: add a one-time tooltip or onboarding hint "Press ? for shortcuts" on first dashboard visit. ⏳ deferred — feature work.
+
+### H2 — Per-surface hotkeys
+
+**H2.1 — Queue hotkeys F/P/I/W cover only 4 of 6 lifecycle v2 states.**
+Already noted as Q2.1. Severity **P1**.
+
+**H2.2 — `routes/obligations.tsx:3727` Bottom-of-queue kbd hints advertise J/K/Enter/? but NOT F/P/I/W/X/E.**
+Already noted as Q2.4. Severity **P2**.
+
+**H2.3 — `components/patterns/keyboard-shell/display.ts:3` `COMMAND_PALETTE_HOTKEY = 'Mod+K'`.**
+Confirmed: Cmd+K (Mac) / Ctrl+K (Win) opens command palette. ✅ shipped — existing.
+
+**H2.4 — `components/patterns/keyboard-shell/display.ts:5` `SIDEBAR_TOGGLE_HOTKEY = 'Mod+B'`.**
+Cmd+B toggles sidebar. ✅ shipped — existing.
+
+**H2.5 — `KeyboardProvider.tsx:155-170` `Mod+Shift+D` toggles dark mode.**
+Power-user delight. ✅ shipped — existing.
+
+**H2.6 — Dashboard does NOT advertise the `?` hotkey anywhere.**
+A first-time CPA landing on the dashboard has zero hint that hotkeys exist. The discoverability path is "click into Deadlines → see ? hint at bottom → discover the rest." Severity **P2**. Fix: add a quiet "Press ? for shortcuts" hint at the bottom of the dashboard or in the firm switcher footer. ⏳ deferred — feature work.
+
+**H2.7 — No hotkey hint chips visible in the dashboard, /clients, /rules/library, or /alerts toolbars.**
+The bottom-of-/deadlines kbd hint is the ONLY visible hotkey advertising in the app. /clients has J/K row navigation (per the `useAppHotkey` calls in `ClientCycleArrows.tsx`) but doesn't surface it visually. Severity **P2**. ⏳ deferred — feature work.
+
+### H3 — Reserved-but-not-bound hotkeys
+
+**H3.1 — `RESERVED_SHORTCUTS` in `keyboard-shell/types.ts` documents intentionally-reserved keys.**
+The help dialog surfaces these in a separate "Reserved" group. Good practice. ✅ shipped — existing.
+
+**H3.2 — Per-modal Escape handlers.**
+Queue's Escape closes the drawer or clears the focused row (with `conflictBehavior: 'allow'`). Rule library Escape closes the review modal (handled by Dialog primitive). Migration wizard handles its own Escape. The `conflictBehavior: 'allow'` suppression for the queue Escape is the only known cross-context conflict. Severity **P3**. ❌ not drift.
+
+### H4 — Keyboard-only path through the queue
+
+**H4.1 — Tab order through the queue rows: is there a roving tabindex?**
+Browsing the source — no `tabIndex` on TableRow. Default browser Tab order would tab through every interactive element in every row (checkbox, link, dropdown trigger). For 50 rows × 4 interactive elements = 200 Tab stops to navigate the page. Severity **P1**. Fix: implement a roving tabindex on the rows so Tab → row 1, J → row 2 (within), Shift+Tab → previous interactive group above. ⏳ deferred — significant refactor.
+
+**H4.2 — Focus management after drawer close.**
+When the queue's right-side detail panel closes (Escape pressed), focus should return to the row that opened it. Need to verify. ⏳ deferred — accessibility audit needed.
+
+---
+
+## X. Cross-surface drift caught in this pass
+
+**X1 — Cancel button variant drift across dialogs.**
+- Export dialog (`obligations.tsx`): outline → ghost ✅ shipped (Q3.3)
+- Audit log export dialog (`audit-log-page.tsx`): outline → ghost ✅ shipped (F4.1)
+- Reminders template dialog (`reminders-page.tsx`): outline → ghost ✅ shipped (F5.1)
+- Members invite dialog (`members-page.tsx`): outline → ghost ✅ shipped (F6.2)
+- Penalty input dialog (`obligations.tsx`): outline → ghost ✅ shipped (Q5)
+- Calendar regenerate / disable confirmations (`calendar-page.tsx`): AlertDialogCancel (different primitive, no change needed)
+
+This drift was systemic — half the dialogs in the app used `variant="outline"` for Cancel. The canonical pattern is `variant="ghost"` (lower visual weight than the primary action). Pulled to one place via this audit.
+
+**X2 — `aria-busy` + Loader2 spinner pattern on async-mutation buttons.**
+Across the app, MANY mutation buttons only relabel to "…ing" instead of also showing a spinner. This pass added Loader2 + aria-busy to:
+- Export dialog Export button (Q3.6)
+- Request Input dialog Send button (Q6.2)
+- Calendar Sync popover Enable button (Q8.4)
+- New Rule modal Create button (R5.1)
+- Audit log Download / Request export (F4.2/F4.3)
+- Reminders Save template (F5.3)
+- Members Send invite (F6.3)
+- Calendar Regenerate / Disable (F7.3/F7.4)
+- Workload Refresh (F2.4)
+
+The remaining un-fixed buttons across the app probably number 30-40. This is one of the most pervasive drift patterns — needs a follow-up sweep.
+
+**X3 — Loading state rhythm: skeleton vs text vs spinner.**
+The skeleton vs bordered-text-block split is the loading-state version of the same drift X2 attacks. Fixed on this pass: queue, workload (firms + table), notifications. Audit + opportunities already use skeletons. The remaining text-block loaders should be swept.
+
+**X4 — Error state: Alert primitive vs raw `<div>` vs `<Card>`.**
+Fixed on this pass: queue, workload, members invite. Multiple other surfaces probably still use raw-`<div>` or `<Card>` for errors. Needs follow-up sweep.
+
+**X5 — Translation drift.**
+Found in coverage-tab.tsx ActiveFilterChip (R6.1/R6.2) — fixed. Probably more hardcoded copy in less-traveled paths. Search regex `>[A-Z][a-z]+ .*</span>` or similar would catch them, but it's noisy.
+
+---
+
+## Summary
+
+**Total findings:** ~107 (Q1-Q10: 28 · R1-R6: 17 · F1-F7: 21 · M1-M4: 8 · H1-H4: 12 · X1-X5: 5 · plus discussion items)
+**Severity breakdown:** P0×1 · P1×20 · P2×52 · P3×~34
+**Shipped:** 41 fixes across 3 commits.
+**Deferred / not-drift:** ~66 (most need design call or feature work).
+
+### Top 10 P0/P1 findings (especially queue + cross-surface)
+
+1. **Q8.2 (P0)** — Calendar URL regenerate has NO confirmation. Destructive — invalidates user's existing calendar subscription silently. ⏳ deferred (needs Dialog).
+2. **Q1.1/Q1.2 (P1)** — Queue's loading + error rhythm broke the visual story (text blocks vs skeletons + raw button vs Alert). ✅ shipped.
+3. **Q2.1 (P1)** — Status hotkeys F/P/I/W cover only 4 of 6 lifecycle v2 states (no B / R / N). ⏳ deferred (needs hotkey design).
+4. **Q4.4 (P1)** — Bulk Set-status dropdown items have no `disabled={isPending}` — double-click risk. ⏳ deferred (route-level mutation lock).
+5. **Q10.2 (P1)** — Status=blocked has no way to specify WHAT's blocking (editor was retired 2026-05-21). ⏳ deferred (needs picker).
+6. **R2.1 (P1)** — Rule queue Pending/Active toggle disables the currently-selected tab when count hits zero. ✅ shipped.
+7. **R5.2 (P1)** — Header "New rule" button reaches a dead-end modal that says "go find a gap row." ⏳ deferred (feature work).
+8. **R5.3 (P1)** — Rule tax_type is a free-form Input — typing "Income tax" creates inconsistent filterable data. ⏳ deferred (Combobox needed).
+9. **R6.1/R6.2 (P1)** — Coverage-tab ActiveFilterChip had hardcoded English copy ("Showing jurisdictions with pending rules" + "Clear"). ✅ shipped.
+10. **F1.2/F1.3 (P1)** — Notifications page didn't differentiate read vs unread visually AND had a silent blank loading state. ✅ shipped.
+11. **F2.1/F2.2 (P1)** — Workload page used text-block loading + Card-as-error drift. ✅ shipped.
+12. **F3.1 (P1)** — Opportunity dismiss has no undo affordance in the toast. ⏳ deferred (toast primitive audit).
+13. **F6.1 (P1)** — Member invite onSuccess closed dialog silently — no toast confirming. ✅ shipped.
+14. **H4.1 (P1)** — Queue has no roving tabindex; keyboard navigation through 50 rows requires 200+ Tab stops. ⏳ deferred (significant refactor).
+
+### Shipped fixes index (by commit)
+
+1. **7f000975** — `Design(ux-flow-cont-queue-batch1)` — 15 queue findings (Q1.1, Q1.2, Q1.3, Q3.1, Q3.2, Q3.3, Q3.5, Q3.6, Q4.1, Q4.5, Q4.6, Q5.1, Q5.2, Q5.3, Q6.1, Q6.2, Q6.3, Q7.1, Q8.4)
+2. **2a1ae583** — `Design(ux-flow-cont-rules-batch1)` — 9 rule library findings (R1.1, R1.2, R2.1, R3.1, R3.4, R4.1, R4.2, R5.1, R6.1, R6.2)
+3. **7255840c** — `Design(ux-flow-cont-features-batch1)` — 17 feature page findings (F1.2, F1.3, F1.4, F1.6, F2.1, F2.2, F2.3, F2.4, F2.5, F4.1, F4.2, F4.3, F5.1, F5.2, F5.3, F6.1, F6.2, F6.3, F6.4, F7.2, F7.3, F7.4)
+
+### Honest coverage assessment
+
+The previous agent claimed ~30% of the auditable surface was walked in actionable depth. This pass walked:
+
+- **Queue (Q)** — Deep audit of the route's top-level state, drawer open/close, status transitions, all dialogs (export, extended memo, penalty input, request input, materials request preview), bulk action toolbar, filter chips, calendar-sync popover. Did NOT exhaustively walk the drawer body's sub-tabs (Materials, Readiness checklist, Audit/Timeline) — those alone are another 4K lines and a separate effort. Coverage: ~75% of the surface, ~85% of the dialog/popover surfaces.
+- **Rule library (R) + coverage-tab** — Walked the entity chips, queue-mode toggle, bulk review modal, rule rows, new rule modal, active filter chip. Did NOT exhaustively walk the Pulse / Generation preview / Temporary rules tabs (those are separate sub-routes inside the library; the entity-chip + queue-mode is the main library UX). Coverage: ~70%.
+- **Seven feature pages (F)** — All seven walked end-to-end. Coverage: ~85%.
+- **Mobile (M)** — Surveyed Sheet primitive + breakpoint patterns + touch-target sizes. Did NOT physically test in a mobile browser. Coverage: ~50% (this is design-level analysis; in-browser verification is a separate deliverable).
+- **Hotkey (H)** — Walked the keyboard shell, command palette, shortcut help dialog, queue + rule library + global hotkey registrations. Coverage: ~80%.
+
+**Net coverage of the 70% the prev agent deferred:** ~75%. Honestly, I could have walked the obligations.tsx drawer body deeper (each tab is its own component), the ClientFactsWorkspace (5K lines, mentioned in the survival instructions but explicitly NOT in my scope), and the migration wizard. The 75% claim is for the surfaces in my charter — I covered them in actionable depth but did not exhaustively walk every line.
+
