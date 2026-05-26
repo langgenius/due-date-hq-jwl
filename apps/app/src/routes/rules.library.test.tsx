@@ -2,6 +2,7 @@ import { act } from 'react'
 import type { ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter } from 'react-router'
+import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
@@ -14,6 +15,10 @@ import type {
 import { bootstrapI18n } from '@/i18n/bootstrap'
 import { activateLocale } from '@/i18n/i18n'
 import { AppI18nProvider } from '@/i18n/provider'
+import {
+  KeyboardShellContext,
+  type KeyboardShellContextValue,
+} from '@/components/patterns/keyboard-shell/state'
 
 import { RulesLibraryRoute } from './rules.library'
 
@@ -155,6 +160,16 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true
 let root: Root | null = null
 let container: HTMLDivElement | null = null
 
+const keyboardShellTestValue: KeyboardShellContextValue = {
+  commandPaletteOpen: false,
+  shortcutHelpOpen: false,
+  shortcutsBlocked: false,
+  openCommandPalette: () => undefined,
+  closeCommandPalette: () => undefined,
+  openShortcutHelp: () => undefined,
+  closeShortcutHelp: () => undefined,
+}
+
 function obligationRule(overrides: Partial<ObligationRule>): ObligationRule {
   return {
     id: 'az.individual_income_return.candidate.2026',
@@ -279,7 +294,13 @@ async function render(children: ReactNode) {
     root?.render(
       <QueryClientProvider client={client}>
         <AppI18nProvider>
-          <MemoryRouter>{children}</MemoryRouter>
+          <MemoryRouter>
+            <HotkeysProvider>
+              <KeyboardShellContext.Provider value={keyboardShellTestValue}>
+                {children}
+              </KeyboardShellContext.Provider>
+            </HotkeysProvider>
+          </MemoryRouter>
         </AppI18nProvider>
       </QueryClientProvider>,
     )
@@ -467,7 +488,7 @@ describe('RulesLibraryRoute', () => {
     await render(<RulesLibraryRoute />)
 
     expect(document.querySelector('[aria-busy="true"]')).toBeDefined()
-    expect(document.body.textContent).not.toContain('0 need review')
+    expect(document.body.textContent).not.toContain('0 needs review')
 
     await act(async () => {
       rulesRequest.resolve([rule])
@@ -476,7 +497,7 @@ describe('RulesLibraryRoute', () => {
       await Promise.all([rulesRequest.promise, coverageRequest.promise, sourcesRequest.promise])
     })
 
-    await waitForText('1 need review')
+    await waitForText('1 needs review')
     expect(document.querySelector('[aria-busy="true"]')).toBeNull()
   })
 

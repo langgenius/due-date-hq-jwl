@@ -12,6 +12,9 @@ locator and copy drift in the seeded deadline flows.
   expanded `Filter deadlines` input.
 - Re-aligned dashboard action-row, deadline drawer, status badge, and column-visibility assertions
   with the current accessible roles and copy.
+- Followed up on the same `main` push after CI surfaced catalog drift: formatted the client-detail
+  panel dev-log note, refreshed Lingui catalogs, and filled the 40 missing `zh-CN` messages from
+  the latest client/rules/deadlines UI.
 
 ## Validation
 
@@ -19,3 +22,15 @@ locator and copy drift in the seeded deadline flows.
   - 6 passed.
 - `pnpm exec playwright test e2e/tests/authenticated-shell.spec.ts e2e/tests/obligations.spec.ts --project=chromium --workers=1 --retries=0`
   - 10 passed.
+- `pnpm --filter @duedatehq/app i18n:extract`
+  - Passed with 0 missing `zh-CN` translations.
+- `pnpm --filter @duedatehq/app i18n:compile`
+  - Passed.
+- `pnpm check`
+  - Passed with existing lint/type warnings only.
+- `pnpm --filter @duedatehq/app test src/routes/rules.library.test.tsx`
+  - 13 passed.
+- `pnpm test`
+  - 60 files passed, 386 tests passed.
+- `pnpm build`
+  - Passed.

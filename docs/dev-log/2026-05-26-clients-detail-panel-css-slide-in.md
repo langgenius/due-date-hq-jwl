@@ -26,7 +26,7 @@ slide-in.
   mounted at xl+ so the width transition has a stable element to
   animate.
 - Add `transition-[width,margin-right] duration-300
-  ease-[cubic-bezier(0.32,0.72,0,1)]` so width changes animate
+ease-[cubic-bezier(0.32,0.72,0,1)]` so width changes animate
   natively. CSS sidesteps React 19's reconciliation entirely — the
   browser owns the tween, the framework can't stall it.
 - Closed state: `xl:w-0 xl:-mr-6`. The negative right margin cancels
