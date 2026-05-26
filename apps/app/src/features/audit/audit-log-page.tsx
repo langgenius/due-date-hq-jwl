@@ -44,6 +44,7 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/permission-gate'
 
 import { PageHeader } from '@/components/patterns/page-header'
+import { SearchInput } from '@/components/primitives/search-input'
 
 import { AuditEventDrawer } from './audit-event-drawer'
 import { useAuditActionLabels, useAuditEntityTypeLabels } from './audit-log-labels'
@@ -500,13 +501,45 @@ export function AuditLogPage() {
       })),
     [entityTypeLabels, events],
   )
-  const loadedPageCount = Math.max(1, Math.ceil(events.length / TABLE_PAGE_SIZE))
+  // 2026-05-26 (Yuqi step-8 data-finding audit — F-X06): the `q`
+  // URL parser has been declared since this page was built but never
+  // rendered as an input or written by any control — only read in
+  // `filtersActive` + `resetFilters`. Audit log is text-heavy (event
+  // description, entity name, actor email, IP) and the most common
+  // investigator question is "did anyone touch client X?" — exactly
+  // the question free-text search answers. Until the backend supports
+  // a `q` field on `audit.list`, we filter client-side over the
+  // already-loaded events (description + actor label + entity id),
+  // so the input works on the visible window without a backend
+  // contract change. The URL param is still single-source-of-truth
+  // for share-link fidelity.
+  const trimmedSearch = query.q.trim().toLowerCase()
+  const filteredEvents = useMemo(() => {
+    if (trimmedSearch.length === 0) return events
+    return events.filter((event) => {
+      const haystack = [
+        event.actorLabel ?? '',
+        event.actorId ?? '',
+        event.entityId,
+        event.action,
+        event.entityType,
+        event.reason ?? '',
+      ]
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(trimmedSearch)
+    })
+  }, [events, trimmedSearch])
+  const loadedPageCount = Math.max(1, Math.ceil(filteredEvents.length / TABLE_PAGE_SIZE))
   const currentPageIndex = Math.min(pageIndex, loadedPageCount - 1)
   const currentPageStart = currentPageIndex * TABLE_PAGE_SIZE
-  const currentPageEvents = events.slice(currentPageStart, currentPageStart + TABLE_PAGE_SIZE)
+  const currentPageEvents = filteredEvents.slice(
+    currentPageStart,
+    currentPageStart + TABLE_PAGE_SIZE,
+  )
   const firstItemNumber = currentPageEvents.length > 0 ? currentPageStart + 1 : 0
   const lastItemNumber = currentPageStart + currentPageEvents.length
-  const hasLoadedNextPage = (currentPageIndex + 1) * TABLE_PAGE_SIZE < events.length
+  const hasLoadedNextPage = (currentPageIndex + 1) * TABLE_PAGE_SIZE < filteredEvents.length
   const hasPreviousPage = currentPageIndex > 0
   const hasNextPage = hasLoadedNextPage || auditQuery.hasNextPage
   const selectedEvent = events.find((event) => event.id === query.event) ?? null
@@ -546,7 +579,15 @@ export function AuditLogPage() {
 
   function goToNextPage() {
     const nextPageIndex = currentPageIndex + 1
-    if (nextPageIndex * TABLE_PAGE_SIZE < events.length) {
+    // 2026-05-26 (Yuqi step-8 data-finding audit — F-X06): paginate
+    // over the *filtered* event window now that client-side `q`
+    // narrowing is active. Previously this advanced through every
+    // loaded event regardless of search — the next-page button would
+    // skip past filtered-out rows and land on a page that ignored
+    // the search input. When the user has narrowed and we still
+    // have raw events to load (auditQuery.hasNextPage), fetch them
+    // so the client-side filter can scan the new batch.
+    if (nextPageIndex * TABLE_PAGE_SIZE < filteredEvents.length) {
       setPageIndex(nextPageIndex)
       return
     }
@@ -617,15 +658,43 @@ export function AuditLogPage() {
             <Trans>Audit filters</Trans>
           </CardTitle>
           <CardDescription>
-            <Trans>Filter by time range, action category, action, actor, or entity type.</Trans>
+            <Trans>
+              Search by actor, entity, action, or reason — or narrow by time range, action
+              category, actor, or entity type.
+            </Trans>
           </CardDescription>
           <CardAction>
             <Badge variant="outline" className="tabular-nums">
-              {events.length}
+              {filteredEvents.length}
             </Badge>
           </CardAction>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(0,1fr))_auto] xl:items-center">
+        <CardContent className="grid gap-3">
+          {/* 2026-05-26 (Yuqi step-8 data-finding audit — F-X06): the
+              `q` URL parser was declared but the input that drives it
+              was missing. Audit log is text-heavy and "did anyone
+              touch client X?" is the most common investigator query —
+              free-text search is the right lead control. Sits above
+              the structural-filter grid so it reads as the primary
+              affordance, mirroring /deadlines + /rules/library. */}
+          <SearchInput
+            value={query.q}
+            onChange={(next) => {
+              setPageIndex(0)
+              void setQuery({ q: next.length > 0 ? next : null, event: null })
+            }}
+            placeholder={t`Search actor, entity, action, reason`}
+            ariaLabel={t`Search audit events`}
+            hotkey="/"
+            hotkeyMeta={{
+              id: 'audit.focus-search',
+              name: 'Filter audit events',
+              description: 'Focus the Audit log filter input.',
+              category: 'practice',
+              scope: 'route',
+            }}
+          />
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(0,1fr))_auto] xl:items-center">
           <Select
             value={query.category}
             onValueChange={(value) => {
@@ -711,6 +780,7 @@ export function AuditLogPage() {
                 means one thing across the workbench. */}
             <Trans>Clear filters</Trans>
           </Button>
+        </div>
         </CardContent>
       </Card>
 
@@ -742,7 +812,7 @@ export function AuditLogPage() {
             </Alert>
           ) : null}
 
-          {!auditQuery.isLoading && !auditQuery.isError && events.length === 0 ? (
+          {!auditQuery.isLoading && !auditQuery.isError && filteredEvents.length === 0 ? (
             <div className="grid gap-2 rounded-lg border border-divider-subtle p-6 text-center">
               <h2 className="text-lg font-semibold text-text-primary">
                 {filtersActive ? (
@@ -764,7 +834,7 @@ export function AuditLogPage() {
             </div>
           ) : null}
 
-          {events.length > 0 ? (
+          {filteredEvents.length > 0 ? (
             <>
               <AuditLogTable
                 events={currentPageEvents}
@@ -775,7 +845,7 @@ export function AuditLogPage() {
                 pageIndex={currentPageIndex}
                 firstItemNumber={firstItemNumber}
                 lastItemNumber={lastItemNumber}
-                loadedCount={events.length}
+                loadedCount={filteredEvents.length}
                 hasPreviousPage={hasPreviousPage}
                 hasNextPage={hasNextPage}
                 isFetchingNextPage={auditQuery.isFetchingNextPage}
