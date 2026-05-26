@@ -757,7 +757,7 @@ export function CoverageTab({
             <div className="flex flex-wrap items-center justify-between gap-3">
               {/* 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN
                   §9 "uppercase kicker deprecated" violation): dropped
-                  `text-xs uppercase tracking-[0.12em] font-semibold`
+                  `text-xs uppercase tracking-eyebrow font-semibold`
                   for the canonical `text-sm font-medium text-text-primary`
                   section heading scale. Sentence case keeps the rest
                   of the rules library reading as one coherent surface. */}
@@ -1353,7 +1353,7 @@ function ExpandedRowDetail({
       <TableCell colSpan={totalColumnCount} className="p-0">
         <div className="flex flex-col gap-4 px-6 py-4">
           <section className="flex flex-col gap-2">
-            <p className="text-xs font-semibold tracking-[0.12em] text-text-tertiary uppercase">
+            <p className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>Active rules</Trans>
             </p>
             {activeRules.length === 0 ? (
@@ -1376,7 +1376,7 @@ function ExpandedRowDetail({
           </section>
 
           <section className="flex flex-col gap-2">
-            <p className="text-xs font-semibold tracking-[0.12em] text-text-tertiary uppercase">
+            <p className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>Pending rules</Trans>
             </p>
             {pendingRules.length === 0 ? (
@@ -1399,7 +1399,7 @@ function ExpandedRowDetail({
           </section>
 
           <section className="flex flex-col gap-2">
-            <p className="text-xs font-semibold tracking-[0.12em] text-text-tertiary uppercase">
+            <p className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>Watched sources</Trans>
             </p>
             {sources.length === 0 ? (
@@ -1714,7 +1714,7 @@ function PendingRuleQueue({
     <>
       <header className="flex flex-col gap-2 border-b border-divider-regular px-4 py-3">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-caption-xs font-medium tracking-[0.12em] text-text-tertiary uppercase">
+          <p className="text-caption-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
             <Trans>Pending review queue</Trans>
           </p>
           <span className="text-xs tabular-nums text-text-tertiary">
@@ -1881,7 +1881,7 @@ function ActiveRuleQueue({
     <>
       <header className="flex flex-col gap-2 border-b border-divider-regular px-4 py-3">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-caption-xs font-medium tracking-[0.12em] text-text-tertiary uppercase">
+          <p className="text-caption-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
             <Trans>Active rule queue</Trans>
           </p>
           <span className="text-xs tabular-nums text-text-tertiary">
@@ -2364,7 +2364,7 @@ function RulePanel({
             knows where they are in the burndown. "Reviewing 1 of 7"
             beats a static "Reviewing rule" — answers progress + mode
             in one phrase. */}
-          <p className="text-caption-xs font-medium tracking-[0.12em] text-text-tertiary uppercase">
+          <p className="text-caption-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
             {queuePosition && queuePosition.index >= 0 ? (
               mode === 'active' ? (
                 <Trans>

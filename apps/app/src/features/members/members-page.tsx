@@ -634,7 +634,7 @@ function SeatStat({ data }: { data: MembersListOutput }) {
         </span>
         <span className="text-sm font-medium text-text-muted">/ {data.seatLimit}</span>
       </div>
-      <p className="mt-auto text-xs leading-[18px] text-text-muted">
+      <p className="mt-auto text-xs leading-5 text-text-muted">
         <Trans>{data.availableSeats} available seats</Trans>
       </p>
       <div className="mt-2 h-0.5 rounded-full bg-divider-subtle">
@@ -654,7 +654,7 @@ function KpiStat({ label, value, detail }: { label: string; value: number; detai
       <span className="mt-1 text-2xl leading-tight font-bold text-text-primary tabular-nums">
         {value}
       </span>
-      <p className="mt-auto text-xs leading-[18px] text-text-muted">{detail}</p>
+      <p className="mt-auto text-xs leading-5 text-text-muted">{detail}</p>
     </div>
   )
 }

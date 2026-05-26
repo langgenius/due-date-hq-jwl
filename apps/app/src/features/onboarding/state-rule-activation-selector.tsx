@@ -178,7 +178,7 @@ export function StateRuleActivationSelector({
         </TooltipProvider>
       </div>
 
-      <p className="min-h-[18px] text-caption leading-[18px] text-text-muted">
+      <p className="min-h-[18px] text-caption leading-5 text-text-muted">
         {hoverCode && hoveredLabel ? (
           <>
             <span className="font-mono font-medium text-text-secondary">{hoverCode}</span>

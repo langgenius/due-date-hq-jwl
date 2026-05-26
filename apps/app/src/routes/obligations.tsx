@@ -3315,9 +3315,9 @@ export function ObligationQueueRoute() {
           ) : null}
 
           {isInitialLoading ? (
-            <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
+            <EmptyPanel className="py-8 text-center">
               <Trans>Loading deadlines…</Trans>
-            </div>
+            </EmptyPanel>
           ) : isError ? (
             <Alert variant="destructive">
               <AlertDescription>
@@ -5836,9 +5836,9 @@ export function ObligationQueueDetailDrawer({
         )}
       >
         {detailQuery.isLoading ? (
-          <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
+          <EmptyPanel className="py-8 text-center">
             <Trans>Loading deadline detail…</Trans>
-          </div>
+          </EmptyPanel>
         ) : detailQuery.isError || !detail || !row ? (
           <Alert variant="destructive">
             <AlertDescription>
@@ -6372,14 +6372,14 @@ export function ObligationQueueDetailDrawer({
                   </div>
                   {checklist.length === 0 ? (
                     autoGenerateChecklistQuery.isFetching ? (
-                      <div className="grid gap-3 rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-secondary">
+                      <EmptyPanel className="grid gap-3 text-text-secondary">
                         <div className="flex items-center gap-2">
                           <RefreshCwIcon className="size-4 animate-spin" aria-hidden />
                           <span>
                             <Trans>Preparing</Trans>
                           </span>
                         </div>
-                      </div>
+                      </EmptyPanel>
                     ) : autoGenerateChecklistQuery.isError ? (
                       <EmptyPanel>
                         <div className="flex flex-wrap items-center justify-center gap-2">
@@ -6400,7 +6400,7 @@ export function ObligationQueueDetailDrawer({
                       // inside the empty panel as the obvious next step.
                       // "Add item" is demoted to a small text link below
                       // for users who want to bypass the AI generation.
-                      <div className="grid gap-3 rounded-lg border border-dashed border-divider-regular p-4 text-center text-sm text-text-secondary">
+                      <EmptyPanel className="grid gap-3 text-center text-text-secondary">
                         <p className="text-text-tertiary">
                           <Trans>
                             No documents listed yet. Generate an AI checklist or add items manually.
@@ -6440,7 +6440,7 @@ export function ObligationQueueDetailDrawer({
                             <Trans>Add item manually</Trans>
                           </Button>
                         </div>
-                      </div>
+                      </EmptyPanel>
                     )
                   ) : (
                     <>
@@ -7602,9 +7602,14 @@ function MaterialsRequestPreviewChecklist({
   )
 }
 
-function EmptyPanel({ children }: { children: ReactNode }) {
+function EmptyPanel({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className="rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-tertiary">
+    <div
+      className={cn(
+        'rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-tertiary',
+        className,
+      )}
+    >
       {children}
     </div>
   )
