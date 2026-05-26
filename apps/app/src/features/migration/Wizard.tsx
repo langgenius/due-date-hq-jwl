@@ -481,6 +481,12 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     }
   }, [state.intake.rawText])
 
+  // 2026-05-26 (Step 7 onboarding audit F6-27 considered):
+  // step-specific labels ("Review mapping" / "Clean values" /
+  // "Preview import") would preview the next phase, but
+  // Wizard.test.tsx looks for a literal "Continue" button on
+  // Steps 1-3. Documenting in the audit doc; copy change
+  // belongs in a single commit that also updates tests.
   const continueLabel = useMemo(() => {
     if (state.step !== 4) return undefined
     return <Trans>Import &amp; Generate</Trans>
@@ -681,29 +687,28 @@ function LiveGenesisOverlay({
   // z-[70]: documented escape hatch above the canonical z-50 overlay
   // tier (Dialog / Sheet / Toast). The wizard's own dialog is already
   // mounted at z-50; this genesis overlay sits *above* that so the
-  // count + spinner stay visible while the wizard finalises. The
-  // arbitrary 70 (rather than another `z-50` that'd compete) is the
-  // singular use of "above-overlay" in the app — left as an arbitrary
-  // value rather than promoting to a `--z-*` token for a one-off.
+  // count + spinner stay visible while the wizard finalises.
+  //
+  // 2026-05-26 (Step 7 onboarding audit F6-24): hierarchy inverted —
+  // the "wow" moment is seeing your clients land, deadlines are
+  // downstream. Client count is the headline pulse; deadlines is
+  // the supporting fact below. (Step 1-5 reaudit kept tabular-nums
+  // sans `font-mono` on similar metric counters across the app.)
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-background-body/90 backdrop-blur-sm">
       <div className="grid gap-3 text-center">
         <div className="text-2xl font-semibold tabular-nums text-text-primary motion-safe:animate-pulse">
-          {genesis.obligationCount}
+          {genesis.clientCount}
         </div>
-        {/* 2026-05-25 (Wizard #40 — plural fix): "obligations
-            created" baked plural in English; the value above is
-            the count, so pluralise the label too. Same fix on
-            the "clients imported" line below. */}
         <div className="text-sm text-text-secondary">
-          <Plural
-            value={genesis.obligationCount}
-            one="deadline created"
-            other="deadlines created"
-          />
+          <Plural value={genesis.clientCount} one="client imported" other="clients imported" />
         </div>
         <div className="text-xs text-text-tertiary">
-          <Plural value={genesis.clientCount} one="# client imported" other="# clients imported" />
+          <Plural
+            value={genesis.obligationCount}
+            one="# deadline generated"
+            other="# deadlines generated"
+          />
         </div>
       </div>
     </div>

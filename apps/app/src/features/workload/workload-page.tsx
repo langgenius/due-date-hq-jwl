@@ -160,7 +160,18 @@ export function WorkloadPage() {
           ) : data && data.rows.length > 0 ? (
             <WorkloadTable rows={data.rows} asOfDate={data.asOfDate} windowDays={data.windowDays} />
           ) : (
-            <EmptyState title={<Trans>No open deadlines match the workload window.</Trans>} />
+            // 2026-05-26 (Step 7 F9-03): empty state gets icon + description
+            // so it reads as a polished surface, not bare title.
+            <EmptyState
+              icon={ClipboardListIcon}
+              title={<Trans>No open deadlines match the workload window.</Trans>}
+              description={
+                <Trans>
+                  Workload shows open deadlines for the next 7 days. Import clients or wait for
+                  deadlines to land inside the window.
+                </Trans>
+              }
+            />
           )}
         </CardContent>
       </Card>

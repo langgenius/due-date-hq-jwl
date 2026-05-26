@@ -97,7 +97,22 @@ export function NotificationsPage() {
           ) : null}
 
           {!notificationsQuery.isLoading && notifications.length === 0 ? (
-            <EmptyState icon={InboxIcon} title={<Trans>No notifications yet.</Trans>} />
+            /* 2026-05-26 (Step 7 onboarding audit F9-05): empty
+               state was title-only — no description telling
+               the user what would appear here. Compared to
+               every other shared EmptyState in the app, this
+               surface was the lone "title without context"
+               instance. Added a one-liner so the empty state
+               teaches the surface. */
+            <EmptyState
+              icon={InboxIcon}
+              title={<Trans>No notifications yet.</Trans>}
+              description={
+                <Trans>
+                  Mentions, assignment changes, and important deadline alerts will show up here.
+                </Trans>
+              }
+            />
           ) : null}
 
           {notifications.map((item) => (

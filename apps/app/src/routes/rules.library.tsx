@@ -2412,15 +2412,16 @@ function GroupedRulesTable({
               the bare "No rules and no coverage data yet." row has
               been retired — `RulesLibraryEmptyState` now renders
               ABOVE this table when `groups.length === 0` (see the
-              parent route). The table itself is never rendered with
-              zero groups now. */}
+              parent route). Step 7's F9-06 copy improvement is no
+              longer applicable to this hunk; the table itself is
+              never rendered with zero groups. Step 7's gap-section
+              `StatusSectionHeaderRow` (F9-?) was independently
+              shipped here (see L2379). */}
           </TableBody>
         </Table>
-        {/* 2026-05-26 (Yuqi cross-table drift #3 — "clients and rule
-          library are prev/next + page count footer"): pagination
-          footer matching /clients shape (px-2 py-6, prev/next chevrons,
-          "Page X of N" between). Footer only renders when there's
-          more than one page. */}
+        {/* Pagination footer (HEAD): matches /clients shape — prev/next
+            chevrons + "Page X of N" between. Renders only when there's
+            more than one page. */}
         {totalPages > 1 ? (
           <div className="flex shrink-0 items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-6 text-xs text-text-tertiary">
             <span className="px-2">

@@ -10,6 +10,8 @@ import {
   Building2Icon,
   CheckIcon,
   CreditCardIcon,
+  ExternalLinkIcon,
+  LockIcon,
   ShieldCheckIcon,
   UsersIcon,
 } from 'lucide-react'
@@ -284,7 +286,13 @@ export function BillingCheckoutRoute() {
           <Trans>Review the practice subscription before opening secure checkout.</Trans>
         }
         actions={
-          <Badge variant="info" className="tabular-nums text-xs">
+          // 2026-05-26 (Step 7 F8-02): "Secure checkout" badge gets a
+          // LockIcon + gap-1.5 so it reads as a trust signal, not as
+          // a routine info chip. Kept inside `PageHeader.actions` —
+          // Step 7's branch had refactored out of PageHeader entirely,
+          // but the shared primitive is the canonical wrapper.
+          <Badge variant="info" className="gap-1.5">
+            <LockIcon className="size-3" aria-hidden />
             <Trans>Secure checkout</Trans>
           </Badge>
         }
@@ -436,6 +444,16 @@ export function BillingCheckoutRoute() {
             <Button variant="outline" onClick={() => void navigate('/billing')}>
               <Trans>Choose another plan</Trans>
             </Button>
+            {/* 2026-05-26 (Step 7 onboarding audit F8-06): the
+                primary CTA opens Stripe via `window.location.assign`,
+                but the button copy didn't disclose the redirect.
+                Added an inline note so the user expects to leave
+                the app and land on Stripe. Standard pattern for
+                external-handoff buttons. */}
+            <p className="flex w-full items-center gap-1.5 text-xs text-text-tertiary">
+              <ExternalLinkIcon className="size-3" aria-hidden />
+              <Trans>You'll be redirected to Stripe to enter payment details.</Trans>
+            </p>
             {!selfServe ? (
               <span className="text-sm text-text-tertiary">
                 <Trans>

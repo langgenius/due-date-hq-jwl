@@ -113,8 +113,14 @@ describe('StateRuleActivationSelector', () => {
   it('shows a Rule Library review hint when selected states include source-defined calendars', () => {
     renderSelector({ selected: ['CA'] })
 
+    // 2026-05-26 (Step 7 onboarding audit F5-08): warning copy
+    // was rewritten in plain English — "official calendars" /
+    // "pending rules" were internal vocab. The test now
+    // verifies the user-facing phrases the new copy uses:
+    // "the state's own calendar" + "marked for review".
     expect(document.body.textContent).toContain('Rule Library review required.')
-    expect(document.body.textContent).toContain('official calendars')
+    expect(document.body.textContent).toContain("state's own calendar")
+    expect(document.body.textContent).toContain('marked for review')
   })
 
   it('hides the Rule Library review hint until a review-required state is selected', () => {

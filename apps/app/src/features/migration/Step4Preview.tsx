@@ -43,12 +43,21 @@ export function Step4Preview({ summary }: Step4Props) {
         </p>
       </div>
 
+      {/* 2026-05-26 (Step 7 onboarding audit F6-19): the list
+          was `font-mono tabular-nums` on the whole item, so the
+          "X clients" / "X deadlines" copy read as a build log.
+          Step 4 is the user's commit moment — they want a
+          human-readable summary, not terminal output. Kept
+          `tabular-nums` for the numeral itself (alignment) but
+          dropped `font-mono` from the row so the surrounding
+          words look like prose. Step 1-5 reaudit canonicalized
+          `text-md` → `text-base` (same 14px). */}
       <ul className="flex flex-col gap-1.5 text-base">
-        <li className="flex items-center gap-2 font-mono tabular-nums">
+        <li className="flex items-center gap-2 tabular-nums">
           <PlayIcon className="size-3 text-text-accent" aria-hidden />
           <Plural value={clientCount} one="# client" other="# clients" />
         </li>
-        <li className="flex items-center gap-2 font-mono tabular-nums">
+        <li className="flex items-center gap-2 tabular-nums">
           <PlayIcon className="size-3 text-text-accent" aria-hidden />
           <Plural
             value={obligationCount}
@@ -68,12 +77,23 @@ export function Step4Preview({ summary }: Step4Props) {
         ) : null}
       </ul>
 
+      {/* 2026-05-26 (Step 7 onboarding audit F6-20): heading was
+          "Safety" — so abstract it read as throat-clearing.
+          The three bullets are concrete reassurances ("undo
+          for 24h", "audit captures every AI decision", "no
+          emails sent"). Heading now names the moment ("Before
+          you import") so the bullets land as preconditions
+          rather than as a generic safety footer. */}
       <section
-        aria-label={t`Safety`}
+        aria-label={t`Before you import`}
         className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-section p-3"
       >
+        {/* Step 7 onboarding F6-20: heading copy from "Safety" →
+            "Before you import" so the bullets land as preconditions,
+            not as a generic footer. Step 1-5 reaudit canonicalized
+            tracking — keep `tracking-eyebrow` token, not arbitrary. */}
         <h3 className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
-          <Trans>Safety</Trans>
+          <Trans>Before you import</Trans>
         </h3>
         <ul className="flex flex-col gap-1.5 text-base text-text-primary">
           <li className="flex items-center gap-2">

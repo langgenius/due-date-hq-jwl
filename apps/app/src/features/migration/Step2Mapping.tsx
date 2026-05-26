@@ -101,6 +101,13 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
               off.
             </Trans>
           </p>
+          {/* 2026-05-26 (Step 7 onboarding audit F6-14): the
+              override-label "Re-run AI with my overrides"
+              implies a stronger guarantee than the server gives
+              (overrides are passed as hints, not guaranteed
+              preserved). Softened to "Re-run AI (keep my
+              changes)" so the verb is clear and the parenthetical
+              describes the intent, not a contract. */}
           <Button
             variant="outline"
             size="sm"
@@ -109,7 +116,7 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           >
             <RefreshCwIcon data-icon="inline-start" />
             {mapping.rows.some((r) => r.userOverridden) ? (
-              <Trans>Re-run AI with my overrides</Trans>
+              <Trans>Re-run AI (keep my changes)</Trans>
             ) : (
               <Trans>Re-run AI</Trans>
             )}
@@ -349,13 +356,22 @@ type Tier = 'high' | 'medium' | 'low' | 'none'
 function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
   const { t } = useLingui()
 
+  // 2026-05-26 (Step 7 onboarding audit F6-11): every variant
+  // here was `variant="destructive"` — including the success
+  // case ("AI Mapper"). All three states therefore rendered in
+  // the same red/orange tone, so the badge encoded zero state
+  // information visually. Mapped each state to its semantic
+  // variant: AI success → outline (calm, not destructive),
+  // template-fallback → outline (informational), all-ignore
+  // (manual) → destructive (genuine warning, action required).
+
   if (mapping.status === 'fallback' && mapping.fallback === 'preset') {
     return (
       <MappingCapabilityHelp
         label={t`Explain import template suggestions`}
         title={t`Import template suggestions mean AI was unavailable and the selected import template filled defaults.`}
         badge={
-          <Badge variant="destructive">
+          <Badge variant="outline">
             <ListChecksIcon data-icon="inline-start" />
             <Trans>Import template</Trans>
           </Badge>
@@ -391,7 +407,7 @@ function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
       label={t`Explain AI Mapper`}
       title={t`AI Mapper means AI suggested the fields.`}
       badge={
-        <Badge variant="destructive">
+        <Badge variant="outline">
           <SparklesIcon data-icon="inline-start" />
           <Trans>AI Mapper</Trans>
         </Badge>
@@ -438,9 +454,13 @@ function MappingCapabilityHelp({
             </button>
           }
         />
-        <TooltipContent className="max-w-[280px] text-text-destructive whitespace-normal">
-          {children}
-        </TooltipContent>
+        {/* 2026-05-26 (Step 7 onboarding audit F6-12): tooltip
+            body was `text-text-destructive` — applied to every
+            capability state including the success case. Tooltip
+            now uses default body text; the badge variant
+            (destructive vs outline, set by the caller) carries
+            the state signal. */}
+        <TooltipContent className="max-w-[280px] whitespace-normal">{children}</TooltipContent>
       </Tooltip>
     </span>
   )
@@ -464,10 +484,16 @@ function MappingConfidenceTier({ tier, confidence }: { tier: Tier; confidence: n
     medium: 'bg-background-subtle text-text-secondary border-divider-regular',
     low: 'bg-components-badge-bg-warning-soft text-text-primary border-divider-regular',
   }
-  const label: Record<Exclude<Tier, 'none'>, string> = {
-    high: 'H',
-    medium: 'M',
-    low: 'L',
+  // 2026-05-26 (Step 7 onboarding audit F6-10): the bracketed
+  // `[H]/[M]/[L]` tier letter was redundant with the percentage
+  // and color and read as a code label, not a tier signal. A
+  // CPA user already gets the tier from the percent + color;
+  // the letter was duplicate cognitive load. Dropped from the
+  // visual; kept as `title` for hover + AT exposure.
+  const tierTitle: Record<Exclude<Tier, 'none'>, string> = {
+    high: 'High confidence',
+    medium: 'Medium confidence',
+    low: 'Low confidence',
   }
   return (
     <span
@@ -475,9 +501,9 @@ function MappingConfidenceTier({ tier, confidence }: { tier: Tier; confidence: n
         'inline-flex h-5 items-center gap-1 rounded-md border px-1.5 font-mono text-xs tabular-nums',
         styles[tier],
       )}
+      title={tierTitle[tier]}
     >
       <span>{pct}%</span>
-      <span className="font-semibold">[{label[tier]}]</span>
     </span>
   )
 }

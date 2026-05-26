@@ -59,8 +59,13 @@ export function Step3Normalize({
   return (
     <div className="flex flex-col gap-4 py-5">
       <div className="flex flex-col gap-1">
+        {/* 2026-05-26 (Step 7 onboarding audit F6-16): "cleaned"
+            implied the source data was dirty — a passive
+            criticism of the user's roster. "Standardized" is
+            neutral and matches the step's own name
+            ("Normalize") with no value judgment. */}
         <h2 className="text-lg font-semibold text-text-primary">
-          <Trans>AI cleaned your values</Trans>
+          <Trans>AI standardized your values</Trans>
         </h2>
         <p className="text-sm text-text-secondary">
           <Trans>
@@ -397,10 +402,19 @@ function MatrixControls({
                   <span className="text-text-tertiary">·</span>
                   <Plural value={cell.appliedClientCount} one="# client" other="# clients" />
                 </span>
+                {/* 2026-05-26 (Step 7 onboarding audit F6-18):
+                    the checkbox label said "Use suggested
+                    filings" with no consequence on uncheck. A
+                    user toggling without a known outcome
+                    spirals into anxiety. Added a title-attr
+                    hint that says what unchecking means
+                    (skip these defaults, manual deadlines
+                    later for these clients). */}
                 <label
                   className="inline-flex cursor-pointer items-center gap-2 text-xs text-text-secondary"
                   data-apply-to-all-key={key}
                   aria-keyshortcuts="A"
+                  title={t`Uncheck to skip these tax-type defaults. You'll need to add deadlines manually for these clients.`}
                 >
                   <Checkbox checked={checked} onCheckedChange={(value) => onToggle(key, value)} />
                   <Trans>Use suggested filings</Trans>
@@ -421,7 +435,18 @@ function MatrixControls({
                   promptVersion={`matrix@${cell.matrixVersion}`}
                 />
                 {cell.needsReview ? (
-                  <span className="inline-flex h-5 items-center gap-1 rounded-md border border-divider-regular bg-components-badge-bg-warning-soft px-1.5 text-xs text-text-primary">
+                  /* 2026-05-26 (Step 7 onboarding audit F6-17):
+                     the "Needs review" badge used the same calm
+                     soft-warning chrome as the adjacent
+                     "Verified" badge — so the two were visually
+                     near-identical even though "needs review"
+                     is an action requirement and "verified" is
+                     a footnote. Strengthened the warning treatment
+                     with a non-divider border so it actually
+                     reads as "you should look at this", while
+                     "Verified" keeps the calmer treatment as a
+                     passing reassurance. */
+                  <span className="inline-flex h-5 items-center gap-1 rounded-md border border-state-warning-hover-alt bg-components-badge-bg-warning-soft px-1.5 text-xs font-medium text-text-primary">
                     <AlertTriangleIcon className="size-3" aria-hidden />
                     <Trans>Needs review</Trans>
                   </span>
