@@ -107,7 +107,9 @@ function TaxCodeTooltipBody({
   return (
     <div className="flex max-w-[240px] flex-col gap-0.5 text-left">
       <span className="font-mono text-caption text-components-tooltip-text">{code}</span>
-      <span className="text-caption-xs uppercase tracking-[0.06em] opacity-70">{jurisdiction}</span>
+      <span className="text-caption-xs uppercase tracking-eyebrow-tight opacity-70">
+        {jurisdiction}
+      </span>
       {description ? <span className="mt-1 text-xs leading-snug">{description}</span> : null}
     </div>
   )

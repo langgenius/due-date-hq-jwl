@@ -39,7 +39,7 @@ const { t, ctaHref } = Astro.props
       </a>
       <nav class="hidden items-center gap-6 text-[13px] text-text-secondary lg:flex">
         {t.links.map((link) => (
-          <a href={link.href} class="transition-colors hover:text-text-primary">{link.label}</a>
+          <a href={link.href} class="rounded-sm outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">{link.label}</a>
         ))}
       </nav>
     </div>
@@ -50,7 +50,7 @@ const { t, ctaHref } = Astro.props
       </span>
       <a
         href={ctaHref}
-        class="inline-flex h-8 items-center gap-1.5 rounded-md bg-accent-default px-3 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-accent-hover"
+        class="inline-flex h-8 items-center gap-1.5 rounded-md bg-accent-default px-3 text-[13px] font-medium text-primary-foreground outline-none transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         data-event="marketing.nav.cta"
       >
         <span>{t.cta}</span>

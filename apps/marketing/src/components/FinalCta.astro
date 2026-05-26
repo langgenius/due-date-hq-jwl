@@ -28,7 +28,7 @@ const { t, ctaHref } = Astro.props
         <div class="flex flex-col gap-3 lg:col-span-5 lg:items-end lg:justify-center">
           <a
             href={ctaHref}
-            class="inline-flex h-12 w-full max-w-[360px] items-center justify-center gap-2 rounded-md bg-accent-default text-[15px] font-medium text-primary-foreground transition-colors hover:bg-accent-hover lg:w-[360px]"
+            class="inline-flex h-12 w-full max-w-[360px] items-center justify-center gap-2 rounded-md bg-accent-default text-[15px] font-medium text-primary-foreground outline-none transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt lg:w-[360px]"
             data-event="marketing.final_cta.clicked"
           >
             <span>{t.primaryCta}</span>
@@ -36,7 +36,7 @@ const { t, ctaHref } = Astro.props
           </a>
           <a
             href="mailto:sales@duedatehq.com?subject=DueDateHQ"
-            class="inline-flex h-12 w-full max-w-[360px] items-center justify-center rounded-md border border-border-default bg-bg-elevated text-[15px] font-medium text-text-primary transition-colors hover:border-border-strong lg:w-[360px]"
+            class="inline-flex h-12 w-full max-w-[360px] items-center justify-center rounded-md border border-border-default bg-bg-elevated text-[15px] font-medium text-text-primary outline-none transition-colors hover:border-border-strong focus-visible:ring-2 focus-visible:ring-state-accent-active-alt lg:w-[360px]"
             data-event="marketing.final_cta.secondary"
           >
             {t.secondaryCta}

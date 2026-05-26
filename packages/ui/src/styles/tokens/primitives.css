@@ -48,8 +48,14 @@
    * DESIGN.md §3.3. Auto-generates the `tracking-eyebrow` Tailwind
    * utility class. Tailwind defaults (tracking-tight/normal/wide/wider)
    * stay available for non-eyebrow contexts.
+   *
+   * `--tracking-eyebrow-tight` is the canonical for micro-eyebrows
+   * (10–12px font-mono labels inside table headers, inline tags, dense
+   * meta rows) where the standard 0.08em pushes too much air between
+   * glyphs. Auto-generates `tracking-eyebrow-tight`.
    * --------------------------------------------------------------------- */
   --tracking-eyebrow: 0.08em;
+  --tracking-eyebrow-tight: 0.06em;
 
   /* ===== Spacing ========================================================= */
   --space-0: 0px;

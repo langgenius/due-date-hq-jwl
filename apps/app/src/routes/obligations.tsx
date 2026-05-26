@@ -5706,7 +5706,7 @@ export function ObligationQueueDetailDrawer({
           <p className="flex flex-wrap items-baseline gap-x-2 text-sm text-text-tertiary">
             {row.jurisdiction ? (
               <>
-                <span className="inline-flex items-center rounded border border-divider-regular bg-background-default px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-[0.06em] text-text-secondary">
+                <span className="inline-flex items-center rounded border border-divider-regular bg-background-default px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-secondary">
                   {row.jurisdiction}
                 </span>
                 <span aria-hidden>·</span>
@@ -8407,7 +8407,7 @@ function DeadlineTile({
     <div className={cn('flex flex-col gap-0.5 rounded-md border px-2.5 py-1.5', surfaceClass)}>
       <span
         className={cn(
-          'text-[11px] leading-tight font-medium uppercase tracking-[0.06em]',
+          'text-[11px] leading-tight font-medium uppercase tracking-eyebrow-tight',
           labelToneClass,
           primary && 'font-semibold',
         )}

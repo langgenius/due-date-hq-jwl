@@ -995,7 +995,7 @@ function AuthorityRoleBadge({ role }: { role: RuleEvidenceAuthorityRole }) {
     <Badge
       title={RULE_AUTHORITY_ROLE_DESCRIPTION[role]}
       className={cn(
-        'h-[18px] shrink-0 cursor-help rounded-sm border-transparent px-1.5 font-mono text-caption-xs font-medium uppercase tracking-[0.06em]',
+        'h-[18px] shrink-0 cursor-help rounded-sm border-transparent px-1.5 font-mono text-caption-xs font-medium uppercase tracking-eyebrow-tight',
         className,
       )}
     >
