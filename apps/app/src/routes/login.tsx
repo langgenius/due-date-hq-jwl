@@ -143,14 +143,23 @@ export function LoginRoute() {
 
   return (
     <div className="flex w-full max-w-[400px] flex-col">
+      {/* 2026-05-26 (Step 7 onboarding audit F1-01): "Welcome to
+          the workbench" was decoration-first — no product noun,
+          no "this is DueDateHQ" anchor, so first-time visitors
+          arrived from a referral and couldn't confirm they were
+          at the right product without scanning the sub-headline.
+          Promoted the product name + value-prop onto the H1
+          line and tightened the sub-headline to a single
+          sentence with the verbs the user actually does
+          ("sign in", "open your practice"). */}
       <h1 className="whitespace-pre-line text-[26px] font-semibold leading-[1.15] tracking-tight text-text-primary">
-        <Trans>Welcome to the workbench.</Trans>
+        <Trans>Welcome to DueDateHQ.</Trans>
       </h1>
 
       <p className="mt-2 text-[13px] leading-6 text-text-secondary">
         <Trans>
-          Sign in with SSO or your work email to access your practice&apos;s deadline list and
-          evidence-backed recommendations.
+          Sign in to open your practice&apos;s deadline workbench with evidence-backed
+          recommendations.
         </Trans>
       </p>
 

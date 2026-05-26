@@ -368,7 +368,16 @@ export function Step1Intake({
         } else if (err instanceof Error && err.message) {
           onParseError(err.message)
         } else {
-          onParseError(t`We couldn't read that file. Try exporting as CSV.`)
+          // 2026-05-26 (Step 7 onboarding audit F11-02): the
+          // generic fallback recommended "export as CSV" — but
+          // the user may have uploaded a CSV that we couldn't
+          // parse, in which case the recommendation makes no
+          // sense. Rewrote to recommend a structural check
+          // (header row + at least one row) that applies to
+          // CSV, TSV, XLSX, and JSON equally.
+          onParseError(
+            t`We couldn't read that file. Make sure it has a header row followed by at least one row of data.`,
+          )
         }
       })
       .finally(() => {
@@ -1267,6 +1276,14 @@ function friendlyParseErrorDescriptor(error: TabularParseError): MessageDescript
     case 'xlsx_not_supported':
       return msg`XLSX couldn't be parsed. Export as CSV and re-upload.`
     default:
-      return msg`We couldn't read that file. Try exporting as CSV.`
+      // 2026-05-26 (Step 7 onboarding audit F11-02): the
+      // default fallback recommended "Try exporting as CSV"
+      // even when the user had already uploaded a CSV — the
+      // recommendation didn't match the situation. Rewrote to
+      // a structural check that applies regardless of source
+      // format. The xlsx_not_supported branch above keeps its
+      // CSV-specific recommendation because that *is* the
+      // right answer for XLSX failures.
+      return msg`We couldn't read that file. Make sure it has a header row followed by at least one row of data.`
   }
 }

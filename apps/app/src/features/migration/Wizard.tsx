@@ -481,6 +481,12 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     }
   }, [state.intake.rawText])
 
+  // 2026-05-26 (Step 7 onboarding audit F6-27 considered):
+  // step-specific labels ("Review mapping" / "Clean values" /
+  // "Preview import") would preview the next phase, but
+  // Wizard.test.tsx looks for a literal "Continue" button on
+  // Steps 1-3. Documenting in the audit doc; copy change
+  // belongs in a single commit that also updates tests.
   const continueLabel = useMemo(() => {
     if (state.step !== 4) return undefined
     return <Trans>Import &amp; Generate</Trans>
@@ -678,25 +684,29 @@ function LiveGenesisOverlay({
   genesis: { clientCount: number; obligationCount: number } | null
 }) {
   if (!genesis) return null
+  // 2026-05-26 (Step 7 onboarding audit F6-24): the overlay
+  // previously celebrated obligations as the headline metric
+  // and showed client count in 12px secondary text. But the
+  // "wow" moment of importing is *seeing your clients land* —
+  // deadlines are downstream of clients. Hierarchy inverted:
+  // client count is now the headline pulse, deadlines is the
+  // supporting fact. The completion check icon and the
+  // proportions match the import-success toast.
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-background-body/90 backdrop-blur-sm">
       <div className="grid gap-3 text-center">
         <div className="font-mono text-2xl font-semibold tabular-nums text-text-primary motion-safe:animate-pulse">
-          {genesis.obligationCount}
+          {genesis.clientCount}
         </div>
-        {/* 2026-05-25 (Wizard #40 — plural fix): "obligations
-            created" baked plural in English; the value above is
-            the count, so pluralise the label too. Same fix on
-            the "clients imported" line below. */}
         <div className="text-sm text-text-secondary">
-          <Plural
-            value={genesis.obligationCount}
-            one="deadline created"
-            other="deadlines created"
-          />
+          <Plural value={genesis.clientCount} one="client imported" other="clients imported" />
         </div>
         <div className="text-xs text-text-tertiary">
-          <Plural value={genesis.clientCount} one="# client imported" other="# clients imported" />
+          <Plural
+            value={genesis.obligationCount}
+            one="# deadline generated"
+            other="# deadlines generated"
+          />
         </div>
       </div>
     </div>

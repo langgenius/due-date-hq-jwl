@@ -100,6 +100,13 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
               off.
             </Trans>
           </p>
+          {/* 2026-05-26 (Step 7 onboarding audit F6-14): the
+              override-label "Re-run AI with my overrides"
+              implies a stronger guarantee than the server gives
+              (overrides are passed as hints, not guaranteed
+              preserved). Softened to "Re-run AI (keep my
+              changes)" so the verb is clear and the parenthetical
+              describes the intent, not a contract. */}
           <Button
             variant="outline"
             size="sm"
@@ -108,7 +115,7 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           >
             <RefreshCwIcon data-icon="inline-start" />
             {mapping.rows.some((r) => r.userOverridden) ? (
-              <Trans>Re-run AI with my overrides</Trans>
+              <Trans>Re-run AI (keep my changes)</Trans>
             ) : (
               <Trans>Re-run AI</Trans>
             )}
