@@ -2408,9 +2408,17 @@ export function ObligationQueueRoute() {
       enabled: !shortcutsBlocked,
       requireReset: true,
       meta: {
+        // 2026-05-26 (Yuqi step-8 data-finding audit — F-X16): help-
+        // dialog label "Focus search" → "Filter deadlines" so the
+        // `/` hotkey reads identically across surfaces (matches the
+        // "Filter rules" + "Filter coverage" label discipline
+        // established in the cross-product search audit Phase 1).
+        // The control is a page-level filter, not entity search;
+        // verb-discipline matters when the help dialog lists three
+        // `/` rows side-by-side under different categories.
         id: 'obligations.focus-search',
-        name: 'Focus search',
-        description: 'Focus the Deadlines search input.',
+        name: 'Filter deadlines',
+        description: 'Focus the Deadlines filter input.',
         category: 'obligations',
         scope: 'route',
       },
@@ -11241,12 +11249,19 @@ function ObligationQueueSearchControl({
     // toolbar couldn't tell it was a tappable affordance.
     // Promoted to `outline` variant so the icon button has a
     // visible bordered chip on the toolbar.
+    // 2026-05-26 (Yuqi step-8 data-finding audit — F-X05): collapsed
+    // magnifier now announces "Filter deadlines" instead of "Filter
+    // clients". The input matches client name + obligation title +
+    // rule name; the prior label understated its reach AND drifted
+    // from the expanded state's `ariaLabel="Filter deadlines"`,
+    // meaning screen reader users heard two different names for the
+    // same control depending on which state it was in.
     return (
       <Button
         variant="outline"
         size="icon-sm"
-        aria-label={t`Filter clients`}
-        title={t`Filter clients  ·  press / to focus`}
+        aria-label={t`Filter deadlines`}
+        title={t`Filter deadlines  ·  press / to focus`}
         onClick={() => {
           setOpen(true)
           requestAnimationFrame(() => inputRef.current?.focus())
@@ -11267,11 +11282,17 @@ function ObligationQueueSearchControl({
   // surface needs room).
   return (
     <div className="relative mb-1.5 w-full md:w-56 md:flex-none">
+      {/* 2026-05-26 (Yuqi step-8 data-finding audit — F-X05): placeholder
+          changed "Filter clients" → "Filter deadlines" to align with
+          the expanded state's ariaLabel and the collapsed-state
+          aria-label. The input matches client name + obligation title
+          + rule name; the prior placeholder named just one of those
+          axes which understated the input's reach. */}
       <SearchInput
         ref={inputRef}
         value={value}
         onChange={onChange}
-        placeholder={t`Filter clients`}
+        placeholder={t`Filter deadlines`}
         ariaLabel={t`Filter deadlines`}
         onFocus={() => setOpen(true)}
         onBlur={() => {

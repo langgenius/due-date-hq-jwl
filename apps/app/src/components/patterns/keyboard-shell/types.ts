@@ -1,7 +1,15 @@
+// 2026-05-26 (Yuqi step-8 data-finding audit — F-X03): added `clients`
+// as a category so the /clients route's `/` filter-search hotkey can
+// register in the keyboard help dialog under its own surface header.
+// Previously /clients hand-rolled the hotkey through a raw window
+// listener; migrating to `useAppHotkey` requires a matching category
+// value here. `clients` slots between `practice` and `obligations` in
+// `CATEGORY_ORDER` to match the sidebar reading order.
 export type ShortcutCategory =
   | 'global'
   | 'navigate'
   | 'practice'
+  | 'clients'
   | 'obligations'
   | 'rules'
   | 'wizard'

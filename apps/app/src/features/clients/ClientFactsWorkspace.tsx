@@ -45,12 +45,10 @@ import {
   PlusIcon,
   RefreshCwIcon,
   ScrollTextIcon,
-  SearchIcon,
   SettingsIcon,
   SparklesIcon,
   UserRoundIcon,
   UsersRoundIcon,
-  XIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -116,6 +114,7 @@ import {
 } from '@/components/patterns/table-header-filter'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
+import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
 import { formatDate, formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
@@ -1556,26 +1555,20 @@ function ClientsFilterToolbar({
     entityFilter.length > 0 ||
     ownerFilter.length > 0
 
-  // 2026-05-26 (Yuqi /clients directory pivot brief): `/` keypress
-  // anywhere on the page focuses the search input. Skipped when the
-  // user is already typing in another input/textarea/contentEditable
-  // so the slash key still works as a literal character there.
+  // 2026-05-26 (Yuqi step-8 data-finding audit — F-X02, F-X03):
+  // migrated hand-rolled search block to the canonical `SearchInput`
+  // primitive. Previously this toolbar shipped a bespoke `<Input
+  // type="search" h-8>` with hand-rolled XIcon clear button, hand-rolled
+  // Escape-to-clear, hand-rolled `/` hotkey via raw `addEventListener`.
+  // The primitive at `@/components/primitives/search-input` provides
+  // all four behaviors in one component AND registers `/` through
+  // `useAppHotkey` so the shortcut appears in the keyboard-help dialog
+  // (the raw window listener never registered there).
+  //
+  // Height shifts h-8 → h-9 to match /deadlines + /rules/library; the
+  // adjacent FilterTrigger buttons remain h-8, which is the intentional
+  // "lead with the search, structural filters secondary" hierarchy.
   const searchInputRef = useRef<HTMLInputElement | null>(null)
-  useEffect(() => {
-    function handleKey(event: globalThis.KeyboardEvent) {
-      if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return
-      const target = event.target
-      if (target instanceof HTMLElement) {
-        const tagName = target.tagName.toLowerCase()
-        if (tagName === 'input' || tagName === 'textarea' || target.isContentEditable) return
-      }
-      event.preventDefault()
-      searchInputRef.current?.focus()
-      searchInputRef.current?.select()
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [])
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -1583,43 +1576,24 @@ function ClientsFilterToolbar({
           search input at the start of the toolbar. Visual lead for
           the directory's primary action (find a client by name).
           Magnifying-glass icon left, clear (X) right when there's
-          text. `/` hotkey wires above; URL `?q=` keeps the search
-          shareable. */}
-      <div className="relative w-[280px]">
-        <SearchIcon
-          aria-hidden
-          className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-tertiary"
-        />
-        <Input
+          text. `/` hotkey wires through the primitive; URL `?q=`
+          keeps the search shareable. */}
+      <div className="w-[280px]">
+        <SearchInput
           ref={searchInputRef}
-          type="search"
           value={searchQuery}
-          onChange={(event) => onSearchChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Escape') {
-              event.preventDefault()
-              onSearchChange('')
-              searchInputRef.current?.blur()
-            }
-          }}
+          onChange={onSearchChange}
           placeholder={t`Search by name or EIN`}
-          aria-label={t`Search clients`}
-          className="h-8 pr-8 pl-8 text-sm"
+          ariaLabel={t`Search clients`}
+          hotkey="/"
+          hotkeyMeta={{
+            id: 'clients.focus-search',
+            name: 'Filter clients',
+            description: 'Focus the Clients filter input.',
+            category: 'clients',
+            scope: 'route',
+          }}
         />
-        {searchQuery.length > 0 ? (
-          <button
-            type="button"
-            onClick={() => {
-              onSearchChange('')
-              searchInputRef.current?.focus()
-            }}
-            aria-label={t`Clear search`}
-            title={t`Clear search`}
-            className="absolute top-1/2 right-2 inline-flex size-5 -translate-y-1/2 items-center justify-center rounded-sm text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <XIcon className="size-3.5" aria-hidden />
-          </button>
-        ) : null}
       </div>
       <TableHeaderMultiFilter
         trigger="toolbar"
