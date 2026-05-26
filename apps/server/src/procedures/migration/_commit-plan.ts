@@ -216,13 +216,7 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
         },
         rules: runtimeRules,
       })
-      const selectedPreviews = selectStateFirstMigrationPreviews({
-        previews,
-        profile,
-        entityType: facts.entityType,
-      })
-
-      for (const preview of uniqueConcretePreviews(selectedPreviews)) {
+      for (const preview of uniqueConcretePreviews(previews)) {
         const previewKey = concretePreviewKey(preview)
         if (seenPreviewKeys.has(previewKey)) continue
         seenPreviewKeys.add(previewKey)
@@ -847,112 +841,6 @@ function uniqueConcretePreviews(
     out.push(preview)
   }
   return out
-}
-
-type MigrationWorkflowKey =
-  | 'individual_income_return'
-  | 'individual_estimated_tax'
-  | 'fiduciary_income_return'
-  | 'partnership_income_return'
-  | 's_corp_income_return'
-  | 'c_corp_income_return'
-
-function selectStateFirstMigrationPreviews(input: {
-  previews: readonly ObligationGenerationPreview[]
-  profile: FilingProfileImportFacts
-  entityType: EntityType
-}): readonly ObligationGenerationPreview[] {
-  const stateWorkflowKeys = new Set<MigrationWorkflowKey>()
-
-  for (const taxType of input.profile.taxTypes) {
-    if (!isStateTaxTypeForMigrationProfile(taxType, input.profile.state)) continue
-    const key = migrationWorkflowKeyForTaxType(taxType, input.entityType)
-    if (key) stateWorkflowKeys.add(key)
-  }
-
-  for (const preview of input.previews) {
-    if (preview.jurisdiction !== input.profile.state) continue
-    const key = migrationWorkflowKeyForTaxType(preview.taxType, input.entityType)
-    if (key) stateWorkflowKeys.add(key)
-  }
-
-  if (stateWorkflowKeys.size === 0) return input.previews
-
-  return input.previews.filter((preview) => {
-    if (preview.jurisdiction !== 'FED') return true
-    const key = migrationWorkflowKeyForTaxType(preview.taxType, input.entityType)
-    return !key || !stateWorkflowKeys.has(key)
-  })
-}
-
-function isStateTaxTypeForMigrationProfile(taxType: string, state: RuleGenerationState): boolean {
-  return taxType.trim().toLowerCase().startsWith(`${state.toLowerCase()}_`)
-}
-
-function migrationWorkflowKeyForTaxType(
-  taxType: string,
-  entityType: EntityType,
-): MigrationWorkflowKey | null {
-  const normalized = taxType.trim().toLowerCase()
-
-  if (
-    normalized === 'federal_1040' ||
-    normalized === 'federal_1040_sch_c' ||
-    normalized.endsWith('_state_individual_income_tax') ||
-    normalized === 'ca_540' ||
-    normalized === 'ny_it201'
-  ) {
-    return 'individual_income_return'
-  }
-
-  if (
-    normalized === 'federal_1040_estimated_tax' ||
-    normalized.endsWith('_state_individual_estimated_tax')
-  ) {
-    return 'individual_estimated_tax'
-  }
-
-  if (
-    normalized === 'federal_1041' ||
-    normalized.endsWith('_state_fiduciary_income_tax') ||
-    normalized === 'ca_541' ||
-    normalized === 'ny_it205'
-  ) {
-    return 'fiduciary_income_return'
-  }
-
-  if (
-    normalized === 'federal_1065' ||
-    normalized === 'federal_1065_or_1040' ||
-    normalized === 'ca_565_partnership' ||
-    normalized === 'ny_it204' ||
-    (normalized.endsWith('_state_business_income_tax') &&
-      (entityType === 'partnership' || entityType === 'llc'))
-  ) {
-    return 'partnership_income_return'
-  }
-
-  if (
-    normalized === 'federal_1120s' ||
-    normalized === 'ca_100s' ||
-    normalized === 'ca_100s_franchise' ||
-    normalized === 'ny_ct3s' ||
-    (normalized.endsWith('_state_business_income_tax') && entityType === 's_corp')
-  ) {
-    return 's_corp_income_return'
-  }
-
-  if (
-    normalized === 'federal_1120' ||
-    normalized === 'ca_100' ||
-    normalized === 'ca_100_franchise' ||
-    normalized === 'ny_ct3' ||
-    (normalized.endsWith('_state_business_income_tax') && entityType === 'c_corp')
-  ) {
-    return 'c_corp_income_return'
-  }
-
-  return null
 }
 
 function concretePreviewKey(preview: ObligationGenerationPreview): string {
