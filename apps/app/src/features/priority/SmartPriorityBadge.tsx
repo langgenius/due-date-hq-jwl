@@ -40,10 +40,8 @@ export function SmartPriorityBadge({
       >
         <Badge variant={scoreTone(smartPriority.score)} className="text-xs">
           <GaugeIcon className="size-3" aria-hidden />
-          <span className="font-mono tabular-nums">{smartPriority.score.toFixed(1)}</span>
-          {smartPriority.rank ? (
-            <span className="font-mono tabular-nums">#{smartPriority.rank}</span>
-          ) : null}
+          <span className="tabular-nums">{smartPriority.score.toFixed(1)}</span>
+          {smartPriority.rank ? <span className="tabular-nums">#{smartPriority.rank}</span> : null}
         </Badge>
       </PopoverTrigger>
       <PopoverContent align={align} className="w-80 gap-3 p-3">
@@ -57,7 +55,7 @@ export function SmartPriorityBadge({
             <span className="text-sm text-text-secondary">
               <Trans>Score</Trans>
             </span>
-            <span className="font-mono text-lg font-semibold tabular-nums text-text-primary">
+            <span className="text-lg font-semibold tabular-nums text-text-primary">
               {smartPriority.score.toFixed(1)}
             </span>
           </div>
@@ -76,7 +74,7 @@ export function SmartPriorityBadge({
                       {factor.rawValue} · {factor.sourceLabel}
                     </p>
                   </div>
-                  <span className="font-mono tabular-nums text-text-secondary">
+                  <span className="tabular-nums text-text-secondary">
                     {Math.round(factor.weight * 100)}% · +{factor.contribution.toFixed(1)}
                   </span>
                 </div>

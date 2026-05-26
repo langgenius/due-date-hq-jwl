@@ -5170,7 +5170,7 @@ function ClientContactMetaItem({ item }: { item: ClientHeaderContactItem }) {
     return (
       <a
         href={`tel:${item.value}`}
-        className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-sm font-mono outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-sm tabular-nums outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         {content}
       </a>

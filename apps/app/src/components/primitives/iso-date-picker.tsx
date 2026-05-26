@@ -179,7 +179,7 @@ export function IsoDatePicker({
           >
             <span
               className={cn(
-                'min-w-0 truncate font-mono tabular-nums',
+                'min-w-0 truncate tabular-nums',
                 value
                   ? 'text-components-input-text-filled'
                   : 'text-components-input-text-placeholder',

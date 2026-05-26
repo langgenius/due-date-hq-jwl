@@ -186,7 +186,7 @@ export function FilterChips<T extends string>({
             onClick={() => onValueChange(option.value)}
           >
             <span>{option.label}</span>
-            <span className="font-mono tabular-nums">{option.count}</span>
+            <span className="tabular-nums">{option.count}</span>
           </Button>
         )
       })}

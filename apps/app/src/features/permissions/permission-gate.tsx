@@ -162,10 +162,10 @@ export function PermissionRequiredPanel({
           </div>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2 text-sm">
-          <Badge variant="outline" className="font-mono">
+          <Badge variant="outline">
             <Trans>Current role: {currentRoleLabel}</Trans>
           </Badge>
-          <Badge variant="secondary" className="font-mono">
+          <Badge variant="secondary">
             <Trans>Required: {requiredRoleText}</Trans>
           </Badge>
         </CardContent>

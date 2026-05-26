@@ -681,7 +681,7 @@ function LiveGenesisOverlay({
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-background-body/90 backdrop-blur-sm">
       <div className="grid gap-3 text-center">
-        <div className="font-mono text-2xl font-semibold tabular-nums text-text-primary motion-safe:animate-pulse">
+        <div className="text-2xl font-semibold tabular-nums text-text-primary motion-safe:animate-pulse">
           {genesis.obligationCount}
         </div>
         {/* 2026-05-25 (Wizard #40 — plural fix): "obligations
