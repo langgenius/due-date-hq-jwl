@@ -1941,18 +1941,11 @@ function ClientsActionStrip({
   return (
     <div
       role="status"
-      // 2026-05-26 (Yuqi follow-up — "cannot see the background.
-      // maybe subtle white"): the prior `bg-background-subtle` was
-      // too close to the page gray and the banner read as part of
-      // the wallpaper. Switched to `bg-background-default` (white)
-      // with a soft `border-divider-subtle` outline so the strip
-      // reads as a real card sitting above the page wash.
-      // 2026-05-26 (Yuqi /clients feedback #6 — "i want full radius for
-      // this kind of banner"): outer pill radius `rounded-md` (6px) →
-      // `rounded-full` (full pill). The action strip is a single-row
-      // status banner (counter chips + Needs-facts band), so the
-      // full pill reads as a unified context bar — softer + more
-      // distinct from the table card below.
+      // Action-strip banner: white surface + subtle border + full pill.
+      // White (`bg-background-default`) is required — `bg-background-subtle`
+      // reads as page wallpaper and the strip disappears. Full pill
+      // (rounded-full) signals "single-row status bar," visually distinct
+      // from the table card below.
       className="flex flex-col gap-2 rounded-full border border-divider-subtle bg-background-default px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
     >
       <div className="flex items-center gap-2">

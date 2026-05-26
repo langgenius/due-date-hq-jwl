@@ -1390,45 +1390,23 @@ export function ObligationQueueRoute() {
     }
     return set
   }, [rows, continuationRowIds])
-  // 2026-05-25 (Yuqi Deadlines #6): group headers. When 2+ adjacent
-  // rows share a clientId, the FIRST row's id is keyed in this map
-  // with the cluster's metadata (count + earliest internal due). The
-  // table body uses this to render a one-line "X · N deadlines ·
-  // earliest YYYY-MM-DD" section header above the first row in the
-  // cluster. Single-row clients are NOT keyed — they don't need a
-  // header; the row's own Client cell speaks for itself.
+  // Group-by section-header map. Each mode has different header semantics
+  // (per the Group-by wireframes):
   //
-  // Computed from `rows` (not `pagedRows`) so the cluster count
-  // reflects the full result set, not just the visible page. Same
-  // pattern as continuationRowIds / withinGroupRowIds above.
-  // 2026-05-26 (Yuqi sixty-second pass — full group-by section
-  // headers): keep the original adjacent-same-client cluster
-  // detection for the DEFAULT group=due mode (only fires when 2+
-  // adjacent rows share a client), AND add a parallel path that
-  // ALWAYS emits a section header at every group boundary when
-  // group !== 'due'. group=client: header per client (even
-  // single-row). group=status: header per status bucket.
-  // Reuses the same collapsedClientGroups Set keyed by groupKey
-  // string ('clientId' for client mode, 'status' for status mode).
-  // 2026-05-26 (Yuqi Group-by wireframes — Sort by Status / Client /
-  // Due date): per the wireframes, the three modes have distinct
-  // header semantics:
+  //   • Status mode → header at EVERY status boundary, simple
+  //     "<Label> <count>" treatment ("Blocked 2", "Waiting on client 1").
+  //   • Client mode → header at EVERY client boundary, richer
+  //     "<Name> <N deadlines · next [date]> [N late]" treatment that
+  //     surfaces the next-due date + a small late-count pill so the
+  //     CPA can triage at scan distance.
+  //   • Due-date mode → NO section headers. Flat chronological list
+  //     (Filed entries first, then most-late first).
   //
-  //   • Status mode → emit a header at EVERY status boundary, with
-  //     a simple "<Label> <count>" treatment ("Blocked 2", "Waiting
-  //     on client 1", etc.).
-  //   • Client mode → emit a header at EVERY client boundary, with
-  //     a richer "<Name> <N deadlines · next [date]> [N late]"
-  //     treatment that shows the next-due date + a small late-count
-  //     pill so the CPA can triage at scan distance.
-  //   • Due date mode → NO section headers at all. The wireframe is
-  //     a flat chronological list (Filed entries first, then most-late
-  //     first). Multi-deadline-same-client clusters used to emit a
-  //     subtle header here too, but the wireframe shows nothing so
-  //     that behaviour is suppressed.
-  //
-  // `lateCount` is computed in client mode for the late-pill on the
-  // header. `earliestDueDate` carries the "next due" semantics.
+  // Keyed by the FIRST row's id in each cluster. `lateCount` is computed
+  // in client mode for the late-pill. `earliestDueDate` carries the
+  // "next due" semantics. Computed from `rows` (not `pagedRows`) so
+  // counts reflect the full result set, not just the visible page —
+  // same pattern as continuationRowIds / withinGroupRowIds above.
   const groupHeadersByFirstRowId = useMemo(() => {
     const map = new Map<
       string,
@@ -1749,37 +1727,13 @@ export function ObligationQueueRoute() {
                   // the shift-click range gesture.
                   if (event.shiftKey) event.preventDefault()
                 }}
-                // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #9):
-                // bumped back to text-base. With the table header now
-                // rendering at text-sm (post sixty-fifth pass #2),
-                // text-sm body text and text-sm headers were sitting
-                // at the same scale — the row's primary anchor needs
-                // to read LARGER than the column label above it, not
-                // the same. text-base font-medium gives the client
-                // name proper anchor weight against text-sm meta in
-                // the same row (tax code, due-days, status pill).
-                // 2026-05-26 (Yuqi feedback #6): client name regular
-                // weight by default, font-medium only when the row is
-                // the active (selected) one. Was always font-medium →
-                // every row felt equally "anchored" and the eye had
-                // nothing to track to the active selection. Now the
-                // selected row's client name reads bolder, giving the
-                // table a clear "you are here" signal.
+                // Client name is the row's primary anchor. `text-base` matches
+                // /clients + /rules/library primary titles so all three
+                // workbench tables read at the same hierarchy. Regular weight
+                // by default + `font-medium` ONLY on the active (selected)
+                // row gives a clean "you are here" cue — making every row
+                // medium-weight made nothing stand out.
                 className={cn(
-                  // 2026-05-26 (Yuqi feedback #1): text-base → text-sm.
-                  // "Too big" alongside the rest of the row's text-sm
-                  // meta. Active row still gets font-medium for the
-                  // "you are here" signal.
-                  // 2026-05-26 (Yuqi cross-table unify — "Deadlines
-                  // text-sm · Clients text-base · Rules library text-sm
-                  // … visually make them similar"): bumped back to
-                  // text-base to match /clients + /rules/library
-                  // primary titles. The earlier "too big" call was at
-                  // text-base font-medium; regular weight at text-base
-                  // reads as primary identity without the loud bold
-                  // weight, so the size works across all three
-                  // workbench tables. Active row keeps font-medium as
-                  // the "you are here" cue.
                   'line-clamp-2 min-w-0 flex-1 text-base leading-tight text-text-primary',
                   tableRow.original.id === explicitActiveRowId ? 'font-medium' : 'font-normal',
                 )}
@@ -8443,26 +8397,12 @@ function DeadlineTile({
       : valueTone === 'tertiary'
         ? 'text-text-tertiary'
         : 'text-text-primary'
-  // 2026-05-26 (Yuqi feedback — "why is the filing deadline three
-  // card so big? they are ugly."): compressed the tile.
-  //  • Padding `px-3 py-2` → `px-2.5 py-1.5` (~25% denser).
-  //  • Label `text-caption-xs uppercase tracking-[0.08em]` (so
-  //    "FILING DEADLINE" wrapped to two lines in narrow columns) →
-  //    `text-[11px] font-medium` sentence-case so labels fit on
-  //    one line. Drops the ALL-CAPS shoutiness too.
-  //  • Date value `text-base font-semibold` (16px) → `text-sm
-  //    font-semibold` (14px) so it sits as a calmer metadata value,
-  //    not a banner number.
-  // Net: tile height reduced ~30%, columns no longer pull the
-  // header into 2 lines, the trio reads as a date strip rather
-  // than a poster.
-  // 2026-05-26 (Yuqi drawer feedback #1+#2): labels back to the canonical
-  // tile-eyebrow treatment — uppercase + tracking — so "FILING DEADLINE
-  // / INTERNAL TARGET / PAYMENT DUE" read as TILE LABELS (consistent
-  // with the rest of the drawer eyebrows + the dashboard summary tiles).
-  // Date value drops `font-mono` for the canonical sans + tabular-nums:
-  // the mono treatment made the number read as "code/identifier-y"
-  // when it's just a date. tabular-nums alone keeps columnar alignment.
+  // Tile labels use the canonical eyebrow treatment — uppercase + tracking
+  // — so "FILING DEADLINE / INTERNAL TARGET / PAYMENT DUE" read as TILE
+  // LABELS (consistent with the rest of the drawer eyebrows + the
+  // dashboard summary tiles). Date value uses the canonical sans + tabular-
+  // nums (NOT font-mono — mono made the number read as "code-y" when it's
+  // just a date; tabular-nums alone keeps columnar alignment).
   return (
     <div className={cn('flex flex-col gap-0.5 rounded-md border px-2.5 py-1.5', surfaceClass)}>
       <span

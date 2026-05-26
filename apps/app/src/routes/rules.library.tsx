@@ -775,21 +775,12 @@ export function RulesLibraryRoute() {
       void setPage(0)
     }
   }, [pageIndex, totalPages, setPage])
-  // 2026-05-26 (Yuqi seventy-second pass — product feel sweep):
-  // `sourceCounts` + `totalGaps` retired with the 3-tile scoreboard.
-  // Total rule count drives the page-header chip; per-entity gap
-  // count surfaces on each chip in EntityChipRow.
-  // 2026-05-26 (Yuqi feedback — "把进度条放回来"): restored
-  // `totalActive` + `totalPendingReview` because the top-of-page
-  // progress bar (active filled vs needs-review trailing) is back
-  // in StatsBar. Same two values the third-pass implementation used.
-  // 2026-05-26 (Stripe S14 restyle, merged with Phase A/B): progress
-  // bar now reads as a multi-color stacked breakdown — one segment
-  // per `RuleStatus` with >0 rules. `statusCounts` is the data; the
-  // bar derives segment widths + label fits from it. Scope tab
-  // counts (`totalActive`, `totalPendingReview`, `totalGapEntities`)
-  // are computed against the UNFILTERED rules + `groupsAll` so the
-  // tab badges stay stable as the user toggles scopes.
+  // Top-of-page stats data. `statusCounts` drives the multi-color
+  // stacked progress bar (one segment per `RuleStatus` with >0 rules).
+  // Scope-tab counts (`totalActive`, `totalPendingReview`,
+  // `totalGapEntities`) are computed against the UNFILTERED rules +
+  // `groupsAll` so the tab badges stay stable as the user toggles
+  // scopes — filtering shouldn't make a tab read as "(0)".
   const statsLoading = rulesQuery.isLoading || coverageQuery.isLoading || sourcesQuery.isLoading
   const totalRules = rules.length
   const statusCounts = useMemo<Record<RuleStatus, number>>(() => {
