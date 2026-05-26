@@ -138,7 +138,13 @@ function EvidenceTimeline({
   return (
     <section className="grid gap-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        {/* 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN §9
+            "uppercase kicker deprecated" violation): swapped
+            `text-xs uppercase tracking-wider text-text-tertiary` for
+            the canonical `text-sm font-medium text-text-secondary`
+            section heading. Two h3s in this file (this one + L612-ish)
+            were the same shape — fixed by replace_all. */}
+        <h3 className="text-sm font-medium text-text-secondary">
           <Trans>What this evidence says</Trans>
         </h3>
         <Badge variant="outline">{evidence.length}</Badge>
@@ -611,7 +617,13 @@ function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loadin
   return (
     <section className="grid gap-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        {/* 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN §9
+            "uppercase kicker deprecated" violation): swapped
+            `text-xs uppercase tracking-wider text-text-tertiary` for
+            the canonical `text-sm font-medium text-text-secondary`
+            section heading. Two h3s in this file (this one + L612-ish)
+            were the same shape — fixed by replace_all. */}
+        <h3 className="text-sm font-medium text-text-secondary">
           <Trans>Audit timeline</Trans>
         </h3>
         <Badge variant="outline">{events.length}</Badge>

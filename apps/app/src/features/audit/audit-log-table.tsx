@@ -80,7 +80,13 @@ export function AuditLogTable({
           </TableHead>
         </TableRow>
       </TableHeader>
-      <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
+      {/* 2026-05-26 (86th pass, audit §16.2 P1): added
+          `bg-background-default/50` so the audit log table matches the
+          cross-workbench TableBody alpha-50 white. The
+          `[&_tr]:border-b-0` weld is preserved — audit log uses
+          paragraph-row formatting where between-row dividers compete
+          with the change-headline content. */}
+      <TableBody className="bg-background-default/50 [&_tr]:border-b-0 [&_td]:py-3">
         {events.map((event) => {
           const actor = event.actorLabel ?? event.actorId ?? t`System`
           const actionLabel = formatAuditActionLabel(event.action, actionLabels)

@@ -754,7 +754,13 @@ export function CoverageTab({
         {!panelOpen ? (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-xs font-semibold tracking-[0.12em] text-text-primary uppercase">
+              {/* 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN
+                  §9 "uppercase kicker deprecated" violation): dropped
+                  `text-xs uppercase tracking-[0.12em] font-semibold`
+                  for the canonical `text-sm font-medium text-text-primary`
+                  section heading scale. Sentence case keeps the rest
+                  of the rules library reading as one coherent surface. */}
+              <h2 className="text-sm font-medium text-text-primary">
                 <Trans>Entity coverage</Trans>
               </h2>
               <SearchInput value={effectiveSearch} onChange={setSearchValue} />

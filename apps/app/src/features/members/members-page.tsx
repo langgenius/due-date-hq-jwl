@@ -695,8 +695,15 @@ function SectionHeader({
   action?: string
 }) {
   return (
+    // 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN §9
+    // "uppercase kicker deprecated" violation): `font-medium
+    // tracking-[0.08em] uppercase` swapped for the canonical
+    // `text-sm font-medium text-text-secondary` sub-section label.
+    // Outer text-xs preserved for the right-side metadata that follows
+    // (count chip + descriptor); the heading itself reads as a real
+    // sub-section title in sentence case.
     <div className="flex min-h-7 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
-      <h2 className="font-medium tracking-[0.08em] uppercase">{title}</h2>
+      <h2 className="text-sm font-medium text-text-secondary">{title}</h2>
       <span className="inline-flex h-[18px] min-w-[19px] items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle px-1.5 font-medium tabular-nums">
         {count}
       </span>
