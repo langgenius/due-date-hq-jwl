@@ -1712,14 +1712,15 @@ function ClientsFilterToolbar({
     entityFilter.length > 0 ||
     ownerFilter.length > 0
 
-  // 2026-05-26 (Yuqi cross-table drift #5 — "fix search affordances"):
+  // 2026-05-26 (cross-table drift #5 + Step 8 F-X02/F-X03):
   // /clients now uses the canonical collapsible-search pattern shared
-  // with /deadlines (`ObligationQueueSearchControl`) and /rules/library
-  // (`RuleSearchControl`). Ghost-icon at rest, expands inline into the
-  // canonical `SearchInput` on click OR on `/` hotkey. The `useEffect`
-  // window-keydown wiring is gone — `useAppHotkey` (registered inside
-  // `ClientsSearchControl`) drives the global `/` shortcut + surfaces
-  // it in the keyboard-help overlay.
+  // with /deadlines and /rules/library. Ghost-icon at rest, expands
+  // inline into the canonical `SearchInput` primitive on click OR on
+  // `/` hotkey. Step 8 migrated FROM hand-rolled `<Input type="search">`
+  // + bespoke XIcon clear + raw window keydown TO the SearchInput
+  // primitive; HEAD then wrapped the primitive in a collapsible
+  // `ClientsSearchControl` so the icon-only rest state matches
+  // Yuqi's later directive. Both fixes preserved.
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -1734,6 +1735,11 @@ function ClientsFilterToolbar({
   //     into the input on click or `/` hotkey.
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {/* Step 8 added an inline-always SearchInput at the toolbar start;
+          HEAD's collapsible icon pattern (ClientsSearchControl, rendered
+          later in the toolbar) is the newer design Yuqi requested.
+          Dropped Step 8's inline duplicate — the SearchInput primitive
+          IS used, just wrapped in the collapsible affordance. */}
       <TableHeaderMultiFilter
         trigger="toolbar"
         label={t`Client`}
@@ -1780,6 +1786,11 @@ function ClientsFilterToolbar({
           // 2026-05-26 (Yuqi /clients directory pivot brief): Reset
           // clears search alongside the structural filters so the
           // CPA returns to the full directory in one click.
+          // 2026-05-26 (Yuqi step-8 data-finding audit — F-X01/F-X12):
+          // label changed from "Reset" to "Clear filters" to align
+          // with /deadlines, /alerts, and /rules/library. "Reset"
+          // implied broader scope (density, columns, etc.) than the
+          // affordance actually has — only filters get cleared.
           onSearchChange('')
           onClientFilterChange([])
           onStateFilterChange([])
@@ -1787,7 +1798,7 @@ function ClientsFilterToolbar({
           onOwnerFilterChange([])
         }}
       >
-        <Trans>Reset</Trans>
+        <Trans>Clear filters</Trans>
       </Button>
       {/* Spacer pushes the search affordance to the right edge. */}
       <div className="ml-auto">

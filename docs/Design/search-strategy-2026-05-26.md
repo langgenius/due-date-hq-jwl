@@ -47,20 +47,27 @@ Hygiene + honesty for the page-level pattern. No new backend.
 2. **Placeholders renamed `Search X` → `Filter X`** on:
    - `/rules/library` → "Filter rules…"
    - `/rules` coverage → "Filter jurisdictions or rules…"
-   - `/deadlines` → "Filter clients"
-3. **`/` hotkey via the primitive** — opt-in `hotkey="/"` prop. Wired on rule library and coverage; deadlines already had route-level wiring (kept because its collapsible-icon pattern needs custom focus logic).
+   - `/deadlines` → "Filter deadlines" (was "Filter clients" — narrowed view of the input's reach; updated in step-8 audit so collapsed magnifier aria-label, placeholder, and expanded aria-label all match)
+3. **`/` hotkey via the primitive** — opt-in `hotkey="/"` prop. Wired on rule library, coverage, **clients (step-8)**, and **audit log (step-8)**. Deadlines retains route-level wiring (its collapsible-icon pattern needs custom focus logic before the input mounts).
 4. **cmd+k placeholder honest** — "Search or navigate…" → "Navigate…" Description "Search or navigate." → "Navigate." No more discoverability lie.
 5. **Coverage tab local `SearchInput` killed** — was shadowing the primitive name with drifted chrome (size-3.5 icon, pl-8, `type="search"` causing double clear buttons). Now wraps the primitive.
 6. **Deadlines `ObligationQueueSearchControl` modernized** — collapsible-icon pattern preserved (Yuqi's intentional toolbar-density call), but the expanded input now uses the primitive.
+7. **`/clients` migrated to canonical SearchInput** (2026-05-26 step-8 audit, F-X02 + F-X03) — the directory's hand-rolled `<Input type="search" h-8>` block + raw `addEventListener` `/` hotkey are gone. The shortcut now registers in the keyboard-help dialog under a new `clients` ShortcutCategory.
+8. **`/audit` SearchInput shipped** (2026-05-26 step-8 audit, F-X06) — the long-dormant `q` URL parser is now driven by a real input. Filter runs client-side over the loaded event window (actor label, actor id, entity id, entity type, action, reason) until the backend supports a `q` field on `audit.list`.
+9. **"Reset" → "Clear filters"** across `/clients`, `/audit`, and the coverage-tab ActiveFilterChip (the latter also gained Lingui localization).
+10. **`/deadlines` `/` hotkey help-label normalized** — was "Focus search", now "Filter deadlines" to match the verb-discipline established in /rules/library + coverage tab.
 
 ### Still pending in Phase 1
 
-| Item                                       | Surface                                                                           | Effort          | Owner |
-| ------------------------------------------ | --------------------------------------------------------------------------------- | --------------- | ----- |
-| Add page filter to `/clients`              | New SearchInput above the table, filters by client name                           | 2-3 hr frontend | TBD   |
-| Add page filter to `/rules/pulse` (Alerts) | New SearchInput above the alert list, filters by title / source / affected client | 2-3 hr frontend | TBD   |
+| Item                                                  | Surface                                                                           | Effort          | Owner |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------- | --------------- | ----- |
+| URL-sync alerts filters via nuqs                      | `/rules/pulse` — five `useState` filters → `useQueryStates` so share-links work   | 4-5 hr frontend | TBD   |
+| Add page filter to `/rules/pulse` (Alerts)            | New SearchInput above the alert list, filters by title / source / affected client | 2-3 hr frontend | TBD   |
+| Notifications inbox find affordance                   | `/notifications` — read/unread tabs + cursor pagination + optional search         | 1-2 day         | TBD   |
+| Add kbd hint chip on `/deadlines` collapsed magnifier | Surface the `/` discoverability on the densest list page                          | 1 hr design     | TBD   |
+| Multi-entity URL param on `/rules/library`            | `entity` parser → `parseAsArrayOf(parseAsStringLiteral(...))`                     | 2 hr frontend   | TBD   |
 
-These are mechanical — copy the SearchInput primitive pattern from `/rules/library`, wire it to the existing filter state machinery on each page (`clientsSearchParamsParsers` exists; alerts state is in-memory). No backend.
+These are mechanical (where backend isn't involved) — copy the SearchInput primitive pattern from `/rules/library`, wire it to the existing filter state machinery on each page. The Alerts surface needs nuqs migration first so the new search has a place to land in the URL.
 
 ---
 
