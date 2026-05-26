@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { plural } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -21,9 +21,9 @@ import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
-import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
+import { StatTile } from '@/components/patterns/stat-tile'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
@@ -65,21 +65,20 @@ export function OpportunitiesPage() {
         </Alert>
       ) : null}
 
-      {/* 2026-05-25 (Yuqi /opportunities #1): summary tiles migrated
-          from the heavy `Card` shape to the same `StatTile`
-          rectangle used on /rules/library + /clients. Identical
-          tone, identical caption-tier label scale — the three
-          summary surfaces across the app now read the same way. */}
+      {/* 2026-05-26 (audit cross-surface P0 #1): migrated from the local
+          `OpportunitiesStatTile` to the shared `StatTile` primitive at
+          `apps/app/src/components/patterns/stat-tile.tsx`. Same shape,
+          one source of truth. Value scale snapped to the DESIGN.md
+          canonical (text-xl semibold) — was text-2xl semibold locally,
+          which had drifted off-spec ("felt thin" reaction during the
+          2026-05-25 pass over-corrected). */}
       <section className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <OpportunitiesStatTile
+        <StatTile
           label={<Trans>Advisory conversations</Trans>}
           value={summary?.advisoryConversationCount}
         />
-        <OpportunitiesStatTile
-          label={<Trans>Scope reviews</Trans>}
-          value={summary?.scopeReviewCount}
-        />
-        <OpportunitiesStatTile
+        <StatTile label={<Trans>Scope reviews</Trans>} value={summary?.scopeReviewCount} />
+        <StatTile
           label={<Trans>Retention check-ins</Trans>}
           value={summary?.retentionCheckInCount}
         />
@@ -132,35 +131,12 @@ export function OpportunitiesPage() {
   )
 }
 
-// 2026-05-25 (Yuqi /opportunities — copy the other page style):
-// retired the rule-library StatTile shape (uppercase caption-tier
-// label on top, number below) — at full page width the long
-// labels ("Advisory conversations") wrapped to two lines and the
-// tile felt thin. Adopted the dashboard's ActionsSummaryTile
-// rhythm instead: large number on TOP, sentence-case label
-// below, generous padding (`px-4 py-3`), wider min-width. Same
-// shape the user has seen on Today across "Need decision /
-// Blocked / Waiting" — consistency with the surface they spend
-// the most time on. Skeleton placeholder retained while the
-// value loads.
-function OpportunitiesStatTile({ label, value }: { label: ReactNode; value: number | undefined }) {
-  return (
-    <div
-      className={cn(
-        'flex min-w-[160px] flex-col gap-1 rounded-md border border-divider-subtle bg-background-default px-4 py-3',
-      )}
-    >
-      {value === undefined ? (
-        <Skeleton className="h-7 w-12" />
-      ) : (
-        <span className="text-2xl font-semibold leading-tight tabular-nums tracking-tight text-text-primary">
-          {value}
-        </span>
-      )}
-      <span className="text-sm text-text-secondary">{label}</span>
-    </div>
-  )
-}
+// 2026-05-26 (audit cross-surface P0 #1): `OpportunitiesStatTile`
+// was extracted to the shared `StatTile` primitive (see
+// `@/components/patterns/stat-tile.tsx`). Git history preserves the
+// pre-extract local variant. The "felt thin → text-2xl" reaction from
+// the 2026-05-25 polish pass was an over-correction relative to the
+// DESIGN.md canonical text-xl; the shared primitive snaps to spec.
 
 // 2026-05-24 (critique /polish — un-dismiss): bottom-of-page
 // disclosure listing the user's active dismissals + snoozes with

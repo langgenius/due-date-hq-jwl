@@ -10,6 +10,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
+import { StatTile } from '@/components/patterns/stat-tile'
 import { ConceptHelp } from '@/features/concepts/concept-help'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { formatDatePretty } from '@/lib/utils'
@@ -482,45 +483,15 @@ function ActionRow({
   )
 }
 
-// Compact summary tile that sits inside the Actions this week header.
-// Moved here from the standalone ExposureStrip (Yuqi #5) — same
-// week scope, same data set, so the three counts now read as the
-// section's summary header rather than a sibling row above it.
-function ActionsSummaryTile({
-  value,
-  label,
-  href,
-  tone,
-}: {
-  value: string
-  label: string
-  href: string
-  tone: 'neutral' | 'critical'
-}) {
-  return (
-    <Link
-      to={href}
-      className={cn(
-        'group flex min-w-[160px] flex-col gap-1 rounded-md border border-divider-subtle bg-background-default px-4 py-3 transition-colors hover:border-divider-regular hover:bg-background-default-hover',
-      )}
-    >
-      {/* 2026-05-25 (Yuqi Today #1 — second pass): tile value
-          dropped text-xl → text-lg and font-semibold → font-medium.
-          The number is a magnitude cue, not a hero — at xl/semibold
-          it competed with the page h1. Critical tone now carries
-          the eye via color, not weight. */}
-      <span
-        className={cn(
-          'text-lg font-medium leading-tight tabular-nums tracking-tight',
-          tone === 'critical' ? 'text-text-destructive' : 'text-text-primary',
-        )}
-      >
-        {value}
-      </span>
-      <span className="text-sm text-text-secondary">{label}</span>
-    </Link>
-  )
-}
+// 2026-05-26 (audit cross-surface P0 #1): `ActionsSummaryTile` was
+// extracted to the shared `StatTile` primitive at
+// `@/components/patterns/stat-tile.tsx`. Git history preserves the
+// pre-extract local variant + its 2026-05-25 "competes with page h1"
+// rationale. That collision is itself an open audit finding (T1 —
+// dashboard h1 renders at text-xl instead of going through PageHeader's
+// text-2xl). When T1 ships, the shared text-xl tile value will read
+// as the smaller scale relative to the h1, matching every other
+// route's title-to-tile ratio.
 
 function DashboardActionsList({
   rows,
@@ -607,7 +578,13 @@ function DashboardActionsList({
     summaryTiles.length > 0 ? (
       <div className="flex flex-wrap gap-3">
         {summaryTiles.map((tile) => (
-          <ActionsSummaryTile key={tile.href} {...tile} />
+          <StatTile
+            key={tile.href}
+            value={tile.value}
+            label={tile.label}
+            href={tile.href}
+            tone={tile.tone}
+          />
         ))}
       </div>
     ) : null
