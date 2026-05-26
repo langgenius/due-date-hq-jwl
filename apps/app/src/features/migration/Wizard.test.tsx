@@ -169,7 +169,7 @@ describe('Migration Wizard RPC flow', () => {
     expect(document.body.textContent).not.toContain('Your column')
 
     await clickButton('Continue')
-    await waitForText('AI cleaned your values')
+    await waitForText('AI standardized your values')
 
     expect(document.body.textContent).toContain('Value groups')
     expect(document.body.textContent).toContain('Tax type defaults')
@@ -236,7 +236,7 @@ describe('Migration Wizard RPC flow', () => {
     await clickButton('Continue')
     await waitForText('AI prepared your columns')
     await clickButton('Continue')
-    await waitForText('AI cleaned your values')
+    await waitForText('AI standardized your values')
 
     expect(document.body.textContent).not.toContain('CA')
     expect(document.body.textContent).not.toContain('federal_990')
