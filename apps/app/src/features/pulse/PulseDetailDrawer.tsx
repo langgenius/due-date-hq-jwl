@@ -184,7 +184,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
   const sidebar = useOptionalSidebar()
   const setAutoCollapsed = sidebar?.setAutoCollapsed
   useEffect(() => {
-    if (!setAutoCollapsed) return
+    if (!setAutoCollapsed) return undefined
     setAutoCollapsed(open)
     return () => {
       setAutoCollapsed(false)

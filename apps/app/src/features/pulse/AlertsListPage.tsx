@@ -29,7 +29,6 @@ import {
   CommandList,
 } from '@duedatehq/ui/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
-import { useSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -123,14 +122,18 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
   // 2026-05-26 (Yuqi thirtieth pass — responsiveness): auto-collapse
   // the sidebar to icons-only when the user opens an alert. Frees
   // ~200px of horizontal room for the panel layout on smaller
-  // desktops (1280–1440px viewports especially benefit). Does NOT
-  // auto-expand when the alert closes — user keeps control of the
-  // sidebar's persistent state.
-  const { collapsed: sidebarCollapsed, toggleCollapsed: toggleSidebarCollapsed } = useSidebar()
-  const openDrawerAndCollapseSidebar = (alertId: string) => {
-    if (!sidebarCollapsed) toggleSidebarCollapsed()
-    openDrawer(alertId)
-  }
+  // desktops (1280–1440px viewports especially benefit).
+  //
+  // 2026-05-26 (Yuqi sidebar mental-model pass — consistency fix):
+  // the original implementation here called `toggleCollapsed()`
+  // directly, which writes the new state to localStorage —
+  // permanently flipping the user's persistent preference every
+  // time they clicked an alert. That's a bug: the auto-collapse
+  // should be TRANSIENT (drawer is open) and the user's preference
+  // should be untouched. `PulseDetailDrawer` now handles the
+  // auto-collapse properly via `setAutoCollapsed` (see that
+  // component) — no wrapper needed here. Just open the drawer.
+  const openDrawerAndCollapseSidebar = openDrawer
   const [statusFilter, setStatusFilter] = useState<PulseStatusFilter>(
     historyMode ? 'applied' : 'all',
   )

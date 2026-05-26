@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { EyeIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react'
@@ -26,6 +26,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
+import { useSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
@@ -72,6 +73,17 @@ export function ImportHistoryDrawer({
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
   const permission = useFirmPermission()
+  // 2026-05-26 (Yuqi sidebar mental-model pass — consistency):
+  // 820-880px wide drawer — auto-collapse the sidebar while open,
+  // restore on close. Mounted inside /clients route which is inside
+  // AppShell, so `useSidebar` is always available.
+  const { setAutoCollapsed } = useSidebar()
+  useEffect(() => {
+    setAutoCollapsed(open)
+    return () => {
+      setAutoCollapsed(false)
+    }
+  }, [open, setAutoCollapsed])
   const canRevertMigration = permission.can('migration.revert')
   const canRunMigration = permission.can('migration.run')
   const [pendingRecovery, setPendingRecovery] = useState<PendingRecovery | null>(null)
