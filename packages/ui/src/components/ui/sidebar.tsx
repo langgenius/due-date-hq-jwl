@@ -105,6 +105,17 @@ type SidebarContextValue = {
    * page deep-links into a row.
    */
   notifySidebarNavigation: () => void
+  /**
+   * 2026-05-26 (Yuqi sidebar mental-model pass — immediate collapse):
+   * hover state lives in the provider so `toggleCollapsed` can reset
+   * it atomically when the user explicitly collapses. Without this,
+   * clicking the collapse icon while the cursor is inside the
+   * sidebar leaves the hover-peek overlay expanded — the user has
+   * to physically move their cursor out before the sidebar visibly
+   * shrinks. Explicit user intent should beat passive hover.
+   */
+  hovered: boolean
+  setHovered: (next: boolean) => void
 }
 
 const SidebarContext = React.createContext<SidebarContextValue | null>(null)
@@ -148,6 +159,12 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   // route surfaces with a wide right panel. NEVER persisted —
   // closing the panel restores the user's preference.
   const [autoCollapsed, setAutoCollapsedState] = React.useState(false)
+  // 2026-05-26 (Yuqi sidebar mental-model pass — immediate collapse):
+  // `hovered` lives in the provider so `toggleCollapsed` can reset
+  // it synchronously when the user explicitly collapses, beating the
+  // passive hover-peek. Sidebar's onMouseEnter/Leave still drive it
+  // via `setHovered` exposed through context.
+  const [hovered, setHovered] = React.useState(false)
   // 2026-05-26 (Yuqi sixty-ninth pass): one-shot absorber for
   // auto-collapse requests that arrive immediately after a
   // sidebar nav click. Ref (not state) because we don't want a
@@ -184,6 +201,17 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     // If the user is overriding an auto-collapse, clear the auto
     // flag so it doesn't immediately reapply on the next render.
     if (autoCollapsed) setAutoCollapsedState(false)
+    // 2026-05-26 (Yuqi sidebar mental-model pass — immediate
+    // collapse): explicit user toggle beats passive hover-peek.
+    // Without this reset, clicking the collapse icon while the
+    // cursor is inside the sidebar leaves the overlay expanded
+    // (because `targetCollapsed = collapsed && !hovered` keeps it
+    // false). User has to move their cursor out before the
+    // sidebar visibly shrinks — feels broken. The reset makes the
+    // sidebar collapse the moment they click; if they move the
+    // cursor out and back in, hover-peek activates normally on
+    // the next mouseenter.
+    setHovered(false)
   }, [autoCollapsed])
 
   const setAutoCollapsed = React.useCallback((next: boolean) => {
@@ -225,6 +253,8 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       toggleCollapsed,
       setAutoCollapsed,
       notifySidebarNavigation,
+      hovered,
+      setHovered,
     }),
     [
       visibleOpenMobile,
@@ -234,6 +264,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       toggleCollapsed,
       setAutoCollapsed,
       notifySidebarNavigation,
+      hovered,
     ],
   )
 
@@ -241,7 +272,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function Sidebar({ className, children, ...props }: React.ComponentProps<'aside'>) {
-  const { isMobile, openMobile, setOpenMobile, collapsed } = useSidebar()
+  const { isMobile, openMobile, setOpenMobile, collapsed, hovered, setHovered } = useSidebar()
 
   if (isMobile) {
     return (
@@ -301,7 +332,9 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
   //     descendant CSS (label hide/show, badge dot vs digits,
   //     centered icon button, etc.) follows what the user sees,
   //     not the persisted state.
-  const [hovered, setHovered] = React.useState(false)
+  // `hovered` + `setHovered` come from useSidebar() (provider) above,
+  // so that toggleCollapsed can atomically reset hover when the user
+  // explicitly collapses via icon / ⌘B.
   const targetCollapsed = collapsed && !hovered
   // 2026-05-26 (Yuqi sidebar transition smoothness — v2):
   //
