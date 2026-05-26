@@ -121,11 +121,9 @@ export function AcceptInviteRoute() {
   }
 
   if (!id) {
-    // 2026-05-26 (Step 7 onboarding audit F2-01): the missing-
-    // invite alert was a dead end — destructive box, no next
-    // action, user stranded on a logged-out page. Added a
-    // "Return to sign-in" escape so the user has a forward
-    // motion even when the invite link is broken.
+    // 2026-05-26 (Step 6 UX #9 + Step 7 onboarding F2-01): the
+    // missing-invite alert was a dead end. Surface both Sign-in
+    // and Go-to-Today escapes so the page never dead-ends.
     return (
       <div className="flex w-full max-w-[420px] flex-col gap-3">
         <Alert variant="destructive">
@@ -137,9 +135,14 @@ export function AcceptInviteRoute() {
             <Trans>Ask the practice owner to send a new invitation.</Trans>
           </AlertDescription>
         </Alert>
-        <Button variant="outline" size="sm" className="w-fit" render={<Link to="/login" />}>
-          <Trans>Return to sign-in</Trans>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button render={<Link to="/login" />}>
+            <Trans>Sign in</Trans>
+          </Button>
+          <Button variant="outline" render={<Link to="/" />}>
+            <Trans>Go to Today</Trans>
+          </Button>
+        </div>
       </div>
     )
   }

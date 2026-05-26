@@ -193,19 +193,10 @@ function MigrationActivationIntro({
         ) : null}
       </div>
 
-      {/* 2026-05-26 (Step 7 onboarding audit F6-26): the
-          ArrowRightIcon implied forward-progress, but "Skip
-          for now" is lateral (exit-and-defer), not the next
-          wizard step. Dropped the icon so the button reads
-          as an escape, not as a continue.
-
-          2026-05-26 (Step 7 onboarding audit F6-03): wrapped
-          in a tooltip that names the future import paths.
-          The intro paragraph already says "you can import
-          later from Today, Clients, or Command Palette" —
-          but the user hovering Skip should see that
-          reassurance at the decision point, not in the body
-          paragraph above. */}
+      {/* Step 6 UX #138 (icon dropped — "Skip" is lateral, not
+          continuation) + Step 7 F6-26 / F6-03 (Tooltip names the
+          future import paths so the reassurance lands at the
+          decision point, not just in the body paragraph above). */}
       <Tooltip>
         <TooltipTrigger
           render={

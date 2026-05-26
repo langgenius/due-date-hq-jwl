@@ -165,8 +165,24 @@ export function DashboardRoute() {
             {/* 2026-05-25 (Yuqi Today #6): FileSearchIcon → UploadIcon.
                 The button's job is "upload my client list", not
                 "browse for files" — the upload metaphor matches the
-                CTA verb. */}
-            <Button variant="outline" size="sm" onClick={openWizard} disabled={!canRunMigration}>
+                CTA verb.
+                2026-05-26 (Step 6 UX audit #32): a coordinator-role
+                user lands on Today, sees a greyed-out "Import
+                clients" button, and has no clue why. The `title`
+                attribute surfaces the permission requirement on
+                hover so they don't dead-end. aria-label keeps the
+                button identifiable to screen readers even when
+                disabled. */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openWizard}
+              disabled={!canRunMigration}
+              title={canRunMigration ? undefined : t`Owner or manager access required.`}
+              aria-label={
+                canRunMigration ? undefined : t`Import clients (owner or manager access required)`
+              }
+            >
               <UploadIcon data-icon="inline-start" />
               <Trans>Import clients</Trans>
             </Button>
@@ -183,13 +199,20 @@ export function DashboardRoute() {
           <AlertDescription>
             {rpcErrorMessage(dashboardQuery.error) ??
               t`Check your network and try again. If this keeps happening, contact support.`}{' '}
-            <button
+            {/* 2026-05-26 (Step 6 UX audit #30): retry uses the
+                canonical `<Button variant="link">` instead of an
+                ad-hoc `<button className="underline">`. Keeps
+                button-pattern consistent across the app and inherits
+                the link variant's focus-visible ring + hover state. */}
+            <Button
               type="button"
-              className="underline"
+              variant="link"
+              size="sm"
+              className="h-auto p-0 align-baseline"
               onClick={() => void dashboardQuery.refetch()}
             >
               <Trans>Retry</Trans>
-            </button>
+            </Button>
           </AlertDescription>
         </Alert>
       ) : null}

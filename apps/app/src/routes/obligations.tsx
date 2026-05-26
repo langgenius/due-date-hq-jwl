@@ -1327,8 +1327,12 @@ export function ObligationQueueRoute() {
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         setRowSelection({})
-        toast.success(t`Bulk status updated`, {
-          description: t`${result.updatedCount} rows changed`,
+        // 2026-05-26 (Step 6 UX audit #49): "rows" is engineering-speak.
+        // CPAs say "deadlines" or "filings". Title also dropped the
+        // word "Bulk" — the description carries the count which is
+        // already the bulk signal.
+        toast.success(t`Status updated`, {
+          description: t`${result.updatedCount} deadlines changed`,
         })
       },
       onError: (err) => {
@@ -3327,16 +3331,21 @@ export function ObligationQueueRoute() {
               <Trans>Loading deadlines…</Trans>
             </EmptyPanel>
           ) : isError ? (
+            // Step 1-5 reaudit migrated to Alert primitive; Step 6
+            // UX #147 swapped the bare-underline button for canonical
+            // `<Button variant="link">`. Both shipped here.
             <Alert variant="destructive">
               <AlertDescription>
                 <Trans>Couldn't load deadlines.</Trans>{' '}
-                <button
+                <Button
                   type="button"
-                  className="underline"
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 align-baseline"
                   onClick={() => void listQuery.refetch()}
                 >
                   <Trans>Retry</Trans>
-                </button>
+                </Button>
               </AlertDescription>
             </Alert>
           ) : (
@@ -5848,16 +5857,20 @@ export function ObligationQueueDetailDrawer({
             <Trans>Loading deadline detail…</Trans>
           </EmptyPanel>
         ) : detailQuery.isError || !detail || !row ? (
+          // Step 1-5 reaudit Alert primitive + Step 6 UX #147
+          // Button-link retry.
           <Alert variant="destructive">
             <AlertDescription>
               <Trans>Couldn't load deadline detail.</Trans>{' '}
-              <button
+              <Button
                 type="button"
-                className="underline"
+                variant="link"
+                size="sm"
+                className="h-auto p-0 align-baseline"
                 onClick={() => void detailQuery.refetch()}
               >
                 <Trans>Retry</Trans>
-              </button>
+              </Button>
             </AlertDescription>
           </Alert>
         ) : (

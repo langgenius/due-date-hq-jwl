@@ -406,7 +406,11 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
         }
         description={firmSummary}
         actions={
-          <Badge variant="outline" className="tabular-nums text-xs">
+          // Step 6 UX #112: dropped tabular-nums on a non-numeric
+          // role label, kept font-mono for the tech-stat aesthetic.
+          // PageHeader wrapper kept (Step 6's hand-rolled h1 not
+          // applied — canonical primitive wins).
+          <Badge variant="outline" className="font-mono text-xs">
             {currentRole}
           </Badge>
         }

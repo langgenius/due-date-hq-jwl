@@ -91,6 +91,10 @@ export function TwoFactorRoute() {
                 aria-describedby="two-factor-code-helper"
                 onChange={(event) => handleCodeChange(event.target.value)}
               />
+              {/* Step 6 UX #22/#23 shipped autoFocus + inline helper;
+                  HEAD already has autoFocus and `handleCodeChange`
+                  (which is Step 7's auto-submit on 6 digits). HEAD
+                  copy names the apps explicitly so it stays. */}
               <p id="two-factor-code-helper" className="text-xs text-text-tertiary">
                 <Trans>
                   6-digit code from your authenticator app (Google Authenticator, 1Password, Authy,
@@ -106,7 +110,11 @@ export function TwoFactorRoute() {
               {verifyMutation.isPending ? (
                 <Loader2Icon className="size-4 animate-spin" aria-hidden />
               ) : null}
-              <Trans>Verify</Trans>
+              {/* 2026-05-26 (Step 6 UX audit #24): label switches to
+                  "Verifying…" while pending — matches the verb
+                  pattern used by every other submit-pending button in
+                  the app ("Saving…", "Creating…"). */}
+              {verifyMutation.isPending ? <Trans>Verifying…</Trans> : <Trans>Verify</Trans>}
             </Button>
             {/* 2026-05-26 (Step 7 onboarding audit F3-02): the
                 challenge UI offered only the TOTP input — no
