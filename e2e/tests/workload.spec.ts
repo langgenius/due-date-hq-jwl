@@ -31,8 +31,12 @@ test.describe('seeded team workload', () => {
 
     await expect(authenticatedPage).toHaveURL(/\/workload$/)
     await expect(workloadPage.upgradeHeading).toBeVisible()
-    await expect(workloadPage.upgradePlanLink).toHaveAttribute('href', '/billing')
-    await expect(workloadPage.openObligationQueueLink).toHaveAttribute('href', '/deadlines')
+    await workloadPage.upgradePlanButton.click()
+    await expect(authenticatedPage).toHaveURL(/\/billing$/)
+
+    await workloadPage.goto()
+    await workloadPage.openObligationQueueButton.click()
+    await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
   })
 
   test('AC: E2E-WORKLOAD-FIRM-METRICS reads paid-plan workload from real queue rows', async ({
@@ -84,7 +88,7 @@ test.describe('seeded team workload', () => {
     await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeHidden()
 
     await workloadPage.goto()
-    await workloadPage.rowFor('Unassigned').getByRole('link', { name: 'Open' }).click()
+    await workloadPage.rowFor('Unassigned').getByRole('button', { name: 'Open' }).click()
 
     await expect(authenticatedPage).toHaveURL(/\/deadlines\?owner=unassigned$/)
     await expect(authenticatedPage.getByText('Unassigned Foundry LLC')).toBeVisible()

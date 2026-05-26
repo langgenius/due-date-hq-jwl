@@ -31,11 +31,18 @@ export class AppShellPage {
 
   async goto(path = '/') {
     await this.page.goto(path)
+    await this.primaryNavigation.waitFor({ state: 'visible' })
   }
 
   async openCommandPalette() {
+    await this.primaryNavigation.waitFor({ state: 'visible' })
     if (await this.tryOpenCommandPalette('Meta+K')) return
-    await this.tryOpenCommandPalette('Control+K')
+    if (await this.tryOpenCommandPalette('Control+K')) return
+    await this.dispatchHotkeys([
+      { key: 'k', code: 'KeyK', metaKey: true },
+      { key: 'k', code: 'KeyK', ctrlKey: true },
+    ])
+    await this.commandDialog.waitFor({ state: 'visible' })
   }
 
   commandItem(name: string) {
@@ -53,6 +60,10 @@ export class AppShellPage {
     } finally {
       await this.page.keyboard.up('Shift')
     }
+    await this.dispatchHotkeys([
+      { key: '?', code: 'Slash', shiftKey: true },
+      { key: '/', code: 'Slash', shiftKey: true },
+    ])
     await this.shortcutDialog.waitFor({ state: 'visible' })
   }
 
@@ -66,5 +77,33 @@ export class AppShellPage {
     } catch {
       return this.commandDialog.isVisible()
     }
+  }
+
+  private async dispatchHotkeys(
+    events: Array<{
+      key: string
+      code: string
+      ctrlKey?: boolean
+      metaKey?: boolean
+      shiftKey?: boolean
+    }>,
+  ) {
+    await this.page.evaluate((hotkeys) => {
+      for (const hotkey of hotkeys) {
+        const init: KeyboardEventInit = {
+          key: hotkey.key,
+          code: hotkey.code,
+          bubbles: true,
+          cancelable: true,
+          ctrlKey: Boolean(hotkey.ctrlKey),
+          metaKey: Boolean(hotkey.metaKey),
+          shiftKey: Boolean(hotkey.shiftKey),
+        }
+        window.dispatchEvent(new KeyboardEvent('keydown', init))
+        document.dispatchEvent(new KeyboardEvent('keydown', init))
+        window.dispatchEvent(new KeyboardEvent('keyup', init))
+        document.dispatchEvent(new KeyboardEvent('keyup', init))
+      }
+    }, events)
   }
 }

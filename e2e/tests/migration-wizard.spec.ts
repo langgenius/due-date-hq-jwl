@@ -58,12 +58,12 @@ test('AC: E2E-MIGRATION-IMPORT-UNDO imports from the wizard and reverts from toa
 
   await migrationWizardPage.continue()
   await expect(
-    authenticatedPage.getByRole('heading', { name: 'Review and confirm column mapping' }),
+    authenticatedPage.getByRole('heading', { name: 'AI prepared your columns' }),
   ).toBeVisible({ timeout: AI_STEP_TIMEOUT })
 
   await migrationWizardPage.continue()
   await expect(
-    authenticatedPage.getByRole('heading', { name: /We organized \d+ values/ }),
+    authenticatedPage.getByRole('heading', { name: 'AI cleaned your values' }),
   ).toBeVisible({ timeout: AI_STEP_TIMEOUT })
 
   await migrationWizardPage.continue()
@@ -106,22 +106,20 @@ test('AC: E2E-MIGRATION-EXPOSURE imports tax inputs into Dashboard and Evidence 
 
   await migrationWizardPage.continue()
   await expect(
-    authenticatedPage.getByRole('heading', { name: 'Review and confirm column mapping' }),
+    authenticatedPage.getByRole('heading', { name: 'AI prepared your columns' }),
   ).toBeVisible({ timeout: AI_STEP_TIMEOUT })
   await migrationWizardPage.mapColumn('Estimated Tax Due', 'Penalty tax due')
   await migrationWizardPage.mapColumn('Owner Count', 'Partner count')
 
   await migrationWizardPage.continue()
   await expect(
-    authenticatedPage.getByRole('heading', { name: /We organized \d+ values/ }),
+    authenticatedPage.getByRole('heading', { name: 'AI cleaned your values' }),
   ).toBeVisible({ timeout: AI_STEP_TIMEOUT })
 
   await migrationWizardPage.continue()
   await expect(authenticatedPage.getByRole('heading', { name: 'Ready to import' })).toBeVisible()
   await expect(authenticatedPage.getByText(/\d+ deadlines \(full tax year\)/)).toBeVisible()
-  await expect(authenticatedPage.getByRole('status')).toContainText(
-    'Ready to generate your deadline list',
-  )
+  await expect(authenticatedPage.getByRole('status')).toContainText('Ready to generate deadlines')
 
   await migrationWizardPage.importAndGenerate()
 
