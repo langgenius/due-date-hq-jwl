@@ -180,7 +180,7 @@ export function ImportHistoryDrawer({
           className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] gap-0 overflow-hidden p-0 sm:data-[side=right]:w-[calc(100vw-2rem)] sm:data-[side=right]:max-w-[calc(100vw-2rem)] md:data-[side=right]:w-[min(820px,calc(100vw-2rem))] md:data-[side=right]:max-w-[min(820px,calc(100vw-2rem))] xl:data-[side=right]:w-[min(880px,calc(100vw-2rem))] xl:data-[side=right]:max-w-[min(880px,calc(100vw-2rem))]"
         >
           <SheetHeader className="border-b border-divider-subtle px-5 py-4">
-            <SheetTitle className="text-md">
+            <SheetTitle className="text-base">
               <Trans>Import history</Trans>
             </SheetTitle>
             <SheetDescription>
@@ -335,7 +335,7 @@ export function ImportHistoryDrawer({
                 <Trans>Revert this import batch?</Trans>
               )}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-md">
+            <AlertDialogDescription className="text-base">
               {pendingRecovery?.kind === 'client' ? (
                 <Trans>
                   This removes the client and deadlines created by this import. Use Clients to edit

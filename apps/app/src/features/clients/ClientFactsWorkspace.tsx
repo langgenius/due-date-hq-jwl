@@ -4925,7 +4925,7 @@ function ClientOwnerHeaderPill({
               <>
                 <span
                   className={cn(
-                    'inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold uppercase tracking-tight',
+                    'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
                     isMine ? 'bg-state-accent-hover-alt text-text-accent' : tint,
                   )}
                 >

@@ -390,7 +390,7 @@ function MatrixControls({
           return (
             <li key={key} className="flex flex-col gap-2 py-3">
               <div className="flex items-center justify-between gap-3">
-                <span className="flex items-center gap-2 text-md text-text-primary">
+                <span className="flex items-center gap-2 text-base text-text-primary">
                   <span className="font-mono text-xs uppercase tracking-wider text-text-tertiary">
                     {cell.entityType} × {cell.state}
                   </span>

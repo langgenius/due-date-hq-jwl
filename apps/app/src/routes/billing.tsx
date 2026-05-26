@@ -558,7 +558,7 @@ function Metric({ label, value, name }: { label: ReactNode; value: string; name:
       className="inline-flex min-w-0 max-w-full flex-none flex-col rounded-lg border border-divider-regular bg-background-default p-4"
     >
       <span className="text-xs font-medium uppercase text-text-tertiary">{label}</span>
-      <p className="mt-2 truncate text-md font-semibold text-text-primary">{value}</p>
+      <p className="mt-2 truncate text-base font-semibold text-text-primary">{value}</p>
     </div>
   )
 }

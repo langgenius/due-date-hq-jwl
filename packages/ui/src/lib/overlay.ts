@@ -27,7 +27,7 @@ export const overlayCheckboxIndicatorClassName =
 
 /* Section label (group header) inside menus / selects. */
 export const overlayLabelClassName =
-  'px-3 pt-1 pb-0.5 text-2xs font-medium tracking-wider uppercase text-text-tertiary'
+  'px-3 pt-1 pb-0.5 text-caption-xs font-medium tracking-wider uppercase text-text-tertiary'
 
 /* Inline separator between rows / groups. */
 export const overlaySeparatorClassName = 'my-1 h-px bg-divider-subtle'

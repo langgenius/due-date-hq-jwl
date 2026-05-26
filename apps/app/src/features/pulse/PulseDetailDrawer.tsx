@@ -1274,7 +1274,7 @@ function ManagerReviewPanel({
     <section className="grid gap-3 rounded-md border border-divider-subtle bg-background-section p-3">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h3 className="text-md font-semibold text-text-primary">
+          <h3 className="text-base font-semibold text-text-primary">
             <Trans>Manager review</Trans>
           </h3>
           {reviewStatus ? (

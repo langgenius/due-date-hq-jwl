@@ -2289,7 +2289,7 @@ function GroupedRulesTable({
                 <TableHead
                   key={entity}
                   title={ENTITY_LABELS[entity]}
-                  className="w-12 text-center text-[10px] font-medium uppercase tracking-wider text-text-tertiary"
+                  className="w-12 text-center text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-tertiary"
                 >
                   {ENTITY_COLUMN_LABELS[entity]}
                 </TableHead>
@@ -3046,7 +3046,7 @@ function SearchResultsTable({
               <TableHead
                 key={entity}
                 title={ENTITY_LABELS[entity]}
-                className="w-12 text-center text-[10px] font-medium uppercase tracking-wider text-text-tertiary"
+                className="w-12 text-center text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-tertiary"
               >
                 {ENTITY_COLUMN_LABELS[entity]}
               </TableHead>

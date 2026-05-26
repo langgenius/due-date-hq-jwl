@@ -288,7 +288,7 @@ function SourceSignalsPanel({ sources }: { sources: readonly RuleSource[] }) {
   return (
     <SectionFrame>
       <div className="flex items-baseline justify-between gap-3 px-4 pt-3 pb-1">
-        <h3 className="text-md font-semibold text-text-primary">
+        <h3 className="text-base font-semibold text-text-primary">
           <Trans>Source signal trail</Trans>
         </h3>
         <span className="text-sm text-text-tertiary tabular-nums">

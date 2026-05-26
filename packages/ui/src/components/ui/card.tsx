@@ -12,7 +12,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        'group/card flex flex-col gap-5 overflow-hidden rounded-xl border border-components-card-border bg-components-card-bg py-5 text-md text-text-primary shadow-xs has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl',
+        'group/card flex flex-col gap-5 overflow-hidden rounded-xl border border-components-card-border bg-components-card-bg py-5 text-base text-text-primary shadow-xs has-[>img:first-child]:pt-0 data-[size=sm]:gap-4 data-[size=sm]:py-4 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl',
         className,
       )}
       {...props}
@@ -38,7 +38,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="card-title"
       className={cn(
-        'text-md leading-snug font-semibold text-text-primary group-data-[size=sm]/card:text-sm',
+        'text-base leading-snug font-semibold text-text-primary group-data-[size=sm]/card:text-sm',
         className,
       )}
       {...props}

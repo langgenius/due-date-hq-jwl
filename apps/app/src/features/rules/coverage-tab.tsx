@@ -2074,7 +2074,7 @@ function BulkReviewDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="data-[side=right]:w-full sm:data-[side=right]:w-[min(720px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none flex flex-col gap-0 overflow-hidden p-0">
         <SheetHeader className="gap-2 border-b border-divider-regular px-5 py-4">
-          <SheetTitle className="text-md text-text-primary">
+          <SheetTitle className="text-base text-text-primary">
             <Trans>Review selected rules</Trans>
           </SheetTitle>
           <SheetDescription>

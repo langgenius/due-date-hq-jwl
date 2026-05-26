@@ -82,7 +82,7 @@ const confidenceDot = {
             <div class="grid grid-cols-3 border-b border-divider-subtle">
               {s.summary.map((item, idx) => (
                 <div class:list={['px-4 py-3', idx < s.summary.length - 1 ? 'border-r border-divider-subtle' : '']}>
-                  <div class="font-mono text-2xs tracking-wider text-text-tertiary">{item.label}</div>
+                  <div class="font-mono text-caption-xs tracking-wider text-text-tertiary">{item.label}</div>
                   <div class="mt-1 font-mono text-[24px] font-semibold leading-none text-text-primary">{item.value}</div>
                 </div>
               ))}

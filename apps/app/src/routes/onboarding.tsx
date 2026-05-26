@@ -115,11 +115,11 @@ export function OnboardingRoute() {
         <Trans>PRACTICE PROFILE</Trans>
       </span>
 
-      <h1 className="mt-5 text-[28px] font-semibold leading-[1.15] tracking-tight text-text-primary">
+      <h1 className="mt-5 text-2xl font-semibold leading-[1.15] tracking-tight text-text-primary">
         <Trans>Set up your practice.</Trans>
       </h1>
 
-      <p className="mt-3 text-[14px] leading-relaxed text-text-secondary">
+      <p className="mt-3 text-base leading-relaxed text-text-secondary">
         <Trans>
           We pre-filled a name from your Google profile. You can change it now or anytime in the
           Practice profile.

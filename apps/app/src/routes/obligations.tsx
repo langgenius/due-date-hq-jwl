@@ -8460,7 +8460,7 @@ function DeadlineTile({
     <div className={cn('flex flex-col gap-0.5 rounded-md border px-2.5 py-1.5', surfaceClass)}>
       <span
         className={cn(
-          'text-[11px] leading-tight font-medium uppercase tracking-eyebrow-tight',
+          'text-caption leading-tight font-medium uppercase tracking-eyebrow-tight',
           labelToneClass,
           primary && 'font-semibold',
         )}
@@ -10914,7 +10914,7 @@ function CalendarSyncPopover() {
       {open ? (
         <div
           aria-hidden
-          className="fixed inset-0 z-40 bg-black/30"
+          className="fixed inset-0 z-40 bg-background-overlay-backdrop"
           onClick={() => setOpen(false)}
         />
       ) : null}

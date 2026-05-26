@@ -43,7 +43,7 @@ export function Step4Preview({ summary }: Step4Props) {
         </p>
       </div>
 
-      <ul className="flex flex-col gap-1.5 text-md">
+      <ul className="flex flex-col gap-1.5 text-base">
         <li className="flex items-center gap-2 font-mono tabular-nums">
           <PlayIcon className="size-3 text-text-accent" aria-hidden />
           <Plural value={clientCount} one="# client" other="# clients" />
@@ -75,7 +75,7 @@ export function Step4Preview({ summary }: Step4Props) {
         <h3 className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
           <Trans>Safety</Trans>
         </h3>
-        <ul className="flex flex-col gap-1.5 text-md text-text-primary">
+        <ul className="flex flex-col gap-1.5 text-base text-text-primary">
           <li className="flex items-center gap-2">
             <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
             <Trans>This import can be undone for 24 hours and keeps an audit record</Trans>
@@ -181,11 +181,17 @@ export function Step4Preview({ summary }: Step4Props) {
       ) : null}
 
       {summary && summary.errors.length > 0 ? (
-        <section
-          className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-components-badge-bg-red-soft p-3"
-          data-slot="step4-bad-rows"
-        >
-          <h3 className="text-xs font-medium tracking-eyebrow text-text-destructive uppercase">
+        /* 2026-05-26 (step-1.5 reaudit): hand-rolled <section> with
+           `bg-components-badge-bg-red-soft` replaced with the canonical
+           `<Alert variant="destructive">` primitive. Visual delta is
+           the Alert primitive's leading destructive icon + the
+           components-badge → components-alert background swap. The
+           previous auditor's `848727dd` (C-deeper) ran exactly this
+           migration for 2 hand-rolled error blocks in obligations.tsx
+           but missed this third sibling in the migration wizard. */
+        <Alert variant="destructive" data-slot="step4-bad-rows">
+          <AlertTriangleIcon />
+          <AlertTitle>
             {/* 2026-05-25 (Wizard #40 cross-step polish): aligned
                 with the canonical "needs review" phrase used in
                 Step 2 + Step 3. "Needs attention" was the lone
@@ -196,7 +202,7 @@ export function Step4Preview({ summary }: Step4Props) {
               one="# row needs review"
               other="# rows need review"
             />
-          </h3>
+          </AlertTitle>
           {/*
             Day-3 acceptance: bad rows are listed in full so the user can
             audit "good rows still flow through" without leaving the wizard.
@@ -216,17 +222,19 @@ export function Step4Preview({ summary }: Step4Props) {
               whole step. The list is still inside a section
               the user has to scroll to reach, so it's not in
               the way at the top of the step. */}
-          <ul className="flex flex-col gap-1 text-md text-text-primary">
-            {summary.errors.map((err) => (
-              <li key={err.id} className="flex items-center gap-2">
-                <span className="font-mono text-xs tabular-nums text-text-secondary">
-                  <Trans>Row {err.rowIndex + 1}</Trans>
-                </span>
-                <span className="text-sm">{formatMigrationErrorMessage(err, targetLabels)}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+          <AlertDescription>
+            <ul className="flex flex-col gap-1 text-base text-text-primary">
+              {summary.errors.map((err) => (
+                <li key={err.id} className="flex items-center gap-2">
+                  <span className="font-mono text-xs tabular-nums text-text-secondary">
+                    <Trans>Row {err.rowIndex + 1}</Trans>
+                  </span>
+                  <span className="text-sm">{formatMigrationErrorMessage(err, targetLabels)}</span>
+                </li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
       ) : null}
     </div>
   )

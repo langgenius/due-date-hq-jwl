@@ -295,7 +295,7 @@ export function WizardShell({ open, onClose, confirmOnClose, ...frameProps }: Wi
               <AlertDialogTitle>
                 <Trans>Discard import?</Trans>
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-md">
+              <AlertDialogDescription className="text-base">
                 <Trans>Your pasted data and unsaved edits in this wizard will be lost.</Trans>
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -359,7 +359,7 @@ export function WizardRouteShell({
               <AlertDialogTitle>
                 <Trans>Discard import?</Trans>
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-md">
+              <AlertDialogDescription className="text-base">
                 <Trans>Your pasted data and unsaved edits in this wizard will be lost.</Trans>
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -396,7 +396,7 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
               <LoaderCircleIcon className="size-5 animate-spin" aria-hidden />
             </span>
             <div className="min-w-0">
-              <h3 className="text-md font-semibold text-text-primary">{copy.title}</h3>
+              <h3 className="text-base font-semibold text-text-primary">{copy.title}</h3>
               <p className="mt-1 text-sm text-text-secondary">{copy.description}</p>
             </div>
           </div>

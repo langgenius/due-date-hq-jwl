@@ -95,7 +95,7 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           <MappingCapabilityBadge mapping={mapping} />
         </div>
         <div className="flex items-center justify-between gap-3">
-          <p className="text-md text-text-secondary">
+          <p className="text-base text-text-secondary">
             <Trans>
               DueDateHQ matched the upload to import fields. Open details only if something looks
               off.
