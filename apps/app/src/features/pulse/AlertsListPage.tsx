@@ -303,7 +303,7 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
               // p-3 md:p-4`; now `gap-6 px-4 pt-6 pb-4 md:px-6
               // md:pt-8 md:pb-6` (panel-open variant keeps the
               // wider max-w cap so the right panel has room).
-              'mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
+              'mx-auto flex h-full min-h-0 w-full max-w-page-expanded flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
             : 'mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
       }
     >

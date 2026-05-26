@@ -1408,7 +1408,7 @@ export function RulesLibraryRoute() {
     // jurisdiction + entity matrix has room to breathe at desktop.
     <div
       className={cn(
-        'mx-auto flex w-full max-w-[1440px] flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
         'xl:h-screen xl:overflow-hidden',
       )}
     >

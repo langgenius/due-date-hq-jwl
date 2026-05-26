@@ -29,6 +29,16 @@
   --text-badge: 11px;
   --text-badge--line-height: 1.333;
   --text-sm: 12px;
+  /*
+   * `--text-description` is the canonical 13px size for sub-line copy
+   * — PageHeader/EmptyState descriptions, login + entry-layout
+   * meta lines, and similar prose that sits BELOW a title and ABOVE
+   * caption-density text. Workbench body is 14px (`--text-base`),
+   * captions are 12px (`--text-sm`); 13px is the in-between for
+   * description text where the body would feel too loud and the
+   * caption would feel too quiet. Auto-generates `text-description`.
+   */
+  --text-description: 13px;
   --text-base: 14px; /* 2026-05-20: was 13px. Workbench body scale. */
   --text-md: 14px;
   --text-lg: 16px;

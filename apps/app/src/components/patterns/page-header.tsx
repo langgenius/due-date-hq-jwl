@@ -107,7 +107,7 @@ export function PageHeader({
               collide. */}
           <h1 className="min-w-0 text-2xl leading-7 font-semibold text-text-primary">{title}</h1>
           {description ? (
-            <p className="max-w-[1080px] text-[13px] leading-5 text-text-secondary">
+            <p className="max-w-[1080px] text-description leading-5 text-text-secondary">
               {description}
             </p>
           ) : null}

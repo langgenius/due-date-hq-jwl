@@ -1177,7 +1177,7 @@ function PreviewResultRow({
         </span>
       </div>
       <div className="flex min-w-0 flex-col gap-1">
-        <span className="truncate text-[13px] font-medium text-text-primary">
+        <span className="truncate text-description font-medium text-text-primary">
           {row.ruleTitle} · {row.formName}
         </span>
         <span className="truncate font-mono text-caption text-text-tertiary">

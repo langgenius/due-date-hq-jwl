@@ -51,7 +51,7 @@ export function EntryShell() {
 function EntryShellHeader() {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-border-default px-6 lg:px-10">
-      <div className="flex items-center gap-2 text-[13px]">
+      <div className="flex items-center gap-2 text-description">
         <img
           src={brandMarkLight}
           alt=""

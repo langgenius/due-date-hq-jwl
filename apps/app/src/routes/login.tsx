@@ -147,7 +147,7 @@ export function LoginRoute() {
         <Trans>Welcome to the workbench.</Trans>
       </h1>
 
-      <p className="mt-2 text-[13px] leading-6 text-text-secondary">
+      <p className="mt-2 text-description leading-6 text-text-secondary">
         <Trans>
           Sign in with SSO or your work email to access your practice&apos;s deadline list and
           evidence-backed recommendations.

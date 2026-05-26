@@ -120,7 +120,9 @@ export function EmailOtpSignInForm({
             <Trans>Code sent to</Trans>
           </p>
           <div className="mt-1 flex items-center justify-between gap-3">
-            <p className="min-w-0 truncate font-mono text-[13px] text-text-primary">{sentEmail}</p>
+            <p className="min-w-0 truncate font-mono text-description text-text-primary">
+              {sentEmail}
+            </p>
             <button
               type="button"
               className="shrink-0 rounded-sm text-sm font-medium text-text-secondary underline underline-offset-4 outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"

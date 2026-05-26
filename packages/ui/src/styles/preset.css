@@ -83,6 +83,12 @@
   --container-page-medium: 920px;
   --container-page-narrow: 880px;
 
+  /* `page-expanded` is the wide-mode content cap (max-w-page-expanded)
+   * used when a right-side panel opens and the body needs to fill more
+   * horizontal real estate. Previously inlined as `max-w-[1440px]`
+   * across rules-pulse / rules-library / alerts-list / app-shell. */
+  --container-page-expanded: 1440px;
+
   /* -----------------------------------------------------------------
    * Caption type scale. 2026-05-24 (B5): the app had ~146 inline
    * `text-[10px]` / `text-[11px]` uses across 60+ files (badge

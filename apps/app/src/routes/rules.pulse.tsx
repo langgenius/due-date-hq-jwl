@@ -103,7 +103,7 @@ export function RulesPulseRoute() {
       //     shell pads pb-4 md:pb-6 by default.
       contentClassName={cn(
         'transition-[max-width,min-width,padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
-        panelOpen ? 'max-w-[1440px] min-w-[1440px] !pb-0 md:!pb-0' : 'max-w-page-wide min-w-0',
+        panelOpen ? 'max-w-page-expanded min-w-[1440px] !pb-0 md:!pb-0' : 'max-w-page-wide min-w-0',
       )}
       actions={
         <Button
