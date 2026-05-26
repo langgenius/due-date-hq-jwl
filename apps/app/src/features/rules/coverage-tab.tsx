@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
+import { Fragment, useEffect, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -32,6 +32,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
+import { useSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import {
   Table,
   TableBody,
@@ -2057,6 +2058,19 @@ function BulkReviewDrawer({
 }) {
   const { t } = useLingui()
   const hiddenRuleCount = Math.max(0, selectedRules.length - 8)
+  // 2026-05-26 (Yuqi sidebar mental-model pass): same pattern as the
+  // /deadlines obligation drawer. While this 720px bulk-review sheet
+  // is open, auto-collapse the sidebar to give it horizontal room;
+  // restore the user's persistent preference on close. BulkReviewDrawer
+  // only renders inside /rules/coverage which is inside AppShell, so
+  // `useSidebar` is always available — no need for the optional variant.
+  const { setAutoCollapsed } = useSidebar()
+  useEffect(() => {
+    setAutoCollapsed(open)
+    return () => {
+      setAutoCollapsed(false)
+    }
+  }, [open, setAutoCollapsed])
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
