@@ -135,6 +135,24 @@ VAPID_PRIVATE_KEY=
 VAPID_SUBJECT=mailto:support@duedatehq.com
 
 # ═════════════════════════════════════════════════════════════════════════════
+# [Optional · Local dev only] E2E seed + demo-account access
+# ═════════════════════════════════════════════════════════════════════════════
+# Gates the /api/e2e/* routes — demo-login, demo-accounts, seed/reset, etc.
+# In staging/production these routes always return 404 regardless of this var.
+# In local dev, set this to any string ≥ 16 chars to unlock:
+#
+#   GET /api/e2e/demo-login?account=brightline-owner&redirectTo=/
+#     → drops a session for a `mock_user_*` user and redirects to /. Once
+#       signed in, the sidebar user menu reveals a Switch-account submenu
+#       listing every seeded demo identity (Brightline firm + plan-tier
+#       singletons: solo, pro, team).
+#
+# Seed the underlying data with `pnpm db:seed:demo` (runs mock/demo.sql via
+# packages/db/seed/demo.ts). The full demo-account list is the source-of-
+# truth in apps/server/src/routes/e2e.ts → `DEMO_ACCOUNTS`.
+E2E_SEED_TOKEN=
+
+# ═════════════════════════════════════════════════════════════════════════════
 # [Optional] Observability
 # ═════════════════════════════════════════════════════════════════════════════
 SENTRY_DSN=
