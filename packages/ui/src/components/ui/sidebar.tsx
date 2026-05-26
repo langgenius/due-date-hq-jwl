@@ -234,10 +234,28 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const notifySidebarNavigation = React.useCallback(() => {
-    // Clear any standing auto-collapse so the click visibly opens
-    // the rail, then arm the one-shot block to absorb the
-    // destination route's mount-effect auto-collapse.
+    // 2026-05-26 (Yuqi sidebar mental-model pass — nav click expands):
+    // every nav click lands the user on a new page with the sidebar
+    // FULLY expanded, regardless of prior collapse choice. Clicking
+    // a nav item is treated as "show me where I am, full context."
+    //
+    // Reset all three sources:
+    //   • userCollapsed = false — even if the user manually
+    //     collapsed earlier in the session, the nav click overrides
+    //     that intent. Their next collapse click can return to
+    //     collapsed.
+    //   • autoCollapsed = false — clear any standing drawer-driven
+    //     collapse so the destination page lands expanded.
+    //   • hovered = false — drop any active hover-peek state so
+    //     the new page isn't rendered with an overlay shadow.
+    //
+    // The one-shot ref absorbs the FIRST `setAutoCollapsed(true)`
+    // from the destination route's mount effect (e.g. /deadlines'
+    // panel mount). Without that block, the route would
+    // immediately re-collapse after this expand.
+    setUserCollapsed(false)
     setAutoCollapsedState(false)
+    setHovered(false)
     blockNextAutoCollapseRef.current = true
   }, [])
 
