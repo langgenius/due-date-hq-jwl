@@ -25,6 +25,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -159,9 +160,7 @@ export function WorkloadPage() {
           ) : data && data.rows.length > 0 ? (
             <WorkloadTable rows={data.rows} asOfDate={data.asOfDate} windowDays={data.windowDays} />
           ) : (
-            <div className="rounded-md border border-divider-regular p-6 text-sm text-text-secondary">
-              <Trans>No open deadlines match the workload window.</Trans>
-            </div>
+            <EmptyState title={<Trans>No open deadlines match the workload window.</Trans>} />
           )}
         </CardContent>
       </Card>

@@ -50,6 +50,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
+import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -386,9 +387,9 @@ function UpcomingPanel({
             <Trans>Loading upcoming reminders…</Trans>
           </p>
         ) : reminders.length === 0 ? (
-          <p className="rounded-md border border-divider-subtle p-4 text-sm text-text-secondary">
-            <Trans>No upcoming reminders match the current 30 / 7-day windows.</Trans>
-          </p>
+          <EmptyState
+            title={<Trans>No upcoming reminders match the current 30 / 7-day windows.</Trans>}
+          />
         ) : (
           <Table>
             <TableHeader>

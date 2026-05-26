@@ -33,6 +33,7 @@ import {
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
 import { useOptionalSidebar } from '@duedatehq/ui/components/ui/sidebar'
+import { Tabs, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import {
   Table,
   TableBody,
@@ -1951,45 +1952,33 @@ function RuleQueueModeToggle({
   onModeChange: (mode: RuleQueueMode) => void
 }) {
   const { t } = useLingui()
+  // 2026-05-26 (Layer C follow-up — segmented control unification):
+  // Migrated from a hand-rolled `<div role="tablist">` + two `<button
+  // role="tab">` blocks to the `<Tabs>` primitive from
+  // `@duedatehq/ui/components/ui/tabs`. The primitive handles
+  // aria-selected via `data-active`, keyboard arrow-key navigation
+  // between tabs, and the canonical `bg-components-segmented-*`
+  // palette. Panel content stays rendered externally by the caller
+  // based on the same `mode` value — Tabs.Root works fine as a
+  // controller-only without `<TabsContent>` (a11y story is equivalent
+  // since the old version had no aria-controls relationship either).
   return (
-    <div
-      role="tablist"
-      aria-label={t`Rule queue`}
-      className="grid h-8 grid-cols-2 rounded-md bg-background-subtle p-0.5"
+    <Tabs
+      value={mode}
+      onValueChange={(value) => onModeChange(value as RuleQueueMode)}
+      className="!gap-0"
     >
-      <button
-        type="button"
-        role="tab"
-        aria-selected={mode === 'pending'}
-        disabled={pendingCount === 0}
-        onClick={() => onModeChange('pending')}
-        className={cn(
-          'inline-flex min-w-0 items-center justify-center gap-1 rounded px-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
-          mode === 'pending'
-            ? 'bg-background-default text-text-primary shadow-xs'
-            : 'text-text-secondary hover:bg-background-default/70 hover:text-text-primary',
-        )}
-      >
-        <Trans>Pending</Trans>
-        <span className="text-caption tabular-nums text-text-tertiary">{pendingCount}</span>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={mode === 'active'}
-        disabled={activeCount === 0}
-        onClick={() => onModeChange('active')}
-        className={cn(
-          'inline-flex min-w-0 items-center justify-center gap-1 rounded px-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
-          mode === 'active'
-            ? 'bg-background-default text-text-primary shadow-xs'
-            : 'text-text-secondary hover:bg-background-default/70 hover:text-text-primary',
-        )}
-      >
-        <Trans>Active</Trans>
-        <span className="text-caption tabular-nums text-text-tertiary">{activeCount}</span>
-      </button>
-    </div>
+      <TabsList aria-label={t`Rule queue`} className="grid w-full grid-cols-2">
+        <TabsTrigger value="pending" disabled={pendingCount === 0}>
+          <Trans>Pending</Trans>
+          <span className="text-caption tabular-nums text-text-tertiary">{pendingCount}</span>
+        </TabsTrigger>
+        <TabsTrigger value="active" disabled={activeCount === 0}>
+          <Trans>Active</Trans>
+          <span className="text-caption tabular-nums text-text-tertiary">{activeCount}</span>
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
   )
 }
 
