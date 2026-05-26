@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
+import { formatDatePretty } from '@/lib/utils'
 
 // PulseNotificationsBell — top-right utility bell that opens a popover
 // listing recent in-app notifications. The popover IS the Inbox at a
@@ -295,7 +296,7 @@ function formatRelativeTime(iso: string): string {
   if (hours < 24) return `${hours}h ago`
   const days = Math.round(hours / 24)
   if (days < 7) return `${days}d ago`
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return formatDatePretty(iso)
 }
 
 export { PulseNotificationsBell }
