@@ -496,7 +496,7 @@ export function Step1Intake({
               }
             }}
             className={cn(
-              'flex h-[104px] cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed px-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+              'flex h-[104px] cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed px-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
               compact ? 'text-sm' : 'text-base',
               isFileDragActive || isReadingFile
                 ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'

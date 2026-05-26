@@ -172,7 +172,7 @@ function AuditLogRow({
           <span
             aria-hidden
             className={cn(
-              'mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold uppercase tracking-tight',
+              'mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
               actor ? getAssigneeTint(actor) : 'bg-background-subtle text-text-tertiary',
             )}
           >
