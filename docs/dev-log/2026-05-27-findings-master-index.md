@@ -1,4 +1,4 @@
-# All 601 findings — master index (auto-generated 2026-05-27)
+# All 538 findings — master index (auto-generated 2026-05-27)
 
 Generated from the 6 audit dev-logs in `docs/dev-log/`. Each section preserves the source dev-log's finding format. Cross-reference the dev-log for full context (location, why, proposed fix, status).
 
@@ -128,7 +128,7 @@ Generated from the 6 audit dev-logs in `docs/dev-log/`. Each section preserves t
 
 ---
 
-## Step 6 first pass — UX flows (221 findings) — `2026-05-26-step-6-ux-flows-audit.md`
+## Step 6 first pass — UX flows (185 findings) — `2026-05-26-step-6-ux-flows-audit.md`
 
 Findings numbered PER section (A1, A2, B1, C1 …). Format: section heading then `N · description.`
 
@@ -465,7 +465,7 @@ Findings numbered PER section (A1, A2, B1, C1 …). Format: section heading then
 
 ---
 
-## Step 6 continuation — UX flows pass 2 (130 findings) — `2026-05-26-step-6-ux-flows-audit-cont.md`
+## Step 6 continuation — UX flows pass 2 (103 findings) — `2026-05-26-step-6-ux-flows-audit-cont.md`
 
 ## Q. The Queue — `routes/obligations.tsx` (11.5K lines, deep walk)
 
@@ -991,7 +991,7 @@ F-058 — Pulse alert "AI confidence" Alert text says "The model extracted these
 
 ---
 
-## Total: 601 findings
+## Total: 538 findings
 
 Severity glossary (per Step 9 + Step 7 convention):
 
