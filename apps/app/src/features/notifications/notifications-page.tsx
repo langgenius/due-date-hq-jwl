@@ -21,6 +21,7 @@ function notificationTypeLabel(type: NotificationType): React.ReactNode {
   if (type === 'client_reminder') return <Trans>Client reminder</Trans>
   if (type === 'pulse_alert') return <Trans>Pulse alert</Trans>
   if (type === 'audit_package_ready') return <Trans>Audit package</Trans>
+  if (type === 'internal_request') return <Trans>Internal request</Trans>
   return <Trans>System notification</Trans>
 }
 

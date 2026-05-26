@@ -130,6 +130,31 @@ function isRuleGenerationState(value: string | null | undefined): value is RuleG
   return typeof value === 'string' && RULE_GENERATION_STATES.has(value)
 }
 
+function deadlineDetailHrefForObligation(obligationId: string): string {
+  const ref = obligationId.replace(/-/g, '').toLowerCase().slice(-12)
+  return `/deadlines/${encodeURIComponent(ref)}/summary`
+}
+
+function requestInputKindNotificationLabel(kind: string): string {
+  switch (kind) {
+    case 'decision_needed':
+      return 'Decision needed'
+    case 'review_requested':
+      return 'Review requested'
+    case 'blocked':
+      return 'Blocked'
+    case 'fyi':
+      return 'FYI'
+    default:
+      return 'Input requested'
+  }
+}
+
+function obligationNotificationSubject(row: ObligationRow, clientName: string | null): string {
+  const form = row.formName ?? row.taxType
+  return clientName ? `${clientName} - ${form}` : form
+}
+
 function isDefaultActiveTemplateRule(rule: Pick<CoreObligationRule, 'jurisdiction' | 'status'>) {
   return rule.jurisdiction === 'FED' && rule.status === 'verified'
 }
@@ -764,6 +789,75 @@ const decideExtension = os.obligations.decideExtension.handler(async ({ input, c
   return result
 })
 
+const requestInput = os.obligations.requestInput.handler(async ({ input, context }) => {
+  const { members, tenant, userId } = await requireCurrentFirmRole(context, ['preparer'])
+  const { scoped } = requireTenant(context)
+  const obligation = await scoped.obligations.findById(input.obligationId)
+  if (!obligation) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.obligationId} not found in current firm.`,
+    })
+  }
+
+  const [actor, recipient, client] = await Promise.all([
+    members.findMembership(tenant.firmId, userId),
+    members.findMembership(tenant.firmId, input.recipientUserId),
+    scoped.clients.findById(obligation.clientId),
+  ])
+  if (!actor || actor.status !== 'active' || actor.role !== 'preparer') {
+    throw new ORPCError('FORBIDDEN', { message: 'Only active preparers can request input.' })
+  }
+  if (!recipient || recipient.status !== 'active') {
+    throw new ORPCError('BAD_REQUEST', { message: 'Recipient must be an active firm member.' })
+  }
+  if (recipient.userId === userId) {
+    throw new ORPCError('BAD_REQUEST', { message: 'Recipient must be another firm member.' })
+  }
+  if (recipient.role !== 'owner' && recipient.role !== 'partner') {
+    throw new ORPCError('BAD_REQUEST', { message: 'Recipient must be an owner or partner.' })
+  }
+  if (!scoped.notifications) {
+    throw new Error('Notifications repo methods are not available.')
+  }
+
+  const message = input.message.trim()
+  const href = deadlineDetailHrefForObligation(input.obligationId)
+  const subject = obligationNotificationSubject(obligation, client?.name ?? null)
+  const kindLabel = requestInputKindNotificationLabel(input.kind)
+  const { id: auditId } = await scoped.audit.write({
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.obligationId,
+    action: 'obligation.input_requested',
+    after: {
+      recipientUserId: recipient.userId,
+      recipientName: recipient.name,
+      recipientRole: recipient.role,
+      requestKind: input.kind,
+      message,
+      href,
+    },
+  })
+  const { id: notificationId } = await scoped.notifications.create({
+    userId: recipient.userId,
+    type: 'internal_request',
+    entityType: 'obligation_instance',
+    entityId: input.obligationId,
+    title: `${actor.name} requested input`,
+    body: `${kindLabel} on ${subject}: ${message}`,
+    href,
+    metadataJson: {
+      auditId,
+      requestKind: input.kind,
+      requestedByUserId: userId,
+      requestedByName: actor.name,
+      recipientRole: recipient.role,
+    },
+  })
+
+  return { auditId, notificationId }
+})
+
 function deadlineTipFallback(obligationId: string) {
   return [
     {
@@ -1015,6 +1109,7 @@ export const obligationsHandlers = {
   updateReviewStage,
   bulkUpdateStatus,
   decideExtension,
+  requestInput,
   getDeadlineTip,
   requestDeadlineTipRefresh,
 }

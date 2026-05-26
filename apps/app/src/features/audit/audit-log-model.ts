@@ -115,6 +115,7 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'obligation.annual_rollover.created': 'obligationAnnualRolloverCreated',
   'obligation.due_date.updated': 'obligationDueDateUpdated',
   'obligation.extension.decided': 'obligationExtensionDecided',
+  'obligation.input_requested': 'obligationInputRequested',
   'obligation.readiness.updated': 'obligationReadinessUpdated',
   'obligation.status.updated': 'obligationStatusUpdated',
   'obligation.tax_year_profile.updated': 'obligationTaxYearProfileUpdated',

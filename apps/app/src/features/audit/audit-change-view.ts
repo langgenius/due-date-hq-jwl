@@ -174,6 +174,7 @@ export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresen
   'obligation.batch_created': (context) => countPresenter(context, 'count', 'deadlines'),
   'obligation.due_date.updated': obligationDueDatePresenter,
   'obligation.extension.decided': genericPresenter,
+  'obligation.input_requested': genericPresenter,
   'obligation.readiness.updated': obligationReadinessPresenter,
   'obligation.status.updated': obligationStatusPresenter,
   'obligation.tax_year_profile.updated': genericPresenter,

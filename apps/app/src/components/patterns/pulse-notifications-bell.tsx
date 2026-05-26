@@ -9,6 +9,7 @@ import {
   CircleAlertIcon,
   Maximize2Icon,
   MegaphoneIcon,
+  MessageSquareTextIcon,
   SettingsIcon,
   type LucideIcon,
 } from 'lucide-react'
@@ -48,6 +49,7 @@ const TYPE_ICONS: Record<NotificationType, LucideIcon> = {
   overdue: CircleAlertIcon,
   client_reminder: BellIcon,
   audit_package_ready: CheckCheckIcon,
+  internal_request: MessageSquareTextIcon,
   system: SettingsIcon,
 }
 

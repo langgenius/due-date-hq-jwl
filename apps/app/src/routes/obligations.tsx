@@ -94,6 +94,7 @@ import {
   type ObligationQueueSort,
   type ObligationQueueExportFormat,
   type ObligationQueueExportSelectedInput,
+  type ObligationRequestInputKind,
   type ObligationReviewStage,
   type AiInsightPublic,
   type AuditEventPublic,
@@ -552,9 +553,95 @@ const DETAIL_PANEL_CONTENT_EXIT_ANIM = {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const STATE_CODE_RE = /^[A-Z]{2}$/
 const ReadinessChecklistItemsSchema = ReadinessChecklistItemSchema.array().min(1).max(30)
+const REQUEST_INPUT_KIND_VALUES = [
+  'decision_needed',
+  'review_requested',
+  'blocked',
+  'fyi',
+] as const satisfies readonly ObligationRequestInputKind[]
+
+type DeadlineInputRequestAudit = {
+  recipientName: string | null
+  recipientRole: string | null
+  kind: ObligationRequestInputKind | null
+  message: string | null
+  createdAt: string
+}
+
+type DeadlineInputRequestDraft = {
+  obligationId: string
+  recipientUserId: string
+  kind: ObligationRequestInputKind
+  message: string
+}
 
 function isObligationQueueDetailTab(value: string): value is ObligationQueueDetailTab {
   return ObligationQueueDetailTabSchema.safeParse(value).success
+}
+
+function isRequestInputKind(value: unknown): value is ObligationRequestInputKind {
+  return REQUEST_INPUT_KIND_VALUES.some((kind) => kind === value)
+}
+
+function readPlainRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  return Object.fromEntries(Object.entries(value))
+}
+
+function readNonEmptyString(record: Record<string, unknown> | null, key: string): string | null {
+  const value = record?.[key]
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+}
+
+export function latestDeadlineInputRequest(
+  auditEvents: readonly AuditEventPublic[],
+): DeadlineInputRequestAudit | null {
+  const sorted = [...auditEvents].toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
+  for (const event of sorted) {
+    if (event.action !== 'obligation.input_requested') continue
+    const after = readPlainRecord(event.afterJson)
+    const rawKind = after?.requestKind
+    return {
+      recipientName: readNonEmptyString(after, 'recipientName'),
+      recipientRole: readNonEmptyString(after, 'recipientRole'),
+      kind: isRequestInputKind(rawKind) ? rawKind : null,
+      message: readNonEmptyString(after, 'message'),
+      createdAt: event.createdAt,
+    }
+  }
+  return null
+}
+
+function requestInputKindText(
+  kind: ObligationRequestInputKind | null,
+  t: (strings: TemplateStringsArray, ...values: unknown[]) => string,
+): string {
+  switch (kind) {
+    case 'decision_needed':
+      return t`Decision needed`
+    case 'review_requested':
+      return t`Review requested`
+    case 'blocked':
+      return t`Blocked`
+    case 'fyi':
+      return t`FYI`
+    default:
+      return t`Input request`
+  }
+}
+
+function requestRecipientRoleText(
+  role: MemberAssigneeOption['role'],
+  t: (strings: TemplateStringsArray, ...values: unknown[]) => string,
+): string {
+  switch (role) {
+    case 'owner':
+      return t`Owner`
+    case 'partner':
+      return t`Partner`
+    default:
+      return t`Team member`
+  }
 }
 
 function deadlineDetailStateObligationId(state: unknown, routeRef: string | null): string | null {
@@ -4546,6 +4633,8 @@ export function ObligationQueueDetailDrawer({
   const navigate = useNavigate()
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
+  const permission = useFirmPermission()
+  const canRequestInput = permission.firm?.role === 'preparer'
   // Lifecycle v2: when on, the Audit tab is relabeled to "Timeline"
   // and its content swaps to the milestone-grouped timeline. See
   // docs/Design/obligation-lifecycle-design-brief.md.
@@ -4602,6 +4691,13 @@ export function ObligationQueueDetailDrawer({
     open: boolean
     obligationId: string | null
   }>({ open: false, obligationId: null })
+  const [requestInputDialogOpen, setRequestInputDialogOpen] = useState(false)
+  const [requestInputDraft, setRequestInputDraft] = useState<DeadlineInputRequestDraft>({
+    obligationId: '',
+    recipientUserId: '',
+    kind: 'decision_needed',
+    message: '',
+  })
   const [deadlineTipRefresh, setDeadlineTipRefresh] = useState<{
     obligationId: string
     startedAt: number
@@ -4614,6 +4710,17 @@ export function ObligationQueueDetailDrawer({
     }),
     enabled: obligationId !== null,
   })
+  const requestRecipientsQuery = useQuery({
+    ...orpc.members.listAssignable.queryOptions({ input: undefined }),
+    enabled: obligationId !== null && canRequestInput,
+  })
+  const requestRecipients = useMemo(
+    () =>
+      (requestRecipientsQuery.data ?? []).filter(
+        (member) => member.role === 'owner' || member.role === 'partner',
+      ),
+    [requestRecipientsQuery.data],
+  )
   const requestDeadlineTipMutation = useMutation(
     orpc.obligations.requestDeadlineTipRefresh.mutationOptions({
       onMutate: (variables) => {
@@ -4630,6 +4737,24 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         setDeadlineTipRefresh(null)
         toast.error(t`Couldn't start deadline tip refresh`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  const requestInputMutation = useMutation(
+    orpc.obligations.requestInput.mutationOptions({
+      onSuccess: () => {
+        setRequestInputDialogOpen(false)
+        setRequestInputDraft((current) => ({ ...current, message: '' }))
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
+        toast.success(t`Input request sent`)
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't send input request`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -4657,6 +4782,16 @@ export function ObligationQueueDetailDrawer({
   })
   const detail = detailQuery.data
   const row = detail?.row ?? null
+  const selectedRequestRecipientUserId =
+    requestInputDraft.recipientUserId || requestRecipients[0]?.assigneeId || ''
+  const latestInputRequest = useMemo(
+    () => latestDeadlineInputRequest(detail?.auditEvents ?? []),
+    [detail?.auditEvents],
+  )
+  const latestInputRequestRecipient = latestInputRequest?.recipientName ?? t`owner or partner`
+  const latestInputRequestTitle = latestInputRequest
+    ? t`${requestInputKindText(latestInputRequest.kind, t)} requested from ${latestInputRequestRecipient} on ${formatDateTimeWithTimezone(latestInputRequest.createdAt, practiceTimezone)}`
+    : undefined
   // `obligationTypeLabels` lookup was retired with the header distill
   // (2026-05-21) — the "FILING" badge it backed is gone. If a future
   // surface wants the human label, re-add via `useObligationTypeLabels()`.
@@ -5335,6 +5470,44 @@ export function ObligationQueueDetailDrawer({
     })
   }
 
+  function openRequestInputDialog() {
+    if (!row || !canRequestInput) return
+    setRequestInputDraft((current) => ({
+      obligationId: row.id,
+      recipientUserId:
+        current.obligationId === row.id
+          ? current.recipientUserId || requestRecipients[0]?.assigneeId || ''
+          : requestRecipients[0]?.assigneeId || '',
+      kind: current.obligationId === row.id ? current.kind : 'decision_needed',
+      message: current.obligationId === row.id ? current.message : '',
+    }))
+    setRequestInputDialogOpen(true)
+  }
+
+  function closeRequestInputDialog() {
+    setRequestInputDialogOpen(false)
+  }
+
+  function submitRequestInput() {
+    if (!row || !canRequestInput) return
+    const recipientUserId = selectedRequestRecipientUserId
+    const message = requestInputDraft.message.trim()
+    if (!recipientUserId) {
+      toast.error(t`Choose an owner or partner.`)
+      return
+    }
+    if (!message) {
+      toast.error(t`Message is required.`)
+      return
+    }
+    requestInputMutation.mutate({
+      obligationId: row.id,
+      recipientUserId,
+      kind: requestInputDraft.kind,
+      message,
+    })
+  }
+
   const checklistReference = row ? materialsChecklistReference(row) : null
   // The visible heading is shared with the drawer body. SheetTitle
   // stays sr-only below so Radix Dialog gets its accessible name
@@ -5556,6 +5729,16 @@ export function ObligationQueueDetailDrawer({
                         one="# day overdue"
                         other="# days overdue"
                       />
+                    </Badge>
+                  ) : null}
+                  {latestInputRequest ? (
+                    <Badge
+                      variant="secondary"
+                      className="h-6 gap-1 text-caption-xs uppercase tracking-wide"
+                      title={latestInputRequestTitle}
+                    >
+                      <MessageSquareText className="size-3.5" aria-hidden />
+                      <Trans>Input requested</Trans>
                     </Badge>
                   ) : null}
                 </div>
@@ -6887,6 +7070,29 @@ export function ObligationQueueDetailDrawer({
           </div>
         </div>
       ) : null}
+      <DeadlineInputRequestDialog
+        open={requestInputDialogOpen}
+        recipients={requestRecipients}
+        selectedRecipientUserId={selectedRequestRecipientUserId}
+        kind={requestInputDraft.kind}
+        message={requestInputDraft.message}
+        loadingRecipients={requestRecipientsQuery.isLoading}
+        submitting={requestInputMutation.isPending}
+        onOpenChange={(open) => {
+          if (open) openRequestInputDialog()
+          else closeRequestInputDialog()
+        }}
+        onRecipientChange={(recipientUserId) => {
+          setRequestInputDraft((current) => ({ ...current, recipientUserId }))
+        }}
+        onKindChange={(kind) => {
+          setRequestInputDraft((current) => ({ ...current, kind }))
+        }}
+        onMessageChange={(message) => {
+          setRequestInputDraft((current) => ({ ...current, message }))
+        }}
+        onSubmit={submitRequestInput}
+      />
       <MaterialsRequestPreviewDialog
         open={materialsRequestPreview.open}
         preview={previewRequestEmail}
@@ -6934,6 +7140,17 @@ export function ObligationQueueDetailDrawer({
             </span>
           </span>
           <div className="flex items-center gap-2">
+            {canRequestInput ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openRequestInputDialog}
+                disabled={requestInputMutation.isPending}
+              >
+                <MessageSquareText data-icon="inline-start" />
+                <Trans>Request input</Trans>
+              </Button>
+            ) : null}
             {/* Footer CTA used to duplicate the header's "Open client
                   detail" link. Repurposed as the shareability slot —
                   copies a deep link that round-trips to the same
@@ -7024,6 +7241,163 @@ export function ObligationQueueDetailDrawer({
         {body}
       </SheetContent>
     </Sheet>
+  )
+}
+
+function DeadlineInputRequestDialog({
+  open,
+  recipients,
+  selectedRecipientUserId,
+  kind,
+  message,
+  loadingRecipients,
+  submitting,
+  onOpenChange,
+  onRecipientChange,
+  onKindChange,
+  onMessageChange,
+  onSubmit,
+}: {
+  open: boolean
+  recipients: readonly MemberAssigneeOption[]
+  selectedRecipientUserId: string
+  kind: ObligationRequestInputKind
+  message: string
+  loadingRecipients: boolean
+  submitting: boolean
+  onOpenChange: (open: boolean) => void
+  onRecipientChange: (recipientUserId: string) => void
+  onKindChange: (kind: ObligationRequestInputKind) => void
+  onMessageChange: (message: string) => void
+  onSubmit: () => void
+}) {
+  const { t } = useLingui()
+  const selectedRecipient =
+    recipients.find((recipient) => recipient.assigneeId === selectedRecipientUserId) ?? null
+  const recipientTriggerText = selectedRecipient
+    ? `${selectedRecipient.name} (${requestRecipientRoleText(selectedRecipient.role, t)})`
+    : loadingRecipients
+      ? t`Loading team`
+      : t`Choose recipient`
+  const submitDisabled =
+    submitting || loadingRecipients || !selectedRecipientUserId || message.trim().length === 0
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[min(520px,calc(100vw-2rem))] max-w-none p-0">
+        <DialogHeader className="border-b border-divider-subtle px-6 py-5 pr-12">
+          <DialogTitle>
+            <Trans>Request input</Trans>
+          </DialogTitle>
+          <DialogDescription>
+            <Trans>Send an internal request to an owner or partner for this deadline.</Trans>
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 px-6 py-5">
+          <div className="grid gap-2">
+            <span className="text-sm font-medium text-text-primary">
+              <Trans>Recipient</Trans>
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <button
+                    type="button"
+                    disabled={loadingRecipients || recipients.length === 0}
+                    className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-left text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-60 data-[state=open]:bg-state-base-hover"
+                  >
+                    <span className="truncate">{recipientTriggerText}</span>
+                    <ChevronDownIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+                  </button>
+                }
+              />
+              <DropdownMenuContent align="start" className="max-h-72 w-[var(--anchor-width)]">
+                <DropdownMenuRadioGroup
+                  value={selectedRecipientUserId}
+                  onValueChange={onRecipientChange}
+                >
+                  {recipients.map((recipient) => (
+                    <DropdownMenuRadioItem key={recipient.assigneeId} value={recipient.assigneeId}>
+                      <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-caption-xs font-semibold uppercase text-text-secondary">
+                        {initialsFromName(recipient.name)}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate">{recipient.name}</span>
+                      <span className="text-xs text-text-tertiary">
+                        {requestRecipientRoleText(recipient.role, t)}
+                      </span>
+                    </DropdownMenuRadioItem>
+                  ))}
+                  {!loadingRecipients && recipients.length === 0 ? (
+                    <DropdownMenuItem disabled>
+                      <Trans>No owner or partner available</Trans>
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {!loadingRecipients && recipients.length === 0 ? (
+              <p role="alert" className="text-sm text-text-warning">
+                <Trans>Add an active owner or partner before sending an input request.</Trans>
+              </p>
+            ) : null}
+          </div>
+          <div className="grid gap-2">
+            <span className="text-sm font-medium text-text-primary">
+              <Trans>Request type</Trans>
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <button
+                    type="button"
+                    className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-left text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[state=open]:bg-state-base-hover"
+                  >
+                    <span className="truncate">{requestInputKindText(kind, t)}</span>
+                    <ChevronDownIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+                  </button>
+                }
+              />
+              <DropdownMenuContent align="start" className="w-[var(--anchor-width)]">
+                <DropdownMenuRadioGroup
+                  value={kind}
+                  onValueChange={(value) => {
+                    if (isRequestInputKind(value)) onKindChange(value)
+                  }}
+                >
+                  {REQUEST_INPUT_KIND_VALUES.map((option) => (
+                    <DropdownMenuRadioItem key={option} value={option}>
+                      {requestInputKindText(option, t)}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="grid gap-2">
+            <label htmlFor="deadline-input-request-message" className="text-sm font-medium">
+              <Trans>Message</Trans>
+            </label>
+            <Textarea
+              id="deadline-input-request-message"
+              value={message}
+              maxLength={1000}
+              rows={5}
+              placeholder={t`Add the decision or context you need.`}
+              onChange={(event) => onMessageChange(event.currentTarget.value)}
+            />
+          </div>
+        </div>
+        <DialogFooter className="border-t border-divider-subtle px-6 py-4">
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button type="button" onClick={onSubmit} disabled={submitDisabled}>
+            <SendIcon data-icon="inline-start" />
+            <Trans>Send request</Trans>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 

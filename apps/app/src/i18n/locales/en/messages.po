@@ -376,6 +376,12 @@ msgstr "{0} ready · {1} estimated deadline matches"
 msgid "{0} recent"
 msgstr "{0} recent"
 
+#. placeholder {0}: requestInputKindText(latestInputRequest.kind, t)
+#. placeholder {1}: formatDateTimeWithTimezone(latestInputRequest.createdAt, practiceTimezone)
+#: src/routes/obligations.tsx
+msgid "{0} requested from {latestInputRequestRecipient} on {1}"
+msgstr "{0} requested from {latestInputRequestRecipient} on {1}"
+
 #. placeholder {0}: readiness.missingRequiredFacts.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0} required fact(s) missing"
@@ -1190,6 +1196,10 @@ msgstr "Add a review note and try again."
 msgid "Add a state to at least one client before running deadline preview."
 msgstr "Add a state to at least one client before running deadline preview."
 
+#: src/routes/obligations.tsx
+msgid "Add an active owner or partner before sending an input request."
+msgstr "Add an active owner or partner before sending an input request."
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Add client facts"
 msgstr "Add client facts"
@@ -1231,6 +1241,10 @@ msgstr "Add practice"
 #: src/routes/rules.library.tsx
 msgid "Add rule"
 msgstr "Add rule"
+
+#: src/routes/obligations.tsx
+msgid "Add the decision or context you need."
+msgstr "Add the decision or context you need."
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Added evidence to this deadline."
@@ -2360,6 +2374,10 @@ msgstr "Checkout, cards, invoices, and portal sessions stay with the processor."
 msgid "Choose a workspace tier"
 msgstr "Choose a workspace tier"
 
+#: src/routes/obligations.tsx
+msgid "Choose an owner or partner."
+msgstr "Choose an owner or partner."
+
 #: src/routes/billing.checkout.tsx
 msgid "Choose another plan"
 msgstr "Choose another plan"
@@ -2375,6 +2393,10 @@ msgstr "Choose Export client data files, select Export to CSV for a spreadsheet-
 #: src/routes/obligations.tsx
 msgid "Choose one option in each row. Export writes an audit event."
 msgstr "Choose one option in each row. Export writes an audit event."
+
+#: src/routes/obligations.tsx
+msgid "Choose recipient"
+msgstr "Choose recipient"
 
 #: src/routes/billing.tsx
 msgid "Choose Solo, Pro, or Team to start the hosted checkout flow."
@@ -3247,6 +3269,10 @@ msgid "Couldn't save tax year profile"
 msgstr "Couldn't save tax year profile"
 
 #: src/routes/obligations.tsx
+msgid "Couldn't send input request"
+msgstr "Couldn't send input request"
+
+#: src/routes/obligations.tsx
 msgid "Couldn't send materials request"
 msgstr "Couldn't send materials request"
 
@@ -3687,6 +3713,10 @@ msgstr "Decision memo (required)"
 #: src/routes/obligations.tsx
 msgid "Decision memo is required."
 msgstr "Decision memo is required."
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Decision needed"
+msgstr "Decision needed"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Default tax types are ready for clients without tax types."
@@ -4929,6 +4959,10 @@ msgstr "Future business cues"
 msgid "Future edits to facts, risk profile, or deletion will appear here."
 msgstr "Future edits to facts, risk profile, or deletion will appear here."
 
+#: src/features/audit/audit-log-labels.ts
+msgid "FYI"
+msgstr "FYI"
+
 #: src/routes/practice.tsx
 msgid "General"
 msgstr "General"
@@ -5246,6 +5280,15 @@ msgstr "Individual"
 msgid "Information return"
 msgstr "Information return"
 
+#: src/routes/obligations.tsx
+msgid "Input request sent"
+msgstr "Input request sent"
+
+#: src/features/audit/audit-log-labels.ts
+#: src/routes/obligations.tsx
+msgid "Input requested"
+msgstr "Input requested"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Inspect official sources and their watcher health."
 msgstr "Inspect official sources and their watcher health."
@@ -5314,6 +5357,10 @@ msgstr "Internal notes"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Internal notes drafted"
 msgstr "Internal notes drafted"
+
+#: src/features/notifications/notifications-page.tsx
+msgid "Internal request"
+msgstr "Internal request"
 
 #: src/features/obligations/obligation-type.ts
 msgid "Internal review"
@@ -5604,6 +5651,10 @@ msgstr "Loading rules…"
 #: src/features/reminders/reminders-page.tsx
 msgid "Loading suppressions…"
 msgstr "Loading suppressions…"
+
+#: src/routes/obligations.tsx
+msgid "Loading team"
+msgstr "Loading team"
 
 #: src/features/workload/workload-page.tsx
 msgid "Loading team workload…"
@@ -5961,6 +6012,14 @@ msgstr "Members are managed by the practice owner. Contact the owner if you need
 #: src/features/members/members-page.tsx
 msgid "Members couldn't load"
 msgstr "Members couldn't load"
+
+#: src/routes/obligations.tsx
+msgid "Message"
+msgstr "Message"
+
+#: src/routes/obligations.tsx
+msgid "Message is required."
+msgstr "Message is required."
 
 #: src/routes/account.security.tsx
 msgid "MFA enabled"
@@ -6562,6 +6621,10 @@ msgstr "No opportunity cues yet"
 #: src/features/rules/sources-tab.tsx
 msgid "No options"
 msgstr "No options"
+
+#: src/routes/obligations.tsx
+msgid "No owner or partner available"
+msgstr "No owner or partner available"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No owners"
@@ -7374,6 +7437,10 @@ msgstr "Owner count"
 #: src/routes/migration.new.tsx
 msgid "Owner or manager access required"
 msgstr "Owner or manager access required"
+
+#: src/routes/obligations.tsx
+msgid "owner or partner"
+msgstr "owner or partner"
 
 #: src/features/permissions/permission-gate.tsx
 #: src/routes/billing.checkout.tsx
@@ -8360,10 +8427,15 @@ msgstr "Recent digest runs"
 msgid "Recently dismissed"
 msgstr "Recently dismissed"
 
+#: src/features/audit/audit-log-labels.ts
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/obligations.tsx
 msgid "Recipient"
 msgstr "Recipient"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Recipient role"
+msgstr "Recipient role"
 
 #: src/routes/billing.tsx
 msgid "Recommended"
@@ -8559,6 +8631,10 @@ msgstr "Request documents from client"
 msgid "Request export"
 msgstr "Request export"
 
+#: src/routes/obligations.tsx
+msgid "Request input"
+msgstr "Request input"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Request Pulse review"
 msgstr "Request Pulse review"
@@ -8566,6 +8642,11 @@ msgstr "Request Pulse review"
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Request review"
 msgstr "Request review"
+
+#: src/features/audit/audit-log-labels.ts
+#: src/routes/obligations.tsx
+msgid "Request type"
+msgstr "Request type"
 
 #: src/routes/obligations.tsx
 msgid "Requested from client"
@@ -8778,6 +8859,7 @@ msgstr "Review practice-wide audit events."
 msgid "Review reasons"
 msgstr "Review reasons"
 
+#: src/features/audit/audit-log-labels.ts
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Review requested"
 msgstr "Review requested"
@@ -9527,6 +9609,10 @@ msgstr "Send a 7-day magic link to add a member to this practice."
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Send a morning digest"
 msgstr "Send a morning digest"
+
+#: src/routes/obligations.tsx
+msgid "Send an internal request to an owner or partner for this deadline."
+msgstr "Send an internal request to an owner or partner for this deadline."
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Send hour"

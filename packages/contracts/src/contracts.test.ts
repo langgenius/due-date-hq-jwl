@@ -43,6 +43,9 @@ import {
   ObligationCreateFromRuleOutputSchema,
   ObligationCreateFromRulesInputSchema,
   ObligationExtensionDecisionInputSchema,
+  ObligationRequestInputInputSchema,
+  ObligationRequestInputKindSchema,
+  ObligationRequestInputOutputSchema,
   ObligationTaxYearProfileUpdateInputSchema,
   ObligationTaxYearProfileUpdateOutputSchema,
   ObligationStatusUpdateInputSchema,
@@ -90,6 +93,7 @@ import {
   MembersListOutputSchema,
   membersContract,
 } from './members'
+import { NotificationTypeSchema } from './notifications'
 import { AuditActionSchema, PulseAuditActionSchema } from './shared/audit-actions'
 import { EvidenceSourceTypeSchema } from './shared/evidence-source-types'
 import {
@@ -477,6 +481,18 @@ describe('@duedatehq/contracts', () => {
     ])
   })
 
+  it('keeps notification types stable', () => {
+    expect(NotificationTypeSchema.options).toEqual([
+      'deadline_reminder',
+      'overdue',
+      'client_reminder',
+      'pulse_alert',
+      'audit_package_ready',
+      'internal_request',
+      'system',
+    ])
+  })
+
   it('allows readiness portal checklist payloads up to thirty items', () => {
     const checklist = Array.from({ length: 30 }, (_, index) => ({
       id: `item_${index}`,
@@ -528,6 +544,7 @@ describe('@duedatehq/contracts', () => {
         'updateStatus',
         'bulkUpdateStatus',
         'decideExtension',
+        'requestInput',
         'listByClient',
       ]),
     )
@@ -660,6 +677,25 @@ describe('@duedatehq/contracts', () => {
       auditIds: ['33333333-3333-4333-8333-333333333333'],
     })
     expect(bulkOutput.updatedCount).toBe(1)
+
+    expect(ObligationRequestInputKindSchema.options).toEqual([
+      'decision_needed',
+      'review_requested',
+      'blocked',
+      'fyi',
+    ])
+    const requestInput = ObligationRequestInputInputSchema.parse({
+      obligationId: '11111111-1111-4111-8111-111111111111',
+      recipientUserId: 'user_partner_1',
+      kind: 'decision_needed',
+      message: 'Please confirm whether to file an extension.',
+    })
+    expect(requestInput.kind).toBe('decision_needed')
+    const requestOutput = ObligationRequestInputOutputSchema.parse({
+      auditId: '33333333-3333-4333-8333-333333333333',
+      notificationId: '44444444-4444-4444-8444-444444444444',
+    })
+    expect(requestOutput.notificationId).toMatch(/-/)
 
     expect(output.obligation.readiness).toBe('ready')
   })

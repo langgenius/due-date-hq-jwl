@@ -17,11 +17,28 @@ const FIRM_ID = 'firm_create_from_rule'
 const USER_ID = 'user_create_from_rule'
 const CLIENT_ID = '22222222-2222-4222-8222-222222222222'
 const PROFILE_ID = '33333333-3333-4333-8333-333333333333'
+const REQUEST_OBLIGATION_ID = '99999999-9999-4999-8999-999999999999'
+const PARTNER_USER_ID = 'user_partner_request'
 const CREATED_OBLIGATION_IDS = [
   '44444444-4444-4444-8444-444444444441',
   '44444444-4444-4444-8444-444444444442',
   '44444444-4444-4444-8444-444444444443',
 ]
+
+function makeMember(overrides: Partial<MemberRow> = {}): MemberRow {
+  return {
+    id: 'member_1',
+    organizationId: FIRM_ID,
+    userId: USER_ID,
+    name: 'Owner',
+    email: 'owner@example.com',
+    image: null,
+    role: 'owner',
+    status: 'active',
+    createdAt: new Date('2026-05-24T00:00:00.000Z'),
+    ...overrides,
+  }
+}
 
 function makeClient(overrides: Partial<ClientRow> = {}): ClientRow {
   const now = new Date('2026-05-24T00:00:00.000Z')
@@ -189,12 +206,35 @@ function rowFromInput(input: ObligationCreateInput, id: string): ObligationInsta
   }
 }
 
+function makeRequestObligation(
+  overrides: Partial<ObligationInstanceRow> = {},
+): ObligationInstanceRow {
+  return {
+    ...rowFromInput(
+      {
+        clientId: CLIENT_ID,
+        taxType: 'federal_1040',
+        taxYear: 2025,
+        jurisdiction: 'FED',
+        formName: 'Form 1040',
+        baseDueDate: new Date('2026-04-15T00:00:00.000Z'),
+      },
+      REQUEST_OBLIGATION_ID,
+    ),
+    ...overrides,
+  }
+}
+
 function makeContext(input: {
   client?: ClientRow | null
   profiles?: ClientFilingProfileRow[]
   duplicates?: ObligationInstanceRow[]
   practiceRule?: PracticeRuleRow | null
   practiceRules?: PracticeRuleRow[]
+  actor?: MemberRow
+  recipient?: MemberRow | null
+  obligation?: ObligationInstanceRow | null
+  notificationsAvailable?: boolean
 }) {
   const rows: ObligationInstanceRow[] = []
   const createdInputs: ObligationCreateInput[] = []
@@ -214,6 +254,11 @@ function makeContext(input: {
   const writeAudit = vi.fn(async (_event: Parameters<ScopedRepo['audit']['write']>[0]) => ({
     id: '77777777-7777-4777-8777-777777777777',
   }))
+  const createNotification = vi.fn(
+    async (_input: Parameters<NonNullable<ScopedRepo['notifications']>['create']>[0]) => ({
+      id: '88888888-8888-4888-8888-888888888888',
+    }),
+  )
   const reconcileDocumentChecklistItems = vi.fn(
     async (_input: Parameters<ScopedRepo['readiness']['reconcileDocumentChecklistItems']>[0]) => [],
   )
@@ -270,7 +315,7 @@ function makeContext(input: {
   const obligations: ScopedRepo['obligations'] = {
     firmId: FIRM_ID,
     createBatch,
-    findById: null!,
+    findById: vi.fn(async () => input.obligation ?? undefined),
     findManyByIds: null!,
     listByClient: vi.fn(async () => rows),
     listByBatch: null!,
@@ -317,6 +362,21 @@ function makeContext(input: {
     submitResponses: null!,
     syncDocumentChecklistFromResponses: null!,
   }
+  const notifications: ScopedRepo['notifications'] =
+    input.notificationsAvailable === false
+      ? undefined
+      : {
+          firmId: FIRM_ID,
+          listForUser: null!,
+          unreadCount: null!,
+          markRead: null!,
+          markAllRead: null!,
+          getPreference: null!,
+          updatePreference: null!,
+          listDigestRuns: null!,
+          create: createNotification,
+          enqueueEmail: null!,
+        }
   const scoped: ScopedRepo = {
     firmId: FIRM_ID,
     ai: null!,
@@ -332,6 +392,7 @@ function makeContext(input: {
     readiness,
     rules,
     migration: null!,
+    ...(notifications ? { notifications } : {}),
     evidence,
     audit,
   }
@@ -373,18 +434,13 @@ function makeContext(input: {
     SENTRY_DSN: '',
     POSTHOG_KEY: '',
   }
-  const member: MemberRow = {
-    id: 'member_1',
-    organizationId: FIRM_ID,
-    userId: USER_ID,
-    name: 'Owner',
-    email: 'owner@example.com',
-    image: null,
-    role: 'owner',
-    status: 'active',
-    createdAt: new Date('2026-05-24T00:00:00.000Z'),
-  }
-  const findMembership: MembersRepo['findMembership'] = vi.fn(async () => member)
+  const member = input.actor ?? makeMember()
+  const recipient = input.recipient ?? null
+  const findMembership: MembersRepo['findMembership'] = vi.fn(async (_firmId, userId) => {
+    if (userId === member.userId) return member
+    if (recipient && userId === recipient.userId) return recipient
+    return undefined
+  })
   const members: MembersRepo = {
     listMembers: null!,
     listInvitations: null!,
@@ -427,9 +483,124 @@ function makeContext(input: {
     createBatch,
     writeEvidenceBatch,
     writeAudit,
+    createNotification,
     reconcileDocumentChecklistItems,
   }
 }
+
+describe('obligations.requestInput', () => {
+  it('lets an active preparer notify an active partner and records audit', async () => {
+    const partner = makeMember({
+      id: 'member_partner',
+      userId: PARTNER_USER_ID,
+      name: 'Pat Partner',
+      email: 'pat@example.com',
+      role: 'partner',
+    })
+    const { context, writeAudit, createNotification } = makeContext({
+      actor: makeMember({ role: 'preparer', name: 'Paula Preparer' }),
+      recipient: partner,
+      obligation: makeRequestObligation(),
+    })
+
+    const result = await call(
+      obligationsHandlers.requestInput,
+      {
+        obligationId: REQUEST_OBLIGATION_ID,
+        recipientUserId: PARTNER_USER_ID,
+        kind: 'decision_needed',
+        message: ' Please confirm whether we should file the extension. ',
+      },
+      { context },
+    )
+
+    expect(result).toEqual({
+      auditId: '77777777-7777-4777-8777-777777777777',
+      notificationId: '88888888-8888-4888-8888-888888888888',
+    })
+    expect(writeAudit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actorId: USER_ID,
+        entityType: 'obligation_instance',
+        entityId: REQUEST_OBLIGATION_ID,
+        action: 'obligation.input_requested',
+        after: expect.objectContaining({
+          recipientUserId: PARTNER_USER_ID,
+          recipientName: 'Pat Partner',
+          recipientRole: 'partner',
+          requestKind: 'decision_needed',
+          message: 'Please confirm whether we should file the extension.',
+          href: '/deadlines/999999999999/summary',
+        }),
+      }),
+    )
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: PARTNER_USER_ID,
+        type: 'internal_request',
+        entityType: 'obligation_instance',
+        entityId: REQUEST_OBLIGATION_ID,
+        title: 'Paula Preparer requested input',
+        body: 'Decision needed on Summit Events LLC - Form 1040: Please confirm whether we should file the extension.',
+        href: '/deadlines/999999999999/summary',
+      }),
+    )
+  })
+
+  it('rejects requesters who are not preparers', async () => {
+    const { context, createNotification } = makeContext({
+      recipient: makeMember({
+        id: 'member_partner',
+        userId: PARTNER_USER_ID,
+        role: 'partner',
+      }),
+      obligation: makeRequestObligation(),
+    })
+
+    await expect(
+      call(
+        obligationsHandlers.requestInput,
+        {
+          obligationId: REQUEST_OBLIGATION_ID,
+          recipientUserId: PARTNER_USER_ID,
+          kind: 'fyi',
+          message: 'For awareness.',
+        },
+        { context },
+      ),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' })
+    expect(createNotification).not.toHaveBeenCalled()
+  })
+
+  it('rejects recipients who are not active owners or partners', async () => {
+    const manager = makeMember({
+      id: 'member_manager',
+      userId: 'user_manager_request',
+      name: 'Mina Manager',
+      email: 'mina@example.com',
+      role: 'manager',
+    })
+    const { context, createNotification } = makeContext({
+      actor: makeMember({ role: 'preparer' }),
+      recipient: manager,
+      obligation: makeRequestObligation(),
+    })
+
+    await expect(
+      call(
+        obligationsHandlers.requestInput,
+        {
+          obligationId: REQUEST_OBLIGATION_ID,
+          recipientUserId: manager.userId,
+          kind: 'blocked',
+          message: 'Need partner direction.',
+        },
+        { context },
+      ),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' })
+    expect(createNotification).not.toHaveBeenCalled()
+  })
+})
 
 describe('obligations.createFromRule', () => {
   it('creates rule-backed obligations with evidence and audit rows', async () => {

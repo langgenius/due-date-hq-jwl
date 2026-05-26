@@ -94,6 +94,7 @@ export const router = os.router({
     updateReviewStage: obligationsHandlers.updateReviewStage,
     bulkUpdateStatus: obligationsHandlers.bulkUpdateStatus,
     decideExtension: obligationsHandlers.decideExtension,
+    requestInput: obligationsHandlers.requestInput,
     listByClient: obligationsHandlers.listByClient,
     getDeadlineTip: obligationsHandlers.getDeadlineTip,
     requestDeadlineTipRefresh: obligationsHandlers.requestDeadlineTipRefresh,

@@ -25,6 +25,7 @@ export const IN_APP_NOTIFICATION_TYPES = [
   'client_reminder',
   'pulse_alert',
   'audit_package_ready',
+  'internal_request',
   'system',
 ] as const
 export type InAppNotificationType = (typeof IN_APP_NOTIFICATION_TYPES)[number]

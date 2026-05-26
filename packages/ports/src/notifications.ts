@@ -4,6 +4,7 @@ export type NotificationType =
   | 'client_reminder'
   | 'pulse_alert'
   | 'audit_package_ready'
+  | 'internal_request'
   | 'system'
 
 export type MorningDigestDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
