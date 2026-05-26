@@ -10,9 +10,9 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { ClientDetailWorkspace } from '@/features/clients/ClientFactsWorkspace'
 import { getClientReadiness } from '@/features/clients/client-readiness'
 import {
+  clientIdFromRouteKey,
   clientDetailPath,
   findClientByRouteKey,
-  isClientIdRouteKey,
 } from '@/features/clients/client-url'
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -33,16 +33,16 @@ export function ClientDetailRoute() {
   const { currentFirm } = useCurrentFirm()
   const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
   const practiceAiEnabled = paidPlanActive(currentFirm)
-  const routeKeyIsClientId = isClientIdRouteKey(clientKey)
+  const routeClientId = clientIdFromRouteKey(clientKey)
+  const needsSlugLookup = clientKey.length > 0 && !routeClientId
   const clientsQuery = useQuery({
     ...orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }),
-    enabled: clientKey.length > 0 && !routeKeyIsClientId,
+    enabled: needsSlugLookup,
   })
-  const slugClient =
-    clientKey.length > 0 && !routeKeyIsClientId
-      ? findClientByRouteKey(clientsQuery.data ?? EMPTY_CLIENTS, clientKey)
-      : null
-  const resolvedClientId = routeKeyIsClientId ? clientKey : (slugClient?.id ?? '')
+  const slugClient = needsSlugLookup
+    ? findClientByRouteKey(clientsQuery.data ?? EMPTY_CLIENTS, clientKey)
+    : null
+  const resolvedClientId = routeClientId ?? slugClient?.id ?? ''
 
   const clientQuery = useQuery({
     ...orpc.clients.get.queryOptions({ input: { id: resolvedClientId } }),
@@ -50,13 +50,14 @@ export function ClientDetailRoute() {
   })
 
   const client = clientQuery.data ?? null
-  const isLoading = routeKeyIsClientId
+  const routeKeyHasClientId = routeClientId !== null
+  const isLoading = routeKeyHasClientId
     ? clientQuery.isLoading
     : clientsQuery.isLoading || (resolvedClientId.length > 0 && clientQuery.isLoading)
-  const isError = routeKeyIsClientId
+  const isError = routeKeyHasClientId
     ? clientQuery.isError
     : clientsQuery.isError || clientQuery.isError
-  const error = routeKeyIsClientId ? clientQuery.error : (clientsQuery.error ?? clientQuery.error)
+  const error = routeKeyHasClientId ? clientQuery.error : (clientsQuery.error ?? clientQuery.error)
 
   if (client) {
     const canonicalPath = clientDetailPath(client)

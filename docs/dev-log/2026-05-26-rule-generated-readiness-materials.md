@@ -33,3 +33,11 @@ same time.
 - `pnpm --filter @duedatehq/server exec tsc -p tsconfig.json --noEmit`
 - `pnpm --filter @duedatehq/app exec tsc -p tsconfig.json --noEmit`
 - `git diff --check`
+
+## Follow-up: visible checklist form reference
+
+Browser feedback on a manually added CA individual deadline showed that the generated Materials
+checklist used the 1040 individual organizer but did not visibly say `1040`. The checklist header now
+shows a compact form-reference badge such as `Form 1040` for individual-return organizers, including
+state individual income deadlines. The Add deadline dialog keeps the matched rule form internal; that
+matching detail is implementation context and should not be shown to practice users.

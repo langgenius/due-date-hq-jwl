@@ -6,6 +6,7 @@ import {
   isObligationQueueRowControlClick,
   isThisWeekFilterActive,
   isInternalExtensionTargetDateValid,
+  materialsChecklistReference,
   nextThisWeekFilterPatch,
   rangeSelectionUpdate,
   reviewPipelineCurrent,
@@ -266,6 +267,38 @@ describe('materials readiness gating', () => {
         new Set(),
       ),
     ).toBe(true)
+  })
+})
+
+describe('materials checklist reference', () => {
+  it('shows Form 1040 for state individual income checklist templates', () => {
+    expect(
+      materialsChecklistReference({
+        taxType: 'ca_state_individual_income_tax',
+        formName: 'State individual income tax return',
+        obligationType: 'filing',
+      }),
+    ).toBe('Form 1040')
+  })
+
+  it('shows the selected estimated-tax form without falling through to Form 1040', () => {
+    expect(
+      materialsChecklistReference({
+        taxType: 'federal_1040_estimated_tax',
+        formName: 'Form 1040-ES',
+        obligationType: 'payment',
+      }),
+    ).toBe('Form 1040-ES')
+  })
+
+  it('omits a reference for non-individual templates', () => {
+    expect(
+      materialsChecklistReference({
+        taxType: 'federal_1120s',
+        formName: 'Form 1120-S',
+        obligationType: 'filing',
+      }),
+    ).toBeNull()
   })
 })
 

@@ -5313,6 +5313,7 @@ export function ObligationQueueDetailDrawer({
     })
   }
 
+  const checklistReference = row ? materialsChecklistReference(row) : null
   // The visible heading is shared with the drawer body. SheetTitle
   // stays sr-only below so Radix Dialog gets its accessible name
   // without duplicating header chrome. Title uses the form code now
@@ -6053,6 +6054,14 @@ export function ObligationQueueDetailDrawer({
                       <h3 className="text-base font-semibold text-text-primary">
                         <Trans>Materials checklist</Trans>
                       </h3>
+                      {checklistReference ? (
+                        <Badge
+                          variant="outline"
+                          className="h-5 rounded-md px-1.5 text-caption-xs font-medium text-text-secondary"
+                        >
+                          {checklistReference}
+                        </Badge>
+                      ) : null}
                       {checklist.length > 0 ? (
                         <span
                           aria-label={t`${checklist.length} items`}
@@ -8987,6 +8996,46 @@ export function willReadinessChecklistBeFullyReceived(
     checklist.length > 0 &&
     checklist.every((item) => item.status === 'received' || receivedItemIds.has(item.id))
   )
+}
+
+function normalizeMaterialsReferenceValue(value: string | null | undefined): string {
+  return (value ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '_')
+}
+
+function materialsReferenceSearchValue(
+  row: Pick<ObligationQueueRow, 'taxType' | 'formName' | 'obligationType'>,
+): string {
+  return [row.taxType, row.formName, row.obligationType]
+    .map(normalizeMaterialsReferenceValue)
+    .filter(Boolean)
+    .join('_')
+}
+
+function matchesMaterialsReference(value: string, fragments: readonly string[]): boolean {
+  return fragments.some((fragment) => value.includes(fragment))
+}
+
+export function materialsChecklistReference(
+  row: Pick<ObligationQueueRow, 'taxType' | 'formName' | 'obligationType'>,
+): string | null {
+  const value = materialsReferenceSearchValue(row)
+  if (
+    matchesMaterialsReference(value, ['1040_es', '1040_estimated_tax', 'individual_estimated_tax'])
+  ) {
+    return row.formName?.trim() || 'Form 1040-ES'
+  }
+  if (
+    matchesMaterialsReference(value, [
+      '1040',
+      'individual_income_tax',
+      'state_individual_income_tax',
+      'schedule_c',
+      'sch_c',
+    ])
+  ) {
+    return 'Form 1040'
+  }
+  return null
 }
 
 // Resolve the pipeline position of a step relative to where the row

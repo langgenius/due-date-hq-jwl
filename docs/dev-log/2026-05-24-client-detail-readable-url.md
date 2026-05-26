@@ -8,18 +8,21 @@ area: client-detail
 
 ## Change
 
-Client detail navigation now uses a readable name slug instead of the raw UUID segment. For example,
-Pacific Trust opens as `/clients/pacific-trust` instead of
+Client detail navigation now uses a readable name slug with the client UUID as the unique suffix
+instead of the raw UUID segment. For example, Pacific Trust opens as
+`/clients/pacific-trust-13000000-0000-4000-8000-000000000005` instead of
 `/clients/13000000-0000-4000-8000-000000000005`.
 
 ## Implementation
 
-- Added a shared client URL helper that builds stable slugs from client names and resolves either
-  a legacy UUID segment or a readable slug.
+- Added a shared client URL helper that builds stable slug-id route keys from client names and
+  resolves either a legacy UUID segment, a slug-id route key, or a unique pre-suffix slug.
 - Updated client-detail entry points that have a client object in hand to link directly to the
   readable path.
 - Kept legacy UUID URLs working. When a UUID route loads, the detail route replaces the URL with
   the canonical readable slug while preserving query params like `?tab=info`.
+- 2026-05-26 hardening: duplicate client names no longer collide. Current links include the UUID
+  suffix, and old slug-only routes resolve only when that slug matches exactly one client.
 
 No product-design doc update required: the client detail page content and workflow are unchanged;
 only the route presentation changed.
@@ -35,3 +38,9 @@ only the route presentation changed.
     `http://localhost:5173/clients/pacific-trust`
   - `http://localhost:5173/clients/pacific-trust?tab=info` loaded Pacific Trust directly
   - console warnings/errors: none
+
+## 2026-05-26 duplicate-name hardening
+
+- `pnpm --filter @duedatehq/app test -- client-url.test.ts`
+- `pnpm --filter @duedatehq/app exec tsc -p tsconfig.json --noEmit --pretty false`
+- `pnpm --filter @duedatehq/app test -- ClientPeekHoverCard.test.tsx`
