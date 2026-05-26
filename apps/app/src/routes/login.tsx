@@ -200,9 +200,18 @@ export function LoginRoute() {
 
       {emailOtpEnabled ? (
         <>
+          {/* 2026-05-26 (Step 7 onboarding audit F1-04): the
+              "OR" divider was `font-mono text-caption-xs uppercase`
+              — same weight as a status badge, heavier than the
+              buttons it separates. A separator must be the
+              calmest element on the page; switched to sentence-
+              case `or` in the canonical caption tone so the
+              SSO/email choice reads as two equally-weighted
+              options separated by a quiet pivot, not as a
+              third labelled affordance. */}
           <div className="my-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
             <span className="h-px bg-divider-subtle" aria-hidden />
-            <span className="font-mono text-caption-xs leading-none text-text-muted uppercase">
+            <span className="text-[11px] leading-none text-text-muted">
               <Trans>or</Trans>
             </span>
             <span className="h-px bg-divider-subtle" aria-hidden />

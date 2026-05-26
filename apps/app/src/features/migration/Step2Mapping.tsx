@@ -359,13 +359,22 @@ type Tier = 'high' | 'medium' | 'low' | 'none'
 function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
   const { t } = useLingui()
 
+  // 2026-05-26 (Step 7 onboarding audit F6-11): every variant
+  // here was `variant="destructive"` — including the success
+  // case ("AI Mapper"). All three states therefore rendered in
+  // the same red/orange tone, so the badge encoded zero state
+  // information visually. Mapped each state to its semantic
+  // variant: AI success → outline (calm, not destructive),
+  // template-fallback → outline (informational), all-ignore
+  // (manual) → destructive (genuine warning, action required).
+
   if (mapping.status === 'fallback' && mapping.fallback === 'preset') {
     return (
       <MappingCapabilityHelp
         label={t`Explain import template suggestions`}
         title={t`Import template suggestions mean AI was unavailable and the selected import template filled defaults.`}
         badge={
-          <Badge variant="destructive">
+          <Badge variant="outline">
             <ListChecksIcon data-icon="inline-start" />
             <Trans>Import template</Trans>
           </Badge>
@@ -401,7 +410,7 @@ function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
       label={t`Explain AI Mapper`}
       title={t`AI Mapper means AI suggested the fields.`}
       badge={
-        <Badge variant="destructive">
+        <Badge variant="outline">
           <SparklesIcon data-icon="inline-start" />
           <Trans>AI Mapper</Trans>
         </Badge>
@@ -448,9 +457,13 @@ function MappingCapabilityHelp({
             </button>
           }
         />
-        <TooltipContent className="max-w-[280px] text-text-destructive whitespace-normal">
-          {children}
-        </TooltipContent>
+        {/* 2026-05-26 (Step 7 onboarding audit F6-12): tooltip
+            body was `text-text-destructive` — applied to every
+            capability state including the success case. Tooltip
+            now uses default body text; the badge variant
+            (destructive vs outline, set by the caller) carries
+            the state signal. */}
+        <TooltipContent className="max-w-[280px] whitespace-normal">{children}</TooltipContent>
       </Tooltip>
     </span>
   )

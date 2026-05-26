@@ -1649,12 +1649,21 @@ function GroupedRulesTable({
             )
           })}
           {groups.length === 0 ? (
+            /* 2026-05-26 (Step 7 onboarding audit F9-06): empty
+               state copy was "No rules and no coverage data yet"
+               — "coverage data" is internal vocab. A first-time
+               user with zero rules sees this without learning
+               what they could do next. Rewrote to teach how
+               rules get here. */
             <TableRow>
               <TableCell
                 colSpan={RULES_TABLE_COLUMN_COUNT}
                 className="py-8 text-center text-xs text-text-tertiary"
               >
-                <Trans>No rules and no coverage data yet.</Trans>
+                <Trans>
+                  No rules activated yet. Federal and state rules selected during onboarding will
+                  appear here.
+                </Trans>
               </TableCell>
             </TableRow>
           ) : null}

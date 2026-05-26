@@ -103,12 +103,21 @@ export function StateRuleActivationSelector({
     <div className="mt-5 flex flex-col gap-2.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
+          {/* 2026-05-26 (Step 7 onboarding audit F5-07): header
+              was "State rule coverage" with a body that implied
+              state selection was mandatory ("Selected states
+              activate with federal rules"). But submitting with
+              zero states is allowed — it creates a federal-only
+              practice. Added "(optional)" so first-time users
+              don't feel obligated to pick a state and can move
+              on. */}
           <p className="text-caption font-medium tracking-[0.08em] text-text-secondary uppercase">
-            <Trans>State rule coverage</Trans>
+            <Trans>State rule coverage (optional)</Trans>
           </p>
           <p className="mt-1 text-[12px] leading-relaxed text-text-muted">
             <Trans>
-              Selected states activate with federal rules after this practice is created.
+              Selected states activate with federal rules after this practice is created. Skip if
+              you only need federal rules — you can activate states later from Rule Library.
             </Trans>
           </p>
         </div>
@@ -189,14 +198,23 @@ export function StateRuleActivationSelector({
       </p>
 
       {sourceDefinedReviewStates.length > 0 ? (
+        /* 2026-05-26 (Step 7 onboarding audit F5-08): the
+           warning used internal vocab — "source-defined
+           calendar", "pending rules" — neither of which a first-
+           run user has any context for. Rewrote in plain
+           English: name the source of the dates ("the state's
+           own calendar"), explain what the user will see in
+           Rule Library, and use the concrete verb "approve"
+           instead of the abstract "review". The warning still
+           alerts; now it also informs. */
         <div className="rounded-md border border-state-warning-hover-alt bg-state-warning-hover px-3 py-2 text-[12px] leading-relaxed text-text-secondary">
           <span className="font-medium text-text-primary">
             <Trans>Rule Library review required.</Trans>
           </span>{' '}
           <Trans>
-            Some selected states publish deadlines through official calendars that need practice
-            review. After entering the product, open Rule Library and review the pending rules
-            before those due dates can be generated.
+            These states publish their deadlines through the state's own calendar. After your
+            practice is created, you'll see those rules in Rule Library marked for review —
+            deadlines activate once you approve the rules.
           </Trans>
         </div>
       ) : null}

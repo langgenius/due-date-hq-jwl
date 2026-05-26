@@ -605,6 +605,13 @@ export function Step1Intake({
       </p>
 
       {intake.ssnBlockedColumnIndexes.length > 0 ? (
+        /* 2026-05-26 (Step 7 onboarding audit F6-08): trailing
+           "→ AI default IGNORE" was developer-shorthand leaking
+           into user-facing copy — read as a debug log entry on
+           a sensitive trust message. Dropped it; the
+           "Those columns won't be sent to the AI" sentence
+           already carries the meaning, and the field list now
+           ends as prose instead of a console arrow. */
         <Alert variant="destructive" role="alert" aria-live="assertive">
           <AlertTitle>
             <Trans>SSN-like columns blocked</Trans>
@@ -614,7 +621,7 @@ export function Step1Intake({
               We blocked SSN-like patterns to protect your clients. Those columns won&apos;t be sent
               to the AI. If a flagged column is actually an EIN, choose EIN yourself in Mapping;
               true SSN/ITIN values should stay ignored. Columns flagged:{' '}
-              {ssnBlockedHeaders.join(', ')} → AI default IGNORE.
+              {ssnBlockedHeaders.join(', ')}.
             </Trans>
           </AlertDescription>
         </Alert>

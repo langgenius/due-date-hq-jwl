@@ -666,7 +666,13 @@ function DashboardActionsList({
           />
         ) : (
           <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
-            <Trans>You're caught up. Next deadline appears here when one's within a week.</Trans>
+            {/* 2026-05-26 (Step 7 onboarding audit F9-08):
+                "Next deadline appears here when one's within a
+                week" used an awkward "one's" contraction.
+                Rewrote with "it's" for natural read. */}
+            <Trans>
+              You're caught up. The next deadline appears here when it's within a week.
+            </Trans>
           </p>
         )}
       </section>

@@ -205,7 +205,7 @@ export function EmailOtpSignInForm({
           name="email"
           type="email"
           autoComplete="email"
-          placeholder={t`you@firm.com`}
+          placeholder={t`you@yourpractice.com`}
           value={email}
           disabled={formDisabled}
           aria-invalid={Boolean(error)}

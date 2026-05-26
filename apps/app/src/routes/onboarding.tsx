@@ -119,9 +119,15 @@ export function OnboardingRoute() {
         <Trans>Set up your practice.</Trans>
       </h1>
 
+      {/* 2026-05-26 (Step 7 onboarding audit F5-02): the
+          original copy said "from your Google profile" — but a
+          user who signed in with Microsoft SSO or email-OTP
+          sees that as a lie. `derivePracticeName` doesn't know
+          the provider; it just inspects user.name then email.
+          Made provider-agnostic. */}
       <p className="mt-3 text-[14px] leading-relaxed text-text-secondary">
         <Trans>
-          We pre-filled a name from your Google profile. You can change it now or anytime in the
+          We pre-filled a name based on your account. You can change it now or anytime in the
           Practice profile.
         </Trans>
       </p>
@@ -168,11 +174,25 @@ export function OnboardingRoute() {
         />
 
         <div className="mt-5 flex flex-col gap-1.5">
+          {/* 2026-05-26 (Step 7 onboarding audit F5-04 + F5-05 +
+              F5-01 + F7-02): the field had three independent
+              issues. (1) label "Internal deadline" is jargon for
+              a first-run user; (2) input shows a bare number
+              with no unit; (3) helper text didn't anchor the
+              default or hint at "most practices use…" — every
+              user had to research what was a sensible value.
+              Renamed label to "Internal deadline lead time"
+              (slight expansion teaches the concept), and
+              rewrote the helper to lead with the unit, name the
+              default, and call out the recalc-on-change
+              consequence that the /practice page already
+              mentions. The field still reads as one number, but
+              now the user knows what they're choosing. */}
           <label
             htmlFor="internal-deadline-offset"
             className="text-caption font-medium uppercase tracking-[0.08em] text-text-secondary"
           >
-            <Trans>Internal deadline</Trans>
+            <Trans>Internal deadline lead time</Trans>
           </label>
           <Input
             id="internal-deadline-offset"
@@ -191,7 +211,10 @@ export function OnboardingRoute() {
             id="internal-deadline-offset-helper"
             className="text-[12px] leading-relaxed text-text-muted"
           >
-            <Trans>Show work as due this many days before the statutory deadline.</Trans>
+            <Trans>
+              Days before each statutory deadline that work shows as due. Most practices use 5–14
+              days. Changing this later recalculates current deadlines.
+            </Trans>
           </p>
         </div>
 
