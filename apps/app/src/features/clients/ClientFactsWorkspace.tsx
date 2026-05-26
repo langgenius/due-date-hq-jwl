@@ -2968,7 +2968,7 @@ export function ClientDetailWorkspace({
             activeObligationId ? 'flex w-full' : 'hidden',
             // xl+: always present as a flex slot, width-animated.
             'xl:flex xl:h-full xl:min-h-0',
-            'xl:transition-[width,margin-right] xl:duration-300 xl:ease-apple',
+            'xl:transition-[width,margin-right] xl:duration-300 xl:ease-apple motion-reduce:transition-none',
             // Closed: 0 width AND a negative right margin equal to
             // the parent's xl:gap-6 so the unused gap doesn't show
             // up as a void on the right edge.

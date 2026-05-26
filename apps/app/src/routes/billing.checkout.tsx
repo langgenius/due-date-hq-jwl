@@ -31,6 +31,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { hasFirmPermission } from '@duedatehq/core/permissions'
 
 import { PageHeader } from '@/components/patterns/page-header'
+import { formatDollarPrice } from '@/lib/utils'
 import { createCheckout } from '@/features/billing/api'
 import {
   billingPlanMonthlyEquivalent,
@@ -62,7 +63,7 @@ type PlanView = {
 
 function usePlanView(plan: BillingPlan, interval: BillingInterval): PlanView {
   const { t } = useLingui()
-  const price = `$${billingPlanMonthlyEquivalent(plan, interval).toLocaleString('en-US')}`
+  const price = formatDollarPrice(billingPlanMonthlyEquivalent(plan, interval))
 
   function intervalNote(): string {
     if (plan === 'firm') {

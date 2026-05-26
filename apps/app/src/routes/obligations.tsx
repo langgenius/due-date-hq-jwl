@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ComponentProps,
   type MouseEvent,
   type ReactNode,
 } from 'react'
@@ -399,6 +400,47 @@ function useResponsivePageSize(): [number, (element: HTMLElement | null) => void
     return () => observer.disconnect()
   }, [element])
   return [pageSize, setElement]
+}
+
+/**
+ * Local trigger-shell for the three full-width `<DropdownMenu>` selects
+ * used elsewhere in this file (client picker on export dialog, calendar/
+ * fiscal-year picker on year config, recipient picker on email-recipient
+ * dropdown). Three byte-identical class strings previously lived inline;
+ * extracted here as a local helper because the shape isn't shared outside
+ * this route (the Layer C4 audit found no broader cluster — every other
+ * `bg-background-default` trigger across the app is a Popover wrapper
+ * that uses different button content). Local, not a primitive.
+ *
+ * Use:
+ *   <DropdownMenuTrigger render={<DropdownTriggerButton size="default">…</DropdownTriggerButton>} />
+ */
+function DropdownTriggerButton({
+  size = 'default',
+  disabled,
+  className,
+  children,
+  ...props
+}: {
+  size?: 'default' | 'lg'
+  disabled?: boolean | undefined
+  className?: string
+  children: ReactNode
+} & Omit<ComponentProps<'button'>, 'children' | 'className' | 'disabled'>) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      className={cn(
+        'inline-flex w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:bg-state-base-hover',
+        size === 'lg' ? 'h-10 text-left' : 'h-9',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  )
 }
 
 function openExternalUrl(value: string): void {
@@ -4030,10 +4072,7 @@ export function ObligationQueueRoute() {
                   <DropdownMenu>
                     <DropdownMenuTrigger
                       render={
-                        <button
-                          type="button"
-                          className="inline-flex h-9 w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[state=open]:bg-state-base-hover"
-                        >
+                        <DropdownTriggerButton>
                           <span className="truncate">
                             {clientOptions.find((option) => option.value === exportClientId)
                               ?.label ?? t`Select client`}
@@ -4042,7 +4081,7 @@ export function ObligationQueueRoute() {
                             className="size-3.5 shrink-0 text-text-tertiary"
                             aria-hidden
                           />
-                        </button>
+                        </DropdownTriggerButton>
                       }
                     />
                     <DropdownMenuContent
@@ -6647,10 +6686,7 @@ export function ObligationQueueDetailDrawer({
                           <DropdownMenu>
                             <DropdownMenuTrigger
                               render={
-                                <button
-                                  type="button"
-                                  className="inline-flex h-9 w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[state=open]:bg-state-base-hover"
-                                >
+                                <DropdownTriggerButton>
                                   <span className="truncate">
                                     {taxYearDraft.taxYearType === 'calendar' ? (
                                       <Trans>Calendar year</Trans>
@@ -6662,7 +6698,7 @@ export function ObligationQueueDetailDrawer({
                                     className="size-3.5 shrink-0 text-text-tertiary"
                                     aria-hidden
                                   />
-                                </button>
+                                </DropdownTriggerButton>
                               }
                             />
                             <DropdownMenuContent align="start" className="w-[var(--anchor-width)]">
@@ -7311,14 +7347,13 @@ function DeadlineInputRequestDialog({
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <button
-                    type="button"
+                  <DropdownTriggerButton
+                    size="lg"
                     disabled={loadingRecipients || recipients.length === 0}
-                    className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-left text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:bg-state-base-hover"
                   >
                     <span className="truncate">{recipientTriggerText}</span>
                     <ChevronDownIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-                  </button>
+                  </DropdownTriggerButton>
                 }
               />
               <DropdownMenuContent align="start" className="max-h-72 w-[var(--anchor-width)]">

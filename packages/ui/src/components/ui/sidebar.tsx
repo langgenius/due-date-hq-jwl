@@ -382,7 +382,7 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={cn(
-        'group/sidebar relative hidden h-svh shrink-0 transition-[width] duration-300 ease-apple md:block',
+        'group/sidebar relative hidden h-svh shrink-0 transition-[width] duration-300 ease-apple motion-reduce:transition-none md:block',
         className,
       )}
       style={{ width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
@@ -416,7 +416,7 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           clip, any momentary overflow is hidden inside the sidebar
           rather than spilling into the page content area. */}
       <div
-        className="absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden border-r border-divider-regular bg-components-panel-bg transition-[width] duration-300 ease-apple"
+        className="absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden border-r border-divider-regular bg-components-panel-bg transition-[width] duration-300 ease-apple motion-reduce:transition-none"
         style={{ width: targetCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
       >
         {children}

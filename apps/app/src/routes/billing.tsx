@@ -29,6 +29,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { createBillingPortal } from '@/features/billing/api'
+import { formatDollarPrice } from '@/lib/utils'
 import {
   activeFirmEntitlementLimit,
   billingPlanMonthlyEquivalent,
@@ -73,7 +74,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
   const cadence = monthly ? t`Monthly billing` : t`Billed yearly`
 
   function price(plan: BillingPlan): string {
-    return `$${billingPlanMonthlyEquivalent(plan, interval).toLocaleString('en-US')}`
+    return formatDollarPrice(billingPlanMonthlyEquivalent(plan, interval))
   }
 
   function savings(plan: BillingPlan): string | undefined {

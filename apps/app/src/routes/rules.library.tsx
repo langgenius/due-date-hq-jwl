@@ -1779,7 +1779,7 @@ function RuleReviewProgressBar(
           <div
             key={segment.status}
             className={cn(
-              'flex items-center overflow-hidden px-2 transition-[width] duration-300',
+              'flex items-center overflow-hidden px-2 transition-[width] duration-300 motion-reduce:transition-none',
               segment.bg,
             )}
             style={{ width: `${pct}%` }}
