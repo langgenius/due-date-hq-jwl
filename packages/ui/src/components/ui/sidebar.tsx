@@ -112,6 +112,23 @@ export function useSidebar(): SidebarContextValue {
   return ctx
 }
 
+/**
+ * 2026-05-26 (Yuqi sidebar mental-model pass): non-throwing variant
+ * for components that may render outside a SidebarProvider. Returns
+ * `null` instead of throwing when no provider is in scope. Used by
+ * surfaces like `PulseDetailDrawer` that mount both inside the
+ * AppShell tree (sidebar context available) AND as off-route
+ * fallbacks via `PulseDrawerProvider` in `routes/_layout.tsx`
+ * (outside SidebarProvider). The drawer-pressure auto-collapse fires
+ * for the in-shell case and silently no-ops for the off-route case.
+ *
+ * Prefer `useSidebar` when you KNOW the consumer is inside the
+ * provider — the explicit throw catches mounting mistakes earlier.
+ */
+export function useOptionalSidebar(): SidebarContextValue | null {
+  return React.useContext(SidebarContext)
+}
+
 function readPersistedCollapsed(): boolean {
   if (typeof window === 'undefined') return false
   try {

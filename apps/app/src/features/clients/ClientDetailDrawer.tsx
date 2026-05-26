@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowUpRightIcon } from 'lucide-react'
@@ -13,6 +13,7 @@ import {
   SheetDescription,
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
+import { useOptionalSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import type { ObligationInstancePublic } from '@duedatehq/contracts'
@@ -70,6 +71,23 @@ const EMPTY_OBLIGATIONS = [] as const
 export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProps) {
   const isOpen = clientId !== null
   const isQueryEnabled = clientId !== null && clientId.length > 0
+  // 2026-05-26 (Yuqi sidebar mental-model pass — consistency):
+  // every right-side drawer in the product opts into the same
+  // auto-collapse behavior. ClientDetailDrawer mounts via
+  // `ClientDrawerMount` in `routes/_layout.tsx` as a sibling of
+  // AppShell, so SidebarProvider is NOT in scope — use the
+  // optional variant which no-ops outside the provider. (Net
+  // effect for /clients route consumers: same as the other
+  // wide drawers; for the off-route case: no-op, no crash.)
+  const sidebar = useOptionalSidebar()
+  const setAutoCollapsed = sidebar?.setAutoCollapsed
+  useEffect(() => {
+    if (!setAutoCollapsed) return undefined
+    setAutoCollapsed(isOpen)
+    return () => {
+      setAutoCollapsed(false)
+    }
+  }, [isOpen, setAutoCollapsed])
 
   const clientQuery = useQuery({
     ...orpc.clients.get.queryOptions({ input: { id: clientId ?? '' } }),

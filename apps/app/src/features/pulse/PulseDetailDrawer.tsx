@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -35,6 +35,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
+import { useOptionalSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
@@ -171,6 +172,24 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
   const open = alertId !== null
+  // 2026-05-26 (Yuqi sidebar mental-model pass): same pattern as the
+  // /deadlines obligation drawer (see routes/obligations.tsx). When the
+  // pulse alert drawer is open it needs horizontal room — auto-collapse
+  // the sidebar while open, restore on close. The user's persistent
+  // collapse preference (localStorage) is untouched; closing the drawer
+  // restores whatever they last chose. If a consumer renders this
+  // drawer outside SidebarProvider (e.g. the off-route
+  // `PulseDrawerProvider` mounted above AppShell in `_layout.tsx`),
+  // `useSidebar` would throw — gate with the safe context lookup.
+  const sidebar = useOptionalSidebar()
+  const setAutoCollapsed = sidebar?.setAutoCollapsed
+  useEffect(() => {
+    if (!setAutoCollapsed) return undefined
+    setAutoCollapsed(open)
+    return () => {
+      setAutoCollapsed(false)
+    }
+  }, [open, setAutoCollapsed])
   const detailQuery = useQuery(usePulseDetailQueryOptions(alertId))
   const detail = detailQuery.data
   const permissions = usePulsePermissions()
