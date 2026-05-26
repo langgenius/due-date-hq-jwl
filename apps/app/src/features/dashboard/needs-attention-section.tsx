@@ -78,9 +78,18 @@ function NeedsAttentionSection() {
     // nothing to act on.
     <section
       aria-label={t`Alerts`}
+      // 2026-05-26 (Yuqi sixty-ninth pass — "背景太浅了，看不出"):
+      // alert-state background bumped from `/25` (basically
+      // invisible) to a real solid `bg-state-destructive-hover`
+      // + a destructive border so the panel actually reads as
+      // "this is the alerts zone." Empty-state keeps the
+      // neutral tint but adds a subtle border so the section
+      // still has a shape on the page.
       className={cn(
-        'flex flex-col gap-2.5 rounded-xl p-3',
-        totalAlertCount > 0 ? 'bg-state-destructive-hover/25' : 'bg-background-section',
+        'flex flex-col gap-2.5 rounded-xl border p-3',
+        totalAlertCount > 0
+          ? 'border-state-destructive-border bg-state-destructive-hover'
+          : 'border-divider-subtle bg-background-section',
       )}
     >
       {/* 2026-05-25 (Yuqi Today follow-up — clarification): h2 is

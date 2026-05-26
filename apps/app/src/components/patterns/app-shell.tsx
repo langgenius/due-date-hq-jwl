@@ -3,6 +3,7 @@ import { Outlet, useNavigation } from 'react-router'
 import { cn } from '@duedatehq/ui/lib/utils'
 import {
   Sidebar,
+  SidebarCollapseToggle,
   SidebarContent,
   SidebarInset,
   SidebarProvider,
@@ -90,8 +91,23 @@ export function AppShell(props: AppShellProps) {
               keeps the 32×32 tile centered inside a 72px section
               so the rib lands at the same y position in both
               modes. */}
-          <div className="flex px-2 py-2 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:min-h-[72px] group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:py-0">
-            <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
+          {/* 2026-05-26 (Yuqi seventy-third pass — mount the
+              dead SidebarCollapseToggle): the toggle component was
+              exported but never rendered. Now sits in the header
+              row beside the firm switcher when expanded; stacks
+              below the monogram when collapsed (the column is
+              56px wide, can't fit two size-8 buttons side-by-
+              side). Yuqi: "the absolute position of the icon of
+              collapsed or expanded, should not change" — the
+              toggle button is always size-8, always inside the
+              header row, always at the right edge in expanded
+              mode + centered below the monogram in collapsed
+              mode. */}
+          <div className="flex flex-col gap-1 px-2 py-2 group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:min-h-[72px] group-data-[collapsed=true]/sidebar:gap-2 group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:py-2">
+            <div className="flex w-full items-center gap-1 group-data-[collapsed=true]/sidebar:w-auto group-data-[collapsed=true]/sidebar:flex-col group-data-[collapsed=true]/sidebar:gap-2">
+              <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
+              <SidebarCollapseToggle />
+            </div>
           </div>
           {/*
             Sibling 1px rib — identical technique to the rib below the route

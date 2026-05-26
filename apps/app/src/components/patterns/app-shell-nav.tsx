@@ -207,7 +207,16 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
   })
 
   return (
-    <SidebarHeader>
+    // 2026-05-26 (Yuqi sidebar bug): `SidebarHeader` is a `flex
+    // flex-col` wrapper with no grow constraint. When the app-shell
+    // places `SidebarCollapseToggle` as a sibling next to this trigger
+    // in a horizontal flex row, the SidebarHeader stays at its
+    // content's natural width and the toggle gets pushed past the
+    // sidebar's right edge into the page content area. Adding
+    // `min-w-0 flex-1` makes the SidebarHeader expand to fill the row
+    // so the toggle stays inside the sidebar boundary. Collapsed mode
+    // overrides with `w-auto flex-none` in the parent.
+    <SidebarHeader className="min-w-0 flex-1 group-data-[collapsed=true]/sidebar:w-auto group-data-[collapsed=true]/sidebar:flex-none">
       <DropdownMenu open={switcherOpen} onOpenChange={setSwitcherOpen}>
         <DropdownMenuTrigger
           render={
@@ -216,7 +225,27 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               aria-label={t`Switch practice, current ${firm.name}`}
               aria-keyshortcuts="Meta+Shift+O Control+Shift+O"
               title={firm.name}
-              className="flex h-14 w-full cursor-pointer touch-manipulation items-center gap-2.5 rounded-md px-3 text-left outline-none transition-[background-color,color] hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-data-[collapsed=true]/sidebar:h-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0"
+              // 2026-05-26 (Yuqi sixty-ninth pass follow-up — firm
+              // switcher bug): dropped `rounded-md` + the bg-hover
+              // / focus-bg states. The rounded corners made the
+              // trigger read as a floating card peeking out of the
+              // sidebar (especially during hover-expand on an
+              // auto-collapsed rail) instead of the sidebar's
+              // top section. Without the rounded corners + visible
+              // bg state, the trigger now flows flush with the
+              // sidebar header and the dropdown affordance comes
+              // purely from the chevron + cursor (still
+              // interactive via hover/focus, just without the
+              // card-shaped wash). Compact (collapsed) mode keeps
+              // its size-8 footprint; the visual card-ness was the
+              // expanded-mode problem.
+              // 2026-05-26 (Yuqi seventy-third pass — collapse
+              // toggle mounted): trigger now `min-w-0 flex-1` so
+              // it shares the header row with the new
+              // SidebarCollapseToggle sibling. Collapsed mode
+              // still snaps to size-8 since both children stack
+              // vertically below xl.
+              className="flex h-14 min-w-0 flex-1 cursor-pointer touch-manipulation items-center gap-2.5 px-3 text-left outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset group-data-[collapsed=true]/sidebar:h-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:flex-none group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0"
             />
           }
         >
@@ -500,6 +529,18 @@ function AddFirmDialog({
 // surfaces claiming the same word counted three different things
 // (2 sidebar, 3 Today, 4 Pulse-page history).
 //
+// 2026-05-26 (Yuqi feedback — "why is it 3 besides Alert, where
+// there are 4 alerts?"): the sidebar previously used the dedicated
+// `pulse.activeCount` endpoint (active/open alerts only), while
+// /rules/pulse renders `pulse.listHistory` (all alerts including
+// Applied + Dismissed). When a CPA has, say, 3 open + 1 dismissed
+// alerts visible on the page, the sidebar said "3" but the page
+// showed 4 items — confusing. Switched the sidebar to use the same
+// `listHistory.length` count the page chip uses so the two numbers
+// always agree. The semantic is now "alerts in your queue" (including
+// dismissed/applied that remain visible on the page) rather than
+// "alerts you still need to act on."
+//
 // 2026-05-24 (B2): the badge now uses the dedicated `pulse.activeCount`
 // endpoint — a true `COUNT(*)` against the same WHERE clause
 // `listAlerts` uses. The previous shape fetched up to 50 rows just to
@@ -508,8 +549,13 @@ function AddFirmDialog({
 // has no upper bound; Today's section still uses `listAlerts(50)`
 // because it needs the row contents to render the alert cards.
 function useActivePulseAlertCount(): number {
-  const query = useQuery(orpc.pulse.activeCount.queryOptions({ input: undefined }))
-  return query.data?.count ?? 0
+  // Source-of-truth count for the sidebar badge. Matches what
+  // /rules/pulse shows in its page-header chip (which renders all
+  // alerts from listHistory, including dismissed/applied). Limit
+  // 50 mirrors the /rules/pulse fetch cap; the page itself displays
+  // alerts.length so we count the same array.
+  const query = useQuery(orpc.pulse.listHistory.queryOptions({ input: { limit: 50 } }))
+  return query.data?.alerts.length ?? 0
 }
 
 function useRuleLibraryPendingCount(): number {
@@ -850,10 +896,23 @@ function NavGroupSection({
 
 function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boolean }) {
   const Icon = item.icon
-  const { collapsed, isMobile } = useSidebar()
+  const { collapsed, isMobile, notifySidebarNavigation } = useSidebar()
   const tooltip = navItemTooltip(item, disabled)
   const badgeTone = item.badgeTone ?? 'urgent'
   const tooltipDisabled = !collapsed || isMobile
+
+  // 2026-05-26 (Yuqi sixty-ninth pass — "sidebar should stay
+  // expanded when I navigate"): on click, notify the sidebar
+  // context so the destination route's auto-collapse-on-panel-
+  // mount is absorbed. The user explicitly chose to be on a new
+  // page; landing there with the rail already collapsed would
+  // contradict that intent. If they later click a row IN the new
+  // page, auto-collapse fires normally — the absorber is a
+  // one-shot.
+  const handleSidebarNavClick = useCallback(() => {
+    if (disabled) return
+    notifySidebarNavigation()
+  }, [disabled, notifySidebarNavigation])
 
   return (
     <SidebarMenuItem data-has-badge={item.badge ? 'true' : 'false'}>
@@ -869,6 +928,7 @@ function NavMenuItem({ item, disabled = false }: { item: NavItem; disabled?: boo
                   aria-label={tooltip}
                   tabIndex={disabled ? -1 : undefined}
                   title={tooltipDisabled ? tooltip : undefined}
+                  onClick={handleSidebarNavClick}
                 />
               }
               data-has-badge={item.badge ? 'true' : 'false'}
