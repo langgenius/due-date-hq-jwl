@@ -864,17 +864,18 @@ Done/Applied: Dify green-600 (#079455) ← only for completed
 
 ## 12. 对应 PRD / Dev File 的落地映射
 
-| 本文件章节               | 对应                                           |
-| ------------------------ | ---------------------------------------------- |
-| §1 / §2 / §3             | PRD v2.0 §1.3（设计原则）+ §10.1（视觉语言）   |
-| §4.1 Risk Row            | PRD v2.0 §5.2 Obligations                      |
-| §4.2 Hero Metric         | PRD v2.0 §5.1.1 Layer 1 Deadline Radar         |
-| §4.3 Pulse Banner        | PRD v2.0 §5.1.4 + §6.3                         |
-| §4.4 Evidence Chip       | PRD v2.0 §5.5 Evidence Mode + §6.2 Glass-Box   |
-| §4.5 Command Palette     | PRD v2.0 §10.3 + §6.6 Ask                      |
-| §7 Risk Severity         | PRD v2.0 §5.1.2 三段颜色次级信号               |
-| §8 Evidence & Provenance | PRD v2.0 §6.2 + §5.5                           |
-| §2 / §3 / §5 tokens      | `docs/dev-file/05-Frontend-Architecture.md` §5 |
+| 本文件章节                 | 对应                                                                                                                                                                                                                             |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| §1 / §2 / §3               | PRD v2.0 §1.3（设计原则）+ §10.1（视觉语言）                                                                                                                                                                                     |
+| §4.1 Risk Row              | PRD v2.0 §5.2 Obligations                                                                                                                                                                                                        |
+| §4.2 Hero Metric           | PRD v2.0 §5.1.1 Layer 1 Deadline Radar                                                                                                                                                                                           |
+| §4.3 Pulse Banner          | PRD v2.0 §5.1.4 + §6.3                                                                                                                                                                                                           |
+| §4.4 Evidence Chip         | PRD v2.0 §5.5 Evidence Mode + §6.2 Glass-Box                                                                                                                                                                                     |
+| §4.5 Command Palette       | PRD v2.0 §10.3 + §6.6 Ask                                                                                                                                                                                                        |
+| §7 Risk Severity           | PRD v2.0 §5.1.2 三段颜色次级信号                                                                                                                                                                                                 |
+| §8 Evidence & Provenance   | PRD v2.0 §6.2 + §5.5                                                                                                                                                                                                             |
+| §2 / §3 / §5 tokens        | `docs/dev-file/05-Frontend-Architecture.md` §5                                                                                                                                                                                   |
+| **Page-level application** | `docs/Design/page-family-canonical.md` — copy-paste-ready layout / PageHeader / FilterTrigger / table-card / FloatingActionBar shapes condensed from /today + /alerts + /deadlines. Apply when building any new list/index page. |
 
 ---
 
