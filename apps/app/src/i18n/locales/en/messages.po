@@ -9322,6 +9322,7 @@ msgid "Select AI draft rule {0}"
 msgstr "Select AI draft rule {0}"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
+#: src/routes/obligations.tsx
 msgid "Select all"
 msgstr "Select all"
 

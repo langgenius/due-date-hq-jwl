@@ -15,11 +15,19 @@ Dropped the "Filed" word from the hero strip on the obligation drawer. Header pi
 - Header `px-12 py-6` → `px-8 py-5` — the obligation drawer is a "data panel" not a "paper document"; 32×40 reads comfortable without the Pulse-style roominess.
 - Body `px-12 pt-6 pb-24` → `px-8 pt-0 pb-24` — pt-0 because the header's bottom border + py-5 already gives the separator; no need for an extra top buffer.
 - Sticky inner section heading dropped `bg-background-subtle border-b` — the gray bg was framing the deadline strip as a separate "card" inside the body. Now just sticky position + bleed (`-mx-8 px-8`), no extra visual weight.
+- Follow-up: restored an opaque `bg-background-default` backing and subtle bottom rule on that sticky date strip. The transparent layer let Materials checklist rows show through while scrolling; white backing fixes the overlap without bringing back the gray card treatment.
 - Sticky footer `px-12 py-4` → `px-8 py-4` to match the new horizontal rhythm.
 
 ### B. Past due / Due this week mutex
 
 These two chips operate on the same date axis (past = days < 0; this week = 0 ≤ days ≤ 7) — combining them is meaningless. Clicking one now clears the other. Needs evidence stays orthogonal (audit completeness axis, not date), so `Past due + Needs evidence` is still a valid combination.
+
+### B2. Materials checklist select-all
+
+Added a `Select all` checkbox beside `Add item` in the Materials checklist
+header. It reuses the existing per-item selection state and floating batch bar,
+so selecting all immediately enables the same batch `Mark client docs received`
+action without adding a second workflow.
 
 ### D. Sort by → DropdownMenu (was Base UI Select)
 
@@ -57,3 +65,13 @@ Smoke test all of them after the merge.
 
 - `tsc -p tsconfig.json --noEmit` — clean
 - `vp lint` — 0 errors, 8 pre-existing warnings (unchanged from main)
+- Follow-up: `pnpm --filter @duedatehq/app exec tsc -p tsconfig.json --noEmit`
+  passed after the sticky date-strip opacity fix.
+- Follow-up: `git diff --check` passed.
+- Follow-up browser check on `/deadlines/be0705712eb9`: the sticky date strip
+  computed to `background-color: rgb(255, 255, 255)`, `position: sticky`, and
+  `z-index: 20`, confirming checklist rows no longer render through a
+  transparent header.
+- Follow-up browser check on `/deadlines/be0705712eb9`: the Materials checklist
+  header renders a `Select all` checkbox beside `Add item`; click-through
+  verification was blocked by the feedback overlay's page-interaction lock.
