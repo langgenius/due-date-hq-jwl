@@ -1177,7 +1177,7 @@ function SkeletonRow({
     >
       <PulsingDot tone={tone} active={active} />
       {label ? (
-        <span className="text-md text-text-tertiary">{label}</span>
+        <span className="text-base text-text-tertiary">{label}</span>
       ) : (
         <>
           <span

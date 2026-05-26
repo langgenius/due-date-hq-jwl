@@ -110,7 +110,7 @@ function AuditEventDrawerContent({
               <Badge variant="outline">{actionLabel}</Badge>
               <Badge variant={event.actorId ? 'secondary' : 'outline'}>{actor}</Badge>
             </div>
-            <p className="text-md text-text-primary">{changeView.headline}</p>
+            <p className="text-base text-text-primary">{changeView.headline}</p>
           </section>
 
           <dl className="grid gap-4 rounded-lg border border-divider-subtle p-4">

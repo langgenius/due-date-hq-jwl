@@ -43,7 +43,7 @@ export function Step4Preview({ summary }: Step4Props) {
         </p>
       </div>
 
-      <ul className="flex flex-col gap-1.5 text-md">
+      <ul className="flex flex-col gap-1.5 text-base">
         <li className="flex items-center gap-2 font-mono tabular-nums">
           <PlayIcon className="size-3 text-text-accent" aria-hidden />
           <Plural value={clientCount} one="# client" other="# clients" />
@@ -75,7 +75,7 @@ export function Step4Preview({ summary }: Step4Props) {
         <h3 className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
           <Trans>Safety</Trans>
         </h3>
-        <ul className="flex flex-col gap-1.5 text-md text-text-primary">
+        <ul className="flex flex-col gap-1.5 text-base text-text-primary">
           <li className="flex items-center gap-2">
             <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
             <Trans>This import can be undone for 24 hours and keeps an audit record</Trans>
@@ -216,7 +216,7 @@ export function Step4Preview({ summary }: Step4Props) {
               whole step. The list is still inside a section
               the user has to scroll to reach, so it's not in
               the way at the top of the step. */}
-          <ul className="flex flex-col gap-1 text-md text-text-primary">
+          <ul className="flex flex-col gap-1 text-base text-text-primary">
             {summary.errors.map((err) => (
               <li key={err.id} className="flex items-center gap-2">
                 <span className="font-mono text-xs tabular-nums text-text-secondary">

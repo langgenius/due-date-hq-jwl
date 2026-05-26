@@ -415,7 +415,7 @@ export function Step1Intake({
       id="wizard-step1-body"
     >
       <div className={cn('flex flex-col', compact ? 'gap-0.5' : 'gap-1')}>
-        <h2 className={cn('font-semibold text-text-primary', compact ? 'text-md' : 'text-lg')}>
+        <h2 className={cn('font-semibold text-text-primary', compact ? 'text-base' : 'text-lg')}>
           <Trans>Where is your data coming from?</Trans>
         </h2>
         {/* 2026-05-25 (Yuqi #38 + Wizard #40 copy audit): tightened
@@ -436,7 +436,7 @@ export function Step1Intake({
             shorter). "Any shape works" replaces "we'll figure out
             the shape" — both promise the same thing; the
             imperative is tighter. */}
-        <p className={cn('text-text-secondary', compact ? 'text-sm' : 'text-md')}>
+        <p className={cn('text-text-secondary', compact ? 'text-sm' : 'text-base')}>
           <Trans>
             Paste or upload — any shape works. Columns like{' '}
             <em className="font-medium not-italic text-text-primary">Estimated tax due</em>,{' '}
@@ -497,7 +497,7 @@ export function Step1Intake({
             }}
             className={cn(
               'flex h-[104px] cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed px-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-              compact ? 'text-sm' : 'text-md',
+              compact ? 'text-sm' : 'text-base',
               isFileDragActive || isReadingFile
                 ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
                 : 'border-divider-regular bg-components-panel-bg text-text-secondary hover:border-state-accent-solid hover:bg-state-accent-hover-alt',
@@ -528,11 +528,11 @@ export function Step1Intake({
               </span>
             </span>
             {isReadingFile ? (
-              <span role="status" aria-live="polite" className="font-mono text-md text-text-accent">
+              <span role="status" aria-live="polite" className="font-mono text-base text-text-accent">
                 <Trans>Reading file…</Trans>
               </span>
             ) : intake.fileName ? (
-              <span className="font-mono text-md text-text-secondary tabular-nums">
+              <span className="font-mono text-base text-text-secondary tabular-nums">
                 {intake.fileName}
               </span>
             ) : null}
@@ -699,7 +699,7 @@ export function Step1Intake({
       ) : null}
 
       {intake.rowCount > 0 && intake.parseError === null ? (
-        <p className="text-md text-text-success">
+        <p className="text-base text-text-success">
           <Plural
             value={intake.rowCount}
             one="# row ready to import"

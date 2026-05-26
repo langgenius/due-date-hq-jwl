@@ -148,7 +148,7 @@ function PulseNotificationsBell() {
       >
         <header className="flex items-center justify-between gap-2 border-b border-divider-subtle px-4 py-3">
           <div className="flex items-baseline gap-2">
-            <h3 className="text-md font-semibold text-text-primary">
+            <h3 className="text-base font-semibold text-text-primary">
               <Trans>Inbox</Trans>
             </h3>
             {unreadCount > 0 ? (

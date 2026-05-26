@@ -645,7 +645,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
             <AlertDialogTitle>
               <Trans>Undo this import?</Trans>
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-md">
+            <AlertDialogDescription className="text-base">
               <Trans>
                 This removes the clients and deadlines created by this import. Other practice data
                 will not be changed.
