@@ -2495,9 +2495,14 @@ export function ClientDetailWorkspace({
                   title={t`Suggested forms`}
                   summary={t`Forms the rule library can add without a new deadline`}
                 >
-                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
-                    <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
-                  </div>
+                  {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 3):
+                      drop the wrapper frame here — SuggestedFormsCatalogPanel
+                      renders its own canonical-shape frame plus its own
+                      "Forms catalog · N applicable" header bar, so the
+                      outer p-4 wrapper double-framed and added wasted
+                      padding. Matches how Future business cues below
+                      lets ClientOpportunitiesCard stand alone. */}
+                  <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
                 </TabSection>
 
                 <TabSection
@@ -2577,9 +2582,12 @@ export function ClientDetailWorkspace({
                   title={t`Activity log`}
                   summary={t`Recent audited changes for this client record`}
                 >
-                  {/* ClientActivityPanel renders each audit event as
-                      its own bordered row. No outer wrapper — would
-                      stack a frame around the per-row frames. */}
+                  {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 3):
+                      ClientActivityPanel now owns its own canonical
+                      outer frame internally (one frame, divide-y
+                      rows), matching the AI summary + Notes section
+                      treatment on this tab. No extra wrapper needed
+                      here — would double-frame. */}
                   <ClientActivityPanel
                     events={auditQuery.data?.events ?? []}
                     canReadAudit={canReadAudit}
@@ -2973,16 +2981,20 @@ function ClientWorkPlanPanel({
   )
   return (
     <TabSection title={t`Filing plan`} summary={subtitle}>
-      {/* 2026-05-24 (Figma replica): each year section is now wrapped
-          in its own framed block — `bg-background-soft` (#f9fafb) +
-          `rounded-xl` (12px) + a faint inset border. The column
-          header bar lives INSIDE the frame, paired with the rows it
-          legends. This replaces the prior single-column-header-above-
-          all-years shape. Trade-off: column legend repeats per year
-          (which the Figma accepts as the cost of self-contained
-          year cards) — but each section now reads as a self-
-          contained year card and scanning year-by-year is much
-          easier when there are 3+ years of history. */}
+      {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 3): each year
+          section is wrapped in its own framed block using the
+          canonical `rounded-md border-divider-regular
+          bg-background-default` shape. The column header bar lives
+          INSIDE the frame, paired with the rows it legends. This
+          replaces the earlier single-column-header-above-all-years
+          shape. Trade-off: column legend repeats per year, but each
+          section now reads as a self-contained year card and
+          scanning year-by-year is much easier when there are 3+
+          years of history. (Prior 2026-05-24 Figma-replica pass
+          used `bg-background-soft rounded-xl border-subtle`; that
+          was the only divergent frame on the page and got snapped
+          to canonical 2026-05-26 — see the comment on the year
+          section wrapper at FilingPlanYearSection.) */}
       {isLoading ? (
         <div className="grid gap-2">
           <Skeleton className="h-32 w-full" />
@@ -3670,26 +3682,35 @@ function ClientActivityPanel({
       />
     )
   }
+  // 2026-05-26 (Yuqi tab-body follow-ups, Task 3 — Activity tab
+  // section-frame unification): rows used to be individual
+  // `rounded-md border bg-background-section` cards inside a grid
+  // gap. That gave the Activity log a third visual dialect on the
+  // Activity tab (vs AI summary's outer-frame + Notes' outer-frame).
+  // Snapped to the canonical pattern: ONE outer canonical frame
+  // (`rounded-md border-divider-regular bg-background-default`)
+  // with `divide-y` between rows. Now matches the AI summary +
+  // Notes treatment on the same tab, and the page-family-canonical
+  // §9 rule (one section, one frame).
   return (
-    <div className="grid gap-2">
-      {events.map((event) => (
-        <div
-          key={event.id}
-          className="grid gap-1 rounded-md border border-divider-subtle bg-background-section p-3"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-sm font-medium text-text-primary">
-              {formatAuditActionLabel(event.action, actionLabels)}
-            </span>
-            <span className="text-xs tabular-nums text-text-tertiary">
-              {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}
-            </span>
-          </div>
-          <p className="text-xs text-text-tertiary">
-            {event.actorLabel ?? event.actorId ?? 'System'}
-          </p>
-        </div>
-      ))}
+    <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
+      <ul className="divide-y divide-divider-subtle">
+        {events.map((event) => (
+          <li key={event.id} className="grid gap-1 px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm font-medium text-text-primary">
+                {formatAuditActionLabel(event.action, actionLabels)}
+              </span>
+              <span className="text-xs tabular-nums text-text-tertiary">
+                {formatDateTimeWithTimezone(event.createdAt, firmTimezone)}
+              </span>
+            </div>
+            <p className="text-xs text-text-tertiary">
+              {event.actorLabel ?? event.actorId ?? 'System'}
+            </p>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -4808,8 +4829,12 @@ function SuggestedFormsCatalogPanel({
   )
 
   if (rulesQuery.isLoading) {
+    // 2026-05-26 (Yuqi tab-body follow-ups, Task 3): loading
+    // skeleton frame snapped to canonical `border-divider-regular`
+    // so it reads at the same weight as the panel's resolved frame
+    // below.
     return (
-      <div className="rounded-md border border-divider-subtle bg-background-default p-4">
+      <div className="rounded-md border border-divider-regular bg-background-default p-4">
         <Skeleton className="mb-2 h-4 w-40" />
         <Skeleton className="h-3 w-72" />
       </div>
@@ -4844,7 +4869,13 @@ function SuggestedFormsCatalogPanel({
   }
 
   return (
-    <div className="rounded-md border border-divider-subtle bg-background-default">
+    // 2026-05-26 (Yuqi tab-body follow-ups, Task 3): outer frame
+    // border snapped from `border-divider-subtle` to the canonical
+    // `border-divider-regular` so the panel reads at the same
+    // tonal weight as the other section frames on this page
+    // (Filing plan year sections, Compliance posture, Risk profile,
+    // AI summary). page-family-canonical §9.
+    <div className="rounded-md border border-divider-regular bg-background-default">
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm font-medium text-text-primary">
