@@ -124,3 +124,112 @@ This is misleading. A CPA reading "Joe — Team member" expects a generic role; 
 **Q7.1 — `routes/obligations.tsx:4603-4608` Comment block notes the drawer-header status pill was removed but the computation is kept as `_statusDropdownOptions`.**
 Dead code with `void _statusDropdownOptions`. The 6 lines of computation + a useMemo dependency are wasted. Severity **P3**. Fix: remove the computation and the `void` no-op. shipped.
 
+### Q8 — calendar-sync popover (`routes/obligations.tsx:11549-11687`)
+
+**Q8.1 — Hand-rolled `<div className="fixed inset-0 z-40 bg-black/30">` scrim above the Popover.**
+The Popover primitive (Base UI) has its own backdrop/overlay system. The hand-rolled scrim DOUBLES the visual stack — clicking it closes the popover, but it also stops focus-trap behavior. A user pressing Tab inside the popover may escape into the scrim. Severity **P2**. Fix: remove the hand-rolled scrim, rely on the Popover primitive's outside-click. ⏳ deferred — verify outside-click closes the popover before stripping the scrim.
+
+**Q8.2 — `routes/obligations.tsx:11655` "Regenerate" mutation fires immediately on click — no confirmation.**
+Regenerating the feed URL INVALIDATES the user's existing calendar subscription. Anyone who has the old URL in Apple/Google/Outlook will silently stop getting updates. There's no confirmation dialog explaining this destructive consequence. Severity **P0**. Fix: open a confirmation dialog "Regenerate calendar URL? Your existing calendar will stop updating until you re-add the new URL." ⏳ deferred — adds a Dialog, needs design call.
+
+**Q8.3 — `routes/obligations.tsx:11641-11646` Read-only Input has the calendar URL but no Copy-button-adjacent affordance to TEST it works.**
+A CPA copies the URL, then has to leave the app, paste it into Google Calendar, and wait to see if events appear. Severity **P2**. Fix: link to a doc "How to add this URL to your calendar" with platform-specific 4-step guides. ⏳ deferred — content design.
+
+**Q8.4 — `routes/obligations.tsx:11679` "Enable subscription" button has no `aria-busy`.**
+Same pattern as Q3.6, Q6.2. Severity **P3**. Fix: add `<Loader2 className="animate-spin">` + `aria-busy`. shipped.
+
+**Q8.5 — `routes/obligations.tsx:11622` Popover content is anchored align="end" but width is hardcoded `w-80` (320px).**
+On a narrow viewport (sidebar collapsed on mobile-ish breakpoint), the popover can overflow off the right edge. Severity **P3**. ⏳ deferred — Base UI's Popover usually clamps to viewport but should verify on a 768px width.
+
+### Q9 — filter chips + group-by toolbar
+
+**Q9.1 — `routes/obligations.tsx:11472-11486` Active filter chip shows an inline `<XIcon>` to signal "click to remove" — but a hovered chip with no X looks identical to an inactive chip with no X.**
+The visual difference (border-accent vs border-divider, bg-accent-tint vs bg-default) is the only signal. A user on a low-contrast monitor or with mild color-blindness may not see the difference. Severity **P2**. Fix: add a 2px ring or a leading `<CheckIcon>` when active. ⏳ deferred — needs design call.
+
+**Q9.2 — Group-by dropdown (need to verify) only regroups via multi-column sort.**
+Per the comment at 1044-1063, picking Client / Status sorts so same-group rows are adjacent. There's NO visible section-header dividing the groups (intentionally killed at 3454-3460). A user picking "group by Client" sees rows sorted by client name with no visible group break — visually identical to sorting by Client. Severity **P2**. Fix: either drop the Group-by dropdown entirely OR ship the section-header pattern (the ~200-line port comment references). ⏳ deferred — needs design call.
+
+### Q10 — drawer status transitions (in_review / blocked / waiting_on_client)
+
+**Q10.1 — Drawer body status-change UI is buried in `ObligationQueueStatusControl` (extracted, ~5000-line drawer body).**
+Status changes during the drawer-open flow have to go through the drawer's status control (which is the only path now that the header pill is gone). For high-frequency transitions (Mark filed → next row), this means: open drawer → scroll to status section → pick status → wait for mutation → close drawer → J to next row. Mouse-only is 5 clicks; keyboard is 4 keystrokes IF the user knows F. Severity **P2**. Fix: surface the canonical 6-state status row at the TOP of the drawer body so it's always above the fold. ⏳ deferred — needs drawer-layout audit.
+
+**Q10.2 — Blocked-by selection in the drawer — search for the component.**
+Per the comment at 11497-11501 (`ObligationBlockerSection removed 2026-05-21 — the editor lived inside the Readiness tab on every drawer open, even on rows that weren't blocked`), the blocker editor was retired. So setting status=blocked has NO way to specify WHAT's blocking. Severity **P1**. Fix: re-introduce a blocked-by picker that only appears when status=blocked, OR allow free-text in the blocked-reason field. ⏳ deferred — needs Yuqi sign-off on the picker design.
+
+---
+
+## R. Rule library — `routes/rules.library.tsx` (2.8K lines) + `features/rules/coverage-tab.tsx` (2.5K lines)
+
+### R1 — entity chip filter
+
+**R1.1 — `routes/rules.library.tsx:1287-1295` "Clear filter" link appears ONLY when an entity is active — but the active chip itself can also clear by clicking.**
+Two redundant clear paths. A new user staring at "FILTERING: LLC … Clear filter" link on the left + a filled LLC chip in the right group doesn't know they can also click LLC. Severity **P3**. Fix: remove the explicit Clear link; the canonical "click active chip again to clear" pattern is enough (and matches /deadlines + /alerts per the comment at 1276). shipped.
+
+**R1.2 — `routes/rules.library.tsx:1310-1314` `title` attribute is the only place where the gap-count detail lives ("9 jurisdictions missing a rule").**
+Keyboard / touch-screen users never see this. Severity **P2**. Fix: render the gap detail as visible text under the chip or in an `<sr-only>` block that screen readers read. shipped — added screen-reader text via `<span class="sr-only">`.
+
+**R1.3 — `routes/rules.library.tsx:1304-1374` Chips have no fixed width — chip widths vary based on label + count + gap.**
+On a row with "LLC 12 · 9 missing" and "Partnership 1" next to each other, the eye has to re-anchor for each chip. Severity **P3**. ⏳ deferred — needs design call on whether equal-width or content-width is the desired feel.
+
+### R2 — pending/active queue mode toggle (`features/rules/coverage-tab.tsx:1936-1988`)
+
+**R2.1 — `features/rules/coverage-tab.tsx:1958, 1974` Tab disabled when count=0 — but the user may BE on that tab.**
+If `pendingCount===0` and `mode==='pending'`, the user's currently-selected tab is disabled. They can switch off it (clicking Active) but if they click back to "Pending" (curiosity, or via keyboard tab order), it's disabled. Severity **P1**. Fix: remove `disabled` when the mode IS the currently-selected tab — let the user see "0 pending" as a confirming empty state, not a disabled control. shipped.
+
+**R2.2 — `features/rules/coverage-tab.tsx:1949-1953` Wrapping div is `role="tablist"` but there's no `role="tabpanel"` linking the buttons to the queue table below.**
+SR users hear "Pending tab selected" and then have no association between that and the table content. Severity **P2**. Fix: add `aria-controls="rule-queue-panel"` on each tab + `id="rule-queue-panel"` + `role="tabpanel"` on the wrapping element. ⏳ deferred — needs careful audit of which container owns the panel.
+
+### R3 — bulk review bar + modal
+
+**R3.1 — `routes/rules.library.tsx:2351-2357` "Clear" affordance is a `<button class="text-xs underline">` — not a Button primitive.**
+Same drift pattern. The button has no proper hover state visible, no consistent height with neighbors. Severity **P2**. Fix: convert to `<Button variant="link" size="sm">`. shipped.
+
+**R3.2 — `routes/rules.library.tsx:2418-2419` Accept hotkey uses `querySelector('[data-rule-action="accept"]').click()`.**
+Fragile coupling — the keyboard hotkey is finding a DOM node by data-attribute and triggering a programmatic click. If `RuleDetailCompact` ever stops rendering that data attribute, the hotkey silently no-ops with no error. Severity **P2**. ⏳ deferred — needs refactor to expose an explicit `onAccept` ref/callback.
+
+**R3.3 — `routes/rules.library.tsx:2569-2580` KeyboardHints hidden below `sm` breakpoint (`hidden ... sm:flex`).**
+On a 640px-wide review modal (mobile), the user sees Prev/Skip but NO kbd hints. The whole point of the modal is reviewing rules faster via keyboard — hiding the hints on the form factor where the kbd hint matters MOST (visitors who don't know the shortcuts) is backwards. Severity **P2**. Fix: keep the hints visible at all breakpoints; let them wrap into a 2nd row if needed. ⏳ deferred — narrow footer needs design call.
+
+**R3.4 — `routes/rules.library.tsx:2554-2557` "Skip" / "Finish" outline button — but Skip moves forward without acting (passive), and "Finish" closes the modal (terminal). Semantically distinct, visually same.**
+A user reaching the last card and seeing the same outline button just relabelled "Finish" doesn't know whether finishing skips or commits. Severity **P2**. Fix: when `isLast`, give Finish a primary fill (and rename to "Done"). shipped.
+
+**R3.5 — `routes/rules.library.tsx:2559` `<span class="sr-only">{t\`Press Escape to close the review queue.\`}</span>` sits at the BOTTOM of the dialog.**
+SR users hear this LAST — by which point they've already navigated through 400+ chars of dialog content. Severity **P3**. Fix: move the sr-only escape hint to the top of the DialogContent, right after the title. ⏳ deferred — minor.
+
+### R4 — rule table rows
+
+**R4.1 — `routes/rules.library.tsx:1832-1833` `<TableRow class="group cursor-pointer">` opens detail on click, but there's no visible affordance until hover.**
+The chevron at the end of the row is `opacity-0 group-hover:opacity-100` (line 1892). Keyboard users navigating to the row via Tab get no visible hint that Enter opens the detail. Severity **P2**. Fix: render the chevron at low opacity always (`opacity-30`) so a keyboard user sees the affordance. shipped.
+
+**R4.2 — `routes/rules.library.tsx:1863` Title underline is `group-hover:underline` — but on focus (keyboard navigation), the title doesn't underline.**
+Keyboard navigation gives the row focus-ring but the title text doesn't react. Severity **P2**. Fix: add `group-focus-within:underline` so focus-visible matches hover behavior. shipped.
+
+**R4.3 — `routes/rules.library.tsx:1851-1854` Checkbox's `<span onClick stopPropagation>` wrapper uses `onPointerDown` + `onClick` to stop row-open.**
+Two event types blocking is brittle — `keyboard` Enter on the checkbox could still bubble (though Checkbox primitive likely prevents this). Severity **P3**. ❌ acceptable — defensive but correct.
+
+### R5 — new rule modal (`routes/rules.library.tsx:2607-2823`)
+
+**R5.1 — `routes/rules.library.tsx:2816-2818` Submit button shows "Creating…" but no spinner.**
+Same pattern as Q3.6 / Q6.2. Severity **P3**. Fix: add Loader2 + aria-busy. shipped.
+
+**R5.2 — `routes/rules.library.tsx:2733-2738` Empty-pickers branch ("Custom rules currently need to be created from a missing-rule row…").**
+A user reaches this modal from the header "New rule" button and sees this dead-end copy. They have to close the dialog and find a gap row. Severity **P1**. Fix: either disable the header "New rule" button when no gap rows exist OR inline a jurisdiction + entity picker in the dialog so it actually works from any entry. ⏳ deferred — feature work.
+
+**R5.3 — `routes/rules.library.tsx:2785-2787` "Tax type" input is a free-form text with placeholder "e.g. income, sales, payroll".**
+A user typing "Income tax" or "Salary tax" creates an unstandardized tax_type that breaks downstream filtering on the queue. Severity **P1**. Fix: replace Input with a Combobox seeded by the existing tax-type set + free-text fallback. ⏳ deferred — needs new pattern.
+
+**R5.4 — `routes/rules.library.tsx:2790-2807` "When is it due?" Textarea is plain English description with no calendar-logic preview.**
+The user describes "Quarterly, 15th of the month after each quarter" and the server stores it as `kind: source_defined_calendar` with the user's English text. The rule is effectively a TODO until someone refines the calendar logic. Severity **P2**. Fix: clarify at submit "We'll calendar-ize this later" copy. ⏳ deferred — feature flow.
+
+### R6 — coverage tab additional (`features/rules/coverage-tab.tsx`)
+
+**R6.1 — `features/rules/coverage-tab.tsx:1011-1014` `ActiveFilterChip` labels are HARDCODED strings, not wrapped in `<Trans>`.**
+The chip reads "Showing jurisdictions with pending rules" — but on a Spanish-locale firm it stays English. Severity **P1**. Fix: wrap with `<Trans>` / use `t\`\``. shipped.
+
+**R6.2 — `features/rules/coverage-tab.tsx:1021, 1024` Clear button has `aria-label="Clear filter"` AND a visible "Clear" text — both hardcoded.**
+Same i18n drift. Severity **P1**. shipped.
+
+**R6.3 — `features/rules/coverage-tab.tsx:1036-1079` EntityCoverageLegend uses `uppercase tracking-[0.08em]` on "Legend" eyebrow.**
+This survived the seventy-third pass which retired the "FILTER BY ENTITY" eyebrow on the chip row. Inconsistent legend treatment. Severity **P3**. Fix: tone the eyebrow to a plain `text-xs font-medium`. ⏳ deferred — different surface, may warrant the eyebrow.
+

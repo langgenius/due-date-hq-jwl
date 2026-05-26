@@ -1008,20 +1008,24 @@ function ActiveFilterChip({
   filter: Exclude<RowFilter, 'all'>
   onClear: () => void
 }) {
-  const labels: Record<Exclude<RowFilter, 'all'>, string> = {
-    pending: 'Showing jurisdictions with pending rules',
-    active: 'Showing jurisdictions with active rules',
-  }
+  // 2026-05-26 (step-6 ux-flow audit R6.1/R6.2): copy was
+  // hardcoded English — would NOT translate on a non-English
+  // locale firm. Wrapped labels and Clear in Trans / t``.
+  const { t } = useLingui()
+  const label =
+    filter === 'pending'
+      ? t`Showing jurisdictions with pending rules`
+      : t`Showing jurisdictions with active rules`
   return (
     <div className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-state-accent-active-alt/40 bg-state-accent-tint/40 pr-1 pl-2.5 text-xs text-text-secondary">
-      <span>{labels[filter]}</span>
+      <span>{label}</span>
       <button
         type="button"
         onClick={onClear}
-        aria-label="Clear filter"
+        aria-label={t`Clear filter`}
         className="inline-flex h-6 items-center gap-1 rounded px-1.5 text-xs font-medium text-text-accent outline-none hover:bg-background-default focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
-        Clear
+        <Trans>Clear</Trans>
         <XIcon aria-hidden className="size-3" />
       </button>
     </div>
@@ -1951,11 +1955,18 @@ function RuleQueueModeToggle({
       aria-label={t`Rule queue`}
       className="grid h-8 grid-cols-2 rounded-md bg-background-subtle p-0.5"
     >
+      {/* 2026-05-26 (step-6 ux-flow audit R2.1): the previous
+          `disabled={count === 0}` rule disabled the currently-
+          selected tab when its count dropped to zero. The user
+          could then keyboard-tab into a disabled "Pending" tab
+          they were already on. Now the disable rule only applies
+          when the user is NOT on that tab — being on a 0-count
+          tab is a valid empty state, not a disabled control. */}
       <button
         type="button"
         role="tab"
         aria-selected={mode === 'pending'}
-        disabled={pendingCount === 0}
+        disabled={pendingCount === 0 && mode !== 'pending'}
         onClick={() => onModeChange('pending')}
         className={cn(
           'inline-flex min-w-0 items-center justify-center gap-1 rounded px-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
@@ -1971,7 +1982,7 @@ function RuleQueueModeToggle({
         type="button"
         role="tab"
         aria-selected={mode === 'active'}
-        disabled={activeCount === 0}
+        disabled={activeCount === 0 && mode !== 'active'}
         onClick={() => onModeChange('active')}
         className={cn(
           'inline-flex min-w-0 items-center justify-center gap-1 rounded px-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',

@@ -10,6 +10,7 @@ import {
   ChevronRightIcon,
   CircleCheck,
   CircleSlash,
+  Loader2,
   MessageSquareText,
   PlusIcon,
   RadioTowerIcon,
@@ -1284,15 +1285,12 @@ function EntityChipRow({
           calls onClear when isActive). For accessibility the
           group still has an aria-label below; the visible label
           was redundant chrome. */}
-      {activeEntity ? (
-        <button
-          type="button"
-          onClick={onClear}
-          className="self-start text-caption-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
-          <Trans>Clear filter</Trans>
-        </button>
-      ) : null}
+      {/* 2026-05-26 (step-6 ux-flow audit R1.1): retired the
+          explicit Clear-filter link. The active chip's filled-dark
+          state IS the cue, and clicking it again clears the filter
+          (the chip's onClick toggles between onSelect and onClear).
+          Two clear paths read as redundant chrome — /deadlines and
+          /alerts both rely on the chip alone. */}
       <div
         className="flex flex-wrap items-center gap-1.5"
         role="group"
@@ -1367,6 +1365,16 @@ function EntityChipRow({
                     <span className="font-normal">
                       <Trans>missing</Trans>
                     </span>
+                  </span>
+                  {/* 2026-05-26 (step-6 ux-flow audit R1.2): the
+                      title attribute carried the gap-jurisdiction
+                      detail, but title is mouse-only — keyboard
+                      and touch users never saw the elaboration.
+                      sr-only text exposes it for SR users. */}
+                  <span className="sr-only">
+                    {gapCount === 1
+                      ? t`(${gapCount} jurisdiction missing a rule)`
+                      : t`(${gapCount} jurisdictions missing a rule)`}
                   </span>
                 </>
               ) : null}
@@ -1860,7 +1868,10 @@ function RuleTableRow({
               </span>
             ) : null}
           </span>
-          <span className="group-hover:underline group-hover:underline-offset-2 group-hover:decoration-divider-regular">
+          {/* 2026-05-26 (step-6 ux-flow audit R4.2): match focus-
+              within to hover so keyboard nav previews the link
+              affordance. */}
+          <span className="group-hover:underline group-hover:underline-offset-2 group-hover:decoration-divider-regular group-focus-within:underline group-focus-within:underline-offset-2 group-focus-within:decoration-divider-regular">
             {displayTitle}
           </span>
         </div>
@@ -1887,9 +1898,13 @@ function RuleTableRow({
       <TableCell className="py-2">
         <div className="flex items-center justify-end gap-2 text-xs text-text-secondary">
           <span>{tierLabels[rule.ruleTier]}</span>
+          {/* 2026-05-26 (step-6 ux-flow audit R4.1): chevron was
+              fully hidden at rest — keyboard / touch users got no
+              row-click affordance. Now permanently shown at 30%
+              opacity, full opacity on hover/focus-within. */}
           <ChevronRightIcon
             aria-hidden
-            className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100"
+            className="size-3.5 shrink-0 text-text-tertiary opacity-30 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
           />
         </div>
       </TableCell>
@@ -2348,13 +2363,12 @@ function BulkReviewBar({
         <Trans>Review</Trans>
         <ChevronRightIcon data-icon="inline-end" />
       </Button>
-      <button
-        type="button"
-        onClick={onClear}
-        className="text-xs text-text-tertiary outline-none hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-      >
+      {/* 2026-05-26 (step-6 ux-flow audit R3.1): converted raw
+          `<button class="underline">` to canonical Button variant=
+          ghost for parity with the queue's Clear-selection button. */}
+      <Button type="button" variant="ghost" size="sm" onClick={onClear}>
         <Trans>Clear</Trans>
-      </button>
+      </Button>
     </FloatingActionBar>
   )
 }
@@ -2551,8 +2565,18 @@ function BatchReviewModal({
             <Trans>Previous</Trans>
           </Button>
           <KeyboardHints />
-          <Button type="button" variant="outline" size="sm" onClick={onSkip}>
-            {isLast ? <Trans>Finish</Trans> : <Trans>Skip</Trans>}
+          {/* 2026-05-26 (step-6 ux-flow audit R3.4): Skip and the
+              terminal Finish are semantically distinct (Skip is
+              passive forward-step, Finish closes the modal). Match
+              them visually: Skip stays outline-quiet, Finish gets
+              a primary fill so the terminal action is visible. */}
+          <Button
+            type="button"
+            variant={isLast ? 'default' : 'outline'}
+            size="sm"
+            onClick={onSkip}
+          >
+            {isLast ? <Trans>Done</Trans> : <Trans>Skip</Trans>}
             <ChevronRightIcon data-icon="inline-end" />
           </Button>
         </footer>
@@ -2813,8 +2837,20 @@ function NewRuleModal({
             <Button type="button" variant="ghost" size="sm" onClick={onClose}>
               <Trans>Cancel</Trans>
             </Button>
-            <Button type="submit" size="sm" disabled={!canSubmit}>
-              {mutation.isPending ? <Trans>Creating…</Trans> : <Trans>Create rule</Trans>}
+            <Button
+              type="submit"
+              size="sm"
+              disabled={!canSubmit}
+              aria-busy={mutation.isPending}
+            >
+              {mutation.isPending ? (
+                <>
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Trans>Creating…</Trans>
+                </>
+              ) : (
+                <Trans>Create rule</Trans>
+              )}
             </Button>
           </footer>
         </form>

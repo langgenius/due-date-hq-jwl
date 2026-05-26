@@ -11675,7 +11675,11 @@ function CalendarSyncPopover() {
                 size="sm"
                 onClick={() => upsertMutation.mutate({ scope: 'my', privacyMode: 'full' })}
                 disabled={upsertMutation.isPending}
+                aria-busy={upsertMutation.isPending}
               >
+                {upsertMutation.isPending ? (
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                ) : null}
                 <Trans>Enable subscription</Trans>
               </Button>
             </div>
