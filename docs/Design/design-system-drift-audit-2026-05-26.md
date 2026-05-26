@@ -1,8 +1,12 @@
 # Design system drift audit — 2026-05-26
 
-> **🟢 CLOSED 2026-05-26.** Final execution status: 14 commits over
-> the 86th + P2 sweep batches, **closing ~80 drift sites across
-> ~30 files**. Honest accounting below in [Final outcome](#final-outcome-2026-05-26).
+> **🟢 CLOSED 2026-05-26.** Final execution status: **12 session
+> commits** (9 numbered sweep batches + DESIGN.md v2.0 + 2 audit-doc
+> commits), closing **~110 drift sites across ~30 files** — split
+> roughly **41 structural fixes** (PageHeader migrations, body
+> backgrounds, kicker swaps, prose-date conversions, avatar adoption,
+> spacing normalizations) **+ 69 typographic refinements** (font-mono
+> drops). Honest accounting below in [Final outcome](#final-outcome-2026-05-26).
 >
 > Remaining drift in the codebase is categorically legitimate
 > (canonical kbd hints, dev-panel technical strings, state-code
@@ -22,19 +26,22 @@ Verified post-sweep state, re-counted from current code:
 | Uppercase kicker DESIGN §9 violations        | 3             | 3                                                                                | **0**                                                                                        |
 | `/audit` body bg drift                       | 1             | 1                                                                                | **0**                                                                                        |
 | User-facing ISO dates on `/deadlines` drawer | 12+           | confirmed (FlatDateList + Key Dates + banners + group header + inline sentences) | **0** (queue row + milestone strip + audit-log timestamps retained per canonical carve-outs) |
-| Owner avatar adoption                        | 5 claimed     | 1 real (audit overcounted)                                                       | 0                                                                                            |
+| Owner avatar adoption                        | 5 claimed     | 1 real (audit overcounted)                                                       | **0 remaining** (1/1 swept — audit log actor cell)                                           |
 
 ### Honest audit corrections (caught during execution)
 
 1. **Palette colors**: audit estimate of ~6 sites was wrong. Verified `grep -rnE "(text|bg|border)-(red|green|blue|...)-[0-9]" apps/app/src` returns **0**. App was already clean.
-2. **font-mono**: audit claim of 116+ inflated by ~2.2x. Actual starting count was 173 total of which ~70 were already legitimate (kbd + tabular-nums coexist + dev IDs). True drift candidates: ~80, of which 69 swept.
+2. **font-mono**: audit claim of 116+ over-counted. Actual starting count was 173 total. Mid-session verification scan identified **~53 strict canonical violations**; this sweep dropped **69 sites** — the extra ~16 were `font-mono + tabular-nums` coexist patterns where `tabular-nums` alone meets the canonical (font-mono is supposed to be kbd-only), so we dropped the redundant `font-mono` for cleaner adherence even though they weren't strict violations.
 3. **/workload "late text"**: was P1. Reclassified false positive — `NumericCell danger` renders COUNT NUMBERS (e.g. "5 overdue items"), not date strings. No drift.
 4. **/readiness PageHeader**: was P1. Reclassified P3 — public client portal in entry-layout shell, not protected route. Custom shape is by design.
 5. **Owner avatar sweep targets**: claimed 5 surfaces needed avatars. After re-verifying, only `audit-log-table` had a genuinely missing avatar; other "owner mentions" don't actually expose names in the current code.
 
 ### Commits
 
-All commits on `design/clients-directory-pivot` since the last main merge:
+The **12 session commits** that delivered the audit + sweep work on
+`design/clients-directory-pivot` (PR #30 also contains earlier
+pre-audit work — 32 commits total since main). In chronological
+order:
 
 | #   | Commit     | Scope                                                                                        |
 | --- | ---------- | -------------------------------------------------------------------------------------------- |
@@ -67,10 +74,11 @@ Plus this commit, which marks the audit closed.
 
 ### Lessons for next audit
 
-1. **Don't trust inference — verify with `grep` first.** The audit's `font-mono 116+` estimate was off by 2.2x; the palette-colors `~6` claim was off by 6.
-2. **Trust the user's "be aggressive" but verify EACH claim before counting.** Two P1 items were false positives that wasted a verification round.
-3. **State the canonical carve-outs explicitly in the audit, not just the canonical rule.** "font-mono for kbd only" needs to be paired with "...AND dev-panel IDs, AND URL inputs, AND state-code alignment, AND audit timestamps" up-front, or the audit count balloons.
-4. **Re-run the scans at the end to verify the closure was real, not just claimed.**
+1. **Don't trust inference — verify with `grep` first.** The audit's `font-mono 116+` claim implied ~116 sites needing fixes; the verification scan said only ~53 were strict canonical violations (off by ~2.2× as a drift-candidate count). The palette-colors `~6 sites` claim turned out to be 0 (audit was inventing drift that didn't exist).
+2. **Trust the user's "be aggressive" but verify EACH claim before counting.** Two P1 items (`/workload` late text, `/readiness` PageHeader) were false positives that wasted a verification round before reclassification.
+3. **State the canonical carve-outs explicitly in the audit, not just the canonical rule.** "font-mono for kbd only" needs to be paired with "...AND dev-panel IDs, AND URL inputs, AND state-code alignment, AND audit timestamps" up-front, or the audit count balloons because half the legitimate sites get flagged as drift.
+4. **Re-run the scans at the end to verify the closure was real, not just claimed.** The fresh `grep` showed all the closure claims were accurate.
+5. **Count once, write once.** Across three mid-session summary messages this session, the same delivered scope was stated as "16 commits", "12 commits", and "14 commits" (correct: 12). Round numbers ("~80 drift sites") are easier to overstate than understate — split structural vs typographic up front so the gut-check number isn't doing double duty. The final number for this session is **~110 sites swept (41 structural + 69 typographic)**.
 
 ---
 
