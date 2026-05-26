@@ -53,9 +53,7 @@ export function RulesPulseRoute() {
     alertCount > 0 ? (
       <span className="inline-flex items-baseline gap-2">
         <Trans>Alerts</Trans>
-        <span className="font-mono text-base font-normal tabular-nums text-text-tertiary">
-          {alertCount}
-        </span>
+        <span className="text-base font-normal tabular-nums text-text-tertiary">{alertCount}</span>
       </span>
     ) : (
       <Trans>Alerts</Trans>

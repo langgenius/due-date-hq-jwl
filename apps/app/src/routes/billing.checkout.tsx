@@ -283,7 +283,7 @@ export function BillingCheckoutRoute() {
           <Trans>Review the practice subscription before opening secure checkout.</Trans>
         }
         actions={
-          <Badge variant="info" className="font-mono tabular-nums text-xs">
+          <Badge variant="info" className="tabular-nums text-xs">
             <Trans>Secure checkout</Trans>
           </Badge>
         }
@@ -367,10 +367,10 @@ export function BillingCheckoutRoute() {
                 </div>
                 <div className="text-left md:text-right">
                   <div className="flex items-baseline gap-2 md:justify-end">
-                    <span className="font-mono text-2xl font-semibold tabular-nums text-text-primary">
+                    <span className="text-2xl font-semibold tabular-nums text-text-primary">
                       {view.price}
                     </span>
-                    <span className="font-mono text-lg font-semibold tabular-nums text-text-primary">
+                    <span className="text-lg font-semibold tabular-nums text-text-primary">
                       {view.priceSuffix}
                     </span>
                   </div>

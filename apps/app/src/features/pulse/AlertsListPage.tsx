@@ -907,7 +907,7 @@ function StateFilterPopover({
             {activeState ? (
               <>
                 <StateBadge code={activeState} size="xs" aria-hidden />
-                <span className="font-mono font-medium">{activeState}</span>
+                <span className="font-medium">{activeState}</span>
                 <span className="tabular-nums text-text-accent/70">
                   <Plural value={activeCount} one="# alert" other="# alerts" />
                 </span>

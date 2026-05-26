@@ -81,7 +81,7 @@ export function TemporaryRulesTab() {
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-4">
         <FilterChips options={filterOptions} value={filter} onValueChange={setFilter} />
-        <span className="font-mono text-xs tabular-nums text-text-tertiary">
+        <span className="text-xs tabular-nums text-text-tertiary">
           <Trans>
             {filteredRules.length} shown · {rules.length} total
           </Trans>
@@ -149,14 +149,14 @@ function TemporaryRuleRow({
         )}
       </TableCell>
       <TableCell className="px-0 py-2">
-        <span className="font-mono text-xs tabular-nums text-text-secondary">
+        <span className="text-xs tabular-nums text-text-secondary">
           {rule.activeObligationCount}/{rule.appliedObligationCount}
         </span>
       </TableCell>
       <TableCell className="px-0 py-2">
         <TemporaryRuleStatusBadge status={rule.status} />
       </TableCell>
-      <TableCell className="px-0 py-2 font-mono text-xs tabular-nums text-text-tertiary">
+      <TableCell className="px-0 py-2 text-xs tabular-nums text-text-tertiary">
         {formatDateTimeWithTimezone(rule.lastActivityAt, practiceTimezone)}
       </TableCell>
       <TableCell className="px-0 py-2">

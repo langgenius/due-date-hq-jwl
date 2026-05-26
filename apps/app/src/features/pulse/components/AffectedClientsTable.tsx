@@ -183,7 +183,7 @@ export function AffectedClientsTable({
                       </span>
                       <div className="flex flex-wrap items-center gap-1.5 text-xs">
                         {row.state ? (
-                          <span className="font-mono font-semibold uppercase tracking-wide text-text-tertiary">
+                          <span className="font-semibold uppercase tracking-wide text-text-tertiary">
                             {row.state}
                           </span>
                         ) : null}
@@ -203,7 +203,7 @@ export function AffectedClientsTable({
                       narrow — no horizontal sprawl with the arrow
                       glyph in the middle. */}
                   <TableCell>
-                    <div className="flex flex-col gap-0.5 font-mono text-xs tabular-nums leading-tight text-text-primary">
+                    <div className="flex flex-col gap-0.5 text-xs tabular-nums leading-tight text-text-primary">
                       <span className="text-text-tertiary line-through">
                         {formatDate(row.currentDueDate)}
                       </span>

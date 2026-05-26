@@ -1971,7 +1971,7 @@ function RuleQueueModeToggle({
         )}
       >
         <Trans>Pending</Trans>
-        <span className="font-mono text-caption text-text-tertiary">{pendingCount}</span>
+        <span className="text-caption tabular-nums text-text-tertiary">{pendingCount}</span>
       </button>
       <button
         type="button"
@@ -1987,7 +1987,7 @@ function RuleQueueModeToggle({
         )}
       >
         <Trans>Active</Trans>
-        <span className="font-mono text-caption text-text-tertiary">{activeCount}</span>
+        <span className="text-caption tabular-nums text-text-tertiary">{activeCount}</span>
       </button>
     </div>
   )
@@ -2113,7 +2113,7 @@ function BulkReviewDrawer({
                         <span className="block truncate text-xs font-medium text-text-primary">
                           {rule.title}
                         </span>
-                        <span className="block truncate font-mono text-caption text-text-tertiary">
+                        <span className="block truncate text-caption tabular-nums text-text-tertiary">
                           {rule.id}
                         </span>
                       </div>

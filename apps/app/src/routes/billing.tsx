@@ -287,7 +287,7 @@ export function BillingRoute() {
           currentFirm ? (
             <Badge
               variant={paidPlanActive(currentFirm) ? 'success' : 'outline'}
-              className="font-mono tabular-nums"
+              className="tabular-nums"
             >
               {currentPlanName}
             </Badge>
@@ -362,7 +362,7 @@ export function BillingRoute() {
                     </p>
                   </div>
                   <div className="text-left md:text-right">
-                    <p className="font-mono text-2xl font-semibold tabular-nums text-text-primary">
+                    <p className="text-2xl font-semibold tabular-nums text-text-primary">
                       {currentPlanName}
                     </p>
                     <p className="mt-1 text-sm text-text-secondary">
@@ -629,7 +629,7 @@ function BillingIntervalToggle({
         <Badge
           variant="success"
           className={cn(
-            'font-mono text-caption-xs',
+            'text-caption-xs',
             value === 'yearly' && 'bg-white/20 text-primary-foreground',
           )}
         >
@@ -701,13 +701,13 @@ function PlanOption({
             <span
               className={cn(
                 'text-2xl font-semibold text-text-primary',
-                priceKind === 'numeric' ? 'font-mono tabular-nums' : 'font-sans tracking-normal',
+                priceKind === 'numeric' ? 'tabular-nums' : 'font-sans tracking-normal',
               )}
             >
               {plan.price}
             </span>
             {plan.priceSuffix ? (
-              <span className="font-mono text-lg font-semibold tabular-nums text-text-primary">
+              <span className="text-lg font-semibold tabular-nums text-text-primary">
                 {plan.priceSuffix}
               </span>
             ) : null}
@@ -716,7 +716,7 @@ function PlanOption({
             <div className="flex flex-wrap items-center gap-2">
               <span>{plan.cadence}</span>
               {plan.savings ? (
-                <Badge variant="success" className="font-mono text-caption-xs">
+                <Badge variant="success" className="text-caption-xs">
                   {plan.savings}
                 </Badge>
               ) : null}

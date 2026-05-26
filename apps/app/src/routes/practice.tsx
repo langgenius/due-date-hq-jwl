@@ -406,7 +406,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
         }
         description={firmSummary}
         actions={
-          <Badge variant="outline" className="font-mono tabular-nums text-xs">
+          <Badge variant="outline" className="tabular-nums text-xs">
             {currentRole}
           </Badge>
         }
@@ -466,7 +466,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
                 }
                 disabled={!canEditPractice || updateMutation.isPending}
-                className="font-mono tabular-nums"
+                className="tabular-nums"
               />
               <p className="text-xs leading-5 text-text-tertiary">
                 <Trans>
@@ -533,8 +533,8 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   <span
                     className={
                       weightTotal === 100
-                        ? 'font-mono text-xs tabular-nums text-text-secondary'
-                        : 'font-mono text-xs tabular-nums text-text-destructive'
+                        ? 'text-xs tabular-nums text-text-secondary'
+                        : 'text-xs tabular-nums text-text-destructive'
                     }
                   >
                     <Trans>Total</Trans> {weightTotal}%
@@ -552,7 +552,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                         value={priorityProfile.weights[key]}
                         onChange={(event) => updatePriorityWeight(key, event.target.value)}
                         disabled={priorityUpdateMutation.isPending}
-                        className="font-mono tabular-nums"
+                        className="tabular-nums"
                       />
                     </div>
                   ))}
@@ -577,7 +577,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                       updatePriorityNumber('urgencyWindowDays', event.target.value)
                     }
                     disabled={priorityUpdateMutation.isPending}
-                    className="font-mono tabular-nums"
+                    className="tabular-nums"
                   />
                 </div>
                 <div className="grid gap-1.5">
@@ -597,7 +597,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                       updatePriorityNumber('historyCapCount', event.target.value)
                     }
                     disabled={priorityUpdateMutation.isPending}
-                    className="font-mono tabular-nums"
+                    className="tabular-nums"
                   />
                 </div>
               </div>
@@ -773,14 +773,14 @@ function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOu
                   Now uses the canonical helper so the Smart Priority
                   preview table reads at the same date density as
                   /deadlines, /clients, audit log, etc. */}
-              <TableCell className="font-mono tabular-nums text-text-secondary">
+              <TableCell className="tabular-nums text-text-secondary">
                 {formatDate(row.currentDueDate)}
               </TableCell>
-              <TableCell className="text-right font-mono tabular-nums">
+              <TableCell className="text-right tabular-nums">
                 {row.previewScore.toFixed(1)}
                 <span className="ml-2 text-text-tertiary">({formatSigned(row.scoreDelta)})</span>
               </TableCell>
-              <TableCell className="text-right font-mono tabular-nums">
+              <TableCell className="text-right tabular-nums">
                 #{row.previewRank}
                 {row.rankDelta === null ? null : (
                   <span className="ml-2 text-text-tertiary">({formatSigned(row.rankDelta)})</span>
