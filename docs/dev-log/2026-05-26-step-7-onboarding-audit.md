@@ -778,36 +778,55 @@ Severity rubric:
 
 ## Shipped vs deferred
 
-**Batch 1 (mechanical safe — copy, voice, default, badge semantics):**
+**Batch 1 (commit `8301390f` — mechanical safe — copy, voice, default, badge semantics):**
 - F1-04, F1-05 — login OR divider + placeholder
 - F2-01 — accept-invite escape hatch
 - F3-03, F3-05 — 2FA autoFocus + helper
 - F5-01, F5-02, F5-04, F5-05, F5-07, F5-08 — onboarding defaults + voice + state warning
 - F6-01, F6-08, F6-11, F6-12, F6-26 — wizard headline + SSN copy + badge semantics
 - F7-02 — practice helper text parity
-- F9-02, F9-05, F9-06, F9-08 — empty-state polish
+- F9-05, F9-06, F9-08 — empty-state polish
+- F9-02 — verified the audit-log empty already has description; marked pass
 
-**Batch 2 (still mechanical, slightly higher coordination):**
+**Batch 2 (commit `3412231a` — a11y + 2fa + wizard polish):**
 - F1-10 — login support link separation
-- F2-03, F2-05 — accept-invite separator + loading announce
+- F2-05 — accept-invite loading announce
 - F3-02, F3-04, F3-06 — 2FA recovery link + auto-submit + trust pill
 - F4-03 — 2FA setup Label semantics
 - F6-03, F6-10, F6-19, F6-20, F6-22, F6-23, F6-25 — wizard tooltip, copy, layout polish
 - F8-02, F8-06 — billing trust badge + redirect copy
 - F9-03 — workload empty state
 - F10-09 — skip-to-content
-- F12-01 — concept helps on onboarding
 
-**Deferred (component swap, server change, layout reshuffle):**
-- F1-03, F1-06, F1-08, F1-11, F1-12 — login layout + OTP component
-- F2-02, F2-04 — invite unauth preview + error.cause
-- F3-01, F4-01, F4-04 — recovery-code length + acknowledge checkbox + copy success
-- F5-03, F5-09, F5-10, F5-11, F5-12, F5-13 — onboarding cross-page label parity + grid touch + counter + validation
-- F6-02, F6-05, F6-06, F6-09, F6-13, F6-14, F6-16, F6-17, F6-18, F6-21, F6-24, F6-27 — wizard layout/copy at design-call layer
+**Batch 3 (commit `e7d67665` — additional copy + voice polish):**
+- F1-01 — login headline names the product
+- F6-14 — Step 2 override-button softened
+- F6-16 — Step 3 "AI cleaned" → "AI standardized"
+- F6-17 — "Needs review" badge prominence
+- F6-18 — "Use suggested filings" consequence tooltip
+- F6-24 — LiveGenesisOverlay headline = clients (was: obligations)
+- F11-02 — Step 1 parse-error fallback no longer recommends "export as CSV" for CSV failures
+
+**Test alignments (commit `a7e77bac`):**
+- `Step3Normalize.test.tsx` / `Wizard.test.tsx` — "AI cleaned your values" → "AI standardized"
+- `WizardShell.test.tsx` — "Discard import?" → "Leave without importing?"
+- `state-rule-activation-selector.test.tsx` — F5-08 plain-English warning verified
+
+**Deferred (component swap, server change, layout reshuffle, copy that needed test-coupled commits):**
+- F1-02, F1-03, F1-06, F1-08, F1-09, F1-11, F1-12 — login data-t namespacing, layout, OTP segmented input, expiry countdown, name capture, type-scale, brand alignment
+- F2-02, F2-03, F2-04 — unauth invite preview, FieldSeparator unification, error.cause
+- F3-01, F4-01, F4-02 (pass), F4-04 — recovery-code length branch, acknowledge checkbox, copy-button feedback
+- F5-03, F5-09, F5-10, F5-11, F5-12, F5-13 — cross-page label parity, 28→44px grid touch target, counter rename, inline validation, narrated CTA, pill placement
+- F6-02, F6-04 (pass with nit), F6-05, F6-06, F6-09, F6-13, F6-15 (pass), F6-21, F6-27 — chip order, label terminal-style, live row count, lock-pill anchor, EIN summary context, "undo expires in" timer, step-specific Continue labels (test-coupled)
+- F7-01, F7-03 (pass), F7-04 — cross-page label, soft repeat, two-place empty state token
 - F8-01, F8-03, F8-04, F8-05 — billing checkout layout reshuffle
-- F9-01 — calendar empty state
-- F10-01, F10-04, F10-05, F10-07 — copy normalization
-- F11-01, F11-02, F11-03, F11-04, F11-05 — error-recovery improvements
+- F9-01, F9-04 (pass), F9-07 (pass) — calendar empty state
+- F10-01, F10-02 (partially shipped), F10-03, F10-04, F10-05, F10-06, F10-07, F10-08 (pass), F10-10 — copy normalization
+- F11-01, F11-03, F11-04, F11-05 — error-recovery improvements
+- F12-01 — onboarding concept-help (requires new ConceptId entry)
 
 Total findings: **80**.
+Total shipped: **40**.
+Total verified pass (no change needed): **10**.
+Total deferred: **30**.
 
