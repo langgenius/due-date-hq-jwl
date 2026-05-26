@@ -3999,7 +3999,7 @@ export function ObligationQueueRoute() {
               <Trans>Choose one option in each row. Export writes an audit event.</Trans>
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-5">
+          <div className="grid gap-4">
             <ExportAxis label={t`What`}>
               <ExportAxisOption
                 selected={exportScope === 'filtered'}

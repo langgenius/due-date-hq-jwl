@@ -148,7 +148,7 @@ export function RuleDetailCompact({
   const sourceLookup = useSourceLookup()
   const dueDateSummary = useMemo(() => humanizeDueDateLogic(rule.dueDateLogic), [rule.dueDateLogic])
   return (
-    <div className="flex min-w-0 flex-col gap-5">
+    <div className="flex min-w-0 flex-col gap-4">
       {/* 2026-05-26 (Yuqi /critique — P1-3 / P2-1 / P2-3):
         retired the audit meta line. It carried `rule.id` (a
         dev-internal slug — `al.individual_income_return.candidate.

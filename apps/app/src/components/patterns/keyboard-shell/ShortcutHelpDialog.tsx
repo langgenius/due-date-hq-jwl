@@ -170,7 +170,7 @@ export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogPro
           </aside>
 
           <div className="min-h-0 overflow-y-auto overscroll-contain px-4 py-4 md:px-5">
-            <div className="grid gap-5">
+            <div className="grid gap-4">
               {groups.map((group) => {
                 return (
                   <section key={group.category} className="grid gap-2">

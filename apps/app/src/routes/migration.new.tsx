@@ -39,7 +39,7 @@ export function MigrationNewRoute() {
 
   if (permission.isLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 p-4 md:p-6">
+      <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-6 p-4 md:p-6">
         <MigrationActivationIntro
           onSkip={skipToDashboard}
           onReviewRules={reviewRules}

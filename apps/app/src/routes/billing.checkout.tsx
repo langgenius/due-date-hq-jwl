@@ -356,7 +356,7 @@ export function BillingCheckoutRoute() {
               </Badge>
             </CardAction>
           </CardHeader>
-          <CardContent className="grid gap-5">
+          <CardContent className="grid gap-4">
             <div className="rounded-lg border border-divider-regular bg-background-subtle p-5">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>

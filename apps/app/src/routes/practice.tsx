@@ -422,7 +422,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="grid gap-5">
+          <form onSubmit={handleSubmit} className="grid gap-4">
             {!canEditPractice ? (
               <PermissionInlineNotice permission="firm.update" currentRole={firm.role}>
                 <Trans>Only the practice owner can change the practice name or timezone.</Trans>
@@ -517,7 +517,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             fallback={<SmartPriorityRedactedContent />}
             notice={<Trans>Only the practice owner can change Smart Priority settings.</Trans>}
           >
-            <div className="grid gap-5">
+            <div className="grid gap-4">
               <div className="grid gap-3">
                 <div className="flex items-center justify-between gap-3">
                   {/* 2026-05-25 (info-icon audit): dropped the
@@ -796,7 +796,7 @@ function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOu
 
 function SmartPriorityRedactedContent() {
   return (
-    <div className="grid gap-5 p-4">
+    <div className="grid gap-4 p-4">
       <div className="grid gap-3">
         <div className="flex items-center justify-between gap-3">
           <Skeleton className="h-4 w-28" />

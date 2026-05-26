@@ -98,7 +98,7 @@ function EvidenceDrawer({
           </SheetTitle>
           <SheetDescription>{request?.label ?? <Trans>Deadline evidence</Trans>}</SheetDescription>
         </SheetHeader>
-        <div className="grid gap-5 px-6 pb-6">
+        <div className="grid gap-4 px-6 pb-6">
           <EvidenceSummary request={request} />
           <EvidenceTimeline
             evidence={evidenceQuery.data?.evidence ?? []}

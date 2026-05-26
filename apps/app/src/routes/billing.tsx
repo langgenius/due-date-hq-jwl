@@ -241,7 +241,7 @@ export function BillingRoute() {
 
   if (firmsQuery.isLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-5 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 py-6 md:px-6">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-72 w-full" />
       </div>
@@ -267,7 +267,7 @@ export function BillingRoute() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-5 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 py-6 md:px-6">
       {/* 2026-05-24 (design-system audit): migrated from ad-hoc
           Breadcrumb + custom header to the shared `<PageHeader>`.
           Breadcrumb routes through the eyebrow slot; current plan
@@ -343,7 +343,7 @@ export function BillingRoute() {
               </Badge>
             </CardAction>
           </CardHeader>
-          <CardContent className="grid gap-5">
+          <CardContent className="grid gap-4">
             {firmsQuery.isLoading ? (
               <div className="grid gap-3 md:grid-cols-3">
                 <Skeleton className="h-20 w-full" />
@@ -690,7 +690,7 @@ function PlanOption({
           {!current && plan.badge ? <Badge variant="info">{plan.badge}</Badge> : null}
         </CardAction>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col gap-5">
+      <CardContent className="flex flex-1 flex-col gap-4">
         <div
           className={cn(
             'grid content-start gap-3',

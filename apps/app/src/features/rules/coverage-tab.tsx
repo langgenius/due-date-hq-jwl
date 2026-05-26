@@ -1350,7 +1350,7 @@ function ExpandedRowDetail({
   return (
     <TableRow className="bg-background-default hover:bg-background-default">
       <TableCell colSpan={totalColumnCount} className="p-0">
-        <div className="flex flex-col gap-5 px-6 py-4">
+        <div className="flex flex-col gap-4 px-6 py-4">
           <section className="flex flex-col gap-2">
             <p className="text-xs font-semibold tracking-[0.12em] text-text-tertiary uppercase">
               <Trans>Active rules</Trans>
@@ -2096,7 +2096,7 @@ function BulkReviewDrawer({
           </SheetDescription>
         </SheetHeader>
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             <section className="flex flex-col gap-2">
               <BulkSectionLabel>
                 <Trans>SELECTED RULES</Trans>

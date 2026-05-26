@@ -411,7 +411,7 @@ export function Step1Intake({
 
   return (
     <div
-      className={cn('flex flex-col', compact ? 'gap-3 py-3' : 'gap-5 pt-5 pb-5')}
+      className={cn('flex flex-col', compact ? 'gap-3 py-3' : 'gap-4 pt-5 pb-5')}
       id="wizard-step1-body"
     >
       <div className={cn('flex flex-col', compact ? 'gap-0.5' : 'gap-1')}>

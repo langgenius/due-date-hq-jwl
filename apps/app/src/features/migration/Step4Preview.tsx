@@ -30,7 +30,7 @@ export function Step4Preview({ summary }: Step4Props) {
   )
 
   return (
-    <div className="flex flex-col gap-5 py-5">
+    <div className="flex flex-col gap-4 py-5">
       <div className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold text-text-primary">
           <Trans>Ready to import</Trans>
