@@ -1,14 +1,14 @@
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 
-export const APP_DOCUMENT_TITLE = 'DueDateHQ'
+const APP_DOCUMENT_TITLE = 'DueDateHQ'
 
-export type RouteSummaryMessages = {
+type RouteSummaryMessages = {
   eyebrow: MessageDescriptor
   title: MessageDescriptor
 }
 
-export type RouteHandle = {
+type RouteHandle = {
   routeSummary?: RouteSummaryMessages
 }
 

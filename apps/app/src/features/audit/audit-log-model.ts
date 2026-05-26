@@ -45,7 +45,7 @@ export function categoryToInput(category: AuditCategoryOption): AuditActionCateg
 
 type AuditExportFirm = Pick<FirmPublic, 'coordinatorCanSeeDollars' | 'plan' | 'role'>
 
-export type AuditExportUnavailableReason = 'permission' | 'plan'
+type AuditExportUnavailableReason = 'permission' | 'plan'
 
 export function getAuditExportUnavailableReason(
   firm: AuditExportFirm | null | undefined,
@@ -168,8 +168,7 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'obligations.saved_view.updated': 'obligationQueueSavedViewUpdated',
 } as const
 
-export type AuditActionLabelKey =
-  (typeof AUDIT_ACTION_LABEL_KEYS)[keyof typeof AUDIT_ACTION_LABEL_KEYS]
+type AuditActionLabelKey = (typeof AUDIT_ACTION_LABEL_KEYS)[keyof typeof AUDIT_ACTION_LABEL_KEYS]
 export type AuditActionLabels = Record<AuditActionLabelKey, string>
 
 type KnownAuditAction = keyof typeof AUDIT_ACTION_LABEL_KEYS

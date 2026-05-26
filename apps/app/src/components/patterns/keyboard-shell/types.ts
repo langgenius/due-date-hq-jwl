@@ -20,7 +20,7 @@ export interface AppHotkeyMeta {
   disabledReason?: string
 }
 
-export interface ReservedShortcut {
+interface ReservedShortcut {
   id: string
   keys: string
   name: string

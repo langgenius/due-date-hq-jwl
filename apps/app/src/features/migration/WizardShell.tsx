@@ -27,7 +27,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { Stepper } from './Stepper'
 import type { StepIndex } from './state'
 
-export type WizardTransitionPhase = 'intake' | 'mapping' | 'rerun_mapper' | 'normalize' | 'import'
+type WizardTransitionPhase = 'intake' | 'mapping' | 'rerun_mapper' | 'normalize' | 'import'
 
 export interface WizardTransitionState {
   phase: WizardTransitionPhase

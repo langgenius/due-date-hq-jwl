@@ -13,7 +13,7 @@ import {
   type RuleSource,
 } from '@duedatehq/contracts'
 
-export type SourceDisplayHealth = 'healthy' | 'paused'
+type SourceDisplayHealth = 'healthy' | 'paused'
 export type SourceHealthFilter = 'all' | SourceDisplayHealth
 export type CoverageCellState = 'active' | 'review' | 'none'
 

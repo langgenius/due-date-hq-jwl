@@ -22,8 +22,8 @@ export type ClientEntityType = ClientCreateInput['entityType']
 export type ClientSourceType = 'imported' | 'manual'
 export type ClientReadinessStatus = 'ready' | 'needs_facts'
 export type ClientPulseFilter = (typeof CLIENT_PULSE_FILTERS)[number]
-export type RequiredClientFact = 'state' | 'entityType'
-export type OptionalClientFact = 'ein' | 'owner' | 'email'
+type RequiredClientFact = 'state' | 'entityType'
+type OptionalClientFact = 'ein' | 'owner' | 'email'
 
 export type ClientReadiness = {
   status: ClientReadinessStatus
@@ -31,7 +31,7 @@ export type ClientReadiness = {
   optionalGaps: OptionalClientFact[]
 }
 
-export type ClientFactsSummary = {
+type ClientFactsSummary = {
   total: number
   readyForRules: number
   needsFacts: number
@@ -58,7 +58,7 @@ export type ClientFilters = {
   pulseFilters: readonly ClientPulseFilter[]
 }
 
-export type FilterClientsContext = {
+type FilterClientsContext = {
   affectedClientIds?: ReadonlySet<string>
 }
 
@@ -143,7 +143,7 @@ export function buildClientFactsModel(clients: ClientPublic[]): ClientFactsModel
   }
 }
 
-export function getClientSearchHaystack(client: ClientPublic): string {
+function getClientSearchHaystack(client: ClientPublic): string {
   return [
     client.name,
     client.ein,

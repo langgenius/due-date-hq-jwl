@@ -15,9 +15,9 @@ import type {
 
 import type { IntakeState, PresetId } from './state'
 
-export type CanonicalFileKind = Extract<IntakeState['fileKind'], 'csv' | 'tsv' | 'xlsx'>
+type CanonicalFileKind = Extract<IntakeState['fileKind'], 'csv' | 'tsv' | 'xlsx'>
 
-export interface PreparedUpload {
+interface PreparedUpload {
   text: string
   fileName: string
   fileKind: CanonicalFileKind
@@ -28,7 +28,7 @@ export interface PreparedUpload {
   suggestedPreset: PresetId | null
 }
 
-export type UnsupportedUploadCode =
+type UnsupportedUploadCode =
   | 'file_in_time_backup'
   | 'quickbooks_backup'
   | 'quickbooks_company'
@@ -43,7 +43,7 @@ export type UnsupportedUploadCode =
   | 'legacy_excel'
   | 'unsupported_binary'
 
-export interface UnsupportedUpload {
+interface UnsupportedUpload {
   code: UnsupportedUploadCode
   fileName: string
 }
@@ -181,7 +181,7 @@ export function unsupportedUploadMessageDescriptor(input: UnsupportedUpload): Me
 // `MigrationSourceManifestWarning` records that get serialised).
 // Returns the English default of the MessageDescriptor — same
 // content as before, just sourced from one place now.
-export function unsupportedUploadMessage(input: UnsupportedUpload): string {
+function unsupportedUploadMessage(input: UnsupportedUpload): string {
   const descriptor = unsupportedUploadMessageDescriptor(input)
   // MessageDescriptor's default `message` field is the source
   // English template. For descriptors with placeholders like

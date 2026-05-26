@@ -74,7 +74,7 @@ interface AuditFilterOption {
   count: number
 }
 
-export const auditLogSearchParamsParsers = {
+const auditLogSearchParamsParsers = {
   q: parseAsString.withDefault('').withOptions(REPLACE_HISTORY_OPTIONS),
   category: parseAsStringLiteral(AUDIT_CATEGORY_OPTIONS)
     .withDefault('all')

@@ -68,7 +68,7 @@ export function sourceDefinedCalendarReviewStates(
   )
 }
 
-export interface StateRuleActivationSelectorProps {
+interface StateRuleActivationSelectorProps {
   selected: readonly RuleGenerationState[]
   onChange: (states: RuleGenerationState[]) => void
 }

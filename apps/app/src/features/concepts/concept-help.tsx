@@ -12,7 +12,7 @@ import {
 } from '@duedatehq/ui/components/ui/popover'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-export type ConceptId =
+type ConceptId =
   | 'smartPriority'
   | 'urgencyWindow'
   | 'lateFilingCap'

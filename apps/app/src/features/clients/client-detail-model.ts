@@ -81,7 +81,7 @@ export type ClientPulseMatch = {
   reason: string | null
 }
 
-export type ClientContactPlan = {
+type ClientContactPlan = {
   primaryContact: string | null
   internalOwner: string | null
   missing: Array<'primary_contact' | 'internal_owner' | 'fallback_contact'>

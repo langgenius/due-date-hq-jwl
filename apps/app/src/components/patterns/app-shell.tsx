@@ -42,7 +42,7 @@ type RouteSummary = {
   title: string
 }
 
-export type AppShellProps = {
+type AppShellProps = {
   user: AuthUser
   firm: FirmPublic
   firms: FirmPublic[]

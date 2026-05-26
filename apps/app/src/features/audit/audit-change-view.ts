@@ -7,7 +7,7 @@ import {
   type AuditActionLabels,
 } from './audit-log-model'
 
-export type AuditChangeRow = {
+type AuditChangeRow = {
   field: string
   previous: string
   next: string

@@ -645,7 +645,7 @@ interface ClientFilterOption extends FilterOption {
   county: string | null
 }
 
-export const obligationQueueSearchParamsParsers = {
+const obligationQueueSearchParamsParsers = {
   q: parseAsString.withDefault('').withOptions(REPLACE_HISTORY_OPTIONS),
   status: parseAsArrayOf(parseAsStringLiteral(ALL_STATUSES))
     .withDefault([])
@@ -695,7 +695,7 @@ export const obligationQueueSearchParamsParsers = {
   row: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
 } as const
 
-export type ObligationQueueSearchParams = inferParserType<typeof obligationQueueSearchParamsParsers>
+type ObligationQueueSearchParams = inferParserType<typeof obligationQueueSearchParamsParsers>
 
 export function isThisWeekFilterActive(daysMin: number | null, daysMax: number | null): boolean {
   return daysMin === null && daysMax === THIS_WEEK_MAX_DAYS

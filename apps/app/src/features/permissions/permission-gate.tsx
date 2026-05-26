@@ -33,7 +33,7 @@ type PermissionAction = {
   variant?: 'default' | 'outline' | undefined
 }
 
-export interface PermissionState {
+interface PermissionState {
   firm: FirmPublic | null
   isLoading: boolean
   can: (permission: FirmPermission) => boolean
@@ -117,7 +117,7 @@ export function PermissionGate({
   )
 }
 
-export function PermissionRequiredPanel({
+function PermissionRequiredPanel({
   permission,
   currentRole,
   title,

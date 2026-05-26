@@ -20,10 +20,10 @@
 
 import * as React from 'react'
 
-export type StateBadgeSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-export type StateBadgeVariant = 'auto' | 'detailed' | 'simple'
+type StateBadgeSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+type StateBadgeVariant = 'auto' | 'detailed' | 'simple'
 
-export interface StateBadgeProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'title'> {
+interface StateBadgeProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'title'> {
   /** Two-letter state code, "FED", or "IRS". Case-insensitive. */
   code: string
   size?: StateBadgeSize

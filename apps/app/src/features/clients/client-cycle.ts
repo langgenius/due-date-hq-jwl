@@ -57,7 +57,7 @@ export function readClientCycleList(): string[] {
   }
 }
 
-export type ClientCycleNeighbors = {
+type ClientCycleNeighbors = {
   prev: string | null
   next: string | null
   position: number

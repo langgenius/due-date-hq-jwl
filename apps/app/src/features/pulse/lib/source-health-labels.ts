@@ -46,7 +46,7 @@ export function passiveSourcesNeedingAttention<T extends PulseSourceHealthLabelI
   return sourcesNeedingAttention(sources).filter((source) => !isReviewablePulseSource(source))
 }
 
-export function isReviewablePulseSource(source: PulseSourceHealthLabelInput): boolean {
+function isReviewablePulseSource(source: PulseSourceHealthLabelInput): boolean {
   return source.tier === 'T1'
 }
 

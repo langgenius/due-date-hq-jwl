@@ -10,7 +10,7 @@ import { displayNameFromEmail, sendEmailSignInCode, signInWithEmailCode } from '
 
 type PendingAction = 'send' | 'resend' | 'verify'
 
-export interface EmailOtpSignInFormProps {
+interface EmailOtpSignInFormProps {
   className?: string
   disabled?: boolean
   onInteraction?: () => void

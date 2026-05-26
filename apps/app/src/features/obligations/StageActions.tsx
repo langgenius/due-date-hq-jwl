@@ -4,7 +4,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { cn } from '@/lib/utils'
 
-export type StageTaskFlavor = 'mutation' | 'routing' | 'manual'
+type StageTaskFlavor = 'mutation' | 'routing' | 'manual'
 
 export type StageTask = {
   id: string

@@ -35,7 +35,7 @@ export const authClient = createAuthClient({
 
 export const { useSession, signOut } = authClient
 
-export type AuthSessionData = ReturnType<typeof useSession>['data']
+type AuthSessionData = ReturnType<typeof useSession>['data']
 export type AuthUser = NonNullable<AuthSessionData>['user']
 
 export function signInWithGoogle(callbackURL = '/') {

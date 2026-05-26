@@ -26,7 +26,7 @@ type FilterOption<T extends string> = {
  * plain strings through their loaders, so this adapter keeps that
  * ergonomics-of-strings while routing through the single source of truth.
  */
-export function RulesPageHeader({
+function RulesPageHeader({
   title,
   description,
   breadcrumbs,
