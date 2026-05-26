@@ -25,6 +25,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronUpIcon,
+  CircleHelpIcon,
   ClipboardCheckIcon,
   ClipboardListIcon,
   EyeIcon,
@@ -235,11 +236,13 @@ const EMPTY_OBLIGATIONS: readonly ObligationInstancePublic[] = []
  */
 function TabSection({
   title,
+  titleAccessory,
   summary,
   actions,
   children,
 }: {
   title: ReactNode
+  titleAccessory?: ReactNode
   summary?: ReactNode
   actions?: ReactNode
   children: ReactNode
@@ -248,13 +251,41 @@ function TabSection({
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <h2 className="text-base font-semibold text-text-primary">{title}</h2>
+          <div className="flex min-w-0 items-center gap-1">
+            <h2 className="text-base font-semibold text-text-primary">{title}</h2>
+            {titleAccessory}
+          </div>
           {summary ? <span className="text-xs text-text-tertiary">{summary}</span> : null}
         </div>
         {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
       </div>
       {children}
     </section>
+  )
+}
+
+function RiskProfileSmartPriorityHelp() {
+  const { t } = useLingui()
+  const helpText = t`Risk profile feeds Smart Priority. Importance and recent late filings make this client's deadlines rank higher in work queues.`
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <button
+            type="button"
+            aria-label={t`Explain Risk profile`}
+            title={helpText}
+            className="inline-flex size-5 shrink-0 cursor-help items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          />
+        }
+      >
+        <CircleHelpIcon className="size-3.5" aria-hidden />
+      </TooltipTrigger>
+      <TooltipContent side="right" align="start" className="max-w-xs whitespace-normal text-left">
+        {helpText}
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
@@ -2318,6 +2349,7 @@ export function ClientDetailWorkspace({
 
                 <TabSection
                   title={t`Risk profile`}
+                  titleAccessory={<RiskProfileSmartPriorityHelp />}
                   summary={t`Penalty exposure and tax-attribute flags`}
                 >
                   <div className="rounded-md border border-divider-regular bg-background-default p-4">

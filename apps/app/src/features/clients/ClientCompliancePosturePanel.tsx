@@ -1,18 +1,8 @@
 import { useMemo } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import {
-  BanknoteIcon,
-  CalendarRangeIcon,
-  CheckIcon,
-  FileSpreadsheetIcon,
-  GlobeIcon,
-  Link2Icon,
-  UsersIcon,
-  type LucideIcon,
-} from 'lucide-react'
+import { CalendarRangeIcon } from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
-import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
@@ -20,37 +10,22 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * schema already carries but the page didn't render until now.
  *
  * Per the audit (`docs/Design/ux-audit-2026-05-21.md` Client detail
- * section) the `ClientPublic` shape stores nine compliance-relevant
- * fields (EIN value, tax-year type + fiscal year end, the five
- * filing-activity booleans, owner counts, late-filing count,
- * engagement date) — and the detail page surfaced **none** of them
- * directly. The booleans drive obligation generation server-side, so
- * the CPA had no way to verify them.
+ * section) the `ClientPublic` shape stores compliance-relevant identity
+ * fields (EIN value, tax-year type + fiscal year end, owner counts,
+ * late-filing count, engagement date) that should be visible without
+ * opening an edit form.
  *
- * This panel renders all of it as a read-only scan. Edit affordances
- * for the five booleans are deferred — there is no client-update
- * mutation that covers them today; only `updateRiskProfile`,
- * `replaceFilingProfiles`, and `updateTaxYearProfile` exist. When the
- * contract grows a generic `clients.update` (or per-flag mutation),
- * each chip should become a toggle. See
- * `docs/Design/client-page-information-architecture.md` for the
- * follow-up note.
+ * This panel intentionally does not render the legacy activity booleans.
+ * Deadlines are generated from active rules plus filing jurisdiction/profile
+ * facts; showing static activity tags here made the source of deadlines
+ * look ambiguous.
  *
- * Layout: two-column identity grid up top (EIN / tax year / owners /
- * client-since), then the five activity-scope chips in their own row.
- * Sits inside the Work tab in `ClientFactsWorkspace.tsx`.
+ * Layout: two-column identity grid (EIN / tax year / owners /
+ * client-since). Sits inside the Work tab in `ClientFactsWorkspace.tsx`.
  */
 
 interface ClientCompliancePosturePanelProps {
   client: ClientPublic
-}
-
-interface ActivityChip {
-  key: string
-  label: string
-  active: boolean
-  icon: LucideIcon
-  hint: string
 }
 
 function formatFiscalYearEnd(month: number, day: number): string {
@@ -100,67 +75,9 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
 
   const clientSinceLabel = useMemo(() => formatClientSince(client.createdAt), [client.createdAt])
 
-  // The five filing-activity flags. Each has a one-line hint so the
-  // CPA knows what work is implied by the chip being active.
-  const activityChips: ActivityChip[] = useMemo(
-    () => [
-      {
-        key: 'foreign',
-        label: t`Foreign accounts`,
-        active: client.hasForeignAccounts,
-        icon: GlobeIcon,
-        hint: t`FBAR / FinCEN 114 + Form 8938 may apply`,
-      },
-      {
-        key: 'payroll',
-        label: t`Payroll`,
-        active: client.hasPayroll,
-        icon: UsersIcon,
-        hint: t`941 quarterly · 940 annual · W-2 / W-3 year-end`,
-      },
-      {
-        key: 'salesTax',
-        label: t`Sales / use tax`,
-        active: client.hasSalesTax,
-        icon: BanknoteIcon,
-        hint: t`State sales-tax filings on the registered states`,
-      },
-      {
-        key: 'vendors1099',
-        label: t`1099 vendors`,
-        active: client.has1099Vendors,
-        icon: FileSpreadsheetIcon,
-        hint: t`1099-NEC / 1099-MISC due January 31`,
-      },
-      {
-        key: 'k1',
-        label: t`K-1 activity`,
-        active: client.hasK1Activity,
-        icon: Link2Icon,
-        hint: t`Receives or issues K-1s — partnership/S-corp dependencies`,
-      },
-    ],
-    [
-      client.hasForeignAccounts,
-      client.hasPayroll,
-      client.hasSalesTax,
-      client.has1099Vendors,
-      client.hasK1Activity,
-      t,
-    ],
-  )
-
-  const activeCount = activityChips.filter((chip) => chip.active).length
   const lateFlag = client.lateFilingCountLast12mo
 
   return (
-    // 2026-05-24: dropped the panel's own h3 + uppercase eyebrow
-    // header. The wrapping <TabSection> on the Client info tab now
-    // owns the section heading + subtitle, so an inner header here
-    // doubled it. The "{N} of 5 active" count is preserved as a
-    // small inline counter chip floating on the Activity scope
-    // sub-heading below — it stays useful as a sub-section signal,
-    // it just doesn't get an h3 of its own anymore.
     <section
       aria-label={t`Compliance posture`}
       className="overflow-hidden rounded-md border border-divider-regular bg-background-default"
@@ -221,43 +138,6 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
             }
           />
         </dl>
-
-        {/* Activity scope — the five compliance booleans. Active
-          renders as a tone-coded badge with icon; inactive as a muted
-          chip with em-dash. Showing both states so the CPA can
-          *verify* the schema rather than just see what's on. The
-          "N of 5 active" count was the panel's old header counter;
-          it moved here to sit next to the sub-section label after
-          the outer h3 retired in favour of TabSection. */}
-        <div className="flex flex-col gap-2 border-t border-divider-subtle pt-4">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            {/* 2026-05-24 (clarify — critique): "Activity scope" was
-                coined jargon — first-timer CPAs read the chips below
-                (Payroll / 1099 / K-1 etc) faster than the section
-                label. "Filing activity" is the verbal form they
-                actually use ("does this client have payroll filing
-                activity?"). */}
-            <span className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
-              <Trans>Filing activity</Trans>
-            </span>
-            <span className="text-xs text-text-tertiary">
-              <Trans>{activeCount} of 5 active</Trans>
-            </span>
-          </div>
-          <ul className="flex flex-wrap gap-2">
-            {activityChips.map((chip) => (
-              <li key={chip.key}>
-                <ActivityChipPill chip={chip} />
-              </li>
-            ))}
-          </ul>
-          <p className="text-xs text-text-tertiary">
-            <Trans>
-              These flags drive what deadlines get generated for this client. Active flags need a
-              maintainer's edit flow — see the audit doc for follow-up.
-            </Trans>
-          </p>
-        </div>
       </div>
     </section>
   )
@@ -280,28 +160,5 @@ function IdentityCell({
       <dd className="text-sm text-text-primary">{value}</dd>
       {footer}
     </div>
-  )
-}
-
-function ActivityChipPill({ chip }: { chip: ActivityChip }) {
-  if (chip.active) {
-    return (
-      <Badge variant="info" className="gap-1.5 text-xs" title={chip.hint}>
-        <chip.icon className="size-3.5" aria-hidden />
-        <span>{chip.label}</span>
-        <CheckIcon className="size-3.5" aria-hidden />
-      </Badge>
-    )
-  }
-  // Inactive chip: just the label, no leading icon. The previous
-  // `MinusIcon` read as a "remove" action because the chips look
-  // tappable, but they're maintainer-only status indicators (see the
-  // help text below the chip strip). Plain text with muted color +
-  // outline border + no icon reads as "this is off / not applicable"
-  // without implying an action.
-  return (
-    <Badge variant="outline" className="gap-1.5 text-xs text-text-tertiary" title={chip.hint}>
-      <span>{chip.label}</span>
-    </Badge>
   )
 }

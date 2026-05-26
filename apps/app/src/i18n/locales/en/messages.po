@@ -464,10 +464,6 @@ msgstr "{action}: {count} rows"
 msgid "{activeCount, plural, one {# alert} other {# alerts}}"
 msgstr "{activeCount, plural, one {# alert} other {# alerts}}"
 
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "{activeCount} of 5 active"
-msgstr "{activeCount} of 5 active"
-
 #: src/routes/billing.tsx
 msgid "{activeFirmCount} active · {activeFirmLimitLabel} on this plan"
 msgstr "{activeFirmCount} active · {activeFirmLimitLabel} on this plan"
@@ -897,14 +893,6 @@ msgstr "10 seats included"
 msgid "10+ seats"
 msgstr "10+ seats"
 
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "1099 vendors"
-msgstr "1099 vendors"
-
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "1099-NEC / 1099-MISC due January 31"
-msgstr "1099-NEC / 1099-MISC due January 31"
-
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "3 seats included"
@@ -921,10 +909,6 @@ msgstr "404"
 #: src/routes/obligations.tsx
 msgid "8879 sent to client for signature"
 msgstr "8879 sent to client for signature"
-
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "941 quarterly · 940 annual · W-2 / W-3 year-end"
-msgstr "941 quarterly · 940 annual · W-2 / W-3 year-end"
 
 #: src/features/concepts/concept-help.tsx
 msgid "A background-generated explanation of the latest dashboard risk snapshot. AI explains priorities; deterministic data still drives the list."
@@ -4259,6 +4243,10 @@ msgstr "Explain {label}"
 msgid "Explain AI Mapper"
 msgstr "Explain AI Mapper"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Explain Risk profile"
+msgstr "Explain Risk profile"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Explain import template suggestions"
 msgstr "Explain import template suggestions"
@@ -4415,10 +4403,6 @@ msgstr "Failed"
 msgid "Fallback document list ready"
 msgstr "Fallback document list ready"
 
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "FBAR / FinCEN 114 + Form 8938 may apply"
-msgstr "FBAR / FinCEN 114 + Form 8938 may apply"
-
 #: src/features/migration/Step4Preview.tsx
 msgid "Federal deadlines and state deadlines with active rules will still be generated."
 msgstr "Federal deadlines and state deadlines with active rules will still be generated."
@@ -4487,10 +4471,6 @@ msgstr "Files"
 #: src/features/obligations/obligation-type.ts
 msgid "Filing"
 msgstr "Filing"
-
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "Filing activity"
-msgstr "Filing activity"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Filing and payment."
@@ -4702,10 +4682,6 @@ msgstr "For the client list, open Clients and use the top-right download arrow."
 #: src/routes/_entry-layout.tsx
 msgid "For US CPA practices"
 msgstr "For US CPA practices"
-
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "Foreign accounts"
-msgstr "Foreign accounts"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
@@ -5231,10 +5207,6 @@ msgstr "Jurisdiction"
 #: src/features/rules/coverage-tab.tsx
 msgid "Jurisdictions"
 msgstr "Jurisdictions"
-
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "K-1 activity"
-msgstr "K-1 activity"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Karbon columns vary by firm setup, so keep the header row in the file."
@@ -7389,10 +7361,6 @@ msgstr "Payment year start"
 msgid "Payments and credits"
 msgstr "Payments and credits"
 
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "Payroll"
-msgstr "Payroll"
-
 #: src/routes/obligations.tsx
 msgid "PDF report"
 msgstr "PDF report"
@@ -8176,10 +8144,6 @@ msgstr "Receipts band"
 msgid "Received"
 msgstr "Received"
 
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "Receives or issues K-1s — partnership/S-corp dependencies"
-msgstr "Receives or issues K-1s — partnership/S-corp dependencies"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Recent audited changes for this client record"
 msgstr "Recent audited changes for this client record"
@@ -8775,6 +8739,10 @@ msgid "Risk profile"
 msgstr "Risk profile"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Risk profile feeds Smart Priority. Importance and recent late filings make this client's deadlines rank higher in work queues."
+msgstr "Risk profile feeds Smart Priority. Importance and recent late filings make this client's deadlines rank higher in work queues."
+
+#: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Risk profile saved"
 msgstr "Risk profile saved"
 
@@ -8975,10 +8943,6 @@ msgstr "S Corporation"
 #: src/features/migration/Step4Preview.tsx
 msgid "Safety"
 msgstr "Safety"
-
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "Sales / use tax"
-msgstr "Sales / use tax"
 
 #: src/routes/billing.tsx
 msgid "Same AI capability as Pro"
@@ -9895,10 +9859,6 @@ msgstr "State review"
 msgid "State rule coverage"
 msgstr "State rule coverage"
 
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "State sales-tax filings on the registered states"
-msgstr "State sales-tax filings on the registered states"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "States"
 msgstr "States"
@@ -10468,10 +10428,6 @@ msgstr "then"
 #: src/features/migration/Step2Mapping.tsx
 msgid "These columns are still included in the import draft. Open details to adjust them."
 msgstr "These columns are still included in the import draft. Open details to adjust them."
-
-#: src/features/clients/ClientCompliancePosturePanel.tsx
-msgid "These flags drive what deadlines get generated for this client. Active flags need a maintainer's edit flow — see the audit doc for follow-up."
-msgstr "These flags drive what deadlines get generated for this client. Active flags need a maintainer's edit flow — see the audit doc for follow-up."
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "They are only shown during setup. Store them somewhere private before verification."
