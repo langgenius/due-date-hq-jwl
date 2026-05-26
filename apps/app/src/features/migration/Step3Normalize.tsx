@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AlertTriangleIcon, CheckCircle2Icon, ChevronDownIcon, ShieldCheckIcon } from 'lucide-react'
 
@@ -14,6 +14,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 
 import type { NormalizeState } from './state'
 import type { MatrixApplicationView } from './matrix-view'
+import { SummaryMetric } from './SummaryMetric'
 import {
   buildMatrixSummary,
   buildNormalizationSummary,
@@ -166,17 +167,6 @@ export function Step3Normalize({
           />
         </>
       )}
-    </div>
-  )
-}
-
-function SummaryMetric({ label, value }: { label: ReactNode; value: ReactNode }) {
-  return (
-    <div className="min-h-20 rounded-lg border border-divider-regular bg-background-section px-3 py-2">
-      <div className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
-        {label}
-      </div>
-      <div className="mt-2 text-lg font-semibold text-text-primary">{value}</div>
     </div>
   )
 }

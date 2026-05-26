@@ -204,7 +204,7 @@ export function RuleDetailCompact({
       <DetailSection label={<Trans>Evidence</Trans>}>
         <div className="flex min-w-0 flex-col gap-1.5">
           {rule.evidence.map((evidence) => (
-            <EvidenceCard
+            <RuleEvidenceCard
               key={evidenceKey(evidence)}
               evidence={evidence}
               source={sourceLookup.get(evidence.sourceId)}
@@ -479,9 +479,9 @@ function CandidateReviewForm({
           chip that duplicated the rule-status pill in the audit meta
           line above. Dropped per /critique — one canonical "needs
           review" signal is enough. */}
-      <SectionLabel>
+      <RuleSectionHeading>
         <Trans>Practice review</Trans>
-      </SectionLabel>
+      </RuleSectionHeading>
       <p className="text-sm text-text-secondary">
         {sourceDefined && rule.status === 'active' ? (
           <Trans>
@@ -649,7 +649,7 @@ function AiDraftReviewSkeleton() {
 // queue definition) and unused elsewhere. Recover from git if a
 // non-review surface needs the inline status renderer.
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function RuleSectionHeading({ children }: { children: React.ReactNode }) {
   // 2026-05-26 (Yuqi /critique — same canonical move as
   // DetailSection above). Practice review heading now reads at
   // the same weight as Applicability / Due date / Extension /
@@ -673,9 +673,9 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
   //     as a sentence.
   return (
     <section className="flex flex-col gap-2">
-      <SectionLabel>
+      <RuleSectionHeading>
         <Trans>Applicability</Trans>
-      </SectionLabel>
+      </RuleSectionHeading>
       <p className="text-base text-text-primary">
         <Trans>
           Applies to {formatEntityApplicability(rule.entityApplicability)} in{' '}
@@ -741,9 +741,9 @@ function DueDateLogicSection({ rule }: { rule: ObligationRule }) {
   // sits closer to the label.
   return (
     <section className="flex flex-col gap-1.5">
-      <SectionLabel>
+      <RuleSectionHeading>
         <Trans>When it's due</Trans>
-      </SectionLabel>
+      </RuleSectionHeading>
       <p className="text-base text-text-primary">{summary}</p>
     </section>
   )
@@ -762,9 +762,9 @@ function ExtensionSection({ rule }: { rule: ObligationRule }) {
   const durationMonths = extensionPolicy.durationMonths
   return (
     <section className="flex flex-col gap-2">
-      <SectionLabel>
+      <RuleSectionHeading>
         <Trans>Extension</Trans>
-      </SectionLabel>
+      </RuleSectionHeading>
       {extensionPolicy.available ? (
         <div className="flex flex-col gap-2">
           <p className="text-base text-text-primary">
@@ -835,7 +835,7 @@ function ReviewReasonsSection({ rule }: { rule: ObligationRule }) {
   // 2026-05-25 (Yuqi rule library #27, #28): the callout used to
   // float at the bottom of the dialog with no label — Yuqi asked
   // "what is this? does it have an action?" Now it carries:
-  //   - A SectionLabel-style heading so it reads as a regular
+  //   - A RuleSectionHeading-style heading so it reads as a regular
   //     section, not a random alert box
   //   - An explicit "Needs CPA review" / "Needs CPA confirmation"
   //     icon-led heading that names the work
@@ -890,16 +890,16 @@ function EvidenceSection({
   return (
     <section className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between">
-        <SectionLabel>
+        <RuleSectionHeading>
           <Trans>Evidence</Trans>
-        </SectionLabel>
+        </RuleSectionHeading>
         <span className="font-mono text-xs tabular-nums text-text-tertiary">
           {rule.evidence.length}
         </span>
       </div>
       <div className="flex flex-col gap-2">
         {rule.evidence.map((evidence) => (
-          <EvidenceCard
+          <RuleEvidenceCard
             key={evidenceKey(evidence)}
             evidence={evidence}
             source={sourceLookup.get(evidence.sourceId)}
@@ -910,7 +910,7 @@ function EvidenceSection({
   )
 }
 
-function EvidenceCard({
+function RuleEvidenceCard({
   evidence,
   source,
 }: {
@@ -1034,9 +1034,9 @@ function VerificationSection({ rule }: { rule: ObligationRule }) {
 
   return (
     <section className="flex flex-col gap-1.5 border-t border-divider-subtle pt-4">
-      <SectionLabel>
+      <RuleSectionHeading>
         <Trans>Practice review</Trans>
-      </SectionLabel>
+      </RuleSectionHeading>
       <div className="grid grid-cols-[88px_1fr] gap-y-1 text-xs">
         <span className="text-text-tertiary">
           <Trans>Reviewed by</Trans>

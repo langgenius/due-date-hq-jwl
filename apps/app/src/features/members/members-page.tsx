@@ -321,7 +321,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
       {seatsFull ? <SeatLimitBanner /> : null}
 
       <section className="flex flex-col gap-3">
-        <SectionHeader
+        <MembersSectionHeader
           title={t`Active members`}
           count={data.members.length}
           note={t`owner read-only · self read-only`}
@@ -358,7 +358,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
       </section>
 
       <section className="flex flex-col gap-3">
-        <SectionHeader
+        <MembersSectionHeader
           title={t`Pending invitations`}
           count={data.invitations.length}
           note={t`${pendingCount} pending · ${expiredCount} expired · magic link, 7-day expiry`}
@@ -683,7 +683,7 @@ function SeatLimitBanner() {
   )
 }
 
-function SectionHeader({
+function MembersSectionHeader({
   title,
   count,
   note,

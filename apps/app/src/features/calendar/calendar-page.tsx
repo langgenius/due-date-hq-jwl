@@ -474,12 +474,12 @@ function CalendarSubscriptionCard({
                 them. */}
             <div className="grid gap-1 rounded-md border border-divider-regular bg-background-subtle p-3">
               {subscription ? (
-                <MetadataRow
+                <IntegrationKeyValueRow
                   label={t`Privacy mode`}
                   value={privacyMode === 'full' ? t`Full client names` : t`Redacted client names`}
                 />
               ) : null}
-              <MetadataRow
+              <IntegrationKeyValueRow
                 label={t`Created`}
                 value={
                   subscription
@@ -487,7 +487,7 @@ function CalendarSubscriptionCard({
                     : t`Not enabled`
                 }
               />
-              <MetadataRow
+              <IntegrationKeyValueRow
                 label={t`Last accessed`}
                 value={
                   subscription?.lastAccessedAt
@@ -593,7 +593,7 @@ function CalendarSubscriptionRedactedContent() {
   )
 }
 
-function MetadataRow({ label, value }: { label: string; value: string }) {
+function IntegrationKeyValueRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3 text-sm">
       <span className="text-text-tertiary">{label}</span>

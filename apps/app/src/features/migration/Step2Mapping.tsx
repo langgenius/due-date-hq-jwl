@@ -47,6 +47,7 @@ import {
 } from './mapping-target-labels'
 import { buildMappingSummary } from './migration-summary-view-model'
 import type { MapperState } from './state'
+import { SummaryMetric } from './SummaryMetric'
 
 interface Step2Props {
   mapping: MapperState
@@ -262,17 +263,6 @@ function MappingSummaryGrid({ summary }: { summary: ReturnType<typeof buildMappi
   )
 }
 
-function SummaryMetric({ label, value }: { label: ReactNode; value: ReactNode }) {
-  return (
-    <div className="min-h-20 rounded-lg border border-divider-regular bg-background-section px-3 py-2">
-      <div className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
-        {label}
-      </div>
-      <div className="mt-2 text-lg font-semibold text-text-primary">{value}</div>
-    </div>
-  )
-}
-
 function MappingDetailsTable({
   rows,
   sampleByHeader,
@@ -332,7 +322,7 @@ function MappingDetailsTable({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <ConfidenceBadge tier={tier} confidence={row.confidence} />
+                  <MappingConfidenceTier tier={tier} confidence={row.confidence} />
                 </TableCell>
                 <TableCell className="max-w-[120px] font-mono text-xs tabular-nums wrap-break-word whitespace-normal text-text-secondary">
                   {sample}
@@ -464,7 +454,7 @@ function confidenceTier(c: number | null, target: MappingTarget): Tier {
   return 'low'
 }
 
-function ConfidenceBadge({ tier, confidence }: { tier: Tier; confidence: number | null }) {
+function MappingConfidenceTier({ tier, confidence }: { tier: Tier; confidence: number | null }) {
   if (tier === 'none' || confidence === null) {
     return <span className="text-xs text-text-tertiary">—</span>
   }
