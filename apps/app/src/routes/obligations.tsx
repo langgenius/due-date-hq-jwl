@@ -160,7 +160,7 @@ import {
   TableHeaderMultiFilter,
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
-import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
+import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
@@ -3492,7 +3492,7 @@ export function ObligationQueueRoute() {
                     {tableRows.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={visibleColumnCount} className="py-8">
-                          <EmptyState
+                          <ObligationQueueEmptyState
                             onOpenWizard={openWizard}
                             canRunMigration={canRunMigration}
                             hasActiveFilters={Boolean(
@@ -10815,7 +10815,7 @@ function ObligationQueueActionChip({
 // state. A re-home is parked behind the design brainstorm; the
 // `updateBlockedBy` RPC procedure stays on the server.
 
-function EmptyState({
+function ObligationQueueEmptyState({
   onOpenWizard,
   canRunMigration,
   hasActiveFilters,
@@ -10831,7 +10831,7 @@ function EmptyState({
   // workspace may very well have data hidden by the filter).
   // Without filters: import-clients CTA (workspace is genuinely empty).
   return (
-    <SharedEmptyState
+    <EmptyState
       title={
         hasActiveFilters ? (
           <Trans>No deadlines match these filters.</Trans>

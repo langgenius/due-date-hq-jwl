@@ -433,7 +433,7 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
           {alertsQuery.isLoading ? (
             <SkeletonList sources={sourceHealth} />
           ) : isEmpty ? (
-            <EmptyState sources={sourceHealth} />
+            <AlertsAllClearBanner sources={sourceHealth} />
           ) : (
             <>
               {/* 2026-05-25 (Yuqi Alerts #3): dropped the framed
@@ -1201,7 +1201,12 @@ function SkeletonRow({
   )
 }
 
-function EmptyState({ sources }: { sources: readonly PulseSourceHealth[] }) {
+// Named for what it actually renders ("we're watching, all clear") not
+// for the EmptyState pattern — this is a status banner, not an empty
+// state slot. Kept inline because it's specific to the Alerts surface
+// (vs the generic icon/title/cta `EmptyState` primitive shared with
+// /deadlines + /rules/library).
+function AlertsAllClearBanner({ sources }: { sources: readonly PulseSourceHealth[] }) {
   const count = enabledSourceCount(sources)
   return (
     <div className="flex items-center gap-3 rounded-md border border-dashed border-divider-regular bg-background-default p-4 text-sm text-text-secondary">

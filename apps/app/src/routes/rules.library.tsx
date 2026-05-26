@@ -64,6 +64,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
+import { KbdHint } from '@/components/patterns/kbd'
 import {
   isInteractiveEventTarget,
   useAppHotkey,
@@ -2086,20 +2087,17 @@ function LoadingState() {
 // users discover J/K + Enter + e without reading docs. Hidden on
 // narrow viewports so the toolbar doesn't wrap onto two lines.
 // Mirrors the `KeyboardHints` strip in the batch-review modal footer
-// (same `KbdHint` primitive defined further down this file).
+// (same `KbdHint` primitive from `@/components/patterns/kbd`).
 function RowNavHints() {
   return (
-    <div className="hidden flex-wrap items-center gap-2 text-caption text-text-tertiary md:flex">
-      <KbdHint k="J/K" label="row" />
-      <span aria-hidden className="text-text-tertiary/50">
-        ·
-      </span>
-      <KbdHint k="↵" label="open" />
-      <span aria-hidden className="text-text-tertiary/50">
-        ·
-      </span>
-      <KbdHint k="E" label="expand" />
-    </div>
+    <KbdHint
+      className="hidden md:inline-flex"
+      items={[
+        { keys: ['J/K'], label: 'row' },
+        { keys: ['↵'], label: 'open' },
+        { keys: ['E'], label: 'expand' },
+      ]}
+    />
   )
 }
 
@@ -3601,25 +3599,14 @@ function BatchReviewModal({
 // onto two lines.
 function KeyboardHints() {
   return (
-    <div className="hidden flex-wrap items-center gap-2 text-caption text-text-tertiary sm:flex">
-      <KbdHint k="A" label="accept" />
-      <span aria-hidden className="text-text-tertiary/50">
-        ·
-      </span>
-      <KbdHint k="←" label="prev" />
-      <KbdHint k="→" label="skip" />
-    </div>
-  )
-}
-
-function KbdHint({ k, label }: { k: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1">
-      <kbd className="inline-flex h-4 min-w-4 items-center justify-center rounded-sm border border-divider-regular bg-background-default px-1 font-mono text-caption-xs font-medium text-text-secondary">
-        {k}
-      </kbd>
-      <span>{label}</span>
-    </span>
+    <KbdHint
+      className="hidden sm:inline-flex"
+      items={[
+        { keys: ['A'], label: 'accept' },
+        { keys: ['←'], label: 'prev' },
+        { keys: ['→'], label: 'skip' },
+      ]}
+    />
   )
 }
 
