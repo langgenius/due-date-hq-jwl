@@ -24,6 +24,7 @@ import {
 } from '@duedatehq/ui/components/ui/sheet'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
+import { EmptyState } from '@/components/patterns/empty-state'
 import { orpc } from '@/lib/rpc'
 import { formatCents, formatDateTimeWithTimezone } from '@/lib/utils'
 import { buildAuditChangeView } from '@/features/audit/audit-change-view'
@@ -155,9 +156,7 @@ function EvidenceTimeline({
           <Skeleton className="h-20 w-full" />
         </div>
       ) : evidence.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-secondary">
-          <Trans>No evidence linked yet</Trans>
-        </div>
+        <EmptyState title={<Trans>No evidence linked yet</Trans>} />
       ) : (
         <div className="grid gap-3">
           {evidence.map((item) => (
@@ -631,9 +630,7 @@ function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loadin
       {loading ? (
         <Skeleton className="h-20 w-full" />
       ) : events.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-secondary">
-          <Trans>No audit events recorded for this deadline.</Trans>
-        </div>
+        <EmptyState title={<Trans>No audit events recorded for this deadline.</Trans>} />
       ) : (
         <div className="grid gap-3">
           {events.map((event) => {
