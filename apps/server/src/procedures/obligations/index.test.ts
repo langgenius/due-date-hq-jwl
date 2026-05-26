@@ -573,6 +573,37 @@ describe('obligations.createFromRule', () => {
     ])
   })
 
+  it('starts manually created applicability-review deadlines as not started', async () => {
+    const { context, createdInputs } = makeContext({
+      client: makeClient({ entityType: 's_corp', taxClassification: 's_corp', state: 'NY' }),
+      profiles: [makeProfile({ state: 'NY' })],
+      practiceRule: makePracticeRule('ny.ptet.election.2026'),
+    })
+
+    const result = await call(
+      obligationsHandlers.createFromRule,
+      {
+        clientId: CLIENT_ID,
+        ruleId: 'ny.ptet.election.2026',
+      },
+      { context },
+    )
+
+    expect(result.duplicateCount).toBe(0)
+    expect(result.obligations).toHaveLength(1)
+    expect(createdInputs).toEqual([
+      expect.objectContaining({
+        clientId: CLIENT_ID,
+        jurisdiction: 'NY',
+        taxType: 'ny_ptet_election',
+        ruleId: 'ny.ptet.election.2026',
+        status: 'pending',
+        prepStage: 'not_started',
+        reviewStage: 'not_required',
+      }),
+    ])
+  })
+
   it('honors a manually selected active rule even when the client entity differs', async () => {
     const { context, createdInputs } = makeContext({
       client: makeClient({ entityType: 'c_corp', taxClassification: 'c_corp', state: 'CA' }),

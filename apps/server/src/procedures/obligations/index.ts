@@ -487,6 +487,7 @@ async function createManualObligationsFromRuleSelections(input: {
           internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
           now: new Date(),
           generationSource: 'manual',
+          initialWorkflowState: 'pending',
         }),
       ]
     })
