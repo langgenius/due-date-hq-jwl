@@ -315,54 +315,31 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
   //     not the persisted state.
   const [hovered, setHovered] = React.useState(false)
   const targetCollapsed = collapsed && !hovered
-  // 2026-05-26 (Yuqi sidebar transition smoothness): `data-collapsed`
-  // drives CSS classes that change layout (row direction, padding,
-  // visibility, etc.) — these flip INSTANTLY when the value changes,
-  // while the sidebar's WIDTH animates over 300ms. The mismatch
-  // caused content to overflow the painted sidebar boundary mid-
-  // transition (e.g. the collapse-toggle leaking into page content
-  // during the expand animation).
+  // 2026-05-26 (Yuqi sidebar transition smoothness — v2):
   //
-  // Fix: split timing asymmetrically.
+  // Previous implementation delayed the `data-collapsed` flip by 300ms
+  // on expand to prevent content (e.g. the collapse toggle) from
+  // overflowing the rail during the width animation. That worked for
+  // the overflow case but created a worse visual: icons sat
+  // visibly "centered in the wide sidebar with no animation" for
+  // 300ms before snapping to their final left-aligned positions —
+  // looked like the animation had stopped mid-flight.
   //
-  //   • COLLAPSE (false → true): flip layout IMMEDIATELY so the row
-  //     direction changes to vertical, content shrinks horizontally,
-  //     THEN the width animates 220→56. Layout fits within the
-  //     shrinking footprint at every frame.
-  //
-  //   • EXPAND (true → false): hold the collapsed layout until the
-  //     width animation finishes 56→220, THEN flip layout to
-  //     horizontal. The expanded layout never paints inside a too-
-  //     narrow footprint.
-  //
-  // Implementation: track `renderedCollapsed` in state. On collapse
-  // it follows `targetCollapsed` immediately. On expand it follows
-  // after the width transition completes (300ms via setTimeout). The
-  // outer `overflow-hidden` clip on the inner overlay is the
-  // belt-and-suspenders backstop if the timer ever drifts.
-  //
-  // KEY INSIGHT: width and layout need different timing.
-  //   • Inner overlay WIDTH uses `targetCollapsed` directly — so
-  //     hover-expand is snappy (width starts changing immediately).
-  //   • `data-collapsed` (which drives layout direction, padding,
-  //     visibility) uses `renderedCollapsed` — delayed on expand so
-  //     the row stays in its narrow-friendly layout until the
-  //     painted area is wide enough.
-  const [renderedCollapsed, setRenderedCollapsed] = React.useState(targetCollapsed)
-  React.useEffect(() => {
-    if (targetCollapsed) {
-      setRenderedCollapsed(true)
-      return
-    }
-    const timer = window.setTimeout(() => setRenderedCollapsed(false), 300)
-    return () => window.clearTimeout(timer)
-  }, [targetCollapsed])
+  // New approach: flip `data-collapsed` IMMEDIATELY (in sync with
+  // the width transition start). The `overflow-hidden` on the inner
+  // overlay (line below) clips any momentary content overflow during
+  // the 300ms width grow, so the original "leak" concern is still
+  // covered. The icon position transitions cleanly because the label
+  // span has its own coordinated `transition-[opacity,max-width]`
+  // (see `sidebarMenuButtonVariants` below) at 240ms with the same
+  // ease curve — labels fade in as the sidebar widens, icons
+  // settle into their left-aligned positions, all in one motion.
   const overlayActive = collapsed && hovered
   return (
     <aside
       data-slot="sidebar"
       data-mobile="false"
-      data-collapsed={renderedCollapsed ? 'true' : 'false'}
+      data-collapsed={targetCollapsed ? 'true' : 'false'}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={cn(
