@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { PanelLeftIcon, PanelRightIcon } from 'lucide-react'
+import { PanelLeftIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 import { useIsMobile } from '@duedatehq/ui/hooks/use-mobile'
@@ -887,18 +887,22 @@ export function SidebarTrigger({
  */
 export function SidebarCollapseToggle({ className }: { className?: string }) {
   const { collapsed, toggleCollapsed } = useSidebar()
-  const Icon = collapsed ? PanelRightIcon : PanelLeftIcon
+  // 2026-05-26 (Yuqi: no collapse icon when collapsed): collapse-only
+  // affordance — visible ONLY when the sidebar is expanded. When the
+  // sidebar is in any collapsed state (persistent OR drawer-pressure
+  // OR hover-peek — `collapsed` from context is the effective
+  // userCollapsed||autoCollapsed), the icon hides entirely. The
+  // expand path is: hover-peek (transient label preview), ⌘B
+  // (keyboard), or clicking any nav item (always lands on expanded
+  // sidebar per `notifySidebarNavigation`).
+  if (collapsed) return null
   return (
     <button
       type="button"
       onClick={toggleCollapsed}
-      aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      aria-expanded={!collapsed}
-      title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      // 2026-05-25 (Yuqi rail alignment fix): size-6 → size-8
-      // so the toggle matches the firm-switcher trigger and bell
-      // button hit-box. All three top-row buttons now render
-      // as 32×32 squares centered in the 56px rail.
+      aria-label="Collapse sidebar"
+      aria-expanded
+      title="Collapse sidebar"
       className={cn(
         'hidden size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors',
         'hover:bg-background-default-hover hover:text-text-secondary',
@@ -907,7 +911,7 @@ export function SidebarCollapseToggle({ className }: { className?: string }) {
         className,
       )}
     >
-      <Icon className="size-4" aria-hidden />
+      <PanelLeftIcon className="size-4" aria-hidden />
     </button>
   )
 }
