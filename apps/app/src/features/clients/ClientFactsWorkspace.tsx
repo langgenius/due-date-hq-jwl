@@ -115,6 +115,7 @@ import {
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
 import { EmptyState } from '@/components/patterns/empty-state'
+import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
 import { PageHeader } from '@/components/patterns/page-header'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
@@ -1837,6 +1838,55 @@ export function ClientDetailWorkspace({
     'tab',
     parseAsStringLiteral(['work', 'info', 'discover', 'activity'] as const).withDefault('work'),
   )
+  // 2026-05-26 (Yuqi tab-body follow-ups, Task 1): wire 1/2/3/4 as
+  // hotkeys for the four tabs. Mirrors the J/K cycle pattern in
+  // ClientCycleArrows — uses `useAppHotkey` (the project's canonical
+  // hotkey primitive), gates on `useKeyboardShortcutsBlocked` so the
+  // shortcuts stay quiet inside text inputs / dialogs / drawers, and
+  // registers `meta` so each shortcut shows up in the global
+  // ShortcutHelpDialog (the `?` sheet — that's Task 4 satisfied for
+  // free). No on-screen kbd hints yet — power users discover via `?`.
+  const shortcutsBlocked = useKeyboardShortcutsBlocked()
+  useAppHotkey('1', () => void setActiveTab('work'), {
+    enabled: !shortcutsBlocked,
+    meta: {
+      id: 'clients.tab.work',
+      name: 'Work tab',
+      description: "Switch to the client's Work tab (filing plan).",
+      category: 'navigate',
+      scope: 'route',
+    },
+  })
+  useAppHotkey('2', () => void setActiveTab('info'), {
+    enabled: !shortcutsBlocked,
+    meta: {
+      id: 'clients.tab.info',
+      name: 'Client info tab',
+      description: 'Switch to the Client info tab (posture, jurisdictions, risk).',
+      category: 'navigate',
+      scope: 'route',
+    },
+  })
+  useAppHotkey('3', () => void setActiveTab('discover'), {
+    enabled: !shortcutsBlocked,
+    meta: {
+      id: 'clients.tab.discover',
+      name: 'Opportunities tab',
+      description: 'Switch to the Opportunities tab (suggested forms + cues).',
+      category: 'navigate',
+      scope: 'route',
+    },
+  })
+  useAppHotkey('4', () => void setActiveTab('activity'), {
+    enabled: !shortcutsBlocked,
+    meta: {
+      id: 'clients.tab.activity',
+      name: 'Activity tab',
+      description: 'Switch to the Activity tab (AI summary, notes, audit log).',
+      category: 'navigate',
+      scope: 'route',
+    },
+  })
   // Obligation drawer is rendered as an in-route page panel (NOT a
   // modal Sheet) when launched from the filing plan below. State
   // lives on the shared provider so any surface — this page, the
