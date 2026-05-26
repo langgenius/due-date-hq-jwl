@@ -756,17 +756,54 @@ Not a UX finding per se. ❌ not drift.
 ## Summary
 
 - **Total findings:** 185
-- **P0 (blocking / accessibility / data-correctness):** 4 (numbers 144, others called out per surface).
+- **P0 (blocking / accessibility / data-correctness):** 4
 - **P1 (daily-flow trust):** 25
 - **P2 (polish gaps):** 90
 - **P3 (nits):** 66
 
-**Shipped this pass:** see commit log below.
+### Shipped this pass (16 findings)
 
-**Deferred for follow-up passes:**
-- Full queue (`obligations.tsx`) line-by-line audit (11.5k lines)
-- Calendar / Workload / Opportunities / Audit / Reminders / Notifications feature-page audits
-- Mobile breakpoint audit
-- Hotkey + keyboard discoverability audit
-- Cross-surface error/skeleton/toast pattern extraction
+| # | Surface | Severity | Commit |
+|---|---------|----------|--------|
+| 9 | accept-invite missing-ID dead-end | P1 | `Design(ux-flow-audit-doc-auth)` |
+| 20 | onboarding "Auto-saves" lie | P1 | `Design(ux-flow-audit-doc-auth)` |
+| 22 | two-factor autoFocus | P2 | `Design(ux-flow-audit-doc-auth)` |
+| 23 | two-factor 6-digit helper | P3 | `Design(ux-flow-audit-doc-auth)` |
+| 24 | two-factor "Verifying…" label | P2 | `Design(ux-flow-audit-doc-auth)` |
+| 30 | dashboard retry button → Button variant link | P2 | `Design(ux-flow-audit-dashboard-clients)` |
+| 32 | dashboard Import-clients disabled tooltip | P1 | `Design(ux-flow-audit-dashboard-clients)` |
+| 43 | needs-attention-section aria-labels localized | P2 | `Design(ux-flow-audit-dashboard-clients)` |
+| 49 | bulk-status toast "rows" → "deadlines" | P2 | `Design(ux-flow-audit-queue-portal-misc)` |
+| 64 | clients retry button → Button variant link | P2 | `Design(ux-flow-audit-dashboard-clients)` |
+| 78 | CreateClientDialog Loader2 + aria-busy | P3 | `Design(ux-flow-audit-dashboard-clients)` |
+| 81 | CreateClientDialog autoFocus | P2 | `Design(ux-flow-audit-dashboard-clients)` |
+| 96 | Pulse "will be sent" → "queued" | P3 | `Design(ux-flow-audit-queue-portal-misc)` |
+| 112 | practice role badge drop tabular-nums | P3 | `Design(ux-flow-audit-queue-portal-misc)` |
+| 138 | migration Skip button drop ArrowRight | P3 | `Design(ux-flow-audit-queue-portal-misc)` |
+| 147 | retry-button pattern propagated to queue + detail | P2 | `Design(ux-flow-audit-queue-portal-misc)` |
+| 167 | readiness portal loading Loader2 spin | P3 | `Design(ux-flow-audit-queue-portal-misc)` |
+| 168 | readiness expired-link recovery copy | P1 | `Design(ux-flow-audit-queue-portal-misc)` |
+| 173 | readiness submit Loader2 + "Submitting…" | P3 | `Design(ux-flow-audit-queue-portal-misc)` |
+
+### Deferred for follow-up passes
+
+- **Full queue (`obligations.tsx`) line-by-line audit** — 11.5k lines; needs a dedicated audit session
+- **Calendar / Workload / Opportunities / Audit / Reminders / Notifications feature-page audits** — thin wrapper routes; the feature pages were not opened in detail this pass
+- **Mobile breakpoint audit** — `lg:` / `xl:` declarations exist but sub-`lg` layouts haven't been verified across the routes
+- **Hotkey + keyboard discoverability audit** — `?` shortcut help, ⌘K palette, ⌘/ search focus, J/K queue nav
+- **Cross-surface error / skeleton / toast pattern extraction** — `<RouteErrorAlert>` pattern should be codified once the design call lands on the canonical shape
+- **Cancel-button variant standardization** — dialogs use `outline`; alert-dialogs use `<AlertDialogCancel>`; finding #77 / #154
+- **Date-format helper consolidation** — `formatDate` vs `formatDatePretty` vs inline `Intl.DateTimeFormat`; finding #151
+- **Audit-ID exposure in toasts** — `Audit a3f2b1c8` is power-user UX surfaced indiscriminately; needs policy call (finding #48, #50)
+- **Smart Priority / practice setting consequences** — internal-deadline-offset change has no confirmation; finding #113
+- **Practice delete confirmation typed-name guard** — currently a one-click destructive primary; finding #107
+- **2FA recovery codes path** — needs verification that backup codes are surfaced post-setup; finding #144
+- **Plan-aware copy on settings** — Solo plan should reveal locked features differently; finding #105
+- **Client list count chip filtered vs total** — finding #62
+- **Mobile-aware action-prompt copy on dashboard** — finding #33
+- **Onboarding state-rule-activation "Skip" affordance** — finding #19
+- **Public readiness portal post-submit success state** — finding #170
+- **Public readiness portal status pill friendly labels** — finding #171
+- **Migration wizard CSV format docs** — finding #141
+- **Billing.success timeout state after 60s** — finding #119
 
