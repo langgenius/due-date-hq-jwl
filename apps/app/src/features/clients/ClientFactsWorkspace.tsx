@@ -36,7 +36,10 @@ import {
   CircleHelpIcon,
   ClipboardCheckIcon,
   ClipboardListIcon,
+  ExternalLinkIcon,
   EyeIcon,
+  LightbulbIcon,
+  LinkIcon,
   MailIcon,
   MapPinIcon,
   MegaphoneIcon,
@@ -114,8 +117,11 @@ import {
   TableHeaderMultiFilter,
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
+import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { EmptyState } from '@/components/patterns/empty-state'
+import { InfoBanner } from '@/components/patterns/info-banner'
 import { PageHeader } from '@/components/patterns/page-header'
+import { RowActionsMenu, type RowActionsMenuItem } from '@/components/patterns/row-actions-menu'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
 import { formatDate, formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
@@ -230,7 +236,13 @@ const EMPTY_OBLIGATIONS: readonly ObligationInstancePublic[] = []
 // visible viewport instead of paginating at a fixed 25 regardless of
 // monitor height. Constants mirror obligations.tsx so both surfaces
 // share the same row-fit math.
-const CLIENTS_ROW_HEIGHT_PX = 49 // h-12 + 1px border, mirrors /deadlines
+// 2026-05-26 (Stripe-level Phase A / §S8): row height bumped from
+// h-12 (48px) to h-14 (56px) — the "premium-feeling" Stripe rhythm
+// per the critique. The +8px per row gives the dense client list
+// more breathing room without changing the rendered cell content.
+// Constant updated in tandem so the responsive page-size math still
+// accurately measures rows-that-fit (was 49 = 48 + 1px border).
+const CLIENTS_ROW_HEIGHT_PX = 57 // h-14 + 1px border
 const CLIENTS_PAGE_SIZE_MIN = 8
 const CLIENTS_PAGE_SIZE_MAX = 50
 // Inside-card chrome subtracted from the table-card's clientHeight:
@@ -727,6 +739,25 @@ export function ClientFactsWorkspace({
   const navigate = useNavigate()
   const currentUserName = useCurrentUserName()
   const { openDrawer: openClientDrawer } = useClientDrawer()
+  // 2026-05-26 (Stripe Phase B per-row ⋯): hoisted above the columns
+  // useMemo because the rowActions column declares this in its deps
+  // array. Previously declared further down (after the React Table
+  // hook), but the deps eval order forces it earlier in the closure.
+  const handleOpenClientDetail = useCallback(
+    (clientId: string) => {
+      // 2026-05-24 (useEffect audit): persist the currently-visible
+      // client order to sessionStorage at navigation time so the
+      // detail page can offer prev/next cycling across the same
+      // filter subset.
+      // 2026-05-24 (merge): adopted the `clientDetailPath()` helper
+      // for the readable /clients/<slug>-<id> URL. Falls back to the
+      // raw id when the client isn't in the current list.
+      writeClientCycleList(filteredClients.map((client) => client.id))
+      const client = clients.find((candidate) => candidate.id === clientId)
+      void navigate(client ? clientDetailPath(client) : `/clients/${clientId}`)
+    },
+    [clients, filteredClients, navigate],
+  )
   // 2026-05-25 (Yuqi /clients #8): header-filter open-state retired
   // with the move of all filter dropdowns into the ClientsFilterToolbar
   // strip above the table. Each toolbar trigger now manages its own
@@ -835,8 +866,15 @@ export function ClientFactsWorkspace({
                     primary identity, so it earns a scale tier
                     above the other body cells. Other cells inherit
                     the table's default text-sm via the
-                    `[&_td]:py-2` block above. */}
-                <span className="truncate text-base font-medium text-text-primary">
+                    `[&_td]:py-2` block above.
+                    2026-05-26 (Stripe-level Phase A / §S7): client
+                    name renders in `text-text-accent` (purple) +
+                    `hover:underline` so the clickable identifier
+                    carries a color signal. The row's onClick still
+                    owns navigation; the cell is not wrapped in an
+                    <a> — the color is purely a visual affordance
+                    that says "this opens detail." */}
+                <span className="truncate text-base font-medium text-text-accent group-hover:underline">
                   {row.original.name}
                 </span>
                 {readiness?.status === 'needs_facts' ? (
@@ -895,7 +933,7 @@ export function ClientFactsWorkspace({
         cell: ({ row }) => {
           const primary = getPrimaryFilingState(row.original)
           if (!primary) {
-            return <span className="text-text-tertiary">—</span>
+            return <EmptyCellMark label={t`No filing state on file`} />
           }
           const primaryFull = RULE_JURISDICTION_LABELS[primary] ?? null
           const others = getOtherFilingStates(row.original)
@@ -1002,7 +1040,7 @@ export function ClientFactsWorkspace({
         cell: ({ row }) => {
           const summary = obligationSummariesByClient.get(row.original.id)
           if (!summary?.nextDueDate) {
-            return <span className="text-text-tertiary">—</span>
+            return <EmptyCellMark label={t`No upcoming deadline`} />
           }
           return (
             <div className="flex min-w-0 flex-col gap-0.5">
@@ -1037,7 +1075,11 @@ export function ClientFactsWorkspace({
         cell: ({ row }) => {
           const count = getClientServicesCount(row.original)
           if (count === 0) {
-            return <span className="block text-right text-text-tertiary tabular-nums">—</span>
+            return (
+              <span className="block text-right">
+                <EmptyCellMark label={t`No tax-type services tracked`} />
+              </span>
+            )
           }
           // Plain count — sum of unique tax types across filing
           // profiles. No deep-link here because the destination is
@@ -1077,7 +1119,16 @@ export function ClientFactsWorkspace({
           const summary = obligationSummariesByClient.get(row.original.id)
           const count = summary?.openCount ?? 0
           if (count === 0) {
-            return <span className="block text-right text-text-tertiary tabular-nums">0</span>
+            // Open=0 renders as em-dash — Stripe-style quiet treatment
+            // that mutes the "nothing happening" row so the eye glides
+            // past it to clients who actually have work pending.
+            // Re-applied 2026-05-26 per Yuqi's "address all listed
+            // items" directive (overriding the earlier revert).
+            return (
+              <span className="block text-right">
+                <EmptyCellMark label={t`No open deadlines`} />
+              </span>
+            )
           }
           // Count becomes a deep link into the queue pre-filtered to
           // this client — the inverse of the drawer's "Open client
@@ -1184,7 +1235,7 @@ export function ClientFactsWorkspace({
         cell: ({ row }) => {
           const count = opportunityCountByClient.get(row.original.id) ?? 0
           if (count === 0) {
-            return <span className="text-text-tertiary tabular-nums">—</span>
+            return <EmptyCellMark label={t`No opportunities tracked`} />
           }
           return <ClientOpportunityCountBadge count={count} />
         },
@@ -1193,12 +1244,63 @@ export function ClientFactsWorkspace({
           cellClassName: 'w-[80px]',
         },
       },
+      {
+        // 2026-05-26 (Stripe Phase B — per-row ⋯): canonical row-action
+        // menu lives at the trailing edge of every row, mirroring how
+        // Stripe's Transactions table exposes per-row affordances.
+        // Hidden until row-hover so the table reads clean at rest;
+        // becomes visible (and tab-focusable) the moment the user
+        // gestures at the row. Stops propagation to the row's
+        // open-detail click handler so the ⋯ surface is its own
+        // unambiguous interaction.
+        id: 'rowActions',
+        header: () => <span className="sr-only">{t`Row actions`}</span>,
+        enableSorting: false,
+        cell: ({ row }) => {
+          const client = row.original
+          const detailPath = clientDetailPath(client)
+          const items: RowActionsMenuItem[] = [
+            {
+              label: t`Open detail`,
+              icon: ExternalLinkIcon,
+              onSelect: () => handleOpenClientDetail(client.id),
+            },
+            {
+              label: t`Quick peek`,
+              icon: EyeIcon,
+              onSelect: () => openClientDrawer(client.id),
+            },
+            {
+              label: t`Copy link`,
+              icon: LinkIcon,
+              onSelect: () => {
+                if (typeof window === 'undefined') return
+                try {
+                  const url = `${window.location.origin}${detailPath}`
+                  void window.navigator.clipboard?.writeText(url)
+                } catch {
+                  // Clipboard can throw in sandboxed iframes. Silent
+                  // fail is acceptable here — the action is non-critical
+                  // and the user can fall back to the address bar.
+                }
+              },
+            },
+          ]
+          return <RowActionsMenu label={t`Actions for ${client.name}`} items={items} />
+        },
+        meta: {
+          headerClassName: 'w-10',
+          cellClassName: 'w-10 text-right',
+        },
+      },
     ],
     [
       currentUserName,
       entityLabels,
       factsModel.readinessById,
+      handleOpenClientDetail,
       obligationSummariesByClient,
+      openClientDrawer,
       opportunityCountByClient,
       pulseMatchesByClient,
       t,
@@ -1275,27 +1377,6 @@ export function ClientFactsWorkspace({
   useEffect(() => {
     table.setPageSize(responsivePageSize)
   }, [responsivePageSize, table])
-  const handleOpenClientDetail = useCallback(
-    (clientId: string) => {
-      // 2026-05-24 (useEffect audit): persist the currently-visible
-      // client order to sessionStorage at navigation time so the
-      // detail page can offer prev/next cycling across the same
-      // filter subset. The previous shape ran this inside a route-
-      // level useEffect that fired on every filteredClients change;
-      // moving it here means we only pay the sessionStorage write
-      // on actual navigation intent, AND it removes one of the
-      // app's useEffect violations per the AGENTS.md rule.
-      //
-      // 2026-05-24 (merge): kept the cycle-list write AND adopted
-      // the teammates' `clientDetailPath()` helper for the readable
-      // /clients/<slug>-<id> URL. Falls back to the raw id when the
-      // client isn't in the current list (defensive).
-      writeClientCycleList(filteredClients.map((client) => client.id))
-      const client = clients.find((candidate) => candidate.id === clientId)
-      void navigate(client ? clientDetailPath(client) : `/clients/${clientId}`)
-    },
-    [clients, filteredClients, navigate],
-  )
 
   // L-2: Fix-now banner now opens an inline batch sheet
   // (FixNeedsFactsSheet) instead of narrowing the table to a
@@ -1405,7 +1486,7 @@ export function ClientFactsWorkspace({
                         role="button"
                         tabIndex={0}
                         aria-label={t`Open client detail for ${row.original.name}`}
-                        className="group h-12 cursor-pointer outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+                        className="group/row h-14 cursor-pointer outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
                         onClick={(event) => {
                           // ⌘-click (macOS) / Ctrl-click (Win/Linux) opens
                           // the read-only drawer for a quick glance without
@@ -2229,6 +2310,22 @@ export function ClientDetailWorkspace({
               }
             />
 
+            {/* 2026-05-26 (Stripe-bar /clarify pass — re-applied per
+                Yuqi's "address all" direction): inline tip pairs the
+                needs-facts signal with a dismissable CTA. The H1 chip
+                still surfaces "Add filing state" but the banner gives
+                CPAs an "act now / dismiss for later" path without
+                leaving the chip looming. Per-client dismissKey keeps
+                each client's tip independent. */}
+            {readiness?.status === 'needs_facts' ? (
+              <InfoBanner
+                icon={LightbulbIcon}
+                message={t`Add this client's filing state to start generating deadlines.`}
+                cta={{ label: t`Add filing state`, onClick: openMissingFacts }}
+                dismissKey={`client-${client.id}-needs-facts-tip`}
+              />
+            ) : null}
+
             {/* Active alerts + summary strip stay ABOVE the tabs —
                 they're global signals about the client ("anything wrong
                 with this client right now?") that apply regardless of
@@ -2293,10 +2390,16 @@ export function ClientDetailWorkspace({
                     /deadlines `ObligationQueueScopeTab` proportions
                     so both surfaces read at the same visual scale.
                     The primitive's underline-on-active stays. */}
-                <TabsTrigger value="work" className="!flex-none gap-1.5 px-3 py-1.5 text-base">
+                <TabsTrigger
+                  value="work"
+                  className="!flex-none gap-1.5 px-3 py-1.5 text-base data-active:font-semibold data-active:text-text-accent data-active:after:h-[3px] data-active:after:rounded-full data-active:after:bg-accent-default"
+                >
                   <Trans>Work</Trans>
                 </TabsTrigger>
-                <TabsTrigger value="info" className="!flex-none gap-1.5 px-3 py-1.5 text-base">
+                <TabsTrigger
+                  value="info"
+                  className="!flex-none gap-1.5 px-3 py-1.5 text-base data-active:font-semibold data-active:text-text-accent data-active:after:h-[3px] data-active:after:rounded-full data-active:after:bg-accent-default"
+                >
                   <Trans>Client info</Trans>
                   {/* 2026-05-26 (Yuqi post-revamp critique P2 / §5):
                       dot → count chip. The dot signaled "something
@@ -2319,10 +2422,16 @@ export function ClientDetailWorkspace({
                     "Suggested forms" + "Future business cues" —
                     both Opportunities. URL key stays `discover`
                     so deep links don't break. */}
-                <TabsTrigger value="discover" className="!flex-none gap-1.5 px-3 py-1.5 text-base">
+                <TabsTrigger
+                  value="discover"
+                  className="!flex-none gap-1.5 px-3 py-1.5 text-base data-active:font-semibold data-active:text-text-accent data-active:after:h-[3px] data-active:after:rounded-full data-active:after:bg-accent-default"
+                >
                   <Trans>Opportunities</Trans>
                 </TabsTrigger>
-                <TabsTrigger value="activity" className="!flex-none gap-1.5 px-3 py-1.5 text-base">
+                <TabsTrigger
+                  value="activity"
+                  className="!flex-none gap-1.5 px-3 py-1.5 text-base data-active:font-semibold data-active:text-text-accent data-active:after:h-[3px] data-active:after:rounded-full data-active:after:bg-accent-default"
+                >
                   <Trans>Activity</Trans>
                 </TabsTrigger>
               </TabsList>
@@ -3113,6 +3222,7 @@ function FilingPlanYearSection({
   isStatusChangePending: boolean
 }) {
   const { t } = useLingui()
+  const navigate = useNavigate()
   const statusPickerLabels = useLifecycleV2StatusLabels()
   // Apply panel-level sort to this year's obligations. When sort is
   // null (default), order matches whatever the API returned.
@@ -3266,6 +3376,10 @@ function FilingPlanYearSection({
             estimated-tax figure is still available inside the
             obligation drawer's Summary tab; the table view stays as a
             quick-scan grid. */}
+        {/* 2026-05-26 (Stripe Phase B per-row ⋯): trailing slot for
+            the per-row actions menu. Width matches the size-7 trigger
+            below so the column header line stays aligned. */}
+        <span className="w-7 shrink-0" aria-hidden />
       </div>
       {/* Rows — flat list against the section frame, each separated
           by a `#f3f4f6` hairline. Last row has no border-b.
@@ -3292,7 +3406,13 @@ function FilingPlanYearSection({
             <div
               key={obligation.id}
               className={cn(
-                'group/row flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors hover:bg-state-base-hover',
+                // 2026-05-26 (Stripe Phase A — /bolder): bumped row
+                // height from py-2 (~36px) to min-h-14 (56px) so the
+                // filing-plan grid carries the same generous row scan
+                // density Stripe's transaction tables use. The
+                // tap-target and visual rhythm match the /clients
+                // list (h-14) and /rules/library (h-14) rows.
+                'group/row flex min-h-14 cursor-pointer items-center gap-2 px-3 py-2 transition-colors hover:bg-state-base-hover',
                 isSelected && 'bg-state-accent-hover-alt',
                 !isLast && 'border-b border-divider-subtle',
               )}
@@ -3377,6 +3497,42 @@ function FilingPlanYearSection({
               {/* 2026-05-26 (Yuqi feedback #8): Estimated Tax cell
                   dropped with the column. Inline tax figure now
                   surfaces only in the obligation drawer (Summary tab). */}
+              {/* 2026-05-26 (Stripe Phase B per-row ⋯): canonical
+                  row-action menu. Hover-revealed so the row reads
+                  clean at rest. Exposes obligation-level actions that
+                  aren't already first-class controls on the row
+                  (the status pill + form-code button already cover
+                  the primary actions). */}
+              <RowActionsMenu
+                label={t`Actions for ${formatTaxCode(obligation.taxType)}`}
+                items={[
+                  {
+                    label: t`Open obligation`,
+                    icon: EyeIcon,
+                    onSelect: () => onOpen(obligation.id),
+                  },
+                  {
+                    label: t`View in Deadlines`,
+                    icon: ExternalLinkIcon,
+                    onSelect: () => {
+                      void navigate(`/deadlines?obligation=${obligation.id}`)
+                    },
+                  },
+                  {
+                    label: t`Copy obligation ID`,
+                    icon: LinkIcon,
+                    onSelect: () => {
+                      if (typeof window === 'undefined') return
+                      try {
+                        void window.navigator.clipboard?.writeText(obligation.id)
+                      } catch {
+                        // Clipboard can throw in sandboxed iframes.
+                        // Silent fail — the action is non-critical.
+                      }
+                    },
+                  },
+                ]}
+              />
             </div>
           )
         })}

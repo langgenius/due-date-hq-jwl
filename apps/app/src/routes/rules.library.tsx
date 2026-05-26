@@ -1,15 +1,16 @@
-import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
 import {
-  AlertTriangleIcon,
   ArrowUpRightIcon,
-  CheckCircle2Icon,
   ChevronRightIcon,
   CircleCheck,
   CircleSlash,
+  ExternalLinkIcon,
+  LibraryIcon,
+  LinkIcon,
   MessageSquareText,
   MoreHorizontalIcon,
   PlusIcon,
@@ -59,9 +60,15 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
-import { useAppHotkey } from '@/components/patterns/keyboard-shell'
+import {
+  isInteractiveEventTarget,
+  useAppHotkey,
+  useKeyboardShortcutsBlocked,
+} from '@/components/patterns/keyboard-shell'
 import { PageHeader } from '@/components/patterns/page-header'
+import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { RuleDetailCompact, RuleDetailInline } from '@/features/rules/rule-detail-drawer'
@@ -126,22 +133,27 @@ const ENTITY_LABELS: Record<EntityKey, string> = {
 
 type CoverageState = 'active' | 'review' | 'none' | 'not_applicable'
 
-// Short column-header labels for the per-entity columns in the rules
-// table. Fit in ~36px column widths; the full name is the title attr.
-const ENTITY_COLUMN_LABELS: Record<EntityKey, string> = {
-  llc: 'LLC',
-  partnership: 'Part',
-  s_corp: 'S-Corp',
-  c_corp: 'C-Corp',
-  sole_prop: 'Sole',
-  individual: 'Ind',
-  trust: 'Trust',
-}
+// 2026-05-26 (Yuqi rule library deferred batch — /distill):
+// `ENTITY_COLUMN_LABELS` retired with the 7-column entity matrix.
+// Full-name labels in `ENTITY_LABELS` are reused on the new
+// `EntityCoverageDots` tooltip + on the gap row "No rule defined
+// for {entity}…" copy.
 
-// Total table column count: Rule + Form + 7 entity cols + Tier.
-// Status column dropped 2026-05-21 — status is now communicated by
-// the sub-section the rule sits under (NEEDS REVIEW / ACTIVE / etc.).
-const RULES_TABLE_COLUMN_COUNT = 10
+// Total table column count: Rule + Form + Tier.
+// 2026-05-26 (Yuqi rule library deferred batch — /distill): 7
+// per-entity columns dropped. Each state row used to carry a 7-cell
+// matrix (LLC / Part / S-Corp / C-Corp / Sole / Ind / Trust) with
+// count + warning-icon, plus tier bar + needs-review tag — ~12
+// elements per row, the biggest visual-density culprit per the
+// /rules/library critique. The matrix is collapsed into a single
+// compact dot-cluster summary on the state row (see
+// `EntityCoverageDots`), and per-rule applicability now lives only
+// inside the rule-detail Dialog (`RuleDetailInline` already renders
+// the "Applies to LLC, Partnership, ..." line as part of the
+// Applicability section). Status column was dropped 2026-05-21 —
+// status is communicated by the NEEDS REVIEW / ACTIVE section the
+// rule sits under.
+const RULES_TABLE_COLUMN_COUNT = 3
 
 // Status sub-grouping inside an expanded jurisdiction. Rules are
 // bucketed into these groups and rendered under a section header
@@ -257,92 +269,66 @@ function normalizeRulesLibrarySearch(search: string): string | null {
   return next.length > 0 ? `?${next}` : ''
 }
 
-// Entity coverage state cell — rendered in the per-entity columns of
-// a STATE header row. Shows `count + status icon`: count of rules
-// in this state for this entity, paired with an icon for the
-// aggregated coverage state. Resolves the prior dual-meaning issue
-// (where state and rule rows both used dot-icons): the count number
-// is unmistakably an aggregate, visually distinct from the
-// per-rule applicability dots in the rows below.
-//
-//   - active  → "8 ✓"  green count + green check
-//   - review  → "5 ⚠"  accent count + accent triangle
-//   - none    → "0 ○"  destructive count + outlined circle
-//   - N/A     → "0 -"  muted count + dash
-//
-// Reading down a column: aggregate at top, individual applicability
-// dots below.
-//
-// 2026-05-25 (status-pill audit §4 #2): the audit flagged this
-// cell's `review` color as amber and asked it to flip to blue
-// so it matches the app's "review = work in progress" reading
-// (see audit §2.1). The codebase already uses `text-text-accent`
-// here, which resolves to `--color-util-colors-primary-600`
-// (#155aef, blue) — the same blue `EntityApplicabilityCell`
-// gets via `bg-accent-default`. So the recommendation is met;
-// this comment exists so future readers don't try to re-flip
-// the token thinking the audit item is still open.
-function EntityStateCell({ count, state }: { count: number; state: CoverageState }) {
-  return (
-    <span className="inline-flex items-center justify-center gap-1">
-      <span
-        className={cn(
-          'text-sm font-semibold tabular-nums',
-          state === 'active' && 'text-state-success-solid',
-          state === 'review' && 'text-text-accent',
-          state === 'none' && 'text-text-destructive',
-          state === 'not_applicable' && 'text-text-tertiary',
-        )}
-      >
-        {count}
-      </span>
-      {state === 'active' ? (
-        <CheckCircle2Icon
-          className="size-3 shrink-0 text-state-success-solid"
-          aria-label="active"
-        />
-      ) : state === 'review' ? (
-        <AlertTriangleIcon className="size-3 shrink-0 text-text-accent" aria-label="needs review" />
-      ) : state === 'not_applicable' ? (
-        <span aria-label="not applicable" className="text-xs text-text-tertiary">
-          -
-        </span>
-      ) : (
-        <span
-          aria-label="no rule"
-          className="inline-block size-2.5 shrink-0 rounded-full border border-state-destructive-solid"
-        />
-      )}
-    </span>
-  )
-}
+// 2026-05-26 (Yuqi rule library deferred batch — /distill):
+// `EntityStateCell` + `EntityApplicabilityCell` retired. The 7-column
+// entity matrix on the state row was the densest area of the table
+// (~12 elements per row); we collapsed it into a single
+// `EntityCoverageDots` summary below + moved per-rule applicability
+// into the rule-detail Dialog (`RuleDetailInline`'s Applicability
+// section already renders the "Applies to LLC, Partnership, …"
+// line). The retired components are gone — see git blame on this
+// file pre-2026-05-26 for the prior shape.
 
-// Cell-level applicability dot for the per-entity columns. If the
-// rule applies to this entity, render a colored dot tinted by the
-// rule's status; otherwise render a faint placeholder.
-function EntityApplicabilityCell({ applies, status }: { applies: boolean; status: RuleStatus }) {
-  // Quieted 2026-05-21 per /critique. The applicability dots used to
-  // be size-2 (8px) — same prominence as the state row's count+icon
-  // ABOVE them, so the column read with two competing grammars.
-  // Now: 6px (size-1.5) dot when applies, 3px (size-[3px]) faint
-  // dot when not. The header dominates the column visually; rule
-  // applicability becomes a quiet texture that scanning reads as
-  // "presence vs absence" without the dots screaming for attention.
-  if (!applies) {
-    return <span aria-hidden className="mx-auto block size-[3px] rounded-full bg-divider-subtle" />
-  }
-  const tone = STATUS_TONE[status]
+// EntityCoverageDots — compact 7-dot summary that replaces the 7
+// entity columns on a STATE row. Each dot represents one of the 7
+// entity types in canonical order (LLC, Part, S-Corp, C-Corp, Sole,
+// Ind, Trust). Green dot when this jurisdiction has at least one
+// rule for that entity, gray dot when there's a gap, faded outline
+// when the entity is N/A here. Tooltip carries the full breakdown
+// so screen readers + hover audits still get the underlying counts.
+//
+// Reads as a quiet texture (~70px wide) instead of a 12-element
+// matrix — anchors the row by the state name + count, lets the
+// trailing badges + tier bar carry the "where the work is" signal.
+function EntityCoverageDots({ group }: { group: JurisdictionGroup }) {
+  const tooltipLines = ENTITY_KEYS.map((entity) => {
+    const count = group.entityCounts[entity]
+    const isNA = group.sourceCoverage?.[entity] === 'not_applicable'
+    const state: CoverageState = isNA ? 'not_applicable' : (group.coverage?.[entity] ?? 'none')
+    const stateLabel =
+      state === 'active'
+        ? `${count} rule${count === 1 ? '' : 's'}`
+        : state === 'review'
+          ? `${count} need${count === 1 ? 's' : ''} review`
+          : state === 'not_applicable'
+            ? 'N/A'
+            : 'no rule'
+    return `${ENTITY_LABELS[entity]}: ${stateLabel}`
+  }).join('\n')
   return (
     <span
-      aria-hidden
-      className={cn(
-        'mx-auto block size-1.5 rounded-full',
-        tone === 'success' && 'bg-state-success-solid',
-        tone === 'review' && 'bg-accent-default',
-        tone === 'destructive' && 'bg-state-destructive-solid',
-        tone === 'muted' && 'bg-text-muted',
-      )}
-    />
+      className="inline-flex items-center gap-1"
+      aria-label={`Entity coverage for ${group.label}`}
+      title={tooltipLines}
+    >
+      {ENTITY_KEYS.map((entity) => {
+        const isNA = group.sourceCoverage?.[entity] === 'not_applicable'
+        const state: CoverageState = isNA ? 'not_applicable' : (group.coverage?.[entity] ?? 'none')
+        return (
+          <span
+            key={entity}
+            aria-hidden
+            className={cn(
+              'inline-block size-2 shrink-0 rounded-full',
+              state === 'active' && 'bg-state-success-solid',
+              state === 'review' && 'bg-accent-default',
+              state === 'none' && 'border border-divider-regular bg-background-default',
+              state === 'not_applicable' && 'bg-divider-subtle opacity-50',
+            )}
+          />
+        )
+      })}
+    </span>
   )
 }
 
@@ -447,9 +433,9 @@ type JurisdictionGroup = {
   hasGap: boolean
   pendingReviewCount: number
   // Count of rules in this jurisdiction applicable to each entity
-  // type. Pre-computed in buildGroups so the state-row entity cells
-  // (`EntityStateCell`) can render `count + status icon` without
-  // re-filtering on every render.
+  // type. Pre-computed in buildGroups so the state-row entity-coverage
+  // dot cluster (`EntityCoverageDots`) and its hover tooltip can read
+  // counts without re-filtering on every render.
   entityCounts: Record<EntityKey, number>
 }
 
@@ -1033,6 +1019,216 @@ export function RulesLibraryRoute() {
     </>
   )
 
+  // 2026-05-26 (Yuqi rule library deferred batch — /adapt):
+  // keyboard navigation across the rule grid. Power users running 476
+  // rules need J/K row nav + Enter/Esc/e for the same muscle memory
+  // /deadlines exposes (see obligations.tsx `useAppHotkey('J'…)`).
+  //
+  // Focused row model: a flat list of focusable "rows" in document
+  // order. Each row carries a stable id derived from its kind:
+  //   - `group:<jurisdiction>`        — state header row
+  //   - `rule:<id>`                   — rule row inside an expanded group
+  //   - `gap:<jurisdiction>:<entity>` — coverage-gap row inside an expanded group
+  //
+  // J/K advance through this flat list. Enter dispatches per kind
+  // (toggle expand / open rule detail / open new-rule modal seeded
+  // with the gap). Esc closes the rule-detail Dialog if open, otherwise
+  // clears the focused row. `e` toggles expand/collapse on the focused
+  // state group. Search results table is keyboard-navigable via the
+  // same model (its rules feed a `rule:<id>` list — no groups).
+  const [focusedRowId, setFocusedRowId] = useState<string | null>(null)
+  const shortcutsBlocked = useKeyboardShortcutsBlocked()
+
+  // Flat list of focusable row ids in document order. Recomputed when
+  // the visible rows change (search results / scope filter / expanded
+  // set). Kept as a memoized array so J/K's findIndex stays O(N) with
+  // N capped at the visible row count.
+  const focusableRowIds = useMemo<string[]>(() => {
+    const ids: string[] = []
+    if (isSearching) {
+      for (const rule of matchedRules) ids.push(`rule:${rule.id}`)
+      return ids
+    }
+    for (const group of groups) {
+      ids.push(`group:${group.jurisdiction}`)
+      if (!expanded.has(group.jurisdiction)) continue
+      for (const rule of group.rules) ids.push(`rule:${rule.id}`)
+      for (const entity of group.gapEntities) {
+        ids.push(`gap:${group.jurisdiction}:${entity}`)
+      }
+    }
+    return ids
+  }, [isSearching, matchedRules, groups, expanded])
+
+  // Clamp the focused row when it falls outside the visible set — a
+  // common case after toggling scope tabs or running a search that
+  // removes the previously focused row. Without this, J/K start from
+  // a phantom anchor and the first press feels broken.
+  useEffect(() => {
+    if (focusedRowId !== null && !focusableRowIds.includes(focusedRowId)) {
+      setFocusedRowId(null)
+    }
+  }, [focusedRowId, focusableRowIds])
+
+  const moveFocusedRow = useCallback(
+    (direction: 1 | -1) => {
+      if (focusableRowIds.length === 0) return
+      const currentIndex = focusedRowId ? focusableRowIds.indexOf(focusedRowId) : -1
+      const nextIndex =
+        currentIndex === -1
+          ? 0
+          : Math.min(focusableRowIds.length - 1, Math.max(0, currentIndex + direction))
+      const nextId = focusableRowIds[nextIndex] ?? null
+      setFocusedRowId(nextId)
+    },
+    [focusableRowIds, focusedRowId],
+  )
+
+  // Disambiguate a focused row id into the underlying domain object.
+  // Returns `null` for ids that don't resolve (stale id, race against
+  // data refetch). Memoized on `focusedRowId` + the lookup tables so
+  // re-renders don't reshape the resolved record needlessly.
+  const focusedRowKind = focusedRowId?.split(':')[0] ?? null
+  const focusedRule = useMemo(() => {
+    if (focusedRowKind !== 'rule' || !focusedRowId) return null
+    const id = focusedRowId.slice('rule:'.length)
+    return rulesById.get(id) ?? null
+  }, [focusedRowKind, focusedRowId, rulesById])
+  const focusedGroupJur = useMemo<RuleJurisdiction | null>(() => {
+    if (focusedRowKind !== 'group' || !focusedRowId) return null
+    // Validate against the live group list rather than blindly
+    // casting an arbitrary string slice — keeps the resolved value
+    // honest (typed match wins over `as RuleJurisdiction`).
+    const candidate = focusedRowId.slice('group:'.length)
+    return groups.find((g) => g.jurisdiction === candidate)?.jurisdiction ?? null
+  }, [focusedRowKind, focusedRowId, groups])
+  const focusedGap = useMemo<{ group: JurisdictionGroup; entity: EntityKey } | null>(() => {
+    if (focusedRowKind !== 'gap' || !focusedRowId) return null
+    const rest = focusedRowId.slice('gap:'.length)
+    const sep = rest.lastIndexOf(':')
+    if (sep === -1) return null
+    const jurCandidate = rest.slice(0, sep)
+    const entityCandidate = rest.slice(sep + 1)
+    const group = groups.find((g) => g.jurisdiction === jurCandidate)
+    if (!group) return null
+    const entity = ENTITY_KEYS.find((key) => key === entityCandidate)
+    if (!entity) return null
+    return { group, entity }
+  }, [focusedRowKind, focusedRowId, groups])
+
+  // J/K row navigation — mirrors /deadlines convention. `requireReset`
+  // matches obligations.tsx so the hotkey doesn't repeat-fire on hold.
+  const keyboardEnabled = focusableRowIds.length > 0 && !shortcutsBlocked
+  useAppHotkey('J', () => moveFocusedRow(1), {
+    enabled: keyboardEnabled,
+    requireReset: true,
+    meta: {
+      id: 'rules.library.next-row',
+      name: 'Next row',
+      description: 'Move the focused Rule library row down.',
+      category: 'rules',
+      scope: 'route',
+    },
+  })
+  useAppHotkey('K', () => moveFocusedRow(-1), {
+    enabled: keyboardEnabled,
+    requireReset: true,
+    meta: {
+      id: 'rules.library.previous-row',
+      name: 'Previous row',
+      description: 'Move the focused Rule library row up.',
+      category: 'rules',
+      scope: 'route',
+    },
+  })
+
+  // Enter — context-sensitive open. Toggles expand on a state group,
+  // opens the rule-detail Dialog on a rule, opens the new-rule modal
+  // seeded with the gap when a gap row is focused.
+  useAppHotkey(
+    'Enter',
+    (event) => {
+      if (isInteractiveEventTarget(event.target)) return
+      if (!focusedRowId) return
+      if (focusedGroupJur) {
+        toggleGroup(focusedGroupJur)
+        return
+      }
+      if (focusedRule) {
+        handleRuleClick(focusedRule)
+        return
+      }
+      if (focusedGap) {
+        handleAddRule(focusedGap.group, focusedGap.entity)
+      }
+    },
+    {
+      enabled: keyboardEnabled,
+      requireReset: true,
+      meta: {
+        id: 'rules.library.open',
+        name: 'Open focused row',
+        description: 'Expand the group / open the rule detail / start the gap fix.',
+        category: 'rules',
+        scope: 'route',
+      },
+    },
+  )
+
+  // `e` toggles expand/collapse on the focused state group. Per the
+  // /critique recommendation — `e` is the muscle memory other tree-y
+  // surfaces use. No-op when the focused row isn't a group (so a
+  // user reading rule rows doesn't accidentally collapse the parent).
+  useAppHotkey(
+    'E',
+    (event) => {
+      if (isInteractiveEventTarget(event.target)) return
+      if (!focusedGroupJur) return
+      toggleGroup(focusedGroupJur)
+    },
+    {
+      enabled: keyboardEnabled,
+      requireReset: true,
+      meta: {
+        id: 'rules.library.toggle-group',
+        name: 'Expand or collapse group',
+        description: 'Toggle the focused state group.',
+        category: 'rules',
+        scope: 'route',
+      },
+    },
+  )
+
+  // Esc — close the rule-detail Dialog if open, otherwise clear the
+  // focused row. Mirror of /deadlines' Esc behavior (closes the queue
+  // drawer or clears the focused row). `conflictBehavior: 'allow'`
+  // because the Dialog primitive owns its own Escape handler — we
+  // only want to fire when neither is open.
+  useAppHotkey(
+    'Escape',
+    () => {
+      if (ruleId) {
+        void setRuleId(null)
+        return
+      }
+      if (focusedRowId) {
+        setFocusedRowId(null)
+      }
+    },
+    {
+      enabled: !shortcutsBlocked,
+      requireReset: true,
+      conflictBehavior: 'allow',
+      meta: {
+        id: 'rules.library.dismiss',
+        name: 'Close drawer or clear focus',
+        description: 'Close the rule detail Dialog or clear the focused row.',
+        category: 'rules',
+        scope: 'route',
+      },
+    },
+  )
+
   // After all hooks have run, swap legacy URLs in place. Returning
   // <Navigate replace /> avoids dirtying history with the old shape.
   if (normalizedSearch !== null) {
@@ -1123,7 +1319,19 @@ export function RulesLibraryRoute() {
               rules={matchedRules}
               query={searchLower}
               onRuleClick={handleRuleClick}
+              focusedRowId={focusedRowId}
             />
+          ) : groups.length === 0 ? (
+            // 2026-05-26 (Yuqi rule library deferred batch — /clarify):
+            // first-time empty state hoisted OUT of the table chrome.
+            // Previously a bare "No rules and no coverage data yet."
+            // row sat inside the TableBody; CPAs landing here saw a
+            // sad empty table. Now we render the canonical EmptyState
+            // primitive (used by /deadlines, /clients, /alerts) with
+            // an icon, title, description, and two CTAs — Import from
+            // sources (primary, the federal/state catalog we maintain)
+            // + New rule (outline, manual entry).
+            <RulesLibraryEmptyState onNewRule={openNewRule} />
           ) : (
             <GroupedRulesTable
               groups={groups}
@@ -1136,6 +1344,7 @@ export function RulesLibraryRoute() {
               selectedRuleIds={selectedRuleIds}
               onToggleRuleSelection={toggleRuleSelection}
               onToggleRulesSelection={toggleRulesSelection}
+              focusedRowId={focusedRowId}
             />
           )}
         </div>
@@ -1244,8 +1453,13 @@ function ScopeTabBand({
             onClick={() => onChange(tab.key)}
             className={cn(
               'relative -mb-px flex shrink-0 items-center gap-1.5 px-1 py-2.5 text-sm whitespace-nowrap transition-colors',
+              // 2026-05-26 (Stripe-bar /bolder pass): active state
+              // bumped from text-text-primary → text-text-accent
+              // semibold + 3px pill-ended underline. Matches the
+              // /clients/[id] tabbar bolder treatment so the scope
+              // tabs read across the page with the same confidence.
               active
-                ? 'font-medium text-text-primary'
+                ? 'font-semibold text-text-accent'
                 : 'text-text-secondary hover:text-text-primary',
             )}
           >
@@ -1253,7 +1467,7 @@ function ScopeTabBand({
             <span
               className={cn(
                 'text-xs tabular-nums',
-                active ? 'text-text-secondary' : 'text-text-tertiary',
+                active ? 'text-text-accent' : 'text-text-tertiary',
               )}
             >
               {tab.count}
@@ -1261,7 +1475,7 @@ function ScopeTabBand({
             {active ? (
               <span
                 aria-hidden
-                className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-accent-default"
+                className="absolute inset-x-0 -bottom-[1.5px] h-[3px] rounded-full bg-accent-default"
               />
             ) : null}
           </button>
@@ -1540,6 +1754,64 @@ function LoadingState() {
   )
 }
 
+// 2026-05-26 (Yuqi rule library deferred batch — /adapt):
+// RowNavHints — the kbd-strip surfaced in the grid toolbar so power
+// users discover J/K + Enter + e without reading docs. Hidden on
+// narrow viewports so the toolbar doesn't wrap onto two lines.
+// Mirrors the `KeyboardHints` strip in the batch-review modal footer
+// (same `KbdHint` primitive defined further down this file).
+function RowNavHints() {
+  return (
+    <div className="hidden flex-wrap items-center gap-2 text-caption text-text-tertiary md:flex">
+      <KbdHint k="J/K" label="row" />
+      <span aria-hidden className="text-text-tertiary/50">
+        ·
+      </span>
+      <KbdHint k="↵" label="open" />
+      <span aria-hidden className="text-text-tertiary/50">
+        ·
+      </span>
+      <KbdHint k="E" label="expand" />
+    </div>
+  )
+}
+
+// 2026-05-26 (Yuqi rule library deferred batch — /clarify):
+// First-time empty state. Replaces the bare "No rules and no coverage
+// data yet." TableCell row that sat inside the table chrome before.
+// Uses the canonical `EmptyState` primitive shared with /deadlines +
+// /clients + /alerts; renders inside the table-card frame so the
+// chrome stays consistent across full / empty states.
+function RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
+  return (
+    <div className="flex flex-1 items-center justify-center p-6">
+      <EmptyState
+        icon={LibraryIcon}
+        title={<Trans>Your rule catalog is empty.</Trans>}
+        description={
+          <Trans>
+            Import from the federal/state sources we maintain, or write your first rule from
+            scratch.
+          </Trans>
+        }
+        cta={
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Button size="sm" render={<Link to="/rules/sources" />}>
+              <PlusIcon data-icon="inline-start" />
+              <Trans>Import from sources</Trans>
+            </Button>
+            <Button variant="outline" size="sm" onClick={onNewRule}>
+              <PlusIcon data-icon="inline-start" />
+              <Trans>New rule</Trans>
+            </Button>
+          </div>
+        }
+        className="max-w-md border-0 bg-transparent"
+      />
+    </div>
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Grouped rules table — the main visualization
 // ---------------------------------------------------------------------------
@@ -1555,6 +1827,7 @@ function GroupedRulesTable({
   selectedRuleIds,
   onToggleRuleSelection,
   onToggleRulesSelection,
+  focusedRowId,
 }: {
   groups: JurisdictionGroup[]
   expanded: Set<RuleJurisdiction>
@@ -1566,6 +1839,10 @@ function GroupedRulesTable({
   selectedRuleIds: Set<string>
   onToggleRuleSelection: (id: string) => void
   onToggleRulesSelection: (ids: readonly string[]) => void
+  // 2026-05-26 (Yuqi rule library deferred batch — /adapt):
+  // J/K keyboard nav threads the focused row id down so the
+  // matching TableRow can paint a focus ring.
+  focusedRowId: string | null
 }) {
   const { t } = useLingui()
   const tierLabels = useRuleTierLabels()
@@ -1609,38 +1886,50 @@ function GroupedRulesTable({
     //      RulesPageShell wrapper continues to own the page-level
     //      spacing.
     <div className="flex flex-col gap-3">
-      {/* Toolbar row — jurisdiction count + Expand/Collapse-all
-          button. Sits above the table so the button is discoverable
-          as a table-level action, not a column-cell affordance. */}
+      {/* Toolbar row — jurisdiction count + keyboard hint cluster +
+          Expand/Collapse-all button. Sits above the table so the
+          button is discoverable as a table-level action, not a
+          column-cell affordance.
+          2026-05-26 (Yuqi rule library deferred batch — /adapt):
+          keyboard hint strip surfaces the J/K + Enter + e contract
+          power users now have. Hidden on narrow screens (the
+          toolbar would wrap otherwise) and on touch-only sessions
+          via `sm:flex` — matches the `KeyboardHints` strip in the
+          batch-review modal footer. */}
       <div className="flex items-center justify-between gap-3 text-sm">
         <span className="text-text-secondary">
           <Plural value={groups.length} one="# jurisdiction" other="# jurisdictions" />
         </span>
-        <button
-          type="button"
-          onClick={someExpanded ? onCollapseAll : onExpandAll}
-          className="inline-flex items-center gap-1 text-sm font-medium text-text-secondary outline-none hover:text-text-primary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
-          {someExpanded ? <Trans>Collapse all</Trans> : <Trans>Expand all</Trans>}
-        </button>
+        <div className="flex items-center gap-3">
+          <RowNavHints />
+          <button
+            type="button"
+            onClick={someExpanded ? onCollapseAll : onExpandAll}
+            className="inline-flex items-center gap-1 text-sm font-medium text-text-secondary outline-none hover:text-text-primary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            {someExpanded ? <Trans>Collapse all</Trans> : <Trans>Expand all</Trans>}
+          </button>
+        </div>
       </div>
       <Table>
         <TableHeader className="sticky top-0 z-10">
           <TableRow>
-            {/* Column widths preserved (Yuqi #7 / #3 callbacks: Rule
-                52%, Form 96px, entity dots 48px each). Only the
-                text style is reset to primitive default. */}
-            <TableHead className="w-[52%]">
+            {/* 2026-05-26 (Yuqi rule library deferred batch —
+                /distill): the 7 per-entity column headers (LLC,
+                Part, S-Corp, C-Corp, Sole, Ind, Trust) are gone.
+                The state row now carries a single compact
+                entity-coverage dot cluster (see
+                `EntityCoverageDots` rendered inside
+                `GroupHeaderRow`), and per-rule applicability lives
+                only in the rule-detail Dialog. Header is now just
+                Rule / Form / Tier — the table reads like
+                /deadlines + /clients. */}
+            <TableHead className="w-[60%]">
               <Trans>Rule</Trans>
             </TableHead>
-            <TableHead className="w-[96px]">
+            <TableHead className="w-[160px]">
               <Trans>Form</Trans>
             </TableHead>
-            {ENTITY_KEYS.map((entity) => (
-              <TableHead key={entity} title={ENTITY_LABELS[entity]} className="w-12 text-left">
-                {ENTITY_COLUMN_LABELS[entity]}
-              </TableHead>
-            ))}
             <TableHead className="text-right">
               <Trans>Tier</Trans>
             </TableHead>
@@ -1651,9 +1940,14 @@ function GroupedRulesTable({
             const isExpanded = expanded.has(group.jurisdiction)
             return (
               <Fragment key={group.jurisdiction}>
-                {/* Group header row — spans all 5 columns. Chevron +
-                    name + count + entity dots in a single flex row. */}
-                <GroupHeaderRow group={group} expanded={isExpanded} onToggle={onToggle} />
+                {/* Group header row — spans all columns. Chevron +
+                    name + count + entity coverage dots inline. */}
+                <GroupHeaderRow
+                  group={group}
+                  expanded={isExpanded}
+                  onToggle={onToggle}
+                  focused={focusedRowId === `group:${group.jurisdiction}`}
+                />
                 {/* Expanded — render rules grouped by status under
                     section headers (NEEDS REVIEW / ACTIVE / etc.),
                     then coverage gaps as their own section. The
@@ -1703,6 +1997,7 @@ function GroupedRulesTable({
                               jurisdictionLabel={group.label}
                               selectable={isReviewable}
                               selected={selectedRuleIds.has(rule.id)}
+                              focused={focusedRowId === `rule:${rule.id}`}
                               onSelectChange={() => onToggleRuleSelection(rule.id)}
                               onClick={onRuleClick}
                             />
@@ -1723,6 +2018,7 @@ function GroupedRulesTable({
                             key={entity}
                             group={group}
                             entity={entity}
+                            focused={focusedRowId === `gap:${group.jurisdiction}:${entity}`}
                             onAddRule={onAddRule}
                           />
                         ))}
@@ -1744,16 +2040,12 @@ function GroupedRulesTable({
               </Fragment>
             )
           })}
-          {groups.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={RULES_TABLE_COLUMN_COUNT}
-                className="py-8 text-center text-xs text-text-tertiary"
-              >
-                <Trans>No rules and no coverage data yet.</Trans>
-              </TableCell>
-            </TableRow>
-          ) : null}
+          {/* 2026-05-26 (Yuqi rule library deferred batch — /clarify):
+              the bare "No rules and no coverage data yet." row has
+              been retired — `RulesLibraryEmptyState` now renders
+              ABOVE this table when `groups.length === 0` (see the
+              parent route). The table itself is never rendered with
+              zero groups now. */}
         </TableBody>
       </Table>
     </div>
@@ -1764,10 +2056,16 @@ function GroupHeaderRow({
   group,
   expanded,
   onToggle,
+  focused,
 }: {
   group: JurisdictionGroup
   expanded: boolean
   onToggle: (jur: RuleJurisdiction) => void
+  // 2026-05-26 (Yuqi rule library deferred batch — /adapt):
+  // J/K nav lights up the focused row with a 2px accent inset rail
+  // + matching subtle bg, mirroring /deadlines' focused-row
+  // treatment.
+  focused: boolean
 }) {
   return (
     <TableRow
@@ -1783,15 +2081,28 @@ function GroupHeaderRow({
         // chunk-divider. Letting the primitive's natural border-b
         // be the only line between states gives one clean hairline
         // and lets typography do the anchoring.
-        'cursor-pointer hover:bg-state-base-hover',
+        // 2026-05-26 (Stripe-bar /polish pass): row height bumped
+        // to h-14 (56px) so the catalog reads at the same premium
+        // breathing room as /clients + /deadlines tables.
+        'h-14 cursor-pointer hover:bg-state-base-hover',
+        focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onToggle(group.jurisdiction)}
       data-state={expanded ? 'expanded' : 'collapsed'}
     >
-      {/* Cell 1 (colSpan=2): chevron + state badge (solid tinted)
-          + full name (bigger semibold) + rule count. Promoted weight
-          per /critique — was previously the same text-sm font-medium
-          as rule titles, so the state row didn't anchor the eye. */}
+      {/* 2026-05-26 (Yuqi rule library deferred batch — /distill):
+          state row collapsed to 2 cells (was 9). The 7 per-entity
+          columns retired; the row now reads as "identity (left) →
+          summary signals (right)" — same shape as a /deadlines
+          status group header.
+
+          Cell 1 (colSpan=2): chevron + state badge + full name +
+          rule count + compact entity-coverage dot cluster. The dot
+          cluster sits inline with the name so the eye reads
+          "Alabama · 8 rules · ● ● ● ○ ● ● ●" left to right.
+
+          Cell 2 (Tier column position): attention badges (needs
+          review / missing) + tier distribution bar, right-aligned. */}
       <TableCell
         colSpan={2}
         className="py-2"
@@ -1830,29 +2141,15 @@ function GroupHeaderRow({
           <span className="text-xs tabular-nums text-text-tertiary">
             <Plural value={group.ruleCount} one="# rule" other="# rules" />
           </span>
+          {/* 2026-05-26 (Yuqi rule library deferred batch — /distill):
+              Compact entity-coverage dots replace the prior 7-cell
+              column matrix. Sits after the rule count so the row
+              reads identity-first, then the texture-level signal of
+              which entities have/lack rules. Full breakdown lives on
+              hover (title) and inside the rule-detail Dialog. */}
+          <EntityCoverageDots group={group} />
         </div>
       </TableCell>
-      {/* Cells 2-8: count + status icon per entity. Shows how many
-          rules in this state apply to each entity (aggregate),
-          colored + iconed by overall coverage state. Visually
-          distinct from rule-row applicability dots so the column
-          reads "summary on top, individual rules below." */}
-      {ENTITY_KEYS.map((entity) => {
-        const state: CoverageState =
-          group.sourceCoverage?.[entity] === 'not_applicable'
-            ? 'not_applicable'
-            : (group.coverage?.[entity] ?? 'none')
-        return (
-          <TableCell key={entity} className="py-2 text-left">
-            <EntityStateCell count={group.entityCounts[entity]} state={state} />
-          </TableCell>
-        )
-      })}
-      {/* Cell 9 (Tier column position): attention badges (needs
-          review / missing) + status distribution bar, right-aligned.
-          Moving the badges here (from the name cell on the left)
-          gives a vertical "where the work is" scan: jurisdictions
-          with active badges line up down the right edge. */}
       <TableCell className="py-2">
         <div className="flex items-center justify-end gap-3">
           {/* 2026-05-25 (Yuqi rule library #30): "N needs review"
@@ -1894,6 +2191,7 @@ function RuleTableRow({
   jurisdictionLabel: jurisLabel,
   selectable,
   selected,
+  focused,
   onSelectChange,
   onClick,
 }: {
@@ -1906,14 +2204,20 @@ function RuleTableRow({
   // affordance honest.
   selectable: boolean
   selected: boolean
+  // 2026-05-26 (Yuqi rule library deferred batch — /adapt):
+  // J/K nav focus indicator. Paints a 2px accent inset rail +
+  // subtle bg to mark "Enter opens THIS rule."
+  focused: boolean
   onSelectChange: (next: boolean) => void
   onClick: (rule: ObligationRule) => void
 }) {
-  // Memo-set for O(1) applicability lookup per entity column.
-  const applicabilitySet = useMemo(
-    () => new Set(rule.entityApplicability),
-    [rule.entityApplicability],
-  )
+  // 2026-05-26 (Yuqi rule library deferred batch — /distill):
+  // per-entity applicability dots are gone from the row. The rule-
+  // detail Dialog (`RuleDetailInline` → DetailSection "Applicability")
+  // already surfaces "Applies to LLC, Partnership, …" so the data is
+  // still discoverable on click — but the table itself no longer
+  // carries 7 dots × N rows of texture.
+
   // Strip the state prefix from the rule title since the state is
   // already in the group header above. "Alabama individual income
   // tax" → "Individual income tax". Reads cleaner; the column
@@ -1925,7 +2229,18 @@ function RuleTableRow({
     // opens a detail view"; the title underline is a secondary cue
     // that the title itself is the link target.
     <TableRow
-      className="group cursor-pointer hover:bg-state-base-hover"
+      className={cn(
+        // 2026-05-26 (Stripe-bar /polish pass): h-14 row height
+        // matches the rest of the family.
+        // 2026-05-26 (Stripe Phase B per-row ⋯): `group/row` so the
+        // canonical RowActionsMenu's hover-reveal selector
+        // (`group-hover/row:opacity-100`) keys off this row's hover
+        // state. Replaces the bare `group` so the named group token
+        // matches /clients list rows + /clients/[id] filing-plan
+        // rows for cross-surface consistency.
+        'group/row h-14 cursor-pointer hover:bg-state-base-hover',
+        focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
+      )}
       onClick={() => onClick(rule)}
       aria-label={`Open rule details for ${displayTitle}`}
       data-state={selected ? 'selected' : undefined}
@@ -1935,7 +2250,7 @@ function RuleTableRow({
           label, then the title sits after the checkbox slot. The same
           slot is reserved for non-selectable active rows so titles
           stay aligned across sections. */}
-      <TableCell className="!pl-9 min-h-10 whitespace-normal py-2 text-sm font-medium text-text-primary">
+      <TableCell className="!pl-9 min-h-10 whitespace-normal py-2 text-sm font-medium">
         <div className="flex min-w-0 items-start gap-2">
           <span className="inline-flex w-4 shrink-0 items-start pt-0.5">
             {selectable ? (
@@ -1956,7 +2271,11 @@ function RuleTableRow({
               </span>
             ) : null}
           </span>
-          <span className="group-hover:underline group-hover:underline-offset-2 group-hover:decoration-divider-regular">
+          {/* 2026-05-26 (Stripe-bar /colorize pass): rule title in
+              brand accent + hover-underline on row hover. Matches the
+              /clients list client-name treatment so primary clickable
+              identifiers read the same way across the family. */}
+          <span className="text-text-accent group-hover/row:underline group-hover/row:underline-offset-2 group-hover/row:decoration-current">
             {displayTitle}
           </span>
         </div>
@@ -1964,28 +2283,55 @@ function RuleTableRow({
       <TableCell className="py-2">
         <FormCell formName={rule.formName} taxType={rule.taxType} />
       </TableCell>
-      {/* Per-entity applicability dots. Status column dropped —
-          status is implied by the section header above.
-          2026-05-25 (Yuqi #12): left-aligned (was text-center) so
-          the dot sits at the same x-coordinate as the column
-          header above. Eye scans down a single column without
-          sweeping across centered content. */}
-      {ENTITY_KEYS.map((entity) => (
-        <TableCell key={entity} className="py-2 text-left">
-          <EntityApplicabilityCell applies={applicabilitySet.has(entity)} status={rule.status} />
-        </TableCell>
-      ))}
-      {/* Tier label + trailing affordance chevron. The chevron is
-          always rendered (so column widths stay stable) but fades in
-          only on row hover — it tells the user "clicking this row
-          opens the rule detail panel." A canonical "list item → open"
-          cue, mirroring native iOS/desktop list patterns. */}
+      {/* Tier label + trailing chevron + canonical row-action menu.
+          The chevron stays as the "this row opens detail" affordance
+          cue (fades in on row hover). The ⋯ menu lives next to it as
+          the per-row sub-action surface — Stripe Phase B pattern,
+          consistent with /clients list rows + /clients/[id]
+          filing-plan rows. */}
       <TableCell className="py-2">
         <div className="flex items-center justify-end gap-2 text-xs text-text-secondary">
           <span>{tierLabels[rule.ruleTier]}</span>
           <ChevronRightIcon
             aria-hidden
-            className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100"
+            className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover/row:opacity-100"
+          />
+          <RowActionsMenu
+            label={`Actions for ${displayTitle}`}
+            items={[
+              {
+                label: 'Open rule',
+                icon: ArrowUpRightIcon,
+                onSelect: () => onClick(rule),
+              },
+              {
+                label: 'Copy rule ID',
+                icon: LinkIcon,
+                onSelect: () => {
+                  if (typeof window === 'undefined') return
+                  try {
+                    void window.navigator.clipboard?.writeText(rule.id)
+                  } catch {
+                    // Clipboard can throw in sandboxed iframes.
+                    // Silent fail — the action is non-critical.
+                  }
+                },
+              },
+              {
+                label: 'Copy link',
+                icon: ExternalLinkIcon,
+                onSelect: () => {
+                  if (typeof window === 'undefined') return
+                  try {
+                    const url = `${window.location.origin}/rules/library?rule=${rule.id}`
+                    void window.navigator.clipboard?.writeText(url)
+                  } catch {
+                    // Clipboard can throw in sandboxed iframes.
+                    // Silent fail — the action is non-critical.
+                  }
+                },
+              },
+            ]}
           />
         </div>
       </TableCell>
@@ -1996,10 +2342,16 @@ function RuleTableRow({
 function GapTableRow({
   group,
   entity,
+  focused,
   onAddRule,
 }: {
   group: JurisdictionGroup
   entity: EntityKey
+  // 2026-05-26 (Yuqi rule library deferred batch — /adapt):
+  // J/K nav focus indicator. The gap row already carries a left
+  // destructive rail; when focused we swap to an accent rail so
+  // "focus" reads stronger than "missing".
+  focused: boolean
   onAddRule: (group: JurisdictionGroup, entity: EntityKey) => void
 }) {
   // Gap rows used to render with per-entity column dots aligned to
@@ -2015,7 +2367,13 @@ function GapTableRow({
       // vertical-scan register "this row is missing something" without
       // shouting. The [Add rule] button is the only colored CTA in the
       // table body — promoted from ghost to outlined accent.
-      className="border-l-2 border-l-state-destructive-solid bg-state-destructive-subtle/40 hover:bg-state-destructive-subtle/70"
+      className={cn(
+        'border-l-2 border-l-state-destructive-solid bg-state-destructive-subtle/40 hover:bg-state-destructive-subtle/70',
+        // When focused via J/K, paint an accent left rail + lift the
+        // bg so the row reads "you are here" louder than "this is
+        // missing" — the user is acting on it now.
+        focused && 'border-l-state-accent-solid bg-state-destructive-subtle/70',
+      )}
     >
       {/* Aligned with rule rows above (badge-left edge in the state
           header) — `!pl-[34px]` overrides the primitive's `p-3`
@@ -2155,10 +2513,16 @@ function SearchResultsTable({
   rules,
   query,
   onRuleClick,
+  focusedRowId,
 }: {
   rules: ObligationRule[]
   query: string
   onRuleClick: (rule: ObligationRule) => void
+  // 2026-05-26 (Yuqi rule library deferred batch — /adapt):
+  // J/K row nav focus id threaded down so the matching search-result
+  // row paints a focus ring. Search results carry only rule rows
+  // (no groups, no gaps), so we only check `rule:<id>` matches.
+  focusedRowId: string | null
 }) {
   const tierLabels = useRuleTierLabels()
   return (
@@ -2175,7 +2539,11 @@ function SearchResultsTable({
       {/* 2026-05-26 (Yuqi sixty-ninth pass — Rule library #2/#3):
           flat-rules table headers stripped of the kicker style
           overrides so they inherit the TableHead primitive default
-          (sm-medium normal-case, matches /deadlines + /alerts). */}
+          (sm-medium normal-case, matches /deadlines + /alerts).
+          2026-05-26 (Yuqi rule library deferred batch — /distill):
+          7 per-entity columns dropped to match the grouped view.
+          Search results now read Rule / Jurisdiction / Form / Tier;
+          per-rule applicability lives in the rule-detail Dialog. */}
       <Table>
         <TableHeader>
           <TableRow>
@@ -2188,12 +2556,7 @@ function SearchResultsTable({
             <TableHead>
               <Trans>Form</Trans>
             </TableHead>
-            {ENTITY_KEYS.map((entity) => (
-              <TableHead key={entity} title={ENTITY_LABELS[entity]} className="w-12 text-left">
-                {ENTITY_COLUMN_LABELS[entity]}
-              </TableHead>
-            ))}
-            <TableHead>
+            <TableHead className="text-right">
               <Trans>Tier</Trans>
             </TableHead>
           </TableRow>
@@ -2210,16 +2573,24 @@ function SearchResultsTable({
             </TableRow>
           ) : (
             rules.map((rule) => {
-              const applicabilitySet = new Set(rule.entityApplicability)
+              const isFocused = focusedRowId === `rule:${rule.id}`
               return (
                 <TableRow
                   key={rule.id}
-                  className="group cursor-pointer hover:bg-state-base-hover"
+                  className={cn(
+                    // 2026-05-26 (Stripe Phase B per-row ⋯): `group/row`
+                    // matches the grouped table — the canonical
+                    // RowActionsMenu's hover-reveal selector keys off
+                    // this token.
+                    'group/row cursor-pointer hover:bg-state-base-hover',
+                    isFocused &&
+                      'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
+                  )}
                   onClick={() => onRuleClick(rule)}
                   aria-label={`Open rule details for ${rule.title}`}
                 >
                   <TableCell className="whitespace-normal py-2 text-sm font-medium text-text-primary">
-                    <span className="group-hover:underline group-hover:underline-offset-2 group-hover:decoration-divider-regular">
+                    <span className="group-hover/row:underline group-hover/row:underline-offset-2 group-hover/row:decoration-divider-regular">
                       {rule.title}
                     </span>
                   </TableCell>
@@ -2229,24 +2600,51 @@ function SearchResultsTable({
                   <TableCell className="py-2">
                     <FormCell formName={rule.formName} taxType={rule.taxType} />
                   </TableCell>
-                  {ENTITY_KEYS.map((entity) => (
-                    <TableCell key={entity} className="py-2 text-left">
-                      <EntityApplicabilityCell
-                        applies={applicabilitySet.has(entity)}
-                        status={rule.status}
-                      />
-                    </TableCell>
-                  ))}
-                  {/* Trailing affordance chevron — fades in on row
-                      hover so users can see "this row opens the rule
-                      detail." Mirrors the same pattern in the grouped
-                      table above. */}
+                  {/* Trailing affordance chevron + canonical row-action
+                      menu — same shape as the grouped table above so
+                      search results carry the identical per-row
+                      affordance. */}
                   <TableCell className="py-2">
                     <div className="flex items-center justify-end gap-2 text-xs text-text-secondary">
                       <span>{tierLabels[rule.ruleTier]}</span>
                       <ChevronRightIcon
                         aria-hidden
-                        className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover:opacity-100"
+                        className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover/row:opacity-100"
+                      />
+                      <RowActionsMenu
+                        label={`Actions for ${rule.title}`}
+                        items={[
+                          {
+                            label: 'Open rule',
+                            icon: ArrowUpRightIcon,
+                            onSelect: () => onRuleClick(rule),
+                          },
+                          {
+                            label: 'Copy rule ID',
+                            icon: LinkIcon,
+                            onSelect: () => {
+                              if (typeof window === 'undefined') return
+                              try {
+                                void window.navigator.clipboard?.writeText(rule.id)
+                              } catch {
+                                // Clipboard can throw in sandboxed iframes.
+                              }
+                            },
+                          },
+                          {
+                            label: 'Copy link',
+                            icon: ExternalLinkIcon,
+                            onSelect: () => {
+                              if (typeof window === 'undefined') return
+                              try {
+                                const url = `${window.location.origin}/rules/library?rule=${rule.id}`
+                                void window.navigator.clipboard?.writeText(url)
+                              } catch {
+                                // Clipboard can throw in sandboxed iframes.
+                              }
+                            },
+                          },
+                        ]}
                       />
                     </div>
                   </TableCell>
