@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useForm, useStore } from '@tanstack/react-form'
 import { useQuery } from '@tanstack/react-query'
-import { PlusIcon } from 'lucide-react'
+import { Loader2Icon, PlusIcon } from 'lucide-react'
 import * as z from 'zod'
 
 import {
@@ -270,10 +270,15 @@ export function CreateClientDialog({
                     <FieldLabel htmlFor="client-name">
                       <Trans>Client name</Trans>
                     </FieldLabel>
+                    {/* 2026-05-26 (Step 6 UX audit #81): autoFocus on
+                        the first field so users opening the dialog
+                        can immediately start typing the client name
+                        without an extra click. Standard dialog UX. */}
                     <Input
                       id="client-name"
                       name={field.name}
                       value={field.state.value}
+                      autoFocus
                       aria-invalid={!field.state.meta.isValid}
                       onBlur={field.handleBlur}
                       onChange={(event) => field.handleChange(event.target.value)}
@@ -505,7 +510,16 @@ export function CreateClientDialog({
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               <Trans>Cancel</Trans>
             </Button>
-            <Button type="submit" disabled={isPending}>
+            {/* 2026-05-26 (Step 6 UX audit #78): Loader2 spinner
+                during pending state — matches the cross-app pattern
+                used by every other submit-pending button (login,
+                onboarding, two-factor, etc.). aria-busy preserves
+                semantic state for assistive tech even though the
+                button is also disabled. */}
+            <Button type="submit" disabled={isPending} aria-busy={isPending}>
+              {isPending ? (
+                <Loader2Icon className="size-4 animate-spin" aria-hidden />
+              ) : null}
               {isPending ? t`Creating…` : t`Create client`}
             </Button>
           </DialogFooter>

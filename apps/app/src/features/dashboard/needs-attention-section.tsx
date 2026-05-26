@@ -186,6 +186,11 @@ function AlertsEmptyState({
   sources: readonly PulseSourceHealth[]
   loading: boolean
 }) {
+  // 2026-05-26 (Step 6 UX audit #43): aria-labels below were
+  // hardcoded English strings — 'monitoring sources', 'sources
+  // failing', 'sources paused'. Lifted to `t` macro so non-English
+  // assistive-tech users get a localized announcement.
+  const { t } = useLingui()
   const enabled = sources.filter((source) => source.enabled)
   const enabledCount = enabled.length
   const failingCount = enabled.filter(
@@ -216,7 +221,7 @@ function AlertsEmptyState({
           <Trans>No sources are currently being monitored.</Trans>
         ) : allHealthy ? (
           <>
-            <Binoculars className="size-3.5 text-text-tertiary" aria-label={'monitoring sources'} />
+            <Binoculars className="size-3.5 text-text-tertiary" aria-label={t`monitoring sources`} />
             <span>
               <Plural
                 value={enabledCount}
@@ -231,7 +236,7 @@ function AlertsEmptyState({
               <>
                 <TriangleAlertIcon
                   className="size-3.5 text-text-warning"
-                  aria-label={'sources failing'}
+                  aria-label={t`sources failing`}
                 />
                 <span>
                   <Plural
@@ -251,7 +256,7 @@ function AlertsEmptyState({
               <>
                 <CircleSlashIcon
                   className="size-3.5 text-text-tertiary"
-                  aria-label={'sources paused'}
+                  aria-label={t`sources paused`}
                 />
                 <span>
                   <Plural value={pausedCount} one="# paused" other="# paused" />
