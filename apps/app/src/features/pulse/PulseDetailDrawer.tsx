@@ -1,14 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import {
-  Astroid,
-  CheckCircle2Icon,
-  MailIcon,
-  MessageSquareIcon,
-  RotateCcwIcon,
-  XIcon,
-} from 'lucide-react'
+import { Trans, useLingui } from '@lingui/react/macro'
+import { Astroid, MailIcon, MessageSquareIcon, RotateCcwIcon, XIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { FirmPublic, FirmRole, PulseFirmAlertStatus, PulseStatus } from '@duedatehq/contracts'
@@ -1059,99 +1052,6 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
       {reviewRequestDialog}
       {reasonDialog}
     </Sheet>
-  )
-}
-
-/**
- * Inline "Suggested next step" hint inside the drawer body.
- *
- * 2026-05-25 (Yuqi #24): used to show TWO cards — "Apply deadline
- * exception" AND "Prepare client draft" (with Copy + Request review
- * buttons). The Copy / Request review actions also live in the
- * persistent footer `<DrawerActions>`, so they appeared twice on
- * the same screen. Dropped the "Prepare client draft" card —
- * Copy / Request review remain available in the footer; this
- * surface now only shows the ONE contextual hint that depends on
- * selection state (apply / mark-reviewed).
- */
-// 2026-05-26 (Yuqi sixteenth pass #6): retained as orphaned code
-// for reference. The original inline action panel was retired
-// because its actions duplicated the sticky SheetFooter
-// (DrawerActions); the body now relies on the footer alone.
-// Underscore prefix silences `no-unused-vars` without losing the
-// reference implementation.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _SuggestedActionsPanel({
-  selectionCount,
-  actionMode,
-  canApply,
-  sourceRevoked,
-  isClosed,
-  isMutating,
-  onApply,
-  onMarkReviewed,
-}: {
-  selectionCount: number
-  actionMode: PulseDetail['alert']['actionMode']
-  canApply: boolean
-  sourceRevoked: boolean
-  isClosed: boolean
-  isMutating: boolean
-  onApply: () => void
-  onMarkReviewed: () => void
-}) {
-  const reviewOnly = actionMode === 'review_only'
-  const applyDisabled =
-    !canApply || isMutating || isClosed || sourceRevoked || selectionCount === 0 || reviewOnly
-  return (
-    <article className="flex items-start gap-3 rounded-md border border-divider-subtle bg-background-default p-3">
-      <span
-        aria-hidden
-        className="inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-state-accent-hover text-text-accent"
-      >
-        <CheckCircle2Icon className="size-4" />
-      </span>
-      <div className="grid min-w-0 flex-1 gap-2">
-        <div className="grid gap-0.5">
-          <h4 className="text-sm font-semibold text-text-primary">
-            {reviewOnly ? (
-              <Trans>Review source change</Trans>
-            ) : (
-              <Trans>Apply deadline exception</Trans>
-            )}
-          </h4>
-          <p className="text-sm text-text-secondary">
-            {reviewOnly ? (
-              <Trans>Review the official source and mark this Pulse reviewed when complete.</Trans>
-            ) : selectionCount === 0 ? (
-              <Trans>Select eligible deadlines above before applying.</Trans>
-            ) : (
-              <Plural
-                value={selectionCount}
-                one="# selected deadline will get the temporary due-date exception."
-                other="# selected deadlines will get the temporary due-date exception."
-              />
-            )}
-          </p>
-        </div>
-        <Button
-          size="sm"
-          disabled={
-            reviewOnly ? !canApply || isMutating || isClosed || sourceRevoked : applyDisabled
-          }
-          onClick={reviewOnly ? onMarkReviewed : onApply}
-          className="w-fit"
-        >
-          {reviewOnly ? (
-            <Trans>Mark reviewed</Trans>
-          ) : selectionCount === 0 ? (
-            <Trans>Select deadlines</Trans>
-          ) : (
-            <Plural value={selectionCount} one="Apply to # deadline" other="Apply to # deadlines" />
-          )}
-        </Button>
-      </div>
-    </article>
   )
 }
 

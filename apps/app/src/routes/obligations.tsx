@@ -54,7 +54,6 @@ import {
   ExternalLinkIcon,
   EyeIcon,
   FileArchiveIcon,
-  FileSearchIcon,
   CalendarClockIcon,
   CheckIcon,
   FileTextIcon,
@@ -96,7 +95,6 @@ import {
   type ObligationQueueExportFormat,
   type ObligationQueueExportSelectedInput,
   type ObligationReviewStage,
-  type AiInsightPublic,
   type AuditEventPublic,
   type ClientReadinessRequestPublic,
   type ClientReadinessResponsePublic,
@@ -184,7 +182,6 @@ import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { paidPlanActive } from '@/features/billing/model'
-import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import {
   ALL_STATUSES,
   LIFECYCLE_V2_STATUSES,
@@ -4686,17 +4683,6 @@ export function ObligationQueueDetailDrawer({
   const legacyStatusLabels = useStatusLabels()
   const v2StatusLabels = useLifecycleV2StatusLabels()
   const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
-  // Mirror the queue's status-set policy — under v2 the drawer pill
-  // dropdown shows only the 6 canonical lifecycle states; otherwise
-  // it surfaces the full legacy 10-state palette. Illegal transitions
-  // are surfaced as disabled items by ObligationQueueStatusControl
-  // (and re-checked server-side).
-  // 2026-05-26: statusDropdownOptions previously fed the drawer-header
-  // status control; that pill was removed (feedback #4) so the local
-  // computation is now dead in this scope. Kept as `_statusDropdown-
-  // Options` for the call site in case we restore the pill.
-  const _statusDropdownOptions = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
-  void _statusDropdownOptions
   const [extensionDraft, setExtensionDraft] = useState({
     obligationId: '',
     memo: '',
@@ -7659,306 +7645,6 @@ function EmptyPanel({ children }: { children: ReactNode }) {
   return (
     <div className="rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-tertiary">
       {children}
-    </div>
-  )
-}
-
-// Orphaned after Risk tab removal (2026-05-21). Kept as a deletion
-// candidate; underscore prefix silences eslint no-unused-vars until
-// we confirm no consumer wants it back.
-function _PenaltyBreakdownCard({ item }: { item: ObligationQueueRow['penaltyBreakdown'][number] }) {
-  const inputs = item.inputs ? Object.entries(item.inputs) : []
-  const sourceRefs = item.sourceRefs ?? []
-  return (
-    <div className="grid gap-2 rounded-lg border border-divider-regular p-3">
-      <div className="flex justify-between gap-3">
-        <span className="font-medium">{item.label}</span>
-        <span className="tabular-nums">{formatCents(item.amountCents)}</span>
-      </div>
-      <span className="text-xs text-text-tertiary">{formatPenaltyFormula(item.formula)}</span>
-      {inputs.length > 0 ? (
-        <div className="grid gap-1 text-caption text-text-tertiary">
-          {inputs.map(([key, value]) => (
-            <div key={key} className="flex justify-between gap-3">
-              <span>{penaltyInputLabel(key)}</span>
-              <span className="tabular-nums text-text-secondary">
-                {formatPenaltyInputValue(key, value)}
-              </span>
-            </div>
-          ))}
-        </div>
-      ) : null}
-      {sourceRefs.length > 0 ? <PenaltySourceList sourceRefs={sourceRefs} compact /> : null}
-    </div>
-  )
-}
-
-function PenaltySourceList({
-  sourceRefs,
-  compact = false,
-}: {
-  sourceRefs: ObligationQueueRow['penaltySourceRefs']
-  compact?: boolean
-}) {
-  return (
-    <div
-      className={compact ? 'grid gap-1' : 'grid gap-2 rounded-lg border border-divider-regular p-3'}
-    >
-      {!compact ? (
-        <p className="text-xs font-medium text-text-secondary">
-          <Trans>Penalty sources</Trans>
-        </p>
-      ) : null}
-      {sourceRefs.map((source) => (
-        <a
-          key={`${source.label}-${source.url}`}
-          href={source.url}
-          target="_blank"
-          rel="noreferrer"
-          className="grid gap-0.5 text-xs text-accent-strong hover:underline"
-        >
-          <span>{source.label}</span>
-          {!compact ? (
-            <span className="text-caption text-text-tertiary">{source.sourceExcerpt}</span>
-          ) : null}
-        </a>
-      ))}
-    </div>
-  )
-}
-
-// Orphaned after Risk tab removal — see _PenaltyBreakdownCard.
-function _penaltyFormulaDisplay(row: ObligationQueueRow): ReactNode {
-  if (row.penaltyFormulaLabel) return row.penaltyFormulaLabel
-  if (row.penaltyFormulaVersion) return <Trans>Penalty calculation available</Trans>
-  return <Trans>Not calculated</Trans>
-}
-
-// Orphaned after Risk tab removal — see _PenaltyBreakdownCard.
-function _penaltyFactsDisplay(row: ObligationQueueRow): ReactNode {
-  if (row.missingPenaltyFacts.length > 0) {
-    const labels = row.missingPenaltyFacts.map((fact) => penaltyFactLabel(fact)).join(', ')
-    return <Trans>Needs {labels}</Trans>
-  }
-  if (row.penaltyFactsVersion) return <Trans>Penalty inputs recorded</Trans>
-  return <Trans>Not entered</Trans>
-}
-
-function penaltyFactLabel(value: string): string {
-  if (value === 'estimatedTaxLiabilityCents') return 'estimated tax liability'
-  if (value === 'equityOwnerCount') return 'owner count'
-  if (value === 'partnerCount') return 'owner count'
-  if (value === 'penaltyMonths') return 'months late'
-  if (value === 'monthlyRateCents') return 'monthly penalty rate'
-  return humanizeToken(value).toLowerCase()
-}
-
-function penaltyInputLabel(key: string): ReactNode {
-  if (key === 'partnerCount' || key === 'equityOwnerCount') return <Trans>Owners</Trans>
-  if (key === 'penaltyMonths') return <Trans>Months late</Trans>
-  if (key === 'monthlyRateCents') return <Trans>Monthly penalty per owner</Trans>
-  if (key === 'estimatedTaxLiabilityCents') return <Trans>Estimated tax liability</Trans>
-  return humanizeToken(key)
-}
-
-function formatPenaltyFormula(formula: string): ReactNode {
-  const match = formula.match(
-    /^\$(?<rate>[\d,.]+)\s*x\s*(?<owners>\d+)\s*partner\(s\)\s*x\s*(?<months>\d+)\s*month\(s\)$/,
-  )
-  const rate = match?.groups?.rate
-  const owners = match?.groups?.owners
-  const months = match?.groups?.months
-  if (rate && owners && months) {
-    return (
-      <Trans>
-        ${rate} per owner x {owners} owners x {months} months
-      </Trans>
-    )
-  }
-  return formula.replaceAll('partner(s)', 'owner(s)')
-}
-
-function formatPenaltyInputValue(key: string, value: string | number | boolean | null): ReactNode {
-  if (value === null) return <Trans>Not recorded</Trans>
-  if (typeof value === 'boolean') return value ? 'true' : 'false'
-  if (typeof value === 'number') {
-    if (key.endsWith('Cents')) return formatCents(value)
-    return Number.isInteger(value) ? `${value}` : value.toFixed(2)
-  }
-  return value
-}
-
-// Orphaned after Risk tab removal — see _PenaltyBreakdownCard.
-function _DeadlineTipPanel({
-  insight,
-  isLoading,
-  isPreparing,
-  isTimedOut,
-  canRefresh,
-  practiceTimezone,
-  onRefresh,
-}: {
-  insight: AiInsightPublic | null
-  isLoading: boolean
-  isPreparing: boolean
-  isTimedOut: boolean
-  canRefresh: boolean
-  practiceTimezone: string
-  onRefresh: () => void
-}) {
-  const hasPreviousTip = Boolean(insight?.generatedAt)
-  const showFailedState = insight?.status === 'failed' && !isPreparing
-  const buttonLabel = isPreparing ? (
-    <Trans>Preparing</Trans>
-  ) : isTimedOut || showFailedState ? (
-    <Trans>Retry</Trans>
-  ) : (
-    <Trans>Refresh</Trans>
-  )
-
-  return (
-    <div className="grid gap-3 rounded-lg border border-divider-regular bg-background-section p-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <FileSearchIcon className="size-4 text-text-secondary" aria-hidden />
-          <span className="text-sm font-medium text-text-primary">
-            <ConceptLabel concept="deadlineTip">
-              <Trans>Deadline tip</Trans>
-            </ConceptLabel>
-          </span>
-          {isPreparing ? (
-            <Badge variant="warning">
-              <Trans>Preparing</Trans>
-            </Badge>
-          ) : insight ? (
-            <InsightStatusBadge status={insight.status} />
-          ) : null}
-        </div>
-        {canRefresh ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            disabled={isPreparing}
-            onClick={onRefresh}
-          >
-            <RefreshCwIcon data-icon="inline-start" />
-            {buttonLabel}
-          </Button>
-        ) : (
-          <UpgradeCtaButton />
-        )}
-      </div>
-      {isLoading ? (
-        <div className="text-sm text-text-tertiary">
-          <Trans>Loading deadline tip…</Trans>
-        </div>
-      ) : insight ? (
-        <div className="grid gap-3">
-          {isPreparing ? (
-            <AlertPanel>
-              {hasPreviousTip ? (
-                <Trans>Showing the previous tip while the latest one is being prepared.</Trans>
-              ) : (
-                <Trans>Preparing tip from verified deadline context.</Trans>
-              )}
-            </AlertPanel>
-          ) : null}
-          {isTimedOut ? (
-            <AlertPanel>
-              <Trans>Still preparing. You can leave this page and check back later.</Trans>
-            </AlertPanel>
-          ) : null}
-          {showFailedState ? (
-            <AlertPanel>
-              <Trans>
-                Couldn't prepare the latest tip. Showing the previous version when available.
-              </Trans>
-            </AlertPanel>
-          ) : null}
-          {insight.sections.map((section) => (
-            <div key={section.key} className="grid gap-1">
-              <p className="text-sm font-medium text-text-primary">{section.label}</p>
-              <p className="text-sm text-text-secondary">{section.text}</p>
-              <InsightCitationChips insight={insight} citationRefs={section.citationRefs} />
-            </div>
-          ))}
-          {insight.generatedAt ? (
-            <span className="text-xs text-text-tertiary">
-              <Trans>
-                Updated {formatDateTimeWithTimezone(insight.generatedAt, practiceTimezone)}
-              </Trans>
-            </span>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
-function InsightStatusBadge({ status }: { status: AiInsightPublic['status'] }) {
-  if (status === 'ready')
-    return (
-      <Badge variant="success">
-        <Trans>Ready</Trans>
-      </Badge>
-    )
-  // 2026-05-25 (status-pill audit §4 #9): "Failed" was warning
-  // (amber) but the §3.1 ladder reserves amber for external
-  // pauses where no urgency exists. A failed AI insight is a
-  // hard failure of the operation — destructive (red).
-  if (status === 'failed')
-    return (
-      <Badge variant="destructive">
-        <Trans>Failed</Trans>
-      </Badge>
-    )
-  if (status === 'stale')
-    return (
-      <Badge variant="info">
-        <Trans>Stale</Trans>
-      </Badge>
-    )
-  return (
-    <Badge variant="outline">
-      <Trans>Pending</Trans>
-    </Badge>
-  )
-}
-
-function InsightCitationChips({
-  insight,
-  citationRefs,
-}: {
-  insight: AiInsightPublic
-  citationRefs: number[]
-}) {
-  const citations = insight.citations.filter((citation) => citationRefs.includes(citation.ref))
-  if (citations.length === 0) return null
-  return (
-    <div className="flex flex-wrap gap-1">
-      {citations.map((citation) => {
-        const label =
-          citation.evidence?.sourceId ?? citation.evidence?.sourceType ?? `#${citation.ref}`
-        const badge = (
-          <Badge key={citation.ref} variant="outline" className="max-w-full truncate text-xs">
-            [{citation.ref}] {label}
-          </Badge>
-        )
-        return citation.evidence?.sourceUrl ? (
-          <a
-            key={citation.ref}
-            href={citation.evidence.sourceUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="max-w-full"
-          >
-            {badge}
-          </a>
-        ) : (
-          badge
-        )
-      })}
     </div>
   )
 }
