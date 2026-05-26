@@ -43,9 +43,9 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
+import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
 import { AffectedClientsTable } from './components/AffectedClientsTable'
-import { isVeryLowPulseConfidence } from './components/PulseConfidenceBadge'
 import { PulseReasonDialog } from './components/PulseReasonDialog'
 import { PulseSourceBadge } from './components/PulseSourceBadge'
 import { PulseSourceStatusBadge } from './components/PulseSourceStatusBadge'
@@ -530,16 +530,19 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
           //    healthy confidence it stays here as a quiet info
           //    chip.
           (() => {
-            const lowConfidence = isVeryLowPulseConfidence(detail.alert.confidence)
             // 2026-05-26 (Yuqi /rules/pulse third pass #7): drawer now
             // uses the same LOW/MEDIUM/HIGH qualitative confidence
             // badges as the PulseAlertCard, so the two surfaces match.
             // Previously the drawer header rendered the numeric
             // `AI 96%` PulseConfidenceBadge while the list card read
             // "HIGH CONFIDENCE" — same alert showed two different
-            // confidence shapes side-by-side. Thresholds match the
-            // card: < 0.5 LOW, 0.5–0.85 MEDIUM, ≥ 0.85 HIGH.
-            const mediumConfidence = !lowConfidence && detail.alert.confidence < 0.85
+            // confidence shapes side-by-side.
+            // 2026-05-26 (Step 9 AI Visibility Audit F-002): tier
+            // classification now goes through the canonical helper
+            // so the threshold ladder is product-wide consistent.
+            const tier = aiConfidenceTier(detail.alert.confidence)
+            const lowConfidence = tier === 'low'
+            const mediumConfidence = tier === 'medium'
             return (
               // 2026-05-26 (Yuqi /rules/pulse #3): removed the leading
               // PulsingDot. Yuqi flagged "where does this dot come
@@ -795,7 +798,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                   toward the wrong mental model (data is wrong vs.
                   data needs verification). Amber matches the
                   semantics. */}
-            {isVeryLowPulseConfidence(detail.alert.confidence) ? (
+            {isLowAiConfidence(detail.alert.confidence) ? (
               // 2026-05-26 (Yuqi eighteenth pass): icon removed from
               // this Alert. With the icon gone the Alert primitive
               // falls back to its non-icon layout (single column),

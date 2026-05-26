@@ -22,8 +22,14 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *    a human to confirm. Use the existing `AlertTriangleIcon + Needs
  *    review` inline badge there. Different label, different icon,
  *    same tone family.
- *  - **`PulseConfidenceBadge`** — that's the numeric percentage
- *    ("AI 87%") not the binary low/high signal.
+ *  - Pulse confidence pills (in `PulseAlertCard` / drawer) — those
+ *    are the 3-tier (Low/Medium/High) per-alert qualitative pill,
+ *    keyed off the canonical `aiConfidenceTier` helper. Both surfaces
+ *    use the Astroid icon as the "AI signal" mark — confidence is
+ *    communicated by the pill TONE (warning amber / neutral gray /
+ *    info blue), not by the icon. This badge primitive is the same
+ *    family for surfaces that only need the binary "AI is unsure"
+ *    flag (without rendering the full 3-tier ladder).
  *  - **`InsightStatusBadge.failed`** — that's a hard failure of the
  *    AI run, not a low-confidence inference.
  *
