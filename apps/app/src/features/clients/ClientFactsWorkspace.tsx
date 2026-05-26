@@ -495,9 +495,7 @@ function ClientFilingStateChips({ client }: { client: ClientPublic }) {
           <span className="font-mono uppercase tabular-nums text-text-secondary">{state}</span>
         </span>
       ))}
-      {overflow > 0 ? (
-        <span className="font-mono tabular-nums text-text-tertiary">+{overflow}</span>
-      ) : null}
+      {overflow > 0 ? <span className="tabular-nums text-text-tertiary">+{overflow}</span> : null}
     </div>
   )
 }
@@ -985,7 +983,7 @@ export function ClientFactsWorkspace({
               ))}
               {overflow > 0 ? (
                 <span
-                  className="font-mono text-caption tabular-nums text-text-tertiary"
+                  className="text-caption tabular-nums text-text-tertiary"
                   title={others.slice(2).join(', ')}
                 >
                   +{overflow}
@@ -2667,7 +2665,7 @@ export function ClientDetailWorkspace({
                       readiness chip (warning, not destructive) per
                       §3.7 canonical color reservation. */}
                   {readiness && readiness.missingRequiredFacts.length > 0 ? (
-                    <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-state-warning-border bg-state-warning-hover px-1.5 font-mono text-[10px] font-medium leading-none tabular-nums text-text-warning">
+                    <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-state-warning-border bg-state-warning-hover px-1.5 text-[10px] font-medium leading-none tabular-nums text-text-warning">
                       {readiness.missingRequiredFacts.length}
                     </span>
                   ) : null}

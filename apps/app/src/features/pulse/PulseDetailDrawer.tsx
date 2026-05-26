@@ -1330,7 +1330,7 @@ function ManagerReviewPanel({
             </Badge>
           ) : null}
         </div>
-        <span className="font-mono text-xs tabular-nums text-text-tertiary">
+        <span className="text-xs tabular-nums text-text-tertiary">
           <Trans>
             {selectedCount} selected · {excludedCount} excluded
           </Trans>

@@ -15,7 +15,7 @@ export function PulseConfidenceBadge({ confidence }: PulseConfidenceBadgeProps) 
   const percent = Math.round(confidence * 100)
   const variant = confidence >= 0.9 ? 'success' : confidence >= 0.7 ? 'info' : 'destructive'
   return (
-    <Badge variant={variant} className="font-mono tabular-nums text-xs">
+    <Badge variant={variant} className="tabular-nums text-xs">
       <Trans>AI {percent}%</Trans>
     </Badge>
   )

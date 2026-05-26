@@ -321,7 +321,7 @@ export function CreateClientDialog({
                       id="client-ein"
                       name={field.name}
                       value={field.state.value}
-                      className="font-mono tabular-nums"
+                      className="tabular-nums"
                       placeholder="12-3456789"
                       aria-invalid={!field.state.meta.isValid}
                       onBlur={field.handleBlur}
@@ -470,7 +470,7 @@ export function CreateClientDialog({
                       type="number"
                       min={0}
                       max={99}
-                      className="font-mono tabular-nums"
+                      className="tabular-nums"
                       aria-invalid={!field.state.meta.isValid}
                       onBlur={field.handleBlur}
                       onChange={(event) => field.handleChange(event.target.value)}

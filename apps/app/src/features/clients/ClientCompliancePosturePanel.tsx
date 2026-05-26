@@ -96,7 +96,7 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
             label={t`Federal EIN`}
             value={
               client.ein ? (
-                <span className="font-mono tabular-nums">{client.ein}</span>
+                <span className="tabular-nums">{client.ein}</span>
               ) : (
                 <span className="italic text-text-tertiary">
                   <Trans>Not on file</Trans>

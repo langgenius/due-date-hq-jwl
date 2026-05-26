@@ -66,9 +66,7 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
     key: 'issued',
     label: <Trans>Issued</Trans>,
     value: (
-      <span className="font-mono tabular-nums text-text-primary">
-        {formatDate(detail.alert.publishedAt)}
-      </span>
+      <span className="tabular-nums text-text-primary">{formatDate(detail.alert.publishedAt)}</span>
     ),
   })
   if (detail.effectiveFrom) {
@@ -76,9 +74,7 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       key: 'effective',
       label: <Trans>Effective</Trans>,
       value: (
-        <span className="font-mono tabular-nums text-text-primary">
-          {formatDate(detail.effectiveFrom)}
-        </span>
+        <span className="tabular-nums text-text-primary">{formatDate(detail.effectiveFrom)}</span>
       ),
     })
   }
@@ -87,9 +83,7 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       key: 'expires',
       label: <Trans>Expires</Trans>,
       value: (
-        <span className="font-mono tabular-nums text-text-primary">
-          {formatDate(detail.effectiveUntil)}
-        </span>
+        <span className="tabular-nums text-text-primary">{formatDate(detail.effectiveUntil)}</span>
       ),
     })
   }
@@ -106,7 +100,7 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
         // text-text-warning + font-semibold so the eye lands on it
         // first, and the arrow icon between makes "from → to"
         // unmistakable as a delta (not just two dates side by side).
-        <span className="inline-flex items-center gap-2 font-mono tabular-nums">
+        <span className="inline-flex items-center gap-2 tabular-nums">
           <span className="text-text-tertiary">
             {detail.originalDueDate ? formatDate(detail.originalDueDate) : t`Unknown`}
           </span>
@@ -238,7 +232,7 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       value: (
         <div className="flex flex-wrap gap-1">
           {detail.affectedRuleIds.map((ruleId) => (
-            <Badge key={ruleId} variant="outline" className="font-mono tabular-nums">
+            <Badge key={ruleId} variant="outline" className="tabular-nums">
               {ruleId}
             </Badge>
           ))}
