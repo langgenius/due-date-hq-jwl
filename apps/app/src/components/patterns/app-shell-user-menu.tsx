@@ -231,7 +231,7 @@ function UserMenuTrigger({
       <DropdownMenuContent align="end" side="bottom" sideOffset={8} className="w-64">
         {/* 2026-05-25 (Yuqi caps fix): this block was using
             <DropdownMenuLabel>, which bakes in
-            `text-2xs font-medium tracking-wider uppercase` via
+            `text-caption-xs font-medium tracking-wider uppercase` via
             overlayLabelClassName (see packages/ui/src/lib/overlay.ts).
             That's the right primitive for section kickers like
             "PRACTICES" or "Map column to…" — short labels that

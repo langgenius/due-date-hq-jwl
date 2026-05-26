@@ -48,7 +48,7 @@ const { t } = Astro.props
       {t.pulse.tag}
     </span>
     <p class="min-w-0 flex-1 truncate text-xs text-text-primary">{t.pulse.text}</p>
-    <span class="hidden rounded border border-divider-regular bg-background-default px-2 py-0.5 font-mono text-2xs text-text-secondary sm:inline-flex">
+    <span class="hidden rounded border border-divider-regular bg-background-default px-2 py-0.5 font-mono text-caption-xs text-text-secondary sm:inline-flex">
       {t.pulse.source}
     </span>
     <span class="font-mono text-xs text-text-accent">{t.pulse.cta} →</span>
@@ -94,7 +94,7 @@ const { t } = Astro.props
   <div class="grid grid-cols-4 gap-0 border-b border-divider-subtle">
     {t.metric.stats.map((stat) => (
       <div class="border-r border-divider-subtle px-4 py-3 last:border-r-0">
-        <div class="font-mono text-2xs tracking-wider text-text-tertiary">{stat.label}</div>
+        <div class="font-mono text-caption-xs tracking-wider text-text-tertiary">{stat.label}</div>
         <div class="mt-0.5 font-mono tabular text-[18px] font-semibold text-text-primary">{stat.value}</div>
       </div>
     ))}
