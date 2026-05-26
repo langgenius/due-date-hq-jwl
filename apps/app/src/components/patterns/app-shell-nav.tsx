@@ -506,7 +506,11 @@ function AddFirmDialog({
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 <Trans>Cancel</Trans>
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending}
+                aria-busy={createMutation.isPending || undefined}
+              >
                 {createMutation.isPending ? (
                   <Trans>Creating…</Trans>
                 ) : (

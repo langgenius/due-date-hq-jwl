@@ -655,7 +655,11 @@ function TemplateDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               <Trans>Cancel</Trans>
             </Button>
-            <Button type="submit" disabled={updateTemplate.isPending}>
+            <Button
+              type="submit"
+              disabled={updateTemplate.isPending}
+              aria-busy={updateTemplate.isPending || undefined}
+            >
               <Trans>Save template</Trans>
             </Button>
           </DialogFooter>

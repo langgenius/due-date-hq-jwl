@@ -489,6 +489,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   !internalDeadlineOffsetDaysValid ||
                   updateMutation.isPending
                 }
+                aria-busy={updateMutation.isPending || undefined}
               >
                 {updateMutation.isPending ? <Trans>Saving…</Trans> : <Trans>Save changes</Trans>}
               </Button>

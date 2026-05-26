@@ -72,7 +72,11 @@ export function TwoFactorRoute() {
                 onChange={(event) => setCode(event.target.value)}
               />
             </div>
-            <Button type="submit" disabled={verifyMutation.isPending || code.trim().length < 6}>
+            <Button
+              type="submit"
+              disabled={verifyMutation.isPending || code.trim().length < 6}
+              aria-busy={verifyMutation.isPending || undefined}
+            >
               {verifyMutation.isPending ? (
                 <Loader2Icon className="size-4 animate-spin" aria-hidden />
               ) : null}

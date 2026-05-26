@@ -505,7 +505,7 @@ export function CreateClientDialog({
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               <Trans>Cancel</Trans>
             </Button>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending} aria-busy={isPending || undefined}>
               {isPending ? t`Creating…` : t`Create client`}
             </Button>
           </DialogFooter>

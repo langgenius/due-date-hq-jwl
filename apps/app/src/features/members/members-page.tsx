@@ -1176,7 +1176,12 @@ function InviteMemberDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               <Trans>Cancel</Trans>
             </Button>
-            <Button type="submit" variant="accent" disabled={seatsFull || inviteMutation.isPending}>
+            <Button
+              type="submit"
+              variant="accent"
+              disabled={seatsFull || inviteMutation.isPending}
+              aria-busy={inviteMutation.isPending || undefined}
+            >
               {inviteMutation.isPending ? <Trans>Sending…</Trans> : <Trans>Send invite</Trans>}
             </Button>
           </DialogFooter>
