@@ -102,6 +102,7 @@ export function ClientsRoute() {
   const entityLabels = useEntityLabels()
   const [
     {
+      q: searchQuery,
       clients: clientFilter,
       entity: entityFilter,
       state: stateFilter,
@@ -163,6 +164,7 @@ export function ClientsRoute() {
   const filters = useMemo(
     () =>
       normalizeClientsQueryFilters({
+        q: searchQuery,
         clients: clientFilter,
         entity: entityFilter,
         state: stateFilter,
@@ -172,6 +174,7 @@ export function ClientsRoute() {
         pulse: pulseFilter,
       }),
     [
+      searchQuery,
       clientFilter,
       entityFilter,
       ownerFilter,
@@ -214,11 +217,23 @@ export function ClientsRoute() {
     }),
   )
 
+  // 2026-05-26 (Yuqi /clients directory pivot brief): inline search
+  // handler. The `q` URL param flows through normalizeClientsQueryFilters
+  // → filters.search → filterClients haystack. Passing `null` when the
+  // value is empty clears the param entirely so shared URLs don't carry
+  // dangling `?q=` suffixes.
+  const handleSearchChange = useCallback(
+    (next: string) => {
+      const trimmed = next.trim()
+      void setClientsQuery({ q: trimmed.length > 0 ? next : null })
+    },
+    [setClientsQuery],
+  )
+
   const handleClientFilterChange = useCallback(
     (values: string[]) => {
       const clientIds = normalizeClientIdFilters(values)
       void setClientsQuery({
-        q: null,
         clients: nullableQueryArray(clientIds),
       })
     },
@@ -229,7 +244,6 @@ export function ClientsRoute() {
     (values: string[]) => {
       const typedEntities = values.filter(isClientEntityType)
       void setClientsQuery({
-        q: null,
         entity: nullableQueryArray(typedEntities),
       })
     },
@@ -240,7 +254,6 @@ export function ClientsRoute() {
     (values: string[]) => {
       const states = normalizeClientStateFilters(values)
       void setClientsQuery({
-        q: null,
         state: nullableQueryArray(states),
       })
     },
@@ -251,7 +264,6 @@ export function ClientsRoute() {
     (values: string[]) => {
       const typedSources = values.filter(isClientSourceType)
       void setClientsQuery({
-        q: null,
         source: nullableQueryArray(typedSources),
       })
     },
@@ -262,7 +274,6 @@ export function ClientsRoute() {
     (values: string[]) => {
       const owners = normalizeClientOwnerFilters(values)
       void setClientsQuery({
-        q: null,
         owner: nullableQueryArray(owners),
       })
     },
@@ -273,7 +284,6 @@ export function ClientsRoute() {
     (values: string[]) => {
       const typedPulse = values.filter(isClientPulseFilter)
       void setClientsQuery({
-        q: null,
         pulse: nullableQueryArray(typedPulse),
       })
     },
@@ -385,6 +395,8 @@ export function ClientsRoute() {
         factsModel={factsModel}
         entityLabels={entityLabels}
         isLoading={clientWorkspaceLoading}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
         clientFilter={filters.clientFilters}
         entityFilter={filters.entityFilters}
         stateFilter={filters.stateFilters}

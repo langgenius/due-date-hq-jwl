@@ -1,4 +1,12 @@
-import { type KeyboardEvent, type ReactNode, useCallback, useMemo, useState } from 'react'
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router'
 import { parseAsStringLiteral, useQueryState } from 'nuqs'
@@ -37,10 +45,12 @@ import {
   PlusIcon,
   RefreshCwIcon,
   ScrollTextIcon,
+  SearchIcon,
   SettingsIcon,
   SparklesIcon,
   UserRoundIcon,
   UsersRoundIcon,
+  XIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -185,6 +195,12 @@ type ClientFactsWorkspaceProps = {
   // import — route imports workspace).
   entityLabels: Record<ClientEntityType, string>
   isLoading: boolean
+  // 2026-05-26 (Yuqi /clients directory pivot brief): search wiring.
+  // `searchQuery` is the current URL-backed `q` value; the workspace
+  // surfaces it via the toolbar's search input. `onSearchChange` writes
+  // back to the URL on every keystroke (the route debounces if needed).
+  searchQuery: string
+  onSearchChange: (value: string) => void
   clientFilter: readonly string[]
   entityFilter: readonly ClientEntityType[]
   stateFilter: readonly string[]
@@ -639,6 +655,8 @@ export function ClientFactsWorkspace({
   factsModel,
   entityLabels,
   isLoading,
+  searchQuery,
+  onSearchChange,
   clientFilter,
   stateFilter,
   ownerFilter,
@@ -1247,6 +1265,8 @@ export function ClientFactsWorkspace({
           only the sort arrow. A Reset button on the right clears
           every filter at once. */}
       <ClientsFilterToolbar
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
         clientOptions={clientOptions}
         clientFilter={clientFilter}
         onClientFilterChange={onClientFilterChange}
@@ -1407,6 +1427,8 @@ function handleClientRowKeyDown(
  * clears every filter at once.
  */
 function ClientsFilterToolbar({
+  searchQuery,
+  onSearchChange,
   clientOptions,
   clientFilter,
   onClientFilterChange,
@@ -1420,6 +1442,8 @@ function ClientsFilterToolbar({
   ownerFilter,
   onOwnerFilterChange,
 }: {
+  searchQuery: string
+  onSearchChange: (next: string) => void
   clientOptions: TableFilterOption[]
   clientFilter: readonly string[]
   onClientFilterChange: (next: string[]) => void
@@ -1435,12 +1459,77 @@ function ClientsFilterToolbar({
 }) {
   const { t } = useLingui()
   const filtersActive =
+    searchQuery.length > 0 ||
     clientFilter.length > 0 ||
     stateFilter.length > 0 ||
     entityFilter.length > 0 ||
     ownerFilter.length > 0
+
+  // 2026-05-26 (Yuqi /clients directory pivot brief): `/` keypress
+  // anywhere on the page focuses the search input. Skipped when the
+  // user is already typing in another input/textarea/contentEditable
+  // so the slash key still works as a literal character there.
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
+  useEffect(() => {
+    function handleKey(event: globalThis.KeyboardEvent) {
+      if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return
+      const target = event.target
+      if (target instanceof HTMLElement) {
+        const tagName = target.tagName.toLowerCase()
+        if (tagName === 'input' || tagName === 'textarea' || target.isContentEditable) return
+      }
+      event.preventDefault()
+      searchInputRef.current?.focus()
+      searchInputRef.current?.select()
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [])
+
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {/* 2026-05-26 (Yuqi /clients directory pivot brief): inline
+          search input at the start of the toolbar. Visual lead for
+          the directory's primary action (find a client by name).
+          Magnifying-glass icon left, clear (X) right when there's
+          text. `/` hotkey wires above; URL `?q=` keeps the search
+          shareable. */}
+      <div className="relative w-[280px]">
+        <SearchIcon
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-tertiary"
+        />
+        <Input
+          ref={searchInputRef}
+          type="search"
+          value={searchQuery}
+          onChange={(event) => onSearchChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              event.preventDefault()
+              onSearchChange('')
+              searchInputRef.current?.blur()
+            }
+          }}
+          placeholder={t`Search by name or EIN`}
+          aria-label={t`Search clients`}
+          className="h-8 pr-8 pl-8 text-sm"
+        />
+        {searchQuery.length > 0 ? (
+          <button
+            type="button"
+            onClick={() => {
+              onSearchChange('')
+              searchInputRef.current?.focus()
+            }}
+            aria-label={t`Clear search`}
+            title={t`Clear search`}
+            className="absolute top-1/2 right-2 inline-flex size-5 -translate-y-1/2 items-center justify-center rounded-sm text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <XIcon className="size-3.5" aria-hidden />
+          </button>
+        ) : null}
+      </div>
       <TableHeaderMultiFilter
         trigger="toolbar"
         label={t`Client`}
@@ -1484,6 +1573,10 @@ function ClientsFilterToolbar({
         size="sm"
         disabled={!filtersActive}
         onClick={() => {
+          // 2026-05-26 (Yuqi /clients directory pivot brief): Reset
+          // clears search alongside the structural filters so the
+          // CPA returns to the full directory in one click.
+          onSearchChange('')
           onClientFilterChange([])
           onStateFilterChange([])
           onEntityFilterChange([])
