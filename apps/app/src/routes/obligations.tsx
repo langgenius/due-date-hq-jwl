@@ -195,6 +195,7 @@ import {
   type ObligationStatus,
 } from '@/features/obligations/status-control'
 import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocked-by-chip'
+import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import {
   DEADLINE_DETAIL_TABS,
   cleanDeadlineDetailSearch,
@@ -2756,6 +2757,15 @@ export function ObligationQueueRoute() {
               <Trans>Export</Trans>
             </Button>
             <CalendarSyncPopover />
+            {/* 2026-05-26 (audit P0 #8 — Q1): the /deadlines queue
+                had no labeled primary CTA — the most common CPA
+                mid-day task ("I just learned client X owes a thing,
+                add it") required navigating back to the dashboard or
+                opening a client detail to find `CreateObligationDialog`.
+                Now lives on the queue too, right-edge of the actions
+                cluster (matches /clients's "+ Add client" placement).
+                Same global dialog, no schema change. */}
+            <CreateObligationDialog />
             {/* Saved views + Reset removed 2026-05-21 per UX call —
                 Reset is redundant with the "Clear filters" link in
                 the applied-filters strip; saved views was high-chrome
