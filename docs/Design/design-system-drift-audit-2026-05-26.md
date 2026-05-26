@@ -1,5 +1,14 @@
 # Design system drift audit — 2026-05-26
 
+> **Execution status (2026-05-26 evening):** the 86th pass landed in
+> three commits — `dfc55acb` (batch 1: settings + audit + 3 uppercase
+> kickers), `fe57e452` (batch 2: practice + billing pair PageHeader
+> migrations), `2198f9df` (batch 3: deadline drawer
+> `formatDate` → `formatDatePretty` for user-facing renders). 11 of
+> 14 P1 items closed; 2 reclassified post-verification; 1
+> (`/opportunities` paradigm call) awaiting designer decision. P2
+> sweeps queued.
+
 **Verified pass.** First-pass findings were inferred; this revision is
 grounded in actual file reads. Every drift entry below carries a file
 path + line range so a fix pass can act on it cold.
@@ -289,43 +298,52 @@ The 116+ count is real drift. Roughly:
 
 ---
 
-## Aggressive punch list (P1 only — bundle as 86th pass)
+## Aggressive punch list (P1 only — 86th pass status)
 
-Sequenced so a single follow-up commit can land them. Each line is a complete actionable.
+**Status legend:** ✅ closed · 🔄 reclassified (was wrong call, see notes) · ⏳ deferred (needs decision) · ⬜ open
 
 ### Header / page-shell family (5 items)
 
-1. `/readiness` → migrate to `<PageHeader>`. Replace `routes/readiness.tsx:133-146` custom header block.
-2. `/settings` (root) → migrate to `<PageHeader>`. `routes/settings.tsx:122`.
-3. `/practice` → migrate to `<PageHeader>`. `routes/practice.tsx`.
-4. `/billing/success` + `/billing/checkout` → migrate to `<PageHeader>`. 2 files.
+1. 🔄 `/readiness` → was P1 PageHeader migration. **Reclassified P3.** `/readiness` is a public client portal living in the entry-layout shell (not the protected route shell). Custom shape is by design. Document as deliberate divergence.
+2. ✅ `/settings` (root) → migrated to `<PageHeader>`. Also swept `gap-8` → `gap-6` in the same file (commit `dfc55acb`).
+3. ✅ `/practice` → migrated to `<PageHeader>` with branded icon inlined in title + role badge in actions slot (commit `fe57e452`).
+4. ✅ `/billing/success` + `/billing/checkout` → both migrated to `<PageHeader>` with breadcrumbs back to `/billing`. `billing.checkout` also picked up `gap-5` → `gap-4` (commit `fe57e452`).
 
 ### Table family (3 items)
 
-5. `/audit` TableBody `bg-background-default/50` → add. `features/audit/audit-log-table.tsx:83`.
-6. `/workload` late text → `text-sm font-semibold` + Plural "N days late". `features/workload/workload-page.tsx:399-400`.
-7. `/opportunities` paradigm call → designer decision: table family or rich-list? Then bring to canonical.
+5. ✅ `/audit` TableBody `bg-background-default/50` → added (commit `dfc55acb`).
+6. 🔄 `/workload` late text → was P1. **Reclassified — false positive.** Audit misread `NumericCell danger` as a date-string renderer; it renders COUNT NUMBERS (e.g. "5 overdue items"). No date drift here.
+7. ⏳ `/opportunities` paradigm call — awaiting designer decision: table family or rich-list?
 
-### Drawer / heading family (4 items)
+### Drawer / heading family (3 items)
 
-8. EvidenceDrawer h3 uppercase kickers → swap to `TabSection`. `features/evidence/EvidenceDrawerProvider.tsx:141, 614`.
-9. coverage-tab h2 uppercase kicker → swap. `features/rules/coverage-tab.tsx`.
-10. members-page h2 uppercase kicker → swap. `features/members/members-page.tsx`.
+8. ✅ EvidenceDrawer h3 uppercase kickers ×2 → swapped to canonical sentence-case (commit `dfc55acb`).
+9. ✅ coverage-tab h2 uppercase kicker → swapped (commit `dfc55acb`).
+10. ✅ members-page h2 uppercase kicker → swapped (commit `dfc55acb`).
 
-### Filter affordance (2 items, but overlap with #7)
+### Filter affordance (overlap with #7)
 
-11. `/opportunities` toolbar — unify chips + buttons (overlaps with #7 paradigm decision).
-12. _(workload + notifications chip swap — moved to P2 sweep)_
+11. ⏳ `/opportunities` toolbar — blocked by #7 paradigm decision.
 
-### Date display (1 item — concentrated)
+### Date display (concentrated)
 
-13. `/deadlines` rows ISO slicing → `formatDate()`. The 12+ occurrences in `routes/obligations.tsx` are the most-read surface and break finance-grade feel. Single sweep pass on this file.
+12. ✅ `/deadlines` user-facing date renders → swapped `formatDate` → `formatDatePretty` (commit `2198f9df`). 6 site groups updated (Key Dates, Reference Dates, banners, group header, inline sentences). Surgical exceptions preserved per canonical: queue row date column + milestone strip stamps + audit log timestamps stay ISO.
 
-### Spacing on settings page (1 item)
+### Outcome (post-86th-pass)
 
-14. `routes/settings.tsx:120` `gap-8` → `gap-6` (single line change).
+| Status          | Count | Items                                                                                                                                                     |
+| --------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ✅ Closed       | 9     | settings PageHeader + gap, practice + 2 billing PageHeaders, audit body bg, 4 uppercase kickers (Evidence ×2, coverage, members), `/deadlines` date sweep |
+| 🔄 Reclassified | 2     | `/readiness` (P1 → P3), `/workload` late text (false positive)                                                                                            |
+| ⏳ Deferred     | 1     | `/opportunities` paradigm call (awaiting designer decision)                                                                                               |
 
-**Estimated bundle:** ~6-8 hours of fix work + verification. Closes most of the "doesn't feel like one app" perception.
+**No P0 contract violations. No new drift introduced.** The "doesn't feel like one app" perception should be measurably reduced — header family is uniform, the most-read drawer reads as prose dates, three forbidden uppercase kickers (explicit DESIGN §9 violations) are gone, audit log table picked up the canonical alpha-50 body bg.
+
+### Commits
+
+- `dfc55acb` — batch 1: settings + audit + 3 uppercase kickers (5 files)
+- `fe57e452` — batch 2: practice + billing pair PageHeader migrations (3 files)
+- `2198f9df` — batch 3: deadline drawer dates → `formatDatePretty` (1 file)
 
 ---
 
