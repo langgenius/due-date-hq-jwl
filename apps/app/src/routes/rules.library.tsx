@@ -1,10 +1,12 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
 import {
   ArrowUpRightIcon,
+  ChevronLeftIcon,
   ChevronRightIcon,
   CircleCheck,
   CircleSlash,
@@ -15,9 +17,10 @@ import {
   MoreHorizontalIcon,
   PlusIcon,
   RadioTowerIcon,
+  SearchIcon,
   XIcon,
 } from 'lucide-react'
-import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 
 import type {
   ObligationRule,
@@ -43,7 +46,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Input } from '@duedatehq/ui/components/ui/input'
@@ -67,8 +69,10 @@ import {
   useAppHotkey,
   useKeyboardShortcutsBlocked,
 } from '@/components/patterns/keyboard-shell'
+import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { PageHeader } from '@/components/patterns/page-header'
 import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
+import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { RuleDetailCompact, RuleDetailInline } from '@/features/rules/rule-detail-drawer'
@@ -133,27 +137,31 @@ const ENTITY_LABELS: Record<EntityKey, string> = {
 
 type CoverageState = 'active' | 'review' | 'none' | 'not_applicable'
 
-// 2026-05-26 (Yuqi rule library deferred batch — /distill):
-// `ENTITY_COLUMN_LABELS` retired with the 7-column entity matrix.
-// Full-name labels in `ENTITY_LABELS` are reused on the new
-// `EntityCoverageDots` tooltip + on the gap row "No rule defined
-// for {entity}…" copy.
+// Short column-header labels for the 7 per-entity columns. Fit in
+// ~36px column widths; full names live in `ENTITY_LABELS` for the
+// header `title` attribute + EntityCoverageDots tooltip.
+//
+// 2026-05-26 (Yuqi follow-up — "back to the version before merge.
+// each row of rule has the entity dots, and there is an overview
+// of the State in general. Not just the dots like now. They are
+// to the columns"): full pre-distill layout restored. Each rule
+// row gets per-entity applicability dots in its own column; each
+// STATE row gets a per-entity overview cell (count of rules for
+// that entity in that state, with a colored status icon — green
+// check / amber warning / red empty-ring — depending on coverage).
+const ENTITY_COLUMN_LABELS: Record<EntityKey, string> = {
+  llc: 'LLC',
+  partnership: 'Part',
+  s_corp: 'S-Corp',
+  c_corp: 'C-Corp',
+  sole_prop: 'Sole',
+  individual: 'Ind',
+  trust: 'Trust',
+}
 
-// Total table column count: Rule + Form + Tier.
-// 2026-05-26 (Yuqi rule library deferred batch — /distill): 7
-// per-entity columns dropped. Each state row used to carry a 7-cell
-// matrix (LLC / Part / S-Corp / C-Corp / Sole / Ind / Trust) with
-// count + warning-icon, plus tier bar + needs-review tag — ~12
-// elements per row, the biggest visual-density culprit per the
-// /rules/library critique. The matrix is collapsed into a single
-// compact dot-cluster summary on the state row (see
-// `EntityCoverageDots`), and per-rule applicability now lives only
-// inside the rule-detail Dialog (`RuleDetailInline` already renders
-// the "Applies to LLC, Partnership, ..." line as part of the
-// Applicability section). Status column was dropped 2026-05-21 —
-// status is communicated by the NEEDS REVIEW / ACTIVE section the
-// rule sits under.
-const RULES_TABLE_COLUMN_COUNT = 3
+// Total table column count: Rule + Form + 7 per-entity columns +
+// Tier.
+const RULES_TABLE_COLUMN_COUNT = 3 + ENTITY_KEYS.length
 
 // Status sub-grouping inside an expanded jurisdiction. Rules are
 // bucketed into these groups and rendered under a section header
@@ -290,45 +298,80 @@ function normalizeRulesLibrarySearch(search: string): string | null {
 // Reads as a quiet texture (~70px wide) instead of a 12-element
 // matrix — anchors the row by the state name + count, lets the
 // trailing badges + tier bar carry the "where the work is" signal.
-function EntityCoverageDots({ group }: { group: JurisdictionGroup }) {
-  const tooltipLines = ENTITY_KEYS.map((entity) => {
-    const count = group.entityCounts[entity]
-    const isNA = group.sourceCoverage?.[entity] === 'not_applicable'
-    const state: CoverageState = isNA ? 'not_applicable' : (group.coverage?.[entity] ?? 'none')
-    const stateLabel =
-      state === 'active'
-        ? `${count} rule${count === 1 ? '' : 's'}`
-        : state === 'review'
-          ? `${count} need${count === 1 ? 's' : ''} review`
-          : state === 'not_applicable'
-            ? 'N/A'
-            : 'no rule'
-    return `${ENTITY_LABELS[entity]}: ${stateLabel}`
-  }).join('\n')
+// EntityStateCell — state row's per-entity overview.
+//
+// 2026-05-26 (Yuqi /critique — "entity table-cell 可以更informative，
+// 现在一眼望过去都差不多看不出差别"): conditional pending/total
+// format so the eye automatically lands on cells with pending work.
+//   - All-active (no review pending): plain count `3` in primary
+//     text — quiet, scans past
+//   - Has review pending: `2/3` with the pending part in
+//     `text-text-warning` (purple/amber) so the cell visually
+//     stands out from clean siblings
+//   - Empty (no rules): em-dash `–` in muted — clearly different
+//     from `0/N`
+//   - Not applicable (N/A in this jurisdiction): tiny muted dot
+function EntityStateCell({
+  count,
+  pendingReviewCount,
+  state,
+}: {
+  count: number
+  pendingReviewCount: number
+  state: CoverageState
+}) {
+  if (state === 'not_applicable') {
+    // Entity doesn't apply to this jurisdiction at all.
+    return <span aria-hidden className="mx-auto block size-[3px] rounded-full bg-divider-subtle" />
+  }
+  if (count === 0) {
+    // No rules defined for this entity in this state — em-dash.
+    return (
+      <span aria-hidden className="text-sm font-medium text-text-tertiary">
+        –
+      </span>
+    )
+  }
+  if (pendingReviewCount > 0) {
+    // 2026-05-26 (Yuqi follow-up): pending count `1` carries the
+    // accent tone (matches every other "needs review" indicator);
+    // slash + total `3` both dim down to `text-text-tertiary` —
+    // the total isn't the actionable number, just context for the
+    // pending part. Reading "1/3" your eye lands on the bright
+    // accent 1, the muted /3 supplies "of how many" without
+    // competing for attention.
+    return (
+      <span
+        className="inline-flex items-baseline gap-0.5 text-sm font-medium tabular-nums"
+        title={`${pendingReviewCount} of ${count} need review`}
+      >
+        <span className="text-text-accent">{pendingReviewCount}</span>
+        <span className="text-text-tertiary">/{count}</span>
+      </span>
+    )
+  }
+  return <span className="text-sm font-medium tabular-nums text-text-primary">{count}</span>
+}
+
+// EntityApplicabilityCell — per-rule per-entity dot. Status-tinted
+// dot when the rule applies to this entity; faint placeholder
+// otherwise. Reads as scan texture beneath the state-level summary.
+function EntityApplicabilityCell({ applies, status }: { applies: boolean; status: RuleStatus }) {
+  if (!applies) {
+    return <span aria-hidden className="mx-auto block size-[3px] rounded-full bg-divider-subtle" />
+  }
+  const tone = STATUS_TONE[status]
   return (
     <span
-      className="inline-flex items-center gap-1"
-      aria-label={`Entity coverage for ${group.label}`}
-      title={tooltipLines}
-    >
-      {ENTITY_KEYS.map((entity) => {
-        const isNA = group.sourceCoverage?.[entity] === 'not_applicable'
-        const state: CoverageState = isNA ? 'not_applicable' : (group.coverage?.[entity] ?? 'none')
-        return (
-          <span
-            key={entity}
-            aria-hidden
-            className={cn(
-              'inline-block size-2 shrink-0 rounded-full',
-              state === 'active' && 'bg-state-success-solid',
-              state === 'review' && 'bg-accent-default',
-              state === 'none' && 'border border-divider-regular bg-background-default',
-              state === 'not_applicable' && 'bg-divider-subtle opacity-50',
-            )}
-          />
-        )
-      })}
-    </span>
+      aria-hidden
+      className={cn(
+        'mx-auto block size-1.5 rounded-full',
+        tone === 'success' && 'bg-state-success-solid',
+        tone === 'review' && 'bg-accent-default',
+        tone === 'destructive' && 'bg-state-destructive-solid',
+        tone === 'muted' && 'bg-text-muted',
+      )}
+    />
   )
 }
 
@@ -395,17 +438,30 @@ function stripJurisdictionPrefix(title: string, jurisLabel: string): string {
   return stripped.charAt(0).toUpperCase() + stripped.slice(1)
 }
 
-// Form-cell renderer. Shows the form code (or `(no form)` placeholder)
-// in regular sans-serif text. Tooltip carries the humanized tax type.
-// Earlier iteration used a monospace font for codes (`1120-S` in mono)
-// but that hurt readability without adding signal — the cell is
-// narrow, the codes are short, and a sans font reads cleaner here.
+// Form-cell renderer. Shows the form code (or the canonical em-dash
+// placeholder when no form is set) in regular sans-serif text.
+// Tooltip carries the humanized tax type.
+// 2026-05-26 (Yuqi cross-table audit — unify empty-cell treatment):
+// the previous "(no form)" prose placeholder drifted from /clients +
+// /deadlines, which use the EmptyCellMark em-dash. Aligned to the
+// canonical primitive — one empty-cell visual across every table.
+// 2026-05-26 (Yuqi cross-table drift #14 — "TaxCodeLabel / form-code
+// rendering: one shape"): Rules library renders `rule.formName` (the
+// rule's own authored form-name string) rather than going through
+// `TaxCodeLabel` like /deadlines and /clients do. Reason: each rule
+// owns an authoritative form-name field set when the rule was created,
+// which may diverge from what `describeTaxCode(taxType)` would resolve.
+// The presentation (text-xs text-text-secondary, EmptyCellMark on
+// placeholders, tooltip-only-on-hover via native `title`) matches the
+// canonical TaxCodeLabel default visual when used in dense table rows,
+// so the *visual* shape stays unified across the three surfaces — only
+// the data source differs.
 function FormCell({ formName, taxType }: { formName: string; taxType: string }) {
   const trimmed = formName.trim()
   const isPlaceholder =
     !trimmed || trimmed === '—' || trimmed === '-' || trimmed.toLowerCase() === 'n/a'
   if (isPlaceholder) {
-    return <span className="text-xs italic text-text-tertiary">(no form)</span>
+    return <EmptyCellMark label="No form code" />
   }
   const taxLabel = formatTaxCode(taxType)
   return (
@@ -437,6 +493,9 @@ type JurisdictionGroup = {
   // dot cluster (`EntityCoverageDots`) and its hover tooltip can read
   // counts without re-filtering on every render.
   entityCounts: Record<EntityKey, number>
+  // Per-entity pending-review count for the EntityStateCell's
+  // `pending/total` informativeness format.
+  entityPendingReviewCounts: Record<EntityKey, number>
 }
 
 function buildGroups(
@@ -481,9 +540,26 @@ function buildGroups(
       individual: 0,
       trust: 0,
     }
+    // Per-entity pending-review count (2026-05-26 Yuqi /critique —
+    // "entity table-cell 可以更informative"): the EntityStateCell
+    // uses this to render the `pending/total` format in warning tone
+    // when at least one rule for that entity needs review.
+    const entityPendingReviewCounts: Record<EntityKey, number> = {
+      llc: 0,
+      partnership: 0,
+      s_corp: 0,
+      c_corp: 0,
+      sole_prop: 0,
+      individual: 0,
+      trust: 0,
+    }
     for (const rule of groupRules) {
+      const isPendingReview = rule.status === 'pending_review' || rule.status === 'candidate'
       for (const entity of ENTITY_KEYS) {
-        if (rule.entityApplicability.includes(entity)) entityCounts[entity]++
+        if (rule.entityApplicability.includes(entity)) {
+          entityCounts[entity]++
+          if (isPendingReview) entityPendingReviewCounts[entity]++
+        }
       }
     }
     groups.push({
@@ -497,6 +573,7 @@ function buildGroups(
       hasGap: gapEntities.length > 0 || pendingReviewCount > 0,
       pendingReviewCount,
       entityCounts,
+      entityPendingReviewCounts,
     })
   }
   // Sort: federal first, then jurisdictions with gaps, then by name.
@@ -548,6 +625,25 @@ const STATUS_TONE: Record<RuleStatus, 'success' | 'review' | 'destructive' | 'mu
   deprecated: 'muted',
 }
 
+// 2026-05-26 (Yuqi follow-up — "hovering onto the row currently
+// just changes the background — but can actually expand the
+// green dot/blue dot to a word explanation of what is happening
+// at the entity"): single-word label per status, rendered next to
+// the leading status dot on row hover. Sits ASIDE the dot rather
+// than replacing it so the dot remains the resting affordance and
+// the word reveals on demand. Kept short (1-2 words) so the hover-
+// expand doesn't shift the title further than the row width can
+// absorb.
+const STATUS_LABEL_SHORT: Record<RuleStatus, string> = {
+  active: 'Active',
+  verified: 'Verified',
+  pending_review: 'Needs review',
+  candidate: 'Candidate',
+  rejected: 'Rejected',
+  archived: 'Archived',
+  deprecated: 'Deprecated',
+}
+
 // ---------------------------------------------------------------------------
 // Main route
 // ---------------------------------------------------------------------------
@@ -569,6 +665,14 @@ export function RulesLibraryRoute() {
   const [search, setSearch] = useQueryState('q', parseAsString)
   const [ruleId, setRuleId] = useQueryState('rule', parseAsString)
   const [entityFilter, setEntityFilter] = useQueryState('entity', parseAsString)
+  // 2026-05-26 (Yuqi cross-table drift #3 — "clients and rule library
+  // are prev/next + page count footer"): page index for jurisdiction-
+  // group pagination. nuqs-bound so the active page deep-links + the
+  // browser back button moves between pages. Resets to 0 whenever a
+  // filter/search/scope change shrinks the result set (see effect
+  // below).
+  const [page, setPage] = useQueryState('page', parseAsInteger)
+  const pageIndex = page ?? 0
   // 2026-05-26 (Yuqi /rules/library critique P0): scope tabs above
   // the table. URL-bound so the active scope deep-links. Default is
   // 'all'. `null` from nuqs maps back to 'all' for the activeScope
@@ -638,13 +742,38 @@ export function RulesLibraryRoute() {
     () => buildGroups(filteredRules, coverageRows),
     [filteredRules, coverageRows],
   )
-  const groups = useMemo(() => {
+  const filteredGroups = useMemo(() => {
     if (activeScope !== 'missing') return groupsAll
     // Missing scope: only state groups that have at least one
     // entity gap (entity × jurisdiction with no rule). Each group's
     // own gapEntities array already encodes the gaps.
     return groupsAll.filter((g) => g.gapEntities.length > 0)
   }, [groupsAll, activeScope])
+  // 2026-05-26 (Yuqi cross-table drift #3 — "clients and rule library
+  // are prev/next + page count footer"): paginate jurisdiction groups
+  // so the catalog feel matches /clients. Page size of 10 groups gives
+  // ~6 pages for the 52-jurisdiction catalog — fast prev/next without
+  // burying any state more than 5 pages deep. The user picks a state
+  // by paging or by typing it into the search filter (which surfaces
+  // matches across ALL pages by reducing `filteredGroups` further).
+  const PAGE_SIZE = 10
+  const totalPages = Math.max(1, Math.ceil(filteredGroups.length / PAGE_SIZE))
+  // Clamp page in case the filter shrinks the result set below the
+  // current page. nuqs holds the value as-is; this just trims the
+  // index used for slicing + display.
+  const clampedPageIndex = Math.min(pageIndex, totalPages - 1)
+  const groups = useMemo(
+    () => filteredGroups.slice(clampedPageIndex * PAGE_SIZE, (clampedPageIndex + 1) * PAGE_SIZE),
+    [filteredGroups, clampedPageIndex],
+  )
+  // Reset to page 0 whenever a filter/scope/search change shrinks
+  // result set so the user always sees the first matching groups
+  // rather than landing on an empty page mid-catalog.
+  useEffect(() => {
+    if (pageIndex > 0 && pageIndex > totalPages - 1) {
+      void setPage(0)
+    }
+  }, [pageIndex, totalPages, setPage])
   // 2026-05-26 (Yuqi seventy-second pass — product feel sweep):
   // `sourceCounts` + `totalGaps` retired with the 3-tile scoreboard.
   // Total rule count drives the page-header chip; per-entity gap
@@ -988,10 +1117,19 @@ export function RulesLibraryRoute() {
   const currentBatchReviewRule = currentBatchReviewRuleId
     ? (rulesById.get(currentBatchReviewRuleId) ?? null)
     : null
-  // 2026-05-26 (Yuqi /rules/library critique P1): actions cluster
-  // reduced to canonical ≤2 outline + 1 primary. Sources + Export
-  // coverage moved INTO the ⋯ overflow menu. Visible cluster now:
-  // ⋯ overflow + (optional Start review N) + + New rule.
+  // 2026-05-26 (Yuqi follow-up — "Sources and New rule should be
+  // outside the ⋯"): promoted Sources + New rule out of the overflow
+  // menu so the two most frequent header actions are one-click. The
+  // ⋯ menu now carries only Export coverage (a rare, advanced
+  // operation that doesn't warrant chrome real estate).
+  //
+  // Layout per scope:
+  //   reviewCount > 0  → [⋯] [Sources] [+ New rule (outline)] [Start review N (primary)]
+  //   reviewCount === 0 → [⋯] [Sources] [+ New rule (primary)]
+  //
+  // The header keeps a single primary CTA. When there's a review
+  // queue Start review wins; otherwise New rule becomes primary so
+  // the page never has zero primary actions.
   const headerActions = (
     <>
       <DropdownMenu>
@@ -1003,33 +1141,32 @@ export function RulesLibraryRoute() {
           }
         />
         <DropdownMenuContent align="end" className="min-w-[200px]">
-          <DropdownMenuItem render={<Link to="/rules/sources" />}>
-            <RadioTowerIcon className="size-4" aria-hidden />
-            <Trans>Sources</Trans>
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleExport}>
             <ArrowUpRightIcon className="size-4" aria-hidden />
             <Trans>Export coverage</Trans>
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={openNewRule}>
-            <PlusIcon className="size-4" aria-hidden />
-            <Trans>New rule</Trans>
-          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <Button variant="outline" size="sm" render={<Link to="/rules/sources" />}>
+        <RadioTowerIcon data-icon="inline-start" />
+        <Trans>Sources</Trans>
+      </Button>
       {reviewCount > 0 ? (
-        <Button size="sm" onClick={startReviewAll}>
-          <Trans>Start review</Trans>
-          <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 font-mono text-xs tabular-nums text-text-accent">
-            {reviewCount}
-          </span>
-        </Button>
+        <>
+          <Button variant="outline" size="sm" onClick={openNewRule}>
+            <PlusIcon data-icon="inline-start" />
+            <Trans>New rule</Trans>
+          </Button>
+          <Button size="sm" onClick={startReviewAll}>
+            <Trans>Start review</Trans>
+            <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 font-mono text-xs tabular-nums text-text-accent">
+              {reviewCount}
+            </span>
+          </Button>
+        </>
       ) : (
-        // No-review baseline: + New rule stays visible as the
-        // primary CTA so the header always has a single primary
-        // action. When review is pending, that becomes the
-        // primary; + New rule moves into the overflow.
+        // No-review baseline: + New rule promotes to the primary
+        // slot so the header always carries a single primary action.
         <Button size="sm" onClick={openNewRule}>
           <PlusIcon data-icon="inline-start" />
           <Trans>New rule</Trans>
@@ -1057,6 +1194,15 @@ export function RulesLibraryRoute() {
   // same model (its rules feed a `rule:<id>` list — no groups).
   const [focusedRowId, setFocusedRowId] = useState<string | null>(null)
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
+
+  // 2026-05-26 (Yuqi follow-up — "collapse the search into a ghost
+  // icon and put it besides the entity chip row, click to expand"):
+  // search now starts as a ghost icon and expands into the
+  // SearchInput on click or `/` hotkey. Matches /deadlines'
+  // ObligationQueueSearchControl pattern. Open state is lifted so
+  // the `/` hotkey can expand the collapsed control before focusing.
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
+  const [searchOpen, setSearchOpen] = useState(false)
 
   // Flat list of focusable row ids in document order. Recomputed when
   // the visible rows change (search results / scope filter / expanded
@@ -1308,10 +1454,12 @@ export function RulesLibraryRoute() {
         onChange={(next) => void setScope(next === 'all' ? null : next)}
       />
 
-      {/* Filter row — search + entity-filter chips. Sits below the
-          scope tabs as a secondary narrowing axis. */}
-      <div className="flex shrink-0 flex-col gap-3">
-        <SearchBar search={search ?? ''} onChange={(next) => void setSearch(next || null)} />
+      {/* Filter row — entity-filter chips + collapsible search.
+          2026-05-26 (Yuqi follow-up): chips and search now share a
+          single row (`justify-between`). Search starts as a ghost
+          icon button and expands inline when clicked or `/` is
+          pressed. Matches /deadlines' compact filter band. */}
+      <div className="flex shrink-0 items-center justify-between gap-3">
         {statsLoading ? (
           <EntityChipRowSkeleton />
         ) : (
@@ -1322,12 +1470,30 @@ export function RulesLibraryRoute() {
             onClear={() => void setEntityFilter(null)}
           />
         )}
+        <RuleSearchControl
+          inputRef={searchInputRef}
+          value={search ?? ''}
+          open={searchOpen}
+          onOpenChange={setSearchOpen}
+          onChange={(next) => void setSearch(next || null)}
+        />
       </div>
 
-      {/* Table-card frame — bordered card with the rule grid inside,
-          rows-area `flex-1 min-h-0 overflow-y-auto` so only the grid
-          scrolls. Matches /deadlines + /clients structure. */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-divider-subtle bg-background-default">
+      {/* 2026-05-26 (Yuqi follow-up — move the visible card chrome
+          DOWN onto the table-container itself):
+            - Outer flex wrapper: lost its `rounded-md`, `border`,
+              `border-divider-subtle`. Now a plain `flex-1` shell;
+              the bordered card lives one level below.
+            - Inner rows-area: lost its `bg-background-default`.
+              No longer paints white; the table-container does that.
+            - Table primitive: gained `[&_[data-slot=table-container]]:`
+              chrome (rounded-md, border, bg) so the actual visible
+              card boundary now coincides with the table edge. This
+              avoids the layer-mismatch that was producing rounded-
+              corner white slivers above the thead.
+          The thead's `!bg-background-default-dimmed` sits inside
+          this new card. */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {rulesQuery.isLoading || coverageQuery.isLoading ? (
             <LoadingState />
@@ -1362,6 +1528,10 @@ export function RulesLibraryRoute() {
               onToggleRuleSelection={toggleRuleSelection}
               onToggleRulesSelection={toggleRulesSelection}
               focusedRowId={focusedRowId}
+              pageIndex={clampedPageIndex}
+              totalPages={totalPages}
+              totalGroupCount={filteredGroups.length}
+              onPageChange={(next) => void setPage(next === 0 ? null : next)}
             />
           )}
         </div>
@@ -1458,50 +1628,60 @@ function ScopeTabBand({
     { key: 'review', label: t`Needs review`, count: totalReview },
     { key: 'missing', label: t`Missing`, count: totalMissing },
   ]
+  // 2026-05-26 (Yuqi follow-up — "Deadlines's Status scopes
+  // animation and interaction, same style + interaction + design"):
+  // adopted the canonical /deadlines ObligationQueueScopeTab pattern
+  // 1:1.
+  //   - Outer hairline (`border-b border-divider-regular`) wraps the
+  //     row; tabs sit on a `-mb-px` lifted nav so the active
+  //     underline overlaps the hairline rather than fighting it.
+  //   - `text-base` labels (was `text-sm`), `px-3 py-1.5` padding.
+  //   - Active = `font-medium text-text-primary` (was accent-purple
+  //     semibold). The neutral active style + animated underline
+  //     reads less aggressive than the static rule-library treatment.
+  //   - Inactive = transparent 2px bottom border that turns
+  //     `divider-deep` on hover — gives the row symmetry on hover
+  //     instead of the cold "I just sit here" look that prompted
+  //     the "too ugly" callout.
+  //   - Active underline is a single `<motion.span layoutId>` that
+  //     smoothly slides between tabs on click — same spring tuning
+  //     the canonical Deadlines pattern uses.
   return (
-    <nav
-      className="flex shrink-0 items-center gap-4 border-b border-divider-subtle"
-      aria-label={t`Filter by scope`}
-    >
-      {tabs.map((tab) => {
-        const active = tab.key === activeScope
-        return (
-          <button
-            key={tab.key}
-            type="button"
-            aria-pressed={active}
-            onClick={() => onChange(tab.key)}
-            className={cn(
-              'relative -mb-px flex shrink-0 items-center gap-1.5 px-1 py-2.5 text-sm whitespace-nowrap transition-colors',
-              // 2026-05-26 (Stripe-bar /bolder pass): active state
-              // bumped from text-text-primary → text-text-accent
-              // semibold + 3px pill-ended underline. Matches the
-              // /clients/[id] tabbar bolder treatment so the scope
-              // tabs read across the page with the same confidence.
-              active
-                ? 'font-semibold text-text-accent'
-                : 'text-text-secondary hover:text-text-primary',
-            )}
-          >
-            <span>{tab.label}</span>
-            <span
+    <div className="flex flex-col gap-1.5 border-b border-divider-regular">
+      <nav
+        className="-mb-px flex flex-1 flex-wrap items-center gap-1"
+        aria-label={t`Filter by scope`}
+      >
+        {tabs.map((tab) => {
+          const active = tab.key === activeScope
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onChange(tab.key)}
               className={cn(
-                'text-xs tabular-nums',
-                active ? 'text-text-accent' : 'text-text-tertiary',
+                'relative -mb-px flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-base whitespace-nowrap transition-colors',
+                active
+                  ? 'font-medium text-text-primary'
+                  : 'border-b-2 border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary',
               )}
             >
-              {tab.count}
-            </span>
-            {active ? (
-              <span
-                aria-hidden
-                className="absolute inset-x-0 -bottom-[1.5px] h-[3px] rounded-full bg-accent-default"
-              />
-            ) : null}
-          </button>
-        )
-      })}
-    </nav>
+              <span>{tab.label}</span>
+              <span className="text-sm tabular-nums text-text-tertiary">{tab.count}</span>
+              {active ? (
+                <motion.span
+                  layoutId="rule-library-scope-tab-underline"
+                  aria-hidden
+                  className="absolute inset-x-0 -bottom-0.5 h-0.5 bg-accent-default"
+                  transition={{ type: 'spring', stiffness: 500, damping: 38 }}
+                />
+              ) : null}
+            </button>
+          )
+        })}
+      </nav>
+    </div>
   )
 }
 
@@ -1805,22 +1985,84 @@ function EntityChipRowSkeleton() {
 // the conceptual overlap with cmd+k (which will become real entity
 // search in Phase 2). `hotkey="/"` opts into the primitive's
 // page-search hotkey + kbd hint convention.
-function SearchBar({ search, onChange }: { search: string; onChange: (next: string) => void }) {
+// 2026-05-26 (Yuqi follow-up — "collapse the search into a ghost
+// icon and put it besides the entity chip row"): collapsible search
+// control. Renders as a ghost icon button at rest; expands inline
+// into the canonical `SearchInput` on click or `/` hotkey. Open
+// state is lifted so the `/` hotkey can expand → focus in one
+// gesture. Mirrors /deadlines `ObligationQueueSearchControl`.
+function RuleSearchControl({
+  inputRef,
+  value,
+  open,
+  onOpenChange,
+  onChange,
+}: {
+  inputRef: React.RefObject<HTMLInputElement | null>
+  value: string
+  open: boolean
+  onOpenChange: (next: boolean) => void
+  onChange: (next: string) => void
+}) {
   const { t } = useLingui()
-  return (
-    <SearchInput
-      value={search}
-      onChange={onChange}
-      placeholder={t`Filter rules…`}
-      hotkey="/"
-      hotkeyMeta={{
+  // Open when explicitly opened OR when a query is already active —
+  // collapsing while text remains would hide active state.
+  const isOpen = open || value.length > 0
+  // `/` hotkey expands the collapsed control AND focuses the input
+  // in one gesture. SearchInput's own `hotkey` prop can't drive this
+  // path because when collapsed the input isn't mounted yet.
+  const shortcutsBlocked = useKeyboardShortcutsBlocked()
+  useAppHotkey(
+    '/',
+    () => {
+      onOpenChange(true)
+      requestAnimationFrame(() => {
+        inputRef.current?.focus()
+        inputRef.current?.select()
+      })
+    },
+    {
+      enabled: !shortcutsBlocked,
+      meta: {
         id: 'rules.library.focus-search',
         name: 'Filter rules',
         description: 'Focus the Rule library filter input.',
         category: 'rules',
         scope: 'route',
-      }}
-    />
+      },
+    },
+  )
+  if (!isOpen) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        aria-label={t`Filter rules`}
+        title={t`Filter rules  ·  press / to focus`}
+        onClick={() => {
+          onOpenChange(true)
+          requestAnimationFrame(() => inputRef.current?.focus())
+        }}
+        className="shrink-0"
+      >
+        <SearchIcon className="size-4" aria-hidden />
+      </Button>
+    )
+  }
+  return (
+    <div className="relative w-full md:w-56 md:flex-none">
+      <SearchInput
+        ref={inputRef}
+        value={value}
+        onChange={onChange}
+        placeholder={t`Filter rules…`}
+        ariaLabel={t`Filter rules`}
+        onFocus={() => onOpenChange(true)}
+        onBlur={() => {
+          if (value.length === 0) onOpenChange(false)
+        }}
+      />
+    </div>
   )
 }
 
@@ -1913,6 +2155,10 @@ function GroupedRulesTable({
   onToggleRuleSelection,
   onToggleRulesSelection,
   focusedRowId,
+  pageIndex,
+  totalPages,
+  totalGroupCount,
+  onPageChange,
 }: {
   groups: JurisdictionGroup[]
   expanded: Set<RuleJurisdiction>
@@ -1928,6 +2174,13 @@ function GroupedRulesTable({
   // J/K keyboard nav threads the focused row id down so the
   // matching TableRow can paint a focus ring.
   focusedRowId: string | null
+  // 2026-05-26 (Yuqi cross-table drift #3): pagination props. Parent
+  // owns the page state (nuqs-bound), the table just renders the
+  // prev/next footer + reflects the current slice.
+  pageIndex: number
+  totalPages: number
+  totalGroupCount: number
+  onPageChange: (next: number) => void
 }) {
   const { t } = useLingui()
   const tierLabels = useRuleTierLabels()
@@ -1981,9 +2234,27 @@ function GroupedRulesTable({
           toolbar would wrap otherwise) and on touch-only sessions
           via `sm:flex` — matches the `KeyboardHints` strip in the
           batch-review modal footer. */}
-      <div className="flex items-center justify-between gap-3 text-sm">
+      {/* 2026-05-26 (Yuqi follow-up — "和下面 row 一样的 padding"):
+          toolbar now uses `px-3` so its text starts at the same x
+          as the table header cells (which inherit `px-3` from the
+          TableHead primitive). The previous flush-left layout
+          parked the toolbar text 12px to the LEFT of the first
+          column header — a visible misalignment when scanning down
+          from "52 jurisdictions" into the first column label
+          "Rule". */}
+      <div className="flex items-center justify-between gap-3 px-3 text-sm">
         <span className="text-text-secondary">
-          <Plural value={groups.length} one="# jurisdiction" other="# jurisdictions" />
+          {/* 2026-05-26 (Yuqi cross-table drift #3): when paginated,
+              show "Showing N of M" so the user knows how many they're
+              looking at on the current page vs the full filter set.
+              Single-page mode keeps the simpler "N jurisdictions". */}
+          {totalPages > 1 ? (
+            <Trans>
+              Showing {groups.length} of {totalGroupCount} jurisdictions
+            </Trans>
+          ) : (
+            <Plural value={groups.length} one="# jurisdiction" other="# jurisdictions" />
+          )}
         </span>
         <div className="flex items-center gap-3">
           <RowNavHints />
@@ -1996,143 +2267,205 @@ function GroupedRulesTable({
           </button>
         </div>
       </div>
-      <Table>
-        <TableHeader className="sticky top-0 z-10">
-          <TableRow>
-            {/* 2026-05-26 (Yuqi rule library deferred batch —
-                /distill): the 7 per-entity column headers (LLC,
-                Part, S-Corp, C-Corp, Sole, Ind, Trust) are gone.
-                The state row now carries a single compact
-                entity-coverage dot cluster (see
-                `EntityCoverageDots` rendered inside
-                `GroupHeaderRow`), and per-rule applicability lives
-                only in the rule-detail Dialog. Header is now just
-                Rule / Form / Tier — the table reads like
-                /deadlines + /clients. */}
-            <TableHead className="w-[60%]">
-              <Trans>Rule</Trans>
-            </TableHead>
-            <TableHead className="w-[160px]">
-              <Trans>Form</Trans>
-            </TableHead>
-            <TableHead className="text-right">
-              <Trans>Tier</Trans>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {groups.map((group) => {
-            const isExpanded = expanded.has(group.jurisdiction)
-            return (
-              <Fragment key={group.jurisdiction}>
-                {/* Group header row — spans all columns. Chevron +
+      {/* 2026-05-26 (Yuqi cross-table chrome unify): canonical
+          workbench-table card frame. Same recipe as /deadlines +
+          /clients. The Table primitive used to host the rounded
+          border via `[&_[data-slot=table-container]]:` arbitrary
+          selectors; now the chrome lives on this outer div so the
+          card wraps the table AND the pagination footer below as
+          one cohesive rounded surface. */}
+      <div className="flex flex-col overflow-hidden rounded-md border border-divider-subtle">
+        <Table>
+          {/* 2026-05-26 (Yuqi follow-up — "table-header和别的页面上的
+            table header一样颜色"): override the primitive's default
+            `bg-background-subtle` with `!bg-background-default-dimmed`
+            so the rule-library header band matches /deadlines + the
+            rest of the workbench table family. */}
+          {/* 2026-05-26 (Yuqi feedback — "table head should not be transparent.
+            scrolling up you see the information behind the header"): dropped
+            the `!bg-background-default-dimmed` override. That token resolves
+            to `rgb(200 206 218 / 0.4)` — 40% alpha — so the sticky thead was
+            see-through and showed row text bleeding through. Falling back to
+            the primitive's solid `bg-background-subtle` (#f2f4f7) gives the
+            same visual gray tone WITHOUT alpha. */}
+          <TableHeader className="sticky top-0 z-10">
+            <TableRow>
+              <TableHead className="w-[42%]">
+                <Trans>Rule</Trans>
+              </TableHead>
+              <TableHead className="w-[140px]">
+                <Trans>Form</Trans>
+              </TableHead>
+              {ENTITY_KEYS.map((entity) => (
+                <TableHead
+                  key={entity}
+                  title={ENTITY_LABELS[entity]}
+                  className="w-12 text-center text-[10px] font-medium uppercase tracking-wider text-text-tertiary"
+                >
+                  {ENTITY_COLUMN_LABELS[entity]}
+                </TableHead>
+              ))}
+              {/* 2026-05-26 (Yuqi follow-up — "the header of Tier
+                should be left aligned"): dropped `text-right` so
+                the column header sits at the column's natural
+                left edge, matching the Rule / Form headers above. */}
+              <TableHead>
+                <Trans>Tier</Trans>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {groups.map((group) => {
+              const isExpanded = expanded.has(group.jurisdiction)
+              return (
+                <Fragment key={group.jurisdiction}>
+                  {/* Group header row — spans all columns. Chevron +
                     name + count + entity coverage dots inline. */}
-                <GroupHeaderRow
-                  group={group}
-                  expanded={isExpanded}
-                  onToggle={onToggle}
-                  focused={focusedRowId === `group:${group.jurisdiction}`}
-                />
-                {/* Expanded — render rules grouped by status under
+                  <GroupHeaderRow
+                    group={group}
+                    expanded={isExpanded}
+                    onToggle={onToggle}
+                    focused={focusedRowId === `group:${group.jurisdiction}`}
+                  />
+                  {/* Expanded — render rules grouped by status under
                     section headers (NEEDS REVIEW / ACTIVE / etc.),
                     then coverage gaps as their own section. The
                     section header replaces the per-rule Status
                     column. */}
-                {isExpanded ? (
-                  <>
-                    {STATUS_GROUP_ORDER.map((statusKey) => {
-                      const rulesInGroup = group.rules.filter(
-                        (r) => statusGroupOf(r.status) === statusKey,
-                      )
-                      if (rulesInGroup.length === 0) return null
-                      const isReviewable = statusKey === 'needs_review'
-                      // Compute tri-state for the section's select-all
-                      // checkbox: all / some / none of this section's
-                      // rules currently selected. Only needs-review
-                      // sections get the checkbox; other sections can't
-                      // be batch-reviewed.
-                      const selectedInSection = isReviewable
-                        ? rulesInGroup.filter((r) => selectedRuleIds.has(r.id)).length
-                        : 0
-                      const selectAllState: 'all' | 'some' | 'none' =
-                        selectedInSection === 0
-                          ? 'none'
-                          : selectedInSection === rulesInGroup.length
-                            ? 'all'
-                            : 'some'
-                      return (
-                        <Fragment key={statusKey}>
+                  {isExpanded ? (
+                    <>
+                      {STATUS_GROUP_ORDER.map((statusKey) => {
+                        const rulesInGroup = group.rules.filter(
+                          (r) => statusGroupOf(r.status) === statusKey,
+                        )
+                        if (rulesInGroup.length === 0) return null
+                        const isReviewable = statusKey === 'needs_review'
+                        // Compute tri-state for the section's select-all
+                        // checkbox: all / some / none of this section's
+                        // rules currently selected. Only needs-review
+                        // sections get the checkbox; other sections can't
+                        // be batch-reviewed.
+                        const selectedInSection = isReviewable
+                          ? rulesInGroup.filter((r) => selectedRuleIds.has(r.id)).length
+                          : 0
+                        const selectAllState: 'all' | 'some' | 'none' =
+                          selectedInSection === 0
+                            ? 'none'
+                            : selectedInSection === rulesInGroup.length
+                              ? 'all'
+                              : 'some'
+                        return (
+                          <Fragment key={statusKey}>
+                            <StatusSectionHeaderRow
+                              label={statusGroupLabels[statusKey]}
+                              count={rulesInGroup.length}
+                              statusKey={statusKey}
+                              {...(isReviewable
+                                ? {
+                                    selectAllState,
+                                    onToggleSelectAll: () =>
+                                      onToggleRulesSelection(rulesInGroup.map((r) => r.id)),
+                                  }
+                                : {})}
+                            />
+                            {rulesInGroup.map((rule) => (
+                              <RuleTableRow
+                                key={rule.id}
+                                rule={rule}
+                                tierLabels={tierLabels}
+                                jurisdictionLabel={group.label}
+                                selectable={isReviewable}
+                                selected={selectedRuleIds.has(rule.id)}
+                                focused={focusedRowId === `rule:${rule.id}`}
+                                onSelectChange={() => onToggleRuleSelection(rule.id)}
+                                onClick={onRuleClick}
+                              />
+                            ))}
+                          </Fragment>
+                        )
+                      })}
+                      {/* Coverage gaps section (its own sub-header) */}
+                      {group.gapEntities.length > 0 ? (
+                        <>
                           <StatusSectionHeaderRow
-                            label={statusGroupLabels[statusKey]}
-                            count={rulesInGroup.length}
-                            statusKey={statusKey}
-                            {...(isReviewable
-                              ? {
-                                  selectAllState,
-                                  onToggleSelectAll: () =>
-                                    onToggleRulesSelection(rulesInGroup.map((r) => r.id)),
-                                }
-                              : {})}
+                            label={t`Missing rules`}
+                            count={group.gapEntities.length}
+                            statusKey="gaps"
                           />
-                          {rulesInGroup.map((rule) => (
-                            <RuleTableRow
-                              key={rule.id}
-                              rule={rule}
-                              tierLabels={tierLabels}
-                              jurisdictionLabel={group.label}
-                              selectable={isReviewable}
-                              selected={selectedRuleIds.has(rule.id)}
-                              focused={focusedRowId === `rule:${rule.id}`}
-                              onSelectChange={() => onToggleRuleSelection(rule.id)}
-                              onClick={onRuleClick}
+                          {group.gapEntities.map((entity) => (
+                            <GapTableRow
+                              key={entity}
+                              group={group}
+                              entity={entity}
+                              focused={focusedRowId === `gap:${group.jurisdiction}:${entity}`}
+                              onAddRule={onAddRule}
                             />
                           ))}
-                        </Fragment>
-                      )
-                    })}
-                    {/* Coverage gaps section (its own sub-header) */}
-                    {group.gapEntities.length > 0 ? (
-                      <>
-                        <StatusSectionHeaderRow
-                          label={t`Missing rules`}
-                          count={group.gapEntities.length}
-                          statusKey="gaps"
-                        />
-                        {group.gapEntities.map((entity) => (
-                          <GapTableRow
-                            key={entity}
-                            group={group}
-                            entity={entity}
-                            focused={focusedRowId === `gap:${group.jurisdiction}:${entity}`}
-                            onAddRule={onAddRule}
-                          />
-                        ))}
-                      </>
-                    ) : null}
-                    {/* Empty state inside an empty jurisdiction. */}
-                    {group.rules.length === 0 && group.gapEntities.length === 0 ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={RULES_TABLE_COLUMN_COUNT}
-                          className="py-3 text-center text-xs text-text-tertiary"
-                        >
-                          <Trans>No rules yet for {group.label}.</Trans>
-                        </TableCell>
-                      </TableRow>
-                    ) : null}
-                  </>
-                ) : null}
-              </Fragment>
-            )
-          })}
-          {/* 2026-05-26 (Yuqi rule library deferred batch — /clarify):
+                        </>
+                      ) : null}
+                      {/* Empty state inside an empty jurisdiction. */}
+                      {group.rules.length === 0 && group.gapEntities.length === 0 ? (
+                        <TableRow>
+                          <TableCell
+                            colSpan={RULES_TABLE_COLUMN_COUNT}
+                            className="py-3 text-center text-xs text-text-tertiary"
+                          >
+                            <Trans>No rules yet for {group.label}.</Trans>
+                          </TableCell>
+                        </TableRow>
+                      ) : null}
+                    </>
+                  ) : null}
+                </Fragment>
+              )
+            })}
+            {/* 2026-05-26 (Yuqi rule library deferred batch — /clarify):
               the bare "No rules and no coverage data yet." row has
               been retired — `RulesLibraryEmptyState` now renders
               ABOVE this table when `groups.length === 0` (see the
               parent route). The table itself is never rendered with
               zero groups now. */}
-        </TableBody>
-      </Table>
+          </TableBody>
+        </Table>
+        {/* 2026-05-26 (Yuqi cross-table drift #3 — "clients and rule
+          library are prev/next + page count footer"): pagination
+          footer matching /clients shape (px-2 py-6, prev/next chevrons,
+          "Page X of N" between). Footer only renders when there's
+          more than one page. */}
+        {totalPages > 1 ? (
+          <div className="flex shrink-0 items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-6 text-xs text-text-tertiary">
+            <span className="px-2">
+              <Plural value={totalGroupCount} one="# jurisdiction" other="# jurisdictions" />
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t`Previous page`}
+                disabled={pageIndex === 0}
+                onClick={() => onPageChange(Math.max(0, pageIndex - 1))}
+              >
+                <ChevronLeftIcon className="size-4" aria-hidden />
+              </Button>
+              <span className="px-2 tabular-nums">
+                <Trans>
+                  Page {pageIndex + 1} of {totalPages}
+                </Trans>
+              </span>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t`Next page`}
+                disabled={pageIndex >= totalPages - 1}
+                onClick={() => onPageChange(Math.min(totalPages - 1, pageIndex + 1))}
+              >
+                <ChevronRightIcon className="size-4" aria-hidden />
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </div>
+      {/* /card frame opened above the Table */}
     </div>
   )
 }
@@ -2169,32 +2502,31 @@ function GroupHeaderRow({
         // 2026-05-26 (Stripe-bar /polish pass): row height bumped
         // to h-14 (56px) so the catalog reads at the same premium
         // breathing room as /clients + /deadlines tables.
+        // 2026-05-26 (Yuqi cross-table drift #11 — group header
+        // hover): KEEP hover-bg here. The canonical rule across
+        // tables: group headers that are CLICKABLE (this state row
+        // expands/collapses) keep hover-bg + cursor-pointer as the
+        // "this is interactive" affordance. Group headers that are
+        // PASSIVE section labels (/deadlines client-group row) stay
+        // static. The semantic difference drives the visual.
         'h-14 cursor-pointer hover:bg-state-base-hover',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onToggle(group.jurisdiction)}
       data-state={expanded ? 'expanded' : 'collapsed'}
     >
-      {/* 2026-05-26 (Yuqi rule library deferred batch — /distill):
-          state row collapsed to 2 cells (was 9). The 7 per-entity
-          columns retired; the row now reads as "identity (left) →
-          summary signals (right)" — same shape as a /deadlines
-          status group header.
-
-          Cell 1 (colSpan=2): chevron + state badge + full name +
-          rule count + compact entity-coverage dot cluster. The dot
-          cluster sits inline with the name so the eye reads
-          "Alabama · 8 rules · ● ● ● ○ ● ● ●" left to right.
-
-          Cell 2 (Tier column position): attention badges (needs
-          review / missing) + tier distribution bar, right-aligned. */}
+      {/* State row layout:
+          - Cell 1 (Rule column): identity — chevron + state badge +
+            full name + rule count.
+          - Cell 2 (Form column): total number — sum of all per-entity
+            counts. Mirrors the per-entity overview numbers in the
+            7 columns to its right; tells the eye "this state covers
+            N rules across all entities" at column-true position.
+          - Cells 3-9: per-entity overview via EntityStateCell —
+            plain count of rules for that entity in this state.
+          - Cell 10 (Tier column): attention badges + status bar. */}
       <TableCell
-        colSpan={2}
         className="py-2"
-        // 2026-05-25 (Yuqi rule library #9): hover hint explains
-        // what the row aggregates. CPAs new to the catalog were
-        // unsure if the dots in the row showed jurisdiction-level
-        // coverage or just the open rules — the title clarifies.
         title={`${group.label} — ${group.ruleCount} rule${group.ruleCount === 1 ? '' : 's'} across all entities. Expand to see the breakdown.`}
       >
         <div className="flex flex-wrap items-center gap-2">
@@ -2205,17 +2537,6 @@ function GroupHeaderRow({
             )}
             aria-hidden
           />
-          {/* 2026-05-25 (Yuqi rule library fourth pass #6):
-              jurisdiction marker upgraded to the StateBadge SVG
-              primitive used everywhere else US-states surface
-              (Alerts page, Pulse drawer, /clients States column).
-              Was a square mono-text Badge that read different from
-              the rest of the app. The 2-letter code label stays
-              alongside the SVG so the row remains keyboard-typable
-              and the column reads at a glance. Federal-level
-              groups (jurisdiction === "US") still receive a
-              StateBadge — the primitive renders a "FED" mark for
-              that code. */}
           <span className="inline-flex items-center gap-1.5">
             <StateBadge code={group.jurisdiction} size="xs" title={group.jurisdiction} />
             <span className="font-mono text-caption-xs uppercase tracking-wider text-text-secondary">
@@ -2226,43 +2547,60 @@ function GroupHeaderRow({
           <span className="text-xs tabular-nums text-text-tertiary">
             <Plural value={group.ruleCount} one="# rule" other="# rules" />
           </span>
-          {/* 2026-05-26 (Yuqi rule library deferred batch — /distill):
-              Compact entity-coverage dots replace the prior 7-cell
-              column matrix. Sits after the rule count so the row
-              reads identity-first, then the texture-level signal of
-              which entities have/lack rules. Full breakdown lives on
-              hover (title) and inside the rule-detail Dialog. */}
-          <EntityCoverageDots group={group} />
         </div>
       </TableCell>
+      {/* Form column on the state row: total count across all
+          entities. Per Yuqi follow-up — "for the overall Form for
+          the state, you could write the total number." Gives the
+          eye a column-anchored summary that lines up with the
+          per-entity counts to the right. */}
       <TableCell className="py-2">
+        <span className="text-sm font-medium tabular-nums text-text-primary">
+          {ENTITY_KEYS.reduce((sum, entity) => sum + group.entityCounts[entity], 0)}
+        </span>
+      </TableCell>
+      {/* Per-entity overview cells — one per ENTITY_KEY. Plain
+          count, no icon, no color tint. */}
+      {ENTITY_KEYS.map((entity) => {
+        const isNA = group.sourceCoverage?.[entity] === 'not_applicable'
+        const state: CoverageState = isNA ? 'not_applicable' : (group.coverage?.[entity] ?? 'none')
+        return (
+          <TableCell key={entity} className="py-2 text-center">
+            <EntityStateCell
+              count={group.entityCounts[entity]}
+              pendingReviewCount={group.entityPendingReviewCounts[entity]}
+              state={state}
+            />
+          </TableCell>
+        )
+      })}
+      <TableCell className="py-2">
+        {/* 2026-05-26 (Yuqi follow-up — "NOT ALIGNED"): badges sit
+            inside a fixed-width slot (120px) so the left edge of the
+            dot+text is at the same x across every state row regardless
+            of singular/plural copy length ("1 needs review" vs
+            "10 need review"). The status bar still right-aligns;
+            gap-3 separates the two.
+            2026-05-26 (Yuqi cross-table drift #9 — "Count chip
+            primitive: one pill for review counts everywhere"): the
+            two badges below moved from hand-rolled spans to the
+            canonical `<CountDotChip>` primitive. Same visual; new
+            surfaces can adopt the same chip with one import. */}
         <div className="flex items-center justify-end gap-3">
-          {/* 2026-05-25 (Yuqi rule library #30): "N needs review"
-              demoted from an outline badge to a colored inline count
-              with a leading dot. The badge chrome stacked with the
-              actual status-distribution bar to its right + the
-              section-header badges below, making the row read as a
-              "wall of badges." Inline text + dot does the same job
-              with less visual claim. Same treatment for "N missing"
-              (red dot + red text). */}
-          {group.pendingReviewCount > 0 ? (
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-text-accent">
-              <span
-                aria-hidden
-                className="inline-block size-1.5 shrink-0 rounded-full bg-state-accent-solid"
-              />
+          <CountDotChip
+            count={group.pendingReviewCount}
+            tone="accent"
+            minWidth="120px"
+            label={
               <Plural value={group.pendingReviewCount} one="# needs review" other="# need review" />
-            </span>
-          ) : null}
-          {group.gapEntities.length > 0 ? (
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-text-destructive">
-              <span
-                aria-hidden
-                className="inline-block size-1.5 shrink-0 rounded-full bg-state-destructive-solid"
-              />
-              <Plural value={group.gapEntities.length} one="# missing" other="# missing" />
-            </span>
-          ) : null}
+            }
+          />
+          <CountDotChip
+            count={group.gapEntities.length}
+            tone="destructive"
+            minWidth="120px"
+            label={<Plural value={group.gapEntities.length} one="# missing" other="# missing" />}
+          />
           <RuleStatusBar rules={group.rules} />
         </div>
       </TableCell>
@@ -2296,12 +2634,11 @@ function RuleTableRow({
   onSelectChange: (next: boolean) => void
   onClick: (rule: ObligationRule) => void
 }) {
-  // 2026-05-26 (Yuqi rule library deferred batch — /distill):
-  // per-entity applicability dots are gone from the row. The rule-
-  // detail Dialog (`RuleDetailInline` → DetailSection "Applicability")
-  // already surfaces "Applies to LLC, Partnership, …" so the data is
-  // still discoverable on click — but the table itself no longer
-  // carries 7 dots × N rows of texture.
+  // Memo-set for O(1) applicability lookup per entity column.
+  const applicabilitySet = useMemo(
+    () => new Set(rule.entityApplicability),
+    [rule.entityApplicability],
+  )
 
   // Strip the state prefix from the rule title since the state is
   // already in the group header above. "Alabama individual income
@@ -2335,14 +2672,27 @@ function RuleTableRow({
           label, then the title sits after the checkbox slot. The same
           slot is reserved for non-selectable active rows so titles
           stay aligned across sections. */}
-      <TableCell className="!pl-9 min-h-10 whitespace-normal py-2 text-sm font-medium">
-        <div className="flex min-w-0 items-start gap-2">
-          <span className="inline-flex w-4 shrink-0 items-start pt-0.5">
-            {selectable ? (
-              // Checkbox is its own click target — stopping propagation
-              // so the row's `onClick` (which opens the rule detail
-              // panel) doesn't fire when the user is just selecting for
-              // batch review.
+      {/* 2026-05-26 (Yuqi cross-table unify — "Deadlines text-sm ·
+          Clients text-base · Rules library text-sm … visually make
+          them similar"): primary identity title is now text-base
+          regular weight (was text-sm font-medium). Matches /clients
+          + /deadlines so all three workbench tables share the same
+          canonical title scale. Tier label + meta below stay text-xs
+          so the title still reads as the primary anchor. */}
+      <TableCell className="!pl-9 min-h-10 whitespace-normal py-2 text-base">
+        {/* 2026-05-26 (Yuqi follow-up — "the checkbox and text do not
+            middle align. The dot and the text do not middle align"):
+            outer flex is now `items-center` (was `items-start` with a
+            `pt-1.5` shim on the inner slot). Single source of vertical
+            alignment for the whole row: leading slot, title, and any
+            hover-revealed status word all sit on one baseline. */}
+        <div className="flex min-w-0 items-center gap-2">
+          {selectable ? (
+            <span className="inline-flex w-4 shrink-0 items-center justify-center">
+              {/* Checkbox is its own click target — stopping
+                  propagation so the row's `onClick` (which opens the
+                  rule detail panel) doesn't fire when the user is just
+                  selecting for batch review. */}
               <span
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={(event) => event.stopPropagation()}
@@ -2354,13 +2704,59 @@ function RuleTableRow({
                   aria-label={`Select ${displayTitle} for batch review`}
                 />
               </span>
-            ) : null}
-          </span>
-          {/* 2026-05-26 (Stripe-bar /colorize pass): rule title in
-              brand accent + hover-underline on row hover. Matches the
-              /clients list client-name treatment so primary clickable
-              identifiers read the same way across the family. */}
-          <span className="text-text-accent group-hover/row:underline group-hover/row:underline-offset-2 group-hover/row:decoration-current">
+            </span>
+          ) : (
+            // 2026-05-26 (Yuqi feedback — "Needs review and review item
+            // have checkbox, active 20 and the active items need
+            // something in front of them at the same position as the
+            // checkbox as well to look nicely done"): non-selectable
+            // rules (ACTIVE / VERIFIED / REJECTED / ARCHIVED) render a
+            // status-toned dot at the checkbox X-position so the row's
+            // leading slot is never empty.
+            //
+            // 2026-05-26 (Yuqi follow-up — "green dot turns gray so
+            // not clashing with the entity status"): active +
+            // verified rules use a gray dot. The entity-status green
+            // dots in the same row already carry the "applies +
+            // healthy" signal; a second green dot in the leading
+            // slot was visually competing. Gray reads as "marker
+            // for the state group above" without stealing the eye.
+            //
+            // 2026-05-26 (Yuqi follow-up — "hovering onto the row
+            // currently just changes the background — but can
+            // actually expand the green dot/blue dot to a word
+            // explanation of what is happening at the entity"): on
+            // row hover the dot stays, and a short status label
+            // (Active / Needs review / Rejected / Archived …)
+            // reveals next to it. The title shifts right on hover —
+            // intentional: the dot "expands" into the word, matching
+            // the user's mental model.
+            (() => {
+              const tone = STATUS_TONE[rule.status]
+              return (
+                <span aria-hidden className="inline-flex shrink-0 items-center gap-1.5">
+                  <span
+                    className={cn(
+                      'inline-block size-1.5 rounded-full',
+                      tone === 'success' && 'bg-divider-regular',
+                      tone === 'destructive' && 'bg-state-destructive-solid',
+                      tone === 'review' && 'bg-state-accent-solid',
+                      tone === 'muted' && 'bg-divider-regular',
+                    )}
+                  />
+                  <span className="hidden whitespace-nowrap text-xs text-text-tertiary group-hover/row:inline">
+                    {STATUS_LABEL_SHORT[rule.status]}
+                  </span>
+                </span>
+              )
+            })()
+          )}
+          {/* 2026-05-26 (Yuqi follow-up — "revert the titles back
+              to black"): rule title back to `text-text-primary`.
+              Hover underline stays as the row-affordance cue; the
+              accent-purple coloring (from the earlier Stripe
+              /colorize pass) is gone. */}
+          <span className="text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-hover/row:decoration-current">
             {displayTitle}
           </span>
         </div>
@@ -2368,6 +2764,14 @@ function RuleTableRow({
       <TableCell className="py-2">
         <FormCell formName={rule.formName} taxType={rule.taxType} />
       </TableCell>
+      {/* Per-entity applicability dots — one per ENTITY_KEY. Status-
+          tinted when the rule applies to that entity, faint
+          placeholder otherwise. */}
+      {ENTITY_KEYS.map((entity) => (
+        <TableCell key={entity} className="py-2 text-center">
+          <EntityApplicabilityCell applies={applicabilitySet.has(entity)} status={rule.status} />
+        </TableCell>
+      ))}
       {/* Tier label + trailing chevron + canonical row-action menu.
           The chevron stays as the "this row opens detail" affordance
           cue (fades in on row hover). The ⋯ menu lives next to it as
@@ -2499,6 +2903,14 @@ function GapTableRow({
 // Status section header — sub-section inside an expanded jurisdiction
 // ---------------------------------------------------------------------------
 
+// 2026-05-26 (Yuqi cross-table drift #12 — "Status section header
+// visual"): this NEEDS REVIEW / ACTIVE / MISSING band is Rule-library-
+// only. The pattern (tinted label + count + tri-state batch checkbox
+// + collapse chevron) exists because the rule library is the only
+// surface that does state-grouped batch review. /deadlines groups by
+// client (no batch axis), /clients is a flat directory (no grouping).
+// Keep this as a local component — promote to a shared primitive only
+// if a second surface lands batch-review semantics.
 function StatusSectionHeaderRow({
   label,
   count,
@@ -2641,7 +3053,20 @@ function SearchResultsTable({
             <TableHead>
               <Trans>Form</Trans>
             </TableHead>
-            <TableHead className="text-right">
+            {ENTITY_KEYS.map((entity) => (
+              <TableHead
+                key={entity}
+                title={ENTITY_LABELS[entity]}
+                className="w-12 text-center text-[10px] font-medium uppercase tracking-wider text-text-tertiary"
+              >
+                {ENTITY_COLUMN_LABELS[entity]}
+              </TableHead>
+            ))}
+            {/* 2026-05-26 (Yuqi follow-up — "the header of Tier
+                should be left aligned"): dropped `text-right` so
+                the column header sits at the column's natural
+                left edge, matching the Rule / Form headers above. */}
+            <TableHead>
               <Trans>Tier</Trans>
             </TableHead>
           </TableRow>
@@ -2674,7 +3099,12 @@ function SearchResultsTable({
                   onClick={() => onRuleClick(rule)}
                   aria-label={`Open rule details for ${rule.title}`}
                 >
-                  <TableCell className="whitespace-normal py-2 text-sm font-medium text-text-primary">
+                  {/* 2026-05-26 (Yuqi cross-table unify): text-sm
+                      font-medium → text-base regular. Matches the
+                      grouped RuleTableRow above + /clients + /deadlines
+                      so search results carry the same primary-identity
+                      treatment as the rest of the family. */}
+                  <TableCell className="whitespace-normal py-2 text-base text-text-primary">
                     <span className="group-hover/row:underline group-hover/row:underline-offset-2 group-hover/row:decoration-divider-regular">
                       {rule.title}
                     </span>
@@ -2685,6 +3115,14 @@ function SearchResultsTable({
                   <TableCell className="py-2">
                     <FormCell formName={rule.formName} taxType={rule.taxType} />
                   </TableCell>
+                  {ENTITY_KEYS.map((entity) => (
+                    <TableCell key={entity} className="py-2 text-center">
+                      <EntityApplicabilityCell
+                        applies={rule.entityApplicability.includes(entity)}
+                        status={rule.status}
+                      />
+                    </TableCell>
+                  ))}
                   {/* Trailing affordance chevron + canonical row-action
                       menu — same shape as the grouped table above so
                       search results carry the identical per-row
@@ -2905,35 +3343,51 @@ function BulkReviewBar({
   // rules than the user has currently selected — otherwise it's a
   // no-op that just clutters the bar.
   const showSelectAll = totalPending > count
+  // 2026-05-26 (Yuqi feedback — "Bulk review actions look ugly and not
+  // UX friendly"): bar internals restructured for clearer hierarchy.
+  // Three named slots, separated by a single muted divider:
+  //   [ count-line + Clear ] | [ Select-all link ] | [ Review CTA ]
+  //
+  // Count is sm (was xs) so it carries weight as the primary status
+  // line. "Clear" sits as a quiet tertiary link DIRECTLY next to the
+  // count — same group ("what's selected"). "Select all" lives in its
+  // own slot — separate action of expanding the selection — only when
+  // it'd actually do something. The primary "Review" button keeps its
+  // place at the right end as the canonical "act on selection" CTA;
+  // the count is also baked into its label ("Review N rules") so a
+  // user who already knows what they selected can fire the action
+  // without re-reading the count line.
   return (
     <FloatingActionBar ariaLabel={t`Bulk review actions`}>
-      <span className="text-xs font-medium tabular-nums text-text-primary">
-        <Plural value={count} one="# rule selected" other="# rules selected" />
-      </span>
-      <span aria-hidden className="mx-0.5 h-4 w-px bg-divider-regular" />
-      {showSelectAll ? (
-        // Small link to expand the selection to every pending rule in
-        // the catalog. The total appears in the label so the user
-        // knows the size of the commitment before clicking.
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium tabular-nums text-text-primary">
+          <Plural value={count} one="# rule selected" other="# rules selected" />
+        </span>
         <button
           type="button"
-          onClick={onSelectAll}
-          className="text-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          onClick={onClear}
+          className="text-xs text-text-tertiary outline-none hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
         >
-          <Trans>Select all {totalPending}</Trans>
+          <Trans>Clear</Trans>
         </button>
+      </div>
+      {showSelectAll ? (
+        <>
+          <span aria-hidden className="h-4 w-px bg-divider-subtle" />
+          <button
+            type="button"
+            onClick={onSelectAll}
+            className="text-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <Trans>Select all {totalPending}</Trans>
+          </button>
+        </>
       ) : null}
+      <span aria-hidden className="h-4 w-px bg-divider-subtle" />
       <Button type="button" size="sm" onClick={onReview}>
-        <Trans>Review</Trans>
+        <Trans>Review {count}</Trans>
         <ChevronRightIcon data-icon="inline-end" />
       </Button>
-      <button
-        type="button"
-        onClick={onClear}
-        className="text-xs text-text-tertiary outline-none hover:text-text-secondary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-      >
-        <Trans>Clear</Trans>
-      </button>
     </FloatingActionBar>
   )
 }

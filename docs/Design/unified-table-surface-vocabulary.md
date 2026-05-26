@@ -295,4 +295,124 @@ truth on this surface.
 - `docs/Design/pulse-vocabulary.md` — engine-name vocabulary (will be updated for engine-vs-surface split)
 - `docs/Design/obligation-drawer-ux-audit-2026-05-21.md` — original drawer audit
 - `docs/Design/client-page-information-architecture.md` — earlier Client detail IA decisions (this doc supersedes the Tabs guidance there)
+
+---
+
+## Addendum (2026-05-26) — Intentional cross-table divergences
+
+These are NOT drift — they were audited against the unified vocabulary
+and ruled deliberate. Listed here so a future code reader doesn't
+"fix" them.
+
+### A. Click-to-detail destination (drift item #15)
+
+All three workbench tables open a detail view on row click. The
+destination differs:
+
+| Surface          | Row-click opens                                        | Why                                                                                                                                                                                                                        |
+| ---------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/deadlines`     | Inline obligation drawer (`ObligationPanelDispatcher`) | Triage queue. CPAs power through many rows back-to-back; a route nav per row would interrupt scroll context. The drawer hangs alongside the queue so they can move J/K through the list while the same panel slot updates. |
+| `/clients`       | Route navigation to `/clients/:id`                     | Client detail is a sustained workspace (multiple tabs, filing plan, contacts). Worth a real URL so it's bookmarkable + share-able.                                                                                         |
+| `/rules/library` | Centered `<Dialog>` modal                              | Rule detail is reference content viewed in isolation. A modal stops queue progress (good — the user is "consulting" the rule, not iterating through rules) and dismisses with one Esc to return to the catalog.            |
+
+**Rule:** click-to-detail is the canonical row gesture. The destination
+follows the user's task model on that surface — queue triage gets a
+drawer, sustained work gets a route, reference lookup gets a modal.
+
+### B. Primary title size (drift item #1, shipped 2026-05-26)
+
+All three tables now use `text-base` regular weight for the row's
+primary identity title (`text-text-primary`, hover-underline as the
+row-affordance cue). Active-row selection on `/deadlines` upgrades to
+`font-medium` as the "you are here" signal.
+
+### C. Pagination shape (drift item #3)
+
+| Surface          | Shape                                        | Why                                                                                                                                                                                 |
+| ---------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/clients`       | Prev/next + page count footer                | Bounded directory. Page count is meaningful.                                                                                                                                        |
+| `/rules/library` | Grouped state-level data (no row pagination) | Rules cluster naturally by state; pagination by row would slice across the natural groupings. **Open follow-up:** if the catalog grows past ~150 jurisdictions × 30 rules, revisit. |
+| `/deadlines`     | Infinite scroll                              | Unbounded queue. Loading-more on scroll keeps the triage flow.                                                                                                                      |
+
+### D. Search affordance (drift item #5, shipped 2026-05-26)
+
+All three surfaces now use the collapsible-search pattern: ghost icon
+at rest, expand into `<SearchInput>` on click or `/` hotkey.
+`ObligationQueueSearchControl` (/deadlines), `RuleSearchControl`
+(/rules/library), `ClientsSearchControl` (/clients) all follow the
+same shape — only the `meta.id` + placeholder differ per surface.
+
+### E. Owner/Assignee avatar (drift item #10, shipped 2026-05-26)
+
+Canonical: `size-8` (32px) round chip + `text-sm font-semibold uppercase`
+initials. Per-name tint resolved by `getAssigneeTint(name)` from
+`@/lib/assignee-tint`. `isMine` overrides with the accent palette.
+Same person, same color, on every surface.
+
+### F. Within-group row borders (drift item #13)
+
+Default: primitive `border-b border-divider-subtle` between every row.
+Override (`border-b-0` weld) is allowed ONLY when the surface has an
+explicit logical sub-group to express. Current single consumer:
+`/deadlines` same-client cluster.
+
+### G. Group-header hover (drift item #11)
+
+Group headers that are **clickable** (rule library state row →
+expand/collapse) keep `hover:bg-state-base-hover + cursor-pointer` as
+the "this is interactive" affordance. Group headers that are
+**passive section labels** (`/deadlines` client-group row) stay static.
+The semantic difference drives the visual.
+
+### H. Status section header (drift item #12)
+
+`/rules/library` NEEDS REVIEW / ACTIVE / MISSING band is
+Rule-library-only — it owns state-grouped batch review (`/clients` is
+flat, `/deadlines` groups by client without a batch axis). Lives as a
+local component; promote to a shared primitive only if a second
+surface lands batch-review semantics.
+
+### I. TaxCodeLabel / form-code (drift item #14)
+
+`/deadlines` + `/clients` show `TaxCodeLabel(code)` (resolved via
+`describeTaxCode`). `/rules/library` shows `rule.formName` directly
+(the rule's own authored form-name string). Same visual shape
+(`text-xs text-text-secondary`), different data source — each surface
+has the authoritative field for its context.
+
+### J. Toolbar shape (drift item #8)
+
+Each table has two toolbar zones — a TOP zone (above the table, holds
+filters + scope tabs + collapsible search) and a FOOTER zone (below the
+table, holds aggregate count + kbd hints + pagination controls).
+
+| Surface          | Footer count + kbd hints                               | Top count + kbd hints                                       |
+| ---------------- | ------------------------------------------------------ | ----------------------------------------------------------- |
+| `/deadlines`     | `px-2 py-6` — "N deadlines · M clients · J/K · ↵ · ⌘[" | –                                                           |
+| `/clients`       | `px-2 py-6` — pagination prev/next + page count        | –                                                           |
+| `/rules/library` | – (no pagination)                                      | `px-3 text-sm` — "N jurisdictions" + kbd hints + Expand all |
+
+**Rule:** if the surface has pagination, count + kbd hints live in the
+footer adjacent to the prev/next controls. If the surface has no
+pagination (rules library's grouped data), count + kbd hints live in
+the top toolbar where the user sees them at scroll origin. Either
+zone uses padding consistent with its table edge (`px-2` for footer
+chrome, `px-3` for top-toolbar chrome) and the same `text-xs / text-sm`
+typography scale.
+
+### K. Filter affordance (drift item #6)
+
+| Filter cardinality                                                                    | Canonical primitive                                 | Surfaces using it                                                               |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Low fixed-vocabulary (3–8 options) when it's the PRIMARY axis                         | `EntityChipRow`-style chip strip with inline counts | `/rules/library` entity chips                                                   |
+| Multi-select dropdown, any cardinality, when filters appear together as a TOOLBAR ROW | `TableHeaderMultiFilter` (`trigger="toolbar"`)      | `/clients` (Client / States / Entity / Owner row); `/deadlines` toolbar filters |
+| Triage shortcut chips (one-click "show me only X" scoped action)                      | `FilterTrigger`-style action chip strip             | `/deadlines` action-chip strip (Late · Due today · Waiting on client)           |
+
+**Rule:** chip rows are reserved for the _primary_ navigation axis of
+the surface (one chip strip per page max) or for triage action
+shortcuts. When multiple filters need to coexist on the same toolbar
+row, they all render as `TableHeaderMultiFilter` dropdowns for visual
+coherence — mixing a chip row with dropdowns in the same row reads as
+two competing affordance models.
+
 - `docs/Design/obligation-lifecycle-design-brief.md` — the 6-state status palette V7 references

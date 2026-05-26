@@ -1,5 +1,5 @@
 import { ChevronDownIcon, PlusIcon } from 'lucide-react'
-import { forwardRef, type ReactNode } from 'react'
+import { forwardRef, type ComponentType, type ReactNode, type SVGProps } from 'react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -51,10 +51,20 @@ type FilterTriggerProps = {
   children: ReactNode
   /** Hide the trailing chevron — useful for icon-only triggers in narrow rows. */
   hideChevron?: boolean
+  /**
+   * Override the default leading `+` icon. Use for triggers that aren't
+   * "add a filter" — e.g. /deadlines Group-by uses `ArrowDownUp` so the
+   * trigger reads as a sort/group control, not a filter chip. Pass any
+   * lucide icon component. The icon renders at `size-3.5 opacity-70`
+   * regardless of which icon is passed. When `active` is true, the
+   * icon is suppressed (same rule as the default `+`).
+   */
+  leadingIcon?: ComponentType<SVGProps<SVGSVGElement>>
 } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'>
 
 export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
-  function FilterTrigger({ active, className, children, hideChevron, ...rest }, ref) {
+  function FilterTrigger({ active, className, children, hideChevron, leadingIcon, ...rest }, ref) {
+    const LeadingIcon = leadingIcon ?? PlusIcon
     return (
       <button
         ref={ref}
@@ -65,13 +75,20 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           active
             ? 'border-state-accent-solid bg-state-accent-hover text-text-accent hover:bg-state-accent-hover-alt data-[state=open]:bg-state-accent-hover-alt'
-            : 'border-dashed border-divider-subtle bg-transparent text-text-secondary hover:border-divider-regular hover:bg-state-base-hover hover:text-text-primary data-[state=open]:border-divider-regular data-[state=open]:bg-state-base-hover data-[state=open]:text-text-primary',
+            : // 2026-05-26 (Yuqi follow-up — "why is the filter no
+              // background?"): retired the Stripe S4 dashed-border +
+              // transparent-bg ghost shape. Filter triggers now sit on
+              // the canonical solid background-default with a regular
+              // (not dashed) divider border so the chip reads as a
+              // real, present control at rest. Hover/active states
+              // preserved.
+              'border-divider-regular bg-background-default text-text-secondary hover:bg-state-base-hover hover:text-text-primary data-[state=open]:bg-state-base-hover data-[state=open]:text-text-primary',
           'disabled:cursor-not-allowed disabled:opacity-50',
           className,
         )}
         {...rest}
       >
-        {active ? null : <PlusIcon className="size-3.5 shrink-0 opacity-70" aria-hidden />}
+        {active ? null : <LeadingIcon className="size-3.5 shrink-0 opacity-70" aria-hidden />}
         {children}
         {hideChevron ? null : (
           <ChevronDownIcon className="size-3.5 shrink-0 opacity-70" aria-hidden />

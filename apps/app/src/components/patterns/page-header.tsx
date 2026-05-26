@@ -82,13 +82,32 @@ export function PageHeader({
             {eyebrowAside ? <div className="shrink-0">{eyebrowAside}</div> : null}
           </div>
         ) : null}
-        <h1 className="text-2xl leading-7 font-semibold text-text-primary">{title}</h1>
+        {/* 2026-05-26 (Yuqi /clients/[id] header restructure):
+            `min-w-0` so the title block can shrink when the
+            actions cluster sits beside it at lg+ and the page
+            narrows (e.g. right drawer opens). Without it, the
+            title's intrinsic width forced the parent to keep
+            growing, pushing the actions cluster to wrap or
+            collide. */}
+        <h1 className="min-w-0 text-2xl leading-7 font-semibold text-text-primary">{title}</h1>
         {description ? (
           <p className="max-w-[1080px] text-[13px] leading-5 text-text-secondary">{description}</p>
         ) : null}
       </div>
       {actions ? (
-        <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">{actions}</div>
+        // 2026-05-26 (Yuqi /clients/[id] feedback #4 — "flex shrink-0
+        // flex-wrap items-center gap-2 lg:justify-end can wrap into the
+        // second row when the right panel expands"): dropped
+        // `flex-wrap`. When a route opens a right drawer the visible
+        // page narrows but the viewport stays at lg+, so the outer
+        // `lg:flex-row` keeps title + actions on the same row — and
+        // `flex-wrap` on the actions box was letting the buttons
+        // tumble onto a 2nd line inside the actions slot, dragging
+        // the header height taller. Without flex-wrap, the actions
+        // stay on one row; if content genuinely exceeds the row width
+        // the overflow is silently clipped (parent has min-w-0 to
+        // let the title shrink, so this case is rare in practice).
+        <div className="flex shrink-0 items-center gap-2 lg:justify-end">{actions}</div>
       ) : null}
     </header>
   )

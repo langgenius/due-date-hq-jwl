@@ -159,20 +159,13 @@ const STATUS_ICON_COLOR: Record<ObligationStatus, string> = {
   completed: 'text-text-success',
 }
 
-// 2026-05-26 (Stripe S9 restyle): the canonical `success` Badge
-// variant now renders as a solid green chip (white text on
-// green-500) — see packages/ui/src/components/ui/badge.tsx.
-// On that solid background the icon's default `text-text-success`
-// (dark green) collapses into the fill and disappears. This map
-// overrides the icon class for the success-pill triggers so the
-// glyph stays white-on-green. Only the obligation statuses that
-// resolve to the `success` variant (`done`, `paid`, `completed`)
-// are overridden; every other status keeps the menu-surface tone.
+// 2026-05-26 (Yuqi follow-up — "Filed can be more subtle"): the
+// `success` Badge variant reverted from solid green back to a soft
+// green tint, so the icon stays on `text-text-success` (the dark
+// green from STATUS_ICON_COLOR) and reads against the soft pill.
+// Map is preserved as an alias so existing consumers don't break.
 const STATUS_ICON_COLOR_ON_PILL: Record<ObligationStatus, string> = {
   ...STATUS_ICON_COLOR,
-  done: 'text-text-primary-on-surface',
-  paid: 'text-text-primary-on-surface',
-  completed: 'text-text-primary-on-surface',
 }
 
 function isObligationStatus(value: string): value is ObligationStatus {

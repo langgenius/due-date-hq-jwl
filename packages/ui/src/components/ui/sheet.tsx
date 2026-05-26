@@ -97,10 +97,17 @@ function SheetHeader({ className, ...props }: React.ComponentProps<'div'>) {
 }
 
 function SheetFooter({ className, ...props }: React.ComponentProps<'div'>) {
+  // 2026-05-26 (Yuqi feedback — "more bottom padding. also apply
+  // universally to this kind of element/component"): bumped the
+  // bottom padding from 16px → 24px. The top stays at 16px so the
+  // footer reads as a "settles into the viewport edge" zone, not a
+  // floating bar. Consumers that override `className` inherit the
+  // asymmetry — the obligation drawer panel-mode footer + Pulse
+  // drawer SheetFooter override are updated in lockstep.
   return (
     <div
       data-slot="sheet-footer"
-      className={cn('mt-auto flex flex-col gap-2 px-6 py-4', className)}
+      className={cn('mt-auto flex flex-col gap-2 px-6 pt-4 pb-6', className)}
       {...props}
     />
   )

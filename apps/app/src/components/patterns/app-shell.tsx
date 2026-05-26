@@ -103,7 +103,15 @@ export function AppShell(props: AppShellProps) {
               header row, always at the right edge in expanded
               mode + centered below the monogram in collapsed
               mode. */}
-          <div className="flex flex-col gap-1 px-2 py-2 group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:min-h-[72px] group-data-[collapsed=true]/sidebar:gap-2 group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:py-2">
+          {/* 2026-05-26 (Yuqi sidebar fix — height parity): both modes
+              now lock to a `h-[72px]` header section. Previously
+              expanded relied on natural content height (py-2 + h-14
+              FirmSwitcher = 72px) and collapsed used `min-h-[72px]` —
+              same target but on different mechanisms, so any small
+              tweak to padding/content drifted them apart. Hard-coding
+              `h-[72px]` makes both modes pin to the exact same height
+              regardless of inner content size. */}
+          <div className="flex h-[72px] flex-col justify-center gap-1 px-2 py-2 group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:gap-2 group-data-[collapsed=true]/sidebar:px-0">
             <div className="flex w-full items-center gap-1 group-data-[collapsed=true]/sidebar:w-auto group-data-[collapsed=true]/sidebar:flex-col group-data-[collapsed=true]/sidebar:gap-2">
               <FirmSwitcherTrigger firm={props.firm} firms={props.firms} />
               <SidebarCollapseToggle />
