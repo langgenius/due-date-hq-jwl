@@ -186,6 +186,23 @@ Below the scope tabs. Carries two kinds of controls:
 | Pre-set chip — shape       | `--radius-full`, `px-3 py-1`                                    |
 | Filter dropdown trigger    | `FilterTrigger` primitive                                       |
 
+**Filter dropdown trigger — Stripe S4 visual (2026-05-26):**
+
+| Slot                                       | Token                                                                    |
+| ------------------------------------------ | ------------------------------------------------------------------------ |
+| `FilterTrigger` — rest border              | `--divider-subtle` (dashed)                                              |
+| `FilterTrigger` — rest bg                  | `transparent`                                                            |
+| `FilterTrigger` — rest text                | `--text-secondary`                                                       |
+| `FilterTrigger` — rest leading icon        | lucide `PlusIcon` size-3.5 @ opacity-70                                  |
+| `FilterTrigger` — hover border / bg / text | `--divider-regular` / `--state-base-hover` / `--text-primary`            |
+| `FilterTrigger` — active border / bg / text | `--state-accent-solid` / `--state-accent-hover` / `--text-accent`        |
+| `FilterTrigger` — active leading affordance | caller-provided count badge (the `+` is suppressed)                      |
+
+The `+` prefix reads as "click to ADD a filter to your view"
+rather than "this is a permanent filter chip" — borrowed from
+the Stripe dashboard filter-row language. Active treatment
+(accent border + accent bg + count badge) is unchanged.
+
 ### Direction
 
 - Pre-set chips on the left, filter dropdowns on the right.

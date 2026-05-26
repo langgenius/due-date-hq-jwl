@@ -87,4 +87,47 @@ the existing success-state pill.
 
 ## Task S4 — `+`-prefixed filter chips on /clients
 
-**Files:** TBD (will append after the next commit).
+**Files:**
+- `apps/app/src/components/patterns/filter-trigger.tsx`
+- `docs/Design/page-family-canonical.md` (added `FilterTrigger` Stripe-tokens table to §5)
+
+The canonical `FilterTrigger` primitive was a solid pill — `h-8
+rounded-md border-divider-strong bg-background-default`,
+chevron trailing — that read as a permanent filter chip whether
+it had a value selected or not. The CPA scanning the /clients
+toolbar saw four heavy chips and assumed they were always-on.
+
+Restyled to a Stripe-style ghost pill:
+- At rest: `border-dashed border-divider-subtle bg-transparent`,
+  with a leading `PlusIcon` size-3.5 — reads as "click to add
+  a filter to your view".
+- Hover: `border-divider-regular bg-state-base-hover
+  text-text-primary` — the chip thickens up under the cursor.
+- Active (filter has selections): unchanged from before —
+  `border-state-accent-solid bg-state-accent-hover
+  text-text-accent`. The `+` is suppressed when active so the
+  caller-provided count badge takes its place as the natural
+  prefix.
+
+Same dropdown contents, same active treatment, same chevron, same
+count badge. Only the rest-state chrome + the leading `+` icon
+changed.
+
+**Surfaces affected (FilterTrigger is shared across the product):**
+
+- `/clients` toolbar — Client / States / Entity / Owner filter
+  dropdowns (the explicit target of the task).
+- `/rules/pulse` — Impact / Change kind / Status filters + State
+  popover + Source combobox triggers (5 instances).
+- `/deadlines` — Sort-by dropdown (now reads as "+ Sort by Status";
+  visually consistent with the rest of the filter row, the `+`
+  is the family signal for "click for menu").
+
+`TableHeaderMultiFilter trigger="toolbar"` renders FilterTrigger
+underneath, so the /clients toolbar instances pick up the new
+chrome automatically.
+
+Updated the canonical page-family doc with the new
+`FilterTrigger` rest/hover/active token table under §5
+(Filter chip row).
+
