@@ -9,6 +9,7 @@ import type {
 
 import {
   buildClientContactPlan,
+  buildClientHeaderContactItems,
   buildClientObligationListSummaries,
   buildClientPulseMatches,
   buildClientWorkPlanSummary,
@@ -353,6 +354,54 @@ describe('client detail model', () => {
       internalOwner: null,
       missing: ['primary_contact', 'internal_owner', 'fallback_contact'],
     })
+  })
+
+  it('builds the client header contact row from contact, email, phone, and address facts', () => {
+    expect(
+      buildClientHeaderContactItems(
+        client({
+          primaryContactName: 'Alex Han',
+          primaryContactEmail: 'alex@example.com',
+          email: 'owner@example.com',
+          primaryPhone: '(555) 123-4567',
+          addressLine1: '100 Market St',
+          city: 'San Francisco',
+          postalCode: '94105',
+        }),
+      ),
+    ).toEqual([
+      { kind: 'contact', value: 'Alex Han' },
+      { kind: 'email', value: 'alex@example.com' },
+      { kind: 'phone', value: '(555) 123-4567' },
+      { kind: 'address', value: '100 Market St, San Francisco 94105' },
+    ])
+  })
+
+  it('falls back to the client email when the primary contact email is absent', () => {
+    expect(
+      buildClientHeaderContactItems(
+        client({
+          primaryContactEmail: null,
+          email: 'fallback@example.com',
+        }),
+      ),
+    ).toContainEqual({ kind: 'email', value: 'fallback@example.com' })
+  })
+
+  it('filters malformed import tokens out of the client header contact row', () => {
+    expect(
+      buildClientHeaderContactItems(
+        client({
+          primaryContactName: 'primary_contact_name',
+          primaryContactEmail: 'primary_contact_email',
+          email: null,
+          primaryPhone: 'primary_phone',
+          addressLine1: 'address_line_1',
+          city: 'city',
+          postalCode: 'postal_code',
+        }),
+      ),
+    ).toEqual([])
   })
 
   it('summarizes the firm obligations queue into next-due and open-count per client', () => {

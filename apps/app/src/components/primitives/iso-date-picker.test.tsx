@@ -32,6 +32,26 @@ function renderPicker(onValueChange = vi.fn()) {
   return { onValueChange }
 }
 
+function renderEmptyPicker(onValueChange = vi.fn()) {
+  container = document.createElement('div')
+  document.body.append(container)
+  root = createRoot(container)
+
+  act(() => {
+    root?.render(
+      <AppI18nProvider>
+        <IsoDatePicker
+          value=""
+          placeholder="Internal extension target date"
+          onValueChange={onValueChange}
+        />
+      </AppI18nProvider>,
+    )
+  })
+
+  return { onValueChange }
+}
+
 function buttonByText(text: string): HTMLButtonElement {
   const button = Array.from(document.querySelectorAll('button')).find(
     (candidate) => candidate.textContent?.trim() === text,
@@ -58,6 +78,14 @@ afterEach(() => {
 })
 
 describe('IsoDatePicker maxIsoDate', () => {
+  it('uses the standard input border when empty', () => {
+    renderEmptyPicker()
+
+    expect(buttonByText('Internal extension target date').className.split(/\s+/)).toContain(
+      'border-divider-regular',
+    )
+  })
+
   it('disables calendar dates after the max date', () => {
     const { onValueChange } = renderPicker()
 

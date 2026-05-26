@@ -29,6 +29,7 @@ import {
   ClipboardListIcon,
   EyeIcon,
   MailIcon,
+  MapPinIcon,
   MegaphoneIcon,
   MoreHorizontalIcon,
   PhoneIcon,
@@ -154,9 +155,11 @@ import {
 } from './client-readiness'
 import { writeClientCycleList } from './client-cycle'
 import {
+  buildClientHeaderContactItems,
   buildClientPulseMatches,
   buildClientWorkPlanSummary,
   findExtensionWithoutPaymentObligations,
+  type ClientHeaderContactItem,
   type ClientObligationListSummary,
   type ClientPulseMatch,
   type ClientWorkPlanSummary,
@@ -4368,77 +4371,52 @@ function MissingFactsActionLabel({ readiness }: { readiness: ClientReadiness }) 
   return <Trans>Add client facts</Trans>
 }
 
-/**
- * D-extra (2026-05-23): quiet metadata row under the client title.
- * Reads `✉ email · ☎ phone · Since Mar 2023` — only the fields the
- * schema has on this client, hidden entirely when nothing's there.
- *
- * Email + phone are real action links (`mailto:` / `tel:`) so a CPA
- * can act without leaving the page. "Since" is derived from
- * `client.createdAt` via the same Intl format the Compliance posture
- * panel uses (Mar 2023 / Apr 2024).
- *
- * Stays muted (`text-text-tertiary text-xs`) — it's reference info,
- * not a status signal. Doesn't compete with the identity chips above
- * or the active-alerts section below.
- */
-/**
- * UI guards against malformed `client.primary*` values bleeding
- * through from demo / migration / import data. Real-world cases that
- * have shown up:
- *  - phone field carrying the literal source column name
- *    (`"primary_phone"`) when a migration mapping wasn't fully
- *    resolved at commit time;
- *  - email field similarly carrying `"primary_contact_email"`.
- * If the value clearly isn't a phone (no digits) or an email (no @),
- * we treat it as absent rather than print the raw token on the
- * header. The underlying data still needs fixing in those cases —
- * but the workbench header should never render `primary_phone` to a
- * CPA in the meantime.
- */
-function looksLikePhone(value: string | null | undefined): value is string {
-  if (!value) return false
-  const digits = value.replace(/\D/g, '')
-  return digits.length >= 3
-}
-
-function looksLikeEmail(value: string | null | undefined): value is string {
-  if (!value) return false
-  return /.+@.+\..+/.test(value)
-}
-
 function ClientContactMetaRow({ client }: { client: ClientPublic }) {
-  // 2026-05-23: dropped the "Since {Mon YYYY}" tag from this row.
-  // It was the third entry alongside email + phone and didn't help
-  // the daily workflow — the CPA already knows when they took this
-  // client on, and the precise import/created date is discoverable
-  // via the Activity tab / Audit log when needed. Critique flagged
-  // it as "is this important? can you group it somewhere else?"
-  const showEmail = looksLikeEmail(client.primaryContactEmail)
-  const showPhone = looksLikePhone(client.primaryPhone)
-  if (!showEmail && !showPhone) return null
+  const items = buildClientHeaderContactItems(client)
+  if (items.length === 0) return null
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
-      {showEmail ? (
-        <a
-          href={`mailto:${client.primaryContactEmail}`}
-          className="inline-flex items-center gap-1 rounded-sm outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
-          <MailIcon className="size-3.5" aria-hidden />
-          <span className="truncate">{client.primaryContactEmail}</span>
-        </a>
-      ) : null}
-      {showPhone ? (
-        <a
-          href={`tel:${client.primaryPhone}`}
-          className="inline-flex items-center gap-1 rounded-sm font-mono outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
-          <PhoneIcon className="size-3.5" aria-hidden />
-          <span>{client.primaryPhone}</span>
-        </a>
-      ) : null}
+    <div className="flex max-w-full flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
+      {items.map((item) => (
+        <ClientContactMetaItem key={`${item.kind}:${item.value}`} item={item} />
+      ))}
     </div>
   )
+}
+
+function ClientContactMetaItem({ item }: { item: ClientHeaderContactItem }) {
+  const content = (
+    <>
+      {item.kind === 'contact' ? <UserRoundIcon className="size-3.5 shrink-0" aria-hidden /> : null}
+      {item.kind === 'email' ? <MailIcon className="size-3.5 shrink-0" aria-hidden /> : null}
+      {item.kind === 'phone' ? <PhoneIcon className="size-3.5 shrink-0" aria-hidden /> : null}
+      {item.kind === 'address' ? <MapPinIcon className="size-3.5 shrink-0" aria-hidden /> : null}
+      <span className="min-w-0 truncate">{item.value}</span>
+    </>
+  )
+
+  if (item.kind === 'email') {
+    return (
+      <a
+        href={`mailto:${item.value}`}
+        className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-sm outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        {content}
+      </a>
+    )
+  }
+
+  if (item.kind === 'phone') {
+    return (
+      <a
+        href={`tel:${item.value}`}
+        className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-sm font-mono outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        {content}
+      </a>
+    )
+  }
+
+  return <span className="inline-flex min-w-0 max-w-full items-center gap-1">{content}</span>
 }
 
 function ClientOpportunityCountBadge({ count }: { count: number }) {

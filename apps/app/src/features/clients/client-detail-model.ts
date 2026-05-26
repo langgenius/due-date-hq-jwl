@@ -87,6 +87,69 @@ export type ClientContactPlan = {
   missing: Array<'primary_contact' | 'internal_owner' | 'fallback_contact'>
 }
 
+export type ClientHeaderContactItem = {
+  kind: 'contact' | 'email' | 'phone' | 'address'
+  value: string
+}
+
+const RAW_CLIENT_DETAIL_TOKENS = new Set([
+  'address_line_1',
+  'addressline1',
+  'city',
+  'email',
+  'postal_code',
+  'postalcode',
+  'primary_contact_email',
+  'primary_contact_name',
+  'primary_phone',
+])
+
+function cleanClientHeaderText(value: string | null | undefined): string | null {
+  const trimmed = value?.trim()
+  if (!trimmed) return null
+  const normalized = trimmed.toLowerCase().replace(/[\s-]+/g, '_')
+  return RAW_CLIENT_DETAIL_TOKENS.has(normalized) ? null : trimmed
+}
+
+function looksLikeClientHeaderEmail(value: string | null | undefined): value is string {
+  const cleaned = cleanClientHeaderText(value)
+  return Boolean(cleaned && /.+@.+\..+/.test(cleaned))
+}
+
+function looksLikeClientHeaderPhone(value: string | null | undefined): value is string {
+  const cleaned = cleanClientHeaderText(value)
+  if (!cleaned) return false
+  const digits = cleaned.replace(/\D/g, '')
+  return digits.length >= 3
+}
+
+function formatClientHeaderAddress(client: ClientPublic): string | null {
+  const line1 = cleanClientHeaderText(client.addressLine1)
+  const city = cleanClientHeaderText(client.city)
+  const postalCode = cleanClientHeaderText(client.postalCode)
+  const cityLine = [city, postalCode].filter(Boolean).join(' ')
+  return [line1, cityLine || null].filter(Boolean).join(', ') || null
+}
+
+export function buildClientHeaderContactItems(client: ClientPublic): ClientHeaderContactItem[] {
+  const items: ClientHeaderContactItem[] = []
+  const contactName = cleanClientHeaderText(client.primaryContactName)
+  const primaryContactEmail = looksLikeClientHeaderEmail(client.primaryContactEmail)
+    ? client.primaryContactEmail.trim()
+    : null
+  const fallbackEmail = looksLikeClientHeaderEmail(client.email) ? client.email.trim() : null
+  const email = primaryContactEmail ?? fallbackEmail
+  const phone = looksLikeClientHeaderPhone(client.primaryPhone) ? client.primaryPhone.trim() : null
+  const address = formatClientHeaderAddress(client)
+
+  if (contactName) items.push({ kind: 'contact', value: contactName })
+  if (email) items.push({ kind: 'email', value: email })
+  if (phone) items.push({ kind: 'phone', value: phone })
+  if (address) items.push({ kind: 'address', value: address })
+
+  return items
+}
+
 export function buildClientWorkPlanSummary(
   obligations: readonly ObligationInstancePublic[],
   asOfDate: string,

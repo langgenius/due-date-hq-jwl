@@ -60,7 +60,7 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 const CLIENTS_LIST_INPUT = { limit: 500 } as const
 const EMPTY_CLIENTS: readonly ClientPublic[] = []
 const EMPTY_RULES: readonly ObligationRule[] = []
-const TAX_YEAR_OPTION_COUNT = 5
+const TAX_YEAR_OPTION_COUNT = 6
 
 type SuggestionOption = {
   value: string
@@ -82,15 +82,36 @@ type FormValues = {
   internalNotes: string
 }
 
-function defaultTaxYear(): string {
-  return String(new Date().getFullYear())
+type TaxYearSelectContext = {
+  currentCalendarYear: number
+  defaultTaxYear: string
+  options: readonly string[]
 }
 
-function defaultFormValues(defaultClientId?: string): FormValues {
+export function defaultTaxYear(today = new Date()): string {
+  return String(today.getFullYear() - 1)
+}
+
+export function buildTaxYearOptions(today = new Date()): readonly string[] {
+  const currentCalendarYear = today.getFullYear()
+  return Array.from({ length: TAX_YEAR_OPTION_COUNT }, (_, index) =>
+    String(currentCalendarYear - 1 + index),
+  )
+}
+
+function buildTaxYearSelectContext(today = new Date()): TaxYearSelectContext {
+  return {
+    currentCalendarYear: today.getFullYear(),
+    defaultTaxYear: defaultTaxYear(today),
+    options: buildTaxYearOptions(today),
+  }
+}
+
+function defaultFormValues(defaultClientId?: string, taxYear = defaultTaxYear()): FormValues {
   return {
     clientId: defaultClientId ?? '',
     taxType: '',
-    taxYear: defaultTaxYear(),
+    taxYear,
     jurisdiction: '',
     formName: '',
     internalNotes: '',
@@ -154,11 +175,6 @@ function useEntityLabels(): Record<ClientEntityType, string> {
     }),
     [t],
   )
-}
-
-function buildTaxYearOptions(): readonly string[] {
-  const startYear = new Date().getFullYear()
-  return Array.from({ length: TAX_YEAR_OPTION_COUNT }, (_, index) => String(startYear + index))
 }
 
 function normalizeJurisdictionForRuleSearch(value: string): string {
@@ -483,11 +499,11 @@ export function CreateObligationDialog({
   const [open, setOpen] = useState(false)
   const [createClientOpen, setCreateClientOpen] = useState(false)
   const [autoFormName, setAutoFormName] = useState<string | null>(null)
-  const taxYearOptions = useMemo(buildTaxYearOptions, [])
+  const taxYearContext = useMemo(buildTaxYearSelectContext, [])
 
   const formSchema = useMemo(() => createFormSchema(t), [t])
   const form = useForm({
-    defaultValues: defaultFormValues(defaultClientId),
+    defaultValues: defaultFormValues(defaultClientId, taxYearContext.defaultTaxYear),
     validators: { onSubmit: formSchema },
     onSubmit: ({ value }) => {
       submitRuleBackedDeadline(value)
@@ -621,7 +637,7 @@ export function CreateObligationDialog({
             description: t`Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet.`,
           })
         }
-        form.reset(defaultFormValues(defaultClientId))
+        form.reset(defaultFormValues(defaultClientId, taxYearContext.defaultTaxYear))
         setAutoFormName(null)
         setOpen(false)
         if (obligation) onCreated?.(obligation.id)
@@ -856,9 +872,11 @@ export function CreateObligationDialog({
                         </SelectTrigger>
                         <SelectContent align="start">
                           <SelectGroup>
-                            {taxYearOptions.map((year, index) => (
+                            {taxYearContext.options.map((year) => (
                               <SelectItem key={year} value={year}>
-                                {index === 0 ? t`${year} (current year)` : year}
+                                {year === String(taxYearContext.currentCalendarYear)
+                                  ? t`${year} (current year)`
+                                  : year}
                               </SelectItem>
                             ))}
                           </SelectGroup>
