@@ -221,7 +221,7 @@ export function LoginRoute() {
         <Trans>Encrypted · 7-day session · SSO-ready</Trans>
       </p>
 
-      <p className="mt-5 text-[12px] leading-relaxed text-text-muted">
+      <p className="mt-5 text-sm leading-relaxed text-text-muted">
         <Trans>
           By signing in you agree to the{' '}
           <a

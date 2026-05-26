@@ -151,12 +151,12 @@ export function OnboardingRoute() {
             <p
               id="practice-name-error"
               role="alert"
-              className="text-[12px] leading-relaxed text-destructive"
+              className="text-sm leading-relaxed text-destructive"
             >
               {error}
             </p>
           ) : (
-            <p id="practice-name-helper" className="text-[12px] leading-relaxed text-text-muted">
+            <p id="practice-name-helper" className="text-sm leading-relaxed text-text-muted">
               <Trans>This is what your team and clients will see.</Trans>
             </p>
           )}
@@ -189,7 +189,7 @@ export function OnboardingRoute() {
           />
           <p
             id="internal-deadline-offset-helper"
-            className="text-[12px] leading-relaxed text-text-muted"
+            className="text-sm leading-relaxed text-text-muted"
           >
             <Trans>Show work as due this many days before the statutory deadline.</Trans>
           </p>

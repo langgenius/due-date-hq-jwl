@@ -106,7 +106,7 @@ export function StateRuleActivationSelector({
           <p className="text-caption font-medium tracking-[0.08em] text-text-secondary uppercase">
             <Trans>State rule coverage</Trans>
           </p>
-          <p className="mt-1 text-[12px] leading-relaxed text-text-muted">
+          <p className="mt-1 text-sm leading-relaxed text-text-muted">
             <Trans>
               Selected states activate with federal rules after this practice is created.
             </Trans>
@@ -189,7 +189,7 @@ export function StateRuleActivationSelector({
       </p>
 
       {sourceDefinedReviewStates.length > 0 ? (
-        <div className="rounded-md border border-state-warning-hover-alt bg-state-warning-hover px-3 py-2 text-[12px] leading-relaxed text-text-secondary">
+        <div className="rounded-md border border-state-warning-hover-alt bg-state-warning-hover px-3 py-2 text-sm leading-relaxed text-text-secondary">
           <span className="font-medium text-text-primary">
             <Trans>Rule Library review required.</Trans>
           </span>{' '}
