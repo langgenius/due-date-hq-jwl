@@ -321,6 +321,24 @@ function getOtherFilingStates(client: ClientPublic): string[] {
 }
 
 /**
+ * Count of unique tax-type services the practice manages for this
+ * client. Sums distinct tax codes across all filing profiles — a
+ * single 1065 in CA + a single 1065 in NY counts as one service
+ * (same form), so the number reads as scope-of-work, not row count.
+ * Differs from `openCount` (in-flight obligations) on purpose: a
+ * client can have 8 services and only 2 open this week.
+ */
+function getClientServicesCount(client: ClientPublic): number {
+  const taxTypes = new Set<string>()
+  for (const profile of client.filingProfiles) {
+    for (const taxType of profile.taxTypes) {
+      if (taxType) taxTypes.add(taxType)
+    }
+  }
+  return taxTypes.size
+}
+
+/**
  * Single-line urgency label for the Next-due column in the clients
  * list. Replaces the previous 3-line composite cell (date + form +
  * readiness chip) flagged as "三行不友好" in the design review.
@@ -943,13 +961,38 @@ export function ClientFactsWorkspace({
           cellClassName: 'w-[200px]',
         },
       },
-      // 2026-05-26 (Yuqi /clients directory pivot brief): `Services`
-      // column retired entirely. It rendered "—" for every typical
-      // firm (services counts are derivable from filing profiles
-      // which most firms don't fully fill in for the seed workflow),
-      // training the eye to scan past data. Removed end-to-end —
-      // `getClientServicesCount` helper also removed since this was
-      // its only consumer.
+      // 2026-05-26 (Yuqi follow-up — "bring back services"): the
+      // brief had retired this column; Yuqi reversed that call.
+      // Column restored to its prior shape — hidden by default
+      // (via columnVisibility below), accessible via the column-
+      // toggle UI for the CPA who actively reviews scope-of-work.
+      {
+        id: 'servicesCount',
+        header: () => <span className="block text-right">{t`Services`}</span>,
+        cell: ({ row }) => {
+          const count = getClientServicesCount(row.original)
+          if (count === 0) {
+            return <span className="block text-right text-text-tertiary tabular-nums">—</span>
+          }
+          // Plain count — sum of unique tax types across filing
+          // profiles. No deep-link here because the destination is
+          // ambiguous (rules library? filing plan tab?); the row's
+          // own click handler opens the client detail, which is the
+          // right place to see services in context.
+          return (
+            <span
+              className="block text-right font-mono tabular-nums text-text-primary"
+              title={t`${count} tax-type services managed for this client`}
+            >
+              {count}
+            </span>
+          )
+        },
+        meta: {
+          headerClassName: 'w-[90px] text-right',
+          cellClassName: 'w-[90px] text-right',
+        },
+      },
       {
         id: 'openObligations',
         header: ({ column }) => (
@@ -1126,13 +1169,19 @@ export function ClientFactsWorkspace({
     // wasted columns that otherwise train the eye to scan past data.
     initialState: {
       columnVisibility: {
-        // 2026-05-26 (Yuqi /clients directory pivot brief): `Opp.` (opportunities)
-        // demoted to hidden-by-default. The directory's primary job is find-and-open;
-        // an opportunity count earns its visual weight only when surfaced via the
-        // column-toggle UI for the rare CPA who actively triages opportunities here.
-        // `servicesCount` column was retired entirely (the cell rendered "—" for
-        // every typical firm and trained the eye to skip data).
+        // 2026-05-26 (Yuqi /clients directory pivot brief): `Opp.`
+        // demoted to hidden-by-default. The directory's primary job
+        // is find-and-open; an opportunity count earns its visual
+        // weight only when surfaced via the column-toggle UI for
+        // the rare CPA who actively triages opportunities here.
         opportunities: false,
+        // `servicesCount` stays hidden by default per its prior
+        // behavior — the cell renders "—" for typical firms that
+        // haven't fully populated filing profiles, but the column
+        // is restored (Yuqi follow-up — "bring back services") so
+        // it's available via the column-toggle UI for any CPA who
+        // tracks scope-of-work here.
+        servicesCount: false,
       },
       pagination: {
         // 25-row pages — covers single-page rendering for most small/
