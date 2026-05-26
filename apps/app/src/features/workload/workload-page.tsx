@@ -25,6 +25,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -159,9 +160,23 @@ export function WorkloadPage() {
           ) : data && data.rows.length > 0 ? (
             <WorkloadTable rows={data.rows} asOfDate={data.asOfDate} windowDays={data.windowDays} />
           ) : (
-            <div className="rounded-md border border-divider-regular p-6 text-sm text-text-secondary">
-              <Trans>No open deadlines match the workload window.</Trans>
-            </div>
+            /* 2026-05-26 (Step 7 onboarding audit F9-03): the
+               empty state was a bordered div with a sentence
+               — visually inconsistent with every other empty
+               state in the app, all of which use the shared
+               `EmptyState` (dashed-border, centered icon +
+               title). Standardized so visual chrome matches
+               dashboard, deadlines, opportunities, notifications. */
+            <EmptyState
+              icon={ClipboardListIcon}
+              title={<Trans>No open deadlines match the workload window.</Trans>}
+              description={
+                <Trans>
+                  Workload shows open deadlines for the next 7 days. Import clients or wait for
+                  deadlines to land inside the window.
+                </Trans>
+              }
+            />
           )}
         </CardContent>
       </Card>

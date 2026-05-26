@@ -156,7 +156,16 @@ export function AcceptInviteRoute() {
             {!signedIn ? (
               <Trans>Sign in to accept this invitation.</Trans>
             ) : inviteQuery.isLoading ? (
-              <Skeleton className="h-5 w-56" />
+              // 2026-05-26 (Step 7 onboarding audit F2-05): the
+              // invite-preview skeleton had no role/label, so a
+              // blind user saw no progress event while the
+              // preview loaded. Wrapped with role="status" +
+              // sr-only label so AT announces "Loading
+              // invitation" while the skeleton is on-screen.
+              <span role="status" aria-live="polite">
+                <span className="sr-only">{t`Loading invitation`}</span>
+                <Skeleton className="h-5 w-56" />
+              </span>
             ) : inviteQuery.data ? (
               <Trans>
                 {inviteQuery.data.inviterEmail} invited you to {inviteQuery.data.organizationName}.

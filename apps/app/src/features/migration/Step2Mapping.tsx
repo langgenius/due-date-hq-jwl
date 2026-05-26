@@ -487,10 +487,16 @@ function ConfidenceBadge({ tier, confidence }: { tier: Tier; confidence: number 
     medium: 'bg-background-subtle text-text-secondary border-divider-regular',
     low: 'bg-components-badge-bg-warning-soft text-text-primary border-divider-regular',
   }
-  const label: Record<Exclude<Tier, 'none'>, string> = {
-    high: 'H',
-    medium: 'M',
-    low: 'L',
+  // 2026-05-26 (Step 7 onboarding audit F6-10): the bracketed
+  // `[H]/[M]/[L]` tier letter was redundant with the percentage
+  // and color and read as a code label, not a tier signal. A
+  // CPA user already gets the tier from the percent + color;
+  // the letter was duplicate cognitive load. Dropped from the
+  // visual; kept as `title` for hover + AT exposure.
+  const tierTitle: Record<Exclude<Tier, 'none'>, string> = {
+    high: 'High confidence',
+    medium: 'Medium confidence',
+    low: 'Low confidence',
   }
   return (
     <span
@@ -498,9 +504,9 @@ function ConfidenceBadge({ tier, confidence }: { tier: Tier; confidence: number 
         'inline-flex h-5 items-center gap-1 rounded-md border px-1.5 font-mono text-xs tabular-nums',
         styles[tier],
       )}
+      title={tierTitle[tier]}
     >
       <span>{pct}%</span>
-      <span className="font-semibold">[{label[tier]}]</span>
     </span>
   )
 }

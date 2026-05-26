@@ -230,7 +230,29 @@ export function LoginRoute() {
         <Trans>Encrypted · 7-day session · SSO-ready</Trans>
       </p>
 
-      <p className="mt-5 text-[12px] leading-relaxed text-text-muted">
+      {/* 2026-05-26 (Step 7 onboarding audit F1-10): the support
+          mailto was bundled into the same legal-text paragraph as
+          Terms + Privacy, so it visually read as another small-
+          print disclaimer rather than a helpful escape hatch for
+          users who can't sign in. Broke "Trouble signing in?"
+          onto its own line with a slightly stronger color so
+          stuck users can find the support email without parsing
+          legal copy. Legal copy retains its quiet tone below. */}
+      <p className="mt-5 text-[12px] leading-relaxed text-text-secondary">
+        <Trans>
+          Trouble signing in? Email{' '}
+          <a
+            data-t="supportLink"
+            className="font-mono text-text-primary underline underline-offset-4 transition-colors hover:text-text-accent"
+            href="mailto:support@duedatehq.com"
+          >
+            support@duedatehq.com
+          </a>
+          .
+        </Trans>
+      </p>
+
+      <p className="mt-2 text-[12px] leading-relaxed text-text-muted">
         <Trans>
           By signing in you agree to the{' '}
           <a
@@ -247,14 +269,6 @@ export function LoginRoute() {
             href="/privacy"
           >
             Privacy Policy
-          </a>
-          . Trouble signing in? Email{' '}
-          <a
-            data-t="supportLink"
-            className="font-mono text-text-secondary underline underline-offset-4 transition-colors hover:text-text-primary"
-            href="mailto:support@duedatehq.com"
-          >
-            support@duedatehq.com
           </a>
           .
         </Trans>

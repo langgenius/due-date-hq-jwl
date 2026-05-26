@@ -46,6 +46,18 @@ export function TwoFactorRoute() {
     verifyMutation.mutate({ code: trimmed })
   }
 
+  // 2026-05-26 (Step 7 onboarding audit F3-04): auto-submit on
+  // 6-digit completion. Standard pattern (Stripe, GitHub,
+  // Linear) — removes a click from every login. Guards on
+  // pending state so a slow network can't double-submit.
+  function handleCodeChange(next: string) {
+    setCode(next)
+    const trimmed = next.trim()
+    if (trimmed.length === 6 && !verifyMutation.isPending) {
+      verifyMutation.mutate({ code: trimmed })
+    }
+  }
+
   return (
     <div className="flex w-full max-w-[400px] flex-col">
       <Card>
@@ -77,7 +89,7 @@ export function TwoFactorRoute() {
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 aria-describedby="two-factor-code-helper"
-                onChange={(event) => setCode(event.target.value)}
+                onChange={(event) => handleCodeChange(event.target.value)}
               />
               <p id="two-factor-code-helper" className="text-xs text-text-tertiary">
                 <Trans>
@@ -92,7 +104,35 @@ export function TwoFactorRoute() {
               ) : null}
               <Trans>Verify</Trans>
             </Button>
+            {/* 2026-05-26 (Step 7 onboarding audit F3-02): the
+                challenge UI offered only the TOTP input — no
+                "I lost my authenticator" escape. That's the
+                single most common 2FA failure mode. Added a
+                low-emphasis support mailto so a locked-out
+                user has a path forward. (A proper recovery-
+                code branch is deferred — see F3-01.) */}
+            <p className="text-xs text-text-tertiary">
+              <Trans>
+                Lost your authenticator?{' '}
+                <a
+                  className="text-text-secondary underline underline-offset-4 hover:text-text-primary"
+                  href="mailto:support@duedatehq.com?subject=Two-factor%20recovery"
+                >
+                  Email support
+                </a>{' '}
+                to reset 2FA.
+              </Trans>
+            </p>
           </form>
+          {/* 2026-05-26 (Step 7 onboarding audit F3-06): /two-
+              factor had no trust pill, while /login + /onboarding
+              each shipped one. Added a parallel pill so the
+              entry-flow series stays visually consistent and
+              the 2FA moment doesn't read as chrome-less. */}
+          <p className="mt-4 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
+            <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
+            <Trans>Encrypted · 2FA-protected</Trans>
+          </p>
         </CardContent>
       </Card>
     </div>

@@ -11,6 +11,8 @@ import {
   Building2Icon,
   CheckIcon,
   CreditCardIcon,
+  ExternalLinkIcon,
+  LockIcon,
   ShieldCheckIcon,
   UsersIcon,
 } from 'lucide-react'
@@ -278,7 +280,15 @@ export function BillingCheckoutRoute() {
               </p>
             </div>
           </div>
-          <Badge variant="info" className="font-mono tabular-nums text-xs">
+          {/* 2026-05-26 (Step 7 onboarding audit F8-02): the
+              "Secure checkout" badge used `variant="info"` —
+              visually identical to neutral Team+/info chips
+              elsewhere, so the trust signal vanished. Added a
+              lock icon and dropped the font-mono treatment so
+              the badge actually stands out as a trust signal,
+              not as a routine status label. */}
+          <Badge variant="info" className="gap-1.5">
+            <LockIcon className="size-3" aria-hidden />
             <Trans>Secure checkout</Trans>
           </Badge>
         </div>
@@ -430,6 +440,16 @@ export function BillingCheckoutRoute() {
             <Button variant="outline" onClick={() => void navigate('/billing')}>
               <Trans>Choose another plan</Trans>
             </Button>
+            {/* 2026-05-26 (Step 7 onboarding audit F8-06): the
+                primary CTA opens Stripe via `window.location.assign`,
+                but the button copy didn't disclose the redirect.
+                Added an inline note so the user expects to leave
+                the app and land on Stripe. Standard pattern for
+                external-handoff buttons. */}
+            <p className="flex w-full items-center gap-1.5 text-xs text-text-tertiary">
+              <ExternalLinkIcon className="size-3" aria-hidden />
+              <Trans>You'll be redirected to Stripe to enter payment details.</Trans>
+            </p>
             {!selfServe ? (
               <span className="text-sm text-text-tertiary">
                 <Trans>

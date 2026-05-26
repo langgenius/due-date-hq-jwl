@@ -100,9 +100,15 @@ export function TwoFactorSetupPanel({
 
       <div className="grid gap-2">
         <div className="flex items-center justify-between gap-2">
-          <Label>
+          {/* 2026-05-26 (Step 7 onboarding audit F4-03): heading
+              was `<Label>`, a form-control element — but the
+              backup-codes block has no input. Assistive tech
+              may announce the label as if attached to an
+              input that doesn't exist. Promoted to a real
+              heading; visual weight preserved via tailwind. */}
+          <h3 className="text-sm font-medium">
             <Trans>Recovery codes</Trans>
-          </Label>
+          </h3>
           <Button type="button" variant="ghost" size="sm" onClick={onCopyBackupCodes}>
             <CopyIcon className="size-4" aria-hidden />
             <Trans>Copy</Trans>

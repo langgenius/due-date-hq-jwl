@@ -8,6 +8,7 @@ import type { FirmPublic } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { Wizard } from '@/features/migration/Wizard'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import type { AuthUser } from '@/lib/auth'
@@ -196,10 +197,29 @@ function MigrationActivationIntro({
           ArrowRightIcon implied forward-progress, but "Skip
           for now" is lateral (exit-and-defer), not the next
           wizard step. Dropped the icon so the button reads
-          as an escape, not as a continue. */}
-      <Button variant="outline" size="sm" className="w-fit shrink-0" onClick={onSkip}>
-        <Trans>Skip for now</Trans>
-      </Button>
+          as an escape, not as a continue.
+
+          2026-05-26 (Step 7 onboarding audit F6-03): wrapped
+          in a tooltip that names the future import paths.
+          The intro paragraph already says "you can import
+          later from Today, Clients, or Command Palette" —
+          but the user hovering Skip should see that
+          reassurance at the decision point, not in the body
+          paragraph above. */}
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button variant="outline" size="sm" className="w-fit shrink-0" onClick={onSkip}>
+              <Trans>Skip for now</Trans>
+            </Button>
+          }
+        />
+        <TooltipContent className="max-w-[260px]">
+          <Trans>
+            You can import later from Today, Clients, or the Command Palette (⌘K).
+          </Trans>
+        </TooltipContent>
+      </Tooltip>
     </header>
   )
 }
