@@ -889,7 +889,13 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
             Vertical stays compact (py-4) — the footer is a sticky
             action bar, not a content surface, so 40px would balloon
             it. */}
-      <SheetFooter className="min-h-16 border-t-2 border-divider-regular bg-background-default px-12 py-4">
+      {/* 2026-05-26 (Yuqi feedback — "more bottom padding. also
+          apply universally to this kind of element/component"):
+          `py-4` → `pt-4 pb-6`. Mirrors the `SheetFooter` primitive
+          bump and the obligation drawer panel-mode footer so every
+          sticky action-strip across the app shares the same 16/24
+          vertical rhythm. */}
+      <SheetFooter className="min-h-16 border-t-2 border-divider-regular bg-background-default px-12 pt-4 pb-6">
         {detail ? (
           <DrawerActions
             alertStatus={detail.alert.status}

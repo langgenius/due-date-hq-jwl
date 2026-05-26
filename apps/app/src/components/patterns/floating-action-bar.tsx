@@ -51,22 +51,26 @@ export function FloatingActionBar({
   className?: string
   children: ReactNode
 }) {
-  // 2026-05-26 (Yuqi feedback): bar swapped from inverted dark
-  // surface to a warm beige surface. The previous dark-on-light
-  // gave it strong "you have a temporary mode active" contrast,
-  // but Yuqi prefers a softer signal — beige reads as "different
-  // from the page chrome" without slamming the page with a black
-  // bar. Uses the warning-100 semantic token (a warm peach-cream
-  // ~#ffe4dd) as the surface, with dark text + a slightly deeper
-  // border on top. Button text reverts to default text-primary so
-  // ghost buttons read normally against the beige bg. The shape +
-  // shadow + bottom-12 position are unchanged.
+  // 2026-05-26 (Yuqi feedback — "Bulk review actions look ugly and
+  // not UX friendly"): third iteration on the surface. Previously:
+  // dark inverted → beige warning-hover-alt. Yuqi's call on the
+  // beige: ugly. New recipe — clean elevated white pill, hairline
+  // neutral border, slightly stronger lifted shadow. Reads as a
+  // floating control surface (think Linear/Stripe context bars)
+  // without claiming a warm/warning tone. The "you have a batch
+  // selection active" signal comes from the bar APPEARING at all +
+  // its centered floating position; surface color doesn't need to
+  // carry that signal.
+  //
+  // Inner ghost buttons inherit text-primary; the canonical primary
+  // action (sized `sm` by the caller) uses the standard accent fill
+  // for the "do the batch action" CTA.
   return (
     <div
       role="region"
       aria-label={ariaLabel}
       className={cn(
-        'fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-wrap items-center gap-3 rounded-xl border border-state-warning-border bg-state-warning-hover-alt px-5 py-3 text-text-primary shadow-[0_16px_48px_-12px_rgb(0_0_0_/_0.18)] [&_button]:text-text-primary [&_button:hover:not(:disabled)]:bg-black/5 [&_button:disabled]:opacity-50',
+        'fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-wrap items-center gap-3 rounded-xl border border-divider-regular bg-background-default px-5 py-3 text-text-primary shadow-[0_20px_48px_-16px_rgb(0_0_0_/_0.18)] [&_button]:text-text-primary [&_button:hover:not(:disabled)]:bg-state-base-hover [&_button:disabled]:opacity-50',
         className,
       )}
     >

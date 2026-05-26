@@ -460,8 +460,14 @@ export function SidebarContent({ className, ...props }: React.ComponentProps<'di
     <div
       data-slot="sidebar-content"
       className={cn(
+        // 2026-05-26 (Yuqi sidebar fix — height parity): dropped the
+        // collapsed `gap-3` override. Same gap-4 (16px) between
+        // SidebarGroup blocks in both modes so the vertical rhythm
+        // doesn't drift. Horizontal padding still tightens in
+        // collapsed (px-1.5) so the 32×32 tile centers in the 56px
+        // rail — that one's a width concern, not a height one.
         'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pt-4 pb-2',
-        'group-data-[collapsed=true]/sidebar:px-1.5 group-data-[collapsed=true]/sidebar:gap-3',
+        'group-data-[collapsed=true]/sidebar:px-1.5',
         className,
       )}
       {...props}
@@ -565,14 +571,20 @@ export function SidebarMenu({ className, ...props }: React.ComponentProps<'ul'>)
   // icon tiles, 2px between tiles felt cramped — the rail read as
   // one continuous strip of color. 4px gives each icon a beat of
   // breathing room without losing the sense of grouping.
+  // 2026-05-26 (Yuqi sidebar fix — "height of each item/frame/div
+  // do not equal expand and collpasd"): dropped the collapsed gap-1
+  // override. The 2px gap differential against expanded (gap-0.5)
+  // accumulated across 5-6 nav items into a 10-12px vertical drift
+  // — collapsed nav section ended ~12px taller than expanded, so
+  // anything below (group separators, footer) sat at different y
+  // positions in the two modes. One gap value (gap-0.5) in both
+  // modes keeps the row rhythm identical; the rail still reads as
+  // grouped icons because the 32×32 tile boundaries + 2px gap is
+  // exactly what Linear / Notion use.
   return (
     <ul
       data-slot="sidebar-menu"
-      className={cn(
-        'flex w-full min-w-0 flex-col gap-0.5',
-        'group-data-[collapsed=true]/sidebar:gap-1',
-        className,
-      )}
+      className={cn('flex w-full min-w-0 flex-col gap-0.5', className)}
       {...props}
     />
   )
@@ -650,7 +662,13 @@ const sidebarMenuButtonVariants = cva(
     // ended up at x=3 instead of x=8 inside the 32px tile —
     // visibly off-center to the left. `gap-0` collapses the
     // reserved spacer so the icon centers properly.
-    'group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:px-0',
+    // 2026-05-26 (Yuqi sidebar fix — "icon position do not match"):
+    // collapsed-mode button gets `overflow-visible` so the badge pill
+    // can overhang the top-right corner via `-top-0.5 -right-0.5`.
+    // With the previous `overflow-hidden` inherited from the base
+    // chain, the badge was forced INSIDE the button (top-0 right-0)
+    // and overlapped the centered icon — visual shift left.
+    'group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:overflow-visible',
     // 2026-05-26 (Yuqi sidebar smoothness pass): collapsed-mode
     // label hide swapped from `hidden` → opacity-0 + max-w-0 +
     // overflow-hidden so the label animates out (per the
@@ -785,18 +803,42 @@ export function SidebarMenuBadge({
   // the panel-bg color creates visual separation from the icon edge
   // so it never blurs into the icon glyph. Numbers >99 still fit
   // (up to 3 digits) at 10px font; 4-digit counts get clipped.
-  const collapsedBadgeBase =
-    'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:-top-1 group-data-[collapsed=true]/sidebar:-right-1 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:flex group-data-[collapsed=true]/sidebar:h-4 group-data-[collapsed=true]/sidebar:min-w-4 group-data-[collapsed=true]/sidebar:items-center group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:rounded-full group-data-[collapsed=true]/sidebar:border-2 group-data-[collapsed=true]/sidebar:border-components-panel-bg group-data-[collapsed=true]/sidebar:px-1 group-data-[collapsed=true]/sidebar:text-[10px] group-data-[collapsed=true]/sidebar:font-semibold group-data-[collapsed=true]/sidebar:leading-none'
+  // 2026-05-26 (Yuqi follow-up — "alert数字形式 apply 到 expanded
+  // default"): expanded mode adopts the collapsed pill chrome so both
+  // states share one badge shape. Then "这里不要被切掉" (don't clip)
+  // — but my first fix positioned the badge at `top-0 right-0` inside
+  // an `overflow-hidden` button, which avoided clipping AT THE COST OF
+  // overlapping the centered icon (badge spans 16-32 / 0-16, icon spans
+  // 8-24 / 8-24 — overlap from x=16-24, y=8-16). The icon read as
+  // shifted left because the badge weighted the right side.
+  //
+  // 2026-05-26 (Yuqi sidebar feedback — "icon position do not match"):
+  // restored the canonical floating-pill pattern:
+  //   • Collapsed: smaller pill (h-3.5 min-w-3.5 px-0.5 text-[9px])
+  //     so it fits in the top-right CORNER without intruding on the
+  //     icon's centered footprint. Positioned at `-top-0.5 -right-0.5`
+  //     so it overhangs by 2px each direction. The SidebarMenuButton's
+  //     collapsed-mode override (further below) sets `overflow-visible`
+  //     in collapsed so the overhang renders cleanly. 2px panel-bg
+  //     border separates pill from icon edge.
+  //   • Expanded: standard inline pill (h-4 min-w-4) flush to the
+  //     row's right edge via `ml-auto`. Same chrome as collapsed, just
+  //     full-size and aligned.
+  const pillBaseExpanded =
+    'pointer-events-none inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 font-mono text-[10px] font-semibold tabular-nums leading-none'
+  const expandedPos = 'ml-auto'
+  const collapsedPos =
+    'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:-top-0.5 group-data-[collapsed=true]/sidebar:-right-0.5 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:h-3.5 group-data-[collapsed=true]/sidebar:min-w-3.5 group-data-[collapsed=true]/sidebar:px-0.5 group-data-[collapsed=true]/sidebar:text-[9px] group-data-[collapsed=true]/sidebar:border-2 group-data-[collapsed=true]/sidebar:border-components-panel-bg'
   if (tone === 'inventory') {
     return (
       <span
         data-slot="sidebar-menu-badge"
         data-tone="inventory"
         className={cn(
-          'pointer-events-none ml-1 inline-flex shrink-0 items-center font-mono text-xs font-medium tabular-nums text-text-tertiary',
-          'group-data-[active=true]/menu-button:text-text-secondary group-aria-[current=page]/menu-button:text-text-secondary',
-          collapsedBadgeBase,
-          'group-data-[collapsed=true]/sidebar:bg-background-subtle group-data-[collapsed=true]/sidebar:text-text-secondary',
+          pillBaseExpanded,
+          expandedPos,
+          'bg-background-subtle text-text-secondary',
+          collapsedPos,
           className,
         )}
         {...props}
@@ -808,13 +850,13 @@ export function SidebarMenuBadge({
       data-slot="sidebar-menu-badge"
       data-tone="urgent"
       className={cn(
-        'pointer-events-none ml-1 inline-flex shrink-0 items-center font-mono text-xs font-medium tabular-nums text-text-warning',
-        collapsedBadgeBase,
-        'group-data-[collapsed=true]/sidebar:bg-state-destructive-solid group-data-[collapsed=true]/sidebar:text-text-inverted',
+        pillBaseExpanded,
+        expandedPos,
+        'bg-state-destructive-solid text-text-inverted',
+        collapsedPos,
         // Subtle pulse on the urgent badge — communicates "fresh /
-        // needs attention" without being annoying. 2.4s cycle, 70%
-        // opacity at the trough so it never disappears entirely.
-        // `motion-reduce:animate-none` respects user preference.
+        // needs attention" without being annoying. Only in collapsed
+        // mode so expanded reads as a calm count.
         'group-data-[collapsed=true]/sidebar:animate-[pulse_2.4s_ease-in-out_infinite] group-data-[collapsed=true]/sidebar:motion-reduce:animate-none',
         className,
       )}

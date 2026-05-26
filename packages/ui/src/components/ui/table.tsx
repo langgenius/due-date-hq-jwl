@@ -38,7 +38,13 @@ function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
   return (
     <tbody
       data-slot="table-body"
-      className={cn('[&_tr:last-child]:border-0', className)}
+      // 2026-05-26 (Yuqi follow-up — "I still want the table body to
+      // be opacity 50% white. apply this to all table"): TableBody
+      // carries `bg-background-default/50`. Sits softer than the
+      // solid-gray thead, so rows read as a calmer alpha-white wash
+      // against the page-gray bg behind the card. One primitive
+      // change covers all three workbench tables.
+      className={cn('bg-background-default/50 [&_tr:last-child]:border-0', className)}
       {...props}
     />
   )

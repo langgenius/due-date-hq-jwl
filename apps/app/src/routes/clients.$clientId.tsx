@@ -76,9 +76,20 @@ export function ClientDetailRoute() {
     // container internally. Below xl, the page falls back to natural
     // content-driven scrolling (the workspace stays usable on mobile
     // / tablet without locked viewport math).
+    //
+    // 2026-05-26 (Yuqi follow-up — "reference the responsive and
+    // width to Deadline's expanded right panel"): dropped the
+    // `mx-auto max-w-page-wide` 1100px cap. With the 600px right
+    // panel open + a 24px gap, the left column would shrink to
+    // ~480px on the cap and the H1 ("Riverbend Draft Client")
+    // would wrap onto 3 lines. /deadlines doesn't cap — it uses
+    // the full available width minus the sidebar — and at a
+    // 1920px viewport the left column lands at ~1240px when the
+    // panel is open. Matching that contract: container is now
+    // `flex w-full flex-col` with horizontal padding only.
     <div
       className={cn(
-        'mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'flex w-full flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
         'xl:h-screen xl:overflow-hidden',
       )}
     >

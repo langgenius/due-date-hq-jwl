@@ -70,8 +70,14 @@ function TileShell({
   // big enough to read first, small enough not to feel like an AI-slop
   // dashboard hero metric. Subline stays at 13px so the value gets
   // genuine primacy.
+  // 2026-05-26 (Yuqi follow-up — "copy Today's tile shape"):
+  // TileShell adopts the /today exposure-strip pattern exactly.
+  // Value (text-lg font-medium leading-tight) sits on top; label
+  // (text-sm text-text-secondary) below; unified px-4 py-3 padding;
+  // no upper-label kicker, no split frames. Same shape /today
+  // ships on its In review / Blocked / Waiting on client tiles.
   const valueClass = cn(
-    'text-xl font-semibold leading-7 tabular-nums tracking-tight',
+    'text-lg font-medium leading-tight tabular-nums tracking-tight',
     tone === 'critical' && 'text-text-destructive',
     tone === 'warning' && 'text-text-warning',
     tone === 'neutral' && 'text-text-primary',
@@ -87,34 +93,28 @@ function TileShell({
   // Earlier `rounded-xl` + raw-hex bg was a Figma-replica one-off; the
   // inset-surface system shipped after and made `rounded-md` +
   // `bg-default` + `border-divider-subtle` the family-wide card.
+  // 2026-05-26 (Yuqi /clients/[id] feedback #1 — "copy Today's <div ...>"):
+  // exact match for the /today exposure-strip tile. Drops `flex-1`
+  // (tiles no longer stretch to fill the row — they grow to their
+  // natural width + min-w-[160px] floor). Container switches from
+  // `grid grid-cols-3` to `flex flex-wrap gap-3` so the tiles cluster
+  // left rather than stretching across the row. Subline is dropped
+  // here to match Today exactly — see TileShell's `subline` prop
+  // (kept for prop stability but unused below).
   const baseClass =
-    'group flex min-w-[160px] flex-1 flex-col gap-1 rounded-md border border-divider-subtle bg-background-default transition-colors hover:border-divider-regular hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt'
+    'group flex min-w-[160px] flex-col gap-1 rounded-md border border-divider-subtle bg-background-default px-4 py-3 transition-colors hover:border-divider-regular hover:bg-background-default-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt'
 
-  // Inner content shared by all three variants. Renders label → value
-  // → optional subline so each tile reads top-down (eyebrow → value
-  // → context phrase) with two stacked padding zones matching the
-  // Figma's split frames.
-  // 2026-05-26 (Yuqi feedback #3): label retired uppercase kicker +
-  // raw-rgba opacity for canonical sm-medium text-text-tertiary, in
-  // line with page-family-canonical §9 (no uppercase kicker eyebrows).
+  // 2026-05-26 (Yuqi /clients/[id] feedback #1): subline render dropped
+  // to match Today's tile pattern exactly. `subline` + `sublineTone`
+  // props kept on the type so callers don't break, but the body just
+  // renders value + label now. If subline context is needed later,
+  // restore conditional render here.
+  void subline
+  void sublineTone
   const body = (
     <>
-      <span className="px-3 pt-3 pb-1 text-xs font-medium leading-4 text-text-tertiary">
-        {label}
-      </span>
-      <span className="flex flex-col gap-0.5 px-3 pb-3 pt-1">
-        <span className={valueClass}>{value}</span>
-        {subline ? (
-          <span
-            className={cn(
-              'text-[13px] leading-4',
-              sublineTone === 'destructive' ? 'text-text-destructive' : 'text-text-tertiary',
-            )}
-          >
-            {subline}
-          </span>
-        ) : null}
-      </span>
+      <span className={valueClass}>{value}</span>
+      <span className="text-sm text-text-secondary">{label}</span>
     </>
   )
 
@@ -302,10 +302,7 @@ export function ClientSummaryStrip({
         : t`${openCount} forms in motion`
 
   return (
-    <section
-      aria-label={t`Client summary`}
-      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
-    >
+    <section aria-label={t`Client summary`} className="flex flex-wrap gap-3">
       <TileShell
         tone={nextDueTone}
         value={nextDueValue}

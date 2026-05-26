@@ -142,6 +142,10 @@ const STATUS_ICON: Record<ObligationStatus, LucideIcon> = {
 // the icon's `className` (and inherits to label text when the
 // caller wants the whole chip tinted). Stays in `text-*` token
 // space so dark/light themes pick up the right hue.
+//
+// Used on the menu surface (dropdown rows) where the icon sits
+// against white — keep the tinted tones so the glyph reads as a
+// hue swatch next to the label.
 const STATUS_ICON_COLOR: Record<ObligationStatus, string> = {
   pending: 'text-text-tertiary',
   not_applicable: 'text-text-tertiary',
@@ -153,6 +157,15 @@ const STATUS_ICON_COLOR: Record<ObligationStatus, string> = {
   done: 'text-text-success',
   paid: 'text-text-success',
   completed: 'text-text-success',
+}
+
+// 2026-05-26 (Yuqi follow-up — "Filed can be more subtle"): the
+// `success` Badge variant reverted from solid green back to a soft
+// green tint, so the icon stays on `text-text-success` (the dark
+// green from STATUS_ICON_COLOR) and reads against the soft pill.
+// Map is preserved as an alias so existing consumers don't break.
+const STATUS_ICON_COLOR_ON_PILL: Record<ObligationStatus, string> = {
+  ...STATUS_ICON_COLOR,
 }
 
 function isObligationStatus(value: string): value is ObligationStatus {
@@ -292,8 +305,12 @@ function ObligationQueueStatusControl({
                 STATUS_ICON_COLOR, the variant carries the fill.
                 Size is enforced by badgeVariants' `[&>svg]:size-3!`
                 rule (see docs/Design/icon-sizing.md) — passing a
-                size class here would be ignored, so we don't. */}
-            <TriggerIcon className={STATUS_ICON_COLOR[triggerStatus]} aria-hidden />
+                size class here would be ignored, so we don't.
+                2026-05-26 (Stripe S9): pulls from
+                STATUS_ICON_COLOR_ON_PILL so the success statuses
+                (rendered on a solid green chip) get a white icon
+                instead of the menu-surface dark-green tint. */}
+            <TriggerIcon className={STATUS_ICON_COLOR_ON_PILL[triggerStatus]} aria-hidden />
             {labels[triggerStatus]}
           </button>
         }
@@ -364,9 +381,12 @@ function ObligationStatusReadBadge({
   // Size enforced by Badge primitive's `[&>svg]:size-3!` rule
   // (see docs/Design/icon-sizing.md). Only the color class is
   // passed here — a size class would be silently overridden.
+  // 2026-05-26 (Stripe S9): uses STATUS_ICON_COLOR_ON_PILL so the
+  // success statuses (solid green chip after the badge restyle)
+  // render a white icon instead of disappearing into the fill.
   return (
     <Badge variant={STATUS_VARIANT[status]} className={className}>
-      <Icon className={STATUS_ICON_COLOR[status]} aria-hidden />
+      <Icon className={STATUS_ICON_COLOR_ON_PILL[status]} aria-hidden />
       {labels[status]}
     </Badge>
   )

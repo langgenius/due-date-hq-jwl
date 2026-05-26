@@ -246,26 +246,45 @@ overflow-y-auto` so only it scrolls.
 
 In priority order:
 
-1. **`/shape`** — Adopt sticky-footer outer + table-card frame +
-   independent rows-area scroll. **The structural P0.** Same
-   approach as /clients revamp. ~3 hour pass.
-2. **`/shape` + `/clarify`** — Add scope tabs (All / Active /
-   Needs review / Missing) above search. Reuse the
-   `ObligationQueueScopeTab` style from /deadlines or build a
-   shared `ScopeTab` primitive. ~1 hour.
-3. **`/distill`** — Drop the 7-column entity matrix from the
-   table. Move applicable entities to the rule-detail Dialog. The
-   table becomes Form / Jurisdiction / Status / Tier / chevron. ~2
-   hours.
-4. **`/quieter`** — Move Sources + Export coverage to ⋯ overflow.
-   Drop or shorten the page description. ~30 min.
-5. **`/adapt`** — Wire J/K row nav + Enter to open + Esc to close
-   - `e` for expand-all. ~1 hour.
-6. **`/clarify`** — Empty state with icon + title + CTA. ~30 min.
-7. **`/polish`** — Final pass after the above.
-
-Estimate: **~8 hours** to get Rule library to /deadlines-grade
-polish.
+1. **`/shape`** — [SHIPPED 2026-05-26] Adopt sticky-footer outer +
+   table-card frame + independent rows-area scroll. **The
+   structural P0.** Same approach as /clients revamp.
+2. **`/shape` + `/clarify`** — [SHIPPED 2026-05-26] Scope tabs
+   (All / Active / Needs review / Missing) live above search,
+   URL-bound via nuqs. Reuses the `ObligationQueueScopeTab` style
+   from /deadlines.
+3. **`/distill`** — [SHIPPED 2026-05-26] Dropped the 7-column
+   entity matrix from the table. Replaced with a compact
+   `EntityCoverageDots` cluster on the state row (7 dots, green =
+   has rules, gray = gap, faded = N/A; tooltip carries the full
+   breakdown). Per-rule applicability lives only in the
+   rule-detail Dialog (`RuleDetailInline` Applicability section
+   already renders the "Applies to LLC, Partnership, …" line).
+   Table now reads Rule / Form / Tier — same shape as /deadlines.
+4. **`/quieter`** — [SHIPPED 2026-05-26] Sources + Export coverage
+   live in the ⋯ overflow; actions cluster is canonical ⋯ + ≤1
+   primary.
+5. **`/adapt`** — [SHIPPED 2026-05-26] J/K row nav + Enter (open
+   rule detail / toggle group / start gap fix) + Esc (close
+   Dialog or clear focus) + `e` (toggle focused group) wired
+   through `useAppHotkey`. Focused row paints a 2px accent inset
+   rail. Kbd hint strip surfaces J/K · ↵ · E above the table.
+6. **`/clarify`** — [SHIPPED 2026-05-26] First-time empty state
+   uses the canonical `EmptyState` primitive with `LibraryIcon`,
+   title "Your rule catalog is empty.", description, and two
+   CTAs (Import from sources primary, + New rule outline).
+   Replaces the bare "No rules and no coverage data yet." row.
+7. **`/polish`** — [SHIPPED 2026-05-26] Final consistency pass
+   after the above: row hover affordances honest across state /
+   rule / gap / search variants; focused state styling consistent
+   with /deadlines; table-card frame respects gap-4 between
+   search bar and grid.
+8. **Stripe S14 — multi-color stacked progress bar** —
+   [SHIPPED 2026-05-26 via agent 6 merge] `RuleReviewProgressBar`
+   now consumes `statusCounts` and renders one segment per
+   `RuleStatus` with >0 rules. Same h-7 rounded-md shape; finer
+   distribution exposes verified / candidate / archived
+   composition the old two-tone bar collapsed.
 
 Re-run `/critique` after the structural pass — target ≥32/40.
 

@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertCircleIcon, HistoryIcon } from 'lucide-react'
+import { AlertCircleIcon, HistoryIcon, LightbulbIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { InfoBanner } from '@/components/patterns/info-banner'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
 import { clientDetailPath } from '@/features/clients/client-url'
@@ -374,6 +375,22 @@ export function ClientsRoute() {
           </>
         }
       />
+
+      {/* 2026-05-26 (Stripe-bar /clarify pass — re-applied per Yuqi's
+          "address all" direction): inline tip surfaces when the firm
+          has fewer than 5 clients. Once the firm exceeds the
+          threshold the banner self-suppresses; if the CPA dismisses
+          it sooner the localStorage key keeps it hidden across
+          sessions. CTA is gated on canRunMigration so the link never
+          noops. */}
+      {clients.length < 5 ? (
+        <InfoBanner
+          icon={LightbulbIcon}
+          message={t`Import clients from CSV to populate the directory faster.`}
+          cta={canRunMigration ? { label: t`Import`, onClick: openWizard } : undefined}
+          dismissKey="clients-list-import-tip"
+        />
+      ) : null}
 
       {clientsQuery.isError ? (
         <Alert variant="destructive">
