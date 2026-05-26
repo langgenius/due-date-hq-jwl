@@ -99,6 +99,7 @@ import {
   type ReadinessDocumentChecklistItemPublic,
   type ReadinessPreviewRequestEmailOutput,
 } from '@duedatehq/contracts'
+import { Alert, AlertDescription } from '@duedatehq/ui/components/ui/alert'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
@@ -3318,12 +3319,18 @@ export function ObligationQueueRoute() {
               <Trans>Loading deadlines…</Trans>
             </div>
           ) : isError ? (
-            <div className="rounded-lg border border-state-destructive-border bg-state-destructive-hover p-4 text-sm text-text-destructive">
-              <Trans>Couldn't load deadlines.</Trans>{' '}
-              <button type="button" className="underline" onClick={() => void listQuery.refetch()}>
-                <Trans>Retry</Trans>
-              </button>
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>
+                <Trans>Couldn't load deadlines.</Trans>{' '}
+                <button
+                  type="button"
+                  className="underline"
+                  onClick={() => void listQuery.refetch()}
+                >
+                  <Trans>Retry</Trans>
+                </button>
+              </AlertDescription>
+            </Alert>
           ) : (
             // 2026-05-26 (Yuqi /deadlines feedback — "refactor the
             // page structure or table structure/pagination framing"):
@@ -5833,12 +5840,18 @@ export function ObligationQueueDetailDrawer({
             <Trans>Loading deadline detail…</Trans>
           </div>
         ) : detailQuery.isError || !detail || !row ? (
-          <div className="rounded-lg border border-state-destructive-border bg-state-destructive-hover p-4 text-sm text-text-destructive">
-            <Trans>Couldn't load deadline detail.</Trans>{' '}
-            <button type="button" className="underline" onClick={() => void detailQuery.refetch()}>
-              <Trans>Retry</Trans>
-            </button>
-          </div>
+          <Alert variant="destructive">
+            <AlertDescription>
+              <Trans>Couldn't load deadline detail.</Trans>{' '}
+              <button
+                type="button"
+                className="underline"
+                onClick={() => void detailQuery.refetch()}
+              >
+                <Trans>Retry</Trans>
+              </button>
+            </AlertDescription>
+          </Alert>
         ) : (
           <Tabs
             value={activeTab}
