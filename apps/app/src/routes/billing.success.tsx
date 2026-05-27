@@ -50,7 +50,7 @@ export function BillingSuccessRoute() {
   // the user an explicit refresh CTA + support path.
   const [activationTimedOut, setActivationTimedOut] = useState(false)
   useEffect(() => {
-    if (activated || statusError) return
+    if (activated || statusError) return undefined
     const handle = window.setTimeout(() => {
       setActivationTimedOut(true)
     }, ACTIVATION_TIMEOUT_MS)
@@ -154,11 +154,7 @@ export function BillingSuccessRoute() {
                   within a minute. Refresh the page, or contact support if it persists.
                 </Trans>
                 <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => window.location.reload()}
-                  >
+                  <Button size="sm" variant="outline" onClick={() => window.location.reload()}>
                     <RefreshCwIcon data-icon="inline-start" />
                     <Trans>Refresh now</Trans>
                   </Button>

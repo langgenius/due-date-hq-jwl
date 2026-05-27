@@ -35,11 +35,7 @@ function paymentOverdueDaysFromDates(
   const dueMs = Date.parse(paymentDueDate)
   if (Number.isNaN(dueMs)) return 0
   const asOfMs =
-    typeof asOfDate === 'number'
-      ? asOfDate
-      : asOfDate
-        ? Date.parse(asOfDate)
-        : Date.now()
+    typeof asOfDate === 'number' ? asOfDate : asOfDate ? Date.parse(asOfDate) : Date.now()
   if (Number.isNaN(asOfMs)) return 0
   const days = Math.ceil((asOfMs - dueMs) / 86_400_000)
   return days > 0 ? days : 0
@@ -65,11 +61,11 @@ export function paymentOverdueDays(
   if (typeof arg1 === 'object' && arg1 !== null && 'status' in arg1) {
     // φ style: object + numeric timestamp. Returns null when not overdue.
     if (PAYMENT_TERMINAL_STATUSES.has(arg1.status)) return null
-    const days = paymentOverdueDaysFromDates(arg1.paymentDueDate, arg2 as number | null)
+    const days = paymentOverdueDaysFromDates(arg1.paymentDueDate, arg2)
     return days > 0 ? days : null
   }
   // ω style: strings. Returns 0 when not overdue.
-  return paymentOverdueDaysFromDates(arg1 as string | null | undefined, arg2 as string | null)
+  return paymentOverdueDaysFromDates(arg1, arg2)
 }
 
 /**
@@ -88,8 +84,8 @@ export function isPaymentOverdue(
   arg2: number | string | null,
 ): boolean {
   if (typeof arg1 === 'object' && arg1 !== null && 'status' in arg1) {
-    const days = paymentOverdueDays(arg1, arg2 as number)
-    return days !== null
+    if (PAYMENT_TERMINAL_STATUSES.has(arg1.status)) return false
+    return paymentOverdueDaysFromDates(arg1.paymentDueDate, arg2) > 0
   }
-  return paymentOverdueDays(arg1 as string | null | undefined, arg2 as string | null) > 0
+  return paymentOverdueDaysFromDates(arg1, arg2) > 0
 }

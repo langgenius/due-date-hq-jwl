@@ -1971,7 +1971,9 @@ function RuleQueueModeToggle({
   return (
     <Tabs
       value={mode}
-      onValueChange={(value) => onModeChange(value as RuleQueueMode)}
+      onValueChange={(value) => {
+        if (value === 'pending' || value === 'active') onModeChange(value)
+      }}
       className="!gap-0"
     >
       {/* HEAD migrated to Tabs primitive (segmented control unification);

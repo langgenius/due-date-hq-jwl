@@ -38,10 +38,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
 import { formatRelativeTime } from '@/lib/utils'
-import {
-  useAuditActionLabels,
-  useAuditEntityTypeLabels,
-} from '@/features/audit/audit-log-labels'
+import { useAuditActionLabels, useAuditEntityTypeLabels } from '@/features/audit/audit-log-labels'
 import {
   formatAuditActionLabel,
   formatAuditEntityTypeLabel,
@@ -302,10 +299,7 @@ function ChangesSinceLastSection() {
           <Trans>Nothing's changed since {formatRelativeTime(lastSeenAt)}.</Trans>
         </p>
       ) : (
-        <ul
-          id="changes-since-last-list"
-          className="flex flex-col divide-y divide-divider-subtle"
-        >
+        <ul id="changes-since-last-list" className="flex flex-col divide-y divide-divider-subtle">
           {visibleEvents.map((event) => (
             <ChangeRow
               key={event.id}

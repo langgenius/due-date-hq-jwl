@@ -214,10 +214,7 @@ function TableHeaderMultiFilter({
         {atSelectionLimit ? (
           <>
             <DropdownMenuSeparator />
-            <p
-              role="status"
-              className="px-2 py-1.5 text-caption-xs text-text-tertiary"
-            >
+            <p role="status" className="px-2 py-1.5 text-caption-xs text-text-tertiary">
               {t`Showing first ${maxSelections} selections — refine the list to add more.`}
             </p>
           </>

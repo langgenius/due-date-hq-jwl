@@ -19,10 +19,7 @@ import {
 // `apps/app/src/lib/required-roles-label.ts`. Imported here so the
 // PermissionGate badges + the inline notice surface always reflect
 // FIRM_PERMISSION_ROLES — no hand-curated copy to drift.
-import {
-  requiredRolesLabelSingular,
-  requiredRolesLabel as requiredRolesLabelPlural,
-} from '@/lib/required-roles-label'
+import { requiredRolesLabelSingular } from '@/lib/required-roles-label'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'

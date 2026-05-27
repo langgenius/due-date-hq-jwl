@@ -886,10 +886,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
               // ρ ROH-D6: canonical PermissionInlineNotice derives the
               // required-role text from the enum. ψ ROH-D11's hand-rolled
               // Alert+helper alternative was already redundant here.
-              <PermissionInlineNotice
-                permission="pulse.apply"
-                currentRole={permissions.role}
-              />
+              <PermissionInlineNotice permission="pulse.apply" currentRole={permissions.role} />
             ) : null}
 
             {detail.alert.sourceStatus === 'source_revoked' ? (

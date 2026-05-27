@@ -103,10 +103,7 @@ export function requiredRolesLabelSingular(
 // Useful for callers that want the localized pluralized noun for ONE role
 // (e.g. "current role: partner"). Mirrors `roleLabel` in permission-gate but
 // returns the plural form.
-export function roleLabelPlural(
-  role: FirmRole | null | undefined,
-  options?: LabelOptions,
-): string {
+export function roleLabelPlural(role: FirmRole | null | undefined, options?: LabelOptions): string {
   const inst = options?.i18n ?? defaultI18n
   if (!role) return ''
   return safeResolve(inst, PLURAL_ROLE_LABELS[role])

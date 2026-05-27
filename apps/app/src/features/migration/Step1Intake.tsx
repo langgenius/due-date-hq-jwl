@@ -531,11 +531,7 @@ export function Step1Intake({
               className="font-mono text-xs tabular-nums text-text-tertiary"
               aria-live="polite"
             >
-              <Plural
-                value={liveRowEstimate}
-                one="~# row detected"
-                other="~# rows detected"
-              />
+              <Plural value={liveRowEstimate} one="~# row detected" other="~# rows detected" />
             </p>
           ) : null}
         </div>

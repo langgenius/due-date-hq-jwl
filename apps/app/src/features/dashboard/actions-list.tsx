@@ -129,11 +129,7 @@ function RowMeta({
     return (
       <span className="flex shrink-0 items-baseline whitespace-nowrap text-sm tabular-nums">
         <span className="text-text-destructive">
-          <Plural
-            value={paymentLateDays}
-            one="Payment # day late"
-            other="Payment # days late"
-          />
+          <Plural value={paymentLateDays} one="Payment # day late" other="Payment # days late" />
         </span>
       </span>
     )

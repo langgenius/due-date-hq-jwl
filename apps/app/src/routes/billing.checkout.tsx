@@ -254,9 +254,7 @@ export function BillingCheckoutRoute() {
           ? 3
           : 1
   const shouldShowDelta =
-    activeSubscription !== undefined &&
-    !alreadyOnPlan &&
-    currentFirm.plan !== plan
+    activeSubscription !== undefined && !alreadyOnPlan && currentFirm.plan !== plan
 
   if (!canReadBilling) {
     return (

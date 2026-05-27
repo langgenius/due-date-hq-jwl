@@ -71,7 +71,10 @@ export function NotificationsPage() {
     }),
   )
 
-  const notifications = notificationsQuery.data?.notifications ?? []
+  // Stable reference for empty list so the useMemo below doesn't bust
+  // every render when notifications is undefined.
+  const rawNotifications = notificationsQuery.data?.notifications
+  const notifications = useMemo(() => rawNotifications ?? [], [rawNotifications])
   // 2026-05-26 (step-6 ux-flow audit F1.4): explicit
   // notifications-have-unread check instead of `every(item =>
   // item.readAt)` which returns true for [] (silently disabling

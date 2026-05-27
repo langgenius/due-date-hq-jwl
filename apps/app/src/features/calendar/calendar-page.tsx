@@ -59,7 +59,6 @@ import { PermissionObscuredContent } from '@/features/permissions/permission-gat
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
-import { requiredRolesLabel } from '@/lib/required-roles-label'
 
 type CalendarCardConfig = {
   scope: CalendarSubscriptionScope

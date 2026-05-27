@@ -640,8 +640,8 @@ export function AuditLogPage() {
           // description reflects FIRM_PERMISSION_ROLES['audit.read']
           // (owner/partner/manager/preparer) automatically.
           <Trans>
-            Practice-wide audit events are available to {requiredRolesLabel('audit.read')}.
-            Contact the practice owner if you need audit access.
+            Practice-wide audit events are available to {requiredRolesLabel('audit.read')}. Contact
+            the practice owner if you need audit access.
           </Trans>
         }
         secondaryAction={{ label: <Trans>Open deadlines</Trans>, to: '/deadlines' }}

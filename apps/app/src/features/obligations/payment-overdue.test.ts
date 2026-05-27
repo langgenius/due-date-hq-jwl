@@ -32,7 +32,7 @@ describe('paymentOverdueDays', () => {
 })
 
 describe('isPaymentOverdue', () => {
-  it('is false when the payment isn\'t overdue', () => {
+  it("is false when the payment isn't overdue", () => {
     expect(isPaymentOverdue('2026-06-01', '2026-05-27')).toBe(false)
     expect(isPaymentOverdue(null, '2026-05-27')).toBe(false)
   })

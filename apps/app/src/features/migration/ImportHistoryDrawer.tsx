@@ -35,7 +35,6 @@ import { PermissionInlineNotice, useFirmPermission } from '@/features/permission
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
-import { requiredRolesLabel } from '@/lib/required-roles-label'
 
 type ImportHistoryDrawerProps = {
   open: boolean

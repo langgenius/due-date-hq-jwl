@@ -168,7 +168,7 @@ export function TwoFactorSetupPanel({
         <Label className="mt-1 flex items-start gap-2 text-sm font-normal text-text-secondary">
           <Checkbox
             checked={acknowledgedCodes}
-            onCheckedChange={(next) => setAcknowledgedCodes(next === true)}
+            onCheckedChange={(next) => setAcknowledgedCodes(next)}
             className="mt-0.5"
           />
           <span>

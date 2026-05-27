@@ -36,11 +36,7 @@ import { clientDetailPath } from './client-url'
 // NOT terminal — filing done but payment may be outstanding. Only
 // `'completed'`, `'paid'`, and `'not_applicable'` are. See dev-log
 // 2026-05-27-terminal-statuses-root-bug.md.
-const TERMINAL_STATUSES: ReadonlySet<string> = new Set([
-  'paid',
-  'completed',
-  'not_applicable',
-])
+const TERMINAL_STATUSES: ReadonlySet<string> = new Set(['paid', 'completed', 'not_applicable'])
 
 /**
  * `ClientDetailDrawer` — the *peek* form of a client.

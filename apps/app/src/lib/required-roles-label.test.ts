@@ -24,9 +24,7 @@ describe('requiredRolesLabel', () => {
     // ROH-D11 — the most-missed role is partner. The helper must surface
     // it automatically. If `FIRM_PERMISSION_ROLES['audit.read']` is ever
     // changed to drop or add partner, this test will catch the drift.
-    expect(requiredRolesLabel('audit.read')).toBe(
-      'owners, partners, managers, and preparers',
-    )
+    expect(requiredRolesLabel('audit.read')).toBe('owners, partners, managers, and preparers')
   })
 
   it('returns a single role for owner-only permissions', () => {

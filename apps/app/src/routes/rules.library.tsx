@@ -3358,11 +3358,7 @@ function SearchResultsTable({
                       user click into each rule's detail. */}
                   <TableCell className="py-2 text-right">
                     {statusGroupOf(rule.status) === 'needs_review' ? (
-                      <CountDotChip
-                        count={1}
-                        tone="accent"
-                        label={<Trans>review</Trans>}
-                      />
+                      <CountDotChip count={1} tone="accent" label={<Trans>review</Trans>} />
                     ) : (
                       <EmptyCellMark label="" />
                     )}

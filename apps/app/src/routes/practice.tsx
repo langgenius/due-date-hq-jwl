@@ -753,16 +753,8 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             // permission required" on hover. The card title +
             // description already explain WHAT the action does;
             // this fills in WHO can do it.
-            title={
-              canDeletePractice
-                ? undefined
-                : t`Deleting the practice requires owner access.`
-            }
-            aria-label={
-              canDeletePractice
-                ? undefined
-                : t`Delete practice (owner access required)`
-            }
+            title={canDeletePractice ? undefined : t`Deleting the practice requires owner access.`}
+            aria-label={canDeletePractice ? undefined : t`Delete practice (owner access required)`}
           >
             <Trash2Icon className="size-4" aria-hidden />
             <Trans>Delete practice</Trans>

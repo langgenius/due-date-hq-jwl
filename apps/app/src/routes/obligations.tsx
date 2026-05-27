@@ -11449,9 +11449,7 @@ function PenaltyInputDialog({
               <Trans>Penalty inputs</Trans>
             )}
           </DialogTitle>
-          <DialogDescription>
-            {row ? formatTaxCode(row.taxType) : null}
-          </DialogDescription>
+          <DialogDescription>{row ? formatTaxCode(row.taxType) : null}</DialogDescription>
         </DialogHeader>
         {/* 2026-05-26 (step-6 ux-flow audit Q5.1/Q5.2): added real
             <label> elements (placeholder alone disappears on type)

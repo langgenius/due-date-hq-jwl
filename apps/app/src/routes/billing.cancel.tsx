@@ -52,11 +52,7 @@ export function BillingCancelRoute() {
         <CardFooter className="gap-2 border-t border-divider-regular">
           <Button render={<Link to={restartHref} />}>
             <CreditCardIcon data-icon="inline-start" />
-            {hasPlanSelection ? (
-              <Trans>Restart checkout</Trans>
-            ) : (
-              <Trans>Choose a plan</Trans>
-            )}
+            {hasPlanSelection ? <Trans>Restart checkout</Trans> : <Trans>Choose a plan</Trans>}
           </Button>
           <Button variant="outline" render={<Link to="/billing" />}>
             <ArrowLeftIcon data-icon="inline-start" />
