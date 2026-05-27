@@ -10,6 +10,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
+import { StatTile } from '@/components/patterns/stat-tile'
 import { ConceptHelp } from '@/features/concepts/concept-help'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { formatDatePretty } from '@/lib/utils'
@@ -482,53 +483,14 @@ function ActionRow({
   )
 }
 
-// Compact summary tile that sits inside the Actions this week header.
-// Moved here from the standalone ExposureStrip (Yuqi #5) — same
-// week scope, same data set, so the three counts now read as the
-// section's summary header rather than a sibling row above it.
-function ActionsSummaryTile({
-  value,
-  label,
-  href,
-  tone,
-}: {
-  value: string
-  label: string
-  href: string
-  tone: 'neutral' | 'critical'
-}) {
-  return (
-    <Link
-      to={href}
-      className={cn(
-        'group flex min-w-[160px] flex-col gap-1 rounded-md border border-divider-subtle bg-background-default px-4 py-3 transition-colors hover:border-divider-regular hover:bg-background-default-hover',
-      )}
-    >
-      {/* 2026-05-25 (Yuqi Today #1 — second pass): tile value
-          dropped text-xl → text-lg and font-semibold → font-medium.
-          The number is a magnitude cue, not a hero — at xl/semibold
-          it competed with the page h1. Critical tone now carries
-          the eye via color, not weight.
-          2026-05-27 (Step 6 UX audit #38): critical tone steps the
-          weight back up to `font-semibold`. At parity weight the
-          destructive color alone wasn't enough — the eye scanned
-          past "12 Blocked" the same as "47 In review". The bump
-          restores the visual hierarchy the color hint was
-          supposed to deliver. */}
-      <span
-        className={cn(
-          'text-lg leading-tight tabular-nums tracking-tight',
-          tone === 'critical'
-            ? 'font-semibold text-text-destructive'
-            : 'font-medium text-text-primary',
-        )}
-      >
-        {value}
-      </span>
-      <span className="text-sm text-text-secondary">{label}</span>
-    </Link>
-  )
-}
+// 2026-05-26 (PR #28 audit cross-surface P0 #1) + 2026-05-27 (drain
+// pass ν #37/#38): `ActionsSummaryTile` was extracted to the shared
+// `StatTile` primitive at `@/components/patterns/stat-tile.tsx`. The
+// ν #38 weight-bump for critical tone (font-medium → font-semibold)
+// is now subsumed into StatTile's canonical "always semibold" rule —
+// critical tone differentiates by color only. The "All caught up"
+// empty-state slot from ν #37 was migrated to StatTile alongside the
+// regular tile callers.
 
 function DashboardActionsList({
   rows,
@@ -621,17 +583,18 @@ function DashboardActionsList({
     summaryTiles.length > 0 ? (
       <div className="flex flex-wrap gap-3">
         {summaryTiles.map((tile) => (
-          <ActionsSummaryTile key={tile.href} {...tile} />
+          <StatTile
+            key={tile.href}
+            value={tile.value}
+            label={tile.label}
+            href={tile.href}
+            tone={tile.tone}
+          />
         ))}
       </div>
     ) : (
       <div className="flex flex-wrap gap-3">
-        <ActionsSummaryTile
-          value="0"
-          label={t`All caught up`}
-          href="/deadlines"
-          tone="neutral"
-        />
+        <StatTile value="0" label={t`All caught up`} href="/deadlines" tone="neutral" />
       </div>
     )
 

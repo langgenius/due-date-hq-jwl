@@ -3435,17 +3435,26 @@ function ClientWorkPlanPanel({
   )
   // 2026-05-24: the Filing plan heading went through TabSection so it
   // sits on the same h2 / subtitle baseline as every other section
-  // header on this client detail page. Subtitle stays factual
-  // ("N deadlines across N tax years") — same wording as the sidebar
-  // and the Deadlines page so it reads as a year-grouped slice of the
-  // same primitive, not a separate concept.
-  const subtitle = (
-    <>
-      <Plural value={obligations.length} one="# deadline" other="# deadlines" />{' '}
-      <Trans>across</Trans>{' '}
-      <Plural value={yearGroups.length} one="# tax year" other="# tax years" />
-    </>
-  )
+  // header on this client detail page.
+  //
+  // 2026-05-26 (audit D4 fix): the subtitle USED to read "N deadlines
+  // across N tax years" — but the SummaryStrip "Open filing" tile
+  // 100 px above already owns the count signal (made canonical in the
+  // 2026-05-24 distill pass that dropped "N open filings" from the
+  // workPlan summary — see `renderClientHeaderSubLine` rationale).
+  // Two counts 100 px apart with slightly-different denominators
+  // (the tile counts non-terminal obligations; the old subtitle
+  // counted ALL obligations including terminal years) forced the
+  // CPA to compute the relationship instead of just reading.
+  // Subtitle now carries only the structural fact — *how* the rows
+  // are grouped, not how many — so the tile stays the single source
+  // of truth. See `docs/Design/ui-audit-2026-05-25.md` §3.2 D4.
+  const subtitle =
+    yearGroups.length <= 1 ? (
+      <Trans>Latest first</Trans>
+    ) : (
+      <Trans>Grouped by tax year, newest first</Trans>
+    )
   return (
     <TabSection title={t`Filing plan`} summary={subtitle}>
       {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 3): each year

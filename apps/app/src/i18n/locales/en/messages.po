@@ -139,9 +139,8 @@ msgid "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 msgstr "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 
 #. placeholder {0}: groupHeader.count
-#. placeholder {0}: obligations.length
 #. placeholder {0}: pendingRevert.obligationCount
-#: src/features/clients/ClientFactsWorkspace.tsx
+#. placeholder {0}: result.obligationCount
 #: src/features/migration/Wizard.tsx
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# deadline} other {# deadlines}}"
@@ -238,11 +237,6 @@ msgstr "{0, plural, one {# state rule type} other {# state rule types}}"
 #: src/features/migration/Step3Normalize.tsx
 msgid "{0, plural, one {# tax type group needs rule review} other {# tax type groups need rule review}}"
 msgstr "{0, plural, one {# tax type group needs rule review} other {# tax type groups need rule review}}"
-
-#. placeholder {0}: yearGroups.length
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0, plural, one {# tax year} other {# tax years}}"
-msgstr "{0, plural, one {# tax year} other {# tax years}}"
 
 #. placeholder {0}: normalizationSummary.exceptionGroups
 #: src/features/migration/Step3Normalize.tsx
@@ -1085,10 +1079,6 @@ msgstr "Account"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Account menu for {0}"
 msgstr "Account menu for {0}"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "across"
-msgstr "across"
 
 #: src/features/audit/audit-log-page.tsx
 #: src/features/audit/audit-log-table.tsx
@@ -5234,6 +5224,10 @@ msgstr "Gross receipts"
 msgid "Group by"
 msgstr "Group by"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Grouped by tax year, newest first"
+msgstr "Grouped by tax year, newest first"
+
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Guard status"
 msgstr "Guard status"
@@ -5765,6 +5759,10 @@ msgstr "Late filings, 12mo"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Latency"
 msgstr "Latency"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Latest first"
+msgstr "Latest first"
 
 #. placeholder {0}: humanizeToken(readiness)
 #: src/features/evidence/EvidenceDrawerProvider.tsx

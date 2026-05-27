@@ -139,9 +139,8 @@ msgid "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 msgstr "{0, plural, one {已选择 # 个截止日期} other {已选择 # 个截止日期}}"
 
 #. placeholder {0}: groupHeader.count
-#. placeholder {0}: obligations.length
 #. placeholder {0}: pendingRevert.obligationCount
-#: src/features/clients/ClientFactsWorkspace.tsx
+#. placeholder {0}: result.obligationCount
 #: src/features/migration/Wizard.tsx
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# deadline} other {# deadlines}}"
@@ -238,11 +237,6 @@ msgstr "{0, plural, other {# 类州规则}}"
 #: src/features/migration/Step3Normalize.tsx
 msgid "{0, plural, one {# tax type group needs rule review} other {# tax type groups need rule review}}"
 msgstr "{0, plural, one {# 个税种组需要规则复核} other {# 个税种组需要规则复核}}"
-
-#. placeholder {0}: yearGroups.length
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "{0, plural, one {# tax year} other {# tax years}}"
-msgstr "{0, plural, one {# 个税年} other {# 个税年}}"
 
 #. placeholder {0}: normalizationSummary.exceptionGroups
 #: src/features/migration/Step3Normalize.tsx
@@ -606,11 +600,11 @@ msgstr "{daysAbs, plural, other {已逾期 # 天}}"
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{daysAbs}d late"
-msgstr "逾期 {daysAbs} 天<<<<<<< HEAD======="
+msgstr "逾期 {daysAbs} 天"
 
 #: src/routes/obligations.tsx
 msgid "{drawerPaymentLateDays, plural, one {Payment # day late} other {Payment # days late}}"
-msgstr "{drawerPaymentLateDays, plural, one {付款逾期 # 天} other {付款逾期 # 天}}>>>>>>> design/audit-drain-phi-journey-audit"
+msgstr "{drawerPaymentLateDays, plural, one {付款逾期 # 天} other {付款逾期 # 天}}"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{durationMonths, plural, one {# month} other {# months}}"
@@ -1085,10 +1079,6 @@ msgstr "账号"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Account menu for {0}"
 msgstr "{0} 的账户菜单"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "across"
-msgstr "跨越"
 
 #: src/features/audit/audit-log-page.tsx
 #: src/features/audit/audit-log-table.tsx
@@ -5234,6 +5224,10 @@ msgstr "总收入"
 msgid "Group by"
 msgstr "分组依据"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Grouped by tax year, newest first"
+msgstr "按税年分组，最新优先"
+
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Guard status"
 msgstr "防护检查状态"
@@ -5765,6 +5759,10 @@ msgstr "近 12 个月迟交次数"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Latency"
 msgstr "延迟"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Latest first"
+msgstr "最新优先"
 
 #. placeholder {0}: humanizeToken(readiness)
 #: src/features/evidence/EvidenceDrawerProvider.tsx

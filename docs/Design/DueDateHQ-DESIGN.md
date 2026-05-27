@@ -329,17 +329,18 @@ When picking a size, anchor on the **role** the text plays in the
 component, not the visual eyeball test. Role-to-token table for
 recurring patterns we ship across drawers / cards / list rows:
 
-| Role                                                       | Token                   | Weight   | Example                                                              |
-| ---------------------------------------------------------- | ----------------------- | -------- | -------------------------------------------------------------------- |
-| **h1** — page title                                        | `text-2xl`              | semibold | "Today", client name on `/clients/[id]`                              |
-| **h2** — section header (TabSection, page sub-area)        | `text-xl`               | semibold | "Alerts", "Filing plan", "Actions this week"                         |
-| **h3** — card title (drawer body, stage card)              | `text-base` / `text-lg` | semibold | Stage card stageLabel; PulseDetailDrawer title (`text-xl` exception) |
-| **Body** — list-row primary text                           | `text-base`             | regular  | Action prompt in dashboard ActionRow                                 |
-| **Body strong** — list-row anchor (client name, form code) | `text-base`             | semibold | ActionRow client name (2026-05-25 #25); filing-plan form code        |
-| **Body secondary** — list-row supporting copy              | `text-sm`               | regular  | Stage stepper items, drawer description, tile sublines               |
-| **Tile value**                                             | `text-xl`               | semibold | Summary tiles on dashboard + client detail                           |
-| **Eyebrow** (uppercase tracking)                           | `text-caption`          | medium   | "Steps", "Filing activity", section labels above fact grids          |
-| **Caption-xs**                                             | `text-caption-xs`       | medium   | Keyboard chips, dense badges, tabular gutters                        |
+| Role                                                       | Token                   | Weight   | Example                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------------------------------------------- | ----------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **h1** — page title                                        | `text-2xl`              | semibold | "Today", client name on `/clients/[id]`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **h2** — section header (TabSection, page sub-area)        | `text-xl`               | semibold | "Alerts", "Filing plan", "Actions this week"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **h3** — card title (drawer body, stage card)              | `text-base` / `text-lg` | semibold | Stage card stageLabel; PulseDetailDrawer title (`text-xl` exception)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **Body** — list-row primary text                           | `text-base`             | regular  | Action prompt in dashboard ActionRow                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **Body strong** — list-row anchor (client name, form code) | `text-base`             | semibold | ActionRow client name (2026-05-25 #25); filing-plan form code                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **Body secondary** — list-row supporting copy              | `text-sm`               | regular  | Stage stepper items, drawer description, tile sublines                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Tile value**                                             | `text-xl`               | semibold | Summary tiles on dashboard, opportunities, client detail. Shared primitive: `apps/app/src/components/patterns/stat-tile.tsx` (audit P0 cross-surface #1 — extracted 2026-05-26). Bespoke variants stay for _anchor_ tiles (`ClientSummaryStrip.TileShell` — Figma off-white replica with 30%-opacity label) and _settings-tier_ tiles inside Card chrome (`RemindersPage.StatTile`); both documented inline. The 2026-05-25 `text-2xl` ("felt thin") and `text-lg` ("competes with h1") drifts were retired in the extract — `text-xl` is the canonical commodity scale. |
+| **Header metaRow** — identity facts about the page subject | `text-xs` / leading-5   | regular  | Identity chips below a PageHeader h1 (entity · owner · state). Lives in `PageHeader.metaRow` slot for routes that opt in; routes can also render it body-side (see `ClientContactMetaRow` on `/clients/[id]`). _Identity_, not _state_ — state prose still goes through `description`.                                                                                                                                                                                                                                                                                   |
+| **Eyebrow** (uppercase tracking)                           | `text-caption`          | medium   | "Steps", "Filing activity", section labels above fact grids                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| **Caption-xs**                                             | `text-caption-xs`       | medium   | Keyboard chips, dense badges, tabular gutters                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 **The body / body-strong / body-secondary trio must always read as
 three distinct tiers in the same row.** If the difference between a
@@ -616,10 +617,12 @@ Sidebar footer 只保留 workspace/account 持久状态：plan status + user men
 入口放在 Practice 导航；user menu 不承载 practice profile，除非后续新增真正的 user account
 profile。
 
-### 4.10 Status Pill Tone Ladder（2026-05-25 增补）
+### 4.10 Status Pill Tone Ladder（2026-05-25 增补，2026-05-26 navigational layer 追加）
 
 > 全审计与变更清单见 [`status-pill-audit-2026-05-25.md`](./status-pill-audit-2026-05-25.md)。
 > 这一节是 audit §3 的"硬裁定"，新加任何 chip / pill 必须先来这里对一遍 tone。
+>
+> **新加 chip 前的推荐路径**：先走 [audit §5.2 Red/Yellow/Green decision tree](./status-pill-audit-2026-05-25.md#52--the-red--yellow--green-decision-tree) — 从 CPA 的 3-色心智 ("red = act / yellow = attention / green = ok") 落到本节 6-tone token 的具体选择。然后回来确认 §4.10 表格的 shape + ornament 规则。Pulse alert dots 走更窄的 4-tone 子集 (`success`/`warning`/`info`/`error`)，唯一入口是 [`pulseAlertTone()`](./pulse-vocabulary.md#canonical-implementation-pulsealerttone)。三层模型不冲突，是同一个 ladder 的逐层 narrowing。
 
 App 里所有"X 是什么状态？"的 chip 都是
 `(tone, shape, ornament)` 三元组。先选 tone（语义），再选 shape（类别），最后
@@ -717,6 +720,70 @@ severity-medium 黄；工作流态走 status-review 蓝）。这张表只覆盖�
 - Dashboard 首屏必须能看见：Pulse Banner + Hero 数字 + ≥ 8 行客户
 - Obligations 首屏必须能看见：≥ 12 行
 - desktop 侧栏可在 220px expanded 与 56px icons-only rail 之间切换；mobile 仍使用 Drawer
+
+### 5.5 Page padding canon (2026-05-26 增补)
+
+> 全审计见 `docs/Design/ui-audit-2026-05-25.md` P0 #2。
+> 这一节是 workbench 路由 page-level container 的"硬裁定"。
+
+每个 workbench route 的 page-level container（PageHeader 外面包的那层 `<div>`）必须落在以下两种 pattern 之一。**选哪个由"页面底部有没有 sticky footer"决定**，不按个人审美。
+
+#### Pattern A — Scroll page (header-heavy, 自然滚动到底)
+
+```
+mx-auto flex w-full max-w-page-wide flex-col
+gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6
+```
+
+用在哪：dashboard (`/`)、Pulse alerts (`/rules/pulse`)、rule library (`/rules/library`)、opportunities (`/opportunities`)。所有 header → 多 section → 最终结束在自然内容下边的页面。
+
+特征：`gap-6` 让多个 h2 section 之间有 24px 呼吸感；`md:pb-6` 让最后一个 section 离视口底部留 24px。
+
+#### Pattern B — Sticky-footer table page (底部 pinned 到视口)
+
+```
+mx-auto flex w-full max-w-page-wide flex-col
+gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0
+```
+
+用在哪：directory pages — `/deadlines`、`/clients`、`/clients/[id]`。这些页面以一个 dense table / filing-plan 收尾，分页 / bulk-action / pagination 那一行需要 pin 到视口底部，多余的 page-level `pb-*` 会在 pinned bar 下面留死空间。
+
+特征：`gap-4` 是 dense-table 页面的 GitHub-density 节奏（让出空间给表格自己）；`pb-0` 让 sticky footer 紧贴视口边。
+
+#### 决策树
+
+```
+这个页面以一个 sticky 元素结尾（pagination / bulk-action bar / filing-plan footer）吗？
+├── YES → Pattern B
+└── NO  → Pattern A
+```
+
+#### 宽度档（max-width）
+
+| 档                | 值                           | 谁在用                                                                                                                                                                 |
+| ----------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Standard**      | `max-w-page-wide` (≈ 1100px) | dashboard、/clients、/clients/[id]、/opportunities                                                                                                                     |
+| **Wide (opt-in)** | `max-w-[1440px]`             | /deadlines（dense table，多列）、/rules/library via `RulesPageShell.wide` prop（jurisdiction + 7 entity cols + tier）、/rules/pulse（list + 60% panel 在 1100 太挤）。 |
+
+**铁律**：**一个 route 只能选一档，不能在两档之间切换**。Pulse 之前在 panel 关闭时用 page-wide，panel 打开时用 1440 — 每次点击 alert 整个 page `mx-auto` 重新居中，整条 page 视觉左移 ~80px（audit P0 #10）。已统一到 1440。
+
+#### 禁止值
+
+- `md:pb-5` (20px) — 不在两种 pattern 内，singleton outlier。
+- `gap-5` (20px) — 用在 billing / migration entry-shell 是另一个 family；workbench 不用。
+- 同一 route 两档宽度切换 — 见上文宽度档铁律。
+- 横向 `px-*` 不对齐 `md:px-6` — desktop 至少 24px 留白才不撞 sidebar。
+
+#### 其他 page family（不归这套 canon 管）
+
+| Family             | Canon                     | 例子                                                |
+| ------------------ | ------------------------- | --------------------------------------------------- |
+| Billing commerce   | `gap-5 px-4 py-6 md:px-6` | `/billing`                                          |
+| Entry-shell        | `gap-5 p-4 md:p-6`        | `/migration/new`、`/billing.checkout` (no AppShell) |
+| Settings           | `gap-8 px-6 py-6`         | `/settings/*`                                       |
+| Fallback / loading | `gap-6 p-4 md:p-6`        | `routes/fallback.tsx`                               |
+
+这些都用自己的 padding family；不要把 Pattern A/B 套上去（容器宽度、内容形态都不一样）。如果新加 family，先来这一节加一行再写代码。
 
 ---
 
