@@ -85,7 +85,6 @@ import {
   DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Field, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
@@ -5143,43 +5142,45 @@ function ClientOwnerHeaderPill({
               </span>
             </DropdownMenuRadioItem>
           ) : null}
-          {assignableMembers.length > 0 ? <DropdownMenuSeparator /> : null}
-          {assignableMembers.length === 0 ? (
-            // Empty-state row. Disabled + muted so it doesn't read as
-            // a tappable option, but with enough context that the user
-            // knows why the list is empty + where to fix it. Without
-            // the hint the row reads as "0 results" with no path
-            // forward.
-            <DropdownMenuItem
-              disabled
-              title={t`Invite teammates from Settings → Members to assign work`}
-            >
-              <span className="text-text-tertiary">
-                <Trans>No teammates yet — invite from Settings</Trans>
-              </span>
-            </DropdownMenuItem>
-          ) : (
-            assignableMembers.map((member) => {
-              const memberTint = getAssigneeTint(member.name)
-              const isCurrentUser =
-                currentUserName !== null &&
-                member.name.trim().toLowerCase() === currentUserName.toLowerCase()
-              return (
-                <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
-                  <span
-                    className={cn(
-                      'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-                      isCurrentUser ? 'bg-state-accent-hover-alt text-text-accent' : memberTint,
-                    )}
-                  >
-                    {initialsFromName(member.name)}
-                  </span>
-                  <span className="truncate">{member.name}</span>
-                </DropdownMenuRadioItem>
-              )
-            })
-          )}
+          {/* 2026-05-27 (Yuqi runtime error fix "Route failed: Base UI:
+              MenuGroupContext is missing"): empty-state `DropdownMenuItem`
+              was nested inside the RadioGroup — Base UI strict-mode
+              requires RadioGroup children to all be RadioItems. The
+              Separator + empty-state Item now live OUTSIDE the
+              RadioGroup. Member RadioItems stay inside. */}
+          {assignableMembers.map((member) => {
+            const memberTint = getAssigneeTint(member.name)
+            const isCurrentUser =
+              currentUserName !== null &&
+              member.name.trim().toLowerCase() === currentUserName.toLowerCase()
+            return (
+              <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
+                <span
+                  className={cn(
+                    'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
+                    isCurrentUser ? 'bg-state-accent-hover-alt text-text-accent' : memberTint,
+                  )}
+                >
+                  {initialsFromName(member.name)}
+                </span>
+                <span className="truncate">{member.name}</span>
+              </DropdownMenuRadioItem>
+            )
+          })}
         </DropdownMenuRadioGroup>
+        {assignableMembers.length === 0 ? (
+          // Empty-state row. Disabled + muted so it doesn't read as
+          // a tappable option, but with enough context that the user
+          // knows why the list is empty + where to fix it.
+          <DropdownMenuItem
+            disabled
+            title={t`Invite teammates from Settings → Members to assign work`}
+          >
+            <span className="text-text-tertiary">
+              <Trans>No teammates yet — invite from Settings</Trans>
+            </span>
+          </DropdownMenuItem>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   )
