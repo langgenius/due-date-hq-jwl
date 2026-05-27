@@ -290,12 +290,25 @@ In priority order:
    Needs-review column added in x2 was redundant with its own header
    ("9 need review" on every row repeated the column name). Folded
    the chip back into the Tier cell as a number-only `• N` sitting
-   left of the gap chip + progress bar. Cluster reads review queue
-   → missing → overall status. Column count drops 10 → 9. Group
+   to the RIGHT of the progress bar (anchored to the side of the bar
+   the review segment actually paints). Cluster reads gap chip →
+   progress bar → review chip. Column count drops 10 → 9. Group
    header's `StateBadge` + 2-letter code now wrapped in a bordered
-   pill (`rounded-md border-divider-subtle bg-background-subtle`)
-   so flag + code reads as one chip. See dev-log
-   `2026-05-27-rule-library-needs-review-collapse.md`.
+   pill (`rounded-md border-divider-deep bg-background-subtle`) so
+   flag + code reads as one defined chip.
+10. **Brown unification — single tone for "needs review"** —
+    [SHIPPED 2026-05-27] The page had two conflicting tones for the
+    same concept: top stat bar used coral/warning ("alarm" energy),
+    every other surface used accent/blue ("info" energy). Unified on
+    a brown palette (sienna `yellow-700` on cream `yellow-50/100`,
+    mustard solid `yellow-600` for dots/bars) so every needs-review
+    indicator on the page shares one tone. Brown reads as "attention
+    needed, not urgent" — between blue (info) and red (alarm).
+    Held in `REVIEW_*_CLS` consts at module top; promote to
+    `--state-review-*` semantic tokens once another surface adopts.
+    See dev-log
+    `2026-05-27-rule-library-needs-review-collapse.md` §"Follow-up
+    batch" for the full surface inventory.
 
 Re-run `/critique` after the structural pass — target ≥32/40.
 

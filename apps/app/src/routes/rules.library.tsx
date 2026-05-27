@@ -172,6 +172,25 @@ const ENTITY_COLUMN_LABELS: Record<EntityKey, string> = {
 // by 1.
 const RULES_TABLE_COLUMN_COUNT = 3 + ENTITY_KEYS.length
 
+// 2026-05-27 (Yuqi follow-up — "需要统一,我觉得可以用棕色"): the
+// "needs review" signal was painted in TWO different tones across
+// the page (warning/coral on the top stat bar, accent/blue on every
+// row chip + row progress bar). Unifying on a brown tone — sienna
+// text on cream bg, mustard solid for filled dots/bars — gives the
+// concept one consistent color across every surface in the catalog.
+// Browns sit between blue (informational, "FYI") and red (alarm,
+// "broken") — read as "attention needed, not urgent." Using
+// `yellow-700` from the util-colors palette since that hue (#a15c07
+// — olive sienna) reads as warm brown rather than alert orange or
+// neutral khaki. Held in local consts rather than a new semantic
+// token so the rollout is contained to this surface; if/when other
+// pages adopt the same tone we can promote to `--state-review-*`.
+const REVIEW_TEXT_CLS = 'text-[var(--color-util-colors-yellow-700)]'
+const REVIEW_BG_SOFT_CLS = 'bg-[var(--color-util-colors-yellow-50)]'
+const REVIEW_BG_TINT_CLS = 'bg-[var(--color-util-colors-yellow-100)]'
+const REVIEW_BORDER_CLS = 'border-[var(--color-util-colors-yellow-200)]'
+const REVIEW_DOT_CLS = 'bg-[var(--color-util-colors-yellow-600)]'
+
 // Status sub-grouping inside an expanded jurisdiction. Rules are
 // bucketed into these groups and rendered under a section header
 // row so the user doesn't have to scan a per-rule "Status" column —
@@ -343,18 +362,21 @@ function EntityStateCell({
   }
   if (pendingReviewCount > 0) {
     // 2026-05-26 (Yuqi follow-up): pending count `1` carries the
-    // accent tone (matches every other "needs review" indicator);
+    // review tone (matches every other "needs review" indicator);
     // slash + total `3` both dim down to `text-text-tertiary` —
     // the total isn't the actionable number, just context for the
-    // pending part. Reading "1/3" your eye lands on the bright
-    // accent 1, the muted /3 supplies "of how many" without
-    // competing for attention.
+    // pending part. Reading "1/3" your eye lands on the brown 1,
+    // the muted /3 supplies "of how many" without competing for
+    // attention.
+    // 2026-05-27 (Yuqi brown unification): switched the bright `1`
+    // from blue accent to sienna brown so this matches the rest of
+    // the page's needs-review tone.
     return (
       <span
         className="inline-flex items-baseline gap-0.5 text-sm font-medium tabular-nums"
         title={`${pendingReviewCount} of ${count} need review`}
       >
-        <span className="text-text-accent">{pendingReviewCount}</span>
+        <span className={REVIEW_TEXT_CLS}>{pendingReviewCount}</span>
         <span className="text-text-tertiary">/{count}</span>
       </span>
     )
@@ -376,7 +398,10 @@ function EntityApplicabilityCell({ applies, status }: { applies: boolean; status
       className={cn(
         'mx-auto block size-1.5 rounded-full',
         tone === 'success' && 'bg-state-success-solid',
-        tone === 'review' && 'bg-accent-default',
+        // 2026-05-27 (Yuqi brown unification): per-rule applicability
+        // dot for review-state rules switches from blue accent to
+        // mustard so the dot matches the catalog-wide brown signal.
+        tone === 'review' && REVIEW_DOT_CLS,
         tone === 'destructive' && 'bg-state-destructive-solid',
         tone === 'muted' && 'bg-text-muted',
       )}
@@ -433,7 +458,11 @@ function RuleStatusBar({ rules }: { rules: ObligationRule[] }) {
               <span className="block bg-state-success-solid" style={{ flex: counts.active }} />
             ) : null}
             {counts.review > 0 ? (
-              <span className="block bg-accent-default" style={{ flex: counts.review }} />
+              // 2026-05-27 (Yuqi brown unification): review segment
+              // was `bg-accent-default` (blue) — clashed with the top
+              // bar's coral. Now mustard so review work reads the
+              // same color in every bar on the page.
+              <span className={cn('block', REVIEW_DOT_CLS)} style={{ flex: counts.review }} />
             ) : null}
             {counts.other > 0 ? (
               <span className="block bg-divider-regular" style={{ flex: counts.other }} />
@@ -457,7 +486,7 @@ function RuleStatusBar({ rules }: { rules: ObligationRule[] }) {
             </span>
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span aria-hidden className="size-1.5 rounded-full bg-accent-default" />
+            <span aria-hidden className={cn('size-1.5 rounded-full', REVIEW_DOT_CLS)} />
             <span>
               <Plural value={counts.review} one="# needs review" other="# need review" />
             </span>
@@ -1533,13 +1562,24 @@ export function RulesLibraryRoute() {
           </Trans>
         </p>
         {!statsLoading && totalPendingReview > 0 ? (
+          // 2026-05-27 (Yuqi brown unification): callout was painted
+          // warning-coral (read as "alarm"). Switched to the same
+          // sienna-on-cream brown the top progress bar + row chips
+          // use so the eye learns "brown = review work" once and
+          // carries it across every needs-review surface.
           <button
             type="button"
             onClick={() => void setScope('review')}
             aria-label={t`Show rules needing review`}
-            className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border border-state-warning-hover-alt bg-state-warning-hover px-3 text-xs font-medium text-text-warning outline-none transition-colors hover:bg-state-warning-hover-alt focus-visible:ring-2 focus-visible:ring-state-warning-hover-alt"
+            className={cn(
+              'inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium outline-none transition-colors focus-visible:ring-2',
+              REVIEW_BORDER_CLS,
+              REVIEW_BG_SOFT_CLS,
+              REVIEW_TEXT_CLS,
+              'hover:bg-[var(--color-util-colors-yellow-100)] focus-visible:ring-[var(--color-util-colors-yellow-200)]',
+            )}
           >
-            <span className="size-1.5 rounded-full bg-state-warning-solid" aria-hidden />
+            <span aria-hidden className={cn('size-1.5 rounded-full', REVIEW_DOT_CLS)} />
             <Plural
               value={totalPendingReview}
               one="# rule needs review"
@@ -1866,7 +1906,12 @@ function RuleReviewProgressBar(
   const SEGMENT_BG: Record<RuleStatus, string> = {
     active: 'bg-state-success-hover',
     verified: 'bg-state-accent-hover',
-    pending_review: 'bg-state-warning-hover',
+    // 2026-05-27 (Yuqi unification): pending_review was coral
+    // (`bg-state-warning-hover`) which read as "alarm" and clashed
+    // with every other needs-review surface on the page. Brown
+    // (`REVIEW_BG_TINT_CLS`) reads as "attention needed" without the
+    // alert energy, and matches the row progress bar + chip tone.
+    pending_review: REVIEW_BG_TINT_CLS,
     candidate: 'bg-state-base-active',
     rejected: 'bg-state-destructive-hover',
     archived: 'bg-divider-regular',
@@ -1875,7 +1920,7 @@ function RuleReviewProgressBar(
   const SEGMENT_TEXT: Record<RuleStatus, string> = {
     active: 'text-text-success',
     verified: 'text-text-accent',
-    pending_review: 'text-text-warning',
+    pending_review: REVIEW_TEXT_CLS,
     candidate: 'text-text-secondary',
     rejected: 'text-text-destructive',
     archived: 'text-text-tertiary',
@@ -2726,13 +2771,13 @@ function GroupHeaderRow({
             )}
             aria-hidden
           />
-          {/* 2026-05-27 (Yuqi follow-up — bordered pill style): the
-              flag + code pair used to sit naked next to the state
-              name. Wrapping in a bordered pill (rounded-md, hairline
-              border, faint background) gives the badge a defined
-              container so it reads as one chip — the visual treatment
-              matches /clients' state badge family. */}
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-divider-subtle bg-background-subtle px-1.5 py-0.5">
+          {/* 2026-05-27 (Yuqi follow-up — bordered pill style, "看不见
+              呀"): first pass used `border-divider-subtle` (4% alpha)
+              which was too faint to read as a contained pill. Bumped
+              to `border-divider-deep` (14% alpha) so the border
+              actually defines the chip the way Yuqi's reference image
+              showed. */}
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-divider-deep bg-background-subtle px-1.5 py-0.5">
             <StateBadge code={group.jurisdiction} size="xs" title={group.jurisdiction} />
             <span className="text-caption-xs uppercase tracking-wider text-text-secondary">
               {group.jurisdiction}
@@ -2770,25 +2815,16 @@ function GroupHeaderRow({
         )
       })}
       <TableCell className="py-2">
-        {/* 2026-05-27 (Yuqi follow-up — number-only chip + col merge):
-            the dedicated Needs-review column was redundant with its
-            own header ("9 need review" repeated the column name on
-            every row). Folded the count back into this Tier cluster
-            as a number-only chip — the accent dot still carries the
-            "needs review" semantic, and the `title` tooltip keeps the
-            verbal label for hover + assistive tech. Sits left of the
-            gap chip so the eye reads: review queue → missing →
-            overall status. */}
+        {/* 2026-05-27 (Yuqi follow-up — "数字应该写在右边" + brown
+            tone unify): the per-row chip moved to the RIGHT of the
+            progress bar. The bar paints active (green) LEFT → review
+            RIGHT; positioning the count after the bar spatially
+            anchors the number to the side of the bar it actually
+            represents. Switched the chip tone to brown (sienna text
+            + mustard dot) so every "needs review" indicator on the
+            page shares one color — matches the top progress bar's
+            updated segment and the row-bar's review segment. */}
         <div className="flex items-center justify-end gap-3">
-          <CountDotChip
-            count={group.pendingReviewCount}
-            tone="accent"
-            label={
-              <span title={`${group.pendingReviewCount} need review`} className="tabular-nums">
-                {group.pendingReviewCount}
-              </span>
-            }
-          />
           <CountDotChip
             count={group.gapEntities.length}
             tone="destructive"
@@ -2796,6 +2832,21 @@ function GroupHeaderRow({
             label={<Plural value={group.gapEntities.length} one="# missing" other="# missing" />}
           />
           <RuleStatusBar rules={group.rules} />
+          {group.pendingReviewCount > 0 ? (
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 text-xs font-medium tabular-nums',
+                REVIEW_TEXT_CLS,
+              )}
+              title={`${group.pendingReviewCount} need review`}
+            >
+              <span
+                aria-hidden
+                className={cn('inline-block size-1.5 shrink-0 rounded-full', REVIEW_DOT_CLS)}
+              />
+              {group.pendingReviewCount}
+            </span>
+          ) : null}
         </div>
       </TableCell>
     </TableRow>
@@ -2873,7 +2924,11 @@ function RuleTableRow({
         // matches /clients list rows + /clients/[id] filing-plan
         // rows for cross-surface consistency.
         'group/row h-14 cursor-pointer hover:bg-state-base-hover',
-        needsReviewRow && 'bg-state-warning-hover/40',
+        // 2026-05-27 (Yuqi brown unification): needs-review row tint
+        // was coral (`bg-state-warning-hover/40`). Brown cream
+        // (`yellow-50/60`) keeps the "this row needs you" signal but
+        // in the page's unified review tone.
+        needsReviewRow && 'bg-[var(--color-util-colors-yellow-50)]/60',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onClick(rule)}
@@ -3171,7 +3226,7 @@ function StatusSectionHeaderRow({
           <span
             className={cn(
               'text-xs font-semibold uppercase tracking-wider',
-              statusKey === 'needs_review' && 'text-text-accent',
+              statusKey === 'needs_review' && REVIEW_TEXT_CLS,
               statusKey === 'active' && 'text-state-success-solid',
               statusKey === 'gaps' && 'text-text-destructive',
               statusKey !== 'needs_review' &&
@@ -3185,7 +3240,7 @@ function StatusSectionHeaderRow({
           <span
             className={cn(
               'text-xs font-semibold tabular-nums',
-              statusKey === 'needs_review' && 'text-text-accent',
+              statusKey === 'needs_review' && REVIEW_TEXT_CLS,
               statusKey === 'active' && 'text-state-success-solid',
               statusKey === 'gaps' && 'text-text-destructive',
               statusKey !== 'needs_review' &&
@@ -3513,7 +3568,7 @@ function RuleDetailKicker({ rule }: { rule: ObligationRule }) {
 function RuleStatusKicker({ status }: { status: ObligationRule['status'] }) {
   if (status === 'candidate' || status === 'pending_review') {
     return (
-      <span className="inline-flex items-center gap-1 text-text-accent">
+      <span className={cn('inline-flex items-center gap-1', REVIEW_TEXT_CLS)}>
         <MessageSquareText className="size-3.5" aria-hidden />
         <span className="font-medium">
           <Trans>Needs review</Trans>

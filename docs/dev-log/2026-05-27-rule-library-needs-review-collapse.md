@@ -116,6 +116,75 @@ used given the scope tab) for a cleaner table that scans
 identity → applicability → workload → classification in 9 columns
 instead of 10.
 
+## Follow-up batch (same session)
+
+After the first commit landed, Yuqi flagged three more refinements
+that ship in the same branch:
+
+### Chip moved to the RIGHT of the progress bar
+
+> progress bar 因为左边是绿色 active，右边是 need review, 所以这个
+> need review 的数字应该写在右边
+
+The chip first landed LEFT of the progress bar. But the bar paints
+active (green) on the LEFT → review on the RIGHT, so anchoring the
+review count on the LEFT side of the bar was spatially backwards.
+Swapped the cluster order so the right-aligned `<div>` now reads:
+gap chip → progress bar → review chip. The count now sits next to
+the bar segment it actually counts.
+
+### Bordered pill border bumped to `divider-deep`
+
+First pass used `border-divider-subtle` (4% alpha) — Yuqi feedback
+was "看不见呀" (can't see it). Bumped to `border-divider-deep` (14%
+alpha) so the pill actually reads as a contained chip instead of
+floating tokens.
+
+### Brown unification of "needs review" color
+
+> 上面的大进度条用红色来表示 need review,而其他所有的地方都是用
+> 蓝色。需要统一,我觉得可以用棕色?
+
+The page had two conflicting tones for the same concept:
+
+- **Top stat bar** — `bg-state-warning-hover` + `text-text-warning`
+  (coral/red — read as "alarm")
+- **Everywhere else** — `bg-accent-default` + `text-text-accent`
+  (blue — read as "info")
+
+Unified on a **brown** tone: sienna text (`yellow-700` = `#a15c07`)
+on cream backgrounds (`yellow-50/100` = `#fefbe8`/`#fef7c3`), mustard
+solid fills (`yellow-600` = `#ca8504`) for dots and bar segments.
+Brown sits between blue (informational) and red (alarm) — reads as
+"attention needed, not urgent." Five surfaces switched in one
+sweep:
+
+1. `RuleReviewProgressBar` `pending_review` segment — cream tint +
+   sienna text
+2. "456 rules need review" callout chip — sienna pill on cream bg
+3. `RuleStatusBar` per-row review segment + tooltip dot — mustard
+   solid
+4. `EntityStateCell` "1/5" pending count — sienna text on the
+   bright digit
+5. Per-row chip in the Tier cell — mustard dot + sienna number
+6. `EntityApplicabilityCell` per-rule dot when `tone === 'review'`
+   — mustard
+7. Needs-review row background tint (`bg-state-warning-hover/40` →
+   `bg-yellow-50/60`)
+8. Status-section header text (`NEEDS REVIEW 3`) — sienna
+9. `RuleStatusKicker` for `pending_review` / `candidate` rules —
+   sienna icon + text
+
+Kept blue for surfaces that are NOT a "needs review" indicator: the
+"Start review N" primary CTA button (primary action, not status),
+the scope-tab active underline (navigation chrome), the "verified"
+progress segment (different status).
+
+The brown classes are held as `REVIEW_*_CLS` consts at module top
+rather than as new semantic tokens (`--state-review-*`). Promotion
+to semantic tokens can happen once other pages adopt the same tone
+— for now the rollout is contained to this one surface.
+
 ## Related docs
 
 - [`2026-05-27-audit-drain-x2-rule-library-ux.md`](2026-05-27-audit-drain-x2-rule-library-ux.md)
