@@ -6,7 +6,6 @@ import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
 import {
   ArrowUpRightIcon,
-  ChevronLeftIcon,
   ChevronRightIcon,
   CircleCheck,
   CircleSlash,
@@ -21,7 +20,7 @@ import {
   SearchIcon,
   XIcon,
 } from 'lucide-react'
-import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
+import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 
 import type {
   ObligationRule,
@@ -61,6 +60,7 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
@@ -162,8 +162,15 @@ const ENTITY_COLUMN_LABELS: Record<EntityKey, string> = {
 }
 
 // Total table column count: Rule + Form + 7 per-entity columns +
-// Tier.
-const RULES_TABLE_COLUMN_COUNT = 3 + ENTITY_KEYS.length
+// Needs review + Tier.
+// 2026-05-27 (Yuqi rule library rework — "Put a Needs Review number
+// in a new column"): pendingReviewCount used to live cramped inside
+// the rightmost Tier cell as one of three CountDotChips; lifting it
+// into its own column gives the catalog a sortable "where is the
+// work" axis. The column sits between the per-entity matrix and
+// Tier so the eye reads identity → applicability → workload →
+// classification left-to-right.
+const RULES_TABLE_COLUMN_COUNT = 4 + ENTITY_KEYS.length
 
 // Status sub-grouping inside an expanded jurisdiction. Rules are
 // bucketed into these groups and rendered under a section header
@@ -383,7 +390,17 @@ function EntityApplicabilityCell({ applies, status }: { applies: boolean; status
 // vs "mixed" at a glance, scaling visually with how many rules a
 // jurisdiction owns. Earlier 7-dot fixed treatment hid this signal
 // because dot count never reflected rule count.
+//
+// 2026-05-27 (Yuqi rule library rework — "hover onto the progress,
+// shows how many needs review"): wrapped the bar in the canonical
+// Tooltip primitive so the hover affordance is a real popover
+// (keyboard-focusable, screen-reader narrated, themed surface)
+// instead of a native `title` (mouse-only, browser-styled, no a11y
+// affordance). The popover surfaces the same status-tone color
+// chips the segments use so the eye carries the legend from
+// segment → tooltip line without translation work.
 function RuleStatusBar({ rules }: { rules: ObligationRule[] }) {
+  const { t } = useLingui()
   const counts = useMemo(() => {
     let active = 0
     let review = 0
@@ -401,22 +418,61 @@ function RuleStatusBar({ rules }: { rules: ObligationRule[] }) {
     return <span className="inline-block h-1.5 w-28 rounded-full bg-divider-subtle" />
   }
   return (
-    <span
-      className="inline-flex h-1.5 w-28 overflow-hidden rounded-full bg-background-subtle"
-      title={`${counts.active} active · ${counts.review} need review${
-        counts.other > 0 ? ` · ${counts.other} other` : ''
-      }`}
-    >
-      {counts.active > 0 ? (
-        <span className="block bg-state-success-solid" style={{ flex: counts.active }} />
-      ) : null}
-      {counts.review > 0 ? (
-        <span className="block bg-accent-default" style={{ flex: counts.review }} />
-      ) : null}
-      {counts.other > 0 ? (
-        <span className="block bg-divider-regular" style={{ flex: counts.other }} />
-      ) : null}
-    </span>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <span
+            // `tabIndex=0` so keyboard users can land on the trigger
+            // and read the breakdown — matches how /clients +
+            // /deadlines expose passive metric chips to a11y.
+            tabIndex={0}
+            className="inline-flex h-1.5 w-28 overflow-hidden rounded-full bg-background-subtle outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            aria-label={t`${counts.review} of ${total} rules need review`}
+          >
+            {counts.active > 0 ? (
+              <span className="block bg-state-success-solid" style={{ flex: counts.active }} />
+            ) : null}
+            {counts.review > 0 ? (
+              <span className="block bg-accent-default" style={{ flex: counts.review }} />
+            ) : null}
+            {counts.other > 0 ? (
+              <span className="block bg-divider-regular" style={{ flex: counts.other }} />
+            ) : null}
+          </span>
+        }
+      />
+      <TooltipContent className="flex flex-col gap-1 px-2.5 py-2">
+        <span className="text-xs font-medium text-components-tooltip-text">
+          <Plural
+            value={counts.review}
+            one={`# of ${total} need review`}
+            other={`# of ${total} need review`}
+          />
+        </span>
+        <span className="flex flex-col gap-0.5 text-caption text-components-tooltip-text/80">
+          <span className="inline-flex items-center gap-1.5">
+            <span aria-hidden className="size-1.5 rounded-full bg-state-success-solid" />
+            <span>
+              <Trans>{counts.active} active</Trans>
+            </span>
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span aria-hidden className="size-1.5 rounded-full bg-accent-default" />
+            <span>
+              <Plural value={counts.review} one="# needs review" other="# need review" />
+            </span>
+          </span>
+          {counts.other > 0 ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span aria-hidden className="size-1.5 rounded-full bg-divider-regular" />
+              <span>
+                <Trans>{counts.other} other</Trans>
+              </span>
+            </span>
+          ) : null}
+        </span>
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
@@ -593,6 +649,14 @@ function defaultExpandedSet(): Set<RuleJurisdiction> {
   return new Set<RuleJurisdiction>()
 }
 
+// 2026-05-27 (Yuqi rule library rework — infinite scroll batch size):
+// hoisted from inside the route body so the initial useState seed +
+// IntersectionObserver increment + reset effect all reference the
+// same constant. 10 groups per batch matches the prior page-size,
+// keeps the first-paint cost predictable, and surfaces ~70% of the
+// federal+top-state catalog in the first batch without a fetch.
+const PAGE_SIZE = 10
+
 // ---------------------------------------------------------------------------
 // Label maps — re-declared inline so the Lingui macro picks up the
 // t-templates. (See obligation-drawer.tsx for why function-parameter
@@ -667,14 +731,36 @@ export function RulesLibraryRoute() {
   const [search, setSearch] = useQueryState('q', parseAsString)
   const [ruleId, setRuleId] = useQueryState('rule', parseAsString)
   const [entityFilter, setEntityFilter] = useQueryState('entity', parseAsString)
-  // 2026-05-26 (Yuqi cross-table drift #3 — "clients and rule library
-  // are prev/next + page count footer"): page index for jurisdiction-
-  // group pagination. nuqs-bound so the active page deep-links + the
-  // browser back button moves between pages. Resets to 0 whenever a
-  // filter/search/scope change shrinks the result set (see effect
-  // below).
-  const [page, setPage] = useQueryState('page', parseAsInteger)
-  const pageIndex = page ?? 0
+  // 2026-05-27 (Yuqi rule library rework — "Change rule library's
+  // list to infinite scroll"): swapped prev/next URL-bound pagination
+  // for incremental client-side reveal. `visibleGroupCount` tracks
+  // how many jurisdiction groups are mounted; an IntersectionObserver
+  // sentinel at the bottom of the loaded slice grows the count by
+  // PAGE_SIZE when it crosses the viewport. Resets to PAGE_SIZE
+  // whenever the filtered set changes (search/scope/entity/sort)
+  // so the user never has to scroll to "page 5" again after
+  // narrowing.
+  //
+  // Why client-side instead of cursor pagination: `listRules` already
+  // ships the full catalog payload in one request (52 jurisdictions
+  // × ~9 rules average = ~470 rule objects, ~85KB JSON). The
+  // perceived-perf wins live in not mounting 470 TableRows at once,
+  // not in reducing network. Cursor pagination would multiply
+  // round-trips for marginal gain and break the in-memory search /
+  // jurisdiction-grouping flow this page already runs.
+  const [visibleGroupCount, setVisibleGroupCount] = useState(PAGE_SIZE)
+  // Sort state for the new "Needs review" column. `null` = catalog
+  // default order (federal first, then by gap presence, then
+  // alphabetic). `desc` floats jurisdictions with the most pending
+  // reviews to the top; `asc` floats the cleanest ones.
+  const [needsReviewSort, setNeedsReviewSort] = useState<'desc' | 'asc' | null>(null)
+  const toggleNeedsReviewSort = useCallback(() => {
+    setNeedsReviewSort((current) => {
+      if (current === null) return 'desc'
+      if (current === 'desc') return 'asc'
+      return null
+    })
+  }, [])
   // 2026-05-26 (Yuqi /rules/library critique P0): scope tabs above
   // the table. URL-bound so the active scope deep-links. Default is
   // 'all'. `null` from nuqs maps back to 'all' for the activeScope
@@ -751,31 +837,40 @@ export function RulesLibraryRoute() {
     // own gapEntities array already encodes the gaps.
     return groupsAll.filter((g) => g.gapEntities.length > 0)
   }, [groupsAll, activeScope])
-  // 2026-05-26 (Yuqi cross-table drift #3 — "clients and rule library
-  // are prev/next + page count footer"): paginate jurisdiction groups
-  // so the catalog feel matches /clients. Page size of 10 groups gives
-  // ~6 pages for the 52-jurisdiction catalog — fast prev/next without
-  // burying any state more than 5 pages deep. The user picks a state
-  // by paging or by typing it into the search filter (which surfaces
-  // matches across ALL pages by reducing `filteredGroups` further).
-  const PAGE_SIZE = 10
-  const totalPages = Math.max(1, Math.ceil(filteredGroups.length / PAGE_SIZE))
-  // Clamp page in case the filter shrinks the result set below the
-  // current page. nuqs holds the value as-is; this just trims the
-  // index used for slicing + display.
-  const clampedPageIndex = Math.min(pageIndex, totalPages - 1)
+  // 2026-05-27 (Yuqi rule library rework — infinite scroll): the
+  // visible slice grows by PAGE_SIZE whenever the bottom sentinel
+  // crosses the viewport. `filteredGroups` is also re-sorted by the
+  // needs-review column when active so loading more groups doesn't
+  // change which jurisdictions float to the top.
+  const sortedFilteredGroups = useMemo(() => {
+    if (needsReviewSort === null) return filteredGroups
+    const direction = needsReviewSort === 'desc' ? -1 : 1
+    return filteredGroups.toSorted(
+      (a, b) => direction * (a.pendingReviewCount - b.pendingReviewCount),
+    )
+  }, [filteredGroups, needsReviewSort])
+  const totalGroupCount = sortedFilteredGroups.length
+  const clampedVisibleCount = Math.min(visibleGroupCount, totalGroupCount)
   const groups = useMemo(
-    () => filteredGroups.slice(clampedPageIndex * PAGE_SIZE, (clampedPageIndex + 1) * PAGE_SIZE),
-    [filteredGroups, clampedPageIndex],
+    () => sortedFilteredGroups.slice(0, clampedVisibleCount),
+    [sortedFilteredGroups, clampedVisibleCount],
   )
-  // Reset to page 0 whenever a filter/scope/search change shrinks
-  // result set so the user always sees the first matching groups
-  // rather than landing on an empty page mid-catalog.
+  const hasMoreGroups = clampedVisibleCount < totalGroupCount
+  // Reset the visible window whenever the filter/scope/sort set
+  // changes shape. Using a derived fingerprint (jurisdiction list
+  // identity) means re-running `listRules` data without a filter
+  // change DOESN'T reset the scroll position — the user can keep
+  // reading.
+  const filteredGroupsFingerprint = useMemo(
+    () => sortedFilteredGroups.map((g) => g.jurisdiction).join('|'),
+    [sortedFilteredGroups],
+  )
   useEffect(() => {
-    if (pageIndex > 0 && pageIndex > totalPages - 1) {
-      void setPage(0)
-    }
-  }, [pageIndex, totalPages, setPage])
+    setVisibleGroupCount(PAGE_SIZE)
+  }, [filteredGroupsFingerprint])
+  const loadMoreGroups = useCallback(() => {
+    setVisibleGroupCount((current) => current + PAGE_SIZE)
+  }, [])
   // Top-of-page stats data. `statusCounts` drives the multi-color
   // stacked progress bar (one segment per `RuleStatus` with >0 rules).
   // Scope-tab counts (`totalActive`, `totalPendingReview`,
@@ -1528,10 +1623,11 @@ export function RulesLibraryRoute() {
               onToggleRuleSelection={toggleRuleSelection}
               onToggleRulesSelection={toggleRulesSelection}
               focusedRowId={focusedRowId}
-              pageIndex={clampedPageIndex}
-              totalPages={totalPages}
-              totalGroupCount={filteredGroups.length}
-              onPageChange={(next) => void setPage(next === 0 ? null : next)}
+              totalGroupCount={totalGroupCount}
+              hasMoreGroups={hasMoreGroups}
+              onLoadMore={loadMoreGroups}
+              needsReviewSort={needsReviewSort}
+              onToggleNeedsReviewSort={toggleNeedsReviewSort}
             />
           )}
         </div>
@@ -2182,10 +2278,11 @@ function GroupedRulesTable({
   onToggleRuleSelection,
   onToggleRulesSelection,
   focusedRowId,
-  pageIndex,
-  totalPages,
   totalGroupCount,
-  onPageChange,
+  hasMoreGroups,
+  onLoadMore,
+  needsReviewSort,
+  onToggleNeedsReviewSort,
 }: {
   groups: JurisdictionGroup[]
   expanded: Set<RuleJurisdiction>
@@ -2201,18 +2298,51 @@ function GroupedRulesTable({
   // J/K keyboard nav threads the focused row id down so the
   // matching TableRow can paint a focus ring.
   focusedRowId: string | null
-  // 2026-05-26 (Yuqi cross-table drift #3): pagination props. Parent
-  // owns the page state (nuqs-bound), the table just renders the
-  // prev/next footer + reflects the current slice.
-  pageIndex: number
-  totalPages: number
+  // 2026-05-27 (Yuqi rule library rework — infinite scroll):
+  // total count for the toolbar "Showing N of M" copy, plus the
+  // hasMore flag + onLoadMore handler used by the sentinel +
+  // fallback Load-more button.
   totalGroupCount: number
-  onPageChange: (next: number) => void
+  hasMoreGroups: boolean
+  onLoadMore: () => void
+  // 2026-05-27 (Yuqi rule library rework — needs-review column):
+  // sort state for the new Needs-review header cell.
+  needsReviewSort: 'desc' | 'asc' | null
+  onToggleNeedsReviewSort: () => void
 }) {
   const { t } = useLingui()
   const tierLabels = useRuleTierLabels()
   const statusGroupLabels = useStatusGroupLabels()
   const someExpanded = expanded.size > 0
+  // 2026-05-27 (Yuqi rule library rework — IntersectionObserver
+  // sentinel): a ref-attached empty sentinel renders just below the
+  // last visible group. When it scrolls into the viewport (root =
+  // null, the route's overflow-y-auto wrapper happens to be the
+  // viewport's effective scroll root since it spans the full
+  // remaining height), we call `onLoadMore`. `rootMargin: '256px'`
+  // pre-fetches one viewport-ish ahead of the bottom so the user
+  // never sees the spinner — by the time the sentinel is on-screen
+  // the next batch has already painted.
+  const loadMoreSentinelRef = useRef<HTMLTableRowElement | null>(null)
+  useEffect(() => {
+    if (!hasMoreGroups) return undefined
+    const node = loadMoreSentinelRef.current
+    if (!node) return undefined
+    if (typeof IntersectionObserver === 'undefined') return undefined
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            onLoadMore()
+            break
+          }
+        }
+      },
+      { rootMargin: '256px 0px' },
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [hasMoreGroups, onLoadMore, groups.length])
   return (
     // No outer card frame — the table sits directly on the page so it
     // doesn't compete with `RulesPageShell`'s existing scroll region.
@@ -2271,11 +2401,13 @@ function GroupedRulesTable({
           "Rule". */}
       <div className="flex items-center justify-between gap-3 px-3 text-sm">
         <span className="text-text-secondary">
-          {/* 2026-05-26 (Yuqi cross-table drift #3): when paginated,
-              show "Showing N of M" so the user knows how many they're
-              looking at on the current page vs the full filter set.
-              Single-page mode keeps the simpler "N jurisdictions". */}
-          {totalPages > 1 ? (
+          {/* 2026-05-27 (Yuqi rule library rework — infinite scroll):
+              "Showing N of M jurisdictions" so the user understands
+              the viewport is a window into a larger filtered set; the
+              count grows in place as they scroll instead of changing
+              pages. Single-batch mode collapses to the simpler
+              "# jurisdictions" copy. */}
+          {totalGroupCount > groups.length ? (
             <Trans>
               Showing {groups.length} of {totalGroupCount} jurisdictions
             </Trans>
@@ -2317,7 +2449,7 @@ function GroupedRulesTable({
             same visual gray tone WITHOUT alpha. */}
           <TableHeader className="sticky top-0 z-10">
             <TableRow>
-              <TableHead className="w-[42%]">
+              <TableHead className="w-[38%]">
                 <Trans>Rule</Trans>
               </TableHead>
               <TableHead className="w-[140px]">
@@ -2332,6 +2464,36 @@ function GroupedRulesTable({
                   {ENTITY_COLUMN_LABELS[entity]}
                 </TableHead>
               ))}
+              {/* 2026-05-27 (Yuqi rule library rework — needs-review
+                column): right-aligned numeric header. Click toggles
+                sort; default order is descending so jurisdictions
+                with the most review work surface to the top. */}
+              <TableHead className="w-[120px] text-right">
+                <button
+                  type="button"
+                  onClick={() => onToggleNeedsReviewSort()}
+                  className="inline-flex w-full items-center justify-end gap-1 text-sm font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  aria-label={
+                    needsReviewSort === 'desc'
+                      ? t`Sort by needs review, descending (active)`
+                      : needsReviewSort === 'asc'
+                        ? t`Sort by needs review, ascending (active)`
+                        : t`Sort by needs review`
+                  }
+                  aria-pressed={needsReviewSort !== null}
+                >
+                  <Trans>Needs review</Trans>
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'text-caption-xs leading-none',
+                      needsReviewSort !== null ? 'text-text-accent' : 'text-text-tertiary',
+                    )}
+                  >
+                    {needsReviewSort === 'asc' ? '↑' : needsReviewSort === 'desc' ? '↓' : '↕'}
+                  </span>
+                </button>
+              </TableHead>
               {/* 2026-05-26 (Yuqi follow-up — "the header of Tier
                 should be left aligned"): dropped `text-right` so
                 the column header sits at the column's natural
@@ -2450,46 +2612,43 @@ function GroupedRulesTable({
               the bare "No rules and no coverage data yet." row has
               been retired — `RulesLibraryEmptyState` now renders
               ABOVE this table when `groups.length === 0` (see the
-              parent route). Step 7's F9-06 copy improvement is no
-              longer applicable to this hunk; the table itself is
-              never rendered with zero groups. Step 7's gap-section
-              `StatusSectionHeaderRow` (F9-?) was independently
-              shipped here (see L2379). */}
+              parent route). */}
+            {/* 2026-05-27 (Yuqi rule library rework — infinite scroll
+                sentinel): an invisible TR holds the IntersectionObserver
+                target so the observer fires inside the same scroll
+                container the user is reading. Rendered ABOVE the
+                fallback "Load more" row so observer-driven prefetch
+                runs without ever showing the button on a healthy
+                connection. */}
+            {hasMoreGroups ? (
+              <TableRow
+                ref={loadMoreSentinelRef}
+                aria-hidden
+                className="h-1 border-0 hover:bg-transparent"
+              >
+                <TableCell colSpan={RULES_TABLE_COLUMN_COUNT} className="!p-0" />
+              </TableRow>
+            ) : null}
           </TableBody>
         </Table>
-        {/* Pagination footer (HEAD): matches /clients shape — prev/next
-            chevrons + "Page X of N" between. Renders only when there's
-            more than one page. */}
-        {totalPages > 1 ? (
-          <div className="flex shrink-0 items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-6 text-xs text-text-tertiary">
-            <span className="px-2">
-              <Plural value={totalGroupCount} one="# jurisdiction" other="# jurisdictions" />
+        {/* 2026-05-27 (Yuqi rule library rework — Load more fallback):
+            replaces the prev/next page footer. The IntersectionObserver
+            above carries the common path; this button is the explicit
+            keyboard/touch-accessible fallback for users who don't auto-
+            scroll (e.g. keyboard-only navigation with focus pinned in
+            the toolbar). When `hasMoreGroups` is false, the entire
+            footer disappears so the catalog's "last row" reads as a
+            clean stop instead of a disabled chrome strip. */}
+        {hasMoreGroups ? (
+          <div className="flex shrink-0 flex-col items-center gap-1 border-t border-divider-subtle bg-background-default px-2 py-4">
+            <Button variant="outline" size="sm" onClick={onLoadMore}>
+              <Trans>Load more</Trans>
+            </Button>
+            <span className="text-caption tabular-nums text-text-tertiary">
+              <Trans>
+                {groups.length} of {totalGroupCount} loaded
+              </Trans>
             </span>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t`Previous page`}
-                disabled={pageIndex === 0}
-                onClick={() => onPageChange(Math.max(0, pageIndex - 1))}
-              >
-                <ChevronLeftIcon className="size-4" aria-hidden />
-              </Button>
-              <span className="px-2 tabular-nums">
-                <Trans>
-                  Page {pageIndex + 1} of {totalPages}
-                </Trans>
-              </span>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t`Next page`}
-                disabled={pageIndex >= totalPages - 1}
-                onClick={() => onPageChange(Math.min(totalPages - 1, pageIndex + 1))}
-              >
-                <ChevronRightIcon className="size-4" aria-hidden />
-              </Button>
-            </div>
           </div>
         ) : null}
       </div>
@@ -2602,27 +2761,40 @@ function GroupHeaderRow({
           </TableCell>
         )
       })}
+      {/* 2026-05-27 (Yuqi rule library rework — needs-review column):
+          pendingReviewCount used to sit cramped inside the Tier cell
+          next to the gap chip + progress bar. Lifting it into its own
+          right-aligned column gives "where is the work" its own
+          column-true position and lets the user sort by it. The chip
+          stays canonical (`CountDotChip` w/ accent tone) so the
+          visual cue carries across without re-learning. */}
+      <TableCell className="py-2 text-right">
+        <CountDotChip
+          count={group.pendingReviewCount}
+          tone="accent"
+          label={
+            <Plural value={group.pendingReviewCount} one="# needs review" other="# need review" />
+          }
+        />
+      </TableCell>
       <TableCell className="py-2">
         {/* 2026-05-26 (Yuqi follow-up — "NOT ALIGNED"): badges sit
-            inside a fixed-width slot (120px) so the left edge of the
+            inside a fixed-width slot so the left edge of the
             dot+text is at the same x across every state row regardless
-            of singular/plural copy length ("1 needs review" vs
-            "10 need review"). The status bar still right-aligns;
-            gap-3 separates the two.
+            of singular/plural copy length. The status bar still
+            right-aligns; gap-3 separates the two.
             2026-05-26 (Yuqi cross-table drift #9 — "Count chip
             primitive: one pill for review counts everywhere"): the
-            two badges below moved from hand-rolled spans to the
+            badges below moved from hand-rolled spans to the
             canonical `<CountDotChip>` primitive. Same visual; new
-            surfaces can adopt the same chip with one import. */}
+            surfaces can adopt the same chip with one import.
+            2026-05-27 (Yuqi rule library rework): pending-review
+            chip lifted out of this cluster into its own column
+            (see the cell above). What stays here is the gap chip
+            and the progress bar — both are jurisdiction-level
+            *meta* signals about catalog shape, distinct from the
+            actionable review queue. */}
         <div className="flex items-center justify-end gap-3">
-          <CountDotChip
-            count={group.pendingReviewCount}
-            tone="accent"
-            minWidth="120px"
-            label={
-              <Plural value={group.pendingReviewCount} one="# needs review" other="# need review" />
-            }
-          />
           <CountDotChip
             count={group.gapEntities.length}
             tone="destructive"
@@ -2776,6 +2948,17 @@ function RuleTableRow({
           <EntityApplicabilityCell applies={applicabilitySet.has(entity)} status={rule.status} />
         </TableCell>
       ))}
+      {/* 2026-05-27 (Yuqi rule library rework — needs-review column):
+          per-rule cell is a quiet em-dash. The rule's status section
+          header above ("Needs review" vs "Active") already encodes
+          whether THIS rule needs review; painting a 1 here would be
+          column-true repetition. The column's signal lives on the
+          GroupHeaderRow (the jurisdiction-level count). Empty em-dash
+          keeps the rule rows scanning cleanly past the column without
+          generating visual noise. */}
+      <TableCell className="py-2 text-right">
+        <EmptyCellMark label="" />
+      </TableCell>
       {/* Tier label + trailing chevron + canonical row-action menu.
           The chevron stays as the "this row opens detail" affordance
           cue (fades in on row hover). The ⋯ menu lives next to it as
@@ -3073,6 +3256,14 @@ function SearchResultsTable({
                 {ENTITY_COLUMN_LABELS[entity]}
               </TableHead>
             ))}
+            {/* 2026-05-27 (Yuqi rule library rework — needs-review
+                column): mirrors the grouped table so column geometry
+                stays identical across the two surfaces (the user can
+                type to search and back to browse without the table
+                shape changing). */}
+            <TableHead className="w-[120px] text-right">
+              <Trans>Needs review</Trans>
+            </TableHead>
             {/* 2026-05-26 (Yuqi follow-up — "the header of Tier
                 should be left aligned"): dropped `text-right` so
                 the column header sits at the column's natural
@@ -3134,6 +3325,23 @@ function SearchResultsTable({
                       />
                     </TableCell>
                   ))}
+                  {/* 2026-05-27 (Yuqi rule library rework — needs-review
+                      column): per-rule search result lights up the cell
+                      when THIS rule needs review. Surfaces the catalog
+                      lookup signal at a glance ("which of these matches
+                      need my attention right now") without making the
+                      user click into each rule's detail. */}
+                  <TableCell className="py-2 text-right">
+                    {statusGroupOf(rule.status) === 'needs_review' ? (
+                      <CountDotChip
+                        count={1}
+                        tone="accent"
+                        label={<Trans>review</Trans>}
+                      />
+                    ) : (
+                      <EmptyCellMark label="" />
+                    )}
+                  </TableCell>
                   {/* Trailing affordance chevron + canonical row-action
                       menu — same shape as the grouped table above so
                       search results carry the identical per-row
