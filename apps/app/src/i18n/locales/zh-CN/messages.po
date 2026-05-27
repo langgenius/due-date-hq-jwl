@@ -825,7 +825,7 @@ msgstr "{ruleReviewCount} 条规则待复核"
 
 #: src/routes/obligations.tsx
 msgid "{scopeTotal, plural, one {# deadline} other {# deadlines}}"
-msgstr ""
+msgstr "{scopeTotal, plural, other {# 个截止日}}"
 
 #: src/routes/obligations.tsx
 msgid "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
@@ -11468,7 +11468,7 @@ msgstr "支撑规则、截止日、AI 解释或 Pulse 变更的官方来源、�
 
 #: src/routes/obligations.tsx
 msgid "The operating surface for deadline work — filter, sort, assign owners, update status, and open evidence for each row."
-msgstr ""
+msgstr "截止日工作的操作面板——筛选、排序、分配负责人、更新状态，并查看每行的依据。"
 
 #: src/features/concepts/concept-help.tsx
 msgid "The operating surface for deadline work: filter, sort, assign owners, update status, and open evidence for each deadline."
