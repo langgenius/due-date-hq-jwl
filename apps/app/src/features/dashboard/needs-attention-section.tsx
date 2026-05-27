@@ -90,9 +90,21 @@ function NeedsAttentionSection() {
       // (when alerts are live) and the section bg (when empty)
       // already give the panel its shape against the page wash;
       // the explicit border was just doubling the boundary.
+      // 2026-05-27 (audit-drain X1 D18): empty-state path
+      // compressed. When there are no live alerts the section is
+      // purely informational ("watching N sources, nothing
+      // matched") — there's no destructive content to anchor and
+      // the previous p-3 + gap-2.5 reserved the same vertical as
+      // the alerts-loaded path. Drop to py-2 + gap-2 in the calm
+      // case to give the urgent rows below ~8px of fold real
+      // estate back. Alerts-loaded path stays at the heavier
+      // padding (p-3 + gap-2.5) because the destructive surface
+      // earns its weight when content is present.
       className={cn(
-        'flex flex-col gap-2.5 rounded-xl p-3',
-        totalAlertCount > 0 ? 'bg-state-destructive-hover' : 'bg-background-section',
+        'flex flex-col rounded-xl',
+        totalAlertCount > 0
+          ? 'gap-2.5 bg-state-destructive-hover p-3'
+          : 'gap-2 bg-background-section px-3 py-2',
       )}
     >
       {/* 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
@@ -201,7 +213,13 @@ function AlertsEmptyState({
   ).length
 
   return (
-    <div className="flex flex-col gap-1.5">
+    // 2026-05-27 (audit-drain X1 D18): empty-state inner stack
+    // tightened gap-1.5 → gap-1 to match the outer-section
+    // compression. The two lines (no-alerts + monitoring summary)
+    // are tightly related — "nothing to do, here's what we're
+    // watching" — so a smaller stacking gap reads as one paragraph
+    // rather than two.
+    <div className="flex flex-col gap-1">
       <p className="flex items-center gap-2 text-sm text-text-secondary">
         <CircleCheckIcon className="size-4 text-text-success" aria-hidden />
         <Trans>No active alerts — nothing needs your review right now.</Trans>

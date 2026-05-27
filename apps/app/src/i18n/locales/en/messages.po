@@ -176,6 +176,11 @@ msgstr "{0, plural, one {# match for \"{query}\"} other {# matches for \"{query}
 msgid "{0, plural, one {# missing} other {# missing}}"
 msgstr "{0, plural, one {# missing} other {# missing}}"
 
+#. placeholder {0}: (auditQuery.data.events.length ?? 0) - MAX_VISIBLE_EVENTS
+#: src/features/dashboard/changes-since-last-section.tsx
+msgid "{0, plural, one {# more in the audit log} other {# more in the audit log}}"
+msgstr "{0, plural, one {# more in the audit log} other {# more in the audit log}}"
+
 #. placeholder {0}: group.pendingReviewCount
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# needs review} other {# need review}}"
@@ -719,6 +724,10 @@ msgstr "{outstandingDocsCount, plural, one {# item still needs to be received be
 msgid "{outstandingMaterials} outstanding"
 msgstr "{outstandingMaterials} outstanding"
 
+#: src/components/patterns/app-shell-nav.tsx
+msgid "{ownedFirmCount} of 1 included"
+msgstr "{ownedFirmCount} of 1 included"
+
 #: src/features/members/members-page.tsx
 msgid "{ownerCount} owner · {managedCount} managed"
 msgstr "{ownerCount} owner · {managedCount} managed"
@@ -766,6 +775,16 @@ msgstr "{receivedCount} of {checklistCount} received"
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{reservedCount} reserved"
 msgstr "{reservedCount} reserved"
+
+#. placeholder {0}: firm.seatLimit
+#: src/components/patterns/app-shell-nav.tsx
+msgid "{role} · {plan} · {0} seat"
+msgstr "{role} · {plan} · {0} seat"
+
+#. placeholder {0}: firm.seatLimit
+#: src/components/patterns/app-shell-nav.tsx
+msgid "{role} · {plan} · {0} seats"
+msgstr "{role} · {plan} · {0} seats"
 
 #. placeholder {0}: firm.name
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -1255,6 +1274,10 @@ msgstr "Add item"
 #: src/routes/obligations.tsx
 msgid "Add item manually"
 msgstr "Add item manually"
+
+#: src/components/patterns/app-shell-nav.tsx
+msgid "Add practice"
+msgstr "Add practice"
 
 #: src/routes/rules.library.tsx
 msgid "Add rule"
@@ -2148,17 +2171,15 @@ msgstr "Blocked by upstream return — {checklistCount} items in hand."
 
 #: src/routes/obligations.tsx
 msgid "Blocked by upstream return AND awaiting client materials."
-msgstr "Blocked by upstream return AND awaiting client materials."
+msgstr "Blocked by upstream return AND awaiting client materials.<<<<<<< HEAD"
 
-<<<<<<< HEAD
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "blocked or overdue"
-msgstr "blocked or overdue"
-=======
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Blocked by: {label}"
-msgstr "Blocked by: {label}"
->>>>>>> design/audit-drain-psi-permission-copy
+msgstr "Blocked by: {label}>>>>>>> design/audit-drain-psi-permission-copy"
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "blocked or overdue"
+msgstr "blocked or overdue======="
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
@@ -2273,6 +2294,7 @@ msgstr "Calendar URL regenerated"
 msgid "Calendar year"
 msgstr "Calendar year"
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/features/calendar/calendar-page.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
@@ -2358,6 +2380,14 @@ msgstr "Changed from {0} to {1}"
 msgid "Changed from {before} to {after}"
 msgstr "Changed from {before} to {after}"
 
+#: src/features/dashboard/changes-since-last-section.tsx
+msgid "Changes since last visit"
+msgstr "Changes since last visit"
+
+#: src/features/dashboard/changes-since-last-section.tsx
+msgid "Changes since your last visit"
+msgstr "Changes since your last visit"
+
 #: src/routes/obligations.tsx
 msgid "Check materials"
 msgstr "Check materials"
@@ -2382,6 +2412,7 @@ msgstr "Check the selected rows and try again."
 msgid "Check your network and try again."
 msgstr "Check your network and try again."
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/calendar/calendar-page.tsx
@@ -3133,6 +3164,10 @@ msgstr "Couldn't copy to clipboard"
 msgid "Couldn't create client"
 msgstr "Couldn't create client"
 
+#: src/components/patterns/app-shell-nav.tsx
+msgid "Couldn't create practice"
+msgstr "Couldn't create practice"
+
 #: src/routes/rules.library.tsx
 msgid "Couldn't create rule"
 msgstr "Couldn't create rule"
@@ -3442,6 +3477,10 @@ msgstr "Couldn't start the import"
 msgid "Couldn't submit readiness response"
 msgstr "Couldn't submit readiness response"
 
+#: src/components/patterns/app-shell-nav.tsx
+msgid "Couldn't switch practice"
+msgstr "Couldn't switch practice"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Couldn't undo client"
 msgstr "Couldn't undo client"
@@ -3537,6 +3576,10 @@ msgstr "Covers"
 msgid "Create a client before running deadline preview."
 msgstr "Create a client before running deadline preview."
 
+#: src/components/patterns/app-shell-nav.tsx
+msgid "Create a separate practice with its own clients, deadlines, audit trail, and settings."
+msgstr "Create a separate practice with its own clients, deadlines, audit trail, and settings."
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Create a ZIP with a PDF report, audit events, evidence links, and manifest."
 msgstr "Create a ZIP with a PDF report, audit events, evidence links, and manifest."
@@ -3561,6 +3604,7 @@ msgstr "Create materials link"
 msgid "Create or select a practice before starting checkout."
 msgstr "Create or select a practice before starting checkout."
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
 msgid "Create practice"
 msgstr "Create practice"
@@ -3596,6 +3640,7 @@ msgstr "Creating clients requires owner, partner, manager, or preparer access."
 msgid "Creating clients, deadlines, evidence links, and audit records."
 msgstr "Creating clients, deadlines, evidence links, and audit records."
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/routes/rules.library.tsx
 msgid "Creating…"
@@ -4188,6 +4233,7 @@ msgstr "e.g. 1,234.56"
 msgid "e.g. 2"
 msgstr "e.g. 2"
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 msgid "e.g. Bright CPA Practice"
 msgstr "e.g. Bright CPA Practice"
@@ -4336,6 +4382,7 @@ msgstr "Enter the code from your authenticator app."
 msgid "Entered {0}"
 msgstr "Entered {0}"
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
@@ -5230,6 +5277,7 @@ msgid "Guard status"
 msgstr "Guard status"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/dashboard/changes-since-last-section.tsx
 msgid "Hide"
 msgstr "Hide"
 
@@ -5520,6 +5568,7 @@ msgstr "Intake"
 msgid "Internal <0>{0}</0>"
 msgstr "Internal <0>{0}</0>"
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -5539,6 +5588,7 @@ msgstr "Internal deadline changed from {previous} to {next}"
 msgid "Internal deadline lead time"
 msgstr "Internal deadline lead time"
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
 msgid "Internal deadline offset must be between 0 and 365 days."
@@ -7243,6 +7293,11 @@ msgstr "Nothing open right now"
 msgid "Nothing to fix"
 msgstr "Nothing to fix"
 
+#. placeholder {0}: formatRelativeTime(lastSeenAt)
+#: src/features/dashboard/changes-since-last-section.tsx
+msgid "Nothing's changed since {0}."
+msgstr "Nothing's changed since {0}."
+
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
@@ -7354,30 +7409,13 @@ msgstr "One unfinished draft import"
 
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/pulse/lib/error-mapping.ts
-<<<<<<< HEAD
-msgid "Only owners and managers can apply Pulse changes."
-msgstr "Only owners and managers can apply Pulse changes."
-
-=======
-#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Only {0} can apply Pulse changes."
 msgstr "Only {0} can apply Pulse changes."
 
-#. placeholder {0}: requiredRolesLabel('firm.calendar.manage')
-#: src/features/calendar/calendar-page.tsx
-msgid "Only {0} can enable the practice-wide calendar feed."
-msgstr "Only {0} can enable the practice-wide calendar feed."
-
 #. placeholder {0}: requiredRolesLabel('billing.update')
->>>>>>> design/audit-drain-psi-permission-copy
 #: src/routes/billing.tsx
 msgid "Only {0} can manage billing."
 msgstr "Only {0} can manage billing."
-
-#. placeholder {0}: requiredRolesLabel('migration.revert')
-#: src/features/migration/ImportHistoryDrawer.tsx
-msgid "Only {0} can undo migration imports."
-msgstr "Only {0} can undo migration imports."
 
 #: src/routes/billing.tsx
 msgid "Only practice owners can change plans or open the portal."
@@ -7575,9 +7613,12 @@ msgstr "Open Pulse alert details: {0}"
 
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Open Pulse detail"
-msgstr "Open Pulse detail"
+msgstr "Open Pulse detail<<<<<<< HEAD"
 
-<<<<<<< HEAD
+#: src/routes/obligations.tsx
+msgid "Open Readiness after the rejection is recorded."
+msgstr "Open Readiness after the rejection is recorded.>>>>>>> design/audit-drain-psi-permission-copy"
+
 #. placeholder {0}: rule.title
 #: src/routes/rules.library.tsx
 msgid "Open rule details for {0}"
@@ -7585,12 +7626,7 @@ msgstr "Open rule details for {0}"
 
 #: src/routes/rules.library.tsx
 msgid "Open rule details for {displayTitle}"
-msgstr "Open rule details for {displayTitle}"
-=======
-#: src/routes/obligations.tsx
-msgid "Open Readiness after the rejection is recorded."
-msgstr "Open Readiness after the rejection is recorded."
->>>>>>> design/audit-drain-psi-permission-copy
+msgstr "Open rule details for {displayTitle}======="
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/routes/obligations.tsx
@@ -7836,17 +7872,7 @@ msgstr "Owner cleared"
 #: src/features/migration/mapping-target-labels.ts
 #: src/routes/obligations.tsx
 msgid "Owner count"
-msgstr "Owner count"
-
-<<<<<<< HEAD
-#: src/routes/dashboard.tsx
-msgid "Owner or manager access required."
-msgstr "Owner or manager access required."
-=======
-#: src/routes/migration.new.tsx
-msgid "Owner or manager access required"
-msgstr "Owner or manager access required"
->>>>>>> design/audit-drain-psi-permission-copy
+msgstr "Owner count<<<<<<< HEAD"
 
 #: src/routes/obligations.tsx
 msgid "owner or partner"
@@ -8250,6 +8276,7 @@ msgstr "Plan summary"
 msgid "Plan, seats, and invoices."
 msgstr "Plan, seats, and invoices."
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 msgid "Please enter at least 2 characters."
 msgstr "Please enter at least 2 characters."
@@ -8321,6 +8348,7 @@ msgstr "Practice invitation"
 msgid "Practice limit"
 msgstr "Practice limit"
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
 msgid "Practice name"
@@ -8389,6 +8417,7 @@ msgstr "Practice time"
 msgid "Practice updated"
 msgstr "Practice updated"
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/billing.tsx
 msgid "Practice workspaces"
 msgstr "Practice workspaces"
@@ -8403,17 +8432,16 @@ msgstr "Practice-managed reminder template."
 
 #. placeholder {0}: requiredRolesLabel('audit.read')
 #: src/features/audit/audit-log-page.tsx
-<<<<<<< HEAD
-msgid "Practice-wide audit events are available to owners, partners, managers, and preparers. Contact the practice owner if you need audit access."
-msgstr "Practice-wide audit events are available to owners, partners, managers, and preparers. Contact the practice owner if you need audit access."
-=======
 msgid "Practice-wide audit events are available to {0}. Contact the practice owner if you need audit access."
-msgstr "Practice-wide audit events are available to {0}. Contact the practice owner if you need audit access."
->>>>>>> design/audit-drain-psi-permission-copy
+msgstr "Practice-wide audit events are available to {0}. Contact the practice owner if you need audit access.>>>>>>> design/audit-drain-psi-permission-copy"
 
 #: src/routes/practice.tsx
 msgid "Practice-wide weights for deterministic deadline ranking."
 msgstr "Practice-wide weights for deterministic deadline ranking."
+
+#: src/components/patterns/app-shell-nav.tsx
+msgid "Practices"
+msgstr "Practices"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Preferences"
@@ -8600,6 +8628,7 @@ msgstr "Privacy"
 msgid "Privacy mode"
 msgstr "Privacy mode"
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
@@ -9036,17 +9065,15 @@ msgstr "Regenerating…"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
-msgstr "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
+msgstr "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes.<<<<<<< HEAD"
 
-<<<<<<< HEAD
-#: src/routes/rules.library.tsx
-msgid "rejected"
-msgstr "rejected"
-=======
 #: src/routes/obligations.tsx
 msgid "Reject code / notice reference"
-msgstr "Reject code / notice reference"
->>>>>>> design/audit-drain-psi-permission-copy
+msgstr "Reject code / notice reference>>>>>>> design/audit-drain-psi-permission-copy"
+
+#: src/routes/rules.library.tsx
+msgid "rejected"
+msgstr "rejected======="
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/extension-decision-evidence.tsx
@@ -9374,6 +9401,10 @@ msgstr "Review only"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review per-jurisdiction rule coverage by entity."
 msgstr "Review per-jurisdiction rule coverage by entity."
+
+#: src/components/patterns/app-shell-nav.tsx
+msgid "Review plans"
+msgstr "Review plans"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review practice-wide audit events."
@@ -10330,6 +10361,7 @@ msgid "Shareholder count"
 msgstr "Shareholder count"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/dashboard/changes-since-last-section.tsx
 msgid "Show"
 msgstr "Show"
 
@@ -10340,6 +10372,10 @@ msgstr "Show all"
 #: src/features/migration/Step3Normalize.tsx
 msgid "Show fewer groups"
 msgstr "Show fewer groups"
+
+#: src/components/patterns/app-shell-nav.tsx
+msgid "Show work as due this many days before the statutory deadline."
+msgstr "Show work as due this many days before the statutory deadline."
 
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
@@ -10545,6 +10581,7 @@ msgstr "Sole prop"
 msgid "Sole proprietorship"
 msgstr "Sole proprietorship"
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
@@ -10560,6 +10597,10 @@ msgstr "Solo is the personal deadline workbench. Pro, Team, and Enterprise add s
 #: src/routes/billing.checkout.tsx
 msgid "Solo, Pro, and Team each apply to one active practice. Enterprise covers multiple practices by contract."
 msgstr "Solo, Pro, and Team each apply to one active practice. Enterprise covers multiple practices by contract."
+
+#: src/components/patterns/app-shell-nav.tsx
+msgid "Solo, Pro, and Team include one active practice workspace. Contact sales for multiple practices, offices, or demo/production separation."
+msgstr "Solo, Pro, and Team include one active practice workspace. Contact sales for multiple practices, offices, or demo/production separation."
 
 #: src/features/pulse/lib/error-mapping.ts
 msgid "Some deadlines have changed since you opened this alert. Refresh to load the latest list."
@@ -10924,6 +10965,11 @@ msgstr "Suspending…"
 msgid "Switch demo account to {0}"
 msgstr "Switch demo account to {0}"
 
+#. placeholder {0}: firm.name
+#: src/components/patterns/app-shell-nav.tsx
+msgid "Switch practice, current {0}"
+msgstr "Switch practice, current {0}"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Switch preset"
 msgstr "Switch preset"
@@ -11055,6 +11101,7 @@ msgstr "Tax year settings updated"
 msgid "Tax year type"
 msgstr "Tax year type"
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -11573,6 +11620,7 @@ msgstr "Time range"
 msgid "Timestamped event log across the workspace."
 msgstr "Timestamped event log across the workspace."
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/routes/practice.tsx
 msgid "Timezone"
@@ -12392,19 +12440,16 @@ msgstr "Your account isn't linked to a practice yet."
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Your column"
-msgstr "Your column"
+msgstr "Your column<<<<<<< HEAD"
 
-<<<<<<< HEAD
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Your current plan includes one active practice. Additional practices are available on the Enterprise plan."
 msgstr "Your current plan includes one active practice. Additional practices are available on the Enterprise plan."
 
 #: src/routes/billing.checkout.tsx
 msgid "Your current practice"
-msgstr "Your current practice"
+msgstr "Your current practice=======>>>>>>> design/audit-drain-psi-permission-copy"
 
-=======
->>>>>>> design/audit-drain-psi-permission-copy
 #: src/features/permissions/permission-gate.tsx
 msgid "Your current role cannot use this surface. Contact the practice owner if you need access."
 msgstr "Your current role cannot use this surface. Contact the practice owner if you need access."
