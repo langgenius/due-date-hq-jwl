@@ -144,9 +144,16 @@ export function RulesPulseRoute() {
       //     difference.
       //   • `!important` retained on pb-0 since the underlying
       //     shell pads pb-4 md:pb-6 by default.
+      // 2026-05-27 (Yuqi feedback "这个不能一整个horizontal scroll"):
+      // dropped `min-w-[1440px]` when panel is open. That forced the
+      // whole page wider than the viewport on anything under 1440px
+      // (Yuqi's review viewport was 1469×992 — only 29px above the
+      // floor, and any sidebar collapse / dpr quirk pushed it over).
+      // The two columns (list + drawer) now share whatever width the
+      // viewport offers; each column scrolls vertically on its own.
       contentClassName={cn(
-        'transition-[max-width,min-width,padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
-        panelOpen ? 'max-w-page-expanded min-w-[1440px] !pb-0 md:!pb-0' : 'max-w-page-wide min-w-0',
+        'transition-[max-width,padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
+        panelOpen ? 'max-w-page-expanded !pb-0 md:!pb-0' : 'max-w-page-wide',
       )}
       actions={
         // 2026-05-27 (Yuqi header unification pass): reverted from
