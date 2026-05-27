@@ -357,11 +357,12 @@ export function ClientFilingStateChips({ client }: { client: ClientPublic }) {
   const [primary, ...others] = states
   const visibleOthers = others.slice(0, 2)
   const overflow = others.length - visibleOthers.length
-  // Primary state renders as `<StateBadge> CODE` (flag-style SVG + code
-  // text) to match the /clients table cell motif — Yuqi flagged that
-  // the previous bare JurisdictionCode chip didn't read as "this is a
-  // state." The flag glyph anchors the eye; additional states append
-  // as compact StateBadge-only glyphs to keep the meta-row tight.
+  // Primary state wraps `<StateBadge> CODE` in the h-7 rounded-full
+  // pill frame that the entity badge + owner pill next to it use —
+  // Yuqi flagged that the unframed flag+text floated awkwardly
+  // beside the other framed identity chips. Same chrome unifies the
+  // meta-row visually. Additional states stay as compact unframed
+  // StateBadge glyphs (they're a tail enumeration, not a primary fact).
   return (
     <div
       className="flex flex-wrap items-center gap-1.5"
@@ -369,7 +370,7 @@ export function ClientFilingStateChips({ client }: { client: ClientPublic }) {
         states.length === 1 ? `Filing state: ${states[0]}` : `Filing states: ${states.join(', ')}`
       }
     >
-      <span className="inline-flex items-center gap-1.5 text-xs tabular-nums text-text-secondary">
+      <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3 text-xs tabular-nums text-text-secondary">
         <StateBadge code={primary!} size="xs" aria-hidden />
         <span>{primary}</span>
       </span>
