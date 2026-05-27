@@ -134,8 +134,13 @@ test.describe('seeded Pulse alerts', () => {
       const drawer = pulseDetailDrawer(authenticatedPage)
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
+      // 2026-05-27 (ψ ROH-D11 + ρ ROH-D6): copy now driven by
+      // requiredRolesLabel('pulse.apply'), which renders the live role
+      // list — currently "owners, partners, and managers". Regex covers
+      // either the legacy "owners and managers" or the new "partners"
+      // form.
       await expect(
-        drawer.getByText('Only owners and managers can apply Pulse changes.'),
+        drawer.getByText(/Only (?:owners and managers|owners, partners,? and managers) can/),
       ).toBeVisible()
       await expect(drawer.getByRole('button', { name: 'Apply Deadline Exception' })).toBeDisabled()
       await expect(drawer.getByRole('button', { name: 'Dismiss' })).toBeDisabled()

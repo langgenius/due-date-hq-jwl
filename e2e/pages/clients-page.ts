@@ -61,8 +61,28 @@ export class ClientsPage {
   }
 
   async selectStateFilter(state: string) {
+    // 2026-05-27: the state-filter dropdown labels use the canonical
+    // `RULE_JURISDICTION_LABELS` map (e.g., 'NY' → 'New York'), not the
+    // 2-letter codes. Translate the test's state code so the locator
+    // still resolves. Keep the regex anchor so partial matches like 'CA'
+    // → 'California' still fire on the right item.
+    const stateLabels: Record<string, string> = {
+      AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+      CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia',
+      HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa',
+      KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland',
+      MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi',
+      MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire',
+      NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina',
+      ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania',
+      RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee',
+      TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington',
+      WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming', DC: 'District of Columbia',
+      FED: 'Federal',
+    }
+    const label = stateLabels[state] ?? state
     await this.stateFilter.click()
-    await this.page.getByRole('menuitemcheckbox', { name: new RegExp(`^${state}`) }).click()
+    await this.page.getByRole('menuitemcheckbox', { name: new RegExp(`^${label}`) }).click()
     await this.page.keyboard.press('Escape')
   }
 
