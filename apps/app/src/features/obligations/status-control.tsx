@@ -164,8 +164,32 @@ const STATUS_ICON_COLOR: Record<ObligationStatus, string> = {
 // green tint, so the icon stays on `text-text-success` (the dark
 // green from STATUS_ICON_COLOR) and reads against the soft pill.
 // Map is preserved as an alias so existing consumers don't break.
+//
+// 2026-05-27 (Yuqi quick-fix batch — "icon color matches text color
+// on the status pill"): icon-on-pill tones now mirror the Badge
+// variant's text tone, so the chip reads as one coherent color
+// rather than gray-text-plus-tinted-icon. The non-pill rendering
+// (`STATUS_ICON_COLOR`, used in the dropdown menu against white)
+// keeps the canonical hue swatch so the menu still reads as a
+// color-coded picker.
+//
+//   pending          → secondary pill (gray text)   → gray icon
+//   waiting_on_client→ outline pill   (gray text)   → gray icon
+//   extended         → secondary pill (gray text)   → gray icon
+//   not_applicable   → outline pill   (gray text)   → gray icon
+//
+// Tinted statuses (info / success / destructive / warning) keep
+// their colored icons because the pill's text tone already matches.
+// "In review" → variant `info` (blue text + blue icon) — that case
+// was already correct; the brief named it as the symptom, the
+// underlying mismatch was on the v2-collapsed `extended` status
+// (which also displays as "In review" but used `secondary` chrome).
 const STATUS_ICON_COLOR_ON_PILL: Record<ObligationStatus, string> = {
   ...STATUS_ICON_COLOR,
+  pending: 'text-text-secondary',
+  not_applicable: 'text-text-secondary',
+  waiting_on_client: 'text-text-secondary',
+  extended: 'text-text-secondary',
 }
 
 function isObligationStatus(value: string): value is ObligationStatus {

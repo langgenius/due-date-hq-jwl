@@ -1837,12 +1837,12 @@ function ClientsFilterToolbar({
       />
       <TableHeaderMultiFilter
         trigger="toolbar"
-        label={t`Owner`}
+        label={t`Assignee`}
         options={ownerOptions}
         selected={ownerFilter}
-        emptyLabel={t`No owners`}
+        emptyLabel={t`No assignees`}
         searchable
-        searchPlaceholder={t`Search owners`}
+        searchPlaceholder={t`Search assignees`}
         onSelectedChange={onOwnerFilterChange}
       />
       <Button
@@ -4744,7 +4744,7 @@ function ClientFactChecklist({
       />
       <FactCheckRow
         isComplete={Boolean(client.assigneeName)}
-        label={<Trans>Owner</Trans>}
+        label={<Trans>Assignee</Trans>}
         detail={<Trans>Keeps deadline follow-up accountable.</Trans>}
       />
     </div>
