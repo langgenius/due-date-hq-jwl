@@ -1865,6 +1865,7 @@ msgid "Assigned to you ({name})"
 msgstr "已指派给您 ({name})"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/mapping-target-labels.ts
 #: src/routes/obligations.tsx
 msgid "Assignee"
@@ -6940,10 +6941,6 @@ msgstr "暂无导出包。"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No filing state"
 msgstr "无申报州信息"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "No filing state on file"
-msgstr "未记录申报州"
 
 #: src/routes/obligations.tsx
 msgid "No forms"

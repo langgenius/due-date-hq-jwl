@@ -971,37 +971,29 @@ export function ClientFactsWorkspace({
         // duplicated header space + forced the user's eye to track both.
         // See `docs/Design/clients-list-and-detail-critique-2026-05-22.md`
         // L-7 for the rationale.
-        // 2026-05-25 (Yuqi /clients fifth pass #5): state cell now
-        // matches the Pulse drawer's jurisdiction pill exactly —
-        // a single rounded-full pill containing the StateBadge SVG
-        // + 2-letter code + full state name ("CA · California").
-        // Primary state gets the full pill; additional states stay
-        // as bare StateBadge motifs so the row width stays bounded
-        // even with multi-state filings. The +N overflow chip on
-        // the tail mirrors the previous behaviour.
+        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
+        // state cell adopts the /deadlines canonical motif (route
+        // obligations.tsx column `clientState`, ~line 2100): leading
+        // `<StateBadge>` SVG + bare 2-letter code in
+        // `text-text-secondary`. Drops the rounded-full pill +
+        // full-state-name redundancy — same fact rendered the same
+        // way across the two workbench tables. Other-state badges
+        // stay as bare StateBadge motifs (compact) with a tail "+N"
+        // overflow chip for clients filing in many jurisdictions.
+        // Empty cell follows /deadlines: bare "—" in tertiary text.
         cell: ({ row }) => {
           const primary = getPrimaryFilingState(row.original)
           if (!primary) {
-            return <EmptyCellMark label={t`No filing state on file`} />
+            return <span className="text-text-tertiary">—</span>
           }
-          const primaryFull = RULE_JURISDICTION_LABELS[primary] ?? null
           const others = getOtherFilingStates(row.original)
           const visibleOthers = others.slice(0, 2)
           const overflow = others.length - visibleOthers.length
-          // 2026-05-26 (Yuqi /clients feedback #5 — "is this the right
-          // badge? MAMassachusetts"): the previous treatment glued
-          // the 2-letter code + full state name with NO separator
-          // — rendered as "MAMassachusetts". The redundancy was also
-          // unnecessary because the leading SVG StateBadge icon
-          // already encodes the state visually. Simplified to just
-          // `[icon] [Full state name]` — readable, no glue, no
-          // redundancy. The 2-letter code only appears on the
-          // overflow / other-states chips that need a compact form.
           return (
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-divider-regular bg-background-default pl-0.5 pr-2 text-xs">
+              <span className="inline-flex items-center gap-1.5 tabular-nums text-text-secondary">
                 <StateBadge code={primary} size="xs" aria-hidden />
-                <span className="font-medium text-text-primary">{primaryFull ?? primary}</span>
+                <span>{primary}</span>
               </span>
               {visibleOthers.map((state) => (
                 <StateBadge key={state} code={state} size="xs" title={state} />
@@ -1018,13 +1010,15 @@ export function ClientFactsWorkspace({
           )
         },
         meta: {
-          // 2026-05-25 (Yuqi /clients fifth pass #5): widened
-          // 160px → 220px to fit the primary-state full pill
-          // ("CA · California") at default font-size without
-          // truncating. Other-state SVG-only badges stay compact
-          // on the tail.
-          headerClassName: 'w-[220px]',
-          cellClassName: 'w-[220px]',
+          // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
+          // tightened 220px → 120px now that the cell is
+          // `[StateBadge] [2-letter code]` instead of a full-name pill.
+          // Brings /clients column rhythm in line with /deadlines'
+          // `w-[90px]` state column (slightly wider here only because
+          // /clients also surfaces up to 2 additional-state SVG
+          // badges + the overflow "+N" chip on the same row).
+          headerClassName: 'w-[120px]',
+          cellClassName: 'w-[120px]',
         },
       },
       {
@@ -1280,13 +1274,21 @@ export function ClientFactsWorkspace({
       },
       {
         accessorKey: 'assigneeName',
+        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
+        // column label realigned to /deadlines' "Assignee" (route
+        // obligations.tsx line ~2022 — `header: () => <span>{t`Assignee`}</span>`).
+        // The cell already renders an `<AssigneeAvatar>`-shaped
+        // primitive (`<ClientAssigneeAvatar>`), so the header noun
+        // and the cell motif now agree across both workbench tables.
+        // Note: the underlying RPC field stays `assigneeName`; only
+        // the header copy changed, so the existing client-detail
+        // "Owner" treatment (which sits alongside an editable
+        // assignee pill) and the toolbar filter chip's "Owner" label
+        // remain intact — those surfaces aren't part of this
+        // cross-table column comparison.
         header: () => (
-          // 2026-05-26 (Yuqi macro→micro audit, Fix #7 / §3.3): retired
-          // the uppercase kicker on this header cell; canonical table
-          // headers are sm-medium normal-case (page-family-canonical
-          // §6). Now matches the sibling ColumnSortHeader treatment.
           <span className="text-sm font-medium text-text-secondary">
-            <Trans>Owner</Trans>
+            <Trans>Assignee</Trans>
           </span>
         ),
         cell: ({ row }) => (
@@ -1563,11 +1565,28 @@ export function ClientFactsWorkspace({
               >
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
+                    // 2026-05-27 (Yuqi /clients ↔ /deadlines parity
+                    // refactor): header row drops the primitive's
+                    // default `hover:bg-state-base-hover` — header
+                    // is a non-interactive band, hover affordance
+                    // belongs on data rows. Matches /deadlines
+                    // (route obligations.tsx ~line 3648).
+                    <TableRow key={headerGroup.id} className="hover:bg-transparent">
                       {headerGroup.headers.map((header) => (
+                        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity
+                        // refactor): apply the canonical column-header
+                        // typography (`text-sm font-medium normal-case
+                        // tracking-normal text-text-secondary`) on EVERY
+                        // TableHead so non-sortable columns ("Assignee",
+                        // "Opp.", "Row actions" sr-only) inherit the same
+                        // family as the ColumnSortHeader buttons. Mirrors
+                        // /deadlines (obligations.tsx ~line 3667).
                         <TableHead
                           key={header.id}
-                          className={header.column.columnDef.meta?.headerClassName}
+                          className={cn(
+                            'text-sm font-medium normal-case tracking-normal text-text-secondary',
+                            header.column.columnDef.meta?.headerClassName,
+                          )}
                         >
                           {header.isPlaceholder
                             ? null
@@ -1577,12 +1596,28 @@ export function ClientFactsWorkspace({
                     </TableRow>
                   ))}
                 </TableHeader>
-                {/* 2026-05-25 (GitHub-density pass): row padding py-3 → py-2.
-                    /clients is a long list — saves ~8px per row, ~136px
-                    per viewport at 17 rows. Multi-line names still get
-                    room via the table's line-height; cells visibly tighter
-                    without losing legibility. */}
-                <TableBody className="[&_tr]:border-b-0 [&_td]:py-2">
+                {/* 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
+                    TableBody adopts the canonical /deadlines body chrome:
+                      • `bg-background-default` — solid white body so the
+                        primitive's `bg-background-default/50` alpha that
+                        the OUTER card paints doesn't bleed through row
+                        content
+                      • `[&_td]:text-sm` — body text matches /deadlines'
+                        sm scan-size
+                      • `[&_td]:py-2` — same 8px cell padding (kept from
+                        the previous /clients density pass)
+                      • `[&_tr]:hover:!bg-state-accent-hover` — accent-
+                        tone hover so the row tints with the same color
+                        the optional detail panel would use when opened
+                        (one visual language for "you're about to act on
+                        this row")
+                    The previously-applied `[&_tr]:border-b-0` is removed
+                    so the primitive's default `border-b border-divider-
+                    subtle` (TableRow, packages/ui/.../table.tsx) restores
+                    the row hairlines /deadlines has been shipping. This
+                    is the structural change Yuqi flagged in the brief
+                    ("Missing row dividers between client rows"). */}
+                <TableBody className="bg-background-default [&_td]:py-2 [&_td]:text-sm [&_tr]:hover:!bg-state-accent-hover">
                   {table.getRowModel().rows.length > 0 ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow
@@ -1590,7 +1625,16 @@ export function ClientFactsWorkspace({
                         role="button"
                         tabIndex={0}
                         aria-label={t`Open client detail for ${row.original.name}`}
-                        className="group/row h-14 cursor-pointer outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+                        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity
+                        // refactor): dropped the per-row
+                        // `hover:bg-state-base-hover` so the TableBody-
+                        // level `[&_tr]:hover:!bg-state-accent-hover`
+                        // wins. Focus-visible still uses the base-hover
+                        // tone so keyboard navigation reads as a
+                        // distinct state from mouse hover. Matches
+                        // /deadlines row-styling layering exactly
+                        // (obligations.tsx ~line 3780-3810).
+                        className="group/row h-14 cursor-pointer outline-none focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
                         onClick={(event) => {
                           // ⌘-click (macOS) / Ctrl-click (Win/Linux) opens
                           // the read-only drawer for a quick glance without
@@ -2016,9 +2060,13 @@ function ClientsActionStripSkeleton() {
 }
 
 function ClientTableSkeleton() {
+  // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor): skeleton
+  // column widths track the live-table widths exactly so the loading
+  // shimmer doesn't shift the layout when real rows mount. States
+  // column compressed 220 → 120 in lockstep with the live cell.
   const columns = [
     { id: 'client', className: 'w-[240px]', header: 'w-14', cell: 'w-32' },
-    { id: 'states', className: 'w-[220px]', header: 'w-14', cell: 'w-24' },
+    { id: 'states', className: 'w-[120px]', header: 'w-14', cell: 'w-16' },
     { id: 'entity', className: 'w-[110px]', header: 'w-12', cell: 'w-14' },
     { id: 'nextDue', className: 'w-[200px]', header: 'w-16', cell: 'w-28' },
     { id: 'open', className: 'w-[130px]', header: 'w-28', cell: 'w-4' },
@@ -2042,15 +2090,25 @@ function ClientTableSkeleton() {
       aria-busy="true"
     >
       <TableHeader>
-        <TableRow>
+        <TableRow className="hover:bg-transparent">
           {columns.map((column) => (
-            <TableHead key={column.id} className={column.className}>
+            <TableHead
+              key={column.id}
+              className={cn(
+                'text-sm font-medium normal-case tracking-normal text-text-secondary',
+                column.className,
+              )}
+            >
               <Skeleton className={cn('h-3', column.header)} />
             </TableHead>
           ))}
         </TableRow>
       </TableHeader>
-      <TableBody className="[&_tr]:border-b-0 [&_td]:py-2">
+      {/* 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
+          dropped `[&_tr]:border-b-0` so skeleton rows show the same
+          hairlines the live table renders — loading state previews
+          the real structure rather than dissolving the rows. */}
+      <TableBody className="bg-background-default [&_td]:py-2 [&_td]:text-sm">
         {[0, 1, 2, 3, 4].map((row) => (
           <TableRow key={row}>
             {columns.map((column) => (

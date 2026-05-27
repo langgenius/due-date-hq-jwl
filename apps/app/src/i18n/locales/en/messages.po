@@ -1865,6 +1865,7 @@ msgid "Assigned to you ({name})"
 msgstr "Assigned to you ({name})"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/mapping-target-labels.ts
 #: src/routes/obligations.tsx
 msgid "Assignee"
@@ -6940,10 +6941,6 @@ msgstr "No export packages yet."
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No filing state"
 msgstr "No filing state"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "No filing state on file"
-msgstr "No filing state on file"
 
 #: src/routes/obligations.tsx
 msgid "No forms"
