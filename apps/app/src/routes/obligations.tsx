@@ -114,6 +114,10 @@ import {
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
+import {
+  SearchableCombobox,
+  type SearchableComboboxOption,
+} from '@duedatehq/ui/components/ui/combobox'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import {
@@ -1215,6 +1219,27 @@ export function ObligationQueueRoute() {
         county: option.county,
       })) ?? EMPTY_CLIENT_OPTIONS,
     [facetsQuery.data?.clients],
+  )
+  // 2026-05-27 (audit-drain ζ Q3.4): derived adapter so the Export
+  // dialog's SearchableCombobox can take the existing
+  // `clientOptions` shape without duplicating the map. Folding the
+  // state into `meta` keeps the row dense (label + trailing
+  // jurisdiction); folding `state` and `county` into `keywords`
+  // lets the typeahead match on partial location strings too.
+  const exportClientComboboxOptions = useMemo<SearchableComboboxOption[]>(
+    () =>
+      clientOptions.map((option) => {
+        const keywords = [option.state, option.county].filter(
+          (part): part is string => typeof part === 'string' && part.length > 0,
+        )
+        const base: SearchableComboboxOption = { value: option.value, label: option.label }
+        // Strict optionals — only attach `meta` / `keywords` when
+        // populated so we don't carry literal `undefined` shapes.
+        if (option.state) base.meta = option.state
+        if (keywords.length > 0) base.keywords = keywords
+        return base
+      }),
+    [clientOptions],
   )
   const stateOptions = useMemo<FilterOption[]>(
     () => facetsQuery.data?.states.map(facetOptionToFilterOption) ?? EMPTY_FACET_OPTIONS,
@@ -4162,46 +4187,27 @@ export function ObligationQueueRoute() {
                   onSelect={() => setExportScope('client')}
                 />
                 {exportScope === 'client' ? (
-                  // 2026-05-26 (Yuqi sixty-ninth pass #4 — dropdown
-                  // interaction): converted from Base UI Select to
-                  // DropdownMenu so the export client picker uses
-                  // the same interaction model (click, keyboard,
-                  // focus) as Sort-by + Columns. Trigger styled
-                  // like a form select for visual parity with the
-                  // surrounding Inputs.
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={
-                        <DropdownTriggerButton>
-                          <span className="truncate">
-                            {clientOptions.find((option) => option.value === exportClientId)
-                              ?.label ?? t`Select client`}
-                          </span>
-                          <ChevronDownIcon
-                            className="size-3.5 shrink-0 text-text-tertiary"
-                            aria-hidden
-                          />
-                        </DropdownTriggerButton>
-                      }
-                    />
-                    <DropdownMenuContent
-                      align="start"
-                      className="max-h-[var(--available-height)] w-[var(--anchor-width)] overflow-y-auto"
-                    >
-                      <DropdownMenuRadioGroup
-                        value={exportClientId ?? ''}
-                        onValueChange={(value) => {
-                          if (typeof value === 'string') setExportClientId(value)
-                        }}
-                      >
-                        {clientOptions.map((option) => (
-                          <DropdownMenuRadioItem key={option.value} value={option.value}>
-                            {option.label}
-                          </DropdownMenuRadioItem>
-                        ))}
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  // 2026-05-27 (audit-drain ζ Q3.4 — searchable
+                  // combobox): the prior shape was a flat
+                  // DropdownMenuRadioGroup, which forced a scroll-hunt
+                  // for any practice with > ~15 clients. Promoted to
+                  // the shared SearchableCombobox primitive — same
+                  // form-select visual but with typeahead, keyboard
+                  // narrowing, and an empty state when the search
+                  // returns no match. State / county are folded into
+                  // the row meta so partial typing ("CA", "Marin")
+                  // still surfaces the client. Sibling Specific-client
+                  // axis options stay an ExportAxisOption radio.
+                  <SearchableCombobox
+                    id="export-client-combobox"
+                    value={exportClientId}
+                    onValueChange={setExportClientId}
+                    options={exportClientComboboxOptions}
+                    placeholder={t`Select client`}
+                    searchPlaceholder={t`Search clients…`}
+                    ariaLabel={t`Pick a client to export`}
+                    emptyState={<Trans>No clients match your search.</Trans>}
+                  />
                 ) : null}
               </div>
             </ExportAxis>

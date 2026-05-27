@@ -4157,10 +4157,6 @@ msgid "e.g. Form 41-ES"
 msgstr "例如 表格 41-ES"
 
 #: src/routes/rules.library.tsx
-msgid "e.g. income, sales, payroll"
-msgstr "例如 所得税、销售税、工资税"
-
-#: src/routes/rules.library.tsx
 msgid "e.g. Quarterly estimated tax for trusts"
 msgstr "例如 信托季度预估税"
 
@@ -6647,6 +6643,7 @@ msgstr "没有客户匹配这些筛选条件"
 
 #: src/features/clients/ClientCombobox.tsx
 #: src/features/clients/ClientTitleSwitcher.tsx
+#: src/routes/obligations.tsx
 msgid "No clients match your search."
 msgstr "没有符合搜索条件的客户。"
 
@@ -6933,6 +6930,10 @@ msgstr "订阅没有发生变化。准备好后可以重新开始支付。"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No summary yet"
 msgstr "No summary yet"
+
+#: src/routes/rules.library.tsx
+msgid "No tax types match your search."
+msgstr "没有符合搜索条件的税种。"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No tax types selected."
@@ -7974,9 +7975,17 @@ msgstr "个人收件箱"
 msgid "Personal morning digest preferences and types."
 msgstr "个人晨间摘要偏好与类型。"
 
+#: src/features/clients/ClientCombobox.tsx
+msgid "Pick a client"
+msgstr "选择客户"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Pick a client first."
 msgstr "请先选择客户。"
+
+#: src/routes/obligations.tsx
+msgid "Pick a client to export"
+msgstr "选择要导出的客户"
 
 #: src/features/clients/ClientCombobox.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
@@ -7990,6 +7999,10 @@ msgstr "选择范围、格式和收件人。"
 #: src/features/migration/Step1Intake.tsx
 msgid "Pick a source to add context. The AI mapper runs either way; templates also fill defaults if AI is unavailable."
 msgstr "Pick a source to add context. The AI mapper runs either way; templates also fill defaults if AI is unavailable."
+
+#: src/routes/rules.library.tsx
+msgid "Pick a tax type…"
+msgstr "选择税种…"
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Pick state"
@@ -9685,6 +9698,7 @@ msgstr "搜索客户"
 
 #: src/features/clients/ClientCombobox.tsx
 #: src/features/clients/ClientTitleSwitcher.tsx
+#: src/routes/obligations.tsx
 msgid "Search clients…"
 msgstr "搜索客户…"
 
@@ -9707,6 +9721,10 @@ msgstr "Search sources…"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Search states"
 msgstr "Search states"
+
+#: src/routes/rules.library.tsx
+msgid "Search tax types…"
+msgstr "搜索税种…"
 
 #: src/features/firm/timezone-select.tsx
 msgid "Search timezone…"
