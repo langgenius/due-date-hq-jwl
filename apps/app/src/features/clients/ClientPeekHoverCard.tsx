@@ -163,8 +163,14 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
       {/* Identity */}
       <div className="flex min-w-0 flex-col gap-1">
         <span className="truncate text-sm font-semibold text-text-primary">{client.name}</span>
+        {/* 2026-05-27 (Yuqi feedback "some informations are repeating
+            in this peek client detail tooltip"): entity type
+            ("Partnership") was rendered twice — here as the subtitle
+            prefix and below as a chip in the identity row. Dropped
+            from the subtitle; the chip row carries it now. Subtitle
+            is just the open-deadline count, which is the single
+            useful state signal at this scan distance. */}
         <span className="text-xs text-text-secondary">
-          {entityLabels[client.entityType]} ·{' '}
           {openCount === 0
             ? t`No open deadlines`
             : openCount === 1
