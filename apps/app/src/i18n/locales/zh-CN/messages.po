@@ -604,10 +604,6 @@ msgstr "{DEFAULT_SNOOZE_DAYS, plural, one {将 {0} 暂停 # 天} other {将 {1} 
 msgid "{durationMonths, plural, one {# month} other {# months}}"
 msgstr "{durationMonths, plural, one {# month} other {# months}}"
 
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "{enabledCount, plural, one {Monitoring # source. Receiving correctly.} other {Monitoring # sources. Receiving correctly.}}"
-msgstr "{enabledCount, plural, one {Monitoring # source. Receiving correctly.} other {Monitoring # sources. Receiving correctly.}}"
-
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "{equity} equity owners"
 msgstr "{equity} 位权益所有人"
@@ -623,10 +619,6 @@ msgstr "{evidenceCount} workpapers"
 #: src/features/members/members-page.tsx
 msgid "{expiredCount} expired needs resend"
 msgstr "{expiredCount} 个已过期，需要重发"
-
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "{failingCount, plural, one {# source not receiving correctly} other {# sources not receiving correctly}}"
-msgstr "{failingCount, plural, one {# source not receiving correctly} other {# sources not receiving correctly}}"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "{field} changed from {previous} to {next}"
@@ -837,6 +829,10 @@ msgstr "已显示 {visibleHideableCount} 列(共 {totalHideableCount} 列)"
 #: src/features/rules/coverage-tab.tsx
 msgid "{visibleSelectableCount} batch-ready · {visibleSingleReviewCount} need single review"
 msgstr "{visibleSelectableCount} 条可批量 · {visibleSingleReviewCount} 条需单条审核"
+
+#: src/features/dashboard/needs-attention-section.tsx
+msgid "{watchedCount, plural, one {Monitoring # source. New matches will appear here.} other {Monitoring # sources. New matches will appear here.}}"
+msgstr "{watchedCount, plural, one {正在监控 # 个来源。新的匹配会显示在这里。} other {正在监控 # 个来源。新的匹配会显示在这里。}}"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "{year} (current year)"
@@ -2295,10 +2291,6 @@ msgstr "检查材料"
 #: src/routes/obligations.tsx
 msgid "Check Materials to review {outstandingDocsCount} outstanding items"
 msgstr "查看资料以审阅 {outstandingDocsCount} 项待办"
-
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "Check sources"
-msgstr "Check sources"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Check the fields and try again."
@@ -10289,10 +10281,6 @@ msgid "Sources"
 msgstr "来源"
 
 #: src/features/dashboard/needs-attention-section.tsx
-msgid "sources failing"
-msgstr "来源故障"
-
-#: src/features/dashboard/needs-attention-section.tsx
 msgid "sources paused"
 msgstr "来源已暂停"
 
@@ -11660,6 +11648,7 @@ msgstr "在截止日期中查看"
 msgid "View open filings for this client"
 msgstr "查看此客户的进行中申报"
 
+#: src/features/dashboard/needs-attention-section.tsx
 #: src/features/pulse/AlertsListPage.tsx
 msgid "View sources"
 msgstr "查看来源"

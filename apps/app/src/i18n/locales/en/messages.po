@@ -604,10 +604,6 @@ msgstr "{DEFAULT_SNOOZE_DAYS, plural, one {Snooze {0} for # day} other {Snooze {
 msgid "{durationMonths, plural, one {# month} other {# months}}"
 msgstr "{durationMonths, plural, one {# month} other {# months}}"
 
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "{enabledCount, plural, one {Monitoring # source. Receiving correctly.} other {Monitoring # sources. Receiving correctly.}}"
-msgstr "{enabledCount, plural, one {Monitoring # source. Receiving correctly.} other {Monitoring # sources. Receiving correctly.}}"
-
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "{equity} equity owners"
 msgstr "{equity} equity owners"
@@ -623,10 +619,6 @@ msgstr "{evidenceCount} workpapers"
 #: src/features/members/members-page.tsx
 msgid "{expiredCount} expired needs resend"
 msgstr "{expiredCount} expired needs resend"
-
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "{failingCount, plural, one {# source not receiving correctly} other {# sources not receiving correctly}}"
-msgstr "{failingCount, plural, one {# source not receiving correctly} other {# sources not receiving correctly}}"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "{field} changed from {previous} to {next}"
@@ -837,6 +829,10 @@ msgstr "{visibleHideableCount} of {totalHideableCount} columns visible"
 #: src/features/rules/coverage-tab.tsx
 msgid "{visibleSelectableCount} batch-ready · {visibleSingleReviewCount} need single review"
 msgstr "{visibleSelectableCount} batch-ready · {visibleSingleReviewCount} need single review"
+
+#: src/features/dashboard/needs-attention-section.tsx
+msgid "{watchedCount, plural, one {Monitoring # source. New matches will appear here.} other {Monitoring # sources. New matches will appear here.}}"
+msgstr "{watchedCount, plural, one {Monitoring # source. New matches will appear here.} other {Monitoring # sources. New matches will appear here.}}"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "{year} (current year)"
@@ -2295,10 +2291,6 @@ msgstr "Check materials"
 #: src/routes/obligations.tsx
 msgid "Check Materials to review {outstandingDocsCount} outstanding items"
 msgstr "Check Materials to review {outstandingDocsCount} outstanding items"
-
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "Check sources"
-msgstr "Check sources"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Check the fields and try again."
@@ -10289,10 +10281,6 @@ msgid "Sources"
 msgstr "Sources"
 
 #: src/features/dashboard/needs-attention-section.tsx
-msgid "sources failing"
-msgstr "sources failing"
-
-#: src/features/dashboard/needs-attention-section.tsx
 msgid "sources paused"
 msgstr "sources paused"
 
@@ -11660,6 +11648,7 @@ msgstr "View in Deadlines"
 msgid "View open filings for this client"
 msgstr "View open filings for this client"
 
+#: src/features/dashboard/needs-attention-section.tsx
 #: src/features/pulse/AlertsListPage.tsx
 msgid "View sources"
 msgstr "View sources"
