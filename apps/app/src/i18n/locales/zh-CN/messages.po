@@ -1187,6 +1187,11 @@ msgstr "执行人"
 msgid "Add {0} deadlines"
 msgstr "添加 {0} 个截止日"
 
+#. placeholder {0}: 100 - weightTotal
+#: src/routes/practice.tsx
+msgid "Add {0}% across factors to balance. Weights must total 100%."
+msgstr "为各因子合计增加 {0}% 以达到平衡。权重总和须为 100%。"
+
 #: src/features/clients/CreateClientDialog.tsx
 msgid "Add a manual client record to the active practice directory."
 msgstr "添加手动客户记录到当前事务所目录。"
@@ -2406,6 +2411,10 @@ msgstr "此计划暂时无法结账。请联系支持。"
 #: src/routes/billing.tsx
 msgid "Checkout, cards, invoices, and portal sessions stay with the processor."
 msgstr "支付、银行卡、发票和账单门户会话都保留在支付处理方。"
+
+#: src/routes/billing.cancel.tsx
+msgid "Choose a plan"
+msgstr "选择套餐"
 
 #: src/routes/billing.tsx
 msgid "Choose a workspace tier"
@@ -4886,6 +4895,10 @@ msgstr "补充缺失信息"
 msgid "Fix now"
 msgstr "立即修复"
 
+#: src/routes/practice.tsx
+msgid "Fix the Smart Priority inputs above before previewing — weights must total 100% and ranges must be valid."
+msgstr "预览前请先修正上方的智能优先级输入——权重总和须为 100%,且各取值范围须有效。"
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "FL tentative tax"
 msgstr "FL 暂定税额"
@@ -6777,6 +6790,10 @@ msgstr "No pending rules for this jurisdiction."
 msgid "No pending rules to review."
 msgstr "No pending rules to review."
 
+#: src/routes/billing.cancel.tsx
+msgid "No plan was selected — choose one from Billing to start checkout."
+msgstr "未选择套餐——请在「账单」中选择一项以开始结账。"
+
 #: src/routes/billing.checkout.tsx
 msgid "No practice selected"
 msgstr "未选择事务所"
@@ -6994,6 +7011,10 @@ msgstr "尚未准备好"
 #: src/routes/readiness.tsx
 msgid "Note"
 msgstr "备注"
+
+#: src/routes/practice.tsx
+msgid "Note: changes can't be reverted automatically — adjusting this back later won't restore prior deadline dates. Historical audit entries stay intact."
+msgstr "注意:此项更改无法自动撤回——稍后再改回也不会恢复先前的截止日期。历史审计记录保持不变。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
@@ -7592,8 +7613,8 @@ msgid "owner read-only · self read-only"
 msgstr "Owner 只读 · 本人只读"
 
 #: src/features/members/members-page.tsx
-msgid "Owner stays read-only. Managers can review work; preparers and coordinators have scoped access."
-msgstr "Owner 保持只读。Manager 可以复核工作；Preparer 和 Coordinator 具有限定范围的访问权限。"
+msgid "Owner stays read-only and can't be invited from here."
+msgstr "所有者角色为只读,无法在此邀请。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Owner updated"
@@ -7929,7 +7950,6 @@ msgstr "计划、席位与发票。"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
-#: src/routes/practice.tsx
 msgid "Please enter at least 2 characters."
 msgstr "请至少输入 2 个字符。"
 
@@ -8009,6 +8029,10 @@ msgstr "事务所限制"
 #: src/routes/practice.tsx
 msgid "Practice name"
 msgstr "事务所名称"
+
+#: src/routes/practice.tsx
+msgid "Practice name needs at least 2 characters — this is your firm's display name across DueDateHQ."
+msgstr "事务所名称至少需要 2 个字符——这是您的事务所在 DueDateHQ 各处显示的名称。"
 
 #: src/routes/settings.tsx
 msgid "Practice name, timezone, internal deadline policy, smart priority weighting."
@@ -8253,6 +8277,10 @@ msgstr "主导航"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Primary phone"
 msgstr "主要电话"
+
+#: src/features/members/members-page.tsx
+msgid "Principal authority — billing, members, full sign-off."
+msgstr "主要管理权限——账单、成员、全部审批签字权。"
 
 #: src/routes/obligations.tsx
 msgid "Priority"
@@ -8633,6 +8661,11 @@ msgstr "正在跳转到 Google…"
 msgid "Redirecting to Microsoft…"
 msgstr "正在跳转到 Microsoft…"
 
+#. placeholder {0}: weightTotal - 100
+#: src/routes/practice.tsx
+msgid "Reduce factors by {0}% to balance. Weights must total 100%."
+msgstr "请将各因子合计减少 {0}% 以达到平衡。权重总和须为 100%。"
+
 #: src/routes/obligations.tsx
 msgid "Reference dates"
 msgstr "参考日期"
@@ -8646,6 +8679,10 @@ msgstr "刷新"
 #: src/features/migration/WizardShell.tsx
 msgid "Refresh confidence"
 msgstr "刷新置信度"
+
+#: src/routes/billing.success.tsx
+msgid "Refresh now"
+msgstr "立即刷新"
 
 #. placeholder {0}: formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -9110,6 +9147,10 @@ msgstr "复核申报文件"
 msgid "Reviewing rule"
 msgstr "Reviewing rule"
 
+#: src/features/members/members-page.tsx
+msgid "Reviews work and signs off on prepared filings."
+msgstr "审核工作并对已编制的申报材料签字。"
+
 #: src/routes/account.security.tsx
 #: src/routes/obligations.tsx
 msgid "Revoke"
@@ -9502,6 +9543,10 @@ msgstr "扫描二维码"
 #: src/routes/obligations.tsx
 msgid "Schedule the payment with the authority"
 msgstr "向税务机关安排付款"
+
+#: src/features/members/members-page.tsx
+msgid "Schedules work and handles client intake — no preparation rights."
+msgstr "负责排期与客户接收——无编制权限。"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/pulse/components/PulseStructuredFields.tsx
@@ -10351,6 +10396,10 @@ msgid "Steps"
 msgstr "步骤"
 
 #: src/routes/billing.success.tsx
+msgid "Still confirming — taking longer than usual"
+msgstr "仍在确认中——本次耗时较长"
+
+#: src/routes/billing.success.tsx
 msgid "Still waiting on confirmation"
 msgstr "仍在等待确认"
 
@@ -10815,6 +10864,10 @@ msgstr "The operating surface for deadline work: filter, sort, assign owners, up
 msgid "The page at <0>{pathname}</0> doesn't exist. The link may be out of date, or the page may have moved."
 msgstr "The page at <0>{pathname}</0> doesn't exist. The link may be out of date, or the page may have moved."
 
+#: src/routes/billing.success.tsx
+msgid "The payment provider hasn't confirmed the subscription yet. This usually clears within a minute. Refresh the page, or contact support if it persists."
+msgstr "支付服务方尚未确认订阅。通常一分钟内即可完成。请刷新页面;若仍未完成,请联系客服。"
+
 #: src/routes/billing.tsx
 msgid "The payment provider manages checkout, invoices, and payment methods. DueDateHQ shows the active plan here."
 msgstr "支付服务商管理结账、发票和付款方式。DueDateHQ 在此显示当前生效计划。"
@@ -11231,6 +11284,11 @@ msgstr "TY {0}"
 #: src/features/rules/sources-tab.tsx
 msgid "TYPE"
 msgstr "类型"
+
+#. placeholder {0}: firm.name
+#: src/routes/practice.tsx
+msgid "Type <0>{0}</0> to confirm"
+msgstr "输入 <0>{0}</0> 以确认"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "UI wage report count"
@@ -11804,6 +11862,10 @@ msgstr "工作负载显示未来 7 天的待办截止日期。请导入客户或
 #: src/routes/obligations.tsx
 msgid "Workpapers"
 msgstr "工作底稿"
+
+#: src/features/members/members-page.tsx
+msgid "Works assigned client deadlines and prepares filings."
+msgstr "处理已分配的客户截止日期并编制申报材料。"
 
 #: src/routes/settings.tsx
 msgid "Workspace configuration for this practice — identity, team, billing, compliance, and automation."
