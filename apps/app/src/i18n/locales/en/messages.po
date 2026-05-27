@@ -381,6 +381,12 @@ msgstr "{0} items"
 msgid "{0} items recorded"
 msgstr "{0} items recorded"
 
+#. placeholder {0}: filteredClients.length
+#. placeholder {1}: clients.length
+#: src/routes/clients.tsx
+msgid "{0} of {1}"
+msgstr "{0} of {1}"
+
 #. placeholder {0}: groupHeader.lateCount
 #: src/routes/obligations.tsx
 msgid "{0} of this client's deadlines are past the internal target"
@@ -1187,8 +1193,8 @@ msgid "Add {0} deadlines"
 msgstr "Add {0} deadlines"
 
 #: src/features/clients/CreateClientDialog.tsx
-msgid "Add a manual client record to the active practice directory."
-msgstr "Add a manual client record to the active practice directory."
+msgid "Add a client to this practice."
+msgstr "Add a client to this practice."
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Add a review note and try again."
@@ -1477,6 +1483,7 @@ msgid "All categories"
 msgstr "All categories"
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
+#: src/features/dashboard/actions-list.tsx
 msgid "All caught up"
 msgstr "All caught up"
 
@@ -5746,6 +5753,10 @@ msgstr "Loading upcoming reminders…"
 #: src/features/workload/workload-page.tsx
 msgid "Loading workload metrics"
 msgstr "Loading workload metrics"
+
+#: src/routes/dashboard.tsx
+msgid "loading…"
+msgstr "loading…"
 
 #: src/components/patterns/pulse-notifications-bell.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -11137,6 +11148,10 @@ msgstr "Trust"
 #: src/routes/obligations.tsx
 msgid "Try a different filter combination, or clear all filters to see the full queue."
 msgstr "Try a different filter combination, or clear all filters to see the full queue."
+
+#: src/routes/clients.$clientId.tsx
+msgid "Try again"
+msgstr "Try again"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Try again, or skip this rule for now."

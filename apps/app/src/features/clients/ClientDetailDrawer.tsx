@@ -146,13 +146,15 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                 </SheetDescription>
               </div>
 
-              {/* Identity chips — entity is already in the caption above,
-                  but the badge form gives a faster visual read on
-                  state + readiness color. */}
+              {/* Identity chips — state + readiness color give a fast
+                  visual read.
+                  2026-05-27 (Step 6 UX audit #86): entity chip dropped.
+                  The caption line above already says "S corp · 1 open
+                  deadline" — the chip below was rendering the same
+                  entity label a second time at smaller scale, which
+                  read as duplicate metadata. State and readiness are
+                  unique signals that earn their chip; entity does not. */}
               <div className="flex flex-wrap items-center gap-1.5">
-                <Badge variant="outline" className="text-caption">
-                  {entityLabels[client.entityType]}
-                </Badge>
                 {client.state ? (
                   <Badge variant="outline" className="text-caption">
                     {client.state}
@@ -224,14 +226,21 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
           </Alert>
         ) : (
           // Loading skeleton sized for the slim peek.
+          // 2026-05-27 (Step 6 UX audit #84): SheetTitle used to be
+          // `sr-only` — so AT users heard "Loading client…" but
+          // sighted users just saw three grey bars with no label
+          // hinting at what the drawer was about to show. Promoted
+          // the title to a visible heading; AT still gets the same
+          // announcement (semantics unchanged). Description stays
+          // sr-only since the visible bars already show "we're
+          // fetching things."
           <div className="flex flex-col gap-3">
-            <SheetTitle className="sr-only">
+            <SheetTitle className="text-lg font-semibold text-text-primary">
               <Trans>Loading client…</Trans>
             </SheetTitle>
             <SheetDescription className="sr-only">
               <Trans>Fetching client detail.</Trans>
             </SheetDescription>
-            <Skeleton className="h-6 w-2/3 rounded-md" />
             <Skeleton className="h-4 w-1/2 rounded-md" />
             <Skeleton className="h-12 w-full rounded-md" />
           </div>

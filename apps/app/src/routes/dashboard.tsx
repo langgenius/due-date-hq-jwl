@@ -152,7 +152,18 @@ export function DashboardRoute() {
         title={
           <span className="inline-flex items-center gap-2">
             <Trans>Today</Trans>
-            {!dashboardQuery.isLoading && data?.asOfDate ? (
+            {/* 2026-05-27 (Step 6 UX audit #31): the date pill used to
+                disappear entirely while the dashboard query was in
+                flight, which made the page header read as
+                "Today …" with no anchor for several hundred ms.
+                Render a softer pill with "loading…" copy so the
+                slot stays visually claimed and the eye doesn't
+                reflow when the real date arrives. */}
+            {dashboardQuery.isLoading ? (
+              <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-normal italic text-text-tertiary">
+                <Trans>loading…</Trans>
+              </span>
+            ) : data?.asOfDate ? (
               <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
                 {formatTodayHeader(data.asOfDate)}
               </span>
