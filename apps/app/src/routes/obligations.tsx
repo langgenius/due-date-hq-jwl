@@ -2858,8 +2858,17 @@ export function ObligationQueueRoute() {
             <ConceptLabel concept="obligation">
               <Trans>Deadlines</Trans>
             </ConceptLabel>
+            {/* 2026-05-27 (Yuqi follow-up — "what does open mean?"):
+                count chip dropped the bare "open" qualifier in favour
+                of the same `# deadline / # deadlines` shape used by
+                /clients ("9 Clients") and /rules/library ("# rules").
+                `scopeTotal` rolls up all status facets (including
+                Completed + Filed), so "open" was both ambiguous to
+                CPAs and factually wrong for a Filed-scope filter.
+                The chip now reads as a noun count, not a state
+                claim — the status tabs below own the state semantics. */}
             <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
-              <Trans>{scopeTotal} open</Trans>
+              <Plural value={scopeTotal} one="# deadline" other="# deadlines" />
             </span>
           </span>
         }
@@ -2878,10 +2887,24 @@ export function ObligationQueueRoute() {
         // 2026-05-26 (Yuqi feedback #2): subtitle hidden. The
         // "10 late · 2 blocked · ..." pipeline scan duplicates info
         // already carried by each scope tab below (which renders its
-        // own count). Page header is now minimal — title + count
-        // chip only. Restore via git history if a sparser version
-        // is needed later.
-        description={undefined}
+        // own count). Page header was minimal — title + count chip
+        // only.
+        // 2026-05-27 (Yuqi follow-up — "像 Rule Library 一样，把
+        // description 放出来"): the page concept description is now
+        // surfaced inline below the title (same pattern as the
+        // canonical PageHeader `description` slot). One short sentence
+        // explains what /deadlines is for at a glance — the `?`
+        // ConceptLabel beside the title is still there for the full
+        // popover. Copy mirrors the `obligation` concept-help body
+        // (intentional duplication: the inline copy answers "what is
+        // this page" without a click, the popover answers "what's a
+        // deadline" in product terms).
+        description={
+          <Trans>
+            The operating surface for deadline work — filter, sort, assign owners, update status,
+            and open evidence for each row.
+          </Trans>
+        }
         actions={
           <>
             {/* 2026-05-26 (Yuqi seventieth pass #17): Export icon
@@ -2921,7 +2944,19 @@ export function ObligationQueueRoute() {
       >
         <div
           className={cn(
-            'flex min-w-0 flex-1 flex-col gap-3',
+            // 2026-05-27 (Yuqi follow-up — "tab和时间filter和下面table的
+            // 间距应该有一点变化"): gap bumped from `gap-3` (12px) to
+            // `gap-4` (16px) so the sticky filter bar (status tabs +
+            // action chips + sort/columns) has a clearer breathing
+            // gap above the table card. Previously the row sat flush
+            // against the table edge, making the two sections read as
+            // a single dense band. The 4px extra space separates the
+            // "controls" layer from the "data" layer without changing
+            // either's internal density. The bulk-action toolbar is
+            // a FloatingActionBar (fixed at viewport bottom), so this
+            // gap only affects filter→table spacing — no other gap in
+            // the queue column shifts.
+            'flex min-w-0 flex-1 flex-col gap-4',
             // 2026-05-26 (Yuqi /deadlines feedback — page-flip
             // pattern): the queue column is `overflow-hidden` at xl+
             // so neither axis can scroll. Vertical fit is owned by

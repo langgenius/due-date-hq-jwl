@@ -767,8 +767,8 @@ msgid "{ruleReviewCount} rules pending review"
 msgstr "{ruleReviewCount} rules pending review"
 
 #: src/routes/obligations.tsx
-msgid "{scopeTotal} open"
-msgstr "{scopeTotal} open"
+msgid "{scopeTotal, plural, one {# deadline} other {# deadlines}}"
+msgstr "{scopeTotal, plural, one {# deadline} other {# deadlines}}"
 
 #: src/routes/obligations.tsx
 msgid "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
@@ -10835,6 +10835,10 @@ msgstr "The number of days before a deadline where urgency reaches its maximum S
 #: src/features/concepts/concept-help.tsx
 msgid "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Pulse change."
 msgstr "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Pulse change."
+
+#: src/routes/obligations.tsx
+msgid "The operating surface for deadline work — filter, sort, assign owners, update status, and open evidence for each row."
+msgstr "The operating surface for deadline work — filter, sort, assign owners, update status, and open evidence for each row."
 
 #: src/features/concepts/concept-help.tsx
 msgid "The operating surface for deadline work: filter, sort, assign owners, update status, and open evidence for each deadline."

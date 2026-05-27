@@ -767,8 +767,8 @@ msgid "{ruleReviewCount} rules pending review"
 msgstr "{ruleReviewCount} 条规则待复核"
 
 #: src/routes/obligations.tsx
-msgid "{scopeTotal} open"
-msgstr "{scopeTotal} open"
+msgid "{scopeTotal, plural, one {# deadline} other {# deadlines}}"
+msgstr "{scopeTotal, plural, one {# 个截止日} other {# 个截止日}}"
 
 #: src/routes/obligations.tsx
 msgid "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
@@ -10835,6 +10835,10 @@ msgstr "截止日前多少天内，紧急度达到 Smart Priority 的最高贡�
 #: src/features/concepts/concept-help.tsx
 msgid "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Pulse change."
 msgstr "支撑规则、截止日、AI 解释或 Pulse 变更的官方来源、摘录或审计记录。"
+
+#: src/routes/obligations.tsx
+msgid "The operating surface for deadline work — filter, sort, assign owners, update status, and open evidence for each row."
+msgstr "截止日工作的操作面板——筛选、排序、分配负责人、更新状态，并查看每行的依据。"
 
 #: src/features/concepts/concept-help.tsx
 msgid "The operating surface for deadline work: filter, sort, assign owners, update status, and open evidence for each deadline."
