@@ -2944,19 +2944,11 @@ export function ObligationQueueRoute() {
           // at, not just the raw total. Other surfaces now use
           // the matching shape: "3 Ongoing" on /alerts,
           // "9 Clients" on /clients, "N Rules" on /rules/library.
-          // 2026-05-27 (Yuqi feedback round 5 — final pattern):
-          // "Deadlines" heading + canonical count chip beside it with
-          // JUST the number (not "17 Deadlines"). Earlier "remove"
-          // meant remove the word "deadlines" from the chip — keep
-          // the chip + the number.
-          <span className="inline-flex items-center gap-2">
-            <Trans>Deadlines</Trans>
-            {scopeTotal > 0 ? (
-              <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
-                {scopeTotal}
-              </span>
-            ) : null}
-          </span>
+          // 2026-05-27 (Yuqi feedback "去掉" / final): count chip
+          // removed entirely. Status tabs below already show per-scope
+          // counts (All 17, Not started 3, etc.) — title chip was
+          // duplicating.
+          <Trans>Deadlines</Trans>
         }
         // 2026-05-26 (Yuqi /deadlines redesign): subtitle surfaces
         // the two metrics CPAs care about first — what's late + what
@@ -3274,11 +3266,12 @@ export function ObligationQueueRoute() {
                     wireframes Yuqi shared. */}
                 <DropdownMenuTrigger
                   render={
-                    /* 2026-05-27 (Yuqi feedback "remove"): ArrowDownUp
-                       leading icon dropped — the "Group by" label
-                       already names the action; the icon was visual
-                       noise. */
-                    <FilterTrigger>
+                    /* 2026-05-27 (Yuqi feedback "remove" Plus icon):
+                       `noLeadingIcon` explicitly suppresses both the
+                       default PlusIcon (which was showing up after
+                       I removed ArrowDownUp) and any custom icon.
+                       The "Group by" label already names the action. */
+                    <FilterTrigger noLeadingIcon>
                       <span className="text-text-tertiary">
                         <Trans>Group by</Trans>
                       </span>
@@ -4209,16 +4202,15 @@ export function ObligationQueueRoute() {
               initial={{ x: '100%', opacity: 0 }}
               animate={DETAIL_PANEL_OPEN_ANIM}
               exit={DETAIL_PANEL_CLOSE_ANIM}
-              // 2026-05-27 (Yuqi "remove width:60%" + responsive):
-              // size via CSS class, not animated width. Below xl the
-              // drawer takes full width (becomes the only visible
-              // column; the table is hidden underneath on narrow
-              // viewports — same pattern as before but now without
-              // a hardcoded 60% that broke on wide screens). At xl+
-              // takes 3/5 of available space (max-capped at 900px so
-              // ultra-wide monitors don't bloat the drawer past
-              // usefulness — the table gets the leftover).
-              className="flex min-h-0 self-stretch overflow-hidden w-full xl:basis-3/5 xl:max-w-[900px] xl:flex-shrink-0"
+              // 2026-05-27 (Yuqi "让左边的list大一点占满剩下的屏幕"
+              // / "make the left list bigger and fill the remaining
+              // screen"): drawer takes a FIXED 600px at xl+, table
+              // gets `flex-1` and fills everything else. On 1469px
+              // viewport: drawer = 600, table = ~840 (was the inverse
+              // before). On wider: table grows, drawer stays at 600.
+              // Below xl the drawer is full width (mobile sheet
+              // pattern).
+              className="flex min-h-0 self-stretch overflow-hidden w-full xl:w-[600px] xl:flex-shrink-0 xl:flex-grow-0"
             >
               <motion.div
                 initial={{ y: '100%' }}
@@ -4705,6 +4697,11 @@ function AssigneeQuickPicker({
             onChange(next)
           }}
         >
+          {/* 2026-05-27 (Yuqi "assign是坏的"): empty-state Item was
+              nested inside DropdownMenuRadioGroup — Base UI strict
+              mode requires RadioGroup children to all be RadioItems
+              (same bug we fixed in ClientFactsWorkspace earlier;
+              this is a second copy). Empty-state moved OUTSIDE. */}
           <DropdownMenuRadioItem value="__unassigned__">
             <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
               <UserRoundIcon className="size-3" aria-hidden />
@@ -4713,39 +4710,37 @@ function AssigneeQuickPicker({
               <Trans>Unassigned</Trans>
             </span>
           </DropdownMenuRadioItem>
-          {assignableMembers.length > 0 ? <DropdownMenuSeparator /> : null}
-          {assignableMembers.length === 0 ? (
-            <DropdownMenuItem
-              disabled
-              title={t`Invite teammates from Settings → Members to assign work`}
-            >
-              <span className="text-text-tertiary">
-                <Trans>No teammates yet — invite from Settings</Trans>
-              </span>
-            </DropdownMenuItem>
-          ) : (
-            assignableMembers.map((member) => {
-              const isCurrentUser =
-                currentUserName !== null &&
-                member.name.trim().toLowerCase() === currentUserName.toLowerCase()
-              return (
-                <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
-                  <span
-                    className={cn(
-                      'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-                      isCurrentUser
-                        ? 'bg-state-accent-hover-alt text-text-accent'
-                        : 'bg-background-subtle text-text-secondary',
-                    )}
-                  >
-                    {initialsFromName(member.name)}
-                  </span>
-                  <span className="truncate">{member.name}</span>
-                </DropdownMenuRadioItem>
-              )
-            })
-          )}
+          {assignableMembers.map((member) => {
+            const isCurrentUser =
+              currentUserName !== null &&
+              member.name.trim().toLowerCase() === currentUserName.toLowerCase()
+            return (
+              <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
+                <span
+                  className={cn(
+                    'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
+                    isCurrentUser
+                      ? 'bg-state-accent-hover-alt text-text-accent'
+                      : 'bg-background-subtle text-text-secondary',
+                  )}
+                >
+                  {initialsFromName(member.name)}
+                </span>
+                <span className="truncate">{member.name}</span>
+              </DropdownMenuRadioItem>
+            )
+          })}
         </DropdownMenuRadioGroup>
+        {assignableMembers.length === 0 ? (
+          <DropdownMenuItem
+            disabled
+            title={t`Invite teammates from Settings → Members to assign work`}
+          >
+            <span className="text-text-tertiary">
+              <Trans>No teammates yet — invite from Settings</Trans>
+            </span>
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuSeparator />
         {/* Scope-disclosure footer. Without this the picker reads
             as "assign this row" — but the schema only carries
