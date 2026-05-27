@@ -3078,9 +3078,15 @@ export function ClientDetailWorkspace({
             // the parent's xl:gap-6 so the unused gap doesn't show
             // up as a void on the right edge.
             'xl:w-0 xl:-mr-6',
-            // Open: real width + reset the negative margin so the
-            // gap reappears between left column and panel.
-            activeObligationId && 'xl:w-[600px] xl:mr-0',
+            // 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
+            // open width switched from a fixed 600px to 60% of the
+            // parent flex row so the obligation panel mirrors
+            // PulseDetailDrawer's wrapper (AlertsListPage.tsx L844:
+            // `width: '60%'`). Same proportional split between the
+            // client-facts left column and the obligation drawer on
+            // the right; both right-rail panels in the product now
+            // share one width contract.
+            activeObligationId && 'xl:w-[60%] xl:mr-0',
           )}
         >
           {activeObligationId ? (
