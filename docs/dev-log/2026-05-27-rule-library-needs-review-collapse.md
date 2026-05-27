@@ -185,6 +185,30 @@ rather than as new semantic tokens (`--state-review-*`). Promotion
 to semantic tokens can happen once other pages adopt the same tone
 — for now the rollout is contained to this one surface.
 
+### Per-entity dots → icons
+
+> 把绿色点点（表示active）换成灰色check。蓝色表示needs review换成
+> circle。icon都是14px
+
+The per-rule per-entity matrix (the 7-column LLC / PART / S-CORP /
+... grid that paints a small dot per entity a rule applies to) used
+two tonal dots: green for active, brown (was blue) for review. Yuqi
+wanted shape language to carry the meaning, not just color:
+
+- **active** → `<Check>` (lucide, 14px) in `text-text-tertiary`
+  (soft gray). "This rule is in effect for this entity."
+- **review** → `<Circle>` (lucide outline, 14px) in sienna brown.
+  "This entity is pending review, still open."
+
+Destructive / muted tones kept the dot since the user only called
+out the two main lifecycle states. The not-applies placeholder
+(`size-[3px] bg-divider-subtle`) is unchanged — it's still a quiet
+"doesn't apply" marker, distinct from the active/review icons.
+
+Reads better at scan distance: the eye distinguishes ✓ vs ○ on
+shape alone, with color as secondary support. The earlier dot-only
+grid forced color discrimination to do all the work.
+
 ## Related docs
 
 - [`2026-05-27-audit-drain-x2-rule-library-ux.md`](2026-05-27-audit-drain-x2-rule-library-ux.md)

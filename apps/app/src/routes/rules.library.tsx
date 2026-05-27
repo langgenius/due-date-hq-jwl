@@ -6,7 +6,9 @@ import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
 import {
   ArrowUpRightIcon,
+  Check,
   ChevronRightIcon,
+  Circle,
   CircleCheck,
   CircleSlash,
   ExternalLinkIcon,
@@ -384,24 +386,33 @@ function EntityStateCell({
   return <span className="text-sm font-medium tabular-nums text-text-primary">{count}</span>
 }
 
-// EntityApplicabilityCell — per-rule per-entity dot. Status-tinted
-// dot when the rule applies to this entity; faint placeholder
-// otherwise. Reads as scan texture beneath the state-level summary.
+// EntityApplicabilityCell — per-rule per-entity affordance.
+// 2026-05-27 (Yuqi follow-up — "绿色点点换成灰色check，蓝色换成
+// circle"): the prior visual was two tonal dots (green for active,
+// brown for review). Switched to icons so the per-entity grid
+// reads as STATUS LANGUAGE not COLOR SPRAY:
+//   - active → `Check` (✓) in soft gray — "this rule is in effect
+//              for this entity"
+//   - review → `Circle` (○) in sienna — "this entity is pending
+//              review, still open"
+// Both at 14px (`size-3.5`). Destructive / muted tones keep the
+// dot since the user only called out the two main states.
 function EntityApplicabilityCell({ applies, status }: { applies: boolean; status: RuleStatus }) {
   if (!applies) {
     return <span aria-hidden className="mx-auto block size-[3px] rounded-full bg-divider-subtle" />
   }
   const tone = STATUS_TONE[status]
+  if (tone === 'success') {
+    return <Check aria-hidden className="mx-auto size-3.5 text-text-tertiary" />
+  }
+  if (tone === 'review') {
+    return <Circle aria-hidden className={cn('mx-auto size-3.5', REVIEW_TEXT_CLS)} />
+  }
   return (
     <span
       aria-hidden
       className={cn(
         'mx-auto block size-1.5 rounded-full',
-        tone === 'success' && 'bg-state-success-solid',
-        // 2026-05-27 (Yuqi brown unification): per-rule applicability
-        // dot for review-state rules switches from blue accent to
-        // mustard so the dot matches the catalog-wide brown signal.
-        tone === 'review' && REVIEW_DOT_CLS,
         tone === 'destructive' && 'bg-state-destructive-solid',
         tone === 'muted' && 'bg-text-muted',
       )}
