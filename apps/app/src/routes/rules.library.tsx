@@ -3503,7 +3503,17 @@ function RuleDetailPanel({
           - Body padding tightened. The kicker carries the identity
             shape the audit ID line used to spell out, so the body
             no longer needs to repeat it. */}
-      <DialogContent showCloseButton className="flex max-h-[85vh] max-w-[640px] flex-col gap-0 p-0">
+      {/* 2026-05-27 (Yuqi follow-up — "圆角有一些问题"): added
+          `overflow-hidden` so the header strip's `bg-background-
+          subtle` clips to the dialog's rounded top corners instead
+          of painting a sharp rectangle past the curve. Without it
+          the header bg bleeds to the inner edge of the border, so
+          the corners look subtly square against the rounded
+          border. */}
+      <DialogContent
+        showCloseButton
+        className="flex max-h-[85vh] max-w-[640px] flex-col gap-0 overflow-hidden p-0"
+      >
         {/* 2026-05-25 (Yuqi rule library fourth pass #8, #10):
             third-pass tweaks weren't enough — Yuqi still flagged
             the header as "混乱" (chaotic, no section).

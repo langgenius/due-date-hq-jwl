@@ -231,13 +231,17 @@ function DetailSection({ label, children }: { label: React.ReactNode; children: 
   // P1-1): section labels were `text-caption uppercase tracking-
   // wider text-text-muted` kicker eyebrows. Five eyebrows in a
   // row on the review surface made the modal read as a form, not
-  // a decision page. Switched to the canonical `text-sm font-
-  // semibold text-text-primary` section heading that /clients,
-  // /deadlines, /rules/library, /alerts all use. The kicker
-  // style stays gone everywhere in the product.
+  // a decision page. Switched to a font-semibold text-text-primary
+  // section heading.
+  // 2026-05-27 (Yuqi follow-up — "section title没有用正常的title"):
+  // bumped `text-sm` → `text-base` so the section labels actually
+  // read as title-rank between the `text-xl` dialog title and the
+  // `text-sm` body. At 14px they read as emphasized body text, not
+  // as section titles; 16px gives them their own tier in the
+  // hierarchy.
   return (
-    <section className="flex flex-col gap-1.5">
-      <h4 className="text-sm font-semibold text-text-primary">{label}</h4>
+    <section className="flex flex-col gap-2">
+      <h4 className="text-base font-semibold text-text-primary">{label}</h4>
       {children}
     </section>
   )
@@ -675,10 +679,13 @@ function AiDraftReviewSkeleton() {
 
 function RuleSectionHeading({ children }: { children: React.ReactNode }) {
   // 2026-05-26 (Yuqi /critique — same canonical move as
-  // DetailSection above). Practice review heading now reads at
-  // the same weight as Applicability / Due date / Extension /
-  // Evidence so the action zone doesn't feel buried under meta.
-  return <h4 className="text-sm font-semibold text-text-primary">{children}</h4>
+  // DetailSection above). Practice review heading reads at the
+  // same weight as Applicability / Due date / Extension / Evidence
+  // so the action zone doesn't feel buried under meta.
+  // 2026-05-27 (Yuqi follow-up): bumped `text-sm` → `text-base` —
+  // matches the DetailSection bump, gives every section title in
+  // the rule-detail surfaces a single voice at title-rank size.
+  return <h4 className="text-base font-semibold text-text-primary">{children}</h4>
 }
 
 function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
