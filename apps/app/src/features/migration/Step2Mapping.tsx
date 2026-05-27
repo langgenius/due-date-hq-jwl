@@ -1,12 +1,12 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import {
   Astroid,
   ChevronDownIcon,
   CircleHelpIcon,
   ListChecksIcon,
   RefreshCwIcon,
-  StarIcon,
 } from 'lucide-react'
 
 import {
@@ -44,10 +44,10 @@ import {
   formatMigrationErrorMessage,
   getAlphabetizedMappingTargets,
   useMappingTargetLabels,
+  type MappingTargetLabels,
 } from './mapping-target-labels'
 import { buildMappingSummary } from './migration-summary-view-model'
 import type { MapperState } from './state'
-import { SummaryMetric } from './SummaryMetric'
 
 interface Step2Props {
   mapping: MapperState
@@ -64,14 +64,20 @@ interface Step2Props {
 }
 
 /**
- * Step 2 AI Mapping.
+ * Step 2 — Mapping.
  *
- * The main path is a summary of the AI-prepared draft. The editable column
- * table stays available on demand for advanced review and fallback recovery.
+ * 2026-05-27 (Yuqi banner-row redesign): every mapping row is a single
+ * clickable banner. Tap the row to expand inline samples + data type.
+ * The destination field has an always-visible inline "Change" text link;
+ * confidence is plain text (no traffic-light dots / badges). Rows
+ * needing attention (unmapped / low confidence) float to the top so
+ * the user works the small set before scrolling past the auto-mapped
+ * majority. The old "Review column details" toggle is gone — every
+ * row is already its own review affordance.
  */
 export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRerun }: Step2Props) {
+  const { t } = useLingui()
   const targetLabels = useMappingTargetLabels()
-  const [detailsOpen, setDetailsOpen] = useState(false)
   const summary = buildMappingSummary(mapping.rows, errors ?? [])
   const allIgnoreFallback =
     mapping.status === 'fallback' &&
@@ -85,6 +91,19 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
     onUserEdit(next)
   }
 
+  // Stable indices so onUserEdit dispatch still references the original
+  // mapping.rows position after we sort attention-first for display.
+  const orderedRows = useMemo(() => {
+    return mapping.rows
+      .map((row, idx) => ({ row, idx }))
+      .toSorted((a, b) => {
+        const priorityA = attentionPriority(a.row)
+        const priorityB = attentionPriority(b.row)
+        if (priorityA !== priorityB) return priorityA - priorityB
+        return a.idx - b.idx
+      })
+  }, [mapping.rows])
+
   return (
     <div className="flex flex-col gap-4 py-5">
       <div className="flex flex-col gap-1">
@@ -95,11 +114,8 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           <MappingCapabilityBadge mapping={mapping} />
         </div>
         <div className="flex items-center justify-between gap-3">
-          <p className="text-base text-text-secondary">
-            <Trans>
-              DueDateHQ matched the upload to import fields. Open details only if something looks
-              off.
-            </Trans>
+          <p className="text-sm text-text-secondary tabular-nums">
+            <MappingHeadline summary={summary} status={mapping.status} />
           </p>
           {/* 2026-05-26 (Step 7 onboarding audit F6-14): the
               override-label "Re-run AI with my overrides"
@@ -123,8 +139,6 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           </Button>
         </div>
       </div>
-
-      {mapping.status === 'loading' ? null : <MappingSummaryGrid summary={summary} />}
 
       {mapping.status === 'fallback' ? (
         <Alert variant="destructive" role="alert" aria-live="assertive">
@@ -168,202 +182,401 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
         </Alert>
       ) : null}
 
-      {summary.lowConfidenceColumns > 0 ? (
-        <Alert role="status" aria-live="polite">
-          <AlertTitle>
-            <Plural
-              value={summary.lowConfidenceColumns}
-              one="# column needs review"
-              other="# columns need review"
-            />
-          </AlertTitle>
-          <AlertDescription>
-            <Trans>
-              These columns are still included in the import draft. Open details to adjust them.
-            </Trans>
-          </AlertDescription>
-        </Alert>
-      ) : null}
-
       {errors && errors.length > 0 ? (
         <BadRowsPanel errors={errors} targetLabels={targetLabels} />
       ) : null}
 
       {mapping.status === 'loading' ? (
         <div className="grid gap-2">
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-9 w-3/4" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-full" />
+          <Skeleton className="h-14 w-3/4" />
         </div>
       ) : (
-        <section className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-section p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-medium text-text-primary">
-                <Trans>Column details</Trans>
-              </h3>
-              <p className="text-sm text-text-secondary">
-                <Trans>
-                  The import draft is ready. Details stay available for advanced review.
-                </Trans>
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              aria-expanded={detailsOpen}
-              onClick={() => setDetailsOpen((open) => !open)}
-            >
-              {detailsOpen ? (
-                <Trans>Hide column details</Trans>
-              ) : (
-                <Trans>Review column details</Trans>
-              )}
-              <ChevronDownIcon data-icon="inline-end" />
-            </Button>
-          </div>
-          {detailsOpen ? (
-            <MappingDetailsTable
-              rows={mapping.rows}
-              sampleByHeader={sampleByHeader}
+        <ul
+          aria-label={t`Column mappings`}
+          className="flex flex-col gap-1.5"
+          data-slot="step2-mapping-rows"
+        >
+          {orderedRows.map(({ row, idx }) => (
+            <MappingBannerRow
+              key={row.sourceHeader}
+              row={row}
+              sample={sampleByHeader[row.sourceHeader] ?? null}
               targetLabels={targetLabels}
-              onChange={updateRow}
+              onChange={(target) => updateRow(idx, { targetField: target })}
             />
-          ) : null}
-        </section>
+          ))}
+        </ul>
       )}
     </div>
   )
 }
 
-function MappingSummaryGrid({ summary }: { summary: ReturnType<typeof buildMappingSummary> }) {
+/**
+ * Single-sentence headline that replaces the old 5-tile SummaryMetric grid.
+ *
+ * 2026-05-27 (Yuqi): five tall colored tiles ("Columns used / Ignored /
+ * Confidence / EIN / Exceptions") were the loudest thing on the step and
+ * none of them were what the user needed to act on. Collapsed to one
+ * quiet text-tertiary readout in the step header. The exact counts live
+ * inside each banner row.
+ */
+function MappingHeadline({
+  summary,
+  status,
+}: {
+  summary: ReturnType<typeof buildMappingSummary>
+  status: MapperState['status']
+}) {
+  if (status === 'loading') {
+    return <Trans>Matching your columns to DueDateHQ fields…</Trans>
+  }
+
+  const needsReview = summary.lowConfidenceColumns
+  const ignored = summary.ignoredColumns
+  const mapped = summary.mappedColumns
+
   return (
-    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-      <SummaryMetric
-        label={<Trans>Columns used</Trans>}
-        value={<Plural value={summary.mappedColumns} one="# column" other="# columns" />}
-      />
-      <SummaryMetric
-        label={<Trans>Ignored</Trans>}
-        value={<Plural value={summary.ignoredColumns} one="# column" other="# columns" />}
-      />
-      <SummaryMetric
-        label={<Trans>Confidence</Trans>}
-        value={summary.averageConfidence === null ? '—' : `${summary.averageConfidence}%`}
-      />
-      <SummaryMetric
-        label={<Trans>EIN</Trans>}
-        value={summary.einDetected ? <Trans>Found</Trans> : <Trans>Not found</Trans>}
-      />
-      <SummaryMetric
-        label={<Trans>Exceptions</Trans>}
-        value={
-          <Plural
-            value={summary.lowConfidenceColumns + summary.badRows}
-            _0="None"
-            one="# item"
-            other="# items"
-          />
-        }
-      />
-    </div>
+    <span className="inline-flex flex-wrap items-center gap-x-1.5">
+      <span className="font-medium text-text-primary">
+        <Plural value={mapped} one="# column mapped" other="# columns mapped" />
+      </span>
+      <span aria-hidden className="text-text-tertiary">
+        ·
+      </span>
+      <span className={needsReview > 0 ? 'text-text-primary' : 'text-text-secondary'}>
+        <Plural value={needsReview} _0="0 need review" one="# needs review" other="# need review" />
+      </span>
+      <span aria-hidden className="text-text-tertiary">
+        ·
+      </span>
+      <span className="text-text-secondary">
+        <Plural value={ignored} _0="0 ignored" one="# ignored" other="# ignored" />
+      </span>
+    </span>
   )
 }
 
-function MappingDetailsTable({
-  rows,
-  sampleByHeader,
+/**
+ * Banner row — the new shape of a mapping. Each row is a full-width,
+ * ≥56px tall, click-to-expand banner. The header reads:
+ *
+ *   [Source column]  →  [DueDateHQ field]  [Change →]  [Auto-mapped · 95%]  [▾]
+ *
+ * Expanded body shows: 5 source-value samples + destination data type.
+ */
+function MappingBannerRow({
+  row,
+  sample,
   targetLabels,
   onChange,
 }: {
-  rows: readonly MappingRow[]
-  sampleByHeader: Record<string, string>
-  targetLabels: Record<MappingTarget, string>
-  onChange: (idx: number, patch: Partial<MappingRow>) => void
+  row: MappingRow
+  sample: string | null
+  targetLabels: MappingTargetLabels
+  onChange: (next: MappingTarget) => void
 }) {
-  const { t } = useLingui()
+  const [expanded, setExpanded] = useState(false)
+  const tier = confidenceTier(row.confidence, row.targetField)
+  const needsAttention = tier === 'low' || row.targetField === 'IGNORE'
+  const destinationLabel =
+    row.targetField === 'IGNORE' ? targetLabels.IGNORE : targetLabels[row.targetField]
+  const samples = parseSamples(sample)
 
   return (
-    <div
-      className="overflow-hidden rounded-lg border border-divider-regular"
-      data-slot="step2-column-details"
+    <li
+      className={cn(
+        'overflow-hidden rounded-lg border border-divider-regular bg-background-surface transition-colors',
+        needsAttention && 'border-divider-strong bg-background-section',
+      )}
     >
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[160px]">{t`Your column`}</TableHead>
-            <TableHead aria-hidden className="w-[24px]">
-              →
-            </TableHead>
-            <TableHead className="w-[180px]">{t`DueDateHQ field`}</TableHead>
-            <TableHead className="w-[120px]">{t`Confidence`}</TableHead>
-            <TableHead>{t`Sample`}</TableHead>
-            <TableHead className="w-[88px]" aria-hidden />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((row, idx) => {
-            const tier = confidenceTier(row.confidence, row.targetField)
-            const sample = sampleByHeader[row.sourceHeader] ?? '—'
-            return (
-              <TableRow
-                key={row.sourceHeader}
-                className={cn('h-9', tier === 'low' && 'bg-components-badge-bg-warning-soft')}
-              >
-                <TableCell className="font-medium">{row.sourceHeader}</TableCell>
-                <TableCell aria-hidden className="text-text-tertiary">
-                  →
-                </TableCell>
-                <TableCell className="text-xs font-medium text-text-primary">
-                  <span className="inline-flex items-center gap-1">
-                    {row.targetField === 'IGNORE' ? (
-                      <span className="italic text-text-tertiary">{targetLabels.IGNORE}</span>
-                    ) : (
-                      <>
-                        {targetLabels[row.targetField]}
-                        {row.targetField === 'client.ein' ? (
-                          <StarIcon className="size-3 text-text-accent" aria-label="EIN" />
-                        ) : null}
-                      </>
-                    )}
+      <button
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full min-h-14 items-center gap-3 px-3 py-2 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
+          {row.sourceHeader}
+        </span>
+        <span aria-hidden className="text-sm text-text-tertiary">
+          →
+        </span>
+        <span className="flex min-w-0 flex-1 items-center gap-2">
+          {row.targetField === 'IGNORE' ? (
+            <span className="truncate text-sm italic text-text-tertiary">{destinationLabel}</span>
+          ) : (
+            <span className="truncate text-sm font-medium text-text-primary">
+              {destinationLabel}
+            </span>
+          )}
+          {/* Inline "Change" text link — always visible, no icon. */}
+          <ChangeDestinationLink
+            current={row.targetField}
+            sourceHeader={row.sourceHeader}
+            targetLabels={targetLabels}
+            onChange={onChange}
+          />
+        </span>
+        <ConfidenceText row={row} tier={tier} />
+        <ChevronDownIcon
+          aria-hidden
+          className={cn(
+            'size-4 shrink-0 text-text-tertiary transition-transform',
+            expanded && 'rotate-180',
+          )}
+        />
+      </button>
+      <AnimatePresence initial={false}>
+        {expanded ? (
+          <motion.div
+            key="body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{
+              height: 'auto',
+              opacity: 1,
+              transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] },
+            }}
+            exit={{
+              height: 0,
+              opacity: 0,
+              transition: { duration: 0.16, ease: [0.32, 0.72, 0, 1] },
+            }}
+            className="overflow-hidden border-t border-divider-subtle"
+          >
+            <div className="grid gap-3 px-3 py-3 sm:grid-cols-[1fr_auto]">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
+                  <Trans>Sample values</Trans>
+                </span>
+                {samples.length > 0 ? (
+                  <ul className="flex flex-col gap-0.5 font-mono text-xs tabular-nums text-text-secondary">
+                    {dedupeSamples(samples).map((value) => (
+                      <li key={value} className="truncate">
+                        {value}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-text-tertiary">
+                    <Trans>No sample values available.</Trans>
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5 sm:items-end">
+                <span className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
+                  <Trans>Data type</Trans>
+                </span>
+                <span className="text-xs text-text-secondary">
+                  {destinationDataTypeLabel(row.targetField)}
+                </span>
+                {row.userOverridden ? (
+                  <span className="text-xs text-text-accent">
+                    <Trans>You changed this mapping.</Trans>
                   </span>
-                </TableCell>
-                <TableCell>
-                  {/* Step 9 F-012: when a user overrides the AI mapping
-                      for a row, show "Overridden" chip instead of the
-                      confidence pill so an AI re-run can't silently
-                      clobber their work. (HEAD's name for the badge
-                      is `MappingConfidenceTier`, not `ConfidenceBadge`
-                      which is the name Step 9 used.) */}
-                  {row.userOverridden ? (
-                    <span className="inline-flex h-5 items-center rounded-md border border-state-accent-active-alt bg-state-accent-hover px-1.5 text-xs font-medium uppercase tracking-wide text-text-accent">
-                      <Trans>Overridden</Trans>
-                    </span>
-                  ) : (
-                    <MappingConfidenceTier tier={tier} confidence={row.confidence} />
-                  )}
-                </TableCell>
-                <TableCell className="max-w-[120px] font-mono text-xs tabular-nums wrap-break-word whitespace-normal text-text-secondary">
-                  {sample}
-                </TableCell>
-                <TableCell>
-                  <EditPopover
-                    current={row.targetField}
-                    sourceHeader={row.sourceHeader}
-                    targetLabels={targetLabels}
-                    onChange={(target) => onChange(idx, { targetField: target })}
-                  />
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
-    </div>
+                ) : null}
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </li>
+  )
+}
+
+/**
+ * "Change →" inline text link that opens a dropdown to repick the
+ * destination field. Plain text, no icon — see the design brief.
+ */
+function ChangeDestinationLink({
+  current,
+  sourceHeader,
+  targetLabels,
+  onChange,
+}: {
+  current: MappingTarget
+  sourceHeader: string
+  targetLabels: MappingTargetLabels
+  onChange: (next: MappingTarget) => void
+}) {
+  const alphabetizedTargets = getAlphabetizedMappingTargets(targetLabels)
+
+  function handleValueChange(next: unknown) {
+    const parsed = MappingTargetSchema.safeParse(next)
+    if (parsed.success) onChange(parsed.data)
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            type="button"
+            // Click on the inline "Change" must not toggle the parent
+            // banner's expanded state — that would either dismiss the
+            // dropdown immediately or hide the row body the user just
+            // opened. Stop propagation at the trigger.
+            onClick={(event) => event.stopPropagation()}
+            className="shrink-0 rounded-sm px-1 text-xs font-medium text-text-accent outline-none transition-colors hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <Trans>Change →</Trans>
+          </button>
+        }
+      />
+      <DropdownMenuContent className="w-60" align="end">
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>
+            <Trans>Map &quot;{sourceHeader}&quot; to…</Trans>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
+        <DropdownMenuRadioGroup value={current} onValueChange={handleValueChange}>
+          {alphabetizedTargets.map((target) => (
+            <DropdownMenuRadioItem key={target} value={target} className="text-sm">
+              {targetLabels[target]}
+            </DropdownMenuRadioItem>
+          ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuRadioItem value="IGNORE" className="text-sm">
+            {targetLabels.IGNORE}
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+/**
+ * Confidence rendered as PLAIN TEXT — no dot, no traffic-light badge.
+ * "Auto-mapped · 95%" / "Low match · 62%" / "Overridden" / "Ignored".
+ *
+ * Tone is carried by `text-text-tertiary` vs `text-text-primary`, never
+ * by a colored chip.
+ */
+function ConfidenceText({ row, tier }: { row: MappingRow; tier: Tier }) {
+  if (row.userOverridden) {
+    return (
+      <span className="shrink-0 text-xs text-text-accent tabular-nums">
+        <Trans>Overridden</Trans>
+      </span>
+    )
+  }
+  if (row.targetField === 'IGNORE') {
+    return (
+      <span className="shrink-0 text-xs text-text-tertiary">
+        <Trans>Ignored</Trans>
+      </span>
+    )
+  }
+  if (row.confidence === null) {
+    return (
+      <span className="shrink-0 text-xs text-text-tertiary">
+        <Trans>Unmapped</Trans>
+      </span>
+    )
+  }
+  const pct = Math.round(row.confidence * 100)
+  if (tier === 'low') {
+    return (
+      <span className="shrink-0 text-xs text-text-primary tabular-nums">
+        <Trans>Low match · {pct}%</Trans>
+      </span>
+    )
+  }
+  return (
+    <span className="shrink-0 text-xs text-text-tertiary tabular-nums">
+      <Trans>Auto-mapped · {pct}%</Trans>
+    </span>
   )
 }
 
 type Tier = 'high' | 'medium' | 'low' | 'none'
+
+function confidenceTier(c: number | null, target: MappingTarget): Tier {
+  if (target === 'IGNORE') return 'none'
+  if (c === null) return 'none'
+  if (c >= 0.95) return 'high'
+  if (c >= 0.8) return 'medium'
+  return 'low'
+}
+
+/** Sort key: lower = higher in list. Unmapped + low-confidence float up. */
+function attentionPriority(row: MappingRow): number {
+  if (row.targetField === 'IGNORE') return 2 // ignored mid-pack: not urgent, not "done"
+  if (row.confidence === null) return 0 // unmapped — top priority
+  if (row.confidence < 0.8) return 1 // low confidence — needs review
+  return 3 // auto-mapped, high confidence — quiet
+}
+
+/**
+ * Parse the sample-by-header value (which today is a single string —
+ * the first cell) into up to 5 lines, splitting on `\n` or `, ` so a
+ * pre-joined sample list still renders nicely.
+ */
+function parseSamples(sample: string | null): string[] {
+  if (sample === null || sample === '' || sample === '—') return []
+  const parts = sample
+    .split(/\n|,\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+  return parts.slice(0, 5)
+}
+
+/** Stable key dedupe for the sample list — keeps first occurrence. */
+function dedupeSamples(samples: readonly string[]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const value of samples) {
+    if (seen.has(value)) continue
+    seen.add(value)
+    out.push(value)
+  }
+  return out
+}
+
+/**
+ * Quiet, plain-language data-type hint. Used inside the expanded
+ * banner body. No icons. The goal is to confirm the user's mental
+ * model ("I'm mapping a name field, this expects text").
+ */
+function destinationDataTypeLabel(target: MappingTarget): ReactNode {
+  if (target === 'IGNORE') return <Trans>—</Trans>
+  if (target === 'client.ein') return <Trans>EIN · ##-#######</Trans>
+  if (target === 'client.state') return <Trans>US state code · 2 letters</Trans>
+  if (target === 'client.filing_states') return <Trans>List of US state codes</Trans>
+  if (target === 'client.entity_type') return <Trans>Entity type · enum</Trans>
+  if (target === 'client.tax_types') return <Trans>Tax types · list</Trans>
+  if (target === 'client.postal_code') return <Trans>ZIP / postal code</Trans>
+  if (target === 'client.email' || target === 'client.primary_contact_email') {
+    return <Trans>Email address</Trans>
+  }
+  if (target === 'client.primary_phone') return <Trans>Phone number</Trans>
+  if (target === 'client.fiscal_year_end') return <Trans>Date · MM-DD</Trans>
+  if (target.startsWith('penalty.') && target.endsWith('_count')) {
+    return <Trans>Whole number</Trans>
+  }
+  if (
+    target === 'penalty.tax_due' ||
+    target === 'penalty.payments_and_credits' ||
+    target === 'penalty.gross_receipts' ||
+    target === 'penalty.installments' ||
+    target === 'penalty.wa_subtotal_minus_credits' ||
+    target === 'penalty.tx_prior_year_franchise_tax' ||
+    target === 'penalty.tx_current_year_franchise_tax' ||
+    target === 'penalty.fl_tentative_tax' ||
+    target === 'penalty.ny_ptet_payments' ||
+    target === 'client.estimated_tax_liability'
+  ) {
+    return <Trans>Currency · number</Trans>
+  }
+  if (target === 'penalty.period_start' || target === 'penalty.period_end') {
+    return <Trans>Date · YYYY-MM-DD</Trans>
+  }
+  if (target === 'penalty.annual_report_no_tax_due' || target === 'penalty.ny_ptet_election_made') {
+    return <Trans>Yes / no</Trans>
+  }
+  return <Trans>Free text</Trans>
+}
 
 function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
   const { t } = useLingui()
@@ -421,10 +634,6 @@ function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
       badge={
         // Step 9 F-001/F-014: SparklesIcon → canonical Astroid AI
         // provenance icon. Sparkles reserved for billing/opportunities.
-        // Variant kept at `outline` (HEAD) instead of Step 9's
-        // `destructive` — destructive = red in this design system,
-        // which would falsely flag AI mapping as an error per the
-        // Step 7 audit's similar fix on MappingCapabilityBadge.
         <Badge variant="outline">
           <Astroid data-icon="inline-start" />
           <Trans>AI Mapper</Trans>
@@ -457,80 +666,16 @@ function MappingCapabilityHelp({
               type="button"
               aria-label={label}
               title={title}
-              // 2026-05-25 (info-icon audit recolor): the help
-              // icon's `text-text-destructive` belonged to the
-              // adjacent "Manual mapping" badge, not to the
-              // "click to learn what this means" affordance.
-              // Standardized to the same tertiary-tone hit
-              // area the canonical ConceptHelp uses elsewhere.
-              // The tooltip body keeps its warning tone — that's
-              // the "you should look at this" context, separate
-              // from the icon's calm affordance.
               className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <CircleHelpIcon className="size-3.5" aria-hidden />
             </button>
           }
         />
-        {/* 2026-05-26 (Step 7 onboarding audit F6-12): tooltip
-            body was `text-text-destructive` — applied to every
-            capability state including the success case. Tooltip
-            now uses default body text; the badge variant
-            (destructive vs outline, set by the caller) carries
-            the state signal. */}
         <TooltipContent className="max-w-[280px] whitespace-normal">{children}</TooltipContent>
       </Tooltip>
     </span>
   )
-}
-
-function confidenceTier(c: number | null, target: MappingTarget): Tier {
-  if (target === 'IGNORE') return 'none'
-  if (c === null) return 'none'
-  if (c >= 0.95) return 'high'
-  if (c >= 0.8) return 'medium'
-  return 'low'
-}
-
-function MappingConfidenceTier({ tier, confidence }: { tier: Tier; confidence: number | null }) {
-  if (tier === 'none' || confidence === null) {
-    return <span className="text-xs text-text-tertiary">—</span>
-  }
-  const pct = Math.round(confidence * 100)
-  const styles: Record<Exclude<Tier, 'none'>, string> = {
-    high: 'bg-state-accent-hover-alt text-text-accent border-state-accent-active',
-    medium: 'bg-background-subtle text-text-secondary border-divider-regular',
-    low: 'bg-components-badge-bg-warning-soft text-text-primary border-divider-regular',
-  }
-  // 2026-05-26 (Step 7 onboarding audit F6-10): the bracketed
-  // `[H]/[M]/[L]` tier letter was redundant with the percentage
-  // and color and read as a code label, not a tier signal. A
-  // CPA user already gets the tier from the percent + color;
-  // the letter was duplicate cognitive load. Dropped from the
-  // visual; kept as `title` for hover + AT exposure.
-  const tierTitle: Record<Exclude<Tier, 'none'>, string> = {
-    high: 'High confidence',
-    medium: 'Medium confidence',
-    low: 'Low confidence',
-  }
-  return (
-    <span
-      className={cn(
-        'inline-flex h-5 items-center gap-1 rounded-md border px-1.5 font-mono text-xs tabular-nums',
-        styles[tier],
-      )}
-      title={tierTitle[tier]}
-    >
-      <span>{pct}%</span>
-    </span>
-  )
-}
-
-interface EditPopoverProps {
-  current: MappingTarget
-  sourceHeader: string
-  targetLabels: Record<MappingTarget, string>
-  onChange: (next: MappingTarget) => void
 }
 
 /**
@@ -546,7 +691,7 @@ function BadRowsPanel({
   targetLabels,
 }: {
   errors: MigrationError[]
-  targetLabels: Record<MappingTarget, string>
+  targetLabels: MappingTargetLabels
 }) {
   return (
     <details
@@ -561,15 +706,6 @@ function BadRowsPanel({
           <Trans>Open</Trans>
         </span>
       </summary>
-      {/* 2026-05-26 (Yuqi scrollbar audit): dropped
-          `max-h-[280px] overflow-y-auto`. The bad-rows table
-          was nested inside the WizardShell body's own
-          overflow-y-auto, so capping it forced a second
-          scrollbar 280px tall whenever the list was longer.
-          The whole point of opening the `<details>` is to
-          scan errors — letting them flow into the wizard
-          body's scroll lets the user use one scroll wheel
-          for the whole step. */}
       <div className="border-t border-divider-subtle">
         <Table>
           <TableHeader>
@@ -595,47 +731,5 @@ function BadRowsPanel({
         </Table>
       </div>
     </details>
-  )
-}
-
-function EditPopover({ current, sourceHeader, targetLabels, onChange }: EditPopoverProps) {
-  const alphabetizedTargets = getAlphabetizedMappingTargets(targetLabels)
-
-  // Base UI types `onValueChange` as `(value: any) => void`; validate the
-  // payload at runtime to keep the public API strictly typed.
-  function handleValueChange(next: unknown) {
-    const parsed = MappingTargetSchema.safeParse(next)
-    if (parsed.success) onChange(parsed.data)
-  }
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button variant="ghost" size="xs">
-            <Trans>Edit</Trans>
-            <ChevronDownIcon data-icon="inline-end" />
-          </Button>
-        }
-      />
-      <DropdownMenuContent className="w-60" align="end">
-        <DropdownMenuGroup>
-          <DropdownMenuLabel>
-            <Trans>Map &quot;{sourceHeader}&quot; to…</Trans>
-          </DropdownMenuLabel>
-        </DropdownMenuGroup>
-        <DropdownMenuRadioGroup value={current} onValueChange={handleValueChange}>
-          {alphabetizedTargets.map((target) => (
-            <DropdownMenuRadioItem key={target} value={target} className="text-sm">
-              {targetLabels[target]}
-            </DropdownMenuRadioItem>
-          ))}
-          <DropdownMenuSeparator />
-          <DropdownMenuRadioItem value="IGNORE" className="text-sm">
-            {targetLabels.IGNORE}
-          </DropdownMenuRadioItem>
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }
