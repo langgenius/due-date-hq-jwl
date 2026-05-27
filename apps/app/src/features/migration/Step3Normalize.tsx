@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { AnimatePresence, motion } from 'motion/react'
 import { AlertTriangleIcon, CheckCircle2Icon, ChevronDownIcon, ShieldCheckIcon } from 'lucide-react'
 
 import type { MappingRow } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
-import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -14,7 +14,6 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 
 import type { NormalizeState } from './state'
 import type { MatrixApplicationView } from './matrix-view'
-import { SummaryMetric } from './SummaryMetric'
 import {
   buildMatrixSummary,
   buildNormalizationSummary,
@@ -30,11 +29,17 @@ interface Step3Props {
 }
 
 /**
- * Step 3 now treats normalization as an AI-prepared import draft.
+ * Step 3 renders the AI-prepared import draft as a small set of named
+ * **categories** — Entity types, States, Tax types — each with a hero
+ * count and inline banner rows. Categories auto-open when something
+ * inside needs review and stay collapsed when fully matched, routing
+ * attention without a wall of equal-weight rows.
  *
- * The ordinary path shows grouped outcomes and exceptions. The previous
- * per-value/table controls remain available behind explicit review affordances
- * so large imports do not become one-row-at-a-time cleanup work.
+ * Tax type defaults sit visually one notch up (`bg-background-default`
+ * over the section gray of the value categories) to signal a firm-level
+ * "saved default" lean-back preference vs the lean-in per-row review
+ * above. Per the design brief: no border-stripe or category color
+ * accent is used — elevation/surface tone only.
  */
 export function Step3Normalize({
   normalize,
@@ -43,8 +48,6 @@ export function Step3Normalize({
   mappings,
   onToggleApplyToAll,
 }: Step3Props) {
-  const [valueDetailsOpen, setValueDetailsOpen] = useState(false)
-  const [matrixDetailsOpen, setMatrixDetailsOpen] = useState(false)
   const normalizationSummary = useMemo(
     () =>
       buildNormalizationSummary({
@@ -55,6 +58,10 @@ export function Step3Normalize({
     [mappings, normalize.rows, rawText],
   )
   const matrixSummary = useMemo(() => buildMatrixSummary(matrix), [matrix])
+  const categories = useMemo(
+    () => buildCategories(normalizationSummary.groups),
+    [normalizationSummary.groups],
+  )
 
   return (
     <div className="flex flex-col gap-4 py-5">
@@ -91,83 +98,19 @@ export function Step3Normalize({
         </div>
       ) : (
         <>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            <SummaryMetric
-              label={<Trans>Value groups</Trans>}
-              value={
-                <Plural
-                  value={normalizationSummary.totalGroups}
-                  _0="None"
-                  one="# group"
-                  other="# groups"
-                />
-              }
-            />
-            <SummaryMetric
-              label={<Trans>Ready</Trans>}
-              value={
-                <Plural
-                  value={normalizationSummary.readyGroups}
-                  _0="None"
-                  one="# group"
-                  other="# groups"
-                />
-              }
-            />
-            <SummaryMetric
-              label={<Trans>Needs review</Trans>}
-              value={
-                <Plural
-                  value={normalizationSummary.exceptionGroups}
-                  _0="None"
-                  one="# group"
-                  other="# groups"
-                />
-              }
-            />
-            <SummaryMetric
-              label={<Trans>Clients affected</Trans>}
-              value={
-                <Plural
-                  value={normalizationSummary.affectedExceptionClients}
-                  _0="None"
-                  one="# client"
-                  other="# clients"
-                />
-              }
-            />
-          </div>
-
-          {normalizationSummary.exceptionGroups > 0 ? (
-            <Alert role="status" aria-live="polite">
-              <AlertTitle>
-                <Plural
-                  value={normalizationSummary.exceptionGroups}
-                  one="# value group needs review"
-                  other="# value groups need review"
-                />
-              </AlertTitle>
-              <AlertDescription>
-                <Plural
-                  value={normalizationSummary.affectedExceptionClients}
-                  one="# client is affected by a safe fallback."
-                  other="# clients are affected by safe fallbacks."
-                />
-              </AlertDescription>
-            </Alert>
-          ) : null}
-
-          <ValueGroupsSection
-            groups={normalizationSummary.groups}
-            expanded={valueDetailsOpen}
-            onToggle={() => setValueDetailsOpen((open) => !open)}
+          <SummaryReadout
+            totalValues={countTotalValues(normalizationSummary.groups)}
+            categoryCount={categories.length}
+            needsReview={normalizationSummary.exceptionGroups}
+            affectedClients={normalizationSummary.affectedExceptionClients}
           />
-          <MatrixSummarySection
+
+          <CategoryList categories={categories} />
+
+          <MatrixDefaultsCard
             matrix={matrix}
             summary={matrixSummary}
-            expanded={matrixDetailsOpen}
             applyToAll={normalize.applyToAll}
-            onToggleExpanded={() => setMatrixDetailsOpen((open) => !open)}
             onToggleApplyToAll={onToggleApplyToAll}
           />
         </>
@@ -176,72 +119,193 @@ export function Step3Normalize({
   )
 }
 
-function ValueGroupsSection({
-  groups,
-  expanded,
-  onToggle,
+/**
+ * Quiet one-sentence readout replacing the previous 4-tile
+ * SummaryMetric grid. Numbers are tabular-nums and modest weight —
+ * the hero numbers live inside each category card, not here.
+ */
+function SummaryReadout({
+  totalValues,
+  categoryCount,
+  needsReview,
+  affectedClients,
 }: {
-  groups: readonly NormalizationValueGroup[]
-  expanded: boolean
-  onToggle: () => void
+  totalValues: number
+  categoryCount: number
+  needsReview: number
+  affectedClients: number
 }) {
-  return (
-    <section className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-section p-3">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-medium text-text-primary">
-            <Trans>Cleaned value groups</Trans>
-          </h3>
-          <p className="text-sm text-text-secondary">
-            <Trans>Repeated values are grouped, so large imports stay reviewable.</Trans>
-          </p>
-        </div>
-        {groups.length > 0 ? (
-          <Button variant="outline" size="sm" aria-expanded={expanded} onClick={onToggle}>
-            {expanded ? <Trans>Show fewer groups</Trans> : <Trans>Review all groups</Trans>}
-            <ChevronDownIcon data-icon="inline-end" />
-          </Button>
-        ) : null}
-      </div>
+  if (categoryCount === 0) {
+    return (
+      <p className="text-sm text-text-secondary">
+        <Trans>No values needed cleanup for this import.</Trans>
+      </p>
+    )
+  }
 
-      {groups.length === 0 ? (
-        <p className="text-sm text-text-secondary">
-          <Trans>No values needed cleanup for this import.</Trans>
-        </p>
-      ) : expanded ? (
-        <ul className="flex flex-col divide-y divide-divider-regular">
-          {groups.map((group) => (
-            <ValueGroupRow
-              key={`${group.field}:${group.normalizedValue ?? 'none'}:${group.rawValues.join('|')}`}
-              group={group}
-            />
-          ))}
-        </ul>
-      ) : null}
+  return (
+    <p role="status" aria-live="polite" className="text-sm text-text-secondary tabular-nums">
+      {needsReview > 0 ? (
+        <Trans>
+          <span className="font-medium text-text-primary">{totalValues}</span> values across{' '}
+          <span className="font-medium text-text-primary">{categoryCount}</span> categories ·{' '}
+          <span className="font-medium text-text-warning">{needsReview}</span> need review (
+          <Plural value={affectedClients} one="# client" other="# clients" /> affected)
+        </Trans>
+      ) : (
+        <Trans>
+          <span className="font-medium text-text-primary">{totalValues}</span> values across{' '}
+          <span className="font-medium text-text-primary">{categoryCount}</span> categories · all
+          matched
+        </Trans>
+      )}
+    </p>
+  )
+}
+
+interface NormalizationCategory {
+  field: string
+  groups: NormalizationValueGroup[]
+  totalValues: number
+  needsReview: number
+  totalClients: number
+}
+
+function buildCategories(groups: readonly NormalizationValueGroup[]): NormalizationCategory[] {
+  const byField = new Map<string, NormalizationCategory>()
+  for (const group of groups) {
+    const existing = byField.get(group.field)
+    if (existing) {
+      existing.groups.push(group)
+      existing.totalValues += group.valueCount
+      existing.totalClients += group.affectedClientCount
+      if (group.usesFallback) existing.needsReview += 1
+    } else {
+      byField.set(group.field, {
+        field: group.field,
+        groups: [group],
+        totalValues: group.valueCount,
+        needsReview: group.usesFallback ? 1 : 0,
+        totalClients: group.affectedClientCount,
+      })
+    }
+  }
+
+  return Array.from(byField.values()).toSorted((a, b) => {
+    // Categories needing review float to the top, then by client count.
+    if (a.needsReview > 0 !== b.needsReview > 0) return a.needsReview > 0 ? -1 : 1
+    return b.totalClients - a.totalClients || a.field.localeCompare(b.field)
+  })
+}
+
+function countTotalValues(groups: readonly NormalizationValueGroup[]): number {
+  return groups.reduce((sum, group) => sum + group.valueCount, 0)
+}
+
+function CategoryList({ categories }: { categories: NormalizationCategory[] }) {
+  if (categories.length === 0) return null
+  return (
+    <ul className="flex flex-col gap-2" role="list">
+      {categories.map((category) => (
+        <li key={category.field}>
+          <CategoryCard category={category} />
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function CategoryCard({ category }: { category: NormalizationCategory }) {
+  const { t } = useLingui()
+  // Default: collapsed when nothing needs review, expanded otherwise.
+  // Routes attention to the categories that need a human glance.
+  const [expanded, setExpanded] = useState<boolean>(category.needsReview > 0)
+  const hero = formatCategoryHero(category.field, category.totalValues)
+  const reviewLabel =
+    category.needsReview > 0 ? (
+      <Plural value={category.needsReview} one="# needs review" other="# need review" />
+    ) : (
+      <Trans>all matched</Trans>
+    )
+
+  return (
+    <section
+      className="rounded-lg border border-divider-subtle bg-background-section"
+      aria-label={formatFieldLabel(category.field, t)}
+    >
+      <button
+        type="button"
+        onClick={() => setExpanded((open) => !open)}
+        aria-expanded={expanded}
+        className="flex w-full items-center justify-between gap-3 rounded-lg px-4 py-3 text-left outline-none transition-colors hover:bg-background-section-burn focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <span className="text-2xl font-semibold tabular-nums text-text-primary">
+            {hero.count}
+          </span>
+          <span className="text-sm text-text-secondary">{hero.label}</span>
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+          <span
+            className={cn(
+              'text-sm tabular-nums',
+              category.needsReview > 0 ? 'font-medium text-text-warning' : 'text-text-secondary',
+            )}
+          >
+            {reviewLabel}
+          </span>
+        </div>
+        <ChevronDownIcon
+          className={cn(
+            'size-4 shrink-0 text-text-tertiary transition-transform duration-200',
+            expanded && 'rotate-180',
+          )}
+          aria-hidden
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {expanded ? (
+          <motion.div
+            key="category-body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{
+              height: 'auto',
+              opacity: 1,
+              transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] },
+            }}
+            exit={{
+              height: 0,
+              opacity: 0,
+              transition: { duration: 0.18, ease: [0.32, 0.72, 0, 1] },
+            }}
+            className="overflow-hidden"
+          >
+            <ul className="flex flex-col divide-y divide-divider-subtle border-t border-divider-subtle">
+              {category.groups.map((group) => (
+                <ValueGroupRow
+                  key={`${group.field}:${group.normalizedValue ?? 'none'}:${group.rawValues.join('|')}`}
+                  group={group}
+                />
+              ))}
+            </ul>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </section>
   )
 }
 
 function ValueGroupRow({ group }: { group: NormalizationValueGroup }) {
-  const { t } = useLingui()
   const fallback = group.usesFallback
-
   return (
     <li
       className={cn(
-        'flex flex-col gap-2 py-3',
-        fallback && 'bg-components-badge-bg-warning-soft -mx-3 px-3',
+        'flex flex-col gap-1.5 px-4 py-3',
+        fallback && 'bg-components-badge-bg-warning-soft',
       )}
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
-          {formatFieldLabel(group.field, t)}
-        </span>
-        <span className="text-text-tertiary">·</span>
-        <span className="text-xs text-text-secondary">
-          <Plural value={group.affectedClientCount} one="# client" other="# clients" />
-        </span>
-      </div>
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="font-mono text-xs tabular-nums text-text-primary">
           {formatRawValueList(group.rawValues)}
@@ -249,106 +313,157 @@ function ValueGroupRow({ group }: { group: NormalizationValueGroup }) {
         <span aria-hidden className="text-text-tertiary">
           →
         </span>
-        <span className="inline-flex min-h-7 min-w-[120px] max-w-[260px] items-center rounded-md border border-divider-regular bg-background-body px-2 text-xs text-text-primary">
+        <span className="inline-flex min-h-7 min-w-[120px] max-w-[260px] items-center rounded-md border border-divider-regular bg-background-default px-2 text-xs text-text-primary">
           {formatNormalizedValue(group)}
+        </span>
+        <GroupStatus group={group} />
+      </div>
+      <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary tabular-nums">
+        <span>
+          <Plural value={group.affectedClientCount} one="# client" other="# clients" />
         </span>
         <EvidenceChip
           model={group.model}
           confidence={group.confidence}
           promptVersion={group.promptVersion}
         />
-        <GroupStatus group={group} />
       </div>
     </li>
   )
 }
 
-function MatrixSummarySection({
+/**
+ * Tax-type defaults card. Visually one notch up from category cards
+ * (white `bg-background-default` over their gray `bg-background-section`)
+ * to signal a firm-level "saved default" vs lean-in per-row review.
+ *
+ * Per the design brief: NO border-stripe or accent color is used —
+ * elevation/surface tone only.
+ */
+function MatrixDefaultsCard({
   matrix,
   summary,
-  expanded,
   applyToAll,
-  onToggleExpanded,
   onToggleApplyToAll,
 }: {
   matrix: readonly MatrixApplicationView[]
   summary: ReturnType<typeof buildMatrixSummary>
-  expanded: boolean
   applyToAll: Record<string, boolean>
-  onToggleExpanded: () => void
   onToggleApplyToAll: (key: string, value: boolean) => void
 }) {
-  const { t } = useLingui()
+  const [expanded, setExpanded] = useState<boolean>(summary.reviewCells > 0)
   if (matrix.length === 0) return null
+
+  const reviewLabel =
+    summary.reviewCells > 0 ? (
+      <Plural value={summary.reviewCells} one="# needs review" other="# need review" />
+    ) : (
+      <Trans>all matched</Trans>
+    )
+
+  const headerId = 'matrix-defaults-header'
+  const bodyId = 'matrix-defaults-body'
 
   return (
     <section
       role="group"
-      aria-label={t`Tax type defaults`}
-      className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-section p-3"
+      aria-labelledby={headerId}
+      className="rounded-lg border border-divider-regular bg-background-default"
     >
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-medium text-text-primary">
+      {/*
+        Header is a `div role="button"` not a `<button>` so it can host
+        the `ConceptLabel` (which itself contains a help-popover
+        trigger). Nested `<button>`s would be an a11y/HTML violation.
+        Keyboard handling: Enter / Space toggle expanded, matching
+        native button semantics.
+      */}
+      <div
+        id={headerId}
+        role="button"
+        tabIndex={0}
+        onClick={() => setExpanded((open) => !open)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            setExpanded((open) => !open)
+          }
+        }}
+        aria-expanded={expanded}
+        aria-controls={bodyId}
+        className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg px-4 py-3 text-left outline-none transition-colors hover:bg-background-default-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span className="text-2xl font-semibold tabular-nums text-text-primary">
+              {summary.enabledCells}
+            </span>
             <ConceptLabel concept="defaultMatrix">
-              <Trans>Tax type defaults</Trans>
+              <span className="text-sm text-text-secondary">
+                <Trans>Tax type defaults</Trans>
+              </span>
             </ConceptLabel>
-          </h3>
-          <p className="text-sm text-text-secondary">
-            <Trans>Default tax types are ready for clients without tax types.</Trans>
-          </p>
+            <span aria-hidden className="text-text-tertiary">
+              ·
+            </span>
+            <span
+              className={cn(
+                'text-sm tabular-nums',
+                summary.reviewCells > 0 ? 'font-medium text-text-warning' : 'text-text-secondary',
+              )}
+            >
+              {reviewLabel}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-5 items-center rounded-md border border-divider-subtle bg-background-section px-1.5 text-xs text-text-tertiary">
+              <Trans>Saved as default</Trans>
+            </span>
+            <span className="text-xs tabular-nums text-text-tertiary">
+              <Plural
+                value={summary.clientsCovered}
+                one="# client covered"
+                other="# clients covered"
+              />
+            </span>
+          </div>
         </div>
-        <Button variant="outline" size="sm" aria-expanded={expanded} onClick={onToggleExpanded}>
-          {expanded ? (
-            <Trans>Hide tax type defaults</Trans>
-          ) : (
-            <Trans>Adjust tax type defaults</Trans>
+        <ChevronDownIcon
+          className={cn(
+            'size-4 shrink-0 text-text-tertiary transition-transform duration-200',
+            expanded && 'rotate-180',
           )}
-          <ChevronDownIcon data-icon="inline-end" />
-        </Button>
-      </div>
-
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <SummaryMetric
-          label={<Trans>Suggestions</Trans>}
-          value={<Plural value={summary.enabledCells} one="# group" other="# groups" />}
-        />
-        <SummaryMetric
-          label={<Trans>Clients covered</Trans>}
-          value={<Plural value={summary.clientsCovered} one="# client" other="# clients" />}
-        />
-        <SummaryMetric
-          label={<Trans>State review</Trans>}
-          value={<Plural value={summary.reviewCells} _0="None" one="# group" other="# groups" />}
-        />
-        <SummaryMetric
-          label={<Trans>Disabled</Trans>}
-          value={<Plural value={summary.disabledCells} _0="None" one="# group" other="# groups" />}
+          aria-hidden
         />
       </div>
 
-      {summary.reviewCells > 0 ? (
-        <Alert role="status" aria-live="polite">
-          <AlertTitle>
-            <Plural
-              value={summary.reviewCells}
-              one="# tax type group needs rule review"
-              other="# tax type groups need rule review"
-            />
-          </AlertTitle>
-          <AlertDescription>
-            <Plural
-              value={summary.reviewClients}
-              one="# client will carry state-review context into the preview."
-              other="# clients will carry state-review context into the preview."
-            />
-          </AlertDescription>
-        </Alert>
-      ) : null}
-
-      {expanded ? (
-        <MatrixControls matrix={matrix} applyToAll={applyToAll} onToggle={onToggleApplyToAll} />
-      ) : null}
+      <AnimatePresence initial={false}>
+        {expanded ? (
+          <motion.div
+            id={bodyId}
+            key="matrix-body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{
+              height: 'auto',
+              opacity: 1,
+              transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] },
+            }}
+            exit={{
+              height: 0,
+              opacity: 0,
+              transition: { duration: 0.18, ease: [0.32, 0.72, 0, 1] },
+            }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-divider-subtle">
+              <MatrixControls
+                matrix={matrix}
+                applyToAll={applyToAll}
+                onToggle={onToggleApplyToAll}
+              />
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </section>
   )
 }
@@ -387,13 +502,13 @@ function MatrixControls({
   )
 
   return (
-    <div role="group" aria-label={t`Adjust tax type defaults`} className="flex flex-col gap-2">
-      <ul className="flex flex-col divide-y divide-divider-regular">
+    <div role="group" aria-label={t`Adjust tax type defaults`}>
+      <ul className="flex flex-col divide-y divide-divider-subtle">
         {matrix.map((cell) => {
           const key = `${cell.entityType}::${cell.state}`
           const checked = applyToAll[key] ?? true
           return (
-            <li key={key} className="flex flex-col gap-2 py-3">
+            <li key={key} className="flex flex-col gap-2 px-4 py-3">
               <div className="flex items-center justify-between gap-3">
                 <span className="flex items-center gap-2 text-base text-text-primary">
                   <span className="font-mono text-xs uppercase tracking-wider text-text-tertiary">
@@ -504,6 +619,38 @@ function FallbackStatus({ group }: { group: NormalizationValueGroup }) {
     return <Trans>Using Other</Trans>
   }
   return <Trans>Best match</Trans>
+}
+
+interface CategoryHero {
+  count: number
+  label: ReactNode
+}
+
+/**
+ * Hero number + label per category. The count is rendered as a real
+ * number so JSX can size it `text-2xl font-semibold tabular-nums`
+ * with the supporting label `text-sm text-text-secondary` after.
+ */
+function formatCategoryHero(field: string, totalValues: number): CategoryHero {
+  if (field === 'entity_type') {
+    return {
+      count: totalValues,
+      label: <Plural value={totalValues} one="entity type" other="entity types" />,
+    }
+  }
+  if (field === 'state') {
+    return {
+      count: totalValues,
+      label: <Plural value={totalValues} one="state" other="states" />,
+    }
+  }
+  if (field === 'tax_types') {
+    return {
+      count: totalValues,
+      label: <Plural value={totalValues} one="tax type" other="tax types" />,
+    }
+  }
+  return { count: totalValues, label: field }
 }
 
 function formatFieldLabel(field: string, t: ReturnType<typeof useLingui>['t']): string {

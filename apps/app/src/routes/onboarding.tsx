@@ -14,6 +14,7 @@ import {
 } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Input } from '@duedatehq/ui/components/ui/input'
+import { Label } from '@duedatehq/ui/components/ui/label'
 import { StateRuleActivationSelector } from '@/features/onboarding/state-rule-activation-selector'
 import { type AuthUser } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
@@ -130,14 +131,29 @@ export function OnboardingRoute() {
         </Trans>
       </p>
 
+      {/* 2026-05-27 (Step 7 onboarding audit F5-13 drain): the
+          trust pill used to sit below the Continue CTA. Pill
+          teaches "this is reversible" — Encrypted, saves on
+          continue, renamable later — which is exactly the
+          reassurance a first-time user needs *before* clicking
+          Continue, not after. Moved to sit below the sub-
+          headline (parallels F1-03 on /login). */}
+      <p className="mt-4 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
+        <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
+        <Trans>Encrypted · Saves on continue · Renamable later</Trans>
+      </p>
+
       <form onSubmit={handleSubmit} noValidate className="contents">
         <div className="mt-8 flex flex-col gap-1.5">
-          <label
-            htmlFor="practice-name"
-            className="text-caption font-medium uppercase tracking-eyebrow text-text-secondary"
-          >
+          {/* 2026-05-27 (Step 7 onboarding audit F5-03 / F7-01):
+              dropped the uppercase-tracking-eyebrow treatment in
+              favor of the canonical <Label> primitive used in
+              /practice settings. Same field name reads in two
+              different visual languages between first-run and
+              edit; canonicalizing here unifies the family. */}
+          <Label htmlFor="practice-name">
             <Trans>Practice name</Trans>
-          </label>
+          </Label>
           <Input
             id="practice-name"
             name="name"
@@ -186,12 +202,12 @@ export function OnboardingRoute() {
               consequence that the /practice page already
               mentions. The field still reads as one number, but
               now the user knows what they're choosing. */}
-          <label
-            htmlFor="internal-deadline-offset"
-            className="text-caption font-medium uppercase tracking-eyebrow text-text-secondary"
-          >
+          {/* 2026-05-27 (Step 7 onboarding audit F5-03 / F7-01):
+              canonical <Label> matches /practice "Internal
+              deadline" field. */}
+          <Label htmlFor="internal-deadline-offset">
             <Trans>Internal deadline lead time</Trans>
-          </label>
+          </Label>
           <Input
             id="internal-deadline-offset"
             name="internalDeadlineOffsetDays"
@@ -244,11 +260,9 @@ export function OnboardingRoute() {
           lie — the form only saves on Continue. A first-time user
           reading "Auto-saves" assumes mid-form network drops are
           safe; they aren't. Replaced with "Saves on continue" which
-          truthfully describes the data-loss model. */}
-      <p className="mt-4 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
-        <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
-        <Trans>Encrypted · Saves on continue · Renamable later</Trans>
-      </p>
+          truthfully describes the data-loss model.
+          2026-05-27 (F5-13 drain): moved up to sit below the
+          sub-headline — see comment near the form's open. */}
     </div>
   )
 }

@@ -85,7 +85,6 @@ import {
   DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Field, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
@@ -136,6 +135,7 @@ import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
+import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import {
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
@@ -143,6 +143,7 @@ import {
   useLifecycleV2StatusLabels,
   type ObligationStatus,
 } from '@/features/obligations/status-control'
+import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
 import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
@@ -579,6 +580,29 @@ function renderClientHeaderSubLine({
         </Badge>
       ),
     })
+  } else if (workPlan.filedPaymentOverdueCount > 0) {
+    // 2026-05-27 (phi journey audit J1): the FILING-track version of
+    // anti-pattern #1 ("Filed ≠ Paid"). A client whose every filing is
+    // done but whose payment hasn't cleared used to flow into the
+    // "All on track" bottom-out — a silent green that hid the real
+    // urgency. Priority order: ahead of extensionPaymentDueCount
+    // (which is also anti-pattern #1 but on the extension track) and
+    // "Extended" / "All on track" fall-throughs. Destructive tone
+    // because penalty interest accrues until the wire lands; a
+    // 71-day-overdue payment is NOT amber, it's red.
+    parts.push({
+      id: 'filed-payment-overdue',
+      node: (
+        <Badge variant="destructive" className="text-xs">
+          <AlertTriangleIcon className="size-3" aria-hidden />
+          <span>
+            {workPlan.filedPaymentOverdueCount === 1
+              ? '1 filed — payment overdue'
+              : `${workPlan.filedPaymentOverdueCount} filed — payments overdue`}
+          </span>
+        </Badge>
+      ),
+    })
   } else if (workPlan.extensionPaymentDueCount > 0) {
     parts.push({
       id: 'extension-payment-due',
@@ -946,37 +970,29 @@ export function ClientFactsWorkspace({
         // duplicated header space + forced the user's eye to track both.
         // See `docs/Design/clients-list-and-detail-critique-2026-05-22.md`
         // L-7 for the rationale.
-        // 2026-05-25 (Yuqi /clients fifth pass #5): state cell now
-        // matches the Pulse drawer's jurisdiction pill exactly —
-        // a single rounded-full pill containing the StateBadge SVG
-        // + 2-letter code + full state name ("CA · California").
-        // Primary state gets the full pill; additional states stay
-        // as bare StateBadge motifs so the row width stays bounded
-        // even with multi-state filings. The +N overflow chip on
-        // the tail mirrors the previous behaviour.
+        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
+        // state cell adopts the /deadlines canonical motif (route
+        // obligations.tsx column `clientState`, ~line 2100): leading
+        // `<StateBadge>` SVG + bare 2-letter code in
+        // `text-text-secondary`. Drops the rounded-full pill +
+        // full-state-name redundancy — same fact rendered the same
+        // way across the two workbench tables. Other-state badges
+        // stay as bare StateBadge motifs (compact) with a tail "+N"
+        // overflow chip for clients filing in many jurisdictions.
+        // Empty cell follows /deadlines: bare "—" in tertiary text.
         cell: ({ row }) => {
           const primary = getPrimaryFilingState(row.original)
           if (!primary) {
-            return <EmptyCellMark label={t`No filing state on file`} />
+            return <span className="text-text-tertiary">—</span>
           }
-          const primaryFull = RULE_JURISDICTION_LABELS[primary] ?? null
           const others = getOtherFilingStates(row.original)
           const visibleOthers = others.slice(0, 2)
           const overflow = others.length - visibleOthers.length
-          // 2026-05-26 (Yuqi /clients feedback #5 — "is this the right
-          // badge? MAMassachusetts"): the previous treatment glued
-          // the 2-letter code + full state name with NO separator
-          // — rendered as "MAMassachusetts". The redundancy was also
-          // unnecessary because the leading SVG StateBadge icon
-          // already encodes the state visually. Simplified to just
-          // `[icon] [Full state name]` — readable, no glue, no
-          // redundancy. The 2-letter code only appears on the
-          // overflow / other-states chips that need a compact form.
           return (
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-divider-regular bg-background-default pl-0.5 pr-2 text-xs">
+              <span className="inline-flex items-center gap-1.5 tabular-nums text-text-secondary">
                 <StateBadge code={primary} size="xs" aria-hidden />
-                <span className="font-medium text-text-primary">{primaryFull ?? primary}</span>
+                <span>{primary}</span>
               </span>
               {visibleOthers.map((state) => (
                 <StateBadge key={state} code={state} size="xs" title={state} />
@@ -993,13 +1009,15 @@ export function ClientFactsWorkspace({
           )
         },
         meta: {
-          // 2026-05-25 (Yuqi /clients fifth pass #5): widened
-          // 160px → 220px to fit the primary-state full pill
-          // ("CA · California") at default font-size without
-          // truncating. Other-state SVG-only badges stay compact
-          // on the tail.
-          headerClassName: 'w-[220px]',
-          cellClassName: 'w-[220px]',
+          // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
+          // tightened 220px → 120px now that the cell is
+          // `[StateBadge] [2-letter code]` instead of a full-name pill.
+          // Brings /clients column rhythm in line with /deadlines'
+          // `w-[90px]` state column (slightly wider here only because
+          // /clients also surfaces up to 2 additional-state SVG
+          // badges + the overflow "+N" chip on the same row).
+          headerClassName: 'w-[120px]',
+          cellClassName: 'w-[120px]',
         },
       },
       {
@@ -1255,13 +1273,21 @@ export function ClientFactsWorkspace({
       },
       {
         accessorKey: 'assigneeName',
+        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
+        // column label realigned to /deadlines' "Assignee" (route
+        // obligations.tsx line ~2022 — `header: () => <span>{t`Assignee`}</span>`).
+        // The cell already renders an `<AssigneeAvatar>`-shaped
+        // primitive (`<ClientAssigneeAvatar>`), so the header noun
+        // and the cell motif now agree across both workbench tables.
+        // Note: the underlying RPC field stays `assigneeName`; only
+        // the header copy changed, so the existing client-detail
+        // "Owner" treatment (which sits alongside an editable
+        // assignee pill) and the toolbar filter chip's "Owner" label
+        // remain intact — those surfaces aren't part of this
+        // cross-table column comparison.
         header: () => (
-          // 2026-05-26 (Yuqi macro→micro audit, Fix #7 / §3.3): retired
-          // the uppercase kicker on this header cell; canonical table
-          // headers are sm-medium normal-case (page-family-canonical
-          // §6). Now matches the sibling ColumnSortHeader treatment.
           <span className="text-sm font-medium text-text-secondary">
-            <Trans>Owner</Trans>
+            <Trans>Assignee</Trans>
           </span>
         ),
         cell: ({ row }) => (
@@ -1538,11 +1564,28 @@ export function ClientFactsWorkspace({
               >
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
+                    // 2026-05-27 (Yuqi /clients ↔ /deadlines parity
+                    // refactor): header row drops the primitive's
+                    // default `hover:bg-state-base-hover` — header
+                    // is a non-interactive band, hover affordance
+                    // belongs on data rows. Matches /deadlines
+                    // (route obligations.tsx ~line 3648).
+                    <TableRow key={headerGroup.id} className="hover:bg-transparent">
                       {headerGroup.headers.map((header) => (
+                        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity
+                        // refactor): apply the canonical column-header
+                        // typography (`text-sm font-medium normal-case
+                        // tracking-normal text-text-secondary`) on EVERY
+                        // TableHead so non-sortable columns ("Assignee",
+                        // "Opp.", "Row actions" sr-only) inherit the same
+                        // family as the ColumnSortHeader buttons. Mirrors
+                        // /deadlines (obligations.tsx ~line 3667).
                         <TableHead
                           key={header.id}
-                          className={header.column.columnDef.meta?.headerClassName}
+                          className={cn(
+                            'text-sm font-medium normal-case tracking-normal text-text-secondary',
+                            header.column.columnDef.meta?.headerClassName,
+                          )}
                         >
                           {header.isPlaceholder
                             ? null
@@ -1552,12 +1595,28 @@ export function ClientFactsWorkspace({
                     </TableRow>
                   ))}
                 </TableHeader>
-                {/* 2026-05-25 (GitHub-density pass): row padding py-3 → py-2.
-                    /clients is a long list — saves ~8px per row, ~136px
-                    per viewport at 17 rows. Multi-line names still get
-                    room via the table's line-height; cells visibly tighter
-                    without losing legibility. */}
-                <TableBody className="[&_tr]:border-b-0 [&_td]:py-2">
+                {/* 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
+                    TableBody adopts the canonical /deadlines body chrome:
+                      • `bg-background-default` — solid white body so the
+                        primitive's `bg-background-default/50` alpha that
+                        the OUTER card paints doesn't bleed through row
+                        content
+                      • `[&_td]:text-sm` — body text matches /deadlines'
+                        sm scan-size
+                      • `[&_td]:py-2` — same 8px cell padding (kept from
+                        the previous /clients density pass)
+                      • `[&_tr]:hover:!bg-state-accent-hover` — accent-
+                        tone hover so the row tints with the same color
+                        the optional detail panel would use when opened
+                        (one visual language for "you're about to act on
+                        this row")
+                    The previously-applied `[&_tr]:border-b-0` is removed
+                    so the primitive's default `border-b border-divider-
+                    subtle` (TableRow, packages/ui/.../table.tsx) restores
+                    the row hairlines /deadlines has been shipping. This
+                    is the structural change Yuqi flagged in the brief
+                    ("Missing row dividers between client rows"). */}
+                <TableBody className="bg-background-default [&_td]:py-2 [&_td]:text-sm [&_tr]:hover:!bg-state-accent-hover">
                   {table.getRowModel().rows.length > 0 ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow
@@ -1565,7 +1624,16 @@ export function ClientFactsWorkspace({
                         role="button"
                         tabIndex={0}
                         aria-label={t`Open client detail for ${row.original.name}`}
-                        className="group/row h-14 cursor-pointer outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+                        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity
+                        // refactor): dropped the per-row
+                        // `hover:bg-state-base-hover` so the TableBody-
+                        // level `[&_tr]:hover:!bg-state-accent-hover`
+                        // wins. Focus-visible still uses the base-hover
+                        // tone so keyboard navigation reads as a
+                        // distinct state from mouse hover. Matches
+                        // /deadlines row-styling layering exactly
+                        // (obligations.tsx ~line 3780-3810).
+                        className="group/row h-14 cursor-pointer outline-none focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
                         onClick={(event) => {
                           // ⌘-click (macOS) / Ctrl-click (Win/Linux) opens
                           // the read-only drawer for a quick glance without
@@ -1768,12 +1836,12 @@ function ClientsFilterToolbar({
       />
       <TableHeaderMultiFilter
         trigger="toolbar"
-        label={t`Owner`}
+        label={t`Assignee`}
         options={ownerOptions}
         selected={ownerFilter}
-        emptyLabel={t`No owners`}
+        emptyLabel={t`No assignees`}
         searchable
-        searchPlaceholder={t`Search owners`}
+        searchPlaceholder={t`Search assignees`}
         onSelectedChange={onOwnerFilterChange}
       />
       <Button
@@ -1879,12 +1947,20 @@ function ClientsSearchControl({
   }
   return (
     <div className="relative w-full md:w-56 md:flex-none">
+      {/* 2026-05-27 (Yuqi step-8 data-finding audit — F-X05 sibling
+          on /clients): collapsed magnifier announces "Filter clients"
+          via aria-label above, but the expanded input previously
+          said "Search clients" — same accessible-name drift the
+          /deadlines fix (F-X05) corrected. Aligning to "Filter
+          clients" so screen-reader users hear one control name
+          regardless of collapsed/expanded state. Placeholder still
+          carries the field hint ("name or EIN") for sighted users. */}
       <SearchInput
         ref={inputRef}
         value={value}
         onChange={onChange}
-        placeholder={t`Search by name or EIN`}
-        ariaLabel={t`Search clients`}
+        placeholder={t`Filter by name or EIN`}
+        ariaLabel={t`Filter clients`}
         onFocus={() => onOpenChange(true)}
         onBlur={() => {
           if (value.length === 0) onOpenChange(false)
@@ -1983,9 +2059,13 @@ function ClientsActionStripSkeleton() {
 }
 
 function ClientTableSkeleton() {
+  // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor): skeleton
+  // column widths track the live-table widths exactly so the loading
+  // shimmer doesn't shift the layout when real rows mount. States
+  // column compressed 220 → 120 in lockstep with the live cell.
   const columns = [
     { id: 'client', className: 'w-[240px]', header: 'w-14', cell: 'w-32' },
-    { id: 'states', className: 'w-[220px]', header: 'w-14', cell: 'w-24' },
+    { id: 'states', className: 'w-[120px]', header: 'w-14', cell: 'w-16' },
     { id: 'entity', className: 'w-[110px]', header: 'w-12', cell: 'w-14' },
     { id: 'nextDue', className: 'w-[200px]', header: 'w-16', cell: 'w-28' },
     { id: 'open', className: 'w-[130px]', header: 'w-28', cell: 'w-4' },
@@ -2009,15 +2089,25 @@ function ClientTableSkeleton() {
       aria-busy="true"
     >
       <TableHeader>
-        <TableRow>
+        <TableRow className="hover:bg-transparent">
           {columns.map((column) => (
-            <TableHead key={column.id} className={column.className}>
+            <TableHead
+              key={column.id}
+              className={cn(
+                'text-sm font-medium normal-case tracking-normal text-text-secondary',
+                column.className,
+              )}
+            >
               <Skeleton className={cn('h-3', column.header)} />
             </TableHead>
           ))}
         </TableRow>
       </TableHeader>
-      <TableBody className="[&_tr]:border-b-0 [&_td]:py-2">
+      {/* 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
+          dropped `[&_tr]:border-b-0` so skeleton rows show the same
+          hairlines the live table renders — loading state previews
+          the real structure rather than dissolving the rows. */}
+      <TableBody className="bg-background-default [&_td]:py-2 [&_td]:text-sm">
         {[0, 1, 2, 3, 4].map((row) => (
           <TableRow key={row}>
             {columns.map((column) => (
@@ -2071,6 +2161,7 @@ export function ClientDetailWorkspace({
   // DetailSection collapsible. Sections are flat now, so the "scroll
   // me into view" callback just scrolls — no panel state to toggle.
   const canReadAudit = permission.can('audit.read')
+  const canUpdateObligationStatus = permission.can('obligation.status.update')
   // Body is now a 4-tab structure (Work / Client info / Discover /
   // Activity) — see docs/Design/client-page-information-architecture.md
   // updated 2026-05-22. URL-bound so deep links land on the right tab.
@@ -2163,9 +2254,15 @@ export function ClientDetailWorkspace({
     enabled: canReadAudit,
   })
   const obligations = obligationsQuery.data ?? EMPTY_OBLIGATIONS
+  // 2026-05-27 (D16 — Agent ω, journey-audit drain): anchor the work
+  // plan summary on the firm's "as of" date instead of the browser's
+  // wall clock. Keeps "overdue" / "needs review" / "extension payment
+  // due" counts in sync with the rest of the client surfaces (and
+  // with the server's day-math on the obligations queue).
+  const asOfDate = useFirmAsOfDate()
   const workPlan = useMemo(
-    () => buildClientWorkPlanSummary(obligations, formatDate(new Date().toISOString())),
-    [obligations],
+    () => buildClientWorkPlanSummary(obligations, asOfDate),
+    [obligations, asOfDate],
   )
   const extensionPaymentMismatches = useMemo(
     () => findExtensionWithoutPaymentObligations(obligations),
@@ -2705,6 +2802,7 @@ export function ClientDetailWorkspace({
                   clientName={client.name}
                   onChangeStatus={handleChangeObligationStatus}
                   isStatusChangePending={changeStatusMutation.isPending}
+                  canChangeStatus={canUpdateObligationStatus}
                 />
               </TabsContent>
 
@@ -2982,9 +3080,15 @@ export function ClientDetailWorkspace({
             // the parent's xl:gap-6 so the unused gap doesn't show
             // up as a void on the right edge.
             'xl:w-0 xl:-mr-6',
-            // Open: real width + reset the negative margin so the
-            // gap reappears between left column and panel.
-            activeObligationId && 'xl:w-[600px] xl:mr-0',
+            // 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
+            // open width switched from a fixed 600px to 60% of the
+            // parent flex row so the obligation panel mirrors
+            // PulseDetailDrawer's wrapper (AlertsListPage.tsx L844:
+            // `width: '60%'`). Same proportional split between the
+            // client-facts left column and the obligation drawer on
+            // the right; both right-rail panels in the product now
+            // share one width contract.
+            activeObligationId && 'xl:w-[60%] xl:mr-0',
           )}
         >
           {activeObligationId ? (
@@ -3296,22 +3400,15 @@ function ClientWorkPlanPanel({
   clientName,
   onChangeStatus,
   isStatusChangePending,
+  canChangeStatus,
 }: {
   obligations: readonly ObligationInstancePublic[]
   isLoading: boolean
-  // Kept on the props contract for now; the per-summary counts that
-  // used to render here as warning/outline chips were retired (see
-  // header below). The page-level subtitle already carries the
-  // overdue / on-track signal in tone-coded form.
   summary: ClientWorkPlanSummary
-  // Threaded down to FilingPlanYearSection so each row can render the
-  // canonical status picker (D-6b) and a forward-action button
-  // (D-6a). `clientName` is what ObligationQueueStatusControl uses
-  // for its aria-label so the picker reads "Change status for
-  // Riverbend Draft Client".
   clientName: string
   onChangeStatus: (id: string, status: ObligationStatus) => void
   isStatusChangePending: boolean
+  canChangeStatus: boolean
 }) {
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const { t } = useLingui()
@@ -3366,10 +3463,14 @@ function ClientWorkPlanPanel({
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        const skipped = result.skippedCount
         toast.success(
           vars.ids.length === 1
             ? t`Status changed to ${v2StatusLabels[vars.status]}`
             : t`${result.updatedCount} deadlines moved to ${v2StatusLabels[vars.status]}`,
+          skipped > 0
+            ? { description: t`${skipped} skipped (already closed)` }
+            : undefined,
         )
         clearSelection()
       },
@@ -3401,17 +3502,26 @@ function ClientWorkPlanPanel({
   )
   // 2026-05-24: the Filing plan heading went through TabSection so it
   // sits on the same h2 / subtitle baseline as every other section
-  // header on this client detail page. Subtitle stays factual
-  // ("N deadlines across N tax years") — same wording as the sidebar
-  // and the Deadlines page so it reads as a year-grouped slice of the
-  // same primitive, not a separate concept.
-  const subtitle = (
-    <>
-      <Plural value={obligations.length} one="# deadline" other="# deadlines" />{' '}
-      <Trans>across</Trans>{' '}
-      <Plural value={yearGroups.length} one="# tax year" other="# tax years" />
-    </>
-  )
+  // header on this client detail page.
+  //
+  // 2026-05-26 (audit D4 fix): the subtitle USED to read "N deadlines
+  // across N tax years" — but the SummaryStrip "Open filing" tile
+  // 100 px above already owns the count signal (made canonical in the
+  // 2026-05-24 distill pass that dropped "N open filings" from the
+  // workPlan summary — see `renderClientHeaderSubLine` rationale).
+  // Two counts 100 px apart with slightly-different denominators
+  // (the tile counts non-terminal obligations; the old subtitle
+  // counted ALL obligations including terminal years) forced the
+  // CPA to compute the relationship instead of just reading.
+  // Subtitle now carries only the structural fact — *how* the rows
+  // are grouped, not how many — so the tile stays the single source
+  // of truth. See `docs/Design/ui-audit-2026-05-25.md` §3.2 D4.
+  const subtitle =
+    yearGroups.length <= 1 ? (
+      <Trans>Latest first</Trans>
+    ) : (
+      <Trans>Grouped by tax year, newest first</Trans>
+    )
   return (
     <TabSection title={t`Filing plan`} summary={subtitle}>
       {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 3): each year
@@ -3457,6 +3567,7 @@ function ClientWorkPlanPanel({
                 onOpen={(obligationId) => openObligationDrawer(obligationId)}
                 onChangeStatus={onChangeStatus}
                 isStatusChangePending={isStatusChangePending}
+                canChangeStatus={canChangeStatus}
               />
             ))}
           </div>
@@ -3615,6 +3726,7 @@ function FilingPlanYearSection({
   onOpen,
   onChangeStatus,
   isStatusChangePending,
+  canChangeStatus,
 }: {
   group: FilingPlanYearGroup
   clientName: string
@@ -3626,6 +3738,7 @@ function FilingPlanYearSection({
   onOpen: (obligationId: string) => void
   onChangeStatus: (id: string, status: ObligationStatus) => void
   isStatusChangePending: boolean
+  canChangeStatus: boolean
 }) {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -3915,14 +4028,36 @@ function FilingPlanYearSection({
               <span className="w-[120px] text-xs leading-4 tabular-nums text-text-primary">
                 {formatDate(obligation.filingDueDate ?? obligation.currentDueDate)}
               </span>
-              <span className="w-[120px]">
+              <span className="flex w-[120px] flex-wrap items-center gap-1">
                 <ObligationQueueStatusControl
                   row={{ id: obligation.id, status: obligation.status, clientName }}
                   labels={statusPickerLabels}
                   statuses={LIFECYCLE_V2_STATUSES}
                   disabled={isStatusChangePending}
                   onChange={onChangeStatus}
+                  readOnly={!canChangeStatus}
                 />
+                {/* 2026-05-27 (phi journey audit J1): payment-overdue
+                    chip. A row that's Filed but whose paymentDueDate
+                    has slipped used to read as "Filed" with no
+                    additional cue in the filing-plan grid — the only
+                    surface that flagged this was the obligation drawer's
+                    Payment due tile, four clicks deep. Now: a small
+                    red chip next to the Filed pill names the lateness
+                    inline. Renders compactly ("Payment 71d late") so
+                    the Status column doesn't blow out width-wise. */}
+                {(() => {
+                  const overdueDays = paymentOverdueDays(obligation, Date.now())
+                  if (overdueDays === null) return null
+                  return (
+                    <span
+                      title={t`The filing was submitted, but the authority payment due ${formatDate(obligation.paymentDueDate ?? '')} hasn't been confirmed yet. Penalty interest accrues until the wire lands.`}
+                      className="rounded-sm bg-state-destructive-hover px-1 py-0 text-caption-xs font-medium leading-4 text-text-destructive"
+                    >
+                      <Trans>Payment {overdueDays}d late</Trans>
+                    </span>
+                  )
+                })()}
               </span>
               {/* 2026-05-26 (Yuqi feedback #8): Estimated Tax cell
                   dropped with the column. Inline tax figure now
@@ -4163,7 +4298,12 @@ function ClientActivityPanel({
       <EmptyState
         icon={ClipboardCheckIcon}
         title={<Trans>Audit access is role-gated</Trans>}
-        description={<Trans>Owners, managers, and preparers can inspect client activity.</Trans>}
+        description={
+          // Audit-drain ρ ROH-D5-clients (2026-05-27): added "partners"
+          // to match `FIRM_PERMISSION_ROLES['audit.read']`. Same drift
+          // as the `/audit` route description.
+          <Trans>Owners, partners, managers, and preparers can inspect client activity.</Trans>
+        }
       />
     )
   }
@@ -4612,7 +4752,7 @@ function ClientFactChecklist({
       />
       <FactCheckRow
         isComplete={Boolean(client.assigneeName)}
-        label={<Trans>Owner</Trans>}
+        label={<Trans>Assignee</Trans>}
         detail={<Trans>Keeps deadline follow-up accountable.</Trans>}
       />
     </div>
@@ -5011,43 +5151,45 @@ function ClientOwnerHeaderPill({
               </span>
             </DropdownMenuRadioItem>
           ) : null}
-          {assignableMembers.length > 0 ? <DropdownMenuSeparator /> : null}
-          {assignableMembers.length === 0 ? (
-            // Empty-state row. Disabled + muted so it doesn't read as
-            // a tappable option, but with enough context that the user
-            // knows why the list is empty + where to fix it. Without
-            // the hint the row reads as "0 results" with no path
-            // forward.
-            <DropdownMenuItem
-              disabled
-              title={t`Invite teammates from Settings → Members to assign work`}
-            >
-              <span className="text-text-tertiary">
-                <Trans>No teammates yet — invite from Settings</Trans>
-              </span>
-            </DropdownMenuItem>
-          ) : (
-            assignableMembers.map((member) => {
-              const memberTint = getAssigneeTint(member.name)
-              const isCurrentUser =
-                currentUserName !== null &&
-                member.name.trim().toLowerCase() === currentUserName.toLowerCase()
-              return (
-                <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
-                  <span
-                    className={cn(
-                      'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-                      isCurrentUser ? 'bg-state-accent-hover-alt text-text-accent' : memberTint,
-                    )}
-                  >
-                    {initialsFromName(member.name)}
-                  </span>
-                  <span className="truncate">{member.name}</span>
-                </DropdownMenuRadioItem>
-              )
-            })
-          )}
+          {/* 2026-05-27 (Yuqi runtime error fix "Route failed: Base UI:
+              MenuGroupContext is missing"): empty-state `DropdownMenuItem`
+              was nested inside the RadioGroup — Base UI strict-mode
+              requires RadioGroup children to all be RadioItems. The
+              Separator + empty-state Item now live OUTSIDE the
+              RadioGroup. Member RadioItems stay inside. */}
+          {assignableMembers.map((member) => {
+            const memberTint = getAssigneeTint(member.name)
+            const isCurrentUser =
+              currentUserName !== null &&
+              member.name.trim().toLowerCase() === currentUserName.toLowerCase()
+            return (
+              <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
+                <span
+                  className={cn(
+                    'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
+                    isCurrentUser ? 'bg-state-accent-hover-alt text-text-accent' : memberTint,
+                  )}
+                >
+                  {initialsFromName(member.name)}
+                </span>
+                <span className="truncate">{member.name}</span>
+              </DropdownMenuRadioItem>
+            )
+          })}
         </DropdownMenuRadioGroup>
+        {assignableMembers.length === 0 ? (
+          // Empty-state row. Disabled + muted so it doesn't read as
+          // a tappable option, but with enough context that the user
+          // knows why the list is empty + where to fix it.
+          <DropdownMenuItem
+            disabled
+            title={t`Invite teammates from Settings → Members to assign work`}
+          >
+            <span className="text-text-tertiary">
+              <Trans>No teammates yet — invite from Settings</Trans>
+            </span>
+          </DropdownMenuItem>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   )

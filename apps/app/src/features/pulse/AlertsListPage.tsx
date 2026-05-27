@@ -40,6 +40,7 @@ import {
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { StateBadge } from '@/components/primitives/state-badge'
+import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { StatusBanner } from '@/components/patterns/status-banner'
@@ -298,14 +299,26 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
             // alert card.
             'flex h-full min-h-0 flex-col gap-6'
           : panelOpen
-            ? // 2026-05-26 (Yuqi seventy-fourth pass — canonical
-              // container padding): aligned to the same shape as
-              // /today + /clients + /rules/library. Was `gap-4
-              // p-3 md:p-4`; now `gap-6 px-4 pt-6 pb-4 md:px-6
-              // md:pt-8 md:pb-6` (panel-open variant keeps the
-              // wider max-w cap so the right panel has room).
-              'mx-auto flex h-full min-h-0 w-full max-w-page-expanded flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
-            : 'mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
+            ? // 2026-05-26 (audit P0 #10 — width unified, height
+              // still panel-aware): panel-open branch keeps `h-full
+              // min-h-0` so the split-column wrapper can manage its
+              // own scroll bounds. The MAX-WIDTH alone was the
+              // audit's complaint ("layout jumps left ~80 px when
+              // an alert is clicked") — that's now fixed by holding
+              // `max-w-[1440px]` in both panel states. Height
+              // handling stays panel-aware: auto-height when the
+              // list stands alone (route shell's natural scroll),
+              // fixed-height when the panel is open (split-column
+              // owns scroll inside its own bounds, no double-scroll).
+              'mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
+            : // 2026-05-26 (audit P0 #10 — width unified): list-only
+              // branch promoted from `max-w-page-wide` (1100px) to
+              // `max-w-[1440px]` to eliminate the 80px page-shift
+              // on every alert click. List-only at 1440 has extra
+              // horizontal whitespace versus 1100 — breathing room
+              // around the alert cards, smaller cost than the
+              // constant left-shift jolt.
+              'mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
       }
     >
       {!embedded ? (
@@ -345,6 +358,11 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
           description={t`Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes.`}
           actions={
             <>
+              {/* 2026-05-27 (Step 6 UX flows audit H1.4): shortcut
+                  discoverability chip for /alerts toolbar. Pulse has
+                  J/K row nav (per AlertsListPage hotkeys) but `?` was
+                  undiscoverable. */}
+              <ShortcutHintChip className="hidden md:inline-flex" />
               <Button
                 variant="outline"
                 size="sm"
@@ -379,9 +397,20 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
           <AlertDescription>
             {rpcErrorMessage(alertsQuery.error) ??
               t`Check your network and try again. If this keeps happening, contact support.`}{' '}
-            <button type="button" className="underline" onClick={() => void alertsQuery.refetch()}>
+            {/* 2026-05-27 (σ cross-route audit D5): raw underline button
+                → canonical `<Button variant="link">`. Dashboard /
+                clients / obligations Retry buttons all use this exact
+                shape; pulse was the only surface with a hand-rolled
+                underline (no focus-visible ring, no accent color). */}
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto p-0 align-baseline"
+              onClick={() => void alertsQuery.refetch()}
+            >
               <Trans>Retry</Trans>
-            </button>
+            </Button>
           </AlertDescription>
         </Alert>
       ) : null}

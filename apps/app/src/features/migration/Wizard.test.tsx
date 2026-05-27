@@ -171,7 +171,12 @@ describe('Migration Wizard RPC flow', () => {
     await clickButton('Continue')
     await waitForText('AI standardized your values')
 
-    expect(document.body.textContent).toContain('Value groups')
+    // 2026-05-27 (Yuqi #step3 normalize redesign): Step 3 swapped the
+    // 4-tile SummaryMetric grid ("Value groups", "Ready", etc.) for
+    // a single quiet readout and per-category cards. The wizard-level
+    // smoke test now asserts the readout phrasing and the tax-type
+    // defaults card label.
+    expect(document.body.textContent).toContain('values across')
     expect(document.body.textContent).toContain('Tax type defaults')
 
     await clickButton('Continue')
@@ -243,7 +248,12 @@ describe('Migration Wizard RPC flow', () => {
     expect(document.body.textContent).not.toContain('No state match')
     expect(document.body.textContent).not.toContain('[]')
 
-    await clickButton('Review all groups')
+    // 2026-05-27 (Yuqi #step3 normalize redesign): the single "Review
+    // all groups" button is gone — each category card (State, Tax
+    // types) collapses/expands independently. Expand both to verify
+    // the repaired values surface inside.
+    await clickButton('state')
+    await clickButton('tax type')
 
     expect(document.body.textContent).toContain('CA')
     expect(document.body.textContent).toContain('federal_990')

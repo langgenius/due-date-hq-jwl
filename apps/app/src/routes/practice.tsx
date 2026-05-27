@@ -181,6 +181,13 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   )
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  // 2026-05-27 (step-6 audit #107): destructive primary used to fire
+  // on a single click — a misclick could soft-delete the practice
+  // before the user could react. Gate behind a typed-name confirm
+  // matching the well-known GitHub / Linear / Vercel pattern. The
+  // input is cleared every time the dialog closes so a re-open
+  // starts from a clean state.
+  const [deleteConfirmName, setDeleteConfirmName] = useState('')
   const [savedPriorityProfile, setSavedPriorityProfile] = useState(() =>
     clonePriorityProfile(initialPriorityProfile),
   )
@@ -271,7 +278,13 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     event.preventDefault()
     const trimmed = name.trim()
     if (trimmed.length < 2) {
-      const message = t`Please enter at least 2 characters.`
+      // 2026-05-27 (step-6 audit #108): boilerplate form-validation
+      // copy → CPA-tuned framing. The practice name is the firm's
+      // display name across all member surfaces, audit log, and
+      // hosted billing — leading with "your firm's display name"
+      // anchors the user instead of reading like generic input
+      // validation.
+      const message = t`Practice name needs at least 2 characters — this is your firm's display name across DueDateHQ.`
       setError(message)
       toast.error(t`Couldn't update practice`, {
         description: message,
@@ -347,8 +360,18 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     priorityProfile.historyCapCount >= MIN_HISTORY_CAP_COUNT &&
     priorityProfile.historyCapCount <= MAX_HISTORY_CAP_COUNT
   const priorityDirty = !samePriorityProfile(priorityProfile, savedPriorityProfile)
-  const previewDisabledReason =
-    firm.openObligationCount === 0 ? t`No open deadlines available for preview.` : null
+  // 2026-05-27 (step-6 audit #110): the preview button is disabled
+  // for two distinct reasons — (1) no open deadlines to score against
+  // or (2) the current weights/ranges don't pass validation. Before
+  // this change the tooltip only surfaced reason (1), so a user with
+  // a weight total of 105% saw a disabled button and no explanation.
+  // Surface whichever reason currently blocks the action, with
+  // invalid weights taking precedence (the user just changed it).
+  const previewDisabledReason = !priorityValid
+    ? t`Fix the Smart Priority inputs above before previewing — weights must total 100% and ranges must be valid.`
+    : firm.openObligationCount === 0
+      ? t`No open deadlines available for preview.`
+      : null
   const currentPlan =
     firm.plan === 'firm'
       ? t`Enterprise`
@@ -477,6 +500,17 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   Changing this recalculates current deadline dates.
                 </Trans>
               </p>
+              {/* 2026-05-27 (step-6 audit #113): make the one-way
+                  nature of the change explicit. Reducing the offset
+                  recalculates every open deadline forward; reverting
+                  the number doesn't restore the prior dates. Audit
+                  history (the historical record) is unaffected. */}
+              <p className="text-xs leading-5 text-text-warning">
+                <Trans>
+                  Note: changes can't be reverted automatically — adjusting this back later won't
+                  restore prior deadline dates. Historical audit entries stay intact.
+                </Trans>
+              </p>
             </div>
             {error ? (
               <p role="alert" className="text-sm text-text-destructive">
@@ -544,6 +578,26 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                     <Trans>Total</Trans> {weightTotal}%
                   </span>
                 </div>
+                {/* 2026-05-27 (step-6 audit #109): when the four
+                    weights don't sum to 100 the previous shape only
+                    showed the destructive-color "Total NNN%" pill,
+                    leaving the user to guess by how much to nudge.
+                    Spell out the delta and the direction so the fix
+                    is mechanical: "Reduce factors by 5% to balance"
+                    or "Add 5% across factors to balance". */}
+                {weightTotal !== 100 ? (
+                  <p className="text-xs leading-5 text-text-destructive">
+                    {weightTotal > 100 ? (
+                      <Trans>
+                        Reduce factors by {weightTotal - 100}% to balance. Weights must total 100%.
+                      </Trans>
+                    ) : (
+                      <Trans>
+                        Add {100 - weightTotal}% across factors to balance. Weights must total 100%.
+                      </Trans>
+                    )}
+                  </p>
+                ) : null}
                 <div className="grid gap-3 md:grid-cols-4">
                   {PRIORITY_FACTOR_KEYS.map((key) => (
                     <div key={key} className="grid gap-1.5">
@@ -691,6 +745,16 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             variant="destructive-secondary"
             onClick={() => setConfirmDelete(true)}
             disabled={!canDeletePractice || deleteMutation.isPending}
+            // Audit-drain ρ ROH-D13 (2026-05-27): the Delete button
+            // was silently disabled for any non-owner role — no
+            // tooltip explained why the destructive action was
+            // greyed out. Added the same `title` pattern used by
+            // the dashboard Import button so the user sees "owner
+            // permission required" on hover. The card title +
+            // description already explain WHAT the action does;
+            // this fills in WHO can do it.
+            title={canDeletePractice ? undefined : t`Deleting the practice requires owner access.`}
+            aria-label={canDeletePractice ? undefined : t`Delete practice (owner access required)`}
           >
             <Trash2Icon className="size-4" aria-hidden />
             <Trans>Delete practice</Trans>
@@ -698,7 +762,15 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
         </CardContent>
       </Card>
 
-      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+      <AlertDialog
+        open={confirmDelete}
+        onOpenChange={(open) => {
+          setConfirmDelete(open)
+          // Reset the typed-confirm input every time the dialog closes
+          // so a re-open never starts pre-confirmed.
+          if (!open) setDeleteConfirmName('')
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -711,6 +783,28 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
               </Trans>
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {/* 2026-05-27 (step-6 audit #107): typed-name confirm. The
+              user must type the exact practice name before the
+              destructive action enables. The expected name is
+              displayed verbatim so the user can copy-confirm rather
+              than guess casing/spacing. */}
+          <div className="grid gap-1.5">
+            <Label htmlFor="delete-practice-confirm">
+              <Trans>
+                Type <span className="font-mono text-text-primary">{firm.name}</span> to confirm
+              </Trans>
+            </Label>
+            <Input
+              id="delete-practice-confirm"
+              value={deleteConfirmName}
+              onChange={(event) => setDeleteConfirmName(event.target.value)}
+              autoComplete="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              disabled={deleteMutation.isPending}
+              placeholder={firm.name}
+            />
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>
               <Trans>Cancel</Trans>
@@ -718,7 +812,11 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             <AlertDialogAction
               variant="destructive-primary"
               onClick={() => deleteMutation.mutate(undefined)}
-              disabled={!canDeletePractice || deleteMutation.isPending}
+              disabled={
+                !canDeletePractice ||
+                deleteMutation.isPending ||
+                deleteConfirmName.trim() !== firm.name
+              }
             >
               <Trans>Delete practice</Trans>
             </AlertDialogAction>

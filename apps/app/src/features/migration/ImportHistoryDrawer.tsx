@@ -227,12 +227,16 @@ export function ImportHistoryDrawer({
             {!batchesQuery.isLoading && batches.length > 0 ? (
               <div className="grid gap-4">
                 {!canRevertMigration && hasRevertibleBatch ? (
+                  // ρ ROH-D8: dropped the stale override copy ("Only
+                  // owners and managers…") so the default
+                  // PermissionInlineNotice body derives the required-role
+                  // text from FIRM_PERMISSION_ROLES['migration.revert'].
+                  // ψ ROH-D11's helper-driven override is therefore
+                  // redundant here — the default already covers it.
                   <PermissionInlineNotice
                     permission="migration.revert"
                     currentRole={permission.firm?.role}
-                  >
-                    <Trans>Only owners and managers can undo migration imports.</Trans>
-                  </PermissionInlineNotice>
+                  />
                 ) : null}
                 {batches.map((batch) => {
                   const canRevertBatch = canRevertMigration && isBatchRevertible(batch)
@@ -260,9 +264,28 @@ export function ImportHistoryDrawer({
                             <Trans>Applied</Trans>:{' '}
                             {formatMigrationDate(batch.appliedAt, practiceTimezone)}
                           </span>
-                          <span>
-                            <Trans>Revert until</Trans>:{' '}
-                            {formatMigrationDate(batch.revertExpiresAt, practiceTimezone)}
+                          <span className="flex flex-col gap-0.5">
+                            <span>
+                              <Trans>Revert until</Trans>:{' '}
+                              {formatMigrationDate(batch.revertExpiresAt, practiceTimezone)}
+                            </span>
+                            {/* 2026-05-27 (Step 7 onboarding audit
+                                F6-21): static `Revert until: <timestamp>`
+                                was the only undo cue on the drawer
+                                — the user had to mentally diff the
+                                timestamp against "now". Step 4's
+                                pre-import promise says "can be
+                                undone for 24 hours"; this is the
+                                post-import realisation of that
+                                promise. Added a live "Undo expires
+                                in Xh Ym" that ticks once a minute
+                                so the user can see the window
+                                shrinking. The Revert button below
+                                already disables on expiry. */}
+                            <RelativeUndoCountdown
+                              revertExpiresAt={batch.revertExpiresAt}
+                              status={batch.status}
+                            />
                           </span>
                         </div>
                         <BatchClients
@@ -421,6 +444,53 @@ export function ImportHistoryDrawer({
         </AlertDialogContent>
       </AlertDialog>
     </>
+  )
+}
+
+/**
+ * Live "Undo expires in Xh Ym" countdown.
+ *
+ * Renders nothing if the batch isn't in a revertible state, has no
+ * expiry, or the window has already closed (the Revert button below
+ * already handles those by being disabled). Ticks every 60s so the
+ * value stays fresh without thrashing on a busy drawer.
+ *
+ * Step 7 onboarding audit F6-21.
+ */
+function RelativeUndoCountdown({
+  revertExpiresAt,
+  status,
+}: {
+  revertExpiresAt: string | null
+  status: MigrationBatch['status']
+}) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (status !== 'applied' || !revertExpiresAt) return undefined
+    const id = window.setInterval(() => setNow(Date.now()), 60_000)
+    return () => window.clearInterval(id)
+  }, [revertExpiresAt, status])
+
+  if (status !== 'applied' || !revertExpiresAt) return null
+  const remainingMs = Date.parse(revertExpiresAt) - now
+  if (Number.isNaN(remainingMs) || remainingMs <= 0) return null
+
+  const remainingMinutesTotal = Math.floor(remainingMs / 60_000)
+  const hours = Math.floor(remainingMinutesTotal / 60)
+  const minutes = remainingMinutesTotal % 60
+
+  return (
+    <span className="text-xs text-text-tertiary tabular-nums">
+      {hours > 0 ? (
+        <Trans>
+          Undo expires in {hours}h {minutes}m
+        </Trans>
+      ) : minutes > 0 ? (
+        <Trans>Undo expires in {minutes}m</Trans>
+      ) : (
+        <Trans>Undo expires in &lt;1m</Trans>
+      )}
+    </span>
   )
 }
 

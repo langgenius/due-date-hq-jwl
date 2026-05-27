@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans } from '@lingui/react/macro'
-import { HistoryIcon } from 'lucide-react'
+import { HistoryIcon, RadioTowerIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -68,11 +68,23 @@ export function RulesPulseRoute() {
   //     count chips across the app shell.
   //   • Alert count chip (only when > 0): destructive-toned pill
   //     so an active queue reads with appropriate urgency.
+  // 2026-05-27 (Yuqi IA pass — disambiguate monitoring vs alerts):
+  // the two sibling chips were reading as peers but carry different
+  // meanings — "Monitoring N sources" is the always-on watcher
+  // signal (how many federal/state feeds we're tailing); the bare
+  // "4" alert pill is the actionable queue ("4 alerts open right
+  // now"). They looked alike enough that Yuqi flagged the
+  // relationship as opaque. Fix: the alert pill is now explicit
+  // ("N active") and keeps its destructive tone, while the
+  // monitoring chip stays neutral. Two distinct shapes / two
+  // distinct meanings — one passive surveillance, one active
+  // queue. The destructive-toned chip with a count + literal word
+  // "active" reads instantly as "you have work."
   const titleNode = (
     <span className="inline-flex items-center gap-2">
       <Trans>Alerts</Trans>
       {monitoringCount > 0 ? (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium text-text-secondary">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
           <PulsingDot tone="success" active className="size-1.5" />
           <Trans>
             Monitoring <Plural value={monitoringCount} one="# source" other="# sources" />
@@ -80,8 +92,11 @@ export function RulesPulseRoute() {
         </span>
       ) : null}
       {alertCount > 0 ? (
-        <span className="rounded-full bg-state-destructive-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-destructive">
-          {alertCount}
+        <span className="inline-flex items-center gap-1 rounded-full bg-state-destructive-hover px-2 py-0.5 text-xs font-medium text-text-destructive">
+          <span className="tabular-nums">{alertCount}</span>
+          <span>
+            <Trans>active</Trans>
+          </span>
         </span>
       ) : null}
     </span>
@@ -129,9 +144,16 @@ export function RulesPulseRoute() {
       //     difference.
       //   • `!important` retained on pb-0 since the underlying
       //     shell pads pb-4 md:pb-6 by default.
+      // 2026-05-27 (Yuqi feedback "这个不能一整个horizontal scroll"):
+      // dropped `min-w-[1440px]` when panel is open. That forced the
+      // whole page wider than the viewport on anything under 1440px
+      // (Yuqi's review viewport was 1469×992 — only 29px above the
+      // floor, and any sidebar collapse / dpr quirk pushed it over).
+      // The two columns (list + drawer) now share whatever width the
+      // viewport offers; each column scrolls vertically on its own.
       contentClassName={cn(
-        'transition-[max-width,min-width,padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
-        panelOpen ? 'max-w-page-expanded min-w-[1440px] !pb-0 md:!pb-0' : 'max-w-page-wide min-w-0',
+        'transition-[max-width,padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
+        panelOpen ? 'max-w-page-expanded !pb-0 md:!pb-0' : 'max-w-page-wide',
       )}
       actions={
         // 2026-05-27 (Yuqi header unification pass): reverted from
@@ -144,15 +166,36 @@ export function RulesPulseRoute() {
         // The earlier "quieter than the title" rationale still
         // applies, but outline already satisfies it without
         // collapsing into pure text.
-        <Button
-          nativeButton={false}
-          variant="outline"
-          size="sm"
-          render={<Link to="/rules/pulse/history" />}
-        >
-          <HistoryIcon data-icon="inline-start" />
-          <Trans>Alert history</Trans>
-        </Button>
+        // 2026-05-27 (Yuqi IA pass — Sources affordance): the
+        // monitoring chip in the title declares "we're watching N
+        // sources" but there was no way to navigate to the source
+        // catalog from this page. Added a Sources button alongside
+        // Alert history so the CPA can jump straight to
+        // /rules/sources (manage, pause, add a source) from the
+        // alert surface. Both buttons are outline variants — sibling
+        // navigations of equal weight. Sources sits first since
+        // "what we're watching" is the upstream of "what we
+        // surfaced."
+        <>
+          <Button
+            nativeButton={false}
+            variant="outline"
+            size="sm"
+            render={<Link to="/rules/sources" />}
+          >
+            <RadioTowerIcon data-icon="inline-start" />
+            <Trans>Sources</Trans>
+          </Button>
+          <Button
+            nativeButton={false}
+            variant="outline"
+            size="sm"
+            render={<Link to="/rules/pulse/history" />}
+          >
+            <HistoryIcon data-icon="inline-start" />
+            <Trans>Alert history</Trans>
+          </Button>
+        </>
       }
     >
       <PulseChangesTab embedded />

@@ -14,7 +14,13 @@ export class BillingPage {
   readonly proPlanLink: Locator
 
   constructor(readonly page: Page) {
-    this.checkoutHeading = page.getByRole('heading', { name: 'Confirm checkout', level: 1 })
+    // 2026-05-27 (F8-01): heading promoted from static "Confirm checkout"
+    // to dynamic "Confirm {Plan} {monthly|yearly} checkout". Regex covers
+    // both the old and the new forms so the locator works across builds.
+    this.checkoutHeading = page.getByRole('heading', {
+      name: /^Confirm (?:[A-Z][a-z]+ (?:monthly|yearly) )?checkout$/,
+      level: 1,
+    })
     this.billingHeading = page.getByRole('heading', { name: 'Billing', level: 1 })
     this.successHeading = page.getByRole('heading', { name: 'Payment confirmation', level: 1 })
     this.cancelHeading = page.getByRole('heading', { name: 'Checkout canceled', level: 1 })

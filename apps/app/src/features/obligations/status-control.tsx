@@ -164,8 +164,32 @@ const STATUS_ICON_COLOR: Record<ObligationStatus, string> = {
 // green tint, so the icon stays on `text-text-success` (the dark
 // green from STATUS_ICON_COLOR) and reads against the soft pill.
 // Map is preserved as an alias so existing consumers don't break.
+//
+// 2026-05-27 (Yuqi quick-fix batch — "icon color matches text color
+// on the status pill"): icon-on-pill tones now mirror the Badge
+// variant's text tone, so the chip reads as one coherent color
+// rather than gray-text-plus-tinted-icon. The non-pill rendering
+// (`STATUS_ICON_COLOR`, used in the dropdown menu against white)
+// keeps the canonical hue swatch so the menu still reads as a
+// color-coded picker.
+//
+//   pending          → secondary pill (gray text)   → gray icon
+//   waiting_on_client→ outline pill   (gray text)   → gray icon
+//   extended         → secondary pill (gray text)   → gray icon
+//   not_applicable   → outline pill   (gray text)   → gray icon
+//
+// Tinted statuses (info / success / destructive / warning) keep
+// their colored icons because the pill's text tone already matches.
+// "In review" → variant `info` (blue text + blue icon) — that case
+// was already correct; the brief named it as the symptom, the
+// underlying mismatch was on the v2-collapsed `extended` status
+// (which also displays as "In review" but used `secondary` chrome).
 const STATUS_ICON_COLOR_ON_PILL: Record<ObligationStatus, string> = {
   ...STATUS_ICON_COLOR,
+  pending: 'text-text-secondary',
+  not_applicable: 'text-text-secondary',
+  waiting_on_client: 'text-text-secondary',
+  extended: 'text-text-secondary',
 }
 
 function isObligationStatus(value: string): value is ObligationStatus {
@@ -175,11 +199,17 @@ function isObligationStatus(value: string): value is ObligationStatus {
 function useStatusLabels(): StatusLabels {
   const { t } = useLingui()
   return useMemo(
+    // 2026-05-27 (Agent X3 milestone audit M-06): `review` label flipped
+    // from "Needs review" → "In review" to match the v2 collapse and the
+    // tone audit on the pill (`review` reads as work-in-progress, not
+    // "needs attention"). The v2 label hook already returned "In review";
+    // surfaces falling back to this legacy map (admin / debug surfaces)
+    // used to disagree with the queue pill on the same row.
     () => ({
       pending: t`Not started`,
       in_progress: t`In progress`,
       waiting_on_client: t`Waiting on client`,
-      review: t`Needs review`,
+      review: t`In review`,
       done: t`Filed`,
       paid: t`Paid`,
       extended: t`Extended`,
@@ -257,31 +287,20 @@ function ObligationQueueStatusControl({
   disabled,
   onChange,
   displayStatus,
+  compact = false,
+  readOnly = false,
 }: {
   row: StatusControlRow
   labels: StatusLabels
-  // Subset of statuses to surface in the dropdown. Defaults to the
-  // full ALL_STATUSES (legacy 10-value set). v2 callers pass
-  // LIFECYCLE_V2_STATUSES so the dropdown shows only the 6 target
-  // states. The trigger still renders `labels[row.status]` so a row
-  // currently in a legacy state (e.g. `in_progress`) keeps a readable
-  // label even when its value isn't in the dropdown options.
   statuses?: readonly ObligationStatus[]
   disabled: boolean
   onChange: (id: string, status: ObligationStatus) => void
-  // 2026-05-26 (Yuqi fifty-third pass — pill-display dedup): when
-  // an augmenting flag chip beside this control names the specific
-  // sub-state (e.g. "Waiting on client", "Blocked"), the consumer
-  // can pass `displayStatus="in_progress"` so the pill renders the
-  // generic verb-of-motion ("In progress") and the chip carries the
-  // specific noun. Without this prop, the pill shows the actual
-  // `row.status` label which can repeat the chip text verbatim.
-  // The DROPDOWN still operates on the real `row.status` — this
-  // prop only affects the trigger's rendered label/icon/variant.
-  // Explicit `| undefined` is required by exactOptionalPropertyTypes
-  // (consumers compute this conditionally and pass undefined when
-  // no chip is present).
   displayStatus?: ObligationStatus | undefined
+  compact?: boolean
+  // `readOnly` = the user lacks `obligation.status.update`. Trigger
+  // stays clickable so the user can see WHY the pill is inert; menu
+  // surfaces an explanatory banner and disables every item.
+  readOnly?: boolean
 }) {
   const { t } = useLingui()
   const triggerStatus = displayStatus ?? row.status
@@ -292,33 +311,41 @@ function ObligationQueueStatusControl({
         render={
           <button
             type="button"
-            aria-label={t`Change status for ${row.clientName}`}
+            aria-label={
+              compact
+                ? `${labels[triggerStatus]} · ${t`Change status for ${row.clientName}`}`
+                : t`Change status for ${row.clientName}`
+            }
+            title={
+              readOnly
+                ? t`You can view status but only preparers, managers, partners, or owners can change it.`
+                : compact
+                  ? labels[triggerStatus]
+                  : undefined
+            }
             disabled={disabled}
             className={cn(
               badgeVariants({ variant: STATUS_VARIANT[triggerStatus] }),
               'h-6 cursor-pointer text-xs outline-none hover:ring-2 hover:ring-state-accent-active-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
+              compact && 'gap-0 px-1.5',
             )}
             onClick={(event) => event.stopPropagation()}
           >
-            {/* 2026-05-25 (Yuqi status icon pass): icon-led status
-                chip — TriggerIcon carries the color via
-                STATUS_ICON_COLOR, the variant carries the fill.
-                Size is enforced by badgeVariants' `[&>svg]:size-3!`
-                rule (see docs/Design/icon-sizing.md) — passing a
-                size class here would be ignored, so we don't.
-                2026-05-26 (Stripe S9): pulls from
-                STATUS_ICON_COLOR_ON_PILL so the success statuses
-                (rendered on a solid green chip) get a white icon
-                instead of the menu-surface dark-green tint. */}
             <TriggerIcon className={STATUS_ICON_COLOR_ON_PILL[triggerStatus]} aria-hidden />
-            {labels[triggerStatus]}
+            {compact ? null : labels[triggerStatus]}
           </button>
         }
       />
-      <DropdownMenuContent className="min-w-48" align="start">
+      <DropdownMenuContent className="min-w-56" align="start">
+        {readOnly ? (
+          <p className="px-2 py-1.5 text-caption italic leading-snug text-text-tertiary">
+            {t`Coordinators can view status but can't change it.`}
+          </p>
+        ) : null}
         <DropdownMenuRadioGroup
           value={row.status}
           onValueChange={(value) => {
+            if (readOnly) return
             if (typeof value !== 'string' || !isObligationStatus(value)) return
             if (value === row.status) return
             onChange(row.id, value)
@@ -335,10 +362,16 @@ function ObligationQueueStatusControl({
               <DropdownMenuRadioItem
                 key={status}
                 value={status}
-                disabled={illegal}
+                disabled={readOnly || illegal}
                 className="gap-2"
                 onClick={(event) => event.stopPropagation()}
-                title={illegal ? t`Not reachable from ${labels[row.status]}.` : undefined}
+                title={
+                  readOnly
+                    ? undefined
+                    : illegal
+                      ? t`Not reachable from ${labels[row.status]}.`
+                      : undefined
+                }
               >
                 <ItemIcon className={cn('size-3.5', STATUS_ICON_COLOR[status])} aria-hidden />
                 <span>{labels[status]}</span>

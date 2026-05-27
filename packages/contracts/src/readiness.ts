@@ -17,6 +17,14 @@ export type ReadinessDocumentChecklistItemSource = z.infer<
   typeof ReadinessDocumentChecklistItemSourceSchema
 >
 
+// η pass — F-008: AI-provenance axis. The UI uses `origin` to decide
+// whether to render the Astroid icon. `source` (template/custom) is
+// orthogonal — see schema comment in packages/db/src/schema/readiness.ts.
+export const ReadinessDocumentChecklistItemOriginSchema = z.enum(['ai', 'manual'])
+export type ReadinessDocumentChecklistItemOrigin = z.infer<
+  typeof ReadinessDocumentChecklistItemOriginSchema
+>
+
 export const ReadinessDocumentChecklistItemStatusSchema = z.enum([
   'missing',
   'received',
@@ -33,6 +41,12 @@ export const ReadinessDocumentChecklistItemPublicSchema = z.object({
   label: z.string().trim().min(1).max(160),
   description: z.string().trim().max(500).nullable(),
   source: ReadinessDocumentChecklistItemSourceSchema,
+  // F-008 / F-022 / F-039: provenance + lifecycle timestamps for the
+  // Astroid marker, hover tooltip, and "edited at" disclosure. The
+  // marker shows when origin === 'ai' && userEditedAt === null.
+  origin: ReadinessDocumentChecklistItemOriginSchema,
+  aiGeneratedAt: z.iso.datetime().nullable(),
+  userEditedAt: z.iso.datetime().nullable(),
   status: ReadinessDocumentChecklistItemStatusSchema,
   sortOrder: z.number().int().min(0).max(1000),
   note: z.string().trim().max(1000).nullable(),

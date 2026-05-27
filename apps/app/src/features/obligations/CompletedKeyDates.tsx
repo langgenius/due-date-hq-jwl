@@ -40,7 +40,14 @@ export function CompletedKeyDates({
       if (typeof event.afterJson !== 'object' || event.afterJson === null) continue
       const after = (event.afterJson as { status?: unknown }).status
       if (typeof after !== 'string') continue
-      if (after === 'done' && !filed) filed = event.createdAt
+      // 2026-05-27 (Agent X3 milestone audit M-10): mine `paid` events
+      // as the Filed key date too. `paid` collapses into the Filed
+      // milestone in lifecycle v2 (see MILESTONE_MAP in timeline.tsx
+      // and STAGE_STATUS_GROUPS in routes/obligations.tsx). A row that
+      // walks pending → paid → completed (no `done` intermediate stop —
+      // payment-track obligations) would otherwise show a blank Filed
+      // line on the terminal stage card.
+      if ((after === 'done' || after === 'paid') && !filed) filed = event.createdAt
       if (after === 'completed' && !completed) completed = event.createdAt
     }
     return [filed, completed]
@@ -68,7 +75,7 @@ export function CompletedKeyDates({
     //   this in `<div className="mt-3">`, so no margin is needed
     //   here.
     <div>
-      <p className="mb-1.5 text-caption-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+      <p className="mb-1.5 text-caption-xs font-medium uppercase tracking-eyebrow text-text-secondary">
         <Trans>Key dates</Trans>
       </p>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">

@@ -58,8 +58,12 @@ describe('readiness checklist reconciliation planning', () => {
 
     const chunks = chunkReadinessChecklistItemInsertRows(rows)
 
-    expect(READINESS_CHECKLIST_ITEM_INSERT_BATCH_SIZE).toBe(9)
-    expect(chunks.map((chunk) => chunk.length)).toEqual([9, 4])
+    // η pass: batch size recalibrated from 9 to 7 when AI-provenance
+    // columns (origin / ai_generated_at / user_edited_at) raised the
+    // per-row column count from 11 to 14. The D1 100-param ceiling is
+    // unchanged.
+    expect(READINESS_CHECKLIST_ITEM_INSERT_BATCH_SIZE).toBe(7)
+    expect(chunks.map((chunk) => chunk.length)).toEqual([7, 6])
   })
 
   it('backfills missing catalog items into an old template checklist', () => {

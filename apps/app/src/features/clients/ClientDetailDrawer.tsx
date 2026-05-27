@@ -20,6 +20,8 @@ import type { ObligationInstancePublic } from '@duedatehq/contracts'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { getClientReadiness } from '@/features/clients/client-readiness'
+import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
+import { isPaymentOverdue } from '@/features/obligations/payment-overdue'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -30,13 +32,11 @@ import { clientDetailPath } from './client-url'
 // hunting for the next-due. Mirrors the set used by ClientSummaryStrip
 // (the full-page tile) so the peek's next-due matches what the full
 // client page would show.
-const TERMINAL_STATUSES: ReadonlySet<string> = new Set([
-  'done',
-  'paid',
-  'completed',
-  'filed',
-  'not_applicable',
-])
+// 2026-05-27 (TERMINAL_STATUSES root bug): `'done'` (UI "Filed") is
+// NOT terminal — filing done but payment may be outstanding. Only
+// `'completed'`, `'paid'`, and `'not_applicable'` are. See dev-log
+// 2026-05-27-terminal-statuses-root-bug.md.
+const TERMINAL_STATUSES: ReadonlySet<string> = new Set(['paid', 'completed', 'not_applicable'])
 
 /**
  * `ClientDetailDrawer` — the *peek* form of a client.
@@ -105,7 +105,7 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
 
   // Compute the next-due obligation inline. Same logic as
   // ClientSummaryStrip's tile so the peek matches the full-page tile.
-  const { openCount, nextDue } = useMemo(() => {
+  const { openCount, nextDue, paymentOverdueCount } = useMemo(() => {
     const openObligations = obligations.filter((o) => !TERMINAL_STATUSES.has(o.status))
     let best: ObligationInstancePublic | null = null
     let bestTs = Infinity
@@ -116,11 +116,27 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
         best = o
       }
     }
-    return { openCount: openObligations.length, nextDue: best }
+    // 2026-05-27 (phi journey audit J1): match ClientPeekHoverCard's
+    // payment-overdue surfacing so both peek shapes agree on the
+    // same client. See payment-overdue.ts.
+    const today = Date.now()
+    const paymentOverdue = obligations.filter((o) => isPaymentOverdue(o, today)).length
+    return {
+      openCount: openObligations.length,
+      nextDue: best,
+      paymentOverdueCount: paymentOverdue,
+    }
   }, [obligations])
 
   const entityLabels = useEntityLabels()
   const { t } = useLingui()
+  // 2026-05-27 (D16 — Agent ω, journey-audit drain): threaded the
+  // firm's "as of" date through NextDueLine instead of letting it
+  // call Date.now() directly. Keeps the peek's relative-day text
+  // ("3d late") in sync with the rest of the app's day-math, which
+  // anchors on the firm's timezone rather than the user's browser
+  // clock.
+  const asOfDate = useFirmAsOfDate()
 
   return (
     <Sheet open={isOpen} onOpenChange={(next) => (!next ? onClose() : undefined)}>
@@ -144,15 +160,30 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                       ? t`1 open deadline`
                       : t`${openCount} open deadlines`}
                 </SheetDescription>
+                {/* 2026-05-27 (phi journey audit J1): payment-overdue
+                    line. Mirrors ClientPeekHoverCard so the SAME
+                    client renders the SAME urgency cue whether the
+                    user sees the hover popover or the drawer peek. */}
+                {paymentOverdueCount > 0 ? (
+                  <span className="text-xs font-medium text-text-destructive">
+                    {paymentOverdueCount === 1 ? (
+                      <Trans>Payment overdue on 1 filing</Trans>
+                    ) : (
+                      <Trans>Payment overdue on {paymentOverdueCount} filings</Trans>
+                    )}
+                  </span>
+                ) : null}
               </div>
 
-              {/* Identity chips — entity is already in the caption above,
-                  but the badge form gives a faster visual read on
-                  state + readiness color. */}
+              {/* Identity chips — state + readiness color give a fast
+                  visual read.
+                  2026-05-27 (Step 6 UX audit #86): entity chip dropped.
+                  The caption line above already says "S corp · 1 open
+                  deadline" — the chip below was rendering the same
+                  entity label a second time at smaller scale, which
+                  read as duplicate metadata. State and readiness are
+                  unique signals that earn their chip; entity does not. */}
               <div className="flex flex-wrap items-center gap-1.5">
-                <Badge variant="outline" className="text-caption">
-                  {entityLabels[client.entityType]}
-                </Badge>
                 {client.state ? (
                   <Badge variant="outline" className="text-caption">
                     {client.state}
@@ -185,7 +216,7 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                 during a peek. Avoids the 3-tile grid that wrapped
                 badly in the narrow drawer (Form 1120-S text breaking
                 mid-name was the trigger for this redesign). */}
-            <NextDueLine nextDue={nextDue} />
+            <NextDueLine nextDue={nextDue} asOfDate={asOfDate} />
 
             {/* Escape hatches. Anything beyond identification lives on
                 the full page; obligations queue is the other natural
@@ -224,14 +255,21 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
           </Alert>
         ) : (
           // Loading skeleton sized for the slim peek.
+          // 2026-05-27 (Step 6 UX audit #84): SheetTitle used to be
+          // `sr-only` — so AT users heard "Loading client…" but
+          // sighted users just saw three grey bars with no label
+          // hinting at what the drawer was about to show. Promoted
+          // the title to a visible heading; AT still gets the same
+          // announcement (semantics unchanged). Description stays
+          // sr-only since the visible bars already show "we're
+          // fetching things."
           <div className="flex flex-col gap-3">
-            <SheetTitle className="sr-only">
+            <SheetTitle className="text-lg font-semibold text-text-primary">
               <Trans>Loading client…</Trans>
             </SheetTitle>
             <SheetDescription className="sr-only">
               <Trans>Fetching client detail.</Trans>
             </SheetDescription>
-            <Skeleton className="h-6 w-2/3 rounded-md" />
             <Skeleton className="h-4 w-1/2 rounded-md" />
             <Skeleton className="h-12 w-full rounded-md" />
           </div>
@@ -246,7 +284,16 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
  * "Form 941 · 22d late" or "Form 1120-S · due in 5d" or "No open
  * obligations" — whichever fits the obligations state.
  */
-function NextDueLine({ nextDue }: { nextDue: ObligationInstancePublic | null }) {
+function NextDueLine({
+  nextDue,
+  asOfDate,
+}: {
+  nextDue: ObligationInstancePublic | null
+  // 2026-05-27 (D16): firm's "as of" anchor. Falls back to Date.now()
+  // when missing so the component never breaks if the timezone
+  // provider isn't in scope.
+  asOfDate: string | null
+}) {
   const { t } = useLingui()
   if (!nextDue) {
     return (
@@ -255,7 +302,11 @@ function NextDueLine({ nextDue }: { nextDue: ObligationInstancePublic | null }) 
       </p>
     )
   }
-  const days = Math.ceil((Date.parse(nextDue.currentDueDate) - Date.now()) / 86_400_000)
+  const asOfMs = asOfDate ? Date.parse(asOfDate) : Date.now()
+  const days = Math.ceil(
+    (Date.parse(nextDue.currentDueDate) - (Number.isNaN(asOfMs) ? Date.now() : asOfMs)) /
+      86_400_000,
+  )
   const isLate = days < 0
   const daysAbs = Math.abs(days)
   const daysLabel = isLate ? t`${daysAbs}d late` : days === 0 ? t`due today` : t`due in ${days}d`

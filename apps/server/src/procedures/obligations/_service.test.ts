@@ -862,6 +862,7 @@ describe('updateObligationStatus', () => {
     })
 
     expect(result.updatedCount).toBe(2)
+    expect(result.skippedCount).toBe(0)
     expect(result.auditIds).toEqual(['audit-1', 'audit-2'])
     expect(map.get(rowA.id)?.status).toBe('extended')
     expect(map.get(rowB.id)?.status).toBe('extended')
@@ -881,6 +882,42 @@ describe('updateObligationStatus', () => {
         reason: 'extension memo',
       }),
     ])
+  })
+
+  it('skips rows whose source status cannot reach the target instead of failing the batch', async () => {
+    const rowOpen = makeRow({ status: 'in_progress' })
+    const rowClosed = makeRow({
+      id: '55555555-5555-4555-8555-555555555555',
+      status: 'completed',
+    })
+    const { repo, audits, map } = buildScoped(FIRM, [rowOpen, rowClosed])
+
+    const result = await bulkUpdateObligationStatus(repo, 'user_1', {
+      ids: [rowOpen.id, rowClosed.id],
+      status: 'waiting_on_client',
+    })
+
+    expect(result.updatedCount).toBe(1)
+    expect(result.skippedCount).toBe(1)
+    expect(map.get(rowOpen.id)?.status).toBe('waiting_on_client')
+    expect(map.get(rowClosed.id)?.status).toBe('completed')
+    expect(audits).toHaveLength(1)
+    expect(audits[0]).toMatchObject({ entityId: rowOpen.id })
+  })
+
+  it('returns updatedCount:0 / skippedCount:N when every changed row is illegal', async () => {
+    const rowClosed = makeRow({ status: 'completed' })
+    const { repo, audits } = buildScoped(FIRM, [rowClosed])
+
+    const result = await bulkUpdateObligationStatus(repo, 'user_1', {
+      ids: [rowClosed.id],
+      status: 'waiting_on_client',
+    })
+
+    expect(result.updatedCount).toBe(0)
+    expect(result.skippedCount).toBe(1)
+    expect(result.auditIds).toEqual([])
+    expect(audits).toHaveLength(0)
   })
 
   it('returns derived readiness when status implies waiting or review', async () => {

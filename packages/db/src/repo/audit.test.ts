@@ -28,6 +28,10 @@ function makeRow(over: Partial<AuditListRow> = {}): AuditListRow {
     firmId: over.firmId ?? 'firm_a',
     actorId: over.actorId ?? 'user_1',
     actorLabel: over.actorLabel ?? 'Alex Chen',
+    // η pass: AI-provenance columns default to user / null in fixtures.
+    actorType: over.actorType ?? 'user',
+    previousActorType: over.previousActorType ?? null,
+    aiEventMetadataJson: over.aiEventMetadataJson ?? null,
     entityType: over.entityType ?? 'obligation',
     entityId: over.entityId ?? '22222222-2222-4222-8222-222222222222',
     action: over.action ?? 'obligation.status.updated',

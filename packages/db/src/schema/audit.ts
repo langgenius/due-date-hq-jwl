@@ -22,6 +22,9 @@ import { obligationInstance } from './obligations'
  * `before_json` / `after_json` are typed `text({mode:'json'})` — Drizzle
  * serialises transparently; D1 stores as TEXT.
  */
+export const AUDIT_ACTOR_TYPES = ['user', 'system', 'ai', 'ai_assisted'] as const
+export type AuditActorType = (typeof AUDIT_ACTOR_TYPES)[number]
+
 export const auditEvent = sqliteTable(
   'audit_event',
   {
@@ -31,6 +34,28 @@ export const auditEvent = sqliteTable(
       .references(() => firmProfile.id, { onDelete: 'restrict' }),
     // NULL for system actors (Cron, Queues, webhook handlers).
     actorId: text('actor_id').references(() => user.id, { onDelete: 'set null' }),
+
+    // 2026-05-27 (audit drain — η — F-035 / F-036): the AI-actor type lives
+    // here, not in `actorId`, because an AI write often has BOTH a human
+    // actor (the CPA who pressed "Apply") AND an AI source (the model that
+    // produced the value). Treating "AI" as a synthetic user_id loses the
+    // human-in-the-loop signal; treating it as NULL collides with cron /
+    // system events (F-036). The taxonomy is:
+    //   - 'user'         human-authored, no AI involvement.
+    //   - 'system'       cron / webhook / queue worker; no human, no AI.
+    //   - 'ai'           AI is the sole author (autonomous job).
+    //   - 'ai_assisted'  AI produced the value, a human pressed apply.
+    // Default 'user' is the safe backfill — see migration 0030.
+    actorType: text('actor_type', { enum: AUDIT_ACTOR_TYPES }).notNull().default('user'),
+    // F-023: when a user EDITS an AI-sourced value, the resulting event
+    // records what the previous origin was, so "Andy overrode an AI suggestion"
+    // is one query, not a multi-event reconstruction.
+    previousActorType: text('previous_actor_type', { enum: AUDIT_ACTOR_TYPES }),
+    // F-037: AI metadata for the audit drawer disclosure section
+    // (model, prompt version, token counts, latency, guard status).
+    // JSON-encoded to keep the column count below D1's 100-bind budget;
+    // shape is `AiEventMetadata` (see packages/contracts/src/audit.ts).
+    aiEventMetadataJson: text('ai_event_metadata_json', { mode: 'json' }).$type<unknown>(),
 
     entityType: text('entity_type').notNull(),
     entityId: text('entity_id').notNull(),
@@ -55,6 +80,8 @@ export const auditEvent = sqliteTable(
     index('idx_audit_firm_actor_time').on(table.firmId, table.actorId, table.createdAt),
     // "Show me migration.imported events in the last 24h" — Revert surface.
     index('idx_audit_firm_action_time').on(table.firmId, table.action, table.createdAt),
+    // "Show me every AI / ai_assisted action in the last 24h" — F-035 filter.
+    index('idx_audit_firm_actor_type_time').on(table.firmId, table.actorType, table.createdAt),
   ],
 )
 

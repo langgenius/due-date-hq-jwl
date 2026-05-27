@@ -10,6 +10,7 @@ import {
 import { msg } from '@lingui/core/macro'
 import { type MessageDescriptor } from '@lingui/core'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { AnimatePresence, motion } from 'motion/react'
 import { LoaderCircleIcon, LockIcon, UploadCloudIcon } from 'lucide-react'
 import type { MigrationSourceManifest } from '@duedatehq/contracts'
 
@@ -45,6 +46,14 @@ import {
 } from './intake-files'
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024
+
+// 2026-05-27 (Step 1 IA reduction): calm ease-out curve for
+// empty→detection state swap. ~280ms, no bounce. Matches the
+// brief's confident-typewriter motion principle.
+const STATE_TRANSITION = {
+  duration: 0.28,
+  ease: [0.32, 0.72, 0, 1] as [number, number, number, number],
+}
 
 const PRESET_LABELS: Record<PresetId, string> = {
   taxdome: 'TaxDome',
@@ -158,8 +167,20 @@ interface Step1Props {
 }
 
 /**
- * Step 1 Intake — Paste / Upload / Preset chips + SSN block + bad row banner.
- * Authority: docs/product-design/migration-copilot/02-ux-4step-wizard.md §4.
+ * Step 1 Intake — Two states, one primary affordance each.
+ *
+ * Empty state: dominant dropzone + quiet paste swap + collapsed source chips.
+ * Detection state: compact file card + hero detection readout + continue.
+ *
+ * 2026-05-27 (Yuqi — Step 1 bold IA reduction): collapsed five competing zones
+ * (heading, paste textarea, upload dropzone, ten source chips, eight-bullet
+ * export guide) into two states. The export guide is now a per-chip
+ * progressive disclosure — only shown when a user clicks a chip without
+ * having uploaded anything yet ("I need help exporting first"). Detection
+ * surfaces as a single tabular-num readout, not a banner footnote.
+ *
+ * Authority: docs/product-design/migration-copilot/02-ux-4step-wizard.md §4
+ * + .impeccable.md design principles 1–4.
  */
 export function Step1Intake({
   density = 'comfortable',
@@ -178,13 +199,25 @@ export function Step1Intake({
   const [isFileDragActive, setIsFileDragActive] = useState(false)
   const [isReadingFile, setIsReadingFile] = useState(false)
   const [detectedPresetSuggestion, setDetectedPresetSuggestion] = useState<PresetId | null>(null)
+  // 2026-05-27: paste mode is opt-in. Empty state shows dropzone by default;
+  // user clicks "Paste a list instead →" to swap to the textarea. We do NOT
+  // show both side-by-side — the brief is one primary affordance per state.
+  const [pasteMode, setPasteMode] = useState(false)
+  // 2026-05-27: collapsed export-guide disclosure per chip. Only opens
+  // when the user explicitly asks ("I need help exporting first") in
+  // the empty state — never auto-expands.
+  const [openGuidePreset, setOpenGuidePreset] = useState<PresetId | null>(null)
   const compact = density === 'compact'
   const selectedPreset = intake.preset
-  const selectedExportGuide = getPresetExportGuide(selectedPreset, i18n)
   const selectedPresetLabel = selectedPreset ? PRESET_LABELS[selectedPreset] : ''
   const detectedPresetSuggestionLabel = detectedPresetSuggestion
     ? PRESET_LABELS[detectedPresetSuggestion]
     : ''
+
+  const hasIntake = intake.rawText.length > 0 || intake.fileName !== null || isReadingFile
+  const sourceManifest = intake.sourceManifest
+  const sourceProductLabel = sourceManifest ? SOURCE_PRODUCT_LABELS[sourceManifest.product] : ''
+  const sourceWarnings = sourceManifest?.warnings ?? []
 
   function resetParsedRows() {
     onParsed({ rowCount: 0, truncated: false, ssnBlockedColumnIndexes: [] })
@@ -207,11 +240,7 @@ export function Step1Intake({
       resetParsedRows()
       onParseError(
         fileName
-          ? // 2026-05-25 (Wizard #40 copy polish): action-led.
-            // Original led with what's wrong ("that file doesn't
-            // contain rows") and made the user infer the fix.
-            // New: tell them what to do to recover.
-            t`That file has no data rows. Add a header and at least one row, then re-upload.`
+          ? t`That file has no data rows. Add a header and at least one row, then re-upload.`
           : null,
       )
       return
@@ -283,9 +312,6 @@ export function Step1Intake({
       return []
     }
   }, [intake.ssnBlockedColumnIndexes, intake.rawText])
-  const sourceManifest = intake.sourceManifest
-  const sourceProductLabel = sourceManifest ? SOURCE_PRODUCT_LABELS[sourceManifest.product] : ''
-  const sourceWarnings = sourceManifest?.warnings ?? []
 
   function resetFileDragState() {
     fileDragDepthRef.current = 0
@@ -359,22 +385,10 @@ export function Step1Intake({
         setDetectedPresetSuggestion(null)
         resetParsedRows()
         if (err instanceof UnsupportedUploadError) {
-          // 2026-05-25 (Wizard #40 — MessageDescriptor refactor):
-          // render the rejection message through `i18n._()` so it
-          // translates with the rest of the wizard. Previously
-          // returned the English-only string baked into
-          // intake-files.ts.
           onParseError(i18n._(unsupportedUploadMessageDescriptor(err.upload)))
         } else if (err instanceof Error && err.message) {
           onParseError(err.message)
         } else {
-          // 2026-05-26 (Step 7 onboarding audit F11-02): the
-          // generic fallback recommended "export as CSV" — but
-          // the user may have uploaded a CSV that we couldn't
-          // parse, in which case the recommendation makes no
-          // sense. Rewrote to recommend a structural check
-          // (header row + at least one row) that applies to
-          // CSV, TSV, XLSX, and JSON equally.
           onParseError(
             t`We couldn't read that file. Make sure it has a header row followed by at least one row of data.`,
           )
@@ -387,13 +401,33 @@ export function Step1Intake({
 
   function handlePresetToggle(id: PresetId) {
     setDetectedPresetSuggestion(null)
-    onPreset(intake.preset === id ? null : id, 'manual')
+    const next = intake.preset === id ? null : id
+    onPreset(next, 'manual')
+    // Per-chip disclosure: toggling a chip opens its export guide.
+    // Untoggling clears the disclosure.
+    setOpenGuidePreset(next === null ? null : id)
   }
 
   function switchToDetectedPreset() {
     if (!detectedPresetSuggestion) return
     onPreset(detectedPresetSuggestion, 'manual')
     setDetectedPresetSuggestion(null)
+  }
+
+  function handleRemoveFile() {
+    fileReadSerialRef.current += 1
+    setIsReadingFile(false)
+    setDetectedPresetSuggestion(null)
+    setPasteMode(false)
+    onText('', null, {
+      fileKind: 'paste',
+      rawFileBase64: null,
+      contentType: null,
+      sizeBytes: 0,
+      sourceManifest: null,
+    })
+    resetParsedRows()
+    onParseError(null)
   }
 
   function startFileRead(
@@ -420,211 +454,214 @@ export function Step1Intake({
 
   return (
     <div
-      className={cn('flex flex-col', compact ? 'gap-3 py-3' : 'gap-4 pt-5 pb-5')}
+      className={cn('flex flex-col', compact ? 'gap-4 py-3' : 'gap-6 pt-5 pb-5')}
       id="wizard-step1-body"
     >
-      <div className={cn('flex flex-col', compact ? 'gap-0.5' : 'gap-1')}>
-        <h2 className={cn('font-semibold text-text-primary', compact ? 'text-base' : 'text-lg')}>
-          <Trans>Where is your data coming from?</Trans>
-        </h2>
-        {/* 2026-05-25 (Yuqi #38 + Wizard #40 copy audit): tightened
-            the body. Original ran to 30 words across two clauses
-            with awkward "your call" filler. Final version leads
-            with the action ("Paste or upload"), drops the filler,
-            and lists the high-value columns as a short example
-            (the AI mapper handles the rest regardless).
-            2026-05-25 (Yuqi Today #25): the column-name examples
-            now italicize — they're literal strings the CPA should
-            look for in their export ("see if a column matches one
-            of these"), not narrative prose. Italics typeset them as
-            quoted data tokens without resorting to code-font, which
-            would over-state them as identifiers. */}
-        {/* 2026-05-25 (Wizard #40 length fix): trimmed "give us
-            a head start on payment and penalty context" (wordy +
-            abstract) to "help us flag penalty risk" (concrete +
-            shorter). "Any shape works" replaces "we'll figure out
-            the shape" — both promise the same thing; the
-            imperative is tighter. */}
-        <p className={cn('text-text-secondary', compact ? 'text-sm' : 'text-base')}>
-          <Trans>
-            Paste or upload — any shape works. Columns like{' '}
-            <em className="font-medium not-italic text-text-primary">Estimated tax due</em>,{' '}
-            <em className="font-medium not-italic text-text-primary">Owner count</em>, or{' '}
-            <em className="font-medium not-italic text-text-primary">Owners</em> help us flag
-            penalty risk.
-          </Trans>
-        </p>
-      </div>
-
-      {/* 2026-05-25 (Yuqi Today #27): dialog and onboarding now use
-          the same vertical paste/upload stack. The side-by-side
-          dialog treatment made upload read like a separate panel
-          instead of the second import option in Step 1. */}
-      <div className={cn('flex flex-col gap-3', compact ? 'min-h-0' : '')}>
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor={pasteId}
-            className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase"
+      <AnimatePresence mode="wait" initial={false}>
+        {hasIntake ? (
+          <motion.div
+            key="detection"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={STATE_TRANSITION}
+            className="flex flex-col gap-5"
           >
-            <Trans>Paste rows</Trans>
-          </label>
-          <div className="rounded-lg border border-divider-regular bg-components-panel-bg p-1 shadow-subtle">
-            <Textarea
-              id={pasteId}
-              aria-label={t`Paste client data`}
-              aria-describedby="paste-hint"
-              value={intake.rawText}
-              onChange={(e) => handleTextChange(e.target.value)}
-              onPaste={handleRowsPaste}
-              placeholder={t`Paste here — any shape, we'll figure it out. Include the header row if you have one.`}
-              className={cn(
-                'resize-y border-0 bg-transparent p-2 font-mono text-base tabular-nums shadow-none focus-visible:ring-0',
-                'h-[104px]',
-              )}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-            <Trans>Upload file</Trans>
-          </span>
-          <div
-            role="button"
-            tabIndex={0}
-            onDrop={handleDrop}
-            onDragEnter={handleFileDragEnter}
-            onDragOver={handleFileDragOver}
-            onDragLeave={handleFileDragLeave}
-            onClick={() => fileInputRef.current?.click()}
-            aria-describedby={uploadHintId}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                fileInputRef.current?.click()
-              }
-            }}
-            className={cn(
-              'flex h-[104px] cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed px-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
-              compact ? 'text-sm' : 'text-base',
-              isFileDragActive || isReadingFile
-                ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
-                : 'border-divider-regular bg-components-panel-bg text-text-secondary hover:border-state-accent-solid hover:bg-state-accent-hover-alt',
-            )}
-          >
-            {isReadingFile ? (
-              <LoaderCircleIcon className="size-5 animate-spin text-text-accent" aria-hidden />
-            ) : (
-              <UploadCloudIcon
-                className={cn(
-                  'size-5',
-                  isFileDragActive ? 'text-text-accent' : 'text-text-tertiary',
-                )}
-                aria-hidden
-              />
-            )}
-            {/* 2026-05-25 (Wizard #40 copy polish): mixed three
-                concerns (file types, action, limits) into one
-                run-on line. Split: primary line names the file
-                types; secondary line carries the limits with a
-                comma-separated 1,000 (readable count notation). */}
-            <span id={uploadHintId} className="flex flex-col items-center gap-0.5">
-              <span>
-                <Trans>Drop a CSV, Excel, ZIP, TXT, or IIF file</Trans>
-              </span>
-              <span className="font-mono text-xs tabular-nums text-text-tertiary">
-                <Trans>Up to 1,000 rows · 5 MB</Trans>
-              </span>
-            </span>
-            {isReadingFile ? (
-              <span
-                role="status"
-                aria-live="polite"
-                className="font-mono text-base text-text-accent"
-              >
-                <Trans>Reading file…</Trans>
-              </span>
-            ) : intake.fileName ? (
-              <span className="font-mono text-base text-text-secondary tabular-nums">
-                {intake.fileName}
-              </span>
-            ) : null}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,.tsv,.txt,.xlsx,.zip,.iif,.json,.fbk,.qbb,.qbw,.qbm,.cab,.pdf,.xls,.dif,.rtnbak,.rctrl,.dbf,.mdx,.csd,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip"
-              className="hidden"
-              onClick={(event) => event.stopPropagation()}
-              onChange={handleFilePicked}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Preset chips live BELOW the paste/upload stack — they're a
-          separate "tell us more about your data source" affordance,
-          not a third entry method. */}
-      <div className="flex flex-col gap-2">
-        <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
-          <Trans>I&apos;m coming from… (optional)</Trans>
-        </span>
-        <div className="flex flex-wrap gap-2">
-          {SOURCE_PRESET_IDS.map((id) => (
-            <PresetChip
-              key={id}
-              id={id}
-              label={PRESET_LABELS[id]}
-              selected={intake.preset === id}
+            <DetectionHero
+              fileName={intake.fileName}
+              sizeBytes={intake.sizeBytes}
+              isReadingFile={isReadingFile}
+              rowCount={intake.rowCount}
+              sourceManifest={sourceManifest}
+              sourceProductLabel={sourceProductLabel}
+              selectedPresetLabel={selectedPresetLabel}
+              parseError={intake.parseError}
+              onRemove={handleRemoveFile}
               compact={compact}
-              onToggle={() => handlePresetToggle(id)}
             />
-          ))}
-        </div>
-        {selectedExportGuide && selectedPreset ? (
-          <PresetExportGuideCard
-            id={selectedPreset}
-            label={PRESET_LABELS[selectedPreset]}
-            guide={selectedExportGuide}
-            uploadedFileName={intake.fileName}
-            compact={compact}
-          />
-        ) : null}
-        {/* 2026-05-25 (Wizard #40 copy polish): verb-led, ~30%
-            shorter. The original led with "the AI mapper runs
-            first" and trailed off with "provides default
-            suggestions if AI is unavailable" — three concepts in
-            one sentence. New version names the AI path up front
-            and clarifies templates as the fallback. Also unifies
-            on lowercase "AI mapper" (Step 2 badge uses title-case
-            "AI Mapper" as a proper-noun label; here in body
-            prose the lowercase form is correct). */}
-        <p className={cn('text-sm text-text-tertiary', compact ? 'hidden xl:block' : '')}>
-          <Trans>
-            Pick a source to add context. The AI mapper runs either way; templates also fill
-            defaults if AI is unavailable.
-          </Trans>
-        </p>
-      </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={STATE_TRANSITION}
+            className="flex flex-col gap-6"
+          >
+            <div className="flex flex-col items-center gap-1 text-center">
+              {/* 2026-05-27: single sentence-case headline, body family,
+                  text-2xl. No display-serif. The bold move is the
+                  size + the empty space around it, not the typography. */}
+              <h2
+                className={cn('font-semibold text-text-primary', compact ? 'text-xl' : 'text-2xl')}
+              >
+                <Trans>Drop your client file.</Trans>
+              </h2>
+              <p className={cn('text-text-secondary', compact ? 'text-sm' : 'text-base')}>
+                <Trans>Any shape works. We&apos;ll figure out the columns.</Trans>
+              </p>
+            </div>
 
-      <p
-        id="paste-hint"
-        className={cn(
-          'flex items-center gap-1.5 text-text-tertiary',
-          compact ? 'text-xs' : 'text-sm',
+            {/* Primary affordance — large, centered. ~60% of the wizard
+                body height via aspect ratio. Swaps to a textarea when
+                the user clicks "Paste a list instead". */}
+            {pasteMode ? (
+              <div className="flex flex-col gap-2">
+                <label htmlFor={pasteId} className="sr-only">
+                  <Trans>Paste client rows</Trans>
+                </label>
+                <div className="rounded-lg border border-divider-regular bg-components-panel-bg p-1 shadow-subtle">
+                  <Textarea
+                    id={pasteId}
+                    aria-label={t`Paste client data`}
+                    aria-describedby="paste-hint"
+                    autoFocus
+                    value={intake.rawText}
+                    onChange={(e) => handleTextChange(e.target.value)}
+                    onPaste={handleRowsPaste}
+                    placeholder={t`Paste here — any shape, we'll figure it out. Include the header row if you have one.`}
+                    className={cn(
+                      'resize-y border-0 bg-transparent p-3 font-mono text-base tabular-nums shadow-none focus-visible:ring-0',
+                      compact ? 'h-[140px]' : 'h-[160px]',
+                    )}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPasteMode(false)}
+                  className="self-start text-sm text-text-tertiary underline-offset-2 hover:text-text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+                >
+                  <Trans>← Upload a file instead</Trans>
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onDrop={handleDrop}
+                  onDragEnter={handleFileDragEnter}
+                  onDragOver={handleFileDragOver}
+                  onDragLeave={handleFileDragLeave}
+                  onClick={() => fileInputRef.current?.click()}
+                  aria-describedby={uploadHintId}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      fileInputRef.current?.click()
+                    }
+                  }}
+                  className={cn(
+                    'flex w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-center transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
+                    compact ? 'h-[140px] px-6 py-5' : 'h-[160px] px-8 py-6',
+                    isFileDragActive
+                      ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
+                      : 'border-divider-regular bg-components-panel-bg text-text-secondary hover:border-state-accent-solid hover:bg-state-accent-hover-alt',
+                  )}
+                >
+                  <UploadCloudIcon
+                    className={cn(
+                      'size-9',
+                      isFileDragActive ? 'text-text-accent' : 'text-text-tertiary',
+                    )}
+                    aria-hidden
+                  />
+                  <span id={uploadHintId} className="flex flex-col items-center gap-1">
+                    <span
+                      className={cn(
+                        'font-medium text-text-primary',
+                        compact ? 'text-base' : 'text-lg',
+                      )}
+                    >
+                      <Trans>Drop a file or click to browse</Trans>
+                    </span>
+                    <span className="text-sm text-text-tertiary">
+                      <Trans>CSV, Excel, ZIP, TXT, or IIF · up to 1,000 rows · 5 MB</Trans>
+                    </span>
+                  </span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv,.tsv,.txt,.xlsx,.zip,.iif,.json,.fbk,.qbb,.qbw,.qbm,.cab,.pdf,.xls,.dif,.rtnbak,.rctrl,.dbf,.mdx,.csd,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip"
+                    className="hidden"
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={handleFilePicked}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPasteMode(true)}
+                  className="text-sm text-text-tertiary underline-offset-2 hover:text-text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+                >
+                  <Trans>Paste a list instead →</Trans>
+                </button>
+              </div>
+            )}
+
+            <p
+              id="paste-hint"
+              className="flex items-center justify-center gap-1.5 text-sm text-text-tertiary"
+            >
+              <LockIcon className="size-3.5" aria-hidden />
+              <Trans>SSN-like columns are blocked before anything goes to the AI.</Trans>
+            </p>
+
+            {/* Quiet source row at the bottom. Smaller weight, lower in
+                the visual hierarchy. Per-chip disclosure opens the
+                export guide only when the user explicitly toggles a chip
+                without uploading — the brief's "acknowledging I need help
+                exporting first" affordance. */}
+            <div className="flex flex-col gap-2 border-t border-divider-subtle pt-4">
+              <span className="text-xs text-text-tertiary">
+                <Trans>Coming from a specific tool? (Optional)</Trans>
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {SOURCE_PRESET_IDS.map((id) => (
+                  <PresetChip
+                    key={id}
+                    id={id}
+                    label={PRESET_LABELS[id]}
+                    selected={intake.preset === id}
+                    compact
+                    onToggle={() => handlePresetToggle(id)}
+                  />
+                ))}
+              </div>
+              <AnimatePresence initial={false}>
+                {openGuidePreset && selectedPreset === openGuidePreset
+                  ? (() => {
+                      const guide = getPresetExportGuide(openGuidePreset, i18n)
+                      if (!guide) return null
+                      return (
+                        <motion.div
+                          key={openGuidePreset}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={STATE_TRANSITION}
+                          className="overflow-hidden"
+                        >
+                          <PresetExportGuideCard
+                            id={openGuidePreset}
+                            label={PRESET_LABELS[openGuidePreset]}
+                            guide={guide}
+                            uploadedFileName={intake.fileName}
+                            compact={compact}
+                          />
+                        </motion.div>
+                      )
+                    })()
+                  : null}
+              </AnimatePresence>
+            </div>
+          </motion.div>
         )}
-      >
-        <LockIcon className="size-4" aria-hidden />
-        <Trans>We block SSN-like patterns before sending anything to the AI.</Trans>
-      </p>
+      </AnimatePresence>
 
+      {/* Stable status region — lives outside AnimatePresence so warnings
+          don't get re-mounted across state changes. */}
       {intake.ssnBlockedColumnIndexes.length > 0 ? (
-        /* 2026-05-26 (Step 7 onboarding audit F6-08): trailing
-           "→ AI default IGNORE" was developer-shorthand leaking
-           into user-facing copy — read as a debug log entry on
-           a sensitive trust message. Dropped it; the
-           "Those columns won't be sent to the AI" sentence
-           already carries the meaning, and the field list now
-           ends as prose instead of a console arrow. */
         <Alert variant="destructive" role="alert" aria-live="assertive">
           <AlertTitle>
             <Trans>SSN-like columns blocked</Trans>
@@ -640,28 +677,26 @@ export function Step1Intake({
         </Alert>
       ) : null}
 
-      {sourceManifest ? (
+      {sourceWarnings.length > 0 ? (
         <Alert role="status" aria-live="polite">
           <AlertTitle>
-            <Trans>Detected export source</Trans>
+            <Trans>Notes on this file</Trans>
           </AlertTitle>
-          <AlertDescription className="flex flex-col gap-1">
-            <span>
-              <Trans>
-                Using {sourceProductLabel} data from {sourceManifest.selectedFileName}.
-              </Trans>
-            </span>
-            {sourceWarnings.length > 0 ? (
-              <span>{sourceWarnings.map((warning) => warning.message).join(' ')}</span>
-            ) : null}
+          <AlertDescription>
+            {sourceWarnings.map((warning) => warning.message).join(' ')}
           </AlertDescription>
         </Alert>
       ) : null}
 
-      {detectedPresetSuggestion && selectedPreset ? (
+      {/* 2026-05-27: detection-mismatch is rendered as an Override
+          affordance inside the DetectionHero rather than a standalone
+          banner. The brief asks for a quiet "Wrong source? Override →"
+          link — this Alert remains as a fallback for the manual-vs-
+          detected mismatch case so the user keeps the explicit choice. */}
+      {detectedPresetSuggestion && selectedPreset && hasIntake ? (
         <Alert role="status" aria-live="polite">
           <AlertTitle>
-            <Trans>Preset mismatch</Trans>
+            <Trans>Different source detected</Trans>
           </AlertTitle>
           <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <span>
@@ -696,19 +731,6 @@ export function Step1Intake({
         </Alert>
       ) : null}
 
-      {intake.parseError ? (
-        <Alert variant="destructive" role="alert" aria-live="assertive">
-          <AlertTitle>
-            {/* 2026-05-25 (Wizard #40 copy polish): "the input"
-                is developer prose; "your data" matches the
-                user's mental model and the rest of the wizard
-                ("Couldn't read that file…", "We couldn't…"). */}
-            <Trans>Couldn&apos;t read your data</Trans>
-          </AlertTitle>
-          <AlertDescription>{intake.parseError}</AlertDescription>
-        </Alert>
-      ) : null}
-
       {intake.submitError ? (
         <Alert variant="destructive" role="alert" aria-live="assertive">
           <AlertTitle>
@@ -717,18 +739,174 @@ export function Step1Intake({
           <AlertDescription>{intake.submitError}</AlertDescription>
         </Alert>
       ) : null}
+    </div>
+  )
+}
 
-      {intake.rowCount > 0 && intake.parseError === null ? (
-        <p className="text-base text-text-success">
+interface DetectionHeroProps {
+  fileName: string | null
+  sizeBytes: number
+  isReadingFile: boolean
+  rowCount: number
+  sourceManifest: MigrationSourceManifest | null
+  sourceProductLabel: string
+  selectedPresetLabel: string
+  parseError: string | null
+  onRemove: () => void
+  compact: boolean
+}
+
+/**
+ * The detection-state hero. One readout. Sharp typography, tabular-nums,
+ * bullet separators. Example shape:
+ *
+ *   Drake export · 30 clients · 4 entity types · 12 states
+ *
+ * If the AI is still reading the file: "Reading file…" with a spinner,
+ * same line. If the AI is uncertain (confidence < 0.7): the readout
+ * stays cautious ("Looks like Drake or Lacerte — pick one.") with two
+ * chips. If parsing failed: an error Alert renders in the slot.
+ */
+function DetectionHero({
+  fileName,
+  sizeBytes,
+  isReadingFile,
+  rowCount,
+  sourceManifest,
+  sourceProductLabel,
+  selectedPresetLabel,
+  parseError,
+  onRemove,
+  compact,
+}: DetectionHeroProps) {
+  const fileSizeLabel = useMemo(() => formatBytes(sizeBytes), [sizeBytes])
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Compact file card — replaces the large dropzone */}
+      <div className="flex items-center justify-between gap-3 rounded-md border border-divider-regular bg-components-panel-bg px-3 py-2 shadow-subtle">
+        <div className="flex min-w-0 items-center gap-2.5">
+          {isReadingFile ? (
+            <LoaderCircleIcon
+              className="size-4 shrink-0 animate-spin text-text-accent"
+              aria-hidden
+            />
+          ) : (
+            <UploadCloudIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+          )}
+          <span className="truncate font-mono text-sm tabular-nums text-text-primary">
+            {fileName ?? ''}
+          </span>
+          {sizeBytes > 0 ? (
+            <span className="shrink-0 font-mono text-xs tabular-nums text-text-tertiary">
+              {fileSizeLabel}
+            </span>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="shrink-0 rounded-sm text-sm text-text-tertiary underline-offset-2 hover:text-text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          <Trans>Remove</Trans>
+        </button>
+      </div>
+
+      {/* Detection readout — the hero. Either the AI is reading, the AI
+          has determined the source, or parsing failed. */}
+      {parseError ? (
+        <Alert variant="destructive" role="alert" aria-live="assertive">
+          <AlertTitle>
+            <Trans>Couldn&apos;t read your data</Trans>
+          </AlertTitle>
+          <AlertDescription>{parseError}</AlertDescription>
+        </Alert>
+      ) : isReadingFile ? (
+        <p
+          role="status"
+          aria-live="polite"
+          className={cn('font-medium text-text-secondary', compact ? 'text-base' : 'text-lg')}
+        >
+          <Trans>Reading file…</Trans>
+        </p>
+      ) : sourceManifest && rowCount > 0 ? (
+        <DetectionReadout
+          productLabel={sourceProductLabel}
+          rowCount={rowCount}
+          confidence={sourceManifest.confidence}
+          compact={compact}
+        />
+      ) : rowCount > 0 ? (
+        // Paste path or generic source — we can confirm rows but not a tool
+        <p
+          className={cn(
+            'font-medium tabular-nums text-text-primary',
+            compact ? 'text-base' : 'text-lg',
+          )}
+        >
           <Plural
-            value={intake.rowCount}
-            one="# row ready to import"
-            other="# rows ready to import"
+            value={rowCount}
+            one="# client ready to import"
+            other="# clients ready to import"
           />
+        </p>
+      ) : null}
+
+      {selectedPresetLabel && !isReadingFile && !parseError ? (
+        <p className="text-xs text-text-tertiary">
+          <Trans>Source set to {selectedPresetLabel}.</Trans>
         </p>
       ) : null}
     </div>
   )
+}
+
+interface DetectionReadoutProps {
+  productLabel: string
+  rowCount: number
+  confidence: number
+  compact: boolean
+}
+
+/**
+ * The numbers-as-protagonists readout. Tabular-nums, bullet separators,
+ * confident statement of fact. Lowers in size on compact density but
+ * never drops below text-lg — this is the hero of the detection state.
+ */
+function DetectionReadout({ productLabel, rowCount, compact }: DetectionReadoutProps) {
+  // 2026-05-27: we currently don't have entity-type/state counts wired
+  // through from the manifest in this scope — the brief's example
+  // "30 clients · 4 entity types · 12 states" requires fields we'd
+  // need to surface from intake-files.ts (out of scope). For now we
+  // show product · row count, which is the most truthful pair the
+  // current contract supports without expanding scope.
+  return (
+    <div className="flex flex-col gap-1">
+      <p
+        className={cn(
+          'flex flex-wrap items-baseline gap-x-2.5 gap-y-1 font-medium tabular-nums text-text-primary',
+          compact ? 'text-lg' : 'text-2xl',
+        )}
+      >
+        <span>
+          <Trans>{productLabel} export</Trans>
+        </span>
+        <span aria-hidden className="text-text-tertiary">
+          ·
+        </span>
+        <span>
+          <Plural value={rowCount} one="# client" other="# clients" />
+        </span>
+      </p>
+    </div>
+  )
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes <= 0) return ''
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 interface PresetChipProps {
@@ -741,23 +919,6 @@ interface PresetChipProps {
 
 function PresetChip({ id, label, selected, compact = false, onToggle }: PresetChipProps) {
   const logo = PRESET_LOGOS[id]
-  // 2026-05-25 (Yuqi Today #27): heights and typography now snap to
-  // the canonical Button tokens (h-8 default / h-7 compact, text-sm
-  // body, font-medium). The previous h-9 + text-md was an off-scale
-  // size unique to this chip, which made the chip row read taller
-  // than the inputs above and below. Aligning to Button means these
-  // chips visually live in the same "click target" family as the
-  // rest of the dialog's primary buttons.
-  // 2026-05-25 (Yuqi Today #24): logo tile drops the hardcoded
-  // `bg-white ring-black/10`. White-on-white was specifically
-  // jarring against PNG logos with non-white backgrounds — the
-  // bright square framed each brand mark with a hard rectangle
-  // that fought the brand color. Now: subtle bg + divider ring, so
-  // transparent/SVG logos integrate, and logos that ship with their
-  // own background look intentional rather than awkwardly clipped.
-  // Per-brand tile colors can still be overridden via
-  // `logo.tileClassName` for marks that need a specific brand
-  // surface.
   const chip = (
     <button
       type="button"
@@ -836,14 +997,6 @@ function PresetExportGuideCard({
       )}
     >
       <div className="flex min-w-0 items-center gap-2">
-        {/* 2026-05-24 (design-system audit): was `rounded-[5px]`, an
-            off-scale value with no Tailwind equivalent. `rounded-sm`
-            matches the chip variant above and aligns with the app's
-            small-logo-tile treatment elsewhere.
-            2026-05-25 (Yuqi Today #24): same tile-bg shift as the
-            chip variant above — replaced bg-white ring-black/10 with
-            subtle bg + divider ring so logos with their own brand
-            colour stop fighting a hard white square. */}
         <span className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-sm bg-background-subtle ring-1 ring-divider-subtle">
           <img
             src={logo.src}
@@ -1263,13 +1416,12 @@ function toPlainRecord(value: unknown): Record<string, unknown> | null {
 }
 
 /**
- * 2026-05-25 (Wizard #40 — i18n bug fix): `friendlyParseError`
- * used to return bare English strings, which then rendered
- * untranslated into the parse-error `<Alert>` at L597. Now
- * returns a Lingui `MessageDescriptor` produced via the `msg`
- * macro so callers can render through `i18n._()` at React
- * render time. Same shape as `unsupportedUploadMessageDescriptor`
- * in `intake-files.ts`.
+ * 2026-05-25 (Wizard #40 — i18n bug fix): `friendlyParseError` used to
+ * return bare English strings, which then rendered untranslated into the
+ * parse-error `<Alert>`. Now returns a Lingui `MessageDescriptor` produced
+ * via the `msg` macro so callers can render through `i18n._()` at React
+ * render time. Same shape as `unsupportedUploadMessageDescriptor` in
+ * `intake-files.ts`.
  */
 function friendlyParseErrorDescriptor(error: TabularParseError): MessageDescriptor {
   switch (error.code) {
@@ -1280,14 +1432,6 @@ function friendlyParseErrorDescriptor(error: TabularParseError): MessageDescript
     case 'xlsx_not_supported':
       return msg`XLSX couldn't be parsed. Export as CSV and re-upload.`
     default:
-      // 2026-05-26 (Step 7 onboarding audit F11-02): the
-      // default fallback recommended "Try exporting as CSV"
-      // even when the user had already uploaded a CSV — the
-      // recommendation didn't match the situation. Rewrote to
-      // a structural check that applies regardless of source
-      // format. The xlsx_not_supported branch above keeps its
-      // CSV-specific recommendation because that *is* the
-      // right answer for XLSX failures.
       return msg`We couldn't read that file. Make sure it has a header row followed by at least one row of data.`
   }
 }

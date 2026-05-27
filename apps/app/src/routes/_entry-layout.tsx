@@ -102,10 +102,21 @@ function EntryShellFooter() {
       <span className="tabular-nums">
         <Trans>© {new Date().getFullYear()} DueDateHQ Inc.</Trans>
       </span>
-      <span className="inline-flex items-center gap-1.5">
+      {/* 2026-05-27 (Step 7 onboarding audit F10-03): the
+          "All systems operational" pill claimed status without
+          linking to a status page. Users seeing an outage had
+          no way to verify or get details. Now a real anchor to
+          the public status page — opens in a new tab so the
+          entry surface (often mid-login) isn't lost. */}
+      <a
+        href="https://status.duedatehq.com"
+        target="_blank"
+        rel="noreferrer noopener"
+        className="inline-flex items-center gap-1.5 rounded-sm hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
         <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
         <Trans>All systems operational</Trans>
-      </span>
+      </a>
     </footer>
   )
 }

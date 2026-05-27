@@ -100,14 +100,20 @@ function NeedsAttentionSection() {
       // (when alerts are live) and the section bg (when empty)
       // already give the panel its shape against the page wash;
       // the explicit border was just doubling the boundary.
-      // 2026-05-27 (Yuqi cross-route consistency): empty-state
-      // section drops its bg-tint so the inner `StatusBanner`
-      // provides the dashed-border shape — matching /rules/pulse's
-      // all-clear banner and /clients's needs-facts banner. Keeps
-      // `bg-state-destructive-hover` for the alerts-present state.
+      // 2026-05-27 (audit-drain X1 D18 + Yuqi cross-route consistency):
+      // empty-state and alerts-loaded paths now have different
+      // outer styling. Alerts-loaded keeps the destructive-tinted
+      // padded box (`p-3` + `gap-2.5` + `bg-state-destructive-hover`)
+      // because the urgent rows earn that weight. Empty state drops
+      // ALL outer styling — the inner `StatusBanner` primitive
+      // provides its own dashed border, bg, and padding (matching
+      // /rules/pulse and /clients), so wrapping it in a second
+      // tinted padded box was double chrome. This compresses the
+      // empty section more aggressively than D18's `gap-2 px-3 py-2`
+      // while also unifying with the canonical StatusBanner shape.
       className={cn(
-        'flex flex-col gap-2.5 rounded-xl p-3',
-        totalAlertCount > 0 && 'bg-state-destructive-hover',
+        'flex flex-col rounded-xl',
+        totalAlertCount > 0 && 'gap-2.5 bg-state-destructive-hover p-3',
       )}
     >
       {/* 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
@@ -134,18 +140,24 @@ function NeedsAttentionSection() {
             signals are meaningful: monitoring (always when sources
             exist) + alert count (when > 0, destructive-toned). */}
         <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-text-primary">
-          <Trans>Alerts</Trans>
+          {/* 2026-05-27 (Yuqi feedback: "the numbers are part of the
+              title. write 4 Alerts"): count + noun read as one phrase
+              at the heading type-style. Number prefix matches the
+              "10 Actions this week" pattern. When no alerts exist,
+              the heading collapses to the bare noun. */}
+          {totalAlertCount > 0 ? (
+            <Trans>
+              <Plural value={totalAlertCount} one="# Alert" other="# Alerts" />
+            </Trans>
+          ) : (
+            <Trans>Alerts</Trans>
+          )}
           {monitoringCount > 0 ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium text-text-secondary">
-              <PulsingDot tone="success" active className="size-1.5" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+              <PulsingDot tone="success" active />
               <Trans>
                 Monitoring <Plural value={monitoringCount} one="# source" other="# sources" />
               </Trans>
-            </span>
-          ) : null}
-          {totalAlertCount > 0 ? (
-            <span className="rounded-full bg-state-destructive-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-destructive">
-              {totalAlertCount}
             </span>
           ) : null}
         </h2>
@@ -171,16 +183,18 @@ function NeedsAttentionSection() {
       </div>
 
       {totalAlertCount > 0 ? (
-        <div
-          className={cn(
-            'grid items-stretch gap-3',
-            alerts.length === 1 && 'grid-cols-1',
-            alerts.length === 2 && 'grid-cols-2',
-            overflowCount > 0 && 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px]',
-          )}
-        >
+        // 2026-05-27 (Yuqi follow-up — "alert card is not occupying the
+        // full width"): the previous grid stacked two alerts side-by-
+        // side (`grid-cols-2`) and reserved a 160px overflow column.
+        // Side-by-side narrows each card and forces the alert body to
+        // wrap — at one alert it was full-width, at two it suddenly
+        // chopped in half. Now every alert renders as a full-width row
+        // stacked vertically. The overflow card sits as a final row at
+        // the same width, so the section reads top-to-bottom like a
+        // mini-inbox instead of a 2-column tile grid.
+        <div className="flex flex-col gap-2">
           {visibleAlerts.map((alert) => (
-            <div key={alert.id} className="h-full min-w-0">
+            <div key={alert.id} className="min-w-0">
               <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
             </div>
           ))}
@@ -266,8 +280,20 @@ function AlertsEmptyState({
   // The two-line body (status + supporting source-health line)
   // stacks inside the banner's body slot.
   return (
+    // 2026-05-27 (Yuqi header-chip merge into audit-drain): old
+    // body's Binoculars + "Monitoring N sources" paragraph dropped
+    // because the same count is now in the section h2's chip (see
+    // PageHeader treatment above) — duplicate signal across header
+    // and body was the cross-route inconsistency Yuqi flagged. The
+    // paused-state warning ("N paused · View sources"), the loading
+    // hint, and the zero-sources-monitored branch are all retained
+    // via `supportingLine` because the chip does NOT surface those.
+    //
+    // Inner stack uses `gap-1` (not `gap-1.5`) to honor audit-drain
+    // X1 D18's compression intent — the two lines stack as one
+    // paragraph, not two.
     <StatusBanner indicator={<CircleCheckIcon className="size-4 text-text-success" aria-hidden />}>
-      <span className="flex flex-col gap-1.5">
+      <span className="flex flex-col gap-1">
         <span className="text-sm text-text-secondary">
           <Trans>No active alerts — nothing needs your review right now.</Trans>
         </span>

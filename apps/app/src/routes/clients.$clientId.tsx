@@ -94,10 +94,28 @@ export function ClientDetailRoute() {
       )}
     >
       {isLoading ? (
-        <div className="flex flex-col gap-3">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-40 w-full" />
-          <Skeleton className="h-64 w-full" />
+        // 2026-05-27 (Step 6 UX audit #71): loading state used to be a
+        // generic stack of three blocks (8/40/64) that read the same
+        // as the dashboard loader. Domain-specific skeleton mirrors
+        // the real client-detail shape — title + caption + identity
+        // chips, then the summary tile row, then the body workspace.
+        // Reduces the visual jolt when the real layout paints.
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-7 w-64 rounded-md" />
+            <Skeleton className="h-4 w-40 rounded-md" />
+            <div className="flex flex-wrap items-center gap-2">
+              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="h-5 w-14 rounded-full" />
+              <Skeleton className="h-5 w-24 rounded-full" />
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Skeleton className="h-20 flex-1 min-w-44 rounded-md" />
+            <Skeleton className="h-20 flex-1 min-w-44 rounded-md" />
+            <Skeleton className="h-20 flex-1 min-w-44 rounded-md" />
+          </div>
+          <Skeleton className="h-72 w-full rounded-md" />
         </div>
       ) : isError ? (
         <Alert variant="destructive">
@@ -120,9 +138,27 @@ export function ClientDetailRoute() {
             <span>
               <Trans>This client may have been deleted or you may not have access.</Trans>
             </span>
-            <Button variant="outline" size="sm" render={<Link to="/clients" />}>
-              <Trans>Back to clients</Trans>
-            </Button>
+            {/* 2026-05-27 (Step 6 UX audit #68): "Client not found" used
+                to only offer "Back to clients" — a one-way exit. If
+                the absence is a transient (stale cache, network blip)
+                the CPA had to navigate away and back to retry.
+                Refresh re-runs the same query; Back-to-clients stays
+                as the navigational escape hatch. */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  void clientQuery.refetch()
+                  if (needsSlugLookup) void clientsQuery.refetch()
+                }}
+              >
+                <Trans>Try again</Trans>
+              </Button>
+              <Button variant="ghost" size="sm" render={<Link to="/clients" />}>
+                <Trans>Back to clients</Trans>
+              </Button>
+            </div>
           </AlertDescription>
         </Alert>
       ) : (

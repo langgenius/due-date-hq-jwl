@@ -11,6 +11,9 @@ interface DocumentChecklistItemRow {
   label: string
   description: string | null
   source: 'template' | 'custom'
+  origin: 'ai' | 'manual'
+  aiGeneratedAt: Date | null
+  userEditedAt: Date | null
   status: 'missing' | 'received' | 'needs_review'
   sortOrder: number
   note: string | null
@@ -68,6 +71,10 @@ export function toReadinessDocumentChecklistItemPublic(
     label: row.label,
     description: row.description,
     source: row.source,
+    // F-008 / F-022 / F-039: provenance + edit-lifecycle for the UI.
+    origin: row.origin,
+    aiGeneratedAt: toNullableIso(row.aiGeneratedAt),
+    userEditedAt: toNullableIso(row.userEditedAt),
     status: row.status,
     sortOrder: row.sortOrder,
     note: row.note,

@@ -1,8 +1,28 @@
 import type { AuditActionCategory } from './shared'
 
+// η pass — F-035 / F-036 / F-037. See packages/db/src/schema/audit.ts for
+// the load-bearing comment block; this is the port-level mirror so
+// downstream packages (server, jobs, tests) get the typed surface without
+// reaching into the db package.
+export type AuditActorType = 'user' | 'system' | 'ai' | 'ai_assisted'
+
+export interface AiEventMetadata {
+  model?: string
+  promptVersion?: string
+  inputTokens?: number
+  outputTokens?: number
+  latencyMs?: number
+  guardStatus?: 'passed' | 'flagged' | 'blocked' | 'skipped'
+  confidence?: number
+  aiOutputId?: string
+}
+
 export interface AuditEventInput {
   firmId: string
   actorId: string | null
+  actorType?: AuditActorType
+  previousActorType?: AuditActorType | null
+  aiEventMetadata?: AiEventMetadata | null
   entityType: string
   entityId: string
   action: string
@@ -17,6 +37,9 @@ export interface AuditEventRow {
   id: string
   firmId: string
   actorId: string | null
+  actorType: AuditActorType
+  previousActorType: AuditActorType | null
+  aiEventMetadataJson: unknown
   entityType: string
   entityId: string
   action: string
@@ -33,6 +56,7 @@ export interface AuditListInput {
   category?: AuditActionCategory
   action?: string
   actorId?: string
+  actorType?: AuditActorType | 'ai_any'
   entityType?: string
   entityId?: string
   range?: '24h' | '7d' | '30d' | 'all'

@@ -124,7 +124,10 @@ test.describe('seeded obligations', () => {
     await obligationQueuePage.statusSelectFor('Arbor & Vale LLC').click()
     await obligationQueuePage.statusChangeOption('Filed').click()
 
-    await expect(authenticatedPage.getByText('Status updated')).toBeVisible()
+    // 2026-05-27 (α #156): per-status toast labels.
+    await expect(
+      authenticatedPage.getByText(/Status (?:updated|changed to)|Marked as/),
+    ).toBeVisible()
     await expect(authenticatedPage.getByText(/Audit [a-f0-9-]{8}/)).toBeVisible()
     await expect(obligationQueuePage.statusSelectFor('Arbor & Vale LLC')).toContainText('Filed')
 

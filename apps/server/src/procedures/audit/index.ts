@@ -1,5 +1,11 @@
 import { ORPCError } from '@orpc/server'
-import type { AuditEvidencePackagePublic, AuditEventPublic } from '@duedatehq/contracts'
+import {
+  AiEventMetadataSchema,
+  type AiEventMetadata,
+  type AuditActorType,
+  type AuditEvidencePackagePublic,
+  type AuditEventPublic,
+} from '@duedatehq/contracts'
 import { planHasFeature } from '@duedatehq/core/plan-entitlements'
 import { signAuditPackageDownload } from '../../routes/signed-url'
 import { requireTenant } from '../_context'
@@ -11,6 +17,10 @@ interface AuditRow {
   firmId: string
   actorId: string | null
   actorLabel: string | null
+  // η pass — F-035 / F-037: AI-provenance + optional metadata.
+  actorType: AuditActorType
+  previousActorType: AuditActorType | null
+  aiEventMetadataJson: unknown
   entityType: string
   entityId: string
   action: string
@@ -22,12 +32,24 @@ interface AuditRow {
   createdAt: Date
 }
 
+function parseAiEventMetadata(value: unknown): AiEventMetadata | null {
+  if (value == null) return null
+  // Defensive: rows written before contract tightening may carry stale
+  // shapes. Strict-parse fails closed (null) so the drawer simply hides
+  // the disclosure section rather than crashing.
+  const parsed = AiEventMetadataSchema.safeParse(value)
+  return parsed.success ? parsed.data : null
+}
+
 export function toAuditEventPublic(row: AuditRow): AuditEventPublic {
   return {
     id: row.id,
     firmId: row.firmId,
     actorId: row.actorId,
     actorLabel: row.actorLabel,
+    actorType: row.actorType,
+    previousActorType: row.previousActorType,
+    aiEventMetadata: parseAiEventMetadata(row.aiEventMetadataJson),
     entityType: row.entityType,
     entityId: row.entityId,
     action: row.action,
@@ -75,6 +97,7 @@ const list = os.audit.list.handler(async ({ input, context }) => {
   if (input.category !== undefined) repoInput.category = input.category
   if (input.action !== undefined) repoInput.action = input.action
   if (input.actorId !== undefined) repoInput.actorId = input.actorId
+  if (input.actorType !== undefined) repoInput.actorType = input.actorType
   if (input.entityType !== undefined) repoInput.entityType = input.entityType
   if (input.entityId !== undefined) repoInput.entityId = input.entityId
   if (input.range !== undefined) repoInput.range = input.range

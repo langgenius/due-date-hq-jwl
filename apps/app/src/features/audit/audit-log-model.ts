@@ -111,6 +111,12 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'migration.raw_uploaded': 'migrationRawUploaded',
   'migration.reverted': 'migrationReverted',
   'migration.single_undo': 'migrationSingleUndo',
+  'readiness.checklist_item.created': 'readinessChecklistItemCreated',
+  'readiness.checklist_item.updated': 'readinessChecklistItemUpdated',
+  'readiness.checklist_item.deleted': 'readinessChecklistItemDeleted',
+  // η pass — F-023: emitted when a user value-edit replaced an AI-sourced
+  // checklist item value. Distinct action so audit-log filters can target it.
+  'readiness.checklist_item.ai_overridden': 'readinessChecklistItemAiOverridden',
   'obligation.batch_created': 'obligationBatchCreated',
   'obligation.annual_rollover.created': 'obligationAnnualRolloverCreated',
   'obligation.due_date.updated': 'obligationDueDateUpdated',

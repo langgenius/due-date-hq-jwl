@@ -2,7 +2,14 @@ import { useMemo, useState } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
-import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FilterIcon, Loader2 } from 'lucide-react'
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DownloadIcon,
+  FilterIcon,
+  Loader2,
+  ScrollTextIcon,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { AuditEventPublic, AuditListInput, FirmPublic } from '@duedatehq/contracts'
@@ -39,10 +46,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/permission-gate'
 
+import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { SearchInput } from '@/components/primitives/search-input'
 
@@ -613,7 +622,7 @@ export function AuditLogPage() {
 
   if (firmsQuery.isLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
+      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-4 md:px-6 md:pb-6">
         <Skeleton className="h-10 w-56" />
         <Skeleton className="h-60 w-full rounded-lg" />
       </div>
@@ -626,9 +635,13 @@ export function AuditLogPage() {
         permission="audit.read"
         firm={currentFirm}
         description={
+          // ROH-D5 (ρ) → ROH-D11 (ψ): ρ hardcoded partners back into the
+          // list; ψ then replaced with the canonical helper so the
+          // description reflects FIRM_PERMISSION_ROLES['audit.read']
+          // (owner/partner/manager/preparer) automatically.
           <Trans>
-            Practice-wide audit events are available to owners, managers, and preparers. Contact the
-            practice owner if you need audit access.
+            Practice-wide audit events are available to {requiredRolesLabel('audit.read')}. Contact
+            the practice owner if you need audit access.
           </Trans>
         }
         secondaryAction={{ label: <Trans>Open deadlines</Trans>, to: '/deadlines' }}
@@ -639,7 +652,7 @@ export function AuditLogPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-4 md:px-6 md:pb-6">
       <PageHeader
         // 2026-05-24 (critique P2 — clarify): dropped the "Settings"
         // breadcrumb. Audit log is a top-level sidebar destination
@@ -826,25 +839,42 @@ export function AuditLogPage() {
           ) : null}
 
           {!auditQuery.isLoading && !auditQuery.isError && filteredEvents.length === 0 ? (
-            <div className="grid gap-2 rounded-lg border border-divider-subtle p-6 text-center">
-              <h2 className="text-lg font-semibold text-text-primary">
-                {filtersActive ? (
+            /* 2026-05-27 (step-6 ux-flow audit F9-02 chrome upgrade):
+               replaced the ad-hoc bordered div with the shared
+               EmptyState component so the chrome matches the rest of
+               the app's empty surfaces (dashed border, icon-on-top,
+               consistent typography scale). Filtered state gets a
+               Clear filters CTA — same affordance the toolbar carries
+               above so the user has an inline way to recover without
+               scrolling back up. */
+            <EmptyState
+              icon={ScrollTextIcon}
+              title={
+                filtersActive ? (
                   <Trans>No audit events match these filters.</Trans>
                 ) : (
                   <Trans>No audit events yet.</Trans>
-                )}
-              </h2>
-              <p className="text-sm text-text-secondary">
-                {filtersActive ? (
+                )
+              }
+              description={
+                filtersActive ? (
                   <Trans>Clear filters to return to the latest practice-wide events.</Trans>
                 ) : (
                   <Trans>
                     Deadline status updates and client imports will appear here when they write
                     audit rows.
                   </Trans>
-                )}
-              </p>
-            </div>
+                )
+              }
+              cta={
+                filtersActive ? (
+                  <Button variant="outline" size="sm" onClick={resetFilters}>
+                    <FilterIcon data-icon="inline-start" />
+                    <Trans>Clear filters</Trans>
+                  </Button>
+                ) : undefined
+              }
+            />
           ) : null}
 
           {filteredEvents.length > 0 ? (

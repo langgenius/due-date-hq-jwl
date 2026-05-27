@@ -1,7 +1,9 @@
 import { useState, type SyntheticEvent } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
+import type { I18n } from '@lingui/core'
 import { AlertTriangleIcon, EllipsisIcon, Loader2, PlusIcon, ShieldCheckIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import type {
@@ -73,6 +75,7 @@ import {
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
 import { RelativeTime } from '@/components/primitives/relative-time'
+import { initialsFromName } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
@@ -93,6 +96,19 @@ type MemberActionTarget = {
 
 const INVITE_MEMBER_HOTKEY = 'Mod+I'
 const INVITE_MEMBER_ARIA_SHORTCUTS = 'Meta+I Control+I'
+
+// 2026-05-27 (step-6 audit F6.5): per-role scope summary used inside
+// the invite-role <SelectItem>. CPA-vocabulary: Partner = principal
+// authority; Manager = review + sign-off; Preparer = assigned client
+// work; Coordinator = scheduling + intake but no preparation.
+// Uses `msg` + `i18n._` so the catalog extractor picks up every
+// variant (parameterized `t` inside a helper bypasses extraction).
+function inviteRoleDescription(role: MemberManagedRole, i18n: I18n): string {
+  if (role === 'partner') return i18n._(msg`Principal authority — billing, members, full sign-off.`)
+  if (role === 'manager') return i18n._(msg`Reviews work and signs off on prepared filings.`)
+  if (role === 'preparer') return i18n._(msg`Works assigned client deadlines and prepares filings.`)
+  return i18n._(msg`Schedules work and handles client intake — no preparation rights.`)
+}
 
 export function MembersPageRoute() {
   const permission = useFirmPermission()
@@ -918,7 +934,14 @@ function MemberIdentity({ member }: { member: MemberPublic }) {
         {member.image ? (
           <img src={member.image} alt="" className="size-full object-cover" />
         ) : (
-          <span className="text-xs">{member.name.slice(0, 1).toUpperCase()}</span>
+          // 2026-05-27 (σ cross-route audit D1): the row used to ship
+          // `member.name.slice(0,1).toUpperCase()` — one initial only.
+          // Every other owner-avatar surface in the app derives initials
+          // via `initialsFromName` (up to 2 letters), so "Sarah Martinez"
+          // read as "S" here and "SM" in queue/clients. Route through
+          // the shared helper so the same person reads identically
+          // everywhere.
+          <span className="text-xs">{initialsFromName(member.name)}</span>
         )}
       </span>
       <span
@@ -1085,7 +1108,7 @@ function InviteMemberDialog({
   seatsFull: boolean
   membersKey: readonly unknown[]
 }) {
-  const { t } = useLingui()
+  const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<MemberManagedRole>('manager')
@@ -1153,21 +1176,30 @@ function InviteMemberDialog({
               <SelectTrigger id="invite-role" className="w-full">
                 <SelectValue>{roleLabel(role)}</SelectValue>
               </SelectTrigger>
+              {/* 2026-05-27 (step-6 audit F6.5): each role item now
+                  carries a one-line scope summary so the user choosing
+                  the role sees WHICH role does WHAT inline. Previously
+                  the helper line below described all roles generically
+                  and was divorced from the picker. */}
               <SelectContent align="start">
                 <SelectGroup>
                   {MANAGED_ROLES.map((item) => (
                     <SelectItem key={item} value={item}>
-                      {roleLabel(item)}
+                      <span className="flex flex-col items-start gap-0.5 py-0.5">
+                        <span className="text-sm font-medium text-text-primary">
+                          {roleLabel(item)}
+                        </span>
+                        <span className="text-xs leading-4 text-text-tertiary">
+                          {inviteRoleDescription(item, i18n)}
+                        </span>
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
             <p className="text-xs leading-5 text-text-tertiary">
-              <Trans>
-                Owner stays read-only. Managers can review work; preparers and coordinators have
-                scoped access.
-              </Trans>
+              <Trans>Owner stays read-only and can't be invited from here.</Trans>
             </p>
           </div>
           {inviteMutation.isError ? (

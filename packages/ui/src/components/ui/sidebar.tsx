@@ -827,8 +827,16 @@ export function SidebarMenuBadge({
   const pillBaseExpanded =
     'pointer-events-none inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 font-mono text-[10px] font-semibold tabular-nums leading-none'
   const expandedPos = 'ml-auto'
+  // 2026-05-27 (Yuqi feedback "just a red dot is enough"): collapsed
+  // mode reverts to a bare dot indicator — no digit, no border. The
+  // count was hard to read at 14×14 and the user just needs to know
+  // "there's something here" while in icon-only mode. Expanded mode
+  // still shows the full count inline.
+  // `[&>*]:hidden` hides the digit text in collapsed mode; the dot
+  // itself comes from a 8×8 destructive-solid circle positioned at
+  // the icon's top-right.
   const collapsedPos =
-    'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:-top-0.5 group-data-[collapsed=true]/sidebar:-right-0.5 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:h-3.5 group-data-[collapsed=true]/sidebar:min-w-3.5 group-data-[collapsed=true]/sidebar:px-0.5 group-data-[collapsed=true]/sidebar:text-[9px] group-data-[collapsed=true]/sidebar:border-2 group-data-[collapsed=true]/sidebar:border-components-panel-bg'
+    'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:top-0 group-data-[collapsed=true]/sidebar:right-0 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:h-2 group-data-[collapsed=true]/sidebar:min-w-2 group-data-[collapsed=true]/sidebar:w-2 group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:text-[0px] group-data-[collapsed=true]/sidebar:overflow-hidden'
   if (tone === 'inventory') {
     return (
       <span
@@ -854,10 +862,12 @@ export function SidebarMenuBadge({
         expandedPos,
         'bg-state-destructive-solid text-text-inverted',
         collapsedPos,
-        // Subtle pulse on the urgent badge — communicates "fresh /
-        // needs attention" without being annoying. Only in collapsed
-        // mode so expanded reads as a calm count.
-        'group-data-[collapsed=true]/sidebar:animate-[pulse_2.4s_ease-in-out_infinite] group-data-[collapsed=true]/sidebar:motion-reduce:animate-none',
+        // 2026-05-27 (Yuqi feedback "remove the shining effect"): the
+        // collapsed-mode animate-pulse was making the digit pulse in
+        // and out of opacity, which Yuqi flagged as hard-to-read.
+        // Calm red pill stands on its own as a "fresh / needs
+        // attention" signal — the destructive solid tone is already
+        // loud enough.
         className,
       )}
       {...props}

@@ -190,6 +190,9 @@ describe('@duedatehq/contracts', () => {
       firmId: 'firm_123',
       actorId: null,
       actorLabel: null,
+      actorType: 'system',
+      previousActorType: null,
+      aiEventMetadata: null,
       entityType: 'migration_batch',
       entityId: 'batch_123',
       action: 'migration.imported',
@@ -201,6 +204,7 @@ describe('@duedatehq/contracts', () => {
       createdAt: '2026-04-28T00:00:00.000Z',
     })
     expect(event.actorId).toBeNull()
+    expect(event.actorType).toBe('system')
   })
 
   it('keeps shared error codes stable', () => {
@@ -675,9 +679,11 @@ describe('@duedatehq/contracts', () => {
     expect(bulkInput.status).toBe('extended')
     const bulkOutput = ObligationBulkStatusUpdateOutputSchema.parse({
       updatedCount: 1,
+      skippedCount: 0,
       auditIds: ['33333333-3333-4333-8333-333333333333'],
     })
     expect(bulkOutput.updatedCount).toBe(1)
+    expect(bulkOutput.skippedCount).toBe(0)
 
     const filedRejectionInput = ObligationMarkFiledRejectedInputSchema.parse({
       id: '11111111-1111-4111-8111-111111111111',
@@ -1371,6 +1377,7 @@ describe('@duedatehq/contracts', () => {
           clientEmail: 'acme@example.com',
           taxType: 'ca_llc_annual_tax',
           currentDueDate: '2026-04-30',
+          paymentDueDate: null,
           status: 'pending',
           missingPenaltyFacts: [],
           penaltySourceRefs: [],
@@ -1418,6 +1425,7 @@ describe('@duedatehq/contracts', () => {
               clientEmail: 'acme@example.com',
               taxType: 'ca_llc_annual_tax',
               currentDueDate: '2026-04-30',
+              paymentDueDate: null,
               status: 'pending',
               missingPenaltyFacts: [],
               penaltySourceRefs: [],

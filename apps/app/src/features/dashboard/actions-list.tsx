@@ -10,10 +10,12 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
+import { StatTile } from '@/components/patterns/stat-tile'
 import { ConceptHelp } from '@/features/concepts/concept-help'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { formatDatePretty } from '@/lib/utils'
 import { ObligationStatusReadBadge, STATUS_ICON_COLOR } from '@/features/obligations/status-control'
+import { isPaymentOverdue, paymentOverdueDays } from '@/features/obligations/payment-overdue'
 
 function topPriorityFactors(row: DashboardTopRow): string[] {
   const factors = [...(row.smartPriority.factors ?? [])]
@@ -93,13 +95,46 @@ function useActionPrompt(row: DashboardTopRow, asOfDate: string | null): string 
 // dashboard top-rows query typically filters terminal states out, so
 // this branch is defensive — guards against an optimistic update or
 // a future server expansion landing a completed row in the list.
-const DASHBOARD_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set([
-  'done',
-  'paid',
-  'completed',
-])
+//
+// 2026-05-27 (D12 — Agent ω, journey-audit drain): `'done'` removed
+// from the terminal set. Filing being done does NOT imply the
+// payment side cleared (anti-pattern #1: extension/filing ≠ payment).
+// A row marked `'done'` but with `paymentDueDate < asOfDate` is still
+// payment-overdue and should surface in "Needs attention" with a
+// "Payment N days late" chip. `'paid'` and `'completed'` remain
+// terminal — `'paid'` explicitly means the payment side closed too,
+// and `'completed'` is the canonical end state covering both sides.
+const DASHBOARD_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set(['paid', 'completed'])
 
-function RowMeta({ days, status }: { days: number; status: ObligationStatus }) {
+function RowMeta({
+  days,
+  status,
+  paymentDueDate,
+  asOfDate,
+}: {
+  days: number
+  status: ObligationStatus
+  paymentDueDate: string | null
+  asOfDate: string | null
+}) {
+  // 2026-05-27 (D12 — Agent ω): payment-overdue takes precedence on
+  // the row meta. A filed-but-payment-overdue row's "filing days
+  // late" reading is misleading (the filing is done); the urgent
+  // signal is the unpaid payment. When both apply, the payment chip
+  // wins because that's the action the CPA still needs to take.
+  const paymentLate = isPaymentOverdue(paymentDueDate, asOfDate)
+  const paymentLateDays = paymentOverdueDays(paymentDueDate, asOfDate)
+
+  if (paymentLate) {
+    return (
+      <span className="flex shrink-0 items-baseline whitespace-nowrap text-sm tabular-nums">
+        <span className="text-text-destructive">
+          <Plural value={paymentLateDays} one="Payment # day late" other="Payment # days late" />
+        </span>
+      </span>
+    )
+  }
+
   if (DASHBOARD_TERMINAL_STATUSES.has(status)) {
     if (days === 0) return null
     return (
@@ -211,7 +246,11 @@ function ActionRow({
           // longer + symmetric easing makes the hover feel
           // intentional, not snappy — important on a dashboard
           // surface where the row IS the affordance.
-          'group flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left outline-none transition-colors duration-200 ease-in-out focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+          // 2026-05-27 (Yuqi feedback): tighten action row vertical
+          // padding py-2 (8px) → py-1 (4px). Yuqi: "changes to .py-2
+          // { padding-block: calc(var(--spacing) * 1); }" — devtools
+          // experiment confirmed the row reads better at half height.
+          'group flex w-full cursor-pointer items-center gap-3 px-3 py-1 text-left outline-none transition-colors duration-200 ease-in-out focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           // Background drives off the expanded state, not hover, so
           // the row and the panel below read as a single block. When
           // collapsed, the row stays transparent (chrome quiet at
@@ -298,7 +337,12 @@ function ActionRow({
             <ArrowRightIcon data-icon="inline-end" />
           </Button>
         ) : null}
-        <RowMeta days={days} status={row.status} />
+        <RowMeta
+          days={days}
+          status={row.status}
+          paymentDueDate={row.paymentDueDate}
+          asOfDate={asOfDate}
+        />
       </div>
 
       {/* Inline expansion — sits inside the same wrapper as the row,
@@ -482,45 +526,14 @@ function ActionRow({
   )
 }
 
-// Compact summary tile that sits inside the Actions this week header.
-// Moved here from the standalone ExposureStrip (Yuqi #5) — same
-// week scope, same data set, so the three counts now read as the
-// section's summary header rather than a sibling row above it.
-function ActionsSummaryTile({
-  value,
-  label,
-  href,
-  tone,
-}: {
-  value: string
-  label: string
-  href: string
-  tone: 'neutral' | 'critical'
-}) {
-  return (
-    <Link
-      to={href}
-      className={cn(
-        'group flex min-w-[160px] flex-col gap-1 rounded-md border border-divider-subtle bg-background-default px-4 py-3 transition-colors hover:border-divider-regular hover:bg-background-default-hover',
-      )}
-    >
-      {/* 2026-05-25 (Yuqi Today #1 — second pass): tile value
-          dropped text-xl → text-lg and font-semibold → font-medium.
-          The number is a magnitude cue, not a hero — at xl/semibold
-          it competed with the page h1. Critical tone now carries
-          the eye via color, not weight. */}
-      <span
-        className={cn(
-          'text-lg font-medium leading-tight tabular-nums tracking-tight',
-          tone === 'critical' ? 'text-text-destructive' : 'text-text-primary',
-        )}
-      >
-        {value}
-      </span>
-      <span className="text-sm text-text-secondary">{label}</span>
-    </Link>
-  )
-}
+// 2026-05-26 (PR #28 audit cross-surface P0 #1) + 2026-05-27 (drain
+// pass ν #37/#38): `ActionsSummaryTile` was extracted to the shared
+// `StatTile` primitive at `@/components/patterns/stat-tile.tsx`. The
+// ν #38 weight-bump for critical tone (font-medium → font-semibold)
+// is now subsumed into StatTile's canonical "always semibold" rule —
+// critical tone differentiates by color only. The "All caught up"
+// empty-state slot from ν #37 was migrated to StatTile alongside the
+// regular tile callers.
 
 function DashboardActionsList({
   rows,
@@ -603,20 +616,36 @@ function DashboardActionsList({
       tone: 'neutral',
     })
   }
+  // 2026-05-27 (Step 6 UX audit #37): when every exposure count is
+  // zero the strip used to vanish, which read as "the data hasn't
+  // loaded" — same shape as the isLoading skeleton above. Render an
+  // explicit "all caught up" tile so the slot is claimed and the
+  // CPA sees an affirmative signal. The tile routes to the deadlines
+  // queue so the user can still drill in if they want to verify.
   const summaryStrip =
     summaryTiles.length > 0 ? (
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 px-3">
         {summaryTiles.map((tile) => (
-          <ActionsSummaryTile key={tile.href} {...tile} />
+          <StatTile
+            key={tile.href}
+            value={tile.value}
+            label={tile.label}
+            href={tile.href}
+            tone={tile.tone}
+          />
         ))}
       </div>
-    ) : null
+    ) : (
+      <div className="flex flex-wrap gap-3 px-3">
+        <StatTile value="0" label={t`All caught up`} href="/deadlines" tone="neutral" />
+      </div>
+    )
 
   if (isLoading) {
     return (
       <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
         <ActionsListHeader count={null} onOpenAll={onOpenAllObligations} />
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 px-3">
           <Skeleton className="h-16 w-40" />
           <Skeleton className="h-16 w-40" />
           <Skeleton className="h-16 w-40" />
@@ -723,7 +752,11 @@ function ActionsListHeader({ count, onOpenAll }: { count: number | null; onOpenA
     // misreading Yuqi's note — she meant the row should sit on the
     // left, with the title/count/caption sharing one visual midline
     // (`items-center`, not `items-baseline`).
-    <div className="flex items-center justify-between gap-3">
+    // 2026-05-27 (Yuqi feedback "px-3 is to the actions this week title,
+    // and the three card columns row"): px-3 lives on the heading row +
+    // tile row only, NOT on the section as a whole. Action rows below
+    // stay flush so the arrow column reads as a visual anchor.
+    <div className="flex items-center justify-between gap-3 px-3">
       {/* 2026-05-25 (Yuqi #27 + Today follow-up): sort order was
           implicit ("list is ordered by Smart Priority desc"). Surfaced
           inline as "Sorted by priority" so the CPA knows why row 3 is
@@ -741,11 +774,17 @@ function ActionsListHeader({ count, onOpenAll }: { count: number | null; onOpenA
           body. Same change made to the "Alerts" h2 in
           needs-attention-section.tsx. */}
       <h2 className="flex items-center flex-wrap gap-x-2 gap-y-0.5 text-lg font-semibold tracking-tight text-text-primary">
-        <span className="inline-flex items-center gap-2">
-          <Trans>Actions this week</Trans>
+        {/* 2026-05-27 (Yuqi feedback "write 10 Actions this week, the
+            numbers are part of the title"): count prefix is now part
+            of the heading string itself (same type-style as "Actions
+            this week"). Matches the "4 Alerts" pattern on the section
+            above. When count is 0/null, the bare phrase shows. */}
+        <span className="inline-flex items-center gap-2 tabular-nums">
           {count !== null && count > 0 ? (
-            <span className="text-base font-normal tabular-nums text-text-tertiary">{count}</span>
-          ) : null}
+            <Trans>{count} Actions this week</Trans>
+          ) : (
+            <Trans>Actions this week</Trans>
+          )}
         </span>
         {/* 2026-05-25 (info-icon audit): the bare `<span title=…>
             <Info /></span>` non-focusable affordance becomes a

@@ -30,6 +30,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { createBillingPortal } from '@/features/billing/api'
 import { formatDollarPrice } from '@/lib/utils'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 import {
   activeFirmEntitlementLimit,
   billingPlanMonthlyEquivalent,
@@ -255,9 +256,11 @@ export function BillingRoute() {
         permission="billing.read"
         firm={currentFirm}
         description={
+          // ROH-D11 — billing.read = owner/manager today (helper-aware
+          // so if scope changes we don't drift again).
           <Trans>
-            Billing overview is available to owners and managers. Contact the practice owner if you
-            need plan or invoice access.
+            Billing overview is available to {requiredRolesLabel('billing.read')}. Contact the
+            practice owner if you need plan or invoice access.
           </Trans>
         }
         secondaryAction={{ label: <Trans>Open deadlines</Trans>, to: '/deadlines' }}
@@ -417,7 +420,9 @@ export function BillingRoute() {
             </Button>
             {!owner ? (
               <span className="text-sm text-text-tertiary">
-                <Trans>Only owners can manage billing.</Trans>
+                {/* ROH-D11 — billing.update is owner-only today, but route
+                    via the helper so a future role-set change can't drift. */}
+                <Trans>Only {requiredRolesLabel('billing.update')} can manage billing.</Trans>
               </span>
             ) : !activeSubscription ? (
               <span className="text-sm text-text-tertiary">

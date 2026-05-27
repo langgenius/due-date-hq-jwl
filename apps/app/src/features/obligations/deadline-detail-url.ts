@@ -50,10 +50,10 @@ export function normalizeDeadlineDetailTab(
 
 export function deadlineDetailPath(
   obligationId: string,
-  tab: ObligationQueueDetailTab = 'readiness',
+  tab: ObligationQueueDetailTab = 'summary',
 ): string {
   const ref = deadlineRefFromObligationId(obligationId)
-  return tab === 'readiness' ? `/deadlines/${ref}` : `/deadlines/${ref}/${tab}`
+  return tab === 'summary' ? `/deadlines/${ref}` : `/deadlines/${ref}/${tab}`
 }
 
 export function cleanDeadlineDetailSearch(search: string): string {
@@ -67,7 +67,7 @@ export function cleanDeadlineDetailSearch(search: string): string {
 
 export function deadlineDetailHref({
   obligationId,
-  tab = 'readiness',
+  tab = 'summary',
   search = '',
 }: {
   obligationId: string

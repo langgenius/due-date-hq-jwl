@@ -285,6 +285,39 @@ In priority order:
    `RuleStatus` with >0 rules. Same h-7 rounded-md shape; finer
    distribution exposes verified / candidate / archived
    composition the old two-tone bar collapsed.
+9. **Needs-review column collapse + pill jurisdiction badge** —
+   [SHIPPED 2026-05-27, follow-up on audit-drain x2] The dedicated
+   Needs-review column added in x2 was redundant with its own header
+   ("9 need review" on every row repeated the column name). Folded
+   the chip back into the Tier cell as a number-only `• N` sitting
+   to the RIGHT of the progress bar (anchored to the side of the bar
+   the review segment actually paints). Cluster reads gap chip →
+   progress bar → review chip. Column count drops 10 → 9. Group
+   header's `StateBadge` + 2-letter code now wrapped in a bordered
+   pill (`rounded-md border-divider-deep bg-background-subtle`) so
+   flag + code reads as one defined chip.
+10. **Per-entity applicability dots → icons (14px)** —
+    [SHIPPED 2026-05-27] The 7-column entity grid painted small
+    tonal dots (green active / brown review) for each rule's
+    applicability. Switched to shape-led icons so meaning carries
+    on form, not just color: `<Check>` (lucide, soft gray) for
+    active, `<Circle>` (lucide outline, sienna) for review. Both
+    `size-3.5` (14px). Destructive / muted tones still use dots
+    (the user only called out the two main states). Not-applies
+    placeholder unchanged (faint 3px dot).
+11. **Brown unification — single tone for "needs review"** —
+    [SHIPPED 2026-05-27] The page had two conflicting tones for the
+    same concept: top stat bar used coral/warning ("alarm" energy),
+    every other surface used accent/blue ("info" energy). Unified on
+    a brown palette (sienna `yellow-700` on cream `yellow-50/100`,
+    mustard solid `yellow-600` for dots/bars) so every needs-review
+    indicator on the page shares one tone. Brown reads as "attention
+    needed, not urgent" — between blue (info) and red (alarm).
+    Held in `REVIEW_*_CLS` consts at module top; promote to
+    `--state-review-*` semantic tokens once another surface adopts.
+    See dev-log
+    `2026-05-27-rule-library-needs-review-collapse.md` §"Follow-up
+    batch" for the full surface inventory.
 
 Re-run `/critique` after the structural pass — target ≥32/40.
 

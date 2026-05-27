@@ -22,7 +22,11 @@ test.describe('seeded audit trail', () => {
     await obligationQueuePage.statusSelectFor('Arbor & Vale LLC').click()
     await obligationQueuePage.statusChangeOption('Filed').click()
 
-    await expect(authenticatedPage.getByText('Status updated')).toBeVisible()
+    // 2026-05-27 (α #156): per-status toast labels replaced the shared
+    // "Status updated" — "Marked as filed" / "Status changed to Filed".
+    await expect(
+      authenticatedPage.getByText(/Status (?:updated|changed to)|Marked as/),
+    ).toBeVisible()
 
     await auditPage.goto()
     await expect(auditPage.heading).toBeVisible()

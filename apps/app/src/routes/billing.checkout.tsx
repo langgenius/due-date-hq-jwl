@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router'
 import type { ReactNode } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import type { FirmBillingCheckoutConfig } from '@duedatehq/contracts'
 import { useQueryStates } from 'nuqs'
 import {
@@ -238,6 +238,23 @@ export function BillingCheckoutRoute() {
         : currentFirm.plan === 'pro'
           ? t`Pro`
           : t`Solo`
+  // 2026-05-27 (Step 7 onboarding audit F8-04 — bonus): the
+  // checkout screen previously read as a static "Confirm Pro 3
+  // seats" page — it didn't acknowledge that an existing customer
+  // is actually upgrading FROM something. A small delta line under
+  // the H1 ("Solo (1 seat) → Pro (3 seats)") shows the change at
+  // a glance. Only renders when an active subscription exists so
+  // first-time checkouts stay clean.
+  const currentPlanSeatLimit =
+    currentFirm.plan === 'firm'
+      ? 10
+      : currentFirm.plan === 'team'
+        ? 10
+        : currentFirm.plan === 'pro'
+          ? 3
+          : 1
+  const shouldShowDelta =
+    activeSubscription !== undefined && !alreadyOnPlan && currentFirm.plan !== plan
 
   if (!canReadBilling) {
     return (
@@ -270,6 +287,12 @@ export function BillingCheckoutRoute() {
       <PageHeader
         breadcrumbs={[{ label: t`Billing`, to: '/billing' }, { label: t`Confirm checkout` }]}
         title={
+          // 2026-05-27 (Step 7 onboarding audit F8-01 — P0): the H1
+          // was a generic "Confirm checkout" while the plan name
+          // sat only inside the Plan summary card below. Promote
+          // the selected plan + interval into the title so the
+          // user sees what they're confirming at the top of the
+          // page (matches Stripe / Linear / Notion patterns).
           <span className="inline-flex min-w-0 items-center gap-3">
             <span
               aria-hidden
@@ -278,7 +301,11 @@ export function BillingCheckoutRoute() {
               <CreditCardIcon className="size-4" />
             </span>
             <span className="truncate">
-              <Trans>Confirm checkout</Trans>
+              {interval === 'yearly' ? (
+                <Trans>Confirm {view.label} yearly checkout</Trans>
+              ) : (
+                <Trans>Confirm {view.label} monthly checkout</Trans>
+              )}
             </span>
           </span>
         }
@@ -297,6 +324,27 @@ export function BillingCheckoutRoute() {
           </Badge>
         }
       />
+
+      {/* 2026-05-27 (Step 7 onboarding audit F8-04 — bonus):
+          "Solo (1 seat) → Pro (3 seats)" delta. The actual seat
+          allocation comes from the plan view itself; the current-
+          plan seat limit is derived from `currentFirm.plan`. */}
+      {shouldShowDelta ? (
+        <p className="-mt-2 inline-flex flex-wrap items-center gap-2 text-description text-text-secondary">
+          <Trans>What changes</Trans>
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+          <span className="tabular-nums">
+            {currentPlanLabel} (
+            <Plural value={currentPlanSeatLimit} one="# seat" other="# seats" />)
+          </span>
+          <span aria-hidden>→</span>
+          <span className="font-medium text-text-primary tabular-nums">
+            {view.label} (<Plural value={view.seatLimit} one="# seat" other="# seats" />)
+          </span>
+        </p>
+      ) : null}
 
       {!owner ? (
         <Alert variant="destructive">
@@ -468,7 +516,12 @@ export function BillingCheckoutRoute() {
         <Card size="sm">
           <CardHeader>
             <CardTitle>
-              <Trans>Practice context</Trans>
+              {/* 2026-05-27 (Step 7 F8-03 — P2): "Practice context"
+                  was vague — the card lists the active practice
+                  name, current plan, and seat/practice limits, so
+                  it's really "what's on file for this practice".
+                  Rename to make the card scannable at a glance. */}
+              <Trans>Your current practice</Trans>
             </CardTitle>
             <CardDescription>
               <Trans>

@@ -16,6 +16,8 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { getClientReadiness } from '@/features/clients/client-readiness'
+import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
+import { isPaymentOverdue } from '@/features/obligations/payment-overdue'
 import { orpc } from '@/lib/rpc'
 
 import { useEntityLabels } from '@/routes/clients'
@@ -57,13 +59,9 @@ import { clientDetailPath } from './client-url'
 // Statuses that mean "the obligation is done" — exclude these when
 // hunting for the next-due. Mirrors the set used by ClientSummaryStrip
 // and ClientDetailDrawer so all three surfaces agree on "next due."
-const TERMINAL_STATUSES: ReadonlySet<string> = new Set([
-  'done',
-  'paid',
-  'completed',
-  'filed',
-  'not_applicable',
-])
+// 2026-05-27 (TERMINAL_STATUSES root bug): `'done'` (UI "Filed") is
+// NOT terminal. See dev-log 2026-05-27-terminal-statuses-root-bug.md.
+const TERMINAL_STATUSES: ReadonlySet<string> = new Set(['paid', 'completed', 'not_applicable'])
 
 export function ClientPeekHoverCard({
   clientId,
@@ -97,6 +95,11 @@ const EMPTY_OBLIGATIONS = [] as const
 function ClientPeekBody({ clientId }: { clientId: string }) {
   const { t } = useLingui()
   const entityLabels = useEntityLabels()
+  // 2026-05-27 (D16 — Agent ω, journey-audit drain): replaced
+  // PeekNextDue's `Date.now()` with the firm's "as of" anchor so the
+  // hover-card's "Xd late" matches the rest of the surfaces (which
+  // already calendar-pin off this hook).
+  const asOfDate = useFirmAsOfDate()
 
   // Data fetching only fires when the popover actually mounts — Base
   // UI's Popover unmounts its content when closed, so these queries
@@ -115,7 +118,7 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
 
   const readiness = useMemo(() => (client ? getClientReadiness(client) : undefined), [client])
 
-  const { openCount, nextDue } = useMemo(() => {
+  const { openCount, nextDue, paymentOverdueCount } = useMemo(() => {
     const open = obligations.filter((o) => !TERMINAL_STATUSES.has(o.status))
     let best: ObligationInstancePublic | null = null
     let bestTs = Infinity
@@ -126,7 +129,15 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
         best = o
       }
     }
-    return { openCount: open.length, nextDue: best }
+    // 2026-05-27 (phi journey audit J1): a row that's been Filed
+    // ('done') but whose paymentDueDate has passed is NOT counted in
+    // `openCount` (the filing leg is done, it's not a to-do). But it
+    // IS a live signal the CPA needs to see when hovering the
+    // client — surface it as a separate count so the peek can render
+    // a "Payment overdue on N filings" line under the open count.
+    const today = Date.now()
+    const paymentOverdue = obligations.filter((o) => isPaymentOverdue(o, today)).length
+    return { openCount: open.length, nextDue: best, paymentOverdueCount: paymentOverdue }
   }, [obligations])
 
   if (clientQuery.isError) {
@@ -152,14 +163,37 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
       {/* Identity */}
       <div className="flex min-w-0 flex-col gap-1">
         <span className="truncate text-sm font-semibold text-text-primary">{client.name}</span>
+        {/* 2026-05-27 (Yuqi feedback "some informations are repeating
+            in this peek client detail tooltip"): entity type
+            ("Partnership") was rendered twice — here as the subtitle
+            prefix and below as a chip in the identity row. Dropped
+            from the subtitle; the chip row carries it now. Subtitle
+            is just the open-deadline count, which is the single
+            useful state signal at this scan distance. */}
         <span className="text-xs text-text-secondary">
-          {entityLabels[client.entityType]} ·{' '}
           {openCount === 0
             ? t`No open deadlines`
             : openCount === 1
               ? t`1 open deadline`
               : t`${openCount} open deadlines`}
         </span>
+        {/* 2026-05-27 (phi journey audit J1): payment-overdue line.
+            Surfaces "Filed but payment overdue on N filings" inline
+            with the identity subtitle so the peek doesn't bury the
+            most expensive signal. Renders only when the count is > 0
+            so the common case (every filing's payment is up to date)
+            stays quiet. Tinted destructive because penalty interest
+            accrues until the wire lands — this IS active urgency, not
+            a quality stat. */}
+        {paymentOverdueCount > 0 ? (
+          <span className="text-xs font-medium text-text-destructive">
+            {paymentOverdueCount === 1 ? (
+              <Trans>Payment overdue on 1 filing</Trans>
+            ) : (
+              <Trans>Payment overdue on {paymentOverdueCount} filings</Trans>
+            )}
+          </span>
+        ) : null}
       </div>
 
       {/* Identity chips */}
@@ -195,7 +229,7 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
       </div>
 
       {/* Next due */}
-      <PeekNextDue nextDue={nextDue} />
+      <PeekNextDue nextDue={nextDue} asOfDate={asOfDate} />
 
       {/* Escape hatches */}
       <div className="flex flex-wrap items-center gap-2">
@@ -223,7 +257,16 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
 
 export { ClientPeekBody }
 
-function PeekNextDue({ nextDue }: { nextDue: ObligationInstancePublic | null }) {
+function PeekNextDue({
+  nextDue,
+  asOfDate,
+}: {
+  nextDue: ObligationInstancePublic | null
+  // 2026-05-27 (D16): firm's "as of" anchor. Falls back to Date.now()
+  // when missing so the hover-card stays resilient if the timezone
+  // provider hasn't hydrated yet.
+  asOfDate: string | null
+}) {
   const { t } = useLingui()
   if (!nextDue) {
     return (
@@ -232,7 +275,11 @@ function PeekNextDue({ nextDue }: { nextDue: ObligationInstancePublic | null }) 
       </p>
     )
   }
-  const days = Math.ceil((Date.parse(nextDue.currentDueDate) - Date.now()) / 86_400_000)
+  const asOfMs = asOfDate ? Date.parse(asOfDate) : Date.now()
+  const days = Math.ceil(
+    (Date.parse(nextDue.currentDueDate) - (Number.isNaN(asOfMs) ? Date.now() : asOfMs)) /
+      86_400_000,
+  )
   const isLate = days < 0
   const daysAbs = Math.abs(days)
   const daysLabel = isLate ? t`${daysAbs}d late` : days === 0 ? t`due today` : t`due in ${days}d`

@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { plural } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -20,10 +20,16 @@ import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@duedatehq/ui/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
-import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
+import { StatTile } from '@/components/patterns/stat-tile'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
@@ -43,15 +49,17 @@ export function OpportunitiesPage() {
   const summary = opportunitiesQuery.data?.summary
 
   return (
-    // 2026-05-25 (Yuqi /opportunities #1): page padding + outer gap
-    // aligned with /clients and /rules/library — was `gap-6 p-4 md:p-6`,
-    // now `gap-4 p-3 md:p-5` for the GitHub-density rhythm Yuqi
-    // requested across table-bearing routes. Layout structure follows
-    // the same pattern as /clients: PageHeader → optional Alert →
-    // stat-tile row → flat list (no Card wrapper).
-    // 2026-05-25 (Yuqi page-title pass): top padding pt-6 md:pt-8
-    // so /opportunities h1 sits on the same baseline as the rest.
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-5">
+    // 2026-05-26 (audit P0 #2 — page-padding canon): snapped to
+    // Pattern A (scroll page) per DESIGN.md §5.5. /opportunities is
+    // a header-heavy scroll page (PageHeader → stat tiles → list →
+    // dismissed-disclosure) with no sticky footer, so it follows
+    // the same rhythm as dashboard / /rules/pulse / /rules/library:
+    //   `gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6`
+    // Previously: `gap-4 ... md:pb-5` — `gap-4` came from a 2026-05-25
+    // pass that treated this page as a dense-table surface (it isn't
+    // — no sticky pagination footer), and `md:pb-5` was the singleton
+    // off-canon value the audit's P0 #2 called out. Both fixed.
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-4 md:px-6 md:pb-6">
       <PageHeader title={<Trans>Opportunities</Trans>} />
 
       {opportunitiesQuery.isError ? (
@@ -65,21 +73,20 @@ export function OpportunitiesPage() {
         </Alert>
       ) : null}
 
-      {/* 2026-05-25 (Yuqi /opportunities #1): summary tiles migrated
-          from the heavy `Card` shape to the same `StatTile`
-          rectangle used on /rules/library + /clients. Identical
-          tone, identical caption-tier label scale — the three
-          summary surfaces across the app now read the same way. */}
+      {/* 2026-05-26 (audit cross-surface P0 #1): migrated from the local
+          `OpportunitiesStatTile` to the shared `StatTile` primitive at
+          `apps/app/src/components/patterns/stat-tile.tsx`. Same shape,
+          one source of truth. Value scale snapped to the DESIGN.md
+          canonical (text-xl semibold) — was text-2xl semibold locally,
+          which had drifted off-spec ("felt thin" reaction during the
+          2026-05-25 pass over-corrected). */}
       <section className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-        <OpportunitiesStatTile
+        <StatTile
           label={<Trans>Advisory conversations</Trans>}
           value={summary?.advisoryConversationCount}
         />
-        <OpportunitiesStatTile
-          label={<Trans>Scope reviews</Trans>}
-          value={summary?.scopeReviewCount}
-        />
-        <OpportunitiesStatTile
+        <StatTile label={<Trans>Scope reviews</Trans>} value={summary?.scopeReviewCount} />
+        <StatTile
           label={<Trans>Retention check-ins</Trans>}
           value={summary?.retentionCheckInCount}
         />
@@ -132,35 +139,12 @@ export function OpportunitiesPage() {
   )
 }
 
-// 2026-05-25 (Yuqi /opportunities — copy the other page style):
-// retired the rule-library StatTile shape (uppercase caption-tier
-// label on top, number below) — at full page width the long
-// labels ("Advisory conversations") wrapped to two lines and the
-// tile felt thin. Adopted the dashboard's ActionsSummaryTile
-// rhythm instead: large number on TOP, sentence-case label
-// below, generous padding (`px-4 py-3`), wider min-width. Same
-// shape the user has seen on Today across "Need decision /
-// Blocked / Waiting" — consistency with the surface they spend
-// the most time on. Skeleton placeholder retained while the
-// value loads.
-function OpportunitiesStatTile({ label, value }: { label: ReactNode; value: number | undefined }) {
-  return (
-    <div
-      className={cn(
-        'flex min-w-[160px] flex-col gap-1 rounded-md border border-divider-subtle bg-background-default px-4 py-3',
-      )}
-    >
-      {value === undefined ? (
-        <Skeleton className="h-7 w-12" />
-      ) : (
-        <span className="text-2xl font-semibold leading-tight tabular-nums tracking-tight text-text-primary">
-          {value}
-        </span>
-      )}
-      <span className="text-sm text-text-secondary">{label}</span>
-    </div>
-  )
-}
+// 2026-05-26 (audit cross-surface P0 #1): `OpportunitiesStatTile`
+// was extracted to the shared `StatTile` primitive (see
+// `@/components/patterns/stat-tile.tsx`). Git history preserves the
+// pre-extract local variant. The "felt thin → text-2xl" reaction from
+// the 2026-05-25 polish pass was an over-correction relative to the
+// DESIGN.md canonical text-xl; the shared primitive snaps to spec.
 
 // 2026-05-24 (critique /polish — un-dismiss): bottom-of-page
 // disclosure listing the user's active dismissals + snoozes with
@@ -323,7 +307,16 @@ function formatDismissalDate(iso: string): string {
 // next bi-weekly cycle" interval — long enough for client circumstances
 // to actually shift, short enough to keep the queue alive. Server
 // clamps to a 90-day ceiling regardless.
+// 2026-05-27 (Step 6 UX flows audit F3.2): the single Snooze button
+// is now a dropdown that offers 7 / 14 (default) / 30 / 90 day
+// options. The previous "always 14 days" behavior worked for the
+// modal case but power users wanted to silence a noisy opportunity
+// for a full quarter, or check back in a week — both common patterns
+// the prior single-button UI couldn't express without round-tripping
+// through Dismiss + manual recreation.
 const DEFAULT_SNOOZE_DAYS = 14
+const SNOOZE_DURATION_DAYS = [7, 14, 30, 90] as const
+type SnoozeDurationDays = (typeof SNOOZE_DURATION_DAYS)[number]
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 
 function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
@@ -333,11 +326,38 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: orpc.opportunities.list.key() })
   }
+  // 2026-05-27 (step-6 ux-flow audit F3.1): Sonner toast supports an
+  // `action` slot — used here so the user can undo a dismiss without
+  // hunting the "Recently dismissed" disclosure at the bottom of the
+  // page. Mirrors the Pulse/Migration/Obligations undo patterns
+  // already in the codebase.
+  const restoreFromToast = useMutation(
+    orpc.opportunities.restore.mutationOptions({
+      onSuccess: () => {
+        invalidate()
+        void queryClient.invalidateQueries({ queryKey: orpc.opportunities.listDismissed.key() })
+        toast.success(t`Opportunity restored`)
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't restore this opportunity`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
   const dismissMutation = useMutation(
     orpc.opportunities.dismiss.mutationOptions({
       onSuccess: () => {
         invalidate()
-        toast.success(t`Opportunity dismissed`)
+        void queryClient.invalidateQueries({ queryKey: orpc.opportunities.listDismissed.key() })
+        toast.success(t`Opportunity dismissed`, {
+          action: {
+            label: t`Undo`,
+            onClick: () => restoreFromToast.mutate({ opportunityKey: opportunity.id }),
+          },
+        })
       },
       onError: (error) => {
         toast.error(t`Couldn't dismiss this opportunity`, {
@@ -348,11 +368,35 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
       },
     }),
   )
+  // 2026-05-27 (F3.2): track which duration was picked so the
+  // success toast reads back the actual snooze window, not a hard-
+  // coded 14. Reset when mutation reaches a terminal state — keeps
+  // the UI honest if the user opens the dropdown twice in a row.
+  const [pickedSnoozeDays, setPickedSnoozeDays] = useState<SnoozeDurationDays>(DEFAULT_SNOOZE_DAYS)
   const snoozeMutation = useMutation(
     orpc.opportunities.snooze.mutationOptions({
       onSuccess: () => {
         invalidate()
-        toast.success(t`Snoozed for ${DEFAULT_SNOOZE_DAYS} days`)
+        void queryClient.invalidateQueries({ queryKey: orpc.opportunities.listDismissed.key() })
+        // 2026-05-27 (ε F3.1 + υ F3.2 merge): dynamic plural copy
+        // reads back the actual picked snooze window (no hardcoded
+        // 14), with the same Undo action that ε wired for dismiss.
+        // Both wave-1 ε and wave-5 υ landed here independently;
+        // resolution preserves both improvements.
+        toast.success(
+          i18n._(
+            plural(pickedSnoozeDays, {
+              one: 'Snoozed for # day',
+              other: 'Snoozed for # days',
+            }),
+          ),
+          {
+            action: {
+              label: t`Undo`,
+              onClick: () => restoreFromToast.mutate({ opportunityKey: opportunity.id }),
+            },
+          },
+        )
       },
       onError: (error) => {
         toast.error(t`Couldn't snooze this opportunity`, {
@@ -363,6 +407,13 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
       },
     }),
   )
+  const snoozeFor = (days: SnoozeDurationDays) => {
+    setPickedSnoozeDays(days)
+    snoozeMutation.mutate({
+      opportunityKey: opportunity.id,
+      until: new Date(Date.now() + days * MS_PER_DAY).toISOString(),
+    })
+  }
   const pending = dismissMutation.isPending || snoozeMutation.isPending
   // 2026-05-25 (Yuqi /opportunities fifth pass #2, #4):
   // restructured to match the PulseAlertCard layout — content on
@@ -422,26 +473,40 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
           <ArrowUpRightIcon data-icon="inline-start" />
           <Trans>Open client</Trans>
         </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={pending}
-          onClick={() =>
-            snoozeMutation.mutate({
-              opportunityKey: opportunity.id,
-              until: new Date(Date.now() + DEFAULT_SNOOZE_DAYS * MS_PER_DAY).toISOString(),
-            })
-          }
-          aria-label={i18n._(
-            plural(DEFAULT_SNOOZE_DAYS, {
-              one: `Snooze ${opportunity.title} for # day`,
-              other: `Snooze ${opportunity.title} for # days`,
-            }),
-          )}
-        >
-          <ClockIcon data-icon="inline-start" />
-          <Trans>Snooze</Trans>
-        </Button>
+        {/* 2026-05-27 (Step 6 UX audit F3.2): single Snooze button
+            → dropdown with 7 / 14 (default) / 30 / 90 day choices.
+            The trigger button has the same visual weight as before
+            (ghost, sm, ClockIcon + "Snooze") but now opens a menu;
+            picking 14 reproduces the previous default behavior. */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={pending}
+                aria-label={t`Snooze ${opportunity.title}`}
+              >
+                <ClockIcon data-icon="inline-start" />
+                <Trans>Snooze</Trans>
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end" className="min-w-[180px]">
+            <DropdownMenuItem onClick={() => snoozeFor(7)}>
+              <Trans>Snooze 7 days</Trans>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => snoozeFor(14)}>
+              <Trans>Snooze 14 days (default)</Trans>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => snoozeFor(30)}>
+              <Trans>Snooze 30 days</Trans>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => snoozeFor(90)}>
+              <Trans>Snooze 90 days</Trans>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button
           size="sm"
           variant="ghost"

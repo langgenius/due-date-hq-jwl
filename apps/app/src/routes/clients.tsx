@@ -12,6 +12,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { InfoBanner } from '@/components/patterns/info-banner'
+import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
 import { clientDetailPath } from '@/features/clients/client-url'
@@ -30,6 +31,7 @@ import {
   normalizeClientsQueryFilters,
   nullableQueryArray,
 } from '@/features/clients/client-query-state'
+import { queryInputUrlUpdateRateLimit } from '@/lib/query-rate-limit'
 import {
   buildClientFactsModel,
   filterClients,
@@ -101,6 +103,11 @@ export function ClientsRoute() {
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
   const canRunMigration = permission.can('migration.run')
+  // Audit-drain ρ ROH-D1 (2026-05-27): gate the "+ New client" split
+  // button so coordinator (read-only) sees disabled + tooltip instead
+  // of a dialog that 403s on submit. Server already enforces the
+  // mutation; this is the missing UI affordance.
+  const canCreateClient = permission.can('client.write')
   const entityLabels = useEntityLabels()
   const [
     {
@@ -224,10 +231,25 @@ export function ClientsRoute() {
   // → filters.search → filterClients haystack. Passing `null` when the
   // value is empty clears the param entirely so shared URLs don't carry
   // dangling `?q=` suffixes.
+  // 2026-05-27 (Yuqi step-8 data-finding audit — F-C01): rate-limit
+  // the URL write the same way /deadlines does. Every keystroke
+  // previously rewrote the address bar AND grew the history-replace
+  // stack on each character; rate-limiting batches the URL settle
+  // ~350ms after the user stops typing. The SearchInput `value`
+  // still binds to the URL-backed `searchQuery` (nuqs returns the
+  // pending value optimistically during the rate-limit window — see
+  // https://nuqs.dev/docs/options#limitUrlUpdates), so the visible
+  // text keeps repainting on every keystroke and the address bar
+  // catches up after the user stops. Clearing (empty value) skips
+  // the rate-limit so the cleared state appears immediately on
+  // Escape / X-click.
   const handleSearchChange = useCallback(
     (next: string) => {
       const trimmed = next.trim()
-      void setClientsQuery({ q: trimmed.length > 0 ? next : null })
+      void setClientsQuery(
+        { q: trimmed.length > 0 ? next : null },
+        trimmed.length === 0 ? undefined : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
+      )
     },
     [setClientsQuery],
   )
@@ -326,7 +348,7 @@ export function ClientsRoute() {
     // xl:h-screen xl:overflow-hidden`).
     <div
       className={cn(
-        'mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-8 pb-0 md:px-6 md:pb-0',
         'xl:h-screen xl:overflow-hidden',
       )}
     >
@@ -343,24 +365,41 @@ export function ClientsRoute() {
                 (page-family-canonical §3) where the chip carries a
                 qualifier number only ("47") or noun+number when the
                 noun differs from the title (e.g. "17 open" on
-                /deadlines). */}
+                /deadlines).
+                2026-05-27 (Step 6 UX audit #62): when any filter is
+                active the chip now shows "N of M" so the CPA can see
+                both the filtered subset AND the total at a glance.
+                Previously the chip kept the unfiltered total even
+                when 8 of 47 rows were visible, which made the chip
+                lie about the visible list. */}
             <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium text-text-secondary tabular-nums">
-              {clients.length}
+              {filteredClients.length === clients.length
+                ? clients.length
+                : t`${filteredClients.length} of ${clients.length}`}
             </span>
           </span>
         }
         actions={
           <>
+            {/* 2026-05-27 (Step 6 UX flows audit H2.7): keyboard
+                shortcut chip — same as /today and /alerts.
+                Discoverability for `?` without forcing users to
+                guess which key opens the help dialog. */}
+            <ShortcutHintChip className="hidden md:inline-flex" />
             {/* 2026-05-25 (Yuqi /clients #2): the button opens migration
                 import history, not client archival. Keep the visible label
                 aligned with the drawer title so "Archive" does not read as
                 a destructive client action. */}
+            {/* 2026-05-27 (Step 6 UX audit #63): button has a visible
+                "Import history" label already; the duplicate `title`
+                tooltip just repeated the same text on hover. Dropped
+                the redundant title — `aria-label` stays for AT users
+                if the visible label ever becomes icon-only. */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => handleImportHistoryOpenChange(true)}
               aria-label={t`Import history`}
-              title={t`Import history`}
             >
               <HistoryIcon data-icon="inline-start" />
               <Trans>Import history</Trans>
@@ -371,6 +410,7 @@ export function ClientsRoute() {
               onCreate={handleCreateClient}
               onImport={openWizard}
               canImport={canRunMigration}
+              canCreate={canCreateClient}
             />
           </>
         }

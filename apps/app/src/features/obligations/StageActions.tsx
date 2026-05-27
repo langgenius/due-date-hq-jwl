@@ -44,50 +44,43 @@ export function StageActions({
   const reminders = tasks.filter((task) => task.flavor === 'manual')
   if (!primary && secondary.length === 0 && reminders.length === 0) return null
   return (
-    // 2026-05-26 (Yuqi feedback #14): tighter gap between primary
-    // button + secondary links + reminder line. gap-2 (8px) read
-    // as too loose between buttons that all share one decision
-    // context. gap-1 (4px) lets the cluster scan as one stage
-    // action group.
     <div className="flex flex-col gap-1">
-      {primary ? (
-        <Button
-          size="sm"
-          onClick={() => onTaskClick(primary)}
-          title={primary.hint ?? undefined}
-          className="w-fit"
-        >
-          {primary.label}
-        </Button>
-      ) : null}
-      {secondary.length > 0 ? (
-        <ul className="flex flex-col gap-0.5">
+      {primary || secondary.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {primary ? (
+            <Button
+              size="sm"
+              onClick={() => onTaskClick(primary)}
+              title={primary.hint ?? undefined}
+              className="w-fit"
+            >
+              {primary.label}
+            </Button>
+          ) : null}
           {secondary.map((task) => {
             const destructive = task.id === 'mark-blocked'
             return (
-              <li key={task.id} className="flex">
-                <Button
-                  variant={destructive ? 'destructive-ghost' : 'ghost'}
-                  size="sm"
-                  onClick={() => onTaskClick(task)}
-                  title={task.hint ?? undefined}
-                  className={cn(
-                    'h-7 justify-start gap-1.5 px-2 text-xs font-normal',
-                    !destructive && '-mx-2',
-                    !destructive && 'text-text-secondary',
-                  )}
-                >
-                  <span className="flex-1 text-left">{task.label}</span>
-                  {task.flavor === 'routing' ? (
-                    <ArrowUpRightIcon className="size-3.5 text-text-tertiary" aria-hidden />
-                  ) : destructive ? null : (
-                    <ChevronRightIcon className="size-3.5 text-text-tertiary" aria-hidden />
-                  )}
-                </Button>
-              </li>
+              <Button
+                key={task.id}
+                variant={destructive ? 'destructive-ghost' : 'ghost'}
+                size="sm"
+                onClick={() => onTaskClick(task)}
+                title={task.hint ?? undefined}
+                className={cn(
+                  'h-7 gap-1.5 px-2 text-xs font-normal',
+                  !destructive && 'text-text-secondary',
+                )}
+              >
+                <span>{task.label}</span>
+                {task.flavor === 'routing' ? (
+                  <ArrowUpRightIcon className="size-3.5 text-text-tertiary" aria-hidden />
+                ) : destructive ? null : (
+                  <ChevronRightIcon className="size-3.5 text-text-tertiary" aria-hidden />
+                )}
+              </Button>
             )
           })}
-        </ul>
+        </div>
       ) : null}
       {reminders.length > 0 ? (
         <p className="text-caption leading-snug text-text-tertiary">

@@ -96,9 +96,13 @@
   --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.04);
   --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.08);
 
-  /* ===== Opacity ========================================================= */
-  --opacity-2: 0.02;
-  --opacity-8: 0.08;
+  /* ===== Opacity =========================================================
+   * 2026-05-27 (mu F-72): removed `--opacity-2` (0.02) and `--opacity-8`
+   * (0.08). Tailwind v4's `/N` opacity syntax (e.g. `bg-text-primary/8`,
+   * `border-text-tertiary/2`) supersedes these tokens for every shipped
+   * call-site. Zero callers grep'd at removal time. Use `/N` going
+   * forward.
+   * --------------------------------------------------------------------- */
 
   /* ===== Breakpoints (Dify naming) ======================================= */
   --breakpoint-mobile: 100px;
@@ -106,8 +110,12 @@
   --breakpoint-pc: 769px;
   --breakpoint-2k: 2560px;
 
-  /* ===== Animations ====================================================== */
-  --animate-spin-slow: spin 2s linear infinite;
+  /* ===== Animations ======================================================
+   * 2026-05-27 (mu F-73): removed `--animate-spin-slow: spin 2s linear
+   * infinite` — token had zero call-sites at the time of removal. If a
+   * future surface needs a slow spinner, re-introduce alongside its
+   * caller so the token doesn't outlive its purpose again.
+   * --------------------------------------------------------------------- */
 
   /* ===== Easing ==========================================================
    * `--ease-apple` is the iOS-style "in-out" curve we use on width /

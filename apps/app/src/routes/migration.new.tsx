@@ -1,5 +1,5 @@
 import { Plural, Trans } from '@lingui/react/macro'
-import { ArrowRightIcon, CheckCircle2Icon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
+import { CheckCircle2Icon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
@@ -10,7 +10,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { Wizard } from '@/features/migration/Wizard'
-import { useFirmPermission } from '@/features/permissions/permission-gate'
+import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
 import type { AuthUser } from '@/lib/auth'
 
 type MigrationNewLoaderData = {
@@ -56,6 +56,13 @@ export function MigrationNewRoute() {
   }
 
   if (!canRunMigration) {
+    // Audit-drain ρ ROH-D7 (2026-05-27): replaced the bespoke
+    // destructive Alert ("Owner or manager access required" —
+    // partner missing AND custom typography) with the canonical
+    // `<PermissionGate>` panel used everywhere else (Members,
+    // Billing, Audit). Same role-derivation pipeline, same
+    // return-to-Today CTA, no more drift when FIRM_PERMISSION_ROLES
+    // changes.
     return (
       <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 p-4 md:p-6">
         <MigrationActivationIntro
@@ -64,21 +71,18 @@ export function MigrationNewRoute() {
           showRuleReviewAction={!isOnboardingSource}
           ruleReviewCount={ruleReviewCount}
         />
-        <Alert variant="destructive">
-          <AlertTitle>
-            <Trans>Owner or manager access required</Trans>
-          </AlertTitle>
-          <AlertDescription>
+        <PermissionGate
+          permission="migration.run"
+          firm={firm ?? null}
+          description={
             <Trans>
-              Client migration changes practice data, evidence, and audit records. Ask a practice
-              owner or manager to run the import.
+              Client migration changes practice data, evidence, and audit records. Contact a
+              practice owner if you need access.
             </Trans>
-          </AlertDescription>
-        </Alert>
-        <Button className="w-fit" onClick={skipToDashboard}>
-          <Trans>Return to Today</Trans>
-          <ArrowRightIcon data-icon="inline-end" />
-        </Button>
+          }
+        >
+          <div />
+        </PermissionGate>
       </div>
     )
   }
@@ -133,17 +137,26 @@ function MigrationActivationIntro({
             <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-accent-default" />
             <Trans>PRACTICE ACTIVATION</Trans>
           </span>
+          {/* 2026-05-27 (Step 7 onboarding audit F6-02): the
+              three chips were ordered `facts → list → risk` and
+              led with internal nouns. Reordered to the user's
+              mental model (act → see → assess): Import →
+              Deadlines → Risk view. "Today risk" was the
+              hardest noun to parse for a first-time user — the
+              chip describes the surface the import unlocks, not
+              a metric, so renamed to "Risk view" (matches the
+              dashboard column header). */}
           <ActivationOutcome
             icon={<FileSpreadsheetIcon aria-hidden className="size-3.5" />}
-            label={<Trans>Client facts</Trans>}
+            label={<Trans>Import</Trans>}
           />
           <ActivationOutcome
             icon={<CheckCircle2Icon aria-hidden className="size-3.5" />}
-            label={<Trans>Deadline list</Trans>}
+            label={<Trans>Deadlines</Trans>}
           />
           <ActivationOutcome
             icon={<GaugeIcon aria-hidden className="size-3.5" />}
-            label={<Trans>Today risk</Trans>}
+            label={<Trans>Risk view</Trans>}
           />
         </div>
         {/* 2026-05-26 (Step 7 onboarding audit F6-01): the

@@ -23,6 +23,10 @@ function publicChecklistItem(index: number) {
     label: `Document item ${index}`,
     description: `Description ${index}`,
     source: 'template' as const,
+    // η pass: ai-provenance fields default to manual / null for legacy fixtures.
+    origin: 'manual' as const,
+    aiGeneratedAt: null,
+    userEditedAt: null,
     status: 'missing' as const,
     sortOrder: index,
     note: null,
@@ -43,6 +47,8 @@ function repoChecklistItem(index: number) {
     createdAt: new Date(item.createdAt),
     updatedAt: new Date(item.updatedAt),
     receivedAt: null,
+    aiGeneratedAt: null,
+    userEditedAt: null,
   }
 }
 
@@ -302,6 +308,170 @@ describe('readiness procedure helpers', () => {
     const checklist = Array.from({ length: 14 }, (_, index) => publicChecklistItem(index))
 
     expect(toPortalChecklist(checklist)).toHaveLength(14)
+  })
+
+  // η pass — F-022 / F-023: marker drops + audit event proof. Run against
+  // a stub readiness repo so we can assert the procedure passes
+  // dropsAiOrigin correctly, AND that the audit writer received
+  // previousActorType: 'ai' + the override action string.
+  describe('updateChecklistItem AI override (F-022 / F-023)', () => {
+    interface UpdateInput {
+      label?: string
+      description?: string | null
+      status?: 'missing' | 'received' | 'needs_review'
+      note?: string | null
+      receivedByUserId?: string | null
+      dropsAiOrigin?: boolean
+      id: string
+      now: Date
+    }
+
+    function makeContext(input: { previousOrigin: 'ai' | 'manual' }) {
+      const auditWrites: Array<Record<string, unknown>> = []
+      const updateCalls: UpdateInput[] = []
+      const updateDocumentChecklistItem = vi.fn(async (params: UpdateInput) => {
+        updateCalls.push(params)
+        return {
+          ...repoChecklistItem(1),
+          // The repo returns the row with previousOrigin attached so the
+          // procedure can shape the audit event without a second query.
+          previousOrigin: input.previousOrigin,
+          origin:
+            input.previousOrigin === 'ai' && params.dropsAiOrigin
+              ? ('manual' as const)
+              : ('ai' as const),
+          userEditedAt:
+            input.previousOrigin === 'ai' && params.dropsAiOrigin
+              ? new Date('2026-05-27T00:00:00.000Z')
+              : null,
+          label: params.label ?? 'K-1 packages',
+        }
+      })
+      const scoped = {
+        firmId: 'firm_1',
+        readiness: {
+          firmId: 'firm_1',
+          updateDocumentChecklistItem,
+          listDocumentChecklistByObligation: vi.fn(async () => []),
+        },
+        audit: {
+          write: vi.fn(async (event: Record<string, unknown>) => {
+            auditWrites.push(event)
+            return { id: '44444444-4444-4444-8444-444444444444' }
+          }),
+        },
+      } as unknown as ScopedRepo
+
+      const member: MemberRow = {
+        id: 'member_1',
+        organizationId: 'firm_1',
+        userId: 'user_1',
+        name: 'Owner',
+        email: 'owner@example.com',
+        image: null,
+        role: 'owner',
+        status: 'active',
+        createdAt: new Date('2026-05-22T00:00:00.000Z'),
+      }
+      const members: MembersRepo = {
+        listMembers: null!,
+        listInvitations: null!,
+        findMembership: vi.fn(async () => member),
+        findMember: null!,
+        findMemberByEmail: null!,
+        findInvitation: null!,
+        findPendingInvitationByEmail: null!,
+        seatLimit: null!,
+        seatUsage: null!,
+        updateRole: null!,
+        setMemberStatus: null!,
+        writeAudit: null!,
+      }
+
+      const context: RpcContext = {
+        env: {} as unknown as Env,
+        request: new Request('https://app.test/rpc/readiness/updateChecklistItem'),
+        vars: {
+          requestId: 'req_1',
+          tenantContext: {
+            firmId: 'firm_1',
+            timezone: 'America/New_York',
+            plan: 'solo',
+            seatLimit: 1,
+            status: 'active',
+            ownerUserId: 'user_1',
+            internalDeadlineOffsetDays: 14,
+            coordinatorCanSeeDollars: false,
+          },
+          userId: 'user_1',
+          members,
+          scoped,
+        },
+      }
+      return { context, auditWrites, updateCalls }
+    }
+
+    it('drops AI origin and emits override audit event when a label edit overrides AI value', async () => {
+      const { context, auditWrites, updateCalls } = makeContext({ previousOrigin: 'ai' })
+
+      await call(
+        readinessHandlers.updateChecklistItem,
+        {
+          itemId: '11111111-1111-4111-8111-000000000001',
+          label: 'Payroll W-2s (verified subset)',
+        },
+        { context },
+      )
+
+      // Procedure signalled the intent to flip origin.
+      expect(updateCalls[0]?.dropsAiOrigin).toBe(true)
+      // Exactly one audit row, shaped for the override path.
+      expect(auditWrites).toHaveLength(1)
+      const event = auditWrites[0]!
+      expect(event.action).toBe('readiness.checklist_item.ai_overridden')
+      expect(event.actorType).toBe('user')
+      expect(event.previousActorType).toBe('ai')
+      expect(event.after).toMatchObject({ previousOrigin: 'ai', origin: 'manual' })
+    })
+
+    it('keeps the AI marker intact for a status-only change (mark received)', async () => {
+      const { context, auditWrites, updateCalls } = makeContext({ previousOrigin: 'ai' })
+
+      await call(
+        readinessHandlers.updateChecklistItem,
+        {
+          itemId: '11111111-1111-4111-8111-000000000001',
+          status: 'received',
+        },
+        { context },
+      )
+
+      // Status-only = no value touch = no origin flip.
+      expect(updateCalls[0]?.dropsAiOrigin).toBe(false)
+      expect(auditWrites).toHaveLength(1)
+      const event = auditWrites[0]!
+      expect(event.action).toBe('readiness.checklist_item.updated')
+      expect(event.previousActorType).toBeNull()
+    })
+
+    it('emits the regular updated event when the row was never AI-sourced', async () => {
+      const { context, auditWrites } = makeContext({ previousOrigin: 'manual' })
+
+      await call(
+        readinessHandlers.updateChecklistItem,
+        {
+          itemId: '11111111-1111-4111-8111-000000000001',
+          label: 'Renamed manual item',
+        },
+        { context },
+      )
+
+      const event = auditWrites[0]!
+      // Even though dropsAiOrigin was set by the procedure, the previous
+      // row WASN'T AI, so the override-action path stays off.
+      expect(event.action).toBe('readiness.checklist_item.updated')
+      expect(event.previousActorType).toBeNull()
+    })
   })
 
   it('groups all checklist items for materials request email preview', () => {

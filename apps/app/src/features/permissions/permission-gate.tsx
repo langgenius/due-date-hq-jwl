@@ -13,6 +13,13 @@ import {
   type FirmPermission,
   type FirmRole,
 } from '@duedatehq/core/permissions'
+// ROH-D11 — single source of truth for the pluralized role-list copy
+// ("owners, partners, and managers"). The capitalized singular variant
+// (`requiredRolesLabelSingular`) and `roleLabel` live in
+// `apps/app/src/lib/required-roles-label.ts`. Imported here so the
+// PermissionGate badges + the inline notice surface always reflect
+// FIRM_PERMISSION_ROLES — no hand-curated copy to drift.
+import { requiredRolesLabelSingular } from '@/lib/required-roles-label'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -52,10 +59,14 @@ export function roleLabel(role: FirmRole | null | undefined, i18n: I18n) {
   return i18n._(role ? ROLE_LABELS[role] : UNKNOWN_ROLE_LABEL)
 }
 
+// Backwards-compat re-export. New callers should import from
+// `@/lib/required-roles-label` directly — `requiredRolesLabelSingular`
+// for badge-style "Owner, Partner, Manager" lists and
+// `requiredRolesLabel` for sentence-style "owners, partners, and
+// managers" lists. Both walk the same `FIRM_PERMISSION_ROLES` map so
+// the copy can't drift from the source of truth.
 export function requiredRolesLabel(permission: FirmPermission, i18n: I18n): string {
-  return requiredRolesForFirmPermission(permission)
-    .map((role) => roleLabel(role, i18n))
-    .join(', ')
+  return requiredRolesLabelSingular(permission, { i18n })
 }
 
 export function useFirmPermission(firmOverride?: FirmPublic | null): PermissionState {

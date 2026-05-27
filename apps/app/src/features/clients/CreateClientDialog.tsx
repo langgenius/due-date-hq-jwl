@@ -251,7 +251,13 @@ export function CreateClientDialog({
             <Trans>Create client</Trans>
           </DialogTitle>
           <DialogDescription>
-            <Trans>Add a manual client record to the active practice directory.</Trans>
+            {/* 2026-05-27 (Step 6 UX audit #73): copy used to read
+                "Add a manual client record to the active practice
+                directory." — formal phrasing ("manual record",
+                "active practice directory") for a routine action.
+                CPAs add clients constantly; the dialog should sound
+                like the action they're doing. */}
+            <Trans>Add a client to this practice.</Trans>
           </DialogDescription>
         </DialogHeader>
         <form
@@ -322,12 +328,19 @@ export function CreateClientDialog({
                     <FieldLabel htmlFor="client-ein">
                       <Trans>EIN</Trans>
                     </FieldLabel>
+                    {/* 2026-05-27 (Step 6 UX audit #74): placeholder
+                        used to be `12-3456789`, which reads as a
+                        real-looking EIN — a user could legitimately
+                        wonder if it was the EIN already on file or a
+                        suggestion. Swapped the trailing 7 digits for
+                        Xs so the placeholder reads as "format
+                        example" not "valid number." */}
                     <Input
                       id="client-ein"
                       name={field.name}
                       value={field.state.value}
                       className="tabular-nums"
-                      placeholder="12-3456789"
+                      placeholder="12-XXXXXXX"
                       aria-invalid={!field.state.meta.isValid}
                       onBlur={field.handleBlur}
                       onChange={(event) => field.handleChange(event.target.value)}
@@ -342,6 +355,15 @@ export function CreateClientDialog({
                     <FieldLabel htmlFor="client-state">
                       <Trans>State</Trans>
                     </FieldLabel>
+                    {/* 2026-05-27 (Step 6 UX audit #75): CSS used to
+                        render the field as uppercase while the stored
+                        value preserved whatever case the user typed.
+                        If a user typed "ca" they saw "CA" and assumed
+                        the value matched what was stored — but a
+                        copy-out, validation re-display, or eventual
+                        non-CSS surface would expose the lowercase
+                        original. Uppercase the value on change so
+                        what-you-see matches what-you-store. */}
                     <Input
                       id="client-state"
                       name={field.name}
@@ -351,7 +373,7 @@ export function CreateClientDialog({
                       maxLength={2}
                       aria-invalid={!field.state.meta.isValid}
                       onBlur={field.handleBlur}
-                      onChange={(event) => field.handleChange(event.target.value)}
+                      onChange={(event) => field.handleChange(event.target.value.toUpperCase())}
                     />
                     <FieldError errors={fieldErrors(field.state.meta.errors)} />
                   </Field>
@@ -397,8 +419,12 @@ export function CreateClientDialog({
                 )}
               </form.Field>
               <Field>
+                {/* 2026-05-27 (Yuqi quick-fix batch — "Owner → Assignee"):
+                    field labels the `assigneeId` input — same data point
+                    the /clients table calls "Assignee" and /deadlines
+                    calls "Assignee". One vocabulary across the surface. */}
                 <FieldLabel htmlFor="client-assignee-trigger">
-                  <Trans>Owner</Trans>
+                  <Trans>Assignee</Trans>
                 </FieldLabel>
                 <Select
                   value={assigneeSelectValue}
@@ -487,27 +513,60 @@ export function CreateClientDialog({
             </div>
 
             <form.Field name="notes">
-              {(field) => (
-                <Field>
-                  <FieldLabel htmlFor="client-notes">
-                    <Trans>Notes</Trans>
-                  </FieldLabel>
-                  <Textarea
-                    id="client-notes"
-                    name={field.name}
-                    value={field.state.value}
-                    rows={3}
-                    onBlur={field.handleBlur}
-                    onChange={(event) => field.handleChange(event.target.value)}
-                  />
-                  <FieldError errors={fieldErrors(field.state.meta.errors)} />
-                </Field>
-              )}
+              {(field) => {
+                // 2026-05-27 (Step 6 UX audit #80): the Notes textarea
+                // is validated against a 5000-character ceiling but
+                // didn't surface the count anywhere — users typing a
+                // long note had no signal until submit. Inline counter
+                // appears alongside the label once the user starts
+                // typing; flips to destructive tone when over the
+                // limit so the constraint reads as actionable, not
+                // surprise rejection. Stays silent at zero so the
+                // empty state isn't noisier than it needs to be.
+                const noteLength = field.state.value.length
+                const noteMax = 5000
+                const overLimit = noteLength > noteMax
+                return (
+                  <Field>
+                    <div className="flex items-center justify-between gap-2">
+                      <FieldLabel htmlFor="client-notes">
+                        <Trans>Notes</Trans>
+                      </FieldLabel>
+                      {noteLength > 0 ? (
+                        <span
+                          className={
+                            overLimit
+                              ? 'text-xs tabular-nums text-text-destructive'
+                              : 'text-xs tabular-nums text-text-tertiary'
+                          }
+                          aria-live="polite"
+                        >
+                          {noteLength} / {noteMax}
+                        </span>
+                      ) : null}
+                    </div>
+                    <Textarea
+                      id="client-notes"
+                      name={field.name}
+                      value={field.state.value}
+                      rows={3}
+                      onBlur={field.handleBlur}
+                      onChange={(event) => field.handleChange(event.target.value)}
+                    />
+                    <FieldError errors={fieldErrors(field.state.meta.errors)} />
+                  </Field>
+                )
+              }}
             </form.Field>
           </FieldGroup>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            {/* 2026-05-27 (Step 6 UX #77 / σ cross-route D13): Cancel
+                was `variant="outline"`, same weight as the primary
+                action. Wave-1 X1 sweep landed the canonical "dialog
+                Cancel uses ghost" pattern; both ν and σ landed the
+                same fix here. Ghost lets Create stay the eye anchor. */}
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               <Trans>Cancel</Trans>
             </Button>
             {/* Step 6 UX #78: Loader2 spinner during pending matches

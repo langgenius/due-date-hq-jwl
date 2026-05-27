@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { ChevronDownIcon, ListFilterIcon } from 'lucide-react'
+import { ChevronDownIcon, ListFilterIcon, SearchIcon, XIcon } from 'lucide-react'
+import { useLingui } from '@lingui/react/macro'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import {
@@ -13,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Input } from '@duedatehq/ui/components/ui/input'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import { FilterTrigger } from './filter-trigger'
 
@@ -58,6 +60,7 @@ function TableHeaderMultiFilter({
   maxSelections = DEFAULT_MAX_SELECTIONS,
   onSelectedChange,
 }: TableHeaderMultiFilterProps) {
+  const { t } = useLingui()
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
   const [optionSearch, setOptionSearch] = useState('')
   const open = controlledOpen ?? uncontrolledOpen
@@ -121,22 +124,52 @@ function TableHeaderMultiFilter({
         {searchable ? (
           <>
             <div className="p-2">
-              <Input
-                aria-label={searchPlaceholder ?? label}
-                className="h-8"
-                placeholder={searchPlaceholder ?? label}
-                value={optionSearch}
-                onChange={(event) => setOptionSearch(event.target.value)}
-                // 2026-05-24 (interaction audit): let Escape bubble so
-                // the parent dropdown closes on Esc instead of trapping
-                // the user inside the search box. Letter-key typing is
-                // still swallowed so global J/K-style shortcuts don't
-                // fire while filtering.
-                onKeyDown={(event) => {
-                  if (event.key === 'Escape') return
-                  event.stopPropagation()
-                }}
-              />
+              {/* 2026-05-27 (Yuqi step-8 data-finding audit — F-HF02
+                  + F-X08): raw `<Input>` previously had no leading
+                  search icon and no inline clear-X. The canonical
+                  SearchInput primitive is the right adopt, but the
+                  popover has different needs:
+                   • Escape must bubble so the dropdown closes; the
+                     primitive captures Escape to clear instead.
+                   • No `/` hotkey wiring — the popover only exists
+                     while open.
+                  So we mirror the primitive's visual spec inline
+                  (SearchIcon left, X clear right) without inheriting
+                  the Escape-to-clear behaviour. h-8 matches the
+                  popover's compact rhythm; the page-level h-9 stays
+                  on the route-level SearchInput. */}
+              <div className="relative">
+                <SearchIcon
+                  aria-hidden
+                  className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-text-tertiary"
+                />
+                <Input
+                  aria-label={searchPlaceholder ?? label}
+                  className={cn('h-8 pl-8', optionSearch.length > 0 ? 'pr-8' : 'pr-2')}
+                  placeholder={searchPlaceholder ?? label}
+                  value={optionSearch}
+                  onChange={(event) => setOptionSearch(event.target.value)}
+                  // 2026-05-24 (interaction audit): let Escape bubble so
+                  // the parent dropdown closes on Esc instead of trapping
+                  // the user inside the search box. Letter-key typing is
+                  // still swallowed so global J/K-style shortcuts don't
+                  // fire while filtering.
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') return
+                    event.stopPropagation()
+                  }}
+                />
+                {optionSearch.length > 0 ? (
+                  <button
+                    type="button"
+                    aria-label={t`Clear search`}
+                    onClick={() => setOptionSearch('')}
+                    className="absolute right-1.5 top-1/2 inline-flex size-5 -translate-y-1/2 items-center justify-center rounded-sm text-text-tertiary hover:bg-state-base-hover hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  >
+                    <XIcon className="size-3" aria-hidden />
+                  </button>
+                ) : null}
+              </div>
             </div>
             <DropdownMenuSeparator />
           </>
@@ -170,6 +203,22 @@ function TableHeaderMultiFilter({
             )
           })
         )}
+        {/* 2026-05-27 (Yuqi step-8 data-finding audit — F-HF01):
+            surface the silent 16-selection cap. Previously the 17th
+            checkbox just rendered `disabled` with no explanation;
+            CPAs hitting the limit on a long facet list (>=16 clients
+            / states selected) couldn't tell why the next box wouldn't
+            tick. Inline footer note explains the cap and points at
+            the path forward (refine the visible list with the
+            popover search). */}
+        {atSelectionLimit ? (
+          <>
+            <DropdownMenuSeparator />
+            <p role="status" className="px-2 py-1.5 text-caption-xs text-text-tertiary">
+              {t`Showing first ${maxSelections} selections — refine the list to add more.`}
+            </p>
+          </>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   )

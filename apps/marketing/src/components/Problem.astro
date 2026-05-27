@@ -30,7 +30,7 @@ const { t } = Astro.props
       </div>
       <div class="lg:col-span-5">
         <p class="text-[15px] leading-relaxed text-text-secondary">{t.paragraph}</p>
-        <p class="mt-6 font-mono text-[12px] text-text-muted">{t.footnote}</p>
+        <p class="mt-6 font-mono text-sm text-text-muted">{t.footnote}</p>
       </div>
     </div>
 
@@ -46,7 +46,7 @@ const { t } = Astro.props
             <span class="font-mono text-xs text-text-tertiary">{card.cadence}</span>
           </div>
           <h3 class="mt-7 text-[20px] font-semibold leading-snug text-text-primary">{card.headline}</h3>
-          <p class="mt-6 text-[13px] leading-relaxed text-text-secondary">{card.body}</p>
+          <p class="mt-6 text-description leading-relaxed text-text-secondary">{card.body}</p>
           <div class="mt-8 overflow-hidden rounded-lg border border-divider-regular bg-background-section">
             <div class="flex h-9 items-center justify-between border-b border-divider-regular px-3 text-xs">
               <span class="font-medium text-text-primary">{card.listTitle}</span>

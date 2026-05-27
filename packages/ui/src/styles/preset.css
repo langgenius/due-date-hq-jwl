@@ -433,6 +433,10 @@
   --shadow-status-indicator-blue: var(--shadow-status-indicator-blue);
   --shadow-status-indicator-gray: var(--shadow-status-indicator-gray);
 
+  /* Upgrade-CTA hover bloom (mu F-21): single-use composite that
+   * replaces a raw rgb()-shadow drift in upgrade-cta-button.tsx. */
+  --shadow-upgrade-cta-hover: var(--shadow-upgrade-cta-hover);
+
   /* Legacy colour aliases — kept so existing utilities keep working */
   --color-background: var(--background);
   --color-foreground: var(--foreground);

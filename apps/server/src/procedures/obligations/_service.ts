@@ -360,6 +360,23 @@ export async function updateObligationStatus(
 
   const { id: auditId } = await scoped.audit.write(auditPayload)
 
+  // Companion audit event for the materials-received milestone.
+  // When a row transitions from `waiting_on_client → review` the
+  // primary `obligation.status.updated` event records the lifecycle
+  // change, but reports that need to surface "this is when the
+  // materials were considered complete for this filing" benefit from
+  // a dedicated event. Fires only on this specific edge.
+  if (before.status === 'waiting_on_client' && after.status === 'review') {
+    await scoped.audit.write({
+      actorId: userId,
+      entityType: 'obligation_instance',
+      entityId: input.id,
+      action: 'readiness.materials_received',
+      before: { status: before.status },
+      after: { status: after.status },
+    })
+  }
+
   // Lifecycle v2 (slice 2d.4): parent→child unblock cascade.
   // When this row reaches `completed`, every obligation that was
   // `blocked_by` this row flips back to `pending` (with blocked_by
@@ -518,6 +535,24 @@ export async function updateObligationBlockedBy(
       throw new ORPCError('BAD_REQUEST', {
         message: 'Cannot mark blocked by an already-completed deadline.',
       })
+    }
+    // Walk the blocker chain from the proposed parent. If we encounter
+    // `input.id` before hitting null, the assignment would create a
+    // cycle (A blocks B, B blocks A — or longer loops). Bounded to a
+    // depth of 32 so a malformed graph in storage can't hang the
+    // request.
+    let cursor: string | null = parent.blockedByObligationInstanceId ?? null
+    const visited = new Set<string>([nextParentId])
+    for (let depth = 0; depth < 32 && cursor !== null; depth += 1) {
+      if (cursor === input.id) {
+        throw new ORPCError('BAD_REQUEST', {
+          message: 'Cannot create a cycle in the blocker chain.',
+        })
+      }
+      if (visited.has(cursor)) break
+      visited.add(cursor)
+      const next = await scoped.obligations.findById(cursor)
+      cursor = next?.blockedByObligationInstanceId ?? null
     }
   } else if (before.status !== 'blocked') {
     // Clearing a blocker on a row that isn't currently blocked is a
@@ -695,22 +730,25 @@ export async function bulkUpdateObligationStatus(
     })
   }
 
-  const changedRows = beforeRows.filter((row) => row.status !== input.status)
-  if (changedRows.length === 0) {
-    return { updatedCount: 0, auditIds: [] }
+  const candidateRows = beforeRows.filter((row) => row.status !== input.status)
+  if (candidateRows.length === 0) {
+    return { updatedCount: 0, skippedCount: 0, auditIds: [] }
   }
 
-  // Lifecycle v2: bulk transitions must each pass the matrix. Any
-  // illegal source row blocks the entire batch so the partial-failure
-  // surprise doesn't bite preparers mid-tax-week. (Per the brief's
-  // bulk-error contract: "<N> rows skipped — illegal status transition")
-  const illegalRow = changedRows.find(
-    (row) => !isLegalObligationTransition(row.status, input.status),
+  // Lifecycle v2 bulk-error contract: silently skip rows whose source
+  // status can't reach `input.status` per the transition matrix
+  // (e.g. terminal `completed` rows in a "Set status → Waiting on
+  // client" selection). Return the skipped count so the client can
+  // surface "<N> deadlines skipped" alongside the success toast.
+  // Throwing the whole batch was the prior behavior — it bit
+  // preparers mid-tax-week when one stray closed row poisoned an
+  // otherwise valid bulk action.
+  const changedRows = candidateRows.filter((row) =>
+    isLegalObligationTransition(row.status, input.status),
   )
-  if (illegalRow) {
-    throw new ORPCError('BAD_REQUEST', {
-      message: `Illegal status transition for deadline ${illegalRow.id}: ${illegalRow.status} → ${input.status}.`,
-    })
+  const skippedCount = candidateRows.length - changedRows.length
+  if (changedRows.length === 0) {
+    return { updatedCount: 0, skippedCount, auditIds: [] }
   }
 
   await scoped.obligations.updateStatusMany(
@@ -784,6 +822,7 @@ export async function bulkUpdateObligationStatus(
 
   return {
     updatedCount: changedRows.length,
+    skippedCount,
     auditIds,
   }
 }

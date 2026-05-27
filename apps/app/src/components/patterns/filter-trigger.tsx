@@ -60,11 +60,23 @@ type FilterTriggerProps = {
    * icon is suppressed (same rule as the default `+`).
    */
   leadingIcon?: ComponentType<SVGProps<SVGSVGElement>>
+  /**
+   * 2026-05-27 (Yuqi feedback): explicit opt-out for the leading
+   * icon. Setting `noLeadingIcon` suppresses both the default
+   * `PlusIcon` and any custom `leadingIcon`. Use when the label
+   * itself names the action (e.g. "Group by Due date") and an icon
+   * would just add noise.
+   */
+  noLeadingIcon?: boolean
 } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'>
 
 export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
-  function FilterTrigger({ active, className, children, hideChevron, leadingIcon, ...rest }, ref) {
+  function FilterTrigger(
+    { active, className, children, hideChevron, leadingIcon, noLeadingIcon, ...rest },
+    ref,
+  ) {
     const LeadingIcon = leadingIcon ?? PlusIcon
+    const showLeadingIcon = !active && !noLeadingIcon
     return (
       <button
         ref={ref}
@@ -88,7 +100,9 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
         )}
         {...rest}
       >
-        {active ? null : <LeadingIcon className="size-3.5 shrink-0 opacity-70" aria-hidden />}
+        {showLeadingIcon ? (
+          <LeadingIcon className="size-3.5 shrink-0 opacity-70" aria-hidden />
+        ) : null}
         {children}
         {hideChevron ? null : (
           <ChevronDownIcon className="size-3.5 shrink-0 opacity-70" aria-hidden />

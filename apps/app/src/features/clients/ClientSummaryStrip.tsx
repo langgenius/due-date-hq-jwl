@@ -6,7 +6,9 @@ import type { ObligationInstancePublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
+import { isPaymentOverdue } from '@/features/obligations/payment-overdue'
 import { formatDatePretty } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 
@@ -145,11 +147,28 @@ function TileShell({
 }
 
 // Open = obligation is still doing work. We exclude terminal states.
-const TERMINAL_STATUSES = new Set(['done', 'paid', 'completed', 'filed', 'not_applicable'])
+// 2026-05-27 (Yuqi screenshot diagnosis — TERMINAL_STATUSES root bug):
+// the prior set treated `'done'` as terminal — but per the canonical
+// 6-state lifecycle v2, `'done'` is the "Filed" state (filing event
+// shipped, PAYMENT MAY STILL BE OUTSTANDING). Only `'completed'` and
+// `'not_applicable'` are truly terminal. Legacy `'paid'` stays in the
+// set because it means "filing + payment both done". Removed dead
+// `'filed'` literal (not in the ObligationStatus union).
+const TERMINAL_STATUSES = new Set(['paid', 'completed', 'not_applicable'])
 
 function isAtRisk(o: ObligationInstancePublic, today: number): boolean {
   if (o.status === 'blocked') return true
   if (o.status === 'review' && o.efileRejectedAt != null) return true
+  // 2026-05-27 (root-bug + phi J1 merge): payment-overdue is an
+  // additive urgency signal that's independent of the filing-leg
+  // lifecycle. A row that's been Filed (`status='done'`) but whose
+  // paymentDueDate has slipped is at risk — the filing leg is done,
+  // the money leg is overdue. The canonical helper in
+  // `features/obligations/payment-overdue.ts` is the single source
+  // of truth — drops `'done'`/`'paid'` from the payment-terminal
+  // set, keeps only `'completed'`/`'not_applicable'`.
+  if (isPaymentOverdue(o, today)) return true
+  // Filing-deadline past + not terminal → at risk.
   const due = Date.parse(o.currentDueDate)
   if (!Number.isNaN(due) && due < today && !TERMINAL_STATUSES.has(o.status)) return true
   return false
@@ -165,6 +184,14 @@ export function ClientSummaryStrip({
   const { t } = useLingui()
   const navigate = useNavigate()
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
+  // 2026-05-27 (D16 — Agent ω, journey-audit drain): replaced the
+  // strip's internal `Date.now()` / midnight-of-now anchor with the
+  // firm's "as of" date so isAtRisk and the next-due "Xd late"
+  // computations stay in sync with the firm's clock (the dashboard
+  // already centralized on this anchor; the client surfaces were
+  // drifting). Falls back to Date.now() when the hook returns an
+  // unparseable string, so the strip never breaks the page.
+  const asOfDate = useFirmAsOfDate()
 
   const nextDue = useMemo(() => {
     const open = obligations.filter((o) => !TERMINAL_STATUSES.has(o.status))
@@ -181,10 +208,12 @@ export function ClientSummaryStrip({
   }, [obligations])
 
   const todayTs = useMemo(() => {
+    const parsed = asOfDate ? Date.parse(asOfDate) : NaN
+    if (!Number.isNaN(parsed)) return parsed
     const d = new Date()
     d.setHours(0, 0, 0, 0)
     return d.getTime()
-  }, [])
+  }, [asOfDate])
 
   const atRiskList = useMemo(
     () => obligations.filter((o) => isAtRisk(o, todayTs)),
@@ -211,7 +240,11 @@ export function ClientSummaryStrip({
 
   if (nextDue) {
     const dueTs = Date.parse(nextDue.currentDueDate)
-    const days = Math.ceil((dueTs - Date.now()) / 86_400_000)
+    // 2026-05-27 (D16): anchored to the firm's asOfDate (via todayTs),
+    // matching the dashboard's day-math. Falls through to a real-now
+    // anchor when the firm clock is unavailable so the tile never
+    // renders NaN.
+    const days = Math.ceil((dueTs - todayTs) / 86_400_000)
     const daysAbs = Math.abs(days)
     // 2026-05-24 (Figma replica): subline renders as a split phrase —
     // the calendar anchor ("Due May 6") stays gray-tertiary while the
@@ -279,18 +312,25 @@ export function ClientSummaryStrip({
   // 1 form  → "1120-S blocked"
   // 2 forms → "1120-S, 1065 blocked"
   // 3+      → "1120-S, 1065 + 1 more"
+  //
+  // 2026-05-27 (phi journey audit J1): when EVERY at-risk row is at
+  // risk solely because of an overdue payment (status='done' rows that
+  // slipped their paymentDueDate), the generic "blocked or overdue"
+  // label buries the actual signal — a CPA reading the tile thinks
+  // "filings are blocked" when really the filings are done and a
+  // payment is overdue. Switch the verb to "payment overdue" in that
+  // case so the tile actually surfaces the buried state.
   const atRiskSubline = useMemo(() => {
     if (atRiskList.length === 0) return null
     const codes = atRiskList.slice(0, 2).map((o) => formatTaxCode(o.taxType))
     const overflow = atRiskList.length - codes.length
+    const allPaymentOverdue = atRiskList.every((o) => isPaymentOverdue(o, todayTs))
+    const verb = allPaymentOverdue ? t`payment overdue` : t`blocked or overdue`
     if (overflow > 0) {
       return t`${codes.join(', ')} + ${overflow} more`
     }
-    if (codes.length === 1) {
-      return t`${codes[0]} blocked or overdue`
-    }
-    return t`${codes.join(', ')} blocked or overdue`
-  }, [atRiskList, t])
+    return t`${codes.join(', ')} ${verb}`
+  }, [atRiskList, todayTs, t])
 
   // Open-filing subline — count of forms in the filing plan that are
   // still doing work. Singular vs plural phrasing.

@@ -14,15 +14,21 @@ import { DASHBOARD_FILTER_MAX_SELECTIONS } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { PageHeader } from '@/components/patterns/page-header'
+import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
+// 2026-05-27 (Yuqi feedback round 1): import retained but commented out
+// alongside the section mount. Restore both when ChangesSinceLastSection
+// is brought back.
+// import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import type { ObligationStatus } from '@/features/obligations/status-control'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 
 const TRIAGE_TAB_KEYS = ['this_week', 'this_month', 'long_term'] as const
 const DASHBOARD_DUE_BUCKETS = [
@@ -138,7 +144,20 @@ export function DashboardRoute() {
     // to /clients, /deadlines, /audit (see route files); the
     // narrower pages /settings, /practice, /billing already use
     // py-6 which reads correctly at their tighter width.
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
+    // 2026-05-27 (audit-drain X1 D18): tightened above-the-fold
+    // density. Outer gap-6 → gap-4 trims 24px of vertical between
+    // each of the four sections (header → changes-since →
+    // alerts → actions) — at 1440×900 this pulls the first
+    // overdue row up into the third visible band instead of
+    // landing below the fold once the new "Changes since" row is
+    // added. Top/bottom padding also stepped down one tier
+    // (pt-6/8 → pt-4/6, pb-4/6 → pb-3/5) so the H1 doesn't claim
+    // an outsize share of the work surface.
+    // 2026-05-27 (Yuqi feedback "bigger gap between Today title, Alerts
+    // section, and Actions this week"): gap-4 (16px) → gap-8 (32px) so
+    // the three top-level sections breathe. The number prefix in each
+    // heading + the gray date pattern works better with this rhythm.
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-8 px-4 pt-8 pb-3 md:px-6 md:pb-5">
       {/* 2026-05-26 (Yuqi seventy-fourth pass — Today joins the
           page-header family): the hand-rolled <header> is gone.
           /today now routes through the same `<PageHeader>`
@@ -150,10 +169,19 @@ export function DashboardRoute() {
           primitive propagates here automatically. */}
       <PageHeader
         title={
-          <span className="inline-flex items-center gap-2">
+          // 2026-05-27 (Yuqi feedback: "should be like this but May 27
+          // in gray"): the date renders inline at the same heading
+          // type-style as "Today", just in text-text-tertiary. Drops
+          // the rounded-pill chrome — the date is part of the title,
+          // not a count-chip beside it.
+          <span className="inline-flex items-baseline gap-2">
             <Trans>Today</Trans>
-            {!dashboardQuery.isLoading && data?.asOfDate ? (
-              <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+            {dashboardQuery.isLoading ? (
+              <span className="font-normal text-text-tertiary italic">
+                <Trans>loading…</Trans>
+              </span>
+            ) : data?.asOfDate ? (
+              <span className="font-normal tabular-nums text-text-tertiary">
                 {formatTodayHeader(data.asOfDate)}
               </span>
             ) : null}
@@ -161,6 +189,14 @@ export function DashboardRoute() {
         }
         actions={
           <>
+            {/* 2026-05-27 (Step 6 UX flows audit H2.6): the
+                keyboard shortcut help dialog opens on `?` but
+                that key was undiscoverable from the dashboard.
+                Tiny chip aligned with the action cluster gives
+                first-time keyboardists a path in; mouse users
+                can also click. Mirrors the bottom-of-queue
+                pattern in /deadlines. */}
+            <ShortcutHintChip className="hidden md:inline-flex" />
             <CreateObligationDialog />
             {/* 2026-05-25 (Yuqi Today #6): FileSearchIcon → UploadIcon.
                 The button's job is "upload my client list", not
@@ -178,9 +214,18 @@ export function DashboardRoute() {
               size="sm"
               onClick={openWizard}
               disabled={!canRunMigration}
-              title={canRunMigration ? undefined : t`Owner or manager access required.`}
+              // ROH-D11 — was "owner or manager"; migration.run is
+              // owner/partner/manager/preparer. Helper-driven so the
+              // tooltip + aria-label always name the right roles.
+              title={
+                canRunMigration
+                  ? undefined
+                  : t`Requires ${requiredRolesLabel('migration.run')} access.`
+              }
               aria-label={
-                canRunMigration ? undefined : t`Import clients (owner or manager access required)`
+                canRunMigration
+                  ? undefined
+                  : t`Import clients (requires ${requiredRolesLabel('migration.run')} access)`
               }
             >
               <UploadIcon data-icon="inline-start" />
@@ -216,6 +261,21 @@ export function DashboardRoute() {
           </AlertDescription>
         </Alert>
       ) : null}
+
+      {/* 2026-05-27 (audit-drain X1 D17): "Changes since last visit"
+          surface — addresses φ's J5 journey ("returned from
+          vacation"). Sits between PageHeader and Alerts because
+          it's a read-back ("here's what shifted while you were
+          away"), not live work. MVP uses localStorage for
+          last-seen tracking; upgrade path is a server-side
+          `lastDashboardVisitAt` on the user model (ω-territory
+          contract change). The section ships its own collapse
+          affordance so power users who don't want it can hide. */}
+      {/* 2026-05-27 (Yuqi feedback round 1): "hide changes since last
+          visit for now" — section mount commented out. Component
+          file kept (changes-since-last-section.tsx) for future
+          revisit. Restore by uncommenting the line below. */}
+      {/* <ChangesSinceLastSection /> */}
 
       <NeedsAttentionSection />
 
