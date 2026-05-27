@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 
+import { AiProvenanceBadge } from '@/components/primitives/ai-provenance-badge'
 import { cn, formatDate } from '@/lib/utils'
 
 // One persisted document row in the readiness checklist. The checkbox is
@@ -117,6 +118,16 @@ export function ChecklistItemRow({
             >
               {item.label}
             </span>
+            {/* η pass — F-008 / F-022 / F-039: AI provenance marker.
+                Renders only when the row was AI-generated AND the user
+                has not yet value-edited it. Once a CPA edits the label /
+                description / note, the server flips origin → 'manual'
+                and the badge disappears (the user has confirmed the
+                value). The tooltip surfaces "when" + the override
+                convention; see ai-provenance-badge.tsx. */}
+            {item.origin === 'ai' && item.userEditedAt === null ? (
+              <AiProvenanceBadge generatedAt={item.aiGeneratedAt} />
+            ) : null}
             {/* Status chip — sits inline with the title on the right
                 so received / needs-review state is visible at a
                 glance without a per-row action button. Default

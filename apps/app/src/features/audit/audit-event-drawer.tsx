@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { Astroid } from 'lucide-react'
 
-import type { AuditEventPublic } from '@duedatehq/contracts'
+import type { AiEventMetadata, AuditActorType, AuditEventPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import {
   Sheet,
@@ -87,13 +88,15 @@ function AuditEventDrawerContent({
   const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
   const readinessLabels = useReadinessLabels()
   const changeLabels = useAuditChangeLabels({ actionLabels, readinessLabels, statusLabels })
-  const actor = event.actorLabel ?? event.actorId ?? t`System`
+  // η pass — F-035 / F-036: see audit-log-table.tsx for the actor logic.
+  const actor = event.actorType === 'ai' ? t`AI` : (event.actorLabel ?? event.actorId ?? t`System`)
   const actionLabel = formatAuditActionLabel(event.action, actionLabels)
   const entityTypeLabel = formatAuditEntityTypeLabel(event.entityType, entityTypeLabels)
   const entityDisplay = getAuditEntityDisplay(event, entityTypeLabel)
   const firmTime = formatDateTimeWithTimezone(event.createdAt, firmTimezone)
   const utcTime = formatDateTimeWithTimezone(event.createdAt, 'UTC')
   const changeView = buildAuditChangeView(event, changeLabels, firmTimezone)
+  const actorTypeLabel = useActorTypeLabel(event.actorType)
 
   return (
     <>
@@ -109,6 +112,22 @@ function AuditEventDrawerContent({
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline">{actionLabel}</Badge>
               <Badge variant={event.actorId ? 'secondary' : 'outline'}>{actor}</Badge>
+              {/* η pass — F-035 / F-023: provenance chips. The Astroid
+                  pill is the canonical "AI was involved" marker; the
+                  "Overrode AI" pill surfaces F-023 reverse-provenance
+                  (a user who edited a previously-AI value). Both are
+                  optional — non-AI events show neither. */}
+              {event.actorType === 'ai' || event.actorType === 'ai_assisted' ? (
+                <span className="inline-flex items-center gap-1 rounded-sm bg-state-accent-subtle px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-accent">
+                  <Astroid className="size-3" aria-hidden />
+                  {event.actorType === 'ai' ? <Trans>AI</Trans> : <Trans>AI-assisted</Trans>}
+                </span>
+              ) : null}
+              {event.previousActorType === 'ai' && event.actorType === 'user' ? (
+                <span className="inline-flex items-center gap-1 rounded-sm bg-state-warning-hover px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-warning">
+                  <Trans>Overrode AI suggestion</Trans>
+                </span>
+              ) : null}
             </div>
             <p className="text-base text-text-primary">{changeView.headline}</p>
           </section>
@@ -120,8 +139,11 @@ function AuditEventDrawerContent({
             <AuditEventField label={t`Entity type`} value={entityTypeLabel} />
             <AuditEventField label={t`Entity id`} value={shortenAuditId(event.entityId)} />
             <AuditEventField label={t`Actor`} value={actor} />
+            <AuditEventField label={t`Actor type`} value={actorTypeLabel} />
             {event.reason ? <AuditEventField label={t`Reason`} value={event.reason} /> : null}
           </dl>
+
+          <AiTraceSection actorType={event.actorType} metadata={event.aiEventMetadata} />
 
           <AuditChangeDetails changeView={changeView} />
 
@@ -136,6 +158,97 @@ function AuditEventDrawerContent({
         </div>
       </div>
     </>
+  )
+}
+
+function useActorTypeLabel(actorType: AuditActorType): string {
+  // η pass — F-035. The drawer's field-grid surfaces actor_type as a
+  // first-class piece of provenance, not just a chip. CPAs auditing
+  // events want to read the value, not infer it from icons.
+  const { t } = useLingui()
+  switch (actorType) {
+    case 'ai':
+      return t`AI (autonomous)`
+    case 'ai_assisted':
+      return t`AI-assisted (user applied)`
+    case 'system':
+      return t`System (cron / queue)`
+    case 'user':
+    default:
+      return t`User`
+  }
+}
+
+function AiTraceSection({
+  actorType,
+  metadata,
+}: {
+  actorType: AuditActorType
+  metadata: AiEventMetadata | null
+}) {
+  // η pass — F-037: AI trace disclosure. Only renders for AI / ai_assisted
+  // events. If metadata is missing (older events written before the column
+  // landed, or AI paths that haven't been wired yet), we still render the
+  // section header with a graceful "not recorded" line so the CPA knows
+  // the row IS AI-originated even when the trace is absent.
+  const { t } = useLingui()
+  if (actorType !== 'ai' && actorType !== 'ai_assisted') return null
+  const hasAny =
+    metadata !== null &&
+    Object.values(metadata).some((value) => value !== undefined && value !== null)
+
+  return (
+    <section className="grid gap-3">
+      <h3 className="flex items-center gap-2 text-xs font-medium tracking-wider text-text-tertiary uppercase">
+        <Astroid className="size-3" aria-hidden />
+        <Trans>AI trace</Trans>
+      </h3>
+      {hasAny && metadata ? (
+        <dl className="grid gap-4 rounded-lg border border-divider-subtle p-4">
+          {metadata.model ? <AuditEventField label={t`Model`} value={metadata.model} /> : null}
+          {metadata.promptVersion ? (
+            <AuditEventField label={t`Prompt version`} value={metadata.promptVersion} />
+          ) : null}
+          {metadata.inputTokens !== undefined ? (
+            <AuditEventField
+              label={t`Input tokens`}
+              value={metadata.inputTokens.toLocaleString()}
+            />
+          ) : null}
+          {metadata.outputTokens !== undefined ? (
+            <AuditEventField
+              label={t`Output tokens`}
+              value={metadata.outputTokens.toLocaleString()}
+            />
+          ) : null}
+          {metadata.latencyMs !== undefined ? (
+            <AuditEventField
+              label={t`Latency`}
+              value={`${metadata.latencyMs.toLocaleString()} ms`}
+            />
+          ) : null}
+          {metadata.guardStatus ? (
+            <AuditEventField label={t`Guard status`} value={metadata.guardStatus} />
+          ) : null}
+          {metadata.confidence !== undefined ? (
+            <AuditEventField
+              label={t`Confidence`}
+              value={`${Math.round(metadata.confidence * 100)}%`}
+            />
+          ) : null}
+          {metadata.aiOutputId ? (
+            <AuditEventField label={t`AI output id`} value={metadata.aiOutputId} />
+          ) : null}
+        </dl>
+      ) : (
+        <p className="rounded-lg border border-dashed border-divider-subtle px-4 py-3 text-xs text-text-tertiary">
+          <Trans>
+            This event was AI-originated. Trace metadata (model, prompt, tokens) was not recorded
+            for this row.
+          </Trans>
+        </p>
+      )}
+    </section>
   )
 }
 

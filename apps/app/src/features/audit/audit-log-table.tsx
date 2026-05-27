@@ -1,5 +1,6 @@
 import { type KeyboardEvent, useCallback } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { Astroid } from 'lucide-react'
 
 import type { AuditEventPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -90,7 +91,13 @@ export function AuditLogTable({
           with the change-headline content. */}
       <TableBody className="bg-background-default/50 [&_tr]:border-b-0 [&_td]:py-3">
         {events.map((event) => {
-          const actor = event.actorLabel ?? event.actorId ?? t`System`
+          // η pass — F-035 / F-036: actor resolution now reads actor_type
+          // first. An autonomous AI event ('ai') gets "AI" as the displayed
+          // actor, distinct from "System" (cron / queue worker). An
+          // ai_assisted event still shows the human who pressed apply, but
+          // a small Astroid chip in the row signals the AI co-authorship.
+          const actor =
+            event.actorType === 'ai' ? t`AI` : (event.actorLabel ?? event.actorId ?? t`System`)
           const actionLabel = formatAuditActionLabel(event.action, actionLabels)
           const entityTypeLabel = formatAuditEntityTypeLabel(event.entityType, entityTypeLabels)
           const entityDisplay = getAuditEntityDisplay(event, entityTypeLabel)
@@ -167,27 +174,48 @@ function AuditLogRow({
             actor name. Lets a CPA scan the audit log by color — same
             person → same tint → "Sarah made all of these changes"
             jumps out at a glance. Falls back to a neutral chrome
-            when the event has no actor name (system events). */}
+            when the event has no actor name (system events).
+            2026-05-27 (η — F-035 / F-036): autonomous AI events render
+            a dedicated AI tile (Astroid icon, accent tint) so they don't
+            collide with the human avatar bucket. ai_assisted events keep
+            the human avatar + add a small AI chip below the name. */}
         <div className="flex items-start gap-2">
-          <span
-            aria-hidden
-            className={cn(
-              'mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-              actor ? getAssigneeTint(actor) : 'bg-background-subtle text-text-tertiary',
-            )}
-          >
-            {actor
-              ? actor
-                  .split(/\s+/)
-                  .slice(0, 2)
-                  .map((part) => part.charAt(0))
-                  .join('')
-                  .toUpperCase() || '?'
-              : '?'}
-          </span>
+          {event.actorType === 'ai' ? (
+            <span
+              aria-hidden
+              className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-state-accent-subtle text-text-accent"
+            >
+              <Astroid className="size-3.5" />
+            </span>
+          ) : (
+            <span
+              aria-hidden
+              className={cn(
+                'mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
+                actor ? getAssigneeTint(actor) : 'bg-background-subtle text-text-tertiary',
+              )}
+            >
+              {actor
+                ? actor
+                    .split(/\s+/)
+                    .slice(0, 2)
+                    .map((part) => part.charAt(0))
+                    .join('')
+                    .toUpperCase() || '?'
+                : '?'}
+            </span>
+          )}
           <div className="grid min-w-0 gap-1">
             <span className="text-xs font-medium text-text-primary">{actor}</span>
-            {event.actorId ? (
+            {event.actorType === 'ai_assisted' ? (
+              <span
+                className="inline-flex w-fit items-center gap-1 rounded-sm bg-state-accent-subtle px-1 py-0.5 text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-accent"
+                title={t`AI produced the value; the user applied it.`}
+              >
+                <Astroid className="size-2.5" aria-hidden />
+                <Trans>AI-assisted</Trans>
+              </span>
+            ) : event.actorId ? (
               <span className="font-mono text-xs text-text-tertiary">
                 {shortenAuditId(event.actorId)}
               </span>

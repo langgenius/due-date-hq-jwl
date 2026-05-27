@@ -189,6 +189,9 @@ describe('@duedatehq/contracts', () => {
       firmId: 'firm_123',
       actorId: null,
       actorLabel: null,
+      actorType: 'system',
+      previousActorType: null,
+      aiEventMetadata: null,
       entityType: 'migration_batch',
       entityId: 'batch_123',
       action: 'migration.imported',
@@ -200,6 +203,7 @@ describe('@duedatehq/contracts', () => {
       createdAt: '2026-04-28T00:00:00.000Z',
     })
     expect(event.actorId).toBeNull()
+    expect(event.actorType).toBe('system')
   })
 
   it('keeps shared error codes stable', () => {

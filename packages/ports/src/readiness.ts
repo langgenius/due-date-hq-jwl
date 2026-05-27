@@ -1,6 +1,9 @@
 import type { ObligationReadiness } from './shared'
 
 export type ReadinessDocumentChecklistItemSource = 'template' | 'custom'
+// η pass — F-008: AI-provenance axis. 'manual' default is the safe backfill
+// assumption — see schema comment in packages/db/src/schema/readiness.ts.
+export type ReadinessDocumentChecklistItemOrigin = 'ai' | 'manual'
 export type ReadinessDocumentChecklistItemStatus = 'missing' | 'received' | 'needs_review'
 
 export interface ReadinessChecklistItemRow {
@@ -20,6 +23,9 @@ export interface ReadinessDocumentChecklistItemRow {
   templateKey: string | null
   templateVersion: number | null
   source: ReadinessDocumentChecklistItemSource
+  origin: ReadinessDocumentChecklistItemOrigin
+  aiGeneratedAt: Date | null
+  userEditedAt: Date | null
   status: ReadinessDocumentChecklistItemStatus
   sortOrder: number
   note: string | null
@@ -94,6 +100,12 @@ export interface ReadinessRepo {
       templateKey?: string | null
       templateVersion?: number | null
       source: ReadinessDocumentChecklistItemSource
+      // F-008: when an AI path materialises items (e.g. Brief or Pulse
+      // expansion of a non-template document set), pass origin: 'ai' so the
+      // UI can render the Astroid provenance marker. Defaults to 'manual'
+      // when omitted — keeps the deterministic template path unchanged.
+      origin?: ReadinessDocumentChecklistItemOrigin
+      aiGeneratedAt?: Date | null
       status?: ReadinessDocumentChecklistItemStatus
       sortOrder: number
       note?: string | null
@@ -118,6 +130,11 @@ export interface ReadinessRepo {
     status?: ReadinessDocumentChecklistItemStatus
     note?: string | null
     receivedByUserId?: string | null
+    // F-022 (AI marker drops on user edit): when `true`, the repo will
+    // flip origin → 'manual' AND stamp user_edited_at. A status-only
+    // change (Mark received) is NOT a value-touch and leaves origin alone;
+    // a label / description edit IS a value-touch.
+    dropsAiOrigin?: boolean
     now: Date
   }): Promise<ReadinessDocumentChecklistItemRow>
   deleteDocumentChecklistItem(input: {

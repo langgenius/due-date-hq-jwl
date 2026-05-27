@@ -118,7 +118,10 @@ export {
 } from './priority'
 
 export type {
+  AiEventMetadata,
   AuditActionCategory,
+  AuditActorType,
+  AuditActorTypeFilter,
   AuditContract,
   AuditEvidencePackagePublic,
   AuditEventPublic,
@@ -130,7 +133,10 @@ export type {
 export {
   AUDIT_FILTER_MAX_LENGTH,
   AUDIT_SEARCH_MAX_LENGTH,
+  AiEventMetadataSchema,
   AuditActionCategorySchema,
+  AuditActorTypeFilterSchema,
+  AuditActorTypeSchema,
   AuditEvidencePackagePublicSchema,
   AuditEvidencePackageScopeSchema,
   AuditEvidencePackageStatusSchema,
@@ -461,6 +467,7 @@ export type {
   ReadinessAddChecklistItemInput,
   ReadinessChecklistItemMutationOutput,
   ReadinessDeleteChecklistItemInput,
+  ReadinessDocumentChecklistItemOrigin,
   ReadinessDocumentChecklistItemPublic,
   ReadinessDocumentChecklistItemSource,
   ReadinessDocumentChecklistItemStatus,
@@ -491,6 +498,7 @@ export {
   ReadinessAddChecklistItemInputSchema,
   ReadinessChecklistItemMutationOutputSchema,
   ReadinessDeleteChecklistItemInputSchema,
+  ReadinessDocumentChecklistItemOriginSchema,
   ReadinessDocumentChecklistItemPublicSchema,
   ReadinessDocumentChecklistItemSourceSchema,
   ReadinessDocumentChecklistItemStatusSchema,
