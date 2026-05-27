@@ -22,6 +22,7 @@ import type {
   ReminderTemplatePublic,
   ReminderUpcomingItem,
 } from '@duedatehq/contracts'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -212,11 +213,20 @@ export function RemindersPage() {
       />
 
       {overviewQuery.isError ? (
-        <Card>
-          <CardContent className="p-4 text-sm text-text-destructive">
-            {rpcErrorMessage(overviewQuery.error) ?? t`Couldn't load reminder overview`}
-          </CardContent>
-        </Card>
+        /* 2026-05-27 (step-6 cross-section #147): converted from
+           Card-as-error chrome to canonical Alert variant="destructive"
+           so the error rhythm matches /notifications, /workload,
+           /opportunities, /audit — every other shipped page in this
+           batch carries the same shape. */
+        <Alert variant="destructive">
+          <AlertTitle>
+            <Trans>Couldn't load reminder overview</Trans>
+          </AlertTitle>
+          <AlertDescription>
+            {rpcErrorMessage(overviewQuery.error) ??
+              t`Check your network and try again. If this keeps happening, contact support.`}
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">

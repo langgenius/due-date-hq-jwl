@@ -333,11 +333,38 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: orpc.opportunities.list.key() })
   }
+  // 2026-05-27 (step-6 ux-flow audit F3.1): Sonner toast supports an
+  // `action` slot — used here so the user can undo a dismiss without
+  // hunting the "Recently dismissed" disclosure at the bottom of the
+  // page. Mirrors the Pulse/Migration/Obligations undo patterns
+  // already in the codebase.
+  const restoreFromToast = useMutation(
+    orpc.opportunities.restore.mutationOptions({
+      onSuccess: () => {
+        invalidate()
+        void queryClient.invalidateQueries({ queryKey: orpc.opportunities.listDismissed.key() })
+        toast.success(t`Opportunity restored`)
+      },
+      onError: (error) => {
+        toast.error(t`Couldn't restore this opportunity`, {
+          description:
+            rpcErrorMessage(error) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
   const dismissMutation = useMutation(
     orpc.opportunities.dismiss.mutationOptions({
       onSuccess: () => {
         invalidate()
-        toast.success(t`Opportunity dismissed`)
+        void queryClient.invalidateQueries({ queryKey: orpc.opportunities.listDismissed.key() })
+        toast.success(t`Opportunity dismissed`, {
+          action: {
+            label: t`Undo`,
+            onClick: () => restoreFromToast.mutate({ opportunityKey: opportunity.id }),
+          },
+        })
       },
       onError: (error) => {
         toast.error(t`Couldn't dismiss this opportunity`, {
@@ -352,7 +379,16 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
     orpc.opportunities.snooze.mutationOptions({
       onSuccess: () => {
         invalidate()
-        toast.success(t`Snoozed for ${DEFAULT_SNOOZE_DAYS} days`)
+        void queryClient.invalidateQueries({ queryKey: orpc.opportunities.listDismissed.key() })
+        // 2026-05-27 (step-6 ux-flow audit F3.1): undo on snooze too
+        // — same restore endpoint un-snoozes, since dismissals and
+        // snoozes share the storage.
+        toast.success(t`Snoozed for ${DEFAULT_SNOOZE_DAYS} days`, {
+          action: {
+            label: t`Undo`,
+            onClick: () => restoreFromToast.mutate({ opportunityKey: opportunity.id }),
+          },
+        })
       },
       onError: (error) => {
         toast.error(t`Couldn't snooze this opportunity`, {
