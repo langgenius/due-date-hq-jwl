@@ -60,7 +60,6 @@ import { RowActionsMenu, type RowActionsMenuItem } from '@/components/patterns/r
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
-import { JurisdictionCode } from '@/features/rules/rules-console-primitives'
 import { formatDate, formatDatePretty } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { useCurrentUserName } from '@/lib/use-current-user-name'
@@ -355,22 +354,27 @@ function NextDueRelativeLabel({ iso }: { iso: string }) {
 export function ClientFilingStateChips({ client }: { client: ClientPublic }) {
   const states = getClientFilingStates(client)
   if (states.length === 0) return null
-  const visible = states.slice(0, 3)
-  const overflow = states.length - visible.length
-  // Uses the canonical `JurisdictionCode` chip from rules-console so the
-  // same fact reads the same way across /clients/[id] header, the rules
-  // library, and rules sources. JurisdictionCode is intentionally subtle
-  // (h-[18px], rounded-sm, gray, monospace) — it reads as a code label,
-  // not a button, so the earlier "looks-clickable" concern stays solved.
+  const [primary, ...others] = states
+  const visibleOthers = others.slice(0, 2)
+  const overflow = others.length - visibleOthers.length
+  // Primary state renders as `<StateBadge> CODE` (flag-style SVG + code
+  // text) to match the /clients table cell motif — Yuqi flagged that
+  // the previous bare JurisdictionCode chip didn't read as "this is a
+  // state." The flag glyph anchors the eye; additional states append
+  // as compact StateBadge-only glyphs to keep the meta-row tight.
   return (
     <div
-      className="flex flex-wrap items-center gap-1"
+      className="flex flex-wrap items-center gap-1.5"
       title={
         states.length === 1 ? `Filing state: ${states[0]}` : `Filing states: ${states.join(', ')}`
       }
     >
-      {visible.map((state) => (
-        <JurisdictionCode key={state} code={state} />
+      <span className="inline-flex items-center gap-1.5 text-xs tabular-nums text-text-secondary">
+        <StateBadge code={primary!} size="xs" aria-hidden />
+        <span>{primary}</span>
+      </span>
+      {visibleOthers.map((state) => (
+        <StateBadge key={state} code={state} size="xs" title={state} />
       ))}
       {overflow > 0 ? (
         <span className="text-caption tabular-nums text-text-tertiary">+{overflow}</span>

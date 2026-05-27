@@ -1,6 +1,6 @@
 import { Fragment, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { ChevronRightIcon } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -41,8 +41,34 @@ export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; clas
 
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/i.test(navigator.platform)
   const shortcutHint = isMac ? '⌘[' : 'Ctrl+['
-  const parentIndex = items.length - 2
 
+  // Back-link variant: when there is a single parent segment that has
+  // a `to`, render as a friendly back-link (`< Clients`) instead of
+  // the uppercase eyebrow-tag chain. The eyebrow chain reads as a
+  // section label tag when the chain has only one item — users miss
+  // that it's clickable (audit follow-up 2026-05-28). For two+
+  // segments the canonical chain still reads as wayfinding because
+  // the chevron separators + multiple labels make the structure
+  // obvious.
+  const isBackLink = items.length === 1 && Boolean(items[0]?.to) && items[0]?.render === undefined
+  if (isBackLink) {
+    const [item] = items
+    if (!item || !item.to) return null
+    return (
+      <nav aria-label="Breadcrumb" className={cn('flex items-center', className)}>
+        <Link
+          to={item.to}
+          title={`Go back · ${shortcutHint}`}
+          className="inline-flex items-center gap-1 rounded-sm text-xs font-normal text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          <ChevronLeftIcon aria-hidden className="size-3.5 shrink-0" />
+          {item.label}
+        </Link>
+      </nav>
+    )
+  }
+
+  const parentIndex = items.length - 2
   return (
     <nav
       aria-label="Breadcrumb"

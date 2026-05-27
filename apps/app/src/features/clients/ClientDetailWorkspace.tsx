@@ -1418,11 +1418,18 @@ function ClientDetailTabTrigger({
       // !rounded-none after:!opacity-0` strips ALL primitive active
       // chrome so only the motion.span underline (and the bold text)
       // remain.
+      // 2026-05-28 (Yuqi follow-up — "tabs are hard to know they can be
+      // clicked"): inactive triggers now get a subtle bg fill on hover
+      // (`hover:bg-state-base-hover-alt`) in addition to the existing
+      // text + underline transitions. The bg change is a stronger
+      // affordance — text-color shifts alone were too subtle on the
+      // workbench's gray-tinted page background. The active state stays
+      // chrome-free (bold text + the motion underline carry it).
       className={cn(
-        'relative -mb-px !flex-none shrink-0 items-center gap-1.5 !rounded-none !border-0 !bg-transparent px-3 py-1.5 text-base whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
+        'relative -mb-px !flex-none shrink-0 items-center gap-1.5 !rounded-md !border-0 !bg-transparent px-3 py-1.5 text-base whitespace-nowrap !shadow-none transition-colors after:!opacity-0',
         active
           ? 'font-medium text-text-primary'
-          : 'border-b-2 border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary',
+          : 'cursor-pointer border-b-2 border-transparent text-text-secondary hover:bg-state-base-hover-alt hover:text-text-primary',
         // When compact, the label inside the trigger is wrapped in a
         // span with `[data-tab-label]` and we hide it via this attribute
         // selector — keeps the icon visible, lets the label remain in
