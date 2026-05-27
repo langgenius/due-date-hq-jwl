@@ -73,13 +73,13 @@ It was a leftover from a prior planned migration that never landed.
 For the screenshot's Form 1065 (status=`'done'`, paymentDueDate=2026-03-16,
 today=2026-05-27):
 
-| Surface | Before | After |
-|---|---|---|
-| Client header "Next due" | "Nov 15" (next non-done row) | shows the overdue Mar 16 item (filtered through `nextDue`) |
-| "At risk" tile | 0 | 1 (catches payment-overdue) |
-| "Open filing" tile | 1 (only counted the non-done row) | 2 (correctly counts the done-but-payment-due row) |
-| ObligationDetailPanel FILING DEADLINE pill | red border + red value | green tone (filing satisfied) |
-| ObligationDetailPanel PAYMENT DUE pill | neutral | red tone (payment overdue) |
+| Surface                                    | Before                            | After                                                      |
+| ------------------------------------------ | --------------------------------- | ---------------------------------------------------------- |
+| Client header "Next due"                   | "Nov 15" (next non-done row)      | shows the overdue Mar 16 item (filtered through `nextDue`) |
+| "At risk" tile                             | 0                                 | 1 (catches payment-overdue)                                |
+| "Open filing" tile                         | 1 (only counted the non-done row) | 2 (correctly counts the done-but-payment-due row)          |
+| ObligationDetailPanel FILING DEADLINE pill | red border + red value            | green tone (filing satisfied)                              |
+| ObligationDetailPanel PAYMENT DUE pill     | neutral                           | red tone (payment overdue)                                 |
 
 ## What this does NOT fix (Wave-4 candidates)
 

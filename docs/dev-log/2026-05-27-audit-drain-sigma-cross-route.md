@@ -150,10 +150,11 @@ truth for "how do we extract initials from a display name."
 
 10 items confirmed already consistent across all relevant routes — see matrix
 §3. Notable confirmations: status pills (every surface routes through `Badge`
-+ semantic variant), search affordances (`SearchInput` everywhere), bulk
-toolbars (only 2 surfaces ship them, both `FloatingActionBar`), page headers
-(every protected route uses `PageHeader`), error block primitive (every error
-uses `<Alert variant="destructive">`).
+
+- semantic variant), search affordances (`SearchInput` everywhere), bulk
+  toolbars (only 2 surfaces ship them, both `FloatingActionBar`), page headers
+  (every protected route uses `PageHeader`), error block primitive (every error
+  uses `<Alert variant="destructive">`).
 
 ## Files touched
 

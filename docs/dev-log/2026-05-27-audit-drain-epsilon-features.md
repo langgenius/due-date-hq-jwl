@@ -22,8 +22,7 @@ findings on top of the existing work, plus a cross-section sweep.
   in the codebase. F3.1 is mechanical.
 - **Change:** Both `dismissMutation` and `snoozeMutation` `onSuccess` toasts now
   carry an `action: { label: t\`Undo\`, onClick: () => restoreFromToast.mutate(...) }`.
-  The restore mutation invalidates both `opportunities.list` and
-  `opportunities.listDismissed` keys, so the row reappears in the live queue and
+The restore mutation invalidates both `opportunities.list`and`opportunities.listDismissed` keys, so the row reappears in the live queue and
   drops out of the "Recently dismissed" disclosure immediately.
 - **Why it matters:** Dismiss is one click away. The only previous recovery path
   was scrolling to the bottom of the page, expanding the "Recently dismissed"
@@ -34,7 +33,7 @@ findings on top of the existing work, plus a cross-section sweep.
 
 - **Location:** `apps/app/src/features/audit/audit-log-page.tsx`
 - **Catalog status before:** marked "shipped in batch 1" — but the previous fix
-  was a *copy* fix (added description line). The chrome was still an ad-hoc
+  was a _copy_ fix (added description line). The chrome was still an ad-hoc
   `<div className="grid gap-2 rounded-lg border border-divider-subtle p-6 text-center">`
   with bespoke typography, missing the canonical dashed border, icon-on-top, and
   shared `EmptyState` cta slot.
@@ -66,21 +65,21 @@ findings on top of the existing work, plus a cross-section sweep.
 
 ## Verified shipped (already in main, content unchanged)
 
-| ID | Surface | Note |
-| --- | --- | --- |
-| F1.2 | Notifications — read/unread visual | Left-accent border on unread rows |
-| F1.3 | Notifications — loading state | Skeleton rows w/ aria-live |
-| F1.4 | Notifications — markAllRead empty disable | Explicit `hasUnread` check |
-| F1.6 | Notifications — `<article>` aria-label | Read/Unread prefix per item |
-| F9-05 | Notifications — empty description | "Mentions, assignment changes…" copy |
-| F2.1-F2.5 | Workload — loading/error/refresh/metric chrome | All five shipped previously |
-| F9-03 | Workload — empty state | `<EmptyState>` with `ClipboardListIcon` |
-| F4.1-F4.3 | Audit — Cancel ghost / Download aria-busy / Request aria-busy | All three shipped |
-| F4 (#131) | Audit — filter by action/category/actor/entityType | `AuditFilterSelect` + category Select live |
-| F4 (#132) | Audit — export | `AuditExportButton` renders an evidence-package dialog |
-| F5.1-F5.3 | Reminders — Cancel ghost / no font-mono / Save spinner | All three shipped |
-| F7.2 | Calendar — Unicode arrow | `→` replaces ASCII `->` |
-| F7.3-F7.4 | Calendar — Regenerate / Disable spinner | Both shipped |
+| ID        | Surface                                                       | Note                                                   |
+| --------- | ------------------------------------------------------------- | ------------------------------------------------------ |
+| F1.2      | Notifications — read/unread visual                            | Left-accent border on unread rows                      |
+| F1.3      | Notifications — loading state                                 | Skeleton rows w/ aria-live                             |
+| F1.4      | Notifications — markAllRead empty disable                     | Explicit `hasUnread` check                             |
+| F1.6      | Notifications — `<article>` aria-label                        | Read/Unread prefix per item                            |
+| F9-05     | Notifications — empty description                             | "Mentions, assignment changes…" copy                   |
+| F2.1-F2.5 | Workload — loading/error/refresh/metric chrome                | All five shipped previously                            |
+| F9-03     | Workload — empty state                                        | `<EmptyState>` with `ClipboardListIcon`                |
+| F4.1-F4.3 | Audit — Cancel ghost / Download aria-busy / Request aria-busy | All three shipped                                      |
+| F4 (#131) | Audit — filter by action/category/actor/entityType            | `AuditFilterSelect` + category Select live             |
+| F4 (#132) | Audit — export                                                | `AuditExportButton` renders an evidence-package dialog |
+| F5.1-F5.3 | Reminders — Cancel ghost / no font-mono / Save spinner        | All three shipped                                      |
+| F7.2      | Calendar — Unicode arrow                                      | `→` replaces ASCII `->`                                |
+| F7.3-F7.4 | Calendar — Regenerate / Disable spinner                       | Both shipped                                           |
 
 ## Skipped (with reason)
 
@@ -93,7 +92,7 @@ findings on top of the existing work, plus a cross-section sweep.
 - **F3.3** — Action column 3 buttons: design call on which to demote / hide.
 - **F5.4** — Loading suppressions text: minor — list section is below the fold.
 - **F5.5** — Subject/Body label `htmlFor`: the existing `<label>` wraps the
-  input, which is *semantically valid* HTML — the implicit association works for
+  input, which is _semantically valid_ HTML — the implicit association works for
   screen readers. Reviewed against `FieldLabel htmlFor=…` pattern used elsewhere,
   but converting these two would touch the `Input` / `Textarea` import shape
   without an accessibility-correctness gain. Skip with reason.
@@ -102,7 +101,7 @@ findings on top of the existing work, plus a cross-section sweep.
 - **F9-01** — `/calendar` empty state: investigated. The page renders a
   `CalendarSubscriptionCard` for the "My deadlines" scope with a clear "Not
   enabled" badge + "Enable redacted feed" / "Enable full feed" CTAs when there
-  is no subscription. The card *is* the empty state for this surface — adding a
+  is no subscription. The card _is_ the empty state for this surface — adding a
   `SharedEmptyState` above it would be redundant. Skip with reason.
 - **#148** — Skeleton size matching: no single-file egregious case in owned files.
 - **#149** — Toast description format: too cross-cutting for this pass.

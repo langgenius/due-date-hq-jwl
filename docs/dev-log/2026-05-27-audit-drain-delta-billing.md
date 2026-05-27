@@ -11,7 +11,7 @@ Master findings index pass batched the high-volume drain work across four parall
 
 ### `apps/app/src/features/members/members-page.tsx`
 
-- **F6.5 — Role Select gained per-role descriptions.** The MANAGED_ROLES SelectItem list used to render only `roleLabel(item)`. The user changing the invite role saw no inline scope summary; the page-level helper text below the picker described all roles generically. Now each `<SelectItem>` is a two-line stack (label + scope summary) so the user sees WHICH role does WHAT at the moment of choice. Helper text below the picker reduced to the one fact the dropdown can't carry: "Owner stays read-only and can't be invited from here." New helper `inviteRoleDescription(role, i18n)` uses `msg` + `i18n._()` (parameterized `t` inside helpers bypasses the macro extractor).
+- **F6.5 — Role Select gained per-role descriptions.** The MANAGED*ROLES SelectItem list used to render only `roleLabel(item)`. The user changing the invite role saw no inline scope summary; the page-level helper text below the picker described all roles generically. Now each `<SelectItem>` is a two-line stack (label + scope summary) so the user sees WHICH role does WHAT at the moment of choice. Helper text below the picker reduced to the one fact the dropdown can't carry: "Owner stays read-only and can't be invited from here." New helper `inviteRoleDescription(role, i18n)` uses `msg` + `i18n.*()`(parameterized`t` inside helpers bypasses the macro extractor).
 
 ### `apps/app/src/routes/practice.tsx`
 

@@ -12,6 +12,7 @@ toolbars, empty states, error states, loading skeletons, retry buttons, page
 headers, breadcrumbs) across the 22 protected routes and identifies drift.
 
 A cell value of:
+
 - **✓** — uses the canonical primitive / pattern exactly.
 - **drift** — diverges from canon; details below the matrix.
 - **n/a** — concept not present on this route.
@@ -20,22 +21,22 @@ A cell value of:
 
 ## §0. Canonical primitives
 
-| Concept | Canon | Where |
-| --- | --- | --- |
-| Status pill (semantic state) | `<Badge variant={success\|warning\|info\|destructive\|secondary}>` | `@duedatehq/ui/components/ui/badge` |
-| Status dot (color-only cue) | `<BadgeStatusDot tone={success\|warning\|error\|info\|normal\|disabled}>` | same module |
-| Owner avatar (initials) | `<AssigneeAvatar name isMine title>` | `features/obligations/AssigneeAvatar.tsx` |
-| Owner avatar (small, decorative) | inline `<span aria-hidden>` + `initialsFromName(name)` + `getAssigneeTint(name)` | `lib/auth.ts`, `lib/assignee-tint.ts` |
-| Search input | `<SearchInput value onChange placeholder ariaLabel hotkey="/">` | `components/primitives/search-input.tsx` |
-| Bulk-selection toolbar | `<FloatingActionBar ariaLabel>` | `components/patterns/floating-action-bar.tsx` |
-| Empty state | `<EmptyState icon title description cta>` | `components/patterns/empty-state.tsx` |
-| Error block | `<Alert variant="destructive">` with `AlertTitle` + `AlertDescription` containing `<Button variant="link" size="sm">Retry</Button>` | `@duedatehq/ui/components/ui/alert` + `ui/button` |
-| Loading skeleton | `<Skeleton className="h-{px} w-{px}">` shaped to the eventual content | `@duedatehq/ui/components/ui/skeleton` |
-| Retry button | `<Button type="button" variant="link" size="sm" className="h-auto p-0 align-baseline">` | `@duedatehq/ui/components/ui/button` |
-| Page header | `<PageHeader eyebrow breadcrumbs title description actions>` | `components/patterns/page-header.tsx` |
-| Breadcrumbs (inside header) | `breadcrumbs={[{ label, to? }, ...]}` prop on `PageHeader` | `components/patterns/breadcrumb.tsx` |
-| Dialog cancel button | `<Button type="button" variant="ghost" onClick=close>` | n/a — pattern only |
-| Mutation submit button | `<Button type="submit" disabled={isPending} aria-busy={isPending}>` with `{isPending ? <Loader2 className="animate-spin" /> : null}` + label | n/a — pattern only |
+| Concept                          | Canon                                                                                                                                        | Where                                             |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Status pill (semantic state)     | `<Badge variant={success\|warning\|info\|destructive\|secondary}>`                                                                           | `@duedatehq/ui/components/ui/badge`               |
+| Status dot (color-only cue)      | `<BadgeStatusDot tone={success\|warning\|error\|info\|normal\|disabled}>`                                                                    | same module                                       |
+| Owner avatar (initials)          | `<AssigneeAvatar name isMine title>`                                                                                                         | `features/obligations/AssigneeAvatar.tsx`         |
+| Owner avatar (small, decorative) | inline `<span aria-hidden>` + `initialsFromName(name)` + `getAssigneeTint(name)`                                                             | `lib/auth.ts`, `lib/assignee-tint.ts`             |
+| Search input                     | `<SearchInput value onChange placeholder ariaLabel hotkey="/">`                                                                              | `components/primitives/search-input.tsx`          |
+| Bulk-selection toolbar           | `<FloatingActionBar ariaLabel>`                                                                                                              | `components/patterns/floating-action-bar.tsx`     |
+| Empty state                      | `<EmptyState icon title description cta>`                                                                                                    | `components/patterns/empty-state.tsx`             |
+| Error block                      | `<Alert variant="destructive">` with `AlertTitle` + `AlertDescription` containing `<Button variant="link" size="sm">Retry</Button>`          | `@duedatehq/ui/components/ui/alert` + `ui/button` |
+| Loading skeleton                 | `<Skeleton className="h-{px} w-{px}">` shaped to the eventual content                                                                        | `@duedatehq/ui/components/ui/skeleton`            |
+| Retry button                     | `<Button type="button" variant="link" size="sm" className="h-auto p-0 align-baseline">`                                                      | `@duedatehq/ui/components/ui/button`              |
+| Page header                      | `<PageHeader eyebrow breadcrumbs title description actions>`                                                                                 | `components/patterns/page-header.tsx`             |
+| Breadcrumbs (inside header)      | `breadcrumbs={[{ label, to? }, ...]}` prop on `PageHeader`                                                                                   | `components/patterns/breadcrumb.tsx`              |
+| Dialog cancel button             | `<Button type="button" variant="ghost" onClick=close>`                                                                                       | n/a — pattern only                                |
+| Mutation submit button           | `<Button type="submit" disabled={isPending} aria-busy={isPending}>` with `{isPending ? <Loader2 className="animate-spin" /> : null}` + label | n/a — pattern only                                |
 
 ---
 
@@ -44,26 +45,26 @@ A cell value of:
 Routes listed in sidebar order. `clients.$clientId` and `clients` collapsed as
 two columns. Sub-tabs of `/rules` collapsed unless they materially differ.
 
-| Concept | dashboard | obligations | clients | clients/$id | calendar | workload | opportunities | notifications | notifications/preferences | reminders | rules.library | rules.pulse | rules.preview | rules.sources | rules.temporary | rules.pulse-history | members | audit | settings | billing.* | account.security | readiness |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| **Status pill** | ✓ | ✓ | ✓ | ✓ | n/a | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | n/a | ✓ | ✓ | n/a |
-| **Owner avatar** | n/a | ✓ | ✓ | ✓ | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | **drift D1** | **drift D2** | n/a | n/a | ✓ | n/a |
-| **Search affordance** | n/a | ✓ | ✓ | ✓ | n/a | n/a | n/a | n/a | n/a | n/a | ✓ | ✓ | n/a | n/a | n/a | n/a | n/a | ✓ | n/a | n/a | n/a | n/a |
-| **Table toolbar** (bulk) | n/a | ✓ | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | ✓ | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| **Empty state** | partial (intentional `<p>` "caught up") | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **drift D3** | **drift D4** | ✓ | ✓ | n/a | n/a | n/a | n/a | ✓ | ✓ | n/a | n/a | n/a | ✓ |
-| **Error state** | ✓ Alert | ✓ Alert | ✓ Alert | ✓ Alert | ✓ Alert | ✓ Alert | ✓ Alert | ✓ Alert | ✓ Alert | ✓ Alert | ✓ Alert | **drift D5** raw underline | n/a | n/a | n/a | n/a | ✓ Alert | ✓ Alert | n/a | ✓ Alert | ✓ Alert | ✓ Alert |
-| **Loading skeleton** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **drift D6** raw text | **drift D7** raw text | ✓ | ✓ Skeleton + text mix | n/a | n/a | n/a | n/a | ✓ | ✓ | n/a | ✓ | ✓ | ✓ Loader2 |
-| **Retry button** | ✓ link | ✓ link | ✓ link | ✓ link | n/a | n/a | n/a | n/a | n/a | n/a | n/a | **drift D8** raw underline (2 sites) | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| **Page header** | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | n/a (modal) | n/a | n/a | n/a | ✓ | ✓ | ✓ | ✓ | ✓ | n/a |
-| **Breadcrumbs** | n/a | n/a | n/a | ✓ (back-to-clients) | n/a | n/a | n/a | n/a | ✓ | ✓ | n/a | n/a | n/a | n/a | n/a | n/a | ✓ | ✓ | n/a | ✓ checkout | ✓ | n/a |
-| **Dialog cancel** | n/a | **drift D9** (extendedMemo) | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| **Mutation submit (Loader2 + aria-busy)** | ✓ | partial (tax-year save) **drift D10** | partial **drift D11** | partial | n/a | n/a | n/a | n/a | n/a | n/a | ✓ | ✓ | n/a | n/a | n/a | n/a | ✓ | ✓ | n/a | ✓ | ✓ | n/a |
+| Concept                                   | dashboard                               | obligations                           | clients               | clients/$id         | calendar | workload | opportunities | notifications | notifications/preferences | reminders             | rules.library | rules.pulse                          | rules.preview | rules.sources | rules.temporary | rules.pulse-history | members      | audit        | settings | billing.\* | account.security | readiness |
+| ----------------------------------------- | --------------------------------------- | ------------------------------------- | --------------------- | ------------------- | -------- | -------- | ------------- | ------------- | ------------------------- | --------------------- | ------------- | ------------------------------------ | ------------- | ------------- | --------------- | ------------------- | ------------ | ------------ | -------- | ---------- | ---------------- | --------- |
+| **Status pill**                           | ✓                                       | ✓                                     | ✓                     | ✓                   | n/a      | ✓        | ✓             | ✓             | ✓                         | ✓                     | ✓             | ✓                                    | ✓             | ✓             | ✓               | ✓                   | ✓            | ✓            | n/a      | ✓          | ✓                | n/a       |
+| **Owner avatar**                          | n/a                                     | ✓                                     | ✓                     | ✓                   | n/a      | n/a      | n/a           | n/a           | n/a                       | n/a                   | n/a           | n/a                                  | n/a           | n/a           | n/a             | n/a                 | **drift D1** | **drift D2** | n/a      | n/a        | ✓                | n/a       |
+| **Search affordance**                     | n/a                                     | ✓                                     | ✓                     | ✓                   | n/a      | n/a      | n/a           | n/a           | n/a                       | n/a                   | ✓             | ✓                                    | n/a           | n/a           | n/a             | n/a                 | n/a          | ✓            | n/a      | n/a        | n/a              | n/a       |
+| **Table toolbar** (bulk)                  | n/a                                     | ✓                                     | n/a                   | n/a                 | n/a      | n/a      | n/a           | n/a           | n/a                       | n/a                   | ✓             | n/a                                  | n/a           | n/a           | n/a             | n/a                 | n/a          | n/a          | n/a      | n/a        | n/a              | n/a       |
+| **Empty state**                           | partial (intentional `<p>` "caught up") | ✓                                     | ✓                     | ✓                   | ✓        | ✓        | ✓             | ✓             | **drift D3**              | **drift D4**          | ✓             | ✓                                    | n/a           | n/a           | n/a             | n/a                 | ✓            | ✓            | n/a      | n/a        | n/a              | ✓         |
+| **Error state**                           | ✓ Alert                                 | ✓ Alert                               | ✓ Alert               | ✓ Alert             | ✓ Alert  | ✓ Alert  | ✓ Alert       | ✓ Alert       | ✓ Alert                   | ✓ Alert               | ✓ Alert       | **drift D5** raw underline           | n/a           | n/a           | n/a             | n/a                 | ✓ Alert      | ✓ Alert      | n/a      | ✓ Alert    | ✓ Alert          | ✓ Alert   |
+| **Loading skeleton**                      | ✓                                       | ✓                                     | ✓                     | ✓                   | ✓        | ✓        | ✓             | ✓             | **drift D6** raw text     | **drift D7** raw text | ✓             | ✓ Skeleton + text mix                | n/a           | n/a           | n/a             | n/a                 | ✓            | ✓            | n/a      | ✓          | ✓                | ✓ Loader2 |
+| **Retry button**                          | ✓ link                                  | ✓ link                                | ✓ link                | ✓ link              | n/a      | n/a      | n/a           | n/a           | n/a                       | n/a                   | n/a           | **drift D8** raw underline (2 sites) | n/a           | n/a           | n/a             | n/a                 | n/a          | n/a          | n/a      | n/a        | n/a              | n/a       |
+| **Page header**                           | ✓                                       | ✓                                     | ✓                     | ✓                   | ✓        | ✓        | ✓             | ✓             | ✓                         | ✓                     | ✓             | ✓                                    | n/a (modal)   | n/a           | n/a             | n/a                 | ✓            | ✓            | ✓        | ✓          | ✓                | n/a       |
+| **Breadcrumbs**                           | n/a                                     | n/a                                   | n/a                   | ✓ (back-to-clients) | n/a      | n/a      | n/a           | n/a           | ✓                         | ✓                     | n/a           | n/a                                  | n/a           | n/a           | n/a             | n/a                 | ✓            | ✓            | n/a      | ✓ checkout | ✓                | n/a       |
+| **Dialog cancel**                         | n/a                                     | **drift D9** (extendedMemo)           | n/a                   | n/a                 | n/a      | n/a      | n/a           | n/a           | n/a                       | n/a                   | n/a           | n/a                                  | n/a           | n/a           | n/a             | n/a                 | n/a          | n/a          | n/a      | n/a        | n/a              | n/a       |
+| **Mutation submit (Loader2 + aria-busy)** | ✓                                       | partial (tax-year save) **drift D10** | partial **drift D11** | partial             | n/a      | n/a      | n/a           | n/a           | n/a                       | n/a                   | ✓             | ✓                                    | n/a           | n/a           | n/a             | n/a                 | ✓            | ✓            | n/a      | ✓          | ✓                | n/a       |
 
 Cross-cutting components (not bound to a single route):
 
-| Concept | `app-shell-nav` (sidebar create-firm + upgrade dialogs) | `CreateClientDialog` | `CreateObligationDialog` | `FixNeedsFactsSheet` |
-| --- | --- | --- | --- | --- |
-| **Dialog cancel** | **drift D12** (2× outline) | **drift D13** outline | **drift D14** outline | **drift D15** outline (Close button) |
+| Concept           | `app-shell-nav` (sidebar create-firm + upgrade dialogs) | `CreateClientDialog`  | `CreateObligationDialog` | `FixNeedsFactsSheet`                 |
+| ----------------- | ------------------------------------------------------- | --------------------- | ------------------------ | ------------------------------------ |
+| **Dialog cancel** | **drift D12** (2× outline)                              | **drift D13** outline | **drift D14** outline    | **drift D15** outline (Close button) |
 
 ---
 
@@ -242,7 +243,7 @@ relevant routes:
 - **V5 — Page header.** Every protected route renders `<PageHeader>` —
   dashboard, obligations, clients, clients/$id, calendar, workload,
   opportunities, notifications, notifications/preferences, reminders,
-  rules.library, rules.pulse, members, audit, settings, billing.*,
+  rules.library, rules.pulse, members, audit, settings, billing.\*,
   account.security. Onboarding + login + readiness intentionally don't
   (different layout register).
 - **V6 — Breadcrumb pattern.** Every sub-page that has a structural parent
@@ -251,7 +252,7 @@ relevant routes:
   primitive on purpose).
 - **V7 — Retry button on most routes.** dashboard, clients (list), obligations
   (queue + drawer + checklist) all use `<Button variant="link" size="sm"
-  className="h-auto p-0 align-baseline">`. Pulse was the only drift (D5/D8).
+className="h-auto p-0 align-baseline">`. Pulse was the only drift (D5/D8).
 - **V8 — Empty state primitive adoption.** 54 call sites of `<EmptyState>`
   across queue, clients, opportunities, dashboard, pulse, evidence drawer,
   notes, audit, members. Only 3 stragglers (D3 + 2× D4).
@@ -261,39 +262,39 @@ relevant routes:
 - **V10 — Cancel button variant in dialogs (post-shipped pass).** After
   D9-D15 ship on this pass, every dialog Cancel in the app uses
   `variant="ghost"`. The X1 sweep from wave-1 missed five hidden in features/
-  + components/patterns; this pass closes the loop.
+  - components/patterns; this pass closes the loop.
 
 ---
 
 ## §4. Deferred (out of scope for wave-4)
 
-| ID | File | Reason |
-| --- | --- | --- |
-| D15 | `features/clients/FixNeedsFactsSheet.tsx:144` | EmptyState CTA register — needs design call (see drift entry). |
-| Dashboard "caught-up" `<p>` | `features/dashboard/actions-list.tsx:646, 668` | Intentional visual distinction from genuine-empty state per Today design brief. Not drift; it's two states intentionally rendered differently. |
-| Pulse `<FilteredEmptyState>` raw div | `features/pulse/AlertsListPage.tsx:1066, 1212` | Status banner, not empty state — pulse-vocabulary.md treats source-health as its own register. Not drift. |
-| Mutation buttons missing Loader2 (long tail) | many | ~30-40 buttons across the app still have only label-text feedback. Sweep would exceed the 15-fix cap. Wave-5 candidate. |
-| Hand-rolled empty/loading on long-tail surfaces (rules.preview generation panel, rules.sources signals card, audit fetch-more) | scattered | Each is a single-line "Loading…" inside an inline status, not a primary surface load. Below the bar. |
-| `<FixNeedsFactsSheet>` close as outline | see D15 | Same. |
+| ID                                                                                                                             | File                                           | Reason                                                                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| D15                                                                                                                            | `features/clients/FixNeedsFactsSheet.tsx:144`  | EmptyState CTA register — needs design call (see drift entry).                                                                                 |
+| Dashboard "caught-up" `<p>`                                                                                                    | `features/dashboard/actions-list.tsx:646, 668` | Intentional visual distinction from genuine-empty state per Today design brief. Not drift; it's two states intentionally rendered differently. |
+| Pulse `<FilteredEmptyState>` raw div                                                                                           | `features/pulse/AlertsListPage.tsx:1066, 1212` | Status banner, not empty state — pulse-vocabulary.md treats source-health as its own register. Not drift.                                      |
+| Mutation buttons missing Loader2 (long tail)                                                                                   | many                                           | ~30-40 buttons across the app still have only label-text feedback. Sweep would exceed the 15-fix cap. Wave-5 candidate.                        |
+| Hand-rolled empty/loading on long-tail surfaces (rules.preview generation panel, rules.sources signals card, audit fetch-more) | scattered                                      | Each is a single-line "Loading…" inside an inline status, not a primary surface load. Below the bar.                                           |
+| `<FixNeedsFactsSheet>` close as outline                                                                                        | see D15                                        | Same.                                                                                                                                          |
 
 ---
 
 ## §5. After this pass
 
-| Concept | Drift remaining |
-| --- | --- |
-| Status pill | 0 |
-| Owner avatar | 0 |
-| Search affordance | 0 |
-| Table toolbar | 0 |
-| Empty state | 1 (FixNeedsFactsSheet — design call needed) |
-| Error state | 0 |
-| Loading skeleton | long tail (≥10 inline statuses, not page-load surfaces) |
-| Retry button | 0 |
-| Page header | 0 |
-| Breadcrumbs | 0 |
-| Dialog cancel button | 1 (D15 — design call needed) |
-| Mutation submit | long tail (~30-40 buttons) |
+| Concept              | Drift remaining                                         |
+| -------------------- | ------------------------------------------------------- |
+| Status pill          | 0                                                       |
+| Owner avatar         | 0                                                       |
+| Search affordance    | 0                                                       |
+| Table toolbar        | 0                                                       |
+| Empty state          | 1 (FixNeedsFactsSheet — design call needed)             |
+| Error state          | 0                                                       |
+| Loading skeleton     | long tail (≥10 inline statuses, not page-load surfaces) |
+| Retry button         | 0                                                       |
+| Page header          | 0                                                       |
+| Breadcrumbs          | 0                                                       |
+| Dialog cancel button | 1 (D15 — design call needed)                            |
+| Mutation submit      | long tail (~30-40 buttons)                              |
 
 The matrix now reads as "✓" or "n/a" in all but the deferred cells. The
 remaining drift is concentrated in long-tail mutation-button polish — a single

@@ -113,13 +113,13 @@ carries the detail).
 Five new zh-CN translations added to
 `apps/app/src/i18n/locales/zh-CN/messages.po`:
 
-| msgid | zh-CN |
-| ----- | ----- |
-| `Confirm {0} monthly checkout` | `确认 {0} 月付支付` |
-| `Confirm {0} yearly checkout` | `确认 {0} 年付支付` |
-| `Copied` | `已复制` |
+| msgid                                                                                                                                        | zh-CN                                                                             |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `Confirm {0} monthly checkout`                                                                                                               | `确认 {0} 月付支付`                                                               |
+| `Confirm {0} yearly checkout`                                                                                                                | `确认 {0} 年付支付`                                                               |
+| `Copied`                                                                                                                                     | `已复制`                                                                          |
 | `Every device subscribed to the current URL will silently stop syncing. You'll need to share the new URL with everyone who had the old one.` | `所有订阅当前 URL 的设备都会停止同步。你需要把新的 URL 分享给持有旧 URL 的人员。` |
-| `I've saved these recovery codes somewhere safe. I know they won't be shown again.` | `我已将这些恢复代码保存在安全的地方。我知道它们不会再次显示。` |
+| `I've saved these recovery codes somewhere safe. I know they won't be shown again.`                                                          | `我已将这些恢复代码保存在安全的地方。我知道它们不会再次显示。`                    |
 
 The other Q8.2 strings (`Regenerate calendar URL?`, the three
 `DestructiveChangePreview` lines, `Regenerate URL`, `Regenerating…`,

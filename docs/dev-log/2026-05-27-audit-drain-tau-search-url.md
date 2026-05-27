@@ -16,7 +16,7 @@ ActiveFilterChip). This pass picks up the next mechanical batch.
 
 - **Location** — `apps/app/src/features/notifications/notifications-page.tsx`
 - **Was** — inbox had zero find affordance. Hard-coded `limit: 50,
-  status: 'all'`; no filter, no search, no read/unread toggle. At
+status: 'all'`; no filter, no search, no read/unread toggle. At
   any meaningful inbox depth the page becomes a scroll-and-pray
   surface.
 - **Now** — canonical `<SearchInput>` at the head of the card, URL-
@@ -55,7 +55,7 @@ ActiveFilterChip). This pass picks up the next mechanical batch.
   explanation.
 - **Now** — when `atSelectionLimit` is true, a `role="status"` line
   at the popover foot reads `Showing first ${maxSelections}
-  selections — refine the list to add more.` The popover search
+selections — refine the list to add more.` The popover search
   input is the resolution path.
 - **Severity** — P2.
 

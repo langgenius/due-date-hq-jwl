@@ -209,9 +209,7 @@ export function SearchableCombobox({
         <Command loop>
           <CommandInput autoFocus placeholder={searchPlaceholder} />
           <CommandList style={{ maxHeight: popoverMaxHeight }}>
-            <CommandEmpty>
-              {showLoading ? loadingState ?? emptyState : emptyState}
-            </CommandEmpty>
+            <CommandEmpty>{showLoading ? (loadingState ?? emptyState) : emptyState}</CommandEmpty>
             {options.length > 0 ? (
               <CommandGroup heading={groupHeading}>
                 {options.map((option) => (

@@ -113,7 +113,7 @@ Behavior preserved:
 - Single-line row with name + state·entity meta + check icon.
 - Search matches on name + state + EIN — folded into `keywords`.
 - "Loading clients…" empty-state copy gated on `clientsQuery.isLoading`
-  + `options.length === 0`.
+  - `options.length === 0`.
 
 One small behavior shift: the original gated the query on `open ||
 value !== null` so a closed-and-empty combobox never fetched. The
@@ -162,11 +162,11 @@ mounts the picker.
 
 ## Findings status
 
-| ID     | Status                              |
-| ------ | ----------------------------------- |
-| Q3.4   | Shipped (SearchableCombobox)        |
+| ID     | Status                                |
+| ------ | ------------------------------------- |
+| Q3.4   | Shipped (SearchableCombobox)          |
 | Q4.3   | Deferred (needs menu-trigger variant) |
-| R5.3   | Shipped (canonical-code picker)     |
-| F-CB01 | Shipped (primitive + refactor)      |
-| F-CB02 | Verified pre-existing (no work)     |
-| F-HF02 | Out of scope                        |
+| R5.3   | Shipped (canonical-code picker)       |
+| F-CB01 | Shipped (primitive + refactor)        |
+| F-CB02 | Verified pre-existing (no work)       |
+| F-HF02 | Out of scope                          |

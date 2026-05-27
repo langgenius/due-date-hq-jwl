@@ -50,11 +50,10 @@ ID is still queryable from the audit log if a power-user needs it.
 ### #156 — Status-change toast names the chosen status (P2)
 
 `routes/obligations.tsx:1346-1356, 1620-1640`. Both the bulk and
-per-row status mutations toasted `t\`Status updated\`` regardless of
+per-row status mutations toasted `t\`Status updated\``regardless of
 which status was applied. A CPA marking 10 rows filed in succession
 saw 10 visually identical toasts — losing the ability to spot
-at-a-glance when the wrong status was picked. Reused the existing
-`t\`Status changed to ${statusLabels[next]}\`` pattern from the
+at-a-glance when the wrong status was picked. Reused the existing`t\`Status changed to ${statusLabels[next]}\`` pattern from the
 drawer (line 5303) so the three call-sites now converge on one
 msgid — "Status updated" is dead and Lingui's extract auto-removed
 it.
@@ -89,10 +88,10 @@ it.
 Three new zh-CN translations added to
 `apps/app/src/i18n/locales/zh-CN/messages.po`:
 
-| msgid | zh-CN |
-| ----- | ----- |
-| `Internal due date` | `内部截止日期` |
-| `Penalty inputs for {0}` | `{0} 的罚款输入` |
+| msgid                             | zh-CN                      |
+| --------------------------------- | -------------------------- |
+| `Internal due date`               | `内部截止日期`             |
+| `Penalty inputs for {0}`          | `{0} 的罚款输入`           |
 | `Saved to your Downloads folder.` | `已保存到你的下载文件夹。` |
 
 The "Status changed to {0}" msgid is pre-existing — the bulk + per-row

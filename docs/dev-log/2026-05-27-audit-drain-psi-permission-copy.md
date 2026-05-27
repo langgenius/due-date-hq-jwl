@@ -14,10 +14,10 @@ Two carry-over items from agent ρ's wave-3 permission-matrix audit. ρ shipped
 `pulse.revert` enum wire-up as "too broad for one drain pass."
 
 - **ROH-D11** — `<Trans>Only owners and X</Trans>` and `t\`Owner or manager
-  access required\`` style strings drift the moment a role is added or a
-  permission is rebalanced in `FIRM_PERMISSION_ROLES`. The most-missed role
-  was **partner** (5 of the 9 fixes ρ shipped were this pattern, and at
-  least four more sites still had `partner` silently dropped from the
+  access required\``style strings drift the moment a role is added or a
+permission is rebalanced in`FIRM_PERMISSION_ROLES`. The most-missed role
+was **partner** (5 of the 9 fixes ρ shipped were this pattern, and at
+least four more sites still had `partner` silently dropped from the
   visible role list).
 - **ROH-D15** — `Permission` enum has `'pulse.revert'` but no UI call site
   — the Undo button in the Pulse drawer used `pulse.apply` as a proxy gate.
@@ -32,7 +32,7 @@ Three exports, all driven by `requiredRolesForFirmPermission(permission)`
 so the label always reflects the source of truth:
 
 - `requiredRolesLabel(permission)` — pluralized list (`"owners, partners,
-  and managers"`), suitable for "Only X can …" sentences. Uses
+and managers"`), suitable for "Only X can …" sentences. Uses
   `Intl.ListFormat` for proper localized conjunction handling.
 - `requiredRolesLabelSingular(permission)` — capitalized singular list
   (`"Owner, Partner, Manager"`), for badge / matrix-cell contexts (matches
@@ -53,20 +53,20 @@ zh-CN locale switching. All 398 app tests still pass.
 All hard-coded role lists in feature pages now route through
 `requiredRolesLabel(permission)`:
 
-| Site | Permission | Before | Drift? |
-|------|-----------|--------|--------|
-| `features/calendar/calendar-page.tsx:443` | `firm.calendar.manage` | "owners and managers" | yes — missing partner |
-| `features/pulse/PulseDetailDrawer.tsx:432` (toast) | `pulse.apply` | "owners and managers" | yes — missing partner |
-| `features/pulse/PulseDetailDrawer.tsx:862` | `pulse.apply` | "owners and managers" | yes — missing partner |
-| `features/pulse/lib/error-mapping.ts:17-18` | `pulse.apply` | "owners and managers" | yes — missing partner |
-| `features/migration/ImportHistoryDrawer.tsx:234` | `migration.revert` | "owners and managers" | yes — missing partner |
-| `features/audit/audit-log-page.tsx:630` | `audit.read` | "owners, managers, and preparers" | yes — missing partner |
-| `routes/billing.tsx:259` | `billing.read` | "owners and managers" | no (but future-proofed) |
-| `routes/billing.tsx:423` | `billing.update` | "owners" | no (but future-proofed) |
-| `routes/dashboard.tsx:181-184` | `migration.run` | "owner or manager" | yes — missing partner + preparer |
-| `features/rules/temporary-rules-tab.tsx:72` | `pulse.apply` | "owner or manager" | yes — missing partner |
-| `features/concepts/concept-help.tsx:116` | `pulse.apply` | "owner or manager" | yes — missing partner |
-| `features/concepts/concept-help.tsx:121` | `pulse.apply` | "owner or manager" | yes — missing partner |
+| Site                                               | Permission             | Before                            | Drift?                           |
+| -------------------------------------------------- | ---------------------- | --------------------------------- | -------------------------------- |
+| `features/calendar/calendar-page.tsx:443`          | `firm.calendar.manage` | "owners and managers"             | yes — missing partner            |
+| `features/pulse/PulseDetailDrawer.tsx:432` (toast) | `pulse.apply`          | "owners and managers"             | yes — missing partner            |
+| `features/pulse/PulseDetailDrawer.tsx:862`         | `pulse.apply`          | "owners and managers"             | yes — missing partner            |
+| `features/pulse/lib/error-mapping.ts:17-18`        | `pulse.apply`          | "owners and managers"             | yes — missing partner            |
+| `features/migration/ImportHistoryDrawer.tsx:234`   | `migration.revert`     | "owners and managers"             | yes — missing partner            |
+| `features/audit/audit-log-page.tsx:630`            | `audit.read`           | "owners, managers, and preparers" | yes — missing partner            |
+| `routes/billing.tsx:259`                           | `billing.read`         | "owners and managers"             | no (but future-proofed)          |
+| `routes/billing.tsx:423`                           | `billing.update`       | "owners"                          | no (but future-proofed)          |
+| `routes/dashboard.tsx:181-184`                     | `migration.run`        | "owner or manager"                | yes — missing partner + preparer |
+| `features/rules/temporary-rules-tab.tsx:72`        | `pulse.apply`          | "owner or manager"                | yes — missing partner            |
+| `features/concepts/concept-help.tsx:116`           | `pulse.apply`          | "owner or manager"                | yes — missing partner            |
+| `features/concepts/concept-help.tsx:121`           | `pulse.apply`          | "owner or manager"                | yes — missing partner            |
 
 The pulse error-mapping case needed a small refactor — `MESSAGE_BY_CODE`
 now stores `() => MessageDescriptor` factories instead of static

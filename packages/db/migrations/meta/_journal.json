@@ -1,223 +1,223 @@
 {
-    "version": "7",
-    "dialect": "sqlite",
-    "entries": [
-        {
-            "idx": 0,
-            "version": "6",
-            "when": 1776949510477,
-            "tag": "0000_wonderful_forgotten_one",
-            "breakpoints": true
-        },
-        {
-            "idx": 1,
-            "version": "6",
-            "when": 1777009234507,
-            "tag": "0001_tidy_shiva",
-            "breakpoints": true
-        },
-        {
-            "idx": 2,
-            "version": "6",
-            "when": 1777013302590,
-            "tag": "0002_numerous_johnny_blaze",
-            "breakpoints": true
-        },
-        {
-            "idx": 3,
-            "version": "6",
-            "when": 1777020641720,
-            "tag": "0003_clear_star_brand",
-            "breakpoints": true
-        },
-        {
-            "idx": 4,
-            "version": "6",
-            "when": 1777378429063,
-            "tag": "0004_activation_ai_trace",
-            "breakpoints": true
-        },
-        {
-            "idx": 5,
-            "version": "6",
-            "when": 1777389992095,
-            "tag": "0005_unknown_talon",
-            "breakpoints": true
-        },
-        {
-            "idx": 6,
-            "version": "6",
-            "when": 1777391302918,
-            "tag": "0006_worried_crusher_hogan",
-            "breakpoints": true
-        },
-        {
-            "idx": 7,
-            "version": "6",
-            "when": 1777394540357,
-            "tag": "0007_parallel_maddog",
-            "breakpoints": true
-        },
-        {
-            "idx": 8,
-            "version": "6",
-            "when": 1777435647316,
-            "tag": "0008_chilly_smasher",
-            "breakpoints": true
-        },
-        {
-            "idx": 9,
-            "version": "6",
-            "when": 1777451964338,
-            "tag": "0009_daily_norrin_radd",
-            "breakpoints": true
-        },
-        {
-            "idx": 10,
-            "version": "6",
-            "when": 1777455450737,
-            "tag": "0010_curved_epoch",
-            "breakpoints": true
-        },
-        {
-            "idx": 11,
-            "version": "6",
-            "when": 1777480277246,
-            "tag": "0011_natural_yellow_claw",
-            "breakpoints": true
-        },
-        {
-            "idx": 12,
-            "version": "6",
-            "when": 1777515002674,
-            "tag": "0012_powerful_sinister_six",
-            "breakpoints": true
-        },
-        {
-            "idx": 13,
-            "version": "6",
-            "when": 1777516708127,
-            "tag": "0013_left_the_liberteens",
-            "breakpoints": true
-        },
-        {
-            "idx": 14,
-            "version": "6",
-            "when": 1777570918300,
-            "tag": "0014_flat_scarlet_witch",
-            "breakpoints": true
-        },
-        {
-            "idx": 15,
-            "version": "6",
-            "when": 1777638870331,
-            "tag": "0015_messy_hedge_knight",
-            "breakpoints": true
-        },
-        {
-            "idx": 16,
-            "version": "6",
-            "when": 1777648200725,
-            "tag": "0016_eager_dorian_gray",
-            "breakpoints": true
-        },
-        {
-            "idx": 17,
-            "version": "6",
-            "when": 1777698429629,
-            "tag": "0017_tiresome_ironclad",
-            "breakpoints": true
-        },
-        {
-            "idx": 18,
-            "version": "6",
-            "when": 1777705286077,
-            "tag": "0018_solid_status_readiness",
-            "breakpoints": true
-        },
-        {
-            "idx": 19,
-            "version": "6",
-            "when": 1777715219492,
-            "tag": "0019_serious_tenebrous",
-            "breakpoints": true
-        },
-        {
-            "idx": 20,
-            "version": "6",
-            "when": 1777719364023,
-            "tag": "0020_same_valeria_richards",
-            "breakpoints": true
-        },
-        {
-            "idx": 21,
-            "version": "6",
-            "when": 1777724525489,
-            "tag": "0021_elite_daredevil",
-            "breakpoints": true
-        },
-        {
-            "idx": 22,
-            "version": "6",
-            "when": 1777728761931,
-            "tag": "0022_friendly_wolf_cub",
-            "breakpoints": true
-        },
-        {
-            "idx": 23,
-            "version": "6",
-            "when": 1777787737862,
-            "tag": "0023_magical_tiger_shark",
-            "breakpoints": true
-        },
-        {
-            "idx": 24,
-            "version": "6",
-            "when": 1777792016544,
-            "tag": "0024_team_self_serve_billing_plan",
-            "breakpoints": true
-        },
-        {
-            "idx": 25,
-            "version": "6",
-            "when": 1777800235600,
-            "tag": "0025_modern_leo",
-            "breakpoints": true
-        },
-        {
-            "idx": 26,
-            "version": "6",
-            "when": 1777802400000,
-            "tag": "0026_migration_first_integrations",
-            "breakpoints": true
-        },
-        {
-            "idx": 27,
-            "version": "6",
-            "when": 1777806000000,
-            "tag": "0027_rules_review_decisions",
-            "breakpoints": true
-        },
-        {
-            "idx": 28,
-            "version": "6",
-            "when": 1777809600000,
-            "tag": "0028_penalty_facts_v3",
-            "breakpoints": true
-        },
-        {
-            "idx": 29,
-            "version": "6",
-            "when": 1777813200000,
-            "tag": "0029_pulse_signal_rule_review",
-            "breakpoints": true
-        },
-        {
-            "idx": 55,
-            "version": "6",
-            "when": 1779033600000,
-            "tag": "0055_ai_provenance_actor_type",
-            "breakpoints": true
-        }
-    ]
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1776949510477,
+      "tag": "0000_wonderful_forgotten_one",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1777009234507,
+      "tag": "0001_tidy_shiva",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1777013302590,
+      "tag": "0002_numerous_johnny_blaze",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1777020641720,
+      "tag": "0003_clear_star_brand",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1777378429063,
+      "tag": "0004_activation_ai_trace",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1777389992095,
+      "tag": "0005_unknown_talon",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1777391302918,
+      "tag": "0006_worried_crusher_hogan",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1777394540357,
+      "tag": "0007_parallel_maddog",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1777435647316,
+      "tag": "0008_chilly_smasher",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1777451964338,
+      "tag": "0009_daily_norrin_radd",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1777455450737,
+      "tag": "0010_curved_epoch",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1777480277246,
+      "tag": "0011_natural_yellow_claw",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1777515002674,
+      "tag": "0012_powerful_sinister_six",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1777516708127,
+      "tag": "0013_left_the_liberteens",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1777570918300,
+      "tag": "0014_flat_scarlet_witch",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1777638870331,
+      "tag": "0015_messy_hedge_knight",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1777648200725,
+      "tag": "0016_eager_dorian_gray",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1777698429629,
+      "tag": "0017_tiresome_ironclad",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1777705286077,
+      "tag": "0018_solid_status_readiness",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1777715219492,
+      "tag": "0019_serious_tenebrous",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1777719364023,
+      "tag": "0020_same_valeria_richards",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1777724525489,
+      "tag": "0021_elite_daredevil",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1777728761931,
+      "tag": "0022_friendly_wolf_cub",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1777787737862,
+      "tag": "0023_magical_tiger_shark",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1777792016544,
+      "tag": "0024_team_self_serve_billing_plan",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1777800235600,
+      "tag": "0025_modern_leo",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1777802400000,
+      "tag": "0026_migration_first_integrations",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "6",
+      "when": 1777806000000,
+      "tag": "0027_rules_review_decisions",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "6",
+      "when": 1777809600000,
+      "tag": "0028_penalty_facts_v3",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1777813200000,
+      "tag": "0029_pulse_signal_rule_review",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "6",
+      "when": 1779033600000,
+      "tag": "0055_ai_provenance_actor_type",
+      "breakpoints": true
+    }
+  ]
 }

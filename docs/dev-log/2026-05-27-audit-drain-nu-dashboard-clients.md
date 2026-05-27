@@ -16,7 +16,7 @@ reference analysis than the drain budget allows. Skipped.
 
 ## Shipped (12)
 
-### Dashboard (routes/dashboard.tsx + features/dashboard/*)
+### Dashboard (routes/dashboard.tsx + features/dashboard/\*)
 
 - **#31** — `Today` date pill used to disappear entirely while the
   dashboard query was in flight. Header read as "Today" with no
@@ -44,7 +44,7 @@ reference analysis than the drain budget allows. Skipped.
   visible. Now shows `N of M` when filtered, falls back to plain `M`
   when the filtered length equals the total. New msgid `{0} of {1}`.
 - **#63** — `Import history` button had both `aria-label="Import
-  history"` AND `title="Import history"` set to the same string,
+history"` AND `title="Import history"` set to the same string,
   duplicated against the visible "Import history" label. The
   redundant `title` was just a hover-tooltip of the visible text.
   Dropped the `title`; `aria-label` stays for future icon-only
@@ -69,7 +69,7 @@ reference analysis than the drain budget allows. Skipped.
 ### Create client dialog (features/clients/CreateClientDialog.tsx)
 
 - **#73** — Copy was `Add a manual client record to the active
-  practice directory.` — formal phrasing ("manual record",
+practice directory.` — formal phrasing ("manual record",
   "active practice directory") for a routine action. CPAs add
   clients often; the dialog should sound like the action.
   Rewrote as `Add a client to this practice.` New msgid.

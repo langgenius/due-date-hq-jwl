@@ -27,8 +27,7 @@ no payment side (info-only filings). The ports shape
 the server handler serializes to ISO strings via `toDateOnly`).
 
 The repo layer already selected `paymentDueDate` off
-`obligation_instance` (see `packages/db/src/repo/dashboard.ts` line
-615) and `composeDashboardLoad` spreads the raw row into the top-row
+`obligation_instance` (see `packages/db/src/repo/dashboard.ts` line 615) and `composeDashboardLoad` spreads the raw row into the top-row
 draft — so the field flowed through automatically once the type was
 widened. Added a focused passthrough test in
 `packages/db/src/repo/dashboard.test.ts` that pins the behavior against

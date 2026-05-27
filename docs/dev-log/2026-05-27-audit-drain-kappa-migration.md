@@ -6,34 +6,34 @@
 
 ## Starting state
 
-Wave 1 had landed 17 of the 27 F6-* findings. This pass picks the mechanically safe leftovers — copy edits, label re-typography, a live row counter, repositioning a trust line, an EIN tooltip, and the live undo countdown the dev-log had flagged as deferred-cross-component.
+Wave 1 had landed 17 of the 27 F6-\* findings. This pass picks the mechanically safe leftovers — copy edits, label re-typography, a live row counter, repositioning a trust line, an EIN tooltip, and the live undo countdown the dev-log had flagged as deferred-cross-component.
 
-| Finding | State on arrival | Action |
-| --- | --- | --- |
-| F6-01 | shipped | verified |
-| F6-02 | deferred | **shipped** (rename + reorder) |
-| F6-03 | shipped | verified |
-| F6-05 | deferred | **shipped** (font-mono uppercase → canonical Label) |
-| F6-06 | deferred | **shipped** (live row count) |
-| F6-08 | shipped | verified |
-| F6-09 | deferred | **shipped** (lock line above paste) |
-| F6-10 | shipped | verified |
-| F6-11 | shipped | verified |
-| F6-12 | shipped | verified |
-| F6-13 | deferred | **shipped** (EIN tooltip) |
-| F6-14 | shipped | verified |
-| F6-16 | shipped | verified |
-| F6-17 | shipped | verified |
-| F6-18 | shipped | verified |
-| F6-19 | shipped | verified |
-| F6-20 | shipped | verified |
-| F6-21 | deferred | **shipped** (live undo countdown in ImportHistoryDrawer) |
-| F6-22 | shipped | verified |
-| F6-23 | shipped | verified |
-| F6-24 | shipped | verified |
-| F6-25 | shipped | verified |
-| F6-26 | shipped | verified |
-| F6-27 | deferred | skipped — Wizard.test.tsx asserts literal "Continue" on Steps 1-3; copy change belongs in a single commit that also updates tests, not this drain. |
+| Finding | State on arrival | Action                                                                                                                                             |
+| ------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F6-01   | shipped          | verified                                                                                                                                           |
+| F6-02   | deferred         | **shipped** (rename + reorder)                                                                                                                     |
+| F6-03   | shipped          | verified                                                                                                                                           |
+| F6-05   | deferred         | **shipped** (font-mono uppercase → canonical Label)                                                                                                |
+| F6-06   | deferred         | **shipped** (live row count)                                                                                                                       |
+| F6-08   | shipped          | verified                                                                                                                                           |
+| F6-09   | deferred         | **shipped** (lock line above paste)                                                                                                                |
+| F6-10   | shipped          | verified                                                                                                                                           |
+| F6-11   | shipped          | verified                                                                                                                                           |
+| F6-12   | shipped          | verified                                                                                                                                           |
+| F6-13   | deferred         | **shipped** (EIN tooltip)                                                                                                                          |
+| F6-14   | shipped          | verified                                                                                                                                           |
+| F6-16   | shipped          | verified                                                                                                                                           |
+| F6-17   | shipped          | verified                                                                                                                                           |
+| F6-18   | shipped          | verified                                                                                                                                           |
+| F6-19   | shipped          | verified                                                                                                                                           |
+| F6-20   | shipped          | verified                                                                                                                                           |
+| F6-21   | deferred         | **shipped** (live undo countdown in ImportHistoryDrawer)                                                                                           |
+| F6-22   | shipped          | verified                                                                                                                                           |
+| F6-23   | shipped          | verified                                                                                                                                           |
+| F6-24   | shipped          | verified                                                                                                                                           |
+| F6-25   | shipped          | verified                                                                                                                                           |
+| F6-26   | shipped          | verified                                                                                                                                           |
+| F6-27   | deferred         | skipped — Wizard.test.tsx asserts literal "Continue" on Steps 1-3; copy change belongs in a single commit that also updates tests, not this drain. |
 
 ## Changes
 

@@ -64,13 +64,13 @@ default 1440×900 viewport once the new D17 section was added on top.
 All in `apps/app/src/routes/dashboard.tsx` and
 `apps/app/src/features/dashboard/needs-attention-section.tsx`.
 
-| # | Surface | Before | After | Rationale |
-|---|---------|--------|-------|-----------|
-| 1 | Page outer container | `gap-6` between sections | `gap-4` | 24px → 16px between header / changes-since / alerts / actions. Saves ~24px of vertical with three section boundaries above the fold. |
-| 2 | Page outer container (mobile) | `pt-6 pb-4` | `pt-4 pb-3` | Trims 16px from the top and bottom of the page padding on phone width. |
-| 3 | Page outer container (desktop) | `md:pt-8 md:pb-6` | `md:pt-6 md:pb-5` | Trims 12px from the top + bottom on tablet/desktop so the H1 stops claiming the entire first scan band. |
-| 4 | `PageHeader` "Today" date pill | `px-2 py-0.5` | `px-1.5` (no vertical padding) | At `text-xs` font-medium tabular-nums, the glyph cap-height anchors the chip vertically; the previous py-0.5 added a 4px buffer that read as a button slot. |
-| 5 | `NeedsAttentionSection` empty-state | `gap-2.5 p-3` (same as alerts-loaded path) | `gap-2 px-3 py-2` | When the section is calm (no live alerts) there's no destructive content to anchor the heavier padding. Compresses ~8px when nothing's on fire. Alerts-loaded path keeps its weight (p-3 + destructive bg). |
+| #   | Surface                             | Before                                     | After                          | Rationale                                                                                                                                                                                                   |
+| --- | ----------------------------------- | ------------------------------------------ | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Page outer container                | `gap-6` between sections                   | `gap-4`                        | 24px → 16px between header / changes-since / alerts / actions. Saves ~24px of vertical with three section boundaries above the fold.                                                                        |
+| 2   | Page outer container (mobile)       | `pt-6 pb-4`                                | `pt-4 pb-3`                    | Trims 16px from the top and bottom of the page padding on phone width.                                                                                                                                      |
+| 3   | Page outer container (desktop)      | `md:pt-8 md:pb-6`                          | `md:pt-6 md:pb-5`              | Trims 12px from the top + bottom on tablet/desktop so the H1 stops claiming the entire first scan band.                                                                                                     |
+| 4   | `PageHeader` "Today" date pill      | `px-2 py-0.5`                              | `px-1.5` (no vertical padding) | At `text-xs` font-medium tabular-nums, the glyph cap-height anchors the chip vertically; the previous py-0.5 added a 4px buffer that read as a button slot.                                                 |
+| 5   | `NeedsAttentionSection` empty-state | `gap-2.5 p-3` (same as alerts-loaded path) | `gap-2 px-3 py-2`              | When the section is calm (no live alerts) there's no destructive content to anchor the heavier padding. Compresses ~8px when nothing's on fire. Alerts-loaded path keeps its weight (p-3 + destructive bg). |
 
 Bonus inner tweak (counts toward overall composition rhythm but minor — not in the table):
 
