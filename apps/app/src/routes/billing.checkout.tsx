@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router'
 import type { ReactNode } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import type { FirmBillingCheckoutConfig } from '@duedatehq/contracts'
 import { useQueryStates } from 'nuqs'
 import {
@@ -238,6 +238,25 @@ export function BillingCheckoutRoute() {
         : currentFirm.plan === 'pro'
           ? t`Pro`
           : t`Solo`
+  // 2026-05-27 (Step 7 onboarding audit F8-04 — bonus): the
+  // checkout screen previously read as a static "Confirm Pro 3
+  // seats" page — it didn't acknowledge that an existing customer
+  // is actually upgrading FROM something. A small delta line under
+  // the H1 ("Solo (1 seat) → Pro (3 seats)") shows the change at
+  // a glance. Only renders when an active subscription exists so
+  // first-time checkouts stay clean.
+  const currentPlanSeatLimit =
+    currentFirm.plan === 'firm'
+      ? 10
+      : currentFirm.plan === 'team'
+        ? 10
+        : currentFirm.plan === 'pro'
+          ? 3
+          : 1
+  const shouldShowDelta =
+    activeSubscription !== undefined &&
+    !alreadyOnPlan &&
+    currentFirm.plan !== plan
 
   if (!canReadBilling) {
     return (
@@ -307,6 +326,27 @@ export function BillingCheckoutRoute() {
           </Badge>
         }
       />
+
+      {/* 2026-05-27 (Step 7 onboarding audit F8-04 — bonus):
+          "Solo (1 seat) → Pro (3 seats)" delta. The actual seat
+          allocation comes from the plan view itself; the current-
+          plan seat limit is derived from `currentFirm.plan`. */}
+      {shouldShowDelta ? (
+        <p className="-mt-2 inline-flex flex-wrap items-center gap-2 text-description text-text-secondary">
+          <Trans>What changes</Trans>
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+          <span className="tabular-nums">
+            {currentPlanLabel} (
+            <Plural value={currentPlanSeatLimit} one="# seat" other="# seats" />)
+          </span>
+          <span aria-hidden>→</span>
+          <span className="font-medium text-text-primary tabular-nums">
+            {view.label} (<Plural value={view.seatLimit} one="# seat" other="# seats" />)
+          </span>
+        </p>
+      ) : null}
 
       {!owner ? (
         <Alert variant="destructive">

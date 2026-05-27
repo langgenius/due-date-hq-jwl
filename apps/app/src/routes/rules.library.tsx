@@ -69,7 +69,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
-import { KbdHint } from '@/components/patterns/kbd'
+import { KbdHint, ShortcutHintChip } from '@/components/patterns/kbd'
 import {
   isInteractiveEventTarget,
   useAppHotkey,
@@ -1129,6 +1129,11 @@ export function RulesLibraryRoute() {
   // the page never has zero primary actions.
   const headerActions = (
     <>
+      {/* 2026-05-27 (Step 6 UX flows audit H2.7): shortcut
+          discoverability chip — same primitive as /today and
+          /clients. The rule library has J/K/Enter/e/Esc/Cmd-K
+          shortcuts but no surface hint that `?` opens help. */}
+      <ShortcutHintChip className="hidden md:inline-flex" />
       <DropdownMenu>
         <DropdownMenuTrigger
           render={

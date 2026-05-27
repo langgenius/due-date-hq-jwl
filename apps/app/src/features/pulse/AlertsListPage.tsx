@@ -40,6 +40,7 @@ import {
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { StateBadge } from '@/components/primitives/state-badge'
+import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 
@@ -344,6 +345,11 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
           description={t`Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes.`}
           actions={
             <>
+              {/* 2026-05-27 (Step 6 UX flows audit H1.4): shortcut
+                  discoverability chip for /alerts toolbar. Pulse has
+                  J/K row nav (per AlertsListPage hotkeys) but `?` was
+                  undiscoverable. */}
+              <ShortcutHintChip className="hidden md:inline-flex" />
               <Button
                 variant="outline"
                 size="sm"

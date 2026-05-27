@@ -20,6 +20,12 @@ import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@duedatehq/ui/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyState } from '@/components/patterns/empty-state'
@@ -323,7 +329,16 @@ function formatDismissalDate(iso: string): string {
 // next bi-weekly cycle" interval — long enough for client circumstances
 // to actually shift, short enough to keep the queue alive. Server
 // clamps to a 90-day ceiling regardless.
+// 2026-05-27 (Step 6 UX flows audit F3.2): the single Snooze button
+// is now a dropdown that offers 7 / 14 (default) / 30 / 90 day
+// options. The previous "always 14 days" behavior worked for the
+// modal case but power users wanted to silence a noisy opportunity
+// for a full quarter, or check back in a week — both common patterns
+// the prior single-button UI couldn't express without round-tripping
+// through Dismiss + manual recreation.
 const DEFAULT_SNOOZE_DAYS = 14
+const SNOOZE_DURATION_DAYS = [7, 14, 30, 90] as const
+type SnoozeDurationDays = (typeof SNOOZE_DURATION_DAYS)[number]
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 
 function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
@@ -375,20 +390,35 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
       },
     }),
   )
+  // 2026-05-27 (F3.2): track which duration was picked so the
+  // success toast reads back the actual snooze window, not a hard-
+  // coded 14. Reset when mutation reaches a terminal state — keeps
+  // the UI honest if the user opens the dropdown twice in a row.
+  const [pickedSnoozeDays, setPickedSnoozeDays] = useState<SnoozeDurationDays>(DEFAULT_SNOOZE_DAYS)
   const snoozeMutation = useMutation(
     orpc.opportunities.snooze.mutationOptions({
       onSuccess: () => {
         invalidate()
         void queryClient.invalidateQueries({ queryKey: orpc.opportunities.listDismissed.key() })
-        // 2026-05-27 (step-6 ux-flow audit F3.1): undo on snooze too
-        // — same restore endpoint un-snoozes, since dismissals and
-        // snoozes share the storage.
-        toast.success(t`Snoozed for ${DEFAULT_SNOOZE_DAYS} days`, {
-          action: {
-            label: t`Undo`,
-            onClick: () => restoreFromToast.mutate({ opportunityKey: opportunity.id }),
+        // 2026-05-27 (ε F3.1 + υ F3.2 merge): dynamic plural copy
+        // reads back the actual picked snooze window (no hardcoded
+        // 14), with the same Undo action that ε wired for dismiss.
+        // Both wave-1 ε and wave-5 υ landed here independently;
+        // resolution preserves both improvements.
+        toast.success(
+          i18n._(
+            plural(pickedSnoozeDays, {
+              one: 'Snoozed for # day',
+              other: 'Snoozed for # days',
+            }),
+          ),
+          {
+            action: {
+              label: t`Undo`,
+              onClick: () => restoreFromToast.mutate({ opportunityKey: opportunity.id }),
+            },
           },
-        })
+        )
       },
       onError: (error) => {
         toast.error(t`Couldn't snooze this opportunity`, {
@@ -399,6 +429,13 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
       },
     }),
   )
+  const snoozeFor = (days: SnoozeDurationDays) => {
+    setPickedSnoozeDays(days)
+    snoozeMutation.mutate({
+      opportunityKey: opportunity.id,
+      until: new Date(Date.now() + days * MS_PER_DAY).toISOString(),
+    })
+  }
   const pending = dismissMutation.isPending || snoozeMutation.isPending
   // 2026-05-25 (Yuqi /opportunities fifth pass #2, #4):
   // restructured to match the PulseAlertCard layout — content on
@@ -458,26 +495,40 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
           <ArrowUpRightIcon data-icon="inline-start" />
           <Trans>Open client</Trans>
         </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={pending}
-          onClick={() =>
-            snoozeMutation.mutate({
-              opportunityKey: opportunity.id,
-              until: new Date(Date.now() + DEFAULT_SNOOZE_DAYS * MS_PER_DAY).toISOString(),
-            })
-          }
-          aria-label={i18n._(
-            plural(DEFAULT_SNOOZE_DAYS, {
-              one: `Snooze ${opportunity.title} for # day`,
-              other: `Snooze ${opportunity.title} for # days`,
-            }),
-          )}
-        >
-          <ClockIcon data-icon="inline-start" />
-          <Trans>Snooze</Trans>
-        </Button>
+        {/* 2026-05-27 (Step 6 UX audit F3.2): single Snooze button
+            → dropdown with 7 / 14 (default) / 30 / 90 day choices.
+            The trigger button has the same visual weight as before
+            (ghost, sm, ClockIcon + "Snooze") but now opens a menu;
+            picking 14 reproduces the previous default behavior. */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={pending}
+                aria-label={t`Snooze ${opportunity.title}`}
+              >
+                <ClockIcon data-icon="inline-start" />
+                <Trans>Snooze</Trans>
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end" className="min-w-[180px]">
+            <DropdownMenuItem onClick={() => snoozeFor(7)}>
+              <Trans>Snooze 7 days</Trans>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => snoozeFor(14)}>
+              <Trans>Snooze 14 days (default)</Trans>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => snoozeFor(30)}>
+              <Trans>Snooze 30 days</Trans>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => snoozeFor(90)}>
+              <Trans>Snooze 90 days</Trans>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button
           size="sm"
           variant="ghost"
