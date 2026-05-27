@@ -795,7 +795,7 @@ export function CoverageTab({
                   ? 'min-h-0 self-stretch'
                   : 'sticky top-4 min-h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)] self-start',
               )}
-              aria-label="Review workspace"
+              aria-label={t`Review workspace`}
             >
               <div className="flex w-[320px] shrink-0 flex-col border-r border-divider-regular">
                 {queueMode === 'active' ? (
@@ -1298,7 +1298,7 @@ function CoverageRow({
                     event.stopPropagation()
                     onEntityDrillIn?.(row.jurisdiction, col, state)
                   }}
-                  aria-label={t`Open ${fullName} rules for ${jurisdictionLabel(row.jurisdiction)} — ${labelForSourceState(sourceState)}`}
+                  aria-label={t`Open ${fullName} rules for ${jurisdictionLabel(row.jurisdiction)} — ${labelForSourceState(sourceState, t)}`}
                   className="inline-flex items-center justify-center rounded outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                 >
                   {cellInner}
@@ -2507,33 +2507,38 @@ function coverageCellStateFromSourceState(
   return fallback === 'none' ? null : fallback
 }
 
+// 2026-05-27 (audit-drain beta-rules — coverage-tab i18n drift): each
+// `title=` + `sr-only` label was hardcoded English. Promoted to `t`...``
+// so non-EN firms see translated entity glyphs in the coverage table.
+// Hook into useLingui so the labels flow through the catalog.
 function EntityCellContent({ state }: { state: RuleSourceCoverageStatus }) {
+  const { t } = useLingui()
   if (state === 'rule_active') {
     return (
       <span
-        title="Active rule for this entity"
+        title={t`Active rule for this entity`}
         className="inline-flex size-5 items-center justify-center"
       >
         <CheckIcon aria-hidden className="size-4 text-status-done" />
-        <span className="sr-only">Active</span>
+        <span className="sr-only">{t`Active`}</span>
       </span>
     )
   }
   if (state === 'rule_pending_review') {
     return (
       <span
-        title="Pending review for this entity"
+        title={t`Pending review for this entity`}
         className="inline-flex size-5 items-center justify-center"
       >
         <AlertTriangleIcon aria-hidden className="size-4 text-severity-medium" />
-        <span className="sr-only">Review</span>
+        <span className="sr-only">{t`Review`}</span>
       </span>
     )
   }
   if (state === 'source_registered' || state === 'source_verified') {
     return (
       <span
-        title="Official source registered; rule still needs review"
+        title={t`Official source registered; rule still needs review`}
         className="inline-flex size-5 items-center justify-center"
       >
         <span
@@ -2542,35 +2547,43 @@ function EntityCellContent({ state }: { state: RuleSourceCoverageStatus }) {
         >
           S
         </span>
-        <span className="sr-only">Source only</span>
+        <span className="sr-only">{t`Source only`}</span>
       </span>
     )
   }
   if (state === 'missing_source') {
     return (
       <span
-        title="No official source registered"
+        title={t`No official source registered`}
         className="inline-flex size-5 items-center justify-center"
       >
         <XIcon aria-hidden className="size-4 text-text-muted" />
-        <span className="sr-only">No source</span>
+        <span className="sr-only">{t`No source`}</span>
       </span>
     )
   }
   return (
     <span
-      title="Not applicable"
+      title={t`Not applicable`}
       className="inline-flex size-5 items-center justify-center text-sm text-text-muted"
     >
-      —<span className="sr-only">Not applicable</span>
+      —<span className="sr-only">{t`Not applicable`}</span>
     </span>
   )
 }
 
-function labelForSourceState(state: RuleSourceCoverageStatus): string {
-  if (state === 'rule_active') return 'active'
-  if (state === 'rule_pending_review') return 'review'
-  if (state === 'source_registered' || state === 'source_verified') return 'source only'
-  if (state === 'missing_source') return 'no source'
-  return 'not applicable'
+// 2026-05-27 (audit-drain beta-rules — coverage-tab i18n drift): the
+// labels feeding the drill-in button's aria-label (sole call site at
+// `aria-label={t`Open ${fullName} … ${labelForSourceState(state)}`}`)
+// were plain English. Pass the lingui `t` macro so each branch returns
+// a translated short label instead.
+function labelForSourceState(
+  state: RuleSourceCoverageStatus,
+  t: ReturnType<typeof useLingui>['t'],
+): string {
+  if (state === 'rule_active') return t`active`
+  if (state === 'rule_pending_review') return t`review`
+  if (state === 'source_registered' || state === 'source_verified') return t`source only`
+  if (state === 'missing_source') return t`no source`
+  return t`not applicable`
 }

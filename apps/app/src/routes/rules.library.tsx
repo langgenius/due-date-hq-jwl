@@ -1705,6 +1705,11 @@ function RuleReviewProgressBar(
     | { loading: true; statusCounts?: never }
     | { loading?: false; statusCounts: Record<RuleStatus, number> },
 ) {
+  // 2026-05-27 (audit-drain beta-rules): segment labels + aria-label
+  // were hardcoded English. Both the visible label inside each segment
+  // and the aria-label breakdown now flow through useLingui so non-EN
+  // firms see translated catalog progress.
+  const { t } = useLingui()
   if (props.loading) {
     return (
       <div className="h-7 w-full animate-pulse rounded-md border border-divider-subtle bg-background-subtle" />
@@ -1725,13 +1730,13 @@ function RuleReviewProgressBar(
     'deprecated',
   ] as const
   const SEGMENT_LABEL: Record<RuleStatus, string> = {
-    active: 'active',
-    verified: 'verified',
-    pending_review: 'need review',
-    candidate: 'candidate',
-    rejected: 'rejected',
-    archived: 'archived',
-    deprecated: 'deprecated',
+    active: t`active`,
+    verified: t`verified`,
+    pending_review: t`need review`,
+    candidate: t`candidate`,
+    rejected: t`rejected`,
+    archived: t`archived`,
+    deprecated: t`deprecated`,
   }
   const SEGMENT_BG: Record<RuleStatus, string> = {
     active: 'bg-state-success-hover',
@@ -1770,7 +1775,7 @@ function RuleReviewProgressBar(
     <div
       className="relative flex h-7 w-full overflow-hidden rounded-md border border-divider-subtle bg-background-subtle"
       role="img"
-      aria-label={total > 0 ? `Rule catalog breakdown — ${breakdown}` : 'Empty rule catalog'}
+      aria-label={total > 0 ? t`Rule catalog breakdown — ${breakdown}` : t`Empty rule catalog`}
       title={breakdown || undefined}
     >
       {segments.map((segment) => {
@@ -2632,6 +2637,10 @@ function RuleTableRow({
   onSelectChange: (next: boolean) => void
   onClick: (rule: ObligationRule) => void
 }) {
+  // 2026-05-27 (audit-drain beta-rules): the row's two aria-labels
+  // (`Open rule details for …`, `Select … for batch review`) were
+  // hardcoded English. Wired into useLingui so SR copy is translated.
+  const { t } = useLingui()
   // Memo-set for O(1) applicability lookup per entity column.
   const applicabilitySet = useMemo(
     () => new Set(rule.entityApplicability),
@@ -2662,7 +2671,7 @@ function RuleTableRow({
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onClick(rule)}
-      aria-label={`Open rule details for ${displayTitle}`}
+      aria-label={t`Open rule details for ${displayTitle}`}
       data-state={selected ? 'selected' : undefined}
     >
       {/* Rule rows sit one level deeper than the NEEDS REVIEW / ACTIVE
@@ -2699,7 +2708,7 @@ function RuleTableRow({
                 <Checkbox
                   checked={selected}
                   onCheckedChange={onSelectChange}
-                  aria-label={`Select ${displayTitle} for batch review`}
+                  aria-label={t`Select ${displayTitle} for batch review`}
                 />
               </span>
             </span>
@@ -2910,6 +2919,10 @@ function StatusSectionHeaderRow({
   selectAllState?: 'all' | 'some' | 'none'
   onToggleSelectAll?: () => void
 }) {
+  // 2026-05-27 (audit-drain beta-rules): the section-header select-all
+  // checkbox's aria-label was hardcoded English. Hook into useLingui
+  // so non-EN firms hear the translated bulk-review affordance.
+  const { t } = useLingui()
   const hasSelectAll = selectAllState !== undefined && onToggleSelectAll !== undefined
   // Section header inside an expanded jurisdiction. The TITLE itself
   // is highlighted (per /critique) — NEEDS REVIEW reads in accent,
@@ -2945,7 +2958,7 @@ function StatusSectionHeaderRow({
                 checked={selectAllState === 'all'}
                 indeterminate={selectAllState === 'some'}
                 onCheckedChange={() => onToggleSelectAll()}
-                aria-label={`Select all ${count} rules in ${label}`}
+                aria-label={t`Select all ${count} rules in ${label}`}
               />
             ) : null}
           </span>
@@ -3002,6 +3015,9 @@ function SearchResultsTable({
   // (no groups, no gaps), so we only check `rule:<id>` matches.
   focusedRowId: string | null
 }) {
+  // 2026-05-27 (audit-drain beta-rules): the search-result row's
+  // aria-label was hardcoded English. Wired into useLingui.
+  const { t } = useLingui()
   const tierLabels = useRuleTierLabels()
   return (
     <div className="rounded-md border border-divider-subtle bg-background-default">
@@ -3078,7 +3094,7 @@ function SearchResultsTable({
                       'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
                   )}
                   onClick={() => onRuleClick(rule)}
-                  aria-label={`Open rule details for ${rule.title}`}
+                  aria-label={t`Open rule details for ${rule.title}`}
                 >
                   {/* 2026-05-26 (Yuqi cross-table unify): text-sm
                       font-medium → text-base regular. Matches the
@@ -3508,6 +3524,13 @@ function BatchReviewModal({
           <DialogTitle className="text-sm font-semibold text-text-primary">
             <Trans>Reviewing pending rules</Trans>
           </DialogTitle>
+          {/* 2026-05-27 (Step 6 cont R3.5): the sr-only Escape hint
+              previously sat at the BOTTOM of the dialog, so screen
+              reader users heard it AFTER navigating through hundreds
+              of characters of rule body. Moved to the top of the
+              DialogContent, right after the title, so the close
+              affordance is announced before the rule body. */}
+          <span className="sr-only">{t`Press Escape to close the review queue.`}</span>
           {/* 2026-05-25 (Yuqi Rule Library #46): use an inline
               header action cluster instead of DialogContent's
               absolute top-right close button. The default X sat on
@@ -3578,7 +3601,6 @@ function BatchReviewModal({
             <ChevronRightIcon data-icon="inline-end" />
           </Button>
         </footer>
-        <span className="sr-only">{t`Press Escape to close the review queue.`}</span>
       </DialogContent>
     </Dialog>
   )
