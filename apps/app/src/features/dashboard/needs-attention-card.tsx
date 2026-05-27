@@ -98,7 +98,7 @@ function NeedsAttentionCard({
       // inner gap-2.5 → gap-2. Card content stays scannable but the
       // tile collapses to a more efficient footprint, matching the
       // section's tighter outer padding.
-      className="group flex h-full min-w-0 cursor-pointer flex-col gap-2 rounded-md bg-background-default p-3 text-left transition-colors hover:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className="group flex h-full w-full min-w-0 cursor-pointer flex-col gap-2 rounded-md bg-background-default p-3 text-left transition-colors hover:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       data-tone={tone}
     >
       <header className="flex items-start justify-between gap-3">
