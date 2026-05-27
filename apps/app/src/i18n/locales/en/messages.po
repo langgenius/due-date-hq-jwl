@@ -5415,8 +5415,8 @@ msgid "Internal deadline offset must be between 0 and 365 days."
 msgstr "Internal deadline offset must be between 0 and 365 days."
 
 #: src/routes/obligations.tsx
-msgid "Internal Due"
-msgstr "Internal Due"
+msgid "Internal due date"
+msgstr "Internal due date"
 
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/routes/obligations.tsx
@@ -7822,6 +7822,11 @@ msgstr "Penalty inputs"
 msgid "Penalty inputs changed"
 msgstr "Penalty inputs changed"
 
+#. placeholder {0}: row.clientName
+#: src/routes/obligations.tsx
+msgid "Penalty inputs for {0}"
+msgstr "Penalty inputs for {0}"
+
 #: src/routes/obligations.tsx
 msgid "Penalty inputs saved"
 msgstr "Penalty inputs saved"
@@ -9464,6 +9469,10 @@ msgstr "Saved"
 msgid "Saved deadline view"
 msgstr "Saved deadline view"
 
+#: src/routes/obligations.tsx
+msgid "Saved to your Downloads folder."
+msgstr "Saved to your Downloads folder."
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Saved view created"
 msgstr "Saved view created"
@@ -10318,8 +10327,9 @@ msgstr "States"
 msgid "Status"
 msgstr "Status"
 
+#. placeholder {0}: statusLabels[input.status]
 #. placeholder {0}: statusLabels[nextStatus]
-#. placeholder {0}: v2StatusLabels[vars.status]
+#. placeholder {0}: statusLabels[variables.status]
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Status changed to {0}"
@@ -10333,10 +10343,6 @@ msgstr "Status scopes"
 #: src/features/obligations/timeline.tsx
 msgid "Status set to {0}."
 msgstr "Status set to {0}."
-
-#: src/routes/obligations.tsx
-msgid "Status updated"
-msgstr "Status updated"
 
 #: src/routes/obligations.tsx
 msgid "Statutory deadline"
