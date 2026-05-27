@@ -84,15 +84,15 @@ export function RulesPulseRoute() {
     <span className="inline-flex items-center gap-2">
       <Trans>Alerts</Trans>
       {monitoringCount > 0 ? (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
-          <PulsingDot tone="success" active className="size-1.5" />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
+          <PulsingDot tone="success" active />
           <Trans>
             Monitoring <Plural value={monitoringCount} one="# source" other="# sources" />
           </Trans>
         </span>
       ) : null}
       {alertCount > 0 ? (
-        <span className="inline-flex items-center gap-1 rounded-full bg-state-destructive-hover px-2 py-0.5 text-xs font-medium text-text-destructive">
+        <span className="inline-flex items-center gap-1 rounded-full bg-state-destructive-hover px-2 py-1.5 text-xs font-medium text-text-destructive">
           <span className="tabular-nums">{alertCount}</span>
           <span>
             <Trans>active</Trans>

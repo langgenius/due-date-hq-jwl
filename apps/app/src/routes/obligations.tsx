@@ -2961,7 +2961,7 @@ export function ObligationQueueRoute() {
           <span className="inline-flex items-center gap-2">
             <Trans>Deadlines</Trans>
             {scopeTotal > 0 ? (
-              <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+              <span className="rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
                 {scopeTotal}
               </span>
             ) : null}

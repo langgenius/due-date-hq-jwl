@@ -152,7 +152,7 @@ function NeedsAttentionSection() {
             <Trans>Alerts</Trans>
           )}
           {monitoringCount > 0 ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
               <PulsingDot tone="success" active />
               <Trans>
                 Monitoring <Plural value={monitoringCount} one="# source" other="# sources" />

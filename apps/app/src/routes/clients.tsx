@@ -372,7 +372,7 @@ export function ClientsRoute() {
                 Previously the chip kept the unfiltered total even
                 when 8 of 47 rows were visible, which made the chip
                 lie about the visible list. */}
-            <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium text-text-secondary tabular-nums">
+            <span className="rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium text-text-secondary tabular-nums">
               {filteredClients.length === clients.length
                 ? clients.length
                 : t`${filteredClients.length} of ${clients.length}`}
