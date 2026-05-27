@@ -11,21 +11,34 @@ import { FieldLabel } from '@/components/primitives/field-label'
 
 import { LIFECYCLE_V2_STATUSES, isObligationStatus, type ObligationStatus } from './status-control'
 
-// Map of legacy status → v2 milestone. Statuses that don't surface in
-// the timeline (the row goes into "Other activity") are absent. See
-// docs/Design/obligation-lifecycle-design-brief.md.
-const MILESTONE_MAP: Partial<Record<ObligationStatus, ObligationStatus>> = {
+// Map every legacy ObligationStatus → its canonical v2 milestone bucket.
+// Mirrors the collapse contract spelled out in `useLifecycleV2StatusLabels`
+// (status-control.tsx) and `timelineIndexForStatus` / `STAGE_STATUS_GROUPS`
+// (routes/obligations.tsx). Single source of truth: when a row changes
+// status, every milestone surface (queue pill, drawer header pill, strip,
+// stage card, AND this vertical journal) must land on the SAME milestone.
+//
+// 2026-05-27 (Agent X3 milestone audit M-03/M-05/M-07/M-09/W-1): pre-fix,
+// this map was missing `not_applicable`, `in_progress`, `extended` (they
+// fell into "Other activity" — telling the CPA the row's currently-active
+// review stage never happened) AND mapped `paid → completed` (wrong:
+// `paid` collapses into the FILED milestone, not Completed — see PRD §2).
+// See docs/Design/milestone-audit.md for the full matrix.
+const MILESTONE_MAP: Record<ObligationStatus, ObligationStatus> = {
   pending: 'pending',
+  not_applicable: 'pending',
   waiting_on_client: 'waiting_on_client',
   blocked: 'blocked',
+  in_progress: 'review',
   review: 'review',
+  extended: 'review',
   done: 'done',
+  paid: 'done',
   completed: 'completed',
-  paid: 'completed',
 }
 
 function milestoneFor(status: ObligationStatus | null): ObligationStatus | null {
-  return status === null ? null : (MILESTONE_MAP[status] ?? null)
+  return status === null ? null : MILESTONE_MAP[status]
 }
 
 function statusFromAudit(event: AuditEventPublic): ObligationStatus | null {
