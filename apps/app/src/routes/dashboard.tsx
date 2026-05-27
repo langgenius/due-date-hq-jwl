@@ -157,7 +157,14 @@ export function DashboardRoute() {
     // section, and Actions this week"): gap-4 (16px) → gap-8 (32px) so
     // the three top-level sections breathe. The number prefix in each
     // heading + the gray date pattern works better with this rhythm.
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-8 px-4 pt-8 pb-3 md:px-6 md:pb-5">
+    // 2026-05-28 (Yuqi feedback — /today felt empty at wide
+    // viewports): bumped from max-w-page-wide (1100) to
+    // max-w-page-expanded (1440) so the page matches the rest
+    // of the workbench family (/clients, /clients/[id],
+    // /deadlines, /rules/library, /rules/pulse, /alerts). At
+    // 1920px the alerts + actions sections now use 1440px of
+    // canvas instead of 1100px, removing ~340px of dead margin.
+    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-8 pb-3 md:px-6 md:pb-5">
       {/* 2026-05-26 (Yuqi seventy-fourth pass — Today joins the
           page-header family): the hand-rolled <header> is gone.
           /today now routes through the same `<PageHeader>`

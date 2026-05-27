@@ -11,22 +11,23 @@ Clients directory up to the same structural quality bar:
 
 Both surfaces already shared the canonical page chrome (PageHeader +
 count chip + bordered table-card frame + responsive page-size hook
-+ pagination footer). The drift that read as "less polish" lived
-inside the `<Table>` block itself.
+
+- pagination footer). The drift that read as "less polish" lived
+  inside the `<Table>` block itself.
 
 ## Audit — what /deadlines does that /clients didn't
 
-| Concern                  | `/deadlines` (route obligations.tsx)                                                                  | `/clients` (pre-refactor)                                          | Fix                                                                 |
-| ------------------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| Row dividers             | Inherits Table primitive default `border-b border-divider-subtle`                                     | Overrode with `[&_tr]:border-b-0` on `<TableBody>`                 | Dropped the override — primitive default restored                   |
-| Header typography        | Wraps every `<TableHead>` with `text-sm font-medium normal-case tracking-normal text-text-secondary`  | Only passed `meta.headerClassName` — non-sortable headers drifted  | Apply canonical class on every `<TableHead>` via `cn()` merge       |
-| Header row hover         | `hover:bg-transparent` on header `<TableRow>` so only data rows respond                               | Inherited the primitive's `hover:bg-state-base-hover` on header    | Header row now `hover:bg-transparent`                               |
-| Body cell typography     | `[&_td]:text-sm` on `<TableBody>` so all cells inherit sm scan-size                                   | Missing — cells inherited the table-default `text-xs`              | Added `[&_td]:text-sm`                                              |
-| Row hover tone           | Body-level `[&_tr]:hover:!bg-state-accent-hover` (accent tint = future selected state)                | Per-row `hover:bg-state-base-hover` (base tint, less differentiated) | Move to body-level accent-hover; per-row class no longer overrides  |
-| Body background          | `bg-background-default` on `<TableBody>` so solid white stacks over outer card's alpha-white          | None — fell back to primitive `bg-background-default/50` only      | Added `bg-background-default`                                       |
-| State cell motif         | `[StateBadge] [2-letter code]` in `text-text-secondary` — `w-[90px]` cell                              | Custom rounded-full pill `[StateBadge] [Full state name]` — `w-[220px]` | Adopt /deadlines motif; widen to `w-[120px]` only to fit "+N" overflow chip |
-| Column header label      | "Assignee" (line 2022)                                                                                | "Owner"                                                            | Rename column header to "Assignee" for cross-table consistency      |
-| Skeleton row dividers    | N/A (skeleton uses TableRow primitive default)                                                        | Overrode with `[&_tr]:border-b-0`                                  | Dropped the override + applied header typography parity             |
+| Concern               | `/deadlines` (route obligations.tsx)                                                                 | `/clients` (pre-refactor)                                               | Fix                                                                         |
+| --------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Row dividers          | Inherits Table primitive default `border-b border-divider-subtle`                                    | Overrode with `[&_tr]:border-b-0` on `<TableBody>`                      | Dropped the override — primitive default restored                           |
+| Header typography     | Wraps every `<TableHead>` with `text-sm font-medium normal-case tracking-normal text-text-secondary` | Only passed `meta.headerClassName` — non-sortable headers drifted       | Apply canonical class on every `<TableHead>` via `cn()` merge               |
+| Header row hover      | `hover:bg-transparent` on header `<TableRow>` so only data rows respond                              | Inherited the primitive's `hover:bg-state-base-hover` on header         | Header row now `hover:bg-transparent`                                       |
+| Body cell typography  | `[&_td]:text-sm` on `<TableBody>` so all cells inherit sm scan-size                                  | Missing — cells inherited the table-default `text-xs`                   | Added `[&_td]:text-sm`                                                      |
+| Row hover tone        | Body-level `[&_tr]:hover:!bg-state-accent-hover` (accent tint = future selected state)               | Per-row `hover:bg-state-base-hover` (base tint, less differentiated)    | Move to body-level accent-hover; per-row class no longer overrides          |
+| Body background       | `bg-background-default` on `<TableBody>` so solid white stacks over outer card's alpha-white         | None — fell back to primitive `bg-background-default/50` only           | Added `bg-background-default`                                               |
+| State cell motif      | `[StateBadge] [2-letter code]` in `text-text-secondary` — `w-[90px]` cell                            | Custom rounded-full pill `[StateBadge] [Full state name]` — `w-[220px]` | Adopt /deadlines motif; widen to `w-[120px]` only to fit "+N" overflow chip |
+| Column header label   | "Assignee" (line 2022)                                                                               | "Owner"                                                                 | Rename column header to "Assignee" for cross-table consistency              |
+| Skeleton row dividers | N/A (skeleton uses TableRow primitive default)                                                       | Overrode with `[&_tr]:border-b-0`                                       | Dropped the override + applied header typography parity                     |
 
 ## Changes
 
@@ -53,7 +54,7 @@ All edits are in `apps/app/src/features/clients/ClientFactsWorkspace.tsx`.
 
 4. **`<TableHead>` typography** — every cell is now wrapped with
    `cn('text-sm font-medium normal-case tracking-normal text-text-secondary',
-   header.column.columnDef.meta?.headerClassName)`. The non-sortable
+header.column.columnDef.meta?.headerClassName)`. The non-sortable
    "Assignee", "Opp.", and sr-only "Row actions" headers now share the
    sortable headers' family.
 

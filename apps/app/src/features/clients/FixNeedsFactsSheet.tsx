@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowUpRightIcon, CheckCircle2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -105,9 +105,9 @@ export function FixNeedsFactsSheet({
 
         <div className="flex items-center justify-between border-b border-divider-subtle px-6 py-3 text-xs text-text-tertiary">
           <span>
-            <Plural value={fixedCount} one="# of {0} fixed" other="# of {0} fixed" />
-            {' · '}
-            {String(totalCount)}
+            <Trans>
+              {fixedCount} of {totalCount} fixed
+            </Trans>
           </span>
           {visibleClients.length === 0 && totalCount > 0 ? (
             <span className="inline-flex items-center gap-1 text-text-success">

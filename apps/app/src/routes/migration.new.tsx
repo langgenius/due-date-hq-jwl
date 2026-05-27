@@ -40,7 +40,7 @@ export function MigrationNewRoute() {
 
   if (permission.isLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-6 p-4 md:p-6">
+      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-6 md:px-6">
         <MigrationActivationIntro
           onSkip={skipToDashboard}
           onReviewRules={reviewRules}
@@ -64,7 +64,7 @@ export function MigrationNewRoute() {
     // return-to-Today CTA, no more drift when FIRM_PERMISSION_ROLES
     // changes.
     return (
-      <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 p-4 md:p-6">
+      <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 pt-8 pb-6 md:px-6">
         <MigrationActivationIntro
           onSkip={skipToDashboard}
           onReviewRules={reviewRules}

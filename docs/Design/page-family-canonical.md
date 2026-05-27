@@ -582,3 +582,31 @@ Before shipping a new page in the family, verify each:
   vs a passive badge.
 - `docs/dev-log/2026-05-26-{sixty-sixth..eightieth}-pass.md` —
   the per-iteration decisions that produced these patterns.
+
+## Peek vs full-nav contract (2026-05-27)
+
+The /clients family is intentionally **hybrid** on row interaction —
+this is documented decision, not drift. Per the live audit in
+`clients-critique-2026-05-27-audit-pass.md` §3 + the design call
+following it:
+
+| Surface          | Row click                        | Peek alternative                                    |
+| ---------------- | -------------------------------- | --------------------------------------------------- |
+| `/clients` list  | Full-page nav to `/clients/[id]` | Hover Eye-icon → `ClientPeekHoverCard` (mouse-only) |
+| `/deadlines`     | Drawer (in-page)                 | n/a — drawer IS the peek                            |
+| `/alerts`        | Drawer (in-page)                 | n/a                                                 |
+| `/rules/library` | Dialog (in-page)                 | n/a                                                 |
+
+`ClientDrawerProvider.openDrawer(id)` is a **no-op when `pathname ===
+'/clients'`** by design: opening a peek drawer over the list it came
+from is redundant. Acceptable side-effects:
+
+- The row context-menu "Quick peek" item silently performs full nav on
+  `/clients` (calls `openDrawer` which redirects). On every other page
+  it opens the drawer.
+- The ⌘-click drawer hint on `/clients` similarly resolves to full nav.
+
+These are not bugs — they're the chosen behavior. If a future pass wants
+to either remove the affordances or honor them, that's a separate design
+call. Until then, the rule is: **drawer where peek makes sense, full-nav
+on `/clients` itself.**

@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, HistoryIcon, LightbulbIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
@@ -36,8 +36,6 @@ import {
   buildClientFactsModel,
   filterClients,
   isClientEntityType,
-  isClientPulseFilter,
-  isClientSourceType,
   type ClientEntityType,
 } from '@/features/clients/client-readiness'
 import { ImportHistoryDrawer } from '@/features/migration/ImportHistoryDrawer'
@@ -146,20 +144,21 @@ export function ClientsRoute() {
   const pulseHistoryQuery = useQuery(
     orpc.pulse.listHistory.queryOptions({ input: PULSE_HISTORY_INPUT }),
   )
-  const pulseAlerts = pulseHistoryQuery.data?.alerts
-  const pulseDetailsQueries = useQueries({
-    queries: useMemo(
-      () =>
-        (pulseAlerts ?? []).map((alert) =>
-          orpc.pulse.getDetail.queryOptions({ input: { alertId: alert.id } }),
-        ),
-      [pulseAlerts],
-    ),
+  // Audit P1-4: replaced the N+1 useQueries fan-out (one
+  // `pulse.getDetail` request per alert) with a single
+  // `pulse.getDetailsBatch` round-trip. With ~50 alerts in history
+  // this collapses 50 requests into 1 and ends a slow-to-mutate
+  // refetch cascade when the history list changes.
+  const pulseAlertIds = useMemo(
+    () => (pulseHistoryQuery.data?.alerts ?? []).map((alert) => alert.id),
+    [pulseHistoryQuery.data?.alerts],
+  )
+  const pulseDetailsBatchQuery = useQuery({
+    ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds: pulseAlertIds } }),
+    enabled: pulseAlertIds.length > 0,
   })
-  const pulseDetailsLoading = pulseDetailsQueries.some((query) => query.isLoading)
-  const pulseDetails = pulseDetailsQueries
-    .map((query) => query.data)
-    .filter((detail): detail is NonNullable<typeof detail> => Boolean(detail))
+  const pulseDetailsLoading = pulseAlertIds.length > 0 && pulseDetailsBatchQuery.isLoading
+  const pulseDetails = pulseDetailsBatchQuery.data?.details ?? []
   const pulseDetailsKey = pulseDetails.map((detail) => detail.alert.id).join('|')
   const pulseMatchesByClient = useMemo(
     () => buildPulseMatchesByClient(pulseDetails),
@@ -284,31 +283,11 @@ export function ClientsRoute() {
     [setClientsQuery],
   )
 
-  const handleSourceFilterChange = useCallback(
-    (values: string[]) => {
-      const typedSources = values.filter(isClientSourceType)
-      void setClientsQuery({
-        source: nullableQueryArray(typedSources),
-      })
-    },
-    [setClientsQuery],
-  )
-
   const handleOwnerFilterChange = useCallback(
     (values: string[]) => {
       const owners = normalizeClientOwnerFilters(values)
       void setClientsQuery({
         owner: nullableQueryArray(owners),
-      })
-    },
-    [setClientsQuery],
-  )
-
-  const handlePulseFilterChange = useCallback(
-    (values: string[]) => {
-      const typedPulse = values.filter(isClientPulseFilter)
-      void setClientsQuery({
-        pulse: nullableQueryArray(typedPulse),
       })
     },
     [setClientsQuery],
@@ -348,7 +327,7 @@ export function ClientsRoute() {
     // xl:h-screen xl:overflow-hidden`).
     <div
       className={cn(
-        'mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-8 pb-0 md:px-6 md:pb-0',
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-8 pb-0 md:px-6 md:pb-0',
         'xl:h-screen xl:overflow-hidden',
       )}
     >
@@ -474,19 +453,14 @@ export function ClientsRoute() {
         clientFilter={filters.clientFilters}
         entityFilter={filters.entityFilters}
         stateFilter={filters.stateFilters}
-        readinessFilter={filters.readinessFilters}
-        sourceFilter={filters.sourceFilters}
         ownerFilter={filters.ownerFilters}
-        pulseFilter={filters.pulseFilters}
         pulseMatchesByClient={pulseMatchesByClient}
         obligationSummariesByClient={obligationSummariesByClient}
         opportunityCountByClient={opportunityCountByClient}
         onClientFilterChange={handleClientFilterChange}
         onEntityFilterChange={handleEntityFilterChange}
         onStateFilterChange={handleStateFilterChange}
-        onSourceFilterChange={handleSourceFilterChange}
         onOwnerFilterChange={handleOwnerFilterChange}
-        onPulseFilterChange={handlePulseFilterChange}
         onImport={openWizard}
         canImport={canRunMigration}
       />

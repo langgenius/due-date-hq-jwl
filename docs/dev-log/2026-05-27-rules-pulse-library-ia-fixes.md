@@ -107,7 +107,7 @@ Four new English strings extracted:
 - `active` (also used by rules.library segment label; translation shared)
 - `Show rules needing review`
 - `These are the deadline rules that drive your client deadlines. Review
-  and approve new rules before they trigger reminders.`
+and approve new rules before they trigger reminders.`
 
 All four translated to zh-CN (CPA / tax-domain Mandarin):
 

@@ -1,6 +1,6 @@
 # Obligation Status Changes — Product Requirements (v2)
 
-**Owner:** Design (Yuqi)  · **Engineering:** workflow team  · **Last updated:** 2026-05-27
+**Owner:** Design (Yuqi) · **Engineering:** workflow team · **Last updated:** 2026-05-27
 
 This is the canonical product spec for the obligation lifecycle on
 DueDateHQ. It defines what each status means, what data the row carries
@@ -18,6 +18,7 @@ of truth for:
 - Cross-surface state in Dashboard, Pulse, Workload, and Calendar
 
 Companion docs:
+
 - [obligation-lifecycle-design-brief.md](./obligation-lifecycle-design-brief.md) — why v2 exists
 - [deadline-status-meaning-and-journey-2026-05-23.md](./deadline-status-meaning-and-journey-2026-05-23.md) — copy & journey
 - [milestone-audit.md](./milestone-audit.md) — audit-event coverage
@@ -39,45 +40,45 @@ Code references in this section are anchored to current paths:
 
 ### 0.1 Shipped (✅)
 
-| Capability                                          | Source of truth                                 |
-| --------------------------------------------------- | ----------------------------------------------- |
-| Six canonical states + legacy→v2 display mapping    | `OBLIGATION_STATUS_DISPLAY_KEYS`                |
-| Transition legality + matrix                        | `OBLIGATION_TRANSITIONS`, `isLegalObligationTransition` |
-| Status-write permission gate (owner/partner/manager/preparer; coordinator denied) | `FIRM_PERMISSION_ROLES['obligation.status.update']`, server `requirePermission` |
-| Stage card actions per status + sub-state branches  | `apps/app/src/routes/obligations.tsx` (StageActions task table) |
-| `obligation.status.updated` audit event w/ before/after JSON + reason | `_service.ts:updateStatus` |
-| Parent → child auto-unblock cascade on `→ completed` | `_service.ts` lines 369–388, `unblockChildrenOf` |
-| `obligation.status.auto_unblocked` audit row per unblocked child | same |
-| `obligation.efile.rejected` audit event (separate action) | `_service.ts:markFiledRejected` |
-| `obligation.prep_stage.updated`, `obligation.review_stage.updated`, `obligation.extension.decided` audit events | `_service.ts` |
-| Status-change toast with **Undo** (reverse mutation), per-row + bulk | `routes/obligations.tsx` lines 1750–1773 |
-| BlockerContextCard inline in `blocked` stage card  | `apps/app/src/features/obligations/BlockerContextCard.tsx` |
-| Past-deadline banner inside Active Stage card       | `routes/obligations.tsx` (showOverdueBanner)    |
-| Payment-overdue chip in compact + expanded modes    | `paymentOverdueDays` + Status column            |
-| Accepted pill collapsed into Completed card header  | `ActiveStageDetailCard` header                  |
-| Standalone Accepted pill suppressed on Completed queue rows | Status cell render                       |
-| Bulk status mutation w/ partial-failure aware toast | `bulkUpdateStatus` + `bulkStatusMutation`       |
+| Capability                                                                                                      | Source of truth                                                                 |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Six canonical states + legacy→v2 display mapping                                                                | `OBLIGATION_STATUS_DISPLAY_KEYS`                                                |
+| Transition legality + matrix                                                                                    | `OBLIGATION_TRANSITIONS`, `isLegalObligationTransition`                         |
+| Status-write permission gate (owner/partner/manager/preparer; coordinator denied)                               | `FIRM_PERMISSION_ROLES['obligation.status.update']`, server `requirePermission` |
+| Stage card actions per status + sub-state branches                                                              | `apps/app/src/routes/obligations.tsx` (StageActions task table)                 |
+| `obligation.status.updated` audit event w/ before/after JSON + reason                                           | `_service.ts:updateStatus`                                                      |
+| Parent → child auto-unblock cascade on `→ completed`                                                            | `_service.ts` lines 369–388, `unblockChildrenOf`                                |
+| `obligation.status.auto_unblocked` audit row per unblocked child                                                | same                                                                            |
+| `obligation.efile.rejected` audit event (separate action)                                                       | `_service.ts:markFiledRejected`                                                 |
+| `obligation.prep_stage.updated`, `obligation.review_stage.updated`, `obligation.extension.decided` audit events | `_service.ts`                                                                   |
+| Status-change toast with **Undo** (reverse mutation), per-row + bulk                                            | `routes/obligations.tsx` lines 1750–1773                                        |
+| BlockerContextCard inline in `blocked` stage card                                                               | `apps/app/src/features/obligations/BlockerContextCard.tsx`                      |
+| Past-deadline banner inside Active Stage card                                                                   | `routes/obligations.tsx` (showOverdueBanner)                                    |
+| Payment-overdue chip in compact + expanded modes                                                                | `paymentOverdueDays` + Status column                                            |
+| Accepted pill collapsed into Completed card header                                                              | `ActiveStageDetailCard` header                                                  |
+| Standalone Accepted pill suppressed on Completed queue rows                                                     | Status cell render                                                              |
+| Bulk status mutation w/ partial-failure aware toast                                                             | `bulkUpdateStatus` + `bulkStatusMutation`                                       |
 
 ### 0.1.1 Shipped in this PRD's amendment pass (2026-05-27 evening)
 
-| Capability                                          | Source of truth                                 |
-| --------------------------------------------------- | ----------------------------------------------- |
-| Cycle detection in `updateObligationBlockedBy` (depth-bounded chain walk) | `_service.ts:510-540`                |
-| Auto-unblock context banner on `not_started` rows  | `ActiveStageDetailCard` in `routes/obligations.tsx` |
-| Confirmation toast on Skip ahead to drafting       | `handleTaskClick` case 'start'                  |
-| Coordinator read-only status dropdown w/ banner    | `ObligationQueueStatusControl` + `readOnly` prop |
-| Drawer header status pill (icon + text)            | Compact terminal strip uses `ObligationStatusReadBadge` |
+| Capability                                                                           | Source of truth                                                    |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
+| Cycle detection in `updateObligationBlockedBy` (depth-bounded chain walk)            | `_service.ts:510-540`                                              |
+| Auto-unblock context banner on `not_started` rows                                    | `ActiveStageDetailCard` in `routes/obligations.tsx`                |
+| Confirmation toast on Skip ahead to drafting                                         | `handleTaskClick` case 'start'                                     |
+| Coordinator read-only status dropdown w/ banner                                      | `ObligationQueueStatusControl` + `readOnly` prop                   |
+| Drawer header status pill (icon + text)                                              | Compact terminal strip uses `ObligationStatusReadBadge`            |
 | `readiness.materials_received` audit companion event on `waiting_on_client → review` | `_service.ts:updateObligationStatus` after the primary audit write |
 
 ### 0.2 Partial (⚠️)
 
-| Capability                                          | What's missing                                  |
-| --------------------------------------------------- | ----------------------------------------------- |
-| E-file rejection unwind                             | User-initiated via `markFiledRejected` dialog only — no e-file watcher / no automatic system-actor path. The auto-unwind described in §5.4 / §5.5 is **only the user dialog flow today**. |
-| Sub-state pipelines on `done` (e-file, payment)     | `updateEfileState` and `updatePaymentState` RPCs not shipped. Most `efileState` values surface as MANUAL reminders, not buttons. |
-| Auto-unblock target state                           | **Children flip to `pending` (Not started), NOT `waiting_on_client`** as a clean-slate. Audit row reads `before.status=blocked, after.status=pending`. |
-| Bulk transition UX polish                           | Server returns partial-failure map; toast surfaces it but per-row error attribution is terse. |
-| 8879 / authorization sub-pipeline                   | No mutation surface; manual reminders only.     |
+| Capability                                      | What's missing                                                                                                                                                                            |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| E-file rejection unwind                         | User-initiated via `markFiledRejected` dialog only — no e-file watcher / no automatic system-actor path. The auto-unwind described in §5.4 / §5.5 is **only the user dialog flow today**. |
+| Sub-state pipelines on `done` (e-file, payment) | `updateEfileState` and `updatePaymentState` RPCs not shipped. Most `efileState` values surface as MANUAL reminders, not buttons.                                                          |
+| Auto-unblock target state                       | **Children flip to `pending` (Not started), NOT `waiting_on_client`** as a clean-slate. Audit row reads `before.status=blocked, after.status=pending`.                                    |
+| Bulk transition UX polish                       | Server returns partial-failure map; toast surfaces it but per-row error attribution is terse.                                                                                             |
+| 8879 / authorization sub-pipeline               | No mutation surface; manual reminders only.                                                                                                                                               |
 
 ### 0.3 Deferred — needs dedicated slice (🟡)
 
@@ -85,23 +86,23 @@ Each item below was scoped during the PRD audit and confirmed to need
 its own PR (not polish-session scope). Effort estimates assume one
 engineer-day units.
 
-| Capability                                       | Notes                                              |
-| ------------------------------------------------ | -------------------------------------------------- |
-| Item | Why deferred | Estimated slice |
-| ---- | ------------ | --------------- |
-| `409 STALE_WRITE` concurrency guard | Adds `updatedAt` precondition to every mutation's RPC schema + server handler (compare-and-swap) + every client mutation site (handle 409). Touches the whole obligation-status surface. | 1–2 engineer-days |
-| Optimistic update + rollback on error | UI refactor across all status mutation callsites, swapping `invalidate-on-success` for `mutate-with-rollback`. Risk: regressions in the queue / drawer / bulk paths if any callsite is missed. | 0.5–1 engineer-day |
-| Sub-state preconditions on `→ completed` server-side | Requires per-`obligationType` rules (filing wants `efileState ∈ {accepted, paper_filed, final_package_delivered}`; payment wants `paymentState='confirmed'`). Today's demo seeds rely on the permissive path; would break tests without seed updates. | 0.5 engineer-day |
-| Sub-state pipeline RPCs (`updateEfileState`, `updatePaymentState`) | New server procedures + audit-event coverage + UI wiring on the `done`-state stage card to convert MANUAL reminders into one-click buttons. | 1–2 engineer-days |
-| `firm.autoUnblockChildren` opt-out flag | DB migration adding a column to `firms`; settings UI; cascade gate. Currently no firm has asked for this opt-out. | 0.5 engineer-day |
-| Restore-from-Completed admin path | UI affordance gated by `owner` role + confirmation dialog + audit reason capture. Matrix already allows `completed → pending`. | 0.5 engineer-day |
-| PostHog / analytics events | `posthog-js` is in package.json but has zero callsites — no provider, no capture pattern wired. Needs infra setup before any per-event emits. | 0.5 engineer-day (infra) + per-event |
-| E-file watcher (auto-rejection unwind) | Requires an external e-file vendor API integration. None wired today; the user-initiated `markFiledRejected` dialog covers the manual path. | Blocked on vendor selection |
-| `relatedObligationId` link surfaced in UI | Schema concept only — no column exists in `obligation_instance`. Migration + RPC + UI display needed. | 0.5–1 engineer-day |
-| Bulk transition error attribution | Per-row error map exists on server; UI toast prints terse `id: error`. Should map to client/form names + group by failure reason. | 1–2 hours |
-| `obligation.completed` distinct audit event | Decided NOT to add — `WHERE after.status='completed'` query is sufficient. PRD §7 amended accordingly. | n/a (cancelled) |
-| Confirmation toast on `waiting → review` w/ empty checklist | Already implemented — see `handleTaskClick` case 'received' (info toast routes user to Readiness tab when outstanding > 0). PRD §0.3 outdated. | ✅ done |
-| "Quality.self_review" flag for same-prep-and-review | Requires `assigneeId` vs. `reviewerId` distinction in schema. Not modeled today. | 0.5 engineer-day |
+| Capability                                                         | Notes                                                                                                                                                                                                                                                 |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| Item                                                               | Why deferred                                                                                                                                                                                                                                          | Estimated slice                      |
+| ----                                                               | ------------                                                                                                                                                                                                                                          | ---------------                      |
+| `409 STALE_WRITE` concurrency guard                                | Adds `updatedAt` precondition to every mutation's RPC schema + server handler (compare-and-swap) + every client mutation site (handle 409). Touches the whole obligation-status surface.                                                              | 1–2 engineer-days                    |
+| Optimistic update + rollback on error                              | UI refactor across all status mutation callsites, swapping `invalidate-on-success` for `mutate-with-rollback`. Risk: regressions in the queue / drawer / bulk paths if any callsite is missed.                                                        | 0.5–1 engineer-day                   |
+| Sub-state preconditions on `→ completed` server-side               | Requires per-`obligationType` rules (filing wants `efileState ∈ {accepted, paper_filed, final_package_delivered}`; payment wants `paymentState='confirmed'`). Today's demo seeds rely on the permissive path; would break tests without seed updates. | 0.5 engineer-day                     |
+| Sub-state pipeline RPCs (`updateEfileState`, `updatePaymentState`) | New server procedures + audit-event coverage + UI wiring on the `done`-state stage card to convert MANUAL reminders into one-click buttons.                                                                                                           | 1–2 engineer-days                    |
+| `firm.autoUnblockChildren` opt-out flag                            | DB migration adding a column to `firms`; settings UI; cascade gate. Currently no firm has asked for this opt-out.                                                                                                                                     | 0.5 engineer-day                     |
+| Restore-from-Completed admin path                                  | UI affordance gated by `owner` role + confirmation dialog + audit reason capture. Matrix already allows `completed → pending`.                                                                                                                        | 0.5 engineer-day                     |
+| PostHog / analytics events                                         | `posthog-js` is in package.json but has zero callsites — no provider, no capture pattern wired. Needs infra setup before any per-event emits.                                                                                                         | 0.5 engineer-day (infra) + per-event |
+| E-file watcher (auto-rejection unwind)                             | Requires an external e-file vendor API integration. None wired today; the user-initiated `markFiledRejected` dialog covers the manual path.                                                                                                           | Blocked on vendor selection          |
+| `relatedObligationId` link surfaced in UI                          | Schema concept only — no column exists in `obligation_instance`. Migration + RPC + UI display needed.                                                                                                                                                 | 0.5–1 engineer-day                   |
+| Bulk transition error attribution                                  | Per-row error map exists on server; UI toast prints terse `id: error`. Should map to client/form names + group by failure reason.                                                                                                                     | 1–2 hours                            |
+| `obligation.completed` distinct audit event                        | Decided NOT to add — `WHERE after.status='completed'` query is sufficient. PRD §7 amended accordingly.                                                                                                                                                | n/a (cancelled)                      |
+| Confirmation toast on `waiting → review` w/ empty checklist        | Already implemented — see `handleTaskClick` case 'received' (info toast routes user to Readiness tab when outstanding > 0). PRD §0.3 outdated.                                                                                                        | ✅ done                              |
+| "Quality.self_review" flag for same-prep-and-review                | Requires `assigneeId` vs. `reviewerId` distinction in schema. Not modeled today.                                                                                                                                                                      | 0.5 engineer-day                     |
 
 ### 0.4 Reading guide
 
@@ -125,7 +126,7 @@ same idea:
   Audit-defense workflows need to distinguish "filed but awaiting
   acceptance" from "accepted and closed."
 - `extended` was used as a status when it is properly a deadline
-  mutation (the row keeps moving forward; the *date* changes).
+  mutation (the row keeps moving forward; the _date_ changes).
 - `paid` was used both for "payment cleared" and as a synonym for
   closed payment-only obligations.
 
@@ -144,18 +145,18 @@ strict re-grouping, not a rename.
 Mapping (see `OBLIGATION_STATUS_DISPLAY_KEYS` in
 `packages/core/src/obligation-workflow/index.ts`):
 
-| Stored value | v2 display      |
-| ------------ | --------------- |
-| `pending`           | Not started        |
+| Stored value        | v2 display                                         |
+| ------------------- | -------------------------------------------------- |
+| `pending`           | Not started                                        |
 | `in_progress`       | In progress (legacy; surfaced only on legacy rows) |
-| `waiting_on_client` | Waiting on client  |
-| `blocked`           | Blocked            |
-| `review`            | In review          |
-| `done`              | Filed              |
-| `extended`          | Extended (legacy)  |
-| `paid`              | Paid (legacy; collapses into Completed) |
-| `not_applicable`    | Not applicable (legacy) |
-| `completed`         | Completed          |
+| `waiting_on_client` | Waiting on client                                  |
+| `blocked`           | Blocked                                            |
+| `review`            | In review                                          |
+| `done`              | Filed                                              |
+| `extended`          | Extended (legacy)                                  |
+| `paid`              | Paid (legacy; collapses into Completed)            |
+| `not_applicable`    | Not applicable (legacy)                            |
+| `completed`         | Completed                                          |
 
 V2 surfaces the six canonical states. The legacy values are kept
 addressable for audit history + admin tooling but are not introduced
@@ -204,13 +205,13 @@ into the dropdown for v2 rows.
 
 Defined in `packages/core/src/permissions/index.ts`.
 
-| Role         | Status write? | Typical actions                             |
-| ------------ | ------------- | ------------------------------------------- |
-| `owner`      | yes           | All transitions; admin recovery flows       |
-| `partner`    | yes           | All transitions; reviewer approval          |
-| `manager`    | yes           | All transitions; reviewer approval          |
-| `preparer`   | yes           | All transitions on assigned rows + claim    |
-| `coordinator`| **no**        | Read-only on status; can manage Materials   |
+| Role          | Status write? | Typical actions                           |
+| ------------- | ------------- | ----------------------------------------- |
+| `owner`       | yes           | All transitions; admin recovery flows     |
+| `partner`     | yes           | All transitions; reviewer approval        |
+| `manager`     | yes           | All transitions; reviewer approval        |
+| `preparer`    | yes           | All transitions on assigned rows + claim  |
+| `coordinator` | **no**        | Read-only on status; can manage Materials |
 
 Coordinator can open the status dropdown (so the row still reads
 intentional), but every option is disabled with a tooltip
@@ -222,16 +223,16 @@ The server enforces `obligation.status.update` independently
 
 ## 4. Glossary
 
-| Term            | Definition                                                      |
-| --------------- | --------------------------------------------------------------- |
-| Obligation      | A single tax filing/payment row tied to a client + due date     |
-| Status          | One of the six canonical lifecycle states                       |
+| Term            | Definition                                                            |
+| --------------- | --------------------------------------------------------------------- |
+| Obligation      | A single tax filing/payment row tied to a client + due date           |
+| Status          | One of the six canonical lifecycle states                             |
 | Sub-state       | `prepStage`, `reviewStage`, `efileState`, `paymentState`, `readiness` |
-| Stage card      | The drawer's active-status card with title + actions            |
-| Milestone strip | The six-step horizontal indicator above the stage card          |
-| Audit event     | A row in `audit_event` capturing one transition                 |
-| Active row      | Open (not Completed/Extended/Paid/NotApplicable)                |
-| Terminal row    | Closed — `completed`, `done`, `paid`, `extended`, `not_applicable` |
+| Stage card      | The drawer's active-status card with title + actions                  |
+| Milestone strip | The six-step horizontal indicator above the stage card                |
+| Audit event     | A row in `audit_event` capturing one transition                       |
+| Active row      | Open (not Completed/Extended/Paid/NotApplicable)                      |
+| Terminal row    | Closed — `completed`, `done`, `paid`, `extended`, `not_applicable`    |
 
 ---
 
@@ -247,12 +248,14 @@ drawer), **automation policy**, **error/edge cases**.
 **Meaning.** The obligation row exists. Nothing else has happened.
 
 **Entry conditions.**
+
 - Default state for new rows created by rules engine or `obligation.create`
   mutation.
 - Reachable from `not_applicable` (admin reset) and `waiting_on_client`
   (CPA explicitly reverses an unintended advance).
 
 **Invariants.**
+
 - `prepStage = 'not_started'`
 - `reviewStage = 'not_required'`
 - `efileState = 'not_applicable'`
@@ -262,14 +265,15 @@ drawer), **automation policy**, **error/edge cases**.
 
 **Exit transitions.**
 
-| To                  | Trigger                            | Preconditions             |
-| ------------------- | ---------------------------------- | ------------------------- |
-| `waiting_on_client` | Primary `Request documents from client` | Permission OK; assignee not required (auto-claim allowed) |
-| `review`            | Secondary `Skip ahead to drafting` | Permission OK; requires confirmation toast (no docs collected) |
-| `blocked`           | Dropdown                           | `blockedByObligationInstanceId` set |
-| `not_applicable`    | Dropdown                           | Admin/owner confirms; emits audit reason |
+| To                  | Trigger                                 | Preconditions                                                  |
+| ------------------- | --------------------------------------- | -------------------------------------------------------------- |
+| `waiting_on_client` | Primary `Request documents from client` | Permission OK; assignee not required (auto-claim allowed)      |
+| `review`            | Secondary `Skip ahead to drafting`      | Permission OK; requires confirmation toast (no docs collected) |
+| `blocked`           | Dropdown                                | `blockedByObligationInstanceId` set                            |
+| `not_applicable`    | Dropdown                                | Admin/owner confirms; emits audit reason                       |
 
 **Side effects.**
+
 - On `→ waiting_on_client` via the primary CTA: switches the drawer tab
   to Materials and opens the request composer.
 - On `→ review`: pre-populates the readiness checklist with a "All
@@ -277,6 +281,7 @@ drawer), **automation policy**, **error/edge cases**.
   silently.
 
 **UI.**
+
 - Queue pill: gray "Not started" + spinner-loader icon.
 - Stage card title: "Not started".
 - Overdue banner: shows when `currentDueDate < today`. Copy: "Filing was
@@ -289,6 +294,7 @@ drawer), **automation policy**, **error/edge cases**.
 **Automation policy.** No automatic exits.
 
 **Edge cases.**
+
 - Past-deadline `not_started` rows surface on Dashboard "Needs attention"
   with the overdue context.
 - If `blockedByObligationInstanceId` is set but `status = 'not_started'`,
@@ -303,14 +309,16 @@ drawer), **automation policy**, **error/edge cases**.
 holding for the client (or a third party) to provide documents.
 
 **Entry conditions.**
+
 - From `not_started`: `Request documents from client` primary action.
 - From `review` / `blocked`: dropdown.
 - From `done` (rejection cleanup): dropdown — re-collect missing
   pieces.
 
 **Invariants.**
+
 - `prepStage` is one of `waiting_on_client | waiting_on_third_party |
-  bookkeeping_cleanup | ready_for_prep`.
+bookkeeping_cleanup | ready_for_prep`.
 - `readiness ∈ {waiting, needs_review}`.
 - A materials checklist (`readinessChecklist`) exists; may be empty if
   the CPA hasn't generated/added items yet.
@@ -319,12 +327,12 @@ holding for the client (or a third party) to provide documents.
 
 **Exit transitions.**
 
-| To                  | Trigger                            | Preconditions             |
-| ------------------- | ---------------------------------- | ------------------------- |
-| `review`            | Primary `Mark materials received` | All checklist items received OR CPA confirms remainders are offline; opens prep stage = `preparing_return` |
-| `blocked`           | Secondary `Mark blocked`          | `blockedByObligationInstanceId` set in the same mutation |
-| `not_started`       | Dropdown                           | Confirmation toast: "Reset progress?" |
-| `not_applicable`    | Dropdown                           | Admin confirmation |
+| To               | Trigger                           | Preconditions                                                                                              |
+| ---------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `review`         | Primary `Mark materials received` | All checklist items received OR CPA confirms remainders are offline; opens prep stage = `preparing_return` |
+| `blocked`        | Secondary `Mark blocked`          | `blockedByObligationInstanceId` set in the same mutation                                                   |
+| `not_started`    | Dropdown                          | Confirmation toast: "Reset progress?"                                                                      |
+| `not_applicable` | Dropdown                          | Admin confirmation                                                                                         |
 
 **Sub-state branches** (alter the visible actions):
 
@@ -342,6 +350,7 @@ holding for the client (or a third party) to provide documents.
   up the client's books." Secondary still `Mark blocked`.
 
 **Side effects.**
+
 - On `→ review`: clears any open materials request (`MaterialsRequest`
   set to `responded` if still outstanding) and emits a
   `readiness.materials_received` audit event in addition to the status
@@ -350,6 +359,7 @@ holding for the client (or a third party) to provide documents.
   `prepStage` to `waiting_on_client` and opens the request composer.
 
 **UI.**
+
 - Queue pill: warning-tone "Waiting" + hourglass icon.
 - Stage card title: "Waiting on client" with sub-status sentence ("Days
   since entering Waiting").
@@ -359,6 +369,7 @@ holding for the client (or a third party) to provide documents.
 **Automation policy.** None. The portal updates per-item state only.
 
 **Edge cases.**
+
 - Multiple recipients on a single request: status moves once the CPA
   decides "received," irrespective of which client member responded.
 - Request expired (`expiresAt < now`): UI surfaces a "Client response
@@ -375,12 +386,14 @@ usually an upstream return whose output we need (parent K-1, related
 entity filing) or an IRS notice that must be cleared first.
 
 **Entry conditions.**
+
 - Reachable from any open state via dropdown OR via the `Mark blocked`
   secondary CTA on `waiting_on_client`.
 - Requires `blockedByObligationInstanceId` to be set in the same
   mutation (server validates).
 
 **Invariants.**
+
 - `blockedByObligationInstanceId` is non-null and references an
   obligation in the same firm.
 - The blocker row may be in any state — even Completed, briefly, until
@@ -388,11 +401,11 @@ entity filing) or an IRS notice that must be cleared first.
 
 **Exit transitions.**
 
-| To                  | Trigger                                   | Preconditions             |
-| ------------------- | ----------------------------------------- | ------------------------- |
-| `waiting_on_client` | Primary `Mark upstream return resolved`   | Clears `blockedByObligationInstanceId` in the same mutation |
-| `review`            | Dropdown                                  | If CPA wants to bypass docs |
-| `not_started`       | Dropdown                                  | Reset — confirmation toast |
+| To                  | Trigger                                 | Preconditions                                               |
+| ------------------- | --------------------------------------- | ----------------------------------------------------------- |
+| `waiting_on_client` | Primary `Mark upstream return resolved` | Clears `blockedByObligationInstanceId` in the same mutation |
+| `review`            | Dropdown                                | If CPA wants to bypass docs                                 |
+| `not_started`       | Dropdown                                | Reset — confirmation toast                                  |
 
 **Automatic unblock (✅ shipped, inline cascade).** When the blocker
 obligation transitions to `completed`, the same `updateStatus`
@@ -413,6 +426,7 @@ The toast described in earlier drafts ("Unblocked by acceptance of …")
 is **🟡 not yet shipped** — the audit row is the only signal today.
 
 **Side effects.**
+
 - Emits an audit event with `entityType = 'obligation_instance'`,
   `action = 'obligation.status.updated'`, `reason` describing the
   blocker (auto-unblock vs. manual).
@@ -421,6 +435,7 @@ is **🟡 not yet shipped** — the audit row is the only signal today.
   case).
 
 **UI.**
+
 - Queue pill: warning-tone "Blocked" + construction icon.
 - Drawer stage card embeds `BlockerContextCard` — shows the blocker's
   form, client, due date, and status with a click target that opens
@@ -435,6 +450,7 @@ parent `→ completed`. 🟡 The per-firm opt-out flag
 (`firm.autoUnblockChildren`) is spec-only — not implemented.
 
 **Edge cases.**
+
 - 🟡 Blocker is deleted before child unblocks: no `parent.gone` audit
   event today; child stays `blocked` with a stale FK. The UI does not
   yet surface "link broken."
@@ -453,40 +469,43 @@ parent `→ completed`. 🟡 The per-firm opt-out flag
 sub-state field `reviewStage` tracks how far review has progressed.
 
 **Entry conditions.**
+
 - From `waiting_on_client`: primary `Mark materials received`.
 - From `not_started`: secondary `Skip ahead to drafting`.
 - From `done`: server-side automatic on e-file rejection.
 - From `blocked`: dropdown.
 
 **Invariants.**
+
 - `prepStage` ∈ `{ready_for_prep, in_prep, prepared}` typically.
 - `reviewStage` ∈ `{ready_for_review, in_review, notes_open, approved,
-  overridden}`.
+overridden}`.
 - An assignee should exist; server emits a soft warning if missing.
 
 **Sub-states (`reviewStage`).**
 
-| Stage              | Meaning                                | Primary action                           |
-| ------------------ | -------------------------------------- | ---------------------------------------- |
-| `ready_for_review` | Draft ready; reviewer hasn't started   | "Send to review" — flips to `in_review`  |
-| `in_review`        | Reviewer is actively going through it  | "Approve return" (or "Approve corrected return" post-rejection) — flips to `approved` |
-| `notes_open`       | Reviewer left notes for preparer       | "Mark notes addressed" — back to `in_review` |
-| `approved`         | Ready to file                          | "Mark return submitted to authority" — flips status to `done` |
-| `overridden`       | Senior bypassed review                 | Same as `approved`                       |
-| `not_required`     | Self-review only                       | Goes straight to "Mark return submitted to authority" |
+| Stage              | Meaning                               | Primary action                                                                        |
+| ------------------ | ------------------------------------- | ------------------------------------------------------------------------------------- |
+| `ready_for_review` | Draft ready; reviewer hasn't started  | "Send to review" — flips to `in_review`                                               |
+| `in_review`        | Reviewer is actively going through it | "Approve return" (or "Approve corrected return" post-rejection) — flips to `approved` |
+| `notes_open`       | Reviewer left notes for preparer      | "Mark notes addressed" — back to `in_review`                                          |
+| `approved`         | Ready to file                         | "Mark return submitted to authority" — flips status to `done`                         |
+| `overridden`       | Senior bypassed review                | Same as `approved`                                                                    |
+| `not_required`     | Self-review only                      | Goes straight to "Mark return submitted to authority"                                 |
 
 A secondary `Leave note for preparer` is available in `in_review` and
 opens `notes_open` after writing.
 
 **Exit transitions (status-level).**
 
-| To                  | Trigger                                          | Preconditions             |
-| ------------------- | ------------------------------------------------ | ------------------------- |
-| `done`              | Primary `Mark return submitted to authority`     | `reviewStage ∈ approved | overridden | not_required` |
-| `waiting_on_client` | Dropdown                                         | If reviewer flags missing docs |
-| `blocked`           | Dropdown                                         | `blockedByObligationInstanceId` set |
+| To                  | Trigger                                      | Preconditions                       |
+| ------------------- | -------------------------------------------- | ----------------------------------- | ---------- | ------------- |
+| `done`              | Primary `Mark return submitted to authority` | `reviewStage ∈ approved             | overridden | not_required` |
+| `waiting_on_client` | Dropdown                                     | If reviewer flags missing docs      |
+| `blocked`           | Dropdown                                     | `blockedByObligationInstanceId` set |
 
 **Side effects.**
+
 - On `→ done`: writes `audit.submitted_at` timestamp; resets
   `efileState` to `submitted` if the row is e-file enabled, else
   `paper_filed`.
@@ -494,6 +513,7 @@ opens `notes_open` after writing.
   before/after.
 
 **UI.**
+
 - Queue pill: accent-tone "In review" + chat icon.
 - Stage card title: "In review · {sub-status sentence}" where the
   sentence names the reviewer step.
@@ -501,6 +521,7 @@ opens `notes_open` after writing.
 - Workload page lists the row under the reviewer if assigned.
 
 **Automation policy.**
+
 - No automatic stage advancement.
 - ⚠️ Rejection unwind: `markFiledRejected` mutation flips
   `done → review`, sets `efileRejectedAt`, and writes an
@@ -511,6 +532,7 @@ opens `notes_open` after writing.
   clicked the dialog.
 
 **Edge cases.**
+
 - Same person prepares and reviews: server allows it but emits a
   `quality.self_review` audit flag for compliance reports.
 - Re-review after corrections: label flips to "Approve corrected
@@ -526,29 +548,31 @@ perspective, the prep + review work is finished. The row is in a
 "waiting on the authority + waiting for payment" holding pattern.
 
 **Entry conditions.**
+
 - From `review`: primary `Mark return submitted to authority`.
 - From `paid` or `extended`: legacy migration paths.
 
 **Invariants.**
+
 - `audit.submitted_at` set.
 - `efileState ∈ {submitted, accepted, rejected, corrected_resubmitted,
-  paper_filed, final_package_delivered}`.
+paper_filed, final_package_delivered}`.
 - `paymentState` may walk independently.
 - `reviewStage` frozen at `approved | overridden | not_required`.
 
 **Sub-states (e-file pipeline, `efileState`).**
 
-| State                      | Meaning                                | UI primary                      |
-| -------------------------- | -------------------------------------- | ------------------------------- |
-| `authorization_requested`  | 8879 sent to client (manual today)    | Reminder: "Send 8879 to client" |
-| `authorization_signed`     | 8879 returned                          | Reminder: "Upload signed 8879"  |
-| `ready_to_submit`          | Drafted and ready to e-file           | Reminder: "E-file the return"   |
-| `submitted`                | Transmitted to authority              | Reminder: "Watch for acceptance"|
-| `accepted`                 | Authority accepted                     | Primary: "Mark deadline complete" → flips to `completed` |
-| `rejected`                 | Authority rejected                     | Auto-unwind to `review` (see §5.4) |
-| `corrected_resubmitted`    | Re-submitted after correction          | Reminder: "Watch for acceptance"|
-| `paper_filed`              | Filed on paper                         | Primary: "Mark deadline complete" |
-| `final_package_delivered`  | Final package sent to client           | Primary: "Mark deadline complete" |
+| State                     | Meaning                            | UI primary                                               |
+| ------------------------- | ---------------------------------- | -------------------------------------------------------- |
+| `authorization_requested` | 8879 sent to client (manual today) | Reminder: "Send 8879 to client"                          |
+| `authorization_signed`    | 8879 returned                      | Reminder: "Upload signed 8879"                           |
+| `ready_to_submit`         | Drafted and ready to e-file        | Reminder: "E-file the return"                            |
+| `submitted`               | Transmitted to authority           | Reminder: "Watch for acceptance"                         |
+| `accepted`                | Authority accepted                 | Primary: "Mark deadline complete" → flips to `completed` |
+| `rejected`                | Authority rejected                 | Auto-unwind to `review` (see §5.4)                       |
+| `corrected_resubmitted`   | Re-submitted after correction      | Reminder: "Watch for acceptance"                         |
+| `paper_filed`             | Filed on paper                     | Primary: "Mark deadline complete"                        |
+| `final_package_delivered` | Final package sent to client       | Primary: "Mark deadline complete"                        |
 
 Today, only `submitted`, `accepted`, `rejected`, `paper_filed`, and
 `final_package_delivered` are wired to mutations. The other sub-states
@@ -559,19 +583,21 @@ them when `updateEfileState` RPC ships.
 
 **Exit transitions (status-level).**
 
-| To                  | Trigger                                   | Preconditions             |
-| ------------------- | ----------------------------------------- | ------------------------- |
-| `completed`         | Primary `Mark deadline complete`          | `efileState` is a final-positive value OR `paymentState = confirmed` for payment-only |
-| `review`            | Dropdown OR auto-unwind                   | Rejection event           |
-| `waiting_on_client` | Dropdown                                  | Rare — re-collect a piece |
+| To                  | Trigger                          | Preconditions                                                                         |
+| ------------------- | -------------------------------- | ------------------------------------------------------------------------------------- |
+| `completed`         | Primary `Mark deadline complete` | `efileState` is a final-positive value OR `paymentState = confirmed` for payment-only |
+| `review`            | Dropdown OR auto-unwind          | Rejection event                                                                       |
+| `waiting_on_client` | Dropdown                         | Rare — re-collect a piece                                                             |
 
 **Side effects.**
+
 - On `→ completed`: emits `obligation.completed` audit event with
   acceptance date + payment confirmation date.
 - On auto-unwind via rejection: emits `obligation.rejected_unwound`
   with the authority's reject code + reason as `before/after` JSON.
 
 **UI.**
+
 - Queue pill: success-tone "Filed" + file-check icon.
 - Status column may also show: `Payment Nd late` icon-chip
   (`CircleDollarSign`, gray) in compact mode; full pill in expanded
@@ -580,6 +606,7 @@ them when `updateEfileState` RPC ships.
 - Milestone strip's Filed step shows the filing date.
 
 **Automation policy.**
+
 - ⚠️ Rejection unwind is user-initiated via `markFiledRejected` (see
   §5.4). The PRD's "automatic system-actor on watcher" is 🟡 spec-
   only.
@@ -592,10 +619,11 @@ them when `updateEfileState` RPC ships.
   server is permissive.
 
 **Edge cases.**
+
 - Filed-but-payment-overdue: row stays `done`, but Dashboard
   "Needs attention" includes it with a `Payment Nd late` chip.
 - Paper-filed returns: skip the e-file sub-states; `efileState =
-  paper_filed` from day one and the primary is "Mark deadline
+paper_filed` from day one and the primary is "Mark deadline
   complete" immediately.
 
 ---
@@ -606,27 +634,32 @@ them when `updateEfileState` RPC ships.
 applicable), the row is historical record.
 
 **Entry conditions.**
+
 - From `done`: primary `Mark deadline complete`.
 - From `paid` (legacy): admin/migration script.
 
 **Invariants.**
+
 - All sub-state fields frozen.
 - `audit.completed_at` set.
 - `assigneeId` may stay (informational); no further mutations expected.
 
 **Exit transitions.**
+
 - **None in the dropdown.** `completed → pending` is the only legal
   transition in the matrix but is intentionally NOT exposed in the UI.
   Admin-only "Restore obligation" path is a future slice (requires
   documented override reason + escalated permission).
 
 **Side effects.**
+
 - Triggers `parent.resolved` job (see §5.3 auto-unblock).
 - Closes any open materials requests as `responded` (defensive).
 - Removes the row from Dashboard "Needs attention" and Workload's
   active list.
 
 **UI.**
+
 - Queue pill: solid green "Completed" + circle-check icon.
 - The standalone `Accepted` row badge is suppressed (Completed implies
   acceptance) to avoid double-signalling — see merged-pill audit.
@@ -640,6 +673,7 @@ applicable), the row is historical record.
 **Automation policy.** Terminal — no exits.
 
 **Edge cases.**
+
 - IRS later issues a notice: create a new obligation row (typically a
   `client_action` or `internal_review` type) linked via
   `relatedObligationId`. Do NOT reopen the completed row.
@@ -655,19 +689,20 @@ Source: `OBLIGATION_TRANSITIONS` in
 the underlying matrix still includes legacy values for back-compat but
 they don't appear in the v2 dropdown.
 
-|         | → Not started | → Waiting | → Blocked | → In review | → Filed | → Completed |
-| ------- | :-: | :-: | :-: | :-: | :-: | :-: |
-| **Not started** | — | ✅ primary | ✅ | ✅ secondary | — | — |
-| **Waiting**     | ✅ admin | — | ✅ secondary | ✅ primary | — | — |
-| **Blocked**     | ✅ | ✅ primary | — | ✅ | — | — |
-| **In review**   | — | ✅ | ✅ | — | ✅ primary | — |
-| **Filed**       | — | ✅ rare | — | ✅ (auto on rejection) | — | ✅ primary |
-| **Completed**   | ❌ (admin override only) | — | — | — | — | — |
+|                 |      → Not started       | → Waiting  |  → Blocked   |      → In review       |  → Filed   | → Completed |
+| --------------- | :----------------------: | :--------: | :----------: | :--------------------: | :--------: | :---------: |
+| **Not started** |            —             | ✅ primary |      ✅      |      ✅ secondary      |     —      |      —      |
+| **Waiting**     |         ✅ admin         |     —      | ✅ secondary |       ✅ primary       |     —      |      —      |
+| **Blocked**     |            ✅            | ✅ primary |      —       |           ✅           |     —      |      —      |
+| **In review**   |            —             |     ✅     |      ✅      |           —            | ✅ primary |      —      |
+| **Filed**       |            —             |  ✅ rare   |      —       | ✅ (auto on rejection) |     —      | ✅ primary  |
+| **Completed**   | ❌ (admin override only) |     —      |      —       |           —            |     —      |      —      |
 
-`✅` = legal & exposed in dropdown.  `❌` = legal in the matrix but not
-exposed.  `—` = illegal.
+`✅` = legal & exposed in dropdown. `❌` = legal in the matrix but not
+exposed. `—` = illegal.
 
 **Auto transitions (cascade triggered by user actions):**
+
 1. ✅ `blocked → pending` for every dependent child when a blocker
    row enters `completed`. Inline cascade inside the parent's
    `updateStatus` transaction. Audit action:
@@ -689,19 +724,20 @@ This is the contract between status changes and other parts of the
 system. Cross-reference with the audit-event coverage in
 [milestone-audit.md](./milestone-audit.md).
 
-| Transition               | Audit event (shipped)               | Notifications                          | Other side effects                       |
-| ------------------------ | ------------------------------------ | -------------------------------------- | ---------------------------------------- |
-| `not_started → waiting`  | ✅ `obligation.status.updated`       | 🟡 No targeted notification today      | ✅ Opens Materials tab in UI; 🟡 server does not pre-create a request |
-| `not_started → review`   | ✅ `obligation.status.updated`       | 🟡 No targeted notification             | 🟡 `reviewStage = preparing_return` is the default for new rows; not actively set by this transition. |
-| `waiting → review`       | ✅ `obligation.status.updated`       | 🟡 No targeted notification             | 🟡 The `readiness.materials_received` companion event in older drafts does not exist in code. |
-| `* → blocked`            | ✅ `obligation.status.updated`       | 🟡 No targeted notification             | ⚠️ `blockedByObligationInstanceId` should be set in the same payload; server does not currently reject the call if it's null. |
-| `blocked → pending`       | ✅ `obligation.status.auto_unblocked` (cascade from parent's completion) | 🟡 No toast on child render today | ✅ Cleared `blockedByObligationInstanceId` |
-| `blocked → waiting` (manual) | ✅ `obligation.status.updated`    | 🟡 No targeted notification             | —                                        |
-| `review → done`          | ✅ `obligation.status.updated`       | 🟡 No targeted notification             | 🟡 `efileState` is NOT auto-set by this transition today — it stays at whatever value it had. |
-| `done → review` (rejection) | ✅ `obligation.efile.rejected` + ✅ `obligation.status.updated` | 🟡 No targeted notification | ✅ Sets `efileRejectedAt`. Trigger is user dialog, not watcher. |
-| `done → completed`       | ✅ `obligation.status.updated` (no distinct `obligation.completed` event) | 🟡 No targeted notification | ✅ Triggers `unblockChildrenOf` cascade |
+| Transition                   | Audit event (shipped)                                                     | Notifications                     | Other side effects                                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `not_started → waiting`      | ✅ `obligation.status.updated`                                            | 🟡 No targeted notification today | ✅ Opens Materials tab in UI; 🟡 server does not pre-create a request                                                         |
+| `not_started → review`       | ✅ `obligation.status.updated`                                            | 🟡 No targeted notification       | 🟡 `reviewStage = preparing_return` is the default for new rows; not actively set by this transition.                         |
+| `waiting → review`           | ✅ `obligation.status.updated`                                            | 🟡 No targeted notification       | 🟡 The `readiness.materials_received` companion event in older drafts does not exist in code.                                 |
+| `* → blocked`                | ✅ `obligation.status.updated`                                            | 🟡 No targeted notification       | ⚠️ `blockedByObligationInstanceId` should be set in the same payload; server does not currently reject the call if it's null. |
+| `blocked → pending`          | ✅ `obligation.status.auto_unblocked` (cascade from parent's completion)  | 🟡 No toast on child render today | ✅ Cleared `blockedByObligationInstanceId`                                                                                    |
+| `blocked → waiting` (manual) | ✅ `obligation.status.updated`                                            | 🟡 No targeted notification       | —                                                                                                                             |
+| `review → done`              | ✅ `obligation.status.updated`                                            | 🟡 No targeted notification       | 🟡 `efileState` is NOT auto-set by this transition today — it stays at whatever value it had.                                 |
+| `done → review` (rejection)  | ✅ `obligation.efile.rejected` + ✅ `obligation.status.updated`           | 🟡 No targeted notification       | ✅ Sets `efileRejectedAt`. Trigger is user dialog, not watcher.                                                               |
+| `done → completed`           | ✅ `obligation.status.updated` (no distinct `obligation.completed` event) | 🟡 No targeted notification       | ✅ Triggers `unblockChildrenOf` cascade                                                                                       |
 
 Every audit event is written via `scoped.audit.write` and includes:
+
 - `actorId` (no `system` channel today — user-initiated transitions
   write the user's id; cascade auto-unblock rows write the parent-
   completing user's id).
@@ -715,6 +751,7 @@ Every audit event is written via `scoped.audit.write` and includes:
 side-effect notification ships from `updateStatus` today.
 
 Every audit event is written via `scoped.audit.write` and includes:
+
 - `actorId` (or `system` actor)
 - `entityType: 'obligation_instance'`
 - `entityId` (the row's ID)
@@ -728,13 +765,13 @@ Every audit event is written via `scoped.audit.write` and includes:
 Server is authoritative; UI mirrors. Source:
 `FIRM_PERMISSION_ROLES['obligation.status.update']`.
 
-| Role         | Can change status? | Notes                                       |
-| ------------ | :----------------: | ------------------------------------------- |
-| `owner`      | ✅                  | All transitions including admin reset       |
-| `partner`    | ✅                  | All transitions                             |
-| `manager`    | ✅                  | All transitions                             |
-| `preparer`   | ✅                  | All transitions; should typically be the assignee |
-| `coordinator`| ❌                  | Read-only; dropdown shows all options disabled with tooltip |
+| Role          | Can change status? | Notes                                                       |
+| ------------- | :----------------: | ----------------------------------------------------------- |
+| `owner`       |         ✅         | All transitions including admin reset                       |
+| `partner`     |         ✅         | All transitions                                             |
+| `manager`     |         ✅         | All transitions                                             |
+| `preparer`    |         ✅         | All transitions; should typically be the assignee           |
+| `coordinator` |         ❌         | Read-only; dropdown shows all options disabled with tooltip |
 
 A future "assignee-only" tightening (preparer can only change status on
 rows assigned to them) is parked — current model trusts firm policy
@@ -747,19 +784,19 @@ for that boundary.
 Every place a status appears must read from the canonical model. No
 surface invents its own labels.
 
-| Surface                               | What it shows                                          |
-| ------------------------------------- | ------------------------------------------------------ |
-| `/deadlines` Status column            | Pill (icon + label); chips for blocker / rejection / payment-late |
-| `/deadlines` scope tabs               | One tab per state with facet count                     |
-| Obligation drawer header              | Form title + tax year (no status pill — table is canonical) |
-| Obligation drawer Summary tab         | Milestone strip, Active Stage card, Authority Response |
-| Obligation drawer Materials tab pill  | Outstanding count if open; check icon if all received  |
-| Dashboard "Needs attention"           | `not_started`, `waiting_on_client`, `blocked` rows + Filed-with-payment-overdue |
-| Dashboard Today summary               | Past-due totals per state                              |
-| Pulse alerts                          | `Blocked` rows surfaced as triage subjects             |
-| Calendar                              | All states colored per pill palette                    |
-| Workload                              | All open states grouped by assignee                    |
-| Audit log                             | Every transition with actor + reason                   |
+| Surface                              | What it shows                                                                   |
+| ------------------------------------ | ------------------------------------------------------------------------------- |
+| `/deadlines` Status column           | Pill (icon + label); chips for blocker / rejection / payment-late               |
+| `/deadlines` scope tabs              | One tab per state with facet count                                              |
+| Obligation drawer header             | Form title + tax year (no status pill — table is canonical)                     |
+| Obligation drawer Summary tab        | Milestone strip, Active Stage card, Authority Response                          |
+| Obligation drawer Materials tab pill | Outstanding count if open; check icon if all received                           |
+| Dashboard "Needs attention"          | `not_started`, `waiting_on_client`, `blocked` rows + Filed-with-payment-overdue |
+| Dashboard Today summary              | Past-due totals per state                                                       |
+| Pulse alerts                         | `Blocked` rows surfaced as triage subjects                                      |
+| Calendar                             | All states colored per pill palette                                             |
+| Workload                             | All open states grouped by assignee                                             |
+| Audit log                            | Every transition with actor + reason                                            |
 
 The v2 label hook is `OBLIGATION_STATUS_DISPLAY_KEYS`; every surface
 imports it instead of hardcoding strings.
@@ -770,12 +807,12 @@ imports it instead of hardcoding strings.
 
 How the row's stored dates are interpreted per state:
 
-| Field             | not_started | waiting | blocked | review | done | completed |
-| ----------------- | :---------: | :-----: | :-----: | :----: | :--: | :-------: |
-| `currentDueDate`  | active      | active  | active  | active | meta | meta      |
-| `internalDueDate` | active      | active  | active  | active | meta | meta      |
-| `paymentDueDate`  | active if set | active | active  | active | **still active** | meta |
-| `expectedFiledAt` | computed    | computed | computed | computed | actual | actual  |
+| Field             |  not_started  | waiting  | blocked  |  review  |       done       | completed |
+| ----------------- | :-----------: | :------: | :------: | :------: | :--------------: | :-------: |
+| `currentDueDate`  |    active     |  active  |  active  |  active  |       meta       |   meta    |
+| `internalDueDate` |    active     |  active  |  active  |  active  |       meta       |   meta    |
+| `paymentDueDate`  | active if set |  active  |  active  |  active  | **still active** |   meta    |
+| `expectedFiledAt` |   computed    | computed | computed | computed |      actual      |  actual   |
 
 "Active" means the date drives the overdue UI (red pill + banner).
 "Meta" means it shows as historical record only.
@@ -810,14 +847,14 @@ All status mutations go through `obligation.updateStatus` RPC.
 
 ### 11.2 Client error handling
 
-| Server response | UI behaviour (current vs spec)                                            |
-| --------------- | ------------------------------------------------------------------------- |
-| `200 OK`        | ✅ Cache invalidation + toast "Status changed to {X}" with Undo (no time-out today; sonner's default ~4 s applies) |
-| `400 BAD_TRANSITION` | ✅ Toast "Couldn't update status" with rpc error message; no optimistic to revert. |
-| `400 PRECONDITION_NOT_MET` | 🟡 Not surfaced as a distinct case (preconditions not enforced server-side yet). |
-| `403 FORBIDDEN` | ✅ Toast "Couldn't update status" with the error code; coordinator UI also keeps the dropdown items disabled so this is rare. |
-| `409 STALE_WRITE` | 🟡 Spec-only. No conflict resolution today.                              |
-| `5xx`           | ✅ Generic "Couldn't update status — Check your network and try again."   |
+| Server response            | UI behaviour (current vs spec)                                                                                                |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `200 OK`                   | ✅ Cache invalidation + toast "Status changed to {X}" with Undo (no time-out today; sonner's default ~4 s applies)            |
+| `400 BAD_TRANSITION`       | ✅ Toast "Couldn't update status" with rpc error message; no optimistic to revert.                                            |
+| `400 PRECONDITION_NOT_MET` | 🟡 Not surfaced as a distinct case (preconditions not enforced server-side yet).                                              |
+| `403 FORBIDDEN`            | ✅ Toast "Couldn't update status" with the error code; coordinator UI also keeps the dropdown items disabled so this is rare. |
+| `409 STALE_WRITE`          | 🟡 Spec-only. No conflict resolution today.                                                                                   |
+| `5xx`                      | ✅ Generic "Couldn't update status — Check your network and try again."                                                       |
 
 ### 11.3 Optimistic update + Undo
 
@@ -890,6 +927,7 @@ joined from `members` if needed for reports.
 `obligation_status_changed` event with derived fields
 (`time_in_previous_state_ms`, `was_past_due`, etc.) has not been
 wired. Today the audit log is the sole source for:
+
 - Stuck-in-stage reports
 - Median time-in-stage analyses
 - Rejection-rate dashboards
@@ -931,20 +969,20 @@ analytics emit lands.
 
 Each scenario notes whether the current implementation matches.
 
-| Scenario | Expected behaviour | Status |
-| -------- | ------------------ | :----: |
-| Coordinator opens status dropdown | All items disabled; tooltip explains why | ✅ |
-| Preparer moves `not_started → waiting` | Materials tab opens; user composes the request | ✅ (open tab) / 🟡 (pre-fill) |
-| Preparer moves `waiting → review` with empty checklist | Confirmation toast before mutate | 🟡 not implemented |
-| User clicks `Mark deadline complete` on a `done` row with `efileState=submitted` | Server `PRECONDITION_NOT_MET` toast | 🟡 server permissive today; UI may allow it |
-| User records authority rejection via dialog | Row flips `done → review`, `efileRejectedAt` set, `obligation.efile.rejected` audit row | ✅ |
-| E-file watcher fires rejection on a `done` row | Row auto-unwinds without user dialog | 🟡 spec-only |
-| Parent reaches `completed` with a `blocked` child | Child flips inline to `pending`, `auto_unblocked` audit row written | ✅ |
-| User changes status, clicks Undo | Reverse mutation; second `obligation.status.updated` row in audit | ✅ |
-| Two users edit the same row simultaneously | Second gets `STALE_WRITE` | 🟡 spec-only — last-write-wins today |
-| Status changes while drawer is open | Drawer re-reads via `invalidateQueries`; pills + actions update | ✅ |
-| Past-deadline row stays past-deadline through a status change | Overdue banner copy reflects the new stage | ✅ |
-| Setting a cyclic blocker (A→B→A) | Server rejects with `400 CYCLE_DETECTED` | 🟡 spec-only |
+| Scenario                                                                         | Expected behaviour                                                                      |                   Status                    |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | :-----------------------------------------: |
+| Coordinator opens status dropdown                                                | All items disabled; tooltip explains why                                                |                     ✅                      |
+| Preparer moves `not_started → waiting`                                           | Materials tab opens; user composes the request                                          |        ✅ (open tab) / 🟡 (pre-fill)        |
+| Preparer moves `waiting → review` with empty checklist                           | Confirmation toast before mutate                                                        |             🟡 not implemented              |
+| User clicks `Mark deadline complete` on a `done` row with `efileState=submitted` | Server `PRECONDITION_NOT_MET` toast                                                     | 🟡 server permissive today; UI may allow it |
+| User records authority rejection via dialog                                      | Row flips `done → review`, `efileRejectedAt` set, `obligation.efile.rejected` audit row |                     ✅                      |
+| E-file watcher fires rejection on a `done` row                                   | Row auto-unwinds without user dialog                                                    |                🟡 spec-only                 |
+| Parent reaches `completed` with a `blocked` child                                | Child flips inline to `pending`, `auto_unblocked` audit row written                     |                     ✅                      |
+| User changes status, clicks Undo                                                 | Reverse mutation; second `obligation.status.updated` row in audit                       |                     ✅                      |
+| Two users edit the same row simultaneously                                       | Second gets `STALE_WRITE`                                                               |    🟡 spec-only — last-write-wins today     |
+| Status changes while drawer is open                                              | Drawer re-reads via `invalidateQueries`; pills + actions update                         |                     ✅                      |
+| Past-deadline row stays past-deadline through a status change                    | Overdue banner copy reflects the new stage                                              |                     ✅                      |
+| Setting a cyclic blocker (A→B→A)                                                 | Server rejects with `400 CYCLE_DETECTED`                                                |                🟡 spec-only                 |
 
 ---
 
@@ -954,15 +992,15 @@ Ordered by priority. Items marked 🟡 in the audit (§0.3) are
 candidates here.
 
 1. **Concurrency guard.** Wire `updatedAt` precondition + `409
-   STALE_WRITE` so simultaneous edits don't silently overwrite.
+STALE_WRITE` so simultaneous edits don't silently overwrite.
    Surfaces in bulk operations more than single-row.
 2. **Sub-state RPCs.** Ship `updateEfileState` and `updatePaymentState`
    so the manual reminders on `done` become real buttons. Unlocks the
    acceptance/payment sub-state UI fully.
 3. **Server-side preconditions on `→ completed`.** Once sub-states are
    real, gate `done → completed` on `efileState ∈ {accepted,
-   paper_filed, final_package_delivered}` or `paymentState =
-   confirmed`. Today the UI is the only gate.
+paper_filed, final_package_delivered}` or `paymentState =
+confirmed`. Today the UI is the only gate.
 4. **System-actor channel + e-file watcher.** Move rejection unwind
    from a user dialog to a watcher that fires `markFiledRejected`
    with `actorType = 'system'`. Requires a new actor type in

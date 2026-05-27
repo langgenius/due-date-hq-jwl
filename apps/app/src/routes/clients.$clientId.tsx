@@ -8,7 +8,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { ClientDetailWorkspace } from '@/features/clients/ClientFactsWorkspace'
+import { ClientDetailWorkspace } from '@/features/clients/ClientDetailWorkspace'
 import { getClientReadiness } from '@/features/clients/client-readiness'
 import {
   clientIdFromRouteKey,
@@ -89,7 +89,7 @@ export function ClientDetailRoute() {
     // `flex w-full flex-col` with horizontal padding only.
     <div
       className={cn(
-        'flex w-full flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
         'xl:h-screen xl:overflow-hidden',
       )}
     >

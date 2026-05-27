@@ -183,21 +183,24 @@ function NeedsAttentionSection() {
       </div>
 
       {totalAlertCount > 0 ? (
-        // 2026-05-27 (Yuqi follow-up — "alert card is not occupying the
-        // full width"): the previous grid stacked two alerts side-by-
-        // side (`grid-cols-2`) and reserved a 160px overflow column.
-        // Side-by-side narrows each card and forces the alert body to
-        // wrap — at one alert it was full-width, at two it suddenly
-        // chopped in half. Now every alert renders as a full-width row
-        // stacked vertically. The overflow card sits as a final row at
-        // the same width, so the section reads top-to-bottom like a
-        // mini-inbox instead of a 2-column tile grid.
+        // 2026-05-28 (Yuqi follow-up — "应该要横排"): now that /today
+        // uses max-w-page-expanded (1440), the alert cards fit side-
+        // by-side comfortably (each gets ~700px+ on desktop). Reverted
+        // the 2026-05-27 vertical stack — cards now wrap horizontally
+        // via `flex-wrap` with `flex-1 min-w-[320px]`, gracefully
+        // dropping to a stack on mobile (<640px). Each card's wrapper
+        // uses `flex` so the inner button's `h-full` stretches the
+        // shorter cards to match the tallest in a row. The overflow
+        // "View N more" link is a small inline tail beneath the row
+        // — it was an awkward peer when stretched to a card-sized cell.
         <div className="flex flex-col gap-2">
-          {visibleAlerts.map((alert) => (
-            <div key={alert.id} className="min-w-0">
-              <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
-            </div>
-          ))}
+          <div className="flex flex-wrap gap-2">
+            {visibleAlerts.map((alert) => (
+              <div key={alert.id} className="flex min-w-[320px] flex-1">
+                <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
+              </div>
+            ))}
+          </div>
           {overflowCount > 0 ? (
             <NeedsAttentionOverflowCard
               count={overflowCount}

@@ -126,7 +126,7 @@ export function SettingsRoute() {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-6 py-6">
+        <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-6 md:px-6">
           <PageHeader
             title={<Trans>Settings</Trans>}
             description={

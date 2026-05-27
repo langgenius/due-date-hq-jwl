@@ -332,6 +332,16 @@ export const pulseContract = oc.router({
     .input(PulseSourceHealthInputSchema)
     .output(z.object({ sources: z.array(PulseSourceHealthSchema) })),
   getDetail: oc.input(PulseAlertIdInputSchema).output(PulseDetailSchema),
+  // Batch counterpart to `getDetail` — fetch many alert detail rows in
+  // one round-trip. Used by surfaces that need to surface per-client
+  // pulse matches (e.g. /clients list, /clients/[id] active-alerts
+  // section) and would otherwise fan out into one query per alert.
+  // Missing/unauthorized alerts are silently skipped — the caller
+  // identifies absences by comparing the returned `details[].alert.id`
+  // set with the request.
+  getDetailsBatch: oc
+    .input(z.object({ alertIds: z.array(EntityIdSchema).max(100) }))
+    .output(z.object({ details: z.array(PulseDetailSchema) })),
   listPriorityQueue: oc
     .input(PulseListPriorityQueueInputSchema)
     .output(z.object({ items: z.array(PulsePriorityQueueItemSchema) })),

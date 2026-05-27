@@ -112,6 +112,7 @@ export function RulesPulseRoute() {
       // has its own `overflow-y-auto` and the two columns end up
       // dragged by a single outer scrollbar.
       lockViewport
+      wide
       // 2026-05-26 (Yuqi /rules/pulse ninth pass #1): width handling
       // is now PANEL-AWARE.
       //   • Panel closed: keep the default `max-w-page-wide`
@@ -152,8 +153,8 @@ export function RulesPulseRoute() {
       // The two columns (list + drawer) now share whatever width the
       // viewport offers; each column scrolls vertically on its own.
       contentClassName={cn(
-        'transition-[max-width,padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
-        panelOpen ? 'max-w-page-expanded !pb-0 md:!pb-0' : 'max-w-page-wide',
+        'transition-[padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
+        panelOpen && '!pb-0 md:!pb-0',
       )}
       actions={
         // 2026-05-27 (Yuqi header unification pass): reverted from
