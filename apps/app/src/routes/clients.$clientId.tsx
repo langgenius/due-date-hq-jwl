@@ -8,7 +8,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { ClientDetailWorkspace } from '@/features/clients/ClientFactsWorkspace'
+import { ClientDetailWorkspace } from '@/features/clients/ClientDetailWorkspace'
 import { getClientReadiness } from '@/features/clients/client-readiness'
 import {
   clientIdFromRouteKey,
