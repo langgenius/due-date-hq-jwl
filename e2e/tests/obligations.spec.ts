@@ -171,7 +171,7 @@ test.describe('seeded obligations', () => {
     await expect(bulkActions).toBeHidden()
     await obligationQueuePage.selectRow('Arbor & Vale LLC').click()
     await obligationQueuePage.selectRow('Northstar Dental Group').click()
-    await expect(bulkActions).toContainText('2 rows selected')
+    await expect(bulkActions).toContainText('2 deadlines selected')
 
     await bulkActions.getByRole('button', { name: 'Export' }).click()
     let exportDialog = authenticatedPage.getByRole('dialog', { name: 'Export deadlines' })
@@ -193,7 +193,9 @@ test.describe('seeded obligations', () => {
 
     await bulkActions.getByRole('button', { name: 'Set status' }).click()
     await authenticatedPage.getByRole('menuitem', { name: 'Filed' }).click()
-    await expect(authenticatedPage.getByText('Bulk status updated')).toBeVisible()
     await expect(obligationQueuePage.statusSelectFor('Arbor & Vale LLC')).toContainText('Filed')
+    await expect(obligationQueuePage.statusSelectFor('Northstar Dental Group')).toContainText(
+      'Filed',
+    )
   })
 })

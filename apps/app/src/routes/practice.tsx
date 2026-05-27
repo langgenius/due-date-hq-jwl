@@ -381,11 +381,10 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     // breadcrumb + header block to canonical `<PageHeader>`. The
     // brand-tinted Building2 icon stays inside the title prop as a
     // leading flourish; the role badge moves to the `actions` slot.
-    // The firm-summary subline keeps its `role="note"` so screen
-    // readers announce it as a complementary annotation — exposed
-    // via `aria-label` on the surrounding region.
+    // The firm-summary wrapper keeps its `role="note"` so screen
+    // readers announce it as a complementary annotation.
     <div
-      role="region"
+      role="note"
       aria-label={firmSummaryLabel}
       className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 py-6 md:px-6"
     >

@@ -63,7 +63,7 @@ test('AC: E2E-MIGRATION-IMPORT-UNDO imports from the wizard and reverts from toa
 
   await migrationWizardPage.continue()
   await expect(
-    authenticatedPage.getByRole('heading', { name: 'AI cleaned your values' }),
+    authenticatedPage.getByRole('heading', { name: 'AI standardized your values' }),
   ).toBeVisible({ timeout: AI_STEP_TIMEOUT })
 
   await migrationWizardPage.continue()
@@ -113,7 +113,7 @@ test('AC: E2E-MIGRATION-EXPOSURE imports tax inputs into Dashboard and Evidence 
 
   await migrationWizardPage.continue()
   await expect(
-    authenticatedPage.getByRole('heading', { name: 'AI cleaned your values' }),
+    authenticatedPage.getByRole('heading', { name: 'AI standardized your values' }),
   ).toBeVisible({ timeout: AI_STEP_TIMEOUT })
 
   await migrationWizardPage.continue()
