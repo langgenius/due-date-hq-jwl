@@ -410,51 +410,26 @@ const retrySourceHealth = os.pulse.retrySourceHealth.handler(async ({ input, con
   return listSourceHealthForScopedRepo(scoped)
 })
 
-function toPulseDetailPublic(detail: Awaited<ReturnType<typeof scopedPulseGetDetailReturn>>) {
-  return {
-    alert: toAlertPublic(detail.alert),
-    jurisdiction: detail.jurisdiction,
-    counties: detail.counties,
-    forms: detail.forms,
-    entityTypes: detail.entityTypes,
-    originalDueDate: detail.originalDueDate ? toDateOnly(detail.originalDueDate) : null,
-    newDueDate: detail.newDueDate ? toDateOnly(detail.newDueDate) : null,
-    effectiveFrom: detail.effectiveFrom ? toDateOnly(detail.effectiveFrom) : null,
-    effectiveUntil: detail.effectiveUntil ? toDateOnly(detail.effectiveUntil) : null,
-    affectedRuleIds: detail.affectedRuleIds,
-    structuredChange: detail.structuredChange ?? null,
-    sourceExcerpt: detail.sourceExcerpt,
-    reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
-    affectedClients: detail.affectedClients.map(toAffectedClientPublic),
-  }
-}
-
-// Phantom helper — only exists so we can name the return type of
-// `scoped.pulse.getDetail(id)` without exporting that scoped repo's
-// types. `toPulseDetailPublic` uses `Awaited<ReturnType<...>>` against
-// this signature.
-declare function scopedPulseGetDetailReturn(): Promise<{
-  alert: PulseAlertRow
-  jurisdiction: string
-  counties: string[]
-  forms: string[]
-  entityTypes: string[]
-  originalDueDate: Date | null
-  newDueDate: Date | null
-  effectiveFrom: Date | null
-  effectiveUntil: Date | null
-  affectedRuleIds: string[]
-  structuredChange: unknown
-  sourceExcerpt: string
-  reviewedAt: Date | null
-  affectedClients: PulseAffectedClientRow[]
-}>
-
 const getDetail = os.pulse.getDetail.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
   try {
     const detail = await scoped.pulse.getDetail(input.alertId)
-    return toPulseDetailPublic(detail)
+    return {
+      alert: toAlertPublic(detail.alert),
+      jurisdiction: detail.jurisdiction,
+      counties: detail.counties,
+      forms: detail.forms,
+      entityTypes: detail.entityTypes,
+      originalDueDate: detail.originalDueDate ? toDateOnly(detail.originalDueDate) : null,
+      newDueDate: detail.newDueDate ? toDateOnly(detail.newDueDate) : null,
+      effectiveFrom: detail.effectiveFrom ? toDateOnly(detail.effectiveFrom) : null,
+      effectiveUntil: detail.effectiveUntil ? toDateOnly(detail.effectiveUntil) : null,
+      affectedRuleIds: detail.affectedRuleIds,
+      structuredChange: detail.structuredChange ?? null,
+      sourceExcerpt: detail.sourceExcerpt,
+      reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
+      affectedClients: detail.affectedClients.map(toAffectedClientPublic),
+    }
   } catch (error) {
     return mapPulseError(error)
   }
@@ -466,14 +441,35 @@ const getDetail = os.pulse.getDetail.handler(async ({ input, context }) => {
 // `Promise.allSettled` lets the surviving alerts come back). The
 // callsites on /clients (50 alerts → 50 useQueries) and
 // /clients/[id] (30 alerts) collapse to a single round-trip
-// (audit P1-4).
+// (audit P1-4). Shape duplicated from `getDetail` above — extracting
+// to a shared helper fights the inferred handler-output type so
+// inline-twice is cheaper than the type plumbing.
 const getDetailsBatch = os.pulse.getDetailsBatch.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
   if (input.alertIds.length === 0) return { details: [] }
   const settled = await Promise.allSettled(input.alertIds.map((id) => scoped.pulse.getDetail(id)))
-  const details = settled.flatMap((result) =>
-    result.status === 'fulfilled' ? [toPulseDetailPublic(result.value)] : [],
-  )
+  const details = settled.flatMap((result) => {
+    if (result.status !== 'fulfilled') return []
+    const detail = result.value
+    return [
+      {
+        alert: toAlertPublic(detail.alert),
+        jurisdiction: detail.jurisdiction,
+        counties: detail.counties,
+        forms: detail.forms,
+        entityTypes: detail.entityTypes,
+        originalDueDate: detail.originalDueDate ? toDateOnly(detail.originalDueDate) : null,
+        newDueDate: detail.newDueDate ? toDateOnly(detail.newDueDate) : null,
+        effectiveFrom: detail.effectiveFrom ? toDateOnly(detail.effectiveFrom) : null,
+        effectiveUntil: detail.effectiveUntil ? toDateOnly(detail.effectiveUntil) : null,
+        affectedRuleIds: detail.affectedRuleIds,
+        structuredChange: detail.structuredChange ?? null,
+        sourceExcerpt: detail.sourceExcerpt,
+        reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
+        affectedClients: detail.affectedClients.map(toAffectedClientPublic),
+      },
+    ]
+  })
   return { details }
 })
 

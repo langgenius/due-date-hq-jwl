@@ -36,8 +36,6 @@ import {
   buildClientFactsModel,
   filterClients,
   isClientEntityType,
-  isClientPulseFilter,
-  isClientSourceType,
   type ClientEntityType,
 } from '@/features/clients/client-readiness'
 import { ImportHistoryDrawer } from '@/features/migration/ImportHistoryDrawer'
@@ -285,31 +283,11 @@ export function ClientsRoute() {
     [setClientsQuery],
   )
 
-  const handleSourceFilterChange = useCallback(
-    (values: string[]) => {
-      const typedSources = values.filter(isClientSourceType)
-      void setClientsQuery({
-        source: nullableQueryArray(typedSources),
-      })
-    },
-    [setClientsQuery],
-  )
-
   const handleOwnerFilterChange = useCallback(
     (values: string[]) => {
       const owners = normalizeClientOwnerFilters(values)
       void setClientsQuery({
         owner: nullableQueryArray(owners),
-      })
-    },
-    [setClientsQuery],
-  )
-
-  const handlePulseFilterChange = useCallback(
-    (values: string[]) => {
-      const typedPulse = values.filter(isClientPulseFilter)
-      void setClientsQuery({
-        pulse: nullableQueryArray(typedPulse),
       })
     },
     [setClientsQuery],
