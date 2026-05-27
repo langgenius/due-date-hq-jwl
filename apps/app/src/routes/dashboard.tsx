@@ -174,7 +174,7 @@ export function DashboardRoute() {
                 <Trans>loading…</Trans>
               </span>
             ) : data?.asOfDate ? (
-              <span className="rounded-full bg-state-base-hover px-1.5 text-xs font-medium tabular-nums text-text-secondary">
+              <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
                 {formatTodayHeader(data.asOfDate)}
               </span>
             ) : null}

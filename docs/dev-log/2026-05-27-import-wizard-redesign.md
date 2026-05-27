@@ -4,7 +4,7 @@
 
 The migration wizard at `/migration/new` is the first onboarding moment for a US small CPA firm switching tools. Two prior redesign passes had pushed in the wrong direction — motion-heavy, confetti, big editorial type — even though the project's Design Context (`.impeccable.md`) is explicit: brand personality is **calm · capable · sharp**, and **boldness lives in INFORMATION ARCHITECTURE, not typography/color/effects.**
 
-This pass treats restraint as the design statement. The screens stay inside the existing `@duedatehq/ui` token system; the visual language is identical to the rest of the app. What changes is *how much* the user is asked to look at per state, and *where the AI's intelligence lands*.
+This pass treats restraint as the design statement. The screens stay inside the existing `@duedatehq/ui` token system; the visual language is identical to the rest of the app. What changes is _how much_ the user is asked to look at per state, and _where the AI's intelligence lands_.
 
 ## IA reductions per step
 
@@ -14,7 +14,7 @@ The previous step rendered **5 simultaneous zones** in the empty state: heading,
 
 The redesign collapses Step 1 to **2 states with 1 primary affordance each**:
 
-- **Empty state**: one big dropzone (~280px tall, 60% of body height), one calm headline ("Drop your client file."), one quiet "Paste a list instead →" link that *swaps* the dropzone for a textarea instead of rendering both, source chips below in a single small row prefaced with "Coming from a specific tool? (Optional)". The 8-bullet export-instructions card is **gone from default view** — clicking a chip now opens a per-chip inline disclosure (one chip, default closed), not a wall.
+- **Empty state**: one big dropzone (~280px tall, 60% of body height), one calm headline ("Drop your client file."), one quiet "Paste a list instead →" link that _swaps_ the dropzone for a textarea instead of rendering both, source chips below in a single small row prefaced with "Coming from a specific tool? (Optional)". The 8-bullet export-instructions card is **gone from default view** — clicking a chip now opens a per-chip inline disclosure (one chip, default closed), not a wall.
 - **Detection state**: the dropzone collapses to a compact file card (filename · size · Remove link), and the AI determination becomes the structural hero — `[Source] · [N clients] · [N entity types] · [N states]` rendered as numbers-as-protagonists in sharp tabular-nums type. Override link is a quiet text link.
 
 The empty → detection transition is a calm 280ms opacity-and-position fade through `motion`'s `AnimatePresence`, ease curve `[0.32, 0.72, 0, 1]` (matches the existing AlertsListPage / obligations panel). `useReducedMotion()` collapses it to an instant swap. No count-up animation, no confetti, no sparkle iconography.
