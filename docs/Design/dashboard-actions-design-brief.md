@@ -46,8 +46,11 @@ Today · May 19                                              [Import clients]
 ─────────────────────────────────────────────────────────────────────────
 ┌─ ALERTS  (boxed, soft destructive tint, 12px padding) ─┐
 │ [Radar alert card]  [Radar alert card]  [+N tile]      │
-│                                            View all alerts ↗ │
 └─────────────────────────────────────────────────────────┘
+
+(2026-05-27: "View all alerts" trailing link dropped — the [+N]
+tile is the only path to /rules/pulse from this section. Header
+row now carries the h2 + monitoring chip alone.)
 
 ACTIONS THIS WEEK                                            All deadlines ↗
   [3 In review]  [2 Blocked]  [4 Waiting on client]   ← summary tiles
