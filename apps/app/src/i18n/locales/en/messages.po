@@ -13,6 +13,10 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "—"
+msgstr "—"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "· current year"
 msgstr "· current year"
@@ -66,11 +70,6 @@ msgstr "{0, plural, =0 {None} one {# client} other {# clients}}"
 msgid "{0, plural, =0 {None} one {# group} other {# groups}}"
 msgstr "{0, plural, =0 {None} one {# group} other {# groups}}"
 
-#. placeholder {0}: summary.lowConfidenceColumns + summary.badRows
-#: src/features/migration/Step2Mapping.tsx
-msgid "{0, plural, =0 {None} one {# item} other {# items}}"
-msgstr "{0, plural, =0 {None} one {# item} other {# items}}"
-
 #. placeholder {0}: applicable.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0, plural, one {# applicable} other {# applicable}}"
@@ -100,17 +99,6 @@ msgstr "{0, plural, one {# client} other {# clients}}"
 #: src/features/migration/Step2Mapping.tsx
 msgid "{0, plural, one {# column is currently ignored.} other {# columns are currently ignored.}}"
 msgstr "{0, plural, one {# column is currently ignored.} other {# columns are currently ignored.}}"
-
-#. placeholder {0}: summary.lowConfidenceColumns
-#: src/features/migration/Step2Mapping.tsx
-msgid "{0, plural, one {# column needs review} other {# columns need review}}"
-msgstr "{0, plural, one {# column needs review} other {# columns need review}}"
-
-#. placeholder {0}: summary.ignoredColumns
-#. placeholder {0}: summary.mappedColumns
-#: src/features/migration/Step2Mapping.tsx
-msgid "{0, plural, one {# column} other {# columns}}"
-msgstr "{0, plural, one {# column} other {# columns}}"
 
 #. placeholder {0}: Math.abs(filingDays)
 #: src/routes/obligations.tsx
@@ -635,6 +623,10 @@ msgstr "{hiddenDraftCount} more AI drafts"
 msgid "{hiddenRuleCount} more selected rules"
 msgstr "{hiddenRuleCount} more selected rules"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "{ignored, plural, =0 {0 ignored} one {# ignored} other {# ignored}}"
+msgstr "{ignored, plural, =0 {0 ignored} one {# ignored} other {# ignored}}"
+
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "{impacted, plural, one {# client may be affected} other {# clients may be affected}}"
 msgstr "{impacted, plural, one {# client may be affected} other {# clients may be affected}}"
@@ -651,6 +643,10 @@ msgstr "{label}, selected"
 msgid "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
 msgstr "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "{mapped, plural, one {# column mapped} other {# columns mapped}}"
+msgstr "{mapped, plural, one {# column mapped} other {# columns mapped}}"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "{missingSourceCount} source gaps"
 msgstr "{missingSourceCount} source gaps"
@@ -658,6 +654,10 @@ msgstr "{missingSourceCount} source gaps"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
 msgstr "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "{needsReview, plural, =0 {0 need review} one {# needs review} other {# need review}}"
+msgstr "{needsReview, plural, =0 {0 need review} one {# needs review} other {# need review}}"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "{obligationCount, plural, one {# deadline (full tax year)} other {# deadlines (full tax year)}}"
@@ -1933,6 +1933,10 @@ msgid "Authority response"
 msgstr "Authority response"
 
 #: src/features/migration/Step2Mapping.tsx
+msgid "Auto-mapped · {pct}%"
+msgstr "Auto-mapped · {pct}%"
+
+#: src/features/migration/Step2Mapping.tsx
 msgid "Automatic field matching is unavailable. We used the selected import template and kept the import draft editable."
 msgstr "Automatic field matching is unavailable. We used the selected import template and kept the import draft editable."
 
@@ -2267,6 +2271,10 @@ msgstr "Card numbers and invoice payment details never enter the app database."
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Change"
 msgstr "Change"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Change →"
+msgstr "Change →"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Change owner — currently {name}"
@@ -2771,16 +2779,12 @@ msgid "Collapse all"
 msgstr "Collapse all"
 
 #: src/features/migration/Step2Mapping.tsx
-msgid "Column details"
-msgstr "Column details"
+msgid "Column mappings"
+msgstr "Column mappings"
 
 #: src/routes/obligations.tsx
 msgid "Columns — {visibleHideableCount} of {totalHideableCount} visible"
 msgstr "Columns — {visibleHideableCount} of {totalHideableCount} visible"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Columns used"
-msgstr "Columns used"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Coming from a specific tool? (Optional)"
@@ -2813,7 +2817,6 @@ msgstr "Compliance"
 msgid "Compliance posture"
 msgstr "Compliance posture"
 
-#: src/features/migration/Step2Mapping.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Confidence"
 msgstr "Confidence"
@@ -3535,6 +3538,10 @@ msgstr "CSV, Excel, ZIP, TXT, or IIF · up to 1,000 rows · 5 MB"
 msgid "CSV, XLS, or XLSX"
 msgstr "CSV, XLS, or XLSX"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Currency · number"
+msgstr "Currency · number"
+
 #: src/routes/billing.tsx
 msgid "current"
 msgstr "current"
@@ -3598,6 +3605,18 @@ msgstr "Cycle time"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Dark"
 msgstr "Dark"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Data type"
+msgstr "Data type"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Date · MM-DD"
+msgstr "Date · MM-DD"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Date · YYYY-MM-DD"
+msgstr "Date · YYYY-MM-DD"
 
 #: src/routes/obligations.tsx
 msgid "Dates"
@@ -4059,14 +4078,6 @@ msgstr "Due-date extension"
 msgid "DueDateHQ does not store card numbers or invoice payment data."
 msgstr "DueDateHQ does not store card numbers or invoice payment data."
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "DueDateHQ field"
-msgstr "DueDateHQ field"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "DueDateHQ matched the upload to import fields. Open details only if something looks off."
-msgstr "DueDateHQ matched the upload to import fields. Open details only if something looks off."
-
 #: src/routes/readiness.tsx
 msgid "DueDateHQ readiness portal"
 msgstr "DueDateHQ readiness portal"
@@ -4135,7 +4146,6 @@ msgstr "Each row will receive a status-change audit entry. You can move them bac
 msgid "Early alert"
 msgstr "Early alert"
 
-#: src/features/migration/Step2Mapping.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Edit"
 msgstr "Edit"
@@ -4155,9 +4165,12 @@ msgstr "Effective"
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/migration/mapping-target-labels.ts
-#: src/features/migration/Step2Mapping.tsx
 msgid "EIN"
 msgstr "EIN"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "EIN · ##-#######"
+msgstr "EIN · ##-#######"
 
 #: src/features/members/member-model.ts
 msgid "Elevated access"
@@ -4175,6 +4188,7 @@ msgid "Email"
 msgstr "Email"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
+#: src/features/migration/Step2Mapping.tsx
 msgid "Email address"
 msgstr "Email address"
 
@@ -4292,6 +4306,10 @@ msgstr "Entity id"
 msgid "Entity type"
 msgstr "Entity type"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Entity type · enum"
+msgstr "Entity type · enum"
+
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Entity types"
 msgstr "Entity types"
@@ -4378,10 +4396,6 @@ msgstr "Evidence gap"
 #: src/routes/rules.library.tsx
 msgid "Exception"
 msgstr "Exception"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Exceptions"
-msgstr "Exceptions"
 
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Exclude"
@@ -4990,8 +5004,8 @@ msgid "Forms the rule library can add without a new deadline"
 msgstr "Forms the rule library can add without a new deadline"
 
 #: src/features/migration/Step2Mapping.tsx
-msgid "Found"
-msgstr "Found"
+msgid "Free text"
+msgstr "Free text"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -5101,10 +5115,6 @@ msgstr "Group by"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Hide"
 msgstr "Hide"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Hide column details"
-msgstr "Hide column details"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Hide tax type defaults"
@@ -5653,6 +5663,10 @@ msgstr "Link only"
 msgid "Link unavailable"
 msgstr "Link unavailable"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "List of US state codes"
+msgstr "List of US state codes"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
 msgid "LLC"
@@ -5792,6 +5806,10 @@ msgstr "Low"
 #: src/components/primitives/low-confidence-badge.tsx
 msgid "Low confidence"
 msgstr "Low confidence"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Low match · {pct}%"
+msgstr "Low match · {pct}%"
 
 #: src/routes/billing.tsx
 msgid "Manage billing"
@@ -5993,6 +6011,10 @@ msgstr "Matched clients"
 #: src/routes/obligations.tsx
 msgid "Matches the filters and sort currently on this page."
 msgstr "Matches the filters and sort currently on this page."
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Matching your columns to DueDateHQ fields…"
+msgstr "Matching your columns to DueDateHQ fields…"
 
 #: src/features/concepts/concept-help.tsx
 #: src/routes/obligations.tsx
@@ -6848,6 +6870,10 @@ msgstr "No rules match \"{query}\"."
 msgid "No rules yet for {0}."
 msgstr "No rules yet for {0}."
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "No sample values available."
+msgstr "No sample values available."
+
 #: src/features/members/members-page.tsx
 msgid "No seats are available. Upgrade or suspend a member before inviting."
 msgstr "No seats are available. Upgrade or suspend a member before inviting."
@@ -6964,10 +6990,6 @@ msgstr "Not applicable"
 #: src/features/calendar/calendar-page.tsx
 msgid "Not enabled"
 msgstr "Not enabled"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Not found"
-msgstr "Not found"
 
 #: src/routes/obligations.tsx
 msgid "Not in audit trail"
@@ -7921,6 +7943,10 @@ msgstr "Personal inbox"
 #: src/routes/settings.tsx
 msgid "Personal morning digest preferences and types."
 msgstr "Personal morning digest preferences and types."
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Phone number"
+msgstr "Phone number"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Pick a client first."
@@ -9016,10 +9042,6 @@ msgstr "Review applied Pulse exceptions changing due dates."
 msgid "Review batch-ready templates and AI concrete drafts, add one batch note, then accept them into active practice rules."
 msgstr "Review batch-ready templates and AI concrete drafts, add one batch note, then accept them into active practice rules."
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "Review column details"
-msgstr "Review column details"
-
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review coverage, sources, and pending rules."
 msgstr "Review coverage, sources, and pending rules."
@@ -9425,8 +9447,8 @@ msgid "Same Practice AI as Pro"
 msgstr "Same Practice AI as Pro"
 
 #: src/features/migration/Step2Mapping.tsx
-msgid "Sample"
-msgstr "Sample"
+msgid "Sample values"
+msgstr "Sample values"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
@@ -10626,6 +10648,10 @@ msgstr "Tax types"
 msgid "TAX TYPES"
 msgstr "TAX TYPES"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Tax types · list"
+msgstr "Tax types · list"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Tax types from existing deadlines."
 msgstr "Tax types from existing deadlines."
@@ -10827,10 +10853,6 @@ msgstr "The firm's running tally of client-provided documents, signatures, and c
 msgid "The highest-risk open deadlines for the chosen window — work these first."
 msgstr "The highest-risk open deadlines for the chosen window — work these first."
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "The import draft is ready. Details stay available for advanced review."
-msgstr "The import draft is ready. Details stay available for advanced review."
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "The IRS / state statutory due date — the hard deadline the filing must be submitted by"
 msgstr "The IRS / state statutory due date — the hard deadline the filing must be submitted by"
@@ -10947,10 +10969,6 @@ msgstr "Theme"
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "then"
 msgstr "then"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "These columns are still included in the import draft. Open details to adjust them."
-msgstr "These columns are still included in the import draft. Open details to adjust them."
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "These states publish their deadlines through the state's own calendar. After your practice is created, you'll see those rules in Rule Library marked for review — deadlines activate once you approve the rules."
@@ -11394,6 +11412,10 @@ msgstr "Unknown browser"
 msgid "Unknown reviewer"
 msgstr "Unknown reviewer"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Unmapped"
+msgstr "Unmapped"
+
 #. placeholder {0}: item.title
 #: src/features/notifications/notifications-page.tsx
 msgid "Unread: {0}"
@@ -11466,6 +11488,10 @@ msgstr "Urgency window"
 #: src/routes/obligations.tsx
 msgid "Urgent"
 msgstr "Urgent"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "US state code · 2 letters"
+msgstr "US state code · 2 letters"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Usage"
@@ -11801,6 +11827,10 @@ msgstr "When it's due"
 msgid "Whoever is signed in on this browser will lose access immediately. They'll need to re-authenticate next time."
 msgstr "Whoever is signed in on this browser will lose access immediately. They'll need to re-authenticate next time."
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Whole number"
+msgstr "Whole number"
+
 #: src/features/pulse/components/PulseReasonDialog.tsx
 msgid "Why is this alert not relevant?"
 msgstr "Why is this alert not relevant?"
@@ -11890,6 +11920,10 @@ msgstr "Yearly"
 msgid "Yes"
 msgstr "Yes"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Yes / no"
+msgstr "Yes / no"
+
 #: src/features/members/members-page.tsx
 msgid "You"
 msgstr "You"
@@ -11897,6 +11931,10 @@ msgstr "You"
 #: src/routes/migration.new.tsx
 msgid "You can import later from Today, Clients, or the Command Palette (⌘K)."
 msgstr "You can import later from Today, Clients, or the Command Palette (⌘K)."
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "You changed this mapping."
+msgstr "You changed this mapping."
 
 #: src/lib/i18n-error.ts
 msgid "You don't have permission to perform this action."
@@ -11929,10 +11967,6 @@ msgstr "you@yourpractice.com"
 #: src/lib/i18n-error.ts
 msgid "Your account isn't linked to a practice yet."
 msgstr "Your account isn't linked to a practice yet."
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Your column"
-msgstr "Your column"
 
 #: src/features/permissions/permission-gate.tsx
 msgid "Your current role cannot use this surface. Contact the practice owner if you need access."
@@ -11976,6 +12010,7 @@ msgstr "Your uploaded file stays unchanged. DueDateHQ will use this clean import
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/mapping-target-labels.ts
+#: src/features/migration/Step2Mapping.tsx
 msgid "ZIP / postal code"
 msgstr "ZIP / postal code"
 
