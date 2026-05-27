@@ -8,6 +8,7 @@ import {
   isInternalExtensionTargetDateValid,
   materialsChecklistReference,
   latestDeadlineInputRequest,
+  nextHeaderSort,
   nextThisWeekFilterPatch,
   rangeSelectionUpdate,
   reviewPipelineCurrent,
@@ -42,6 +43,37 @@ describe('obligations quick filters', () => {
     expect(isThisWeekFilterActive(null, 7)).toBe(true)
     expect(isThisWeekFilterActive(0, 7)).toBe(false)
     expect(isThisWeekFilterActive(null, 14)).toBe(false)
+  })
+})
+
+describe('obligation queue header sort', () => {
+  it('toggles Internal Due between ascending and descending without clearing to Smart Priority', () => {
+    expect(
+      nextHeaderSort({
+        currentSort: 'smart_priority',
+        ascSort: 'due_asc',
+        descSort: 'due_desc',
+        firstSort: 'due_asc',
+      }),
+    ).toBe('due_asc')
+
+    expect(
+      nextHeaderSort({
+        currentSort: 'due_asc',
+        ascSort: 'due_asc',
+        descSort: 'due_desc',
+        firstSort: 'due_asc',
+      }),
+    ).toBe('due_desc')
+
+    expect(
+      nextHeaderSort({
+        currentSort: 'due_desc',
+        ascSort: 'due_asc',
+        descSort: 'due_desc',
+        firstSort: 'due_asc',
+      }),
+    ).toBe('due_asc')
   })
 })
 

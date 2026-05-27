@@ -775,7 +775,7 @@ function withDefaultSortCleared(sort: ObligationQueueSort): ObligationQueueSort 
   return sort === DEFAULT_SORT ? null : sort
 }
 
-function nextHeaderSort({
+export function nextHeaderSort({
   currentSort,
   ascSort,
   descSort,
@@ -787,8 +787,7 @@ function nextHeaderSort({
   firstSort: ObligationQueueSort
 }): ObligationQueueSort {
   if (currentSort !== ascSort && currentSort !== descSort) return firstSort
-  if (currentSort === firstSort) return firstSort === ascSort ? descSort : ascSort
-  return DEFAULT_SORT
+  return currentSort === ascSort ? descSort : ascSort
 }
 
 function obligationQueueColumnAriaSort(columnId: string, sort: ObligationQueueSort) {
@@ -1627,6 +1626,7 @@ export function ObligationQueueRoute() {
   const statusUpdatePending = updateStatusMutation.isPending || bulkStatusMutation.isPending
   const changeSort = useCallback(
     (nextSort: ObligationQueueSort) => {
+      setPageIndex(0)
       void setObligationQueueQuery({
         sort: withDefaultSortCleared(nextSort),
         obligation: null,
@@ -9643,31 +9643,12 @@ function ActiveStageDetailCard({
               label: t`Leave note for preparer`,
               flavor: 'mutation',
             },
-            {
-              id: 'sign-8879',
-              label: t`Pre-stage 8879 packet for client`,
-              flavor: 'routing',
-              hint: t`The 8879 is sent to the client once you mark this filed — open Evidence to prep the packet now.`,
-            },
           ]
         }
-        // 2026-05-23: renamed from "Get 8879 signed by client" per
-        // critique. The 8879 signature actually flows through the
-        // Filed stage's e-file pipeline (`efileState='authorization_
-        // requested' → 'authorization_signed' → 'ready_to_submit'`),
-        // which starts the moment the CPA marks this row filed. The
-        // affordance here lets the CPA pre-stage the packet inside
-        // the Evidence tab BEFORE marking filed, so the 8879 is
-        // ready to send the second the row enters the Filed stage.
-        // Tooltip names that timing relationship so the routing
-        // doesn't read as a duplicate of the Filed sub-status work.
+        // 2026-05-27: no 8879 routing task here. The app does not yet
+        // support sending or collecting client e-file authorization, so
+        // routing to Evidence from In review creates a dead-end workflow.
         return [
-          {
-            id: 'sign-8879',
-            label: t`Pre-stage 8879 packet for client`,
-            flavor: 'routing',
-            hint: t`The 8879 is sent to the client once you mark this filed — open Evidence to prep the packet now.`,
-          },
           {
             id: 'file',
             label: t`Mark return submitted to authority`,
@@ -10029,7 +10010,6 @@ function ActiveStageDetailCard({
       case 'deliver':
       case 'deliver-paper':
       case 'request-auth':
-      case 'sign-8879':
         return onChangeTab('evidence')
       case 'readiness':
         return onChangeTab('readiness')

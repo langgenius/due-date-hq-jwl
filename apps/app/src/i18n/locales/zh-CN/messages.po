@@ -717,10 +717,6 @@ msgstr "{outstandingDocsCount, plural, one {进入复核前还需要收到 # 项
 msgid "{outstandingMaterials} outstanding"
 msgstr "{outstandingMaterials} outstanding"
 
-#: src/components/patterns/app-shell-nav.tsx
-msgid "{ownedFirmCount} of 1 included"
-msgstr "已使用 {ownedFirmCount} / 1 个"
-
 #: src/features/members/members-page.tsx
 msgid "{ownerCount} owner · {managedCount} managed"
 msgstr "{ownerCount} 个 Owner · {managedCount} 个受管成员"
@@ -764,16 +760,6 @@ msgstr "已收到 {receivedCount} / {checklistCount} 项"
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{reservedCount} reserved"
 msgstr "{reservedCount} 个保留"
-
-#. placeholder {0}: firm.seatLimit
-#: src/components/patterns/app-shell-nav.tsx
-msgid "{role} · {plan} · {0} seat"
-msgstr "{role} · {plan} · {0} 个席位"
-
-#. placeholder {0}: firm.seatLimit
-#: src/components/patterns/app-shell-nav.tsx
-msgid "{role} · {plan} · {0} seats"
-msgstr "{role} · {plan} · {0} 个席位"
 
 #. placeholder {0}: firm.name
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -1239,10 +1225,6 @@ msgstr "添加项目"
 #: src/routes/obligations.tsx
 msgid "Add item manually"
 msgstr "手动添加项"
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Add practice"
-msgstr "添加事务所"
 
 #: src/routes/rules.library.tsx
 msgid "Add rule"
@@ -2079,10 +2061,6 @@ msgstr "Blocked"
 msgid "Blocked by"
 msgstr "受阻于"
 
-#: src/features/obligations/blocked-by-chip.tsx
-msgid "Blocked by {label} — click to open."
-msgstr "受 {label} 阻塞 — 点击打开。"
-
 #: src/routes/obligations.tsx
 msgid "Blocked by an upstream obligation"
 msgstr "Blocked by an upstream obligation"
@@ -2094,6 +2072,10 @@ msgstr "被上游申报阻塞 — 已收到 {checklistCount} 项材料。"
 #: src/routes/obligations.tsx
 msgid "Blocked by upstream return AND awaiting client materials."
 msgstr "被上游申报阻塞，同时也在等待客户材料。"
+
+#: src/features/obligations/blocked-by-chip.tsx
+msgid "Blocked by: {label}"
+msgstr "受阻于：{label}"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
@@ -2115,10 +2097,6 @@ msgstr "批量审核操作"
 #: src/features/opportunities/opportunities-page.tsx
 msgid "Business guidance queue"
 msgstr "业务提示队列"
-
-#: src/features/obligations/blocked-by-chip.tsx
-msgid "by {label}"
-msgstr "by {label}"
 
 #: src/routes/login.tsx
 msgid "By signing in you agree to the <termsLink>Terms</termsLink> and <privacyLink>Privacy Policy</privacyLink>."
@@ -2212,7 +2190,6 @@ msgstr "日历 URL 已重新生成"
 msgid "Calendar year"
 msgstr "日历年"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/features/calendar/calendar-page.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
@@ -2322,7 +2299,6 @@ msgstr "请检查所选行后重试。"
 msgid "Check your network and try again."
 msgstr "请检查网络后重试。"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/calendar/calendar-page.tsx
@@ -3045,10 +3021,6 @@ msgstr "无法复制到剪贴板"
 msgid "Couldn't create client"
 msgstr "无法创建客户"
 
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Couldn't create practice"
-msgstr "无法创建事务所"
-
 #: src/routes/rules.library.tsx
 msgid "Couldn't create rule"
 msgstr "无法创建规则"
@@ -3358,10 +3330,6 @@ msgstr "无法启动导入流程"
 msgid "Couldn't submit readiness response"
 msgstr "无法提交准备状态回复"
 
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Couldn't switch practice"
-msgstr "无法切换事务所"
-
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Couldn't undo client"
 msgstr "无法撤销客户"
@@ -3425,6 +3393,12 @@ msgstr "无法验证代码"
 msgid "Counties"
 msgstr "县"
 
+#. Tooltip for the Open deadlines column header on the clients table.
+#. js-lingui-explicit-id
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "clients.openDeadlinesColumnDescription"
+msgstr "统计仍处于待处理、处理中、已延期、等待客户或复核中的截止事项。"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Counts this client's deadlines that are already Filed or Completed."
 msgstr "统计该客户已处于“已申报”或“已完成”状态的截止事项。"
@@ -3451,10 +3425,6 @@ msgstr "Covers"
 msgid "Create a client before running deadline preview."
 msgstr "Create a client before running deadline preview."
 
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Create a separate practice with its own clients, deadlines, audit trail, and settings."
-msgstr "创建独立事务所，拥有自己的客户、截止日、审计轨迹和设置。"
-
 #: src/features/audit/audit-log-page.tsx
 msgid "Create a ZIP with a PDF report, audit events, evidence links, and manifest."
 msgstr "创建包含 PDF 报告、审计事件、证据链接和 manifest 的 ZIP。"
@@ -3479,7 +3449,6 @@ msgstr "创建材料链接"
 msgid "Create or select a practice before starting checkout."
 msgstr "开始 checkout 前请先创建或选择事务所。"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
 msgid "Create practice"
 msgstr "创建事务所"
@@ -3511,7 +3480,6 @@ msgstr "正在创建安全导入批次、上传行数据并映射字段。"
 msgid "Creating clients, deadlines, evidence links, and audit records."
 msgstr "正在创建客户、截止日、证据链接和审计记录。"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/routes/rules.library.tsx
 msgid "Creating…"
@@ -4095,7 +4063,6 @@ msgstr "例如 1,234.56"
 msgid "e.g. 2"
 msgstr "例如 2"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 msgid "e.g. Bright CPA Practice"
 msgstr "例如：Bright CPA Practice"
@@ -4240,7 +4207,6 @@ msgstr "输入身份验证器应用中的代码。"
 msgid "Entered {0}"
 msgstr "进入于 {0}"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
@@ -4330,6 +4296,10 @@ msgstr "事件"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Every active rule the catalog matches to this client already has a generated deadline."
 msgstr "Every active rule the catalog matches to this client already has a generated deadline."
+
+#: src/routes/rules.library.tsx
+msgid "Every applicable jurisdiction and entity already has a rule. Missing gaps will show an inline Add rule action when they appear."
+msgstr "每个适用辖区和实体都已有规则。出现缺口时，行内会显示添加规则操作。"
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Every client on this list has the facts the rule library needs. Close to return."
@@ -5365,7 +5335,6 @@ msgstr "入料"
 msgid "Internal <0>{0}</0>"
 msgstr "Internal <0>{0}</0>"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -5385,7 +5354,6 @@ msgstr "内部截止日从 {previous} 改为 {next}"
 msgid "Internal deadline lead time"
 msgstr "内部截止日期提前量"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
 msgid "Internal deadline offset must be between 0 and 365 days."
@@ -6680,6 +6648,10 @@ msgstr "无匹配"
 msgid "No matching clients in this practice."
 msgstr "该事务所没有匹配客户。"
 
+#: src/routes/rules.library.tsx
+msgid "No missing rules"
+msgstr "没有缺失规则"
+
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "No morning digests have run yet."
 msgstr "还没有 morning digest 运行记录。"
@@ -7156,7 +7128,6 @@ msgstr "只有当前事务所 Owner 可以创建或变更订阅。"
 msgid "open"
 msgstr "打开"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/Step2Mapping.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/features/pulse/components/PulseStatusBadge.tsx
@@ -7252,6 +7223,12 @@ msgstr "打开 Contacts 并选择云朵导出图标；可能需要 Admin 权限�
 msgid "Open deadlines"
 msgstr "打开截止日期"
 
+#. Column header for the count of unfinished deadline rows on a client.
+#. js-lingui-explicit-id
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "clients.openDeadlinesColumn"
+msgstr "未结截止事项"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open Deadlines."
 msgstr "打开截止日期。"
@@ -7335,6 +7312,10 @@ msgstr "打开 Apple Calendar 链接"
 msgid "Open the client to review facts before deciding whether to follow up."
 msgstr "先打开客户并复核事实，再决定是否跟进。"
 
+#: src/features/obligations/blocked-by-chip.tsx
+msgid "Open the deadline blocking this row: {label}."
+msgstr "打开正在阻塞当前行的截止日期：{label}。"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
 msgstr "打开截止日期抽屉以保存笔记；当前创建接口尚不接受笔记。"
@@ -7343,13 +7324,13 @@ msgstr "打开截止日期抽屉以保存笔记；当前创建接口尚不接受
 msgid "Open the Evidence tab"
 msgstr "打开 Evidence 标签页"
 
+#: src/features/obligations/blocked-by-chip.tsx
+msgid "Open the linked deadline that's blocking this row."
+msgstr "打开正在阻塞当前行的关联截止日期。"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open the Migration Copilot wizard."
 msgstr "打开 Migration Copilot 向导。"
-
-#: src/features/obligations/blocked-by-chip.tsx
-msgid "Open the upstream deadline that's blocking this row."
-msgstr "Open the upstream deadline that's blocking this row."
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Open your authenticator app, add a new account, then scan this code. Use the setup URI if scanning is not available."
@@ -7901,7 +7882,6 @@ msgstr "计划摘要"
 msgid "Plan, seats, and invoices."
 msgstr "计划、席位与发票。"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
 msgid "Please enter at least 2 characters."
@@ -7978,7 +7958,6 @@ msgstr "事务所邀请"
 msgid "Practice limit"
 msgstr "事务所限制"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
 msgid "Practice name"
@@ -8043,7 +8022,6 @@ msgstr "事务所时间"
 msgid "Practice updated"
 msgstr "事务所已更新"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/billing.tsx
 msgid "Practice workspaces"
 msgstr "事务所工作区"
@@ -8063,14 +8041,6 @@ msgstr "全事务所审计事件仅负责人、管理员和经办人可访问。
 #: src/routes/practice.tsx
 msgid "Practice-wide weights for deterministic deadline ranking."
 msgstr "用于确定性截止日排序的事务所级权重。"
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Practices"
-msgstr "事务所"
-
-#: src/routes/obligations.tsx
-msgid "Pre-stage 8879 packet for client"
-msgstr "提前准备给客户的 8879 文件包"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Preferences"
@@ -8248,7 +8218,6 @@ msgstr "隐私"
 msgid "Privacy mode"
 msgstr "隐私模式"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
@@ -8951,10 +8920,6 @@ msgstr "仅供审核"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review per-jurisdiction rule coverage by entity."
 msgstr "按实体审核各辖区的规则覆盖情况。"
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Review plans"
-msgstr "查看套餐"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review practice-wide audit events."
@@ -9877,10 +9842,6 @@ msgstr "全部显示"
 msgid "Show fewer groups"
 msgstr "收起部分值组"
 
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Show work as due this many days before the statutory deadline."
-msgstr "将工作显示为比法定截止日提前这些天到期。"
-
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "Showing {0} of {totalGroupCount} jurisdictions"
@@ -10064,7 +10025,6 @@ msgstr "个体经营"
 msgid "Sole proprietorship"
 msgstr "独资企业"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
@@ -10080,10 +10040,6 @@ msgstr "Solo 是个人截止日工作台。Pro、Team 和 Enterprise 增加共�
 #: src/routes/billing.checkout.tsx
 msgid "Solo, Pro, and Team each apply to one active practice. Enterprise covers multiple practices by contract."
 msgstr "Solo、Pro 和 Team 各适用于 1 个活跃事务所。Enterprise 按合同覆盖多个事务所。"
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Solo, Pro, and Team include one active practice workspace. Contact sales for multiple practices, offices, or demo/production separation."
-msgstr "Solo、Pro 和 Team 均包含 1 个 active practice 工作区。多个 practice、办公室，或 demo/production 分离请联系销售。"
 
 #: src/features/pulse/lib/error-mapping.ts
 msgid "Some deadlines have changed since you opened this alert. Refresh to load the latest list."
@@ -10443,11 +10399,6 @@ msgstr "正在暂停…"
 msgid "Switch demo account to {0}"
 msgstr "切换演示账号到 {0}"
 
-#. placeholder {0}: firm.name
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Switch practice, current {0}"
-msgstr "切换事务所，当前为 {0}"
-
 #: src/features/migration/Step1Intake.tsx
 msgid "Switch preset"
 msgstr "切换预设"
@@ -10571,7 +10522,6 @@ msgstr "税务年度设置已更新"
 msgid "Tax year type"
 msgstr "税务年度类型"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -10652,10 +10602,6 @@ msgstr "{0} feed 会在所有已订阅设备上停止同步。之后可以重新
 #: src/features/pulse/lib/error-mapping.ts
 msgid "The 24h undo window has expired for this alert."
 msgstr "该提醒的 24 小时撤销窗口已过期。"
-
-#: src/routes/obligations.tsx
-msgid "The 8879 is sent to the client once you mark this filed — open Evidence to prep the packet now."
-msgstr "标记为已提交后会将 8879 寄给客户 — 现在打开 Evidence 标签页提前准备文件包。"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "The accepted source-backed rule matched the client facts for this deadline."
@@ -11078,7 +11024,6 @@ msgstr "时间范围"
 msgid "Timestamped event log across the workspace."
 msgstr "工作区内带时间戳的事件日志。"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/routes/practice.tsx
 msgid "Timezone"
@@ -11551,6 +11496,10 @@ msgstr "在收件箱中查看全部"
 msgid "View all opportunities"
 msgstr "查看全部业务机会"
 
+#: src/routes/rules.library.tsx
+msgid "View all rules"
+msgstr "查看所有规则"
+
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "View at-risk deadlines"
 msgstr "查看有风险的截止日期"
@@ -11857,10 +11806,6 @@ msgstr "你的账户尚未关联任何事务所。"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Your column"
 msgstr "你的列"
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Your current plan includes one active practice. Additional practices are available on the Enterprise plan."
-msgstr "你当前的计划包含 1 个 active 事务所。额外事务所属于 Enterprise 计划。"
 
 #: src/features/permissions/permission-gate.tsx
 msgid "Your current role cannot use this surface. Contact the practice owner if you need access."

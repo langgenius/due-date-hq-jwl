@@ -717,10 +717,6 @@ msgstr "{outstandingDocsCount, plural, one {# item still needs to be received be
 msgid "{outstandingMaterials} outstanding"
 msgstr "{outstandingMaterials} outstanding"
 
-#: src/components/patterns/app-shell-nav.tsx
-msgid "{ownedFirmCount} of 1 included"
-msgstr "{ownedFirmCount} of 1 included"
-
 #: src/features/members/members-page.tsx
 msgid "{ownerCount} owner · {managedCount} managed"
 msgstr "{ownerCount} owner · {managedCount} managed"
@@ -764,16 +760,6 @@ msgstr "{receivedCount} of {checklistCount} received"
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{reservedCount} reserved"
 msgstr "{reservedCount} reserved"
-
-#. placeholder {0}: firm.seatLimit
-#: src/components/patterns/app-shell-nav.tsx
-msgid "{role} · {plan} · {0} seat"
-msgstr "{role} · {plan} · {0} seat"
-
-#. placeholder {0}: firm.seatLimit
-#: src/components/patterns/app-shell-nav.tsx
-msgid "{role} · {plan} · {0} seats"
-msgstr "{role} · {plan} · {0} seats"
 
 #. placeholder {0}: firm.name
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -1239,10 +1225,6 @@ msgstr "Add item"
 #: src/routes/obligations.tsx
 msgid "Add item manually"
 msgstr "Add item manually"
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Add practice"
-msgstr "Add practice"
 
 #: src/routes/rules.library.tsx
 msgid "Add rule"
@@ -2079,10 +2061,6 @@ msgstr "Blocked"
 msgid "Blocked by"
 msgstr "Blocked by"
 
-#: src/features/obligations/blocked-by-chip.tsx
-msgid "Blocked by {label} — click to open."
-msgstr "Blocked by {label} — click to open."
-
 #: src/routes/obligations.tsx
 msgid "Blocked by an upstream obligation"
 msgstr "Blocked by an upstream obligation"
@@ -2094,6 +2072,10 @@ msgstr "Blocked by upstream return — {checklistCount} items in hand."
 #: src/routes/obligations.tsx
 msgid "Blocked by upstream return AND awaiting client materials."
 msgstr "Blocked by upstream return AND awaiting client materials."
+
+#: src/features/obligations/blocked-by-chip.tsx
+msgid "Blocked by: {label}"
+msgstr "Blocked by: {label}"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
@@ -2115,10 +2097,6 @@ msgstr "Bulk review actions"
 #: src/features/opportunities/opportunities-page.tsx
 msgid "Business guidance queue"
 msgstr "Business guidance queue"
-
-#: src/features/obligations/blocked-by-chip.tsx
-msgid "by {label}"
-msgstr "by {label}"
 
 #: src/routes/login.tsx
 msgid "By signing in you agree to the <termsLink>Terms</termsLink> and <privacyLink>Privacy Policy</privacyLink>."
@@ -2212,7 +2190,6 @@ msgstr "Calendar URL regenerated"
 msgid "Calendar year"
 msgstr "Calendar year"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/features/calendar/calendar-page.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
@@ -2322,7 +2299,6 @@ msgstr "Check the selected rows and try again."
 msgid "Check your network and try again."
 msgstr "Check your network and try again."
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/calendar/calendar-page.tsx
@@ -3045,10 +3021,6 @@ msgstr "Couldn't copy to clipboard"
 msgid "Couldn't create client"
 msgstr "Couldn't create client"
 
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Couldn't create practice"
-msgstr "Couldn't create practice"
-
 #: src/routes/rules.library.tsx
 msgid "Couldn't create rule"
 msgstr "Couldn't create rule"
@@ -3358,10 +3330,6 @@ msgstr "Couldn't start the import"
 msgid "Couldn't submit readiness response"
 msgstr "Couldn't submit readiness response"
 
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Couldn't switch practice"
-msgstr "Couldn't switch practice"
-
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Couldn't undo client"
 msgstr "Couldn't undo client"
@@ -3425,6 +3393,12 @@ msgstr "Couldn't verify the code"
 msgid "Counties"
 msgstr "Counties"
 
+#. Tooltip for the Open deadlines column header on the clients table.
+#. js-lingui-explicit-id
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "clients.openDeadlinesColumnDescription"
+msgstr "Counts deadlines still in pending, in progress, extended, waiting on client, or review."
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Counts this client's deadlines that are already Filed or Completed."
 msgstr "Counts this client's deadlines that are already Filed or Completed."
@@ -3451,10 +3425,6 @@ msgstr "Covers"
 msgid "Create a client before running deadline preview."
 msgstr "Create a client before running deadline preview."
 
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Create a separate practice with its own clients, deadlines, audit trail, and settings."
-msgstr "Create a separate practice with its own clients, deadlines, audit trail, and settings."
-
 #: src/features/audit/audit-log-page.tsx
 msgid "Create a ZIP with a PDF report, audit events, evidence links, and manifest."
 msgstr "Create a ZIP with a PDF report, audit events, evidence links, and manifest."
@@ -3479,7 +3449,6 @@ msgstr "Create materials link"
 msgid "Create or select a practice before starting checkout."
 msgstr "Create or select a practice before starting checkout."
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
 msgid "Create practice"
 msgstr "Create practice"
@@ -3511,7 +3480,6 @@ msgstr "Creating a safe import batch, uploading rows, and mapping your columns."
 msgid "Creating clients, deadlines, evidence links, and audit records."
 msgstr "Creating clients, deadlines, evidence links, and audit records."
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/routes/rules.library.tsx
 msgid "Creating…"
@@ -4095,7 +4063,6 @@ msgstr "e.g. 1,234.56"
 msgid "e.g. 2"
 msgstr "e.g. 2"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 msgid "e.g. Bright CPA Practice"
 msgstr "e.g. Bright CPA Practice"
@@ -4240,7 +4207,6 @@ msgstr "Enter the code from your authenticator app."
 msgid "Entered {0}"
 msgstr "Entered {0}"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
@@ -4330,6 +4296,10 @@ msgstr "events"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Every active rule the catalog matches to this client already has a generated deadline."
 msgstr "Every active rule the catalog matches to this client already has a generated deadline."
+
+#: src/routes/rules.library.tsx
+msgid "Every applicable jurisdiction and entity already has a rule. Missing gaps will show an inline Add rule action when they appear."
+msgstr "Every applicable jurisdiction and entity already has a rule. Missing gaps will show an inline Add rule action when they appear."
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Every client on this list has the facts the rule library needs. Close to return."
@@ -5365,7 +5335,6 @@ msgstr "Intake"
 msgid "Internal <0>{0}</0>"
 msgstr "Internal <0>{0}</0>"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -5385,7 +5354,6 @@ msgstr "Internal deadline changed from {previous} to {next}"
 msgid "Internal deadline lead time"
 msgstr "Internal deadline lead time"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
 msgid "Internal deadline offset must be between 0 and 365 days."
@@ -6680,6 +6648,10 @@ msgstr "No matches"
 msgid "No matching clients in this practice."
 msgstr "No matching clients in this practice."
 
+#: src/routes/rules.library.tsx
+msgid "No missing rules"
+msgstr "No missing rules"
+
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "No morning digests have run yet."
 msgstr "No morning digests have run yet."
@@ -7156,7 +7128,6 @@ msgstr "Only the practice owner can start or change a subscription."
 msgid "open"
 msgstr "open"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/Step2Mapping.tsx
 #: src/features/notifications/notifications-page.tsx
 #: src/features/pulse/components/PulseStatusBadge.tsx
@@ -7252,6 +7223,12 @@ msgstr "Open Contacts and select the cloud export icon; Admin access may be requ
 msgid "Open deadlines"
 msgstr "Open deadlines"
 
+#. Column header for the count of unfinished deadline rows on a client.
+#. js-lingui-explicit-id
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "clients.openDeadlinesColumn"
+msgstr "Open deadlines"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open Deadlines."
 msgstr "Open Deadlines."
@@ -7335,6 +7312,10 @@ msgstr "Open the Apple Calendar link"
 msgid "Open the client to review facts before deciding whether to follow up."
 msgstr "Open the client to review facts before deciding whether to follow up."
 
+#: src/features/obligations/blocked-by-chip.tsx
+msgid "Open the deadline blocking this row: {label}."
+msgstr "Open the deadline blocking this row: {label}."
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
 msgstr "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
@@ -7343,13 +7324,13 @@ msgstr "Open the deadline drawer to save your notes; the create endpoint doesn't
 msgid "Open the Evidence tab"
 msgstr "Open the Evidence tab"
 
+#: src/features/obligations/blocked-by-chip.tsx
+msgid "Open the linked deadline that's blocking this row."
+msgstr "Open the linked deadline that's blocking this row."
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open the Migration Copilot wizard."
 msgstr "Open the Migration Copilot wizard."
-
-#: src/features/obligations/blocked-by-chip.tsx
-msgid "Open the upstream deadline that's blocking this row."
-msgstr "Open the upstream deadline that's blocking this row."
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Open your authenticator app, add a new account, then scan this code. Use the setup URI if scanning is not available."
@@ -7901,7 +7882,6 @@ msgstr "Plan summary"
 msgid "Plan, seats, and invoices."
 msgstr "Plan, seats, and invoices."
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
 msgid "Please enter at least 2 characters."
@@ -7978,7 +7958,6 @@ msgstr "Practice invitation"
 msgid "Practice limit"
 msgstr "Practice limit"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/practice.tsx
 msgid "Practice name"
@@ -8043,7 +8022,6 @@ msgstr "Practice time"
 msgid "Practice updated"
 msgstr "Practice updated"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/routes/billing.tsx
 msgid "Practice workspaces"
 msgstr "Practice workspaces"
@@ -8063,14 +8041,6 @@ msgstr "Practice-wide audit events are available to owners, managers, and prepar
 #: src/routes/practice.tsx
 msgid "Practice-wide weights for deterministic deadline ranking."
 msgstr "Practice-wide weights for deterministic deadline ranking."
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Practices"
-msgstr "Practices"
-
-#: src/routes/obligations.tsx
-msgid "Pre-stage 8879 packet for client"
-msgstr "Pre-stage 8879 packet for client"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Preferences"
@@ -8248,7 +8218,6 @@ msgstr "Privacy"
 msgid "Privacy mode"
 msgstr "Privacy mode"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
@@ -8951,10 +8920,6 @@ msgstr "Review only"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review per-jurisdiction rule coverage by entity."
 msgstr "Review per-jurisdiction rule coverage by entity."
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Review plans"
-msgstr "Review plans"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review practice-wide audit events."
@@ -9877,10 +9842,6 @@ msgstr "Show all"
 msgid "Show fewer groups"
 msgstr "Show fewer groups"
 
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Show work as due this many days before the statutory deadline."
-msgstr "Show work as due this many days before the statutory deadline."
-
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "Showing {0} of {totalGroupCount} jurisdictions"
@@ -10064,7 +10025,6 @@ msgstr "Sole prop"
 msgid "Sole proprietorship"
 msgstr "Sole proprietorship"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
@@ -10080,10 +10040,6 @@ msgstr "Solo is the personal deadline workbench. Pro, Team, and Enterprise add s
 #: src/routes/billing.checkout.tsx
 msgid "Solo, Pro, and Team each apply to one active practice. Enterprise covers multiple practices by contract."
 msgstr "Solo, Pro, and Team each apply to one active practice. Enterprise covers multiple practices by contract."
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Solo, Pro, and Team include one active practice workspace. Contact sales for multiple practices, offices, or demo/production separation."
-msgstr "Solo, Pro, and Team include one active practice workspace. Contact sales for multiple practices, offices, or demo/production separation."
 
 #: src/features/pulse/lib/error-mapping.ts
 msgid "Some deadlines have changed since you opened this alert. Refresh to load the latest list."
@@ -10443,11 +10399,6 @@ msgstr "Suspending…"
 msgid "Switch demo account to {0}"
 msgstr "Switch demo account to {0}"
 
-#. placeholder {0}: firm.name
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Switch practice, current {0}"
-msgstr "Switch practice, current {0}"
-
 #: src/features/migration/Step1Intake.tsx
 msgid "Switch preset"
 msgstr "Switch preset"
@@ -10571,7 +10522,6 @@ msgstr "Tax year settings updated"
 msgid "Tax year type"
 msgstr "Tax year type"
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -10652,10 +10602,6 @@ msgstr "The {0} feed will stop syncing on every subscribed device. You can re-en
 #: src/features/pulse/lib/error-mapping.ts
 msgid "The 24h undo window has expired for this alert."
 msgstr "The 24h undo window has expired for this alert."
-
-#: src/routes/obligations.tsx
-msgid "The 8879 is sent to the client once you mark this filed — open Evidence to prep the packet now."
-msgstr "The 8879 is sent to the client once you mark this filed — open Evidence to prep the packet now."
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "The accepted source-backed rule matched the client facts for this deadline."
@@ -11078,7 +11024,6 @@ msgstr "Time range"
 msgid "Timestamped event log across the workspace."
 msgstr "Timestamped event log across the workspace."
 
-#: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/routes/practice.tsx
 msgid "Timezone"
@@ -11551,6 +11496,10 @@ msgstr "View all in Inbox"
 msgid "View all opportunities"
 msgstr "View all opportunities"
 
+#: src/routes/rules.library.tsx
+msgid "View all rules"
+msgstr "View all rules"
+
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "View at-risk deadlines"
 msgstr "View at-risk deadlines"
@@ -11857,10 +11806,6 @@ msgstr "Your account isn't linked to a practice yet."
 #: src/features/migration/Step2Mapping.tsx
 msgid "Your column"
 msgstr "Your column"
-
-#: src/components/patterns/app-shell-nav.tsx
-msgid "Your current plan includes one active practice. Additional practices are available on the Enterprise plan."
-msgstr "Your current plan includes one active practice. Additional practices are available on the Enterprise plan."
 
 #: src/features/permissions/permission-gate.tsx
 msgid "Your current role cannot use this surface. Contact the practice owner if you need access."

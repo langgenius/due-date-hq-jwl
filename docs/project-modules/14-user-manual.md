@@ -66,23 +66,21 @@ DueDateHQ 的税务规则、截止日、罚金风险估算和 AI brief 用于事
 - SPA 路由：`01-app-spa.md`
 - Practice profile：本文后续“Practice profile”模块
 
-### 工作区切换与账户菜单
+### 工作区身份与账户菜单
 
 **模块功能**
 
-Practice switcher 用于在多个 practice 之间切换当前工作区；新建 practice 是受套餐权益控制的次级动作。账户菜单用于切换语言、主题和退出登录。
+Sidebar 顶部显示当前 active practice 的身份；当前 shell 不在 UI 上暴露 practice 切换或新建 practice 操作。账户菜单用于切换语言、主题和退出登录。
 
 **适用用户**
 
-- 属于多个 practice 的事务所用户。
-- 需要在不同事务所工作区之间切换数据上下文的 Owner、Manager、Preparer 或 Coordinator。
+- 需要确认当前工作区上下文的事务所用户。
+- 需要管理个人账户设置的 Owner、Manager、Preparer 或 Coordinator。
 
 **如何使用**
 
-1. 在左侧 sidebar 顶部点击当前 practice 名称。
-2. 在 `Practices` 列表中选择目标 practice。
-3. 如需新建独立工作区，点击 `Add practice`，输入 practice name 和 timezone；Solo/Pro/Team 超出 1 个启用中的 practice 时会看到 Billing / Contact sales 提示，Enterprise 可按合同支持多个 practice。
-4. 在底部账户菜单中切换 `Language`、`Theme`，或点击 `Sign out` 退出。
+1. 在左侧 sidebar 顶部确认当前 active practice 名称。
+2. 在底部账户菜单中切换 `Language`、`Theme`，或点击 `Sign out` 退出。
 
 **关联模块**
 
@@ -619,7 +617,7 @@ Practice profile 管理当前 practice 的名称、timezone 和 internal deadlin
 
 **关联模块**
 
-- Practice switcher：显示当前 practice 名称、plan、role、seat limit。
+- Practice identity：显示当前 practice 名称。
 - Auth / 工作区：`08-auth-identity.md`
 - Audit：敏感变更应保留审计上下文。
 

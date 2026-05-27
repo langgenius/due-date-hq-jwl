@@ -1119,10 +1119,11 @@ export function RulesLibraryRoute() {
   // Layout per scope:
   //   reviewCount > 0  → [⋯] [Sources] [+ New rule (outline)] [Start review N (primary)]
   //   reviewCount === 0 → [⋯] [Sources] [+ New rule (primary)]
+  //   Missing scope    → hides unseeded New rule; gap rows carry the prefilled Add rule action.
   //
   // The header keeps a single primary CTA. When there's a review
   // queue Start review wins; otherwise New rule becomes primary so
-  // the page never has zero primary actions.
+  // the default catalog view never has zero primary actions.
   const headerActions = (
     <>
       <DropdownMenu>
@@ -1146,10 +1147,12 @@ export function RulesLibraryRoute() {
       </Button>
       {reviewCount > 0 ? (
         <>
-          <Button variant="outline" size="sm" onClick={openNewRule}>
-            <PlusIcon data-icon="inline-start" />
-            <Trans>New rule</Trans>
-          </Button>
+          {activeScope === 'missing' ? null : (
+            <Button variant="outline" size="sm" onClick={openNewRule}>
+              <PlusIcon data-icon="inline-start" />
+              <Trans>New rule</Trans>
+            </Button>
+          )}
           <Button size="sm" onClick={startReviewAll}>
             <Trans>Start review</Trans>
             <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 text-xs tabular-nums text-text-accent">
@@ -1157,7 +1160,7 @@ export function RulesLibraryRoute() {
             </span>
           </Button>
         </>
-      ) : (
+      ) : activeScope === 'missing' ? null : (
         // No-review baseline: + New rule promotes to the primary
         // slot so the header always carries a single primary action.
         <Button size="sm" onClick={openNewRule}>
@@ -1507,7 +1510,11 @@ export function RulesLibraryRoute() {
             // an icon, title, description, and two CTAs — Import from
             // sources (primary, the federal/state catalog we maintain)
             // + New rule (outline, manual entry).
-            <RulesLibraryEmptyState onNewRule={openNewRule} />
+            activeScope === 'missing' ? (
+              <MissingRulesEmptyState onViewAll={() => void setScope(null)} />
+            ) : (
+              <RulesLibraryEmptyState onNewRule={openNewRule} />
+            )
           ) : (
             <GroupedRulesTable
               groups={groups}
@@ -2129,6 +2136,29 @@ function RulesLibraryEmptyState({ onNewRule }: { onNewRule: () => void }) {
               <Trans>New rule</Trans>
             </Button>
           </div>
+        }
+        className="max-w-md border-0 bg-transparent"
+      />
+    </div>
+  )
+}
+
+function MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
+  return (
+    <div className="flex flex-1 items-center justify-center p-6">
+      <EmptyState
+        icon={CircleCheck}
+        title={<Trans>No missing rules</Trans>}
+        description={
+          <Trans>
+            Every applicable jurisdiction and entity already has a rule. Missing gaps will show an
+            inline Add rule action when they appear.
+          </Trans>
+        }
+        cta={
+          <Button variant="outline" size="sm" onClick={onViewAll}>
+            <Trans>View all rules</Trans>
+          </Button>
         }
         className="max-w-md border-0 bg-transparent"
       />

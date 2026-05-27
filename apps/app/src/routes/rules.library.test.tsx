@@ -39,9 +39,11 @@ const nuqsMocks = vi.hoisted(() => ({
   search: '',
   rule: null as string | null,
   entity: null as string | null,
+  scope: null as 'all' | 'active' | 'review' | 'missing' | null,
   setSearch: vi.fn(),
   setRule: vi.fn(),
   setEntity: vi.fn(),
+  setScope: vi.fn(),
 }))
 
 const toastMocks = vi.hoisted(() => ({
@@ -146,6 +148,7 @@ vi.mock('nuqs', async (importOriginal) => {
       if (key === 'q') return [nuqsMocks.search, nuqsMocks.setSearch]
       if (key === 'rule') return [nuqsMocks.rule, nuqsMocks.setRule]
       if (key === 'entity') return [nuqsMocks.entity, nuqsMocks.setEntity]
+      if (key === 'scope') return [nuqsMocks.scope, nuqsMocks.setScope]
       return [null, vi.fn()]
     },
   }
@@ -455,9 +458,11 @@ beforeEach(() => {
   nuqsMocks.search = ''
   nuqsMocks.rule = null
   nuqsMocks.entity = null
+  nuqsMocks.scope = null
   nuqsMocks.setSearch.mockReset()
   nuqsMocks.setRule.mockReset()
   nuqsMocks.setEntity.mockReset()
+  nuqsMocks.setScope.mockReset()
 })
 
 afterEach(() => {
@@ -623,6 +628,46 @@ describe('RulesLibraryRoute', () => {
 
     expect(document.body.textContent).toContain('No rule defined for this entity in Arizona')
     expect(document.body.textContent).toContain('Add rule')
+  })
+
+  it('shows a scope-specific empty state when the Missing tab has no gaps', async () => {
+    nuqsMocks.scope = 'missing'
+    rpcMocks.coverageQueryFn.mockResolvedValue([
+      coverageRow({
+        jurisdiction: 'AZ',
+        entityCoverage: {
+          llc: 'active',
+          partnership: 'active',
+          s_corp: 'active',
+          c_corp: 'active',
+          sole_prop: 'active',
+          individual: 'active',
+          trust: 'active',
+        },
+        entitySourceCoverage: {
+          llc: 'rule_active',
+          partnership: 'rule_active',
+          s_corp: 'rule_active',
+          c_corp: 'rule_active',
+          sole_prop: 'rule_active',
+          individual: 'rule_active',
+          trust: 'rule_active',
+        },
+      }),
+    ])
+    rpcMocks.listRulesQueryFn.mockResolvedValue([
+      obligationRule({
+        id: 'az.individual_income_return.active.2026',
+        status: 'active',
+      }),
+    ])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('No missing rules')
+
+    expect(document.body.textContent).not.toContain('Your rule catalog is empty.')
+    expect(document.body.textContent).not.toContain('Import from sources')
+    expect(document.body.textContent).not.toContain('New rule')
   })
 
   it('shows cached AI concrete drafts in the selected rule detail', async () => {

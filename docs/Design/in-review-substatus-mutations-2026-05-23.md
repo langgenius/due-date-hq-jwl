@@ -241,8 +241,9 @@ The three current `manual` flavor tasks on the In Review stage —
 sign-off", "Address reviewer's notes" — get **removed**. The strip itself
 is the action surface now; the reminders would be redundant.
 
-The "Pre-stage 8879 packet for client" routing task stays (it's not a
-sub-state mutation; it routes to Evidence).
+The 8879 routing task is not shown in the In Review panel until the product has
+a real client e-file authorization workflow. Routing to Evidence alone creates a
+dead-end task.
 
 ### `notes_open` affordances
 

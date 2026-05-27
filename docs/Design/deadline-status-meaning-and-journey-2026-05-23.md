@@ -251,7 +251,9 @@ lifecycle v2; should rarely appear.
 - ✅ Compact In Review step strip (Preparing return / Reviewing return /
   Ready to file), derived from prep/review sub-status fields.
 - ✅ Primary "Mark filed" wired.
-- ✅ "Get 8879 signed by client" routes to Evidence.
+- ❌ Form 8879 client authorization is deferred; do not show an In Review
+  Evidence-routing task until the product can send or record that authorization
+  as a real workflow.
 - ✅ Done-this-stage audit chronology (shown in the screenshot).
 - ✅ Notes-open annotation when reviewer feedback is active.
 
