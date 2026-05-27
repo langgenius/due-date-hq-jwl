@@ -1,11 +1,6 @@
 import { type ReactNode, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import {
-  AlertTriangleIcon,
-  CheckCircle2Icon,
-  CircleHelpIcon,
-  SparklesIcon,
-} from 'lucide-react'
+import { AlertTriangleIcon, CheckCircle2Icon, CircleHelpIcon, SparklesIcon } from 'lucide-react'
 
 import type {
   AiInsightPublic,

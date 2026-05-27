@@ -470,9 +470,7 @@ const getDetail = os.pulse.getDetail.handler(async ({ input, context }) => {
 const getDetailsBatch = os.pulse.getDetailsBatch.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
   if (input.alertIds.length === 0) return { details: [] }
-  const settled = await Promise.allSettled(
-    input.alertIds.map((id) => scoped.pulse.getDetail(id)),
-  )
+  const settled = await Promise.allSettled(input.alertIds.map((id) => scoped.pulse.getDetail(id)))
   const details = settled.flatMap((result) =>
     result.status === 'fulfilled' ? [toPulseDetailPublic(result.value)] : [],
   )

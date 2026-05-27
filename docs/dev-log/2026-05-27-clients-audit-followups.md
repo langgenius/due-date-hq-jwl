@@ -18,6 +18,7 @@ description changed.
 ### L12 — "Forms catalog · 8 gap" copy
 
 Two issues:
+
 1. Plural was broken — singular and plural both rendered "# gap".
 2. "Gap" is opaque — carries baggage from the rule-library surface
    where it means "no rule exists for this jurisdiction+form combo."
@@ -53,6 +54,7 @@ called out the drift risk after the `'done'` re-classification was
 manually propagated by hand.
 
 Extracted to `apps/app/src/features/clients/use-client-next-due.ts`:
+
 - `CLIENT_TERMINAL_STATUSES` — the canonical set.
 - `useClientNextDue(obligations)` — memoized hook returning
   `{ nextDue, openCount, paymentOverdueCount }`, anchored on

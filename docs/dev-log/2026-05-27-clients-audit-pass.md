@@ -8,7 +8,7 @@
 
 ### Critical (P0 from live pass)
 
-- **L2** `FixNeedsFactsSheet` counter "0 of  fixed · 1" — broken `Plural` interpolation. Replaced with `<Trans>{fixedCount} of {totalCount} fixed</Trans>` and dropped the now-unused `Plural` import.
+- **L2** `FixNeedsFactsSheet` counter "0 of fixed · 1" — broken `Plural` interpolation. Replaced with `<Trans>{fixedCount} of {totalCount} fixed</Trans>` and dropped the now-unused `Plural` import.
 - **L4** UUID leak in AI Next-step copy — `clientRiskFallback(clientId)` was embedding the raw client UUID into a CPA-facing instruction. Dropped the suffix; helper now takes zero args.
 - **L1 / P0-peek cluster** — documented as intentional hybrid behavior in
   `docs/Design/page-family-canonical.md` (new "Peek vs full-nav contract" section). `/clients` is the home page; opening a drawer over its own list is redundant, so `ClientDrawerProvider.openDrawer` no-ops on `pathname === '/clients'`. The Quick peek menu item and ⌘-click affordances resolve to full nav as a documented side effect.
@@ -44,12 +44,14 @@
 ### Page-width unification (earlier in session)
 
 Migrated drift sites to canonical Tailwind tokens (`max-w-page-narrow` / `wide` / `expanded`):
+
 - `/workload`, `/settings`, `/readiness`, `/billing/checkout`, `/migration.new` — to tokens
 - `/clients`, `/clients/[id]`, `/rules/pulse` — unified at `max-w-page-expanded` (1440)
 
 ### Responsive sweep (375 / 768 / 1280 / 1440 / 1920)
 
 Two regressions found while auditing, fixed in-flight:
+
 1. Filing plan table overflowed on mobile (375) — wrapped in `overflow-x-auto` + `min-w-[520px]`.
 2. Tab strip clipped last tab on mobile — added `overflow-x-auto` to `TabsList`.
 
@@ -86,6 +88,7 @@ Net: 16 files, +466 / −722.
 ## Outstanding (deferred)
 
 From the audit doc, NOT done this pass:
+
 - **P1-1** Split `ClientFactsWorkspace.tsx` (5,672 lines) into list / detail / work-plan / fact-panels files
 - **P1-3** Lazy-gate `riskSummary` / `pulseHistory` / `audit` queries on `activeTab === 'activity'`
 - **P1-4** Replace N+1 pulse-detail queries with server-side `pulse.getDetailsBatch` endpoint

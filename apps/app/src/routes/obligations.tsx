@@ -2350,8 +2350,7 @@ export function ObligationQueueRoute() {
                 compact={panelOpenIntent}
                 readOnly={!canUpdateObligationStatus}
               />
-              {obligationQueueRow.efileAcceptedAt &&
-              obligationQueueRow.status !== 'completed' ? (
+              {obligationQueueRow.efileAcceptedAt && obligationQueueRow.status !== 'completed' ? (
                 <span
                   className="inline-flex items-center gap-1 rounded-full bg-state-success-solid px-2 py-0.5 text-caption-xs font-medium text-text-inverted"
                   title={`${t`Authority accepted the return`} · ${formatDatePretty(obligationQueueRow.efileAcceptedAt.slice(0, 10))}`}
@@ -6765,138 +6764,68 @@ export function ObligationQueueDetailDrawer({
                         └ Received (M items, M + N = 13)
                 */}
                   <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-base font-semibold text-text-primary">
-                          <Trans>Materials checklist</Trans>
-                        </h3>
-                        {checklistReference ? (
-                          <Badge
-                            variant="outline"
-                            className="h-5 rounded-md px-1.5 text-caption-xs font-medium text-text-secondary"
-                          >
-                            {checklistReference}
-                          </Badge>
-                        ) : null}
-                      </div>
-                      {(() => {
-                        if (row.status !== 'done' && row.status !== 'completed') return null
-                        const total = checklist.length
-                        const received = checklist.filter((i) => i.status === 'received').length
-                        const description =
-                          total === 0
-                            ? t`No document checklist was attached to this filing.`
-                            : received === 0
-                              ? t`${total} checklist items weren't individually ticked during filing.`
-                              : received < total
-                                ? t`${received} of ${total} items recorded as received before filing.`
-                                : t`All ${total} items recorded as received.`
-                        return (
-                          <p className="text-caption italic leading-snug text-text-tertiary">
-                            {description}
-                          </p>
-                        )
-                      })()}
-                    </div>
-                    {checklist.length > 0 ? (
-                      <div className="flex shrink-0 items-center gap-2">
-                        <div className="flex h-8 items-center gap-2 rounded-md px-1 text-sm font-medium text-text-secondary">
-                          <Checkbox
-                            aria-label={
-                              correctionMaterialsMode ? t`Select all received items` : t`Select all`
-                            }
-                            checked={allMaterialsSelected}
-                            disabled={
-                              checklistItemIdsForSelection.length === 0 ||
-                              checklistGenerating ||
-                              updateChecklistItemMutation.isPending
-                            }
-                            onCheckedChange={() => {
-                              if (allMaterialsSelected) clearMaterialsSelection()
-                              else selectAllMaterials()
-                            }}
-                          />
-                          <span>
-                            {correctionMaterialsMode ? (
-                              <Trans>Select received</Trans>
-                            ) : (
-                              <Trans>Select all</Trans>
-                            )}
-                          </span>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={addChecklistItem}
-                          disabled={
-                            checklistGenerating ||
-                            addChecklistItemMutation.isPending ||
-                            checklist.length >= 30
-                          }
-                        >
-                          <PlusIcon data-icon="inline-start" />
-                          <Trans>Add item</Trans>
-                        </Button>
-                      </div>
-                    ) : null}
-                  </div>
-                  {checklist.length === 0 ? (
-                    autoGenerateChecklistQuery.isFetching ? (
-                      <EmptyPanel className="grid gap-3 text-text-secondary">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <RefreshCwIcon className="size-4 animate-spin" aria-hidden />
-                          <span>
-                            <Trans>Preparing</Trans>
-                          </span>
+                          <h3 className="text-base font-semibold text-text-primary">
+                            <Trans>Materials checklist</Trans>
+                          </h3>
+                          {checklistReference ? (
+                            <Badge
+                              variant="outline"
+                              className="h-5 rounded-md px-1.5 text-caption-xs font-medium text-text-secondary"
+                            >
+                              {checklistReference}
+                            </Badge>
+                          ) : null}
                         </div>
-                      </EmptyPanel>
-                    ) : autoGenerateChecklistQuery.isError ? (
-                      <EmptyPanel>
-                        <div className="flex flex-wrap items-center justify-center gap-2">
-                          <span>
-                            <Trans>Couldn't generate document list</Trans>
-                          </span>
-                          <Button
-                            size="xs"
-                            variant="outline"
-                            onClick={() => void autoGenerateChecklistQuery.refetch()}
-                          >
-                            <Trans>Retry</Trans>
-                          </Button>
-                        </div>
-                      </EmptyPanel>
-                    ) : (
-                      // Empty state — single primary CTA (Generate) sits
-                      // inside the empty panel as the obvious next step.
-                      // "Add item" is demoted to a small text link below
-                      // for users who want to bypass the AI generation.
-                      <EmptyPanel className="grid gap-3 text-center text-text-secondary">
-                        <p className="text-text-tertiary">
-                          <Trans>
-                            No documents listed yet. Generate an AI checklist or add items manually.
-                          </Trans>
-                        </p>
-                        <div className="flex flex-wrap items-center justify-center gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() =>
-                              generateChecklistMutation.mutate({
-                                obligationId: row.id,
-                              })
-                            }
-                            disabled={checklistGenerating}
-                          >
-                            <RefreshCwIcon
-                              data-icon="inline-start"
-                              className={cn(checklistGenerating ? 'animate-spin' : undefined)}
+                        {(() => {
+                          if (row.status !== 'done' && row.status !== 'completed') return null
+                          const total = checklist.length
+                          const received = checklist.filter((i) => i.status === 'received').length
+                          const description =
+                            total === 0
+                              ? t`No document checklist was attached to this filing.`
+                              : received === 0
+                                ? t`${total} checklist items weren't individually ticked during filing.`
+                                : received < total
+                                  ? t`${received} of ${total} items recorded as received before filing.`
+                                  : t`All ${total} items recorded as received.`
+                          return (
+                            <p className="text-caption italic leading-snug text-text-tertiary">
+                              {description}
+                            </p>
+                          )
+                        })()}
+                      </div>
+                      {checklist.length > 0 ? (
+                        <div className="flex shrink-0 items-center gap-2">
+                          <div className="flex h-8 items-center gap-2 rounded-md px-1 text-sm font-medium text-text-secondary">
+                            <Checkbox
+                              aria-label={
+                                correctionMaterialsMode
+                                  ? t`Select all received items`
+                                  : t`Select all`
+                              }
+                              checked={allMaterialsSelected}
+                              disabled={
+                                checklistItemIdsForSelection.length === 0 ||
+                                checklistGenerating ||
+                                updateChecklistItemMutation.isPending
+                              }
+                              onCheckedChange={() => {
+                                if (allMaterialsSelected) clearMaterialsSelection()
+                                else selectAllMaterials()
+                              }}
                             />
-                            {checklistGenerating ? (
-                              <Trans>Preparing</Trans>
-                            ) : (
-                              <Trans>Generate document list</Trans>
-                            )}
-                          </Button>
+                            <span>
+                              {correctionMaterialsMode ? (
+                                <Trans>Select received</Trans>
+                              ) : (
+                                <Trans>Select all</Trans>
+                              )}
+                            </span>
+                          </div>
                           <Button
                             size="sm"
                             variant="ghost"
@@ -6908,14 +6837,87 @@ export function ObligationQueueDetailDrawer({
                             }
                           >
                             <PlusIcon data-icon="inline-start" />
-                            <Trans>Add item manually</Trans>
+                            <Trans>Add item</Trans>
                           </Button>
                         </div>
-                      </EmptyPanel>
-                    )
-                  ) : (
-                    <>
-                      {/* 2026-05-26 (Step 9 AI Visibility Audit F-020):
+                      ) : null}
+                    </div>
+                    {checklist.length === 0 ? (
+                      autoGenerateChecklistQuery.isFetching ? (
+                        <EmptyPanel className="grid gap-3 text-text-secondary">
+                          <div className="flex items-center gap-2">
+                            <RefreshCwIcon className="size-4 animate-spin" aria-hidden />
+                            <span>
+                              <Trans>Preparing</Trans>
+                            </span>
+                          </div>
+                        </EmptyPanel>
+                      ) : autoGenerateChecklistQuery.isError ? (
+                        <EmptyPanel>
+                          <div className="flex flex-wrap items-center justify-center gap-2">
+                            <span>
+                              <Trans>Couldn't generate document list</Trans>
+                            </span>
+                            <Button
+                              size="xs"
+                              variant="outline"
+                              onClick={() => void autoGenerateChecklistQuery.refetch()}
+                            >
+                              <Trans>Retry</Trans>
+                            </Button>
+                          </div>
+                        </EmptyPanel>
+                      ) : (
+                        // Empty state — single primary CTA (Generate) sits
+                        // inside the empty panel as the obvious next step.
+                        // "Add item" is demoted to a small text link below
+                        // for users who want to bypass the AI generation.
+                        <EmptyPanel className="grid gap-3 text-center text-text-secondary">
+                          <p className="text-text-tertiary">
+                            <Trans>
+                              No documents listed yet. Generate an AI checklist or add items
+                              manually.
+                            </Trans>
+                          </p>
+                          <div className="flex flex-wrap items-center justify-center gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                generateChecklistMutation.mutate({
+                                  obligationId: row.id,
+                                })
+                              }
+                              disabled={checklistGenerating}
+                            >
+                              <RefreshCwIcon
+                                data-icon="inline-start"
+                                className={cn(checklistGenerating ? 'animate-spin' : undefined)}
+                              />
+                              {checklistGenerating ? (
+                                <Trans>Preparing</Trans>
+                              ) : (
+                                <Trans>Generate document list</Trans>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={addChecklistItem}
+                              disabled={
+                                checklistGenerating ||
+                                addChecklistItemMutation.isPending ||
+                                checklist.length >= 30
+                              }
+                            >
+                              <PlusIcon data-icon="inline-start" />
+                              <Trans>Add item manually</Trans>
+                            </Button>
+                          </div>
+                        </EmptyPanel>
+                      )
+                    ) : (
+                      <>
+                        {/* 2026-05-26 (Step 9 AI Visibility Audit F-020):
                         when the auto-generated checklist came back
                         with `degraded: true` the toast disappears in
                         4 seconds but the user keeps using the
@@ -6924,18 +6926,18 @@ export function ObligationQueueDetailDrawer({
                         fallback list is on screen — the AI's "I'm
                         not sure" signal needs to be persistent,
                         not transient. */}
-                      {checklistDegraded ? (
-                        <div className="flex items-start gap-2 rounded-md border border-state-warning-active-alt bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
-                          <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-                          <span>
-                            <Trans>
-                              AI couldn't reach the full model — showing a fallback list. Review
-                              each item against the deadline before relying on it.
-                            </Trans>
-                          </span>
-                        </div>
-                      ) : null}
-                      {/* 2026-05-26 (Yuqi fifty-second pass — Materials
+                        {checklistDegraded ? (
+                          <div className="flex items-start gap-2 rounded-md border border-state-warning-active-alt bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
+                            <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                            <span>
+                              <Trans>
+                                AI couldn't reach the full model — showing a fallback list. Review
+                                each item against the deadline before relying on it.
+                              </Trans>
+                            </span>
+                          </div>
+                        ) : null}
+                        {/* 2026-05-26 (Yuqi fifty-second pass — Materials
                         Outstanding/Received split from
                         design/deadlines-drawer-rework): checklist now
                         renders as two labeled sections — Outstanding
@@ -6951,69 +6953,69 @@ export function ObligationQueueDetailDrawer({
                         received-style chrome based on item.status —
                         the split is purely organizational, no new
                         renderer needed. */}
-                      {(() => {
-                        const outstandingItems = checklist.filter((i) => i.status !== 'received')
-                        const receivedItems = checklist.filter((i) => i.status === 'received')
-                        function renderRow(item: (typeof checklist)[number]) {
-                          const response =
-                            latestRequest?.responses.find((r) => r.itemId === item.id) ?? null
-                          const received = item.status === 'received'
-                          const selectable = correctionMaterialsMode
-                            ? received
-                            : item.status !== 'received'
-                          const isSelected = selectable && materialsSelection.itemIds.has(item.id)
+                        {(() => {
+                          const outstandingItems = checklist.filter((i) => i.status !== 'received')
+                          const receivedItems = checklist.filter((i) => i.status === 'received')
+                          function renderRow(item: (typeof checklist)[number]) {
+                            const response =
+                              latestRequest?.responses.find((r) => r.itemId === item.id) ?? null
+                            const received = item.status === 'received'
+                            const selectable = correctionMaterialsMode
+                              ? received
+                              : item.status !== 'received'
+                            const isSelected = selectable && materialsSelection.itemIds.has(item.id)
+                            return (
+                              <ChecklistItemRow
+                                key={`${item.id}:${item.updatedAt}`}
+                                item={item}
+                                response={response}
+                                correctionMode={correctionMaterialsMode}
+                                pending={updateChecklistItemMutation.isPending}
+                                selected={isSelected}
+                                selectionDisabled={!selectable}
+                                onToggleSelect={() => toggleMaterialsSelection(item.id)}
+                                onStatusChange={(status) =>
+                                  updateDocumentChecklistItem(item.id, { status })
+                                }
+                                onLabelCommit={(label) =>
+                                  updateDocumentChecklistItem(item.id, { label })
+                                }
+                                onDescriptionCommit={(description) =>
+                                  updateDocumentChecklistItem(item.id, {
+                                    description: description || null,
+                                  })
+                                }
+                                onNoteCommit={(note) =>
+                                  updateDocumentChecklistItem(item.id, { note: note || null })
+                                }
+                                onRemove={() => removeChecklistItem(item.id)}
+                              />
+                            )
+                          }
+                          // 2026-05-26 (Yuqi sixtieth pass — terminal-state
+                          // Materials framing): when the row is filed /
+                          // completed the checklist becomes an ARCHIVE,
+                          // not a to-do list. "Outstanding 13" on a
+                          // Filed row read as "13 items still to do"
+                          // when the work is closed — the items just
+                          // weren't ticked in the audit trail.
+                          // Terminal headings:
+                          //   • "Outstanding" → "Not in audit trail" —
+                          //     same items, but framed as "missing from
+                          //     the archive" not "still to be done."
+                          //   • "Received" → "Archived" — same items,
+                          //     historical record framing.
+                          const isTerminalRow = row.status === 'done' || row.status === 'completed'
                           return (
-                            <ChecklistItemRow
-                              key={`${item.id}:${item.updatedAt}`}
-                              item={item}
-                              response={response}
-                              correctionMode={correctionMaterialsMode}
-                              pending={updateChecklistItemMutation.isPending}
-                              selected={isSelected}
-                              selectionDisabled={!selectable}
-                              onToggleSelect={() => toggleMaterialsSelection(item.id)}
-                              onStatusChange={(status) =>
-                                updateDocumentChecklistItem(item.id, { status })
-                              }
-                              onLabelCommit={(label) =>
-                                updateDocumentChecklistItem(item.id, { label })
-                              }
-                              onDescriptionCommit={(description) =>
-                                updateDocumentChecklistItem(item.id, {
-                                  description: description || null,
-                                })
-                              }
-                              onNoteCommit={(note) =>
-                                updateDocumentChecklistItem(item.id, { note: note || null })
-                              }
-                              onRemove={() => removeChecklistItem(item.id)}
-                            />
-                          )
-                        }
-                        // 2026-05-26 (Yuqi sixtieth pass — terminal-state
-                        // Materials framing): when the row is filed /
-                        // completed the checklist becomes an ARCHIVE,
-                        // not a to-do list. "Outstanding 13" on a
-                        // Filed row read as "13 items still to do"
-                        // when the work is closed — the items just
-                        // weren't ticked in the audit trail.
-                        // Terminal headings:
-                        //   • "Outstanding" → "Not in audit trail" —
-                        //     same items, but framed as "missing from
-                        //     the archive" not "still to be done."
-                        //   • "Received" → "Archived" — same items,
-                        //     historical record framing.
-                        const isTerminalRow = row.status === 'done' || row.status === 'completed'
-                        return (
-                          <div className="flex flex-col gap-4">
-                            {/* 2026-05-26 (Yuqi feedback #5): dropped the
+                            <div className="flex flex-col gap-4">
+                              {/* 2026-05-26 (Yuqi feedback #5): dropped the
                               "This deadline has been filed" banner. The
                               header status pill + the section title
                               ("Not in audit trail" / "Archived") +
                               ReadinessOverview's italic subline already
                               tell the historical-record story 3x over;
                               this green banner was a 4th. Removed. */}
-                            {/* 2026-05-26 (Yuqi seventieth pass #6,
+                              {/* 2026-05-26 (Yuqi seventieth pass #6,
                                 #9): Outstanding / Received are now
                                 small kicker sub-headers (text-
                                 caption-xs uppercase tracking-wider
@@ -7024,92 +7026,94 @@ export function ObligationQueueDetailDrawer({
                                 are sub-section labels under it.
                                 Inner gap tightened from `gap-2 →
                                 gap-1.5` per #9. */}
-                            <section className="flex flex-col gap-1.5">
-                              <header className="flex items-baseline gap-1.5">
-                                <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
-                                  {isTerminalRow ? (
-                                    <Trans>Not in audit trail</Trans>
-                                  ) : (
-                                    <Trans>Outstanding</Trans>
-                                  )}
-                                </h4>
-                                <span
-                                  aria-label={t`${outstandingItems.length} items`}
-                                  className="text-caption-xs font-medium tabular-nums text-text-tertiary"
-                                >
-                                  {outstandingItems.length}
-                                </span>
-                              </header>
-                              {outstandingItems.length === 0 ? (
-                                <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-tertiary">
-                                  <Trans>All items received.</Trans>
-                                </p>
-                              ) : (
-                                <div className="grid gap-1.5">
-                                  {outstandingItems.map(renderRow)}
-                                </div>
-                              )}
-                            </section>
-                            {receivedItems.length > 0 ? (
                               <section className="flex flex-col gap-1.5">
                                 <header className="flex items-baseline gap-1.5">
                                   <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
                                     {isTerminalRow ? (
-                                      <Trans>Archived</Trans>
+                                      <Trans>Not in audit trail</Trans>
                                     ) : (
-                                      <Trans>Received</Trans>
+                                      <Trans>Outstanding</Trans>
                                     )}
                                   </h4>
                                   <span
-                                    aria-label={t`${receivedItems.length} items`}
+                                    aria-label={t`${outstandingItems.length} items`}
                                     className="text-caption-xs font-medium tabular-nums text-text-tertiary"
                                   >
-                                    {receivedItems.length}
+                                    {outstandingItems.length}
                                   </span>
                                 </header>
-                                <div className="grid gap-1.5">{receivedItems.map(renderRow)}</div>
+                                {outstandingItems.length === 0 ? (
+                                  <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-tertiary">
+                                    <Trans>All items received.</Trans>
+                                  </p>
+                                ) : (
+                                  <div className="grid gap-1.5">
+                                    {outstandingItems.map(renderRow)}
+                                  </div>
+                                )}
                               </section>
-                            ) : null}
-                          </div>
-                        )
-                      })()}
-                      {/* Primary CTA below the checklist — the actual
+                              {receivedItems.length > 0 ? (
+                                <section className="flex flex-col gap-1.5">
+                                  <header className="flex items-baseline gap-1.5">
+                                    <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                                      {isTerminalRow ? (
+                                        <Trans>Archived</Trans>
+                                      ) : (
+                                        <Trans>Received</Trans>
+                                      )}
+                                    </h4>
+                                    <span
+                                      aria-label={t`${receivedItems.length} items`}
+                                      className="text-caption-xs font-medium tabular-nums text-text-tertiary"
+                                    >
+                                      {receivedItems.length}
+                                    </span>
+                                  </header>
+                                  <div className="grid gap-1.5">{receivedItems.map(renderRow)}</div>
+                                </section>
+                              ) : null}
+                            </div>
+                          )
+                        })()}
+                        {/* Primary CTA below the checklist — the actual
                         workflow terminal action. Promoted from the
                         cluster at the top so the user's eye lands on
                         it after reading the list of items they're
                         requesting. Disabled if a request is already
                         pending out to the client (no implicit resend). */}
-                      {!latestRequest ||
-                      latestRequest.status === 'revoked' ||
-                      (correctionMaterialsMode &&
-                        (latestRequest.status === 'responded' ||
-                          latestRequest.status === 'expired')) ? (
-                        <div className="flex justify-end pt-1">
-                          <Button
-                            size="sm"
-                            onClick={() => openMaterialsRequestPreview(row.id)}
-                            disabled={
-                              previewRequestEmailMutation.isPending ||
-                              sendRequestMutation.isPending ||
-                              !canOpenMaterialsRequestPreview
-                            }
-                          >
-                            <SendIcon data-icon="inline-start" />
-                            {correctionMaterialsMode ? (
-                              <Trans>Send correction request</Trans>
-                            ) : (
-                              <Trans>Send to client</Trans>
-                            )}
-                          </Button>
-                          {correctionMaterialsMode && correctionChecklistItems.length === 0 ? (
-                            <p className="ml-auto text-xs text-text-tertiary">
-                              <Trans>Mark at least one received item needs correction first.</Trans>
-                            </p>
-                          ) : null}
-                        </div>
-                      ) : null}
-                    </>
-                  )}
+                        {!latestRequest ||
+                        latestRequest.status === 'revoked' ||
+                        (correctionMaterialsMode &&
+                          (latestRequest.status === 'responded' ||
+                            latestRequest.status === 'expired')) ? (
+                          <div className="flex justify-end pt-1">
+                            <Button
+                              size="sm"
+                              onClick={() => openMaterialsRequestPreview(row.id)}
+                              disabled={
+                                previewRequestEmailMutation.isPending ||
+                                sendRequestMutation.isPending ||
+                                !canOpenMaterialsRequestPreview
+                              }
+                            >
+                              <SendIcon data-icon="inline-start" />
+                              {correctionMaterialsMode ? (
+                                <Trans>Send correction request</Trans>
+                              ) : (
+                                <Trans>Send to client</Trans>
+                              )}
+                            </Button>
+                            {correctionMaterialsMode && correctionChecklistItems.length === 0 ? (
+                              <p className="ml-auto text-xs text-text-tertiary">
+                                <Trans>
+                                  Mark at least one received item needs correction first.
+                                </Trans>
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </>
+                    )}
                   </div>
                   {latestRequest ? (
                     <section className="flex flex-col gap-2">
@@ -9254,8 +9258,7 @@ function DeadlineTile({
         : tone === 'primary'
           ? 'border-divider-regular bg-background-default'
           : 'border-divider-subtle bg-background-default'
-  const labelToneClass =
-    tone === 'success' ? 'text-text-success' : 'text-text-tertiary'
+  const labelToneClass = tone === 'success' ? 'text-text-success' : 'text-text-tertiary'
   const valueClass = valueTone === 'tertiary' ? 'text-text-tertiary' : 'text-text-primary'
   // Tile labels use the canonical eyebrow treatment — uppercase + tracking
   // — so "FILING DEADLINE / INTERNAL TARGET / PAYMENT DUE" read as TILE

@@ -590,12 +590,12 @@ this is documented decision, not drift. Per the live audit in
 `clients-critique-2026-05-27-audit-pass.md` §3 + the design call
 following it:
 
-| Surface | Row click | Peek alternative |
-|---|---|---|
-| `/clients` list | Full-page nav to `/clients/[id]` | Hover Eye-icon → `ClientPeekHoverCard` (mouse-only) |
-| `/deadlines` | Drawer (in-page) | n/a — drawer IS the peek |
-| `/alerts` | Drawer (in-page) | n/a |
-| `/rules/library` | Dialog (in-page) | n/a |
+| Surface          | Row click                        | Peek alternative                                    |
+| ---------------- | -------------------------------- | --------------------------------------------------- |
+| `/clients` list  | Full-page nav to `/clients/[id]` | Hover Eye-icon → `ClientPeekHoverCard` (mouse-only) |
+| `/deadlines`     | Drawer (in-page)                 | n/a — drawer IS the peek                            |
+| `/alerts`        | Drawer (in-page)                 | n/a                                                 |
+| `/rules/library` | Dialog (in-page)                 | n/a                                                 |
 
 `ClientDrawerProvider.openDrawer(id)` is a **no-op when `pathname ===
 '/clients'`** by design: opening a peek drawer over the list it came

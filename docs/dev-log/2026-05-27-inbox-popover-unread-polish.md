@@ -21,7 +21,7 @@ Rewrote `NotificationItem` so the unread signal is layered, not
 stacked-on-top-of-itself:
 
 1. **Left accent dot** (NEW position) — small `size-2 rounded-full
-   bg-state-accent-solid` dot in a fixed column before the icon.
+bg-state-accent-solid` dot in a fixed column before the icon.
    Reading the popover top-down, the eye scans the leftmost column
    to triage what's new. iOS Mail / Linear / Slack canonical
    pattern.
@@ -29,7 +29,7 @@ stacked-on-top-of-itself:
    unread, `text-text-secondary` for read. Bold-vs-regular is the
    primary unread signal.
 3. **Icon tone** — `text-text-primary` for unread, `text-text-
-   tertiary` for read. Subtle weight bump without color.
+tertiary` for read. Subtle weight bump without color.
 
 Dropped:
 
@@ -63,8 +63,8 @@ saturated background.
 
 - `pnpm --filter=app exec tsc --noEmit` — clean
 - Manual: open bell popover, two unread items show `• [icon] Title
-  bold` on white bg; hover paints the row in `background-default-
-  hover`; clicking marks read, the dot disappears and the title
+bold` on white bg; hover paints the row in `background-default-
+hover`; clicking marks read, the dot disappears and the title
   fades to secondary text in the same rerender.
 
 ## Not changed (intentional)

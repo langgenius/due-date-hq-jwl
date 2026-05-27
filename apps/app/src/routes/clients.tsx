@@ -159,8 +159,7 @@ export function ClientsRoute() {
     ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds: pulseAlertIds } }),
     enabled: pulseAlertIds.length > 0,
   })
-  const pulseDetailsLoading =
-    pulseAlertIds.length > 0 && pulseDetailsBatchQuery.isLoading
+  const pulseDetailsLoading = pulseAlertIds.length > 0 && pulseDetailsBatchQuery.isLoading
   const pulseDetails = pulseDetailsBatchQuery.data?.details ?? []
   const pulseDetailsKey = pulseDetails.map((detail) => detail.alert.id).join('|')
   const pulseMatchesByClient = useMemo(

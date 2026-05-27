@@ -79,11 +79,7 @@ function formatEntityApplicability(values: readonly string[]): string {
  * `CandidateReviewSection` (Accept) so the inline view can
  * complete the daily-triage flow.
  */
-export function RuleDetailInline({
-  rule,
-}: {
-  rule: ObligationRule
-}) {
+export function RuleDetailInline({ rule }: { rule: ObligationRule }) {
   const sourceLookup = useSourceLookup()
   // 2026-05-25 (Yuqi rule library #14-#16): the old audit-meta header
   // (`fed.7004.extension.1065.2025 · v1 · Active`) lived inline at the
