@@ -664,6 +664,10 @@ msgstr "{label}, selected"
 msgid "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
 msgstr "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "{liveRowEstimate, plural, one {~# row detected} other {~# rows detected}}"
+msgstr "{liveRowEstimate, plural, one {~# row detected} other {~# rows detected}}"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "{missingSourceCount} source gaps"
 msgstr "{missingSourceCount} source gaps"
@@ -2614,10 +2618,6 @@ msgstr "Client email draft copied"
 msgid "Client email opt-outs"
 msgstr "Client email opt-outs"
 
-#: src/routes/migration.new.tsx
-msgid "Client facts"
-msgstr "Client facts"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "CLIENT FILTER"
 msgstr "CLIENT FILTER"
@@ -3681,10 +3681,6 @@ msgstr "Deadline detail"
 msgid "Deadline evidence"
 msgstr "Deadline evidence"
 
-#: src/routes/migration.new.tsx
-msgid "Deadline list"
-msgstr "Deadline list"
-
 #: src/routes/obligations.tsx
 msgid "Deadline needs-input update"
 msgstr "Deadline needs-input update"
@@ -3762,6 +3758,7 @@ msgstr "deadlines"
 #: src/features/concepts/concept-help.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/rules/generation-preview-tab.tsx
+#: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
 msgid "Deadlines"
@@ -5205,6 +5202,7 @@ msgid "Ignored"
 msgstr "Ignored"
 
 #: src/routes/clients.tsx
+#: src/routes/migration.new.tsx
 msgid "Import"
 msgstr "Import"
 
@@ -8897,6 +8895,10 @@ msgstr "Request review"
 msgid "Requested from client"
 msgstr "Requested from client"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Required for penalty risk forecasting."
+msgstr "Required for penalty risk forecasting."
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Required for rule applicability."
 msgstr "Required for rule applicability."
@@ -9267,6 +9269,10 @@ msgstr "Risk profile updated"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Risk summary refresh queued"
 msgstr "Risk summary refresh queued"
+
+#: src/routes/migration.new.tsx
+msgid "Risk view"
+msgstr "Risk view"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/members/members-page.tsx
@@ -11270,10 +11276,6 @@ msgstr "Today"
 msgid "Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
 msgstr "Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
 
-#: src/routes/migration.new.tsx
-msgid "Today risk"
-msgstr "Today risk"
-
 #: src/lib/i18n-error.ts
 msgid "Too many requests. Please try again in a moment."
 msgstr "Too many requests. Please try again in a moment."
@@ -11436,6 +11438,18 @@ msgstr "Undo available for 24 hours"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Undo client (1)"
 msgstr "Undo client (1)"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Undo expires in {hours}h {minutes}m"
+msgstr "Undo expires in {hours}h {minutes}m"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Undo expires in {minutes}m"
+msgstr "Undo expires in {minutes}m"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Undo expires in <1m"
+msgstr "Undo expires in <1m"
 
 #: src/features/migration/Wizard.tsx
 msgid "Undo import"

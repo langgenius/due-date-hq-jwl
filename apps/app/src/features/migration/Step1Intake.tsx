@@ -16,6 +16,7 @@ import type { MigrationSourceManifest } from '@duedatehq/contracts'
 import { parseTabular, TabularParseError } from '@duedatehq/core/csv-parser'
 import { detectSsnColumns } from '@duedatehq/core/pii'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Label } from '@duedatehq/ui/components/ui/label'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -283,6 +284,19 @@ export function Step1Intake({
       return []
     }
   }, [intake.ssnBlockedColumnIndexes, intake.rawText])
+
+  // 2026-05-27 (Step 7 onboarding audit F6-06): a fast non-empty-line
+  // count so the paste textarea can show feedback during typing
+  // even before parse succeeds (or fails). On 1000-row pastes the
+  // user previously got no signal the textarea received their
+  // input until debounced parse completed — feels frozen. The
+  // estimate subtracts one for the optional header row. Parse
+  // success below still owns the authoritative count.
+  const liveRowEstimate = useMemo(() => {
+    if (!intake.rawText) return 0
+    const nonEmpty = intake.rawText.split(/\r?\n/).filter((line) => line.trim().length > 0).length
+    return nonEmpty > 1 ? nonEmpty - 1 : nonEmpty
+  }, [intake.rawText])
   const sourceManifest = intake.sourceManifest
   const sourceProductLabel = sourceManifest ? SOURCE_PRODUCT_LABELS[sourceManifest.product] : ''
   const sourceWarnings = sourceManifest?.warnings ?? []
@@ -459,20 +473,42 @@ export function Step1Intake({
       {/* 2026-05-25 (Yuqi Today #27): dialog and onboarding now use
           the same vertical paste/upload stack. The side-by-side
           dialog treatment made upload read like a separate panel
-          instead of the second import option in Step 1. */}
+          instead of the second import option in Step 1.
+          2026-05-27 (Step 7 onboarding audit F6-05 + F6-09):
+          - F6-05: the paste/upload labels were `font-mono text-xs
+            uppercase tracking-eyebrow text-tertiary` — terminal-
+            eyebrow style. The rest of the workbench uses canonical
+            `<Label>` (sentence case, primary text) for form
+            controls. Switched both to `<Label htmlFor=…>` so the
+            wizard reads as part of the workbench, not as a
+            terminal pane embedded in it.
+          - F6-09: the lock-icon "We block SSN-like patterns…"
+            trust line previously sat AFTER paste, upload, AND the
+            preset chips — far from the place the user commits
+            sensitive data. Moved it directly above the paste
+            textarea so the trust signal lands before the action
+            that needs it. */}
       <div className={cn('flex flex-col gap-3', compact ? 'min-h-0' : '')}>
+        <p
+          id="paste-hint"
+          className={cn(
+            'flex items-center gap-1.5 text-text-tertiary',
+            compact ? 'text-xs' : 'text-sm',
+          )}
+        >
+          <LockIcon className="size-4" aria-hidden />
+          <Trans>We block SSN-like patterns before sending anything to the AI.</Trans>
+        </p>
+
         <div className="flex flex-col gap-2">
-          <label
-            htmlFor={pasteId}
-            className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase"
-          >
+          <Label htmlFor={pasteId}>
             <Trans>Paste rows</Trans>
-          </label>
+          </Label>
           <div className="rounded-lg border border-divider-regular bg-components-panel-bg p-1 shadow-subtle">
             <Textarea
               id={pasteId}
               aria-label={t`Paste client data`}
-              aria-describedby="paste-hint"
+              aria-describedby="paste-hint paste-row-count"
               value={intake.rawText}
               onChange={(e) => handleTextChange(e.target.value)}
               onPaste={handleRowsPaste}
@@ -483,13 +519,33 @@ export function Step1Intake({
               )}
             />
           </div>
+          {/* 2026-05-27 (Step 7 onboarding audit F6-06): live
+              row estimate so pasting 1000+ rows produces
+              immediate feedback even before parse runs. The
+              authoritative count below ("N rows ready to
+              import") still owns the truth once parse
+              succeeds; this is the during-typing reassurance. */}
+          {liveRowEstimate > 0 && intake.rowCount === 0 ? (
+            <p
+              id="paste-row-count"
+              className="font-mono text-xs tabular-nums text-text-tertiary"
+              aria-live="polite"
+            >
+              <Plural
+                value={liveRowEstimate}
+                one="~# row detected"
+                other="~# rows detected"
+              />
+            </p>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-2">
-          <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
+          <Label htmlFor={`${pasteId}-upload`}>
             <Trans>Upload file</Trans>
-          </span>
+          </Label>
           <div
+            id={`${pasteId}-upload`}
             role="button"
             tabIndex={0}
             onDrop={handleDrop}
@@ -563,9 +619,15 @@ export function Step1Intake({
 
       {/* Preset chips live BELOW the paste/upload stack — they're a
           separate "tell us more about your data source" affordance,
-          not a third entry method. */}
+          not a third entry method.
+          2026-05-27 (Step 7 onboarding audit F6-05): matched
+          typography to the canonical Label component above
+          (sentence case, primary text) instead of the terminal-
+          eyebrow font-mono uppercase. The chip group still uses
+          a `<span>` because it labels a group of chips, not a
+          single form control. */}
       <div className="flex flex-col gap-2">
-        <span className="font-mono text-xs tracking-[0.16em] text-text-tertiary uppercase">
+        <span className="text-sm font-medium text-text-primary">
           <Trans>I&apos;m coming from… (optional)</Trans>
         </span>
         <div className="flex flex-wrap gap-2">
@@ -606,16 +668,12 @@ export function Step1Intake({
         </p>
       </div>
 
-      <p
-        id="paste-hint"
-        className={cn(
-          'flex items-center gap-1.5 text-text-tertiary',
-          compact ? 'text-xs' : 'text-sm',
-        )}
-      >
-        <LockIcon className="size-4" aria-hidden />
-        <Trans>We block SSN-like patterns before sending anything to the AI.</Trans>
-      </p>
+      {/* 2026-05-27 (Step 7 onboarding audit F6-09): the lock
+          "paste-hint" line previously lived here (after the
+          paste/upload group AND the preset chips). Moved to
+          directly above the paste textarea so the trust signal
+          co-locates with the sensitive-data action it
+          describes. */}
 
       {intake.ssnBlockedColumnIndexes.length > 0 ? (
         /* 2026-05-26 (Step 7 onboarding audit F6-08): trailing
