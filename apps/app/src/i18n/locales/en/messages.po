@@ -807,8 +807,8 @@ msgid "{ruleReviewCount} rules pending review"
 msgstr "{ruleReviewCount} rules pending review"
 
 #: src/routes/obligations.tsx
-msgid "{scopeTotal} open"
-msgstr "{scopeTotal} open"
+msgid "{scopeTotal, plural, one {# deadline} other {# deadlines}}"
+msgstr "{scopeTotal, plural, one {# deadline} other {# deadlines}}"
 
 #: src/routes/obligations.tsx
 msgid "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
@@ -5332,7 +5332,6 @@ msgstr "Hide"
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/opportunities/opportunity-ui.tsx
 #: src/features/pulse/components/PulseConfidencePill.tsx
-#: src/routes/obligations.tsx
 msgid "High"
 msgstr "High"
 
@@ -6018,7 +6017,6 @@ msgstr "Lost your authenticator? <link>Email support</link> to reset 2FA."
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/opportunities/opportunity-ui.tsx
 #: src/features/pulse/components/PulseConfidencePill.tsx
-#: src/routes/obligations.tsx
 msgid "Low"
 msgstr "Low"
 
@@ -6296,10 +6294,6 @@ msgstr "Materials state changed from {previous} to {next}"
 #: src/routes/obligations.tsx
 msgid "Materials still outstanding"
 msgstr "Materials still outstanding"
-
-#: src/routes/obligations.tsx
-msgid "Med"
-msgstr "Med"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
@@ -10666,10 +10660,6 @@ msgstr "Sort by needs review, ascending (active)"
 msgid "Sort by needs review, descending (active)"
 msgstr "Sort by needs review, descending (active)"
 
-#: src/routes/obligations.tsx
-msgid "Sort by Smart Priority"
-msgstr "Sort by Smart Priority"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "source"
 msgstr "source"
@@ -11354,6 +11344,10 @@ msgstr "The number of days before a deadline where urgency reaches its maximum S
 msgid "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Pulse change."
 msgstr "The official source, quote, or audit record that supports a rule, deadline, AI explanation, or Pulse change."
 
+#: src/routes/obligations.tsx
+msgid "The operating surface for deadline work — filter, sort, assign owners, update status, and open evidence for each row."
+msgstr "The operating surface for deadline work — filter, sort, assign owners, update status, and open evidence for each row."
+
 #: src/features/concepts/concept-help.tsx
 msgid "The operating surface for deadline work: filter, sort, assign owners, update status, and open evidence for each deadline."
 msgstr "The operating surface for deadline work: filter, sort, assign owners, update status, and open evidence for each deadline."
@@ -11983,10 +11977,6 @@ msgstr "Upstream return also blocking — client flagged items separately."
 #: src/routes/practice.tsx
 msgid "Urgency window"
 msgstr "Urgency window"
-
-#: src/routes/obligations.tsx
-msgid "Urgent"
-msgstr "Urgent"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "US state code · 2 letters"

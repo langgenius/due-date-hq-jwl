@@ -183,16 +183,18 @@ function NeedsAttentionSection() {
       </div>
 
       {totalAlertCount > 0 ? (
-        <div
-          className={cn(
-            'grid items-stretch gap-3',
-            alerts.length === 1 && 'grid-cols-1',
-            alerts.length === 2 && 'grid-cols-2',
-            overflowCount > 0 && 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px]',
-          )}
-        >
+        // 2026-05-27 (Yuqi follow-up — "alert card is not occupying the
+        // full width"): the previous grid stacked two alerts side-by-
+        // side (`grid-cols-2`) and reserved a 160px overflow column.
+        // Side-by-side narrows each card and forces the alert body to
+        // wrap — at one alert it was full-width, at two it suddenly
+        // chopped in half. Now every alert renders as a full-width row
+        // stacked vertically. The overflow card sits as a final row at
+        // the same width, so the section reads top-to-bottom like a
+        // mini-inbox instead of a 2-column tile grid.
+        <div className="flex flex-col gap-2">
           {visibleAlerts.map((alert) => (
-            <div key={alert.id} className="h-full min-w-0">
+            <div key={alert.id} className="min-w-0">
               <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
             </div>
           ))}
