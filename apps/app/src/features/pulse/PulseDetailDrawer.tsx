@@ -44,6 +44,7 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate } from '@/lib/utils'
 import { ConceptLabel } from '@/features/concepts/concept-help'
+import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
@@ -854,14 +855,17 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
             <PulseStructuredFields detail={detail} />
 
             {!canApply ? (
-              <Alert>
-                <AlertTitle>
-                  <Trans>Read-only view</Trans>
-                </AlertTitle>
-                <AlertDescription>
-                  <Trans>Only owners and managers can apply Pulse changes.</Trans>
-                </AlertDescription>
-              </Alert>
+              // Audit-drain ρ ROH-D6 (2026-05-27): swapped the ad-hoc
+              // Alert (which hard-coded "Only owners and managers…" —
+              // partner missing) for the canonical PermissionInlineNotice
+              // which derives required-role text from
+              // `requiredRolesForFirmPermission('pulse.apply')`. Stays
+              // in sync with the enum forever and gives users their
+              // current-role badge for clarity.
+              <PermissionInlineNotice
+                permission="pulse.apply"
+                currentRole={permissions.role}
+              />
             ) : null}
 
             {detail.alert.sourceStatus === 'source_revoked' ? (

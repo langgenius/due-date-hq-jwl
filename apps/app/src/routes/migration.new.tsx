@@ -1,5 +1,5 @@
 import { Plural, Trans } from '@lingui/react/macro'
-import { ArrowRightIcon, CheckCircle2Icon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
+import { CheckCircle2Icon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
@@ -10,7 +10,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { Wizard } from '@/features/migration/Wizard'
-import { useFirmPermission } from '@/features/permissions/permission-gate'
+import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
 import type { AuthUser } from '@/lib/auth'
 
 type MigrationNewLoaderData = {
@@ -56,6 +56,13 @@ export function MigrationNewRoute() {
   }
 
   if (!canRunMigration) {
+    // Audit-drain ρ ROH-D7 (2026-05-27): replaced the bespoke
+    // destructive Alert ("Owner or manager access required" —
+    // partner missing AND custom typography) with the canonical
+    // `<PermissionGate>` panel used everywhere else (Members,
+    // Billing, Audit). Same role-derivation pipeline, same
+    // return-to-Today CTA, no more drift when FIRM_PERMISSION_ROLES
+    // changes.
     return (
       <div className="mx-auto flex w-full max-w-[760px] flex-col gap-4 p-4 md:p-6">
         <MigrationActivationIntro
@@ -64,21 +71,18 @@ export function MigrationNewRoute() {
           showRuleReviewAction={!isOnboardingSource}
           ruleReviewCount={ruleReviewCount}
         />
-        <Alert variant="destructive">
-          <AlertTitle>
-            <Trans>Owner or manager access required</Trans>
-          </AlertTitle>
-          <AlertDescription>
+        <PermissionGate
+          permission="migration.run"
+          firm={firm ?? null}
+          description={
             <Trans>
-              Client migration changes practice data, evidence, and audit records. Ask a practice
-              owner or manager to run the import.
+              Client migration changes practice data, evidence, and audit records. Contact a
+              practice owner if you need access.
             </Trans>
-          </AlertDescription>
-        </Alert>
-        <Button className="w-fit" onClick={skipToDashboard}>
-          <Trans>Return to Today</Trans>
-          <ArrowRightIcon data-icon="inline-end" />
-        </Button>
+          }
+        >
+          <div />
+        </PermissionGate>
       </div>
     )
   }

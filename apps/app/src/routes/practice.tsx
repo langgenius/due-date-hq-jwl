@@ -692,6 +692,24 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             variant="destructive-secondary"
             onClick={() => setConfirmDelete(true)}
             disabled={!canDeletePractice || deleteMutation.isPending}
+            // Audit-drain ρ ROH-D13 (2026-05-27): the Delete button
+            // was silently disabled for any non-owner role — no
+            // tooltip explained why the destructive action was
+            // greyed out. Added the same `title` pattern used by
+            // the dashboard Import button so the user sees "owner
+            // permission required" on hover. The card title +
+            // description already explain WHAT the action does;
+            // this fills in WHO can do it.
+            title={
+              canDeletePractice
+                ? undefined
+                : t`Deleting the practice requires owner access.`
+            }
+            aria-label={
+              canDeletePractice
+                ? undefined
+                : t`Delete practice (owner access required)`
+            }
           >
             <Trash2Icon className="size-4" aria-hidden />
             <Trans>Delete practice</Trans>

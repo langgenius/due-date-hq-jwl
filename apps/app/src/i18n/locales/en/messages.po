@@ -2618,8 +2618,8 @@ msgid "Client materials response"
 msgstr "Client materials response"
 
 #: src/routes/migration.new.tsx
-msgid "Client migration changes practice data, evidence, and audit records. Ask a practice owner or manager to run the import."
-msgstr "Client migration changes practice data, evidence, and audit records. Ask a practice owner or manager to run the import."
+msgid "Client migration changes practice data, evidence, and audit records. Contact a practice owner if you need access."
+msgstr "Client migration changes practice data, evidence, and audit records. Contact a practice owner if you need access."
 
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/migration/mapping-target-labels.ts
@@ -3507,6 +3507,10 @@ msgstr "Creates the file in this browser."
 msgid "Creating a safe import batch, uploading rows, and mapping your columns."
 msgstr "Creating a safe import batch, uploading rows, and mapping your columns."
 
+#: src/features/clients/ClientsCreateSplitButton.tsx
+msgid "Creating clients requires owner, partner, manager, or preparer access."
+msgstr "Creating clients requires owner, partner, manager, or preparer access."
+
 #: src/features/migration/WizardShell.tsx
 msgid "Creating clients, deadlines, evidence links, and audit records."
 msgstr "Creating clients, deadlines, evidence links, and audit records."
@@ -3768,8 +3772,16 @@ msgid "Delete practice"
 msgstr "Delete practice"
 
 #: src/routes/practice.tsx
+msgid "Delete practice (owner access required)"
+msgstr "Delete practice (owner access required)"
+
+#: src/routes/practice.tsx
 msgid "Delete this practice?"
 msgstr "Delete this practice?"
+
+#: src/routes/practice.tsx
+msgid "Deleting the practice requires owner access."
+msgstr "Deleting the practice requires owner access."
 
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Demo account"
@@ -6372,6 +6384,10 @@ msgstr "New"
 msgid "New client"
 msgstr "New client"
 
+#: src/features/clients/ClientsCreateSplitButton.tsx
+msgid "New client (requires non-coordinator access)"
+msgstr "New client (requires non-coordinator access)"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "New client imports will appear here when you need batch recovery."
 msgstr "New client imports will appear here when you need batch recovery."
@@ -7108,17 +7124,8 @@ msgid "One unfinished draft import"
 msgstr "One unfinished draft import"
 
 #: src/features/pulse/lib/error-mapping.ts
-#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Only owners and managers can apply Pulse changes."
 msgstr "Only owners and managers can apply Pulse changes."
-
-#: src/features/calendar/calendar-page.tsx
-msgid "Only owners and managers can enable the practice-wide calendar feed."
-msgstr "Only owners and managers can enable the practice-wide calendar feed."
-
-#: src/features/migration/ImportHistoryDrawer.tsx
-msgid "Only owners and managers can undo migration imports."
-msgstr "Only owners and managers can undo migration imports."
 
 #: src/routes/billing.tsx
 msgid "Only owners can manage billing."
@@ -7544,10 +7551,6 @@ msgstr "Owner cleared"
 msgid "Owner count"
 msgstr "Owner count"
 
-#: src/routes/migration.new.tsx
-msgid "Owner or manager access required"
-msgstr "Owner or manager access required"
-
 #: src/routes/dashboard.tsx
 msgid "Owner or manager access required."
 msgstr "Owner or manager access required."
@@ -7590,8 +7593,8 @@ msgid "Owners updated"
 msgstr "Owners updated"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Owners, managers, and preparers can inspect client activity."
-msgstr "Owners, managers, and preparers can inspect client activity."
+msgid "Owners, partners, managers, and preparers can inspect client activity."
+msgstr "Owners, partners, managers, and preparers can inspect client activity."
 
 #. placeholder {0}: table.getState().pagination.pageIndex + 1
 #. placeholder {1}: table.getPageCount()
@@ -8057,8 +8060,8 @@ msgid "Practice-managed reminder template."
 msgstr "Practice-managed reminder template."
 
 #: src/features/audit/audit-log-page.tsx
-msgid "Practice-wide audit events are available to owners, managers, and preparers. Contact the practice owner if you need audit access."
-msgstr "Practice-wide audit events are available to owners, managers, and preparers. Contact the practice owner if you need audit access."
+msgid "Practice-wide audit events are available to owners, partners, managers, and preparers. Contact the practice owner if you need audit access."
+msgstr "Practice-wide audit events are available to owners, partners, managers, and preparers. Contact the practice owner if you need audit access."
 
 #: src/routes/practice.tsx
 msgid "Practice-wide weights for deterministic deadline ranking."
@@ -8459,7 +8462,6 @@ msgid "Read field values"
 msgstr "Read field values"
 
 #: src/features/permissions/permission-gate.tsx
-#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Read-only view"
 msgstr "Read-only view"
 
@@ -8851,7 +8853,6 @@ msgid "Return home"
 msgstr "Return home"
 
 #: src/features/permissions/permission-gate.tsx
-#: src/routes/migration.new.tsx
 msgid "Return to Today"
 msgstr "Return to Today"
 
@@ -10294,6 +10295,10 @@ msgstr "Status"
 #: src/routes/obligations.tsx
 msgid "Status changed to {0}"
 msgstr "Status changed to {0}"
+
+#: src/routes/obligations.tsx
+msgid "Status changes require owner, partner, manager, or preparer access."
+msgstr "Status changes require owner, partner, manager, or preparer access."
 
 #: src/routes/obligations.tsx
 msgid "Status scopes"

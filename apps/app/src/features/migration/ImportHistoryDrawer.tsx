@@ -227,12 +227,17 @@ export function ImportHistoryDrawer({
             {!batchesQuery.isLoading && batches.length > 0 ? (
               <div className="grid gap-4">
                 {!canRevertMigration && hasRevertibleBatch ? (
+                  // Audit-drain ρ ROH-D8 (2026-05-27): dropped the
+                  // stale override copy ("Only owners and managers…")
+                  // — partner was missing even though
+                  // `FIRM_PERMISSION_ROLES['migration.revert']` is
+                  // `['owner', 'partner', 'manager']`. Default
+                  // `PermissionInlineNotice` body derives the required
+                  // role text from the enum, so we stay in sync.
                   <PermissionInlineNotice
                     permission="migration.revert"
                     currentRole={permission.firm?.role}
-                  >
-                    <Trans>Only owners and managers can undo migration imports.</Trans>
-                  </PermissionInlineNotice>
+                  />
                 ) : null}
                 {batches.map((batch) => {
                   const canRevertBatch = canRevertMigration && isBatchRevertible(batch)

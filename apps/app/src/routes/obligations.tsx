@@ -989,6 +989,12 @@ export function ObligationQueueRoute() {
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
   const canRunMigration = permission.can('migration.run')
+  // Audit-drain ρ ROH-D3 (2026-05-27): the bulk "Set status" dropdown
+  // had no UI gate — coordinator could open it, click a status, and
+  // get a 403 toast from the server. Server already enforces; this
+  // adds the missing affordance so the dropdown trigger is disabled
+  // for read-only roles with a tooltip explaining why.
+  const canUpdateObligationStatus = permission.can('obligation.status.update')
   const practiceAiEnabled = paidPlanActive(permission.firm)
   const { openEvidence } = useEvidenceDrawer()
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
@@ -3262,8 +3268,18 @@ export function ObligationQueueRoute() {
               </DropdownMenu>
               <DropdownMenu>
                 <DropdownMenuTrigger
+                  disabled={!canUpdateObligationStatus}
                   render={
-                    <Button variant="ghost" size="sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={!canUpdateObligationStatus}
+                      title={
+                        canUpdateObligationStatus
+                          ? undefined
+                          : t`Status changes require owner, partner, manager, or preparer access.`
+                      }
+                    >
                       <Trans>Set status</Trans>
                       <ChevronDownIcon data-icon="inline-end" />
                     </Button>

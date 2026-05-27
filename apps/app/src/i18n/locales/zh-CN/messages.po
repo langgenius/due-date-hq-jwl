@@ -2618,8 +2618,8 @@ msgid "Client materials response"
 msgstr "客户材料回复"
 
 #: src/routes/migration.new.tsx
-msgid "Client migration changes practice data, evidence, and audit records. Ask a practice owner or manager to run the import."
-msgstr "客户迁移会修改事务所数据、证据和审计记录。请让事务所 owner 或 manager 执行导入。"
+msgid "Client migration changes practice data, evidence, and audit records. Contact a practice owner if you need access."
+msgstr "客户迁移会修改实务数据、凭证和审计记录。如需访问权限，请联系实务所有者。"
 
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/migration/mapping-target-labels.ts
@@ -3507,6 +3507,10 @@ msgstr "Creates the file in this browser."
 msgid "Creating a safe import batch, uploading rows, and mapping your columns."
 msgstr "正在创建安全导入批次、上传行数据并映射字段。"
 
+#: src/features/clients/ClientsCreateSplitButton.tsx
+msgid "Creating clients requires owner, partner, manager, or preparer access."
+msgstr "创建客户需要所有者、合伙人、管理员或准备者权限。"
+
 #: src/features/migration/WizardShell.tsx
 msgid "Creating clients, deadlines, evidence links, and audit records."
 msgstr "正在创建客户、截止日、证据链接和审计记录。"
@@ -3768,8 +3772,16 @@ msgid "Delete practice"
 msgstr "删除事务所"
 
 #: src/routes/practice.tsx
+msgid "Delete practice (owner access required)"
+msgstr "删除事务所（需要所有者权限）"
+
+#: src/routes/practice.tsx
 msgid "Delete this practice?"
 msgstr "删除这个事务所？"
+
+#: src/routes/practice.tsx
+msgid "Deleting the practice requires owner access."
+msgstr "删除事务所需要所有者权限。"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Demo account"
@@ -6372,6 +6384,10 @@ msgstr "新"
 msgid "New client"
 msgstr "新客户"
 
+#: src/features/clients/ClientsCreateSplitButton.tsx
+msgid "New client (requires non-coordinator access)"
+msgstr "新建客户（协调员角色无权限）"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "New client imports will appear here when you need batch recovery."
 msgstr "需要批量恢复时，新的客户导入会显示在这里。"
@@ -7108,17 +7124,8 @@ msgid "One unfinished draft import"
 msgstr "One unfinished draft import"
 
 #: src/features/pulse/lib/error-mapping.ts
-#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Only owners and managers can apply Pulse changes."
 msgstr "仅 Owner 与 Manager 可应用监管提醒。"
-
-#: src/features/calendar/calendar-page.tsx
-msgid "Only owners and managers can enable the practice-wide calendar feed."
-msgstr "只有 Owner 和 Manager 可以启用全事务所日历订阅源。"
-
-#: src/features/migration/ImportHistoryDrawer.tsx
-msgid "Only owners and managers can undo migration imports."
-msgstr "只有负责人和管理员可以撤销迁移导入。"
 
 #: src/routes/billing.tsx
 msgid "Only owners can manage billing."
@@ -7544,10 +7551,6 @@ msgstr "负责人已清除"
 msgid "Owner count"
 msgstr "所有者数量"
 
-#: src/routes/migration.new.tsx
-msgid "Owner or manager access required"
-msgstr "需要 owner 或 manager 权限"
-
 #: src/routes/dashboard.tsx
 msgid "Owner or manager access required."
 msgstr "需要所有者或经理权限。"
@@ -7590,8 +7593,8 @@ msgid "Owners updated"
 msgstr "负责人已更新"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Owners, managers, and preparers can inspect client activity."
-msgstr "Owner、Manager 和 Preparer 可以查看客户活动。"
+msgid "Owners, partners, managers, and preparers can inspect client activity."
+msgstr "所有者、合伙人、管理员和准备者可查看客户活动记录。"
 
 #. placeholder {0}: table.getState().pagination.pageIndex + 1
 #. placeholder {1}: table.getPageCount()
@@ -8057,8 +8060,8 @@ msgid "Practice-managed reminder template."
 msgstr "事务所统一管理的提醒模板。"
 
 #: src/features/audit/audit-log-page.tsx
-msgid "Practice-wide audit events are available to owners, managers, and preparers. Contact the practice owner if you need audit access."
-msgstr "全事务所审计事件仅负责人、管理员和经办人可访问。需要审计权限请联系事务所负责人。"
+msgid "Practice-wide audit events are available to owners, partners, managers, and preparers. Contact the practice owner if you need audit access."
+msgstr "事务所范围的审计事件向所有者、合伙人、管理员和准备者开放。如需审计访问权限，请联系实务所有者。"
 
 #: src/routes/practice.tsx
 msgid "Practice-wide weights for deterministic deadline ranking."
@@ -8459,7 +8462,6 @@ msgid "Read field values"
 msgstr "读取字段值"
 
 #: src/features/permissions/permission-gate.tsx
-#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Read-only view"
 msgstr "只读视图"
 
@@ -8851,7 +8853,6 @@ msgid "Return home"
 msgstr "返回首页"
 
 #: src/features/permissions/permission-gate.tsx
-#: src/routes/migration.new.tsx
 msgid "Return to Today"
 msgstr "Return to Today"
 
@@ -10294,6 +10295,10 @@ msgstr "状态"
 #: src/routes/obligations.tsx
 msgid "Status changed to {0}"
 msgstr "状态已变更为 {0}"
+
+#: src/routes/obligations.tsx
+msgid "Status changes require owner, partner, manager, or preparer access."
+msgstr "更改状态需要所有者、合伙人、管理员或准备者权限。"
 
 #: src/routes/obligations.tsx
 msgid "Status scopes"

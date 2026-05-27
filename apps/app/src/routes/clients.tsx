@@ -101,6 +101,11 @@ export function ClientsRoute() {
   const { openWizard } = useMigrationWizard()
   const permission = useFirmPermission()
   const canRunMigration = permission.can('migration.run')
+  // Audit-drain ρ ROH-D1 (2026-05-27): gate the "+ New client" split
+  // button so coordinator (read-only) sees disabled + tooltip instead
+  // of a dialog that 403s on submit. Server already enforces the
+  // mutation; this is the missing UI affordance.
+  const canCreateClient = permission.can('client.write')
   const entityLabels = useEntityLabels()
   const [
     {
@@ -371,6 +376,7 @@ export function ClientsRoute() {
               onCreate={handleCreateClient}
               onImport={openWizard}
               canImport={canRunMigration}
+              canCreate={canCreateClient}
             />
           </>
         }

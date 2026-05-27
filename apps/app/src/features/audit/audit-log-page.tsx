@@ -626,9 +626,15 @@ export function AuditLogPage() {
         permission="audit.read"
         firm={currentFirm}
         description={
+          // Audit-drain ρ ROH-D5 (2026-05-27): added "partners" to the
+          // role list — the previous copy ("owners, managers, and
+          // preparers") drifted from `FIRM_PERMISSION_ROLES['audit.read']`
+          // which includes partner. The badge below the description
+          // already showed the right set via `requiredRolesLabel` — only
+          // the human-readable paragraph was stale.
           <Trans>
-            Practice-wide audit events are available to owners, managers, and preparers. Contact the
-            practice owner if you need audit access.
+            Practice-wide audit events are available to owners, partners, managers, and preparers.
+            Contact the practice owner if you need audit access.
           </Trans>
         }
         secondaryAction={{ label: <Trans>Open deadlines</Trans>, to: '/deadlines' }}
