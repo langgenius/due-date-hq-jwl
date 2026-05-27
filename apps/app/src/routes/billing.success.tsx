@@ -1,6 +1,13 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, CheckCircle2Icon, ClockIcon } from 'lucide-react'
+import {
+  AlertTriangleIcon,
+  ArrowRightIcon,
+  CheckCircle2Icon,
+  ClockIcon,
+  RefreshCwIcon,
+} from 'lucide-react'
 import { useQueryStates } from 'nuqs'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
@@ -20,6 +27,13 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { billingSearchParamsParsers } from '@/features/billing/model'
 import { useBillingSubscriptions, useCurrentFirm } from '@/features/billing/use-billing-data'
 
+// 2026-05-27 (step-6 audit #119): time-to-give-up-polling threshold.
+// After this many milliseconds with no webhook activation we surface
+// a "still confirming" state with a manual refresh + support hint so
+// the user isn't stranded on an infinite spinner if a Stripe webhook
+// silently dropped.
+const ACTIVATION_TIMEOUT_MS = 60_000
+
 export function BillingSuccessRoute() {
   const { t } = useLingui()
   const [{ plan: expectedPlan }] = useQueryStates(billingSearchParamsParsers)
@@ -30,6 +44,18 @@ export function BillingSuccessRoute() {
   )
   const activated = currentFirm?.plan === expectedPlan && activeSubscription?.plan === expectedPlan
   const statusError = firmsQuery.isError || subscriptionsQuery.isError
+  // 2026-05-27 (step-6 audit #119): flip to "timed out" state after
+  // 60s of polling without confirmation. The polling continues in
+  // the background — the timeout only changes the messaging to give
+  // the user an explicit refresh CTA + support path.
+  const [activationTimedOut, setActivationTimedOut] = useState(false)
+  useEffect(() => {
+    if (activated || statusError) return
+    const handle = window.setTimeout(() => {
+      setActivationTimedOut(true)
+    }, ACTIVATION_TIMEOUT_MS)
+    return () => window.clearTimeout(handle)
+  }, [activated, statusError])
   const expectedPlanName =
     expectedPlan === 'firm'
       ? t`Enterprise`
@@ -111,6 +137,34 @@ export function BillingSuccessRoute() {
                 <Trans>Your subscription is confirmed and the plan is active.</Trans>
               </AlertDescription>
             </Alert>
+          ) : activationTimedOut ? (
+            // 2026-05-27 (step-6 audit #119): after 60s with no
+            // activation, swap the friendly "still checking" alert
+            // for a clearer "this is taking longer than usual"
+            // message with a manual refresh CTA and a contact-support
+            // line. Polling continues in the background.
+            <Alert variant="warning">
+              <AlertTriangleIcon />
+              <AlertTitle>
+                <Trans>Still confirming — taking longer than usual</Trans>
+              </AlertTitle>
+              <AlertDescription className="grid gap-3">
+                <Trans>
+                  The payment provider hasn't confirmed the subscription yet. This usually clears
+                  within a minute. Refresh the page, or contact support if it persists.
+                </Trans>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => window.location.reload()}
+                  >
+                    <RefreshCwIcon data-icon="inline-start" />
+                    <Trans>Refresh now</Trans>
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
           ) : (
             <Alert>
               <ClockIcon />
@@ -135,12 +189,18 @@ export function BillingSuccessRoute() {
           ) : null}
         </CardContent>
         <CardFooter className="gap-2 border-t border-divider-regular">
-          <Button render={<Link to="/billing" />}>
-            <Trans>Open billing</Trans>
+          {/* 2026-05-27 (step-6 audit #121): the post-checkout user
+              wants to get back to work, not verify the line items —
+              "Go to Today" is now the primary CTA (filled), "Open
+              billing" demotes to outline. The verification path stays
+              one click away for anyone who lands here intentionally
+              to inspect invoices. */}
+          <Button render={<Link to="/" />}>
+            <Trans>Go to Today</Trans>
             <ArrowRightIcon data-icon="inline-end" />
           </Button>
-          <Button variant="outline" render={<Link to="/" />}>
-            <Trans>Go to Today</Trans>
+          <Button variant="outline" render={<Link to="/billing" />}>
+            <Trans>Open billing</Trans>
           </Button>
         </CardFooter>
       </Card>

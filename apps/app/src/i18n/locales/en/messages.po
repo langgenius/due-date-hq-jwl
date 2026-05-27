@@ -1187,6 +1187,11 @@ msgstr "Actor"
 msgid "Add {0} deadlines"
 msgstr "Add {0} deadlines"
 
+#. placeholder {0}: 100 - weightTotal
+#: src/routes/practice.tsx
+msgid "Add {0}% across factors to balance. Weights must total 100%."
+msgstr "Add {0}% across factors to balance. Weights must total 100%."
+
 #: src/features/clients/CreateClientDialog.tsx
 msgid "Add a manual client record to the active practice directory."
 msgstr "Add a manual client record to the active practice directory."
@@ -2406,6 +2411,10 @@ msgstr "Checkout is temporarily unavailable for this plan. Contact support."
 #: src/routes/billing.tsx
 msgid "Checkout, cards, invoices, and portal sessions stay with the processor."
 msgstr "Checkout, cards, invoices, and portal sessions stay with the processor."
+
+#: src/routes/billing.cancel.tsx
+msgid "Choose a plan"
+msgstr "Choose a plan"
 
 #: src/routes/billing.tsx
 msgid "Choose a workspace tier"
@@ -4886,6 +4895,10 @@ msgstr "Fix missing facts"
 msgid "Fix now"
 msgstr "Fix now"
 
+#: src/routes/practice.tsx
+msgid "Fix the Smart Priority inputs above before previewing — weights must total 100% and ranges must be valid."
+msgstr "Fix the Smart Priority inputs above before previewing — weights must total 100% and ranges must be valid."
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "FL tentative tax"
 msgstr "FL tentative tax"
@@ -6777,6 +6790,10 @@ msgstr "No pending rules for this jurisdiction."
 msgid "No pending rules to review."
 msgstr "No pending rules to review."
 
+#: src/routes/billing.cancel.tsx
+msgid "No plan was selected — choose one from Billing to start checkout."
+msgstr "No plan was selected — choose one from Billing to start checkout."
+
 #: src/routes/billing.checkout.tsx
 msgid "No practice selected"
 msgstr "No practice selected"
@@ -6994,6 +7011,10 @@ msgstr "Not yet"
 #: src/routes/readiness.tsx
 msgid "Note"
 msgstr "Note"
+
+#: src/routes/practice.tsx
+msgid "Note: changes can't be reverted automatically — adjusting this back later won't restore prior deadline dates. Historical audit entries stay intact."
+msgstr "Note: changes can't be reverted automatically — adjusting this back later won't restore prior deadline dates. Historical audit entries stay intact."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
@@ -7596,8 +7617,8 @@ msgid "owner read-only · self read-only"
 msgstr "owner read-only · self read-only"
 
 #: src/features/members/members-page.tsx
-msgid "Owner stays read-only. Managers can review work; preparers and coordinators have scoped access."
-msgstr "Owner stays read-only. Managers can review work; preparers and coordinators have scoped access."
+msgid "Owner stays read-only and can't be invited from here."
+msgstr "Owner stays read-only and can't be invited from here."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Owner updated"
@@ -7938,7 +7959,6 @@ msgstr "Plan, seats, and invoices."
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
-#: src/routes/practice.tsx
 msgid "Please enter at least 2 characters."
 msgstr "Please enter at least 2 characters."
 
@@ -8014,6 +8034,10 @@ msgstr "Practice limit"
 #: src/routes/practice.tsx
 msgid "Practice name"
 msgstr "Practice name"
+
+#: src/routes/practice.tsx
+msgid "Practice name needs at least 2 characters — this is your firm's display name across DueDateHQ."
+msgstr "Practice name needs at least 2 characters — this is your firm's display name across DueDateHQ."
 
 #: src/routes/settings.tsx
 msgid "Practice name, timezone, internal deadline policy, smart priority weighting."
@@ -8258,6 +8282,10 @@ msgstr "Primary navigation"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Primary phone"
 msgstr "Primary phone"
+
+#: src/features/members/members-page.tsx
+msgid "Principal authority — billing, members, full sign-off."
+msgstr "Principal authority — billing, members, full sign-off."
 
 #: src/routes/obligations.tsx
 msgid "Priority"
@@ -8638,6 +8666,11 @@ msgstr "Redirecting to Google…"
 msgid "Redirecting to Microsoft…"
 msgstr "Redirecting to Microsoft…"
 
+#. placeholder {0}: weightTotal - 100
+#: src/routes/practice.tsx
+msgid "Reduce factors by {0}% to balance. Weights must total 100%."
+msgstr "Reduce factors by {0}% to balance. Weights must total 100%."
+
 #: src/routes/obligations.tsx
 msgid "Reference dates"
 msgstr "Reference dates"
@@ -8651,6 +8684,10 @@ msgstr "Refresh"
 #: src/features/migration/WizardShell.tsx
 msgid "Refresh confidence"
 msgstr "Refresh confidence"
+
+#: src/routes/billing.success.tsx
+msgid "Refresh now"
+msgstr "Refresh now"
 
 #. placeholder {0}: formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -9115,6 +9152,10 @@ msgstr "Reviewing return"
 msgid "Reviewing rule"
 msgstr "Reviewing rule"
 
+#: src/features/members/members-page.tsx
+msgid "Reviews work and signs off on prepared filings."
+msgstr "Reviews work and signs off on prepared filings."
+
 #: src/routes/account.security.tsx
 #: src/routes/obligations.tsx
 msgid "Revoke"
@@ -9511,6 +9552,10 @@ msgstr "Scan the QR code"
 #: src/routes/obligations.tsx
 msgid "Schedule the payment with the authority"
 msgstr "Schedule the payment with the authority"
+
+#: src/features/members/members-page.tsx
+msgid "Schedules work and handles client intake — no preparation rights."
+msgstr "Schedules work and handles client intake — no preparation rights."
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/pulse/components/PulseStructuredFields.tsx
@@ -10357,6 +10402,10 @@ msgid "Steps"
 msgstr "Steps"
 
 #: src/routes/billing.success.tsx
+msgid "Still confirming — taking longer than usual"
+msgstr "Still confirming — taking longer than usual"
+
+#: src/routes/billing.success.tsx
 msgid "Still waiting on confirmation"
 msgstr "Still waiting on confirmation"
 
@@ -10821,6 +10870,10 @@ msgstr "The operating surface for deadline work: filter, sort, assign owners, up
 msgid "The page at <0>{pathname}</0> doesn't exist. The link may be out of date, or the page may have moved."
 msgstr "The page at <0>{pathname}</0> doesn't exist. The link may be out of date, or the page may have moved."
 
+#: src/routes/billing.success.tsx
+msgid "The payment provider hasn't confirmed the subscription yet. This usually clears within a minute. Refresh the page, or contact support if it persists."
+msgstr "The payment provider hasn't confirmed the subscription yet. This usually clears within a minute. Refresh the page, or contact support if it persists."
+
 #: src/routes/billing.tsx
 msgid "The payment provider manages checkout, invoices, and payment methods. DueDateHQ shows the active plan here."
 msgstr "The payment provider manages checkout, invoices, and payment methods. DueDateHQ shows the active plan here."
@@ -11237,6 +11290,11 @@ msgstr "TY {0}"
 #: src/features/rules/sources-tab.tsx
 msgid "TYPE"
 msgstr "TYPE"
+
+#. placeholder {0}: firm.name
+#: src/routes/practice.tsx
+msgid "Type <0>{0}</0> to confirm"
+msgstr "Type <0>{0}</0> to confirm"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "UI wage report count"
@@ -11811,6 +11869,10 @@ msgstr "Workload shows open deadlines for the next 7 days. Import clients or wai
 #: src/routes/obligations.tsx
 msgid "Workpapers"
 msgstr "Workpapers"
+
+#: src/features/members/members-page.tsx
+msgid "Works assigned client deadlines and prepares filings."
+msgstr "Works assigned client deadlines and prepares filings."
 
 #: src/routes/settings.tsx
 msgid "Workspace configuration for this practice — identity, team, billing, compliance, and automation."
