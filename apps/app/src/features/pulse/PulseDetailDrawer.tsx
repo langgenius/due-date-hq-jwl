@@ -891,7 +891,6 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                 currentRole={permissions.role}
               />
             ) : null}
-            ) : null}
 
             {detail.alert.sourceStatus === 'source_revoked' ? (
               <Alert variant="destructive">

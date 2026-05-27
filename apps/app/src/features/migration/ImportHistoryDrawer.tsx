@@ -228,22 +228,16 @@ export function ImportHistoryDrawer({
             {!batchesQuery.isLoading && batches.length > 0 ? (
               <div className="grid gap-4">
                 {!canRevertMigration && hasRevertibleBatch ? (
-                  // Audit-drain ρ ROH-D8 (2026-05-27): dropped the
-                  // stale override copy ("Only owners and managers…")
-                  // — partner was missing even though
-                  // `FIRM_PERMISSION_ROLES['migration.revert']` is
-                  // `['owner', 'partner', 'manager']`. Default
-                  // `PermissionInlineNotice` body derives the required
-                  // role text from the enum, so we stay in sync.
-                  >
-                    {/* ROH-D8 (ρ) / D11 (ψ): explicit child copy via
-                        requiredRolesLabel since migration.revert's role set
-                        (owner/partner/manager) needs an inline reminder
-                        the default PermissionInlineNotice body doesn't carry. */}
-                    <Trans>
-                      Only {requiredRolesLabel('migration.revert')} can undo migration imports.
-                    </Trans>
-                  </PermissionInlineNotice>
+                  // ρ ROH-D8: dropped the stale override copy ("Only
+                  // owners and managers…") so the default
+                  // PermissionInlineNotice body derives the required-role
+                  // text from FIRM_PERMISSION_ROLES['migration.revert'].
+                  // ψ ROH-D11's helper-driven override is therefore
+                  // redundant here — the default already covers it.
+                  <PermissionInlineNotice
+                    permission="migration.revert"
+                    currentRole={permission.firm?.role}
+                  />
                 ) : null}
                 {batches.map((batch) => {
                   const canRevertBatch = canRevertMigration && isBatchRevertible(batch)
