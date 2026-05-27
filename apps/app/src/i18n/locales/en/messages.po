@@ -7470,6 +7470,10 @@ msgstr "or"
 msgid "or continue with SSO"
 msgstr "or continue with SSO"
 
+#: src/features/auth/email-otp-sign-in-form.tsx
+msgid "or press <0>Enter</0>"
+msgstr "or press <0>Enter</0>"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Original entry"
 msgstr "Original entry"
