@@ -438,6 +438,17 @@ export function seedPulseMock(queryClient: QueryClient): void {
     )
   }
 
+  // Audit P1-4: also seed the batch endpoint so /clients + /clients/[id]
+  // (which switched from N+1 per-alert queries to a single batch fetch)
+  // pick up the mock dataset in dev. The cache key is the exact ids
+  // list those routes will request — sorted to match the route's
+  // useMemo input shape.
+  const allAlertIds = ALERTS.map((alert) => alert.id)
+  queryClient.setQueryData(
+    orpc.pulse.getDetailsBatch.queryKey({ input: { alertIds: allAlertIds } }),
+    { details: DETAILS },
+  )
+
   // eslint-disable-next-line no-console
   console.info(
     '[mock-pulse] seeded %d alerts. Open /rules/pulse or the dashboard banner to verify.',

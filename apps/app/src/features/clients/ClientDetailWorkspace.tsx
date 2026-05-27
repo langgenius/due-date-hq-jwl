@@ -1,5 +1,5 @@
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { Link, useNavigate } from 'react-router'
 import { parseAsStringLiteral, useQueryState } from 'nuqs'
@@ -427,10 +427,14 @@ export function ClientDetailWorkspace({
     orpc.obligations.listByClient.queryOptions({ input: { clientId: client.id } }),
   )
   const pulseHistoryQuery = useQuery(orpc.pulse.listHistory.queryOptions({ input: { limit: 30 } }))
-  const pulseDetailsQueries = useQueries({
-    queries: (pulseHistoryQuery.data?.alerts ?? []).map((alert) =>
-      orpc.pulse.getDetail.queryOptions({ input: { alertId: alert.id } }),
-    ),
+  // Audit P1-4: single batch round-trip instead of N+1 useQueries.
+  const pulseAlertIds = useMemo(
+    () => (pulseHistoryQuery.data?.alerts ?? []).map((alert) => alert.id),
+    [pulseHistoryQuery.data?.alerts],
+  )
+  const pulseDetailsBatchQuery = useQuery({
+    ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds: pulseAlertIds } }),
+    enabled: pulseAlertIds.length > 0,
   })
   const auditQuery = useQuery({
     ...orpc.audit.list.queryOptions({
@@ -453,7 +457,7 @@ export function ClientDetailWorkspace({
     () => findExtensionWithoutPaymentObligations(obligations),
     [obligations],
   )
-  const pulseDetails = pulseDetailsQueries.flatMap((query) => (query.data ? [query.data] : []))
+  const pulseDetails = pulseDetailsBatchQuery.data?.details ?? []
   const pulseMatches = buildClientPulseMatches(pulseDetails, client.id)
   const updateRiskProfileMutation = useMutation(
     orpc.clients.updateRiskProfile.mutationOptions({

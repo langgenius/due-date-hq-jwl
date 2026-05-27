@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, HistoryIcon, LightbulbIcon } from 'lucide-react'
 import { useQueryStates } from 'nuqs'
@@ -146,20 +146,22 @@ export function ClientsRoute() {
   const pulseHistoryQuery = useQuery(
     orpc.pulse.listHistory.queryOptions({ input: PULSE_HISTORY_INPUT }),
   )
-  const pulseAlerts = pulseHistoryQuery.data?.alerts
-  const pulseDetailsQueries = useQueries({
-    queries: useMemo(
-      () =>
-        (pulseAlerts ?? []).map((alert) =>
-          orpc.pulse.getDetail.queryOptions({ input: { alertId: alert.id } }),
-        ),
-      [pulseAlerts],
-    ),
+  // Audit P1-4: replaced the N+1 useQueries fan-out (one
+  // `pulse.getDetail` request per alert) with a single
+  // `pulse.getDetailsBatch` round-trip. With ~50 alerts in history
+  // this collapses 50 requests into 1 and ends a slow-to-mutate
+  // refetch cascade when the history list changes.
+  const pulseAlertIds = useMemo(
+    () => (pulseHistoryQuery.data?.alerts ?? []).map((alert) => alert.id),
+    [pulseHistoryQuery.data?.alerts],
+  )
+  const pulseDetailsBatchQuery = useQuery({
+    ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds: pulseAlertIds } }),
+    enabled: pulseAlertIds.length > 0,
   })
-  const pulseDetailsLoading = pulseDetailsQueries.some((query) => query.isLoading)
-  const pulseDetails = pulseDetailsQueries
-    .map((query) => query.data)
-    .filter((detail): detail is NonNullable<typeof detail> => Boolean(detail))
+  const pulseDetailsLoading =
+    pulseAlertIds.length > 0 && pulseDetailsBatchQuery.isLoading
+  const pulseDetails = pulseDetailsBatchQuery.data?.details ?? []
   const pulseDetailsKey = pulseDetails.map((detail) => detail.alert.id).join('|')
   const pulseMatchesByClient = useMemo(
     () => buildPulseMatchesByClient(pulseDetails),

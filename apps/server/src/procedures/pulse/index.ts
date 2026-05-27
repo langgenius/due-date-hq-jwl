@@ -410,29 +410,73 @@ const retrySourceHealth = os.pulse.retrySourceHealth.handler(async ({ input, con
   return listSourceHealthForScopedRepo(scoped)
 })
 
+function toPulseDetailPublic(detail: Awaited<ReturnType<typeof scopedPulseGetDetailReturn>>) {
+  return {
+    alert: toAlertPublic(detail.alert),
+    jurisdiction: detail.jurisdiction,
+    counties: detail.counties,
+    forms: detail.forms,
+    entityTypes: detail.entityTypes,
+    originalDueDate: detail.originalDueDate ? toDateOnly(detail.originalDueDate) : null,
+    newDueDate: detail.newDueDate ? toDateOnly(detail.newDueDate) : null,
+    effectiveFrom: detail.effectiveFrom ? toDateOnly(detail.effectiveFrom) : null,
+    effectiveUntil: detail.effectiveUntil ? toDateOnly(detail.effectiveUntil) : null,
+    affectedRuleIds: detail.affectedRuleIds,
+    structuredChange: detail.structuredChange ?? null,
+    sourceExcerpt: detail.sourceExcerpt,
+    reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
+    affectedClients: detail.affectedClients.map(toAffectedClientPublic),
+  }
+}
+
+// Phantom helper — only exists so we can name the return type of
+// `scoped.pulse.getDetail(id)` without exporting that scoped repo's
+// types. `toPulseDetailPublic` uses `Awaited<ReturnType<...>>` against
+// this signature.
+declare function scopedPulseGetDetailReturn(): Promise<{
+  alert: PulseAlertRow
+  jurisdiction: string
+  counties: string[]
+  forms: string[]
+  entityTypes: string[]
+  originalDueDate: Date | null
+  newDueDate: Date | null
+  effectiveFrom: Date | null
+  effectiveUntil: Date | null
+  affectedRuleIds: string[]
+  structuredChange: unknown
+  sourceExcerpt: string
+  reviewedAt: Date | null
+  affectedClients: PulseAffectedClientRow[]
+}>
+
 const getDetail = os.pulse.getDetail.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
   try {
     const detail = await scoped.pulse.getDetail(input.alertId)
-    return {
-      alert: toAlertPublic(detail.alert),
-      jurisdiction: detail.jurisdiction,
-      counties: detail.counties,
-      forms: detail.forms,
-      entityTypes: detail.entityTypes,
-      originalDueDate: detail.originalDueDate ? toDateOnly(detail.originalDueDate) : null,
-      newDueDate: detail.newDueDate ? toDateOnly(detail.newDueDate) : null,
-      effectiveFrom: detail.effectiveFrom ? toDateOnly(detail.effectiveFrom) : null,
-      effectiveUntil: detail.effectiveUntil ? toDateOnly(detail.effectiveUntil) : null,
-      affectedRuleIds: detail.affectedRuleIds,
-      structuredChange: detail.structuredChange ?? null,
-      sourceExcerpt: detail.sourceExcerpt,
-      reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
-      affectedClients: detail.affectedClients.map(toAffectedClientPublic),
-    }
+    return toPulseDetailPublic(detail)
   } catch (error) {
     return mapPulseError(error)
   }
+})
+
+// Batch counterpart — fans out N `scoped.pulse.getDetail(id)` calls
+// in parallel inside the same worker invocation. Missing alerts are
+// silently dropped from the result (the repo throws for not-found;
+// `Promise.allSettled` lets the surviving alerts come back). The
+// callsites on /clients (50 alerts → 50 useQueries) and
+// /clients/[id] (30 alerts) collapse to a single round-trip
+// (audit P1-4).
+const getDetailsBatch = os.pulse.getDetailsBatch.handler(async ({ input, context }) => {
+  const { scoped } = requireTenant(context)
+  if (input.alertIds.length === 0) return { details: [] }
+  const settled = await Promise.allSettled(
+    input.alertIds.map((id) => scoped.pulse.getDetail(id)),
+  )
+  const details = settled.flatMap((result) =>
+    result.status === 'fulfilled' ? [toPulseDetailPublic(result.value)] : [],
+  )
+  return { details }
 })
 
 const listPriorityQueue = os.pulse.listPriorityQueue.handler(async ({ input, context }) => {
@@ -768,6 +812,7 @@ export const pulseHandlers = {
   listSourceSignals,
   retrySourceHealth,
   getDetail,
+  getDetailsBatch,
   listPriorityQueue,
   reviewPriorityMatches,
   applyReviewed,
