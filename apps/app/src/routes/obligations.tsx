@@ -110,7 +110,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@duedatehq/ui/components/ui/alert-dialog'
-import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
