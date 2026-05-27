@@ -21,6 +21,8 @@ import { signClientUnsubscribeToken } from '../../lib/client-unsubscribe-token'
 import type { Env } from '../../env'
 
 const OPEN_STATUSES = [...OPEN_OBLIGATION_STATUSES] satisfies ObligationStatus[]
+const CLIENT_30_DAY_TEMPLATE_KEY = 'client-deadline-30-day-reminder'
+const CLIENT_7_DAY_TEMPLATE_KEY = 'client-deadline-7-day-reminder'
 
 type MemberRecipient = {
   userId: string
@@ -110,6 +112,12 @@ function reminderTitle(obligation: ObligationRow, offsetDays: number): string {
 
 function reminderBody(obligation: ObligationRow, dueDate: string): string {
   return `${obligation.taxType} is due ${dueDate}.`
+}
+
+function clientTemplateKey(offsetDays: number): string | null {
+  if (offsetDays === 30) return CLIENT_30_DAY_TEMPLATE_KEY
+  if (offsetDays === 7) return CLIENT_7_DAY_TEMPLATE_KEY
+  return null
 }
 
 async function loadMembers(env: Env, firmId: string): Promise<MemberRecipient[]> {
@@ -383,13 +391,11 @@ export async function dispatchDeadlineReminders(env: Env, now = new Date()): Pro
       const targets = new Map([
         [addDays(today, 30), 30],
         [addDays(today, 7), 7],
-        [addDays(today, 1), 1],
       ])
       const members = await loadMembers(env, firm.id)
       const obligations = await loadOpenObligations(env, firm.id)
       const reminders = makeRemindersRepo(db, firm.id)
       const memberTemplate = await reminders.resolveTemplate('deadline_reminder')
-      const clientTemplate = await reminders.resolveTemplate('client_deadline_reminder')
       await Promise.all(
         obligations.map(async (obligation) => {
           const dueDate = dateInTimezone(firm.timezone, obligation.currentDueDate)
@@ -410,6 +416,10 @@ export async function dispatchDeadlineReminders(env: Env, now = new Date()): Pro
               }),
             ),
           )
+          const templateKey = clientTemplateKey(offsetDays)
+          const clientTemplate = templateKey
+            ? await reminders.resolveTemplateByKey(templateKey)
+            : null
           await writeClientReminder({
             env,
             firmId: firm.id,

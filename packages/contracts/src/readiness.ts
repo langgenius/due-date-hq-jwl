@@ -111,6 +111,36 @@ export const ReadinessSendRequestInputSchema = z.object({
 })
 export type ReadinessSendRequestInput = z.infer<typeof ReadinessSendRequestInputSchema>
 
+export const ReadinessPreviewRequestEmailInputSchema = z.object({
+  obligationId: EntityIdSchema,
+})
+export type ReadinessPreviewRequestEmailInput = z.infer<
+  typeof ReadinessPreviewRequestEmailInputSchema
+>
+
+export const ReadinessRequestEmailChecklistGroupsSchema = z.object({
+  outstanding: z.array(ReadinessDocumentChecklistItemPublicSchema).max(30),
+  received: z.array(ReadinessDocumentChecklistItemPublicSchema).max(30),
+})
+export type ReadinessRequestEmailChecklistGroups = z.infer<
+  typeof ReadinessRequestEmailChecklistGroupsSchema
+>
+
+export const ReadinessPreviewRequestEmailOutputSchema = z.object({
+  obligationId: EntityIdSchema,
+  recipientEmail: z.email().nullable(),
+  subject: z.string().min(1),
+  bodyText: z.string().min(1),
+  checklist: ReadinessRequestEmailChecklistGroupsSchema,
+  emailWillBeQueued: z.boolean(),
+  templateKey: z.string().min(1).nullable(),
+  templateName: z.string().min(1).nullable(),
+  templateActive: z.boolean(),
+})
+export type ReadinessPreviewRequestEmailOutput = z.infer<
+  typeof ReadinessPreviewRequestEmailOutputSchema
+>
+
 export const ReadinessSendRequestOutputSchema = z.object({
   request: ClientReadinessRequestPublicSchema,
   auditId: EntityIdSchema,
@@ -223,6 +253,9 @@ export const readinessContract = oc.router({
   generateChecklist: oc
     .input(ReadinessGenerateChecklistInputSchema)
     .output(ReadinessGenerateChecklistOutputSchema),
+  previewRequestEmail: oc
+    .input(ReadinessPreviewRequestEmailInputSchema)
+    .output(ReadinessPreviewRequestEmailOutputSchema),
   sendRequest: oc.input(ReadinessSendRequestInputSchema).output(ReadinessSendRequestOutputSchema),
   revokeRequest: oc
     .input(ReadinessRevokeRequestInputSchema)

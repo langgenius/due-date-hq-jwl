@@ -124,6 +124,7 @@ export function buildRuleBackedCreateInput(input: {
   internalDeadlineOffsetDays: number
   now: Date
   generationSource?: ObligationCreateInput['generationSource']
+  initialWorkflowState?: 'pending' | 'review_when_required'
 }): ObligationCreateInput & { preview: ObligationGenerationPreview } {
   const dueDate = new Date(`${input.preview.dueDate}T00:00:00.000Z`)
   const internalDueDate = internalDeadlineFromBaseDueDate(dueDate, input.internalDeadlineOffsetDays)
@@ -133,6 +134,8 @@ export function buildRuleBackedCreateInput(input: {
     estimatedTaxLiabilityCents: input.client.estimatedTaxLiabilityCents,
     equityOwnerCount: input.client.equityOwnerCount,
   })
+  const startInWorkflowReview =
+    input.initialWorkflowState !== 'pending' && input.preview.requiresReview
 
   return {
     clientId: input.client.id,
@@ -163,9 +166,9 @@ export function buildRuleBackedCreateInput(input: {
     riskLevel: input.rule.riskLevel,
     baseDueDate: dueDate,
     currentDueDate: internalDueDate,
-    status: input.preview.requiresReview ? 'review' : 'pending',
-    prepStage: input.preview.requiresReview ? 'prepared' : 'not_started',
-    reviewStage: input.preview.requiresReview ? 'in_review' : 'not_required',
+    status: startInWorkflowReview ? 'review' : 'pending',
+    prepStage: startInWorkflowReview ? 'prepared' : 'not_started',
+    reviewStage: startInWorkflowReview ? 'in_review' : 'not_required',
     extensionState:
       input.preview.eventType === 'extension'
         ? 'ready_to_file'

@@ -85,11 +85,14 @@ function NeedsAttentionSection() {
       // "this is the alerts zone." Empty-state keeps the
       // neutral tint but adds a subtle border so the section
       // still has a shape on the page.
+      // 2026-05-26 (Yuqi follow-up — "remove the border"): dropped
+      // `border` + border-color rules. The destructive bg-tint
+      // (when alerts are live) and the section bg (when empty)
+      // already give the panel its shape against the page wash;
+      // the explicit border was just doubling the boundary.
       className={cn(
-        'flex flex-col gap-2.5 rounded-xl border p-3',
-        totalAlertCount > 0
-          ? 'border-state-destructive-border bg-state-destructive-hover'
-          : 'border-divider-subtle bg-background-section',
+        'flex flex-col gap-2.5 rounded-xl p-3',
+        totalAlertCount > 0 ? 'bg-state-destructive-hover' : 'bg-background-section',
       )}
     >
       {/* 2026-05-25 (Yuqi Today follow-up — clarification): h2 is

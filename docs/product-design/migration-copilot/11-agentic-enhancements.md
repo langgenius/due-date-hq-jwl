@@ -106,12 +106,12 @@ PRD 主 ICP 至少有多州客户。Demo Sprint matrix 只做 Federal + CA + NY 
 
 Default Matrix 每个 `(entity_type, state)` cell 必须暴露 coverage 状态：
 
-| 状态          | 含义                                                                        | UI 文案                               | 是否默认生成 state obligations |
-| ------------- | --------------------------------------------------------------------------- | ------------------------------------- | ------------------------------ |
-| `active`      | practice owner/manager 已接受，source_urls / reviewed_by / reviewed_at 完整 | `Active coverage`                     | 是                             |
-| `demo_seed`   | Demo Sprint 可演示种子，有 source_urls，但 practice review pending          | `Demo coverage · review before pilot` | 是，但 Step 4 显示黄色说明     |
-| `skeleton`    | 结构存在，未签字                                                            | `Federal only · state review needed`  | 否，只生成 federal fallback    |
-| `unsupported` | 不在计划内或数据不足                                                        | `Not covered yet`                     | 否                             |
+| 状态          | 含义                                                                        | UI 文案                               | 是否默认生成 state obligations       |
+| ------------- | --------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------ |
+| `active`      | practice owner/manager 已接受，source_urls / reviewed_by / reviewed_at 完整 | `Active coverage`                     | 是                                   |
+| `demo_seed`   | Demo Sprint 可演示种子，有 source_urls，但 practice review pending          | `Demo coverage · review before pilot` | 是，但 Step 4 显示黄色说明           |
+| `skeleton`    | 结构存在，未签字                                                            | `Federal only · state review needed`  | 否，只生成已匹配 Federal obligations |
+| `unsupported` | 不在计划内或数据不足                                                        | `Not covered yet`                     | 否                                   |
 
 Demo Sprint 的 CA / NY 可以保持 `demo_seed`；Phase 0 正式试点前必须由 practice owner/manager 接受为 `active`。其他州/DC 在 Rules registry 中已有 source-backed candidate 路径，但 Default Matrix v1.0 尚未自动推断全部 state tax types，因此 Agent 必须诚实回答“rules coverage exists, matrix inference needs review”。
 

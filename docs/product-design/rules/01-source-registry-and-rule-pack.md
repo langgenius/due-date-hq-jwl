@@ -604,7 +604,7 @@ pending_review -> needs_more_source
 | `rules.accepted`        | practice rule accepted                               | practice owner/manager，可选用户侧 banner | 可选         | 为匹配的既有 clients 生成缺失 obligation |
 | `obligations.previewed` | active practice rule 应用于客户事实                  | 用户/内部 review 页面                     | 是           | 否                                       |
 | `obligations.generated` | `reminderReady=true` preview 写入 obligation         | 用户                                      | 是           | 是                                       |
-| `reminder.scheduled`    | obligation due in 30/7/1 days                        | 用户                                      | 是           | 否                                       |
+| `reminder.scheduled`    | obligation due in 30/7 days                          | 用户                                      | 是           | 否                                       |
 
 MVP 的用户提醒只消费 `obligation_instance`，不直接消费 `rule_template` 或 `practice_rule_review_task`。
 

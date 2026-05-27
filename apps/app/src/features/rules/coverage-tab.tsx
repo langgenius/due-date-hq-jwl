@@ -32,7 +32,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
-import { useSidebar } from '@duedatehq/ui/components/ui/sidebar'
+import { useOptionalSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import {
   Table,
   TableBody,
@@ -2062,10 +2062,13 @@ function BulkReviewDrawer({
   // /deadlines obligation drawer. While this 720px bulk-review sheet
   // is open, auto-collapse the sidebar to give it horizontal room;
   // restore the user's persistent preference on close. BulkReviewDrawer
-  // only renders inside /rules/coverage which is inside AppShell, so
-  // `useSidebar` is always available — no need for the optional variant.
-  const { setAutoCollapsed } = useSidebar()
+  // normally renders inside AppShell, but unit tests and isolated route
+  // harnesses mount the coverage tab without SidebarProvider. In those
+  // environments the sidebar pressure behavior is a no-op.
+  const sidebar = useOptionalSidebar()
+  const setAutoCollapsed = sidebar?.setAutoCollapsed
   useEffect(() => {
+    if (!setAutoCollapsed) return undefined
     setAutoCollapsed(open)
     return () => {
       setAutoCollapsed(false)

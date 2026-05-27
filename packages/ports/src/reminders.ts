@@ -1,4 +1,7 @@
-export type ReminderTemplateKind = 'deadline_reminder' | 'client_deadline_reminder'
+export type ReminderTemplateKind =
+  | 'deadline_reminder'
+  | 'client_deadline_reminder'
+  | 'readiness_request'
 export type ReminderRecipientKind = 'member' | 'client'
 export type ReminderChannel = 'email' | 'in_app'
 export type ReminderDeliveryStatus = 'pending' | 'queued' | 'sent' | 'skipped' | 'failed'
@@ -77,12 +80,30 @@ export interface ReminderTemplatePatch {
   active?: boolean
 }
 
+export type ReminderTemplateVariables = Record<string, string | number | null | undefined>
+
+export function renderReminderTemplate(
+  template: Pick<ReminderTemplateRow, 'subject' | 'bodyText'>,
+  variables: ReminderTemplateVariables,
+): { subject: string; text: string } {
+  const replace = (value: string) =>
+    value.replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (_, key: string) => {
+      const variable = variables[key]
+      return variable === null || variable === undefined ? '' : String(variable)
+    })
+  return {
+    subject: replace(template.subject),
+    text: replace(template.bodyText),
+  }
+}
+
 export interface RemindersRepo {
   readonly firmId: string
   overview(): Promise<ReminderOverviewRow>
   listTemplates(): Promise<ReminderTemplateRow[]>
   updateTemplate(templateKey: string, patch: ReminderTemplatePatch): Promise<ReminderTemplateRow>
   resolveTemplate(kind: ReminderTemplateKind): Promise<ReminderTemplateRow | null>
+  resolveTemplateByKey(templateKey: string): Promise<ReminderTemplateRow | null>
   listUpcoming(input?: { limit?: number }): Promise<ReminderUpcomingRow[]>
   listRecentSends(input?: { limit?: number }): Promise<ReminderRecentSendRow[]>
   listSuppressions(input?: { limit?: number }): Promise<ReminderSuppressionRow[]>

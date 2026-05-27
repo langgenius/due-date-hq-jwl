@@ -17,6 +17,15 @@ const badgeVariants = cva(
       variant: {
         default: 'bg-state-accent-active-alt text-text-accent hover:[a]:bg-state-accent-active',
         secondary: 'bg-components-badge-bg-gray-soft text-text-secondary',
+        // 2026-05-26 (Yuqi follow-up — "Filed status can be more
+        // subtle, after filed it doesn't need this much attention"):
+        // reverted from the Stripe S9 solid-green chip back to a
+        // soft green-tint pill. Filed / Paid / Completed are
+        // terminal lifecycle states — they belong in the muted
+        // visual register so the eye scans past them and lands on
+        // rows that still need work. The check-mark glyph from
+        // callers (FileCheck / CircleCheck) carries the positive
+        // signal without the chip itself competing for attention.
         success: 'bg-components-badge-bg-green-soft text-text-success',
         warning: 'bg-components-badge-bg-warning-soft text-text-warning',
         info: 'bg-components-badge-bg-blue-soft text-text-accent',

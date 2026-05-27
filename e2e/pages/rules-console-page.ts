@@ -13,7 +13,7 @@ export class RulesConsolePage {
   constructor(readonly page: Page) {
     this.libraryTab = page
       .getByRole('navigation', { name: 'Primary navigation' })
-      .getByRole('link', { name: /^Rule library(?:\s+\d+)?$/ })
+      .getByRole('link', { name: /^Rule library(?:,|\s|$)/ })
   }
 
   async goto() {

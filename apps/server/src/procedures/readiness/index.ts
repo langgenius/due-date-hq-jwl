@@ -4,8 +4,11 @@ import type {
   ReadinessChecklistItem,
   ReadinessDocumentChecklistItemPublic,
   ReadinessGenerateChecklistOutput,
+  ReadinessPreviewRequestEmailOutput,
 } from '@duedatehq/contracts'
 import type { ReadinessRepo } from '@duedatehq/ports/readiness'
+import { renderReminderTemplate, type ReminderTemplateRow } from '@duedatehq/ports/reminders'
+import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { requireTenant } from '../_context'
 import { OBLIGATION_STATUS_WRITE_ROLES, requireCurrentFirmRole } from '../_permissions'
 import { os } from '../_root'
@@ -13,6 +16,44 @@ import { signReadinessPortalToken, sha256Hex } from '../../lib/readiness-token'
 import { toReadinessDocumentChecklistItemPublic, toReadinessRequestPublic } from './_public'
 
 const READINESS_PORTAL_TTL_MS = 14 * 24 * 60 * 60 * 1000
+const READINESS_REQUEST_TEMPLATE_KIND = 'readiness_request'
+const READINESS_REQUEST_TEMPLATE_FALLBACK: ReminderTemplateRow = {
+  id: null,
+  firmId: null,
+  templateKey: 'client-materials-request',
+  kind: READINESS_REQUEST_TEMPLATE_KIND,
+  name: 'Client checklist collection email',
+  subject: '{{client_name}}: secure materials request for {{tax_type}}',
+  bodyText: [
+    'Hello {{client_name}},',
+    '',
+    'Our office is preparing your {{tax_type}} work for the {{due_date}} deadline. Please use ' +
+      'the secure link below to review the materials checklist and upload or confirm the ' +
+      'items still outstanding:',
+    '',
+    '{{request_url}}',
+    '',
+    'Outstanding items:',
+    '{{outstanding_checklist}}',
+    '',
+    'Items we have already received:',
+    '{{received_checklist}}',
+    '',
+    'If an item is not available yet, please note that in the portal so our team can plan ' +
+      'the next step. We will review your responses and follow up if we need clarification.',
+    '',
+    'Thank you,',
+    'Your tax team',
+  ].join('\n'),
+  active: true,
+  isSystem: true,
+  usageCount: 0,
+  lastSentAt: null,
+  createdAt: null,
+  updatedAt: null,
+}
+const READINESS_REQUEST_URL_PREVIEW =
+  'A secure materials link will be generated when you send this request.'
 
 export function toPortalChecklist(
   items: readonly ReadinessDocumentChecklistItemPublic[],
@@ -30,6 +71,56 @@ function toPublicDocumentChecklist(
   rows: Parameters<typeof toReadinessDocumentChecklistItemPublic>[0][],
 ): ReadinessDocumentChecklistItemPublic[] {
   return rows.map(toReadinessDocumentChecklistItemPublic)
+}
+
+export function groupReadinessChecklistForEmail(
+  items: readonly ReadinessDocumentChecklistItemPublic[],
+): ReadinessPreviewRequestEmailOutput['checklist'] {
+  return {
+    outstanding: items.filter((item) => item.status !== 'received'),
+    received: items.filter((item) => item.status === 'received'),
+  }
+}
+
+function cleanInline(value: string | null): string | null {
+  const normalized = value?.replace(/\s+/g, ' ').trim()
+  return normalized || null
+}
+
+function formatChecklistItemsForEmail(
+  items: readonly ReadinessDocumentChecklistItemPublic[],
+): string {
+  if (items.length === 0) return '- None'
+  return items
+    .map((item) => {
+      const description = cleanInline(item.description)
+      const note = cleanInline(item.note)
+      return [
+        `- ${item.label}`,
+        description ? ` - ${description}` : '',
+        note ? ` (Note: ${note})` : '',
+      ].join('')
+    })
+    .join('\n')
+}
+
+export function renderReadinessRequestEmail(input: {
+  template: Pick<ReminderTemplateRow, 'subject' | 'bodyText'>
+  clientName: string
+  taxType: string
+  dueDate: string
+  requestUrl: string
+  checklist: ReadinessPreviewRequestEmailOutput['checklist']
+}): { subject: string; bodyText: string } {
+  const rendered = renderReminderTemplate(input.template, {
+    client_name: input.clientName,
+    tax_type: input.taxType,
+    due_date: input.dueDate,
+    request_url: input.requestUrl,
+    outstanding_checklist: formatChecklistItemsForEmail(input.checklist.outstanding),
+    received_checklist: formatChecklistItemsForEmail(input.checklist.received),
+  })
+  return { subject: rendered.subject, bodyText: rendered.text }
 }
 
 function portalUrl(baseUrl: string, token: string): string {
@@ -71,6 +162,90 @@ export async function reconcileChecklistForObligation(input: {
     template,
     now: input.now,
   })
+}
+
+async function readinessRequestTemplate(scoped: ScopedRepo): Promise<ReminderTemplateRow> {
+  const templates = await scoped.reminders?.listTemplates()
+  return (
+    templates?.find((template) => template.kind === READINESS_REQUEST_TEMPLATE_KIND) ??
+    READINESS_REQUEST_TEMPLATE_FALLBACK
+  )
+}
+
+async function loadReadinessRequestEmailDraft(input: {
+  scoped: ScopedRepo
+  userId: string
+  obligationId: string
+}): Promise<{
+  obligation: NonNullable<Awaited<ReturnType<ScopedRepo['obligations']['findById']>>>
+  client: NonNullable<Awaited<ReturnType<ScopedRepo['clients']['findById']>>>
+  documentChecklist: ReadinessDocumentChecklistItemPublic[]
+  portalChecklist: ReadinessChecklistItem[]
+  checklist: ReadinessPreviewRequestEmailOutput['checklist']
+  template: ReminderTemplateRow
+}> {
+  const obligation = await input.scoped.obligations.findById(input.obligationId)
+  if (!obligation) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.obligationId} not found in current firm.`,
+    })
+  }
+  const client = await input.scoped.clients.findById(obligation.clientId)
+  if (!client) throw new ORPCError('NOT_FOUND', { message: 'Client not found.' })
+
+  const documentChecklist = toPublicDocumentChecklist(
+    await reconcileChecklistForObligation({
+      readiness: input.scoped.readiness,
+      obligation,
+      client,
+      userId: input.userId,
+      now: new Date(),
+    }),
+  )
+  const portalChecklist = toPortalChecklist(documentChecklist)
+  if (portalChecklist.length === 0) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'Create a readiness document checklist before sending a portal link.',
+    })
+  }
+
+  return {
+    obligation,
+    client,
+    documentChecklist,
+    portalChecklist,
+    checklist: groupReadinessChecklistForEmail(documentChecklist),
+    template: await readinessRequestTemplate(input.scoped),
+  }
+}
+
+function readinessRequestEmailPreview(input: {
+  draft: Awaited<ReturnType<typeof loadReadinessRequestEmailDraft>>
+  requestUrl: string
+  notificationsAvailable: boolean
+}): ReadinessPreviewRequestEmailOutput {
+  const dueDate = input.draft.obligation.currentDueDate.toISOString().slice(0, 10)
+  const rendered = renderReadinessRequestEmail({
+    template: input.draft.template,
+    clientName: input.draft.client.name,
+    taxType: input.draft.obligation.taxType,
+    dueDate,
+    requestUrl: input.requestUrl,
+    checklist: input.draft.checklist,
+  })
+  return {
+    obligationId: input.draft.obligation.id,
+    recipientEmail: input.draft.client.email,
+    subject: rendered.subject,
+    bodyText: rendered.bodyText,
+    checklist: input.draft.checklist,
+    emailWillBeQueued: Boolean(
+      input.draft.client.email && input.draft.template.active && input.notificationsAvailable,
+    ),
+    templateKey: input.draft.template.templateKey,
+    templateName: input.draft.template.name,
+    templateActive: input.draft.template.active,
+  }
 }
 
 async function portalUrlForRequest(input: {
@@ -136,33 +311,29 @@ const generateChecklist = os.readiness.generateChecklist.handler(async ({ input,
   } satisfies ReadinessGenerateChecklistOutput
 })
 
+const previewRequestEmail = os.readiness.previewRequestEmail.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  const draft = await loadReadinessRequestEmailDraft({
+    scoped,
+    userId,
+    obligationId: input.obligationId,
+  })
+  return readinessRequestEmailPreview({
+    draft,
+    requestUrl: READINESS_REQUEST_URL_PREVIEW,
+    notificationsAvailable: Boolean(scoped.notifications),
+  })
+})
+
 const sendRequest = os.readiness.sendRequest.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, userId } = requireTenant(context)
-  const obligation = await scoped.obligations.findById(input.obligationId)
-  if (!obligation) {
-    throw new ORPCError('NOT_FOUND', {
-      message: `Deadline ${input.obligationId} not found in current firm.`,
-    })
-  }
-  const client = await scoped.clients.findById(obligation.clientId)
-  if (!client) throw new ORPCError('NOT_FOUND', { message: 'Client not found.' })
-  const documentChecklist = toPublicDocumentChecklist(
-    await reconcileChecklistForObligation({
-      readiness: scoped.readiness,
-      obligation,
-      client,
-      userId,
-      now: new Date(),
-    }),
-  )
-  const checklist =
-    documentChecklist.length > 0 ? toPortalChecklist(documentChecklist) : input.checklist
-  if (!checklist || checklist.length === 0) {
-    throw new ORPCError('BAD_REQUEST', {
-      message: 'Create a readiness document checklist before sending a portal link.',
-    })
-  }
+  const draft = await loadReadinessRequestEmailDraft({
+    scoped,
+    userId,
+    obligationId: input.obligationId,
+  })
 
   const requestId = crypto.randomUUID()
   const expiresAt = new Date(Date.now() + READINESS_PORTAL_TTL_MS)
@@ -174,40 +345,43 @@ const sendRequest = os.readiness.sendRequest.handler(async ({ input, context }) 
   const url = portalUrl(context.env.APP_URL, token)
   const request = await scoped.readiness.createRequest({
     id: requestId,
-    obligationInstanceId: obligation.id,
-    clientId: obligation.clientId,
+    obligationInstanceId: draft.obligation.id,
+    clientId: draft.obligation.clientId,
     createdByUserId: userId,
-    recipientEmail: client.email,
+    recipientEmail: draft.client.email,
     tokenHash: await sha256Hex(token),
-    checklistJson: checklist,
+    checklistJson: draft.portalChecklist,
     expiresAt,
-    sentAt: client.email ? new Date() : null,
+    sentAt: draft.client.email && draft.template.active ? new Date() : null,
   })
   const { id: auditId } = await scoped.audit.write({
     actorId: userId,
     entityType: 'obligation_instance',
-    entityId: obligation.id,
+    entityId: draft.obligation.id,
     action: 'readiness.request.sent',
     after: {
       requestId,
-      checklistCount: checklist.length,
-      recipientEmail: client.email ? 'present' : 'missing',
+      checklistCount: draft.portalChecklist.length,
+      recipientEmail: draft.client.email ? 'present' : 'missing',
+      templateKey: draft.template.templateKey,
+      templateActive: draft.template.active,
     },
   })
 
   let emailQueued = false
-  if (client.email && scoped.notifications) {
+  if (draft.client.email && draft.template.active && scoped.notifications) {
+    const rendered = readinessRequestEmailPreview({
+      draft,
+      requestUrl: url,
+      notificationsAvailable: true,
+    })
     const queued = await scoped.notifications.enqueueEmail({
       externalId: `readiness:${requestId}`,
       type: 'readiness_request',
       payloadJson: {
-        recipients: [client.email],
-        subject: `Readiness check for ${obligation.taxType}`,
-        text: [
-          `Please complete the readiness check for ${client.name} - ${obligation.taxType}.`,
-          '',
-          url,
-        ].join('\n'),
+        recipients: [draft.client.email],
+        subject: rendered.subject,
+        text: rendered.bodyText,
       },
     })
     emailQueued = queued.created
@@ -364,6 +538,7 @@ const listByObligation = os.readiness.listByObligation.handler(async ({ input, c
 
 export const readinessHandlers = {
   generateChecklist,
+  previewRequestEmail,
   sendRequest,
   revokeRequest,
   addChecklistItem,

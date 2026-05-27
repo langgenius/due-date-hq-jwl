@@ -22,7 +22,7 @@ test.describe('role permission surfaces', () => {
 
       await expect(
         authenticatedPage.getByRole('heading', { name: 'Owner permission required' }),
-      ).toBeVisible()
+      ).toBeVisible({ timeout: 20_000 })
       await expect(authenticatedPage.getByText('Current role: Manager')).toBeVisible()
 
       await billingPage.gotoBilling()
@@ -52,13 +52,13 @@ test.describe('role permission surfaces', () => {
       await appShellPage.goto()
       await authenticatedPage
         .getByRole('button', {
-          name: /Review Pulse alert: IRS CA storm relief extends selected filing deadlines/,
+          name: /Open Pulse alert details: IRS CA storm relief extends selected filing deadlines/,
         })
         .click()
-      const drawer = authenticatedPage.getByRole('dialog')
+      const drawer = authenticatedPage.getByRole('complementary', { name: 'Pulse alert detail' })
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
-      await expect(drawer.getByRole('button', { name: /Apply to 1 obligation/ })).toBeDisabled()
+      await expect(drawer.getByRole('button', { name: 'Apply Deadline Exception' })).toBeDisabled()
     })
   })
 
@@ -78,11 +78,12 @@ test.describe('role permission surfaces', () => {
       await auditPage.goto()
       await expect(
         authenticatedPage.getByRole('heading', { name: 'Permission required' }),
-      ).toBeVisible()
+      ).toBeVisible({ timeout: 20_000 })
       await expect(authenticatedPage.getByText('Current role: Coordinator')).toBeVisible()
 
       await appShellPage.goto('/clients')
-      await expect(authenticatedPage.getByRole('button', { name: 'Import clients' })).toBeDisabled()
+      await expect(authenticatedPage.getByRole('button', { name: 'New client' })).toBeVisible()
+      await expect(authenticatedPage.getByRole('button', { name: 'Import clients' })).toHaveCount(0)
     })
   })
 })

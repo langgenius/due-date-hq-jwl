@@ -79,43 +79,60 @@ export function PageHeader({
 }) {
   const hasBreadcrumbs = breadcrumbs && breadcrumbs.length > 0
   const hasEyebrowLeft = (eyebrow && !hasBreadcrumbs) || hasBreadcrumbs
+  const eyebrowRow =
+    hasEyebrowLeft || eyebrowAside ? (
+      // Eyebrow row: left side is the back-link / breadcrumb, right
+      // side is optional page-level navigation (e.g. ClientCycleArrows).
+      // Wrapped in `<div>` rather than `<p>` so it can host non-inline
+      // children like button groups without producing invalid HTML.
+      // The uppercase tag styling only applies to plain-text
+      // descendants; the navAside content provides its own visual
+      // treatment.
+      <div className="flex min-w-0 items-center justify-between gap-3 text-caption font-medium tracking-[0.08em] text-text-tertiary uppercase">
+        <div className="min-w-0 flex-1">
+          {hasBreadcrumbs ? <Breadcrumb items={breadcrumbs} /> : null}
+          {eyebrow && !hasBreadcrumbs ? eyebrow : null}
+        </div>
+        {eyebrowAside ? <div className="shrink-0">{eyebrowAside}</div> : null}
+      </div>
+    ) : null
   return (
-    <header
-      className={cn(
-        'flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-6',
-        className,
-      )}
-    >
-      <div className="flex min-w-0 flex-col gap-2">
-        {/* Eyebrow row: left side is the back-link / breadcrumb,
-            right side is optional page-level navigation (e.g.
-            ClientCycleArrows). Wrapped in `<div>` rather than `<p>`
-            so it can host non-inline children like button groups
-            without producing invalid HTML. The uppercase tag styling
-            only applies to plain-text descendants; the
-            navAside content provides its own visual treatment. */}
-        {hasEyebrowLeft || eyebrowAside ? (
-          <div className="flex min-w-0 items-center justify-between gap-3 text-caption font-medium tracking-[0.08em] text-text-tertiary uppercase">
-            <div className="min-w-0 flex-1">
-              {hasBreadcrumbs ? <Breadcrumb items={breadcrumbs} /> : null}
-              {eyebrow && !hasBreadcrumbs ? eyebrow : null}
+    // Main's restructure (Yuqi #29): eyebrow row sits OUTSIDE the title
+    // column and spans the full header width so the `eyebrowAside`
+    // (ClientCycleArrows 1/9) lands at the actual far-right of the page,
+    // not at the right edge of the title's natural width.
+    //
+    // PR #28 addition: `metaRow` slot sits between h1 and description
+    // inside the title column, hosting chip-cluster content like
+    // "Owner · Entity · State" for surfaces with overgrown header
+    // chrome. Renders only when metaRow is provided.
+    <header className={cn('flex flex-col gap-3', className)}>
+      {eyebrowRow}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
+        <div className="flex min-w-0 flex-col gap-2">
+          {/* `min-w-0` so the title block can shrink when the actions
+              cluster sits beside it at lg+ and the page narrows
+              (e.g. right drawer opens). */}
+          <h1 className="min-w-0 text-2xl leading-7 font-semibold text-text-primary">{title}</h1>
+          {metaRow ? (
+            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-xs leading-5 text-text-secondary">
+              {metaRow}
             </div>
-            {eyebrowAside ? <div className="shrink-0">{eyebrowAside}</div> : null}
-          </div>
-        ) : null}
-        <h1 className="text-2xl leading-7 font-semibold text-text-primary">{title}</h1>
-        {metaRow ? (
-          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-xs leading-5 text-text-secondary">
-            {metaRow}
-          </div>
-        ) : null}
-        {description ? (
-          <p className="max-w-[1080px] text-[13px] leading-5 text-text-secondary">{description}</p>
+          ) : null}
+          {description ? (
+            <p className="max-w-[1080px] text-[13px] leading-5 text-text-secondary">
+              {description}
+            </p>
+          ) : null}
+        </div>
+        {actions ? (
+          // Main's #29 actions structure — `flex shrink-0` (no flex-wrap)
+          // so buttons stay on one row instead of tumbling to a 2nd line
+          // inside the actions slot when a right drawer narrows the
+          // viewport.
+          <div className="flex shrink-0 items-center gap-2 lg:justify-end">{actions}</div>
         ) : null}
       </div>
-      {actions ? (
-        <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">{actions}</div>
-      ) : null}
     </header>
   )
 }

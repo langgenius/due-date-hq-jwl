@@ -28,6 +28,7 @@ import { useLocation, useNavigate, useParams } from 'react-router'
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
+  ArrowDownUp,
   ChevronsUpDown,
   ChevronUp,
   ChevronDown,
@@ -100,6 +101,7 @@ import {
   type ClientReadinessRequestPublic,
   type ClientReadinessResponsePublic,
   type ReadinessDocumentChecklistItemPublic,
+  type ReadinessPreviewRequestEmailOutput,
 } from '@duedatehq/contracts'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
@@ -212,6 +214,7 @@ import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { getAssigneeTint } from '@/lib/assignee-tint'
 import { initialsFromName } from '@/lib/auth'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
 import { orpc } from '@/lib/rpc'
@@ -252,7 +255,16 @@ const DEFAULT_DENSITY: ObligationQueueDensity = 'comfortable'
 // optimises for. `client` clusters rows under client section
 // headers (with aggregate metadata). `status` clusters by status
 // (Blocked / Waiting on client / In review / Filed / Not started).
-const GROUP_OPTIONS = ['due', 'client', 'status'] as const
+// 2026-05-26 (Yuqi follow-up — "remove group by status, since there
+// is already the top tab switch between status"): Status is no
+// longer a Group-by option. The scope-tab band above the table
+// already filters by status (All / Past due / This week / Not started
+// / Waiting on client / Blocked / In review / Filed), so adding it
+// as a grouping axis was a redundant control. Group-by now offers
+// only "Due date" (default flat list) and "Client" (per-client
+// cluster headers). Legacy URLs with `?group=status` fall back to
+// the default `due` via nuqs's `parseAsStringLiteral` rejection.
+const GROUP_OPTIONS = ['due', 'client'] as const
 type ObligationQueueGroup = (typeof GROUP_OPTIONS)[number]
 const DEFAULT_GROUP: ObligationQueueGroup = 'due'
 const DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS = 3_000
@@ -277,13 +289,15 @@ const PAGE_SIZE = 50
 // huge displays (40 already taxes scan readability).
 const CLIENT_PAGE_SIZE_MIN = 8
 const CLIENT_PAGE_SIZE_MAX = 40
-// Estimated per-row height in the current rendering (text-base
-// client name + py-2 cells + size-8 avatar + status pill ≈ 48px).
-// Dropped from 56 after sixty-fifth-pass follow-up tightened
-// cell padding to py-2. If row chrome changes again, re-measure
-// with a quick `getBoundingClientRect().height` test and adjust —
-// undershooting fills the viewport partially, overshooting scrolls.
-const CLIENT_ROW_HEIGHT_PX = 48
+// Estimated per-row height in the current rendering. 56px = h-14
+// (the canonical workbench-table row height shared with /clients +
+// /rules/library after the 2026-05-26 cross-table element unify
+// pass). Was 48 briefly during a tighter-density experiment; bumped
+// back so all three tables share the same row pitch. If row chrome
+// changes again, re-measure with a quick `getBoundingClientRect().
+// height` test and adjust — undershooting fills the viewport
+// partially, overshooting scrolls.
+const CLIENT_ROW_HEIGHT_PX = 56
 // Page chrome above + below the rows: page header + breadcrumb +
 // filter scope-tabs + filter action-chips + table header + pagination
 // footer + page bottom padding ≈ 320-360px. We pick 360 to leave
@@ -553,8 +567,48 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 const STATE_CODE_RE = /^[A-Z]{2}$/
 const ReadinessChecklistItemsSchema = ReadinessChecklistItemSchema.array().min(1).max(30)
 
+type DeadlineInputRequestAudit = {
+  recipientName: string | null
+  recipientRole: string | null
+  message: string | null
+  createdAt: string
+}
+
+type DeadlineInputRequestDraft = {
+  obligationId: string
+  recipientUserId: string
+  message: string
+}
+
 function isObligationQueueDetailTab(value: string): value is ObligationQueueDetailTab {
   return ObligationQueueDetailTabSchema.safeParse(value).success
+}
+
+function readPlainRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  return Object.fromEntries(Object.entries(value))
+}
+
+function readNonEmptyString(record: Record<string, unknown> | null, key: string): string | null {
+  const value = record?.[key]
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+}
+
+export function latestDeadlineInputRequest(
+  auditEvents: readonly AuditEventPublic[],
+): DeadlineInputRequestAudit | null {
+  const sorted = [...auditEvents].toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
+  for (const event of sorted) {
+    if (event.action !== 'obligation.input_requested') continue
+    const after = readPlainRecord(event.afterJson)
+    return {
+      recipientName: readNonEmptyString(after, 'recipientName'),
+      recipientRole: readNonEmptyString(after, 'recipientRole'),
+      message: readNonEmptyString(after, 'message'),
+      createdAt: event.createdAt,
+    }
+  }
+  return null
 }
 
 function deadlineDetailStateObligationId(state: unknown, routeRef: string | null): string | null {
@@ -1023,7 +1077,6 @@ export function ObligationQueueRoute() {
   const sorting = useMemo<SortingState>(() => {
     const baseSort = getSortingState(sort)
     if (group === 'client') return [{ id: 'clientName', desc: false }, ...baseSort]
-    if (group === 'status') return [{ id: 'status', desc: false }, ...baseSort]
     return baseSort
   }, [sort, group])
   // When the user intends to open the detail panel (short route ref,
@@ -1313,43 +1366,27 @@ export function ObligationQueueRoute() {
 
   // Pure adjacency-based grouping (NO reordering): when the active
   // sort naturally places a client's obligations next to each other,
-  // collapse the Client cell on the continuation rows and weld the
-  // group with a borderless run. When the sort scatters them across
-  // the table, each row stands alone with its full Client name — the
-  // grouping doesn't force itself, it only surfaces what's already
-  // adjacent. Matches the 2026-05-21 wireframe: Bright Studio's two
-  // back-to-back +30d-late rows group; Northstar's 3 rows at +45d /
-  // +15d / +7d each stand alone with their own client name.
-  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass follow-up — kill
-  // auto-clustering): adjacent same-client rows are NO LONGER auto-
-  // grouped in default (group=due) mode. Yuqi's call: "remove the
-  // Magnolia Family Trust grouped client. The grouping by client is
-  // purely by sort by client." So continuation/within-group sets
-  // only populate when group === 'client'. In default mode, every
-  // row stands alone with its own client name + normal border, no
-  // left rail, no welded-block treatment.
+  // show the client name once on the first row, then render following
+  // deadlines as indented continuation rows. If the sort scatters a
+  // client's rows, each row stands alone with its own client name.
   const continuationRowIds = useMemo(() => {
     const set = new Set<string>()
-    if (group !== 'client') return set
     for (let i = 1; i < rows.length; i++) {
       if (rows[i]!.clientId === rows[i - 1]!.clientId) set.add(rows[i]!.id)
     }
     return set
-  }, [rows, group])
+  }, [rows])
   // "Within-group" = this row is NOT the last in its client group, i.e.
   // the NEXT row is a continuation (same client). Within-group rows
   // drop their bottom border so the group reads as a single visual
   // block. Group boundaries keep the border so the eye can find them.
-  // Same gate as continuationRowIds — only populated when grouping by
-  // client. In default mode, rows render with their full border each.
   const withinGroupRowIds = useMemo(() => {
     const set = new Set<string>()
-    if (group !== 'client') return set
     for (let i = 0; i < rows.length - 1; i++) {
       if (continuationRowIds.has(rows[i + 1]!.id)) set.add(rows[i]!.id)
     }
     return set
-  }, [rows, continuationRowIds, group])
+  }, [rows, continuationRowIds])
   // 2026-05-25 (Yuqi Deadlines #6): group headers. When 2+ adjacent
   // rows share a clientId, the FIRST row's id is keyed in this map
   // with the cluster's metadata (count + earliest internal due). The
@@ -1370,6 +1407,25 @@ export function ObligationQueueRoute() {
   // single-row). group=status: header per status bucket.
   // Reuses the same collapsedClientGroups Set keyed by groupKey
   // string ('clientId' for client mode, 'status' for status mode).
+  // 2026-05-26 (Yuqi Group-by wireframes — Sort by Status / Client /
+  // Due date): per the wireframes, the three modes have distinct
+  // header semantics:
+  //
+  //   • Status mode → emit a header at EVERY status boundary, with
+  //     a simple "<Label> <count>" treatment ("Blocked 2", "Waiting
+  //     on client 1", etc.).
+  //   • Client mode → emit a header at EVERY client boundary, with
+  //     a richer "<Name> <N deadlines · next [date]> [N late]"
+  //     treatment that shows the next-due date + a small late-count
+  //     pill so the CPA can triage at scan distance.
+  //   • Due date mode → NO section headers at all. The wireframe is
+  //     a flat chronological list (Filed entries first, then most-late
+  //     first). Multi-deadline-same-client clusters used to emit a
+  //     subtle header here too, but the wireframe shows nothing so
+  //     that behaviour is suppressed.
+  //
+  // `lateCount` is computed in client mode for the late-pill on the
+  // header. `earliestDueDate` carries the "next due" semantics.
   const groupHeadersByFirstRowId = useMemo(() => {
     const map = new Map<
       string,
@@ -1378,41 +1434,23 @@ export function ObligationQueueRoute() {
         clientId: string
         clientName: string
         count: number
+        lateCount: number
         earliestDueDate: string
       }
     >()
     if (group === 'due') {
-      // Original behavior — cluster headers only when 2+ adjacent
-      // rows share a client. This is the default and pre-existing
-      // "multi-deadline-per-client" pattern.
-      let i = 0
-      while (i < rows.length) {
-        const start = rows[i]!
-        let j = i + 1
-        while (j < rows.length && rows[j]!.clientId === start.clientId) j++
-        if (j - i > 1) {
-          let earliest = start.currentDueDate
-          for (let k = i + 1; k < j; k++) {
-            if (rows[k]!.currentDueDate < earliest) earliest = rows[k]!.currentDueDate
-          }
-          map.set(start.id, {
-            groupKey: start.clientId,
-            clientId: start.clientId,
-            clientName: start.clientName,
-            count: j - i,
-            earliestDueDate: earliest,
-          })
-        }
-        i = j
-      }
+      // Due-date mode is a flat list per the wireframes. No section
+      // headers, no clusters. Earlier the `if (group === 'due')`
+      // branch emitted a 2+-row cluster header (multi-deadline-per-
+      // client); now suppressed so the by-date list reads as one
+      // chronological run.
       return map
     }
-    // group=client / group=status — emit a header at EVERY group
-    // boundary, including single-row groups. The rows are already
-    // sorted with the group key as primary sort (see `sorting`
-    // useMemo earlier), so adjacent rows in the same group cluster
-    // naturally.
-    const groupKeyOf = (r: ObligationQueueRow) => (group === 'client' ? r.clientId : r.status)
+    // group=client — emit a header at EVERY client boundary, including
+    // single-row clients. The rows are already sorted with clientName
+    // as primary sort (see `sorting` useMemo earlier), so adjacent
+    // rows of the same client cluster naturally.
+    const groupKeyOf = (r: ObligationQueueRow) => r.clientId
     let i = 0
     while (i < rows.length) {
       const start = rows[i]!
@@ -1420,14 +1458,21 @@ export function ObligationQueueRoute() {
       let j = i + 1
       while (j < rows.length && groupKeyOf(rows[j]!) === startKey) j++
       let earliest = start.currentDueDate
-      for (let k = i + 1; k < j; k++) {
-        if (rows[k]!.currentDueDate < earliest) earliest = rows[k]!.currentDueDate
+      let lateCount = 0
+      for (let k = i; k < j; k++) {
+        const r = rows[k]!
+        if (r.currentDueDate < earliest) earliest = r.currentDueDate
+        // "Late" = past internal due AND non-terminal (still actionable).
+        if (r.daysUntilDue < 0 && r.status !== 'done' && r.status !== 'completed') {
+          lateCount++
+        }
       }
       map.set(start.id, {
         groupKey: startKey,
         clientId: start.clientId,
         clientName: start.clientName,
         count: j - i,
+        lateCount,
         earliestDueDate: earliest,
       })
       i = j
@@ -1583,11 +1628,9 @@ export function ObligationQueueRoute() {
           )
         },
         cell: ({ row: tableRow, table }) => {
-          const isGroupedClientRow =
-            continuationRowIds.has(tableRow.original.id) ||
-            withinGroupRowIds.has(tableRow.original.id)
+          const isContinuation = continuationRowIds.has(tableRow.original.id)
           return (
-            <div className={cn(isGroupedClientRow && 'translate-x-[26px]')}>
+            <div className={cn(isContinuation && 'translate-x-[26px]')}>
               <Checkbox
                 aria-label={t`Select ${tableRow.original.clientName}`}
                 checked={tableRow.getIsSelected()}
@@ -1644,23 +1687,13 @@ export function ObligationQueueRoute() {
         ),
         cell: ({ row: tableRow, table }) => {
           const isContinuation = continuationRowIds.has(tableRow.original.id)
-          const isGroupedClientRow = isContinuation || withinGroupRowIds.has(tableRow.original.id)
-          // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #15/#16):
-          // continuation rows now render the full client name again
-          // instead of a `↳` glyph. Yuqi flagged the arrow as "this
-          // does not make sense" — even with the left rail + welded
-          // borders carrying the grouping cue, hiding the client name
-          // on rows 2+ made the column read inconsistently with the
-          // first row. Just write the name. The shift+click range-
-          // select gesture below still works on every row because
-          // the same handler is wired to every cell.
           // Shift+click the client name → range-select every row
           // sharing this clientId (2026-05-21). Matches the hybrid
           // multi-select model: filings-default, with a group-expand
           // keystroke for the one workflow (reassignment) that
           // naturally lives at the client level. Unshifted clicks
           // pass through to the row handler that opens the drawer.
-          const handleClientNameClick = (event: React.MouseEvent<HTMLSpanElement>) => {
+          const handleClientNameClick = (event: React.MouseEvent<HTMLElement>) => {
             if (!event.shiftKey) return
             event.preventDefault()
             event.stopPropagation()
@@ -1690,8 +1723,22 @@ export function ObligationQueueRoute() {
           // Marking the span as a button would make
           // `isObligationQueueRowControlClick` treat it as a control
           // and the row would only focus, not open.
+          if (isContinuation) {
+            return (
+              <div
+                className="min-w-0 pl-6"
+                onClick={handleClientNameClick}
+                onMouseDown={(event) => {
+                  if (event.shiftKey) event.preventDefault()
+                }}
+              >
+                <span className="sr-only">{tableRow.original.clientName}</span>
+                <span aria-hidden className="block h-px w-8 rounded-full bg-divider-regular" />
+              </div>
+            )
+          }
           return (
-            <div className={cn('flex min-w-0 items-center gap-1.5', isGroupedClientRow && 'pl-3')}>
+            <div className="flex min-w-0 items-center gap-1.5">
               <span
                 onClick={handleClientNameClick}
                 onMouseDown={(event) => {
@@ -1720,7 +1767,17 @@ export function ObligationQueueRoute() {
                   // "Too big" alongside the rest of the row's text-sm
                   // meta. Active row still gets font-medium for the
                   // "you are here" signal.
-                  'line-clamp-2 min-w-0 flex-1 text-sm leading-tight text-text-primary',
+                  // 2026-05-26 (Yuqi cross-table unify — "Deadlines
+                  // text-sm · Clients text-base · Rules library text-sm
+                  // … visually make them similar"): bumped back to
+                  // text-base to match /clients + /rules/library
+                  // primary titles. The earlier "too big" call was at
+                  // text-base font-medium; regular weight at text-base
+                  // reads as primary identity without the loud bold
+                  // weight, so the size works across all three
+                  // workbench tables. Active row keeps font-medium as
+                  // the "you are here" cue.
+                  'line-clamp-2 min-w-0 flex-1 text-base leading-tight text-text-primary',
                   tableRow.original.id === explicitActiveRowId ? 'font-medium' : 'font-normal',
                 )}
                 title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
@@ -2194,7 +2251,6 @@ export function ObligationQueueRoute() {
       taxTypeOptions,
       taxTypeQuery,
       updateStatus,
-      withinGroupRowIds,
     ],
   )
 
@@ -3005,48 +3061,47 @@ export function ObligationQueueRoute() {
                   Trigger chrome unchanged (single "Sort by X" label,
                   matches Pulse). */}
               <DropdownMenu>
+                {/* 2026-05-26 (Yuqi feedback — "change the icon for
+                    sort by to lucide arrow-down-up"): the FilterTrigger
+                    default leading `+` icon read as "add a filter".
+                    Sort/Group-by isn't a filter — it's reorder. Swapped
+                    in `ArrowDownUp` (the canonical lucide sort icon)
+                    so the trigger reads as "change how rows are
+                    ordered/grouped". Aligns with the three Group-by
+                    wireframes Yuqi shared. */}
                 <DropdownMenuTrigger
                   render={
-                    <FilterTrigger>
+                    <FilterTrigger leadingIcon={ArrowDownUp}>
                       <span className="text-text-tertiary">
-                        <Trans>Sort by</Trans>
+                        <Trans>Group by</Trans>
                       </span>
                       <span>
-                        {group === 'status' ? (
-                          <Trans>Status</Trans>
-                        ) : group === 'client' ? (
-                          <Trans>Client</Trans>
-                        ) : (
-                          <Trans>Date</Trans>
-                        )}
+                        {group === 'client' ? <Trans>Client</Trans> : <Trans>Due date</Trans>}
                       </span>
                     </FilterTrigger>
                   }
                 />
                 <DropdownMenuContent align="end" className="min-w-[180px]">
+                  {/* 2026-05-26 (Yuqi follow-up — "remove group by
+                      status, since there is already the top tab switch
+                      between status"): Status option dropped. The
+                      scope-tab band above the table already filters by
+                      status, so a Group-by option was a redundant
+                      control. Just Due date (default flat list) and
+                      Client (per-client cluster headers) remain. */}
                   <DropdownMenuRadioGroup
                     value={group}
                     onValueChange={(next) => {
-                      if (next === 'due' || next === 'client' || next === 'status') {
+                      if (next === 'due' || next === 'client') {
                         void setObligationQueueQuery({ group: next })
                       }
                     }}
                   >
                     <DropdownMenuRadioItem value="due">
-                      <Trans>Date</Trans>
+                      <Trans>Due date</Trans>
                     </DropdownMenuRadioItem>
-                    {/* 2026-05-26 (Yuqi /deadlines feedback): "Sort by
-                        Client" restored. Originally dropped per an
-                        earlier round of feedback, but re-requested —
-                        a per-client cluster IS useful on /deadlines
-                        when you're working a portfolio review (one
-                        client's full set of obligations together,
-                        without needing to jump to /clients/[id]). */}
                     <DropdownMenuRadioItem value="client">
                       <Trans>Client</Trans>
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="status">
-                      <Trans>Status</Trans>
                     </DropdownMenuRadioItem>
                   </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
@@ -3303,33 +3358,74 @@ export function ObligationQueueRoute() {
             // the responsive hook choosing the row count so it fits.
             <div
               ref={setTableCardElement}
+              // 2026-05-26 (Yuqi cross-table chrome unify — "can you
+              // ensure the style across all of the tables are the
+              // same? background for the table-body, the border
+              // between rows, the border of the table, rounded
+              // corners, radius, paddings, text sizes."): canonical
+              // workbench-table card frame. Same recipe across
+              // /deadlines + /clients + /rules/library:
+              //
+              //   • `rounded-md` (6px) corner radius
+              //   • `border border-divider-subtle` hairline
+              //   • `overflow-hidden` so rounded corners clip the
+              //     thead's gray + the pagination footer flush
+              //   • `bg-background-default/50` — one alpha-white
+              //     surface that fills the entire card (thead bg
+              //     stacks solid on top; tbody + empty-area + pag
+              //     footer all read as one card). Previously the
+              //     alpha lived on TableBody only, which left the
+              //     space below partial pages + the pagination
+              //     strip painted differently from the rows. Now
+              //     one bg = one card.
+              //
+              // The earlier "white edge sliver" concern is moot now
+              // that the inner wrapper drops its own bg + the
+              // tbody alpha moved up to this layer.
               className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-divider-subtle"
             >
-              {/* 2026-05-26 (Yuqi feedback — "why can't the pagination
-                  just stay at the same place no matter how many rows
-                  the second page has?"): wrap Table in a flex-1 rows-
-                  area so it ELASTICALLY fills the card. On a page
-                  with full rows (14), the rows-area is exactly the
-                  height needed for them. On a page with fewer rows
-                  (3), the rows-area STILL fills the card height —
-                  rows sit at the top, empty space below them, but
-                  the rows-area itself is the same height — which
-                  pushes the Pagination sibling to the same bottom
-                  position on every page. */}
-              {/* 2026-05-26 (Yuqi feedback — "background colour white"):
-                  rows-area now carries `bg-background-default` so the
-                  empty space below the table on partial pages (e.g.
-                  page 2 with 3 rows) reads as the same white surface
-                  as the rows above. Without it the empty area
-                  inherited the page bg, breaking the card frame. */}
-              <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background-default">
+              {/* 2026-05-26 (Yuqi feedback — pagination position +
+                  empty-row background): wrap Table in a flex-1 rows-
+                  area so it ELASTICALLY fills the card. The rows-area
+                  itself was previously `bg-background-default` so the
+                  empty space below partial-page rows read as white.
+                  2026-05-26 (Yuqi follow-up — "白边 / white edge on
+                  the Deadlines table"): retired the nested
+                  `bg-background-default` here. The thead's
+                  `bg-background-default-dimmed` (gray) was sitting
+                  ON TOP of this nested white wrapper; the outer
+                  rounded-md card's corner clip showed the WHITE
+                  through the rounded mask before the gray took over,
+                  producing a 4-6px white sliver at the top-left and
+                  top-right corners. With the nested bg dropped, the
+                  thead's gray now goes flush to the rounded corner.
+                  Empty space below partial-page rows now inherits
+                  the outer card bg (set on the parent below).
+                  2026-05-26 (Yuqi feedback — "can you see the gap
+                  between the table row end and the pagination?"):
+                  the rows-area is flex-1, so when the page has
+                  fewer rows than fit the viewport the empty space
+                  below the last row pushes the pagination footer
+                  to the bottom of the card.
+                  2026-05-26 (Yuqi cross-table chrome unify): the
+                  alpha-white surface now lives on the OUTER card
+                  wrapper (one bg for the whole card). This inner
+                  wrapper drops its own bg so the layering reads
+                  clean — outer card paints alpha-white, thead's
+                  solid gray stacks on top, body inherits, empty
+                  area below + pagination footer all read as one
+                  surface. */}
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                 <Table className="rounded-none border-0 [&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:!align-middle [&_td]:break-words">
-                  {/* TableHeader override: bg-background-default-dimmed
-                    (= state-base-hover-alt, a light blue-tinted gray)
-                    instead of the primitive's default `bg-background-
-                    subtle`. Matches the design-system canonical for
-                    a "header band that sits a step above white." */}
-                  <TableHeader className="!bg-background-default-dimmed">
+                  {/* 2026-05-26 (Yuqi feedback — "table head should not be
+                    transparent. scrolling up you see the information behind
+                    the header"): dropped the `!bg-background-default-dimmed`
+                    override. That token resolves to alpha-0.4 gray, which
+                    rendered as semi-transparent over the scrolling body
+                    rows below. Falling back to the primitive's solid
+                    `bg-background-subtle` keeps the same visual gray tone
+                    WITHOUT alpha bleed. */}
+                  <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
                       <TableRow key={headerGroup.id} className="hover:bg-transparent">
                         {headerGroup.headers.map((header) => {
@@ -3427,34 +3523,22 @@ export function ObligationQueueRoute() {
                       </TableRow>
                     ) : (
                       tableRows.map((tableRow) => {
-                        // 2026-05-25 (Yuqi /deadlines fourth pass #6):
-                        // group header is now an interactive collapse
-                        // button. Clicking toggles whether the
-                        // continuation rows underneath are shown. The
-                        // continuation rows hide / show via the
-                        // `isContinuationCollapsed` check below — the
-                        // header row stays visible either way so the
-                        // cluster is still findable when collapsed.
-                        // 2026-05-26 (Yuqi feedback #4 round 2): section
-                        // headers killed entirely. Even when Sort by =
-                        // Status, the section-header row was rendering
-                        // and Yuqi wanted it gone. groupHeader hardcoded
-                        // to undefined so the conditional below never
-                        // renders. groupHeadersByFirstRowId still computes
-                        // (cheap) but the render is suppressed.
-                        const groupHeader = undefined as ReturnType<
-                          typeof groupHeadersByFirstRowId.get
-                        >
-                        void groupHeadersByFirstRowId
+                        // 2026-05-26 (Yuqi Group-by wireframes — Sort by
+                        // Status / Client / Due date): section headers
+                        // are back, wired to the real map. The prior
+                        // `undefined` hardcode is gone. Headers render
+                        // ONLY when `group === 'client' || 'status'`;
+                        // due-date mode is a flat list (the map is
+                        // empty in that mode — see groupHeadersByFirstRowId
+                        // above). Each header style varies per mode (see
+                        // the render block below).
+                        const groupHeader = groupHeadersByFirstRowId.get(tableRow.original.id)
                         // 2026-05-26 (Yuqi sixty-second pass — generalized
                         // collapse): collapse Set is keyed by `groupKey`
-                        // (clientId in group=client mode, status in
-                        // group=status mode, clientId in default
-                        // multi-deadline mode). Same Set powers all
-                        // three modes since collapsedClientGroups is
-                        // already a Set<string>.
-                        const rowGroupKey =
-                          group === 'status' ? tableRow.original.status : tableRow.original.clientId
+                        // — always `clientId` now that Group=Status is
+                        // gone (clients are the only grouping axis,
+                        // due-date mode is a flat list with no headers).
+                        const rowGroupKey = tableRow.original.clientId
                         const headerCollapsed = groupHeader
                           ? collapsedClientGroups.has(groupHeader.groupKey)
                           : false
@@ -3474,42 +3558,31 @@ export function ObligationQueueRoute() {
                         return (
                           <Fragment key={tableRow.id}>
                             {groupHeader ? (
-                              <TableRow className="border-b-0 border-l-2 border-l-divider-regular hover:bg-state-base-hover">
-                                <TableCell
-                                  colSpan={visibleColumnCount}
-                                  className="py-1 pl-2 pr-4 text-xs text-text-tertiary"
-                                >
+                              <TableRow className="border-b border-divider-subtle bg-background-subtle/60 hover:bg-state-base-hover">
+                                <TableCell colSpan={visibleColumnCount} className="py-2 pl-3 pr-4">
+                                  {/* 2026-05-26 (Yuqi Group-by wireframes,
+                                      follow-up — Status option removed):
+                                      Client-mode is now the only group
+                                      surface. Header renders the bold
+                                      client name + secondary meta line
+                                      ("N deadlines · next [date]") + a
+                                      small destructive-toned late pill
+                                      when any deadlines in the cluster
+                                      are past the internal target.
+                                      Matches the wireframe's
+                                      "Arbor & Vine LLC  2 deadlines ·
+                                      next May 2  [2 late]" pattern. */}
                                   <button
                                     type="button"
                                     onClick={() => toggleClientGroupCollapse(groupHeader.groupKey)}
                                     aria-expanded={!headerCollapsed}
                                     aria-controls={`group-${groupHeader.groupKey}`}
-                                    aria-label={(() => {
-                                      // 2026-05-26 (Yuqi sixty-second
-                                      // pass — generalized aria label):
-                                      // pick the right human label per
-                                      // group mode.
-                                      const label =
-                                        group === 'status'
-                                          ? (statusLabels[
-                                              groupHeader.groupKey as ObligationStatus
-                                            ] ?? groupHeader.groupKey)
-                                          : groupHeader.clientName
-                                      return headerCollapsed
-                                        ? t`Expand ${label}`
-                                        : t`Collapse ${label}`
-                                    })()}
-                                    // 2026-05-26 (Yuqi /deadlines sixty-fifth
-                                    // pass #8): items-baseline → items-center
-                                    // on the collapse button. With the chevron
-                                    // icon as the first child, baseline-aligned
-                                    // text put the icon's bounding box sitting
-                                    // lower than its visual center vs. the
-                                    // label text — read as "off by 1-2px"
-                                    // misalignment. Center-aligning the row
-                                    // sits the chevron's center on the same
-                                    // line as the label's vertical midpoint.
-                                    className="inline-flex w-full items-center gap-x-2 gap-y-0.5 rounded-sm py-0.5 pl-1 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                                    aria-label={
+                                      headerCollapsed
+                                        ? t`Expand ${groupHeader.clientName}`
+                                        : t`Collapse ${groupHeader.clientName}`
+                                    }
+                                    className="inline-flex w-full items-center gap-2 rounded-sm py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                                   >
                                     <ChevronRightIcon
                                       className={cn(
@@ -3518,27 +3591,39 @@ export function ObligationQueueRoute() {
                                       )}
                                       aria-hidden
                                     />
-                                    <span className="font-semibold text-text-secondary">
-                                      {group === 'status'
-                                        ? (statusLabels[groupHeader.groupKey as ObligationStatus] ??
-                                          groupHeader.groupKey)
-                                        : groupHeader.clientName}
-                                    </span>
-                                    <span aria-hidden>·</span>
-                                    <span className="tabular-nums">
-                                      <Plural
-                                        value={groupHeader.count}
-                                        one="# deadline"
-                                        other="# deadlines"
-                                      />
-                                    </span>
-                                    <span aria-hidden>·</span>
-                                    <span className="tabular-nums">
-                                      <Trans>
-                                        earliest{' '}
-                                        {formatDate(groupHeader.earliestDueDate.slice(0, 10))}
-                                      </Trans>
-                                    </span>
+                                    {/* Client-mode header content. Bold
+                                        client name + secondary meta line
+                                        + optional late pill. */}
+                                    <>
+                                      <span className="text-sm font-semibold text-text-primary">
+                                        {groupHeader.clientName}
+                                      </span>
+                                      <span className="text-xs text-text-tertiary">
+                                        <Plural
+                                          value={groupHeader.count}
+                                          one="# deadline"
+                                          other="# deadlines"
+                                        />
+                                        <span aria-hidden> · </span>
+                                        <Trans>
+                                          next{' '}
+                                          {formatDate(groupHeader.earliestDueDate.slice(0, 10))}
+                                        </Trans>
+                                      </span>
+                                      {groupHeader.lateCount > 0 ? (
+                                        <Badge
+                                          variant="destructive"
+                                          className="h-5 px-1.5 text-caption-xs"
+                                          title={t`${groupHeader.lateCount} of this client's deadlines are past the internal target`}
+                                        >
+                                          <Plural
+                                            value={groupHeader.lateCount}
+                                            one="# late"
+                                            other="# late"
+                                          />
+                                        </Badge>
+                                      ) : null}
+                                    </>
                                   </button>
                                 </TableCell>
                               </TableRow>
@@ -3567,22 +3652,41 @@ export function ObligationQueueRoute() {
                                   // 2026-05-26 (Yuqi /deadlines feedback —
                                   // "row height in the expanded view different
                                   // from the unexpanded row height"): added
-                                  // `h-12` (48px fixed row height) so rows with
-                                  // an avatar (size-8 32px circle) and rows
-                                  // with the `?` placeholder picker (also
-                                  // size-8) render the SAME height regardless
-                                  // of their cell content. Without an
-                                  // explicit height, the table picked up the
-                                  // tallest cell's natural height, which
-                                  // varied subtly per row (different cell
-                                  // wrapping, different status pill heights).
-                                  'h-12 group cursor-pointer border-l-2 border-l-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
+                                  // explicit fixed row height so rows with an
+                                  // avatar (size-8 32px circle) and rows with
+                                  // the `?` placeholder picker (also size-8)
+                                  // render the SAME height regardless of cell
+                                  // content. Without an explicit height the
+                                  // table picked up the tallest cell's natural
+                                  // height, which varied subtly per row
+                                  // (different cell wrapping, different status
+                                  // pill heights).
+                                  // 2026-05-26 (Yuqi cross-table element
+                                  // unify — "unify the deadline table, rule
+                                  // library table, and client table"): row
+                                  // height bumped h-12 (48px) → h-14 (56px)
+                                  // to match /clients (h-14) and /rules/library
+                                  // (h-14). All three workbench tables now
+                                  // share the same row pitch — scanning the
+                                  // queue feels identical to scanning the
+                                  // clients directory or the rules catalog.
+                                  'h-14 group cursor-pointer border-l-2 border-l-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
                                   tableRow.original.id === explicitActiveRowId &&
                                     'bg-state-base-hover',
                                   // Within-group rows lose their bottom border so
                                   // same-client filings weld into a single block.
                                   // The last row of each group keeps the divider,
                                   // making group boundaries scannable.
+                                  // 2026-05-26 (Yuqi cross-table drift #13 —
+                                  // "weld or hairline?"): canonical rule —
+                                  // default behavior across /clients +
+                                  // /rules/library is the primitive's hairline
+                                  // between every row. Welding via `border-b-0`
+                                  // is an opt-in for surfaces with EXPLICIT
+                                  // logical sub-groups (this deadlines client
+                                  // cluster is the only current consumer). New
+                                  // table surfaces should NOT add weld logic
+                                  // unless they have a real sub-unit to express.
                                   withinGroupRowIds.has(tableRow.original.id) && 'border-b-0',
                                   // Continuous 2px left rail across every row
                                   // in a multi-row client cluster (group's
@@ -3628,6 +3732,10 @@ export function ObligationQueueRoute() {
                               >
                                 {tableRow.getVisibleCells().map((cell) => {
                                   const meta = cell.column.columnDef.meta
+                                  const indentContinuationCell =
+                                    continuationRowIds.has(tableRow.original.id) &&
+                                    cell.column.id !== 'select' &&
+                                    cell.column.id !== 'clientName'
                                   return (
                                     <TableCell
                                       key={cell.id}
@@ -3643,7 +3751,12 @@ export function ObligationQueueRoute() {
                                       // overrides via `meta.cellClassName`
                                       // that would otherwise win on
                                       // Tailwind specificity.
-                                      className={`align-middle ${density === 'compact' ? 'px-2 py-1.5' : ''} ${meta?.cellClassName ?? ''}`}
+                                      className={cn(
+                                        'align-middle',
+                                        density === 'compact' && 'px-2 py-1.5',
+                                        meta?.cellClassName,
+                                        indentContinuationCell && 'pl-4',
+                                      )}
                                     >
                                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </TableCell>
@@ -4278,15 +4391,20 @@ function AssigneeAvatar({ name, isMine, title }: { name: string; isMine: boolean
   // (matches the Today dashboard's owner-avatar size) and the
   // text-sm initials no longer read like caption-tier inside the
   // disc.
+  // 2026-05-26 (Yuqi cross-table drift #10 — "Owner/Assignee avatar
+  // size + initials hash consistency"): the non-self path now resolves
+  // a per-name tint via the shared `getAssigneeTint` helper instead of
+  // a single `bg-background-subtle` neutral. /clients already did this
+  // — the deadlines queue was the surface where "AR" and "KP" looked
+  // identical at scan distance. Now same person → same color → same
+  // visual identity across every owner column in the app.
   return (
     <span
       aria-label={title}
       title={title}
       className={cn(
         'inline-flex size-8 items-center justify-center rounded-full text-sm font-semibold uppercase tracking-tight',
-        isMine
-          ? 'bg-state-accent-hover-alt text-text-accent'
-          : 'bg-background-subtle text-text-secondary',
+        isMine ? 'bg-state-accent-hover-alt text-text-accent' : getAssigneeTint(name),
       )}
     >
       {initials}
@@ -4561,6 +4679,8 @@ export function ObligationQueueDetailDrawer({
   const navigate = useNavigate()
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
+  const permission = useFirmPermission()
+  const canRequestInput = permission.firm?.role === 'preparer'
   // Lifecycle v2: when on, the Audit tab is relabeled to "Timeline"
   // and its content swaps to the milestone-grouped timeline. See
   // docs/Design/obligation-lifecycle-design-brief.md.
@@ -4613,6 +4733,16 @@ export function ObligationQueueDetailDrawer({
     obligationId: string
     itemIds: ReadonlySet<string>
   }>({ obligationId: '', itemIds: new Set<string>() })
+  const [materialsRequestPreview, setMaterialsRequestPreview] = useState<{
+    open: boolean
+    obligationId: string | null
+  }>({ open: false, obligationId: null })
+  const [requestInputDialogOpen, setRequestInputDialogOpen] = useState(false)
+  const [requestInputDraft, setRequestInputDraft] = useState<DeadlineInputRequestDraft>({
+    obligationId: '',
+    recipientUserId: '',
+    message: '',
+  })
   const [deadlineTipRefresh, setDeadlineTipRefresh] = useState<{
     obligationId: string
     startedAt: number
@@ -4625,6 +4755,17 @@ export function ObligationQueueDetailDrawer({
     }),
     enabled: obligationId !== null,
   })
+  const requestRecipientsQuery = useQuery({
+    ...orpc.members.listAssignable.queryOptions({ input: undefined }),
+    enabled: obligationId !== null && canRequestInput,
+  })
+  const requestRecipients = useMemo(
+    () =>
+      (requestRecipientsQuery.data ?? []).filter(
+        (member) => member.role === 'owner' || member.role === 'partner',
+      ),
+    [requestRecipientsQuery.data],
+  )
   const requestDeadlineTipMutation = useMutation(
     orpc.obligations.requestDeadlineTipRefresh.mutationOptions({
       onMutate: (variables) => {
@@ -4641,6 +4782,29 @@ export function ObligationQueueDetailDrawer({
       onError: (err) => {
         setDeadlineTipRefresh(null)
         toast.error(t`Couldn't start deadline tip refresh`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  const requestInputMutation = useMutation(
+    orpc.obligations.requestInput.mutationOptions({
+      onSuccess: (_result, variables) => {
+        const recipientName =
+          requestRecipients.find((recipient) => recipient.assigneeId === variables.recipientUserId)
+            ?.name ?? t`owner or partner`
+        setRequestInputDialogOpen(false)
+        setRequestInputDraft((current) => ({ ...current, message: '' }))
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
+        toast.success(t`Sent to ${recipientName}`, {
+          description: t`They'll see your note in their inbox and on this deadline.`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't send input request`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -4668,6 +4832,16 @@ export function ObligationQueueDetailDrawer({
   })
   const detail = detailQuery.data
   const row = detail?.row ?? null
+  const selectedRequestRecipientUserId =
+    requestInputDraft.recipientUserId || requestRecipients[0]?.assigneeId || ''
+  const latestInputRequest = useMemo(
+    () => latestDeadlineInputRequest(detail?.auditEvents ?? []),
+    [detail?.auditEvents],
+  )
+  const latestInputRequestRecipient = latestInputRequest?.recipientName ?? t`owner or partner`
+  const latestInputRequestTitle = latestInputRequest
+    ? t`Input requested from ${latestInputRequestRecipient} on ${formatDateTimeWithTimezone(latestInputRequest.createdAt, practiceTimezone)}`
+    : undefined
   // `obligationTypeLabels` lookup was retired with the header distill
   // (2026-05-21) — the "FILING" badge it backed is gone. If a future
   // surface wants the human label, re-add via `useObligationTypeLabels()`.
@@ -4865,6 +5039,17 @@ export function ObligationQueueDetailDrawer({
     selectedChecklistItemCount === checklistItemIdsForSelection.length
   const checklistGenerating =
     generateChecklistMutation.isPending || autoGenerateChecklistQuery.isFetching
+  const previewRequestEmailMutation = useMutation(
+    orpc.readiness.previewRequestEmail.mutationOptions({
+      onError: (err) => {
+        toast.error(t`Couldn't prepare materials request preview`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
   const sendRequestMutation = useMutation(
     orpc.readiness.sendRequest.mutationOptions({
       onSuccess: (result) => {
@@ -4880,6 +5065,18 @@ export function ObligationQueueDetailDrawer({
       },
     }),
   )
+  const previewRequestEmail =
+    previewRequestEmailMutation.data?.obligationId === materialsRequestPreview.obligationId
+      ? previewRequestEmailMutation.data
+      : null
+  function closeMaterialsRequestPreview() {
+    setMaterialsRequestPreview({ open: false, obligationId: null })
+    previewRequestEmailMutation.reset()
+  }
+  function openMaterialsRequestPreview(activeObligationId: string) {
+    setMaterialsRequestPreview({ open: true, obligationId: activeObligationId })
+    previewRequestEmailMutation.mutate({ obligationId: activeObligationId })
+  }
   const addChecklistItemMutation = useMutation(
     orpc.readiness.addChecklistItem.mutationOptions({
       onSuccess: () => {
@@ -5323,6 +5520,42 @@ export function ObligationQueueDetailDrawer({
     })
   }
 
+  function openRequestInputDialog() {
+    if (!row || !canRequestInput) return
+    setRequestInputDraft((current) => ({
+      obligationId: row.id,
+      recipientUserId:
+        current.obligationId === row.id
+          ? current.recipientUserId || requestRecipients[0]?.assigneeId || ''
+          : requestRecipients[0]?.assigneeId || '',
+      message: current.obligationId === row.id ? current.message : '',
+    }))
+    setRequestInputDialogOpen(true)
+  }
+
+  function closeRequestInputDialog() {
+    setRequestInputDialogOpen(false)
+  }
+
+  function submitRequestInput() {
+    if (!row || !canRequestInput) return
+    const recipientUserId = selectedRequestRecipientUserId
+    const message = requestInputDraft.message.trim()
+    if (!recipientUserId) {
+      toast.error(t`Choose an owner or partner.`)
+      return
+    }
+    if (!message) {
+      toast.error(t`Message is required.`)
+      return
+    }
+    requestInputMutation.mutate({
+      obligationId: row.id,
+      recipientUserId,
+      message,
+    })
+  }
+
   const checklistReference = row ? materialsChecklistReference(row) : null
   // The visible heading is shared with the drawer body. SheetTitle
   // stays sr-only below so Radix Dialog gets its accessible name
@@ -5544,6 +5777,16 @@ export function ObligationQueueDetailDrawer({
                         one="# day overdue"
                         other="# days overdue"
                       />
+                    </Badge>
+                  ) : null}
+                  {latestInputRequest ? (
+                    <Badge
+                      variant="secondary"
+                      className="h-6 gap-1 text-caption-xs uppercase tracking-wide"
+                      title={latestInputRequestTitle}
+                    >
+                      <MessageSquareText className="size-3.5" aria-hidden />
+                      <Trans>Input requested</Trans>
                     </Badge>
                   ) : null}
                 </div>
@@ -5785,7 +6028,26 @@ export function ObligationQueueDetailDrawer({
                 The extra `pt-4` here was stacking → 32px total
                 between strip and tabs ("weird top margin" per
                 Yuqi). Dropped. */}
-            <div className="relative z-0">
+            {/* 2026-05-26 (Yuqi feedback — "the 4 tabs in the deadline
+                detail panel can be more obvious, … more obvious about
+                it is with the below information, not above"): inverted
+                the spacing rhythm so the tab bar visually belongs to
+                what's BELOW it.
+
+                Before: tabs sat ~8px below the sticky strip and ~24px
+                above the content (gap-2 from Tabs root + mt-4 on
+                TabsContent). That asymmetry made the bar read as the
+                bottom edge of the header block above.
+
+                After: `pt-3` on this wrapper (+ the Tabs root's
+                `gap-2`) opens a 20px buffer ABOVE the bar — enough
+                to separate it from the sticky strip without the
+                cavernous 32px the earlier `pt-6` produced (Yuqi
+                follow-up: "still strange padding and gap"). `mt-0`
+                on the TabsContent panels drops the gap below the
+                bar to just `gap-2`, so the bar still reads as the
+                leading edge of the tab content beneath. */}
+            <div className="relative z-0 pt-3">
               {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
                   from design/deadlines-drawer-rework): tab bar
                   switched from default pill segmented control to the
@@ -5815,8 +6077,49 @@ export function ObligationQueueDetailDrawer({
                     // when the sticky deadline strip above scrolls behind
                     // the tabs they bled together visually. Explicit
                     // white bg gives the tab bar a clear surface.
-                    className="flex h-11 w-full gap-1 border-b border-divider-subtle bg-background-default text-sm"
+                    //
+                    // 2026-05-26 (Yuqi feedback — "justify content left"
+                    // + "remove the left right padding"): bar is now
+                    // `justify-start` so the four tabs hug the left
+                    // edge instead of distributing across the panel
+                    // (each TabsTrigger drops `flex-1` for the same
+                    // reason — see the trigger className below). Inter-
+                    // tab `gap-1` → `gap-6` opens 24px between tabs so
+                    // they remain individually scannable now that each
+                    // one no longer carries its own `px-2`.
+                    className="flex h-11 w-full justify-start gap-6 border-b border-divider-subtle bg-background-default text-sm"
                   >
+                    {/* 2026-05-26 (Yuqi feedback — "tabs can be more
+                        obvious, signalling people hey check these
+                        out" + "yes please" to pushing the active
+                        state further): every TabsTrigger now layers
+                        FOUR signals so the active tab pops without
+                        the bar abandoning the tab paradigm in favor
+                        of a segmented-control look:
+                          1. Inactive text: `text-text-secondary` —
+                             still visible enough to invite a click.
+                          2. Active text: `text-text-primary` +
+                             `font-semibold` — strongest contrast
+                             jump from inactive (medium-weight
+                             secondary) to active (semibold primary).
+                          3. Active underline color: `accent-default`
+                             (matches the /clients/[id] tabs +
+                             /deadlines scope tabs), so the rule
+                             pops in the canonical brand accent
+                             instead of plain text-active black.
+                          4. Active underline position: primitive
+                             default (`bottom-[-5px]`) — floats ~5px
+                             below the trigger for 15-16px breathing
+                             room from the text descender (an earlier
+                             `bottom-0` pulled it too close — "the
+                             underline is so close to the text").
+                        Stayed with TABS (not segmented control)
+                        because the 4 panels are different sections
+                        of the SAME deadline (Summary / Materials /
+                        Extension / Evidence), not filters or scopes.
+                        Segmented control belongs to the /deadlines
+                        top-level scope tabs where each option
+                        re-filters the queue. */}
                     {visibleTabs.has('summary') ? (
                       // 2026-05-26 (Yuqi seventieth pass #5): dropped
                       // the leading Info icon. The "Summary" word is
@@ -5829,7 +6132,7 @@ export function ObligationQueueDetailDrawer({
                       // calendar / file).
                       <TabsTrigger
                         value="summary"
-                        className="flex-1 rounded-t focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
+                        className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
                       >
                         <Trans>Summary</Trans>
                       </TabsTrigger>
@@ -5837,7 +6140,7 @@ export function ObligationQueueDetailDrawer({
                     {visibleTabs.has('readiness') ? (
                       <TabsTrigger
                         value="readiness"
-                        className="flex-1 rounded-t focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
+                        className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
                       >
                         <PaperclipIcon className="size-3.5" aria-hidden />
                         <Trans>Materials</Trans>
@@ -5868,7 +6171,7 @@ export function ObligationQueueDetailDrawer({
                     {visibleTabs.has('extension') ? (
                       <TabsTrigger
                         value="extension"
-                        className="flex-1 rounded-t focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
+                        className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
                       >
                         <CalendarClockIcon className="size-3.5" aria-hidden />
                         <Trans>Extension</Trans>
@@ -5890,7 +6193,7 @@ export function ObligationQueueDetailDrawer({
                     {visibleTabs.has('evidence') ? (
                       <TabsTrigger
                         value="evidence"
-                        className="flex-1 rounded-t focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1"
+                        className="!flex-none !px-0 rounded-t text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1 data-active:text-text-primary data-active:font-semibold after:!bg-accent-default"
                       >
                         <FileTextIcon className="size-3.5" aria-hidden />
                         <Trans>Evidence</Trans>
@@ -5906,7 +6209,7 @@ export function ObligationQueueDetailDrawer({
                 )
               })()}
             </div>
-            <TabsContent value="summary" className="mt-4" key="summary-content">
+            <TabsContent value="summary" key="summary-content">
               {/* 2026-05-26 (Yuqi animation note): each TabsContent
                   wraps its content in a motion.div so switching tabs
                   triggers a slide-in animation (x: 12 → 0) + fade.
@@ -5963,7 +6266,7 @@ export function ObligationQueueDetailDrawer({
                 </div>
               </motion.div>
             </TabsContent>
-            <TabsContent value="readiness" className="mt-4" key="readiness-content">
+            <TabsContent value="readiness" key="readiness-content">
               <motion.div
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -6335,12 +6638,12 @@ export function ObligationQueueDetailDrawer({
                         <div className="flex justify-end pt-1">
                           <Button
                             size="sm"
-                            onClick={() =>
-                              sendRequestMutation.mutate({
-                                obligationId: row.id,
-                              })
+                            onClick={() => openMaterialsRequestPreview(row.id)}
+                            disabled={
+                              previewRequestEmailMutation.isPending ||
+                              sendRequestMutation.isPending ||
+                              checklist.length === 0
                             }
-                            disabled={sendRequestMutation.isPending || checklist.length === 0}
                           >
                             <SendIcon data-icon="inline-start" />
                             <Trans>Send to client</Trans>
@@ -6547,7 +6850,7 @@ export function ObligationQueueDetailDrawer({
                 </div>
               </motion.div>
             </TabsContent>
-            <TabsContent value="extension" className="mt-4" key="extension-content">
+            <TabsContent value="extension" key="extension-content">
               <motion.div
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -6663,7 +6966,7 @@ export function ObligationQueueDetailDrawer({
                 </div>
               </motion.div>
             </TabsContent>
-            <TabsContent value="evidence" className="mt-4" key="evidence-content">
+            <TabsContent value="evidence" key="evidence-content">
               <motion.div
                 initial={{ x: 12, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -6875,6 +7178,51 @@ export function ObligationQueueDetailDrawer({
           </div>
         </div>
       ) : null}
+      <DeadlineInputRequestDialog
+        open={requestInputDialogOpen}
+        recipients={requestRecipients}
+        selectedRecipientUserId={selectedRequestRecipientUserId}
+        message={requestInputDraft.message}
+        loadingRecipients={requestRecipientsQuery.isLoading}
+        submitting={requestInputMutation.isPending}
+        onOpenChange={(open) => {
+          if (open) openRequestInputDialog()
+          else closeRequestInputDialog()
+        }}
+        onRecipientChange={(recipientUserId) => {
+          setRequestInputDraft((current) => ({ ...current, recipientUserId }))
+        }}
+        onMessageChange={(message) => {
+          setRequestInputDraft((current) => ({ ...current, message }))
+        }}
+        onSubmit={submitRequestInput}
+      />
+      <MaterialsRequestPreviewDialog
+        open={materialsRequestPreview.open}
+        preview={previewRequestEmail}
+        loading={previewRequestEmailMutation.isPending}
+        errorMessage={
+          previewRequestEmailMutation.isError
+            ? (rpcErrorMessage(previewRequestEmailMutation.error) ??
+              t`Couldn't prepare materials request preview`)
+            : null
+        }
+        sending={sendRequestMutation.isPending}
+        onOpenChange={(open) => {
+          if (!open) closeMaterialsRequestPreview()
+          else if (materialsRequestPreview.obligationId) {
+            setMaterialsRequestPreview((current) => ({ ...current, open: true }))
+          }
+        }}
+        onSend={() => {
+          const obligationIdToSend = previewRequestEmail?.obligationId
+          if (!obligationIdToSend) return
+          sendRequestMutation.mutate(
+            { obligationId: obligationIdToSend },
+            { onSuccess: closeMaterialsRequestPreview },
+          )
+        }}
+      />
       {row ? (
         /* 2026-05-26 (Yuqi seventieth pass #10): top border dropped.
            The drawer body's content already ends with its own
@@ -6882,7 +7230,15 @@ export function ObligationQueueDetailDrawer({
            read as a heavy visual rule. The bg-background-default
            + the natural visual gap from the body's pb-24 spacing
            is enough delimiter. */
-        <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 bg-background-default px-8 py-4">
+        // 2026-05-26 (Yuqi feedback — "more bottom padding. also
+        //   apply universally to this kind of element/component"):
+        //   `py-4` → `pt-4 pb-6`. The footer sits at the viewport
+        //   bottom edge in panel mode; the extra 8px of breathing
+        //   room below the action cluster keeps the buttons from
+        //   reading as glued to the chrome. Mirrors the universal
+        //   bump applied to `SheetFooter` and PulseDetailDrawer's
+        //   sticky footer.
+        <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 bg-background-default px-8 pt-4 pb-6">
           {/* 2026-05-26 (Yuqi feedback #7): "Last updated" stacked
               vertically — label on line 1, timestamp on line 2.
               Single-line layout was getting cramped at narrower
@@ -6896,6 +7252,17 @@ export function ObligationQueueDetailDrawer({
             </span>
           </span>
           <div className="flex items-center gap-2">
+            {canRequestInput ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={openRequestInputDialog}
+                disabled={requestInputMutation.isPending}
+              >
+                <MessageSquareText data-icon="inline-start" />
+                <Trans>Request input</Trans>
+              </Button>
+            ) : null}
             {/* Footer CTA used to duplicate the header's "Open client
                   detail" link. Repurposed as the shareability slot —
                   copies a deep link that round-trips to the same
@@ -6986,6 +7353,306 @@ export function ObligationQueueDetailDrawer({
         {body}
       </SheetContent>
     </Sheet>
+  )
+}
+
+function DeadlineInputRequestDialog({
+  open,
+  recipients,
+  selectedRecipientUserId,
+  message,
+  loadingRecipients,
+  submitting,
+  onOpenChange,
+  onRecipientChange,
+  onMessageChange,
+  onSubmit,
+}: {
+  open: boolean
+  recipients: readonly MemberAssigneeOption[]
+  selectedRecipientUserId: string
+  message: string
+  loadingRecipients: boolean
+  submitting: boolean
+  onOpenChange: (open: boolean) => void
+  onRecipientChange: (recipientUserId: string) => void
+  onMessageChange: (message: string) => void
+  onSubmit: () => void
+}) {
+  const { t } = useLingui()
+  const selectedRecipient =
+    recipients.find((recipient) => recipient.assigneeId === selectedRecipientUserId) ?? null
+  const roleLabels = {
+    owner: t`Owner`,
+    partner: t`Partner`,
+    manager: t`Team member`,
+    preparer: t`Team member`,
+    coordinator: t`Team member`,
+  } satisfies Record<MemberAssigneeOption['role'], string>
+  const recipientTriggerText =
+    selectedRecipient?.name ?? (loadingRecipients ? t`Loading team` : t`Choose recipient`)
+  const submitDisabled =
+    submitting || loadingRecipients || !selectedRecipientUserId || message.trim().length === 0
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[min(520px,calc(100vw-2rem))] max-w-none p-0">
+        <DialogHeader className="border-b border-divider-subtle px-6 py-5 pr-12">
+          <DialogTitle>
+            <Trans>Request input</Trans>
+          </DialogTitle>
+          <DialogDescription>
+            <Trans>Send an internal request to an owner or partner for this deadline.</Trans>
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 px-6 py-5">
+          <div className="grid gap-2">
+            <span className="text-sm font-medium text-text-primary">
+              <Trans>Recipient</Trans>
+            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <button
+                    type="button"
+                    disabled={loadingRecipients || recipients.length === 0}
+                    className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-left text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-60 data-[state=open]:bg-state-base-hover"
+                  >
+                    <span className="truncate">{recipientTriggerText}</span>
+                    <ChevronDownIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+                  </button>
+                }
+              />
+              <DropdownMenuContent align="start" className="max-h-72 w-[var(--anchor-width)]">
+                <DropdownMenuRadioGroup
+                  value={selectedRecipientUserId}
+                  onValueChange={onRecipientChange}
+                >
+                  {recipients.map((recipient) => (
+                    <DropdownMenuRadioItem key={recipient.assigneeId} value={recipient.assigneeId}>
+                      <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-caption-xs font-semibold uppercase text-text-secondary">
+                        {initialsFromName(recipient.name)}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate">{recipient.name}</span>
+                      <span className="text-xs text-text-tertiary">
+                        {roleLabels[recipient.role]}
+                      </span>
+                    </DropdownMenuRadioItem>
+                  ))}
+                  {!loadingRecipients && recipients.length === 0 ? (
+                    <DropdownMenuItem disabled>
+                      <Trans>No owner or partner available</Trans>
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {!loadingRecipients && recipients.length === 0 ? (
+              <p role="alert" className="text-sm text-text-warning">
+                <Trans>Add an active owner or partner before sending an input request.</Trans>
+              </p>
+            ) : null}
+          </div>
+          <div className="grid gap-2">
+            <label htmlFor="deadline-input-request-message" className="text-sm font-medium">
+              <Trans>Message</Trans>
+            </label>
+            <Textarea
+              id="deadline-input-request-message"
+              value={message}
+              maxLength={1000}
+              rows={5}
+              placeholder={t`Add the decision or context you need.`}
+              onChange={(event) => onMessageChange(event.currentTarget.value)}
+            />
+          </div>
+        </div>
+        <DialogFooter className="border-t border-divider-subtle px-6 py-4">
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button type="button" onClick={onSubmit} disabled={submitDisabled}>
+            <SendIcon data-icon="inline-start" />
+            <Trans>Send request</Trans>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function MaterialsRequestPreviewDialog({
+  open,
+  preview,
+  loading,
+  errorMessage,
+  sending,
+  onOpenChange,
+  onSend,
+}: {
+  open: boolean
+  preview: ReadinessPreviewRequestEmailOutput | null
+  loading: boolean
+  errorMessage: string | null
+  sending: boolean
+  onOpenChange: (open: boolean) => void
+  onSend: () => void
+}) {
+  const emailStatus = preview?.recipientEmail ? (
+    preview.emailWillBeQueued ? (
+      <Badge variant="success">
+        <Trans>Email will be queued</Trans>
+      </Badge>
+    ) : (
+      <Badge variant="secondary">
+        <Trans>Link only</Trans>
+      </Badge>
+    )
+  ) : (
+    <Badge variant="secondary">
+      <Trans>No client email</Trans>
+    </Badge>
+  )
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[min(760px,calc(100vh-2rem))] w-[min(720px,calc(100vw-2rem))] max-w-none flex-col gap-0 overflow-hidden p-0">
+        <DialogHeader className="border-b border-divider-subtle px-6 py-5 pr-12">
+          <DialogTitle>
+            <Trans>Preview materials request</Trans>
+          </DialogTitle>
+          <DialogDescription>
+            <Trans>
+              Review the email generated from the Reminders template before creating the client
+              materials link.
+            </Trans>
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid min-h-0 gap-4 overflow-y-auto px-6 py-5">
+          {loading ? (
+            <div className="grid gap-3">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          ) : errorMessage ? (
+            <p
+              role="alert"
+              className="rounded-md border border-state-danger-border bg-state-danger-hover p-3 text-sm text-text-danger"
+            >
+              {errorMessage}
+            </p>
+          ) : preview ? (
+            <>
+              <section className="grid gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                    <Trans>Recipient</Trans>
+                  </span>
+                  {emailStatus}
+                </div>
+                <p className="rounded-md border border-divider-subtle bg-background-subtle p-3 font-mono text-sm text-text-primary">
+                  {preview.recipientEmail ?? <Trans>A materials link will be created only.</Trans>}
+                </p>
+                {!preview.emailWillBeQueued ? (
+                  <p className="text-xs text-text-tertiary">
+                    {preview.recipientEmail && !preview.templateActive ? (
+                      <Trans>
+                        The template is paused in Reminders, so no email will be queued.
+                      </Trans>
+                    ) : (
+                      <Trans>
+                        The client can still receive the link manually after it is created.
+                      </Trans>
+                    )}
+                  </p>
+                ) : null}
+              </section>
+              <section className="grid gap-2">
+                <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                  <Trans>Subject</Trans>
+                </span>
+                <p className="rounded-md border border-divider-subtle p-3 text-sm font-medium text-text-primary">
+                  {preview.subject}
+                </p>
+              </section>
+              <section className="grid gap-2">
+                <span className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                  <Trans>Email body</Trans>
+                </span>
+                <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-md border border-divider-subtle bg-background-subtle p-3 font-mono text-xs leading-relaxed text-text-primary">
+                  {preview.bodyText}
+                </pre>
+              </section>
+              <div className="grid gap-3 md:grid-cols-2">
+                <MaterialsRequestPreviewChecklist
+                  title={<Trans>Outstanding</Trans>}
+                  items={preview.checklist.outstanding}
+                />
+                <MaterialsRequestPreviewChecklist
+                  title={<Trans>Received</Trans>}
+                  items={preview.checklist.received}
+                />
+              </div>
+            </>
+          ) : null}
+        </div>
+        <DialogFooter className="border-t border-divider-subtle px-6 py-4">
+          <Button variant="outline" render={<Link to="/reminders" />}>
+            <ExternalLinkIcon data-icon="inline-start" />
+            <Trans>Edit template in Reminders</Trans>
+          </Button>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button type="button" onClick={onSend} disabled={!preview || loading || sending}>
+            <SendIcon data-icon="inline-start" />
+            {preview?.emailWillBeQueued ? (
+              <Trans>Send request</Trans>
+            ) : (
+              <Trans>Create materials link</Trans>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function MaterialsRequestPreviewChecklist({
+  title,
+  items,
+}: {
+  title: ReactNode
+  items: readonly ReadinessDocumentChecklistItemPublic[]
+}) {
+  return (
+    <section className="grid content-start gap-2 rounded-md border border-divider-subtle p-3">
+      <header className="flex items-center gap-2">
+        <h3 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+          {title}
+        </h3>
+        <span className="inline-flex h-4 min-w-4 items-center justify-center rounded bg-background-subtle px-1 text-caption-xs font-medium tabular-nums text-text-secondary">
+          {items.length}
+        </span>
+      </header>
+      {items.length === 0 ? (
+        <p className="text-sm text-text-tertiary">
+          <Trans>None</Trans>
+        </p>
+      ) : (
+        <ul className="grid gap-2">
+          {items.map((item) => (
+            <li key={item.id} className="grid gap-0.5 text-sm">
+              <span className="font-medium text-text-primary">{item.label}</span>
+              {item.description ? (
+                <span className="text-xs text-text-secondary">{item.description}</span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }
 
@@ -8290,11 +8957,19 @@ function DeadlineTile({
   valueTone: 'primary' | 'destructive' | 'tertiary'
   primary?: boolean
 }) {
+  // 2026-05-26 (Yuqi drawer feedback — "too much red on the right
+  // panel"): destructive tile drops the filled red bg in favour of a
+  // hairline red border + neutral surface. The header pill ("18 days
+  // overdue"), the milestone-strip In-review ring, AND the alert
+  // banner already carry the lateness signal; this tile filled all
+  // its real estate with red on top of those, stacking the alarm. A
+  // neutral surface with the date value in red (via `valueTone`) +
+  // the destructive border keeps the cue without flooding.
   const surfaceClass =
     tone === 'success'
       ? 'border-state-success-border bg-state-success-hover'
       : tone === 'destructive'
-        ? 'border-state-destructive-border bg-state-destructive-hover'
+        ? 'border-state-destructive-border bg-background-default'
         : tone === 'primary'
           ? 'border-divider-regular bg-background-default'
           : 'border-divider-subtle bg-background-default'
@@ -8323,20 +8998,25 @@ function DeadlineTile({
   // Net: tile height reduced ~30%, columns no longer pull the
   // header into 2 lines, the trio reads as a date strip rather
   // than a poster.
+  // 2026-05-26 (Yuqi drawer feedback #1+#2): labels back to the canonical
+  // tile-eyebrow treatment — uppercase + tracking — so "FILING DEADLINE
+  // / INTERNAL TARGET / PAYMENT DUE" read as TILE LABELS (consistent
+  // with the rest of the drawer eyebrows + the dashboard summary tiles).
+  // Date value drops `font-mono` for the canonical sans + tabular-nums:
+  // the mono treatment made the number read as "code/identifier-y"
+  // when it's just a date. tabular-nums alone keeps columnar alignment.
   return (
     <div className={cn('flex flex-col gap-0.5 rounded-md border px-2.5 py-1.5', surfaceClass)}>
       <span
         className={cn(
-          'text-[11px] leading-tight font-medium',
+          'text-[11px] leading-tight font-medium uppercase tracking-[0.06em]',
           labelToneClass,
           primary && 'font-semibold',
         )}
       >
         {label}
       </span>
-      <span
-        className={cn('font-mono tabular-nums leading-tight', valueClass, 'text-sm font-semibold')}
-      >
+      <span className={cn('tabular-nums leading-tight', valueClass, 'text-sm font-semibold')}>
         {date ? formatDate(date) : '—'}
       </span>
     </div>
@@ -8635,15 +9315,22 @@ function PathToFilingSummary({
                 <span
                   aria-hidden
                   className={cn(
+                    // 2026-05-26 (Yuqi drawer feedback — "said there should not
+                    // be a bold border"): dropped the `ring-1` outer ring on
+                    // both `active` and `overdueActive` states. The border +
+                    // tint + icon identity were ALREADY conveying "this is the
+                    // current stage"; the extra ring layer was reading as a
+                    // double-bordered chip and shouting too hard against the
+                    // calmer done/upcoming neighbors.
                     'grid size-6 shrink-0 place-items-center rounded-full border',
                     state === 'done'
                       ? 'border-state-success-solid bg-state-success-hover text-state-success-solid'
                       : state === 'skipped'
                         ? 'border-dashed border-divider-regular bg-background-default text-text-tertiary/60'
                         : overdueActive
-                          ? 'border-state-destructive-solid bg-state-destructive-hover text-text-destructive ring-1 ring-state-destructive-solid'
+                          ? 'border-state-destructive-solid bg-state-destructive-hover text-text-destructive'
                           : state === 'active'
-                            ? 'border-accent-default bg-state-accent-hover text-text-accent ring-1 ring-accent-default'
+                            ? 'border-accent-default bg-state-accent-hover text-text-accent'
                             : 'border-divider-regular bg-background-default text-text-tertiary/70',
                   )}
                 >
@@ -8780,8 +9467,15 @@ function PathToFilingSummary({
                   // strip sees both the urgency cue and the noun.
                   // Hover spells out the exact days-late count + the
                   // deadline date.
+                  // 2026-05-26 (Yuqi drawer feedback — "too much red on
+                  // the right panel"): demoted from text-text-destructive
+                  // to text-text-secondary. The destructive-toned In-
+                  // review CIRCLE above is already the red signal at
+                  // this stage; doubling it with red caption copy
+                  // underneath read as a shout. The word still says
+                  // "Past deadline" — readable in any tone.
                   <span
-                    className="text-center text-caption-xs font-medium uppercase tracking-wide leading-tight text-text-destructive"
+                    className="text-center text-caption-xs font-medium uppercase tracking-wide leading-tight text-text-secondary"
                     title={t`Filing was due ${formatDate(row.currentDueDate.slice(0, 10))} · ${Math.abs(row.daysUntilDue)} days past deadline.`}
                   >
                     <Trans>Past deadline</Trans>
@@ -9282,8 +9976,17 @@ function CompletedKeyDates({
   if (filedAt) rows.push({ label: t`Filed`, value: formatDate(filedAt.slice(0, 10)) })
   if (completedAt) rows.push({ label: t`Completed`, value: formatDate(completedAt.slice(0, 10)) })
   return (
-    <div className="rounded-md border border-divider-regular bg-background-subtle p-3">
-      <p className="mb-2 text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+    // 2026-05-26 (Yuqi feedback — "too many lines"): dropped the
+    //   `rounded-md border border-divider-regular bg-background-subtle p-3`
+    //   chrome on this inner panel. It sat INSIDE the already-tinted
+    //   `ActiveStageDetailCard` and was painting a redundant rule
+    //   right beneath the card's own outline. The KEY DATES uppercase
+    //   tag + the gap-y-1 dl below carry enough section grouping on
+    //   their own — no frame needed. The consumer call site wraps
+    //   this in `<div className="mt-3">`, so no margin is needed
+    //   here.
+    <div>
+      <p className="mb-1.5 text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
         <Trans>Key dates</Trans>
       </p>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
@@ -10067,7 +10770,17 @@ function ActiveStageDetailCard({
       // reading as identical to the page surface; a soft tint gives
       // it the "this is the deep-dive zone for the current stage"
       // anchor without going full color.
-      className="rounded-lg border border-divider-subtle bg-background-section p-4"
+      // 2026-05-26 (Yuqi feedback — "too many lines going on. please
+      // restructure and look at the frontend ensure it is cleanly
+      // designed and implemented"): dropped the `border
+      // border-divider-subtle` ring. The right panel was stacking
+      // four near-rules in close proximity (status-strip bottom
+      // border + tab-bar baseline + this card's outline + inner Key
+      // dates outline). Keeping just the soft `bg-background-section`
+      // tint still anchors this as the "deep-dive zone for the
+      // current stage"; the tint vs the panel's white provides the
+      // separation without a rule.
+      className="rounded-lg bg-background-section p-4"
     >
       {/* Header: stage name + sub-status + when we entered this stage.
           2026-05-23: dropped the uppercase tracking-wider treatment on
@@ -10112,19 +10825,26 @@ function ActiveStageDetailCard({
           banner hides — once the work is closed, late-vs-on-time
           is a quality stat, not a call-to-action. */}
       {showOverdueBanner ? (
+        // 2026-05-26 (Yuqi drawer feedback — "too much red"): the
+        // filled red bg made the banner the loudest element on the
+        // panel, even after demoting the tile + caption. Switched to
+        // a neutral surface with the red AlertTriangle + red title
+        // line carrying the urgency cue; the action line drops to
+        // text-secondary so the eye lands on the urgent line first
+        // and the "what to do" reads as a calmer follow-up.
         <div
           role="status"
-          className="mt-3 flex items-start gap-2 rounded-md border border-state-destructive-border bg-state-destructive-hover px-3 py-2 text-sm text-text-destructive"
+          className="mt-3 flex items-start gap-2 rounded-md border border-state-destructive-border bg-background-default px-3 py-2 text-sm"
         >
-          <AlertTriangleIcon className="mt-0.5 size-4 shrink-0" aria-hidden />
+          <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-text-destructive" aria-hidden />
           <div className="flex flex-col gap-0.5 leading-snug">
-            <p className="font-medium">
+            <p className="font-medium text-text-destructive">
               <Trans>
                 Filing was due {formatDate(row.currentDueDate.slice(0, 10))} —{' '}
                 <Plural value={daysPastDeadline} one="# day" other="# days" /> past deadline.
               </Trans>
             </p>
-            <p className="text-xs text-text-destructive/85">
+            <p className="text-xs text-text-secondary">
               <Trans>Submit the return now, or file an extension if eligible.</Trans>
             </p>
           </div>

@@ -2,6 +2,7 @@ import { act } from 'react'
 import type { ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter } from 'react-router'
+import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
@@ -14,6 +15,10 @@ import type {
 import { bootstrapI18n } from '@/i18n/bootstrap'
 import { activateLocale } from '@/i18n/i18n'
 import { AppI18nProvider } from '@/i18n/provider'
+import {
+  KeyboardShellContext,
+  type KeyboardShellContextValue,
+} from '@/components/patterns/keyboard-shell/state'
 
 import { RulesLibraryRoute } from './rules.library'
 
@@ -22,9 +27,11 @@ const rpcMocks = vi.hoisted(() => ({
   listSourcesQueryFn: vi.fn(),
   listRulesQueryFn: vi.fn(),
   listConcreteDraftsQueryFn: vi.fn(),
+  draftConcreteRuleMutationFn: vi.fn(),
   acceptTemplateMutationFn: vi.fn(),
   verifyCandidateMutationFn: vi.fn(),
   rejectTemplateMutationFn: vi.fn(),
+  previewRuleImpactQueryFn: vi.fn(),
   createCustomRuleMutationFn: vi.fn(),
 }))
 
@@ -81,9 +88,16 @@ vi.mock('@/lib/rpc', () => ({
         key: () => ['rules', 'listReviewDecisions'],
       },
       listConcreteDrafts: {
+        key: () => ['rules', 'listConcreteDrafts'],
         queryOptions: ({ input }: { input: unknown }) => ({
           queryKey: ['rules', 'listConcreteDrafts', input],
           queryFn: rpcMocks.listConcreteDraftsQueryFn,
+        }),
+      },
+      draftConcreteRule: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          mutationFn: rpcMocks.draftConcreteRuleMutationFn,
+          ...options,
         }),
       },
       acceptTemplate: {
@@ -102,6 +116,12 @@ vi.mock('@/lib/rpc', () => ({
         mutationOptions: (options: Record<string, unknown>) => ({
           mutationFn: rpcMocks.rejectTemplateMutationFn,
           ...options,
+        }),
+      },
+      previewRuleImpact: {
+        queryOptions: ({ input }: { input: unknown }) => ({
+          queryKey: ['rules', 'previewRuleImpact', input],
+          queryFn: rpcMocks.previewRuleImpactQueryFn,
         }),
       },
       createCustomRule: {
@@ -139,6 +159,16 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 let root: Root | null = null
 let container: HTMLDivElement | null = null
+
+const keyboardShellTestValue: KeyboardShellContextValue = {
+  commandPaletteOpen: false,
+  shortcutHelpOpen: false,
+  shortcutsBlocked: false,
+  openCommandPalette: () => undefined,
+  closeCommandPalette: () => undefined,
+  openShortcutHelp: () => undefined,
+  closeShortcutHelp: () => undefined,
+}
 
 function obligationRule(overrides: Partial<ObligationRule>): ObligationRule {
   return {
@@ -264,7 +294,13 @@ async function render(children: ReactNode) {
     root?.render(
       <QueryClientProvider client={client}>
         <AppI18nProvider>
-          <MemoryRouter>{children}</MemoryRouter>
+          <MemoryRouter>
+            <HotkeysProvider>
+              <KeyboardShellContext.Provider value={keyboardShellTestValue}>
+                {children}
+              </KeyboardShellContext.Provider>
+            </HotkeysProvider>
+          </MemoryRouter>
         </AppI18nProvider>
       </QueryClientProvider>,
     )
@@ -390,12 +426,25 @@ beforeEach(() => {
   rpcMocks.listRulesQueryFn.mockResolvedValue([])
   rpcMocks.listConcreteDraftsQueryFn.mockReset()
   rpcMocks.listConcreteDraftsQueryFn.mockResolvedValue([])
+  rpcMocks.draftConcreteRuleMutationFn.mockReset()
+  rpcMocks.draftConcreteRuleMutationFn.mockResolvedValue(null)
   rpcMocks.acceptTemplateMutationFn.mockReset()
   rpcMocks.acceptTemplateMutationFn.mockResolvedValue({})
   rpcMocks.verifyCandidateMutationFn.mockReset()
   rpcMocks.verifyCandidateMutationFn.mockResolvedValue({})
   rpcMocks.rejectTemplateMutationFn.mockReset()
   rpcMocks.rejectTemplateMutationFn.mockResolvedValue({})
+  rpcMocks.previewRuleImpactQueryFn.mockReset()
+  rpcMocks.previewRuleImpactQueryFn.mockResolvedValue({
+    selectedCount: 1,
+    acceptReadyCount: 1,
+    skipped: [],
+    jurisdictionCounts: [{ key: 'CA', count: 1 }],
+    entityCounts: [{ key: 'individual', count: 1 }],
+    formCounts: [{ key: 'Form 540', count: 1 }],
+    reviewReasonCounts: [],
+    estimatedObligationCount: 1,
+  })
   rpcMocks.createCustomRuleMutationFn.mockReset()
   rpcMocks.createCustomRuleMutationFn.mockResolvedValue({})
   toastMocks.loading.mockReset()
@@ -439,7 +488,7 @@ describe('RulesLibraryRoute', () => {
     await render(<RulesLibraryRoute />)
 
     expect(document.querySelector('[aria-busy="true"]')).toBeDefined()
-    expect(document.body.textContent).not.toContain('0 need review')
+    expect(document.body.textContent).not.toContain('0 needs review')
 
     await act(async () => {
       rulesRequest.resolve([rule])
@@ -448,7 +497,7 @@ describe('RulesLibraryRoute', () => {
       await Promise.all([rulesRequest.promise, coverageRequest.promise, sourcesRequest.promise])
     })
 
-    await waitForText('1 need review')
+    await waitForText('1 needs review')
     expect(document.querySelector('[aria-busy="true"]')).toBeNull()
   })
 

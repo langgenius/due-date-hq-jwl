@@ -160,7 +160,7 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'reminderReady':
       return {
         title: t`Reminder-ready`,
-        description: t`This deadline comes from an active practice rule and can trigger the 30, 7, and 1-day reminder schedule.`,
+        description: t`This deadline comes from an active practice rule and can trigger the 30-day and 7-day reminder schedule.`,
       }
     case 'requiresReview':
       return {

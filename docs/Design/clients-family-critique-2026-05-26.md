@@ -23,8 +23,8 @@ the canonical, and proposes a revamp plan.
 PR #25 has landed Phases 1-4 of the directory pivot:
 
 - ✅ Retired the 3-tile StatTile strip
-- ✅ Renamed `Done` → `Filed YTD`; demoted `Opp.` to hidden by
-  default; `Services` kept hidden (per Yuqi's reversal)
+- ✅ Renamed `Done` → `Filed`; demoted `Filed` and `Opp.` to hidden
+  by default; `Services` kept hidden (per Yuqi's reversal)
 - ✅ PageHeader chip now reads `47` (not `47 Clients`)
 - ✅ Inline search input + `/` hotkey + `q` URL param wiring
 - ⏳ Remaining: `My clients` toggle chip; `FilterTrigger`
@@ -36,7 +36,7 @@ PR #25 has landed Phases 1-4 of the directory pivot:
 | #         | Heuristic                      | Score     | Key issue                                                                                                                                                                                      |
 | --------- | ------------------------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1         | Visibility of system status    | 3/4       | Title chip + scope filters communicate scope. Loading state OK. Missing a "filtered count" treatment ("12 of 47").                                                                             |
-| 2         | Match system / real world      | 3/4       | "Filed YTD" reads well. "Owner" is the right CPA word. "Opp." abbreviation is opaque without the column toggle.                                                                                |
+| 2         | Match system / real world      | 3/4       | "Filed" matches the terminal status count and carries header/cell help when enabled; "Owner" is the right CPA word. "Opp." abbreviation is opaque without the column toggle.                   |
 | 3         | User control + freedom         | 3/4       | Reset clears all; `/` focuses search; Escape clears it. No range-select on rows yet.                                                                                                           |
 | 4         | Consistency + standards        | 2/4       | **Diverges from canonical** — no canonical table-card frame, dropdowns use `TableHeaderMultiFilter` not `FilterTrigger`, table-header text uses uppercase kicker (`uppercase tracking-wider`). |
 | 5         | Error prevention               | 3/4       | Filter dropdowns close on outside-click; row-click → detail (no irreversible action).                                                                                                          |

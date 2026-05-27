@@ -28,6 +28,8 @@ export class MigrationWizardPage {
   }
 
   async mapColumn(sourceHeader: string, targetLabel: string) {
+    const detailsButton = this.page.getByRole('button', { name: 'Review column details' })
+    if (await detailsButton.isVisible()) await detailsButton.click()
     const row = this.page.getByRole('row').filter({ hasText: sourceHeader })
     await row.getByRole('button', { name: 'Edit' }).click()
     await this.page.getByRole('menuitemradio', { name: targetLabel }).click()

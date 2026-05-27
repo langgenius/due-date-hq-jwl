@@ -30,22 +30,28 @@ test.describe('seeded Pulse alerts', () => {
     ).toBeVisible()
     await dashboardPulseAlertButton(authenticatedPage).click()
 
-    const drawer = authenticatedPage.getByRole('dialog')
-    await expect(drawer.getByText('Affected clients')).toBeVisible()
+    const drawer = pulseDetailDrawer(authenticatedPage)
+    await expect(drawer.getByRole('heading', { name: /Affected clients/ })).toBeVisible()
     await expect(drawer.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(drawer.getByText('Bright Studio S-Corp')).toBeVisible()
-    await expect(drawer.getByText('Pulse evidence linked to each obligation')).toBeVisible()
+    await expect(drawer.getByText('Pulse evidence linked to each deadline')).toBeVisible()
 
-    await drawer.getByRole('button', { name: /Apply to 1 obligation/ }).click()
+    await drawer.getByRole('button', { name: 'Apply Deadline Exception' }).click()
     await expect(authenticatedPage.getByText(/Applied to 1 clients?/)).toBeVisible()
 
     await obligationQueuePage.goto()
     const arborRow = obligationQueuePage.rowFor('Arbor & Vale LLC')
-    await expect(arborRow).toContainText('2026-10-01')
-    const arborEvidenceButton = arborRow.getByRole('button', {
-      name: 'Open evidence for Arbor & Vale LLC',
+    await expect(arborRow).toContainText('128 days')
+    await obligationQueuePage.columnsButton.click()
+    const evidenceColumnOption = obligationQueuePage.columnVisibilityOption('Evidence')
+    if ((await evidenceColumnOption.getAttribute('aria-checked')) !== 'true') {
+      await evidenceColumnOption.click()
+    }
+    await authenticatedPage.keyboard.press('Escape')
+    const arborEvidenceButton = obligationQueuePage.rowFor('Arbor & Vale LLC').getByRole('button', {
+      name: 'Open 1 evidence sources for Arbor & Vale LLC',
     })
-    await expect(arborEvidenceButton).toContainText('1')
+    await expect(arborEvidenceButton).toBeVisible()
     await arborEvidenceButton.click()
     const evidenceDrawer = authenticatedPage.getByRole('dialog', {
       name: 'Evidence for this deadline',
@@ -55,7 +61,7 @@ test.describe('seeded Pulse alerts', () => {
     await expect(evidenceDrawer).toContainText('Applied a rule change.')
     await expect(evidenceDrawer).toContainText('Individuals and businesses in Los Angeles County')
     await evidenceDrawer.getByRole('button', { name: 'Close' }).click()
-    await expect(obligationQueuePage.rowFor('Bright Studio S-Corp')).toContainText('2026-03-15')
+    await expect(obligationQueuePage.rowFor('Bright Studio S-Corp')).toContainText('72 days late')
 
     await appShellPage.goto('/audit?action=pulse.apply&range=all')
     await expect(auditPage.eventRowFor('pulse.apply')).toBeVisible()
@@ -66,11 +72,11 @@ test.describe('seeded Pulse alerts', () => {
 
     // The Pulse alerts page is `/rules/pulse` now (previously `/rules?tab=pulse`).
     await appShellPage.goto('/rules/pulse')
-    const appliedAlert = authenticatedPage.getByRole('region', {
+    const appliedAlert = authenticatedPage.getByRole('button', {
       name: /Pulse alert: IRS CA storm relief/,
     })
-    await appliedAlert.getByRole('button', { name: 'Review', exact: true }).click()
-    const appliedDrawer = authenticatedPage.getByRole('dialog')
+    await appliedAlert.click()
+    const appliedDrawer = pulseDetailDrawer(authenticatedPage)
     await expect(
       appliedDrawer.getByRole('heading', {
         name: 'IRS CA storm relief extends selected filing deadlines for Los Angeles County.',
@@ -80,7 +86,7 @@ test.describe('seeded Pulse alerts', () => {
     await expect(authenticatedPage.getByText(/Reverted 1 clients?/)).toBeVisible()
 
     await obligationQueuePage.goto()
-    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toContainText('2026-03-15')
+    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toContainText('72 days late')
   })
 
   test('AC: E2E-PULSE-PRIORITY-QUEUE keeps the MVP priority queue UI hidden', async ({
@@ -100,7 +106,7 @@ test.describe('seeded Pulse alerts', () => {
       ),
     ).toBeVisible()
     await authenticatedPage.getByRole('button', { name: 'Review' }).first().click()
-    const drawer = authenticatedPage.getByRole('dialog')
+    const drawer = pulseDetailDrawer(authenticatedPage)
     await expect(drawer.getByText('Manager review')).toHaveCount(0)
     await expect(drawer.getByRole('button', { name: 'Apply reviewed set' })).toHaveCount(0)
   })
@@ -115,13 +121,13 @@ test.describe('seeded Pulse alerts', () => {
       await appShellPage.goto()
 
       await dashboardPulseAlertButton(authenticatedPage).click()
-      const drawer = authenticatedPage.getByRole('dialog')
+      const drawer = pulseDetailDrawer(authenticatedPage)
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
       await expect(
         drawer.getByText('Only owners and managers can apply Pulse changes.'),
       ).toBeVisible()
-      await expect(drawer.getByRole('button', { name: /Apply to 1 obligation/ })).toBeDisabled()
+      await expect(drawer.getByRole('button', { name: 'Apply Deadline Exception' })).toBeDisabled()
       await expect(drawer.getByRole('button', { name: 'Dismiss' })).toBeDisabled()
       await expect(drawer.getByRole('button', { name: 'Snooze 24h' })).toBeDisabled()
     })
@@ -139,10 +145,10 @@ test.describe('seeded Pulse alerts', () => {
       await appShellPage.goto()
 
       await dashboardPulseAlertButton(authenticatedPage).click()
-      const drawer = authenticatedPage.getByRole('dialog')
+      const drawer = pulseDetailDrawer(authenticatedPage)
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
-      await expect(drawer.getByRole('button', { name: /Apply to 1 obligation/ })).toBeDisabled()
+      await expect(drawer.getByRole('button', { name: 'Apply Deadline Exception' })).toBeDisabled()
       await expect(drawer.getByRole('button', { name: 'Dismiss' })).toBeDisabled()
       await expect(drawer.getByRole('button', { name: 'Snooze 24h' })).toBeDisabled()
       const requestReviewButton = drawer.getByRole('button', { name: 'Request review' }).first()
@@ -172,7 +178,7 @@ test.describe('seeded Pulse alerts', () => {
       await notification.getByRole('link', { name: 'Open' }).click()
       await expect(authenticatedPage).toHaveURL(/\/rules\/pulse\?alert=/)
       await expect(
-        authenticatedPage.getByRole('dialog').getByRole('heading', { name: /IRS CA storm relief/ }),
+        pulseDetailDrawer(authenticatedPage).getByRole('heading', { name: /IRS CA storm relief/ }),
       ).toBeVisible()
     })
   })
@@ -202,8 +208,12 @@ function e2eSeedHeaders(): Record<string, string> {
 
 function dashboardPulseAlertButton(page: Page) {
   return page.getByRole('button', {
-    name: /Review Pulse alert: IRS CA storm relief extends selected filing deadlines/,
+    name: /Open Pulse alert details: IRS CA storm relief extends selected filing deadlines/,
   })
+}
+
+function pulseDetailDrawer(page: Page) {
+  return page.getByRole('complementary', { name: 'Pulse alert detail' })
 }
 
 function isSwitchRoleResponse(value: unknown): value is { cookie: Cookie } {
