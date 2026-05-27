@@ -1756,6 +1756,8 @@ msgid "Assigned to you ({name})"
 msgstr "已指派给您 ({name})"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/CreateClientDialog.tsx
 #: src/features/migration/mapping-target-labels.ts
 #: src/routes/obligations.tsx
 msgid "Assignee"
@@ -6548,6 +6550,10 @@ msgstr "没有可分配成员"
 msgid "No assigned work"
 msgstr "暂无已分配工作"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "No assignees"
+msgstr "暂无经办人"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "No audit events match these filters."
 msgstr "没有审计事件匹配这些筛选条件。"
@@ -6758,10 +6764,6 @@ msgstr "没有选项"
 #: src/routes/obligations.tsx
 msgid "No owner or partner available"
 msgstr "没有可用的 owner 或 partner"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "No owners"
-msgstr "没有负责人"
 
 #: src/routes/billing.tsx
 msgid "No paid subscription"
@@ -7543,8 +7545,6 @@ msgstr "已覆盖"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
-#: src/features/clients/ClientFactsWorkspace.tsx
-#: src/features/clients/CreateClientDialog.tsx
 #: src/features/concepts/concept-help.tsx
 #: src/features/permissions/permission-gate.tsx
 #: src/features/workload/workload-page.tsx
@@ -9563,6 +9563,10 @@ msgstr "分数"
 msgid "Search actor, entity, action, reason"
 msgstr "搜索操作者、实体、操作、原因"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Search assignees"
+msgstr "搜索经办人"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Search audit events"
 msgstr "搜索审计事件"
@@ -9592,10 +9596,6 @@ msgstr "搜索截止日类别…"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Search forms and vouchers…"
 msgstr "Search forms and vouchers…"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Search owners"
-msgstr "搜索负责人"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Search sources…"

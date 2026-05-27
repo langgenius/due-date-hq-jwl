@@ -954,32 +954,40 @@ export function ClientFactsWorkspace({
         // as bare StateBadge motifs so the row width stays bounded
         // even with multi-state filings. The +N overflow chip on
         // the tail mirrors the previous behaviour.
+        // 2026-05-27 (Yuqi quick-fix batch — "use SAME primitive as
+        // /deadlines"): retired the full-state-name pill (rendered as
+        // "[icon] Massachusetts" inside a bordered rounded-full pill)
+        // and adopted the /deadlines state-cell pattern exactly —
+        // bare StateBadge SVG + 2-letter code. Primary state and
+        // other states render with the same shape; the row no longer
+        // has to budget 220px for a single state pill, so the column
+        // narrows to 140px. Full state name moves into the `title`
+        // tooltip so the CPA can hover for the unambiguous label.
         cell: ({ row }) => {
           const primary = getPrimaryFilingState(row.original)
           if (!primary) {
             return <EmptyCellMark label={t`No filing state on file`} />
           }
-          const primaryFull = RULE_JURISDICTION_LABELS[primary] ?? null
+          const primaryFull = RULE_JURISDICTION_LABELS[primary] ?? primary
           const others = getOtherFilingStates(row.original)
           const visibleOthers = others.slice(0, 2)
           const overflow = others.length - visibleOthers.length
-          // 2026-05-26 (Yuqi /clients feedback #5 — "is this the right
-          // badge? MAMassachusetts"): the previous treatment glued
-          // the 2-letter code + full state name with NO separator
-          // — rendered as "MAMassachusetts". The redundancy was also
-          // unnecessary because the leading SVG StateBadge icon
-          // already encodes the state visually. Simplified to just
-          // `[icon] [Full state name]` — readable, no glue, no
-          // redundancy. The 2-letter code only appears on the
-          // overflow / other-states chips that need a compact form.
           return (
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex h-6 items-center gap-1.5 rounded-full border border-divider-regular bg-background-default pl-0.5 pr-2 text-xs">
+              <span
+                className="inline-flex items-center gap-1.5 tabular-nums text-text-secondary"
+                title={primaryFull}
+              >
                 <StateBadge code={primary} size="xs" aria-hidden />
-                <span className="font-medium text-text-primary">{primaryFull ?? primary}</span>
+                <span>{primary}</span>
               </span>
               {visibleOthers.map((state) => (
-                <StateBadge key={state} code={state} size="xs" title={state} />
+                <StateBadge
+                  key={state}
+                  code={state}
+                  size="xs"
+                  title={RULE_JURISDICTION_LABELS[state] ?? state}
+                />
               ))}
               {overflow > 0 ? (
                 <span
@@ -993,13 +1001,13 @@ export function ClientFactsWorkspace({
           )
         },
         meta: {
-          // 2026-05-25 (Yuqi /clients fifth pass #5): widened
-          // 160px → 220px to fit the primary-state full pill
-          // ("CA · California") at default font-size without
-          // truncating. Other-state SVG-only badges stay compact
-          // on the tail.
-          headerClassName: 'w-[220px]',
-          cellClassName: 'w-[220px]',
+          // 2026-05-27 (Yuqi quick-fix batch): tightened 220px → 140px.
+          // The full-name pill that needed 220px (e.g. "CA · California",
+          // "MA · Massachusetts") retired in favor of the /deadlines
+          // 2-letter pattern, so 140px holds primary + 2 overflow
+          // badges + "+N" without truncation.
+          headerClassName: 'w-[140px]',
+          cellClassName: 'w-[140px]',
         },
       },
       {
@@ -1260,8 +1268,14 @@ export function ClientFactsWorkspace({
           // the uppercase kicker on this header cell; canonical table
           // headers are sm-medium normal-case (page-family-canonical
           // §6). Now matches the sibling ColumnSortHeader treatment.
+          // 2026-05-27 (Yuqi quick-fix batch — "Owner → Assignee for
+          // table-canon consistency"): label switched from "Owner" to
+          // "Assignee" so /clients matches /deadlines and audit-log
+          // table chrome. The data column itself (`assigneeName`) was
+          // already an "assignee" field — the header label was the
+          // only place still using the older "Owner" vocabulary.
           <span className="text-sm font-medium text-text-secondary">
-            <Trans>Owner</Trans>
+            <Trans>Assignee</Trans>
           </span>
         ),
         cell: ({ row }) => (
@@ -1556,8 +1570,14 @@ export function ClientFactsWorkspace({
                     /clients is a long list — saves ~8px per row, ~136px
                     per viewport at 17 rows. Multi-line names still get
                     room via the table's line-height; cells visibly tighter
-                    without losing legibility. */}
-                <TableBody className="[&_tr]:border-b-0 [&_td]:py-2">
+                    without losing legibility.
+                    2026-05-27 (Yuqi quick-fix batch — "/clients table missing
+                    row dividers, fix all of them"): dropped the
+                    `[&_tr]:border-b-0` override that was stripping the
+                    primitive's default row divider (border-b-divider-subtle).
+                    /deadlines + /rules/library both inherit the default —
+                    /clients now matches. */}
+                <TableBody className="[&_td]:py-2">
                   {table.getRowModel().rows.length > 0 ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow
@@ -1766,14 +1786,18 @@ function ClientsFilterToolbar({
         emptyLabel={t`No entities`}
         onSelectedChange={onEntityFilterChange}
       />
+      {/* 2026-05-27 (Yuqi quick-fix batch — "Owner → Assignee"): filter
+          label matches the column header (Assignee), so the toolbar
+          and the table chrome share one vocabulary. The empty/search
+          strings ("No assignees" / "Search assignees") follow suit. */}
       <TableHeaderMultiFilter
         trigger="toolbar"
-        label={t`Owner`}
+        label={t`Assignee`}
         options={ownerOptions}
         selected={ownerFilter}
-        emptyLabel={t`No owners`}
+        emptyLabel={t`No assignees`}
         searchable
-        searchPlaceholder={t`Search owners`}
+        searchPlaceholder={t`Search assignees`}
         onSelectedChange={onOwnerFilterChange}
       />
       <Button
@@ -2017,7 +2041,12 @@ function ClientTableSkeleton() {
           ))}
         </TableRow>
       </TableHeader>
-      <TableBody className="[&_tr]:border-b-0 [&_td]:py-2">
+      {/* 2026-05-27 (Yuqi quick-fix batch): skeleton rows inherit the
+          primitive's row divider so the loading state matches the live
+          table's row rhythm — was previously stripped via
+          `[&_tr]:border-b-0` which left the skeleton looking like one
+          gray slab without row hints. */}
+      <TableBody className="[&_td]:py-2">
         {[0, 1, 2, 3, 4].map((row) => (
           <TableRow key={row}>
             {columns.map((column) => (
@@ -4610,9 +4639,12 @@ function ClientFactChecklist({
         label={<Trans>EIN</Trans>}
         detail={<Trans>Improves identity matching and audit review.</Trans>}
       />
+      {/* 2026-05-27 (Yuqi quick-fix batch — "Owner → Assignee"): the
+          `assigneeName` fact is the per-client assignee, so the label
+          unifies with the /clients table header + filter chrome. */}
       <FactCheckRow
         isComplete={Boolean(client.assigneeName)}
-        label={<Trans>Owner</Trans>}
+        label={<Trans>Assignee</Trans>}
         detail={<Trans>Keeps deadline follow-up accountable.</Trans>}
       />
     </div>

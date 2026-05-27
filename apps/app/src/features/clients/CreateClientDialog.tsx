@@ -397,8 +397,12 @@ export function CreateClientDialog({
                 )}
               </form.Field>
               <Field>
+                {/* 2026-05-27 (Yuqi quick-fix batch — "Owner → Assignee"):
+                    field labels the `assigneeId` input — same data point
+                    the /clients table calls "Assignee" and /deadlines
+                    calls "Assignee". One vocabulary across the surface. */}
                 <FieldLabel htmlFor="client-assignee-trigger">
-                  <Trans>Owner</Trans>
+                  <Trans>Assignee</Trans>
                 </FieldLabel>
                 <Select
                   value={assigneeSelectValue}
