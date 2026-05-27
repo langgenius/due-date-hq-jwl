@@ -59,7 +59,7 @@ export function OpportunitiesPage() {
     // pass that treated this page as a dense-table surface (it isn't
     // — no sticky pagination footer), and `md:pb-5` was the singleton
     // off-canon value the audit's P0 #2 called out. Both fixed.
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-8 pb-4 md:px-6 md:pb-6">
       <PageHeader title={<Trans>Opportunities</Trans>} />
 
       {opportunitiesQuery.isError ? (

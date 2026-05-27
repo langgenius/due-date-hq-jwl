@@ -247,17 +247,43 @@ function NotificationItem({
 }) {
   const unread = isUnread(notification)
   const Icon = TYPE_ICONS[notification.type]
+  // 2026-05-27 (Yuqi polish — "why is all the inbox notification in
+  // blue?"): the unread state used to paint the whole row in
+  // `bg-state-accent-hover-alt/40` — a heavy lavender tint that
+  // dominated the popover and shouted "everything is urgent." Now
+  // the unread signal is carried by:
+  //   1. The dot on the LEFT (moved from right → left, the canonical
+  //      iOS / Linear / Slack position so the eye scans the dot
+  //      column to triage what's new).
+  //   2. The title typography (`font-medium text-text-primary` for
+  //      unread, `text-text-secondary` for read).
+  //   3. The icon tone (`text-text-primary` for unread, tertiary
+  //      for read — gives a subtle weight bump without color).
+  // Background stays neutral so hover (`bg-background-default-hover`)
+  // remains the only color event in the row, reading honestly as
+  // "I'm hovering this." Read items lose all accent treatment and
+  // sit calmly as past context.
   return (
     <li>
       <button
         type="button"
         onClick={onClick}
-        className={cn(
-          'flex w-full items-start gap-3 border-b border-divider-subtle px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none',
-          unread && 'bg-state-accent-hover-alt/40',
-        )}
+        className="flex w-full items-start gap-3 border-b border-divider-subtle px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-background-default-hover focus-visible:bg-background-default-hover focus-visible:outline-none"
       >
-        <span className="grid size-6 shrink-0 place-items-center pt-0.5 text-text-secondary">
+        <span
+          aria-label={unread ? 'unread' : undefined}
+          aria-hidden={!unread}
+          className={cn(
+            'mt-1.5 size-2 shrink-0 rounded-full transition-colors',
+            unread ? 'bg-state-accent-solid' : 'bg-transparent',
+          )}
+        />
+        <span
+          className={cn(
+            'grid size-6 shrink-0 place-items-center pt-0.5',
+            unread ? 'text-text-primary' : 'text-text-tertiary',
+          )}
+        >
           <Icon className="size-4" aria-hidden />
         </span>
         <div className="flex-1 min-w-0">
@@ -274,12 +300,6 @@ function NotificationItem({
             {formatRelativeTime(notification.createdAt)}
           </div>
         </div>
-        {unread ? (
-          <span
-            aria-label="unread"
-            className="mt-2 size-2 shrink-0 rounded-full bg-state-accent-solid"
-          />
-        ) : null}
       </button>
     </li>
   )

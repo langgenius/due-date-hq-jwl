@@ -2161,6 +2161,7 @@ export function ClientDetailWorkspace({
   // DetailSection collapsible. Sections are flat now, so the "scroll
   // me into view" callback just scrolls — no panel state to toggle.
   const canReadAudit = permission.can('audit.read')
+  const canUpdateObligationStatus = permission.can('obligation.status.update')
   // Body is now a 4-tab structure (Work / Client info / Discover /
   // Activity) — see docs/Design/client-page-information-architecture.md
   // updated 2026-05-22. URL-bound so deep links land on the right tab.
@@ -2801,6 +2802,7 @@ export function ClientDetailWorkspace({
                   clientName={client.name}
                   onChangeStatus={handleChangeObligationStatus}
                   isStatusChangePending={changeStatusMutation.isPending}
+                  canChangeStatus={canUpdateObligationStatus}
                 />
               </TabsContent>
 
@@ -3398,22 +3400,15 @@ function ClientWorkPlanPanel({
   clientName,
   onChangeStatus,
   isStatusChangePending,
+  canChangeStatus,
 }: {
   obligations: readonly ObligationInstancePublic[]
   isLoading: boolean
-  // Kept on the props contract for now; the per-summary counts that
-  // used to render here as warning/outline chips were retired (see
-  // header below). The page-level subtitle already carries the
-  // overdue / on-track signal in tone-coded form.
   summary: ClientWorkPlanSummary
-  // Threaded down to FilingPlanYearSection so each row can render the
-  // canonical status picker (D-6b) and a forward-action button
-  // (D-6a). `clientName` is what ObligationQueueStatusControl uses
-  // for its aria-label so the picker reads "Change status for
-  // Riverbend Draft Client".
   clientName: string
   onChangeStatus: (id: string, status: ObligationStatus) => void
   isStatusChangePending: boolean
+  canChangeStatus: boolean
 }) {
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const { t } = useLingui()
@@ -3572,6 +3567,7 @@ function ClientWorkPlanPanel({
                 onOpen={(obligationId) => openObligationDrawer(obligationId)}
                 onChangeStatus={onChangeStatus}
                 isStatusChangePending={isStatusChangePending}
+                canChangeStatus={canChangeStatus}
               />
             ))}
           </div>
@@ -3730,6 +3726,7 @@ function FilingPlanYearSection({
   onOpen,
   onChangeStatus,
   isStatusChangePending,
+  canChangeStatus,
 }: {
   group: FilingPlanYearGroup
   clientName: string
@@ -3741,6 +3738,7 @@ function FilingPlanYearSection({
   onOpen: (obligationId: string) => void
   onChangeStatus: (id: string, status: ObligationStatus) => void
   isStatusChangePending: boolean
+  canChangeStatus: boolean
 }) {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -4037,6 +4035,7 @@ function FilingPlanYearSection({
                   statuses={LIFECYCLE_V2_STATUSES}
                   disabled={isStatusChangePending}
                   onChange={onChangeStatus}
+                  readOnly={!canChangeStatus}
                 />
                 {/* 2026-05-27 (phi journey audit J1): payment-overdue
                     chip. A row that's Filed but whose paymentDueDate

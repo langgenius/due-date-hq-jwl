@@ -6,7 +6,9 @@ import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
 import {
   ArrowUpRightIcon,
+  Check,
   ChevronRightIcon,
+  Circle,
   CircleCheck,
   CircleSlash,
   ExternalLinkIcon,
@@ -81,7 +83,11 @@ import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
-import { RuleDetailCompact, RuleDetailInline } from '@/features/rules/rule-detail-drawer'
+import {
+  CandidateReviewSection,
+  RuleDetailCompact,
+  RuleDetailInline,
+} from '@/features/rules/rule-detail-drawer'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { orpc } from '@/lib/rpc'
@@ -384,24 +390,33 @@ function EntityStateCell({
   return <span className="text-sm font-medium tabular-nums text-text-primary">{count}</span>
 }
 
-// EntityApplicabilityCell — per-rule per-entity dot. Status-tinted
-// dot when the rule applies to this entity; faint placeholder
-// otherwise. Reads as scan texture beneath the state-level summary.
+// EntityApplicabilityCell — per-rule per-entity affordance.
+// 2026-05-27 (Yuqi follow-up — "绿色点点换成灰色check，蓝色换成
+// circle"): the prior visual was two tonal dots (green for active,
+// brown for review). Switched to icons so the per-entity grid
+// reads as STATUS LANGUAGE not COLOR SPRAY:
+//   - active → `Check` (✓) in soft gray — "this rule is in effect
+//              for this entity"
+//   - review → `Circle` (○) in sienna — "this entity is pending
+//              review, still open"
+// Both at 14px (`size-3.5`). Destructive / muted tones keep the
+// dot since the user only called out the two main states.
 function EntityApplicabilityCell({ applies, status }: { applies: boolean; status: RuleStatus }) {
   if (!applies) {
     return <span aria-hidden className="mx-auto block size-[3px] rounded-full bg-divider-subtle" />
   }
   const tone = STATUS_TONE[status]
+  if (tone === 'success') {
+    return <Check aria-hidden className="mx-auto size-3.5 text-text-tertiary" />
+  }
+  if (tone === 'review') {
+    return <Circle aria-hidden className={cn('mx-auto size-3.5', REVIEW_TEXT_CLS)} />
+  }
   return (
     <span
       aria-hidden
       className={cn(
         'mx-auto block size-1.5 rounded-full',
-        tone === 'success' && 'bg-state-success-solid',
-        // 2026-05-27 (Yuqi brown unification): per-rule applicability
-        // dot for review-state rules switches from blue accent to
-        // mustard so the dot matches the catalog-wide brown signal.
-        tone === 'review' && REVIEW_DOT_CLS,
         tone === 'destructive' && 'bg-state-destructive-solid',
         tone === 'muted' && 'bg-text-muted',
       )}
@@ -1519,7 +1534,7 @@ export function RulesLibraryRoute() {
     // jurisdiction + entity matrix has room to breathe at desktop.
     <div
       className={cn(
-        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-8 pb-0 md:px-6 md:pb-0',
         'xl:h-screen xl:overflow-hidden',
       )}
     >
@@ -3492,7 +3507,17 @@ function RuleDetailPanel({
           - Body padding tightened. The kicker carries the identity
             shape the audit ID line used to spell out, so the body
             no longer needs to repeat it. */}
-      <DialogContent showCloseButton className="flex max-h-[85vh] max-w-[640px] flex-col gap-0 p-0">
+      {/* 2026-05-27 (Yuqi follow-up — "圆角有一些问题"): added
+          `overflow-hidden` so the header strip's `bg-background-
+          subtle` clips to the dialog's rounded top corners instead
+          of painting a sharp rectangle past the curve. Without it
+          the header bg bleeds to the inner edge of the border, so
+          the corners look subtly square against the rounded
+          border. */}
+      <DialogContent
+        showCloseButton
+        className="flex max-h-[85vh] max-w-[640px] flex-col gap-0 overflow-hidden p-0"
+      >
         {/* 2026-05-25 (Yuqi rule library fourth pass #8, #10):
             third-pass tweaks weren't enough — Yuqi still flagged
             the header as "混乱" (chaotic, no section).
@@ -3514,9 +3539,29 @@ function RuleDetailPanel({
           </DialogTitle>
           <RuleDetailKicker rule={rule} />
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          <RuleDetailInline rule={rule} concreteDraft={concreteDraft} />
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          <RuleDetailInline rule={rule} />
         </div>
+        {/* 2026-05-27 (Yuqi — "最高决定review的实际上是Practice
+            review,但它却在最下面而且需要滑动才能看到"): the action
+            zone used to live as the last item INSIDE the scrollable
+            body, so the Accept button required scrolling past every
+            reference section first — the WHY of the dialog was
+            buried below the WHAT. Now it sits as a sticky footer:
+            the body scrolls (reference info), the action stays
+            visible. Border-t + tinted bg give the footer its own
+            visual zone without a competing rounded card chrome
+            (`chrome="flat"` on the section). */}
+        {(rule.status === 'candidate' || rule.status === 'pending_review') && (
+          <div className="shrink-0 border-t border-divider-subtle bg-background-subtle px-5 py-4">
+            <CandidateReviewSection
+              key={rule.id}
+              rule={rule}
+              concreteDraft={concreteDraft}
+              chrome="flat"
+            />
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

@@ -360,6 +360,23 @@ export async function updateObligationStatus(
 
   const { id: auditId } = await scoped.audit.write(auditPayload)
 
+  // Companion audit event for the materials-received milestone.
+  // When a row transitions from `waiting_on_client → review` the
+  // primary `obligation.status.updated` event records the lifecycle
+  // change, but reports that need to surface "this is when the
+  // materials were considered complete for this filing" benefit from
+  // a dedicated event. Fires only on this specific edge.
+  if (before.status === 'waiting_on_client' && after.status === 'review') {
+    await scoped.audit.write({
+      actorId: userId,
+      entityType: 'obligation_instance',
+      entityId: input.id,
+      action: 'readiness.materials_received',
+      before: { status: before.status },
+      after: { status: after.status },
+    })
+  }
+
   // Lifecycle v2 (slice 2d.4): parent→child unblock cascade.
   // When this row reaches `completed`, every obligation that was
   // `blocked_by` this row flips back to `pending` (with blocked_by
@@ -518,6 +535,24 @@ export async function updateObligationBlockedBy(
       throw new ORPCError('BAD_REQUEST', {
         message: 'Cannot mark blocked by an already-completed deadline.',
       })
+    }
+    // Walk the blocker chain from the proposed parent. If we encounter
+    // `input.id` before hitting null, the assignment would create a
+    // cycle (A blocks B, B blocks A — or longer loops). Bounded to a
+    // depth of 32 so a malformed graph in storage can't hang the
+    // request.
+    let cursor: string | null = parent.blockedByObligationInstanceId ?? null
+    const visited = new Set<string>([nextParentId])
+    for (let depth = 0; depth < 32 && cursor !== null; depth += 1) {
+      if (cursor === input.id) {
+        throw new ORPCError('BAD_REQUEST', {
+          message: 'Cannot create a cycle in the blocker chain.',
+        })
+      }
+      if (visited.has(cursor)) break
+      visited.add(cursor)
+      const next = await scoped.obligations.findById(cursor)
+      cursor = next?.blockedByObligationInstanceId ?? null
     }
   } else if (before.status !== 'blocked') {
     // Clearing a blocker on a row that isn't currently blocked is a

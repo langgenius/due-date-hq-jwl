@@ -81,10 +81,8 @@ function formatEntityApplicability(values: readonly string[]): string {
  */
 export function RuleDetailInline({
   rule,
-  concreteDraft,
 }: {
   rule: ObligationRule
-  concreteDraft?: RuleConcreteDraftCacheEntry | null
 }) {
   const sourceLookup = useSourceLookup()
   // 2026-05-25 (Yuqi rule library #14-#16): the old audit-meta header
@@ -94,6 +92,11 @@ export function RuleDetailInline({
   // sections. ReviewReasonsSection is conditionally pushed to the top
   // when present so the "you need to act" prompt isn't buried below
   // Applicability / Due date when the rule still needs review.
+  // 2026-05-27 (Yuqi — "Practice review在最下面而且需要滑动才能看到"):
+  // `CandidateReviewSection` no longer renders inside the scrollable
+  // body. The dialog renders it as a sticky footer below this
+  // component so the Accept action is always visible without
+  // scrolling past every reference section first.
   const needsReview = rule.status === 'candidate' || rule.status === 'pending_review'
   return (
     <div className="flex flex-col gap-4">
@@ -103,7 +106,6 @@ export function RuleDetailInline({
       <ExtensionSection rule={rule} />
       {!needsReview ? <ReviewReasonsSection rule={rule} /> : null}
       <EvidenceSection rule={rule} sourceLookup={sourceLookup} />
-      <CandidateReviewSection key={rule.id} rule={rule} concreteDraft={concreteDraft ?? null} />
       <VerificationSection rule={rule} />
     </div>
   )
@@ -231,13 +233,17 @@ function DetailSection({ label, children }: { label: React.ReactNode; children: 
   // P1-1): section labels were `text-caption uppercase tracking-
   // wider text-text-muted` kicker eyebrows. Five eyebrows in a
   // row on the review surface made the modal read as a form, not
-  // a decision page. Switched to the canonical `text-sm font-
-  // semibold text-text-primary` section heading that /clients,
-  // /deadlines, /rules/library, /alerts all use. The kicker
-  // style stays gone everywhere in the product.
+  // a decision page. Switched to a font-semibold text-text-primary
+  // section heading.
+  // 2026-05-27 (Yuqi follow-up — "section title没有用正常的title"):
+  // bumped `text-sm` → `text-base` so the section labels actually
+  // read as title-rank between the `text-xl` dialog title and the
+  // `text-sm` body. At 14px they read as emphasized body text, not
+  // as section titles; 16px gives them their own tier in the
+  // hierarchy.
   return (
-    <section className="flex flex-col gap-1.5">
-      <h4 className="text-sm font-semibold text-text-primary">{label}</h4>
+    <section className="flex flex-col gap-2">
+      <h4 className="text-base font-semibold text-text-primary">{label}</h4>
       {children}
     </section>
   )
@@ -267,18 +273,30 @@ function ExtensionCompact({ policy }: { policy: ObligationRule['extensionPolicy'
   )
 }
 
-function CandidateReviewSection({
+export function CandidateReviewSection({
   rule,
   concreteDraft,
   concreteDraftLoading = false,
   deferQueryInvalidation = false,
   onActionComplete,
+  chrome = 'card',
 }: {
   rule: ObligationRule
   concreteDraft?: RuleConcreteDraftCacheEntry | null
   concreteDraftLoading?: boolean
   deferQueryInvalidation?: boolean
   onActionComplete?: () => void | Promise<void>
+  /**
+   * 2026-05-27 (Yuqi follow-up — "Practice review在最下面而且需要
+   * 滑动才能看到"): the review action is the WHY of the dialog —
+   * scrolling to it is wrong. The dialog now renders this section
+   * as a sticky FOOTER below the scrollable body, which means it
+   * should NOT carry its own rounded card chrome (the footer
+   * wrapper provides the visual boundary via `border-t`). Default
+   * stays `'card'` so other callers (batch-review modal in
+   * coverage-tab) keep their existing chrome.
+   */
+  chrome?: 'card' | 'flat'
 }) {
   if (rule.status !== 'candidate' && rule.status !== 'pending_review') {
     return null
@@ -289,6 +307,7 @@ function CandidateReviewSection({
       concreteDraft={concreteDraft ?? null}
       concreteDraftLoading={concreteDraftLoading}
       deferQueryInvalidation={deferQueryInvalidation}
+      chrome={chrome}
       {...(onActionComplete ? { onActionComplete } : {})}
     />
   )
@@ -300,12 +319,14 @@ function CandidateReviewForm({
   concreteDraftLoading = false,
   deferQueryInvalidation = false,
   onActionComplete,
+  chrome = 'card',
 }: {
   rule: ObligationRule
   concreteDraft: RuleConcreteDraftCacheEntry | null
   concreteDraftLoading?: boolean
   deferQueryInvalidation?: boolean
   onActionComplete?: () => void | Promise<void>
+  chrome?: 'card' | 'flat'
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
@@ -475,7 +496,20 @@ function CandidateReviewForm({
 
   const entitySummary = formatEntityApplicability(rule.entityApplicability)
   return (
-    <section className="flex flex-col gap-3 rounded-md border border-state-accent-active-alt bg-background-default px-3 py-3">
+    <section
+      className={cn(
+        'flex flex-col gap-3',
+        // 2026-05-27 (Yuqi — "Practice review最高决定review,在最下面
+        // 不对"): when rendered as a sticky dialog footer (`chrome=
+        // 'flat'`), drop the card border + background — the footer
+        // wrapper already paints a `border-t` + tinted bg, so a
+        // rounded card on top would be a card-inside-a-card. Default
+        // `'card'` keeps the existing review-task card chrome for
+        // other callers.
+        chrome === 'card' &&
+          'rounded-md border border-state-accent-active-alt bg-background-default px-3 py-3',
+      )}
+    >
       {/* Section header used to include a right-aligned "Needs review"
           chip that duplicated the rule-status pill in the audit meta
           line above. Dropped per /critique — one canonical "needs
@@ -675,10 +709,13 @@ function AiDraftReviewSkeleton() {
 
 function RuleSectionHeading({ children }: { children: React.ReactNode }) {
   // 2026-05-26 (Yuqi /critique — same canonical move as
-  // DetailSection above). Practice review heading now reads at
-  // the same weight as Applicability / Due date / Extension /
-  // Evidence so the action zone doesn't feel buried under meta.
-  return <h4 className="text-sm font-semibold text-text-primary">{children}</h4>
+  // DetailSection above). Practice review heading reads at the
+  // same weight as Applicability / Due date / Extension / Evidence
+  // so the action zone doesn't feel buried under meta.
+  // 2026-05-27 (Yuqi follow-up): bumped `text-sm` → `text-base` —
+  // matches the DetailSection bump, gives every section title in
+  // the rule-detail surfaces a single voice at title-rank size.
+  return <h4 className="text-base font-semibold text-text-primary">{children}</h4>
 }
 
 function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
@@ -882,9 +919,12 @@ function ReviewReasonsSection({ rule }: { rule: ObligationRule }) {
           <Trans>Needs CPA review</Trans>
         </p>
         <p className="mt-1 text-xs text-text-secondary">{rule.defaultTip}</p>
-        <p className="mt-1.5 text-xs text-text-tertiary">
-          <Trans>Use the Accept / Skip buttons below to clear this rule.</Trans>
-        </p>
+        {/* 2026-05-27 (Yuqi follow-up — sticky-footer move): old copy
+            promised "Accept / Skip buttons below" but there's no Skip
+            button in this dialog (Skip lives only in the coverage-tab
+            workspace queue). Since the action bar is now pinned at
+            the bottom and always visible, an explicit pointer is
+            redundant. Dropped. */}
       </section>
     )
   }

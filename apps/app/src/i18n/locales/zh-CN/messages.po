@@ -1610,9 +1610,8 @@ msgid "All change types"
 msgstr "所有变更类型"
 
 #: src/features/pulse/AlertsListPage.tsx
-#, fuzzy
 msgid "All clear. New matches will appear here."
-msgstr "全部正常。我们正在监控已配置的 Pulse 来源；新的匹配会显示在这里。"
+msgstr "全部正常。新的匹配会显示在这里。"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "All clients"
@@ -6519,9 +6518,8 @@ msgstr "Model"
 
 #: src/features/dashboard/needs-attention-section.tsx
 #: src/routes/rules.pulse.tsx
-#, fuzzy
 msgid "Monitoring {monitoringCount, plural, one {# source} other {# sources}}"
-msgstr "{clientCount, plural, other {# 个客户}}"
+msgstr "{monitoringCount, plural, other {正在监控 # 个数据源}}"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
