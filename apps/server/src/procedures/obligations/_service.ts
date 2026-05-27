@@ -102,6 +102,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
+function parseIsoDateAsUtc(date: string): Date {
+  return new Date(`${date}T00:00:00.000Z`)
+}
+
 export function toObligationPublic(
   row: ObligationRow,
   opts: { client?: ClientPenaltyFacts | null | undefined; asOfDate?: string | Date } = {},
@@ -394,9 +398,10 @@ export async function updateObligationStatus(
  *
  * Caller holds a row in `done` ("Filed"). We stamp `efile_rejected_at`,
  * clear any prior acceptance timestamp, transition status to `review`,
- * and write an `obligation.efile.rejected` audit row. The Rejected
- * chip auto-renders on the queue once efileRejectedAt + status='review'
- * both hold (see apps/app/src/features/obligations/rejection-chip.tsx).
+ * and write the manual authority-response detail into an
+ * `obligation.efile.rejected` audit row. The Rejected chip auto-renders
+ * on the queue once efileRejectedAt + status='review' both hold (see
+ * apps/app/src/features/obligations/rejection-chip.tsx).
  */
 export async function markObligationFiledRejected(
   scoped: ScopedRepo,
@@ -415,7 +420,15 @@ export async function markObligationFiledRejected(
     })
   }
 
-  const rejectedAt = new Date()
+  const rejectedAt = input.rejectedAt ? parseIsoDateAsUtc(input.rejectedAt) : new Date()
+  const authority = input.authority?.trim() || null
+  const reference = input.reference?.trim() || null
+  const reason = input.reason.trim()
+  if (!reason) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'Authority rejection reason is required.',
+    })
+  }
   await scoped.obligations.setEfileRejected(input.id, { rejectedAt, nextStatus: 'review' })
   await resetReviewSubSteps(scoped, input.id)
   const after = await scoped.obligations.findById(input.id)
@@ -431,8 +444,15 @@ export async function markObligationFiledRejected(
     entityId: string
     action: string
     before: { status: string; efileAcceptedAt: string | null }
-    after: { status: string; efileRejectedAt: string }
-    reason?: string
+    after: {
+      status: string
+      efileRejectedAt: string
+      authority: string | null
+      reference: string | null
+      reason: string
+      nextStep: ObligationMarkFiledRejectedInput['nextStep']
+    }
+    reason: string
   } = {
     actorId: userId,
     entityType: 'obligation_instance',
@@ -442,9 +462,16 @@ export async function markObligationFiledRejected(
       status: before.status,
       efileAcceptedAt: before.efileAcceptedAt ? before.efileAcceptedAt.toISOString() : null,
     },
-    after: { status: after.status, efileRejectedAt: rejectedAt.toISOString() },
+    after: {
+      status: after.status,
+      efileRejectedAt: rejectedAt.toISOString(),
+      authority,
+      reference,
+      reason,
+      nextStep: input.nextStep,
+    },
+    reason,
   }
-  if (input.reason !== undefined) auditPayload.reason = input.reason
 
   const { id: auditId } = await scoped.audit.write(auditPayload)
 

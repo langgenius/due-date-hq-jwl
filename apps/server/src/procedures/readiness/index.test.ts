@@ -46,13 +46,26 @@ function repoChecklistItem(index: number) {
   }
 }
 
+type RepoChecklistItemFixture = Omit<
+  ReturnType<typeof repoChecklistItem>,
+  'status' | 'receivedAt'
+> & {
+  status: 'missing' | 'received' | 'needs_review'
+  receivedAt: Date | null
+}
+
 function emailPayloadText(payload: unknown): string {
   if (typeof payload !== 'object' || payload === null) return ''
   const text = Reflect.get(payload, 'text')
   return typeof text === 'string' ? text : ''
 }
 
-function makeReadinessContext(input: { clientEmail?: string | null; templateActive?: boolean }) {
+function makeReadinessContext(input: {
+  clientEmail?: string | null
+  templateActive?: boolean
+  obligationPatch?: Partial<ObligationInstanceRow>
+  checklistRows?: RepoChecklistItemFixture[]
+}) {
   const now = new Date('2026-05-22T00:00:00.000Z')
   const dueDate = new Date('2026-05-15T00:00:00.000Z')
   const obligation: ObligationInstanceRow = {
@@ -124,6 +137,7 @@ function makeReadinessContext(input: { clientEmail?: string | null; templateActi
     createdAt: now,
     updatedAt: now,
   }
+  Object.assign(obligation, input.obligationPatch)
   const client: ClientRow = {
     id: obligation.clientId,
     firmId: 'firm_1',
@@ -165,7 +179,7 @@ function makeReadinessContext(input: { clientEmail?: string | null; templateActi
     updatedAt: now,
     deletedAt: null,
   }
-  const checklistRows = [
+  const checklistRows = input.checklistRows ?? [
     {
       ...repoChecklistItem(1),
       label: 'K-1 packages',
@@ -280,7 +294,7 @@ function makeReadinessContext(input: { clientEmail?: string | null; templateActi
       scoped,
     },
   }
-  return { context, enqueueEmail, enqueueEmailCalls, emailQueueSend }
+  return { context, createRequest, enqueueEmail, enqueueEmailCalls, emailQueueSend }
 }
 
 describe('readiness procedure helpers', () => {
@@ -298,6 +312,19 @@ describe('readiness procedure helpers', () => {
     expect(groupReadinessChecklistForEmail([missing, received, needsReview])).toEqual({
       outstanding: [missing, needsReview],
       received: [received],
+    })
+  })
+
+  it('groups only needs-review items for correction request email preview', () => {
+    const missing = publicChecklistItem(1)
+    const received = { ...publicChecklistItem(2), status: 'received' as const }
+    const needsReview = { ...publicChecklistItem(3), status: 'needs_review' as const }
+
+    expect(
+      groupReadinessChecklistForEmail([missing, received, needsReview], { correctionOnly: true }),
+    ).toEqual({
+      outstanding: [needsReview],
+      received: [],
     })
   })
 
@@ -332,6 +359,33 @@ describe('readiness procedure helpers', () => {
     })
   })
 
+  it('renders correction request emails without received checklist items', () => {
+    const received = { ...publicChecklistItem(2), status: 'received' as const }
+    const needsReview = { ...publicChecklistItem(3), status: 'needs_review' as const }
+
+    const result = renderReadinessRequestEmail({
+      template: {
+        subject: '{{client_name}}: materials needed for {{tax_type}}',
+        bodyText:
+          'Open {{request_url}}\n\nOutstanding:\n{{outstanding_checklist}}\n\nReceived:\n{{received_checklist}}',
+      },
+      clientName: 'Acme LLC',
+      taxType: 'Form 1065',
+      dueDate: '2026-05-15',
+      requestUrl: 'https://app.test/readiness/token',
+      checklist: groupReadinessChecklistForEmail([received, needsReview], {
+        correctionOnly: true,
+      }),
+      correctionOnly: true,
+    })
+
+    expect(result.subject).toBe('Acme LLC: corrections needed for Form 1065')
+    expect(result.bodyText).toContain('Items needing correction:')
+    expect(result.bodyText).toContain('Document item 3')
+    expect(result.bodyText).not.toContain('Document item 2')
+    expect(result.bodyText).not.toContain('Received:')
+  })
+
   it('previews readiness request email with current grouped checklist items', async () => {
     const { context } = makeReadinessContext({})
 
@@ -353,6 +407,87 @@ describe('readiness procedure helpers', () => {
     expect(result.bodyText).toContain(
       'A secure materials link will be generated when you send this request.',
     )
+  })
+
+  it('previews rejected-return correction emails with only needs-review items', async () => {
+    const { context } = makeReadinessContext({
+      obligationPatch: {
+        status: 'review',
+        efileRejectedAt: new Date('2026-05-22T00:00:00.000Z'),
+      },
+      checklistRows: [
+        {
+          ...repoChecklistItem(1),
+          label: 'Original spreadsheet',
+          description: 'Already accepted by the firm.',
+          status: 'received',
+          receivedAt: new Date('2026-05-21T00:00:00.000Z'),
+        },
+        {
+          ...repoChecklistItem(2),
+          label: 'Corrected K-1 package',
+          description: 'Re-send the corrected K-1.',
+          status: 'needs_review',
+          receivedAt: null,
+        },
+      ],
+    })
+
+    const result = await call(
+      readinessHandlers.previewRequestEmail,
+      { obligationId: '22222222-2222-4222-8222-222222222222' },
+      { context },
+    )
+
+    expect(result.subject).toBe('Acme LLC: corrections needed for Form 1065')
+    expect(result.checklist.outstanding).toEqual([
+      expect.objectContaining({ label: 'Corrected K-1 package', status: 'needs_review' }),
+    ])
+    expect(result.checklist.received).toEqual([])
+    expect(result.bodyText).toContain('Corrected K-1 package')
+    expect(result.bodyText).not.toContain('Original spreadsheet')
+  })
+
+  it('uses the normal materials template when a non-review deadline has rejection history', async () => {
+    const { context } = makeReadinessContext({
+      obligationPatch: {
+        status: 'done',
+        efileRejectedAt: new Date('2026-05-22T00:00:00.000Z'),
+      },
+      checklistRows: [
+        {
+          ...repoChecklistItem(1),
+          label: 'Archived workpaper',
+          description: 'Already accepted by the firm.',
+          status: 'received',
+          receivedAt: new Date('2026-05-21T00:00:00.000Z'),
+        },
+        {
+          ...repoChecklistItem(2),
+          label: 'Open organizer item',
+          description: 'Still missing for the ordinary request.',
+          status: 'missing',
+          receivedAt: null,
+        },
+      ],
+    })
+
+    const result = await call(
+      readinessHandlers.previewRequestEmail,
+      { obligationId: '22222222-2222-4222-8222-222222222222' },
+      { context },
+    )
+
+    expect(result.subject).toBe('Acme LLC: secure materials request for Form 1065')
+    expect(result.checklist.outstanding).toEqual([
+      expect.objectContaining({ label: 'Open organizer item', status: 'missing' }),
+    ])
+    expect(result.checklist.received).toEqual([
+      expect.objectContaining({ label: 'Archived workpaper', status: 'received' }),
+    ])
+    expect(result.bodyText).toContain('Outstanding:')
+    expect(result.bodyText).toContain('Received:')
+    expect(result.bodyText).toContain('Archived workpaper')
   })
 
   it('sends readiness requests with the active Reminders materials template', async () => {
@@ -381,6 +516,51 @@ describe('readiness procedure helpers', () => {
     expect(queuedText).toContain('https://app.test/readiness/')
     expect(queuedText).toContain('- Prior-year return - Prior-year filing copy.')
     expect(emailQueueSend).toHaveBeenCalledWith({ type: 'email.flush' })
+  })
+
+  it('sends rejected-return correction requests with only needs-review portal items', async () => {
+    const { context, createRequest, enqueueEmailCalls } = makeReadinessContext({
+      obligationPatch: {
+        status: 'review',
+        efileRejectedAt: new Date('2026-05-22T00:00:00.000Z'),
+      },
+      checklistRows: [
+        {
+          ...repoChecklistItem(1),
+          label: 'Accepted workpaper',
+          description: 'Already accepted by the firm.',
+          status: 'received',
+          receivedAt: new Date('2026-05-21T00:00:00.000Z'),
+        },
+        {
+          ...repoChecklistItem(2),
+          label: 'Corrected state worksheet',
+          description: 'Client must update this worksheet.',
+          status: 'needs_review',
+          receivedAt: null,
+        },
+      ],
+    })
+
+    await call(
+      readinessHandlers.sendRequest,
+      { obligationId: '22222222-2222-4222-8222-222222222222' },
+      { context },
+    )
+
+    expect(createRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        checklistJson: [
+          expect.objectContaining({
+            label: 'Corrected state worksheet',
+          }),
+        ],
+      }),
+    )
+    const queuedEmail = enqueueEmailCalls[0]
+    const queuedText = emailPayloadText(queuedEmail?.payloadJson)
+    expect(queuedText).toContain('Corrected state worksheet')
+    expect(queuedText).not.toContain('Accepted workpaper')
   })
 
   it('creates a materials link without queueing email when the client has no email', async () => {

@@ -75,7 +75,14 @@ function toPublicDocumentChecklist(
 
 export function groupReadinessChecklistForEmail(
   items: readonly ReadinessDocumentChecklistItemPublic[],
+  options: { correctionOnly?: boolean } = {},
 ): ReadinessPreviewRequestEmailOutput['checklist'] {
+  if (options.correctionOnly) {
+    return {
+      outstanding: items.filter((item) => item.status === 'needs_review'),
+      received: [],
+    }
+  }
   return {
     outstanding: items.filter((item) => item.status !== 'received'),
     received: items.filter((item) => item.status === 'received'),
@@ -111,7 +118,26 @@ export function renderReadinessRequestEmail(input: {
   dueDate: string
   requestUrl: string
   checklist: ReadinessPreviewRequestEmailOutput['checklist']
+  correctionOnly?: boolean
 }): { subject: string; bodyText: string } {
+  if (input.correctionOnly) {
+    return {
+      subject: `${input.clientName}: corrections needed for ${input.taxType}`,
+      bodyText: [
+        `Hello ${input.clientName},`,
+        '',
+        `The authority rejected the submitted ${input.taxType}. Please use the secure link below to update or re-send the items that need correction:`,
+        '',
+        input.requestUrl,
+        '',
+        'Items needing correction:',
+        formatChecklistItemsForEmail(input.checklist.outstanding),
+        '',
+        'Thank you,',
+        'Your tax team',
+      ].join('\n'),
+    }
+  }
   const rendered = renderReminderTemplate(input.template, {
     client_name: input.clientName,
     tax_type: input.taxType,
@@ -183,6 +209,7 @@ async function loadReadinessRequestEmailDraft(input: {
   portalChecklist: ReadinessChecklistItem[]
   checklist: ReadinessPreviewRequestEmailOutput['checklist']
   template: ReminderTemplateRow
+  correctionOnly: boolean
 }> {
   const obligation = await input.scoped.obligations.findById(input.obligationId)
   if (!obligation) {
@@ -202,10 +229,16 @@ async function loadReadinessRequestEmailDraft(input: {
       now: new Date(),
     }),
   )
-  const portalChecklist = toPortalChecklist(documentChecklist)
+  const correctionOnly = obligation.status === 'review' && obligation.efileRejectedAt !== null
+  const requestChecklist = correctionOnly
+    ? documentChecklist.filter((item) => item.status === 'needs_review')
+    : documentChecklist
+  const portalChecklist = toPortalChecklist(requestChecklist)
   if (portalChecklist.length === 0) {
     throw new ORPCError('BAD_REQUEST', {
-      message: 'Create a readiness document checklist before sending a portal link.',
+      message: correctionOnly
+        ? 'Mark at least one material as needs correction before sending a correction request.'
+        : 'Create a readiness document checklist before sending a portal link.',
     })
   }
 
@@ -214,8 +247,9 @@ async function loadReadinessRequestEmailDraft(input: {
     client,
     documentChecklist,
     portalChecklist,
-    checklist: groupReadinessChecklistForEmail(documentChecklist),
+    checklist: groupReadinessChecklistForEmail(documentChecklist, { correctionOnly }),
     template: await readinessRequestTemplate(input.scoped),
+    correctionOnly,
   }
 }
 
@@ -232,6 +266,7 @@ function readinessRequestEmailPreview(input: {
     dueDate,
     requestUrl: input.requestUrl,
     checklist: input.draft.checklist,
+    correctionOnly: input.draft.correctionOnly,
   })
   return {
     obligationId: input.draft.obligation.id,

@@ -22,6 +22,7 @@ import { cn, formatDate } from '@/lib/utils'
 export function ChecklistItemRow({
   item,
   response,
+  correctionMode = false,
   pending,
   selected,
   selectionDisabled,
@@ -34,6 +35,7 @@ export function ChecklistItemRow({
 }: {
   item: ReadinessDocumentChecklistItemPublic
   response: ClientReadinessResponsePublic | null
+  correctionMode?: boolean
   pending: boolean
   // Multi-select model (2026-05-23). The leading Checkbox tracks
   // selection (for the floating "Mark client docs received" batch
@@ -129,7 +131,7 @@ export function ChecklistItemRow({
             ) : needsReview ? (
               <Badge variant="destructive" className="text-caption-xs uppercase tracking-wide">
                 <AlertTriangleIcon className="size-3" aria-hidden />
-                <Trans>Needs review</Trans>
+                {correctionMode ? <Trans>Needs correction</Trans> : <Trans>Needs review</Trans>}
               </Badge>
             ) : null}
             {responseBadge ? (
@@ -178,7 +180,11 @@ export function ChecklistItemRow({
               <DropdownMenuItem onClick={() => onStatusChange('needs_review')} disabled={pending}>
                 <AlertTriangleIcon className="size-4" aria-hidden />
                 <span>
-                  <Trans>Mark needs review</Trans>
+                  {correctionMode ? (
+                    <Trans>Mark needs correction</Trans>
+                  ) : (
+                    <Trans>Mark needs review</Trans>
+                  )}
                 </span>
               </DropdownMenuItem>
             ) : null}

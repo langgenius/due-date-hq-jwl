@@ -206,12 +206,24 @@ export const ObligationStatusUpdateOutputSchema = z.object({
 
 // Filed → e-file rejected → In review unwind (PDF anti-pattern #3:
 // Filed ≠ Done). Caller must hold a row in `done` ("Filed"). Server
-// stamps `efileRejectedAt = now()`, transitions status to `review`,
-// and writes an `obligation.efile.rejected` audit row. The Rejected
+// stamps `efileRejectedAt`, transitions status to `review`, and writes
+// the manual authority-response detail into the audit row. The Rejected
 // chip auto-renders on the queue thereafter (rejection-chip.tsx).
+export const ObligationFiledRejectionNextStepSchema = z.enum([
+  'correct_resubmit',
+  'request_client_input',
+  'paper_file',
+])
+export type ObligationFiledRejectionNextStep = z.infer<
+  typeof ObligationFiledRejectionNextStepSchema
+>
 export const ObligationMarkFiledRejectedInputSchema = z.object({
   id: EntityIdSchema,
-  reason: z.string().trim().max(280).optional(),
+  rejectedAt: z.iso.date().optional(),
+  authority: z.string().trim().min(1).max(80).optional(),
+  reference: z.string().trim().max(120).optional(),
+  reason: z.string().trim().min(1).max(280),
+  nextStep: ObligationFiledRejectionNextStepSchema,
 })
 export type ObligationMarkFiledRejectedInput = z.infer<
   typeof ObligationMarkFiledRejectedInputSchema
