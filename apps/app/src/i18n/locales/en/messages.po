@@ -835,6 +835,10 @@ msgid "{totalPending} rules"
 msgstr "{totalPending} rules"
 
 #: src/routes/rules.library.tsx
+msgid "{totalPendingReview, plural, one {# rule needs review} other {# rules need review}}"
+msgstr "{totalPendingReview, plural, one {# rule needs review} other {# rules need review}}"
+
+#: src/routes/rules.library.tsx
 msgid "{totalRules, plural, one {# rule} other {# rules}}"
 msgstr "{totalRules, plural, one {# rule} other {# rules}}"
 
@@ -1135,6 +1139,7 @@ msgid "Actions this week"
 msgstr "Actions this week"
 
 #: src/routes/rules.library.tsx
+#: src/routes/rules.pulse.tsx
 msgid "active"
 msgstr "active"
 
@@ -10389,6 +10394,10 @@ msgstr "Show"
 msgid "Show all"
 msgstr "Show all"
 
+#: src/routes/rules.library.tsx
+msgid "Show rules needing review"
+msgstr "Show rules needing review"
+
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Show work as due this many days before the statutory deadline."
 msgstr "Show work as due this many days before the statutory deadline."
@@ -10758,6 +10767,7 @@ msgstr "Source-defined rules are skipped from bulk accept. Generate and review t
 #: src/features/dashboard/actions-list.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.library.tsx
+#: src/routes/rules.pulse.tsx
 #: src/routes/rules.sources.tsx
 msgid "Sources"
 msgstr "Sources"
@@ -11424,6 +11434,10 @@ msgstr "Theme"
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "then"
 msgstr "then"
+
+#: src/routes/rules.library.tsx
+msgid "These are the deadline rules that drive your client deadlines. Review and approve new rules before they trigger reminders."
+msgstr "These are the deadline rules that drive your client deadlines. Review and approve new rules before they trigger reminders."
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "These states publish their deadlines through the state's own calendar. After your practice is created, you'll see those rules in Rule Library marked for review — deadlines activate once you approve the rules."

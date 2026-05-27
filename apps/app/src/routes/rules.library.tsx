@@ -1534,6 +1534,47 @@ export function RulesLibraryRoute() {
         actions={headerActions}
       />
 
+      {/* 2026-05-27 (Yuqi IA pass — push-to-action framing): the
+          page landed CPAs on a dense table without ever stating
+          what the surface is FOR or what they're expected to do
+          here. Two-line framing strip:
+            • Left: one sentence stating the page's purpose so a
+              first-time visitor reads "review is the verb."
+            • Right (when totalPendingReview > 0): a warning-toned
+              count chip ("N rules need review") that's clickable
+              to switch the Needs review scope tab. This is the
+              concrete CTA — the eye is pulled to it precisely
+              when there's work waiting. When the queue is empty
+              the chip collapses; the framing line stands alone
+              and the page reads as "all caught up."
+          Inline + dismiss-less so the page chrome stays calm
+          (no banner with an X). Sits between the page header
+          and the catalog progress bar so it's the first thing
+          read after the title. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="max-w-[720px] text-description leading-5 text-text-secondary">
+          <Trans>
+            These are the deadline rules that drive your client deadlines. Review and approve new
+            rules before they trigger reminders.
+          </Trans>
+        </p>
+        {!statsLoading && totalPendingReview > 0 ? (
+          <button
+            type="button"
+            onClick={() => void setScope('review')}
+            aria-label={t`Show rules needing review`}
+            className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border border-state-warning-hover-alt bg-state-warning-hover px-3 text-xs font-medium text-text-warning outline-none transition-colors hover:bg-state-warning-hover-alt focus-visible:ring-2 focus-visible:ring-state-warning-hover-alt"
+          >
+            <span className="size-1.5 rounded-full bg-state-warning-solid" aria-hidden />
+            <Plural
+              value={totalPendingReview}
+              one="# rule needs review"
+              other="# rules need review"
+            />
+          </button>
+        ) : null}
+      </div>
+
       {/* Progress bar — completion meter (active LEFT / needs-review
           RIGHT). Yuqi explicitly asked for this to stay at the top
           ("把进度条放回来"). */}
@@ -2000,9 +2041,22 @@ function EntityChipRow({
                 // its own padding/leading and didn't sit on the text
                 // baseline, so it visibly bobbed up. Centering keeps
                 // the label + count + pill aligned on the same midline.
+                // 2026-05-27 (Yuqi IA pass — "does not look the
+                // filter is functioning"): active state retuned from
+                // a heavy dark fill (bg-text-primary + inverted
+                // text) → the canonical accent tone
+                // (bg-state-accent-hover-alt + text-text-accent +
+                // border-state-accent-solid). The previous dark
+                // fill read as "this is the primary action" rather
+                // than "this filter is engaged" — accent tone is
+                // the design system's pattern for selected/applied
+                // filter state (mirrors /deadlines + /clients chip
+                // filters). Now the chip clearly says "engaged" at
+                // a glance: tinted background + colored border +
+                // accent text + bolder weight.
                 'group inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-xs outline-none transition-colors',
                 isActive
-                  ? 'border-text-primary bg-text-primary text-text-inverted'
+                  ? 'border-state-accent-solid bg-state-accent-hover-alt font-medium text-text-accent'
                   : 'border-divider-regular bg-background-default text-text-secondary hover:border-text-secondary hover:bg-state-base-hover hover:text-text-primary',
                 'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
               )}
@@ -2011,7 +2065,7 @@ function EntityChipRow({
               <span
                 className={cn(
                   'font-semibold tabular-nums',
-                  isActive ? 'text-text-inverted' : 'text-text-primary',
+                  isActive ? 'text-text-accent' : 'text-text-primary',
                 )}
               >
                 {count}
@@ -2028,23 +2082,18 @@ function EntityChipRow({
                 // signaling "this is the gap count, not part of
                 // the main number."
                 <>
-                  <span
-                    aria-hidden
-                    className={cn(
-                      'select-none',
-                      isActive ? 'text-text-inverted/50' : 'text-text-tertiary',
-                    )}
-                  >
+                  <span aria-hidden className="select-none text-text-tertiary">
                     ·
                   </span>
-                  <span
-                    className={cn(
-                      'inline-flex items-center gap-1 tabular-nums',
-                      isActive
-                        ? 'rounded-full bg-state-destructive-subtle px-1.5 text-caption font-semibold leading-4 text-text-destructive'
-                        : 'font-medium text-text-destructive',
-                    )}
-                  >
+                  {/* 2026-05-27 (Yuqi IA pass — entity chip active
+                      restyle follow-on): with the active chip on a
+                      light accent tint (not a dark fill), the
+                      destructive "missing" count can read as the
+                      same plain destructive text in both states.
+                      Previously the active variant wrapped it in a
+                      destructive pill for contrast against the dark
+                      background; that's no longer required. */}
+                  <span className="inline-flex items-center gap-1 font-medium tabular-nums text-text-destructive">
                     <span>{gapCount}</span>
                     <span className="font-normal">
                       <Trans>missing</Trans>
@@ -2863,6 +2912,20 @@ function RuleTableRow({
   // tax" → "Individual income tax". Reads cleaner; the column
   // doesn't look like the same word repeating down the page.
   const displayTitle = stripJurisdictionPrefix(rule.title, jurisLabel)
+  // 2026-05-27 (Yuqi IA pass — differentiate NEEDS REVIEW vs ACTIVE
+  // rows): the section header above already declares which status
+  // group the rows belong to, but visually the rows themselves read
+  // identically across both sections. CPAs scanning a long expanded
+  // jurisdiction lose track of "which rows still need me." Fix: rows
+  // in the needs-review status group carry a subtle warning surface
+  // tint (`bg-state-warning-hover/40`) — light enough to stay calm
+  // (no border-left stripe; per design-system: stripes are banned),
+  // strong enough to distinguish at a glance from active rows that
+  // sit on the default background. The hover override remains
+  // (`hover:bg-state-base-hover`) so hover still reads as
+  // interactive, just from a tinted resting state. Active /
+  // verified / archived rows are unchanged.
+  const needsReviewRow = statusGroupOf(rule.status) === 'needs_review'
   return (
     // `group` so the title and the trailing chevron can react to
     // row-level hover. The chevron is the affordance for "this row
@@ -2879,6 +2942,7 @@ function RuleTableRow({
         // matches /clients list rows + /clients/[id] filing-plan
         // rows for cross-surface consistency.
         'group/row h-14 cursor-pointer hover:bg-state-base-hover',
+        needsReviewRow && 'bg-state-warning-hover/40',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onClick(rule)}

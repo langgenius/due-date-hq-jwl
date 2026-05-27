@@ -835,6 +835,10 @@ msgid "{totalPending} rules"
 msgstr "{totalPending} rules"
 
 #: src/routes/rules.library.tsx
+msgid "{totalPendingReview, plural, one {# rule needs review} other {# rules need review}}"
+msgstr "{totalPendingReview, plural, one {# 条规则待审} other {# 条规则待审}}"
+
+#: src/routes/rules.library.tsx
 msgid "{totalRules, plural, one {# rule} other {# rules}}"
 msgstr "{totalRules, plural, one {# rule} other {# rules}}"
 
@@ -1135,8 +1139,9 @@ msgid "Actions this week"
 msgstr "Actions this week"
 
 #: src/routes/rules.library.tsx
+#: src/routes/rules.pulse.tsx
 msgid "active"
-msgstr ""
+msgstr "活跃"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/calendar/calendar-page.tsx
@@ -10389,6 +10394,10 @@ msgstr "显示"
 msgid "Show all"
 msgstr "全部显示"
 
+#: src/routes/rules.library.tsx
+msgid "Show rules needing review"
+msgstr "查看待审规则"
+
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Show work as due this many days before the statutory deadline."
 msgstr ""
@@ -10758,6 +10767,7 @@ msgstr "来源定义规则会跳过批量接受。请逐条生成并审核其 AI
 #: src/features/dashboard/actions-list.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.library.tsx
+#: src/routes/rules.pulse.tsx
 #: src/routes/rules.sources.tsx
 msgid "Sources"
 msgstr "来源"
@@ -11424,6 +11434,10 @@ msgstr "主题"
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "then"
 msgstr "然后"
+
+#: src/routes/rules.library.tsx
+msgid "These are the deadline rules that drive your client deadlines. Review and approve new rules before they trigger reminders."
+msgstr "这些规则驱动您客户的截止日期。新规则在触发提醒前需要您审核并通过。"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "These states publish their deadlines through the state's own calendar. After your practice is created, you'll see those rules in Rule Library marked for review — deadlines activate once you approve the rules."
