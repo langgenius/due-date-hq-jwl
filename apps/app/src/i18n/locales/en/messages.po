@@ -807,8 +807,8 @@ msgid "{ruleReviewCount} rules pending review"
 msgstr "{ruleReviewCount} rules pending review"
 
 #: src/routes/obligations.tsx
-msgid "{scopeTotal, plural, one {# deadline} other {# deadlines}}"
-msgstr "{scopeTotal, plural, one {# deadline} other {# deadlines}}"
+msgid "{scopeTotal} Deadlines"
+msgstr "{scopeTotal} Deadlines"
 
 #: src/routes/obligations.tsx
 msgid "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"

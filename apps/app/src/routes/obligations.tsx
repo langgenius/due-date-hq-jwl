@@ -2940,16 +2940,17 @@ export function ObligationQueueRoute() {
           // at, not just the raw total. Other surfaces now use
           // the matching shape: "3 Ongoing" on /alerts,
           // "9 Clients" on /clients, "N Rules" on /rules/library.
-          // 2026-05-27 (Yuqi feedback round 3):
-          //   • "Explain Deadline" popover REMOVED — the ConceptLabel
-          //     was wrapping the title with a `?` popover. Dropped
-          //     since the inline page description below the title
-          //     already explains what /deadlines is.
-          //   • "17 deadlines" count chip REMOVED — the status tabs
-          //     below carry per-scope counts, so the title chip was
-          //     duplicating what the tabs say.
-          <span className="inline-flex items-center gap-2">
-            <Trans>Deadlines</Trans>
+          // 2026-05-27 (Yuqi feedback round 4 — "deadline 标题旁边
+          // 的数字呢"): number is part of the title now, matching the
+          // "10 Actions this week" / "4 Alerts" pattern. Earlier
+          // "remove" instruction meant "remove the separate chip" —
+          // the count itself stays as a heading-style prefix.
+          <span className="inline-flex items-center gap-2 tabular-nums">
+            {scopeTotal > 0 ? (
+              <Trans>{scopeTotal} Deadlines</Trans>
+            ) : (
+              <Trans>Deadlines</Trans>
+            )}
           </span>
         }
         // 2026-05-26 (Yuqi /deadlines redesign): subtitle surfaces
@@ -5943,7 +5944,10 @@ export function ObligationQueueDetailDrawer({
           (px-8 py-5) was reverted in favor of cross-drawer
           consistency per Yuqi's "should match Pulse alert detail"
           instruction. */}
-      <header className="relative flex flex-col gap-1.5 border-b border-divider-subtle px-12 py-10">
+      {/* 2026-05-27 (Yuqi "remove top padding"): header pt-10 → pt-4
+          so the title sits closer to the top of the drawer. Bottom
+          spacing kept (pb-10) for the breathing gap before tabs. */}
+      <header className="relative flex flex-col gap-1.5 border-b border-divider-subtle px-12 pt-4 pb-10">
         {/* Panel mode owns its own close button — there's no Sheet
             wrapper providing one. Sheet mode skips this since Radix's
             SheetContent already renders an X in the top-right corner.
@@ -9451,7 +9455,10 @@ function PathToFilingSummary({
       // Released from the bordered card frame (2026-05-21) — the panel
       // already has its own tinted background, so wrapping the timeline
       // in a second card created a nested box. Inline-padding only.
-      className="py-1"
+      // 2026-05-27 (Yuqi "add top margin or top padding"): pt-1 → pt-6
+      // so the milestone timeline gets breathing room from the date
+      // tiles above. Bottom stays py-1 minimal.
+      className="pt-6 pb-1"
     >
       <div className="grid grid-cols-6 gap-0">
         {stages.map((stage, i) => {

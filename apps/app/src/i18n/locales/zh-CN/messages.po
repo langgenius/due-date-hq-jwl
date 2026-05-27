@@ -824,8 +824,8 @@ msgid "{ruleReviewCount} rules pending review"
 msgstr "{ruleReviewCount} 条规则待复核"
 
 #: src/routes/obligations.tsx
-msgid "{scopeTotal, plural, one {# deadline} other {# deadlines}}"
-msgstr "{scopeTotal, plural, other {# 个截止日}}"
+msgid "{scopeTotal} Deadlines"
+msgstr "{scopeTotal} 项截止"
 
 #: src/routes/obligations.tsx
 msgid "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
