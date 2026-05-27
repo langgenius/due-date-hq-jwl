@@ -4109,10 +4109,6 @@ msgid "e.g. Form 41-ES"
 msgstr "e.g. Form 41-ES"
 
 #: src/routes/rules.library.tsx
-msgid "e.g. income, sales, payroll"
-msgstr "e.g. income, sales, payroll"
-
-#: src/routes/rules.library.tsx
 msgid "e.g. Quarterly estimated tax for trusts"
 msgstr "e.g. Quarterly estimated tax for trusts"
 
@@ -6571,6 +6567,7 @@ msgstr "No clients match these filters"
 
 #: src/features/clients/ClientCombobox.tsx
 #: src/features/clients/ClientTitleSwitcher.tsx
+#: src/routes/obligations.tsx
 msgid "No clients match your search."
 msgstr "No clients match your search."
 
@@ -6845,6 +6842,10 @@ msgstr "No subscription changes were made. You can restart checkout when ready."
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No summary yet"
 msgstr "No summary yet"
+
+#: src/routes/rules.library.tsx
+msgid "No tax types match your search."
+msgstr "No tax types match your search."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No tax types selected."
@@ -7856,9 +7857,17 @@ msgstr "Personal inbox"
 msgid "Personal morning digest preferences and types."
 msgstr "Personal morning digest preferences and types."
 
+#: src/features/clients/ClientCombobox.tsx
+msgid "Pick a client"
+msgstr "Pick a client"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Pick a client first."
 msgstr "Pick a client first."
+
+#: src/routes/obligations.tsx
+msgid "Pick a client to export"
+msgstr "Pick a client to export"
 
 #: src/features/clients/ClientCombobox.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
@@ -7872,6 +7881,10 @@ msgstr "Pick a scope, format, and recipient."
 #: src/features/migration/Step1Intake.tsx
 msgid "Pick a source to add context. The AI mapper runs either way; templates also fill defaults if AI is unavailable."
 msgstr "Pick a source to add context. The AI mapper runs either way; templates also fill defaults if AI is unavailable."
+
+#: src/routes/rules.library.tsx
+msgid "Pick a tax type…"
+msgstr "Pick a tax type…"
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Pick state"
@@ -9518,6 +9531,7 @@ msgstr "Search clients"
 
 #: src/features/clients/ClientCombobox.tsx
 #: src/features/clients/ClientTitleSwitcher.tsx
+#: src/routes/obligations.tsx
 msgid "Search clients…"
 msgstr "Search clients…"
 
@@ -9540,6 +9554,10 @@ msgstr "Search sources…"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Search states"
 msgstr "Search states"
+
+#: src/routes/rules.library.tsx
+msgid "Search tax types…"
+msgstr "Search tax types…"
 
 #: src/features/firm/timezone-select.tsx
 msgid "Search timezone…"

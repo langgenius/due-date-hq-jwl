@@ -38,6 +38,10 @@ type RuleTier = ObligationRule['ruleTier']
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
+  SearchableCombobox,
+  type SearchableComboboxOption,
+} from '@duedatehq/ui/components/ui/combobox'
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -3615,6 +3619,91 @@ function KeyboardHints() {
 // extension policy, evidence.
 // ---------------------------------------------------------------------------
 
+// 2026-05-27 (audit-drain ζ R5.3 — canonical tax-type picker):
+//
+// The new-rule modal's Tax type field used to be a free-form `<Input>`
+// with placeholder "e.g. income, sales, payroll". CPAs typed "Income
+// tax", "income", "Income" — three rows for the same concept, which
+// poisoned the rule library's tax-type facet and broke filtering
+// downstream.
+//
+// Canonical tax-type codes follow the snake_case shape `federal_1040`
+// / `ca_568` / `ny_ct3s` that lives in `lib/tax-codes` (`TAX_CODES`).
+// We curate a per-jurisdiction subset of the most common codes here
+// rather than re-exporting the full table — the new-rule path is
+// rare enough that the curated short-list (10-12 per jurisdiction)
+// covers the realistic creation cases without forcing a user to
+// memorise the snake_case form. A "create new tax type" affordance
+// is intentionally not in this iteration; the SearchableCombobox
+// shape is single-select-from-list and the v2 audit can layer a
+// `+ Add custom` row when the demand surfaces.
+//
+// Jurisdictions NOT in this map (most of the long-tail STATE_RULE_
+// JURISDICTIONS) fall back to a generic federal-leaning list so the
+// modal still works.
+
+const COMMON_TAX_TYPE_CODES_BY_JURISDICTION: Record<string, readonly string[]> = {
+  FED: [
+    'federal_1040',
+    'federal_1040_estimated_tax',
+    'federal_1041',
+    'federal_1065',
+    'federal_1120',
+    'federal_1120s',
+    'federal_4868',
+    'federal_7004',
+    'federal_941',
+    'federal_990',
+    'federal_1099_nec',
+    'federal_fbar',
+  ],
+  CA: [
+    'ca_100',
+    'ca_100s',
+    'ca_540',
+    'ca_541',
+    'ca_565',
+    'ca_568',
+    'ca_llc_annual_tax',
+    'ca_llc_estimated_fee',
+    'ca_ptet',
+  ],
+  NY: [
+    'ny_ct3',
+    'ny_ct3s',
+    'ny_it201',
+    'ny_it204',
+    'ny_it204ll',
+    'ny_it205',
+    'ny_llc_filing_fee',
+    'ny_ptet',
+  ],
+  TX: ['tx_franchise_tax', 'tx_franchise_report', 'tx_franchise_extension'],
+  FL: ['fl_corp_income'],
+  WA: ['wa_b_o', 'wa_combined_excise_quarterly'],
+  IL: ['il_il1040', 'il_il1120'],
+}
+
+const FALLBACK_TAX_TYPE_CODES: readonly string[] = COMMON_TAX_TYPE_CODES_BY_JURISDICTION.FED ?? []
+
+function comboboxTaxTypeOptionsForJurisdiction(
+  jurisdiction: RuleJurisdiction | undefined,
+): SearchableComboboxOption[] {
+  const codes =
+    (jurisdiction ? COMMON_TAX_TYPE_CODES_BY_JURISDICTION[jurisdiction] : undefined) ??
+    FALLBACK_TAX_TYPE_CODES
+  return codes.map((code) => ({
+    value: code,
+    label: formatTaxCode(code),
+    // Raw snake_case is shown as tertiary meta so the CPA who knows
+    // the code can confirm the mapping. Keyword fold lets typing
+    // "1120s" surface "Form 1120-S" even though the label drops
+    // the underscore.
+    meta: code,
+    keywords: [code, code.replace(/_/g, ' ')],
+  }))
+}
+
 function NewRuleModal({
   seed,
   onClose,
@@ -3628,6 +3717,14 @@ function NewRuleModal({
   const [formName, setFormName] = useState('')
   const [taxType, setTaxType] = useState('')
   const [dueDateDescription, setDueDateDescription] = useState('')
+
+  // Jurisdiction-aware option list. Recomputed when the seed changes
+  // (which only happens when the dialog opens) so the typeahead list
+  // matches what the rule will actually carry.
+  const taxTypeOptions = useMemo(
+    () => comboboxTaxTypeOptionsForJurisdiction(seed.jurisdiction),
+    [seed.jurisdiction],
+  )
 
   const mutation = useMutation(
     orpc.rules.createCustomRule.mutationOptions({
@@ -3789,12 +3886,30 @@ function NewRuleModal({
                     <Label htmlFor="new-rule-tax-type">
                       <Trans>Tax type</Trans>
                     </Label>
-                    <Input
+                    {/* 2026-05-27 (audit-drain ζ R5.3): swapped a
+                        free-form Input for a SearchableCombobox over
+                        the curated jurisdiction-specific tax-code
+                        list (see COMMON_TAX_TYPE_CODES_BY_
+                        JURISDICTION above). The old field accepted
+                        "Income tax", "income", "Income" as three
+                        different strings — every typo silently
+                        created a new facet value in the rule
+                        library's tax-type filter. Constraining the
+                        list to canonical codes (with `formatTaxCode`
+                        for the user-facing label and the snake_case
+                        shown as tertiary meta) keeps the saved
+                        `rule.taxType` consistent with the rest of
+                        the matrix. Required-state is enforced via
+                        canSubmit's `taxType.trim().length > 0`. */}
+                    <SearchableCombobox
                       id="new-rule-tax-type"
-                      value={taxType}
-                      onChange={(event) => setTaxType(event.target.value)}
-                      placeholder={t`e.g. income, sales, payroll`}
-                      required
+                      value={taxType.length > 0 ? taxType : null}
+                      onValueChange={setTaxType}
+                      options={taxTypeOptions}
+                      placeholder={t`Pick a tax type…`}
+                      searchPlaceholder={t`Search tax types…`}
+                      ariaLabel={t`Tax type`}
+                      emptyState={<Trans>No tax types match your search.</Trans>}
                     />
                   </div>
                 </div>
