@@ -1087,7 +1087,7 @@ export function CreateObligationDialog({
                       <button
                         type="button"
                         onClick={() => setCreateClientOpen(true)}
-                        className="w-fit self-start rounded-sm text-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        className="w-fit self-start rounded-sm text-left text-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                       >
                         <Trans>Don't see your client? Create one</Trans>
                       </button>
