@@ -136,6 +136,7 @@ import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
+import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import {
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
@@ -575,6 +576,29 @@ function renderClientHeaderSubLine({
             {workPlan.statutoryLateUnextendedCount === 1
               ? '1 statutory late'
               : `${workPlan.statutoryLateUnextendedCount} statutory late`}
+          </span>
+        </Badge>
+      ),
+    })
+  } else if (workPlan.filedPaymentOverdueCount > 0) {
+    // 2026-05-27 (phi journey audit J1): the FILING-track version of
+    // anti-pattern #1 ("Filed ≠ Paid"). A client whose every filing is
+    // done but whose payment hasn't cleared used to flow into the
+    // "All on track" bottom-out — a silent green that hid the real
+    // urgency. Priority order: ahead of extensionPaymentDueCount
+    // (which is also anti-pattern #1 but on the extension track) and
+    // "Extended" / "All on track" fall-throughs. Destructive tone
+    // because penalty interest accrues until the wire lands; a
+    // 71-day-overdue payment is NOT amber, it's red.
+    parts.push({
+      id: 'filed-payment-overdue',
+      node: (
+        <Badge variant="destructive" className="text-xs">
+          <AlertTriangleIcon className="size-3" aria-hidden />
+          <span>
+            {workPlan.filedPaymentOverdueCount === 1
+              ? '1 filed — payment overdue'
+              : `${workPlan.filedPaymentOverdueCount} filed — payments overdue`}
           </span>
         </Badge>
       ),
@@ -3917,7 +3941,7 @@ function FilingPlanYearSection({
               <span className="w-[120px] text-xs leading-4 tabular-nums text-text-primary">
                 {formatDate(obligation.filingDueDate ?? obligation.currentDueDate)}
               </span>
-              <span className="w-[120px]">
+              <span className="flex w-[120px] flex-wrap items-center gap-1">
                 <ObligationQueueStatusControl
                   row={{ id: obligation.id, status: obligation.status, clientName }}
                   labels={statusPickerLabels}
@@ -3925,6 +3949,27 @@ function FilingPlanYearSection({
                   disabled={isStatusChangePending}
                   onChange={onChangeStatus}
                 />
+                {/* 2026-05-27 (phi journey audit J1): payment-overdue
+                    chip. A row that's Filed but whose paymentDueDate
+                    has slipped used to read as "Filed" with no
+                    additional cue in the filing-plan grid — the only
+                    surface that flagged this was the obligation drawer's
+                    Payment due tile, four clicks deep. Now: a small
+                    red chip next to the Filed pill names the lateness
+                    inline. Renders compactly ("Payment 71d late") so
+                    the Status column doesn't blow out width-wise. */}
+                {(() => {
+                  const overdueDays = paymentOverdueDays(obligation, Date.now())
+                  if (overdueDays === null) return null
+                  return (
+                    <span
+                      title={t`The filing was submitted, but the authority payment due ${formatDate(obligation.paymentDueDate ?? '')} hasn't been confirmed yet. Penalty interest accrues until the wire lands.`}
+                      className="rounded-sm bg-state-destructive-hover px-1 py-0 text-caption-xs font-medium leading-4 text-text-destructive"
+                    >
+                      <Trans>Payment {overdueDays}d late</Trans>
+                    </span>
+                  )
+                })()}
               </span>
               {/* 2026-05-26 (Yuqi feedback #8): Estimated Tax cell
                   dropped with the column. Inline tax figure now

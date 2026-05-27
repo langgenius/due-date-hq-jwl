@@ -317,6 +317,53 @@ describe('client detail model', () => {
     expect(summary.statutoryLateUnextendedCount).toBe(0)
   })
 
+  it('flags filed-with-unsettled-payment per anti-pattern #1 (filing track)', () => {
+    // 2026-05-27 (phi journey audit J1): Lakeview Medical Partners
+    // Form 1065 — status='done' (Filed), paymentDueDate=2026-03-16,
+    // asOfDate=2026-05-27. The 71-day-overdue payment Yuqi flagged
+    // as "buried 4 layers deep" — this test pins the
+    // `filedPaymentOverdueCount` derivation that lets the header
+    // pill surface it.
+    const summary = buildClientWorkPlanSummary(
+      [
+        obligation({
+          id: 'lakeview_1065',
+          baseDueDate: '2026-03-16',
+          currentDueDate: '2026-03-16',
+          filingDueDate: '2026-03-16',
+          paymentDueDate: '2026-03-16',
+          status: 'done',
+          extensionState: 'not_applicable',
+          paymentState: 'estimate_needed',
+        }),
+      ],
+      '2026-05-27',
+    )
+    expect(summary.filedPaymentOverdueCount).toBe(1)
+    // 'done' rows aren't in OPEN_OBLIGATION_STATUSES, so the other
+    // counts stay zero — the new bucket is independent.
+    expect(summary.openCount).toBe(0)
+    expect(summary.statutoryLateUnextendedCount).toBe(0)
+    expect(summary.extensionPaymentDueCount).toBe(0)
+  })
+
+  it('does not count Filed rows whose payment has settled', () => {
+    const summary = buildClientWorkPlanSummary(
+      [
+        obligation({
+          id: 'clean_filed',
+          baseDueDate: '2026-03-16',
+          currentDueDate: '2026-03-16',
+          paymentDueDate: '2026-03-16',
+          status: 'done',
+          paymentState: 'confirmed',
+        }),
+      ],
+      '2026-05-27',
+    )
+    expect(summary.filedPaymentOverdueCount).toBe(0)
+  })
+
   it('keeps Pulse matches scoped to the selected client', () => {
     const matches = buildClientPulseMatches(
       [

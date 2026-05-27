@@ -280,6 +280,11 @@ msgstr "{0} — click to {1} detail"
 msgid "{0} · Shift+click to select all of this client's rows"
 msgstr "{0} · Shift+click to select all of this client's rows"
 
+#. placeholder {0}: codes.join(', ')
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "{0} {verb}"
+msgstr "{0} {verb}"
+
 #. placeholder {0}: safePageIndex + 1
 #: src/routes/obligations.tsx
 msgid "{0} / {totalLoadedPages}"
@@ -310,12 +315,6 @@ msgstr "{0} and its imported deadlines"
 #: src/features/members/members-page.tsx
 msgid "{0} available seats"
 msgstr "{0} available seats"
-
-#. placeholder {0}: codes.join(', ')
-#. placeholder {0}: codes[0]
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "{0} blocked or overdue"
-msgstr "{0} blocked or overdue"
 
 #. placeholder {0}: result.obligations.length
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -599,6 +598,10 @@ msgstr "{daysAbs}d late"
 #: src/features/opportunities/opportunities-page.tsx
 msgid "{DEFAULT_SNOOZE_DAYS, plural, one {Snooze {0} for # day} other {Snooze {1} for # days}}"
 msgstr "{DEFAULT_SNOOZE_DAYS, plural, one {Snooze {0} for # day} other {Snooze {1} for # days}}"
+
+#: src/routes/obligations.tsx
+msgid "{drawerPaymentLateDays, plural, one {Payment # day late} other {Payment # days late}}"
+msgstr "{drawerPaymentLateDays, plural, one {Payment # day late} other {Payment # days late}}"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{durationMonths, plural, one {# month} other {# months}}"
@@ -2094,6 +2097,10 @@ msgstr "Blocked by upstream return — {checklistCount} items in hand."
 #: src/routes/obligations.tsx
 msgid "Blocked by upstream return AND awaiting client materials."
 msgstr "Blocked by upstream return AND awaiting client materials."
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "blocked or overdue"
+msgstr "blocked or overdue"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
@@ -4733,6 +4740,12 @@ msgstr "Filing Rule Changed"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Filing states"
 msgstr "Filing states"
+
+#. placeholder {0}: formatDate(obligationQueueRow.paymentDueDate ?? '')
+#. placeholder {0}: formatDate(row.paymentDueDate ?? '')
+#: src/routes/obligations.tsx
+msgid "Filing submitted but the authority payment due {0} hasn't been confirmed. Penalty interest accrues until the wire lands."
+msgstr "Filing submitted but the authority payment due {0} hasn't been confirmed. Penalty interest accrues until the wire lands."
 
 #. placeholder {0}: formatDatePretty(row.currentDueDate.slice(0, 10))
 #: src/routes/obligations.tsx
@@ -7707,6 +7720,14 @@ msgstr "Paused"
 msgid "Payment"
 msgstr "Payment"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Payment {overdueDays}d late"
+msgstr "Payment {overdueDays}d late"
+
+#: src/routes/obligations.tsx
+msgid "Payment {paymentLateDays}d late"
+msgstr "Payment {paymentLateDays}d late"
+
 #: src/routes/billing.success.tsx
 msgid "Payment confirmation"
 msgstr "Payment confirmation"
@@ -7730,6 +7751,20 @@ msgstr "Payment due"
 #: src/routes/billing.tsx
 msgid "Payment model"
 msgstr "Payment model"
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "payment overdue"
+msgstr "payment overdue"
+
+#: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
+msgid "Payment overdue on {paymentOverdueCount} filings"
+msgstr "Payment overdue on {paymentOverdueCount} filings"
+
+#: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
+msgid "Payment overdue on 1 filing"
+msgstr "Payment overdue on 1 filing"
 
 #: src/routes/obligations.tsx
 msgid "Payment scheduled with authority"
@@ -10725,6 +10760,11 @@ msgstr "The Evidence tab is where the 8879 packet lives"
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
 msgstr "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
+
+#. placeholder {0}: formatDate(obligation.paymentDueDate ?? '')
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "The filing was submitted, but the authority payment due {0} hasn't been confirmed yet. Penalty interest accrues until the wire lands."
+msgstr "The filing was submitted, but the authority payment due {0} hasn't been confirmed yet. Penalty interest accrues until the wire lands."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "The firm-side soft target — when this filing should be ready internally for the deadline window"

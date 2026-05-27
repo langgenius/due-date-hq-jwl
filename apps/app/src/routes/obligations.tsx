@@ -193,6 +193,7 @@ import {
   type ObligationStatus,
 } from '@/features/obligations/status-control'
 import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocked-by-chip'
+import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import {
   DEADLINE_DETAIL_TABS,
   cleanDeadlineDetailSearch,
@@ -2195,6 +2196,16 @@ export function ObligationQueueRoute() {
             status: obligationQueueRow.status,
             blockedByObligationInstanceId: obligationQueueRow.blockedByObligationInstanceId,
           })
+          // 2026-05-27 (phi journey audit J1): payment-overdue chip in
+          // the queue Status column. A row that's been Filed but whose
+          // paymentDueDate has slipped used to render only the green
+          // Filed pill — the queue itself never surfaced the buried
+          // payment-overdue signal. Now: a small red Badge appears
+          // next to the status pill when the row's payment is past
+          // due, regardless of the lifecycle status. Stacks cleanly
+          // with BlockedByChip / RejectionChip (they're status-state
+          // signals; this is a date-state signal).
+          const paymentLateDays = paymentOverdueDays(obligationQueueRow, Date.now())
           return (
             <div className="flex items-center gap-1.5">
               <ObligationQueueStatusControl
@@ -2204,6 +2215,15 @@ export function ObligationQueueRoute() {
                 disabled={statusUpdatePending}
                 onChange={(id, status) => updateStatus({ id, status }, obligationQueueRow.status)}
               />
+              {paymentLateDays !== null ? (
+                <Badge
+                  variant="destructive"
+                  className="h-5 px-1.5 text-caption-xs uppercase tracking-wide"
+                  title={t`Filing submitted but the authority payment due ${formatDate(obligationQueueRow.paymentDueDate ?? '')} hasn't been confirmed. Penalty interest accrues until the wire lands.`}
+                >
+                  <Trans>Payment {paymentLateDays}d late</Trans>
+                </Badge>
+              ) : null}
               {showBlockedBy && obligationQueueRow.blockedByObligationInstanceId ? (
                 <BlockedByChip
                   parentObligationId={obligationQueueRow.blockedByObligationInstanceId}
@@ -5743,6 +5763,12 @@ export function ObligationQueueDetailDrawer({
               const showWaitingChip = row.status === 'waiting_on_client'
               const showBlockedChip = row.status === 'blocked'
               const showOverdueChip = row.daysUntilDue < 0 && !isTerminalStatus
+              // 2026-05-27 (phi journey audit J1): drawer-header
+              // payment-overdue chip mirrors the queue-row chip from
+              // the Status cell. Renders only when paymentDueDate has
+              // slipped (status-independent), so a Filed-but-payment-
+              // overdue row shows: <Form 1120-S> <Payment 71d late>.
+              const drawerPaymentLateDays = paymentOverdueDays(row, Date.now())
               // `pillDisplayStatus` retired with the drawer-header
               // status control removal (feedback #4). The dedup logic
               // it powered (showing "In progress" pill while the chip
@@ -5795,6 +5821,19 @@ export function ObligationQueueDetailDrawer({
                         value={Math.abs(row.daysUntilDue)}
                         one="# day overdue"
                         other="# days overdue"
+                      />
+                    </Badge>
+                  ) : null}
+                  {drawerPaymentLateDays !== null ? (
+                    <Badge
+                      variant="destructive"
+                      className="h-6 text-caption-xs uppercase tracking-wide"
+                      title={t`Filing submitted but the authority payment due ${formatDate(row.paymentDueDate ?? '')} hasn't been confirmed. Penalty interest accrues until the wire lands.`}
+                    >
+                      <Plural
+                        value={drawerPaymentLateDays}
+                        one="Payment # day late"
+                        other="Payment # days late"
                       />
                     </Badge>
                   ) : null}
@@ -8449,11 +8488,20 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   // 2026-03-16 · 70 days ago" — and skip the redundant Internal /
   // Payment cards. Non-terminal rows + terminal rows with mixed
   // dates keep the full strip.
+  // 2026-05-27 (phi journey audit J1): suppress the compact-terminal
+  // collapse when the payment is overdue. The compact strip hides the
+  // Payment tile (the dates all "match"), but a Filed-but-payment-
+  // overdue row REALLY DOES have a live signal on the payment leg
+  // that the user needs to see. Fall through to the full 3-tile
+  // strip so the Payment tile can paint destructive.
+  const hasOverduePayment =
+    paymentIso !== null && paymentIso < todayIso && row.status !== 'completed'
   const allTerminalDatesMatch =
     isTerminal &&
     filingIso !== null &&
     internalIso === filingIso &&
-    (paymentIso === null || paymentIso === filingIso)
+    (paymentIso === null || paymentIso === filingIso) &&
+    !hasOverduePayment
   if (allTerminalDatesMatch) {
     // 2026-05-26 (Yuqi feedback #3): dropped the full green chrome
     // (border-state-success-border + bg-state-success-hover) from the
@@ -8514,7 +8562,16 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   // (red border + tint) is the visual cue.
   const filingPast = filingIso !== null && filingIso < todayIso && !isTerminal
   const internalPast = internalIso !== null && internalIso < todayIso && !isTerminal
-  const paymentPast = paymentIso !== null && paymentIso < todayIso && !isTerminal
+  // 2026-05-27 (phi journey audit J1): payment-overdue isn't gated by
+  // `isTerminal`. A row that's been Filed (status='done') but whose
+  // payment due date has slipped should STILL paint the Payment tile
+  // in destructive tone — the filing leg is done, the money leg is
+  // not. Previously `!isTerminal` suppressed the red value text on
+  // exactly this case, so the user looking at the drawer saw a
+  // quiet-gray "Payment due May 6" with no urgency cue, even though
+  // penalty interest was already accruing.
+  const paymentPast =
+    paymentIso !== null && paymentIso < todayIso && row.status !== 'completed'
   return (
     <div aria-label={t`Key deadlines`} className="grid grid-cols-3 gap-2">
       <DeadlineTile
@@ -8530,10 +8587,20 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
         tone="neutral"
         valueTone={internalPast ? 'destructive' : 'primary'}
       />
+      {/* 2026-05-27 (phi journey audit J1): Payment tile now paints
+          its surface destructive when the payment is past due. Was
+          neutral surface + red value, which read at-a-glance as the
+          same calm gray as the Internal tile next to it — Yuqi's
+          71-day-overdue payment that triggered this audit was buried
+          here. With a `tone="destructive"` surface, the tile carries
+          the same red-border-on-white treatment as the Filing tile
+          uses on a missed non-terminal row, so the Payment leg's
+          urgency reads at the same scan distance regardless of
+          status. */}
       <DeadlineTile
         label={t`Payment due`}
         date={paymentIso}
-        tone="neutral"
+        tone={paymentPast ? 'destructive' : 'neutral'}
         valueTone={paymentPast ? 'destructive' : paymentIso ? 'primary' : 'tertiary'}
       />
     </div>
