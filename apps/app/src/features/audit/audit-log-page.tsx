@@ -39,6 +39,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/permission-gate'
@@ -626,9 +627,13 @@ export function AuditLogPage() {
         permission="audit.read"
         firm={currentFirm}
         description={
+          // ROH-D11 — was "owners, managers, and preparers"; audit.read
+          // is owner/partner/manager/preparer. The helper renders the
+          // list from FIRM_PERMISSION_ROLES so the description matches
+          // the actual gate.
           <Trans>
-            Practice-wide audit events are available to owners, managers, and preparers. Contact the
-            practice owner if you need audit access.
+            Practice-wide audit events are available to {requiredRolesLabel('audit.read')}.
+            Contact the practice owner if you need audit access.
           </Trans>
         }
         secondaryAction={{ label: <Trans>Open deadlines</Trans>, to: '/deadlines' }}

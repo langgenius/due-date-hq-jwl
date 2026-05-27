@@ -940,9 +940,10 @@ msgstr "来自您的身份验证器应用（Google Authenticator、1Password、A
 msgid "8879 sent to client for signature"
 msgstr "8879 已发给客户签字"
 
+#. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/concepts/concept-help.tsx
-msgid "A deadline rule accepted by this practice's owner or manager. It can generate client-facing reminders when it matches a client."
-msgstr "由当前事务所 Owner 或 Manager 接受的截止日规则。匹配客户后可生成面向客户的提醒。"
+msgid "A deadline rule accepted by {0} at this practice. It can generate client-facing reminders when it matches a client."
+msgstr "由本事务所的 {0} 接受的截止日规则。匹配客户后可生成面向客户的提醒。"
 
 #: src/features/concepts/concept-help.tsx
 msgid "A dry run that shows which deadline rules would create for a client before anything is written to the deadline list."
@@ -968,9 +969,10 @@ msgstr "模型对抽取或匹配结果的置信信号。置信度低表示应用
 msgid "A personal feed for deadlines assigned to you."
 msgstr "订阅分配给你的截止日。"
 
+#. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/concepts/concept-help.tsx
-msgid "A possible rule or change that is still waiting for owner or manager review. Review-only rules do not update client deadlines or send reminders."
-msgstr "仍等待 Owner 或 Manager 复核的可能规则或变更。仅供复核的规则不会更新客户截止日，也不会发送提醒。"
+msgid "A possible rule or change that is still waiting for {0} to review. Review-only rules do not update client deadlines or send reminders."
+msgstr "仍等待 {0} 复核的可能规则或变更。仅供复核的规则不会更新客户截止日，也不会发送提醒。"
 
 #: src/features/concepts/concept-help.tsx
 msgid "A regulatory change signal detected from watched official sources. Matching client deadlines still need review before changes are applied."
@@ -2043,9 +2045,10 @@ msgstr "账单控制"
 msgid "Billing interval"
 msgstr "账单周期"
 
+#. placeholder {0}: requiredRolesLabel('billing.read')
 #: src/routes/billing.tsx
-msgid "Billing overview is available to owners and managers. Contact the practice owner if you need plan or invoice access."
-msgstr "账单概览仅负责人和管理员可访问。需要套餐或发票权限请联系事务所负责人。"
+msgid "Billing overview is available to {0}. Contact the practice owner if you need plan or invoice access."
+msgstr "账单概览仅 {0} 可访问。需要套餐或发票权限请联系事务所负责人。"
 
 #: src/routes/billing.tsx
 msgid "Billing portal couldn't open"
@@ -2907,9 +2910,14 @@ msgstr "合同级模型路由、自定义覆盖范围和审计级 AI 控制。"
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/permissions/permission-gate.tsx
+#: src/lib/required-roles-label.ts
 #: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 msgid "Coordinator"
+msgstr "协调员"
+
+#: src/lib/required-roles-label.ts
+msgid "coordinators"
 msgstr "协调员"
 
 #: src/routes/account-security-two-factor-setup.tsx
@@ -5170,9 +5178,10 @@ msgstr "导入客户"
 msgid "Import clients · Step {0} of 4"
 msgstr "导入客户 · 第 {0} 步 / 共 4 步"
 
+#. placeholder {0}: requiredRolesLabel('migration.run')
 #: src/routes/dashboard.tsx
-msgid "Import clients (owner or manager access required)"
-msgstr "导入客户（需要所有者或经理权限）"
+msgid "Import clients (requires {0} access)"
+msgstr "导入客户（需要 {0} 权限）"
 
 #: src/routes/clients.tsx
 msgid "Import clients from CSV to populate the directory faster."
@@ -5794,6 +5803,7 @@ msgstr "管理事务所席位、角色和邀请。"
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/permissions/permission-gate.tsx
+#: src/lib/required-roles-label.ts
 #: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 msgid "Manager"
@@ -5814,6 +5824,10 @@ msgstr "经理审核已保存"
 #: src/routes/billing.tsx
 msgid "Manager-ready practice operations"
 msgstr "面向管理员的事务所运营"
+
+#: src/lib/required-roles-label.ts
+msgid "managers"
+msgstr "管理员"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Manual"
@@ -7038,9 +7052,10 @@ msgstr "通知偏好"
 msgid "Notifications"
 msgstr "通知"
 
+#. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Notifications queued for owners and managers."
-msgstr "已为所有者和经理排队发送通知。"
+msgid "Notifications queued for {0}."
+msgstr "已为 {0} 排队发送通知。"
 
 #: src/features/opportunities/opportunity-ui.tsx
 msgid "Now"
@@ -7131,22 +7146,26 @@ msgstr "引导对话轮次已打开"
 msgid "One unfinished draft import"
 msgstr "One unfinished draft import"
 
+#. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/pulse/lib/error-mapping.ts
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Only owners and managers can apply Pulse changes."
-msgstr "仅 Owner 与 Manager 可应用监管提醒。"
+msgid "Only {0} can apply Pulse changes."
+msgstr "只有 {0} 可以应用 Pulse 变更。"
 
+#. placeholder {0}: requiredRolesLabel('firm.calendar.manage')
 #: src/features/calendar/calendar-page.tsx
-msgid "Only owners and managers can enable the practice-wide calendar feed."
-msgstr "只有 Owner 和 Manager 可以启用全事务所日历订阅源。"
+msgid "Only {0} can enable the practice-wide calendar feed."
+msgstr "只有 {0} 可以启用全事务所日历订阅源。"
 
-#: src/features/migration/ImportHistoryDrawer.tsx
-msgid "Only owners and managers can undo migration imports."
-msgstr "只有负责人和管理员可以撤销迁移导入。"
-
+#. placeholder {0}: requiredRolesLabel('billing.update')
 #: src/routes/billing.tsx
-msgid "Only owners can manage billing."
-msgstr "只有 Owner 可以管理账单。"
+msgid "Only {0} can manage billing."
+msgstr "只有 {0} 可以管理账单。"
+
+#. placeholder {0}: requiredRolesLabel('migration.revert')
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Only {0} can undo migration imports."
+msgstr "只有 {0} 可以撤销迁移导入。"
 
 #: src/routes/billing.tsx
 msgid "Only practice owners can change plans or open the portal."
@@ -7548,6 +7567,7 @@ msgstr "已覆盖"
 #: src/features/concepts/concept-help.tsx
 #: src/features/permissions/permission-gate.tsx
 #: src/features/workload/workload-page.tsx
+#: src/lib/required-roles-label.ts
 #: src/routes/billing.tsx
 #: src/routes/obligations.tsx
 #: src/routes/practice.tsx
@@ -7586,10 +7606,6 @@ msgstr "所有者数量"
 msgid "Owner or manager access required"
 msgstr "需要 owner 或 manager 权限"
 
-#: src/routes/dashboard.tsx
-msgid "Owner or manager access required."
-msgstr "需要所有者或经理权限。"
-
 #: src/routes/obligations.tsx
 msgid "owner or partner"
 msgstr "owner 或 partner"
@@ -7614,6 +7630,10 @@ msgstr "负责人已更新"
 #: src/features/workload/workload-page.tsx
 msgid "Owner workload"
 msgstr "负责人负载"
+
+#: src/lib/required-roles-label.ts
+msgid "owners"
+msgstr "所有者"
 
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Owners"
@@ -7684,6 +7704,7 @@ msgstr "部分已应用"
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/permissions/permission-gate.tsx
+#: src/lib/required-roles-label.ts
 #: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 msgid "Partner"
@@ -7696,6 +7717,10 @@ msgstr "合伙人数量"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Partner, filing profile, or other context for this deadline."
 msgstr "合伙人、申报资料或此截止日期的其他上下文。"
+
+#: src/lib/required-roles-label.ts
+msgid "partners"
+msgstr "合伙人"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
@@ -8092,9 +8117,10 @@ msgstr "事务所级投递文案"
 msgid "Practice-managed reminder template."
 msgstr "事务所统一管理的提醒模板。"
 
+#. placeholder {0}: requiredRolesLabel('audit.read')
 #: src/features/audit/audit-log-page.tsx
-msgid "Practice-wide audit events are available to owners, managers, and preparers. Contact the practice owner if you need audit access."
-msgstr "全事务所审计事件仅负责人、管理员和经办人可访问。需要审计权限请联系事务所负责人。"
+msgid "Practice-wide audit events are available to {0}. Contact the practice owner if you need audit access."
+msgstr "全事务所审计事件仅 {0} 可访问。需要审计权限请联系事务所负责人。"
 
 #: src/routes/practice.tsx
 msgid "Practice-wide weights for deterministic deadline ranking."
@@ -8112,10 +8138,15 @@ msgstr "已准备材料清单。"
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/permissions/permission-gate.tsx
+#: src/lib/required-roles-label.ts
 #: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 msgid "Preparer"
 msgstr "经办人"
+
+#: src/lib/required-roles-label.ts
+msgid "preparers"
+msgstr "准备者"
 
 #: src/routes/obligations.tsx
 msgid "Preparing"
@@ -8847,6 +8878,11 @@ msgstr "规则生成与 Pulse 匹配必需。"
 #: src/features/permissions/permission-gate.tsx
 msgid "Required: {requiredRoleText}"
 msgstr "需要：{requiredRoleText}"
+
+#. placeholder {0}: requiredRolesLabel('migration.run')
+#: src/routes/dashboard.tsx
+msgid "Requires {0} access."
+msgstr "需要 {0} 权限。"
 
 #: src/features/concepts/concept-help.tsx
 msgid "Requires review"
@@ -10693,9 +10729,10 @@ msgstr "启用模板"
 msgid "Temporary rules"
 msgstr "临时规则"
 
+#. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/rules/temporary-rules-tab.tsx
-msgid "Temporary rules appear here after an owner or manager applies a Pulse Change to matched deadlines."
-msgstr "Temporary rules appear here after an owner or manager applies a Pulse Change to matched deadlines."
+msgid "Temporary rules appear here after {0} apply a Pulse Change to matched deadlines."
+msgstr "{0} 将 Pulse 变更应用到匹配的截止日后，临时规则会显示在这里。"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "That deadline already exists for this client and tax year."

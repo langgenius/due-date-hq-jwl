@@ -59,6 +59,7 @@ import { PermissionObscuredContent } from '@/features/permissions/permission-gat
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 
 type CalendarCardConfig = {
   scope: CalendarSubscriptionScope
@@ -439,8 +440,15 @@ function CalendarSubscriptionCard({
             permission="firm.calendar.manage"
             currentRole={currentRole}
             fallback={<CalendarSubscriptionRedactedContent />}
+            // ROH-D11 — was "Only owners and managers" hard-coded; the
+            // permission's role set is owner/partner/manager so this
+            // copy was silently dropping `partner`. Use the helper so
+            // the list always reflects FIRM_PERMISSION_ROLES.
             notice={
-              <Trans>Only owners and managers can enable the practice-wide calendar feed.</Trans>
+              <Trans>
+                Only {requiredRolesLabel('firm.calendar.manage')} can enable the practice-wide
+                calendar feed.
+              </Trans>
             }
           >
             <CalendarSubscriptionRedactedContent />

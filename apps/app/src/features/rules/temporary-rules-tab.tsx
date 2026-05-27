@@ -19,6 +19,7 @@ import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 
 import {
   FilterChips,
@@ -68,9 +69,12 @@ export function TemporaryRulesTab() {
           <Trans>No temporary rules yet</Trans>
         </p>
         <p className="max-w-[520px] text-sm text-text-secondary">
+          {/* ROH-D11 — was "owner or manager"; pulse.apply is
+              owner/partner/manager. Helper-driven plural noun keeps the
+              gate label honest as roles change. */}
           <Trans>
-            Temporary rules appear here after an owner or manager applies a Pulse Change to matched
-            deadlines.
+            Temporary rules appear here after {requiredRolesLabel('pulse.apply')} apply a Pulse
+            Change to matched deadlines.
           </Trans>
         </p>
       </SectionFrame>

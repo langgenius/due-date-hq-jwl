@@ -35,6 +35,7 @@ import { PermissionInlineNotice, useFirmPermission } from '@/features/permission
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 
 type ImportHistoryDrawerProps = {
   open: boolean
@@ -231,7 +232,12 @@ export function ImportHistoryDrawer({
                     permission="migration.revert"
                     currentRole={permission.firm?.role}
                   >
-                    <Trans>Only owners and managers can undo migration imports.</Trans>
+                    {/* ROH-D11 — was "owners and managers"; migration.revert
+                        includes partner. Helper drives off
+                        FIRM_PERMISSION_ROLES so the list stays current. */}
+                    <Trans>
+                      Only {requiredRolesLabel('migration.revert')} can undo migration imports.
+                    </Trans>
                   </PermissionInlineNotice>
                 ) : null}
                 {batches.map((batch) => {

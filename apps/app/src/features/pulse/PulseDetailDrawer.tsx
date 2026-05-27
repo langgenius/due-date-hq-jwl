@@ -43,6 +43,7 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate } from '@/lib/utils'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
@@ -120,10 +121,20 @@ export function canRequestPulseReview(input: {
 }
 
 // Read RBAC from the firms cache the layout already primed. The Apply CTA stays
-// disabled until we know the user is Owner / Manager (matches server permissions).
+// disabled until we know the user is Owner / Partner / Manager (matches server
+// permissions).
+//
+// ROH-D15 — the Undo button used to share `canApply` (`pulse.apply`) as a
+// proxy gate, which left the `pulse.revert` Permission enum value with no UI
+// call site. Both permissions share the same role set today
+// (owner/partner/manager), so the gating behaviour is identical, but the
+// explicit `pulse.revert` lookup keeps the UI and source-of-truth aligned —
+// if a future change splits revert into a smaller (or larger) role set, the
+// Undo button will track it without another code edit.
 function usePulsePermissions(): {
   role: FirmRole | null
   canApply: boolean
+  canRevert: boolean
   canViewPriorityQueue: boolean
   canManagePriorityReview: boolean
 } {
@@ -135,6 +146,7 @@ function usePulsePermissions(): {
     return {
       role: null,
       canApply: false,
+      canRevert: false,
       canViewPriorityQueue: false,
       canManagePriorityReview: false,
     }
@@ -144,6 +156,7 @@ function usePulsePermissions(): {
     return {
       role: null,
       canApply: false,
+      canRevert: false,
       canViewPriorityQueue: false,
       canManagePriorityReview: false,
     }
@@ -155,9 +168,15 @@ function usePulsePermissions(): {
     permission: 'pulse.apply',
     coordinatorCanSeeDollars: current.coordinatorCanSeeDollars,
   })
+  const canRevert = hasFirmPermission({
+    role: current.role,
+    permission: 'pulse.revert',
+    coordinatorCanSeeDollars: current.coordinatorCanSeeDollars,
+  })
   return {
     role: current.role,
     canApply,
+    canRevert,
     canViewPriorityQueue: priorityEnabled,
     canManagePriorityReview: priorityEnabled && canApply,
   }
@@ -428,8 +447,11 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
         // notifications server-side. Rephrased as a present-perfect
         // status ("queued for…") so the toast describes the
         // ACTUAL state of the world at toast-render time.
+        // ROH-D11 — was "owners and managers" hard-coded; the
+        // pulse.apply review-eligible role set is owner/partner/manager.
+        // Use the helper so the toast tracks FIRM_PERMISSION_ROLES.
         toast.success(t`Review requested`, {
-          description: t`Notifications queued for owners and managers.`,
+          description: t`Notifications queued for ${requiredRolesLabel('pulse.apply')}.`,
         })
       },
       onError: (err) => {
@@ -859,7 +881,9 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                   <Trans>Read-only view</Trans>
                 </AlertTitle>
                 <AlertDescription>
-                  <Trans>Only owners and managers can apply Pulse changes.</Trans>
+                  {/* ROH-D11 — was "owners and managers"; pulse.apply
+                      includes partner. Driven by FIRM_PERMISSION_ROLES. */}
+                  <Trans>Only {requiredRolesLabel('pulse.apply')} can apply Pulse changes.</Trans>
                 </AlertDescription>
               </Alert>
             ) : null}
@@ -935,6 +959,9 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
             selectionCount={stats?.selectedCount ?? 0}
             actionMode={detail.alert.actionMode}
             canApply={canApply}
+            // ROH-D15 — Undo button now gates on `pulse.revert` instead
+            // of the `pulse.apply` proxy.
+            canRevert={permissions.canRevert}
             canRequestReview={canRequestPulseReview({
               role: permissions.role,
               alertStatus: detail.alert.status,
@@ -1126,6 +1153,7 @@ function DrawerActions({
   selectionCount,
   actionMode,
   canApply,
+  canRevert,
   canRequestReview,
   canApplyReviewed,
   reviewedSetReady,
@@ -1145,6 +1173,10 @@ function DrawerActions({
   selectionCount: number
   actionMode: PulseDetail['alert']['actionMode']
   canApply: boolean
+  // ROH-D15 — gate the Undo button on the dedicated `pulse.revert`
+  // permission instead of borrowing `canApply`. Same role set today,
+  // but tracks the source-of-truth when the matrix changes.
+  canRevert: boolean
   canRequestReview: boolean
   canApplyReviewed: boolean
   reviewedSetReady: boolean
@@ -1181,7 +1213,10 @@ function DrawerActions({
           <Button
             variant="outline"
             size="sm"
-            disabled={!canApply || isMutating || sourceRevoked}
+            // ROH-D15 — was `disabled={!canApply || …}` (proxy gate via
+            // pulse.apply). Now gates on `canRevert` (pulse.revert) so
+            // the permission enum has a real UI call site.
+            disabled={!canRevert || isMutating || sourceRevoked}
             onClick={onRevert}
           >
             <RotateCcwIcon data-icon="inline-start" />
