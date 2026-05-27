@@ -507,7 +507,12 @@ export function CreateClientDialog({
           </FieldGroup>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            {/* 2026-05-27 (σ cross-route audit D13): outline → ghost.
+                Step 6 cont X1 didn't reach the CreateClientDialog
+                because it lives in features/clients, not routes/.
+                Sweeping it now so every dialog Cancel in the app
+                renders identically. */}
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               <Trans>Cancel</Trans>
             </Button>
             {/* Step 6 UX #78: Loader2 spinner during pending matches

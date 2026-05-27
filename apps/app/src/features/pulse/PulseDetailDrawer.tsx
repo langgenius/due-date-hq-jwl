@@ -737,13 +737,19 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
             </AlertTitle>
             <AlertDescription>
               {i18n._(pulseErrorDescriptor(detailQuery.error))}{' '}
-              <button
+              {/* 2026-05-27 (σ cross-route audit D8): raw underline
+                  button → canonical `<Button variant="link">`. Pairs
+                  with D5 in AlertsListPage — both pulse retry sites
+                  now match dashboard/clients/obligations. */}
+              <Button
                 type="button"
-                className="underline"
+                variant="link"
+                size="sm"
+                className="h-auto p-0 align-baseline"
                 onClick={() => void detailQuery.refetch()}
               >
                 <Trans>Retry</Trans>
-              </button>
+              </Button>
             </AlertDescription>
           </Alert>
         ) : null}

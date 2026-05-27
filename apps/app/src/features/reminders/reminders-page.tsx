@@ -40,6 +40,7 @@ import {
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
 import { Input } from '@duedatehq/ui/components/ui/input'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Switch } from '@duedatehq/ui/components/ui/switch'
 import {
   Table,
@@ -308,9 +309,16 @@ function TemplatesPanel({
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-text-secondary">
-            <Trans>Loading templates…</Trans>
-          </p>
+          // 2026-05-27 (σ cross-route audit D7): swapped four raw
+          // "Loading templates…" / "Loading recent delivery…" etc.
+          // paragraphs across this module for skeleton row stacks
+          // shaped to the eventual table row. Matches the queue /
+          // audit / opportunities skeleton register.
+          <div className="grid gap-2" aria-busy="true">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
         ) : (
           <Table>
             <TableHeader>
@@ -384,9 +392,11 @@ function UpcomingPanel({
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-text-secondary">
-            <Trans>Loading upcoming reminders…</Trans>
-          </p>
+          <div className="grid gap-2" aria-busy="true">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
         ) : reminders.length === 0 ? (
           <EmptyState
             title={<Trans>No upcoming reminders match the current 30 / 7-day windows.</Trans>}
@@ -460,13 +470,17 @@ function RecentSendsPanel({
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-text-secondary">
-            <Trans>Loading recent delivery…</Trans>
-          </p>
+          <div className="grid gap-2" aria-busy="true">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
         ) : reminders.length === 0 ? (
-          <p className="rounded-md border border-divider-subtle p-4 text-sm text-text-secondary">
-            <Trans>No reminder deliveries have been recorded yet.</Trans>
-          </p>
+          // 2026-05-27 (σ cross-route audit D4): bordered `<p>` →
+          // canonical EmptyState. Sibling Upcoming reminders panel
+          // already used EmptyState; this module was internally
+          // inconsistent.
+          <EmptyState title={<Trans>No reminder deliveries have been recorded yet.</Trans>} />
         ) : (
           <Table>
             <TableHeader>
@@ -544,13 +558,12 @@ function SuppressionsPanel({
       </CardHeader>
       <CardContent className="grid gap-3">
         {loading ? (
-          <p className="text-sm text-text-secondary">
-            <Trans>Loading suppressions…</Trans>
-          </p>
+          <div className="grid gap-2" aria-busy="true">
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-14 w-full" />
+          </div>
         ) : suppressions.length === 0 ? (
-          <p className="rounded-md border border-divider-subtle p-4 text-sm text-text-secondary">
-            <Trans>No client emails are suppressed.</Trans>
-          </p>
+          <EmptyState title={<Trans>No client emails are suppressed.</Trans>} />
         ) : (
           suppressions.map((item) => (
             <article

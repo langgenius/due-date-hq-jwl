@@ -5699,14 +5699,6 @@ msgstr "Loading invitation"
 msgid "Loading readiness check…"
 msgstr "Loading readiness check…"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Loading recent delivery…"
-msgstr "Loading recent delivery…"
-
-#: src/features/notifications/notification-preferences-page.tsx
-msgid "Loading recent digest runs…"
-msgstr "Loading recent digest runs…"
-
 #: src/features/rules/sources-tab.tsx
 msgid "Loading rule sources…"
 msgstr "Loading rule sources…"
@@ -5719,10 +5711,6 @@ msgstr "Loading rules coverage…"
 msgid "Loading rules…"
 msgstr "Loading rules…"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Loading suppressions…"
-msgstr "Loading suppressions…"
-
 #: src/routes/obligations.tsx
 msgid "Loading team"
 msgstr "Loading team"
@@ -5731,17 +5719,9 @@ msgstr "Loading team"
 msgid "Loading team workload"
 msgstr "Loading team workload"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Loading templates…"
-msgstr "Loading templates…"
-
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Loading temporary rules…"
 msgstr "Loading temporary rules…"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Loading upcoming reminders…"
-msgstr "Loading upcoming reminders…"
 
 #: src/features/workload/workload-page.tsx
 msgid "Loading workload metrics"

@@ -12,6 +12,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 import { getAssigneeTint } from '@/lib/assignee-tint'
+import { initialsFromName } from '@/lib/auth'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 import {
@@ -176,14 +177,15 @@ function AuditLogRow({
               actor ? getAssigneeTint(actor) : 'bg-background-subtle text-text-tertiary',
             )}
           >
-            {actor
-              ? actor
-                  .split(/\s+/)
-                  .slice(0, 2)
-                  .map((part) => part.charAt(0))
-                  .join('')
-                  .toUpperCase() || '?'
-              : '?'}
+            {/* 2026-05-27 (σ cross-route audit D2): swapped the hand-
+                rolled initials math for the canonical `initialsFromName`
+                helper that powers AssigneeAvatar / app-shell user menu
+                / clients team list. The previous expression was a
+                near-duplicate of the helper; centralising means a
+                single-char name like "X" or an unusual whitespace input
+                gets the same treatment everywhere. `'?'` fallback
+                preserved for the system-event case. */}
+            {actor ? initialsFromName(actor) : '?'}
           </span>
           <div className="grid min-w-0 gap-1">
             <span className="text-xs font-medium text-text-primary">{actor}</span>
