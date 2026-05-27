@@ -15,11 +15,11 @@ const { t, ctaHref } = Astro.props
       <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-12">
         <div class="lg:col-span-7">
           <div class="flex flex-wrap items-center gap-3">
-            <span class="inline-flex items-center gap-2 rounded-full bg-severity-critical-tint px-3 py-1 font-mono text-[12px] tracking-[0.16em] text-severity-critical">
+            <span class="inline-flex items-center gap-2 rounded-full bg-severity-critical-tint px-3 py-1 font-mono text-sm tracking-[0.16em] text-severity-critical">
               <span class="block h-1.5 w-1.5 rounded-full bg-severity-critical"></span>
               {t.pill}
             </span>
-            <span class="font-mono text-[12px] tracking-[0.16em] text-text-muted">{t.pillCaption}</span>
+            <span class="font-mono text-sm tracking-[0.16em] text-text-muted">{t.pillCaption}</span>
           </div>
           <h2 class="mt-6 text-display-large font-semibold tracking-tight text-text-primary">
             {t.title}
@@ -41,7 +41,7 @@ const { t, ctaHref } = Astro.props
           >
             {t.secondaryCta}
           </a>
-          <span class="mt-2 inline-flex items-center gap-2 font-mono text-[12px] text-text-muted">
+          <span class="mt-2 inline-flex items-center gap-2 font-mono text-sm text-text-muted">
             <span class="block h-1.5 w-1.5 rounded-full bg-status-done"></span>
             {t.trust}
           </span>

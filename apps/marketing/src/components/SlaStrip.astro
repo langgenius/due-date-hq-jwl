@@ -12,16 +12,16 @@ const { t } = Astro.props
   <div class="mx-auto grid max-w-[1440px] grid-cols-1 px-6 py-12 sm:px-10 md:grid-cols-3 lg:px-20">
     {t.items.map((item, idx) => (
       <div class={`px-0 py-6 first:pt-0 last:pb-0 md:px-6 md:py-0 ${idx > 0 ? 'border-t border-border-default md:border-l md:border-t-0' : ''}`}>
-        <div class="flex items-center gap-3 font-mono text-[12px] tracking-[0.18em] text-text-muted">
+        <div class="flex items-center gap-3 font-mono text-sm tracking-[0.18em] text-text-muted">
           <span>{item.ruleNumber}</span>
           <span class="h-px w-5 bg-border-default"></span>
           <span class="text-text-secondary">{item.ruleLabel}</span>
         </div>
         <div class="mt-4 flex items-end gap-2">
           <span class="font-mono tabular text-[64px] font-semibold leading-none text-text-primary">{item.value}</span>
-          <span class="pb-3 font-mono text-[16px] text-text-muted">{item.unit}</span>
+          <span class="pb-3 font-mono text-lg text-text-muted">{item.unit}</span>
         </div>
-        <p class="mt-6 max-w-[372px] text-[13px] leading-relaxed text-text-secondary">{item.description}</p>
+        <p class="mt-6 max-w-[372px] text-description leading-relaxed text-text-secondary">{item.description}</p>
       </div>
     ))}
   </div>
