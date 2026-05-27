@@ -2944,11 +2944,19 @@ export function ObligationQueueRoute() {
           // at, not just the raw total. Other surfaces now use
           // the matching shape: "3 Ongoing" on /alerts,
           // "9 Clients" on /clients, "N Rules" on /rules/library.
-          // 2026-05-27 (Yuqi feedback "去掉" / final): count chip
-          // removed entirely. Status tabs below already show per-scope
-          // counts (All 17, Not started 3, etc.) — title chip was
-          // duplicating.
-          <Trans>Deadlines</Trans>
+          // 2026-05-27 (Yuqi FINAL — sorry for flip-flopping):
+          // "Deadlines" heading + canonical chip with just the number.
+          // Earlier "去掉" / "remove" meant remove the word "deadlines"
+          // inside the chip (so "17" not "17 deadlines"), NOT remove
+          // the chip entirely.
+          <span className="inline-flex items-center gap-2">
+            <Trans>Deadlines</Trans>
+            {scopeTotal > 0 ? (
+              <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+                {scopeTotal}
+              </span>
+            ) : null}
+          </span>
         }
         // 2026-05-26 (Yuqi /deadlines redesign): subtitle surfaces
         // the two metrics CPAs care about first — what's late + what
