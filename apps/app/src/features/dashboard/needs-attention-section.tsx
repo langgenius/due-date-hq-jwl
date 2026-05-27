@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { Binoculars, CircleCheckIcon, CircleSlashIcon } from 'lucide-react'
+import { CircleCheckIcon, CircleSlashIcon } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 
 import type { PulseSourceHealth } from '@duedatehq/contracts'
@@ -11,6 +11,9 @@ import {
   usePulseListAlertsQueryOptions,
   usePulseSourceHealthQueryOptions,
 } from '@/features/pulse/api'
+import { PulsingDot } from '@/features/pulse/components/PulsingDot'
+import { enabledPulseSourceCount } from '@/features/pulse/lib/source-health-labels'
+import { StatusBanner } from '@/components/patterns/status-banner'
 
 import { NeedsAttentionCard, NeedsAttentionOverflowCard } from './needs-attention-card'
 
@@ -43,6 +46,13 @@ function NeedsAttentionSection() {
   const visibleAlerts = alerts.slice(0, VISIBLE_ALERTS)
   const overflowCount = Math.max(alerts.length - VISIBLE_ALERTS, 0)
   const totalAlertCount = alerts.length
+  // 2026-05-27 (Yuqi header unification pass): monitoring count
+  // promoted into the h2 row alongside the alert count, mirroring
+  // the same chip on /rules/pulse. Empty-state body drops the
+  // redundant healthy-state Binoculars paragraph since the chip
+  // now carries that signal (paused warning + zero-sources branch
+  // stay in the body — those are NOT redundant with the chip).
+  const monitoringCount = enabledPulseSourceCount(sources)
 
   return (
     // 2026-05-25 (Yuqi review #4): Alerts is the most important
@@ -90,9 +100,14 @@ function NeedsAttentionSection() {
       // (when alerts are live) and the section bg (when empty)
       // already give the panel its shape against the page wash;
       // the explicit border was just doubling the boundary.
+      // 2026-05-27 (Yuqi cross-route consistency): empty-state
+      // section drops its bg-tint so the inner `StatusBanner`
+      // provides the dashed-border shape — matching /rules/pulse's
+      // all-clear banner and /clients's needs-facts banner. Keeps
+      // `bg-state-destructive-hover` for the alerts-present state.
       className={cn(
         'flex flex-col gap-2.5 rounded-xl p-3',
-        totalAlertCount > 0 ? 'bg-state-destructive-hover' : 'bg-background-section',
+        totalAlertCount > 0 && 'bg-state-destructive-hover',
       )}
     >
       {/* 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
@@ -111,11 +126,25 @@ function NeedsAttentionSection() {
             quieter so the section heading doesn't shout against
             the lighter row body. Count chip also drops from
             text-base → text-sm so the size hierarchy stays
-            proportional. */}
+            proportional.
+            2026-05-27 (Yuqi header unification pass): chips now
+            use the canonical pill (rounded-full bg + font-medium)
+            instead of bare tertiary text, matching /clients,
+            /deadlines, /today, /rules/pulse. Two chips when both
+            signals are meaningful: monitoring (always when sources
+            exist) + alert count (when > 0, destructive-toned). */}
         <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-text-primary">
           <Trans>Alerts</Trans>
+          {monitoringCount > 0 ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium text-text-secondary">
+              <PulsingDot tone="success" active className="size-1.5" />
+              <Trans>
+                Monitoring <Plural value={monitoringCount} one="# source" other="# sources" />
+              </Trans>
+            </span>
+          ) : null}
           {totalAlertCount > 0 ? (
-            <span className="text-sm font-normal tabular-nums text-text-tertiary">
+            <span className="rounded-full bg-state-destructive-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-destructive">
               {totalAlertCount}
             </span>
           ) : null}
@@ -178,9 +207,17 @@ function NeedsAttentionSection() {
 
 // 2026-05-26 (Yuqi Today #2 + #3): displayed in the Alerts section
 // when there are zero active alerts. The first line tells the user
-// nothing needs their attention; the second line gives a numeric
-// source-monitoring count so the page stays quiet while still
-// confirming the watcher is active.
+// nothing needs their attention; a second line surfaces source-health
+// status only when it carries non-redundant signal.
+//
+// 2026-05-27 (Yuqi header unification pass): the healthy-state
+// "Monitoring N sources. New matches will appear here. · View sources"
+// paragraph was dropped — the same count is now in the h2's
+// monitoring chip, so a second restatement was redundant chrome.
+// The paused-state warning and the "no sources monitored at all"
+// branch were retained because the chip does NOT surface those
+// states; they remain meaningful here. The loading branch was
+// also retained so users see "checking…" before the chip flickers in.
 function AlertsEmptyState({
   sources,
   loading,
@@ -189,9 +226,9 @@ function AlertsEmptyState({
   loading: boolean
 }) {
   // 2026-05-26 (Step 6 UX audit #43): aria-labels below were
-  // hardcoded English strings — 'monitoring sources' and
-  // 'sources paused'. Lifted to `t` macro so non-English
-  // assistive-tech users get a localized announcement.
+  // hardcoded English strings — 'sources paused'. Lifted to `t`
+  // macro so non-English assistive-tech users get a localized
+  // announcement.
   const { t } = useLingui()
   const watchedCount = sources.filter(
     (source) => source.enabled && source.healthStatus !== 'paused',
@@ -200,71 +237,47 @@ function AlertsEmptyState({
     (source) => source.enabled && source.healthStatus === 'paused',
   ).length
 
+  const supportingLine = loading ? (
+    <Trans>Checking monitored sources…</Trans>
+  ) : watchedCount === 0 ? (
+    <Trans>No sources are currently being monitored.</Trans>
+  ) : pausedCount > 0 ? (
+    <>
+      <CircleSlashIcon className="size-3.5 text-text-tertiary" aria-label={t`sources paused`} />
+      <span>
+        <Plural value={pausedCount} one="# paused" other="# paused" />
+      </span>
+      <span aria-hidden className="text-text-tertiary">
+        ·
+      </span>
+      <Link
+        to="/rules/sources"
+        className="underline-offset-2 hover:text-text-secondary hover:underline"
+      >
+        <Trans>View sources</Trans>
+      </Link>
+    </>
+  ) : null
+
+  // 2026-05-27 (Yuqi cross-route consistency): adopted the shared
+  // `StatusBanner` primitive so /today's empty alerts state matches
+  // /rules/pulse's all-clear banner and /clients's needs-facts
+  // banner — same dashed-border chrome across all three surfaces.
+  // The two-line body (status + supporting source-health line)
+  // stacks inside the banner's body slot.
   return (
-    <div className="flex flex-col gap-1.5">
-      <p className="flex items-center gap-2 text-sm text-text-secondary">
-        <CircleCheckIcon className="size-4 text-text-success" aria-hidden />
-        <Trans>No active alerts — nothing needs your review right now.</Trans>
-      </p>
-      {/* 2026-05-26 (Yuqi Today follow-up): the monitoring summary
-          icon changed from CircleCheck → Binoculars. "Monitoring"
-          is the meaningful state (watching N feeds for signal);
-          CircleCheck made the line read as a second redundant
-          "all good" confirmation when the line above already
-          says nothing needs review. Binoculars conveys "watching
-          / standing by," which is the actual semantic. CCTV was
-          the alternative Yuqi suggested — binoculars feels less
-          surveillance-y, more "regulatory feed scout." */}
-      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
-        {loading ? (
-          <Trans>Checking monitored sources…</Trans>
-        ) : watchedCount === 0 ? (
-          <Trans>No sources are currently being monitored.</Trans>
-        ) : pausedCount === 0 ? (
-          <>
-            <Binoculars
-              className="size-3.5 text-text-tertiary"
-              aria-label={t`monitoring sources`}
-            />
-            <span>
-              <Plural
-                value={watchedCount}
-                one="Monitoring # source. New matches will appear here."
-                other="Monitoring # sources. New matches will appear here."
-              />
-            </span>
-            <span aria-hidden className="text-text-tertiary">
-              ·
-            </span>
-            <Link
-              to="/rules/sources"
-              className="underline-offset-2 hover:text-text-secondary hover:underline"
-            >
-              <Trans>View sources</Trans>
-            </Link>
-          </>
-        ) : (
-          <>
-            <CircleSlashIcon
-              className="size-3.5 text-text-tertiary"
-              aria-label={t`sources paused`}
-            />
-            <span>
-              <Plural value={pausedCount} one="# paused" other="# paused" />
-            </span>
-            <span aria-hidden className="text-text-tertiary">
-              ·
-            </span>
-            <Link
-              to="/rules/sources"
-              className="underline-offset-2 hover:text-text-secondary hover:underline"
-            >
-              <Trans>View sources</Trans>
-            </Link>
-          </>
-        )}
-      </p>
-    </div>
+    <StatusBanner indicator={<CircleCheckIcon className="size-4 text-text-success" aria-hidden />}>
+      <span className="flex flex-col gap-1.5">
+        <span className="text-sm text-text-secondary">
+          <Trans>No active alerts — nothing needs your review right now.</Trans>
+        </span>
+        {supportingLine ? (
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
+            {supportingLine}
+          </span>
+        ) : null}
+      </span>
+    </StatusBanner>
   )
 }
 
