@@ -321,6 +321,17 @@ async function waitForText(text: string, attempts = 100): Promise<void> {
   throw new Error(`Expected text not found: ${text}; body=${document.body.textContent ?? ''}`)
 }
 
+async function waitForSelector(selector: string, attempts = 100): Promise<void> {
+  if (document.querySelector(selector)) return
+  if (attempts > 0) {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10))
+    })
+    return waitForSelector(selector, attempts - 1)
+  }
+  throw new Error(`Expected selector not found: ${selector}`)
+}
+
 async function waitForButton(name: string, attempts = 100): Promise<void> {
   if (findButton(name)) return
   if (attempts > 0) {
@@ -493,7 +504,7 @@ describe('RulesLibraryRoute', () => {
     await render(<RulesLibraryRoute />)
 
     expect(document.querySelector('[aria-busy="true"]')).toBeDefined()
-    expect(document.body.textContent).not.toContain('0 needs review')
+    expect(document.querySelector('[title="0 need review"]')).toBeNull()
 
     await act(async () => {
       rulesRequest.resolve([rule])
@@ -502,7 +513,7 @@ describe('RulesLibraryRoute', () => {
       await Promise.all([rulesRequest.promise, coverageRequest.promise, sourcesRequest.promise])
     })
 
-    await waitForText('1 needs review')
+    await waitForSelector('[title="1 need review"]')
     expect(document.querySelector('[aria-busy="true"]')).toBeNull()
   })
 

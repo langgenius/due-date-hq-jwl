@@ -166,15 +166,11 @@ const ENTITY_COLUMN_LABELS: Record<EntityKey, string> = {
 }
 
 // Total table column count: Rule + Form + 7 per-entity columns +
-// Needs review + Tier.
-// 2026-05-27 (Yuqi rule library rework — "Put a Needs Review number
-// in a new column"): pendingReviewCount used to live cramped inside
-// the rightmost Tier cell as one of three CountDotChips; lifting it
-// into its own column gives the catalog a sortable "where is the
-// work" axis. The column sits between the per-entity matrix and
-// Tier so the eye reads identity → applicability → workload →
-// classification left-to-right.
-const RULES_TABLE_COLUMN_COUNT = 4 + ENTITY_KEYS.length
+// Tier. 2026-05-27 (Yuqi follow-up — "或者只写数字"): the dedicated
+// Needs-review column was folded back into Tier as a number-only
+// chip alongside the gap chip + progress bar, so the constant drops
+// by 1.
+const RULES_TABLE_COLUMN_COUNT = 3 + ENTITY_KEYS.length
 
 // Status sub-grouping inside an expanded jurisdiction. Rules are
 // bucketed into these groups and rendered under a section header
@@ -753,18 +749,6 @@ export function RulesLibraryRoute() {
   // round-trips for marginal gain and break the in-memory search /
   // jurisdiction-grouping flow this page already runs.
   const [visibleGroupCount, setVisibleGroupCount] = useState(PAGE_SIZE)
-  // Sort state for the new "Needs review" column. `null` = catalog
-  // default order (federal first, then by gap presence, then
-  // alphabetic). `desc` floats jurisdictions with the most pending
-  // reviews to the top; `asc` floats the cleanest ones.
-  const [needsReviewSort, setNeedsReviewSort] = useState<'desc' | 'asc' | null>(null)
-  const toggleNeedsReviewSort = useCallback(() => {
-    setNeedsReviewSort((current) => {
-      if (current === null) return 'desc'
-      if (current === 'desc') return 'asc'
-      return null
-    })
-  }, [])
   // 2026-05-26 (Yuqi /rules/library critique P0): scope tabs above
   // the table. URL-bound so the active scope deep-links. Default is
   // 'all'. `null` from nuqs maps back to 'all' for the activeScope
@@ -843,31 +827,21 @@ export function RulesLibraryRoute() {
   }, [groupsAll, activeScope])
   // 2026-05-27 (Yuqi rule library rework — infinite scroll): the
   // visible slice grows by PAGE_SIZE whenever the bottom sentinel
-  // crosses the viewport. `filteredGroups` is also re-sorted by the
-  // needs-review column when active so loading more groups doesn't
-  // change which jurisdictions float to the top.
-  const sortedFilteredGroups = useMemo(() => {
-    if (needsReviewSort === null) return filteredGroups
-    const direction = needsReviewSort === 'desc' ? -1 : 1
-    return filteredGroups.toSorted(
-      (a, b) => direction * (a.pendingReviewCount - b.pendingReviewCount),
-    )
-  }, [filteredGroups, needsReviewSort])
-  const totalGroupCount = sortedFilteredGroups.length
+  // crosses the viewport.
+  const totalGroupCount = filteredGroups.length
   const clampedVisibleCount = Math.min(visibleGroupCount, totalGroupCount)
   const groups = useMemo(
-    () => sortedFilteredGroups.slice(0, clampedVisibleCount),
-    [sortedFilteredGroups, clampedVisibleCount],
+    () => filteredGroups.slice(0, clampedVisibleCount),
+    [filteredGroups, clampedVisibleCount],
   )
   const hasMoreGroups = clampedVisibleCount < totalGroupCount
-  // Reset the visible window whenever the filter/scope/sort set
-  // changes shape. Using a derived fingerprint (jurisdiction list
-  // identity) means re-running `listRules` data without a filter
-  // change DOESN'T reset the scroll position — the user can keep
-  // reading.
+  // Reset the visible window whenever the filter/scope set changes
+  // shape. Using a derived fingerprint (jurisdiction list identity)
+  // means re-running `listRules` data without a filter change DOESN'T
+  // reset the scroll position — the user can keep reading.
   const filteredGroupsFingerprint = useMemo(
-    () => sortedFilteredGroups.map((g) => g.jurisdiction).join('|'),
-    [sortedFilteredGroups],
+    () => filteredGroups.map((g) => g.jurisdiction).join('|'),
+    [filteredGroups],
   )
   useEffect(() => {
     setVisibleGroupCount(PAGE_SIZE)
@@ -1676,8 +1650,6 @@ export function RulesLibraryRoute() {
               totalGroupCount={totalGroupCount}
               hasMoreGroups={hasMoreGroups}
               onLoadMore={loadMoreGroups}
-              needsReviewSort={needsReviewSort}
-              onToggleNeedsReviewSort={toggleNeedsReviewSort}
             />
           )}
         </div>
@@ -2344,8 +2316,6 @@ function GroupedRulesTable({
   totalGroupCount,
   hasMoreGroups,
   onLoadMore,
-  needsReviewSort,
-  onToggleNeedsReviewSort,
 }: {
   groups: JurisdictionGroup[]
   expanded: Set<RuleJurisdiction>
@@ -2368,10 +2338,6 @@ function GroupedRulesTable({
   totalGroupCount: number
   hasMoreGroups: boolean
   onLoadMore: () => void
-  // 2026-05-27 (Yuqi rule library rework — needs-review column):
-  // sort state for the new Needs-review header cell.
-  needsReviewSort: 'desc' | 'asc' | null
-  onToggleNeedsReviewSort: () => void
 }) {
   const { t } = useLingui()
   const tierLabels = useRuleTierLabels()
@@ -2527,40 +2493,13 @@ function GroupedRulesTable({
                   {ENTITY_COLUMN_LABELS[entity]}
                 </TableHead>
               ))}
-              {/* 2026-05-27 (Yuqi rule library rework — needs-review
-                column): right-aligned numeric header. Click toggles
-                sort; default order is descending so jurisdictions
-                with the most review work surface to the top. */}
-              <TableHead className="w-[120px] text-right">
-                <button
-                  type="button"
-                  onClick={() => onToggleNeedsReviewSort()}
-                  className="inline-flex w-full items-center justify-end gap-1 text-sm font-medium text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                  aria-label={
-                    needsReviewSort === 'desc'
-                      ? t`Sort by needs review, descending (active)`
-                      : needsReviewSort === 'asc'
-                        ? t`Sort by needs review, ascending (active)`
-                        : t`Sort by needs review`
-                  }
-                  aria-pressed={needsReviewSort !== null}
-                >
-                  <Trans>Needs review</Trans>
-                  <span
-                    aria-hidden
-                    className={cn(
-                      'text-caption-xs leading-none',
-                      needsReviewSort !== null ? 'text-text-accent' : 'text-text-tertiary',
-                    )}
-                  >
-                    {needsReviewSort === 'asc' ? '↑' : needsReviewSort === 'desc' ? '↓' : '↕'}
-                  </span>
-                </button>
-              </TableHead>
-              {/* 2026-05-26 (Yuqi follow-up — "the header of Tier
-                should be left aligned"): dropped `text-right` so
-                the column header sits at the column's natural
-                left edge, matching the Rule / Form headers above. */}
+              {/* 2026-05-27 (Yuqi follow-up — "或者只写数字，和后一个
+                column的progressba写在一起"): the dedicated "Needs
+                review" column was redundant — every row's chip just
+                repeated the header copy ("9 need review"). Folded
+                the pending-review count into the Tier cell as a
+                number-only chip next to the gap chip + progress
+                bar. */}
               <TableHead>
                 <Trans>Tier</Trans>
               </TableHead>
@@ -2787,7 +2726,13 @@ function GroupHeaderRow({
             )}
             aria-hidden
           />
-          <span className="inline-flex items-center gap-1.5">
+          {/* 2026-05-27 (Yuqi follow-up — bordered pill style): the
+              flag + code pair used to sit naked next to the state
+              name. Wrapping in a bordered pill (rounded-md, hairline
+              border, faint background) gives the badge a defined
+              container so it reads as one chip — the visual treatment
+              matches /clients' state badge family. */}
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-divider-subtle bg-background-subtle px-1.5 py-0.5">
             <StateBadge code={group.jurisdiction} size="xs" title={group.jurisdiction} />
             <span className="text-caption-xs uppercase tracking-wider text-text-secondary">
               {group.jurisdiction}
@@ -2824,40 +2769,26 @@ function GroupHeaderRow({
           </TableCell>
         )
       })}
-      {/* 2026-05-27 (Yuqi rule library rework — needs-review column):
-          pendingReviewCount used to sit cramped inside the Tier cell
-          next to the gap chip + progress bar. Lifting it into its own
-          right-aligned column gives "where is the work" its own
-          column-true position and lets the user sort by it. The chip
-          stays canonical (`CountDotChip` w/ accent tone) so the
-          visual cue carries across without re-learning. */}
-      <TableCell className="py-2 text-right">
-        <CountDotChip
-          count={group.pendingReviewCount}
-          tone="accent"
-          label={
-            <Plural value={group.pendingReviewCount} one="# needs review" other="# need review" />
-          }
-        />
-      </TableCell>
       <TableCell className="py-2">
-        {/* 2026-05-26 (Yuqi follow-up — "NOT ALIGNED"): badges sit
-            inside a fixed-width slot so the left edge of the
-            dot+text is at the same x across every state row regardless
-            of singular/plural copy length. The status bar still
-            right-aligns; gap-3 separates the two.
-            2026-05-26 (Yuqi cross-table drift #9 — "Count chip
-            primitive: one pill for review counts everywhere"): the
-            badges below moved from hand-rolled spans to the
-            canonical `<CountDotChip>` primitive. Same visual; new
-            surfaces can adopt the same chip with one import.
-            2026-05-27 (Yuqi rule library rework): pending-review
-            chip lifted out of this cluster into its own column
-            (see the cell above). What stays here is the gap chip
-            and the progress bar — both are jurisdiction-level
-            *meta* signals about catalog shape, distinct from the
-            actionable review queue. */}
+        {/* 2026-05-27 (Yuqi follow-up — number-only chip + col merge):
+            the dedicated Needs-review column was redundant with its
+            own header ("9 need review" repeated the column name on
+            every row). Folded the count back into this Tier cluster
+            as a number-only chip — the accent dot still carries the
+            "needs review" semantic, and the `title` tooltip keeps the
+            verbal label for hover + assistive tech. Sits left of the
+            gap chip so the eye reads: review queue → missing →
+            overall status. */}
         <div className="flex items-center justify-end gap-3">
+          <CountDotChip
+            count={group.pendingReviewCount}
+            tone="accent"
+            label={
+              <span title={`${group.pendingReviewCount} need review`} className="tabular-nums">
+                {group.pendingReviewCount}
+              </span>
+            }
+          />
           <CountDotChip
             count={group.gapEntities.length}
             tone="destructive"
@@ -3030,17 +2961,6 @@ function RuleTableRow({
           <EntityApplicabilityCell applies={applicabilitySet.has(entity)} status={rule.status} />
         </TableCell>
       ))}
-      {/* 2026-05-27 (Yuqi rule library rework — needs-review column):
-          per-rule cell is a quiet em-dash. The rule's status section
-          header above ("Needs review" vs "Active") already encodes
-          whether THIS rule needs review; painting a 1 here would be
-          column-true repetition. The column's signal lives on the
-          GroupHeaderRow (the jurisdiction-level count). Empty em-dash
-          keeps the rule rows scanning cleanly past the column without
-          generating visual noise. */}
-      <TableCell className="py-2 text-right">
-        <EmptyCellMark label="" />
-      </TableCell>
       {/* Tier label + trailing chevron + canonical row-action menu.
           The chevron stays as the "this row opens detail" affordance
           cue (fades in on row hover). The ⋯ menu lives next to it as

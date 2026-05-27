@@ -285,6 +285,17 @@ In priority order:
    `RuleStatus` with >0 rules. Same h-7 rounded-md shape; finer
    distribution exposes verified / candidate / archived
    composition the old two-tone bar collapsed.
+9. **Needs-review column collapse + pill jurisdiction badge** —
+   [SHIPPED 2026-05-27, follow-up on audit-drain x2] The dedicated
+   Needs-review column added in x2 was redundant with its own header
+   ("9 need review" on every row repeated the column name). Folded
+   the chip back into the Tier cell as a number-only `• N` sitting
+   left of the gap chip + progress bar. Cluster reads review queue
+   → missing → overall status. Column count drops 10 → 9. Group
+   header's `StateBadge` + 2-letter code now wrapped in a bordered
+   pill (`rounded-md border-divider-subtle bg-background-subtle`)
+   so flag + code reads as one chip. See dev-log
+   `2026-05-27-rule-library-needs-review-collapse.md`.
 
 Re-run `/critique` after the structural pass — target ≥32/40.
 
