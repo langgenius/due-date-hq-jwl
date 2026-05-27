@@ -234,6 +234,20 @@ export function EmailOtpSignInForm({
         )}
         <Trans>Email me a code</Trans>
       </Button>
+      {/* 2026-05-27 (Step 6 UX audit #6 drain): keyboard hint that
+          Enter on the email field submits. HTML defaults to this
+          but a first-time user who's typed their email + paused
+          gets a tiny "or press Enter" prompt that turns the
+          submit button into a discoverable shortcut. Pure JSX
+          add-on; submit semantics are already correct. */}
+      <p className="text-center text-xs leading-relaxed text-text-muted">
+        <Trans>
+          or press{' '}
+          <kbd className="rounded-sm border border-divider-subtle bg-background-subtle px-1 py-px font-mono text-[10px] text-text-secondary">
+            Enter
+          </kbd>
+        </Trans>
+      </p>
     </form>
   )
 }

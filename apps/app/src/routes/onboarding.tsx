@@ -130,6 +130,18 @@ export function OnboardingRoute() {
         </Trans>
       </p>
 
+      {/* 2026-05-27 (Step 7 onboarding audit F5-13 drain): the
+          trust pill used to sit below the Continue CTA. Pill
+          teaches "this is reversible" — Encrypted, saves on
+          continue, renamable later — which is exactly the
+          reassurance a first-time user needs *before* clicking
+          Continue, not after. Moved to sit below the sub-
+          headline (parallels F1-03 on /login). */}
+      <p className="mt-4 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
+        <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
+        <Trans>Encrypted · Saves on continue · Renamable later</Trans>
+      </p>
+
       <form onSubmit={handleSubmit} noValidate className="contents">
         <div className="mt-8 flex flex-col gap-1.5">
           <label
@@ -244,11 +256,9 @@ export function OnboardingRoute() {
           lie — the form only saves on Continue. A first-time user
           reading "Auto-saves" assumes mid-form network drops are
           safe; they aren't. Replaced with "Saves on continue" which
-          truthfully describes the data-loss model. */}
-      <p className="mt-4 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
-        <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
-        <Trans>Encrypted · Saves on continue · Renamable later</Trans>
-      </p>
+          truthfully describes the data-loss model.
+          2026-05-27 (F5-13 drain): moved up to sit below the
+          sub-headline — see comment near the form's open. */}
     </div>
   )
 }

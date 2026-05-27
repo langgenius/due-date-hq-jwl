@@ -163,6 +163,20 @@ export function LoginRoute() {
         </Trans>
       </p>
 
+      {/* 2026-05-27 (Step 7 onboarding audit F1-03 drain): the trust
+          pill used to sit below the OTP form, after the user had
+          already decided whether to type their email. Trust signals
+          do their job before the credential moment, not after — a
+          first-time visitor hesitating at the email box is the
+          exact reader who needs to see "Encrypted · 7-day session"
+          to make the leap. Moved between sub-headline and the
+          first SSO button so the reassurance arrives before the
+          decision. */}
+      <p className="mt-4 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
+        <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
+        <Trans>Encrypted · 7-day session · SSO-ready</Trans>
+      </p>
+
       <Button
         variant="outline"
         className="mt-6 w-full justify-center gap-2.5"
@@ -234,16 +248,14 @@ export function LoginRoute() {
         </>
       ) : null}
 
-      <p className="mt-3 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
-        <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
-        <Trans>Encrypted · 7-day session · SSO-ready</Trans>
-      </p>
-
       {/* 2026-05-26 (Step 7 F1-10): support mailto broken out from the
           legal block so stuck users find it without parsing
           disclaimer copy. Size kept at text-sm for the support line
           (was text-[12px] in Step 7 — Step 1-5 reaudit prefers
-          tokens over arbitrary sizes). Legal copy quieted below. */}
+          tokens over arbitrary sizes). Legal copy quieted below.
+          2026-05-27 (F1-03 drain): trust pill that used to sit
+          above this support line moved up next to the sub-headline
+          — see comment above the SSO buttons. */}
       <p className="mt-5 text-sm leading-relaxed text-text-secondary">
         <Trans>
           Trouble signing in? Email{' '}
