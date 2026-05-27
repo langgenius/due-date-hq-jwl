@@ -1,10 +1,12 @@
-import { and, desc, eq, gte, like, lt, not, or, sql } from 'drizzle-orm'
+import { and, desc, eq, gte, inArray, like, lt, not, or, sql } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
 import { createAuditWriter, type AuditEventInput } from '../audit-writer'
 import type { Db } from '../client'
 import {
+  AUDIT_ACTOR_TYPES,
   auditEvent,
   auditEvidencePackage,
+  type AuditActorType,
   type AuditEvent,
   type AuditEvidencePackage,
 } from '../schema/audit'
@@ -28,6 +30,10 @@ export interface AuditListInput {
   category?: AuditActionCategory
   action?: string
   actorId?: string
+  // F-035: filter by AI provenance. 'ai_any' is the convenience bucket for
+  // the audit drawer's segmented control — "show me anything an AI touched"
+  // — and expands server-side to ('ai', 'ai_assisted').
+  actorType?: AuditActorType | 'ai_any'
   entityType?: string
   entityId?: string
   range?: '24h' | '7d' | '30d' | 'all'
@@ -38,6 +44,10 @@ export interface AuditListInput {
 export interface AuditListRow extends AuditEvent {
   actorLabel: string | null
 }
+
+// η pass — F-035: filter by actorType so the audit drawer can render the
+// "AI actions" segmented control without paginating through every event.
+// Added to `AuditListInput` below.
 
 export interface AuditListResult {
   rows: AuditListRow[]
@@ -149,6 +159,13 @@ export function makeAuditRepo(db: Db, firmId: string) {
       if (start) filters.push(gte(auditEvent.createdAt, start))
       if (input.action) filters.push(eq(auditEvent.action, input.action))
       if (input.actorId) filters.push(eq(auditEvent.actorId, input.actorId))
+      if (input.actorType) {
+        if (input.actorType === 'ai_any') {
+          filters.push(inArray(auditEvent.actorType, ['ai', 'ai_assisted'] as const))
+        } else if (AUDIT_ACTOR_TYPES.includes(input.actorType)) {
+          filters.push(eq(auditEvent.actorType, input.actorType))
+        }
+      }
       if (input.entityType) filters.push(eq(auditEvent.entityType, input.entityType))
       if (input.entityId) filters.push(eq(auditEvent.entityId, input.entityId))
       if (input.category) {
@@ -187,6 +204,11 @@ export function makeAuditRepo(db: Db, firmId: string) {
           firmId: auditEvent.firmId,
           actorId: auditEvent.actorId,
           actorLabel: user.name,
+          // η pass — F-035 / F-037: expose the new columns so the UI can
+          // render AI provenance + the optional metadata disclosure.
+          actorType: auditEvent.actorType,
+          previousActorType: auditEvent.previousActorType,
+          aiEventMetadataJson: auditEvent.aiEventMetadataJson,
           entityType: auditEvent.entityType,
           entityId: auditEvent.entityId,
           action: auditEvent.action,

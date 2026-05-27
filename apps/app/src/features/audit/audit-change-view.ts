@@ -179,6 +179,13 @@ export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresen
   'opportunity.dismissed': opportunityDismissedPresenter,
   'opportunity.restored': opportunityRestoredPresenter,
   'opportunity.snoozed': opportunitySnoozedPresenter,
+  // η pass — F-008 / F-023: readiness checklist item lifecycle. The
+  // ai_overridden variant gets its own action so the audit drawer can
+  // filter to "Andy overrode an AI value" without parsing payloads.
+  'readiness.checklist_item.ai_overridden': genericPresenter,
+  'readiness.checklist_item.created': genericPresenter,
+  'readiness.checklist_item.deleted': genericPresenter,
+  'readiness.checklist_item.updated': genericPresenter,
   'penalty.override': penaltyPresenter,
   'pulse.apply': pulseDueDatePresenter,
   'pulse.approve': pulseAlertPresenter,

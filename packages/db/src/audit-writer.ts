@@ -10,12 +10,40 @@ import { auditEvent, type NewAuditEvent } from './schema/audit'
  *     (ignores any caller-supplied values for those fields).
  *
  * D1 bound-param budget = 100 (docs/dev-file/03 §3 + d1-drizzle-schema skill).
- * `auditEvent` inserts 12 columns → 12 × n ≤ 100 → n ≤ 8 per batch.
+ * `auditEvent` inserts 15 columns → 15 × n ≤ 100 → n ≤ 6 per batch.
+ * (2026-05-27 — η pass — bumped from 12 to 15 when actorType /
+ * previousActorType / aiEventMetadataJson landed.)
  */
+
+import type { AuditActorType } from './schema/audit'
+
+export type { AuditActorType }
+
+// F-037 — surfaced in the audit drawer as a disclosure section. The schema
+// is intentionally permissive (every field optional) so we can grow the
+// disclosure surface without bumping a contract version; the renderer in
+// `apps/app/src/features/audit/audit-event-drawer.tsx` defends against
+// missing fields.
+export interface AiEventMetadata {
+  model?: string
+  promptVersion?: string
+  inputTokens?: number
+  outputTokens?: number
+  latencyMs?: number
+  guardStatus?: 'passed' | 'flagged' | 'blocked' | 'skipped'
+  confidence?: number
+  aiOutputId?: string
+}
 
 export interface AuditEventInput {
   firmId: string
   actorId: string | null
+  // η pass — F-035. Default 'user' at the writer level matches the
+  // schema default; callers that don't pass actorType keep the existing
+  // semantics (human-driven write).
+  actorType?: AuditActorType
+  previousActorType?: AuditActorType | null
+  aiEventMetadata?: AiEventMetadata | null
   entityType: string
   entityId: string
   action: string
@@ -26,14 +54,17 @@ export interface AuditEventInput {
   userAgentHash?: string
 }
 
-const COLS_PER_AUDIT_ROW = 12
-const AUDIT_BATCH_SIZE = Math.floor(100 / COLS_PER_AUDIT_ROW) // = 8
+const COLS_PER_AUDIT_ROW = 15
+const AUDIT_BATCH_SIZE = Math.floor(100 / COLS_PER_AUDIT_ROW) // = 6
 
 function toRow(input: AuditEventInput): NewAuditEvent {
   return {
     id: crypto.randomUUID(),
     firmId: input.firmId,
     actorId: input.actorId,
+    actorType: input.actorType ?? 'user',
+    previousActorType: input.previousActorType ?? null,
+    aiEventMetadataJson: input.aiEventMetadata ?? null,
     entityType: input.entityType,
     entityId: input.entityId,
     action: input.action,

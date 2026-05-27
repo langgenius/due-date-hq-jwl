@@ -433,6 +433,12 @@ const addChecklistItem = os.readiness.addChecklistItem.handler(async ({ input, c
 const updateChecklistItem = os.readiness.updateChecklistItem.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, userId } = requireTenant(context)
+  // F-022: a value-edit (label / description / note) drops the AI marker.
+  // Status-only changes (mark received / needs review) do NOT — the CPA is
+  // confirming the AI's value, not overriding it. The repo enforces the
+  // "previous-was-ai" precondition; we only signal intent here.
+  const dropsAiOrigin =
+    input.label !== undefined || input.description !== undefined || input.note !== undefined
   const item = await scoped.readiness.updateDocumentChecklistItem({
     id: input.itemId,
     ...(input.label !== undefined ? { label: input.label } : {}),
@@ -440,21 +446,35 @@ const updateChecklistItem = os.readiness.updateChecklistItem.handler(async ({ in
     ...(input.status !== undefined ? { status: input.status } : {}),
     ...(input.note !== undefined ? { note: input.note } : {}),
     receivedByUserId: input.status === 'received' ? userId : null,
+    dropsAiOrigin,
     now: new Date(),
   })
   const checklist = await scoped.readiness.listDocumentChecklistByObligation(
     item.obligationInstanceId,
   )
+  // F-023: when a user edits an AI-sourced item, the audit event records
+  // previousActorType: 'ai' so the audit drawer can render the
+  // "Overrode AI suggestion" badge. The repo attaches `previousOrigin` to
+  // the returned row so we don't double-query.
+  const previousOrigin =
+    (item as typeof item & { previousOrigin?: 'ai' | 'manual' }).previousOrigin ?? null
+  const userOverrodeAi = dropsAiOrigin && previousOrigin === 'ai'
   const { id: auditId } = await scoped.audit.write({
     actorId: userId,
+    actorType: 'user',
+    previousActorType: userOverrodeAi ? 'ai' : null,
     entityType: 'obligation_instance',
     entityId: item.obligationInstanceId,
-    action: 'readiness.checklist_item.updated',
+    action: userOverrodeAi
+      ? 'readiness.checklist_item.ai_overridden'
+      : 'readiness.checklist_item.updated',
     after: {
       itemId: item.id,
       label: item.label,
       status: item.status,
       source: item.source,
+      origin: item.origin,
+      previousOrigin,
     },
   })
   return {

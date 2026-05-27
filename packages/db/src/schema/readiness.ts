@@ -21,6 +21,17 @@ export const READINESS_DOCUMENT_CHECKLIST_ITEM_SOURCES = ['template', 'custom'] 
 export type ReadinessDocumentChecklistItemSource =
   (typeof READINESS_DOCUMENT_CHECKLIST_ITEM_SOURCES)[number]
 
+// 2026-05-27 (audit drain — η — F-008 / F-022 / F-039): `origin` is the
+// AI provenance axis. `source` answers "did this item come from a catalog
+// template or did a CPA add it custom" — orthogonal to "did an AI or a
+// human produce the actual value?". A custom item can still be 'ai' if a
+// Brief / Pulse path materialised it via inference; a template item can
+// become 'manual' if the CPA renames the label. The marker DROPS on edit
+// (set origin='manual' + bump user_edited_at) per the F-022 convention.
+export const READINESS_DOCUMENT_CHECKLIST_ITEM_ORIGINS = ['ai', 'manual'] as const
+export type ReadinessDocumentChecklistItemOrigin =
+  (typeof READINESS_DOCUMENT_CHECKLIST_ITEM_ORIGINS)[number]
+
 export const READINESS_DOCUMENT_CHECKLIST_ITEM_STATUSES = [
   'missing',
   'received',
@@ -54,6 +65,14 @@ export const obligationReadinessChecklistItem = sqliteTable(
     source: text('source', { enum: READINESS_DOCUMENT_CHECKLIST_ITEM_SOURCES })
       .notNull()
       .default('template'),
+    // AI-provenance axis (η pass — see ORIGINS comment above). Defaults
+    // to 'manual' so the back-compat path for every historical row is
+    // the SAFE assumption: pre-migration items are human-authored.
+    origin: text('origin', { enum: READINESS_DOCUMENT_CHECKLIST_ITEM_ORIGINS })
+      .notNull()
+      .default('manual'),
+    aiGeneratedAt: integer('ai_generated_at', { mode: 'timestamp_ms' }),
+    userEditedAt: integer('user_edited_at', { mode: 'timestamp_ms' }),
     status: text('status', { enum: READINESS_DOCUMENT_CHECKLIST_ITEM_STATUSES })
       .notNull()
       .default('missing'),

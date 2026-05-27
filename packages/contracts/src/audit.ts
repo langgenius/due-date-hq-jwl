@@ -17,6 +17,35 @@ export const AuditActionCategorySchema = z.enum([
 ])
 export type AuditActionCategory = z.infer<typeof AuditActionCategorySchema>
 
+// η pass — F-035 / F-036. `ai_assisted` means a human pressed apply but the
+// VALUE came from an AI; `ai` means the write was fully autonomous (cron-
+// triggered Pulse extraction, scheduled regeneration). The two are
+// rendered identically in the table (both wear the Astroid chip) but the
+// drawer disclosure surfaces the distinction.
+export const AuditActorTypeSchema = z.enum(['user', 'system', 'ai', 'ai_assisted'])
+export type AuditActorType = z.infer<typeof AuditActorTypeSchema>
+
+// `ai_any` is the audit-drawer segmented-control bucket. Expanded server-side.
+export const AuditActorTypeFilterSchema = z.enum(['user', 'system', 'ai', 'ai_assisted', 'ai_any'])
+export type AuditActorTypeFilter = z.infer<typeof AuditActorTypeFilterSchema>
+
+// F-037: optional disclosure surface for AI events. Every field is optional —
+// the drawer renders only what it has. See AiEventMetadata in
+// packages/db/src/audit-writer.ts for the producer-side type.
+export const AiEventMetadataSchema = z
+  .object({
+    model: z.string().max(160).optional(),
+    promptVersion: z.string().max(64).optional(),
+    inputTokens: z.number().int().min(0).optional(),
+    outputTokens: z.number().int().min(0).optional(),
+    latencyMs: z.number().int().min(0).optional(),
+    guardStatus: z.enum(['passed', 'flagged', 'blocked', 'skipped']).optional(),
+    confidence: z.number().min(0).max(1).optional(),
+    aiOutputId: z.string().min(1).max(128).optional(),
+  })
+  .strict()
+export type AiEventMetadata = z.infer<typeof AiEventMetadataSchema>
+
 export const AuditRangeSchema = z.enum(['24h', '7d', '30d', 'all'])
 export type AuditRange = z.infer<typeof AuditRangeSchema>
 
@@ -28,6 +57,7 @@ export const AuditListInputSchema = z.object({
   category: AuditActionCategorySchema.optional(),
   action: z.string().min(1).max(AUDIT_FILTER_MAX_LENGTH).optional(),
   actorId: TenantIdSchema.optional(),
+  actorType: AuditActorTypeFilterSchema.optional(),
   entityType: z.string().min(1).max(AUDIT_FILTER_MAX_LENGTH).optional(),
   entityId: z.string().min(1).max(AUDIT_FILTER_MAX_LENGTH).optional(),
   range: AuditRangeSchema.default('24h').optional(),
@@ -41,6 +71,9 @@ export const AuditEventPublicSchema = z.object({
   firmId: TenantIdSchema,
   actorId: TenantIdSchema.nullable(),
   actorLabel: z.string().nullable(),
+  actorType: AuditActorTypeSchema,
+  previousActorType: AuditActorTypeSchema.nullable(),
+  aiEventMetadata: AiEventMetadataSchema.nullable(),
   entityType: z.string().min(1),
   entityId: z.string().min(1),
   action: z.string().min(1),

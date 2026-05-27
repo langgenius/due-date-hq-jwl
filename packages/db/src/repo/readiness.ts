@@ -14,15 +14,18 @@ import {
   type ClientReadinessRequest,
   type ClientReadinessResponse,
   type ObligationReadinessChecklistItem,
+  type ReadinessDocumentChecklistItemOrigin,
   type ReadinessDocumentChecklistItemStatus,
   type ReadinessChecklistItemRow,
 } from '../schema/readiness'
 
 const RESPONSE_LOOKUP_BATCH_SIZE = 90
-// D1 local uses a 100-param ceiling. Checklist inserts bind 11 values per row:
-// id, firm, obligation, label, description, template metadata, source, status,
-// sort order, and created_by.
-export const READINESS_CHECKLIST_ITEM_INSERT_BATCH_SIZE = Math.floor(100 / 11)
+// D1 local uses a 100-param ceiling. Checklist inserts bind 14 values per row:
+// id, firm, obligation, label, description, template_key, template_version,
+// source, origin, ai_generated_at, status, sort_order, note, created_by.
+// (2026-05-27 η pass: bumped from 11 → 14 when the AI-provenance columns
+// landed; recalibrated batch size from 9 to 7 to stay safe.)
+export const READINESS_CHECKLIST_ITEM_INSERT_BATCH_SIZE = Math.floor(100 / 14)
 const LEGACY_TEMPLATE_LABEL_TO_KEYS = new Map<string, string[]>([
   ['w 2 1099 and income forms', ['1040.individual_return.w2_forms']],
   ['brokerage and crypto statements', ['1040.individual_return.brokerage_crypto']],
@@ -350,6 +353,8 @@ export function makeReadinessRepo(db: Db, firmId: string) {
         templateKey?: string | null
         templateVersion?: number | null
         source: 'template' | 'custom'
+        origin?: ReadinessDocumentChecklistItemOrigin
+        aiGeneratedAt?: Date | null
         status?: ReadinessDocumentChecklistItemStatus
         sortOrder: number
         note?: string | null
@@ -359,20 +364,29 @@ export function makeReadinessRepo(db: Db, firmId: string) {
       if (input.items.length === 0) {
         return this.listDocumentChecklistByObligation(input.obligationInstanceId)
       }
-      const rows = input.items.map((item) => ({
-        id: item.id,
-        firmId,
-        obligationInstanceId: input.obligationInstanceId,
-        label: item.label,
-        description: item.description,
-        templateKey: item.templateKey ?? null,
-        templateVersion: item.templateVersion ?? null,
-        source: item.source,
-        status: item.status ?? 'missing',
-        sortOrder: item.sortOrder,
-        note: item.note ?? null,
-        createdByUserId: input.createdByUserId,
-      }))
+      const rows = input.items.map((item) => {
+        const origin: ReadinessDocumentChecklistItemOrigin = item.origin ?? 'manual'
+        return {
+          id: item.id,
+          firmId,
+          obligationInstanceId: input.obligationInstanceId,
+          label: item.label,
+          description: item.description,
+          templateKey: item.templateKey ?? null,
+          templateVersion: item.templateVersion ?? null,
+          source: item.source,
+          // F-008: persist AI provenance at write time. When origin === 'ai'
+          // and the caller didn't pass an explicit timestamp, stamp it now —
+          // the audit drawer (F-037) shows "generated at" alongside the model.
+          origin,
+          aiGeneratedAt: item.aiGeneratedAt ?? (origin === 'ai' ? new Date() : null),
+          userEditedAt: null,
+          status: item.status ?? 'missing',
+          sortOrder: item.sortOrder,
+          note: item.note ?? null,
+          createdByUserId: input.createdByUserId,
+        }
+      })
       await Promise.all(
         chunkReadinessChecklistItemInsertRows(rows).map((chunk) =>
           db.insert(obligationReadinessChecklistItem).values(chunk),
@@ -420,6 +434,12 @@ export function makeReadinessRepo(db: Db, firmId: string) {
         templateKey: item.templateKey,
         templateVersion: item.templateVersion,
         source: item.source,
+        // Catalog-driven reconciliation is deterministic — origin is 'manual'
+        // by definition. AI-sourced items take the
+        // createDocumentChecklistItems path with origin: 'ai' explicitly.
+        origin: 'manual' as const,
+        aiGeneratedAt: null,
+        userEditedAt: null,
         status: 'missing' as const,
         sortOrder: item.sortOrder,
         createdByUserId: input.createdByUserId,
@@ -457,6 +477,10 @@ export function makeReadinessRepo(db: Db, firmId: string) {
       status?: ReadinessDocumentChecklistItemStatus
       note?: string | null
       receivedByUserId?: string | null
+      // F-022: when the caller is a user-driven value edit (label /
+      // description / note), pass dropsAiOrigin: true so the row flips
+      // back to origin='manual'. The handler decides — repo doesn't infer.
+      dropsAiOrigin?: boolean
       now: Date
     }): Promise<ObligationReadinessChecklistItem> {
       const [before] = await db
@@ -485,6 +509,12 @@ export function makeReadinessRepo(db: Db, firmId: string) {
             ? (input.receivedByUserId ?? before.receivedByUserId)
             : null
 
+      // F-022 "AI marker drops on edit". Only flip origin → 'manual' when
+      // the previous origin was 'ai' AND the caller signals a value-touch.
+      // A row that is already 'manual' stays 'manual' (no-op); a status
+      // change without dropsAiOrigin keeps the AI marker intact (the CPA
+      // marking "received" did not edit the AI's value, they confirmed it).
+      const flipOriginToManual = input.dropsAiOrigin === true && before.origin === 'ai'
       await db
         .update(obligationReadinessChecklistItem)
         .set({
@@ -492,6 +522,7 @@ export function makeReadinessRepo(db: Db, firmId: string) {
           ...(input.description !== undefined ? { description: input.description } : {}),
           ...(input.status !== undefined ? { status: input.status } : {}),
           ...(input.note !== undefined ? { note: input.note } : {}),
+          ...(flipOriginToManual ? { origin: 'manual' as const, userEditedAt: input.now } : {}),
           receivedAt,
           receivedByUserId,
           updatedAt: input.now,
@@ -513,7 +544,15 @@ export function makeReadinessRepo(db: Db, firmId: string) {
         )
         .limit(1)
       if (!after) throw new Error('Readiness checklist item could not be re-read.')
-      return after
+      // Stash the previous origin on the row object so the procedure layer
+      // can emit a correctly-shaped audit event (F-023 — actorType:
+      // 'user' with previousActorType: 'ai' when an override happened).
+      // Non-breaking: consumers reading the row just see an extra prop.
+      return Object.assign(after, {
+        previousOrigin: before.origin,
+      }) as ObligationReadinessChecklistItem & {
+        previousOrigin: ReadinessDocumentChecklistItemOrigin
+      }
     },
 
     async deleteDocumentChecklistItem(input: {
