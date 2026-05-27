@@ -141,17 +141,28 @@ function NeedsAttentionSection() {
             exist) + alert count (when > 0, destructive-toned). */}
         <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-text-primary">
           <Trans>Alerts</Trans>
-          {monitoringCount > 0 ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
-              <PulsingDot tone="success" active className="size-1.5" />
-              <Trans>
-                Monitoring <Plural value={monitoringCount} one="# source" other="# sources" />
-              </Trans>
-            </span>
-          ) : null}
+          {/* 2026-05-27 (Yuqi feedback): order swapped so the
+              destructive-toned alert count sits BEFORE the neutral
+              monitoring chip. Active alerts are the lead signal; the
+              monitoring count is supporting context. */}
           {totalAlertCount > 0 ? (
             <span className="rounded-full bg-state-destructive-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-destructive">
               {totalAlertCount}
+            </span>
+          ) : null}
+          {monitoringCount > 0 ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+              {/* 2026-05-27 (Yuqi feedback "dot is not square"):
+                  PulsingDot's outer was overridden to `size-1.5` (6px)
+                  but its inner has hardcoded `size-2` (8px) — the 8px
+                  fill got clipped in a 6px container, reading as a
+                  flattened/non-square pill. Drop the override and let
+                  the dot use its canonical 8px size. */}
+              <PulsingDot tone="success" active />
+
+              <Trans>
+                Monitoring <Plural value={monitoringCount} one="# source" other="# sources" />
+              </Trans>
             </span>
           ) : null}
         </h2>

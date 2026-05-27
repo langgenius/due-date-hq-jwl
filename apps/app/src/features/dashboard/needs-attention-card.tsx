@@ -98,7 +98,7 @@ function NeedsAttentionCard({
       // inner gap-2.5 → gap-2. Card content stays scannable but the
       // tile collapses to a more efficient footprint, matching the
       // section's tighter outer padding.
-      className="group flex h-full min-w-0 cursor-pointer flex-col gap-2 rounded-md border border-divider-subtle bg-background-default p-3 text-left transition-colors hover:border-divider-regular hover:bg-background-default-hover focus-visible:border-state-accent-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className="group flex h-full min-w-0 cursor-pointer flex-col gap-2 rounded-md bg-background-default p-3 text-left transition-colors hover:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       data-tone={tone}
     >
       <header className="flex items-start justify-between gap-3">
@@ -159,7 +159,7 @@ function NeedsAttentionCard({
           aliasing shift on the bg change made the text look
           slightly heavier. Locking the weight explicitly so it
           stays at 400 in both rest and hover states. */}
-      <p className="line-clamp-2 min-h-8 text-sm font-normal leading-snug text-text-primary">
+      <p className="line-clamp-2 min-h-8 text-sm font-medium leading-snug text-text-primary">
         {alert.title}
       </p>
 
