@@ -181,10 +181,16 @@ msgstr "{0, plural, other {# 项缺失}}"
 msgid "{0, plural, one {# more in the audit log} other {# more in the audit log}}"
 msgstr "{0, plural, one {审计日志中还有 # 条} other {审计日志中还有 # 条}}"
 
+#. placeholder {0}: counts.review
 #. placeholder {0}: group.pendingReviewCount
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# needs review} other {# need review}}"
 msgstr "{0, plural, other {# 项待审核}}"
+
+#. placeholder {0}: counts.review
+#: src/routes/rules.library.tsx
+msgid "{0, plural, one {# of {total} need review} other {# of {total} need review}}"
+msgstr "{0, plural, one {# 条 / {total} 条需要复核} other {# 条 / {total} 条需要复核}}"
 
 #. placeholder {0}: alerts.length
 #: src/features/pulse/AlertsListPage.tsx
@@ -310,6 +316,11 @@ msgstr "{0} + 另外 {overflow} 项"
 msgid "{0} accepted · {1} skipped."
 msgstr "{0} 已接受 · {1} 已跳过。"
 
+#. placeholder {0}: counts.active
+#: src/routes/rules.library.tsx
+msgid "{0} active"
+msgstr "{0} 条有效"
+
 #. placeholder {0}: pendingRecovery.client.name
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "{0} and its imported deadlines"
@@ -390,6 +401,16 @@ msgstr "已记录 {0} 项"
 msgid "{0} of {1}"
 msgstr "{0} / {1}"
 
+#. placeholder {0}: counts.review
+#: src/routes/rules.library.tsx
+msgid "{0} of {total} rules need review"
+msgstr "{total} 条规则中有 {0} 条需要复核"
+
+#. placeholder {0}: groups.length
+#: src/routes/rules.library.tsx
+msgid "{0} of {totalGroupCount} loaded"
+msgstr "已加载 {0} / {totalGroupCount}"
+
 #. placeholder {0}: groupHeader.lateCount
 #: src/routes/obligations.tsx
 msgid "{0} of this client's deadlines are past the internal target"
@@ -399,6 +420,11 @@ msgstr "该客户有 {0} 个截止日期已超过内部目标"
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{0} open deadlines"
 msgstr "{0} 个未结截止事项"
+
+#. placeholder {0}: counts.other
+#: src/routes/rules.library.tsx
+msgid "{0} other"
+msgstr "{0} 其他"
 
 #. placeholder {0}: preview.acceptReadyCount
 #. placeholder {1}: preview.estimatedObligationCount
@@ -822,10 +848,6 @@ msgstr "{skipped, plural, other {# 行将被跳过（见错误明细）}}"
 #: src/features/rules/coverage-tab.tsx
 msgid "{totalActive} rules"
 msgstr "{totalActive} 条规则"
-
-#: src/routes/rules.library.tsx
-msgid "{totalGroupCount, plural, one {# jurisdiction} other {# jurisdictions}}"
-msgstr "{totalGroupCount, plural, one {# 个辖区} other {# 个辖区}}"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "{totalOpen, plural, one {View # open deadline} other {View # open deadlines}}"
@@ -5868,6 +5890,10 @@ msgstr "LLC"
 msgid "Load"
 msgstr "负载"
 
+#: src/routes/rules.library.tsx
+msgid "Load more"
+msgstr "加载更多"
+
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Loading alerts…"
 msgstr "正在加载提醒…"
@@ -6723,7 +6749,6 @@ msgstr "下个月"
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/routes/obligations.tsx
-#: src/routes/rules.library.tsx
 msgid "Next page"
 msgstr "下一页"
 
@@ -7925,11 +7950,6 @@ msgstr "所有者、合伙人、管理员和准备者可查看客户活动记录
 msgid "Page {0} of {1}"
 msgstr "第 {0} 页，共 {1} 页"
 
-#. placeholder {0}: pageIndex + 1
-#: src/routes/rules.library.tsx
-msgid "Page {0} of {totalPages}"
-msgstr "第 {0} 页，共 {totalPages} 页"
-
 #: src/features/audit/audit-log-page.tsx
 msgid "Page {pageNumber}"
 msgstr "第 {pageNumber} 页"
@@ -8571,7 +8591,6 @@ msgstr "上个月"
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/routes/obligations.tsx
-#: src/routes/rules.library.tsx
 msgid "Previous page"
 msgstr "上一页"
 
@@ -9348,6 +9367,10 @@ msgstr "已撤销一次导入。"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Reverting this batch will commit these changes"
 msgstr "Reverting this batch will commit these changes"
+
+#: src/routes/rules.library.tsx
+msgid "review"
+msgstr "复核"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
@@ -10621,6 +10644,18 @@ msgstr "出现异常，请重试。"
 #: src/routes/obligations.tsx
 msgid "Sort"
 msgstr "排序"
+
+#: src/routes/rules.library.tsx
+msgid "Sort by needs review"
+msgstr "按需要复核排序"
+
+#: src/routes/rules.library.tsx
+msgid "Sort by needs review, ascending (active)"
+msgstr "按需要复核升序排序（当前）"
+
+#: src/routes/rules.library.tsx
+msgid "Sort by needs review, descending (active)"
+msgstr "按需要复核降序排序（当前）"
 
 #: src/routes/obligations.tsx
 msgid "Sort by Smart Priority"

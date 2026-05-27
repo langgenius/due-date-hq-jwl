@@ -181,10 +181,16 @@ msgstr "{0, plural, one {# missing} other {# missing}}"
 msgid "{0, plural, one {# more in the audit log} other {# more in the audit log}}"
 msgstr "{0, plural, one {# more in the audit log} other {# more in the audit log}}"
 
+#. placeholder {0}: counts.review
 #. placeholder {0}: group.pendingReviewCount
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# needs review} other {# need review}}"
 msgstr "{0, plural, one {# needs review} other {# need review}}"
+
+#. placeholder {0}: counts.review
+#: src/routes/rules.library.tsx
+msgid "{0, plural, one {# of {total} need review} other {# of {total} need review}}"
+msgstr "{0, plural, one {# of {total} need review} other {# of {total} need review}}"
 
 #. placeholder {0}: alerts.length
 #: src/features/pulse/AlertsListPage.tsx
@@ -310,6 +316,11 @@ msgstr "{0} + {overflow} more"
 msgid "{0} accepted · {1} skipped."
 msgstr "{0} accepted · {1} skipped."
 
+#. placeholder {0}: counts.active
+#: src/routes/rules.library.tsx
+msgid "{0} active"
+msgstr "{0} active"
+
 #. placeholder {0}: pendingRecovery.client.name
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "{0} and its imported deadlines"
@@ -390,6 +401,16 @@ msgstr "{0} items recorded"
 msgid "{0} of {1}"
 msgstr "{0} of {1}"
 
+#. placeholder {0}: counts.review
+#: src/routes/rules.library.tsx
+msgid "{0} of {total} rules need review"
+msgstr "{0} of {total} rules need review"
+
+#. placeholder {0}: groups.length
+#: src/routes/rules.library.tsx
+msgid "{0} of {totalGroupCount} loaded"
+msgstr "{0} of {totalGroupCount} loaded"
+
 #. placeholder {0}: groupHeader.lateCount
 #: src/routes/obligations.tsx
 msgid "{0} of this client's deadlines are past the internal target"
@@ -399,6 +420,11 @@ msgstr "{0} of this client's deadlines are past the internal target"
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{0} open deadlines"
 msgstr "{0} open deadlines"
+
+#. placeholder {0}: counts.other
+#: src/routes/rules.library.tsx
+msgid "{0} other"
+msgstr "{0} other"
 
 #. placeholder {0}: preview.acceptReadyCount
 #. placeholder {1}: preview.estimatedObligationCount
@@ -822,10 +848,6 @@ msgstr "{skipped, plural, one {# row will be skipped (see errors)} other {# rows
 #: src/features/rules/coverage-tab.tsx
 msgid "{totalActive} rules"
 msgstr "{totalActive} rules"
-
-#: src/routes/rules.library.tsx
-msgid "{totalGroupCount, plural, one {# jurisdiction} other {# jurisdictions}}"
-msgstr "{totalGroupCount, plural, one {# jurisdiction} other {# jurisdictions}}"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "{totalOpen, plural, one {View # open deadline} other {View # open deadlines}}"
@@ -5868,6 +5890,10 @@ msgstr "LLC"
 msgid "Load"
 msgstr "Load"
 
+#: src/routes/rules.library.tsx
+msgid "Load more"
+msgstr "Load more"
+
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Loading alerts…"
 msgstr "Loading alerts…"
@@ -6723,7 +6749,6 @@ msgstr "Next month"
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/routes/obligations.tsx
-#: src/routes/rules.library.tsx
 msgid "Next page"
 msgstr "Next page"
 
@@ -7925,11 +7950,6 @@ msgstr "Owners, partners, managers, and preparers can inspect client activity."
 msgid "Page {0} of {1}"
 msgstr "Page {0} of {1}"
 
-#. placeholder {0}: pageIndex + 1
-#: src/routes/rules.library.tsx
-msgid "Page {0} of {totalPages}"
-msgstr "Page {0} of {totalPages}"
-
 #: src/features/audit/audit-log-page.tsx
 msgid "Page {pageNumber}"
 msgstr "Page {pageNumber}"
@@ -8571,7 +8591,6 @@ msgstr "Previous month"
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/routes/obligations.tsx
-#: src/routes/rules.library.tsx
 msgid "Previous page"
 msgstr "Previous page"
 
@@ -9348,6 +9367,10 @@ msgstr "Reverted an import."
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Reverting this batch will commit these changes"
 msgstr "Reverting this batch will commit these changes"
+
+#: src/routes/rules.library.tsx
+msgid "review"
+msgstr "review"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
@@ -10621,6 +10644,18 @@ msgstr "Something went wrong. Please try again."
 #: src/routes/obligations.tsx
 msgid "Sort"
 msgstr "Sort"
+
+#: src/routes/rules.library.tsx
+msgid "Sort by needs review"
+msgstr "Sort by needs review"
+
+#: src/routes/rules.library.tsx
+msgid "Sort by needs review, ascending (active)"
+msgstr "Sort by needs review, ascending (active)"
+
+#: src/routes/rules.library.tsx
+msgid "Sort by needs review, descending (active)"
+msgstr "Sort by needs review, descending (active)"
 
 #: src/routes/obligations.tsx
 msgid "Sort by Smart Priority"
