@@ -18,7 +18,10 @@ import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
-import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
+// 2026-05-27 (Yuqi feedback round 1): import retained but commented out
+// alongside the section mount. Restore both when ChangesSinceLastSection
+// is brought back.
+// import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
@@ -264,7 +267,11 @@ export function DashboardRoute() {
           `lastDashboardVisitAt` on the user model (ω-territory
           contract change). The section ships its own collapse
           affordance so power users who don't want it can hide. */}
-      <ChangesSinceLastSection />
+      {/* 2026-05-27 (Yuqi feedback round 1): "hide changes since last
+          visit for now" — section mount commented out. Component
+          file kept (changes-since-last-section.tsx) for future
+          revisit. Restore by uncommenting the line below. */}
+      {/* <ChangesSinceLastSection /> */}
 
       <NeedsAttentionSection />
 
