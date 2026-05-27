@@ -246,7 +246,11 @@ function ActionRow({
           // longer + symmetric easing makes the hover feel
           // intentional, not snappy — important on a dashboard
           // surface where the row IS the affordance.
-          'group flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left outline-none transition-colors duration-200 ease-in-out focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+          // 2026-05-27 (Yuqi feedback): tighten action row vertical
+          // padding py-2 (8px) → py-1 (4px). Yuqi: "changes to .py-2
+          // { padding-block: calc(var(--spacing) * 1); }" — devtools
+          // experiment confirmed the row reads better at half height.
+          'group flex w-full cursor-pointer items-center gap-3 px-3 py-1 text-left outline-none transition-colors duration-200 ease-in-out focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           // Background drives off the expanded state, not hover, so
           // the row and the panel below read as a single block. When
           // collapsed, the row stays transparent (chrome quiet at
