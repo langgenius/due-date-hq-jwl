@@ -202,11 +202,6 @@ msgstr "{0, plural, one {# row needs attention} other {# rows need attention}}"
 msgid "{0, plural, one {# row needs review} other {# rows need review}}"
 msgstr "{0, plural, one {# row needs review} other {# rows need review}}"
 
-#. placeholder {0}: intake.rowCount
-#: src/features/migration/Step1Intake.tsx
-msgid "{0, plural, one {# row ready to import} other {# rows ready to import}}"
-msgstr "{0, plural, one {# row ready to import} other {# rows ready to import}}"
-
 #. placeholder {0}: group.ruleCount
 #. placeholder {0}: suggested.length
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -733,6 +728,10 @@ msgstr "{pausedCount, plural, one {# paused} other {# paused}}"
 msgid "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
 msgstr "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "{productLabel} export"
+msgstr "{productLabel} export"
+
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{pulseCount} active alerts"
 msgstr "{pulseCount} active alerts"
@@ -757,6 +756,14 @@ msgstr "{reservedCount} reserved"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "{role} at {0}"
 msgstr "{role} at {0}"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "{rowCount, plural, one {# client ready to import} other {# clients ready to import}}"
+msgstr "{rowCount, plural, one {# client ready to import} other {# clients ready to import}}"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "{rowCount, plural, one {# client} other {# clients}}"
+msgstr "{rowCount, plural, one {# client} other {# clients}}"
 
 #: src/routes/migration.new.tsx
 msgid "{ruleReviewCount, plural, one {# rule is queued for due-date review before it can become active and create client deadlines.} other {# rules are queued for due-date review before they can become active and create client deadlines.}}"
@@ -852,6 +859,10 @@ msgstr "#{0}"
 #: src/routes/_entry-layout.tsx
 msgid "© {0} DueDateHQ Inc."
 msgstr "© {0} DueDateHQ Inc."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "← Upload a file instead"
+msgstr "← Upload a file instead"
 
 #. placeholder {0}: suggested.length - 6
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -1601,6 +1612,10 @@ msgstr "Answer each item so your CPA can confirm filing readiness."
 #: src/features/calendar/calendar-page.tsx
 msgid "Any device subscribed to the current {0} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
 msgstr "Any device subscribed to the current {0} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Any shape works. We'll figure out the columns."
+msgstr "Any shape works. We'll figure out the columns."
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Any state"
@@ -2768,6 +2783,10 @@ msgid "Columns used"
 msgstr "Columns used"
 
 #: src/features/migration/Step1Intake.tsx
+msgid "Coming from a specific tool? (Optional)"
+msgstr "Coming from a specific tool? (Optional)"
+
+#: src/features/migration/Step1Intake.tsx
 msgid "Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
 msgstr "Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
 
@@ -3509,6 +3528,10 @@ msgid "CSV or TXT"
 msgstr "CSV or TXT"
 
 #: src/features/migration/Step1Intake.tsx
+msgid "CSV, Excel, ZIP, TXT, or IIF · up to 1,000 rows · 5 MB"
+msgstr "CSV, Excel, ZIP, TXT, or IIF · up to 1,000 rows · 5 MB"
+
+#: src/features/migration/Step1Intake.tsx
 msgid "CSV, XLS, or XLSX"
 msgstr "CSV, XLS, or XLSX"
 
@@ -3782,8 +3805,8 @@ msgid "Details updated"
 msgstr "Details updated"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Detected export source"
-msgstr "Detected export source"
+msgid "Different source detected"
+msgstr "Different source detected"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Disable"
@@ -3963,8 +3986,12 @@ msgid "Drafting started without all client materials in hand."
 msgstr "Drafting started without all client materials in hand."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Drop a CSV, Excel, ZIP, TXT, or IIF file"
-msgstr "Drop a CSV, Excel, ZIP, TXT, or IIF file"
+msgid "Drop a file or click to browse"
+msgstr "Drop a file or click to browse"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Drop your client file."
+msgstr "Drop your client file."
 
 #: src/features/migration/Stepper.tsx
 msgid "Dry run"
@@ -5106,10 +5133,6 @@ msgstr "How DueDateHQ reaches your team, your clients, and your calendars."
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "I have read the official source and verified the new deadline date."
 msgstr "I have read the official source and verified the new deadline date."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "I'm coming from… (optional)"
-msgstr "I'm coming from… (optional)"
 
 #: src/routes/obligations.tsx
 msgid "iCal .ics"
@@ -6999,6 +7022,10 @@ msgstr "Note"
 msgid "Notes"
 msgstr "Notes"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Notes on this file"
+msgstr "Notes on this file"
+
 #: src/routes/obligations.tsx
 msgid "Notes open"
 msgstr "Notes open"
@@ -7715,24 +7742,24 @@ msgid "Past the internal deadline"
 msgstr "Past the internal deadline"
 
 #: src/features/migration/Step1Intake.tsx
+msgid "Paste a list instead →"
+msgstr "Paste a list instead →"
+
+#: src/features/migration/Step1Intake.tsx
 msgid "Paste client data"
 msgstr "Paste client data"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Paste client rows"
+msgstr "Paste client rows"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Paste here — any shape, we'll figure it out. Include the header row if you have one."
 msgstr "Paste here — any shape, we'll figure it out. Include the header row if you have one."
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Paste or upload — any shape works. Columns like <emphasis>Estimated tax due</emphasis>, <emphasis>Owner count</emphasis>, or <emphasis>Owners</emphasis> help us flag penalty risk."
-msgstr "Paste or upload — any shape works. Columns like <emphasis>Estimated tax due</emphasis>, <emphasis>Owner count</emphasis>, or <emphasis>Owners</emphasis> help us flag penalty risk."
-
-#: src/features/migration/Step1Intake.tsx
 msgid "Paste or upload to continue."
 msgstr "Paste or upload to continue."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Paste rows"
-msgstr "Paste rows"
 
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/rules-console-primitives.tsx
@@ -7907,10 +7934,6 @@ msgstr "Pick a client…"
 #: src/routes/obligations.tsx
 msgid "Pick a scope, format, and recipient."
 msgstr "Pick a scope, format, and recipient."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Pick a source to add context. The AI mapper runs either way; templates also fill defaults if AI is unavailable."
-msgstr "Pick a source to add context. The AI mapper runs either way; templates also fill defaults if AI is unavailable."
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Pick state"
@@ -8136,10 +8159,6 @@ msgstr "Preparing your mapping"
 #: src/features/audit/audit-log-labels.ts
 msgid "Preset"
 msgstr "Preset"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Preset mismatch"
-msgstr "Preset mismatch"
 
 #: src/routes/rules.library.tsx
 msgid "Press Escape to close the review queue."
@@ -8763,6 +8782,7 @@ msgstr "Reminder-ready"
 msgid "Reminders"
 msgstr "Reminders"
 
+#: src/features/migration/Step1Intake.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 msgid "Remove"
 msgstr "Remove"
@@ -10232,6 +10252,10 @@ msgstr "Source or confirmation reference"
 msgid "Source revoked"
 msgstr "Source revoked"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Source set to {selectedPresetLabel}."
+msgstr "Source set to {selectedPresetLabel}."
+
 #: src/features/rules/sources-tab.tsx
 msgid "Source signal trail"
 msgstr "Source signal trail"
@@ -10295,6 +10319,10 @@ msgstr "Specific date range"
 #: src/features/migration/Step1Intake.tsx
 msgid "Spreadsheet"
 msgstr "Spreadsheet"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "SSN-like columns are blocked before anything goes to the AI."
+msgstr "SSN-like columns are blocked before anything goes to the AI."
 
 #: src/features/migration/Step1Intake.tsx
 msgid "SSN-like columns blocked"
@@ -11371,10 +11399,6 @@ msgstr "Unknown reviewer"
 msgid "Unread: {0}"
 msgstr "Unread: {0}"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Up to 1,000 rows · 5 MB"
-msgstr "Up to 1,000 rows · 5 MB"
-
 #: src/features/reminders/reminders-page.tsx
 msgid "Upcoming"
 msgstr "Upcoming"
@@ -11413,10 +11437,6 @@ msgstr "Upgrade to Team"
 #: src/features/migration/intake-files.ts
 msgid "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
 msgstr "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Upload file"
-msgstr "Upload file"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Upload rows"
@@ -11530,11 +11550,6 @@ msgstr "Used from Send to client to collect the current checklist from the clien
 #: src/features/audit/audit-event-drawer.tsx
 msgid "User agent hash"
 msgstr "User agent hash"
-
-#. placeholder {0}: sourceManifest.selectedFileName
-#: src/features/migration/Step1Intake.tsx
-msgid "Using {sourceProductLabel} data from {0}."
-msgstr "Using {sourceProductLabel} data from {0}."
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Using Other"
@@ -11703,10 +11718,6 @@ msgstr "Watched"
 msgid "Watched sources"
 msgstr "Watched sources"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "We block SSN-like patterns before sending anything to the AI."
-msgstr "We block SSN-like patterns before sending anything to the AI."
-
 #. placeholder {0}: ssnBlockedHeaders.join(', ')
 #: src/features/migration/Step1Intake.tsx
 msgid "We blocked SSN-like patterns to protect your clients. Those columns won't be sent to the AI. If a flagged column is actually an EIN, choose EIN yourself in Mapping; true SSN/ITIN values should stay ignored. Columns flagged: {0}."
@@ -11785,10 +11796,6 @@ msgstr "When is it due?"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "When it's due"
 msgstr "When it's due"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Where is your data coming from?"
-msgstr "Where is your data coming from?"
 
 #: src/routes/account.security.tsx
 msgid "Whoever is signed in on this browser will lose access immediately. They'll need to re-authenticate next time."

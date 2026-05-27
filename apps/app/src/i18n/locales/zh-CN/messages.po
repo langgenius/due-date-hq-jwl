@@ -202,11 +202,6 @@ msgstr "{0, plural, other {# 行需要关注}}"
 msgid "{0, plural, one {# row needs review} other {# rows need review}}"
 msgstr "{0, plural, one {# row needs review} other {# rows need review}}"
 
-#. placeholder {0}: intake.rowCount
-#: src/features/migration/Step1Intake.tsx
-msgid "{0, plural, one {# row ready to import} other {# rows ready to import}}"
-msgstr "{0, plural, other {# 行已准备就绪可以导入}}"
-
 #. placeholder {0}: group.ruleCount
 #. placeholder {0}: suggested.length
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -733,6 +728,10 @@ msgstr "{pausedCount, plural, one {# paused} other {# paused}}"
 msgid "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
 msgstr "{pendingCount} 个待处理 · {expiredCount} 个已过期 · magic link，7 天有效"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "{productLabel} export"
+msgstr "{productLabel} 导出"
+
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{pulseCount} active alerts"
 msgstr "{pulseCount} 个活跃提醒"
@@ -757,6 +756,14 @@ msgstr "{reservedCount} 个保留"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "{role} at {0}"
 msgstr "{0} 的 {role}"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "{rowCount, plural, one {# client ready to import} other {# clients ready to import}}"
+msgstr "{rowCount, plural, other {# 个客户已准备好导入}}"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "{rowCount, plural, one {# client} other {# clients}}"
+msgstr "{rowCount, plural, other {# 个客户}}"
 
 #: src/routes/migration.new.tsx
 msgid "{ruleReviewCount, plural, one {# rule is queued for due-date review before it can become active and create client deadlines.} other {# rules are queued for due-date review before they can become active and create client deadlines.}}"
@@ -852,6 +859,10 @@ msgstr "#{0}"
 #: src/routes/_entry-layout.tsx
 msgid "© {0} DueDateHQ Inc."
 msgstr "© {0} DueDateHQ Inc."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "← Upload a file instead"
+msgstr "← 改为上传文件"
 
 #. placeholder {0}: suggested.length - 6
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -1601,6 +1612,10 @@ msgstr "请回答每个项目，方便您的 CPA 确认申报准备状态。"
 #: src/features/calendar/calendar-page.tsx
 msgid "Any device subscribed to the current {0} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
 msgstr "所有订阅当前 {0} feed 的设备都会停止同步。你需要把新的 URL 分享给持有旧 URL 的人员。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Any shape works. We'll figure out the columns."
+msgstr "任何格式都可以。我们会自动识别列。"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Any state"
@@ -2768,6 +2783,10 @@ msgid "Columns used"
 msgstr "使用的列"
 
 #: src/features/migration/Step1Intake.tsx
+msgid "Coming from a specific tool? (Optional)"
+msgstr "来自特定工具？（可选）"
+
+#: src/features/migration/Step1Intake.tsx
 msgid "Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
 msgstr "正在从 File In Time 迁移？我们会映射可用日历字段，并在生成截止日前标记缺口。"
 
@@ -3509,6 +3528,10 @@ msgid "CSV or TXT"
 msgstr "CSV 或 TXT"
 
 #: src/features/migration/Step1Intake.tsx
+msgid "CSV, Excel, ZIP, TXT, or IIF · up to 1,000 rows · 5 MB"
+msgstr "CSV、Excel、ZIP、TXT 或 IIF · 最多 1,000 行 · 5 MB"
+
+#: src/features/migration/Step1Intake.tsx
 msgid "CSV, XLS, or XLSX"
 msgstr "CSV、XLS 或 XLSX"
 
@@ -3782,8 +3805,8 @@ msgid "Details updated"
 msgstr "详情已更新"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Detected export source"
-msgstr "已识别导出来源"
+msgid "Different source detected"
+msgstr "检测到不同的来源"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Disable"
@@ -3963,8 +3986,12 @@ msgid "Drafting started without all client materials in hand."
 msgstr "已开始起草，但客户材料尚未收齐。"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Drop a CSV, Excel, ZIP, TXT, or IIF file"
-msgstr "Drop a CSV, Excel, ZIP, TXT, or IIF file"
+msgid "Drop a file or click to browse"
+msgstr "拖入文件，或点击浏览"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Drop your client file."
+msgstr "拖入您的客户文件。"
 
 #: src/features/migration/Stepper.tsx
 msgid "Dry run"
@@ -5106,10 +5133,6 @@ msgstr "DueDateHQ 如何触达您的团队、客户与日历。"
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "I have read the official source and verified the new deadline date."
 msgstr "我已阅读官方来源并核实了新的截止日期。"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "I'm coming from… (optional)"
-msgstr "我正在从…迁移过来（可选）"
 
 #: src/routes/obligations.tsx
 msgid "iCal .ics"
@@ -6999,6 +7022,10 @@ msgstr "备注"
 msgid "Notes"
 msgstr "备注"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Notes on this file"
+msgstr "关于此文件的备注"
+
 #: src/routes/obligations.tsx
 msgid "Notes open"
 msgstr "复核备注待处理"
@@ -7715,24 +7742,24 @@ msgid "Past the internal deadline"
 msgstr "Past the internal deadline"
 
 #: src/features/migration/Step1Intake.tsx
+msgid "Paste a list instead →"
+msgstr "改为粘贴列表 →"
+
+#: src/features/migration/Step1Intake.tsx
 msgid "Paste client data"
 msgstr "粘贴客户数据"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Paste client rows"
+msgstr "粘贴客户行"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Paste here — any shape, we'll figure it out. Include the header row if you have one."
 msgstr "粘贴到这里 —— 任何格式都行，我们会自动识别。如果有表头也请一并粘贴。"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Paste or upload — any shape works. Columns like <emphasis>Estimated tax due</emphasis>, <emphasis>Owner count</emphasis>, or <emphasis>Owners</emphasis> help us flag penalty risk."
-msgstr "Paste or upload — any shape works. Columns like <emphasis>Estimated tax due</emphasis>, <emphasis>Owner count</emphasis>, or <emphasis>Owners</emphasis> help us flag penalty risk."
-
-#: src/features/migration/Step1Intake.tsx
 msgid "Paste or upload to continue."
 msgstr "Paste or upload to continue."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Paste rows"
-msgstr "粘贴行数据"
 
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/rules-console-primitives.tsx
@@ -7907,10 +7934,6 @@ msgstr "选择一个客户…"
 #: src/routes/obligations.tsx
 msgid "Pick a scope, format, and recipient."
 msgstr "选择范围、格式和收件人。"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Pick a source to add context. The AI mapper runs either way; templates also fill defaults if AI is unavailable."
-msgstr "Pick a source to add context. The AI mapper runs either way; templates also fill defaults if AI is unavailable."
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Pick state"
@@ -8136,10 +8159,6 @@ msgstr "正在准备字段映射"
 #: src/features/audit/audit-log-labels.ts
 msgid "Preset"
 msgstr "预设"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Preset mismatch"
-msgstr "预设不匹配"
 
 #: src/routes/rules.library.tsx
 msgid "Press Escape to close the review queue."
@@ -8763,6 +8782,7 @@ msgstr "提醒就绪"
 msgid "Reminders"
 msgstr "提醒"
 
+#: src/features/migration/Step1Intake.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 msgid "Remove"
 msgstr "移除"
@@ -10232,6 +10252,10 @@ msgstr "来源或确认引用"
 msgid "Source revoked"
 msgstr "来源已撤销"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Source set to {selectedPresetLabel}."
+msgstr "来源已设置为 {selectedPresetLabel}。"
+
 #: src/features/rules/sources-tab.tsx
 msgid "Source signal trail"
 msgstr "来源信号记录"
@@ -10295,6 +10319,10 @@ msgstr "Specific date range"
 #: src/features/migration/Step1Intake.tsx
 msgid "Spreadsheet"
 msgstr "电子表格"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "SSN-like columns are blocked before anything goes to the AI."
+msgstr "所有疑似 SSN 的列会在发送给 AI 之前被拦截。"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "SSN-like columns blocked"
@@ -11371,10 +11399,6 @@ msgstr "未知复核人"
 msgid "Unread: {0}"
 msgstr "未读：{0}"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Up to 1,000 rows · 5 MB"
-msgstr "Up to 1,000 rows · 5 MB"
-
 #: src/features/reminders/reminders-page.tsx
 msgid "Upcoming"
 msgstr "即将触发"
@@ -11413,10 +11437,6 @@ msgstr "升级到 Team"
 #: src/features/migration/intake-files.ts
 msgid "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
 msgstr "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Upload file"
-msgstr "上传文件"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Upload rows"
@@ -11530,11 +11550,6 @@ msgstr "从 Send to client 使用，用于向客户收集当前 checklist。"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "User agent hash"
 msgstr "User agent 哈希"
-
-#. placeholder {0}: sourceManifest.selectedFileName
-#: src/features/migration/Step1Intake.tsx
-msgid "Using {sourceProductLabel} data from {0}."
-msgstr "正在使用来自 {0} 的 {sourceProductLabel} 数据。"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Using Other"
@@ -11703,10 +11718,6 @@ msgstr "已监控"
 msgid "Watched sources"
 msgstr "Watched sources"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "We block SSN-like patterns before sending anything to the AI."
-msgstr "在向 AI 发送任何内容前，我们会先拦截疑似 SSN 的模式。"
-
 #. placeholder {0}: ssnBlockedHeaders.join(', ')
 #: src/features/migration/Step1Intake.tsx
 msgid "We blocked SSN-like patterns to protect your clients. Those columns won't be sent to the AI. If a flagged column is actually an EIN, choose EIN yourself in Mapping; true SSN/ITIN values should stay ignored. Columns flagged: {0}."
@@ -11785,10 +11796,6 @@ msgstr "何时到期?"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "When it's due"
 msgstr "When it's due"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Where is your data coming from?"
-msgstr "你的数据从哪里来？"
 
 #: src/routes/account.security.tsx
 msgid "Whoever is signed in on this browser will lose access immediately. They'll need to re-authenticate next time."
