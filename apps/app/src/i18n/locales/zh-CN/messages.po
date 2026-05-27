@@ -5389,7 +5389,6 @@ msgstr "隐藏"
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/opportunities/opportunity-ui.tsx
 #: src/features/pulse/components/PulseConfidencePill.tsx
-#: src/routes/obligations.tsx
 msgid "High"
 msgstr "高"
 
@@ -6081,7 +6080,6 @@ msgstr "丢失了身份验证器？<link>发邮件联系支持</link>以重置�
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/opportunities/opportunity-ui.tsx
 #: src/features/pulse/components/PulseConfidencePill.tsx
-#: src/routes/obligations.tsx
 msgid "Low"
 msgstr "低"
 
@@ -6364,10 +6362,6 @@ msgstr "材料状态从 {previous} 变更为 {next}"
 #: src/routes/obligations.tsx
 msgid "Materials still outstanding"
 msgstr "仍有材料未收齐"
-
-#: src/routes/obligations.tsx
-msgid "Med"
-msgstr "中"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
@@ -10784,10 +10778,6 @@ msgstr "Sort by needs review, ascending (active)"
 msgid "Sort by needs review, descending (active)"
 msgstr "Sort by needs review, descending (active)"
 
-#: src/routes/obligations.tsx
-msgid "Sort by Smart Priority"
-msgstr "按智能优先级排序"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "source"
 msgstr "来源"
@@ -12108,10 +12098,6 @@ msgstr "上游申报也在阻塞 — 客户单独标记了需协助的项目。"
 #: src/routes/practice.tsx
 msgid "Urgency window"
 msgstr "紧急窗口"
-
-#: src/routes/obligations.tsx
-msgid "Urgent"
-msgstr "紧急"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "US state code · 2 letters"
