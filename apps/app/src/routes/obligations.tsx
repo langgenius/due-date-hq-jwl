@@ -28,7 +28,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import {
   AlertTriangleIcon,
-  ArrowDownIcon,
   ArrowDownUp,
   ChevronsUpDown,
   ChevronUp,
@@ -1956,21 +1955,11 @@ export function ObligationQueueRoute() {
         // doubles as the implicit sort key.
         accessorKey: 'smartPriority',
         id: 'smartPriority',
-        header: () => (
-          <button
-            type="button"
-            aria-label={t`Sort by Smart Priority`}
-            aria-pressed={sort === 'smart_priority'}
-            onClick={() => changeSort('smart_priority')}
-            className={cn(
-              'inline-flex items-center gap-1 text-left transition-colors hover:text-text-primary',
-              sort === 'smart_priority' ? 'text-text-accent' : 'text-text-tertiary',
-            )}
-          >
-            <span>{t`Priority`}</span>
-            <ArrowDownIcon className="size-3.5" aria-hidden />
-          </button>
-        ),
+        // 2026-05-27 (Yuqi feedback "remove the sortby arrow besides
+        // priority — no use"): Priority IS the default sort, so the
+        // click-to-sort affordance was a no-op (sorting by priority
+        // when already sorted by priority). Header is now plain text.
+        header: () => <span>{t`Priority`}</span>,
         cell: ({ row: tableRow }) => {
           const score = tableRow.original.smartPriority.score
           const rank = tableRow.original.smartPriority.rank
