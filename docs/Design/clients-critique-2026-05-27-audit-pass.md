@@ -9,19 +9,54 @@
 
 ## §0. Executive summary
 
-The chrome is on canon (PageHeader, card frame, filter band, EmptyState, Skeleton all use the canonical primitives). The drift is in **interaction semantics and structural debt**, not visual style.
+The chrome is on canon (PageHeader, card frame, filter band, EmptyState, Skeleton all use the canonical primitives). The drift is in **interaction semantics, structural debt, and a handful of broken-in-front-of-the-user bugs** the live pass surfaced that the code pass missed.
 
-**Top 5 findings, ranked by leverage:**
+Two passes contributed to this doc:
+- **Pass 1** (code + cross-route compare): §1-§9. Identifies architectural and consistency issues.
+- **Pass 2** (live click-through in preview): §10-§12. Identifies things that actually break, confuse, or behave unexpectedly when you click them.
+
+### Pass 2 headliners — fix these first
+
+**🔴 P0 — embarrassing if shipped, all <1h fixes:**
+
+| # | Finding | Where |
+|---|---|---|
+| **L4** | User-facing copy leaks raw UUID — Activity tab → Client summary (AI) → Next step reads `"Request a refresh after updating risk inputs for client 10000000-0000-4000-8000-000000000007."` | AI summary template |
+| **L2** | `FixNeedsFactsSheet` counter has a broken interpolation: `"0 of  fixed · 1"` (double space, missing total) | `FixNeedsFactsSheet.tsx` |
+| **L1** | "Quick peek" row menu item silently does full nav — confirmed live (drawer never opens, URL goes to `/clients/[id]`) | `ClientDrawerProvider.tsx:45-52` + menu item |
+
+**🟠 P1 promoted from live pass:**
+
+| # | Finding |
+|---|---|
+| **L10** | Obligation panel header shows "FILING DEADLINE green (Filed)" simultaneously with "INTERNAL TARGET 72 DAYS OVERDUE" in red. CPA can't tell whether the filing is done or overdue. |
+| **L9** | Right obligation panel squeezes the left column when it opens — SummaryStrip wraps ugly, "Activity" tab ellipsizes to "Activi…", "Add deadline" CTA cramps. |
+| **L11** | Workpapers empty state is a dead end — names workpapers, gives no CTA to add one. |
+
+### Pass 1 headliners — structural / architectural
 
 | # | Finding | Severity | Where |
 |---|---|---|---|
 | 1 | Row-click takes user to a full-page route while sibling workbench pages keep the user in-page via drawer / dialog | **P0** | `ClientFactsWorkspace.tsx:1637-1649` |
 | 2 | Three parallel "peek client" surfaces (hover card, drawer, full page) with hand-rolled next-due logic in each; the drawer is silently a no-op when invoked from `/clients` itself | **P0** | `ClientDrawerProvider.tsx:45-52` + 3 components |
 | 3 | `ClientFactsWorkspace.tsx` is **5,672 lines** and hosts BOTH the list and the detail page in one file — single largest structural debt in the app | **P1** | `ClientFactsWorkspace.tsx:756 + 2142` |
-| 4 | "At risk: 2" on the SummaryStrip doesn't visually map to specific rows in the filing plan below — user can't tell WHICH 2 are at risk | **P1** | `ClientSummaryStrip` + `ClientWorkPlanPanel` |
+| 4 | "At risk: 2" tile navigates AWAY to `/deadlines?status=blocked` instead of filtering the filing plan below (corrected in pass 2 — tile IS clickable, mental model is still wrong) | **P1** | `ClientSummaryStrip` + `ClientWorkPlanPanel` |
 | 5 | Three queries fire on tabs the user may never open (risk-summary, pulse-history, audit-log) — wasted network on first paint | **P2** | `clients.$clientId.tsx` query block |
 
-The audit also found 7 P3 (polish) items and 4 product-logic question marks. Full list in §3-§6.
+Plus 7 P2 items, 7 P3 polish items, and 7 additional live-pass P2 findings — full list in §3-§6 and §10.
+
+### Recommended order (full list in §12)
+
+1. Fix the two broken-string bugs (L2 + L4) — under an hour each
+2. Decide the peek strategy — one conversation resolves P0-1/2/3 + L1 together
+3. Disambiguate the obligation panel header (L10) — semantics of FILING DEADLINE / INTERNAL TARGET / PAYMENT DUE
+4. Wire SummaryStrip tiles to filter in-place OR rename them (L8)
+5. Fix the right-panel layout cascade (L9)
+6. Polish: title switcher copy (L5), finish Discover→Opportunities rename (L6, L7), convert filing plan to real `<table>` (L3), Workpapers CTA (L11)
+
+### Calibration note on methodology
+
+The live pass also caught a falsifying observation: some "popover bleed-through" patterns that *appeared* in screenshots from the Claude Preview tool turned out to be **screenshot artifacts**, not real visual bugs (computed styles confirmed `bg: white`, `opacity: 1`, `visibility: visible`). Those findings were dropped from the doc so the bugs list stays trustworthy. The preview tool is reliable for DOM structure, computed styles, click→navigation behavior, and text content — but unreliable for visual fidelity of overlays mid-animation. Treat any future "popover looks faded" claim as suspect unless backed by a computed-style read.
 
 ---
 
