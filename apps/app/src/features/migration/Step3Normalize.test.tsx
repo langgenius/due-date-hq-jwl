@@ -89,29 +89,26 @@ function renderStep(
   return { onToggleApplyToAll }
 }
 
-function clickButton(label: string) {
+function clickButtonContaining(label: string) {
   const button = Array.from(document.querySelectorAll('button')).find((candidate) =>
     candidate.textContent?.includes(label),
   )
-  expect(button).toBeTruthy()
+  expect(button, `Could not find button containing "${label}"`).toBeTruthy()
   act(() => {
     button?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
   })
 }
 
 describe('Step3Normalize matrix state context', () => {
-  it('summarizes tax defaults and keeps matrix controls behind an advanced toggle', () => {
+  it('auto-expands the tax-type defaults card when a cell needs review', () => {
     renderStep({ status: 'success', rows: [], applyToAll: {}, errorBanner: null })
 
     expect(document.body.textContent).toContain('AI standardized your values')
     expect(document.body.textContent).toContain('Tax type defaults')
-    expect(document.body.textContent).toContain(
-      'Default tax types are ready for clients without tax types',
-    )
-    expect(document.body.textContent).not.toContain('tx_state_franchise_or_entity_tax')
-
-    clickButton('Adjust tax type defaults')
-
+    // Tax-type defaults card auto-expands because the fixture cell has
+    // `needsReview: true`. The detail rows render inline — no separate
+    // "Adjust tax type defaults" toggle is required anymore.
+    expect(document.body.textContent).toContain('Saved as default')
     expect(document.body.textContent).toContain('State context added')
     expect(document.body.textContent).toContain('tx_state_franchise_or_entity_tax')
     expect(document.body.textContent).toContain('Use suggested filings')
@@ -154,13 +151,10 @@ describe('Step3Normalize matrix state context', () => {
       ],
     })
 
-    expect(document.body.textContent).toContain('2 value groups need review')
-    expect(document.body.textContent).toContain('2 clients are affected by safe fallbacks.')
-    expect(document.body.textContent).not.toContain('Nonprofit')
-    expect(document.body.textContent).not.toContain('No state match')
+    // Header readout calls out the two fallback groups across categories.
+    expect(document.body.textContent).toContain('need review')
 
-    clickButton('Review all groups')
-
+    // Categories with fallbacks auto-expand inline — no click required.
     expect(document.body.textContent).toContain('Nonprofit')
     expect(document.body.textContent).toContain('Other')
     expect(document.body.textContent).toContain('Using Other')
@@ -204,14 +198,16 @@ describe('Step3Normalize matrix state context', () => {
       ],
     })
 
-    expect(document.body.textContent).not.toContain('"C.A."')
-    expect(document.body.textContent).not.toContain('"Form 990"')
-    expect(document.body.textContent).not.toContain('federal_990')
+    // Repaired values are non-fallback, so the categories collapse by
+    // default and the header reads "all matched".
+    expect(document.body.textContent).toContain('all matched')
     expect(document.body.textContent).not.toContain('No state match')
     expect(document.body.textContent).not.toContain('[]')
     expect(document.body.textContent).not.toContain('value group needs review')
 
-    clickButton('Review all groups')
+    // Expand each category to verify the repaired values render inside.
+    clickButtonContaining('state')
+    clickButtonContaining('tax type')
 
     expect(document.body.textContent).toContain('"C.A."')
     expect(document.body.textContent).toContain('CA')
@@ -270,9 +266,11 @@ describe('Step3Normalize matrix state context', () => {
       },
     )
 
+    // All matched → entity-type category is collapsed by default.
     expect(document.body.textContent).not.toContain('"L.L.C." / "LLC"')
 
-    clickButton('Review all groups')
+    // Expand the entity-type category to see the grouped row.
+    clickButtonContaining('entity type')
 
     expect(document.body.textContent).toContain('"L.L.C." / "LLC"')
     expect(document.body.textContent).toContain('5 clients')

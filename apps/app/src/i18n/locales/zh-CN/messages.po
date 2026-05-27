@@ -13,10 +13,6 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "—"
-msgstr "—"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "· current year"
 msgstr "· 本年度"
@@ -58,32 +54,20 @@ msgstr "（中）"
 msgid "(no longer on team)"
 msgstr "（已不在团队中）"
 
-#. placeholder {0}: normalizationSummary.affectedExceptionClients
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, =0 {None} one {# client} other {# clients}}"
-msgstr "{0, plural, =0 {无} one {# 个客户} other {# 个客户}}"
-
-#. placeholder {0}: normalizationSummary.exceptionGroups
-#. placeholder {0}: normalizationSummary.readyGroups
-#. placeholder {0}: normalizationSummary.totalGroups
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, =0 {None} one {# group} other {# groups}}"
-msgstr "{0, plural, =0 {无} one {# 组} other {# 组}}"
+#. placeholder {0}: summary.lowConfidenceColumns + summary.badRows
+#: src/features/migration/Step2Mapping.tsx
+msgid "{0, plural, =0 {None} one {# item} other {# items}}"
+msgstr "{0, plural, =0 {无} one {# 项} other {# 项}}"
 
 #. placeholder {0}: applicable.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0, plural, one {# applicable} other {# applicable}}"
 msgstr "{0, plural, one {# 个适用} other {# 个适用}}"
 
-#. placeholder {0}: normalizationSummary.affectedExceptionClients
+#. placeholder {0}: summary.clientsCovered
 #: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# client is affected by a safe fallback.} other {# clients are affected by safe fallbacks.}}"
-msgstr "{0, plural, one {# 个客户受安全回退影响。} other {# 个客户受安全回退影响。}}"
-
-#. placeholder {0}: summary.reviewClients
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# client will carry state-review context into the preview.} other {# clients will carry state-review context into the preview.}}"
-msgstr "{0, plural, one {# 个客户会带着州规则复核上下文进入预览。} other {# 个客户会带着州规则复核上下文进入预览。}}"
+msgid "{0, plural, one {# client covered} other {# clients covered}}"
+msgstr "{0, plural, one {覆盖 # 个客户} other {覆盖 # 个客户}}"
 
 #. placeholder {0}: cell.appliedClientCount
 #. placeholder {0}: group.affectedClientCount
@@ -99,6 +83,17 @@ msgstr "{0, plural, one {# 个客户} other {# 个客户}}"
 #: src/features/migration/Step2Mapping.tsx
 msgid "{0, plural, one {# column is currently ignored.} other {# columns are currently ignored.}}"
 msgstr "{0, plural, one {# 列当前被忽略。} other {# 列当前被忽略。}}"
+
+#. placeholder {0}: summary.lowConfidenceColumns
+#: src/features/migration/Step2Mapping.tsx
+msgid "{0, plural, one {# column needs review} other {# columns need review}}"
+msgstr "{0, plural, one {# 列需要复核} other {# 列需要复核}}"
+
+#. placeholder {0}: summary.ignoredColumns
+#. placeholder {0}: summary.mappedColumns
+#: src/features/migration/Step2Mapping.tsx
+msgid "{0, plural, one {# column} other {# columns}}"
+msgstr "{0, plural, one {# 列} other {# 列}}"
 
 #. placeholder {0}: Math.abs(filingDays)
 #: src/routes/obligations.tsx
@@ -140,11 +135,6 @@ msgstr "{0, plural, other {# 个截止事项}}"
 msgid "{0, plural, one {# gap} other {# gap}}"
 msgstr "{0, plural, one {# 个缺口} other {# 个缺口}}"
 
-#. placeholder {0}: summary.enabledCells
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# group} other {# groups}}"
-msgstr "{0, plural, one {# 组} other {# 组}}"
-
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# jurisdiction} other {# jurisdictions}}"
@@ -165,7 +155,10 @@ msgstr "{0, plural, other {# 条与 \"{query}\" 匹配的结果}}"
 msgid "{0, plural, one {# missing} other {# missing}}"
 msgstr "{0, plural, other {# 项缺失}}"
 
+#. placeholder {0}: category.needsReview
 #. placeholder {0}: group.pendingReviewCount
+#. placeholder {0}: summary.reviewCells
+#: src/features/migration/Step3Normalize.tsx
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# needs review} other {# need review}}"
 msgstr "{0, plural, other {# 项待审核}}"
@@ -190,6 +183,11 @@ msgstr "{0, plural, other {# 行需要关注}}"
 msgid "{0, plural, one {# row needs review} other {# rows need review}}"
 msgstr "{0, plural, one {# row needs review} other {# rows need review}}"
 
+#. placeholder {0}: intake.rowCount
+#: src/features/migration/Step1Intake.tsx
+msgid "{0, plural, one {# row ready to import} other {# rows ready to import}}"
+msgstr "{0, plural, other {# 行已准备就绪可以导入}}"
+
 #. placeholder {0}: group.ruleCount
 #. placeholder {0}: suggested.length
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -212,20 +210,10 @@ msgstr "{0, plural, other {# 个来源已关联}}"
 msgid "{0, plural, one {# state rule type} other {# state rule types}}"
 msgstr "{0, plural, other {# 类州规则}}"
 
-#. placeholder {0}: summary.reviewCells
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# tax type group needs rule review} other {# tax type groups need rule review}}"
-msgstr "{0, plural, one {# 个税种组需要规则复核} other {# 个税种组需要规则复核}}"
-
 #. placeholder {0}: yearGroups.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0, plural, one {# tax year} other {# tax years}}"
 msgstr "{0, plural, one {# 个税年} other {# 个税年}}"
-
-#. placeholder {0}: normalizationSummary.exceptionGroups
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# value group needs review} other {# value groups need review}}"
-msgstr "{0, plural, one {# 个值组需要复核} other {# 个值组需要复核}}"
 
 #. placeholder {0}: -days
 #: src/features/dashboard/actions-list.tsx
@@ -623,10 +611,6 @@ msgstr "另有 {hiddenDraftCount} 个 AI 草案"
 msgid "{hiddenRuleCount} more selected rules"
 msgstr "另有 {hiddenRuleCount} 条已选规则"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "{ignored, plural, =0 {0 ignored} one {# ignored} other {# ignored}}"
-msgstr "{ignored, plural, =0 {0 列已忽略} other {# 列已忽略}}"
-
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "{impacted, plural, one {# client may be affected} other {# clients may be affected}}"
 msgstr "{impacted, plural, one {# client may be affected} other {# clients may be affected}}"
@@ -643,10 +627,6 @@ msgstr "{label}，已选择"
 msgid "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
 msgstr "{lateFlag, plural, other {12 个月内有 # 次逾期申报}}"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "{mapped, plural, one {# column mapped} other {# columns mapped}}"
-msgstr "{mapped, plural, other {已映射 # 列}}"
-
 #: src/features/rules/coverage-tab.tsx
 msgid "{missingSourceCount} source gaps"
 msgstr "{missingSourceCount} 个来源缺口"
@@ -654,10 +634,6 @@ msgstr "{missingSourceCount} 个来源缺口"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
 msgstr "{needsFactsCount, plural, other {# 个客户缺少州或实体类型 — 规则库已跳过这些客户。}}"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "{needsReview, plural, =0 {0 need review} one {# needs review} other {# need review}}"
-msgstr "{needsReview, plural, =0 {0 列待复核} other {# 列待复核}}"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "{obligationCount, plural, one {# deadline (full tax year)} other {# deadlines (full tax year)}}"
@@ -728,10 +704,6 @@ msgstr "{pausedCount, plural, one {# paused} other {# paused}}"
 msgid "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
 msgstr "{pendingCount} 个待处理 · {expiredCount} 个已过期 · magic link，7 天有效"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "{productLabel} export"
-msgstr "{productLabel} 导出"
-
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{pulseCount} active alerts"
 msgstr "{pulseCount} 个活跃提醒"
@@ -756,14 +728,6 @@ msgstr "{reservedCount} 个保留"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "{role} at {0}"
 msgstr "{0} 的 {role}"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "{rowCount, plural, one {# client ready to import} other {# clients ready to import}}"
-msgstr "{rowCount, plural, other {# 个客户已准备好导入}}"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "{rowCount, plural, one {# client} other {# clients}}"
-msgstr "{rowCount, plural, other {# 个客户}}"
 
 #: src/routes/migration.new.tsx
 msgid "{ruleReviewCount, plural, one {# rule is queued for due-date review before it can become active and create client deadlines.} other {# rules are queued for due-date review before they can become active and create client deadlines.}}"
@@ -813,6 +777,18 @@ msgstr "{totalPending} rules"
 msgid "{totalRules, plural, one {# rule} other {# rules}}"
 msgstr "{totalRules, plural, one {# rule} other {# rules}}"
 
+#: src/features/migration/Step3Normalize.tsx
+msgid "{totalValues, plural, one {entity type} other {entity types}}"
+msgstr "{totalValues, plural, one {个实体类型} other {个实体类型}}"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "{totalValues, plural, one {state} other {states}}"
+msgstr "{totalValues, plural, one {个州} other {个州}}"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "{totalValues, plural, one {tax type} other {tax types}}"
+msgstr "{totalValues, plural, one {个税种} other {个税种}}"
+
 #: src/features/obligations/CompletedKeyDates.tsx
 msgid "{turnaroundDays, plural, one {# day} other {# days}}"
 msgstr "{turnaroundDays, plural, other {# 天}}"
@@ -860,10 +836,6 @@ msgstr "#{0}"
 msgid "© {0} DueDateHQ Inc."
 msgstr "© {0} DueDateHQ Inc."
 
-#: src/features/migration/Step1Intake.tsx
-msgid "← Upload a file instead"
-msgstr "← 改为上传文件"
-
 #. placeholder {0}: suggested.length - 6
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "+ {0} more"
@@ -873,6 +845,14 @@ msgstr "还有 {0} 项"
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
 msgstr "+{0} more"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · <2>{needsReview}</2> need review ({affectedClients, plural, one {# client} other {# clients}} affected)"
+msgstr "<0>{totalValues}</0> 个值，分 <1>{categoryCount}</1> 个类别 · <2>{needsReview}</2> 个待复核（影响 {affectedClients, plural, one {# 个客户} other {# 个客户}}）"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · all matched"
+msgstr "<0>{totalValues}</0> 个值，分 <1>{categoryCount}</1> 个类别 · 全部已匹配"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "0 ongoing"
@@ -1518,6 +1498,10 @@ msgstr "全部影响"
 msgid "All items received."
 msgstr "All items received."
 
+#: src/features/migration/Step3Normalize.tsx
+msgid "all matched"
+msgstr "全部已匹配"
+
 #: src/routes/obligations.tsx
 msgid "All received"
 msgstr "All received"
@@ -1612,10 +1596,6 @@ msgstr "请回答每个项目，方便您的 CPA 确认申报准备状态。"
 #: src/features/calendar/calendar-page.tsx
 msgid "Any device subscribed to the current {0} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
 msgstr "所有订阅当前 {0} feed 的设备都会停止同步。你需要把新的 URL 分享给持有旧 URL 的人员。"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Any shape works. We'll figure out the columns."
-msgstr "任何格式都可以。我们会自动识别列。"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Any state"
@@ -1931,10 +1911,6 @@ msgstr "税务机关拒绝了电子申报"
 #: src/routes/obligations.tsx
 msgid "Authority response"
 msgstr "Authority 回执"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Auto-mapped · {pct}%"
-msgstr "自动匹配 · {pct}%"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Automatic field matching is unavailable. We used the selected import template and kept the import draft editable."
@@ -2272,10 +2248,6 @@ msgstr "卡号和发票支付详情不会进入应用数据库。"
 msgid "Change"
 msgstr "变更"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "Change →"
-msgstr "更改 →"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Change owner — currently {name}"
 msgstr "更改负责人 — 当前为 {name}"
@@ -2454,10 +2426,6 @@ msgstr "城市"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Cleaned up an imported value."
 msgstr "已清理导入值。"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Cleaned value groups"
-msgstr "已整理的值组"
 
 #: src/routes/obligations.tsx
 msgid "Cleaning up client's books"
@@ -2714,13 +2682,8 @@ msgid "Clients"
 msgstr "客户"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/migration/Step3Normalize.tsx
 msgid "Clients affected"
 msgstr "受影响客户"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Clients covered"
-msgstr "覆盖客户"
 
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/FixNeedsFactsSheet.tsx
@@ -2779,16 +2742,16 @@ msgid "Collapse all"
 msgstr "全部折叠"
 
 #: src/features/migration/Step2Mapping.tsx
-msgid "Column mappings"
-msgstr "列映射"
+msgid "Column details"
+msgstr "列详情"
 
 #: src/routes/obligations.tsx
 msgid "Columns — {visibleHideableCount} of {totalHideableCount} visible"
 msgstr "列 — 已显示 {visibleHideableCount} 列(共 {totalHideableCount} 列)"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Coming from a specific tool? (Optional)"
-msgstr "来自特定工具？（可选）"
+#: src/features/migration/Step2Mapping.tsx
+msgid "Columns used"
+msgstr "使用的列"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
@@ -2817,6 +2780,7 @@ msgstr "合规"
 msgid "Compliance posture"
 msgstr "合规状态"
 
+#: src/features/migration/Step2Mapping.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Confidence"
 msgstr "置信度"
@@ -3531,16 +3495,8 @@ msgid "CSV or TXT"
 msgstr "CSV 或 TXT"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "CSV, Excel, ZIP, TXT, or IIF · up to 1,000 rows · 5 MB"
-msgstr "CSV、Excel、ZIP、TXT 或 IIF · 最多 1,000 行 · 5 MB"
-
-#: src/features/migration/Step1Intake.tsx
 msgid "CSV, XLS, or XLSX"
 msgstr "CSV、XLS 或 XLSX"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Currency · number"
-msgstr "金额 · 数值"
 
 #: src/routes/billing.tsx
 msgid "current"
@@ -3605,18 +3561,6 @@ msgstr "处理周期"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Dark"
 msgstr "深色"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Data type"
-msgstr "数据类型"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Date · MM-DD"
-msgstr "日期 · MM-DD"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Date · YYYY-MM-DD"
-msgstr "日期 · YYYY-MM-DD"
 
 #: src/routes/obligations.tsx
 msgid "Dates"
@@ -3782,10 +3726,6 @@ msgstr "决策备注（必填）"
 msgid "Decision memo is required."
 msgstr "必须填写决策备注。"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Default tax types are ready for clients without tax types."
-msgstr "已为没有税种的客户准备默认税种。"
-
 #: src/routes/practice.tsx
 msgid "Delete practice"
 msgstr "删除事务所"
@@ -3824,8 +3764,8 @@ msgid "Details updated"
 msgstr "详情已更新"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Different source detected"
-msgstr "检测到不同的来源"
+msgid "Detected export source"
+msgstr "已识别导出来源"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Disable"
@@ -3846,10 +3786,6 @@ msgstr "停用 MFA"
 #: src/routes/account.security.tsx
 msgid "Disable two-factor authentication?"
 msgstr "要停用双重验证吗？"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Disabled"
-msgstr "已停用"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Disabled cells"
@@ -4005,12 +3941,8 @@ msgid "Drafting started without all client materials in hand."
 msgstr "已开始起草，但客户材料尚未收齐。"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Drop a file or click to browse"
-msgstr "拖入文件，或点击浏览"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Drop your client file."
-msgstr "拖入您的客户文件。"
+msgid "Drop a CSV, Excel, ZIP, TXT, or IIF file"
+msgstr "Drop a CSV, Excel, ZIP, TXT, or IIF file"
 
 #: src/features/migration/Stepper.tsx
 msgid "Dry run"
@@ -4077,6 +4009,14 @@ msgstr "截止日延期"
 #: src/routes/billing.checkout.tsx
 msgid "DueDateHQ does not store card numbers or invoice payment data."
 msgstr "DueDateHQ 不保存卡号或发票支付数据。"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "DueDateHQ field"
+msgstr "DueDateHQ 字段"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "DueDateHQ matched the upload to import fields. Open details only if something looks off."
+msgstr "DueDateHQ 已将上传内容匹配到导入字段。只有看起来不对时才需要打开详情。"
 
 #: src/routes/readiness.tsx
 msgid "DueDateHQ readiness portal"
@@ -4146,6 +4086,7 @@ msgstr "每一行都会记录一条状态变更审计记录。如果这不是预
 msgid "Early alert"
 msgstr "早期提醒"
 
+#: src/features/migration/Step2Mapping.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Edit"
 msgstr "编辑"
@@ -4165,12 +4106,9 @@ msgstr "生效"
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/migration/mapping-target-labels.ts
+#: src/features/migration/Step2Mapping.tsx
 msgid "EIN"
 msgstr "EIN"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "EIN · ##-#######"
-msgstr "EIN · ##-#######"
 
 #: src/features/members/member-model.ts
 msgid "Elevated access"
@@ -4188,7 +4126,6 @@ msgid "Email"
 msgstr "邮箱"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
-#: src/features/migration/Step2Mapping.tsx
 msgid "Email address"
 msgstr "邮箱地址"
 
@@ -4306,10 +4243,6 @@ msgstr "实体 ID"
 msgid "Entity type"
 msgstr "实体类型"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "Entity type · enum"
-msgstr "实体类型 · 枚举值"
-
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Entity types"
 msgstr "实体类型"
@@ -4396,6 +4329,10 @@ msgstr "证据缺口"
 #: src/routes/rules.library.tsx
 msgid "Exception"
 msgstr "异常"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Exceptions"
+msgstr "例外"
 
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Exclude"
@@ -5004,8 +4941,8 @@ msgid "Forms the rule library can add without a new deadline"
 msgstr "规则库可在不新增截止日期的情况下添加的表单"
 
 #: src/features/migration/Step2Mapping.tsx
-msgid "Free text"
-msgstr "自由文本"
+msgid "Found"
+msgstr "已找到"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -5116,9 +5053,9 @@ msgstr "分组依据"
 msgid "Hide"
 msgstr "隐藏"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Hide tax type defaults"
-msgstr "隐藏税种默认值"
+#: src/features/migration/Step2Mapping.tsx
+msgid "Hide column details"
+msgstr "隐藏列详情"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
@@ -5143,6 +5080,10 @@ msgstr "DueDateHQ 如何触达您的团队、客户与日历。"
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "I have read the official source and verified the new deadline date."
 msgstr "我已阅读官方来源并核实了新的截止日期。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "I'm coming from… (optional)"
+msgstr "我正在从…迁移过来（可选）"
 
 #: src/routes/obligations.tsx
 msgid "iCal .ics"
@@ -5663,10 +5604,6 @@ msgstr "仅链接"
 msgid "Link unavailable"
 msgstr "链接不可用"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "List of US state codes"
-msgstr "美国州代码列表"
-
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
 msgid "LLC"
@@ -5806,10 +5743,6 @@ msgstr "低"
 #: src/components/primitives/low-confidence-badge.tsx
 msgid "Low confidence"
 msgstr "Low confidence"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Low match · {pct}%"
-msgstr "匹配度较低 · {pct}%"
 
 #: src/routes/billing.tsx
 msgid "Manage billing"
@@ -6011,10 +5944,6 @@ msgstr "已匹配客户"
 #: src/routes/obligations.tsx
 msgid "Matches the filters and sort currently on this page."
 msgstr "Matches the filters and sort currently on this page."
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Matching your columns to DueDateHQ fields…"
-msgstr "正在将您的列匹配到 DueDateHQ 字段…"
 
 #: src/features/concepts/concept-help.tsx
 #: src/routes/obligations.tsx
@@ -6870,10 +6799,6 @@ msgstr "没有规则匹配 \"{query}\"。"
 msgid "No rules yet for {0}."
 msgstr "{0} 尚无规则。"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "No sample values available."
-msgstr "暂无样本数据。"
-
 #: src/features/members/members-page.tsx
 msgid "No seats are available. Upgrade or suspend a member before inviting."
 msgstr "没有可用席位。请先升级或暂停一名成员再邀请。"
@@ -6991,6 +6916,10 @@ msgstr "不适用"
 msgid "Not enabled"
 msgstr "未启用"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Not found"
+msgstr "未找到"
+
 #: src/routes/obligations.tsx
 msgid "Not in audit trail"
 msgstr "Not in audit trail"
@@ -7043,10 +6972,6 @@ msgstr "备注"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Notes"
 msgstr "备注"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Notes on this file"
-msgstr "关于此文件的备注"
 
 #: src/routes/obligations.tsx
 msgid "Notes open"
@@ -7764,24 +7689,24 @@ msgid "Past the internal deadline"
 msgstr "Past the internal deadline"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Paste a list instead →"
-msgstr "改为粘贴列表 →"
-
-#: src/features/migration/Step1Intake.tsx
 msgid "Paste client data"
 msgstr "粘贴客户数据"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Paste client rows"
-msgstr "粘贴客户行"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Paste here — any shape, we'll figure it out. Include the header row if you have one."
 msgstr "粘贴到这里 —— 任何格式都行，我们会自动识别。如果有表头也请一并粘贴。"
 
 #: src/features/migration/Step1Intake.tsx
+msgid "Paste or upload — any shape works. Columns like <emphasis>Estimated tax due</emphasis>, <emphasis>Owner count</emphasis>, or <emphasis>Owners</emphasis> help us flag penalty risk."
+msgstr "Paste or upload — any shape works. Columns like <emphasis>Estimated tax due</emphasis>, <emphasis>Owner count</emphasis>, or <emphasis>Owners</emphasis> help us flag penalty risk."
+
+#: src/features/migration/Step1Intake.tsx
 msgid "Paste or upload to continue."
 msgstr "Paste or upload to continue."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Paste rows"
+msgstr "粘贴行数据"
 
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/rules-console-primitives.tsx
@@ -7944,10 +7869,6 @@ msgstr "个人收件箱"
 msgid "Personal morning digest preferences and types."
 msgstr "个人晨间摘要偏好与类型。"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "Phone number"
-msgstr "电话号码"
-
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Pick a client first."
 msgstr "请先选择客户。"
@@ -7960,6 +7881,10 @@ msgstr "选择一个客户…"
 #: src/routes/obligations.tsx
 msgid "Pick a scope, format, and recipient."
 msgstr "选择范围、格式和收件人。"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Pick a source to add context. The AI mapper runs either way; templates also fill defaults if AI is unavailable."
+msgstr "Pick a source to add context. The AI mapper runs either way; templates also fill defaults if AI is unavailable."
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Pick state"
@@ -8185,6 +8110,10 @@ msgstr "正在准备字段映射"
 #: src/features/audit/audit-log-labels.ts
 msgid "Preset"
 msgstr "预设"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Preset mismatch"
+msgstr "预设不匹配"
 
 #: src/routes/rules.library.tsx
 msgid "Press Escape to close the review queue."
@@ -8808,7 +8737,6 @@ msgstr "提醒就绪"
 msgid "Reminders"
 msgstr "提醒"
 
-#: src/features/migration/Step1Intake.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 msgid "Remove"
 msgstr "移除"
@@ -8841,10 +8769,6 @@ msgstr "正在移除…"
 #: src/routes/obligations.tsx
 msgid "Reopen the return for drafting"
 msgstr "重新打开该申报继续起草"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Repeated values are grouped, so large imports stay reviewable."
-msgstr "重复值已按组汇总，因此大批量导入也可以快速复核。"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
@@ -9030,10 +8954,6 @@ msgstr "在截止日期抽屉中查看 {0}"
 msgid "Review {count}"
 msgstr "审核 {count} 项"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Review all groups"
-msgstr "查看全部值组"
-
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review applied Pulse exceptions changing due dates."
 msgstr "审核已生效、影响到期日的 Pulse 例外。"
@@ -9041,6 +8961,10 @@ msgstr "审核已生效、影响到期日的 Pulse 例外。"
 #: src/features/rules/coverage-tab.tsx
 msgid "Review batch-ready templates and AI concrete drafts, add one batch note, then accept them into active practice rules."
 msgstr "审核可批量模板和 AI 具体草案，添加一条批量备注，然后接受为已生效事务所规则。"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Review column details"
+msgstr "复核列详情"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review coverage, sources, and pending rules."
@@ -9447,8 +9371,8 @@ msgid "Same Practice AI as Pro"
 msgstr "与 Pro 相同的事务所 AI"
 
 #: src/features/migration/Step2Mapping.tsx
-msgid "Sample values"
-msgstr "样本值"
+msgid "Sample"
+msgstr "样例"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
@@ -9535,6 +9459,10 @@ msgstr "立即保存这些恢复码"
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Saved"
 msgstr "已保存"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "Saved as default"
+msgstr "已设为默认"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Saved deadline view"
@@ -9991,10 +9919,6 @@ msgstr "显示"
 msgid "Show all"
 msgstr "全部显示"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Show fewer groups"
-msgstr "收起部分值组"
-
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "Showing {0} of {totalGroupCount} jurisdictions"
@@ -10274,10 +10198,6 @@ msgstr "来源或确认引用"
 msgid "Source revoked"
 msgstr "来源已撤销"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Source set to {selectedPresetLabel}."
-msgstr "来源已设置为 {selectedPresetLabel}。"
-
 #: src/features/rules/sources-tab.tsx
 msgid "Source signal trail"
 msgstr "来源信号记录"
@@ -10343,10 +10263,6 @@ msgid "Spreadsheet"
 msgstr "电子表格"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "SSN-like columns are blocked before anything goes to the AI."
-msgstr "所有疑似 SSN 的列会在发送给 AI 之前被拦截。"
-
-#: src/features/migration/Step1Intake.tsx
 msgid "SSN-like columns blocked"
 msgstr "已拦截疑似 SSN 列"
 
@@ -10379,10 +10295,6 @@ msgstr "州"
 #: src/features/migration/Step3Normalize.tsx
 msgid "State context added"
 msgstr "已补充州级上下文"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "State review"
-msgstr "州规则复核"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "State rule coverage (optional)"
@@ -10522,10 +10434,6 @@ msgstr "建议表格"
 msgid "Suggested forms and vouchers"
 msgstr "Suggested forms and vouchers"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Suggestions"
-msgstr "Suggestions"
-
 #: src/routes/obligations.tsx
 msgid "Summarize what the authority rejected and what needs correction."
 msgstr "概述 Authority 拒绝了什么，以及需要修正什么。"
@@ -10647,10 +10555,6 @@ msgstr "税种"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "TAX TYPES"
 msgstr "税种"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Tax types · list"
-msgstr "税种 · 列表"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Tax types from existing deadlines."
@@ -10853,6 +10757,10 @@ msgstr "事务所对客户为特定截止日期提供的文件、签名和确认
 msgid "The highest-risk open deadlines for the chosen window — work these first."
 msgstr "The highest-risk open deadlines for the chosen window — work these first."
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "The import draft is ready. Details stay available for advanced review."
+msgstr "导入草稿已准备好。详情仍可用于高级复核。"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "The IRS / state statutory due date — the hard deadline the filing must be submitted by"
 msgstr "IRS / 州法定截止日 — 此申报必须提交的硬性期限"
@@ -10969,6 +10877,10 @@ msgstr "主题"
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "then"
 msgstr "然后"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "These columns are still included in the import draft. Open details to adjust them."
+msgstr "这些列仍会包含在导入草稿中。打开详情即可调整。"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "These states publish their deadlines through the state's own calendar. After your practice is created, you'll see those rules in Rule Library marked for review — deadlines activate once you approve the rules."
@@ -11412,14 +11324,14 @@ msgstr "未知浏览器"
 msgid "Unknown reviewer"
 msgstr "未知复核人"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "Unmapped"
-msgstr "未映射"
-
 #. placeholder {0}: item.title
 #: src/features/notifications/notifications-page.tsx
 msgid "Unread: {0}"
 msgstr "未读：{0}"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Up to 1,000 rows · 5 MB"
+msgstr "Up to 1,000 rows · 5 MB"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Upcoming"
@@ -11460,6 +11372,10 @@ msgstr "升级到 Team"
 msgid "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
 msgstr "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Upload file"
+msgstr "上传文件"
+
 #: src/features/migration/WizardShell.tsx
 msgid "Upload rows"
 msgstr "上传行数据"
@@ -11488,10 +11404,6 @@ msgstr "紧急窗口"
 #: src/routes/obligations.tsx
 msgid "Urgent"
 msgstr "紧急"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "US state code · 2 letters"
-msgstr "美国州代码 · 2 个字母"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Usage"
@@ -11577,6 +11489,11 @@ msgstr "从 Send to client 使用，用于向客户收集当前 checklist。"
 msgid "User agent hash"
 msgstr "User agent 哈希"
 
+#. placeholder {0}: sourceManifest.selectedFileName
+#: src/features/migration/Step1Intake.tsx
+msgid "Using {sourceProductLabel} data from {0}."
+msgstr "正在使用来自 {0} 的 {sourceProductLabel} 数据。"
+
 #: src/features/migration/Step3Normalize.tsx
 msgid "Using Other"
 msgstr "按 Other 导入"
@@ -11584,10 +11501,6 @@ msgstr "按 Other 导入"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "UTC time"
 msgstr "UTC 时间"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Value groups"
-msgstr "值组"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Variables: client_name, tax_type, due_date, offset_days, obligation_url, and unsubscribe_url."
@@ -11744,6 +11657,10 @@ msgstr "已监控"
 msgid "Watched sources"
 msgstr "Watched sources"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "We block SSN-like patterns before sending anything to the AI."
+msgstr "在向 AI 发送任何内容前，我们会先拦截疑似 SSN 的模式。"
+
 #. placeholder {0}: ssnBlockedHeaders.join(', ')
 #: src/features/migration/Step1Intake.tsx
 msgid "We blocked SSN-like patterns to protect your clients. Those columns won't be sent to the AI. If a flagged column is actually an EIN, choose EIN yourself in Mapping; true SSN/ITIN values should stay ignored. Columns flagged: {0}."
@@ -11823,13 +11740,13 @@ msgstr "何时到期?"
 msgid "When it's due"
 msgstr "When it's due"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Where is your data coming from?"
+msgstr "你的数据从哪里来？"
+
 #: src/routes/account.security.tsx
 msgid "Whoever is signed in on this browser will lose access immediately. They'll need to re-authenticate next time."
 msgstr "当前浏览器中登录的用户会立即失去访问权限。下次需要重新认证。"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "Whole number"
-msgstr "整数"
 
 #: src/features/pulse/components/PulseReasonDialog.tsx
 msgid "Why is this alert not relevant?"
@@ -11920,10 +11837,6 @@ msgstr "年付"
 msgid "Yes"
 msgstr "是"
 
-#: src/features/migration/Step2Mapping.tsx
-msgid "Yes / no"
-msgstr "是 / 否"
-
 #: src/features/members/members-page.tsx
 msgid "You"
 msgstr "你"
@@ -11931,10 +11844,6 @@ msgstr "你"
 #: src/routes/migration.new.tsx
 msgid "You can import later from Today, Clients, or the Command Palette (⌘K)."
 msgstr "您可以稍后从 Today、Clients 或命令面板（⌘K）导入。"
-
-#: src/features/migration/Step2Mapping.tsx
-msgid "You changed this mapping."
-msgstr "您手动调整了此映射。"
 
 #: src/lib/i18n-error.ts
 msgid "You don't have permission to perform this action."
@@ -11967,6 +11876,10 @@ msgstr "you@yourpractice.com"
 #: src/lib/i18n-error.ts
 msgid "Your account isn't linked to a practice yet."
 msgstr "你的账户尚未关联任何事务所。"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Your column"
+msgstr "你的列"
 
 #: src/features/permissions/permission-gate.tsx
 msgid "Your current role cannot use this surface. Contact the practice owner if you need access."
@@ -12010,7 +11923,6 @@ msgstr "你上传的文件不会被修改。只有点击导入后，DueDateHQ �
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/migration/mapping-target-labels.ts
-#: src/features/migration/Step2Mapping.tsx
 msgid "ZIP / postal code"
 msgstr "邮编"
 
