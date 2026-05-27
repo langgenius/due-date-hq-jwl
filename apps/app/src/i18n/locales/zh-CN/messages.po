@@ -967,6 +967,7 @@ msgid "A dry run that shows which deadline rules would create for a client befor
 msgstr "A dry run that shows which deadline rules would create for a client before anything is written to the deadline list."
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "A fresh URL — same scope, same privacy mode"
 msgstr "新的 URL，范围和隐私模式不变"
 
@@ -2819,6 +2820,16 @@ msgstr "置信度"
 msgid "Confirm {0} applies to this relief"
 msgstr "确认 {0} 适用于本次宽限"
 
+#. placeholder {0}: view.label
+#: src/routes/billing.checkout.tsx
+msgid "Confirm {0} monthly checkout"
+msgstr "确认 {0} 月付支付"
+
+#. placeholder {0}: view.label
+#: src/routes/billing.checkout.tsx
+msgid "Confirm {0} yearly checkout"
+msgstr "确认 {0} 年付支付"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Confirm all review-needed"
 msgstr "确认所有需复核项"
@@ -2930,6 +2941,10 @@ msgstr "合同级模型路由、自定义覆盖范围和审计级 AI 控制。"
 #: src/routes/practice.tsx
 msgid "Coordinator"
 msgstr "协调员"
+
+#: src/routes/account-security-two-factor-setup.tsx
+msgid "Copied"
+msgstr "已复制"
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Copy"
@@ -4339,6 +4354,10 @@ msgstr "此列表中每个客户都已具备规则库所需的信息。关闭即
 msgid "Every client you opened is fixed. Close the sheet to refresh the list, or re-open Fix-now if more clients come in."
 msgstr "你打开过的每个客户都已修复。关闭面板即可刷新列表；如有新客户进来可重新打开「立即修复」。"
 
+#: src/routes/obligations.tsx
+msgid "Every device subscribed to the current URL will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
+msgstr "所有订阅当前 URL 的设备都会停止同步。你需要把新的 URL 分享给持有旧 URL 的人员。"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Every selected jurisdiction needs an active rule-backed deadline."
 msgstr "每个选中的辖区都需要有一条已激活且由规则支持的截止日。"
@@ -5124,6 +5143,10 @@ msgstr "我已阅读官方来源并核实了新的截止日期。"
 msgid "I'm coming from… (optional)"
 msgstr "我正在从…迁移过来（可选）"
 
+#: src/routes/account-security-two-factor-setup.tsx
+msgid "I've saved these recovery codes somewhere safe. I know they won't be shown again."
+msgstr "我已将这些恢复代码保存在安全的地方。我知道它们不会再次显示。"
+
 #: src/routes/obligations.tsx
 msgid "iCal .ics"
 msgstr "iCal .ics"
@@ -5433,6 +5456,7 @@ msgid "Invalid rule"
 msgstr "规则无效"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Invalidates"
 msgstr "会失效"
 
@@ -5483,6 +5507,7 @@ msgid "Issued"
 msgstr "发布"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Issues"
 msgstr "问题"
 
@@ -5524,6 +5549,7 @@ msgstr "保留邀请"
 #: src/features/calendar/calendar-page.tsx
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
+#: src/routes/obligations.tsx
 msgid "Keeps"
 msgstr "Keeps"
 
@@ -8635,18 +8661,22 @@ msgid "Regenerate"
 msgstr "重新生成"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Regenerate calendar URL?"
 msgstr "要重新生成日历 URL 吗？"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Regenerate URL"
 msgstr "重新生成 URL"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Regenerating commits these changes"
 msgstr "重新生成后会提交这些更改"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Regenerating…"
 msgstr "正在重新生成…"
 
@@ -10703,6 +10733,7 @@ msgid "The concrete due date calculated from the active target-year practice rul
 msgstr "由目标年度已生效事务所规则计算出的具体截止日。短横线表示不会创建任何内容。"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "The current URL on every subscribed device"
 msgstr "所有已订阅设备上的当前 URL"
 
@@ -10715,6 +10746,7 @@ msgid "The deadline's lifecycle state. Click any row's pill to change its status
 msgstr "该截止日期的生命周期状态。点击任一行的状态标签即可更改状态，与 /deadlines 和义务抽屉中的控件相同。"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "The events themselves — nothing scheduled is removed"
 msgstr "事件本身不会被删除，已安排内容会保留"
 

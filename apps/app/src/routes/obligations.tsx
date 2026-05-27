@@ -101,6 +101,16 @@ import {
   type ReadinessPreviewRequestEmailOutput,
 } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@duedatehq/ui/components/ui/alert-dialog'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
@@ -163,6 +173,7 @@ import {
   TableHeaderMultiFilter,
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
+import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
@@ -11035,6 +11046,13 @@ function ObligationQueueEmptyState({
 function CalendarSyncPopover() {
   const { t } = useLingui()
   const [open, setOpen] = useState(false)
+  // 2026-05-27 (Step 6 cont Q8.2 — P0): Regenerate previously fired
+  // immediately on click, silently invalidating the user's iCal
+  // subscription on every device that had the old URL. Gate behind
+  // an AlertDialog mirroring the canonical /calendar pattern at
+  // `features/calendar/calendar-page.tsx:215-286` so the user sees
+  // the consequence before committing.
+  const [regenerateConfirmOpen, setRegenerateConfirmOpen] = useState(false)
   const queryClient = useQueryClient()
   const subscriptionsQuery = useQuery({
     ...orpc.calendar.listSubscriptions.queryOptions({ input: undefined }),
@@ -11138,8 +11156,8 @@ function CalendarSyncPopover() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => subscription && regenerateMutation.mutate({ id: subscription.id })}
-                  disabled={regenerateMutation.isPending}
+                  onClick={() => setRegenerateConfirmOpen(true)}
+                  disabled={regenerateMutation.isPending || !subscription}
                 >
                   <RefreshCwIcon
                     data-icon="inline-start"
@@ -11172,6 +11190,71 @@ function CalendarSyncPopover() {
           )}
         </PopoverContent>
       </Popover>
+      <AlertDialog
+        open={regenerateConfirmOpen}
+        onOpenChange={(next) => {
+          if (!next) setRegenerateConfirmOpen(false)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Regenerate calendar URL?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <Trans>
+                Every device subscribed to the current URL will silently stop syncing. You'll need
+                to share the new URL with everyone who had the old one.
+              </Trans>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <DestructiveChangePreview
+            title={<Trans>Regenerating commits these changes</Trans>}
+            lines={[
+              {
+                tone: 'remove',
+                label: <Trans>Invalidates</Trans>,
+                detail: <Trans>The current URL on every subscribed device</Trans>,
+              },
+              {
+                tone: 'add',
+                label: <Trans>Issues</Trans>,
+                detail: <Trans>A fresh URL — same scope, same privacy mode</Trans>,
+              },
+              {
+                tone: 'keep',
+                label: <Trans>Keeps</Trans>,
+                detail: <Trans>The events themselves — nothing scheduled is removed</Trans>,
+              },
+            ]}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive-primary"
+              disabled={regenerateMutation.isPending || !subscription}
+              onClick={() => {
+                if (!subscription) return
+                regenerateMutation.mutate(
+                  { id: subscription.id },
+                  { onSettled: () => setRegenerateConfirmOpen(false) },
+                )
+              }}
+            >
+              {regenerateMutation.isPending ? (
+                <>
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Trans>Regenerating…</Trans>
+                </>
+              ) : (
+                <Trans>Regenerate URL</Trans>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

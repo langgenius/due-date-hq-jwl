@@ -270,6 +270,12 @@ export function BillingCheckoutRoute() {
       <PageHeader
         breadcrumbs={[{ label: t`Billing`, to: '/billing' }, { label: t`Confirm checkout` }]}
         title={
+          // 2026-05-27 (Step 7 onboarding audit F8-01 — P0): the H1
+          // was a generic "Confirm checkout" while the plan name
+          // sat only inside the Plan summary card below. Promote
+          // the selected plan + interval into the title so the
+          // user sees what they're confirming at the top of the
+          // page (matches Stripe / Linear / Notion patterns).
           <span className="inline-flex min-w-0 items-center gap-3">
             <span
               aria-hidden
@@ -278,7 +284,11 @@ export function BillingCheckoutRoute() {
               <CreditCardIcon className="size-4" />
             </span>
             <span className="truncate">
-              <Trans>Confirm checkout</Trans>
+              {interval === 'yearly' ? (
+                <Trans>Confirm {view.label} yearly checkout</Trans>
+              ) : (
+                <Trans>Confirm {view.label} monthly checkout</Trans>
+              )}
             </span>
           </span>
         }

@@ -1,10 +1,11 @@
-import { type SyntheticEvent } from 'react'
+import { type SyntheticEvent, useEffect, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CopyIcon, KeyRoundIcon, Loader2Icon, QrCodeIcon } from 'lucide-react'
+import { CheckIcon, CopyIcon, KeyRoundIcon, Loader2Icon, QrCodeIcon } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
 
@@ -33,6 +34,33 @@ export function TwoFactorSetupPanel({
   onVerify,
 }: TwoFactorSetupPanelProps) {
   const { t } = useLingui()
+  // 2026-05-27 (Step 7 onboarding audit F4-01 — P0): recovery codes
+  // are shown ONCE during setup. Previously the user could click
+  // "Verify and enable" without acknowledging they stored them —
+  // when their phone later breaks they discover the lockout. Add a
+  // mandatory ack checkbox; gate the verify CTA on it.
+  const [acknowledgedCodes, setAcknowledgedCodes] = useState(false)
+  // 2026-05-27 (Step 7 onboarding audit F4-04 — P1): Copy buttons
+  // previously had no in-panel feedback. Toast fires from the
+  // parent on success, but inline button-label feedback is the
+  // canonical pattern (one less surface to look at). Track which
+  // field was last copied and swap the button label for 2s.
+  const [copiedField, setCopiedField] = useState<'uri' | 'codes' | null>(null)
+
+  useEffect(() => {
+    if (!copiedField) return undefined
+    const timer = window.setTimeout(() => setCopiedField(null), 2000)
+    return () => window.clearTimeout(timer)
+  }, [copiedField])
+
+  const handleCopyUri = () => {
+    onCopySetupUri()
+    setCopiedField('uri')
+  }
+  const handleCopyBackupCodes = () => {
+    onCopyBackupCodes()
+    setCopiedField('codes')
+  }
 
   return (
     <form onSubmit={onVerify} className="grid gap-4 rounded-md border border-border-default p-4">
@@ -71,9 +99,18 @@ export function TwoFactorSetupPanel({
               <Label htmlFor="totp-uri">
                 <Trans>Setup URI</Trans>
               </Label>
-              <Button type="button" variant="ghost" size="sm" onClick={onCopySetupUri}>
-                <CopyIcon className="size-4" aria-hidden />
-                <Trans>Copy URI</Trans>
+              <Button type="button" variant="ghost" size="sm" onClick={handleCopyUri}>
+                {copiedField === 'uri' ? (
+                  <>
+                    <CheckIcon className="size-4" aria-hidden />
+                    <Trans>Copied</Trans>
+                  </>
+                ) : (
+                  <>
+                    <CopyIcon className="size-4" aria-hidden />
+                    <Trans>Copy URI</Trans>
+                  </>
+                )}
               </Button>
             </div>
             <Input
@@ -109,9 +146,18 @@ export function TwoFactorSetupPanel({
           <h3 className="text-sm font-medium">
             <Trans>Recovery codes</Trans>
           </h3>
-          <Button type="button" variant="ghost" size="sm" onClick={onCopyBackupCodes}>
-            <CopyIcon className="size-4" aria-hidden />
-            <Trans>Copy</Trans>
+          <Button type="button" variant="ghost" size="sm" onClick={handleCopyBackupCodes}>
+            {copiedField === 'codes' ? (
+              <>
+                <CheckIcon className="size-4" aria-hidden />
+                <Trans>Copied</Trans>
+              </>
+            ) : (
+              <>
+                <CopyIcon className="size-4" aria-hidden />
+                <Trans>Copy</Trans>
+              </>
+            )}
           </Button>
         </div>
         <div className="grid gap-1 rounded-md bg-bg-panel p-3 font-mono text-xs text-text-secondary sm:grid-cols-2">
@@ -119,6 +165,18 @@ export function TwoFactorSetupPanel({
             <span key={backupCode}>{backupCode}</span>
           ))}
         </div>
+        <Label className="mt-1 flex items-start gap-2 text-sm font-normal text-text-secondary">
+          <Checkbox
+            checked={acknowledgedCodes}
+            onCheckedChange={(next) => setAcknowledgedCodes(next === true)}
+            className="mt-0.5"
+          />
+          <span>
+            <Trans>
+              I've saved these recovery codes somewhere safe. I know they won't be shown again.
+            </Trans>
+          </span>
+        </Label>
       </div>
 
       <div className="grid gap-3 border-t border-border-default pt-4 sm:grid-cols-[minmax(0,220px)_auto] sm:items-end">
@@ -134,7 +192,11 @@ export function TwoFactorSetupPanel({
             onChange={(event) => onCodeChange(event.target.value)}
           />
         </div>
-        <Button type="submit" className="w-fit" disabled={verifyPending || code.trim().length < 6}>
+        <Button
+          type="submit"
+          className="w-fit"
+          disabled={verifyPending || code.trim().length < 6 || !acknowledgedCodes}
+        >
           {verifyPending ? <Loader2Icon className="size-4 animate-spin" aria-hidden /> : null}
           <Trans>Verify and enable</Trans>
         </Button>

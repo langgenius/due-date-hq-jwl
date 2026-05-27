@@ -967,6 +967,7 @@ msgid "A dry run that shows which deadline rules would create for a client befor
 msgstr "A dry run that shows which deadline rules would create for a client before anything is written to the deadline list."
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "A fresh URL — same scope, same privacy mode"
 msgstr "A fresh URL — same scope, same privacy mode"
 
@@ -2819,6 +2820,16 @@ msgstr "Confidence"
 msgid "Confirm {0} applies to this relief"
 msgstr "Confirm {0} applies to this relief"
 
+#. placeholder {0}: view.label
+#: src/routes/billing.checkout.tsx
+msgid "Confirm {0} monthly checkout"
+msgstr "Confirm {0} monthly checkout"
+
+#. placeholder {0}: view.label
+#: src/routes/billing.checkout.tsx
+msgid "Confirm {0} yearly checkout"
+msgstr "Confirm {0} yearly checkout"
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Confirm all review-needed"
 msgstr "Confirm all review-needed"
@@ -2930,6 +2941,10 @@ msgstr "Contract-level model routing, custom coverage, and audit-grade AI contro
 #: src/routes/practice.tsx
 msgid "Coordinator"
 msgstr "Coordinator"
+
+#: src/routes/account-security-two-factor-setup.tsx
+msgid "Copied"
+msgstr "Copied"
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Copy"
@@ -4339,6 +4354,10 @@ msgstr "Every client on this list has the facts the rule library needs. Close to
 msgid "Every client you opened is fixed. Close the sheet to refresh the list, or re-open Fix-now if more clients come in."
 msgstr "Every client you opened is fixed. Close the sheet to refresh the list, or re-open Fix-now if more clients come in."
 
+#: src/routes/obligations.tsx
+msgid "Every device subscribed to the current URL will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
+msgstr "Every device subscribed to the current URL will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Every selected jurisdiction needs an active rule-backed deadline."
 msgstr "Every selected jurisdiction needs an active rule-backed deadline."
@@ -5124,6 +5143,10 @@ msgstr "I have read the official source and verified the new deadline date."
 msgid "I'm coming from… (optional)"
 msgstr "I'm coming from… (optional)"
 
+#: src/routes/account-security-two-factor-setup.tsx
+msgid "I've saved these recovery codes somewhere safe. I know they won't be shown again."
+msgstr "I've saved these recovery codes somewhere safe. I know they won't be shown again."
+
 #: src/routes/obligations.tsx
 msgid "iCal .ics"
 msgstr "iCal .ics"
@@ -5433,6 +5456,7 @@ msgid "Invalid rule"
 msgstr "Invalid rule"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Invalidates"
 msgstr "Invalidates"
 
@@ -5483,6 +5507,7 @@ msgid "Issued"
 msgstr "Issued"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Issues"
 msgstr "Issues"
 
@@ -5524,6 +5549,7 @@ msgstr "Keep invitation"
 #: src/features/calendar/calendar-page.tsx
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
+#: src/routes/obligations.tsx
 msgid "Keeps"
 msgstr "Keeps"
 
@@ -8635,18 +8661,22 @@ msgid "Regenerate"
 msgstr "Regenerate"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Regenerate calendar URL?"
 msgstr "Regenerate calendar URL?"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Regenerate URL"
 msgstr "Regenerate URL"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Regenerating commits these changes"
 msgstr "Regenerating commits these changes"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "Regenerating…"
 msgstr "Regenerating…"
 
@@ -10703,6 +10733,7 @@ msgid "The concrete due date calculated from the active target-year practice rul
 msgstr "The concrete due date calculated from the active target-year practice rule. A dash means nothing will be created."
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "The current URL on every subscribed device"
 msgstr "The current URL on every subscribed device"
 
@@ -10715,6 +10746,7 @@ msgid "The deadline's lifecycle state. Click any row's pill to change its status
 msgstr "The deadline's lifecycle state. Click any row's pill to change its status — the same control as on /deadlines and inside the obligation drawer."
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/obligations.tsx
 msgid "The events themselves — nothing scheduled is removed"
 msgstr "The events themselves — nothing scheduled is removed"
 
