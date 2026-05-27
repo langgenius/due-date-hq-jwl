@@ -251,8 +251,38 @@ function MappingSummaryGrid({ summary }: { summary: ReturnType<typeof buildMappi
         label={<Trans>Confidence</Trans>}
         value={summary.averageConfidence === null ? '—' : `${summary.averageConfidence}%`}
       />
+      {/* 2026-05-27 (Step 7 onboarding audit F6-13): the EIN
+          "Found / Not found" card had visual prominence
+          (its own slot in a 5-up grid) but no explanation. A
+          first-time user couldn't tell why EIN deserved its own
+          card. Added a tooltip + visible help marker on the
+          label so the reason ("EIN drives penalty risk
+          forecasting") is one hover away. The SummaryMetric
+          primitive is shared across multiple steps, so the
+          help affordance lives inside the `label` slot here
+          rather than wrapping the whole tile. */}
       <SummaryMetric
-        label={<Trans>EIN</Trans>}
+        label={
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  aria-label="EIN — required for penalty risk forecasting"
+                >
+                  <span>
+                    <Trans>EIN</Trans>
+                  </span>
+                  <CircleHelpIcon className="size-3 text-text-tertiary" aria-hidden />
+                </button>
+              }
+            />
+            <TooltipContent className="max-w-[260px] whitespace-normal">
+              <Trans>Required for penalty risk forecasting.</Trans>
+            </TooltipContent>
+          </Tooltip>
+        }
         value={summary.einDetected ? <Trans>Found</Trans> : <Trans>Not found</Trans>}
       />
       <SummaryMetric

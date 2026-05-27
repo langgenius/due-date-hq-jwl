@@ -664,6 +664,10 @@ msgstr "{label}，已选择"
 msgid "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 12mo}}"
 msgstr "{lateFlag, plural, other {12 个月内有 # 次逾期申报}}"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "{liveRowEstimate, plural, one {~# row detected} other {~# rows detected}}"
+msgstr "{liveRowEstimate, plural, other {检测到约 # 行}}"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "{missingSourceCount} source gaps"
 msgstr "{missingSourceCount} 个来源缺口"
@@ -2588,10 +2592,6 @@ msgstr "客户邮件草稿已复制"
 msgid "Client email opt-outs"
 msgstr "客户邮件退订"
 
-#: src/routes/migration.new.tsx
-msgid "Client facts"
-msgstr "客户事实"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "CLIENT FILTER"
 msgstr "客户筛选"
@@ -3641,10 +3641,6 @@ msgstr "Deadline detail"
 msgid "Deadline evidence"
 msgstr "Deadline evidence"
 
-#: src/routes/migration.new.tsx
-msgid "Deadline list"
-msgstr "截止日清单"
-
 #: src/routes/obligations.tsx
 msgid "Deadline needs-input update"
 msgstr "Deadline needs-input update"
@@ -3722,6 +3718,7 @@ msgstr "截止日"
 #: src/features/concepts/concept-help.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/rules/generation-preview-tab.tsx
+#: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
 msgid "Deadlines"
@@ -5145,6 +5142,7 @@ msgid "Ignored"
 msgstr "已忽略"
 
 #: src/routes/clients.tsx
+#: src/routes/migration.new.tsx
 msgid "Import"
 msgstr "导入"
 
@@ -8768,6 +8766,10 @@ msgstr "请求审核"
 msgid "Requested from client"
 msgstr "已向客户索取"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Required for penalty risk forecasting."
+msgstr "用于罚款风险预测。"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Required for rule applicability."
 msgstr "规则适用性判断必需。"
@@ -9129,6 +9131,10 @@ msgstr "风险档案已更新"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Risk summary refresh queued"
 msgstr "风险摘要刷新已排队"
+
+#: src/routes/migration.new.tsx
+msgid "Risk view"
+msgstr "风险视图"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/members/members-page.tsx
@@ -11105,10 +11111,6 @@ msgstr "今天"
 msgid "Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
 msgstr "Today briefs, Pulse summaries, client risk summaries, and guided import AI for live client data."
 
-#: src/routes/migration.new.tsx
-msgid "Today risk"
-msgstr "Today risk"
-
 #: src/lib/i18n-error.ts
 msgid "Too many requests. Please try again in a moment."
 msgstr "请求过于频繁，请稍后再试。"
@@ -11265,6 +11267,18 @@ msgstr "24 小时内可撤销"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Undo client (1)"
 msgstr "Undo client (1)"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Undo expires in {hours}h {minutes}m"
+msgstr "撤销在 {hours} 小时 {minutes} 分后过期"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Undo expires in {minutes}m"
+msgstr "撤销在 {minutes} 分钟后过期"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Undo expires in <1m"
+msgstr "撤销在 1 分钟内过期"
 
 #: src/features/migration/Wizard.tsx
 msgid "Undo import"

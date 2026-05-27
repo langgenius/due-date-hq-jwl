@@ -133,17 +133,26 @@ function MigrationActivationIntro({
             <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-accent-default" />
             <Trans>PRACTICE ACTIVATION</Trans>
           </span>
+          {/* 2026-05-27 (Step 7 onboarding audit F6-02): the
+              three chips were ordered `facts → list → risk` and
+              led with internal nouns. Reordered to the user's
+              mental model (act → see → assess): Import →
+              Deadlines → Risk view. "Today risk" was the
+              hardest noun to parse for a first-time user — the
+              chip describes the surface the import unlocks, not
+              a metric, so renamed to "Risk view" (matches the
+              dashboard column header). */}
           <ActivationOutcome
             icon={<FileSpreadsheetIcon aria-hidden className="size-3.5" />}
-            label={<Trans>Client facts</Trans>}
+            label={<Trans>Import</Trans>}
           />
           <ActivationOutcome
             icon={<CheckCircle2Icon aria-hidden className="size-3.5" />}
-            label={<Trans>Deadline list</Trans>}
+            label={<Trans>Deadlines</Trans>}
           />
           <ActivationOutcome
             icon={<GaugeIcon aria-hidden className="size-3.5" />}
-            label={<Trans>Today risk</Trans>}
+            label={<Trans>Risk view</Trans>}
           />
         </div>
         {/* 2026-05-26 (Step 7 onboarding audit F6-01): the
