@@ -1974,14 +1974,12 @@ export function ObligationQueueRoute() {
         cell: ({ row: tableRow }) => {
           const score = tableRow.original.smartPriority.score
           const rank = tableRow.original.smartPriority.rank
-          // 4-tier ladder, optical-weight only (no color — reserved
-          // for the Status pill):
-          //   ≥70  → "Urgent"  — drop everything
-          //   50-69 → "High"   — today's batch
-          //   25-49 → "Med"    — this week
-          //   <25  → "Low"    — when time permits
-          const tierLabel =
-            score >= 70 ? t`Urgent` : score >= 50 ? t`High` : score >= 25 ? t`Med` : t`Low`
+          // 2026-05-27 (Yuqi feedback "priority just show the number, don't
+          // write urgent or now"): tier labels ("Urgent" / "High" / "Med"
+          // / "Low") retired. Column now renders just the numeric score
+          // (rounded), with optical-weight inherited from the tier (kept
+          // because the score's heaviness IS the visual urgency cue —
+          // dropping weight too would flatten the whole column).
           const tierClassName =
             score >= 70
               ? 'text-text-primary font-semibold'
@@ -1999,7 +1997,9 @@ export function ObligationQueueRoute() {
                   : t`Smart Priority ${score.toFixed(1)}`
               }
             >
-              <span className={cn('text-xs leading-tight', tierClassName)}>{tierLabel}</span>
+              <span className={cn('text-xs tabular-nums leading-tight', tierClassName)}>
+                {Math.round(score)}
+              </span>
               {rank ? (
                 <span className="text-caption-xs tabular-nums leading-tight text-text-tertiary">
                   #{rank}
