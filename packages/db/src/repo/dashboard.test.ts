@@ -298,6 +298,60 @@ describe('dashboard aggregation', () => {
     }
   })
 
+  // 2026-05-27 (D12 — Agent ω, journey-audit drain): paymentDueDate
+  // must flow through composeDashboardLoad untouched so the render
+  // layer can detect filed-but-payment-overdue rows. The repo selects
+  // the column off `obligation_instance`; composeDashboardLoad spreads
+  // the raw row into the top-row draft. This test pins that
+  // pass-through against accidental refactors.
+  it('preserves paymentDueDate from raw rows to top-rows', () => {
+    const result = composeDashboardLoad(
+      [
+        {
+          obligationId: 'oi_pay',
+          clientId: 'client_pay',
+          clientName: 'Payment Late LLC',
+          clientEmail: null,
+          taxType: 'federal_1120',
+          filingDueDate: due('2026-04-15'),
+          paymentDueDate: due('2026-04-30'),
+          baseDueDate: due('2026-04-15'),
+          currentDueDate: due('2026-04-15'),
+          status: 'pending',
+          penaltyFormulaVersion: null,
+          clientState: null,
+          clientEntityType: 'c_corp',
+          clientEstimatedTaxLiabilityCents: null,
+          clientEquityOwnerCount: null,
+        },
+        {
+          obligationId: 'oi_no_pay',
+          clientId: 'client_no_pay',
+          clientName: 'No Payment LLC',
+          clientEmail: null,
+          taxType: 'federal_1120',
+          filingDueDate: due('2026-04-15'),
+          paymentDueDate: null,
+          baseDueDate: due('2026-04-15'),
+          currentDueDate: due('2026-04-15'),
+          status: 'pending',
+          penaltyFormulaVersion: null,
+          clientState: null,
+          clientEntityType: 'c_corp',
+          clientEstimatedTaxLiabilityCents: null,
+          clientEquityOwnerCount: null,
+        },
+      ],
+      [],
+      { asOfDate: AS_OF, windowDays: 7, topLimit: 8 },
+    )
+
+    const payRow = result.topRows.find((row) => row.obligationId === 'oi_pay')
+    const noPayRow = result.topRows.find((row) => row.obligationId === 'oi_no_pay')
+    expect(payRow?.paymentDueDate).toEqual(due('2026-04-30'))
+    expect(noPayRow?.paymentDueDate).toBeNull()
+  })
+
   it('uses deterministic severity thresholds', () => {
     expect(severityForDueDate(due('2026-04-26'), AS_OF, 'pending')).toBe('critical')
     expect(severityForDueDate(due('2026-04-30'), AS_OF, 'pending')).toBe('critical')

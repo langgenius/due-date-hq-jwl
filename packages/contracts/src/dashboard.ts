@@ -99,6 +99,15 @@ export const DashboardTopRowSchema = z.object({
   clientEmail: z.email().nullable(),
   taxType: z.string().min(1),
   currentDueDate: z.iso.date(),
+  // 2026-05-27 (D12 — Agent ω / journey audit): payment due date,
+  // populated from the underlying obligation. Lets dashboard surfaces
+  // detect filed-but-payment-overdue rows (anti-pattern #1: filing
+  // extension ≠ payment extension) so the "Needs attention" cluster
+  // can render a "Payment N days late" chip on rows whose filing is
+  // done but whose payment is still outstanding. Optional/nullable
+  // because not every obligation has a payment side (e.g. info-only
+  // filings).
+  paymentDueDate: z.iso.date().nullable(),
   status: ObligationStatusSchema,
   missingPenaltyFacts: z.array(z.string().min(1)),
   penaltySourceRefs: z.array(PenaltySourceRefSchema),

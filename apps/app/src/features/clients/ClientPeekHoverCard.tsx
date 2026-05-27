@@ -16,6 +16,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { getClientReadiness } from '@/features/clients/client-readiness'
+import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
 import { isPaymentOverdue } from '@/features/obligations/payment-overdue'
 import { orpc } from '@/lib/rpc'
 
@@ -98,6 +99,11 @@ const EMPTY_OBLIGATIONS = [] as const
 function ClientPeekBody({ clientId }: { clientId: string }) {
   const { t } = useLingui()
   const entityLabels = useEntityLabels()
+  // 2026-05-27 (D16 — Agent ω, journey-audit drain): replaced
+  // PeekNextDue's `Date.now()` with the firm's "as of" anchor so the
+  // hover-card's "Xd late" matches the rest of the surfaces (which
+  // already calendar-pin off this hook).
+  const asOfDate = useFirmAsOfDate()
 
   // Data fetching only fires when the popover actually mounts — Base
   // UI's Popover unmounts its content when closed, so these queries
@@ -221,7 +227,7 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
       </div>
 
       {/* Next due */}
-      <PeekNextDue nextDue={nextDue} />
+      <PeekNextDue nextDue={nextDue} asOfDate={asOfDate} />
 
       {/* Escape hatches */}
       <div className="flex flex-wrap items-center gap-2">
@@ -249,7 +255,16 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
 
 export { ClientPeekBody }
 
-function PeekNextDue({ nextDue }: { nextDue: ObligationInstancePublic | null }) {
+function PeekNextDue({
+  nextDue,
+  asOfDate,
+}: {
+  nextDue: ObligationInstancePublic | null
+  // 2026-05-27 (D16): firm's "as of" anchor. Falls back to Date.now()
+  // when missing so the hover-card stays resilient if the timezone
+  // provider hasn't hydrated yet.
+  asOfDate: string | null
+}) {
   const { t } = useLingui()
   if (!nextDue) {
     return (
@@ -258,7 +273,11 @@ function PeekNextDue({ nextDue }: { nextDue: ObligationInstancePublic | null }) 
       </p>
     )
   }
-  const days = Math.ceil((Date.parse(nextDue.currentDueDate) - Date.now()) / 86_400_000)
+  const asOfMs = asOfDate ? Date.parse(asOfDate) : Date.now()
+  const days = Math.ceil(
+    (Date.parse(nextDue.currentDueDate) - (Number.isNaN(asOfMs) ? Date.now() : asOfMs)) /
+      86_400_000,
+  )
   const isLate = days < 0
   const daysAbs = Math.abs(days)
   const daysLabel = isLate ? t`${daysAbs}d late` : days === 0 ? t`due today` : t`due in ${days}d`

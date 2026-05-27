@@ -17,6 +17,10 @@ interface DashboardRepoTopRow {
   clientEmail?: string | null
   taxType: string
   currentDueDate: Date
+  // 2026-05-27 (D12 — Agent ω): payment due date from the obligation
+  // row. Threaded through so the dashboard render layer can detect
+  // filed-but-payment-overdue cases (anti-pattern #1).
+  paymentDueDate: Date | null
   status: DashboardTopRow['status']
   missingPenaltyFacts: string[]
   penaltySourceRefs: DashboardTopRow['penaltySourceRefs']
@@ -74,6 +78,7 @@ function toTopRow(
     clientEmail: row.clientEmail ?? null,
     taxType: row.taxType,
     currentDueDate: toDateOnly(row.currentDueDate),
+    paymentDueDate: row.paymentDueDate ? toDateOnly(row.paymentDueDate) : null,
     status: row.status,
     missingPenaltyFacts: opts.hideDollars ? [] : row.missingPenaltyFacts,
     penaltySourceRefs: opts.hideDollars ? [] : row.penaltySourceRefs,

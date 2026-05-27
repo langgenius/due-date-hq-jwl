@@ -6,6 +6,7 @@ import type { ObligationInstancePublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { isPaymentOverdue } from '@/features/obligations/payment-overdue'
 import { formatDatePretty } from '@/lib/utils'
@@ -183,6 +184,14 @@ export function ClientSummaryStrip({
   const { t } = useLingui()
   const navigate = useNavigate()
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
+  // 2026-05-27 (D16 — Agent ω, journey-audit drain): replaced the
+  // strip's internal `Date.now()` / midnight-of-now anchor with the
+  // firm's "as of" date so isAtRisk and the next-due "Xd late"
+  // computations stay in sync with the firm's clock (the dashboard
+  // already centralized on this anchor; the client surfaces were
+  // drifting). Falls back to Date.now() when the hook returns an
+  // unparseable string, so the strip never breaks the page.
+  const asOfDate = useFirmAsOfDate()
 
   const nextDue = useMemo(() => {
     const open = obligations.filter((o) => !TERMINAL_STATUSES.has(o.status))
@@ -199,10 +208,12 @@ export function ClientSummaryStrip({
   }, [obligations])
 
   const todayTs = useMemo(() => {
+    const parsed = asOfDate ? Date.parse(asOfDate) : NaN
+    if (!Number.isNaN(parsed)) return parsed
     const d = new Date()
     d.setHours(0, 0, 0, 0)
     return d.getTime()
-  }, [])
+  }, [asOfDate])
 
   const atRiskList = useMemo(
     () => obligations.filter((o) => isAtRisk(o, todayTs)),
@@ -229,7 +240,11 @@ export function ClientSummaryStrip({
 
   if (nextDue) {
     const dueTs = Date.parse(nextDue.currentDueDate)
-    const days = Math.ceil((dueTs - Date.now()) / 86_400_000)
+    // 2026-05-27 (D16): anchored to the firm's asOfDate (via todayTs),
+    // matching the dashboard's day-math. Falls through to a real-now
+    // anchor when the firm clock is unavailable so the tile never
+    // renders NaN.
+    const days = Math.ceil((dueTs - todayTs) / 86_400_000)
     const daysAbs = Math.abs(days)
     // 2026-05-24 (Figma replica): subline renders as a split phrase —
     // the calendar anchor ("Due May 6") stays gray-tertiary while the

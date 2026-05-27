@@ -29,6 +29,7 @@ const dashboardRow: DashboardTopRow = {
   clientEmail: null,
   taxType: 'ca_llc_annual_tax',
   currentDueDate: '2026-05-23',
+  paymentDueDate: null,
   status: 'review',
   missingPenaltyFacts: [],
   penaltySourceRefs: [],
@@ -125,6 +126,37 @@ describe('DashboardActionsList', () => {
     })
 
     expect(openWizard).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders the "Payment N days late" chip on filed-but-payment-overdue rows', () => {
+    // 2026-05-27 (D12 — Agent ω): row whose filing is `done` but
+    // whose `paymentDueDate` is in the past should surface the
+    // payment-late chip, not be dropped from "Needs attention".
+    const filedPaymentOverdueRow: DashboardTopRow = {
+      ...dashboardRow,
+      obligationId: '23000000-0000-4000-8000-000000000099',
+      status: 'done',
+      paymentDueDate: '2026-05-13',
+      currentDueDate: '2026-05-13',
+    }
+    render(
+      <DashboardActionsList
+        rows={[filedPaymentOverdueRow]}
+        asOfDate="2026-05-23"
+        isLoading={false}
+        totalThisWeek={1}
+        totalOpen={1}
+        needDecisionCount={0}
+        blockedCount={0}
+        waitingOnClientCount={0}
+        canRunMigration={false}
+        onOpenWizard={vi.fn()}
+        onOpenObligation={vi.fn()}
+        onOpenAllObligations={vi.fn()}
+      />,
+    )
+
+    expect(document.body.textContent).toContain('Payment 10 days late')
   })
 
   it('does not render the expanded detail target as a real button', () => {

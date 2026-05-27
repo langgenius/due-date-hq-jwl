@@ -1,65 +1,95 @@
+// 2026-05-27 (φ journey-audit + ω D12 merge): canonical payment-overdue
+// helpers. Two signatures land here from two waves:
+//
+// - φ wave-6: object-based (takes obligation + today timestamp).
+//   Filters by PAYMENT_TERMINAL_STATUSES ('completed', 'not_applicable').
+//   Used by client-side peek/drawer/strip.
+// - ω wave-7: string-based (takes paymentDueDate + asOfDate strings).
+//   Used by the dashboard "Needs attention" RowMeta which only has the
+//   ISO strings the contract emits.
+//
+// Both exports live here. Internal `paymentOverdueDaysFromDates` does
+// the date math once; the two public signatures wrap it.
+//
+// Anti-pattern #1 from the product model: extension/filing ≠ payment.
+// A row whose filing is done (status='done'/'paid') can still be
+// payment-overdue if its paymentDueDate is in the past. These helpers
+// give every surface one canonical predicate so the rule is consistent.
+
 import type { ObligationInstancePublic, ObligationStatus } from '@duedatehq/contracts'
 
-/**
- * Payment-overdue helpers.
- *
- * 2026-05-27 (phi journey audit J1):
- *
- * An obligation row has two independent due signals:
- *   1. `status` lifecycle (pending → in_progress → review → done / completed)
- *   2. `paymentDueDate` (the authority-payment deadline)
- *
- * A row can be `status='done'` (Filed) but still have a `paymentDueDate`
- * in the past — "I e-filed the return on April 15, but the client never
- * sent the wire transfer." Before this audit, every surface treated
- * `status === 'done'` as terminal and suppressed lateness signals on
- * the row, which buried payment-overdue under 4+ clicks (queue → row →
- * drawer → Payment due tile).
- *
- * This module is the single source of truth for "is the row's PAYMENT
- * still outstanding past its date?" Call sites can use:
- *
- *   isPaymentOverdue(o, todayTs) → boolean
- *   isObligationAtRisk(o, todayTs) → boolean (status-stuck OR payment-overdue)
- *   paymentOverdueDays(o, todayTs) → number (positive = days past, null = no flag)
- *
- * Why a separate helper instead of folding into `TERMINAL_STATUSES`:
- *   The status `'done'` legitimately means "the filing work is done."
- *   The Filed pill / green-success tone / "Filed N days late" stat ARE
- *   correct UI signals. We don't want to repaint those as red active
- *   alarms. The payment-overdue signal is an ADDITIONAL urgency layer
- *   stacked on top of the status — surfaces should render the Filed
- *   pill AND a separate "Payment overdue N days" chip when both apply.
- */
-
 // Statuses where the obligation as a whole is closed (no more
-// follow-up payment expected). 2026-05-27 (phi): mirrors the
-// ClientSummaryStrip TERMINAL_STATUSES set but deliberately drops
-// 'done' and 'paid'. 'done' is "filing work done" (payment may
-// still be outstanding); 'completed' is the only status that means
-// "every leg of this obligation is closed."
+// follow-up payment expected). 'done' is "filing work done" (payment
+// may still be outstanding); 'completed' is the only status that
+// means "every leg of this obligation is closed."
 const PAYMENT_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set([
   'completed',
   'not_applicable',
 ])
 
-function paymentOverdueDays(
+function paymentOverdueDaysFromDates(
+  paymentDueDate: string | null | undefined,
+  asOfDate: string | null | number,
+): number {
+  if (!paymentDueDate) return 0
+  const dueMs = Date.parse(paymentDueDate)
+  if (Number.isNaN(dueMs)) return 0
+  const asOfMs =
+    typeof asOfDate === 'number'
+      ? asOfDate
+      : asOfDate
+        ? Date.parse(asOfDate)
+        : Date.now()
+  if (Number.isNaN(asOfMs)) return 0
+  const days = Math.ceil((asOfMs - dueMs) / 86_400_000)
+  return days > 0 ? days : 0
+}
+
+/**
+ * paymentOverdueDays — two overloads:
+ *  - (obligation, today: number) → number | null  (φ style; null when not overdue)
+ *  - (paymentDueDate: string|null, asOfDate: string|null) → number  (ω style; 0 when not overdue)
+ */
+export function paymentOverdueDays(
   obligation: Pick<ObligationInstancePublic, 'status' | 'paymentDueDate'>,
   today: number,
+): number | null
+export function paymentOverdueDays(
+  paymentDueDate: string | null | undefined,
+  asOfDate: string | null,
+): number
+export function paymentOverdueDays(
+  arg1: Pick<ObligationInstancePublic, 'status' | 'paymentDueDate'> | string | null | undefined,
+  arg2: number | string | null,
 ): number | null {
-  if (PAYMENT_TERMINAL_STATUSES.has(obligation.status)) return null
-  if (!obligation.paymentDueDate) return null
-  const dueTs = Date.parse(obligation.paymentDueDate)
-  if (Number.isNaN(dueTs) || dueTs >= today) return null
-  const days = Math.ceil((today - dueTs) / 86_400_000)
-  return days > 0 ? days : null
+  if (typeof arg1 === 'object' && arg1 !== null && 'status' in arg1) {
+    // φ style: object + numeric timestamp. Returns null when not overdue.
+    if (PAYMENT_TERMINAL_STATUSES.has(arg1.status)) return null
+    const days = paymentOverdueDaysFromDates(arg1.paymentDueDate, arg2 as number | null)
+    return days > 0 ? days : null
+  }
+  // ω style: strings. Returns 0 when not overdue.
+  return paymentOverdueDaysFromDates(arg1 as string | null | undefined, arg2 as string | null)
 }
 
-function isPaymentOverdue(
+/**
+ * isPaymentOverdue — two overloads, mirroring paymentOverdueDays.
+ */
+export function isPaymentOverdue(
   obligation: Pick<ObligationInstancePublic, 'status' | 'paymentDueDate'>,
   today: number,
+): boolean
+export function isPaymentOverdue(
+  paymentDueDate: string | null | undefined,
+  asOfDate: string | null,
+): boolean
+export function isPaymentOverdue(
+  arg1: Pick<ObligationInstancePublic, 'status' | 'paymentDueDate'> | string | null | undefined,
+  arg2: number | string | null,
 ): boolean {
-  return paymentOverdueDays(obligation, today) !== null
+  if (typeof arg1 === 'object' && arg1 !== null && 'status' in arg1) {
+    const days = paymentOverdueDays(arg1, arg2 as number)
+    return days !== null
+  }
+  return paymentOverdueDays(arg1 as string | null | undefined, arg2 as string | null) > 0
 }
-
-export { isPaymentOverdue, paymentOverdueDays }
