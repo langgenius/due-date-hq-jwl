@@ -83,7 +83,11 @@ import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { SearchInput } from '@/components/primitives/search-input'
 import { StateBadge } from '@/components/primitives/state-badge'
-import { RuleDetailCompact, RuleDetailInline } from '@/features/rules/rule-detail-drawer'
+import {
+  CandidateReviewSection,
+  RuleDetailCompact,
+  RuleDetailInline,
+} from '@/features/rules/rule-detail-drawer'
 import { jurisdictionLabel } from '@/features/rules/rules-console-model'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { orpc } from '@/lib/rpc'
@@ -3535,9 +3539,29 @@ function RuleDetailPanel({
           </DialogTitle>
           <RuleDetailKicker rule={rule} />
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          <RuleDetailInline rule={rule} concreteDraft={concreteDraft} />
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          <RuleDetailInline rule={rule} />
         </div>
+        {/* 2026-05-27 (Yuqi — "最高决定review的实际上是Practice
+            review,但它却在最下面而且需要滑动才能看到"): the action
+            zone used to live as the last item INSIDE the scrollable
+            body, so the Accept button required scrolling past every
+            reference section first — the WHY of the dialog was
+            buried below the WHAT. Now it sits as a sticky footer:
+            the body scrolls (reference info), the action stays
+            visible. Border-t + tinted bg give the footer its own
+            visual zone without a competing rounded card chrome
+            (`chrome="flat"` on the section). */}
+        {(rule.status === 'candidate' || rule.status === 'pending_review') && (
+          <div className="shrink-0 border-t border-divider-subtle bg-background-subtle px-5 py-4">
+            <CandidateReviewSection
+              key={rule.id}
+              rule={rule}
+              concreteDraft={concreteDraft}
+              chrome="flat"
+            />
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )
