@@ -11,7 +11,7 @@ import type { MatrixApplicationView } from './matrix-view'
 const LOW_MAPPING_CONFIDENCE = 0.8
 const LOW_NORMALIZATION_CONFIDENCE = 0.5
 
-export interface MappingSummary {
+interface MappingSummary {
   totalColumns: number
   mappedColumns: number
   ignoredColumns: number
@@ -105,7 +105,7 @@ export interface NormalizationValueGroup {
   usesFallback: boolean
 }
 
-export interface NormalizationSummary {
+interface NormalizationSummary {
   totalGroups: number
   readyGroups: number
   exceptionGroups: number
@@ -208,7 +208,7 @@ export function repairNormalizationRows(rows: readonly NormalizationRow[]): Norm
   })
 }
 
-export interface MatrixSummary {
+interface MatrixSummary {
   totalCells: number
   enabledCells: number
   disabledCells: number

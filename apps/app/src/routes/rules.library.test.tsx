@@ -894,11 +894,14 @@ describe('RulesLibraryRoute', () => {
     await waitForText('2 / 2')
 
     const callsBeforeFinish = rpcMocks.listRulesQueryFn.mock.calls.length
-    await clickButton('Finish')
+    // Step 6 cont audit R3.4 renamed the terminal-action button from
+    // "Finish" → "Done" so it's semantically distinct from "Skip" and
+    // visually distinct (primary fill vs outline). Test follows the UI.
+    await clickButton('Done')
 
     await waitForAssertion(() => {
       expect(rpcMocks.listRulesQueryFn.mock.calls.length).toBeGreaterThan(callsBeforeFinish)
     })
-    expect(findButton('Finish')).toBeUndefined()
+    expect(findButton('Done')).toBeUndefined()
   })
 })

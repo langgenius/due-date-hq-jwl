@@ -31,7 +31,7 @@ import {
   useAuditEntityTypeLabels,
 } from './audit-log-labels'
 
-function MetadataRow({ label, value }: { label: string; value: string }) {
+function AuditEventField({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid gap-1">
       <dt className="text-xs font-medium tracking-wider text-text-tertiary uppercase">{label}</dt>
@@ -110,28 +110,28 @@ function AuditEventDrawerContent({
               <Badge variant="outline">{actionLabel}</Badge>
               <Badge variant={event.actorId ? 'secondary' : 'outline'}>{actor}</Badge>
             </div>
-            <p className="text-md text-text-primary">{changeView.headline}</p>
+            <p className="text-base text-text-primary">{changeView.headline}</p>
           </section>
 
           <dl className="grid gap-4 rounded-lg border border-divider-subtle p-4">
-            <MetadataRow label={t`Practice time`} value={firmTime} />
-            <MetadataRow label={t`UTC time`} value={utcTime} />
-            <MetadataRow label={t`Entity`} value={entityDisplay.primary} />
-            <MetadataRow label={t`Entity type`} value={entityTypeLabel} />
-            <MetadataRow label={t`Entity id`} value={shortenAuditId(event.entityId)} />
-            <MetadataRow label={t`Actor`} value={actor} />
-            {event.reason ? <MetadataRow label={t`Reason`} value={event.reason} /> : null}
+            <AuditEventField label={t`Practice time`} value={firmTime} />
+            <AuditEventField label={t`UTC time`} value={utcTime} />
+            <AuditEventField label={t`Entity`} value={entityDisplay.primary} />
+            <AuditEventField label={t`Entity type`} value={entityTypeLabel} />
+            <AuditEventField label={t`Entity id`} value={shortenAuditId(event.entityId)} />
+            <AuditEventField label={t`Actor`} value={actor} />
+            {event.reason ? <AuditEventField label={t`Reason`} value={event.reason} /> : null}
           </dl>
 
           <AuditChangeDetails changeView={changeView} />
 
           <dl className="grid gap-4 rounded-lg border border-divider-subtle p-4">
-            <MetadataRow label={t`IP hash`} value={event.ipHash ?? t`Not recorded`} />
-            <MetadataRow
+            <AuditEventField label={t`IP hash`} value={event.ipHash ?? t`Not recorded`} />
+            <AuditEventField
               label={t`User agent hash`}
               value={event.userAgentHash ?? t`Not recorded`}
             />
-            <MetadataRow label={t`Practice ID`} value={event.firmId} />
+            <AuditEventField label={t`Practice ID`} value={event.firmId} />
           </dl>
         </div>
       </div>

@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
+import { formatDatePretty } from '@/lib/utils'
 
 // PulseNotificationsBell — top-right utility bell that opens a popover
 // listing recent in-app notifications. The popover IS the Inbox at a
@@ -147,7 +148,7 @@ function PulseNotificationsBell() {
       >
         <header className="flex items-center justify-between gap-2 border-b border-divider-subtle px-4 py-3">
           <div className="flex items-baseline gap-2">
-            <h3 className="text-md font-semibold text-text-primary">
+            <h3 className="text-base font-semibold text-text-primary">
               <Trans>Inbox</Trans>
             </h3>
             {unreadCount > 0 ? (
@@ -162,7 +163,7 @@ function PulseNotificationsBell() {
                 type="button"
                 onClick={() => markAllReadMutation.mutate(undefined)}
                 disabled={markAllReadMutation.isPending}
-                className="text-sm text-text-secondary hover:text-text-primary disabled:opacity-40"
+                className="rounded-sm text-sm text-text-secondary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-50"
               >
                 <Trans>Mark all read</Trans>
               </button>
@@ -226,7 +227,7 @@ function PulseNotificationsBell() {
           <Link
             to="/notifications"
             onClick={() => setOpen(false)}
-            className="inline-flex items-center gap-1 text-base text-text-secondary hover:text-text-primary"
+            className="inline-flex items-center gap-1 rounded-sm text-base text-text-secondary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <Trans>View all in Inbox</Trans>
             <ArrowUpRightIcon className="size-3.5" aria-hidden />
@@ -295,7 +296,7 @@ function formatRelativeTime(iso: string): string {
   if (hours < 24) return `${hours}h ago`
   const days = Math.round(hours / 24)
   if (days < 7) return `${days}d ago`
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return formatDatePretty(iso)
 }
 
 export { PulseNotificationsBell }

@@ -73,7 +73,7 @@ describe('Migration WizardShell close confirmation', () => {
     act(() => getCloseButton().click())
 
     expect(onClose).toHaveBeenCalledTimes(1)
-    expect(document.body.textContent).not.toContain('Discard import?')
+    expect(document.body.textContent).not.toContain('Leave without importing?')
   })
 
   it('opens the discard confirmation when wizard work exists', () => {
@@ -82,6 +82,11 @@ describe('Migration WizardShell close confirmation', () => {
     act(() => getCloseButton().click())
 
     expect(onClose).not.toHaveBeenCalled()
-    expect(document.body.textContent).toContain('Discard import?')
+    // 2026-05-26 (Step 7 onboarding audit F6-23): dialog title
+    // was renamed from "Discard import?" to "Leave without
+    // importing?" — the user hasn't yet imported anything,
+    // so "discard" implied destruction of work that wasn't
+    // there. Test follows the new title.
+    expect(document.body.textContent).toContain('Leave without importing?')
   })
 })

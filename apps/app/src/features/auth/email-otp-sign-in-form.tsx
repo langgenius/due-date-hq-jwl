@@ -10,7 +10,7 @@ import { displayNameFromEmail, sendEmailSignInCode, signInWithEmailCode } from '
 
 type PendingAction = 'send' | 'resend' | 'verify'
 
-export interface EmailOtpSignInFormProps {
+interface EmailOtpSignInFormProps {
   className?: string
   disabled?: boolean
   onInteraction?: () => void
@@ -116,14 +116,16 @@ export function EmailOtpSignInForm({
     return (
       <form onSubmit={handleVerifySubmit} noValidate className={cn('grid gap-2', className)}>
         <div className="rounded-lg border border-border-default bg-bg-panel px-3 py-2">
-          <p className="text-[12px] text-text-muted">
+          <p className="text-sm text-text-muted">
             <Trans>Code sent to</Trans>
           </p>
           <div className="mt-1 flex items-center justify-between gap-3">
-            <p className="min-w-0 truncate font-mono text-[13px] text-text-primary">{sentEmail}</p>
+            <p className="min-w-0 truncate font-mono text-description text-text-primary">
+              {sentEmail}
+            </p>
             <button
               type="button"
-              className="shrink-0 text-[12px] font-medium text-text-secondary underline underline-offset-4 hover:text-text-primary"
+              className="shrink-0 rounded-sm text-sm font-medium text-text-secondary underline underline-offset-4 outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               disabled={formDisabled}
               onClick={() => {
                 noteInteraction()
@@ -205,7 +207,7 @@ export function EmailOtpSignInForm({
           name="email"
           type="email"
           autoComplete="email"
-          placeholder={t`you@firm.com`}
+          placeholder={t`you@yourpractice.com`}
           value={email}
           disabled={formDisabled}
           aria-invalid={Boolean(error)}

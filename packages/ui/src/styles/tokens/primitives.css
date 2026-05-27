@@ -29,6 +29,16 @@
   --text-badge: 11px;
   --text-badge--line-height: 1.333;
   --text-sm: 12px;
+  /*
+   * `--text-description` is the canonical 13px size for sub-line copy
+   * — PageHeader/EmptyState descriptions, login + entry-layout
+   * meta lines, and similar prose that sits BELOW a title and ABOVE
+   * caption-density text. Workbench body is 14px (`--text-base`),
+   * captions are 12px (`--text-sm`); 13px is the in-between for
+   * description text where the body would feel too loud and the
+   * caption would feel too quiet. Auto-generates `text-description`.
+   */
+  --text-description: 13px;
   --text-base: 14px; /* 2026-05-20: was 13px. Workbench body scale. */
   --text-md: 14px;
   --text-lg: 16px;
@@ -42,6 +52,20 @@
   --text-display-hero--line-height: 1.074;
   --text-hero: 56px;
   --text-hero--line-height: 1;
+
+  /* ===== Letter-spacing tokens ===========================================
+   * `--tracking-eyebrow` is the canonical for UPPERCASE phrases per
+   * DESIGN.md §3.3. Auto-generates the `tracking-eyebrow` Tailwind
+   * utility class. Tailwind defaults (tracking-tight/normal/wide/wider)
+   * stay available for non-eyebrow contexts.
+   *
+   * `--tracking-eyebrow-tight` is the canonical for micro-eyebrows
+   * (10–12px font-mono labels inside table headers, inline tags, dense
+   * meta rows) where the standard 0.08em pushes too much air between
+   * glyphs. Auto-generates `tracking-eyebrow-tight`.
+   * --------------------------------------------------------------------- */
+  --tracking-eyebrow: 0.08em;
+  --tracking-eyebrow-tight: 0.06em;
 
   /* ===== Spacing ========================================================= */
   --space-0: 0px;
@@ -84,6 +108,16 @@
 
   /* ===== Animations ====================================================== */
   --animate-spin-slow: spin 2s linear infinite;
+
+  /* ===== Easing ==========================================================
+   * `--ease-apple` is the iOS-style "in-out" curve we use on width /
+   * opacity / max-width transitions of full-surface containers (sidebar
+   * collapse, drawer slide, rules-pulse panel resize). Auto-generates
+   * the `ease-apple` Tailwind utility. Keep Tailwind defaults
+   * (ease-linear / ease-in / ease-out / ease-in-out) for shorter
+   * transitions where the Apple curve would feel sluggish.
+   * --------------------------------------------------------------------- */
+  --ease-apple: cubic-bezier(0.32, 0.72, 0, 1);
 
   /* ===== Util-colors: gray =============================================== */
   --color-util-colors-gray-25: #fcfcfd;

@@ -615,7 +615,7 @@ function DashboardActionsList({
   if (isLoading) {
     return (
       <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
-        <SectionHeader count={null} onOpenAll={onOpenAllObligations} />
+        <ActionsListHeader count={null} onOpenAll={onOpenAllObligations} />
         <div className="flex flex-wrap gap-3">
           <Skeleton className="h-16 w-40" />
           <Skeleton className="h-16 w-40" />
@@ -641,7 +641,7 @@ function DashboardActionsList({
     //      filtered them all out).
     return (
       <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
-        <SectionHeader count={0} onOpenAll={onOpenAllObligations} />
+        <ActionsListHeader count={0} onOpenAll={onOpenAllObligations} />
         {totalOpen > 0 ? (
           <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
             <Trans>Nothing due this week.</Trans>{' '}
@@ -666,7 +666,11 @@ function DashboardActionsList({
           />
         ) : (
           <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
-            <Trans>You're caught up. Next deadline appears here when one's within a week.</Trans>
+            {/* 2026-05-26 (Step 7 onboarding audit F9-08):
+                "Next deadline appears here when one's within a
+                week" used an awkward "one's" contraction.
+                Rewrote with "it's" for natural read. */}
+            <Trans>You're caught up. The next deadline appears here when it's within a week.</Trans>
           </p>
         )}
       </section>
@@ -675,7 +679,7 @@ function DashboardActionsList({
 
   return (
     <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
-      <SectionHeader count={totalThisWeek} onOpenAll={onOpenAllObligations} />
+      <ActionsListHeader count={totalThisWeek} onOpenAll={onOpenAllObligations} />
       {summaryStrip}
       {/* 2026-05-26 (Yuqi /today feedback): row borders dropped.
           Action rows already carry their own hover-bg state to anchor
@@ -702,7 +706,7 @@ function DashboardActionsList({
       </ul>
       {/* 2026-05-26 (Yuqi /today feedback): "… N more in the queue"
           caption removed. The section already has a "View all
-          deadlines" link in its header (see SectionHeader); the
+          deadlines" link in its header (see ActionsListHeader); the
           footer caption was duplicate-pointing to the same
           destination. The truncation itself is communicated
           implicitly — the count in the header tells the user how
@@ -711,7 +715,7 @@ function DashboardActionsList({
   )
 }
 
-function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: () => void }) {
+function ActionsListHeader({ count, onOpenAll }: { count: number | null; onOpenAll: () => void }) {
   return (
     // 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
     // LEFT-aligned with the "All deadlines" link justify-between on
@@ -769,7 +773,7 @@ function SectionHeader({ count, onOpenAll }: { count: number | null; onOpenAll: 
           event.preventDefault()
           onOpenAll()
         }}
-        className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-tertiary"
+        className="inline-flex items-center gap-1 rounded-sm text-xs text-text-muted outline-none hover:text-text-tertiary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         <Trans>All deadlines</Trans>
       </Link>

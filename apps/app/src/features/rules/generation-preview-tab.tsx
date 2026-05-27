@@ -668,7 +668,7 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
           ~10 rows. Letting the rows flow naturally lets the
           page scroll handle the overflow. */}
       <div>
-        <div className="grid grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] border-b border-divider-regular bg-background-default px-3 py-2 text-caption font-medium uppercase tracking-[0.08em] text-text-muted">
+        <div className="grid grid-cols-[minmax(88px,0.8fr)_minmax(112px,1.1fr)_minmax(104px,1fr)_minmax(84px,0.8fr)_minmax(88px,0.8fr)_minmax(0,1.5fr)_minmax(88px,0.8fr)] border-b border-divider-regular bg-background-default px-3 py-2 text-caption font-medium uppercase tracking-eyebrow text-text-muted">
           <RolloverColumnHeader
             label={t`Status`}
             description={t`The rollover disposition for this row: create, review, duplicate, missing rule, or missing due date.`}
@@ -763,7 +763,7 @@ function RolloverMetric({
 }) {
   return (
     <div className="min-w-0 border-r border-divider-subtle px-3 py-2 last:border-r-0">
-      <div className="flex min-w-0 items-center gap-1 text-caption-xs font-medium uppercase tracking-[0.08em] text-text-muted">
+      <div className="flex min-w-0 items-center gap-1 text-caption-xs font-medium uppercase tracking-eyebrow text-text-muted">
         <span className="truncate">{label}</span>
         <RolloverHelpPopover label={label} description={description} />
       </div>
@@ -1019,7 +1019,7 @@ function TaxYearCalendarSelect({
 function TaxYearDateSummary({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-md bg-background-subtle px-2 py-1.5">
-      <div className="truncate text-caption-xs font-medium uppercase tracking-[0.08em] text-text-muted">
+      <div className="truncate text-caption-xs font-medium uppercase tracking-eyebrow text-text-muted">
         {label}
       </div>
       <div className="truncate font-mono text-caption text-text-secondary">{value}</div>
@@ -1040,7 +1040,7 @@ function PreviewField({
     <div className="flex flex-col gap-1.5">
       <label
         htmlFor={htmlFor}
-        className="text-caption font-medium uppercase tracking-[0.08em] text-text-muted"
+        className="text-caption font-medium uppercase tracking-eyebrow text-text-muted"
       >
         {label}
       </label>
@@ -1135,7 +1135,7 @@ function PreviewGroupHeader({ tone, label }: { tone: 'success' | 'review'; label
       <ToneDot tone={tone} />
       <span
         className={cn(
-          'text-caption font-medium uppercase tracking-[0.08em]',
+          'text-caption font-medium uppercase tracking-eyebrow',
           tone === 'success' ? 'text-status-done' : 'text-status-review',
         )}
       >
@@ -1177,7 +1177,7 @@ function PreviewResultRow({
         </span>
       </div>
       <div className="flex min-w-0 flex-col gap-1">
-        <span className="truncate text-[13px] font-medium text-text-primary">
+        <span className="truncate text-description font-medium text-text-primary">
           {row.ruleTitle} · {row.formName}
         </span>
         <span className="truncate font-mono text-caption text-text-tertiary">

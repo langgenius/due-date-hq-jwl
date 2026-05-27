@@ -20,8 +20,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { StateBadge } from '@/components/primitives/state-badge'
+import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
 import { usePulseDetailQueryOptions } from '../api'
+import { PulseConfidencePill } from './PulseConfidencePill'
 import { PulseSourceBadge } from './PulseSourceBadge'
 import { PulseSourceStatusBadge } from './PulseSourceStatusBadge'
 import { PulseStatusBadge } from './PulseStatusBadge'
@@ -133,10 +135,11 @@ export function PulseAlertCard({
   // confidence (LOW / MEDIUM / HIGH) instead of numeric AI XX%.
   // Card background tone follows the level: LOW gets the destructive
   // tint (review urgency), MEDIUM gets a faint warning tint, HIGH
-  // stays clean. Thresholds match the existing PulseConfidenceBadge
-  // tone breaks: < 0.5 LOW, 0.5–0.85 MEDIUM, ≥ 0.85 HIGH.
-  const confidenceLevel: 'low' | 'medium' | 'high' =
-    alert.confidence < 0.5 ? 'low' : alert.confidence < 0.85 ? 'medium' : 'high'
+  // stays clean.
+  // 2026-05-26 (Step 9 AI Visibility Audit F-002): thresholds now
+  // sourced from the canonical `aiConfidenceTier` helper so every
+  // surface in the product agrees on the same 0.5 / 0.85 ladder.
+  const confidenceLevel = aiConfidenceTier(alert.confidence)
   const lowConfidence = confidenceLevel === 'low'
   const mediumConfidence = confidenceLevel === 'medium'
 
@@ -337,9 +340,19 @@ export function PulseAlertCard({
             line below. Above 700px the eye starts treating it as a
             second h3-weight line instead of a quieter caption; the
             cap keeps the truncation kicking in earlier and pushes
-            the CPA to open the drawer for the full text. */}
+            the CPA to open the drawer for the full text.
+            2026-05-26 (Step 9 AI Visibility Audit F-010): leading
+            Astroid icon marks the summary as AI-generated. Without
+            it the prose read like editorial copy authored by
+            DueDateHQ, but `alert.summary` is the model's one-sentence
+            extraction — provenance disclosure should be visible at
+            first glance, not opt-in to hover. */}
           {alert.summary && alert.summary.trim() !== alert.title.trim() ? (
             <p className="line-clamp-1 max-w-[700px] text-sm text-text-secondary">
+              <Astroid
+                className="mr-1 inline size-3 shrink-0 text-text-tertiary align-[-1px]"
+                aria-label={t`AI-generated summary`}
+              />
               {alert.summary}
             </p>
           ) : null}
@@ -534,22 +547,15 @@ export function PulseAlertCard({
                     needs-review chip is fine because they appear
                     in different contexts (footer vs client chip
                     row). */}
-            {lowConfidence ? (
-              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-state-warning-hover px-2 text-xs font-medium uppercase tracking-wide text-text-warning">
-                <Astroid className="size-3" aria-hidden />
-                <Trans>Low</Trans>
-              </span>
-            ) : mediumConfidence ? (
-              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full border border-divider-subtle bg-background-section px-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
-                <Astroid className="size-3" aria-hidden />
-                <Trans>Medium</Trans>
-              </span>
-            ) : (
-              <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-state-info-hover px-2 text-xs font-medium uppercase tracking-wide text-text-accent">
-                <Astroid className="size-3" aria-hidden />
-                <Trans>High</Trans>
-              </span>
-            )}
+            {/* HEAD's canonical `PulseConfidencePill` primitive kept;
+                Step 9 F-038 (tooltip surfacing the numeric AI
+                confidence on hover) deferred — applying it inline
+                here would lose the primitive's consolidation work.
+                Better to add the tooltip inside the pill component
+                itself in a follow-up. */}
+            <PulseConfidencePill
+              confidence={lowConfidence ? 'low' : mediumConfidence ? 'medium' : 'high'}
+            />
           </div>
         </div>
       </div>

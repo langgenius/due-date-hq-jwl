@@ -48,7 +48,7 @@ const { t } = Astro.props
       {t.pulse.tag}
     </span>
     <p class="min-w-0 flex-1 truncate text-xs text-text-primary">{t.pulse.text}</p>
-    <span class="hidden rounded border border-divider-regular bg-background-default px-2 py-0.5 font-mono text-2xs text-text-secondary sm:inline-flex">
+    <span class="hidden rounded border border-divider-regular bg-background-default px-2 py-0.5 font-mono text-caption-xs text-text-secondary sm:inline-flex">
       {t.pulse.source}
     </span>
     <span class="font-mono text-xs text-text-accent">{t.pulse.cta} →</span>
@@ -57,7 +57,7 @@ const { t } = Astro.props
   <div class="grid gap-0 border-b border-divider-subtle lg:grid-cols-[1fr_0.82fr]">
     <div class="border-b border-divider-subtle px-4 py-4 lg:border-b-0 lg:border-r lg:border-divider-subtle">
       <div class="flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2 font-mono text-xs tracking-[0.08em] text-text-tertiary">
+        <div class="flex items-center gap-2 font-mono text-xs tracking-eyebrow text-text-tertiary">
           <span class="block h-1.5 w-1.5 rounded-full bg-severity-critical"></span>
           <span>{t.metric.eyebrow}</span>
         </div>
@@ -94,7 +94,7 @@ const { t } = Astro.props
   <div class="grid grid-cols-4 gap-0 border-b border-divider-subtle">
     {t.metric.stats.map((stat) => (
       <div class="border-r border-divider-subtle px-4 py-3 last:border-r-0">
-        <div class="font-mono text-2xs tracking-wider text-text-tertiary">{stat.label}</div>
+        <div class="font-mono text-caption-xs tracking-wider text-text-tertiary">{stat.label}</div>
         <div class="mt-0.5 font-mono tabular text-[18px] font-semibold text-text-primary">{stat.value}</div>
       </div>
     ))}

@@ -107,13 +107,13 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
         <div class="mt-8 flex flex-col gap-3 sm:flex-row lg:mt-0 lg:shrink-0">
           <a
             href={primaryHref}
-            class="inline-flex h-11 items-center justify-center rounded-md bg-accent-default px-4 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-accent-hover"
+            class="inline-flex h-11 items-center justify-center rounded-md bg-accent-default px-4 text-[13px] font-medium text-primary-foreground outline-none transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             {page.cta.primary}
           </a>
           <a
             href={secondaryHref}
-            class="inline-flex h-11 items-center justify-center rounded-md border border-border-strong bg-bg-elevated px-4 text-[13px] font-medium text-text-primary transition-colors hover:border-text-muted hover:bg-bg-canvas"
+            class="inline-flex h-11 items-center justify-center rounded-md border border-border-strong bg-bg-elevated px-4 text-[13px] font-medium text-text-primary outline-none transition-colors hover:border-text-muted hover:bg-bg-canvas focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             {page.cta.secondary}
           </a>

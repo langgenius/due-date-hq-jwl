@@ -1,12 +1,37 @@
 # DueDateHQ · DESIGN.md
 
 > 文档类型：视觉设计系统（Single Source of Truth for UI）
-> 版本：v1.0
-> 日期：2026-04-23
+> 版本：**v2.1**
+> 日期：2026-05-26（v2.0 → v2.1 修订：§2.5 同步到 primitives.css 实施现状）
 > 方向：**Ramp × Linear · Light Workbench**（浅色主导，暗色为镜像，不做方向 B 的 Bloomberg 终端风）
 > 对齐：PRD v2.0 §1.3 设计原则 + §5 核心页面规格 + §10 UI/UX 规范
 > 阅读对象：Designer / Frontend Engineer / AI coding agents（Cursor / v0 / Lovable）
 > 语言：中文说明 + 英文 token，所有代码注释为英文
+
+## v2.0 changelog (2026-05-26)
+
+Three passes worth of polish (83rd → 85th) have established a set of
+canonical patterns that didn't exist when v1.0 shipped on 2026-04-23.
+The patterns themselves are documented in dedicated spec docs (see
+**Companion docs** below); §16 of this file is the **dashboard /
+adoption index** so a code reader or AI agent can find the right spec
+without crawling every dev-log entry.
+
+Adoption status across the app is tracked separately in
+`docs/Design/design-system-drift-audit-2026-05-26.md` (per-pattern
+drift inventory + prioritized fix punch list).
+
+| Companion doc                                  | What it specifies                                                                          |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `page-family-canonical.md`                     | PageHeader / scope tabs / filter chip row / table-card frame / FloatingActionBar / sidebar |
+| `unified-table-surface-vocabulary.md`          | Cross-table chrome unification (`/deadlines`, `/clients`, `/rules/library`)                |
+| `inset-surface-design-system.md`               | Drawer canonical, surface hierarchy, radius scale, chip vocabulary                         |
+| `status-pill-audit-2026-05-25.md`              | Status pill tone ladder + shape rules                                                      |
+| `info-icon-audit-2026-05-25.md`                | When info icons belong + InfoBanner pattern                                                |
+| `filter-vs-badge-contract.md`                  | Filter chip vs filter dropdown decision rule                                               |
+| `icon-sizing.md`                               | Canonical icon size scale                                                                  |
+| `obligation-status-icon-vocabulary.md`         | Per-status icon + tone mapping                                                             |
+| `obligation-panel-v2-and-alerts-vocabulary.md` | Pulse / alert vocabulary across surfaces                                                   |
 
 ---
 
@@ -177,43 +202,67 @@
 | 紫色做主色（非 accent）         | 稀释 navy 权威感                 |
 | 绿色表示 "OK / 安全"            | 用灰色 `--severity-neutral` 代替 |
 
-### 2.5 Radius / Shadow Token（唯一合法来源）
+### 2.5 Radius / Shadow Token（实施现状 · 2026-05-26 同步）
 
-除下表以外，**所有其他圆角 / 阴影一律禁止**（包括业务组件里写 `rounded-lg` / `shadow-md` 等裸 Tailwind 类）。**唯一权威值在 `/DESIGN.md` `rounded:` / `shadows:` YAML 段**；本节仅展示工程实现镜像，禁止本节与 `/DESIGN.md` 出现数值分歧。
+**这一节描述代码实际使用的 token 集**，与 `packages/ui/src/styles/tokens/primitives.css` 保持同步。所有 radius / shadow token 直接采用 Tailwind v4 + Dify 设计体系默认值（这是 vite-plus 模板的工程约定），DESIGN.md 不再发明独立 token 名称。
 
-```css
-/* === Radius === */
---radius-sm: 0.25rem; /* 4px · Chip / Evidence / Confidence Badge / 小内联 token             */
---radius: 0.375rem; /* 6px · Button (shadcn) / Input / Card / Banner / Dropdown / Toast / Pulse Banner */
---radius-lg: 0.75rem; /* 12px · Drawer / Modal / Command Palette                                       */
-/* 禁止 > 12px（避免 Notion 式圆润感）                                               */
+#### Radius scale（Tailwind v4 默认）
 
-/* === Shadow（"禁止阴影"的三个例外） === */
---shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.04); /* Drawer / Popover 层 3         */
---shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.08); /* Modal / Command Palette 层 4  */
-/* 暗色模式同 rgba 不变，浏览器会自动调整感知（Cloudflare Workers SPA 不做单独 dark shadow） */
-/* 业务组件不可用 --shadow-overlay 之外的其他阴影                                    */
+```
+--radius-sm:   4px  · Chip / Evidence chip / Confidence badge / 小内联 token
+--radius-md:   6px  · 备用（项目实际未使用，所有 6px 场景由 shadcn primitives 内部消化）
+--radius-lg:   8px  · Card / Panel / Banner / Dropdown / Toast / 内嵌 Section
+--radius-xl:  12px  · Drawer / Modal / Command Palette / Stage tile / 大号卡片
+--radius-2xl: 16px  · ⚠️ 慎用，仅用于刻意"邀请触碰"的浮层（如 Search Palette 顶部容器）
+--rounded-full:    · Pill / Avatar / 单行 chip 容器 / 全圆 status indicator
 ```
 
-| Token              | 用途                                                                                                                            | 禁用场景                        |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `--radius-sm`      | chip · evidence chip · confidence badge · 小内联 token                                                                          | 按钮 / 卡片 / 容器              |
-| `--radius`         | **所有 shadcn 按钮（Primary / Secondary / Outline / Ghost / Icon）** · 输入框 · Banner · Card · Dropdown · Toast · Pulse Banner | chip / 浮层                     |
-| `--radius-lg`      | Drawer / Modal / Command Palette                                                                                                | 普通 Card（过大显得松散）       |
-| `--shadow-subtle`  | Drawer 底部、Popover、Tooltip                                                                                                   | 普通 Card（违反"禁止阴影"铁律） |
-| `--shadow-overlay` | Command Palette / 重要 Modal                                                                                                    | 其他浮层（用 subtle 即可）      |
+**禁用**：`rounded-3xl`（24px）— 在 workbench 风格里读起来太松散，迄今为止代码库中零使用。
 
-**Tailwind 4 `@theme` 映射**：
+#### Shadow scale（Dify 默认 + 本项目添加的 subtle/overlay 别名）
 
-```css
-@theme {
-  --radius-sm: 0.25rem;
-  --radius: 0.375rem;
-  --radius-lg: 0.75rem;
-  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
 ```
+--shadow-xs:      0px 1px 2px 0px rgba(16, 24, 40, 0.05)
+--shadow-sm:      0px 1px 2px 0px rgba(16, 24, 40, 0.06),
+                  0px 1px 3px 0px rgba(16, 24, 40, 0.10)   · 默认浮层 / Button hover / Card 浅举升
+--shadow-md:      0px 2px 4px -2px rgba(16, 24, 40, 0.06),
+                  0px 4px 8px -2px rgba(16, 24, 40, 0.10)
+--shadow-lg:      0px 4px 6px -2px rgba(16, 24, 40, 0.03),
+                  0px 12px 16px -4px rgba(16, 24, 40, 0.08)
+--shadow-xl:      0px 8px 8px -4px rgba(16, 24, 40, 0.03),
+                  0px 20px 24px -4px rgba(16, 24, 40, 0.08)
+--shadow-2xl:     0px 24px 48px -12px rgba(16, 24, 40, 0.18)
+--shadow-3xl:     0px 32px 64px -12px rgba(16, 24, 40, 0.14)
+
+/* 本项目语义化别名 — 保留 backwards-compat，新代码优先用上面的 Dify 默认 scale */
+--shadow-subtle:  0 2px 8px rgba(0, 0, 0, 0.04)   · Drawer 底缘 / Popover / Tooltip
+--shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.08)  · Modal / Command Palette / Floating action bar
+```
+
+#### 实际使用规约（按场景）
+
+| 场景                  | Radius                         | Shadow                              |
+| --------------------- | ------------------------------ | ----------------------------------- |
+| Chip / Evidence badge | `rounded-sm`                   | 无                                  |
+| Button (shadcn)       | `rounded-md`（primitive 内部） | hover/active 自带 `shadow-sm`       |
+| Card / Banner / Panel | `rounded-lg`                   | 无（page 上的卡片默认无 shadow）    |
+| Drawer / Modal        | `rounded-xl`                   | `shadow-overlay`（或 `shadow-2xl`） |
+| Command Palette       | `rounded-xl`                   | `shadow-overlay`                    |
+| Floating action bar   | `rounded-xl`                   | `shadow-overlay`                    |
+| Popover / Tooltip     | `rounded-lg`                   | `shadow-subtle` 或 `shadow-sm`      |
+| Pill / Avatar circle  | `rounded-full`                 | 无                                  |
+| Status pill           | `rounded-full`                 | 无                                  |
+
+#### 漂移判据
+
+下面这些用法应被视为漂移并替换：
+
+- `rounded-3xl` — 项目从未使用，不要引入。
+- `rounded-2xl` — 仅 3 处历史用法，新代码不要使用。倾向于 `rounded-xl`。
+- `shadow-3xl`、`shadow-2xl` — 不要在业务组件使用（仅 Tailwind 默认保留以备移植）。
+- 内联自定义 shadow（如 `shadow-[0_20px_48px_...]`）— 应改为 `shadow-overlay`，除非该值经过单独 design review。
+
+**变更基础（2026-05-26 v2.1）**：原版 §2.5 给出的"只允许 sm / md / lg 三档" + "只允许 subtle / overlay 两档 shadow" 是 v1.0 的早期愿景，但 `primitives.css` 实施时跟随了 vite-plus 模板的 Dify-默认 scale。本次同步把文档拉齐到实际实施面，避免下一轮 audit 把工程默认值误判为漂移。
 
 ---
 
@@ -1119,6 +1168,246 @@ Done/Applied: Dify green-600 (#079455) ← only for completed
 - AppShell sidebar practice switcher（`147:3`）— 是租户身份槽，使用 `firm.monogram`
 - Route header（`Q1 2026 / Dashboard` 等）— 路由头不是品牌头
 - Row-level / button 内 — 与品牌识别无关
+
+---
+
+## 16. Canonical patterns (post-v1.0)
+
+The 84/85 polish passes formalized cross-surface rules that v1.0 didn't
+specify. Each rule lives in a dedicated spec doc (see v2.0 changelog
+table at the top); this section is the **adoption-time cheat sheet**.
+Reach for the spec doc when you need the full rationale; reach for this
+section when you need the rule in one line.
+
+### §16.1 PageHeader (canonical: `apps/app/src/components/patterns/page-header.tsx`)
+
+**Shape:**
+
+- Row 1 (eyebrow) — full header width. Breadcrumb left, optional
+  `eyebrowAside` far right. Examples: `< Clients` + `1 / 9` cycler on
+  `/clients/[id]`.
+- Row 2 — title block left (`<h1>` + optional description), actions
+  cluster far right. `lg:flex-row lg:items-end lg:justify-between`.
+- Title H1: `text-2xl leading-7 font-semibold text-text-primary` +
+  `min-w-0` so it can truncate when a right drawer narrows the column.
+- Actions cluster: no `flex-wrap` — single row at lg+, content
+  overflow-clips rather than wrapping into a 2nd row.
+
+**Use it on every protected route.** AppShell stopped rendering a
+route header strip; the route owns its own header. Drift from this
+shape (e.g. custom h1 + breadcrumb-as-text) is automatic P1 in the
+audit.
+
+### §16.2 Workbench table chrome
+
+Cross-table canonical rules (the unified vocabulary in
+`unified-table-surface-vocabulary.md`):
+
+| Aspect              | Canonical                                                                                                                                                                                                         |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wrapper             | `rounded-md border border-divider-subtle overflow-hidden`                                                                                                                                                         |
+| Row height          | `h-14` (every workbench table)                                                                                                                                                                                    |
+| TableBody bg        | `bg-background-default/50` (alpha-50 white — _do not remove_)                                                                                                                                                     |
+| TableHeader bg      | Primitive default (`bg-background-subtle`) — DO NOT override with `bg-background-default-dimmed` (the dimmed token is `rgb(... / 0.4)` — alpha-tinted, bleeds through when content scrolls behind sticky headers) |
+| Within-row border   | Primitive `border-b border-divider-subtle`. Weld (`border-b-0`) only when surface owns a logical sub-group (currently `/deadlines` same-client cluster)                                                           |
+| Primary title style | `text-base` regular weight, `text-text-primary`, hover-underline as row-affordance cue                                                                                                                            |
+| Late text           | `text-sm font-semibold`, verbose "N days late" (no shorthand)                                                                                                                                                     |
+| Click-to-detail     | Drawer (queue triage) · Route (sustained work) · Modal (reference) — destination follows task model                                                                                                               |
+| Footer pagination   | `px-2 py-6`, prev/next + page count, in the bottom toolbar zone                                                                                                                                                   |
+| Search affordance   | Collapsible ghost icon → input on click or `/` hotkey (`*SearchControl` per surface)                                                                                                                              |
+
+Adopted by `/deadlines`, `/clients`, `/rules/library`. Any new
+table-of-rows surface (e.g. `/audit`, `/workload`, `/notifications`)
+should match.
+
+### §16.3 Tabs vs segmented control
+
+| Pattern                 | When to use                                                                                 | Examples                                                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Tabs (line variant)** | "Different sections of the SAME entity" — each tab shows different CONTENT                  | `/clients/[id]` Work / Client info / Opportunities / Activity; deadline drawer Summary / Materials / Extension / Evidence |
+| **Segmented control**   | "Different views / filtered scopes of the SAME data" — each option re-filters the same list | `/deadlines` top scope tabs (Today / This week / Late / All); rule library segmented toggle                               |
+
+**Drawer tab styling** (canonical for `/deadlines` obligation drawer):
+
+- TabsList: `flex h-11 w-full justify-start gap-6 border-b border-divider-subtle bg-background-default text-sm`
+- TabsTrigger: `!flex-none !px-0 rounded-t text-text-secondary data-active:text-text-primary data-active:font-semibold after:!bg-accent-default`
+- Active underline at primitive default (`bottom-[-5px]`) — floats ~5px below trigger for 15-16px breathing room from text descender. **Do NOT pull to `after:!bottom-0`** — that crushed the descender clearance to ~9px.
+- Inactive text `text-text-secondary`; active text `text-text-primary` + semibold (biggest contrast jump).
+- Underline color is brand accent (`accent-default`), not text-active-black.
+
+### §16.4 Drawer / sheet canonical
+
+Single shared shape across `ObligationDrawer`, `PulseDetailDrawer`,
+`ClientDetailDrawer`:
+
+1. **Sticky header strip** at the body top — `sticky top-0 z-20 -mx-8 border-b border-divider-subtle bg-background-default px-8 py-3`. Holds the 3-up date strip / identity strip. Stays visible during body scroll.
+2. **Tab bar** (see §16.3) — sits **outside** the sticky strip so it scrolls with the body. `pt-3` above tabs gives 20px buffer from the sticky strip; `mt-0` on TabsContent keeps the gap below tight (`gap-2` from Tabs root only).
+3. **Body content** — `px-8 pt-0 pb-24` (pb-24 = sticky-footer overlap buffer). At panel mode, `flex-1 min-h-0 overflow-y-auto [scrollbar-gutter:stable]`.
+4. **Sticky footer** — `sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 bg-background-default px-8 pt-4 pb-6`. **Asymmetric vertical padding** (16/24) is the canonical rhythm — top tight, bottom breathes.
+
+**Active stage card** (Summary tab body): `rounded-lg bg-background-section p-4`. **No outer ring.** The bg tint anchors the "deep-dive zone"; do not stack a border on top.
+
+**Inner Key-dates panel** (inside the active stage card): no chrome (no ring, no bg, no padding wrapper) — uppercase tag + dl rows only. The parent's tint provides the envelope. Avoids chrome-on-chrome.
+
+### §16.5 Sticky footer (universal)
+
+Every sticky drawer/sheet footer uses the asymmetric `pt-4 pb-6` rhythm. Set in three places — keep mirrored:
+
+- `SheetFooter` primitive: `mt-auto flex flex-col gap-2 px-6 pt-4 pb-6`
+- Obligation drawer panel-mode footer: `... bg-background-default px-8 pt-4 pb-6`
+- Pulse drawer SheetFooter override: `... bg-background-default px-12 pt-4 pb-6`
+
+### §16.6 Sidebar collapsed-mode parity
+
+App-shell header is hard-locked to `h-[72px] justify-center` regardless of mode. SidebarMenu, SidebarContent share gap-4 in both modes (no special collapsed override). SidebarMenuButton uses `overflow-visible` in collapsed mode so the badge dot can overhang at `-top-0.5 -right-0.5` (h-3.5 pill).
+
+### §16.7 Owner / assignee avatar
+
+Single helper: `getAssigneeTint(name)` from `apps/app/src/lib/assignee-tint.ts`. Canonical render is `size-8` (32px) round chip with `text-sm font-semibold uppercase` initials. Same person, same tint, on every surface. `isMine` overrides with accent palette.
+
+### §16.8 Count / state chips
+
+`CountDotChip` primitive (`apps/app/src/components/primitives/count-dot-chip.tsx`) is the canonical state-row review-count chip. Use it for rule-library section header counts and any "tone + N" inline indicator.
+
+Tab-badge count (e.g. Materials `14`, Evidence `0`): `inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-state-accent-hover-alt px-1 text-caption-xs font-medium leading-none tabular-nums text-text-accent`. Subtler than a destructive red — communicates magnitude without alarm.
+
+### §16.9 Active dot + hover-expand (rules library)
+
+Active section rows (non-selectable status groups in `/rules/library`) render a leading tone dot at the checkbox X-position. Pattern:
+
+- Outer flex `items-center` (not `items-start` — kills baseline drift)
+- Dot: `size-1.5 rounded-full`, color per `STATUS_TONE` (gray for active/verified to avoid clashing with entity-status green elsewhere in the row)
+- On row hover (`group-hover/row:inline`), reveal `STATUS_LABEL_SHORT[status]` text next to the dot. The dot "expands" into a word — maps to the user's mental model.
+
+### §16.10 Filter affordance (filter-vs-badge contract)
+
+| Cardinality                                            | Primitive                            | Surface                        |
+| ------------------------------------------------------ | ------------------------------------ | ------------------------------ |
+| Low fixed-vocab (3-8 options), PRIMARY navigation axis | `EntityChipRow`-style chip strip     | `/rules/library` entity chips  |
+| Multi filters coexisting on the same toolbar row       | `TableHeaderMultiFilter` (`toolbar`) | `/clients`, `/deadlines`       |
+| Triage shortcut chips (one-click "show me only X")     | `FilterTrigger` action chip strip    | `/deadlines` action-chip strip |
+
+**Rule**: one chip strip per page max (the primary axis). When multiple filters coexist, they all render as `TableHeaderMultiFilter` for visual coherence — mixing a chip row with dropdowns in the same row reads as two competing affordance models. `FilterTrigger` gained a `leadingIcon` prop for icon-led triggers (e.g. `ArrowUpDownIcon` on the Group-by control).
+
+### §16.11 Group-by section headers
+
+`/deadlines` Group-by control (Due date / Client) renders section headers between row groups. Sticky `bg-background-subtle` band, count chip per group, late-count chip when the group has overdue rows. Pattern is portable to any grouped table — if you add a Group-by axis to another surface, follow this shape.
+
+### §16.12 Status pill tone ladder (full spec: `status-pill-audit-2026-05-25.md`)
+
+Tone → semantic, never re-defined per surface:
+
+- `success` (green) — done / on track
+- `warning` (amber) — at risk / needs attention
+- `destructive` (red) — late / blocked / error (sparingly)
+- `accent` (purple) — review / in-progress
+- `muted` (gray) — default / not-yet-started / archived
+
+Shape → category:
+
+- **Filled** (`bg-state-X-solid text-text-inverted`) — currently active / live state
+- **Outline** (`border-state-X-border bg-state-X-hover text-text-X`) — informational / passive label
+- **Soft** (`bg-state-X-hover text-text-X`, no border) — quiet tag in dense rows
+
+Ornament rule: dot ONLY when the chip lives in a dense row where the word alone is hard to scan. Otherwise word + tone color is enough.
+
+### §16.13 Info icon vs InfoBanner
+
+- **Info icon** (`<CircleHelpIcon>` in popover) — quick definition / formula. Reserve for terms the user might not know.
+- **InfoBanner** (`apps/app/src/components/patterns/info-banner.tsx`) — page-level tip with optional CTA + per-key dismissal. Reserve for "the page is in a non-default state and here's how to fix it" (e.g., `/clients/[id]` needs-facts CTA).
+
+Spec doc enumerates which mounts dropped the redundant popover and which gained an InfoBanner.
+
+### §16.14 Floating action bar
+
+`apps/app/src/components/patterns/floating-action-bar.tsx`:
+`fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-wrap items-center gap-3 rounded-xl border border-divider-regular bg-background-default px-5 py-3 text-text-primary shadow-[0_20px_48px_-16px_rgb(0_0_0_/_0.18)]`.
+
+Currently used by `/rules/library` bulk-review (replaced earlier beige warning bar) and the obligation drawer materials-checklist multi-select. Floating pill at 48px from bottom; never docked.
+
+### §16.15 InfoBanner (page-level tip + CTA)
+
+`apps/app/src/components/patterns/info-banner.tsx`. Renders an inline tip card with optional CTA button and dismissKey (per-user, per-key dismissal). Used on `/clients/[id]` for needs-facts CTA, on `/deadlines` for system-state announcements. Replaces the older red-tinted "missing X" hero bars.
+
+### §16.16 Page layout shell
+
+Per-route shell shape (after `clients.$clientId.tsx` reference):
+
+```
+<div className={cn(
+  'flex w-full flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+  'xl:h-screen xl:overflow-hidden',
+)}>
+```
+
+- `w-full` (no `mx-auto max-w-page-wide` cap — the 1100px cap was the cause of header-column-narrowing bugs on `/clients/[id]`)
+- xl: locked viewport height + own scroll. Below xl: natural content-driven scroll.
+
+### §16.17 TabSection primitive
+
+`apps/app/src/components/patterns/tab-section.tsx` — canonical section header inside tab bodies. Single source of truth for `eyebrow + h2 + actions slot` rhythm. All `/clients/[id]` tab bodies use it; new tab bodies elsewhere should match.
+
+Usage example: see `/clients/[id]` Work tab in `ClientFactsWorkspace.tsx` — `<TabSection eyebrow="…" title="…" actions={…}>{children}</TabSection>`. The eyebrow slot accepts ReactNode, the title is bold h2 scale, the actions slot is the same h2-actions cluster pattern as PageHeader.
+
+### §16.18 `font-mono` carve-outs (enforcement clarification)
+
+The general rule (§3 Typography, §3.4 数字铁律) reserves `font-mono` for kbd hints. In practice the canonical recognizes a small set of legitimate technical-string contexts that also warrant mono:
+
+| Legitimate `font-mono` context   | Example sites                                                                                                                                                                                |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| kbd hint primitive               | `packages/ui/src/components/ui/kbd.tsx`, `ShortcutHelpDialog` kbd spans                                                                                                                      |
+| Dev-panel / debug IDs            | `audit-log-table` actorId, `generation-preview-tab` rule IDs, `rule-detail-drawer` scope strings, `sources-tab` source.id                                                                    |
+| URL / email / token inputs       | Calendar URL input, OTP email confirmation, security tokens, `TimezoneSelect` zone id                                                                                                        |
+| State codes in fixed-width grids | `state-rule-activation-selector` picker (2-letter codes in size-7 cells), `JurisdictionCode` primitive, `ClientFactsWorkspace` state badges, `CreateObligationDialog.normalizedJurisdiction` |
+| Audit log timestamps             | `EvidenceDrawerProvider` event meta, `audit-log-table` timestamp cell                                                                                                                        |
+| Migration wizard import paths    | `Step1Intake` / `Step3Normalize` / `Step4Preview` / `WizardShell` / `ImportHistoryDrawer`                                                                                                    |
+
+**Everywhere else, drop `font-mono`** and use `tabular-nums` alone if numeric alignment is the goal. Combining `font-mono` + `tabular-nums` on numeric content is redundant — `tabular-nums` already makes digits 0-9 equal-width, and the mono font shifts the overall typographic feel toward "developer dashboard."
+
+- **Don't:** `<span className="font-mono tabular-nums">{count}</span>`
+- **Do:** `<span className="tabular-nums">{count}</span>`
+
+Verification: `grep -rn "font-mono tabular-nums" apps/app/src --include='*.tsx' | grep -v opportunities` should return 0 outside the carve-outs above. 86th pass batches 6-9 (commits `d9014131`, `aa63776b`, `28fdc874`, `461a2e52`) swept 69 sites; current `font-mono` total is 104, all categorically legitimate per the table above.
+
+### §16.19 Spacing-scale enforcement
+
+§5.1 establishes the 4px-base spacing scale. **Canonical flex/grid `gap-*` values are `gap-2 / gap-3 / gap-4 / gap-6` only.**
+
+| Forbidden      | Use instead                                                           | Why                                                               |
+| -------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `gap-5` (20px) | `gap-4` (16px) for tight bodies; `gap-6` (24px) for section breathing | Sits between the tight and loose breakpoints and reads as neither |
+| `gap-7` (28px) | `gap-6`                                                               | Not on the canonical scale                                        |
+| `gap-8` (32px) | `gap-6` for page-level shells; `gap-4` for inner blocks               | Page-shell section gaps use `gap-6`; `gap-8` reads too loose      |
+
+**When to pick gap-4 vs gap-6:**
+
+- **`gap-4` (16px)** — drawer/dialog body sections, form fields, card content, tight related items
+- **`gap-6` (24px)** — page-level shell, section-to-section breathing room, distinct card-to-card spacing
+
+86th pass batch 5 (commit `f3bb3010`) swept 17 `gap-5` sites across 12 files. The sweep should remain at zero. Verification: `grep -rnE "\bgap-(5|7|8)\b" apps/app/src --include='*.tsx' | grep -v opportunities | grep -v "// "` should return 0.
+
+### §16.20 Date display canonical
+
+Two helpers in `apps/app/src/lib/utils.ts`:
+
+| Helper                                        | Returns                                        | Use for                                                                                            |
+| --------------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `formatDate(value)`                           | ISO `YYYY-MM-DD`                               | Sort attributes, `data-*` props, audit-log meta, CSV exports — **machine consumption**             |
+| `formatDatePretty(value, { alwaysShowYear })` | Prose: "May 6, 2026" (or "May 6" current year) | **Any human-facing date the user reads** — drawer body, banners, key-dates panel, inline sentences |
+
+**Carve-outs that retain `formatDate` (ISO) for user-facing display:**
+
+- `/deadlines` queue row date column — high-density tabular scan beats prose
+- `PathToFilingSummary` milestone strip stamps (`text-[9px]`) — dense column needs ISO compactness
+- Audit log timestamps — precision wins over prose (canonical "audit-log meta" exception)
+- Internal computation: `startIso`, `endIso`, `today`, `daysBetween` arguments
+
+86th pass batch 3 (commit `2198f9df`) swept 14 sites in `obligations.tsx` drawer body to `formatDatePretty`. Pattern: **drawer body / banner / inline sentences → prose; dense queue/strip/audit-log → ISO.**
+
+- **Don't:** Render `iso.slice(0, 10)` directly to the UI (returns "2026-05-09" instead of "May 9, 2026").
+- **Do:** Pass through `formatDate()` (machine) or `formatDatePretty()` (human) per canonical above.
+
+`formatDateTimeWithTimezone(iso, tz)` is the canonical for timestamps that need precision (e.g. "Last updated 2026-05-01 02:27:00 PDT"). Used in drawer footer audit lines and the audit-log table; not for body content.
 
 ---
 

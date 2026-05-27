@@ -33,7 +33,7 @@ type PermissionAction = {
   variant?: 'default' | 'outline' | undefined
 }
 
-export interface PermissionState {
+interface PermissionState {
   firm: FirmPublic | null
   isLoading: boolean
   can: (permission: FirmPermission) => boolean
@@ -117,7 +117,7 @@ export function PermissionGate({
   )
 }
 
-export function PermissionRequiredPanel({
+function PermissionRequiredPanel({
   permission,
   currentRole,
   title,
@@ -162,10 +162,10 @@ export function PermissionRequiredPanel({
           </div>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2 text-sm">
-          <Badge variant="outline" className="font-mono">
+          <Badge variant="outline">
             <Trans>Current role: {currentRoleLabel}</Trans>
           </Badge>
-          <Badge variant="secondary" className="font-mono">
+          <Badge variant="secondary">
             <Trans>Required: {requiredRoleText}</Trans>
           </Badge>
         </CardContent>

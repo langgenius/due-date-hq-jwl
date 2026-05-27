@@ -11,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { getAssigneeTint } from '@/lib/assignee-tint'
+import { cn } from '@duedatehq/ui/lib/utils'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 import {
   useLifecycleV2StatusLabels,
@@ -80,7 +82,13 @@ export function AuditLogTable({
           </TableHead>
         </TableRow>
       </TableHeader>
-      <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
+      {/* 2026-05-26 (86th pass, audit §16.2 P1): added
+          `bg-background-default/50` so the audit log table matches the
+          cross-workbench TableBody alpha-50 white. The
+          `[&_tr]:border-b-0` weld is preserved — audit log uses
+          paragraph-row formatting where between-row dividers compete
+          with the change-headline content. */}
+      <TableBody className="bg-background-default/50 [&_tr]:border-b-0 [&_td]:py-3">
         {events.map((event) => {
           const actor = event.actorLabel ?? event.actorId ?? t`System`
           const actionLabel = formatAuditActionLabel(event.action, actionLabels)
@@ -154,13 +162,37 @@ function AuditLogRow({
         </div>
       </TableCell>
       <TableCell>
-        <div className="grid gap-1">
-          <span className="text-xs font-medium text-text-primary">{actor}</span>
-          {event.actorId ? (
-            <span className="font-mono text-xs text-text-tertiary">
-              {shortenAuditId(event.actorId)}
-            </span>
-          ) : null}
+        {/* 2026-05-26 (87th pass, audit §16.7 P2): added the canonical
+            inline avatar chip (size-6, getAssigneeTint) before the
+            actor name. Lets a CPA scan the audit log by color — same
+            person → same tint → "Sarah made all of these changes"
+            jumps out at a glance. Falls back to a neutral chrome
+            when the event has no actor name (system events). */}
+        <div className="flex items-start gap-2">
+          <span
+            aria-hidden
+            className={cn(
+              'mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
+              actor ? getAssigneeTint(actor) : 'bg-background-subtle text-text-tertiary',
+            )}
+          >
+            {actor
+              ? actor
+                  .split(/\s+/)
+                  .slice(0, 2)
+                  .map((part) => part.charAt(0))
+                  .join('')
+                  .toUpperCase() || '?'
+              : '?'}
+          </span>
+          <div className="grid min-w-0 gap-1">
+            <span className="text-xs font-medium text-text-primary">{actor}</span>
+            {event.actorId ? (
+              <span className="font-mono text-xs text-text-tertiary">
+                {shortenAuditId(event.actorId)}
+              </span>
+            ) : null}
+          </div>
         </div>
       </TableCell>
       <TableCell>

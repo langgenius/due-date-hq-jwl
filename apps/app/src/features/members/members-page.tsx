@@ -2,7 +2,8 @@ import { useState, type SyntheticEvent } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, EllipsisIcon, PlusIcon, ShieldCheckIcon } from 'lucide-react'
+import { AlertTriangleIcon, EllipsisIcon, Loader2, PlusIcon, ShieldCheckIcon } from 'lucide-react'
+import { toast } from 'sonner'
 import type {
   MemberInvitationPublic,
   MemberManagedRole,
@@ -73,6 +74,7 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
 import { RelativeTime } from '@/components/primitives/relative-time'
 import { orpc } from '@/lib/rpc'
+import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
   formatInvitationDate,
   invitationDescription,
@@ -321,7 +323,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
       {seatsFull ? <SeatLimitBanner /> : null}
 
       <section className="flex flex-col gap-3">
-        <SectionHeader
+        <MembersSectionHeader
           title={t`Active members`}
           count={data.members.length}
           note={t`owner read-only · self read-only`}
@@ -358,7 +360,7 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
       </section>
 
       <section className="flex flex-col gap-3">
-        <SectionHeader
+        <MembersSectionHeader
           title={t`Pending invitations`}
           count={data.invitations.length}
           note={t`${pendingCount} pending · ${expiredCount} expired · magic link, 7-day expiry`}
@@ -625,16 +627,16 @@ function SeatStat({ data }: { data: MembersListOutput }) {
   const usedRatio = data.seatLimit > 0 ? Math.min(data.usedSeats / data.seatLimit, 1) : 0
   return (
     <div className="flex min-h-24 flex-col px-5 py-4">
-      <p className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+      <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
         <Trans>Seats used</Trans>
       </p>
       <div className="mt-1 flex items-baseline gap-1.5">
-        <span className="text-2xl leading-[30px] font-bold text-text-primary tabular-nums">
+        <span className="text-2xl leading-tight font-bold text-text-primary tabular-nums">
           {data.usedSeats}
         </span>
         <span className="text-sm font-medium text-text-muted">/ {data.seatLimit}</span>
       </div>
-      <p className="mt-auto text-xs leading-[18px] text-text-muted">
+      <p className="mt-auto text-xs leading-5 text-text-muted">
         <Trans>{data.availableSeats} available seats</Trans>
       </p>
       <div className="mt-2 h-0.5 rounded-full bg-divider-subtle">
@@ -650,11 +652,11 @@ function SeatStat({ data }: { data: MembersListOutput }) {
 function KpiStat({ label, value, detail }: { label: string; value: number; detail: string }) {
   return (
     <div className="flex min-h-24 flex-col px-5 py-4">
-      <p className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">{label}</p>
-      <span className="mt-1 text-2xl leading-[30px] font-bold text-text-primary tabular-nums">
+      <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">{label}</p>
+      <span className="mt-1 text-2xl leading-tight font-bold text-text-primary tabular-nums">
         {value}
       </span>
-      <p className="mt-auto text-xs leading-[18px] text-text-muted">{detail}</p>
+      <p className="mt-auto text-xs leading-5 text-text-muted">{detail}</p>
     </div>
   )
 }
@@ -683,7 +685,7 @@ function SeatLimitBanner() {
   )
 }
 
-function SectionHeader({
+function MembersSectionHeader({
   title,
   count,
   note,
@@ -695,8 +697,15 @@ function SectionHeader({
   action?: string
 }) {
   return (
+    // 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN §9
+    // "uppercase kicker deprecated" violation): `font-medium
+    // tracking-eyebrow uppercase` swapped for the canonical
+    // `text-sm font-medium text-text-secondary` sub-section label.
+    // Outer text-xs preserved for the right-side metadata that follows
+    // (count chip + descriptor); the heading itself reads as a real
+    // sub-section title in sentence case.
     <div className="flex min-h-7 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
-      <h2 className="font-medium tracking-[0.08em] uppercase">{title}</h2>
+      <h2 className="text-sm font-medium text-text-secondary">{title}</h2>
       <span className="inline-flex h-[18px] min-w-[19px] items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle px-1.5 font-medium tabular-nums">
         {count}
       </span>
@@ -1085,6 +1094,12 @@ function InviteMemberDialog({
       onSuccess: (next) => {
         queryClient.setQueryData(orpc.members.listCurrent.queryKey({ input: undefined }), next)
         void queryClient.invalidateQueries({ queryKey: membersKey })
+        // 2026-05-26 (step-6 ux-flow audit F6.1): the previous
+        // shape closed the dialog silently — the user had no
+        // confirmation the invite went out. Now toast.success
+        // names the invitee so the action lands.
+        const sentTo = email.trim()
+        toast.success(t`Invite sent to ${sentTo}`)
         setEmail('')
         setRole('manager')
         onOpenChange(false)
@@ -1156,9 +1171,20 @@ function InviteMemberDialog({
             </p>
           </div>
           {inviteMutation.isError ? (
-            <p role="alert" className="text-sm text-text-destructive">
-              {inviteMutation.error.message}
-            </p>
+            // 2026-05-26 (step-6 ux-flow audit F6.4): converted
+            // raw <p role=alert> to canonical Alert primitive +
+            // routed the message through rpcErrorMessage so the
+            // user gets a readable string instead of a raw RPC
+            // error code.
+            <Alert variant="destructive">
+              <AlertTitle>
+                <Trans>Couldn't send invite</Trans>
+              </AlertTitle>
+              <AlertDescription>
+                {rpcErrorMessage(inviteMutation.error) ??
+                  t`Check your network and try again. If this keeps happening, contact support.`}
+              </AlertDescription>
+            </Alert>
           ) : null}
           {seatsFull ? (
             <p id="members-seat-limit-note" role="alert" className="text-sm text-text-warning">
@@ -1166,10 +1192,21 @@ function InviteMemberDialog({
             </p>
           ) : null}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            {/* 2026-05-26 (step-6 ux-flow audit F6.2/F6.3): cancel
+                outline → ghost; send-invite announces aria-busy +
+                shows Loader2 spinner while pending. */}
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               <Trans>Cancel</Trans>
             </Button>
-            <Button type="submit" variant="accent" disabled={seatsFull || inviteMutation.isPending}>
+            <Button
+              type="submit"
+              variant="accent"
+              disabled={seatsFull || inviteMutation.isPending}
+              aria-busy={inviteMutation.isPending}
+            >
+              {inviteMutation.isPending ? (
+                <Loader2 data-icon="inline-start" className="animate-spin" />
+              ) : null}
               {inviteMutation.isPending ? <Trans>Sending…</Trans> : <Trans>Send invite</Trans>}
             </Button>
           </DialogFooter>

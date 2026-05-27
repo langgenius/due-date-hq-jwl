@@ -77,7 +77,7 @@ export interface NormalizeState {
   errorBanner: string | null
 }
 
-export interface DryRunState {
+interface DryRunState {
   summary: DryRunSummary | null
 }
 
@@ -167,7 +167,7 @@ export function hasDiscardableWizardWork(state: WizardState): boolean {
   return state.dryRun.summary !== null || state.errors.length > 0
 }
 
-export type WizardAction =
+type WizardAction =
   | { type: 'SET_BUSY'; busy: boolean }
   | { type: 'GO_TO_STEP'; step: StepIndex }
   | {

@@ -1,18 +1,18 @@
 import { createSerializer, parseAsStringLiteral, type inferParserType } from 'nuqs'
 import { SUPPORTED_LOCALES } from '@duedatehq/i18n'
 
-export const LOCALE_QUERY_KEY = 'lng'
+const LOCALE_QUERY_KEY = 'lng'
 
-export const localeQueryParser = parseAsStringLiteral(SUPPORTED_LOCALES)
+const localeQueryParser = parseAsStringLiteral(SUPPORTED_LOCALES)
 
-export const localeQueryParsers = {
+const localeQueryParsers = {
   [LOCALE_QUERY_KEY]: localeQueryParser,
 } as const
 
-export const serializeLocaleQuery = createSerializer(localeQueryParsers)
+const serializeLocaleQuery = createSerializer(localeQueryParsers)
 
-export type LocaleQuery = inferParserType<typeof localeQueryParsers>
-export type LocaleQueryValue = NonNullable<LocaleQuery[typeof LOCALE_QUERY_KEY]>
+type LocaleQuery = inferParserType<typeof localeQueryParsers>
+type LocaleQueryValue = NonNullable<LocaleQuery[typeof LOCALE_QUERY_KEY]>
 
 export function localeFromSearchParams(
   searchParams: Pick<URLSearchParams, 'get'>,

@@ -219,7 +219,7 @@ export function SourcesTab() {
                 />
               </TableHead>
               <TableHead className="w-[112px] px-2">WATCH</TableHead>
-              <TableHead className="w-[92px] px-2 font-mono text-caption-xs uppercase tracking-[0.06em] text-text-tertiary">
+              <TableHead className="w-[92px] px-2 font-mono text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
                 LAST CHECKED
               </TableHead>
               <TableHead className="w-[42px] px-0" />
@@ -288,7 +288,7 @@ function SourceSignalsPanel({ sources }: { sources: readonly RuleSource[] }) {
   return (
     <SectionFrame>
       <div className="flex items-baseline justify-between gap-3 px-4 pt-3 pb-1">
-        <h3 className="text-md font-semibold text-text-primary">
+        <h3 className="text-base font-semibold text-text-primary">
           <Trans>Source signal trail</Trans>
         </h3>
         <span className="text-sm text-text-tertiary tabular-nums">
@@ -350,7 +350,7 @@ function SignalRow({ signal, sourceLabel }: { signal: PulseSourceSignal; sourceL
       <TableCell className="px-2 py-2 align-top">
         <span
           className={cn(
-            'inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs uppercase tracking-[0.06em]',
+            'inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs uppercase tracking-eyebrow-tight',
             signal.status === 'open' && 'bg-state-warning-hover text-text-warning',
             signal.status === 'linked' && 'bg-state-accent-hover text-text-accent',
             signal.status === 'reviewed' &&

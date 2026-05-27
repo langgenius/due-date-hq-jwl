@@ -261,7 +261,7 @@ function NextDueLine({ nextDue }: { nextDue: ObligationInstancePublic | null }) 
   const daysLabel = isLate ? t`${daysAbs}d late` : days === 0 ? t`due today` : t`due in ${days}d`
   return (
     <div className="flex flex-col gap-1 rounded-md border border-divider-subtle bg-background-subtle px-3 py-2">
-      <span className="text-caption-xs font-medium uppercase tracking-[0.08em] text-text-muted">
+      <span className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-muted">
         <Trans>Next due</Trans>
       </span>
       <span className="flex flex-wrap items-baseline gap-x-2 text-sm">

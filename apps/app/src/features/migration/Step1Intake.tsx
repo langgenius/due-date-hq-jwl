@@ -368,7 +368,16 @@ export function Step1Intake({
         } else if (err instanceof Error && err.message) {
           onParseError(err.message)
         } else {
-          onParseError(t`We couldn't read that file. Try exporting as CSV.`)
+          // 2026-05-26 (Step 7 onboarding audit F11-02): the
+          // generic fallback recommended "export as CSV" — but
+          // the user may have uploaded a CSV that we couldn't
+          // parse, in which case the recommendation makes no
+          // sense. Rewrote to recommend a structural check
+          // (header row + at least one row) that applies to
+          // CSV, TSV, XLSX, and JSON equally.
+          onParseError(
+            t`We couldn't read that file. Make sure it has a header row followed by at least one row of data.`,
+          )
         }
       })
       .finally(() => {
@@ -411,11 +420,11 @@ export function Step1Intake({
 
   return (
     <div
-      className={cn('flex flex-col', compact ? 'gap-3 py-3' : 'gap-5 pt-5 pb-5')}
+      className={cn('flex flex-col', compact ? 'gap-3 py-3' : 'gap-4 pt-5 pb-5')}
       id="wizard-step1-body"
     >
       <div className={cn('flex flex-col', compact ? 'gap-0.5' : 'gap-1')}>
-        <h2 className={cn('font-semibold text-text-primary', compact ? 'text-md' : 'text-lg')}>
+        <h2 className={cn('font-semibold text-text-primary', compact ? 'text-base' : 'text-lg')}>
           <Trans>Where is your data coming from?</Trans>
         </h2>
         {/* 2026-05-25 (Yuqi #38 + Wizard #40 copy audit): tightened
@@ -436,7 +445,7 @@ export function Step1Intake({
             shorter). "Any shape works" replaces "we'll figure out
             the shape" — both promise the same thing; the
             imperative is tighter. */}
-        <p className={cn('text-text-secondary', compact ? 'text-sm' : 'text-md')}>
+        <p className={cn('text-text-secondary', compact ? 'text-sm' : 'text-base')}>
           <Trans>
             Paste or upload — any shape works. Columns like{' '}
             <em className="font-medium not-italic text-text-primary">Estimated tax due</em>,{' '}
@@ -496,8 +505,8 @@ export function Step1Intake({
               }
             }}
             className={cn(
-              'flex h-[104px] cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed px-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-              compact ? 'text-sm' : 'text-md',
+              'flex h-[104px] cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed px-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
+              compact ? 'text-sm' : 'text-base',
               isFileDragActive || isReadingFile
                 ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
                 : 'border-divider-regular bg-components-panel-bg text-text-secondary hover:border-state-accent-solid hover:bg-state-accent-hover-alt',
@@ -528,11 +537,15 @@ export function Step1Intake({
               </span>
             </span>
             {isReadingFile ? (
-              <span role="status" aria-live="polite" className="font-mono text-md text-text-accent">
+              <span
+                role="status"
+                aria-live="polite"
+                className="font-mono text-base text-text-accent"
+              >
                 <Trans>Reading file…</Trans>
               </span>
             ) : intake.fileName ? (
-              <span className="font-mono text-md text-text-secondary tabular-nums">
+              <span className="font-mono text-base text-text-secondary tabular-nums">
                 {intake.fileName}
               </span>
             ) : null}
@@ -605,6 +618,13 @@ export function Step1Intake({
       </p>
 
       {intake.ssnBlockedColumnIndexes.length > 0 ? (
+        /* 2026-05-26 (Step 7 onboarding audit F6-08): trailing
+           "→ AI default IGNORE" was developer-shorthand leaking
+           into user-facing copy — read as a debug log entry on
+           a sensitive trust message. Dropped it; the
+           "Those columns won't be sent to the AI" sentence
+           already carries the meaning, and the field list now
+           ends as prose instead of a console arrow. */
         <Alert variant="destructive" role="alert" aria-live="assertive">
           <AlertTitle>
             <Trans>SSN-like columns blocked</Trans>
@@ -614,7 +634,7 @@ export function Step1Intake({
               We blocked SSN-like patterns to protect your clients. Those columns won&apos;t be sent
               to the AI. If a flagged column is actually an EIN, choose EIN yourself in Mapping;
               true SSN/ITIN values should stay ignored. Columns flagged:{' '}
-              {ssnBlockedHeaders.join(', ')} → AI default IGNORE.
+              {ssnBlockedHeaders.join(', ')}.
             </Trans>
           </AlertDescription>
         </Alert>
@@ -652,7 +672,7 @@ export function Step1Intake({
             </span>
             <button
               type="button"
-              className="h-8 shrink-0 rounded-sm border border-divider-regular bg-background-body px-2.5 text-sm font-medium text-text-primary transition hover:bg-background-subtle"
+              className="h-8 shrink-0 rounded-sm border border-divider-regular bg-background-body px-2.5 text-sm font-medium text-text-primary outline-none transition hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               onClick={switchToDetectedPreset}
             >
               <Trans>Switch preset</Trans>
@@ -699,7 +719,7 @@ export function Step1Intake({
       ) : null}
 
       {intake.rowCount > 0 && intake.parseError === null ? (
-        <p className="text-md text-text-success">
+        <p className="text-base text-text-success">
           <Plural
             value={intake.rowCount}
             one="# row ready to import"
@@ -1260,6 +1280,14 @@ function friendlyParseErrorDescriptor(error: TabularParseError): MessageDescript
     case 'xlsx_not_supported':
       return msg`XLSX couldn't be parsed. Export as CSV and re-upload.`
     default:
-      return msg`We couldn't read that file. Try exporting as CSV.`
+      // 2026-05-26 (Step 7 onboarding audit F11-02): the
+      // default fallback recommended "Try exporting as CSV"
+      // even when the user had already uploaded a CSV — the
+      // recommendation didn't match the situation. Rewrote to
+      // a structural check that applies regardless of source
+      // format. The xlsx_not_supported branch above keeps its
+      // CSV-specific recommendation because that *is* the
+      // right answer for XLSX failures.
+      return msg`We couldn't read that file. Make sure it has a header row followed by at least one row of data.`
   }
 }

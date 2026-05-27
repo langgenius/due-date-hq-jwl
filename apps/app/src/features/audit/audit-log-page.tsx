@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
-import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FilterIcon } from 'lucide-react'
+import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FilterIcon, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { AuditEventPublic, AuditListInput, FirmPublic } from '@duedatehq/contracts'
@@ -44,6 +44,7 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/permission-gate'
 
 import { PageHeader } from '@/components/patterns/page-header'
+import { SearchInput } from '@/components/primitives/search-input'
 
 import { AuditEventDrawer } from './audit-event-drawer'
 import { useAuditActionLabels, useAuditEntityTypeLabels } from './audit-log-labels'
@@ -74,7 +75,7 @@ interface AuditFilterOption {
   count: number
 }
 
-export const auditLogSearchParamsParsers = {
+const auditLogSearchParamsParsers = {
   q: parseAsString.withDefault('').withOptions(REPLACE_HISTORY_OPTIONS),
   category: parseAsStringLiteral(AUDIT_CATEGORY_OPTIONS)
     .withDefault('all')
@@ -409,22 +410,35 @@ function AuditExportButton({ firm }: { firm: FirmPublic | null | undefined }) {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            {/* 2026-05-26 (step-6 ux-flow audit F4.1/F4.2/F4.3):
+                Cancel outline → ghost; download / request buttons
+                announce aria-busy + show Loader2 spinner while
+                pending. */}
+            <Button variant="ghost" onClick={() => setOpen(false)}>
               <Trans>Close</Trans>
             </Button>
             {latest?.status === 'ready' ? (
               <Button
                 onClick={() => createDownloadUrl.mutate({ id: latest.id })}
                 disabled={createDownloadUrl.isPending}
+                aria-busy={createDownloadUrl.isPending}
               >
-                <DownloadIcon data-icon="inline-start" />
+                {createDownloadUrl.isPending ? (
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                ) : (
+                  <DownloadIcon data-icon="inline-start" />
+                )}
                 <Trans>Download latest</Trans>
               </Button>
             ) : (
               <Button
                 onClick={() => requestPackage.mutate({ scope: 'firm' })}
                 disabled={requestPackage.isPending}
+                aria-busy={requestPackage.isPending}
               >
+                {requestPackage.isPending ? (
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                ) : null}
                 <Trans>Request export</Trans>
               </Button>
             )}
@@ -500,13 +514,45 @@ export function AuditLogPage() {
       })),
     [entityTypeLabels, events],
   )
-  const loadedPageCount = Math.max(1, Math.ceil(events.length / TABLE_PAGE_SIZE))
+  // 2026-05-26 (Yuqi step-8 data-finding audit — F-X06): the `q`
+  // URL parser has been declared since this page was built but never
+  // rendered as an input or written by any control — only read in
+  // `filtersActive` + `resetFilters`. Audit log is text-heavy (event
+  // description, entity name, actor email, IP) and the most common
+  // investigator question is "did anyone touch client X?" — exactly
+  // the question free-text search answers. Until the backend supports
+  // a `q` field on `audit.list`, we filter client-side over the
+  // already-loaded events (description + actor label + entity id),
+  // so the input works on the visible window without a backend
+  // contract change. The URL param is still single-source-of-truth
+  // for share-link fidelity.
+  const trimmedSearch = query.q.trim().toLowerCase()
+  const filteredEvents = useMemo(() => {
+    if (trimmedSearch.length === 0) return events
+    return events.filter((event) => {
+      const haystack = [
+        event.actorLabel ?? '',
+        event.actorId ?? '',
+        event.entityId,
+        event.action,
+        event.entityType,
+        event.reason ?? '',
+      ]
+        .join(' ')
+        .toLowerCase()
+      return haystack.includes(trimmedSearch)
+    })
+  }, [events, trimmedSearch])
+  const loadedPageCount = Math.max(1, Math.ceil(filteredEvents.length / TABLE_PAGE_SIZE))
   const currentPageIndex = Math.min(pageIndex, loadedPageCount - 1)
   const currentPageStart = currentPageIndex * TABLE_PAGE_SIZE
-  const currentPageEvents = events.slice(currentPageStart, currentPageStart + TABLE_PAGE_SIZE)
+  const currentPageEvents = filteredEvents.slice(
+    currentPageStart,
+    currentPageStart + TABLE_PAGE_SIZE,
+  )
   const firstItemNumber = currentPageEvents.length > 0 ? currentPageStart + 1 : 0
   const lastItemNumber = currentPageStart + currentPageEvents.length
-  const hasLoadedNextPage = (currentPageIndex + 1) * TABLE_PAGE_SIZE < events.length
+  const hasLoadedNextPage = (currentPageIndex + 1) * TABLE_PAGE_SIZE < filteredEvents.length
   const hasPreviousPage = currentPageIndex > 0
   const hasNextPage = hasLoadedNextPage || auditQuery.hasNextPage
   const selectedEvent = events.find((event) => event.id === query.event) ?? null
@@ -546,7 +592,15 @@ export function AuditLogPage() {
 
   function goToNextPage() {
     const nextPageIndex = currentPageIndex + 1
-    if (nextPageIndex * TABLE_PAGE_SIZE < events.length) {
+    // 2026-05-26 (Yuqi step-8 data-finding audit — F-X06): paginate
+    // over the *filtered* event window now that client-side `q`
+    // narrowing is active. Previously this advanced through every
+    // loaded event regardless of search — the next-page button would
+    // skip past filtered-out rows and land on a page that ignored
+    // the search input. When the user has narrowed and we still
+    // have raw events to load (auditQuery.hasNextPage), fetch them
+    // so the client-side filter can scan the new batch.
+    if (nextPageIndex * TABLE_PAGE_SIZE < filteredEvents.length) {
       setPageIndex(nextPageIndex)
       return
     }
@@ -617,95 +671,129 @@ export function AuditLogPage() {
             <Trans>Audit filters</Trans>
           </CardTitle>
           <CardDescription>
-            <Trans>Filter by time range, action category, action, actor, or entity type.</Trans>
+            <Trans>
+              Search by actor, entity, action, or reason — or narrow by time range, action category,
+              actor, or entity type.
+            </Trans>
           </CardDescription>
           <CardAction>
             <Badge variant="outline" className="tabular-nums">
-              {events.length}
+              {filteredEvents.length}
             </Badge>
           </CardAction>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(0,1fr))_auto] xl:items-center">
-          <Select
-            value={query.category}
-            onValueChange={(value) => {
-              if (typeof value !== 'string' || !isAuditCategoryOption(value)) return
+        <CardContent className="grid gap-3">
+          {/* 2026-05-26 (Yuqi step-8 data-finding audit — F-X06): the
+              `q` URL parser was declared but the input that drives it
+              was missing. Audit log is text-heavy and "did anyone
+              touch client X?" is the most common investigator query —
+              free-text search is the right lead control. Sits above
+              the structural-filter grid so it reads as the primary
+              affordance, mirroring /deadlines + /rules/library. */}
+          <SearchInput
+            value={query.q}
+            onChange={(next) => {
               setPageIndex(0)
-              void setQuery({ category: value === 'all' ? null : value, event: null })
+              void setQuery({ q: next.length > 0 ? next : null, event: null })
             }}
-          >
-            <SelectTrigger className="w-full" aria-label={t`Action category`}>
-              <SelectValue>{categoryLabels[query.category]}</SelectValue>
-            </SelectTrigger>
-            <SelectContent align="start">
-              {AUDIT_CATEGORY_OPTIONS.map((option) => (
-                <SelectItem key={option} value={option} indicatorPosition="start">
-                  {categoryLabels[option]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={query.range}
-            onValueChange={(value) => {
-              if (typeof value !== 'string' || !isAuditRange(value)) return
-              setPageIndex(0)
-              void setQuery({ range: value === '24h' ? null : value, event: null })
-            }}
-          >
-            <SelectTrigger className="w-full" aria-label={t`Time range`}>
-              <SelectValue>{rangeLabels[query.range]}</SelectValue>
-            </SelectTrigger>
-            <SelectContent align="start">
-              {AUDIT_RANGE_OPTIONS.map((option) => (
-                <SelectItem key={option} value={option} indicatorPosition="start">
-                  {rangeLabels[option]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <AuditFilterSelect
-            label={t`Action`}
-            value={actionFilter}
-            allLabel={t`All actions`}
-            fallbackLabel={actionFilter ? formatAuditActionLabel(actionFilter, actionLabels) : ''}
-            options={actionOptions}
-            onValueChange={(value) => {
-              setPageIndex(0)
-              void setQuery({ action: value || null, event: null })
+            placeholder={t`Search actor, entity, action, reason`}
+            ariaLabel={t`Search audit events`}
+            hotkey="/"
+            hotkeyMeta={{
+              id: 'audit.focus-search',
+              name: 'Filter audit events',
+              description: 'Focus the Audit log filter input.',
+              category: 'practice',
+              scope: 'route',
             }}
           />
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[repeat(5,minmax(0,1fr))_auto] xl:items-center">
+            <Select
+              value={query.category}
+              onValueChange={(value) => {
+                if (typeof value !== 'string' || !isAuditCategoryOption(value)) return
+                setPageIndex(0)
+                void setQuery({ category: value === 'all' ? null : value, event: null })
+              }}
+            >
+              <SelectTrigger className="w-full" aria-label={t`Action category`}>
+                <SelectValue>{categoryLabels[query.category]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent align="start">
+                {AUDIT_CATEGORY_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option} indicatorPosition="start">
+                    {categoryLabels[option]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <AuditFilterSelect
-            label={t`Actor`}
-            value={actorFilter}
-            allLabel={t`All actors`}
-            fallbackLabel={actorFilter ? shortenAuditId(actorFilter) : ''}
-            options={actorOptions}
-            onValueChange={(value) => {
-              setPageIndex(0)
-              void setQuery({ actor: value || null, event: null })
-            }}
-          />
+            <Select
+              value={query.range}
+              onValueChange={(value) => {
+                if (typeof value !== 'string' || !isAuditRange(value)) return
+                setPageIndex(0)
+                void setQuery({ range: value === '24h' ? null : value, event: null })
+              }}
+            >
+              <SelectTrigger className="w-full" aria-label={t`Time range`}>
+                <SelectValue>{rangeLabels[query.range]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent align="start">
+                {AUDIT_RANGE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option} indicatorPosition="start">
+                    {rangeLabels[option]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <AuditFilterSelect
-            label={t`Entity type`}
-            value={entityTypeFilter}
-            allLabel={t`All entity types`}
-            fallbackLabel={entityTypeFilter}
-            options={entityTypeOptions}
-            onValueChange={(value) => {
-              setPageIndex(0)
-              void setQuery({ entityType: value || null, event: null })
-            }}
-          />
+            <AuditFilterSelect
+              label={t`Action`}
+              value={actionFilter}
+              allLabel={t`All actions`}
+              fallbackLabel={actionFilter ? formatAuditActionLabel(actionFilter, actionLabels) : ''}
+              options={actionOptions}
+              onValueChange={(value) => {
+                setPageIndex(0)
+                void setQuery({ action: value || null, event: null })
+              }}
+            />
 
-          <Button variant="outline" size="sm" onClick={resetFilters} disabled={!filtersActive}>
-            <FilterIcon data-icon="inline-start" />
-            <Trans>Reset</Trans>
-          </Button>
+            <AuditFilterSelect
+              label={t`Actor`}
+              value={actorFilter}
+              allLabel={t`All actors`}
+              fallbackLabel={actorFilter ? shortenAuditId(actorFilter) : ''}
+              options={actorOptions}
+              onValueChange={(value) => {
+                setPageIndex(0)
+                void setQuery({ actor: value || null, event: null })
+              }}
+            />
+
+            <AuditFilterSelect
+              label={t`Entity type`}
+              value={entityTypeFilter}
+              allLabel={t`All entity types`}
+              fallbackLabel={entityTypeFilter}
+              options={entityTypeOptions}
+              onValueChange={(value) => {
+                setPageIndex(0)
+                void setQuery({ entityType: value || null, event: null })
+              }}
+            />
+
+            <Button variant="outline" size="sm" onClick={resetFilters} disabled={!filtersActive}>
+              <FilterIcon data-icon="inline-start" />
+              {/* 2026-05-26 (Yuqi step-8 data-finding audit — F-X01):
+                label changed "Reset" → "Clear filters" so the verb is
+                identical to /deadlines, /alerts, /clients, and
+                /rules/library. Cross-surface muscle memory: one label
+                means one thing across the workbench. */}
+              <Trans>Clear filters</Trans>
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -737,7 +825,7 @@ export function AuditLogPage() {
             </Alert>
           ) : null}
 
-          {!auditQuery.isLoading && !auditQuery.isError && events.length === 0 ? (
+          {!auditQuery.isLoading && !auditQuery.isError && filteredEvents.length === 0 ? (
             <div className="grid gap-2 rounded-lg border border-divider-subtle p-6 text-center">
               <h2 className="text-lg font-semibold text-text-primary">
                 {filtersActive ? (
@@ -748,7 +836,7 @@ export function AuditLogPage() {
               </h2>
               <p className="text-sm text-text-secondary">
                 {filtersActive ? (
-                  <Trans>Reset filters to return to the latest practice-wide events.</Trans>
+                  <Trans>Clear filters to return to the latest practice-wide events.</Trans>
                 ) : (
                   <Trans>
                     Deadline status updates and client imports will appear here when they write
@@ -759,7 +847,7 @@ export function AuditLogPage() {
             </div>
           ) : null}
 
-          {events.length > 0 ? (
+          {filteredEvents.length > 0 ? (
             <>
               <AuditLogTable
                 events={currentPageEvents}
@@ -770,7 +858,7 @@ export function AuditLogPage() {
                 pageIndex={currentPageIndex}
                 firstItemNumber={firstItemNumber}
                 lastItemNumber={lastItemNumber}
-                loadedCount={events.length}
+                loadedCount={filteredEvents.length}
                 hasPreviousPage={hasPreviousPage}
                 hasNextPage={hasNextPage}
                 isFetchingNextPage={auditQuery.isFetchingNextPage}

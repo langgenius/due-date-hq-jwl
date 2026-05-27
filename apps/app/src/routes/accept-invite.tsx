@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLoaderData, useNavigate, useRevalidator, useSearchParams } from 'react-router'
+import { Link, useLoaderData, useNavigate, useRevalidator, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, Loader2Icon, MailIcon } from 'lucide-react'
@@ -121,8 +121,11 @@ export function AcceptInviteRoute() {
   }
 
   if (!id) {
+    // 2026-05-26 (Step 6 UX #9 + Step 7 onboarding F2-01): the
+    // missing-invite alert was a dead end. Surface both Sign-in
+    // and Go-to-Today escapes so the page never dead-ends.
     return (
-      <div className="flex w-full max-w-[420px] flex-col">
+      <div className="flex w-full max-w-[420px] flex-col gap-3">
         <Alert variant="destructive">
           <AlertCircleIcon />
           <AlertTitle>
@@ -132,6 +135,14 @@ export function AcceptInviteRoute() {
             <Trans>Ask the practice owner to send a new invitation.</Trans>
           </AlertDescription>
         </Alert>
+        <div className="flex flex-wrap gap-2">
+          <Button render={<Link to="/login" />}>
+            <Trans>Sign in</Trans>
+          </Button>
+          <Button variant="outline" render={<Link to="/" />}>
+            <Trans>Go to Today</Trans>
+          </Button>
+        </div>
       </div>
     )
   }
@@ -148,7 +159,16 @@ export function AcceptInviteRoute() {
             {!signedIn ? (
               <Trans>Sign in to accept this invitation.</Trans>
             ) : inviteQuery.isLoading ? (
-              <Skeleton className="h-5 w-56" />
+              // 2026-05-26 (Step 7 onboarding audit F2-05): the
+              // invite-preview skeleton had no role/label, so a
+              // blind user saw no progress event while the
+              // preview loaded. Wrapped with role="status" +
+              // sr-only label so AT announces "Loading
+              // invitation" while the skeleton is on-screen.
+              <span role="status" aria-live="polite">
+                <span className="sr-only">{t`Loading invitation`}</span>
+                <Skeleton className="h-5 w-56" />
+              </span>
             ) : inviteQuery.data ? (
               <Trans>
                 {inviteQuery.data.inviterEmail} invited you to {inviteQuery.data.organizationName}.

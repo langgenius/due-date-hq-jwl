@@ -1355,6 +1355,7 @@ export function CreateObligationDialog({
                   matchedRuleSelections.length === 0 ||
                   hasBlockingRuleSelection
                 }
+                aria-busy={createMutation.isPending || undefined}
               >
                 {createMutation.isPending
                   ? t`Adding…`

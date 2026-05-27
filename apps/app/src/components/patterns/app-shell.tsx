@@ -42,7 +42,7 @@ type RouteSummary = {
   title: string
 }
 
-export type AppShellProps = {
+type AppShellProps = {
   user: AuthUser
   firm: FirmPublic
   firms: FirmPublic[]
@@ -216,7 +216,7 @@ export function AppShell(props: AppShellProps) {
               never established a real scroll container — sticky
               elements like the rule library's TableHeader fell
               back to the document scroll context and never pinned. */}
-            <div className="mx-auto flex h-full w-full max-w-[1440px] flex-col">
+            <div className="mx-auto flex h-full w-full max-w-page-expanded flex-col">
               <Outlet />
             </div>
           </main>

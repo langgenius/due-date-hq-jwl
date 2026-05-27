@@ -23,6 +23,26 @@ export function formatCents(cents: number): string {
   }).format(cents / 100)
 }
 
+/**
+ * Whole-dollar price formatting for billing-plan display ($19, $89,
+ * $1,329). Used in `routes/billing.tsx` + `routes/billing.checkout.tsx`
+ * where the price source is already integers in dollars (not cents,
+ * unlike `formatCents`). Locale-respecting (the previous hand-rolled
+ * `$${n.toLocaleString('en-US')}` hard-coded en-US).
+ *
+ * 0 fraction digits — billing plan prices are always whole dollars.
+ * If a future plan adds a `.99` SKU, switch to `formatCents` and
+ * multiply the source.
+ */
+export function formatDollarPrice(dollars: number): string {
+  return new Intl.NumberFormat(intlLocale(), {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(dollars)
+}
+
 function localTimeZone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone
 }
@@ -150,4 +170,14 @@ export function formatRelativeTime(value: string, now: Date = new Date()): strin
   if (abs < MS_PER_MONTH) return ago(Math.round(abs / MS_PER_WEEK), 'w')
   if (abs < MS_PER_YEAR) return ago(Math.round(abs / MS_PER_MONTH), 'mo')
   return ago(Math.round(abs / MS_PER_YEAR), 'y')
+}
+
+/**
+ * Whole-day count from start → end, floored at zero. Both inputs are
+ * ISO-8601 date or datetime strings. Used for cycle-time / aging
+ * calculations where partial days round to whole days.
+ */
+export function daysBetween(startIso: string, endIso: string): number {
+  const ms = new Date(endIso).getTime() - new Date(startIso).getTime()
+  return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)))
 }

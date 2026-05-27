@@ -48,7 +48,7 @@ export function isValidIsoDate(value: string): boolean {
   )
 }
 
-export function isIsoDateAfterMax(value: string, maxIsoDate?: string): boolean {
+function isIsoDateAfterMax(value: string, maxIsoDate?: string): boolean {
   return Boolean(
     maxIsoDate && isValidIsoDate(value) && isValidIsoDate(maxIsoDate) && value > maxIsoDate,
   )
@@ -179,7 +179,7 @@ export function IsoDatePicker({
           >
             <span
               className={cn(
-                'min-w-0 truncate font-mono tabular-nums',
+                'min-w-0 truncate tabular-nums',
                 value
                   ? 'text-components-input-text-filled'
                   : 'text-components-input-text-placeholder',

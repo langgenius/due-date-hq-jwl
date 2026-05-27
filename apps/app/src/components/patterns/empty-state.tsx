@@ -45,7 +45,7 @@ export function EmptyState({
       {Icon ? <Icon className="size-5 text-text-tertiary" aria-hidden /> : null}
       <p className="text-sm font-semibold text-text-primary">{title}</p>
       {description ? (
-        <p className="max-w-[42ch] text-[13px] leading-5 text-text-secondary">{description}</p>
+        <p className="max-w-[42ch] text-description leading-5 text-text-secondary">{description}</p>
       ) : null}
       {cta ? <div className="mt-1">{cta}</div> : null}
     </div>

@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ComponentProps,
   type MouseEvent,
   type ReactNode,
 } from 'react'
@@ -38,6 +39,7 @@ import {
   FileCheck,
   Hourglass,
   Loader,
+  Loader2,
   MessageSquareText,
   ArrowUpRightIcon,
   CalendarDaysIcon,
@@ -50,11 +52,9 @@ import {
   Columns3Icon,
   CopyIcon,
   DownloadIcon,
-  EllipsisVerticalIcon,
   ExternalLinkIcon,
   EyeIcon,
   FileArchiveIcon,
-  FileSearchIcon,
   CalendarClockIcon,
   CheckIcon,
   FileTextIcon,
@@ -64,7 +64,6 @@ import {
   SendIcon,
   PlusIcon,
   SearchIcon,
-  Trash2Icon,
   UserRoundIcon,
   XIcon,
 } from 'lucide-react'
@@ -96,13 +95,12 @@ import {
   type ObligationQueueExportFormat,
   type ObligationQueueExportSelectedInput,
   type ObligationReviewStage,
-  type AiInsightPublic,
   type AuditEventPublic,
   type ClientReadinessRequestPublic,
-  type ClientReadinessResponsePublic,
   type ReadinessDocumentChecklistItemPublic,
   type ReadinessPreviewRequestEmailOutput,
 } from '@duedatehq/contracts'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
@@ -165,7 +163,7 @@ import {
   TableHeaderMultiFilter,
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
-import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
+import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
@@ -184,14 +182,12 @@ import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { paidPlanActive } from '@/features/billing/model'
-import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import {
   ALL_STATUSES,
   LIFECYCLE_V2_STATUSES,
   ObligationQueueStatusControl,
   STATUS_ICON,
   STATUS_ICON_COLOR,
-  STATUS_VARIANT,
   useLifecycleV2StatusLabels,
   useStatusLabels,
   type ObligationStatus,
@@ -210,15 +206,26 @@ import { isTabVisibleForType, tabsForObligationType } from '@/features/obligatio
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { isRejectionVisible, RejectionChip } from '@/features/obligations/rejection-chip'
 import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+import { BlockerContextCard } from '@/features/obligations/BlockerContextCard'
+import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
+import { CompletedKeyDates } from '@/features/obligations/CompletedKeyDates'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
+import { StageActions, type StageTask } from '@/features/obligations/StageActions'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
-import { getAssigneeTint } from '@/lib/assignee-tint'
 import { initialsFromName } from '@/lib/auth'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { cn, formatCents, formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
+import {
+  cn,
+  daysBetween,
+  formatCents,
+  formatDate,
+  formatDatePretty,
+  formatDateTimeWithTimezone,
+} from '@/lib/utils'
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -395,6 +402,47 @@ function useResponsivePageSize(): [number, (element: HTMLElement | null) => void
     return () => observer.disconnect()
   }, [element])
   return [pageSize, setElement]
+}
+
+/**
+ * Local trigger-shell for the three full-width `<DropdownMenu>` selects
+ * used elsewhere in this file (client picker on export dialog, calendar/
+ * fiscal-year picker on year config, recipient picker on email-recipient
+ * dropdown). Three byte-identical class strings previously lived inline;
+ * extracted here as a local helper because the shape isn't shared outside
+ * this route (the Layer C4 audit found no broader cluster — every other
+ * `bg-background-default` trigger across the app is a Popover wrapper
+ * that uses different button content). Local, not a primitive.
+ *
+ * Use:
+ *   <DropdownMenuTrigger render={<DropdownTriggerButton size="default">…</DropdownTriggerButton>} />
+ */
+function DropdownTriggerButton({
+  size = 'default',
+  disabled,
+  className,
+  children,
+  ...props
+}: {
+  size?: 'default' | 'lg'
+  disabled?: boolean | undefined
+  className?: string
+  children: ReactNode
+} & Omit<ComponentProps<'button'>, 'children' | 'className' | 'disabled'>) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      className={cn(
+        'inline-flex w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:bg-state-base-hover',
+        size === 'lg' ? 'h-10 text-left' : 'h-9',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  )
 }
 
 function openExternalUrl(value: string): void {
@@ -641,7 +689,7 @@ interface ClientFilterOption extends FilterOption {
   county: string | null
 }
 
-export const obligationQueueSearchParamsParsers = {
+const obligationQueueSearchParamsParsers = {
   q: parseAsString.withDefault('').withOptions(REPLACE_HISTORY_OPTIONS),
   status: parseAsArrayOf(parseAsStringLiteral(ALL_STATUSES))
     .withDefault([])
@@ -691,7 +739,7 @@ export const obligationQueueSearchParamsParsers = {
   row: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
 } as const
 
-export type ObligationQueueSearchParams = inferParserType<typeof obligationQueueSearchParamsParsers>
+type ObligationQueueSearchParams = inferParserType<typeof obligationQueueSearchParamsParsers>
 
 export function isThisWeekFilterActive(daysMin: number | null, daysMax: number | null): boolean {
   return daysMin === null && daysMax === THIS_WEEK_MAX_DAYS
@@ -1280,8 +1328,12 @@ export function ObligationQueueRoute() {
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
         setRowSelection({})
-        toast.success(t`Bulk status updated`, {
-          description: t`${result.updatedCount} rows changed`,
+        // 2026-05-26 (Step 6 UX audit #49): "rows" is engineering-speak.
+        // CPAs say "deadlines" or "filings". Title also dropped the
+        // word "Bulk" — the description carries the count which is
+        // already the bulk signal.
+        toast.success(t`Status updated`, {
+          description: t`${result.updatedCount} deadlines changed`,
         })
       },
       onError: (err) => {
@@ -1386,45 +1438,23 @@ export function ObligationQueueRoute() {
     }
     return set
   }, [rows, continuationRowIds])
-  // 2026-05-25 (Yuqi Deadlines #6): group headers. When 2+ adjacent
-  // rows share a clientId, the FIRST row's id is keyed in this map
-  // with the cluster's metadata (count + earliest internal due). The
-  // table body uses this to render a one-line "X · N deadlines ·
-  // earliest YYYY-MM-DD" section header above the first row in the
-  // cluster. Single-row clients are NOT keyed — they don't need a
-  // header; the row's own Client cell speaks for itself.
+  // Group-by section-header map. Each mode has different header semantics
+  // (per the Group-by wireframes):
   //
-  // Computed from `rows` (not `pagedRows`) so the cluster count
-  // reflects the full result set, not just the visible page. Same
-  // pattern as continuationRowIds / withinGroupRowIds above.
-  // 2026-05-26 (Yuqi sixty-second pass — full group-by section
-  // headers): keep the original adjacent-same-client cluster
-  // detection for the DEFAULT group=due mode (only fires when 2+
-  // adjacent rows share a client), AND add a parallel path that
-  // ALWAYS emits a section header at every group boundary when
-  // group !== 'due'. group=client: header per client (even
-  // single-row). group=status: header per status bucket.
-  // Reuses the same collapsedClientGroups Set keyed by groupKey
-  // string ('clientId' for client mode, 'status' for status mode).
-  // 2026-05-26 (Yuqi Group-by wireframes — Sort by Status / Client /
-  // Due date): per the wireframes, the three modes have distinct
-  // header semantics:
+  //   • Status mode → header at EVERY status boundary, simple
+  //     "<Label> <count>" treatment ("Blocked 2", "Waiting on client 1").
+  //   • Client mode → header at EVERY client boundary, richer
+  //     "<Name> <N deadlines · next [date]> [N late]" treatment that
+  //     surfaces the next-due date + a small late-count pill so the
+  //     CPA can triage at scan distance.
+  //   • Due-date mode → NO section headers. Flat chronological list
+  //     (Filed entries first, then most-late first).
   //
-  //   • Status mode → emit a header at EVERY status boundary, with
-  //     a simple "<Label> <count>" treatment ("Blocked 2", "Waiting
-  //     on client 1", etc.).
-  //   • Client mode → emit a header at EVERY client boundary, with
-  //     a richer "<Name> <N deadlines · next [date]> [N late]"
-  //     treatment that shows the next-due date + a small late-count
-  //     pill so the CPA can triage at scan distance.
-  //   • Due date mode → NO section headers at all. The wireframe is
-  //     a flat chronological list (Filed entries first, then most-late
-  //     first). Multi-deadline-same-client clusters used to emit a
-  //     subtle header here too, but the wireframe shows nothing so
-  //     that behaviour is suppressed.
-  //
-  // `lateCount` is computed in client mode for the late-pill on the
-  // header. `earliestDueDate` carries the "next due" semantics.
+  // Keyed by the FIRST row's id in each cluster. `lateCount` is computed
+  // in client mode for the late-pill. `earliestDueDate` carries the
+  // "next due" semantics. Computed from `rows` (not `pagedRows`) so
+  // counts reflect the full result set, not just the visible page —
+  // same pattern as continuationRowIds / withinGroupRowIds above.
   const groupHeadersByFirstRowId = useMemo(() => {
     const map = new Map<
       string,
@@ -1745,37 +1775,13 @@ export function ObligationQueueRoute() {
                   // the shift-click range gesture.
                   if (event.shiftKey) event.preventDefault()
                 }}
-                // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #9):
-                // bumped back to text-base. With the table header now
-                // rendering at text-sm (post sixty-fifth pass #2),
-                // text-sm body text and text-sm headers were sitting
-                // at the same scale — the row's primary anchor needs
-                // to read LARGER than the column label above it, not
-                // the same. text-base font-medium gives the client
-                // name proper anchor weight against text-sm meta in
-                // the same row (tax code, due-days, status pill).
-                // 2026-05-26 (Yuqi feedback #6): client name regular
-                // weight by default, font-medium only when the row is
-                // the active (selected) one. Was always font-medium →
-                // every row felt equally "anchored" and the eye had
-                // nothing to track to the active selection. Now the
-                // selected row's client name reads bolder, giving the
-                // table a clear "you are here" signal.
+                // Client name is the row's primary anchor. `text-base` matches
+                // /clients + /rules/library primary titles so all three
+                // workbench tables read at the same hierarchy. Regular weight
+                // by default + `font-medium` ONLY on the active (selected)
+                // row gives a clean "you are here" cue — making every row
+                // medium-weight made nothing stand out.
                 className={cn(
-                  // 2026-05-26 (Yuqi feedback #1): text-base → text-sm.
-                  // "Too big" alongside the rest of the row's text-sm
-                  // meta. Active row still gets font-medium for the
-                  // "you are here" signal.
-                  // 2026-05-26 (Yuqi cross-table unify — "Deadlines
-                  // text-sm · Clients text-base · Rules library text-sm
-                  // … visually make them similar"): bumped back to
-                  // text-base to match /clients + /rules/library
-                  // primary titles. The earlier "too big" call was at
-                  // text-base font-medium; regular weight at text-base
-                  // reads as primary identity without the loud bold
-                  // weight, so the size works across all three
-                  // workbench tables. Active row keeps font-medium as
-                  // the "you are here" cue.
                   'line-clamp-2 min-w-0 flex-1 text-base leading-tight text-text-primary',
                   tableRow.original.id === explicitActiveRowId ? 'font-medium' : 'font-normal',
                 )}
@@ -1962,7 +1968,7 @@ export function ObligationQueueRoute() {
           const state = info.getValue<string | null>()
           if (!state) return <span className="text-text-tertiary">—</span>
           return (
-            <span className="inline-flex items-center gap-1.5 font-mono tabular-nums text-text-secondary">
+            <span className="inline-flex items-center gap-1.5 tabular-nums text-text-secondary">
               <StateBadge code={state} size="xs" aria-hidden />
               <span>{state}</span>
             </span>
@@ -2438,9 +2444,17 @@ export function ObligationQueueRoute() {
       enabled: !shortcutsBlocked,
       requireReset: true,
       meta: {
+        // 2026-05-26 (Yuqi step-8 data-finding audit — F-X16): help-
+        // dialog label "Focus search" → "Filter deadlines" so the
+        // `/` hotkey reads identically across surfaces (matches the
+        // "Filter rules" + "Filter coverage" label discipline
+        // established in the cross-product search audit Phase 1).
+        // The control is a page-level filter, not entity search;
+        // verb-discipline matters when the help dialog lists three
+        // `/` rows side-by-side under different categories.
         id: 'obligations.focus-search',
-        name: 'Focus search',
-        description: 'Focus the Deadlines search input.',
+        name: 'Filter deadlines',
+        description: 'Focus the Deadlines filter input.',
         category: 'obligations',
         scope: 'route',
       },
@@ -3157,7 +3171,7 @@ export function ObligationQueueRoute() {
                           onClick={() => {
                             void setObligationQueueQuery({ hide: [] })
                           }}
-                          className="text-xs font-normal text-text-accent hover:underline"
+                          className="rounded-sm text-xs font-normal text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                         >
                           <Trans>Show all</Trans>
                         </button>
@@ -3205,7 +3219,15 @@ export function ObligationQueueRoute() {
              */
             <FloatingActionBar ariaLabel={t`Bulk actions`}>
               <span className="text-xs font-medium tabular-nums text-text-primary">
-                <Plural value={selectedIds.length} one="# row selected" other="# rows selected" />
+                {/* 2026-05-26 (step-6 ux-flow audit Q4.1): "rows" is
+                    engineering-speak. CPAs say "deadlines". The prev
+                    audit shipped the toast fix but missed this
+                    counter chip. */}
+                <Plural
+                  value={selectedIds.length}
+                  one="# deadline selected"
+                  other="# deadlines selected"
+                />
               </span>
               <Separator orientation="vertical" className="mx-0.5 h-4" />
               <DropdownMenu>
@@ -3314,16 +3336,40 @@ export function ObligationQueueRoute() {
           ) : null}
 
           {isInitialLoading ? (
-            <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
-              <Trans>Loading deadlines…</Trans>
+            // Step 6 cont Q1.1/Q1.3: skeleton rows match the rest
+            // of the app's loading rhythm; role=status + aria-live
+            // for SR announce.
+            <div
+              role="status"
+              aria-live="polite"
+              aria-label={t`Loading deadlines`}
+              className="grid gap-2 rounded-md border border-divider-subtle bg-background-default p-3"
+            >
+              {Array.from({ length: 12 }, (_, i) => `deadlines-skel-${i}`).map((key) => (
+                <Skeleton key={key} className="h-8 w-full" />
+              ))}
             </div>
           ) : isError ? (
-            <div className="rounded-lg border border-state-destructive-border bg-state-destructive-hover p-4 text-sm text-text-destructive">
-              <Trans>Couldn't load deadlines.</Trans>{' '}
-              <button type="button" className="underline" onClick={() => void listQuery.refetch()}>
-                <Trans>Retry</Trans>
-              </button>
-            </div>
+            // Step 6 cont Q1.2: Alert primitive + Button-link retry
+            // with `disabled={isFetching}` so double-clicks don't
+            // double-fire.
+            <Alert variant="destructive">
+              <AlertTitle>
+                <Trans>Couldn't load deadlines.</Trans>
+              </AlertTitle>
+              <AlertDescription className="flex items-center gap-2">
+                <Trans>Check your network and try again.</Trans>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0"
+                  onClick={() => void listQuery.refetch()}
+                  disabled={listQuery.isFetching}
+                >
+                  <Trans>Retry</Trans>
+                </Button>
+              </AlertDescription>
+            </Alert>
           ) : (
             // 2026-05-26 (Yuqi /deadlines feedback — "refactor the
             // page structure or table structure/pagination framing"):
@@ -3488,7 +3534,7 @@ export function ObligationQueueRoute() {
                     {tableRows.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={visibleColumnCount} className="py-8">
-                          <EmptyState
+                          <ObligationQueueEmptyState
                             onOpenWizard={openWizard}
                             canRunMigration={canRunMigration}
                             hasActiveFilters={Boolean(
@@ -3597,7 +3643,9 @@ export function ObligationQueueRoute() {
                                         <span aria-hidden> · </span>
                                         <Trans>
                                           next{' '}
-                                          {formatDate(groupHeader.earliestDueDate.slice(0, 10))}
+                                          {formatDatePretty(
+                                            groupHeader.earliestDueDate.slice(0, 10),
+                                          )}
                                         </Trans>
                                       </span>
                                       {groupHeader.lateCount > 0 ? (
@@ -3988,10 +4036,10 @@ export function ObligationQueueRoute() {
               <Trans>Export deadlines</Trans>
             </DialogTitle>
             <DialogDescription>
-              <Trans>Choose one option in each row. Export writes an audit event.</Trans>
+              <Trans>Pick a scope, format, and recipient.</Trans>
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-5">
+          <div className="grid gap-4">
             <ExportAxis label={t`What`}>
               <ExportAxisOption
                 selected={exportScope === 'filtered'}
@@ -4032,22 +4080,34 @@ export function ObligationQueueRoute() {
                   onSelect={() => setExportScope('date_range')}
                 />
                 {exportScope === 'date_range' ? (
-                  <div className="grid gap-2 rounded-md border border-divider-subtle bg-background-subtle p-2 sm:grid-cols-2">
-                    <IsoDatePicker
-                      value={exportDateStart}
-                      invalid={!isValidIsoDate(exportDateStart)}
-                      ariaLabel={t`Export start date`}
-                      onValueChange={setExportDateStart}
-                    />
-                    <IsoDatePicker
-                      value={exportDateEnd}
-                      invalid={
-                        !isValidIsoDate(exportDateEnd) ||
-                        diffIsoDateDays(exportDateStart, exportDateEnd) < 0
-                      }
-                      ariaLabel={t`Export end date`}
-                      onValueChange={setExportDateEnd}
-                    />
+                  <div className="grid gap-2 rounded-md border border-divider-subtle bg-background-subtle p-2">
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <IsoDatePicker
+                        value={exportDateStart}
+                        invalid={!isValidIsoDate(exportDateStart)}
+                        ariaLabel={t`Export start date`}
+                        onValueChange={setExportDateStart}
+                      />
+                      <IsoDatePicker
+                        value={exportDateEnd}
+                        invalid={
+                          !isValidIsoDate(exportDateEnd) ||
+                          diffIsoDateDays(exportDateStart, exportDateEnd) < 0
+                        }
+                        ariaLabel={t`Export end date`}
+                        onValueChange={setExportDateEnd}
+                      />
+                    </div>
+                    {/* 2026-05-26 (step-6 ux-flow audit Q3.5): explain
+                        why the end date is invalid instead of just
+                        coloring it red. */}
+                    {isValidIsoDate(exportDateStart) &&
+                    isValidIsoDate(exportDateEnd) &&
+                    diffIsoDateDays(exportDateStart, exportDateEnd) < 0 ? (
+                      <p className="text-sm text-text-destructive" role="alert">
+                        <Trans>End date must be on or after the start date.</Trans>
+                      </p>
+                    ) : null}
                   </div>
                 ) : null}
               </div>
@@ -4070,10 +4130,7 @@ export function ObligationQueueRoute() {
                   <DropdownMenu>
                     <DropdownMenuTrigger
                       render={
-                        <button
-                          type="button"
-                          className="inline-flex h-9 w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[state=open]:bg-state-base-hover"
-                        >
+                        <DropdownTriggerButton>
                           <span className="truncate">
                             {clientOptions.find((option) => option.value === exportClientId)
                               ?.label ?? t`Select client`}
@@ -4082,7 +4139,7 @@ export function ObligationQueueRoute() {
                             className="size-3.5 shrink-0 text-text-tertiary"
                             aria-hidden
                           />
-                        </button>
+                        </DropdownTriggerButton>
                       }
                     />
                     <DropdownMenuContent
@@ -4132,6 +4189,13 @@ export function ObligationQueueRoute() {
             </ExportAxis>
 
             <ExportAxis label={t`Recipient`}>
+              {/* 2026-05-26 (step-6 ux-flow audit Q3.2): Email-to-self
+                  and Email-to-teammate were disabled options with
+                  apologetic copy. A list where 2/3 choices are dead
+                  reads as a half-built product. Hidden until the
+                  email pipeline lands — Download stays as the single
+                  live option. Restore the disabled-with-tooltip
+                  pattern once the backend mutation ships. */}
               <ExportAxisOption
                 selected={exportRecipient === 'download'}
                 icon={<DownloadIcon className="size-4" aria-hidden />}
@@ -4139,35 +4203,25 @@ export function ObligationQueueRoute() {
                 description={<Trans>Creates the file in this browser.</Trans>}
                 onSelect={() => setExportRecipient('download')}
               />
-              <ExportAxisOption
-                selected={exportRecipient === 'email_self'}
-                disabled
-                title={<Trans>Email to self</Trans>}
-                description={
-                  <Trans>Email delivery is not connected for deadline exports yet.</Trans>
-                }
-                onSelect={() => setExportRecipient('email_self')}
-              />
-              <ExportAxisOption
-                selected={exportRecipient === 'email_teammate'}
-                disabled
-                title={<Trans>Email to teammate</Trans>}
-                description={
-                  <Trans>Team recipient delivery will use the notification queue.</Trans>
-                }
-                onSelect={() => setExportRecipient('email_teammate')}
-              />
             </ExportAxis>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setExportModalOpen(false)}>
+            <Button variant="ghost" onClick={() => setExportModalOpen(false)}>
               <Trans>Cancel</Trans>
             </Button>
             <Button
               onClick={submitExport}
               disabled={exportMutation.isPending || !buildExportInput()}
+              aria-busy={exportMutation.isPending}
             >
-              {exportMutation.isPending ? <Trans>Exporting…</Trans> : <Trans>Export</Trans>}
+              {exportMutation.isPending ? (
+                <>
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Trans>Exporting…</Trans>
+                </>
+              ) : (
+                <Trans>Export</Trans>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -4179,15 +4233,25 @@ export function ObligationQueueRoute() {
               <Trans>Mark selected extended</Trans>
             </DialogTitle>
             <DialogDescription>
-              <Trans>The memo is stored on the audit trail for the bulk status change.</Trans>
+              {/* 2026-05-26 (step-6 ux-flow audit Q4.6): clarified
+                  that the memo is optional; if the user wants no
+                  audit-trail note they should know they can skip it. */}
+              <Trans>Add an optional memo to record why on the audit trail.</Trans>
             </DialogDescription>
           </DialogHeader>
-          <Textarea
-            aria-label={t`Extension memo`}
-            placeholder={t`Extension memo`}
-            value={extendedMemo}
-            onChange={(event) => setExtendedMemo(event.target.value)}
-          />
+          {/* 2026-05-26 (step-6 ux-flow audit Q4.5): visible label
+              for SR users (placeholder alone disappears on type). */}
+          <div className="grid gap-2">
+            <label htmlFor="extended-memo-textarea" className="text-sm font-medium">
+              <Trans>Memo</Trans>
+            </label>
+            <Textarea
+              id="extended-memo-textarea"
+              placeholder={t`e.g. Filed Form 7004 — client confirmed by phone`}
+              value={extendedMemo}
+              onChange={(event) => setExtendedMemo(event.target.value)}
+            />
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setExtendedMemoOpen(false)}>
               <Trans>Cancel</Trans>
@@ -4211,7 +4275,7 @@ export function ObligationQueueRoute() {
 function ExportAxis({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="grid gap-2 md:grid-cols-[96px_minmax(0,1fr)] md:items-start">
-      <div className="pt-2 text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+      <div className="pt-2 text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
         {label}
       </div>
       <div role="radiogroup" aria-label={label} className="grid gap-2">
@@ -4356,48 +4420,6 @@ function ObligationQueueSortableHeader({
         )}
       </button>
       {children}
-    </span>
-  )
-}
-
-// Assignee avatar — 24px circle with up-to-2-letter initials. Picks
-// up the existing initialsFromName helper used by the global user
-// menu so vocabulary stays consistent. `isMine` swaps the background
-// to a soft accent tint + accent text — gives a quiet "this is your
-// row" cue without an extra YOU chip. Name lives in the title
-// (tooltip) so the column stays compact.
-function AssigneeAvatar({ name, isMine, title }: { name: string; isMine: boolean; title: string }) {
-  const initials = initialsFromName(name)
-  // 2026-05-25 (Yuqi Deadlines #1): bumped from size-6 (24px) to
-  // size-7 (28px) and text bumped to text-xs. The initials inside
-  // the 24px circle were reading as cramped at scan distance — Yuqi
-  // flagged "avatar 有点太挤了". The marginal size bump gives the
-  // glyphs room without inflating the Owner column footprint
-  // unreasonably.
-  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #10): bumped again to
-  // size-8 (32px) + text-sm. With the row's primary anchor now at
-  // text-base, the 28px circle was reading as "too small" relative
-  // to the client name beside it. 32px sits as a proper row icon
-  // (matches the Today dashboard's owner-avatar size) and the
-  // text-sm initials no longer read like caption-tier inside the
-  // disc.
-  // 2026-05-26 (Yuqi cross-table drift #10 — "Owner/Assignee avatar
-  // size + initials hash consistency"): the non-self path now resolves
-  // a per-name tint via the shared `getAssigneeTint` helper instead of
-  // a single `bg-background-subtle` neutral. /clients already did this
-  // — the deadlines queue was the surface where "AR" and "KP" looked
-  // identical at scan distance. Now same person → same color → same
-  // visual identity across every owner column in the app.
-  return (
-    <span
-      aria-label={title}
-      title={title}
-      className={cn(
-        'inline-flex size-8 items-center justify-center rounded-full text-sm font-semibold uppercase tracking-tight',
-        isMine ? 'bg-state-accent-hover-alt text-text-accent' : getAssigneeTint(name),
-      )}
-    >
-      {initials}
     </span>
   )
 }
@@ -4678,17 +4700,12 @@ export function ObligationQueueDetailDrawer({
   const legacyStatusLabels = useStatusLabels()
   const v2StatusLabels = useLifecycleV2StatusLabels()
   const statusLabels = lifecycleV2 ? v2StatusLabels : legacyStatusLabels
-  // Mirror the queue's status-set policy — under v2 the drawer pill
-  // dropdown shows only the 6 canonical lifecycle states; otherwise
-  // it surfaces the full legacy 10-state palette. Illegal transitions
-  // are surfaced as disabled items by ObligationQueueStatusControl
-  // (and re-checked server-side).
-  // 2026-05-26: statusDropdownOptions previously fed the drawer-header
-  // status control; that pill was removed (feedback #4) so the local
-  // computation is now dead in this scope. Kept as `_statusDropdown-
-  // Options` for the call site in case we restore the pill.
-  const _statusDropdownOptions = lifecycleV2 ? LIFECYCLE_V2_STATUSES : ALL_STATUSES
-  void _statusDropdownOptions
+  // 2026-05-26 (step-6 ux-flow audit Q7.1): removed dead
+  // `_statusDropdownOptions` computation. The drawer-header status
+  // pill was retired and the dropdown-options value was being
+  // computed only to immediately `void` it. If the pill comes back,
+  // re-derive from LIFECYCLE_V2_STATUSES / ALL_STATUSES at that
+  // point — the cost is negligible.
   const [extensionDraft, setExtensionDraft] = useState({
     obligationId: '',
     memo: '',
@@ -5016,6 +5033,18 @@ export function ObligationQueueDetailDrawer({
       : null
   const checklist =
     storedChecklist.length > 0 ? storedChecklist : (autoGeneratedChecklist ?? storedChecklist)
+  // 2026-05-26 (Step 9 AI Visibility Audit F-020): surface the
+  // "degraded fallback list" signal as an inline banner above the
+  // checklist, not just a 4-second toast that disappears forever.
+  // The degraded flag IS the AI's "I'm not sure" state — losing
+  // it on render means the user can't tell a fallback-list run
+  // apart from a real run on a stale tab.
+  const checklistDegraded = Boolean(
+    row &&
+    autoGenerateChecklistQuery.data?.obligationId === row.id &&
+    autoGenerateChecklistQuery.data?.result.degraded &&
+    storedChecklist.length === 0,
+  )
   const checklistItemIdsForSelection = checklist
     .filter((item) => item.status !== 'received')
     .map((item) => item.id)
@@ -5799,7 +5828,7 @@ export function ObligationQueueDetailDrawer({
           <p className="flex flex-wrap items-baseline gap-x-2 text-sm text-text-tertiary">
             {row.jurisdiction ? (
               <>
-                <span className="inline-flex items-center rounded border border-divider-regular bg-background-default px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-[0.06em] text-text-secondary">
+                <span className="inline-flex items-center rounded border border-divider-regular bg-background-default px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-secondary">
                   {row.jurisdiction}
                 </span>
                 <span aria-hidden>·</span>
@@ -5883,16 +5912,26 @@ export function ObligationQueueDetailDrawer({
         )}
       >
         {detailQuery.isLoading ? (
-          <div className="rounded-lg border border-dashed border-divider-regular py-8 text-center text-sm text-text-tertiary">
+          <EmptyPanel className="py-8 text-center">
             <Trans>Loading deadline detail…</Trans>
-          </div>
+          </EmptyPanel>
         ) : detailQuery.isError || !detail || !row ? (
-          <div className="rounded-lg border border-state-destructive-border bg-state-destructive-hover p-4 text-sm text-text-destructive">
-            <Trans>Couldn't load deadline detail.</Trans>{' '}
-            <button type="button" className="underline" onClick={() => void detailQuery.refetch()}>
-              <Trans>Retry</Trans>
-            </button>
-          </div>
+          // Step 1-5 reaudit Alert primitive + Step 6 UX #147
+          // Button-link retry.
+          <Alert variant="destructive">
+            <AlertDescription>
+              <Trans>Couldn't load deadline detail.</Trans>{' '}
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                className="h-auto p-0 align-baseline"
+                onClick={() => void detailQuery.refetch()}
+              >
+                <Trans>Retry</Trans>
+              </Button>
+            </AlertDescription>
+          </Alert>
         ) : (
           <Tabs
             value={activeTab}
@@ -6292,7 +6331,8 @@ export function ObligationQueueDetailDrawer({
                         className="border-state-warning-border bg-state-warning-hover text-text-warning"
                       >
                         <Trans>
-                          Client response due {formatDate(latestRequest.expiresAt.slice(0, 10))}
+                          Client response due{' '}
+                          {formatDatePretty(latestRequest.expiresAt.slice(0, 10))}
                         </Trans>
                       </Badge>
                       <span className="text-text-tertiary">
@@ -6412,14 +6452,14 @@ export function ObligationQueueDetailDrawer({
                   </div>
                   {checklist.length === 0 ? (
                     autoGenerateChecklistQuery.isFetching ? (
-                      <div className="grid gap-3 rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-secondary">
+                      <EmptyPanel className="grid gap-3 text-text-secondary">
                         <div className="flex items-center gap-2">
                           <RefreshCwIcon className="size-4 animate-spin" aria-hidden />
                           <span>
                             <Trans>Preparing</Trans>
                           </span>
                         </div>
-                      </div>
+                      </EmptyPanel>
                     ) : autoGenerateChecklistQuery.isError ? (
                       <EmptyPanel>
                         <div className="flex flex-wrap items-center justify-center gap-2">
@@ -6440,7 +6480,7 @@ export function ObligationQueueDetailDrawer({
                       // inside the empty panel as the obvious next step.
                       // "Add item" is demoted to a small text link below
                       // for users who want to bypass the AI generation.
-                      <div className="grid gap-3 rounded-lg border border-dashed border-divider-regular p-4 text-center text-sm text-text-secondary">
+                      <EmptyPanel className="grid gap-3 text-center text-text-secondary">
                         <p className="text-text-tertiary">
                           <Trans>
                             No documents listed yet. Generate an AI checklist or add items manually.
@@ -6480,10 +6520,30 @@ export function ObligationQueueDetailDrawer({
                             <Trans>Add item manually</Trans>
                           </Button>
                         </div>
-                      </div>
+                      </EmptyPanel>
                     )
                   ) : (
                     <>
+                      {/* 2026-05-26 (Step 9 AI Visibility Audit F-020):
+                        when the auto-generated checklist came back
+                        with `degraded: true` the toast disappears in
+                        4 seconds but the user keeps using the
+                        fallback list. Surface the degraded state as
+                        an inline banner that stays as long as the
+                        fallback list is on screen — the AI's "I'm
+                        not sure" signal needs to be persistent,
+                        not transient. */}
+                      {checklistDegraded ? (
+                        <div className="flex items-start gap-2 rounded-md border border-state-warning-active-alt bg-state-warning-hover px-3 py-2 text-xs text-text-warning">
+                          <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                          <span>
+                            <Trans>
+                              AI couldn't reach the full model — showing a fallback list. Review
+                              each item against the deadline before relying on it.
+                            </Trans>
+                          </span>
+                        </div>
+                      ) : null}
                       {/* 2026-05-26 (Yuqi fifty-second pass — Materials
                         Outstanding/Received split from
                         design/deadlines-drawer-rework): checklist now
@@ -6668,7 +6728,7 @@ export function ObligationQueueDetailDrawer({
                         <span className="text-xs text-text-secondary">
                           <Trans>
                             Sent to {latestRequest.recipientEmail ?? t`client`} · expires{' '}
-                            {formatDate(latestRequest.expiresAt.slice(0, 10))}
+                            {formatDatePretty(latestRequest.expiresAt.slice(0, 10))}
                           </Trans>
                         </span>
                         <div className="ml-auto flex items-center gap-1.5">
@@ -6739,10 +6799,7 @@ export function ObligationQueueDetailDrawer({
                           <DropdownMenu>
                             <DropdownMenuTrigger
                               render={
-                                <button
-                                  type="button"
-                                  className="inline-flex h-9 w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt data-[state=open]:bg-state-base-hover"
-                                >
+                                <DropdownTriggerButton>
                                   <span className="truncate">
                                     {taxYearDraft.taxYearType === 'calendar' ? (
                                       <Trans>Calendar year</Trans>
@@ -6754,7 +6811,7 @@ export function ObligationQueueDetailDrawer({
                                     className="size-3.5 shrink-0 text-text-tertiary"
                                     aria-hidden
                                   />
-                                </button>
+                                </DropdownTriggerButton>
                               }
                             />
                             <DropdownMenuContent align="start" className="w-[var(--anchor-width)]">
@@ -6995,7 +7052,7 @@ export function ObligationQueueDetailDrawer({
                         <Trans>Workpapers</Trans>
                       </h3>
                       {detail.evidence.length > 0 ? (
-                        <span className="font-mono text-xs tabular-nums text-text-tertiary">
+                        <span className="text-xs tabular-nums text-text-tertiary">
                           {detail.evidence.length}
                         </span>
                       ) : null}
@@ -7120,7 +7177,7 @@ export function ObligationQueueDetailDrawer({
             needing a full divider. */}
         {row ? (
           <div className="mt-4 flex flex-col gap-2">
-            <p className="text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+            <p className="text-caption-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
               <Trans>Reference dates</Trans>
             </p>
             <StatutoryDatesPanel row={row} />
@@ -7237,7 +7294,7 @@ export function ObligationQueueDetailDrawer({
             <span>
               <Trans>Last updated</Trans>
             </span>
-            <span className="font-mono tabular-nums">
+            <span className="tabular-nums">
               {formatDateTimeWithTimezone(row.updatedAt, practiceTimezone)}
             </span>
           </span>
@@ -7324,7 +7381,7 @@ export function ObligationQueueDetailDrawer({
         // the tabs-content area scrolls underneath, so a user 30
         // docs deep in the Readiness checklist still sees what
         // row they're on.
-        className="relative flex h-full w-full flex-none min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-[-4px_0_12px_-6px_rgb(0_0_0_/_0.08)]"
+        className="relative flex h-full w-full flex-none min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-subtle"
       >
         {body}
       </aside>
@@ -7372,12 +7429,15 @@ function DeadlineInputRequestDialog({
   const { t } = useLingui()
   const selectedRecipient =
     recipients.find((recipient) => recipient.assigneeId === selectedRecipientUserId) ?? null
+  // 2026-05-26 (step-6 ux-flow audit Q6.3): keep role-specific
+  // labels — collapsing manager/preparer/coordinator to "Team
+  // member" hid information the rest of the app exposes.
   const roleLabels = {
     owner: t`Owner`,
     partner: t`Partner`,
-    manager: t`Team member`,
-    preparer: t`Team member`,
-    coordinator: t`Team member`,
+    manager: t`Manager`,
+    preparer: t`Preparer`,
+    coordinator: t`Coordinator`,
   } satisfies Record<MemberAssigneeOption['role'], string>
   const recipientTriggerText =
     selectedRecipient?.name ?? (loadingRecipients ? t`Loading team` : t`Choose recipient`)
@@ -7397,20 +7457,31 @@ function DeadlineInputRequestDialog({
         </DialogHeader>
         <div className="grid gap-4 px-6 py-5">
           <div className="grid gap-2">
-            <span className="text-sm font-medium text-text-primary">
+            {/* 2026-05-26 (step-6 ux-flow audit Q6.1): converted the
+                span "Recipient" tag to a real <label id> so the
+                DropdownMenuTrigger button can claim it via
+                aria-labelledby — SR users now hear "Recipient: Joe
+                Smith" instead of just the truncated trigger text. */}
+            <label
+              id="deadline-input-request-recipient-label"
+              className="text-sm font-medium text-text-primary"
+            >
               <Trans>Recipient</Trans>
-            </span>
+            </label>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <button
-                    type="button"
+                  // HEAD uses the canonical DropdownTriggerButton primitive
+                  // (post Step 1-5 reaudit). Step 6 cont's `aria-labelledby`
+                  // SR binding kept since the primitive accepts it.
+                  <DropdownTriggerButton
+                    size="lg"
+                    aria-labelledby="deadline-input-request-recipient-label"
                     disabled={loadingRecipients || recipients.length === 0}
-                    className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-md border border-divider-regular bg-background-default px-3 text-left text-sm text-text-primary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-60 data-[state=open]:bg-state-base-hover"
                   >
                     <span className="truncate">{recipientTriggerText}</span>
                     <ChevronDownIcon className="size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-                  </button>
+                  </DropdownTriggerButton>
                 }
               />
               <DropdownMenuContent align="start" className="max-h-72 w-[var(--anchor-width)]">
@@ -7461,8 +7532,12 @@ function DeadlineInputRequestDialog({
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
             <Trans>Cancel</Trans>
           </Button>
-          <Button type="button" onClick={onSubmit} disabled={submitDisabled}>
-            <SendIcon data-icon="inline-start" />
+          <Button type="button" onClick={onSubmit} disabled={submitDisabled} aria-busy={submitting}>
+            {submitting ? (
+              <Loader2 data-icon="inline-start" className="animate-spin" />
+            ) : (
+              <SendIcon data-icon="inline-start" />
+            )}
             <Trans>Send request</Trans>
           </Button>
         </DialogFooter>
@@ -7646,314 +7721,36 @@ function MaterialsRequestPreviewChecklist({
   )
 }
 
-function EmptyPanel({ children }: { children: ReactNode }) {
+function EmptyPanel({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className="rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-tertiary">
+    <div
+      className={cn(
+        'rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-tertiary',
+        className,
+      )}
+    >
+      {/* Step 9's branch had Penalty-sources rendering here (an older
+          `_PenaltyBreakdownCard` shape); HEAD's `EmptyPanel` is now a
+          simple children-wrapper. Step 9's block doesn't apply here.
+          The `_penaltyFormulaDisplay` / `_penaltyFactsDisplay` orphans
+          that lived directly below were also deleted as part of this
+          merge (lint flagged the dangling `_` prefix on the diff). */}
       {children}
     </div>
   )
 }
 
-// Orphaned after Risk tab removal (2026-05-21). Kept as a deletion
-// candidate; underscore prefix silences eslint no-unused-vars until
-// we confirm no consumer wants it back.
-function _PenaltyBreakdownCard({ item }: { item: ObligationQueueRow['penaltyBreakdown'][number] }) {
-  const inputs = item.inputs ? Object.entries(item.inputs) : []
-  const sourceRefs = item.sourceRefs ?? []
-  return (
-    <div className="grid gap-2 rounded-lg border border-divider-regular p-3">
-      <div className="flex justify-between gap-3">
-        <span className="font-medium">{item.label}</span>
-        <span className="tabular-nums">{formatCents(item.amountCents)}</span>
-      </div>
-      <span className="text-xs text-text-tertiary">{formatPenaltyFormula(item.formula)}</span>
-      {inputs.length > 0 ? (
-        <div className="grid gap-1 text-caption text-text-tertiary">
-          {inputs.map(([key, value]) => (
-            <div key={key} className="flex justify-between gap-3">
-              <span>{penaltyInputLabel(key)}</span>
-              <span className="tabular-nums text-text-secondary">
-                {formatPenaltyInputValue(key, value)}
-              </span>
-            </div>
-          ))}
-        </div>
-      ) : null}
-      {sourceRefs.length > 0 ? <PenaltySourceList sourceRefs={sourceRefs} compact /> : null}
-    </div>
-  )
-}
-
-function PenaltySourceList({
-  sourceRefs,
-  compact = false,
-}: {
-  sourceRefs: ObligationQueueRow['penaltySourceRefs']
-  compact?: boolean
-}) {
-  return (
-    <div
-      className={compact ? 'grid gap-1' : 'grid gap-2 rounded-lg border border-divider-regular p-3'}
-    >
-      {!compact ? (
-        <p className="text-xs font-medium text-text-secondary">
-          <Trans>Penalty sources</Trans>
-        </p>
-      ) : null}
-      {sourceRefs.map((source) => (
-        <a
-          key={`${source.label}-${source.url}`}
-          href={source.url}
-          target="_blank"
-          rel="noreferrer"
-          className="grid gap-0.5 text-xs text-accent-strong hover:underline"
-        >
-          <span>{source.label}</span>
-          {!compact ? (
-            <span className="text-caption text-text-tertiary">{source.sourceExcerpt}</span>
-          ) : null}
-        </a>
-      ))}
-    </div>
-  )
-}
-
-// Orphaned after Risk tab removal — see _PenaltyBreakdownCard.
-function _penaltyFormulaDisplay(row: ObligationQueueRow): ReactNode {
-  if (row.penaltyFormulaLabel) return row.penaltyFormulaLabel
-  if (row.penaltyFormulaVersion) return <Trans>Penalty calculation available</Trans>
-  return <Trans>Not calculated</Trans>
-}
-
-// Orphaned after Risk tab removal — see _PenaltyBreakdownCard.
-function _penaltyFactsDisplay(row: ObligationQueueRow): ReactNode {
-  if (row.missingPenaltyFacts.length > 0) {
-    const labels = row.missingPenaltyFacts.map((fact) => penaltyFactLabel(fact)).join(', ')
-    return <Trans>Needs {labels}</Trans>
-  }
-  if (row.penaltyFactsVersion) return <Trans>Penalty inputs recorded</Trans>
-  return <Trans>Not entered</Trans>
-}
-
-function penaltyFactLabel(value: string): string {
-  if (value === 'estimatedTaxLiabilityCents') return 'estimated tax liability'
-  if (value === 'equityOwnerCount') return 'owner count'
-  if (value === 'partnerCount') return 'owner count'
-  if (value === 'penaltyMonths') return 'months late'
-  if (value === 'monthlyRateCents') return 'monthly penalty rate'
-  return humanizeToken(value).toLowerCase()
-}
-
-function penaltyInputLabel(key: string): ReactNode {
-  if (key === 'partnerCount' || key === 'equityOwnerCount') return <Trans>Owners</Trans>
-  if (key === 'penaltyMonths') return <Trans>Months late</Trans>
-  if (key === 'monthlyRateCents') return <Trans>Monthly penalty per owner</Trans>
-  if (key === 'estimatedTaxLiabilityCents') return <Trans>Estimated tax liability</Trans>
-  return humanizeToken(key)
-}
-
-function formatPenaltyFormula(formula: string): ReactNode {
-  const match = formula.match(
-    /^\$(?<rate>[\d,.]+)\s*x\s*(?<owners>\d+)\s*partner\(s\)\s*x\s*(?<months>\d+)\s*month\(s\)$/,
-  )
-  const rate = match?.groups?.rate
-  const owners = match?.groups?.owners
-  const months = match?.groups?.months
-  if (rate && owners && months) {
-    return (
-      <Trans>
-        ${rate} per owner x {owners} owners x {months} months
-      </Trans>
-    )
-  }
-  return formula.replaceAll('partner(s)', 'owner(s)')
-}
-
-function formatPenaltyInputValue(key: string, value: string | number | boolean | null): ReactNode {
-  if (value === null) return <Trans>Not recorded</Trans>
-  if (typeof value === 'boolean') return value ? 'true' : 'false'
-  if (typeof value === 'number') {
-    if (key.endsWith('Cents')) return formatCents(value)
-    return Number.isInteger(value) ? `${value}` : value.toFixed(2)
-  }
-  return value
-}
-
-// Orphaned after Risk tab removal — see _PenaltyBreakdownCard.
-function _DeadlineTipPanel({
-  insight,
-  isLoading,
-  isPreparing,
-  isTimedOut,
-  canRefresh,
-  practiceTimezone,
-  onRefresh,
-}: {
-  insight: AiInsightPublic | null
-  isLoading: boolean
-  isPreparing: boolean
-  isTimedOut: boolean
-  canRefresh: boolean
-  practiceTimezone: string
-  onRefresh: () => void
-}) {
-  const hasPreviousTip = Boolean(insight?.generatedAt)
-  const showFailedState = insight?.status === 'failed' && !isPreparing
-  const buttonLabel = isPreparing ? (
-    <Trans>Preparing</Trans>
-  ) : isTimedOut || showFailedState ? (
-    <Trans>Retry</Trans>
-  ) : (
-    <Trans>Refresh</Trans>
-  )
-
-  return (
-    <div className="grid gap-3 rounded-lg border border-divider-regular bg-background-section p-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <FileSearchIcon className="size-4 text-text-secondary" aria-hidden />
-          <span className="text-sm font-medium text-text-primary">
-            <ConceptLabel concept="deadlineTip">
-              <Trans>Deadline tip</Trans>
-            </ConceptLabel>
-          </span>
-          {isPreparing ? (
-            <Badge variant="warning">
-              <Trans>Preparing</Trans>
-            </Badge>
-          ) : insight ? (
-            <InsightStatusBadge status={insight.status} />
-          ) : null}
-        </div>
-        {canRefresh ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            disabled={isPreparing}
-            onClick={onRefresh}
-          >
-            <RefreshCwIcon data-icon="inline-start" />
-            {buttonLabel}
-          </Button>
-        ) : (
-          <UpgradeCtaButton />
-        )}
-      </div>
-      {isLoading ? (
-        <div className="text-sm text-text-tertiary">
-          <Trans>Loading deadline tip…</Trans>
-        </div>
-      ) : insight ? (
-        <div className="grid gap-3">
-          {isPreparing ? (
-            <AlertPanel>
-              {hasPreviousTip ? (
-                <Trans>Showing the previous tip while the latest one is being prepared.</Trans>
-              ) : (
-                <Trans>Preparing tip from verified deadline context.</Trans>
-              )}
-            </AlertPanel>
-          ) : null}
-          {isTimedOut ? (
-            <AlertPanel>
-              <Trans>Still preparing. You can leave this page and check back later.</Trans>
-            </AlertPanel>
-          ) : null}
-          {showFailedState ? (
-            <AlertPanel>
-              <Trans>
-                Couldn't prepare the latest tip. Showing the previous version when available.
-              </Trans>
-            </AlertPanel>
-          ) : null}
-          {insight.sections.map((section) => (
-            <div key={section.key} className="grid gap-1">
-              <p className="text-sm font-medium text-text-primary">{section.label}</p>
-              <p className="text-sm text-text-secondary">{section.text}</p>
-              <InsightCitationChips insight={insight} citationRefs={section.citationRefs} />
-            </div>
-          ))}
-          {insight.generatedAt ? (
-            <span className="text-xs text-text-tertiary">
-              <Trans>
-                Updated {formatDateTimeWithTimezone(insight.generatedAt, practiceTimezone)}
-              </Trans>
-            </span>
-          ) : null}
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
-function InsightStatusBadge({ status }: { status: AiInsightPublic['status'] }) {
-  if (status === 'ready')
-    return (
-      <Badge variant="success">
-        <Trans>Ready</Trans>
-      </Badge>
-    )
-  // 2026-05-25 (status-pill audit §4 #9): "Failed" was warning
-  // (amber) but the §3.1 ladder reserves amber for external
-  // pauses where no urgency exists. A failed AI insight is a
-  // hard failure of the operation — destructive (red).
-  if (status === 'failed')
-    return (
-      <Badge variant="destructive">
-        <Trans>Failed</Trans>
-      </Badge>
-    )
-  if (status === 'stale')
-    return (
-      <Badge variant="info">
-        <Trans>Stale</Trans>
-      </Badge>
-    )
-  return (
-    <Badge variant="outline">
-      <Trans>Pending</Trans>
-    </Badge>
-  )
-}
-
-function InsightCitationChips({
-  insight,
-  citationRefs,
-}: {
-  insight: AiInsightPublic
-  citationRefs: number[]
-}) {
-  const citations = insight.citations.filter((citation) => citationRefs.includes(citation.ref))
-  if (citations.length === 0) return null
-  return (
-    <div className="flex flex-wrap gap-1">
-      {citations.map((citation) => {
-        const label =
-          citation.evidence?.sourceId ?? citation.evidence?.sourceType ?? `#${citation.ref}`
-        const badge = (
-          <Badge key={citation.ref} variant="outline" className="max-w-full truncate text-xs">
-            [{citation.ref}] {label}
-          </Badge>
-        )
-        return citation.evidence?.sourceUrl ? (
-          <a
-            key={citation.ref}
-            href={citation.evidence.sourceUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="max-w-full"
-          >
-            {badge}
-          </a>
-        ) : (
-          badge
-        )
-      })}
-    </div>
-  )
-}
-
+// 2026-05-27 (Step 9 merge cleanup): the orphaned `_DeadlineTipPanel`
+// + `InsightStatusBadge` + `InsightCitationChips` cluster was retained
+// when the Risk tab was removed, surviving as `_`-prefixed dead code.
+// Step 9's AI-visibility audit explicitly flagged this as "fully wired
+// in the data layer but its React component is orphaned." The cluster
+// referenced symbols (`AiInsightPublic`, `FileSearchIcon`,
+// `UpgradeCtaButton`) that no longer exist in this file's import
+// graph, so the merge would not compile with them in place. If we
+// want to revive deadline-tip insights, restore from
+// `feat/step-9-ai-visibility-audit` and reintroduce the required
+// imports + a real mount point.
 function AlertPanel({ children }: { children: ReactNode }) {
   return (
     <div className="flex gap-2 rounded-lg border border-state-warning-hover-alt bg-state-warning-hover p-3 text-sm text-text-primary">
@@ -8582,192 +8379,6 @@ function ReadinessOverview({
   )
 }
 
-// One persisted document row in the readiness checklist. The checkbox is
-// the CPA-owned source of truth; client portal responses only annotate
-// and can move the same item into review/missing/received states.
-function ChecklistItemRow({
-  item,
-  response,
-  pending,
-  selected,
-  selectionDisabled,
-  onToggleSelect,
-  onStatusChange,
-  onLabelCommit: _onLabelCommit,
-  onDescriptionCommit: _onDescriptionCommit,
-  onNoteCommit: _onNoteCommit,
-  onRemove,
-}: {
-  item: ReadinessDocumentChecklistItemPublic
-  response: ClientReadinessResponsePublic | null
-  pending: boolean
-  // Multi-select model (2026-05-23). The leading Checkbox tracks
-  // selection (for the floating "Mark client docs received" batch
-  // action), NOT the item's received-state. Status is communicated
-  // via the small inline status chip on received / needs-review
-  // items; mutating status one-at-a-time happens via the row body
-  // click-through (future: dedicated inline editor) or the floating
-  // bar's batch action.
-  selected: boolean
-  selectionDisabled: boolean
-  onToggleSelect: () => void
-  onStatusChange: (status: ReadinessDocumentChecklistItemPublic['status']) => void
-  // Inline label/description/note editing was wired through these
-  // callbacks. The new card visual is read-only (matches Figma) so
-  // they're accepted but unused here; the underscore prefix silences
-  // eslint while we keep the prop contract stable for the call site.
-  // Restore the inline editor in a follow-up by re-introducing a
-  // collapsible editor section toggled by a small overflow menu.
-  onLabelCommit: (label: string) => void
-  onDescriptionCommit: (description: string) => void
-  onNoteCommit: (note: string) => void
-  onRemove: () => void
-}) {
-  const { t } = useLingui()
-  const received = item.status === 'received'
-  const needsReview = item.status === 'needs_review'
-  const responseBadge = response
-    ? (() => {
-        switch (response.status) {
-          case 'ready':
-            return { variant: 'success' as const, label: t`Client ready` }
-          case 'not_yet':
-            return { variant: 'warning' as const, label: t`Not yet` }
-          case 'need_help':
-            return { variant: 'destructive' as const, label: t`Needs help` }
-        }
-        return { variant: 'outline' as const, label: response.status }
-      })()
-    : null
-  // 2026-05-23 (drawer fidelity pass): card visual rebuilt against
-  // the Figma target. Per-row chrome stripped — no Mark received
-  // button, no chevron expand, no italic info-icon description.
-  // The card now reads as a clean checkbox + title + description
-  // block; status is a small chip on the right when non-default;
-  // selection state shows a strong accent border + filled checkbox.
-  // The floating action bar at the bottom of the drawer owns the
-  // mark-received affordance (single-item case: select one, click
-  // bar). Edit/delete moved behind an overflow menu (… on hover).
-  return (
-    <div
-      className={cn(
-        'group/checklist-item rounded-md border bg-background-default p-3 transition-colors',
-        selected
-          ? 'border-accent-default ring-2 ring-accent-default/20'
-          : 'border-divider-subtle hover:border-divider-regular',
-        received && !selected && 'bg-background-subtle',
-        selectionDisabled && 'border-divider-regular bg-background-subtle opacity-60',
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <Checkbox
-          aria-label={
-            selectionDisabled
-              ? t`Document ${item.label} already received`
-              : selected
-                ? t`Deselect document ${item.label}`
-                : t`Select document ${item.label} for batch action`
-          }
-          checked={selected}
-          disabled={pending || selectionDisabled}
-          onCheckedChange={onToggleSelect}
-          className={cn('mt-0.5 shrink-0', selectionDisabled && 'opacity-50 grayscale')}
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={cn(
-                'truncate text-sm font-medium leading-tight',
-                received ? 'text-text-secondary' : 'text-text-primary',
-              )}
-            >
-              {item.label}
-            </span>
-            {/* Status chip — sits inline with the title on the right
-                so received / needs-review state is visible at a
-                glance without a per-row action button. Default
-                (missing) shows nothing; the absence is the signal. */}
-            {received ? (
-              <Badge variant="success" className="text-caption-xs uppercase tracking-wide">
-                <CheckCircle2Icon className="size-3" aria-hidden />
-                <Trans>Received</Trans>
-              </Badge>
-            ) : needsReview ? (
-              <Badge variant="destructive" className="text-caption-xs uppercase tracking-wide">
-                <AlertTriangleIcon className="size-3" aria-hidden />
-                <Trans>Needs review</Trans>
-              </Badge>
-            ) : null}
-            {responseBadge ? (
-              <Badge
-                variant={responseBadge.variant}
-                className="text-caption-xs uppercase tracking-wide"
-              >
-                {responseBadge.label}
-              </Badge>
-            ) : null}
-          </div>
-          {item.description ? (
-            <p className="mt-1 text-xs leading-snug text-text-tertiary">{item.description}</p>
-          ) : null}
-          {response?.note ? (
-            <p className="mt-1.5 rounded-sm bg-background-section px-2 py-1 text-xs text-text-secondary">
-              <Trans>Client note</Trans>: {response.note}
-              {response.etaDate ? (
-                <>
-                  {' '}
-                  · <Trans>ETA {formatDate(response.etaDate)}</Trans>
-                </>
-              ) : null}
-            </p>
-          ) : null}
-        </div>
-        {/* Overflow menu — accessible per-row delete + mark-needs-
-            review without exposing them as chrome on every card.
-            Renders only on hover/focus to keep the default state
-            calm (matches the Figma's clean card surface). */}
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <button
-                type="button"
-                aria-label={t`More actions for ${item.label}`}
-                className="shrink-0 rounded-md p-1 text-text-tertiary opacity-0 outline-none transition-opacity hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-hover/checklist-item:opacity-100"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <EllipsisVerticalIcon className="size-4" aria-hidden />
-              </button>
-            }
-          />
-          <DropdownMenuContent align="end" className="min-w-[11rem] whitespace-nowrap">
-            {!needsReview ? (
-              <DropdownMenuItem onClick={() => onStatusChange('needs_review')} disabled={pending}>
-                <AlertTriangleIcon className="size-4" aria-hidden />
-                <span>
-                  <Trans>Mark needs review</Trans>
-                </span>
-              </DropdownMenuItem>
-            ) : null}
-            {received ? (
-              <DropdownMenuItem onClick={() => onStatusChange('missing')} disabled={pending}>
-                <span>
-                  <Trans>Mark not received</Trans>
-                </span>
-              </DropdownMenuItem>
-            ) : null}
-            <DropdownMenuItem onClick={onRemove} variant="destructive">
-              <Trash2Icon className="size-4" aria-hidden />
-              <span>
-                <Trans>Remove</Trans>
-              </span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
-  )
-}
-
 // Format a tax-period span. Full calendar years collapse to just
 // the year ("2026"); fiscal / short / quarterly periods keep the
 // explicit start–end range.
@@ -8863,7 +8474,7 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
       >
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
           <CheckCircle2Icon className="size-4 shrink-0 text-text-success" aria-hidden />
-          <span className="font-mono tabular-nums text-text-primary">{formatDate(filingIso)}</span>
+          <span className="tabular-nums text-text-primary">{formatDate(filingIso)}</span>
           {filingDays !== null && filingDays !== 0 ? (
             <>
               <span aria-hidden className="text-text-tertiary">
@@ -8975,31 +8586,17 @@ function DeadlineTile({
       : valueTone === 'tertiary'
         ? 'text-text-tertiary'
         : 'text-text-primary'
-  // 2026-05-26 (Yuqi feedback — "why is the filing deadline three
-  // card so big? they are ugly."): compressed the tile.
-  //  • Padding `px-3 py-2` → `px-2.5 py-1.5` (~25% denser).
-  //  • Label `text-caption-xs uppercase tracking-[0.08em]` (so
-  //    "FILING DEADLINE" wrapped to two lines in narrow columns) →
-  //    `text-[11px] font-medium` sentence-case so labels fit on
-  //    one line. Drops the ALL-CAPS shoutiness too.
-  //  • Date value `text-base font-semibold` (16px) → `text-sm
-  //    font-semibold` (14px) so it sits as a calmer metadata value,
-  //    not a banner number.
-  // Net: tile height reduced ~30%, columns no longer pull the
-  // header into 2 lines, the trio reads as a date strip rather
-  // than a poster.
-  // 2026-05-26 (Yuqi drawer feedback #1+#2): labels back to the canonical
-  // tile-eyebrow treatment — uppercase + tracking — so "FILING DEADLINE
-  // / INTERNAL TARGET / PAYMENT DUE" read as TILE LABELS (consistent
-  // with the rest of the drawer eyebrows + the dashboard summary tiles).
-  // Date value drops `font-mono` for the canonical sans + tabular-nums:
-  // the mono treatment made the number read as "code/identifier-y"
-  // when it's just a date. tabular-nums alone keeps columnar alignment.
+  // Tile labels use the canonical eyebrow treatment — uppercase + tracking
+  // — so "FILING DEADLINE / INTERNAL TARGET / PAYMENT DUE" read as TILE
+  // LABELS (consistent with the rest of the drawer eyebrows + the
+  // dashboard summary tiles). Date value uses the canonical sans + tabular-
+  // nums (NOT font-mono — mono made the number read as "code-y" when it's
+  // just a date; tabular-nums alone keeps columnar alignment).
   return (
     <div className={cn('flex flex-col gap-0.5 rounded-md border px-2.5 py-1.5', surfaceClass)}>
       <span
         className={cn(
-          'text-[11px] leading-tight font-medium uppercase tracking-[0.06em]',
+          'text-caption leading-tight font-medium uppercase tracking-eyebrow-tight',
           labelToneClass,
           primary && 'font-semibold',
         )}
@@ -9031,12 +8628,19 @@ function FlatDateList({ row }: { row: ObligationQueueRow }) {
   const { t } = useLingui()
   const dateRows = useMemo(
     () => [
+      // 2026-05-26 (86th pass, audit cross-cutting A): user-facing
+      // reference-date list now renders prose via `formatDatePretty`
+      // (e.g. "May 9, 2026") instead of ISO. The drawer is a panel
+      // the user reads; ISO format here undermines the canonical
+      // "finance-grade calm" feel. Queue row date column keeps
+      // `formatDate` because that's a dense triage table where ISO
+      // alignment + tabular-nums is the better trade.
       ...(row.efileSubmittedAt
         ? [
             {
               key: 'submitted',
               label: t`Submitted`,
-              value: formatDate(row.efileSubmittedAt.slice(0, 10)),
+              value: formatDatePretty(row.efileSubmittedAt.slice(0, 10)),
             },
           ]
         : []),
@@ -9045,7 +8649,7 @@ function FlatDateList({ row }: { row: ObligationQueueRow }) {
             {
               key: 'accepted',
               label: t`Accepted`,
-              value: formatDate(row.efileAcceptedAt.slice(0, 10)),
+              value: formatDatePretty(row.efileAcceptedAt.slice(0, 10)),
             },
           ]
         : []),
@@ -9054,7 +8658,7 @@ function FlatDateList({ row }: { row: ObligationQueueRow }) {
             {
               key: 'rejected',
               label: t`Rejected`,
-              value: formatDate(row.efileRejectedAt.slice(0, 10)),
+              value: formatDatePretty(row.efileRejectedAt.slice(0, 10)),
             },
           ]
         : []),
@@ -9063,8 +8667,12 @@ function FlatDateList({ row }: { row: ObligationQueueRow }) {
         label: t`Tax period`,
         value: formatTaxPeriod(row.taxPeriodStart, row.taxPeriodEnd),
       },
-      { key: 'created', label: t`Created`, value: formatDate(row.createdAt.slice(0, 10)) },
-      { key: 'updated', label: t`Last touched`, value: formatDate(row.updatedAt.slice(0, 10)) },
+      { key: 'created', label: t`Created`, value: formatDatePretty(row.createdAt.slice(0, 10)) },
+      {
+        key: 'updated',
+        label: t`Last touched`,
+        value: formatDatePretty(row.updatedAt.slice(0, 10)),
+      },
     ],
     [row, t],
   )
@@ -9466,7 +9074,7 @@ function PathToFilingSummary({
                   // "Past deadline" — readable in any tone.
                   <span
                     className="text-center text-caption-xs font-medium uppercase tracking-wide leading-tight text-text-secondary"
-                    title={t`Filing was due ${formatDate(row.currentDueDate.slice(0, 10))} · ${Math.abs(row.daysUntilDue)} days past deadline.`}
+                    title={t`Filing was due ${formatDatePretty(row.currentDueDate.slice(0, 10))} · ${Math.abs(row.daysUntilDue)} days past deadline.`}
                   >
                     <Trans>Past deadline</Trans>
                   </span>
@@ -9524,28 +9132,11 @@ const STAGE_STATUS_GROUPS: Record<TimelineStageKey, ReadonlySet<ObligationStatus
   completed: new Set(['completed'] as const),
 }
 
-// Per-stage canonical "what's next" task list. Surfaced in the
-// ActiveStageDetailCard below the milestone strip. Tasks come in three
-// flavours:
-//   - mutation: tapping it should fire a state-change mutation (e.g.
-//               "Mark filed" calls changeStatusMutation with `done`)
-//   - routing : navigates somewhere else (Readiness tab, the upstream
-//               blocking obligation, the Evidence tab)
-//   - manual  : passive ☐ — the CPA confirms it themselves
-// For the static prototype shipped 2026-05-21, tasks render as visual
-// checklist rows ONLY — no mutations or routes are wired yet. Next pass
-// will bind mutation tasks to the existing mutations and routing tasks
-// to tab/route handlers.
-type StageTaskFlavor = 'mutation' | 'routing' | 'manual'
-
-type StageTask = {
-  id: string
-  label: string
-  flavor: StageTaskFlavor
-  primary?: boolean
-  hint?: string
-}
-
+// `StageTask` and `StageActions` (the render component) live in
+// `@/features/obligations/StageActions`. The flavor system + rendering
+// rules are documented there. ActiveStageDetailCard's useMemo below
+// builds the per-stage task list.
+//
 // Note: task labels are populated INSIDE ActiveStageDetailCard via
 // useLingui's `t` (see useMemo below). Earlier we factored this out
 // to a standalone `canonicalTasksForStage(stageKey, row, t)` helper,
@@ -9623,11 +9214,6 @@ function computePastStageEntries(auditEvents: readonly AuditEventPublic[]): Past
     exitAt: span.exitAt ?? span.entryAt,
     events: span.events,
   }))
-}
-
-function daysBetween(startIso: string, endIso: string): number {
-  const ms = new Date(endIso).getTime() - new Date(startIso).getTime()
-  return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)))
 }
 
 // Canonical e-file sub-status pipeline. Linear path the row walks
@@ -9751,255 +9337,11 @@ function pipelineStateOf<T extends string>(
   return 'upcoming'
 }
 
-// StageActions — the actionable surface for the active stage.
-// Restructured 2026-05-21 because the prior "list of mixed-shape
-// checkboxes" pattern read as chaotic: square boxes (manual) sitting
-// alongside an accent-ring dot (primary mutation) sitting alongside
-// ghost mutation rows. Nothing read as a clear "click here" button;
-// the primary task looked like a selected radio item.
-//
-// New visual hierarchy:
-//   1. Primary mutation task    → solid <Button>. Unmistakable CTA.
-//   2. Other mutation/routing   → ghost <Button> with right-edge glyph.
-//   3. Manual reminders         → single tertiary text line beneath,
-//                                  not a checklist (manual tasks have
-//                                  no backing schema and confused
-//                                  CPAs into thinking they could
-//                                  check them off in-app).
-//
-// Renders nothing if the task list is empty.
-function StageActions({
-  tasks,
-  onTaskClick,
-}: {
-  tasks: StageTask[]
-  onTaskClick: (task: StageTask) => void
-}) {
-  const primary = tasks.find((task) => task.primary && task.flavor === 'mutation')
-  const secondary = tasks.filter(
-    (task) => task !== primary && (task.flavor === 'mutation' || task.flavor === 'routing'),
-  )
-  const reminders = tasks.filter((task) => task.flavor === 'manual')
-  if (!primary && secondary.length === 0 && reminders.length === 0) return null
-  return (
-    // 2026-05-26 (Yuqi feedback #14): tighter gap between primary
-    // button + secondary links + reminder line. gap-2 (8px) read
-    // as too loose between buttons that all share one decision
-    // context. gap-1 (4px) lets the cluster scan as one stage
-    // action group.
-    <div className="flex flex-col gap-1">
-      {primary ? (
-        <Button
-          size="sm"
-          onClick={() => onTaskClick(primary)}
-          title={primary.hint ?? undefined}
-          className="w-fit"
-        >
-          {primary.label}
-        </Button>
-      ) : null}
-      {secondary.length > 0 ? (
-        <ul className="flex flex-col gap-0.5">
-          {secondary.map((task) => {
-            const destructive = task.id === 'mark-blocked'
-            return (
-              <li key={task.id} className="flex">
-                <Button
-                  variant={destructive ? 'destructive-ghost' : 'ghost'}
-                  size="sm"
-                  onClick={() => onTaskClick(task)}
-                  title={task.hint ?? undefined}
-                  className={cn(
-                    'h-7 justify-start gap-1.5 px-2 text-xs font-normal',
-                    !destructive && '-mx-2',
-                    !destructive && 'text-text-secondary',
-                  )}
-                >
-                  <span className="flex-1 text-left">{task.label}</span>
-                  {task.flavor === 'routing' ? (
-                    <ArrowUpRightIcon className="size-3.5 text-text-tertiary" aria-hidden />
-                  ) : destructive ? null : (
-                    <ChevronRightIcon className="size-3.5 text-text-tertiary" aria-hidden />
-                  )}
-                </Button>
-              </li>
-            )
-          })}
-        </ul>
-      ) : null}
-      {reminders.length > 0 ? (
-        <p className="text-caption leading-snug text-text-tertiary">
-          {reminders.map((task) => task.label).join(' · ')}
-        </p>
-      ) : null}
-    </div>
-  )
-}
-
-/**
- * Inline blocker card rendered on the Blocked stage. Shows the
- * upstream obligation's form / client / due / current status so the
- * CPA understands WHY this row is blocked without leaving the
- * drawer. The whole card is clickable — opens the blocker's drawer
- * via the same provider the queue + client detail use.
- *
- * Fetches via `obligations.getDetail` (the same query the drawer
- * itself uses), so when the CPA clicks through to the blocker the
- * data is already in cache and the destination drawer opens
- * instantly.
- */
-function BlockerContextCard({
-  blockerId,
-  onOpen,
-}: {
-  blockerId: string
-  onOpen: (id: string) => void
-}) {
-  const { t } = useLingui()
-  const detailQuery = useQuery({
-    ...orpc.obligations.getDetail.queryOptions({
-      input: { obligationId: blockerId },
-    }),
-    enabled: blockerId !== '',
-  })
-  const labels = useLifecycleV2StatusLabels()
-  const blocker = detailQuery.data?.row ?? null
-  if (detailQuery.isLoading || !blocker) {
-    return (
-      <div
-        role="status"
-        aria-label={t`Loading blocker details`}
-        className="rounded-md border border-divider-subtle bg-background-subtle p-3"
-      >
-        <Skeleton className="h-3 w-1/2" />
-        <Skeleton className="mt-2 h-3 w-1/3" />
-      </div>
-    )
-  }
-  return (
-    <button
-      type="button"
-      onClick={() => onOpen(blockerId)}
-      className="group flex w-full flex-col gap-1.5 rounded-md border border-divider-regular bg-background-subtle p-3 text-left transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt"
-      aria-label={t`Open blocking deadline: ${formatTaxCode(blocker.taxType)} for ${blocker.clientName}`}
-    >
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
-          <Trans>Blocked by</Trans>
-        </span>
-        <ArrowUpRightIcon
-          className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover:text-text-primary"
-          aria-hidden
-        />
-      </div>
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-        <span className="text-sm font-medium text-text-primary">
-          {formatTaxCode(blocker.taxType)}
-        </span>
-        <span className="text-xs text-text-secondary">{blocker.clientName}</span>
-      </div>
-      <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
-        <Badge variant={STATUS_VARIANT[blocker.status]} className="text-caption-xs">
-          {labels[blocker.status]}
-        </Badge>
-        <span className="tabular-nums">
-          <Trans>Due {formatDate(blocker.currentDueDate)}</Trans>
-        </span>
-      </div>
-    </button>
-  )
-}
-
 // 2026-05-23: WaitingOutstandingDocs component retired with Option D.
 // The full panel (count header + bullet list of doc names + routing
 // button) duplicated content from the Client readiness tab. Replaced
 // inline in ActiveStageDetailCard with a one-line signal that links
 // to the tab; the tab owns the actual document inventory.
-
-/**
- * Inline key-dates summary rendered on the Completed stage. The
- * terminal stage card is otherwise sparse — just a stage label and
- * a "Archive workpapers" reminder. CPAs landing on a closed
- * obligation are usually answering "when did this close and how
- * long did it take" for client communication or year-end review;
- * this card surfaces those answers without forcing a trip to the
- * Dates panel.
- *
- * Dates derived from audit events:
- *  - Filed: first event where status became `done`
- *  - Completed: first event where status became `completed`
- *  - Total turnaround: createdAt → completed (in days)
- *
- * `row.createdAt` is always available; the other two only render if
- * we have audit evidence for them (some rows skip directly to
- * completed via the status picker without a `done` intermediate
- * stop — for those, the Filed row is omitted).
- */
-function CompletedKeyDates({
-  row,
-  auditEvents,
-}: {
-  row: ObligationQueueRow
-  auditEvents: readonly AuditEventPublic[]
-}) {
-  const { t } = useLingui()
-  const [filedAt, completedAt] = useMemo(() => {
-    let filed: string | null = null
-    let completed: string | null = null
-    for (const event of auditEvents) {
-      if (event.action !== 'status_changed') continue
-      if (typeof event.afterJson !== 'object' || event.afterJson === null) continue
-      const after = (event.afterJson as { status?: unknown }).status
-      if (typeof after !== 'string') continue
-      if (after === 'done' && !filed) filed = event.createdAt
-      if (after === 'completed' && !completed) completed = event.createdAt
-    }
-    return [filed, completed]
-  }, [auditEvents])
-  const turnaroundDays = useMemo(() => {
-    if (!completedAt) return null
-    return daysBetween(row.createdAt, completedAt)
-  }, [row.createdAt, completedAt])
-  const rows: Array<{ label: string; value: string }> = [
-    { label: t`Opened`, value: formatDate(row.createdAt.slice(0, 10)) },
-  ]
-  if (filedAt) rows.push({ label: t`Filed`, value: formatDate(filedAt.slice(0, 10)) })
-  if (completedAt) rows.push({ label: t`Completed`, value: formatDate(completedAt.slice(0, 10)) })
-  return (
-    // 2026-05-26 (Yuqi feedback — "too many lines"): dropped the
-    //   `rounded-md border border-divider-regular bg-background-subtle p-3`
-    //   chrome on this inner panel. It sat INSIDE the already-tinted
-    //   `ActiveStageDetailCard` and was painting a redundant rule
-    //   right beneath the card's own outline. The KEY DATES uppercase
-    //   tag + the gap-y-1 dl below carry enough section grouping on
-    //   their own — no frame needed. The consumer call site wraps
-    //   this in `<div className="mt-3">`, so no margin is needed
-    //   here.
-    <div>
-      <p className="mb-1.5 text-caption-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
-        <Trans>Key dates</Trans>
-      </p>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-        {rows.map((r) => (
-          <Fragment key={r.label}>
-            <dt className="text-text-tertiary">{r.label}</dt>
-            <dd className="text-right tabular-nums text-text-primary">{r.value}</dd>
-          </Fragment>
-        ))}
-        {turnaroundDays !== null ? (
-          <>
-            <dt className="text-text-tertiary">
-              <Trans>Cycle time</Trans>
-            </dt>
-            <dd className="text-right tabular-nums text-text-secondary">
-              <Plural value={turnaroundDays} one="# day" other="# days" />
-            </dd>
-          </>
-        ) : null}
-      </dl>
-    </div>
-  )
-}
 
 function ActiveStageDetailCard({
   row,
@@ -10799,7 +10141,7 @@ function ActiveStageDetailCard({
         </h3>
         {stageEnteredAt ? (
           <p className="text-xs text-text-tertiary">
-            <Trans>Entered {formatDate(stageEnteredAt.slice(0, 10))}</Trans>
+            <Trans>Entered {formatDatePretty(stageEnteredAt.slice(0, 10))}</Trans>
           </p>
         ) : null}
       </header>
@@ -10830,7 +10172,7 @@ function ActiveStageDetailCard({
           <div className="flex flex-col gap-0.5 leading-snug">
             <p className="font-medium text-text-destructive">
               <Trans>
-                Filing was due {formatDate(row.currentDueDate.slice(0, 10))} —{' '}
+                Filing was due {formatDatePretty(row.currentDueDate.slice(0, 10))} —{' '}
                 <Plural value={daysPastDeadline} one="# day" other="# days" /> past deadline.
               </Trans>
             </p>
@@ -11360,29 +10702,58 @@ function PenaltyInputDialog({
             {row ? `${row.clientName} - ${formatTaxCode(row.taxType)}` : null}
           </DialogDescription>
         </DialogHeader>
+        {/* 2026-05-26 (step-6 ux-flow audit Q5.1/Q5.2): added real
+            <label> elements (placeholder alone disappears on type)
+            and inline helper text describing accepted formats. */}
         <div className="grid gap-3">
-          <Input
-            inputMode="decimal"
-            placeholder={t`Estimated tax due`}
-            value={draft.taxDue}
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, taxDue: event.target.value }))
-            }
-          />
-          <Input
-            inputMode="numeric"
-            placeholder={t`Owner count`}
-            value={draft.ownerCount}
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, ownerCount: event.target.value }))
-            }
-          />
+          <div className="grid gap-1.5">
+            <label htmlFor="penalty-tax-due" className="text-sm font-medium">
+              <Trans>Estimated tax due</Trans>
+            </label>
+            <Input
+              id="penalty-tax-due"
+              inputMode="decimal"
+              placeholder={t`e.g. 1,234.56`}
+              value={draft.taxDue}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, taxDue: event.target.value }))
+              }
+            />
+            <p className="text-xs text-text-tertiary">
+              <Trans>Dollars and cents.</Trans>
+            </p>
+          </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="penalty-owner-count" className="text-sm font-medium">
+              <Trans>Owner count</Trans>
+            </label>
+            <Input
+              id="penalty-owner-count"
+              inputMode="numeric"
+              placeholder={t`e.g. 2`}
+              value={draft.ownerCount}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, ownerCount: event.target.value }))
+              }
+            />
+            <p className="text-xs text-text-tertiary">
+              <Trans>Positive whole number.</Trans>
+            </p>
+          </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             <Trans>Cancel</Trans>
           </Button>
-          <Button onClick={save} disabled={mutation.isPending}>
+          {/* 2026-05-26 (step-6 ux-flow audit Q5.3): disable save
+              when both inputs are empty (no-op write polluted the
+              audit log). */}
+          <Button
+            onClick={save}
+            disabled={
+              mutation.isPending || (draft.taxDue.trim() === '' && draft.ownerCount.trim() === '')
+            }
+          >
             <Trans>Save changes</Trans>
           </Button>
         </DialogFooter>
@@ -11445,12 +10816,19 @@ function ObligationQueueSearchControl({
     // toolbar couldn't tell it was a tappable affordance.
     // Promoted to `outline` variant so the icon button has a
     // visible bordered chip on the toolbar.
+    // 2026-05-26 (Yuqi step-8 data-finding audit — F-X05): collapsed
+    // magnifier now announces "Filter deadlines" instead of "Filter
+    // clients". The input matches client name + obligation title +
+    // rule name; the prior label understated its reach AND drifted
+    // from the expanded state's `ariaLabel="Filter deadlines"`,
+    // meaning screen reader users heard two different names for the
+    // same control depending on which state it was in.
     return (
       <Button
         variant="outline"
         size="icon-sm"
-        aria-label={t`Filter clients`}
-        title={t`Filter clients  ·  press / to focus`}
+        aria-label={t`Filter deadlines`}
+        title={t`Filter deadlines  ·  press / to focus`}
         onClick={() => {
           setOpen(true)
           requestAnimationFrame(() => inputRef.current?.focus())
@@ -11471,11 +10849,17 @@ function ObligationQueueSearchControl({
   // surface needs room).
   return (
     <div className="relative mb-1.5 w-full md:w-56 md:flex-none">
+      {/* 2026-05-26 (Yuqi step-8 data-finding audit — F-X05): placeholder
+          changed "Filter clients" → "Filter deadlines" to align with
+          the expanded state's ariaLabel and the collapsed-state
+          aria-label. The input matches client name + obligation title
+          + rule name; the prior placeholder named just one of those
+          axes which understated the input's reach. */}
       <SearchInput
         ref={inputRef}
         value={value}
         onChange={onChange}
-        placeholder={t`Filter clients`}
+        placeholder={t`Filter deadlines`}
         ariaLabel={t`Filter deadlines`}
         onFocus={() => setOpen(true)}
         onBlur={() => {
@@ -11602,7 +10986,7 @@ function ObligationQueueActionChip({
 // state. A re-home is parked behind the design brainstorm; the
 // `updateBlockedBy` RPC procedure stays on the server.
 
-function EmptyState({
+function ObligationQueueEmptyState({
   onOpenWizard,
   canRunMigration,
   hasActiveFilters,
@@ -11618,7 +11002,7 @@ function EmptyState({
   // workspace may very well have data hidden by the filter).
   // Without filters: import-clients CTA (workspace is genuinely empty).
   return (
-    <SharedEmptyState
+    <EmptyState
       title={
         hasActiveFilters ? (
           <Trans>No deadlines match these filters.</Trans>
@@ -11708,7 +11092,7 @@ function CalendarSyncPopover() {
       {open ? (
         <div
           aria-hidden
-          className="fixed inset-0 z-40 bg-black/30"
+          className="fixed inset-0 z-40 bg-background-overlay-backdrop"
           onClick={() => setOpen(false)}
         />
       ) : null}
@@ -11777,7 +11161,11 @@ function CalendarSyncPopover() {
                 size="sm"
                 onClick={() => upsertMutation.mutate({ scope: 'my', privacyMode: 'full' })}
                 disabled={upsertMutation.isPending}
+                aria-busy={upsertMutation.isPending}
               >
+                {upsertMutation.isPending ? (
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                ) : null}
                 <Trans>Enable subscription</Trans>
               </Button>
             </div>

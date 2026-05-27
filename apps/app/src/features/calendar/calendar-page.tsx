@@ -8,6 +8,7 @@ import {
   CopyIcon,
   ExternalLinkIcon,
   LinkIcon,
+  Loader2,
   RefreshCwIcon,
   ShieldIcon,
   UnlinkIcon,
@@ -268,8 +269,14 @@ export function CalendarPage() {
                 }
               }}
             >
+              {/* 2026-05-26 (step-6 ux-flow audit F7.3): added
+                  Loader2 spinner on the pending Regenerate action
+                  so the user has a visible signal. */}
               {regenerateMutation.isPending ? (
-                <Trans>Regenerating…</Trans>
+                <>
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Trans>Regenerating…</Trans>
+                </>
               ) : (
                 <Trans>Regenerate URL</Trans>
               )}
@@ -335,7 +342,16 @@ export function CalendarPage() {
                 }
               }}
             >
-              {disableMutation.isPending ? <Trans>Disabling…</Trans> : <Trans>Disable feed</Trans>}
+              {/* 2026-05-26 (step-6 ux-flow audit F7.4): Loader2
+                  spinner on the pending Disable action. */}
+              {disableMutation.isPending ? (
+                <>
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Trans>Disabling…</Trans>
+                </>
+              ) : (
+                <Trans>Disable feed</Trans>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -354,7 +370,10 @@ export function CalendarPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 text-sm text-text-secondary md:grid-cols-3">
-          <IntegrationNote title={t`Google Calendar`} body={t`Other calendars -> From URL`} />
+          {/* 2026-05-26 (step-6 ux-flow audit F7.2): replaced
+              ASCII `->` with the proper Unicode arrow `→` for
+              consistency with the rest of the app's typography. */}
+          <IntegrationNote title={t`Google Calendar`} body={t`Other calendars → From URL`} />
           <IntegrationNote title={t`Apple Calendar`} body={t`Open the Apple Calendar link`} />
           <IntegrationNote title={t`Outlook`} body={t`Subscribe from web calendar URL`} />
         </CardContent>
@@ -474,12 +493,12 @@ function CalendarSubscriptionCard({
                 them. */}
             <div className="grid gap-1 rounded-md border border-divider-regular bg-background-subtle p-3">
               {subscription ? (
-                <MetadataRow
+                <IntegrationKeyValueRow
                   label={t`Privacy mode`}
                   value={privacyMode === 'full' ? t`Full client names` : t`Redacted client names`}
                 />
               ) : null}
-              <MetadataRow
+              <IntegrationKeyValueRow
                 label={t`Created`}
                 value={
                   subscription
@@ -487,7 +506,7 @@ function CalendarSubscriptionCard({
                     : t`Not enabled`
                 }
               />
-              <MetadataRow
+              <IntegrationKeyValueRow
                 label={t`Last accessed`}
                 value={
                   subscription?.lastAccessedAt
@@ -593,7 +612,7 @@ function CalendarSubscriptionRedactedContent() {
   )
 }
 
-function MetadataRow({ label, value }: { label: string; value: string }) {
+function IntegrationKeyValueRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3 text-sm">
       <span className="text-text-tertiary">{label}</span>

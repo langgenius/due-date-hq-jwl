@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AlertTriangleIcon, CheckCircle2Icon, ChevronDownIcon, ShieldCheckIcon } from 'lucide-react'
 
@@ -14,6 +14,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 
 import type { NormalizeState } from './state'
 import type { MatrixApplicationView } from './matrix-view'
+import { SummaryMetric } from './SummaryMetric'
 import {
   buildMatrixSummary,
   buildNormalizationSummary,
@@ -56,10 +57,15 @@ export function Step3Normalize({
   const matrixSummary = useMemo(() => buildMatrixSummary(matrix), [matrix])
 
   return (
-    <div className="flex flex-col gap-5 py-5">
+    <div className="flex flex-col gap-4 py-5">
       <div className="flex flex-col gap-1">
+        {/* 2026-05-26 (Step 7 onboarding audit F6-16): "cleaned"
+            implied the source data was dirty — a passive
+            criticism of the user's roster. "Standardized" is
+            neutral and matches the step's own name
+            ("Normalize") with no value judgment. */}
         <h2 className="text-lg font-semibold text-text-primary">
-          <Trans>AI cleaned your values</Trans>
+          <Trans>AI standardized your values</Trans>
         </h2>
         <p className="text-sm text-text-secondary">
           <Trans>
@@ -170,17 +176,6 @@ export function Step3Normalize({
   )
 }
 
-function SummaryMetric({ label, value }: { label: ReactNode; value: ReactNode }) {
-  return (
-    <div className="min-h-20 rounded-lg border border-divider-regular bg-background-section px-3 py-2">
-      <div className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
-        {label}
-      </div>
-      <div className="mt-2 text-lg font-semibold text-text-primary">{value}</div>
-    </div>
-  )
-}
-
 function ValueGroupsSection({
   groups,
   expanded,
@@ -239,7 +234,7 @@ function ValueGroupRow({ group }: { group: NormalizationValueGroup }) {
       )}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
+        <span className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
           {formatFieldLabel(group.field, t)}
         </span>
         <span className="text-text-tertiary">·</span>
@@ -400,17 +395,26 @@ function MatrixControls({
           return (
             <li key={key} className="flex flex-col gap-2 py-3">
               <div className="flex items-center justify-between gap-3">
-                <span className="flex items-center gap-2 text-md text-text-primary">
+                <span className="flex items-center gap-2 text-base text-text-primary">
                   <span className="font-mono text-xs uppercase tracking-wider text-text-tertiary">
                     {cell.entityType} × {cell.state}
                   </span>
                   <span className="text-text-tertiary">·</span>
                   <Plural value={cell.appliedClientCount} one="# client" other="# clients" />
                 </span>
+                {/* 2026-05-26 (Step 7 onboarding audit F6-18):
+                    the checkbox label said "Use suggested
+                    filings" with no consequence on uncheck. A
+                    user toggling without a known outcome
+                    spirals into anxiety. Added a title-attr
+                    hint that says what unchecking means
+                    (skip these defaults, manual deadlines
+                    later for these clients). */}
                 <label
                   className="inline-flex cursor-pointer items-center gap-2 text-xs text-text-secondary"
                   data-apply-to-all-key={key}
                   aria-keyshortcuts="A"
+                  title={t`Uncheck to skip these tax-type defaults. You'll need to add deadlines manually for these clients.`}
                 >
                   <Checkbox checked={checked} onCheckedChange={(value) => onToggle(key, value)} />
                   <Trans>Use suggested filings</Trans>
@@ -431,7 +435,18 @@ function MatrixControls({
                   promptVersion={`matrix@${cell.matrixVersion}`}
                 />
                 {cell.needsReview ? (
-                  <span className="inline-flex h-5 items-center gap-1 rounded-md border border-divider-regular bg-components-badge-bg-warning-soft px-1.5 text-xs text-text-primary">
+                  /* 2026-05-26 (Step 7 onboarding audit F6-17):
+                     the "Needs review" badge used the same calm
+                     soft-warning chrome as the adjacent
+                     "Verified" badge — so the two were visually
+                     near-identical even though "needs review"
+                     is an action requirement and "verified" is
+                     a footnote. Strengthened the warning treatment
+                     with a non-divider border so it actually
+                     reads as "you should look at this", while
+                     "Verified" keeps the calmer treatment as a
+                     passing reassurance. */
+                  <span className="inline-flex h-5 items-center gap-1 rounded-md border border-state-warning-hover-alt bg-components-badge-bg-warning-soft px-1.5 text-xs font-medium text-text-primary">
                     <AlertTriangleIcon className="size-3" aria-hidden />
                     <Trans>Needs review</Trans>
                   </span>

@@ -24,6 +24,7 @@ import {
 } from '@duedatehq/ui/components/ui/sheet'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
+import { EmptyState } from '@/components/patterns/empty-state'
 import { orpc } from '@/lib/rpc'
 import { formatCents, formatDateTimeWithTimezone } from '@/lib/utils'
 import { buildAuditChangeView } from '@/features/audit/audit-change-view'
@@ -98,7 +99,7 @@ function EvidenceDrawer({
           </SheetTitle>
           <SheetDescription>{request?.label ?? <Trans>Deadline evidence</Trans>}</SheetDescription>
         </SheetHeader>
-        <div className="grid gap-5 px-6 pb-6">
+        <div className="grid gap-4 px-6 pb-6">
           <EvidenceSummary request={request} />
           <EvidenceTimeline
             evidence={evidenceQuery.data?.evidence ?? []}
@@ -138,7 +139,13 @@ function EvidenceTimeline({
   return (
     <section className="grid gap-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        {/* 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN §9
+            "uppercase kicker deprecated" violation): swapped
+            `text-xs uppercase tracking-wider text-text-tertiary` for
+            the canonical `text-sm font-medium text-text-secondary`
+            section heading. Two h3s in this file (this one + L612-ish)
+            were the same shape — fixed by replace_all. */}
+        <h3 className="text-sm font-medium text-text-secondary">
           <Trans>What this evidence says</Trans>
         </h3>
         <Badge variant="outline">{evidence.length}</Badge>
@@ -149,9 +156,7 @@ function EvidenceTimeline({
           <Skeleton className="h-20 w-full" />
         </div>
       ) : evidence.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-secondary">
-          <Trans>No evidence linked yet</Trans>
-        </div>
+        <EmptyState title={<Trans>No evidence linked yet</Trans>} />
       ) : (
         <div className="grid gap-3">
           {evidence.map((item) => (
@@ -261,9 +266,15 @@ function EvidenceSourceIcon({ sourceType }: { sourceType: string }) {
 
 function evidenceSourceLabel(sourceType: string): ReactNode {
   if (sourceType === 'verified_rule') return <Trans>Active practice rule</Trans>
-  if (sourceType === 'ai_mapper') return <Trans>Import mapping</Trans>
-  if (sourceType === 'ai_normalizer') return <Trans>Import cleanup</Trans>
-  if (sourceType === 'readiness_checklist_ai') return <Trans>Materials checklist</Trans>
+  // 2026-05-26 (Step 9 AI Visibility Audit F-011): "AI" prefix
+  // restored to the user-facing labels. The previous labels dropped
+  // the word AI from the most prominent provenance disclosure on
+  // this surface — readers without icon-literacy lost the cue
+  // entirely. The SparklesIcon stays as the icon affordance, but
+  // the label now reads the provenance honestly.
+  if (sourceType === 'ai_mapper') return <Trans>AI import mapping</Trans>
+  if (sourceType === 'ai_normalizer') return <Trans>AI import cleanup</Trans>
+  if (sourceType === 'readiness_checklist_ai') return <Trans>AI materials checklist</Trans>
   if (sourceType === 'readiness_client_response') return <Trans>Client response</Trans>
   if (sourceType === 'penalty_override') return <Trans>Penalty input</Trans>
   if (sourceType === 'extension_decision') return <Trans>Extension decision</Trans>
@@ -611,7 +622,13 @@ function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loadin
   return (
     <section className="grid gap-3">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        {/* 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN §9
+            "uppercase kicker deprecated" violation): swapped
+            `text-xs uppercase tracking-wider text-text-tertiary` for
+            the canonical `text-sm font-medium text-text-secondary`
+            section heading. Two h3s in this file (this one + L612-ish)
+            were the same shape — fixed by replace_all. */}
+        <h3 className="text-sm font-medium text-text-secondary">
           <Trans>Audit timeline</Trans>
         </h3>
         <Badge variant="outline">{events.length}</Badge>
@@ -619,9 +636,7 @@ function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loadin
       {loading ? (
         <Skeleton className="h-20 w-full" />
       ) : events.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-divider-regular p-4 text-sm text-text-secondary">
-          <Trans>No audit events recorded for this deadline.</Trans>
-        </div>
+        <EmptyState title={<Trans>No audit events recorded for this deadline.</Trans>} />
       ) : (
         <div className="grid gap-3">
           {events.map((event) => {

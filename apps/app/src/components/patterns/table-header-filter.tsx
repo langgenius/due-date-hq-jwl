@@ -94,7 +94,7 @@ function TableHeaderMultiFilter({
         {selectedCount > 0 ? (
           <Badge
             variant="outline"
-            className="h-4 border-state-accent-solid px-1.5 font-mono text-text-accent tabular-nums"
+            className="h-4 border-state-accent-solid px-1.5 text-text-accent tabular-nums"
           >
             {selectedCount}
           </Badge>
@@ -162,7 +162,7 @@ function TableHeaderMultiFilter({
               >
                 <span className="truncate">{option.label}</span>
                 {option.count !== undefined ? (
-                  <span className="ml-auto pr-2 font-mono text-xs tabular-nums text-text-tertiary">
+                  <span className="ml-auto pr-2 text-xs tabular-nums text-text-tertiary">
                     {option.count}
                   </span>
                 ) : null}
@@ -192,7 +192,7 @@ function tableHeaderFilterTrigger({
       // 2026-05-26 (Yuqi /deadlines #5): dropped explicit
       // `text-xs font-medium tracking-wider uppercase text-text-tertiary`
       // — those should INHERIT from the parent <th>'s Table primitive
-      // styles (which set `text-xs font-medium tracking-[0.08em]
+      // styles (which set `text-xs font-medium tracking-eyebrow
       // uppercase text-text-tertiary`). Setting them locally with
       // `tracking-wider` (=0.05em) made the Client column header
       // render at a slightly different letter-spacing than the
@@ -202,7 +202,7 @@ function tableHeaderFilterTrigger({
     >
       <span className="truncate">{label}</span>
       {activeCount > 0 ? (
-        <Badge variant="outline" className="h-4 px-1.5 font-mono text-caption-xs tabular-nums">
+        <Badge variant="outline" className="h-4 px-1.5 text-caption-xs tabular-nums">
           {activeCount}
         </Badge>
       ) : null}

@@ -7,6 +7,7 @@ import {
   BellIcon,
   CheckCircle2Icon,
   Edit3Icon,
+  Loader2,
   MailWarningIcon,
   PauseCircleIcon,
   SendIcon,
@@ -50,6 +51,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
+import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -386,9 +388,9 @@ function UpcomingPanel({
             <Trans>Loading upcoming reminders…</Trans>
           </p>
         ) : reminders.length === 0 ? (
-          <p className="rounded-md border border-divider-subtle p-4 text-sm text-text-secondary">
-            <Trans>No upcoming reminders match the current 30 / 7-day windows.</Trans>
-          </p>
+          <EmptyState
+            title={<Trans>No upcoming reminders match the current 30 / 7-day windows.</Trans>}
+          />
         ) : (
           <Table>
             <TableHeader>
@@ -632,10 +634,14 @@ function TemplateDialog({
             <span className="font-medium text-text-primary">
               <Trans>Body</Trans>
             </span>
+            {/* 2026-05-26 (step-6 ux-flow audit F5.2): retired
+                font-mono on the reminder email body — email-template
+                copy is human prose, not code. Matches the recent
+                font-mono purge passes. */}
             <Textarea
               value={bodyText}
               onChange={(event) => setBodyText(event.target.value)}
-              className="min-h-40 font-mono"
+              className="min-h-40"
             />
           </label>
           <label className="flex items-center justify-between gap-4 rounded-md border border-divider-subtle p-3 text-sm">
@@ -652,10 +658,20 @@ function TemplateDialog({
             <Switch checked={active} onCheckedChange={setActive} />
           </label>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            {/* 2026-05-26 (step-6 ux-flow audit F5.1/F5.3): cancel
+                outline → ghost; save announces aria-busy + shows
+                Loader2 spinner while pending. */}
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               <Trans>Cancel</Trans>
             </Button>
-            <Button type="submit" disabled={updateTemplate.isPending}>
+            <Button
+              type="submit"
+              disabled={updateTemplate.isPending}
+              aria-busy={updateTemplate.isPending}
+            >
+              {updateTemplate.isPending ? (
+                <Loader2 data-icon="inline-start" className="animate-spin" />
+              ) : null}
               <Trans>Save template</Trans>
             </Button>
           </DialogFooter>

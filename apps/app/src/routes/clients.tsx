@@ -401,9 +401,19 @@ export function ClientsRoute() {
           <AlertDescription>
             {rpcErrorMessage(clientsQuery.error) ??
               t`Check your network and try again. If this keeps happening, contact support.`}{' '}
-            <button type="button" className="underline" onClick={() => void clientsQuery.refetch()}>
+            {/* 2026-05-26 (Step 6 UX audit #64): retry uses the canonical
+                `<Button variant="link">` instead of an ad-hoc
+                `<button className="underline">`. Same fix as the
+                dashboard error-alert in /today (Step 6 #30). */}
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto p-0 align-baseline"
+              onClick={() => void clientsQuery.refetch()}
+            >
               <Trans>Retry</Trans>
-            </button>
+            </Button>
           </AlertDescription>
         </Alert>
       ) : null}

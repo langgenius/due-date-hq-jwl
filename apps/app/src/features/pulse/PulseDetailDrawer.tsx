@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import {
-  Astroid,
-  CheckCircle2Icon,
+  ArrowRightIcon,
+  ExternalLinkIcon,
   MailIcon,
   MessageSquareIcon,
   RotateCcwIcon,
@@ -18,6 +18,7 @@ import { planHasFeature } from '@duedatehq/core/plan-entitlements'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -41,24 +42,21 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { formatDate } from '@/lib/utils'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
+import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
 import { AffectedClientsTable } from './components/AffectedClientsTable'
-import { isVeryLowPulseConfidence } from './components/PulseConfidenceBadge'
+// Step 9 retired `PulseConfidenceBadge` in favor of the canonical
+// `aiConfidenceTier` / `isLowAiConfidence` helpers imported above.
+// `PulseConfidencePill` kept — still rendered in the drawer header.
+import { PulseConfidencePill } from './components/PulseConfidencePill'
 import { PulseReasonDialog } from './components/PulseReasonDialog'
 import { PulseSourceBadge } from './components/PulseSourceBadge'
 import { PulseSourceStatusBadge } from './components/PulseSourceStatusBadge'
 import { PulseStatusBadge } from './components/PulseStatusBadge'
 import { PulseStructuredFields } from './components/PulseStructuredFields'
-// PulsingDot + pulseAlertTone helpers retained for any future
-// usage; no current consumer in this file (drawer header dot
-// removed 2026-05-26 per Yuqi /rules/pulse #3).
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import {
-  pulseAlertTone as _pulseAlertTone,
-  pulseAlertToneLabel as _pulseAlertToneLabel,
-} from './pulse-alert-tone'
 import {
   usePulseInvalidation,
   usePulseDetailQueryOptions,
@@ -212,6 +210,16 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
   // The PDF guide flags reason-on-override as a core audit requirement.
   const [reasonAction, setReasonAction] = useState<'dismiss' | 'snooze' | 'reviewed' | null>(null)
   const [reasonText, setReasonText] = useState('')
+  // 2026-05-26 (F-041 — Pulse deadline-shift verification gate):
+  // Apply on a `due_date_overlay` alert opens a confirmation dialog
+  // that surfaces the AI-extracted dates, source excerpt, and a
+  // direct link to the official source. The CPA must tick "I have
+  // verified against the source" before the mutation fires. AI
+  // hallucinating a deadline shift = files late or early — the
+  // highest-liability failure mode in the product — so the Apply
+  // path now requires one explicit acknowledgement step.
+  const [applyVerificationOpen, setApplyVerificationOpen] = useState(false)
+  const [applyVerified, setApplyVerified] = useState(false)
 
   // Re-derive default selection when the loaded alert changes — without
   // useEffect, per project rule. Render-time setState bails out after one update.
@@ -234,6 +242,8 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
     setExcludedIds(new Set(priorityReview?.excludedObligationIds ?? []))
     setReviewDialogOpen(false)
     setReviewNote('')
+    setApplyVerificationOpen(false)
+    setApplyVerified(false)
     setResetKey(nextResetKey)
   }
   if (!open && resetKey !== null) {
@@ -242,6 +252,8 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
     setExcludedIds(new Set())
     setReviewDialogOpen(false)
     setReviewNote('')
+    setApplyVerificationOpen(false)
+    setApplyVerified(false)
     setResetKey(null)
   }
 
@@ -410,8 +422,14 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
         setReviewNote('')
         void queryClient.invalidateQueries({ queryKey: orpc.notifications.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.pulse.key() })
+        // 2026-05-26 (Step 6 UX audit #96): future tense "will be
+        // sent" suggested an action that hadn't happened yet, even
+        // though the API call already completed and queued the
+        // notifications server-side. Rephrased as a present-perfect
+        // status ("queued for…") so the toast describes the
+        // ACTUAL state of the world at toast-render time.
         toast.success(t`Review requested`, {
-          description: t`Owner and manager notifications and emails will be sent.`,
+          description: t`Notifications queued for owners and managers.`,
         })
       },
       onError: (err) => {
@@ -470,7 +488,28 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
     revertMutation.isPending ||
     snoozeMutation.isPending
 
+  // F-041 — Pulse deadline-shift Apply now opens a verification gate
+  // BEFORE firing the mutation. The CPA must read the official
+  // source excerpt + click "verified" to acknowledge they checked
+  // the new date against the authority. AI hallucinating a date is
+  // the highest-liability failure mode (firm files late/early), so
+  // the Apply path acquires one explicit confirmation step. The
+  // gate only matters for `due_date_overlay` mode — `review_only`
+  // alerts route through `onMarkReviewed` in the footer
+  // (DrawerActions L1154), which has its own reason-capture flow.
   const handleApply = () => {
+    if (!detail) return
+    setApplyVerified(false)
+    setApplyVerificationOpen(true)
+  }
+
+  // The verification dialog stays open during the mutation so the
+  // user retains context if the request fails (server-side conflict,
+  // network blip). On success the upstream `applyMutation.onSuccess`
+  // calls `onClose()` which closes the drawer; the close-handler
+  // reset block clears `applyVerificationOpen` + `applyVerified` so
+  // the next alert opens with a fresh gate.
+  const runApply = () => {
     if (!detail) return
     applyMutation.mutate({
       alertId: detail.alert.id,
@@ -530,16 +569,19 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
           //    healthy confidence it stays here as a quiet info
           //    chip.
           (() => {
-            const lowConfidence = isVeryLowPulseConfidence(detail.alert.confidence)
             // 2026-05-26 (Yuqi /rules/pulse third pass #7): drawer now
             // uses the same LOW/MEDIUM/HIGH qualitative confidence
             // badges as the PulseAlertCard, so the two surfaces match.
             // Previously the drawer header rendered the numeric
             // `AI 96%` PulseConfidenceBadge while the list card read
             // "HIGH CONFIDENCE" — same alert showed two different
-            // confidence shapes side-by-side. Thresholds match the
-            // card: < 0.5 LOW, 0.5–0.85 MEDIUM, ≥ 0.85 HIGH.
-            const mediumConfidence = !lowConfidence && detail.alert.confidence < 0.85
+            // confidence shapes side-by-side.
+            // 2026-05-26 (Step 9 AI Visibility Audit F-002): tier
+            // classification now goes through the canonical helper
+            // so the threshold ladder is product-wide consistent.
+            const tier = aiConfidenceTier(detail.alert.confidence)
+            const lowConfidence = tier === 'low'
+            const mediumConfidence = tier === 'medium'
             return (
               // 2026-05-26 (Yuqi /rules/pulse #3): removed the leading
               // PulsingDot. Yuqi flagged "where does this dot come
@@ -649,17 +691,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                           collision with the Applied / Reviewed
                           status pills). */}
                     {!lowConfidence ? (
-                      mediumConfidence ? (
-                        <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full border border-divider-subtle bg-background-section px-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
-                          <Astroid className="size-3" aria-hidden />
-                          <Trans>Medium</Trans>
-                        </span>
-                      ) : (
-                        <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-state-info-hover px-2 text-xs font-medium uppercase tracking-wide text-text-accent">
-                          <Astroid className="size-3" aria-hidden />
-                          <Trans>High</Trans>
-                        </span>
-                      )
+                      <PulseConfidencePill confidence={mediumConfidence ? 'medium' : 'high'} />
                     ) : null}
                   </div>
                 </div>
@@ -795,7 +827,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                   toward the wrong mental model (data is wrong vs.
                   data needs verification). Amber matches the
                   semantics. */}
-            {isVeryLowPulseConfidence(detail.alert.confidence) ? (
+            {isLowAiConfidence(detail.alert.confidence) ? (
               // 2026-05-26 (Yuqi eighteenth pass): icon removed from
               // this Alert. With the icon gone the Alert primitive
               // falls back to its non-icon layout (single column),
@@ -983,6 +1015,30 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
     />
   ) : null
 
+  // F-041 — verification gate. Surfaces the AI-extracted dates +
+  // verbatim source excerpt + a direct link to the official source,
+  // and requires the CPA to tick a "verified" checkbox before the
+  // Apply mutation can fire. Mounted in both panel and sheet modes
+  // so the gate is consistent across the off-route Sheet drawer
+  // and the inline /rules/pulse panel.
+  const applyVerificationDialog = detail ? (
+    <PulseApplyVerificationDialog
+      open={applyVerificationOpen}
+      detail={detail}
+      verified={applyVerified}
+      pending={applyMutation.isPending}
+      selectedCount={stats?.selectedCount ?? 0}
+      onChangeVerified={setApplyVerified}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          setApplyVerificationOpen(false)
+          setApplyVerified(false)
+        }
+      }}
+      onConfirm={runApply}
+    />
+  ) : null
+
   // Panel mode — inline page-column aside. No backdrop, no
   // viewport-fixed positioning, no Sheet/SheetContent wrappers.
   // The h2 inside the body satisfies a11y. The dialogs still
@@ -1019,7 +1075,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
           // list column. `overflow-hidden` retained on the aside
           // so the sticky header/footer don't bleed into the
           // body's scroll surface.
-          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-[-4px_0_12px_-6px_rgb(0_0_0_/_0.08)]"
+          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-subtle"
         >
           <button
             type="button"
@@ -1033,6 +1089,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
         </aside>
         {reviewRequestDialog}
         {reasonDialog}
+        {applyVerificationDialog}
       </>
     )
   }
@@ -1058,100 +1115,8 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
       </SheetContent>
       {reviewRequestDialog}
       {reasonDialog}
+      {applyVerificationDialog}
     </Sheet>
-  )
-}
-
-/**
- * Inline "Suggested next step" hint inside the drawer body.
- *
- * 2026-05-25 (Yuqi #24): used to show TWO cards — "Apply deadline
- * exception" AND "Prepare client draft" (with Copy + Request review
- * buttons). The Copy / Request review actions also live in the
- * persistent footer `<DrawerActions>`, so they appeared twice on
- * the same screen. Dropped the "Prepare client draft" card —
- * Copy / Request review remain available in the footer; this
- * surface now only shows the ONE contextual hint that depends on
- * selection state (apply / mark-reviewed).
- */
-// 2026-05-26 (Yuqi sixteenth pass #6): retained as orphaned code
-// for reference. The original inline action panel was retired
-// because its actions duplicated the sticky SheetFooter
-// (DrawerActions); the body now relies on the footer alone.
-// Underscore prefix silences `no-unused-vars` without losing the
-// reference implementation.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _SuggestedActionsPanel({
-  selectionCount,
-  actionMode,
-  canApply,
-  sourceRevoked,
-  isClosed,
-  isMutating,
-  onApply,
-  onMarkReviewed,
-}: {
-  selectionCount: number
-  actionMode: PulseDetail['alert']['actionMode']
-  canApply: boolean
-  sourceRevoked: boolean
-  isClosed: boolean
-  isMutating: boolean
-  onApply: () => void
-  onMarkReviewed: () => void
-}) {
-  const reviewOnly = actionMode === 'review_only'
-  const applyDisabled =
-    !canApply || isMutating || isClosed || sourceRevoked || selectionCount === 0 || reviewOnly
-  return (
-    <article className="flex items-start gap-3 rounded-md border border-divider-subtle bg-background-default p-3">
-      <span
-        aria-hidden
-        className="inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-state-accent-hover text-text-accent"
-      >
-        <CheckCircle2Icon className="size-4" />
-      </span>
-      <div className="grid min-w-0 flex-1 gap-2">
-        <div className="grid gap-0.5">
-          <h4 className="text-sm font-semibold text-text-primary">
-            {reviewOnly ? (
-              <Trans>Review source change</Trans>
-            ) : (
-              <Trans>Apply deadline exception</Trans>
-            )}
-          </h4>
-          <p className="text-sm text-text-secondary">
-            {reviewOnly ? (
-              <Trans>Review the official source and mark this Pulse reviewed when complete.</Trans>
-            ) : selectionCount === 0 ? (
-              <Trans>Select eligible deadlines above before applying.</Trans>
-            ) : (
-              <Plural
-                value={selectionCount}
-                one="# selected deadline will get the temporary due-date exception."
-                other="# selected deadlines will get the temporary due-date exception."
-              />
-            )}
-          </p>
-        </div>
-        <Button
-          size="sm"
-          disabled={
-            reviewOnly ? !canApply || isMutating || isClosed || sourceRevoked : applyDisabled
-          }
-          onClick={reviewOnly ? onMarkReviewed : onApply}
-          className="w-fit"
-        >
-          {reviewOnly ? (
-            <Trans>Mark reviewed</Trans>
-          ) : selectionCount === 0 ? (
-            <Trans>Select deadlines</Trans>
-          ) : (
-            <Plural value={selectionCount} one="Apply to # deadline" other="Apply to # deadlines" />
-          )}
-        </Button>
-      </div>
-    </article>
   )
 }
 
@@ -1321,7 +1286,7 @@ function ManagerReviewPanel({
     <section className="grid gap-3 rounded-md border border-divider-subtle bg-background-section p-3">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h3 className="text-md font-semibold text-text-primary">
+          <h3 className="text-base font-semibold text-text-primary">
             <Trans>Manager review</Trans>
           </h3>
           {reviewStatus ? (
@@ -1330,7 +1295,7 @@ function ManagerReviewPanel({
             </Badge>
           ) : null}
         </div>
-        <span className="font-mono text-xs tabular-nums text-text-tertiary">
+        <span className="text-xs tabular-nums text-text-tertiary">
           <Trans>
             {selectedCount} selected · {excludedCount} excluded
           </Trans>
@@ -1429,6 +1394,176 @@ function PulseReviewRequestDialog({
             </Button>
             <Button type="submit" disabled={pending}>
               {pending ? <Trans>Sending…</Trans> : <Trans>Send request</Trans>}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/**
+ * 2026-05-26 (F-041 — Pulse deadline-shift verification gate).
+ *
+ * Confirmation dialog that intercepts the Apply mutation on a
+ * `due_date_overlay` alert. Surfaces the three artifacts the CPA
+ * needs to verify the AI was right:
+ *   1. The deadline shift the AI proposes (old → new, warning tone).
+ *   2. The verbatim source excerpt the AI extracted from.
+ *   3. A direct link to the official source authority page so the
+ *      CPA can open it in a new tab and read the original notice.
+ *
+ * The Apply button stays `disabled` until the checkbox is ticked.
+ * The label is intentionally verbose — "I read the official source
+ * and verified the new deadline date" is a specific claim, not a
+ * generic "I understand". This is the language we want to repeat
+ * back if there's ever an audit-log review for a wrong filing.
+ *
+ * Liability framing from the Step-9 audit: a wrong AI date
+ * extraction here = the firm files late or early — the highest-
+ * stakes single failure mode in the product. One explicit gate
+ * is cheap insurance against a class of fundamentally non-
+ * undoable mistakes.
+ */
+function PulseApplyVerificationDialog({
+  open,
+  detail,
+  verified,
+  pending,
+  selectedCount,
+  onChangeVerified,
+  onOpenChange,
+  onConfirm,
+}: {
+  open: boolean
+  detail: PulseDetail
+  verified: boolean
+  pending: boolean
+  selectedCount: number
+  onChangeVerified: (next: boolean) => void
+  onOpenChange: (open: boolean) => void
+  onConfirm: () => void
+}) {
+  const { t } = useLingui()
+  const originalDate = detail.originalDueDate ? formatDate(detail.originalDueDate) : t`Unknown`
+  const newDate = detail.newDueDate ? formatDate(detail.newDueDate) : t`Unknown`
+  const issued = formatDate(detail.alert.publishedAt)
+  const canApply = verified && !pending && selectedCount > 0
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[560px]">
+        <form
+          className="grid gap-5"
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (!canApply) return
+            onConfirm()
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>
+              <Trans>Verify the new deadline before applying</Trans>
+            </DialogTitle>
+            <DialogDescription>
+              <Trans>
+                The dates below were extracted by AI from the source notice. Open the official
+                source and confirm the new date before applying. A wrong date here can cause a late
+                or early filing.
+              </Trans>
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Deadline shift — the consequential fact, displayed
+              with the same warning-amber tone as PulseStructuredFields
+              so the eye recognizes the same pattern across surfaces. */}
+          <section className="grid gap-3 rounded-md border border-divider-subtle bg-background-section p-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+                <Trans>Deadline shift</Trans>
+              </span>
+              <div className="flex flex-wrap items-baseline gap-3">
+                <span className="font-mono text-base tabular-nums text-text-tertiary line-through decoration-text-tertiary/40">
+                  {originalDate}
+                </span>
+                <ArrowRightIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
+                <span className="font-mono text-base font-semibold tabular-nums text-text-warning">
+                  {newDate}
+                </span>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+                  <Trans>Authority</Trans>
+                </span>
+                <Button
+                  nativeButton={false}
+                  variant="link"
+                  size="sm"
+                  className="h-auto justify-start px-0 text-sm"
+                  render={
+                    <a href={detail.alert.sourceUrl} target="_blank" rel="noopener noreferrer" />
+                  }
+                >
+                  {detail.alert.source}
+                  <ExternalLinkIcon data-icon="inline-end" />
+                </Button>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+                  <Trans>Issued</Trans>
+                </span>
+                <span className="font-mono text-sm tabular-nums text-text-primary">{issued}</span>
+              </div>
+            </div>
+          </section>
+
+          {/* Verbatim source excerpt — same blockquote treatment as
+              PulseStructuredFields so the CPA recognizes "this is the
+              raw text the AI extracted from". Cap at 6 lines via
+              line-clamp so the dialog stays scannable even when the
+              source notice is verbose. */}
+          <section className="grid gap-1.5">
+            <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+              <Trans>Source excerpt</Trans>
+            </span>
+            <blockquote className="line-clamp-6 break-words rounded-md border border-divider-subtle bg-background-soft px-3 py-2 text-sm italic leading-relaxed text-text-secondary">
+              “{detail.sourceExcerpt}”
+            </blockquote>
+          </section>
+
+          {/* The acknowledgement. Label is a real label-for binding
+              so click-on-text toggles the box. Active border bumps to
+              text-text-warning so the un-checked state visually says
+              "you still need to confirm". */}
+          <Label
+            htmlFor="pulse-apply-verified"
+            className="flex cursor-pointer items-start gap-3 rounded-md border border-divider-regular bg-background-default px-3 py-3 transition-colors hover:border-text-tertiary has-[input:checked]:border-state-accent-active-alt has-[input:checked]:bg-state-accent-active-alt/5"
+          >
+            <Checkbox
+              id="pulse-apply-verified"
+              checked={verified}
+              disabled={pending}
+              onCheckedChange={(next) => onChangeVerified(next)}
+              className="mt-0.5"
+            />
+            <span className="text-sm text-text-primary">
+              <Trans>I have read the official source and verified the new deadline date.</Trans>
+            </span>
+          </Label>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={pending}
+              onClick={() => onOpenChange(false)}
+            >
+              <Trans>Cancel</Trans>
+            </Button>
+            <Button type="submit" disabled={!canApply} aria-busy={pending}>
+              {pending ? <Trans>Applying…</Trans> : <Trans>Apply deadline shift</Trans>}
             </Button>
           </DialogFooter>
         </form>

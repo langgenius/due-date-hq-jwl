@@ -6,11 +6,12 @@ import type { FirmBillingCheckoutConfig } from '@duedatehq/contracts'
 import { useQueryStates } from 'nuqs'
 import {
   AlertCircleIcon,
-  ArrowLeftIcon,
   ArrowRightIcon,
   Building2Icon,
   CheckIcon,
   CreditCardIcon,
+  ExternalLinkIcon,
+  LockIcon,
   ShieldCheckIcon,
   UsersIcon,
 } from 'lucide-react'
@@ -31,6 +32,8 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { hasFirmPermission } from '@duedatehq/core/permissions'
 
+import { PageHeader } from '@/components/patterns/page-header'
+import { formatDollarPrice } from '@/lib/utils'
 import { createCheckout } from '@/features/billing/api'
 import {
   billingPlanMonthlyEquivalent,
@@ -62,7 +65,7 @@ type PlanView = {
 
 function usePlanView(plan: BillingPlan, interval: BillingInterval): PlanView {
   const { t } = useLingui()
-  const price = `$${billingPlanMonthlyEquivalent(plan, interval).toLocaleString('en-US')}`
+  const price = formatDollarPrice(billingPlanMonthlyEquivalent(plan, interval))
 
   function intervalNote(): string {
     if (plan === 'firm') {
@@ -255,34 +258,45 @@ export function BillingCheckoutRoute() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-4 py-6 md:px-6">
-      <header className="flex flex-col gap-3">
-        <Link
-          to="/billing"
-          className="inline-flex w-fit items-center gap-1 text-sm text-text-secondary hover:text-text-primary"
-        >
-          <ArrowLeftIcon className="size-3.5" aria-hidden />
-          <Trans>Back to billing</Trans>
-        </Link>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-primary text-text-inverted">
-              <CreditCardIcon className="size-4" aria-hidden />
+    // 2026-05-26 (86th pass, audit §16.1 P1): migrated custom
+    // `<header>` (Back-link + branded icon + h1 + Badge cluster) to
+    // canonical `<PageHeader>` with a breadcrumb back to `/billing`.
+    // Branded CreditCard icon stays inline with the title as a
+    // leading flourish; "Secure checkout" Badge moves to actions.
+    //
+    // Also dropped `gap-5` → `gap-4` to align with §16.16 canonical
+    // spacing scale (audit P2 swept here since the file was open).
+    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-4 px-4 py-6 md:px-6">
+      <PageHeader
+        breadcrumbs={[{ label: t`Billing`, to: '/billing' }, { label: t`Confirm checkout` }]}
+        title={
+          <span className="inline-flex min-w-0 items-center gap-3">
+            <span
+              aria-hidden
+              className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-primary text-text-inverted"
+            >
+              <CreditCardIcon className="size-4" />
             </span>
-            <div className="min-w-0">
-              <h1 className="text-2xl font-semibold tracking-normal text-text-primary">
-                <Trans>Confirm checkout</Trans>
-              </h1>
-              <p className="mt-1 max-w-[680px] text-sm leading-6 text-text-secondary">
-                <Trans>Review the practice subscription before opening secure checkout.</Trans>
-              </p>
-            </div>
-          </div>
-          <Badge variant="info" className="font-mono tabular-nums text-xs">
+            <span className="truncate">
+              <Trans>Confirm checkout</Trans>
+            </span>
+          </span>
+        }
+        description={
+          <Trans>Review the practice subscription before opening secure checkout.</Trans>
+        }
+        actions={
+          // 2026-05-26 (Step 7 F8-02): "Secure checkout" badge gets a
+          // LockIcon + gap-1.5 so it reads as a trust signal, not as
+          // a routine info chip. Kept inside `PageHeader.actions` —
+          // Step 7's branch had refactored out of PageHeader entirely,
+          // but the shared primitive is the canonical wrapper.
+          <Badge variant="info" className="gap-1.5">
+            <LockIcon className="size-3" aria-hidden />
             <Trans>Secure checkout</Trans>
           </Badge>
-        </div>
-      </header>
+        }
+      />
 
       {!owner ? (
         <Alert variant="destructive">
@@ -351,7 +365,7 @@ export function BillingCheckoutRoute() {
               </Badge>
             </CardAction>
           </CardHeader>
-          <CardContent className="grid gap-5">
+          <CardContent className="grid gap-4">
             <div className="rounded-lg border border-divider-regular bg-background-subtle p-5">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
@@ -362,10 +376,10 @@ export function BillingCheckoutRoute() {
                 </div>
                 <div className="text-left md:text-right">
                   <div className="flex items-baseline gap-2 md:justify-end">
-                    <span className="font-mono text-2xl font-semibold tabular-nums text-text-primary">
+                    <span className="text-2xl font-semibold tabular-nums text-text-primary">
                       {view.price}
                     </span>
-                    <span className="font-mono text-lg font-semibold tabular-nums text-text-primary">
+                    <span className="text-lg font-semibold tabular-nums text-text-primary">
                       {view.priceSuffix}
                     </span>
                   </div>
@@ -430,6 +444,16 @@ export function BillingCheckoutRoute() {
             <Button variant="outline" onClick={() => void navigate('/billing')}>
               <Trans>Choose another plan</Trans>
             </Button>
+            {/* 2026-05-26 (Step 7 onboarding audit F8-06): the
+                primary CTA opens Stripe via `window.location.assign`,
+                but the button copy didn't disclose the redirect.
+                Added an inline note so the user expects to leave
+                the app and land on Stripe. Standard pattern for
+                external-handoff buttons. */}
+            <p className="flex w-full items-center gap-1.5 text-xs text-text-tertiary">
+              <ExternalLinkIcon className="size-3" aria-hidden />
+              <Trans>You'll be redirected to Stripe to enter payment details.</Trans>
+            </p>
             {!selfServe ? (
               <span className="text-sm text-text-tertiary">
                 <Trans>

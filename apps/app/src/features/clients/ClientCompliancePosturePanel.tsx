@@ -96,7 +96,7 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
             label={t`Federal EIN`}
             value={
               client.ein ? (
-                <span className="font-mono tabular-nums">{client.ein}</span>
+                <span className="tabular-nums">{client.ein}</span>
               ) : (
                 <span className="italic text-text-tertiary">
                   <Trans>Not on file</Trans>
@@ -154,9 +154,7 @@ function IdentityCell({
 }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <dt className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
-        {label}
-      </dt>
+      <dt className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">{label}</dt>
       <dd className="text-sm text-text-primary">{value}</dd>
       {footer}
     </div>

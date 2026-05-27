@@ -20,7 +20,7 @@ export function NotFoundRoute() {
       <title>{t`Page not found`} | DueDateHQ</title>
       <div className="flex w-full flex-col gap-6 px-6 py-8">
         <header className="flex flex-col gap-2">
-          <p className="text-caption-xs font-medium tracking-[0.12em] text-text-tertiary uppercase">
+          <p className="text-caption-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
             <Trans>404</Trans>
           </p>
           <h1 className="text-2xl leading-7 font-semibold text-text-primary">

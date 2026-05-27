@@ -3,7 +3,7 @@ import { Trans } from '@lingui/react/macro'
 
 import { formatDate } from '@/lib/utils'
 
-export type ExtensionDecisionEvidenceSummary = {
+type ExtensionDecisionEvidenceSummary = {
   decision: string
   internalTargetDate: string | null
   memo: string | null
@@ -11,7 +11,7 @@ export type ExtensionDecisionEvidenceSummary = {
   paymentStillDue: boolean | null
 }
 
-export type ExtensionDecisionEvidenceDetail = {
+type ExtensionDecisionEvidenceDetail = {
   id: string
   label: ReactNode
   value: ReactNode
@@ -54,7 +54,7 @@ function humanizeToken(value: string): string {
     .join(' ')
 }
 
-export function parseExtensionDecisionEvidence(
+function parseExtensionDecisionEvidence(
   value: string | null,
 ): ExtensionDecisionEvidenceSummary | null {
   const record = readJsonRecord(value)

@@ -2,7 +2,7 @@ import { useLingui } from '@lingui/react/macro'
 
 import type { MappingTarget, MigrationError } from '@duedatehq/contracts'
 
-export const SELECTABLE_MAPPING_TARGETS = [
+const SELECTABLE_MAPPING_TARGETS = [
   'client.name',
   'client.ein',
   'client.external_client_id',
@@ -46,7 +46,7 @@ export const SELECTABLE_MAPPING_TARGETS = [
   'penalty.ui_wage_report_count',
   'client.notes',
 ] satisfies ReadonlyArray<MappingTarget>
-export type SelectableMappingTarget = (typeof SELECTABLE_MAPPING_TARGETS)[number]
+type SelectableMappingTarget = (typeof SELECTABLE_MAPPING_TARGETS)[number]
 
 export type MappingTargetLabels = Record<MappingTarget, string>
 

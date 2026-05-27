@@ -10,9 +10,8 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import type { BreadcrumbItem } from '@/components/patterns/breadcrumb'
 import { PageHeader } from '@/components/patterns/page-header'
-import { ConceptLabel } from '@/features/concepts/concept-help'
 
-import { normalizeSourceHealth, type CoverageCellState } from './rules-console-model'
+import { normalizeSourceHealth } from './rules-console-model'
 
 type FilterOption<T extends string> = {
   value: T
@@ -27,7 +26,7 @@ type FilterOption<T extends string> = {
  * plain strings through their loaders, so this adapter keeps that
  * ergonomics-of-strings while routing through the single source of truth.
  */
-export function RulesPageHeader({
+function RulesPageHeader({
   title,
   description,
   breadcrumbs,
@@ -109,7 +108,7 @@ export function RulesPageShell({
         <div
           className={cn(
             'mx-auto flex w-full flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6',
-            wide ? 'max-w-[1440px]' : 'max-w-page-wide',
+            wide ? 'max-w-page-expanded' : 'max-w-page-wide',
             lockViewport && 'h-full min-h-0',
             contentClassName,
           )}
@@ -148,7 +147,7 @@ export function SectionFrame({ className, children }: { className?: string; chil
 
 export function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="text-xs font-medium tracking-[0.08em] whitespace-pre text-text-tertiary uppercase">
+    <p className="text-xs font-medium tracking-eyebrow whitespace-pre text-text-tertiary uppercase">
       {children}
     </p>
   )
@@ -186,7 +185,7 @@ export function FilterChips<T extends string>({
             onClick={() => onValueChange(option.value)}
           >
             <span>{option.label}</span>
-            <span className="font-mono tabular-nums">{option.count}</span>
+            <span className="tabular-nums">{option.count}</span>
           </Button>
         )
       })}
@@ -241,82 +240,6 @@ export function ToneDot({ tone }: { tone: 'success' | 'warning' | 'review' | 'di
   )
 }
 
-export function CoverageCell({ state }: { state: CoverageCellState }) {
-  const { t } = useLingui()
-  // 2026-05-25 (status-pill audit #3, finding 2.1): "review" now
-  // reads in blue everywhere across the app. Was `warning` here
-  // (amber via `text-severity-medium`) which collided with the
-  // queue's amber `waiting_on_client` status + the missing-facts
-  // banner. Aligned to `text-text-accent` (blue) so reviewers
-  // learn one tone = one meaning ("review = blue, do something
-  // human").
-  const tone = state === 'active' ? 'success' : state === 'review' ? 'review' : 'disabled'
-  const label = state === 'active' ? t`active` : state === 'review' ? t`review` : t`no rule`
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-2 text-sm',
-        state === 'active' && 'text-text-primary',
-        state === 'review' && 'text-text-accent',
-        state === 'none' && 'text-text-disabled',
-      )}
-    >
-      <ToneDot tone={tone} />
-      {label}
-    </span>
-  )
-}
-
-/**
- * Compact legend describing both axes of the Coverage status entity-dot
- * strip: *which entity each dot represents* (left-to-right order) and
- * *what tone means* (active / review / no rule). Lives above the table
- * rather than below so users see it before they encounter the dots.
- */
-export function CoverageLegend() {
-  return (
-    <div className="flex flex-col gap-2 text-xs text-text-tertiary">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="shrink-0 font-medium tracking-[0.04em] text-text-tertiary uppercase">
-          <Trans>Dot order</Trans>
-        </span>
-        <span aria-hidden>·</span>
-        <span>LLC</span>
-        <span aria-hidden>·</span>
-        <span>Partnership</span>
-        <span aria-hidden>·</span>
-        <span>S-Corp</span>
-        <span aria-hidden>·</span>
-        <span>C-Corp</span>
-        <span aria-hidden>·</span>
-        <span>Sole prop</span>
-        <span aria-hidden>·</span>
-        <span>Trust</span>
-        <span aria-hidden>·</span>
-        <span>Individual</span>
-      </div>
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
-        <span className="inline-flex items-center gap-2">
-          <ToneDot tone="success" />
-          <ConceptLabel concept="verifiedRule">
-            <Trans>active — accepted by this practice</Trans>
-          </ConceptLabel>
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <ToneDot tone="warning" />
-          <ConceptLabel concept="requiresReview">
-            <Trans>review — needs CPA confirmation</Trans>
-          </ConceptLabel>
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <ToneDot tone="disabled" />
-          <Trans>no rule — not in MVP scope</Trans>
-        </span>
-      </div>
-    </div>
-  )
-}
-
 export function HealthBadge({ health }: { health: RuleSource['healthStatus'] }) {
   const { t } = useLingui()
   const normalized = normalizeSourceHealth(health)
@@ -334,67 +257,6 @@ export function HealthBadge({ health }: { health: RuleSource['healthStatus'] }) 
       <BadgeStatusDot tone={tone} className="size-1.5" />
       {labels[normalized]}
     </Badge>
-  )
-}
-
-/**
- * Cross-page origin breadcrumb. Renders above a filtered table when the
- * user landed via a drill-in URL (e.g. `?from=coverage`, `?from=sources`,
- * `?from=cmd`). Shows the origin label + a Clear button that resets the
- * page to its default state.
- *
- * Each page owns its own Clear semantics (Library clears 4 filters,
- * Sources clears 2). The component itself is just the chrome — pass the
- * resolved label and onClear callback in.
- */
-export function OriginBreadcrumb({
-  label,
-  onClear,
-  clearLabel,
-}: {
-  label: string
-  onClear: () => void
-  clearLabel: string
-}) {
-  return (
-    <div className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-divider-regular bg-background-subtle pr-1 pl-2.5 text-xs text-text-secondary">
-      <span className="inline-flex h-1.5 w-1.5 shrink-0 rounded-full bg-text-accent" aria-hidden />
-      <span>{label}</span>
-      <button
-        type="button"
-        onClick={onClear}
-        aria-label={clearLabel}
-        className="ml-1 inline-flex h-6 items-center gap-1 rounded px-2 text-xs font-medium text-text-accent outline-none hover:bg-background-default focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-      >
-        <Trans>Clear</Trans>
-        <span aria-hidden>×</span>
-      </button>
-    </div>
-  )
-}
-
-export function TableFooterBar({
-  note,
-  action,
-  onAction,
-}: {
-  note: string
-  action?: string
-  onAction?: () => void
-}) {
-  return (
-    <div className="flex h-9 items-center justify-between bg-background-subtle px-3 text-xs text-text-tertiary">
-      <span>{note}</span>
-      {action && onAction ? (
-        <button
-          type="button"
-          onClick={onAction}
-          className="font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
-          {action}
-        </button>
-      ) : null}
-    </div>
   )
 }
 

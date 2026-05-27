@@ -303,7 +303,7 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
               // p-3 md:p-4`; now `gap-6 px-4 pt-6 pb-4 md:px-6
               // md:pt-8 md:pb-6` (panel-open variant keeps the
               // wider max-w cap so the right panel has room).
-              'mx-auto flex h-full min-h-0 w-full max-w-[1440px] flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
+              'mx-auto flex h-full min-h-0 w-full max-w-page-expanded flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
             : 'mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6'
       }
     >
@@ -433,7 +433,7 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
           {alertsQuery.isLoading ? (
             <SkeletonList sources={sourceHealth} />
           ) : isEmpty ? (
-            <EmptyState sources={sourceHealth} />
+            <AlertsAllClearBanner sources={sourceHealth} />
           ) : (
             <>
               {/* 2026-05-25 (Yuqi Alerts #3): dropped the framed
@@ -907,7 +907,7 @@ function StateFilterPopover({
             {activeState ? (
               <>
                 <StateBadge code={activeState} size="xs" aria-hidden />
-                <span className="font-mono font-medium">{activeState}</span>
+                <span className="font-medium">{activeState}</span>
                 <span className="tabular-nums text-text-accent/70">
                   <Plural value={activeCount} one="# alert" other="# alerts" />
                 </span>
@@ -933,7 +933,7 @@ function StateFilterPopover({
                   onSelect(activeState)
                   setOpen(false)
                 }}
-                className="text-text-accent hover:underline"
+                className="rounded-sm text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 <Trans>Clear</Trans>
               </button>
@@ -1177,7 +1177,7 @@ function SkeletonRow({
     >
       <PulsingDot tone={tone} active={active} />
       {label ? (
-        <span className="text-md text-text-tertiary">{label}</span>
+        <span className="text-base text-text-tertiary">{label}</span>
       ) : (
         <>
           <span
@@ -1201,7 +1201,12 @@ function SkeletonRow({
   )
 }
 
-function EmptyState({ sources }: { sources: readonly PulseSourceHealth[] }) {
+// Named for what it actually renders ("we're watching, all clear") not
+// for the EmptyState pattern — this is a status banner, not an empty
+// state slot. Kept inline because it's specific to the Alerts surface
+// (vs the generic icon/title/cta `EmptyState` primitive shared with
+// /deadlines + /rules/library).
+function AlertsAllClearBanner({ sources }: { sources: readonly PulseSourceHealth[] }) {
   const count = enabledSourceCount(sources)
   return (
     <div className="flex items-center gap-3 rounded-md border border-dashed border-divider-regular bg-background-default p-4 text-sm text-text-secondary">

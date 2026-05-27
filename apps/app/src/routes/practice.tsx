@@ -53,7 +53,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
-import { Breadcrumb } from '@/components/patterns/breadcrumb'
+import { PageHeader } from '@/components/patterns/page-header'
 import { ConceptHelp, ConceptLabel } from '@/features/concepts/concept-help'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
@@ -377,34 +377,44 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 py-6 md:px-6">
-      <Breadcrumb
-        items={[{ label: t`Settings`, to: '/settings' }, { label: t`Practice profile` }]}
-      />
-      <section className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-md bg-brand-primary text-text-inverted">
-              <Building2Icon className="size-4" aria-hidden />
+    // 2026-05-26 (86th pass, audit §16.1 P1): migrated custom
+    // breadcrumb + header block to canonical `<PageHeader>`. The
+    // brand-tinted Building2 icon stays inside the title prop as a
+    // leading flourish; the role badge moves to the `actions` slot.
+    // The firm-summary subline keeps its `role="note"` so screen
+    // readers announce it as a complementary annotation — exposed
+    // via `aria-label` on the surrounding region.
+    <div
+      role="region"
+      aria-label={firmSummaryLabel}
+      className="mx-auto flex w-full max-w-page-narrow flex-col gap-4 px-4 py-6 md:px-6"
+    >
+      <PageHeader
+        breadcrumbs={[{ label: t`Settings`, to: '/settings' }, { label: t`Practice profile` }]}
+        title={
+          <span className="inline-flex min-w-0 items-center gap-3">
+            <span
+              aria-hidden
+              className="grid size-9 shrink-0 place-items-center rounded-md bg-brand-primary text-text-inverted"
+            >
+              <Building2Icon className="size-4" />
             </span>
-            <div className="min-w-0">
-              <h1 className="truncate text-2xl leading-7 font-semibold text-text-primary">
-                <Trans>Practice profile</Trans>
-              </h1>
-              <p
-                role="note"
-                aria-label={firmSummaryLabel}
-                className="truncate text-[13px] leading-5 text-text-secondary"
-              >
-                {firmSummary}
-              </p>
-            </div>
-          </div>
-          <Badge variant="outline" className="font-mono tabular-nums text-xs">
+            <span className="truncate">
+              <Trans>Practice profile</Trans>
+            </span>
+          </span>
+        }
+        description={firmSummary}
+        actions={
+          // Step 6 UX #112: dropped tabular-nums on a non-numeric
+          // role label, kept font-mono for the tech-stat aesthetic.
+          // PageHeader wrapper kept (Step 6's hand-rolled h1 not
+          // applied — canonical primitive wins).
+          <Badge variant="outline" className="font-mono text-xs">
             {currentRole}
           </Badge>
-        </div>
-      </section>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -416,7 +426,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="grid gap-5">
+          <form onSubmit={handleSubmit} className="grid gap-4">
             {!canEditPractice ? (
               <PermissionInlineNotice permission="firm.update" currentRole={firm.role}>
                 <Trans>Only the practice owner can change the practice name or timezone.</Trans>
@@ -460,7 +470,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
                 }
                 disabled={!canEditPractice || updateMutation.isPending}
-                className="font-mono tabular-nums"
+                className="tabular-nums"
               />
               <p className="text-xs leading-5 text-text-tertiary">
                 <Trans>
@@ -483,6 +493,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   !internalDeadlineOffsetDaysValid ||
                   updateMutation.isPending
                 }
+                aria-busy={updateMutation.isPending || undefined}
               >
                 {updateMutation.isPending ? <Trans>Saving…</Trans> : <Trans>Save changes</Trans>}
               </Button>
@@ -511,7 +522,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
             fallback={<SmartPriorityRedactedContent />}
             notice={<Trans>Only the practice owner can change Smart Priority settings.</Trans>}
           >
-            <div className="grid gap-5">
+            <div className="grid gap-4">
               <div className="grid gap-3">
                 <div className="flex items-center justify-between gap-3">
                   {/* 2026-05-25 (info-icon audit): dropped the
@@ -527,8 +538,8 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                   <span
                     className={
                       weightTotal === 100
-                        ? 'font-mono text-xs tabular-nums text-text-secondary'
-                        : 'font-mono text-xs tabular-nums text-text-destructive'
+                        ? 'text-xs tabular-nums text-text-secondary'
+                        : 'text-xs tabular-nums text-text-destructive'
                     }
                   >
                     <Trans>Total</Trans> {weightTotal}%
@@ -546,7 +557,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                         value={priorityProfile.weights[key]}
                         onChange={(event) => updatePriorityWeight(key, event.target.value)}
                         disabled={priorityUpdateMutation.isPending}
-                        className="font-mono tabular-nums"
+                        className="tabular-nums"
                       />
                     </div>
                   ))}
@@ -571,7 +582,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                       updatePriorityNumber('urgencyWindowDays', event.target.value)
                     }
                     disabled={priorityUpdateMutation.isPending}
-                    className="font-mono tabular-nums"
+                    className="tabular-nums"
                   />
                 </div>
                 <div className="grid gap-1.5">
@@ -591,7 +602,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                       updatePriorityNumber('historyCapCount', event.target.value)
                     }
                     disabled={priorityUpdateMutation.isPending}
-                    className="font-mono tabular-nums"
+                    className="tabular-nums"
                   />
                 </div>
               </div>
@@ -767,14 +778,14 @@ function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOu
                   Now uses the canonical helper so the Smart Priority
                   preview table reads at the same date density as
                   /deadlines, /clients, audit log, etc. */}
-              <TableCell className="font-mono tabular-nums text-text-secondary">
+              <TableCell className="tabular-nums text-text-secondary">
                 {formatDate(row.currentDueDate)}
               </TableCell>
-              <TableCell className="text-right font-mono tabular-nums">
+              <TableCell className="text-right tabular-nums">
                 {row.previewScore.toFixed(1)}
                 <span className="ml-2 text-text-tertiary">({formatSigned(row.scoreDelta)})</span>
               </TableCell>
-              <TableCell className="text-right font-mono tabular-nums">
+              <TableCell className="text-right tabular-nums">
                 #{row.previewRank}
                 {row.rankDelta === null ? null : (
                   <span className="ml-2 text-text-tertiary">({formatSigned(row.rankDelta)})</span>
@@ -790,7 +801,7 @@ function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOu
 
 function SmartPriorityRedactedContent() {
   return (
-    <div className="grid gap-5 p-4">
+    <div className="grid gap-4 p-4">
       <div className="grid gap-3">
         <div className="flex items-center justify-between gap-3">
           <Skeleton className="h-4 w-28" />

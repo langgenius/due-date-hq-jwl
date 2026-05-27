@@ -53,9 +53,7 @@ export function RulesPulseRoute() {
     alertCount > 0 ? (
       <span className="inline-flex items-baseline gap-2">
         <Trans>Alerts</Trans>
-        <span className="font-mono text-base font-normal tabular-nums text-text-tertiary">
-          {alertCount}
-        </span>
+        <span className="text-base font-normal tabular-nums text-text-tertiary">{alertCount}</span>
       </span>
     ) : (
       <Trans>Alerts</Trans>
@@ -104,8 +102,8 @@ export function RulesPulseRoute() {
       //   • `!important` retained on pb-0 since the underlying
       //     shell pads pb-4 md:pb-6 by default.
       contentClassName={cn(
-        'transition-[max-width,min-width,padding-bottom] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]',
-        panelOpen ? 'max-w-[1440px] min-w-[1440px] !pb-0 md:!pb-0' : 'max-w-page-wide min-w-0',
+        'transition-[max-width,min-width,padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
+        panelOpen ? 'max-w-page-expanded min-w-[1440px] !pb-0 md:!pb-0' : 'max-w-page-wide min-w-0',
       )}
       actions={
         <Button

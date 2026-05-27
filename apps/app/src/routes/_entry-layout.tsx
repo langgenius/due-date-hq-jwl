@@ -31,8 +31,23 @@ export function EntryShell() {
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-bg-canvas text-text-primary">
+      {/* 2026-05-26 (Step 7 onboarding audit F10-09): every
+          entry-shell surface (login, OTP, accept-invite,
+          onboarding, 2FA, migration, readiness portal) lacked
+          a skip-to-content anchor. Keyboard users had to tab
+          through brand mark + locale switcher on every entry
+          beat. Standard a11y; added a hidden anchor that
+          appears on focus and sends keyboard users straight to
+          the main content. */}
+      <a
+        href="#entry-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:border focus:border-divider-regular focus:bg-background-default focus:px-3 focus:py-1.5 focus:text-sm focus:text-text-primary focus:shadow-overlay"
+      >
+        <Trans>Skip to content</Trans>
+      </a>
       <EntryShellHeader />
       <main
+        id="entry-main"
         className={
           isMigrationActivation
             ? 'flex min-h-0 flex-1 flex-col items-center justify-start overflow-y-auto px-6 py-6 lg:px-10'
@@ -51,7 +66,7 @@ export function EntryShell() {
 function EntryShellHeader() {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-border-default px-6 lg:px-10">
-      <div className="flex items-center gap-2 text-[13px]">
+      <div className="flex items-center gap-2 text-description">
         <img
           src={brandMarkLight}
           alt=""

@@ -50,13 +50,13 @@ const lastReviewedLabel = locale === 'zh-CN' ? '最近复核' : 'Last reviewed'
           page.states.map((state) => (
             <a
               href={state.href}
-              class="group rounded-xl border border-border-default bg-bg-panel p-5 transition-colors hover:border-accent-default hover:bg-bg-elevated"
+              class="group rounded-xl border border-border-default bg-bg-panel p-5 outline-none transition-colors hover:border-accent-default hover:bg-bg-elevated focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <div class="flex items-center justify-between gap-3">
                 <span class="font-mono text-[24px] font-semibold text-text-primary">
                   {state.abbreviation}
                 </span>
-                <span class="rounded-sm bg-accent-tint px-2 py-1 font-mono text-[10px] font-medium tracking-[0.08em] text-text-accent">
+                <span class="rounded-sm bg-accent-tint px-2 py-1 font-mono text-[10px] font-medium tracking-eyebrow text-text-accent">
                   {state.status}
                 </span>
               </div>

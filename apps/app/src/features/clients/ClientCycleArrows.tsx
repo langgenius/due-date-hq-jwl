@@ -144,7 +144,7 @@ export function ClientCycleArrows({ currentClientId }: { currentClientId: string
       <span
         aria-label={t`Position ${neighbors.position} of ${neighbors.total}`}
         title={t`Position ${neighbors.position} of ${neighbors.total}`}
-        className="px-1 font-mono text-caption tabular-nums text-text-tertiary"
+        className="px-1 text-caption tabular-nums text-text-tertiary"
       >
         {neighbors.position} / {neighbors.total}
       </span>

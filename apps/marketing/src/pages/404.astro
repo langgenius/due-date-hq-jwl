@@ -48,13 +48,13 @@ const routes = t.notFound.routes.map((route) =>
         <div class="mt-10 flex flex-col gap-3 sm:flex-row">
           <a
             href="/"
-            class="inline-flex h-10 items-center justify-center rounded-md bg-accent-default px-4 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-accent-hover"
+            class="inline-flex h-10 items-center justify-center rounded-md bg-accent-default px-4 text-[13px] font-medium text-primary-foreground outline-none transition-colors hover:bg-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             {t.notFound.primaryCta}
           </a>
           <a
             href="/pricing"
-            class="inline-flex h-10 items-center justify-center rounded-md border border-border-default bg-bg-elevated px-4 text-[13px] font-medium text-text-primary transition-colors hover:bg-bg-subtle"
+            class="inline-flex h-10 items-center justify-center rounded-md border border-border-default bg-bg-elevated px-4 text-[13px] font-medium text-text-primary outline-none transition-colors hover:bg-bg-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             {t.notFound.secondaryCta}
           </a>
@@ -81,7 +81,7 @@ const routes = t.notFound.routes.map((route) =>
                 <li>
                   <a
                     href={route.href}
-                    class="flex h-11 items-center justify-between border border-border-subtle bg-bg-canvas px-3 text-[13px] text-text-secondary transition-colors hover:border-border-default hover:text-text-primary"
+                    class="flex h-11 items-center justify-between border border-border-subtle bg-bg-canvas px-3 text-[13px] text-text-secondary outline-none transition-colors hover:border-border-default hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   >
                     <span>{route.label}</span>
                     <span aria-hidden="true">→</span>

@@ -382,7 +382,7 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={cn(
-        'group/sidebar relative hidden h-svh shrink-0 transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] md:block',
+        'group/sidebar relative hidden h-svh shrink-0 transition-[width] duration-300 ease-apple motion-reduce:transition-none md:block',
         className,
       )}
       style={{ width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
@@ -416,7 +416,7 @@ export function Sidebar({ className, children, ...props }: React.ComponentProps<
           clip, any momentary overflow is hidden inside the sidebar
           rather than spilling into the page content area. */}
       <div
-        className="absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden border-r border-divider-regular bg-components-panel-bg transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"
+        className="absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden border-r border-divider-regular bg-components-panel-bg transition-[width] duration-300 ease-apple motion-reduce:transition-none"
         style={{ width: targetCollapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH }}
       >
         {children}
@@ -533,7 +533,7 @@ export function SidebarGroupLabel({ className, ...props }: React.ComponentProps<
       role="separator"
       aria-orientation="horizontal"
       className={cn(
-        'flex h-7 shrink-0 items-center px-3 text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary',
+        'flex h-7 shrink-0 items-center px-3 text-xs font-medium uppercase tracking-eyebrow text-text-tertiary',
         // 2026-05-26 (Yuqi collapsed-rail overflow fix): in collapsed
         // mode the row was `h-px` + `overflow: visible` + text content
         // ("RULE", "CLIENTS") still inside. The 11px uppercase glyphs
@@ -640,7 +640,7 @@ const sidebarMenuButtonVariants = cva(
     // like one coordinated motion. (Was 150ms ease-out — too
     // fast against the 300ms aside transition, labels popped
     // before the rail finished moving.)
-    '[&>span:nth-child(2)]:transition-[opacity,max-width] [&>span:nth-child(2)]:duration-240 [&>span:nth-child(2)]:ease-[cubic-bezier(0.32,0.72,0,1)]',
+    '[&>span:nth-child(2)]:transition-[opacity,max-width] [&>span:nth-child(2)]:duration-240 [&>span:nth-child(2)]:ease-apple',
     // 2026-05-25 (Yuqi sidebar collapse): collapsed-mode tweaks —
     // center the icon at 56px width, drop the horizontal padding,
     // and hide the label span. The consumer's NavLink passes a

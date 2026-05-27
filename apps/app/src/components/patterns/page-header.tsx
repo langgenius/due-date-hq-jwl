@@ -67,7 +67,9 @@ export function PageHeader({
       // The uppercase tag styling only applies to plain-text
       // descendants; the navAside content provides its own visual
       // treatment.
-      <div className="flex min-w-0 items-center justify-between gap-3 text-caption font-medium tracking-[0.08em] text-text-tertiary uppercase">
+      // Step 1-5 reaudit canonicalized `tracking-eyebrow` (0.08em) over
+      // the arbitrary value main is still using.
+      <div className="flex min-w-0 items-center justify-between gap-3 text-caption font-medium tracking-eyebrow text-text-tertiary uppercase">
         <div className="min-w-0 flex-1">
           {hasBreadcrumbs ? <Breadcrumb items={breadcrumbs} /> : null}
           {eyebrow && !hasBreadcrumbs ? eyebrow : null}
@@ -107,7 +109,9 @@ export function PageHeader({
               collide. */}
           <h1 className="min-w-0 text-2xl leading-7 font-semibold text-text-primary">{title}</h1>
           {description ? (
-            <p className="max-w-[1080px] text-[13px] leading-5 text-text-secondary">
+            // Step 1-5 reaudit canonicalized `text-description` (13px)
+            // to replace the arbitrary `text-[13px]` main still uses.
+            <p className="max-w-[1080px] text-description leading-5 text-text-secondary">
               {description}
             </p>
           ) : null}

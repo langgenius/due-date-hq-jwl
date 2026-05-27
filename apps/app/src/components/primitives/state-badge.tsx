@@ -20,10 +20,10 @@
 
 import * as React from 'react'
 
-export type StateBadgeSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-export type StateBadgeVariant = 'auto' | 'detailed' | 'simple'
+type StateBadgeSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+type StateBadgeVariant = 'auto' | 'detailed' | 'simple'
 
-export interface StateBadgeProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'title'> {
+interface StateBadgeProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'title'> {
   /** Two-letter state code, "FED", or "IRS". Case-insensitive. */
   code: string
   size?: StateBadgeSize
@@ -1175,11 +1175,6 @@ export const StateBadge = React.forwardRef<HTMLSpanElement, StateBadgeProps>(
   },
 )
 StateBadge.displayName = 'StateBadge'
-
-/** Whether a designed badge exists for the given code (uppercased). */
-export function hasDesignedBadge(code: string): boolean {
-  return code.toUpperCase() in DESIGNED_BADGES
-}
 
 /**
  * Resolve a two-letter code (CA, TX, …), "FED", or "IRS" to its full

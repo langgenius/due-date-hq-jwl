@@ -143,14 +143,23 @@ export function LoginRoute() {
 
   return (
     <div className="flex w-full max-w-[400px] flex-col">
+      {/* 2026-05-26 (Step 7 onboarding audit F1-01): "Welcome to
+          the workbench" was decoration-first — no product noun,
+          no "this is DueDateHQ" anchor, so first-time visitors
+          arrived from a referral and couldn't confirm they were
+          at the right product without scanning the sub-headline.
+          Promoted the product name + value-prop onto the H1
+          line and tightened the sub-headline to a single
+          sentence with the verbs the user actually does
+          ("sign in", "open your practice"). */}
       <h1 className="whitespace-pre-line text-[26px] font-semibold leading-[1.15] tracking-tight text-text-primary">
-        <Trans>Welcome to the workbench.</Trans>
+        <Trans>Welcome to DueDateHQ.</Trans>
       </h1>
 
-      <p className="mt-2 text-[13px] leading-6 text-text-secondary">
+      <p className="mt-2 text-description leading-6 text-text-secondary">
         <Trans>
-          Sign in with SSO or your work email to access your practice&apos;s deadline list and
-          evidence-backed recommendations.
+          Sign in to open your practice&apos;s deadline workbench with evidence-backed
+          recommendations.
         </Trans>
       </p>
 
@@ -200,9 +209,18 @@ export function LoginRoute() {
 
       {emailOtpEnabled ? (
         <>
+          {/* 2026-05-26 (Step 7 onboarding audit F1-04): the
+              "OR" divider was `font-mono text-caption-xs uppercase`
+              — same weight as a status badge, heavier than the
+              buttons it separates. A separator must be the
+              calmest element on the page; switched to sentence-
+              case `or` in the canonical caption tone so the
+              SSO/email choice reads as two equally-weighted
+              options separated by a quiet pivot, not as a
+              third labelled affordance. */}
           <div className="my-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
             <span className="h-px bg-divider-subtle" aria-hidden />
-            <span className="font-mono text-caption-xs leading-none text-text-muted uppercase">
+            <span className="text-[11px] leading-none text-text-muted">
               <Trans>or</Trans>
             </span>
             <span className="h-px bg-divider-subtle" aria-hidden />
@@ -221,7 +239,26 @@ export function LoginRoute() {
         <Trans>Encrypted · 7-day session · SSO-ready</Trans>
       </p>
 
-      <p className="mt-5 text-[12px] leading-relaxed text-text-muted">
+      {/* 2026-05-26 (Step 7 F1-10): support mailto broken out from the
+          legal block so stuck users find it without parsing
+          disclaimer copy. Size kept at text-sm for the support line
+          (was text-[12px] in Step 7 — Step 1-5 reaudit prefers
+          tokens over arbitrary sizes). Legal copy quieted below. */}
+      <p className="mt-5 text-sm leading-relaxed text-text-secondary">
+        <Trans>
+          Trouble signing in? Email{' '}
+          <a
+            data-t="supportLink"
+            className="font-mono text-text-primary underline underline-offset-4 transition-colors hover:text-text-accent"
+            href="mailto:support@duedatehq.com"
+          >
+            support@duedatehq.com
+          </a>
+          .
+        </Trans>
+      </p>
+
+      <p className="mt-2 text-caption leading-relaxed text-text-muted">
         <Trans>
           By signing in you agree to the{' '}
           <a
@@ -238,14 +275,6 @@ export function LoginRoute() {
             href="/privacy"
           >
             Privacy Policy
-          </a>
-          . Trouble signing in? Email{' '}
-          <a
-            data-t="supportLink"
-            className="font-mono text-text-secondary underline underline-offset-4 transition-colors hover:text-text-primary"
-            href="mailto:support@duedatehq.com"
-          >
-            support@duedatehq.com
           </a>
           .
         </Trans>

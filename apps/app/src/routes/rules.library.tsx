@@ -13,6 +13,7 @@ import {
   ExternalLinkIcon,
   LibraryIcon,
   LinkIcon,
+  Loader2,
   MessageSquareText,
   MoreHorizontalIcon,
   PlusIcon,
@@ -64,6 +65,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
+import { KbdHint } from '@/components/patterns/kbd'
 import {
   isInteractiveEventTarget,
   useAppHotkey,
@@ -774,21 +776,12 @@ export function RulesLibraryRoute() {
       void setPage(0)
     }
   }, [pageIndex, totalPages, setPage])
-  // 2026-05-26 (Yuqi seventy-second pass — product feel sweep):
-  // `sourceCounts` + `totalGaps` retired with the 3-tile scoreboard.
-  // Total rule count drives the page-header chip; per-entity gap
-  // count surfaces on each chip in EntityChipRow.
-  // 2026-05-26 (Yuqi feedback — "把进度条放回来"): restored
-  // `totalActive` + `totalPendingReview` because the top-of-page
-  // progress bar (active filled vs needs-review trailing) is back
-  // in StatsBar. Same two values the third-pass implementation used.
-  // 2026-05-26 (Stripe S14 restyle, merged with Phase A/B): progress
-  // bar now reads as a multi-color stacked breakdown — one segment
-  // per `RuleStatus` with >0 rules. `statusCounts` is the data; the
-  // bar derives segment widths + label fits from it. Scope tab
-  // counts (`totalActive`, `totalPendingReview`, `totalGapEntities`)
-  // are computed against the UNFILTERED rules + `groupsAll` so the
-  // tab badges stay stable as the user toggles scopes.
+  // Top-of-page stats data. `statusCounts` drives the multi-color
+  // stacked progress bar (one segment per `RuleStatus` with >0 rules).
+  // Scope-tab counts (`totalActive`, `totalPendingReview`,
+  // `totalGapEntities`) are computed against the UNFILTERED rules +
+  // `groupsAll` so the tab badges stay stable as the user toggles
+  // scopes — filtering shouldn't make a tab read as "(0)".
   const statsLoading = rulesQuery.isLoading || coverageQuery.isLoading || sourcesQuery.isLoading
   const totalRules = rules.length
   const statusCounts = useMemo<Record<RuleStatus, number>>(() => {
@@ -1159,7 +1152,7 @@ export function RulesLibraryRoute() {
           </Button>
           <Button size="sm" onClick={startReviewAll}>
             <Trans>Start review</Trans>
-            <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 font-mono text-xs tabular-nums text-text-accent">
+            <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 text-xs tabular-nums text-text-accent">
               {reviewCount}
             </span>
           </Button>
@@ -1416,7 +1409,7 @@ export function RulesLibraryRoute() {
     // jurisdiction + entity matrix has room to breathe at desktop.
     <div
       className={cn(
-        'mx-auto flex w-full max-w-[1440px] flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
         'xl:h-screen xl:overflow-hidden',
       )}
     >
@@ -1787,7 +1780,7 @@ function RuleReviewProgressBar(
           <div
             key={segment.status}
             className={cn(
-              'flex items-center overflow-hidden px-2 transition-[width] duration-300',
+              'flex items-center overflow-hidden px-2 transition-[width] duration-300 motion-reduce:transition-none',
               segment.bg,
             )}
             style={{ width: `${pct}%` }}
@@ -1859,15 +1852,12 @@ function EntityChipRow({
           calls onClear when isActive). For accessibility the
           group still has an aria-label below; the visible label
           was redundant chrome. */}
-      {activeEntity ? (
-        <button
-          type="button"
-          onClick={onClear}
-          className="self-start text-caption-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
-          <Trans>Clear filter</Trans>
-        </button>
-      ) : null}
+      {/* 2026-05-26 (step-6 ux-flow audit R1.1): retired the
+          explicit Clear-filter link. The active chip's filled-dark
+          state IS the cue, and clicking it again clears the filter
+          (the chip's onClick toggles between onSelect and onClear).
+          Two clear paths read as redundant chrome — /deadlines and
+          /alerts both rely on the chip alone. */}
       <div
         className="flex flex-wrap items-center gap-1.5"
         role="group"
@@ -1942,6 +1932,16 @@ function EntityChipRow({
                     <span className="font-normal">
                       <Trans>missing</Trans>
                     </span>
+                  </span>
+                  {/* 2026-05-26 (step-6 ux-flow audit R1.2): the
+                      title attribute carried the gap-jurisdiction
+                      detail, but title is mouse-only — keyboard
+                      and touch users never saw the elaboration.
+                      sr-only text exposes it for SR users. */}
+                  <span className="sr-only">
+                    {gapCount === 1
+                      ? t`(${gapCount} jurisdiction missing a rule)`
+                      : t`(${gapCount} jurisdictions missing a rule)`}
                   </span>
                 </>
               ) : null}
@@ -2086,20 +2086,17 @@ function LoadingState() {
 // users discover J/K + Enter + e without reading docs. Hidden on
 // narrow viewports so the toolbar doesn't wrap onto two lines.
 // Mirrors the `KeyboardHints` strip in the batch-review modal footer
-// (same `KbdHint` primitive defined further down this file).
+// (same `KbdHint` primitive from `@/components/patterns/kbd`).
 function RowNavHints() {
   return (
-    <div className="hidden flex-wrap items-center gap-2 text-caption text-text-tertiary md:flex">
-      <KbdHint k="J/K" label="row" />
-      <span aria-hidden className="text-text-tertiary/50">
-        ·
-      </span>
-      <KbdHint k="↵" label="open" />
-      <span aria-hidden className="text-text-tertiary/50">
-        ·
-      </span>
-      <KbdHint k="E" label="expand" />
-    </div>
+    <KbdHint
+      className="hidden md:inline-flex"
+      items={[
+        { keys: ['J/K'], label: 'row' },
+        { keys: ['↵'], label: 'open' },
+        { keys: ['E'], label: 'expand' },
+      ]}
+    />
   )
 }
 
@@ -2300,7 +2297,7 @@ function GroupedRulesTable({
                 <TableHead
                   key={entity}
                   title={ENTITY_LABELS[entity]}
-                  className="w-12 text-center text-[10px] font-medium uppercase tracking-wider text-text-tertiary"
+                  className="w-12 text-center text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-tertiary"
                 >
                   {ENTITY_COLUMN_LABELS[entity]}
                 </TableHead>
@@ -2423,15 +2420,16 @@ function GroupedRulesTable({
               the bare "No rules and no coverage data yet." row has
               been retired — `RulesLibraryEmptyState` now renders
               ABOVE this table when `groups.length === 0` (see the
-              parent route). The table itself is never rendered with
-              zero groups now. */}
+              parent route). Step 7's F9-06 copy improvement is no
+              longer applicable to this hunk; the table itself is
+              never rendered with zero groups. Step 7's gap-section
+              `StatusSectionHeaderRow` (F9-?) was independently
+              shipped here (see L2379). */}
           </TableBody>
         </Table>
-        {/* 2026-05-26 (Yuqi cross-table drift #3 — "clients and rule
-          library are prev/next + page count footer"): pagination
-          footer matching /clients shape (px-2 py-6, prev/next chevrons,
-          "Page X of N" between). Footer only renders when there's
-          more than one page. */}
+        {/* Pagination footer (HEAD): matches /clients shape — prev/next
+            chevrons + "Page X of N" between. Renders only when there's
+            more than one page. */}
         {totalPages > 1 ? (
           <div className="flex shrink-0 items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-6 text-xs text-text-tertiary">
             <span className="px-2">
@@ -2539,7 +2537,7 @@ function GroupHeaderRow({
           />
           <span className="inline-flex items-center gap-1.5">
             <StateBadge code={group.jurisdiction} size="xs" title={group.jurisdiction} />
-            <span className="font-mono text-caption-xs uppercase tracking-wider text-text-secondary">
+            <span className="text-caption-xs uppercase tracking-wider text-text-secondary">
               {group.jurisdiction}
             </span>
           </span>
@@ -2706,31 +2704,10 @@ function RuleTableRow({
               </span>
             </span>
           ) : (
-            // 2026-05-26 (Yuqi feedback — "Needs review and review item
-            // have checkbox, active 20 and the active items need
-            // something in front of them at the same position as the
-            // checkbox as well to look nicely done"): non-selectable
-            // rules (ACTIVE / VERIFIED / REJECTED / ARCHIVED) render a
-            // status-toned dot at the checkbox X-position so the row's
-            // leading slot is never empty.
-            //
-            // 2026-05-26 (Yuqi follow-up — "green dot turns gray so
-            // not clashing with the entity status"): active +
-            // verified rules use a gray dot. The entity-status green
-            // dots in the same row already carry the "applies +
-            // healthy" signal; a second green dot in the leading
-            // slot was visually competing. Gray reads as "marker
-            // for the state group above" without stealing the eye.
-            //
-            // 2026-05-26 (Yuqi follow-up — "hovering onto the row
-            // currently just changes the background — but can
-            // actually expand the green dot/blue dot to a word
-            // explanation of what is happening at the entity"): on
-            // row hover the dot stays, and a short status label
-            // (Active / Needs review / Rejected / Archived …)
-            // reveals next to it. The title shifts right on hover —
-            // intentional: the dot "expands" into the word, matching
-            // the user's mental model.
+            // HEAD's tone-dot indicator for non-selectable rules (gray
+            // dot + hover-reveals status label) preserved. Step 6 cont
+            // R4.2 added `group-focus-within:underline` for keyboard
+            // a11y — applied to the title span below.
             (() => {
               const tone = STATUS_TONE[rule.status]
               return (
@@ -2751,12 +2728,9 @@ function RuleTableRow({
               )
             })()
           )}
-          {/* 2026-05-26 (Yuqi follow-up — "revert the titles back
-              to black"): rule title back to `text-text-primary`.
-              Hover underline stays as the row-affordance cue; the
-              accent-purple coloring (from the earlier Stripe
-              /colorize pass) is gone. */}
-          <span className="text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-hover/row:decoration-current">
+          {/* Step 6 cont R4.2: focus-within underline matches hover so
+              keyboard nav previews the link affordance. */}
+          <span className="text-text-primary group-hover/row:underline group-hover/row:underline-offset-2 group-hover/row:decoration-current group-focus-within/row:underline group-focus-within/row:underline-offset-2 group-focus-within/row:decoration-current">
             {displayTitle}
           </span>
         </div>
@@ -2781,9 +2755,16 @@ function RuleTableRow({
       <TableCell className="py-2">
         <div className="flex items-center justify-end gap-2 text-xs text-text-secondary">
           <span>{tierLabels[rule.ruleTier]}</span>
+          {/* 2026-05-26 (step-6 ux-flow audit R4.1): chevron was
+              fully hidden at rest — keyboard / touch users got no
+              row-click affordance. Now permanently shown at 30%
+              opacity, full opacity on hover/focus-within. */}
           <ChevronRightIcon
             aria-hidden
-            className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover/row:opacity-100"
+            // Step 6 cont R4.1: chevron permanently 30% opacity at rest,
+            // 100% on hover + focus-within so keyboard/touch users get
+            // an affordance cue.
+            className="size-3.5 shrink-0 text-text-tertiary opacity-30 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100"
           />
           <RowActionsMenu
             label={`Actions for ${displayTitle}`}
@@ -3057,7 +3038,7 @@ function SearchResultsTable({
               <TableHead
                 key={entity}
                 title={ENTITY_LABELS[entity]}
-                className="w-12 text-center text-[10px] font-medium uppercase tracking-wider text-text-tertiary"
+                className="w-12 text-center text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-tertiary"
               >
                 {ENTITY_COLUMN_LABELS[entity]}
               </TableHead>
@@ -3264,14 +3245,14 @@ function RuleDetailKicker({ rule }: { rule: ObligationRule }) {
     <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
       <span className="inline-flex items-center gap-1.5">
         <StateBadge code={rule.jurisdiction} size="xs" title={rule.jurisdiction} />
-        <span className="font-mono text-caption-xs uppercase tracking-wider text-text-secondary">
+        <span className="text-caption-xs uppercase tracking-wider text-text-secondary">
           {rule.jurisdiction}
         </span>
       </span>
       <span aria-hidden>·</span>
       <span className="font-medium text-text-secondary">{rule.formName}</span>
       <span aria-hidden>·</span>
-      <span className="font-mono tabular-nums">
+      <span className="tabular-nums">
         <Trans>TY {rule.taxYear}</Trans>
         {rule.taxYear !== rule.applicableYear ? `–${rule.applicableYear}` : ''}
       </span>
@@ -3388,6 +3369,9 @@ function BulkReviewBar({
         <Trans>Review {count}</Trans>
         <ChevronRightIcon data-icon="inline-end" />
       </Button>
+      {/* Step 6 cont R3.1 wanted a canonical Button Clear; HEAD already
+          renders a `Clear` link at the left of the bar (L3347-3353).
+          Skipped duplicate to avoid two Clear buttons in the same bar. */}
     </FloatingActionBar>
   )
 }
@@ -3531,7 +3515,7 @@ function BatchReviewModal({
               review header; keeping both in normal flow reserves
               space for the count and the close affordance. */}
           <div className="flex shrink-0 items-center gap-2">
-            <span className="font-mono text-xs tabular-nums text-text-tertiary">
+            <span className="text-xs tabular-nums text-text-tertiary">
               <span className="text-text-secondary">{currentIndex + 1}</span> / {total}
             </span>
             <Button
@@ -3584,8 +3568,13 @@ function BatchReviewModal({
             <Trans>Previous</Trans>
           </Button>
           <KeyboardHints />
-          <Button type="button" variant="outline" size="sm" onClick={onSkip}>
-            {isLast ? <Trans>Finish</Trans> : <Trans>Skip</Trans>}
+          {/* 2026-05-26 (step-6 ux-flow audit R3.4): Skip and the
+              terminal Finish are semantically distinct (Skip is
+              passive forward-step, Finish closes the modal). Match
+              them visually: Skip stays outline-quiet, Finish gets
+              a primary fill so the terminal action is visible. */}
+          <Button type="button" variant={isLast ? 'default' : 'outline'} size="sm" onClick={onSkip}>
+            {isLast ? <Trans>Done</Trans> : <Trans>Skip</Trans>}
             <ChevronRightIcon data-icon="inline-end" />
           </Button>
         </footer>
@@ -3601,25 +3590,14 @@ function BatchReviewModal({
 // onto two lines.
 function KeyboardHints() {
   return (
-    <div className="hidden flex-wrap items-center gap-2 text-caption text-text-tertiary sm:flex">
-      <KbdHint k="A" label="accept" />
-      <span aria-hidden className="text-text-tertiary/50">
-        ·
-      </span>
-      <KbdHint k="←" label="prev" />
-      <KbdHint k="→" label="skip" />
-    </div>
-  )
-}
-
-function KbdHint({ k, label }: { k: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1">
-      <kbd className="inline-flex h-4 min-w-4 items-center justify-center rounded-sm border border-divider-regular bg-background-default px-1 font-mono text-caption-xs font-medium text-text-secondary">
-        {k}
-      </kbd>
-      <span>{label}</span>
-    </span>
+    <KbdHint
+      className="hidden sm:inline-flex"
+      items={[
+        { keys: ['A'], label: 'accept' },
+        { keys: ['←'], label: 'prev' },
+        { keys: ['→'], label: 'skip' },
+      ]}
+    />
   )
 }
 
@@ -3846,8 +3824,15 @@ function NewRuleModal({
             <Button type="button" variant="ghost" size="sm" onClick={onClose}>
               <Trans>Cancel</Trans>
             </Button>
-            <Button type="submit" size="sm" disabled={!canSubmit}>
-              {mutation.isPending ? <Trans>Creating…</Trans> : <Trans>Create rule</Trans>}
+            <Button type="submit" size="sm" disabled={!canSubmit} aria-busy={mutation.isPending}>
+              {mutation.isPending ? (
+                <>
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
+                  <Trans>Creating…</Trans>
+                </>
+              ) : (
+                <Trans>Create rule</Trans>
+              )}
             </Button>
           </footer>
         </form>

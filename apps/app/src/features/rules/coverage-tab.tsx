@@ -33,6 +33,7 @@ import {
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
 import { useOptionalSidebar } from '@duedatehq/ui/components/ui/sidebar'
+import { Tabs, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import {
   Table,
   TableBody,
@@ -754,7 +755,13 @@ export function CoverageTab({
         {!panelOpen ? (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-xs font-semibold tracking-[0.12em] text-text-primary uppercase">
+              {/* 2026-05-26 (86th pass, audit §16 P1 — explicit DESIGN
+                  §9 "uppercase kicker deprecated" violation): dropped
+                  `text-xs uppercase tracking-eyebrow font-semibold`
+                  for the canonical `text-sm font-medium text-text-primary`
+                  section heading scale. Sentence case keeps the rest
+                  of the rules library reading as one coherent surface. */}
+              <h2 className="text-sm font-medium text-text-primary">
                 <Trans>Entity coverage</Trans>
               </h2>
               <SearchInput value={effectiveSearch} onChange={setSearchValue} />
@@ -1008,20 +1015,26 @@ function ActiveFilterChip({
   filter: Exclude<RowFilter, 'all'>
   onClear: () => void
 }) {
-  const labels: Record<Exclude<RowFilter, 'all'>, string> = {
-    pending: 'Showing jurisdictions with pending rules',
-    active: 'Showing jurisdictions with active rules',
-  }
+  // Step 6 cont R6.1/R6.2 + Step 8 F-X11: chip + button labels flow
+  // through useLingui so non-EN firms see translated copy. Kept the
+  // ternary shape (Step 6 cont) because the surrounding render reads
+  // `{label}` singular; Step 8's `labels` Record was added but its
+  // rendering reference was never updated, so it was inert.
+  const { t } = useLingui()
+  const label =
+    filter === 'pending'
+      ? t`Showing jurisdictions with pending rules`
+      : t`Showing jurisdictions with active rules`
   return (
     <div className="inline-flex h-8 w-fit items-center gap-2 rounded-md border border-state-accent-active-alt/40 bg-state-accent-tint/40 pr-1 pl-2.5 text-xs text-text-secondary">
-      <span>{labels[filter]}</span>
+      <span>{label}</span>
       <button
         type="button"
         onClick={onClear}
-        aria-label="Clear filter"
+        aria-label={t`Clear filter`}
         className="inline-flex h-6 items-center gap-1 rounded px-1.5 text-xs font-medium text-text-accent outline-none hover:bg-background-default focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
-        Clear
+        <Trans>Clear filter</Trans>
         <XIcon aria-hidden className="size-3" />
       </button>
     </div>
@@ -1036,7 +1049,7 @@ function ActiveFilterChip({
 function EntityCoverageLegend() {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-tertiary">
-      <span className="font-medium uppercase tracking-[0.08em] text-text-muted">
+      <span className="font-medium uppercase tracking-eyebrow text-text-muted">
         <Trans>Legend</Trans>
       </span>
       <span className="inline-flex items-center gap-1.5">
@@ -1344,9 +1357,9 @@ function ExpandedRowDetail({
   return (
     <TableRow className="bg-background-default hover:bg-background-default">
       <TableCell colSpan={totalColumnCount} className="p-0">
-        <div className="flex flex-col gap-5 px-6 py-4">
+        <div className="flex flex-col gap-4 px-6 py-4">
           <section className="flex flex-col gap-2">
-            <p className="text-xs font-semibold tracking-[0.12em] text-text-tertiary uppercase">
+            <p className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>Active rules</Trans>
             </p>
             {activeRules.length === 0 ? (
@@ -1369,7 +1382,7 @@ function ExpandedRowDetail({
           </section>
 
           <section className="flex flex-col gap-2">
-            <p className="text-xs font-semibold tracking-[0.12em] text-text-tertiary uppercase">
+            <p className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>Pending rules</Trans>
             </p>
             {pendingRules.length === 0 ? (
@@ -1392,7 +1405,7 @@ function ExpandedRowDetail({
           </section>
 
           <section className="flex flex-col gap-2">
-            <p className="text-xs font-semibold tracking-[0.12em] text-text-tertiary uppercase">
+            <p className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>Watched sources</Trans>
             </p>
             {sources.length === 0 ? (
@@ -1707,7 +1720,7 @@ function PendingRuleQueue({
     <>
       <header className="flex flex-col gap-2 border-b border-divider-regular px-4 py-3">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-caption-xs font-medium tracking-[0.12em] text-text-tertiary uppercase">
+          <p className="text-caption-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
             <Trans>Pending review queue</Trans>
           </p>
           <span className="text-xs tabular-nums text-text-tertiary">
@@ -1874,7 +1887,7 @@ function ActiveRuleQueue({
     <>
       <header className="flex flex-col gap-2 border-b border-divider-regular px-4 py-3">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-caption-xs font-medium tracking-[0.12em] text-text-tertiary uppercase">
+          <p className="text-caption-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
             <Trans>Active rule queue</Trans>
           </p>
           <span className="text-xs tabular-nums text-text-tertiary">
@@ -1945,45 +1958,37 @@ function RuleQueueModeToggle({
   onModeChange: (mode: RuleQueueMode) => void
 }) {
   const { t } = useLingui()
+  // 2026-05-26 (Layer C follow-up — segmented control unification):
+  // Migrated from a hand-rolled `<div role="tablist">` + two `<button
+  // role="tab">` blocks to the `<Tabs>` primitive from
+  // `@duedatehq/ui/components/ui/tabs`. The primitive handles
+  // aria-selected via `data-active`, keyboard arrow-key navigation
+  // between tabs, and the canonical `bg-components-segmented-*`
+  // palette. Panel content stays rendered externally by the caller
+  // based on the same `mode` value — Tabs.Root works fine as a
+  // controller-only without `<TabsContent>` (a11y story is equivalent
+  // since the old version had no aria-controls relationship either).
   return (
-    <div
-      role="tablist"
-      aria-label={t`Rule queue`}
-      className="grid h-8 grid-cols-2 rounded-md bg-background-subtle p-0.5"
+    <Tabs
+      value={mode}
+      onValueChange={(value) => onModeChange(value as RuleQueueMode)}
+      className="!gap-0"
     >
-      <button
-        type="button"
-        role="tab"
-        aria-selected={mode === 'pending'}
-        disabled={pendingCount === 0}
-        onClick={() => onModeChange('pending')}
-        className={cn(
-          'inline-flex min-w-0 items-center justify-center gap-1 rounded px-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
-          mode === 'pending'
-            ? 'bg-background-default text-text-primary shadow-xs'
-            : 'text-text-secondary hover:bg-background-default/70 hover:text-text-primary',
-        )}
-      >
-        <Trans>Pending</Trans>
-        <span className="font-mono text-caption text-text-tertiary">{pendingCount}</span>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={mode === 'active'}
-        disabled={activeCount === 0}
-        onClick={() => onModeChange('active')}
-        className={cn(
-          'inline-flex min-w-0 items-center justify-center gap-1 rounded px-2 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
-          mode === 'active'
-            ? 'bg-background-default text-text-primary shadow-xs'
-            : 'text-text-secondary hover:bg-background-default/70 hover:text-text-primary',
-        )}
-      >
-        <Trans>Active</Trans>
-        <span className="font-mono text-caption text-text-tertiary">{activeCount}</span>
-      </button>
-    </div>
+      {/* HEAD migrated to Tabs primitive (segmented control unification);
+          Step 6 cont R2.1 fixed the bug where the currently-selected
+          tab got disabled when its count hit zero. Applied R2.1's
+          guard `mode !== ...` to HEAD's Tabs primitive. */}
+      <TabsList aria-label={t`Rule queue`} className="grid w-full grid-cols-2">
+        <TabsTrigger value="pending" disabled={pendingCount === 0 && mode !== 'pending'}>
+          <Trans>Pending</Trans>
+          <span className="text-caption tabular-nums text-text-tertiary">{pendingCount}</span>
+        </TabsTrigger>
+        <TabsTrigger value="active" disabled={activeCount === 0 && mode !== 'active'}>
+          <Trans>Active</Trans>
+          <span className="text-caption tabular-nums text-text-tertiary">{activeCount}</span>
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
   )
 }
 
@@ -2079,7 +2084,7 @@ function BulkReviewDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="data-[side=right]:w-full sm:data-[side=right]:w-[min(720px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none flex flex-col gap-0 overflow-hidden p-0">
         <SheetHeader className="gap-2 border-b border-divider-regular px-5 py-4">
-          <SheetTitle className="text-md text-text-primary">
+          <SheetTitle className="text-base text-text-primary">
             <Trans>Review selected rules</Trans>
           </SheetTitle>
           <SheetDescription>
@@ -2090,7 +2095,7 @@ function BulkReviewDrawer({
           </SheetDescription>
         </SheetHeader>
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             <section className="flex flex-col gap-2">
               <BulkSectionLabel>
                 <Trans>SELECTED RULES</Trans>
@@ -2107,7 +2112,7 @@ function BulkReviewDrawer({
                         <span className="block truncate text-xs font-medium text-text-primary">
                           {rule.title}
                         </span>
-                        <span className="block truncate font-mono text-caption text-text-tertiary">
+                        <span className="block truncate text-caption tabular-nums text-text-tertiary">
                           {rule.id}
                         </span>
                       </div>
@@ -2328,7 +2333,7 @@ function PreviewList({
 
 function BulkSectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="text-caption font-medium uppercase tracking-[0.08em] text-text-muted">
+    <p className="text-caption font-medium uppercase tracking-eyebrow text-text-muted">
       {children}
     </p>
   )
@@ -2369,7 +2374,7 @@ function RulePanel({
             knows where they are in the burndown. "Reviewing 1 of 7"
             beats a static "Reviewing rule" — answers progress + mode
             in one phrase. */}
-          <p className="text-caption-xs font-medium tracking-[0.12em] text-text-tertiary uppercase">
+          <p className="text-caption-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
             {queuePosition && queuePosition.index >= 0 ? (
               mode === 'active' ? (
                 <Trans>

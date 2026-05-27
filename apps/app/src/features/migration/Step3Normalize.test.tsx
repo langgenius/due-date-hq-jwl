@@ -103,7 +103,7 @@ describe('Step3Normalize matrix state context', () => {
   it('summarizes tax defaults and keeps matrix controls behind an advanced toggle', () => {
     renderStep({ status: 'success', rows: [], applyToAll: {}, errorBanner: null })
 
-    expect(document.body.textContent).toContain('AI cleaned your values')
+    expect(document.body.textContent).toContain('AI standardized your values')
     expect(document.body.textContent).toContain('Tax type defaults')
     expect(document.body.textContent).toContain(
       'Default tax types are ready for clients without tax types',

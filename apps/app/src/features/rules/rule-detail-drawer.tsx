@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, SparklesIcon, TriangleAlertIcon } from 'lucide-react'
+import { AlertTriangleIcon, Astroid, TriangleAlertIcon } from 'lucide-react'
 import { toast, type ExternalToast } from 'sonner'
 
 import type {
@@ -22,6 +22,7 @@ import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
 import {
   formatEnumLabel,
@@ -148,7 +149,7 @@ export function RuleDetailCompact({
   const sourceLookup = useSourceLookup()
   const dueDateSummary = useMemo(() => humanizeDueDateLogic(rule.dueDateLogic), [rule.dueDateLogic])
   return (
-    <div className="flex min-w-0 flex-col gap-5">
+    <div className="flex min-w-0 flex-col gap-4">
       {/* 2026-05-26 (Yuqi /critique — P1-3 / P2-1 / P2-3):
         retired the audit meta line. It carried `rule.id` (a
         dev-internal slug — `al.individual_income_return.candidate.
@@ -204,7 +205,7 @@ export function RuleDetailCompact({
       <DetailSection label={<Trans>Evidence</Trans>}>
         <div className="flex min-w-0 flex-col gap-1.5">
           {rule.evidence.map((evidence) => (
-            <EvidenceCard
+            <RuleEvidenceCard
               key={evidenceKey(evidence)}
               evidence={evidence}
               source={sourceLookup.get(evidence.sourceId)}
@@ -479,9 +480,9 @@ function CandidateReviewForm({
           chip that duplicated the rule-status pill in the audit meta
           line above. Dropped per /critique — one canonical "needs
           review" signal is enough. */}
-      <SectionLabel>
+      <RuleSectionHeading>
         <Trans>Practice review</Trans>
-      </SectionLabel>
+      </RuleSectionHeading>
       <p className="text-sm text-text-secondary">
         {sourceDefined && rule.status === 'active' ? (
           <Trans>
@@ -589,7 +590,7 @@ function AiDraftReviewPanel({
               onClick={onGenerateDraft}
               disabled={generating}
             >
-              <SparklesIcon data-icon="inline-start" />
+              <Astroid data-icon="inline-start" />
               {generating ? <Trans>Generating…</Trans> : <Trans>Generate draft</Trans>}
             </Button>
           ) : null}
@@ -613,8 +614,22 @@ function AiDraftReviewPanel({
             <span className="text-text-tertiary">
               <Trans>Confidence</Trans>
             </span>
+            {/* 2026-05-26 (Step 9 AI Visibility Audit F-013): qualitative
+                tier (Low/Medium/High) renders alongside the raw
+                percentage so a CPA reading the draft can match against
+                the same Low/Medium/High vocabulary used in Pulse,
+                instead of mentally translating "72%" into the canonical
+                ladder. */}
             <span className="font-mono text-text-secondary">
               {Math.round(draft.confidence * 100)}%
+              <span className="ml-1 text-text-tertiary">
+                {(() => {
+                  const tier = aiConfidenceTier(draft.confidence)
+                  if (tier === 'low') return <Trans>(Low)</Trans>
+                  if (tier === 'medium') return <Trans>(Medium)</Trans>
+                  return <Trans>(High)</Trans>
+                })()}
+              </span>
             </span>
           </div>
           <blockquote className="border-l border-state-accent-active-alt pl-2 text-xs text-text-secondary italic">
@@ -628,8 +643,17 @@ function AiDraftReviewPanel({
 }
 
 function AiDraftReviewSkeleton() {
+  // 2026-05-26 (Step 9 AI Visibility Audit F-053): added explicit
+  // "AI is reading the source" microcopy above the skeleton bars.
+  // Before, a bare skeleton row left the user wondering whether the
+  // page was loading or actually invoking a model — naming the
+  // operation removes the ambiguity and sets honest latency
+  // expectations.
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2" aria-busy="true">
+      <p className="text-xs text-text-tertiary">
+        <Trans>AI is reading the source…</Trans>
+      </p>
       <Skeleton className="h-4 w-4/5" />
       <div className="grid grid-cols-[96px_1fr] gap-x-2 gap-y-1">
         <Skeleton className="h-3 w-16" />
@@ -649,7 +673,7 @@ function AiDraftReviewSkeleton() {
 // queue definition) and unused elsewhere. Recover from git if a
 // non-review surface needs the inline status renderer.
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function RuleSectionHeading({ children }: { children: React.ReactNode }) {
   // 2026-05-26 (Yuqi /critique — same canonical move as
   // DetailSection above). Practice review heading now reads at
   // the same weight as Applicability / Due date / Extension /
@@ -673,9 +697,9 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
   //     as a sentence.
   return (
     <section className="flex flex-col gap-2">
-      <SectionLabel>
+      <RuleSectionHeading>
         <Trans>Applicability</Trans>
-      </SectionLabel>
+      </RuleSectionHeading>
       <p className="text-base text-text-primary">
         <Trans>
           Applies to {formatEntityApplicability(rule.entityApplicability)} in{' '}
@@ -741,9 +765,9 @@ function DueDateLogicSection({ rule }: { rule: ObligationRule }) {
   // sits closer to the label.
   return (
     <section className="flex flex-col gap-1.5">
-      <SectionLabel>
+      <RuleSectionHeading>
         <Trans>When it's due</Trans>
-      </SectionLabel>
+      </RuleSectionHeading>
       <p className="text-base text-text-primary">{summary}</p>
     </section>
   )
@@ -762,9 +786,9 @@ function ExtensionSection({ rule }: { rule: ObligationRule }) {
   const durationMonths = extensionPolicy.durationMonths
   return (
     <section className="flex flex-col gap-2">
-      <SectionLabel>
+      <RuleSectionHeading>
         <Trans>Extension</Trans>
-      </SectionLabel>
+      </RuleSectionHeading>
       {extensionPolicy.available ? (
         <div className="flex flex-col gap-2">
           <p className="text-base text-text-primary">
@@ -835,7 +859,7 @@ function ReviewReasonsSection({ rule }: { rule: ObligationRule }) {
   // 2026-05-25 (Yuqi rule library #27, #28): the callout used to
   // float at the bottom of the dialog with no label — Yuqi asked
   // "what is this? does it have an action?" Now it carries:
-  //   - A SectionLabel-style heading so it reads as a regular
+  //   - A RuleSectionHeading-style heading so it reads as a regular
   //     section, not a random alert box
   //   - An explicit "Needs CPA review" / "Needs CPA confirmation"
   //     icon-led heading that names the work
@@ -890,16 +914,16 @@ function EvidenceSection({
   return (
     <section className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between">
-        <SectionLabel>
+        <RuleSectionHeading>
           <Trans>Evidence</Trans>
-        </SectionLabel>
+        </RuleSectionHeading>
         <span className="font-mono text-xs tabular-nums text-text-tertiary">
           {rule.evidence.length}
         </span>
       </div>
       <div className="flex flex-col gap-2">
         {rule.evidence.map((evidence) => (
-          <EvidenceCard
+          <RuleEvidenceCard
             key={evidenceKey(evidence)}
             evidence={evidence}
             source={sourceLookup.get(evidence.sourceId)}
@@ -910,7 +934,7 @@ function EvidenceSection({
   )
 }
 
-function EvidenceCard({
+function RuleEvidenceCard({
   evidence,
   source,
 }: {
@@ -995,7 +1019,7 @@ function AuthorityRoleBadge({ role }: { role: RuleEvidenceAuthorityRole }) {
     <Badge
       title={RULE_AUTHORITY_ROLE_DESCRIPTION[role]}
       className={cn(
-        'h-[18px] shrink-0 cursor-help rounded-sm border-transparent px-1.5 font-mono text-caption-xs font-medium uppercase tracking-[0.04em]',
+        'h-[18px] shrink-0 cursor-help rounded-sm border-transparent px-1.5 font-mono text-caption-xs font-medium uppercase tracking-eyebrow-tight',
         className,
       )}
     >
@@ -1034,9 +1058,9 @@ function VerificationSection({ rule }: { rule: ObligationRule }) {
 
   return (
     <section className="flex flex-col gap-1.5 border-t border-divider-subtle pt-4">
-      <SectionLabel>
+      <RuleSectionHeading>
         <Trans>Practice review</Trans>
-      </SectionLabel>
+      </RuleSectionHeading>
       <div className="grid grid-cols-[88px_1fr] gap-y-1 text-xs">
         <span className="text-text-tertiary">
           <Trans>Reviewed by</Trans>

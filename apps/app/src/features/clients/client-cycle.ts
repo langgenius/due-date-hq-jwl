@@ -57,17 +57,7 @@ export function readClientCycleList(): string[] {
   }
 }
 
-export function clearClientCycleList(): void {
-  const storage = getStorage()
-  if (!storage) return
-  try {
-    storage.removeItem(STORAGE_KEY)
-  } catch {
-    // Same swallow as writeClientCycleList.
-  }
-}
-
-export type ClientCycleNeighbors = {
+type ClientCycleNeighbors = {
   prev: string | null
   next: string | null
   position: number

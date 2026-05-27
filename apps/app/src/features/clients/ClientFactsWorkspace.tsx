@@ -495,9 +495,7 @@ function ClientFilingStateChips({ client }: { client: ClientPublic }) {
           <span className="font-mono uppercase tabular-nums text-text-secondary">{state}</span>
         </span>
       ))}
-      {overflow > 0 ? (
-        <span className="font-mono tabular-nums text-text-tertiary">+{overflow}</span>
-      ) : null}
+      {overflow > 0 ? <span className="tabular-nums text-text-tertiary">+{overflow}</span> : null}
     </div>
   )
 }
@@ -985,7 +983,7 @@ export function ClientFactsWorkspace({
               ))}
               {overflow > 0 ? (
                 <span
-                  className="font-mono text-caption tabular-nums text-text-tertiary"
+                  className="text-caption tabular-nums text-text-tertiary"
                   title={others.slice(2).join(', ')}
                 >
                   +{overflow}
@@ -1714,14 +1712,15 @@ function ClientsFilterToolbar({
     entityFilter.length > 0 ||
     ownerFilter.length > 0
 
-  // 2026-05-26 (Yuqi cross-table drift #5 — "fix search affordances"):
+  // 2026-05-26 (cross-table drift #5 + Step 8 F-X02/F-X03):
   // /clients now uses the canonical collapsible-search pattern shared
-  // with /deadlines (`ObligationQueueSearchControl`) and /rules/library
-  // (`RuleSearchControl`). Ghost-icon at rest, expands inline into the
-  // canonical `SearchInput` on click OR on `/` hotkey. The `useEffect`
-  // window-keydown wiring is gone — `useAppHotkey` (registered inside
-  // `ClientsSearchControl`) drives the global `/` shortcut + surfaces
-  // it in the keyboard-help overlay.
+  // with /deadlines and /rules/library. Ghost-icon at rest, expands
+  // inline into the canonical `SearchInput` primitive on click OR on
+  // `/` hotkey. Step 8 migrated FROM hand-rolled `<Input type="search">`
+  // + bespoke XIcon clear + raw window keydown TO the SearchInput
+  // primitive; HEAD then wrapped the primitive in a collapsible
+  // `ClientsSearchControl` so the icon-only rest state matches
+  // Yuqi's later directive. Both fixes preserved.
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -1736,6 +1735,11 @@ function ClientsFilterToolbar({
   //     into the input on click or `/` hotkey.
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {/* Step 8 added an inline-always SearchInput at the toolbar start;
+          HEAD's collapsible icon pattern (ClientsSearchControl, rendered
+          later in the toolbar) is the newer design Yuqi requested.
+          Dropped Step 8's inline duplicate — the SearchInput primitive
+          IS used, just wrapped in the collapsible affordance. */}
       <TableHeaderMultiFilter
         trigger="toolbar"
         label={t`Client`}
@@ -1782,6 +1786,11 @@ function ClientsFilterToolbar({
           // 2026-05-26 (Yuqi /clients directory pivot brief): Reset
           // clears search alongside the structural filters so the
           // CPA returns to the full directory in one click.
+          // 2026-05-26 (Yuqi step-8 data-finding audit — F-X01/F-X12):
+          // label changed from "Reset" to "Clear filters" to align
+          // with /deadlines, /alerts, and /rules/library. "Reset"
+          // implied broader scope (density, columns, etc.) than the
+          // affordance actually has — only filters get cleared.
           onSearchChange('')
           onClientFilterChange([])
           onStateFilterChange([])
@@ -1789,7 +1798,7 @@ function ClientsFilterToolbar({
           onOwnerFilterChange([])
         }}
       >
-        <Trans>Reset</Trans>
+        <Trans>Clear filters</Trans>
       </Button>
       {/* Spacer pushes the search affordance to the right edge. */}
       <div className="ml-auto">
@@ -1943,18 +1952,11 @@ function ClientsActionStrip({
   return (
     <div
       role="status"
-      // 2026-05-26 (Yuqi follow-up — "cannot see the background.
-      // maybe subtle white"): the prior `bg-background-subtle` was
-      // too close to the page gray and the banner read as part of
-      // the wallpaper. Switched to `bg-background-default` (white)
-      // with a soft `border-divider-subtle` outline so the strip
-      // reads as a real card sitting above the page wash.
-      // 2026-05-26 (Yuqi /clients feedback #6 — "i want full radius for
-      // this kind of banner"): outer pill radius `rounded-md` (6px) →
-      // `rounded-full` (full pill). The action strip is a single-row
-      // status banner (counter chips + Needs-facts band), so the
-      // full pill reads as a unified context bar — softer + more
-      // distinct from the table card below.
+      // Action-strip banner: white surface + subtle border + full pill.
+      // White (`bg-background-default`) is required — `bg-background-subtle`
+      // reads as page wallpaper and the strip disappears. Full pill
+      // (rounded-full) signals "single-row status bar," visually distinct
+      // from the table card below.
       className="flex flex-col gap-2 rounded-full border border-divider-subtle bg-background-default px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
     >
       <div className="flex items-center gap-2">
@@ -2667,7 +2669,7 @@ export function ClientDetailWorkspace({
                       readiness chip (warning, not destructive) per
                       §3.7 canonical color reservation. */}
                   {readiness && readiness.missingRequiredFacts.length > 0 ? (
-                    <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-state-warning-border bg-state-warning-hover px-1.5 font-mono text-[10px] font-medium leading-none tabular-nums text-text-warning">
+                    <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-state-warning-border bg-state-warning-hover px-1.5 text-[10px] font-medium leading-none tabular-nums text-text-warning">
                       {readiness.missingRequiredFacts.length}
                     </span>
                   ) : null}
@@ -2977,7 +2979,7 @@ export function ClientDetailWorkspace({
             activeObligationId ? 'flex w-full' : 'hidden',
             // xl+: always present as a flex slot, width-animated.
             'xl:flex xl:h-full xl:min-h-0',
-            'xl:transition-[width,margin-right] xl:duration-300 xl:ease-[cubic-bezier(0.32,0.72,0,1)]',
+            'xl:transition-[width,margin-right] xl:duration-300 xl:ease-apple motion-reduce:transition-none',
             // Closed: 0 width AND a negative right margin equal to
             // the parent's xl:gap-6 so the unused gap doesn't show
             // up as a void on the right edge.
@@ -4518,10 +4520,24 @@ function InsightStatusBadge({ status }: { status: AiInsightPublic['status'] }) {
     )
   }
   if (status === 'stale') {
+    // 2026-05-26 (Step 9 AI Visibility Audit F-021): tooltip
+    // explains what stale means for an AI insight.
     return (
-      <Badge variant="info" className="text-xs">
-        <Trans>Stale</Trans>
-      </Badge>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Badge variant="info" tabIndex={0} className="cursor-help text-xs">
+              <Trans>Stale</Trans>
+            </Badge>
+          }
+        />
+        <TooltipContent>
+          <Trans>
+            This AI insight was generated before the client's facts changed. Refresh to get an
+            up-to-date summary.
+          </Trans>
+        </TooltipContent>
+      </Tooltip>
     )
   }
   return (
@@ -4934,7 +4950,7 @@ function ClientOwnerHeaderPill({
               <>
                 <span
                   className={cn(
-                    'inline-flex size-5 items-center justify-center rounded-full text-[10px] font-semibold uppercase tracking-tight',
+                    'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
                     isMine ? 'bg-state-accent-hover-alt text-text-accent' : tint,
                   )}
                 >
@@ -5172,7 +5188,7 @@ function ClientContactMetaItem({ item }: { item: ClientHeaderContactItem }) {
     return (
       <a
         href={`tel:${item.value}`}
-        className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-sm font-mono outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-sm tabular-nums outline-none hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         {content}
       </a>
@@ -5464,7 +5480,7 @@ function SuggestedFormsCatalogPanel({
                       <p className="text-sm font-medium text-text-primary">
                         {suggestion.rule.formName}
                       </p>
-                      <span className="text-xs font-medium tracking-[0.08em] text-text-tertiary uppercase">
+                      <span className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
                         {suggestion.rule.jurisdiction}
                       </span>
                     </div>

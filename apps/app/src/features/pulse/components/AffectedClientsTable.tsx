@@ -183,7 +183,7 @@ export function AffectedClientsTable({
                       </span>
                       <div className="flex flex-wrap items-center gap-1.5 text-xs">
                         {row.state ? (
-                          <span className="font-mono font-semibold uppercase tracking-wide text-text-tertiary">
+                          <span className="font-semibold uppercase tracking-wide text-text-tertiary">
                             {row.state}
                           </span>
                         ) : null}
@@ -203,7 +203,7 @@ export function AffectedClientsTable({
                       narrow — no horizontal sprawl with the arrow
                       glyph in the middle. */}
                   <TableCell>
-                    <div className="flex flex-col gap-0.5 font-mono text-xs tabular-nums leading-tight text-text-primary">
+                    <div className="flex flex-col gap-0.5 text-xs tabular-nums leading-tight text-text-primary">
                       <span className="text-text-tertiary line-through">
                         {formatDate(row.currentDueDate)}
                       </span>
@@ -249,7 +249,7 @@ export function AffectedClientsTable({
                               event.stopPropagation()
                               onToggleNeedsReviewConfirmation(row.obligationId, false)
                             }}
-                            className="inline-flex h-7 items-center rounded-sm border border-divider-subtle bg-background-default px-2 text-xs font-medium text-text-tertiary outline-none transition-colors hover:border-divider-regular hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex h-7 items-center rounded-sm border border-divider-subtle bg-background-default px-2 text-xs font-medium text-text-tertiary outline-none transition-colors hover:border-divider-regular hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
                             aria-label={t`Unconfirm ${row.clientName}`}
                           >
                             <Trans>Unconfirm</Trans>
@@ -262,7 +262,7 @@ export function AffectedClientsTable({
                               event.stopPropagation()
                               setConfirmTarget(row)
                             }}
-                            className="inline-flex h-7 items-center rounded-sm border border-state-accent-solid bg-state-accent-hover px-2 text-xs font-semibold text-text-accent outline-none transition-colors hover:bg-state-accent-hover-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex h-7 items-center rounded-sm border border-state-accent-solid bg-state-accent-hover px-2 text-xs font-semibold text-text-accent outline-none transition-colors hover:bg-state-accent-hover-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
                             aria-label={t`Confirm ${row.clientName} applies to this relief`}
                           >
                             <Trans>Confirm applies…</Trans>

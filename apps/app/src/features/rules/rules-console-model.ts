@@ -3,7 +3,6 @@ import * as z from 'zod'
 import {
   RuleGenerationPreviewInputSchema,
   RuleGenerationStateValues,
-  RuleJurisdictionValues,
   type ClientPublic,
   type DueDateLogic,
   type ObligationGenerationPreview,
@@ -11,15 +10,13 @@ import {
   type RuleEvidenceAuthorityRole,
   type RuleGenerationPreviewInput,
   type RuleGenerationState,
-  type RuleJurisdiction,
   type RuleSource,
 } from '@duedatehq/contracts'
 
-export type SourceDisplayHealth = 'healthy' | 'paused'
+type SourceDisplayHealth = 'healthy' | 'paused'
 export type SourceHealthFilter = 'all' | SourceDisplayHealth
 export type CoverageCellState = 'active' | 'review' | 'none'
 
-export const RULE_JURISDICTIONS: RuleJurisdiction[] = [...RuleJurisdictionValues]
 export const RULE_GENERATION_STATES: RuleGenerationState[] = [...RuleGenerationStateValues]
 export const ENTITY_COLUMN_GROUPS = {
   business: ['llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
@@ -27,8 +24,6 @@ export const ENTITY_COLUMN_GROUPS = {
   all: ['individual', 'trust', 'llc', 'partnership', 's_corp', 'c_corp', 'sole_prop'],
 } as const
 export const COVERAGE_ENTITY_GROUPS = ['business', 'personal', 'all'] as const
-export const DEFAULT_COVERAGE_ENTITY_GROUP = 'business'
-export type CoverageEntityGroup = (typeof COVERAGE_ENTITY_GROUPS)[number]
 export type CoverageEntityColumn = (typeof ENTITY_COLUMN_GROUPS)['all'][number]
 
 export const RULE_JURISDICTION_LABELS: Record<string, string> = {
@@ -198,17 +193,6 @@ function parseIsoYear(value: string): number | null {
   const match = /^(\d{4})-\d{2}-\d{2}$/.exec(value)
   if (!match) return null
   return Number(match[1])
-}
-
-export function compactAcquisitionMethod(method: RuleSource['acquisitionMethod']): string {
-  return method.replace(/_(watch|review|subscription)$/, '')
-}
-
-export function compactSourceType(sourceType: RuleSource['sourceType']): string {
-  if (sourceType === 'publication') return 'pub'
-  if (sourceType === 'emergency_relief') return 'emergency'
-  if (sourceType === 'early_warning') return 'early-warn'
-  return sourceType
 }
 
 type SourceHealthOnly = Pick<RuleSource, 'healthStatus'>

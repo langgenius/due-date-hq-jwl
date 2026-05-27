@@ -19,7 +19,7 @@ export interface OnboardingFirmGateway {
   ) => Promise<RuleOnboardingActivationOutput>
 }
 
-export type OnboardingFirmActivationResult =
+type OnboardingFirmActivationResult =
   | { kind: 'reused'; firm: FirmPublic }
   | {
       kind: 'created'

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ArrowRightIcon, ClipboardListIcon, LockKeyholeIcon, RefreshCwIcon } from 'lucide-react'
 
 import type { WorkloadManagerInsights, WorkloadOwnerRow } from '@duedatehq/contracts'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -15,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@duedatehq/ui/components/ui/card'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -25,6 +27,7 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { paidPlanActive } from '@/features/billing/model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -49,18 +52,19 @@ export function WorkloadPage() {
   })
 
   if (firmsQuery.isLoading) {
+    // 2026-05-26 (step-6 ux-flow audit F2.3): replaced the
+    // text-in-Card loading state with skeletons so the rhythm
+    // matches the rest of the app.
     return (
-      <section className="grid gap-6 p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <Trans>Loading team workload…</Trans>
-            </CardTitle>
-            <CardDescription>
-              <Trans>Checking the active practice plan before loading workload metrics.</Trans>
-            </CardDescription>
-          </CardHeader>
-        </Card>
+      <section
+        className="grid gap-6 p-6"
+        role="status"
+        aria-live="polite"
+        aria-label={t`Loading team workload`}
+      >
+        <Skeleton className="h-10 w-56" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-60 w-full" />
       </section>
     )
   }
@@ -91,30 +95,38 @@ export function WorkloadPage() {
           </>
         }
         actions={
+          // 2026-05-26 (step-6 ux-flow audit F2.4): refresh button
+          // now announces aria-busy + spins the icon while
+          // refetching so the user has a visible signal.
           <Button
             variant="outline"
             size="sm"
             onClick={() => void workloadQuery.refetch()}
             disabled={workloadQuery.isFetching}
+            aria-busy={workloadQuery.isFetching}
           >
-            <RefreshCwIcon data-icon="inline-start" />
+            <RefreshCwIcon
+              data-icon="inline-start"
+              className={workloadQuery.isFetching ? 'animate-spin' : undefined}
+            />
             <Trans>Refresh</Trans>
           </Button>
         }
       />
 
       {workloadQuery.isError ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <Trans>Couldn't load team workload</Trans>
-            </CardTitle>
-            <CardDescription>
-              {rpcErrorMessage(workloadQuery.error) ??
-                t`Check your network and try again. If this keeps happening, contact support.`}
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        // 2026-05-26 (step-6 ux-flow audit F2.2): converted from
+        // Card-as-error to canonical Alert variant=destructive for
+        // parity with /notifications + /opportunities.
+        <Alert variant="destructive">
+          <AlertTitle>
+            <Trans>Couldn't load team workload</Trans>
+          </AlertTitle>
+          <AlertDescription>
+            {rpcErrorMessage(workloadQuery.error) ??
+              t`Check your network and try again. If this keeps happening, contact support.`}
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
@@ -152,16 +164,35 @@ export function WorkloadPage() {
           </CardAction>
         </CardHeader>
         <CardContent>
+          {/* 2026-05-26 (step-6 ux-flow audit F2.1): bordered text
+              loading block → skeleton rows for parity with the
+              rest of the app's list-loading rhythm. */}
           {workloadQuery.isLoading ? (
-            <div className="rounded-md border border-divider-regular p-6 text-sm text-text-secondary">
-              <Trans>Loading workload metrics…</Trans>
+            <div
+              className="grid gap-2"
+              role="status"
+              aria-live="polite"
+              aria-label={t`Loading workload metrics`}
+            >
+              {Array.from({ length: 6 }).map((_, index) => (
+                <Skeleton key={index} className="h-12 w-full" />
+              ))}
             </div>
           ) : data && data.rows.length > 0 ? (
             <WorkloadTable rows={data.rows} asOfDate={data.asOfDate} windowDays={data.windowDays} />
           ) : (
-            <div className="rounded-md border border-divider-regular p-6 text-sm text-text-secondary">
-              <Trans>No open deadlines match the workload window.</Trans>
-            </div>
+            // 2026-05-26 (Step 7 F9-03): empty state gets icon + description
+            // so it reads as a polished surface, not bare title.
+            <EmptyState
+              icon={ClipboardListIcon}
+              title={<Trans>No open deadlines match the workload window.</Trans>}
+              description={
+                <Trans>
+                  Workload shows open deadlines for the next 7 days. Import clients or wait for
+                  deadlines to land inside the window.
+                </Trans>
+              }
+            />
           )}
         </CardContent>
       </Card>
@@ -272,15 +303,23 @@ function MetricCard({
     <Card size="sm" className="min-h-[104px]">
       <CardHeader>
         <CardTitle className="text-sm font-medium text-text-secondary">{label}</CardTitle>
-        <CardDescription
-          className={cn(
-            'text-2xl font-semibold tabular-nums text-text-primary',
-            intent === 'critical' && 'text-text-destructive',
-            intent === 'warning' && 'text-text-warning',
-          )}
-        >
-          {value ?? '—'}
-        </CardDescription>
+        {/* 2026-05-26 (step-6 ux-flow audit F2.5): undefined value
+            during loading was rendering "—" — read as data, not as
+            loading. Skeleton placeholder during loading; real
+            number once resolved. */}
+        {value === undefined ? (
+          <Skeleton className="mt-1 h-7 w-12" />
+        ) : (
+          <CardDescription
+            className={cn(
+              'text-2xl font-semibold tabular-nums text-text-primary',
+              intent === 'critical' && 'text-text-destructive',
+              intent === 'warning' && 'text-text-warning',
+            )}
+          >
+            {value}
+          </CardDescription>
+        )}
       </CardHeader>
     </Card>
   )

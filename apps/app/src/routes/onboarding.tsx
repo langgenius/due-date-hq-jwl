@@ -115,13 +115,17 @@ export function OnboardingRoute() {
         <Trans>PRACTICE PROFILE</Trans>
       </span>
 
-      <h1 className="mt-5 text-[28px] font-semibold leading-[1.15] tracking-tight text-text-primary">
+      <h1 className="mt-5 text-2xl font-semibold leading-[1.15] tracking-tight text-text-primary">
         <Trans>Set up your practice.</Trans>
       </h1>
 
-      <p className="mt-3 text-[14px] leading-relaxed text-text-secondary">
+      {/* 2026-05-26 (Step 7 F5-02): copy now provider-agnostic
+          ("based on your account") since `derivePracticeName`
+          doesn't know which SSO/OTP provider was used. Size
+          kept as `text-base` (Step 7's text-[14px] = same px). */}
+      <p className="mt-3 text-base leading-relaxed text-text-secondary">
         <Trans>
-          We pre-filled a name from your Google profile. You can change it now or anytime in the
+          We pre-filled a name based on your account. You can change it now or anytime in the
           Practice profile.
         </Trans>
       </p>
@@ -130,7 +134,7 @@ export function OnboardingRoute() {
         <div className="mt-8 flex flex-col gap-1.5">
           <label
             htmlFor="practice-name"
-            className="text-caption font-medium uppercase tracking-[0.08em] text-text-secondary"
+            className="text-caption font-medium uppercase tracking-eyebrow text-text-secondary"
           >
             <Trans>Practice name</Trans>
           </label>
@@ -151,12 +155,12 @@ export function OnboardingRoute() {
             <p
               id="practice-name-error"
               role="alert"
-              className="text-[12px] leading-relaxed text-destructive"
+              className="text-sm leading-relaxed text-destructive"
             >
               {error}
             </p>
           ) : (
-            <p id="practice-name-helper" className="text-[12px] leading-relaxed text-text-muted">
+            <p id="practice-name-helper" className="text-sm leading-relaxed text-text-muted">
               <Trans>This is what your team and clients will see.</Trans>
             </p>
           )}
@@ -168,11 +172,25 @@ export function OnboardingRoute() {
         />
 
         <div className="mt-5 flex flex-col gap-1.5">
+          {/* 2026-05-26 (Step 7 onboarding audit F5-04 + F5-05 +
+              F5-01 + F7-02): the field had three independent
+              issues. (1) label "Internal deadline" is jargon for
+              a first-run user; (2) input shows a bare number
+              with no unit; (3) helper text didn't anchor the
+              default or hint at "most practices use…" — every
+              user had to research what was a sensible value.
+              Renamed label to "Internal deadline lead time"
+              (slight expansion teaches the concept), and
+              rewrote the helper to lead with the unit, name the
+              default, and call out the recalc-on-change
+              consequence that the /practice page already
+              mentions. The field still reads as one number, but
+              now the user knows what they're choosing. */}
           <label
             htmlFor="internal-deadline-offset"
-            className="text-caption font-medium uppercase tracking-[0.08em] text-text-secondary"
+            className="text-caption font-medium uppercase tracking-eyebrow text-text-secondary"
           >
-            <Trans>Internal deadline</Trans>
+            <Trans>Internal deadline lead time</Trans>
           </label>
           <Input
             id="internal-deadline-offset"
@@ -189,9 +207,12 @@ export function OnboardingRoute() {
           />
           <p
             id="internal-deadline-offset-helper"
-            className="text-[12px] leading-relaxed text-text-muted"
+            className="text-sm leading-relaxed text-text-muted"
           >
-            <Trans>Show work as due this many days before the statutory deadline.</Trans>
+            <Trans>
+              Days before each statutory deadline that work shows as due. Most practices use 5–14
+              days. Changing this later recalculates current deadlines.
+            </Trans>
           </p>
         </div>
 
@@ -219,9 +240,14 @@ export function OnboardingRoute() {
         </Button>
       </form>
 
+      {/* 2026-05-26 (Step 6 UX audit #20): "Auto-saves" claim was a
+          lie — the form only saves on Continue. A first-time user
+          reading "Auto-saves" assumes mid-form network drops are
+          safe; they aren't. Replaced with "Saves on continue" which
+          truthfully describes the data-loss model. */}
       <p className="mt-4 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
         <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
-        <Trans>Encrypted · Auto-saves · Renamable later</Trans>
+        <Trans>Encrypted · Saves on continue · Renamable later</Trans>
       </p>
     </div>
   )

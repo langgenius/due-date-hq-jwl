@@ -44,6 +44,7 @@ const CATEGORY_ORDER: ShortcutCategory[] = [
   'global',
   'navigate',
   'practice',
+  'clients',
   'obligations',
   'rules',
   'wizard',
@@ -54,6 +55,7 @@ const CATEGORY_LABELS: Record<ShortcutCategory, string> = {
   global: 'Global',
   navigate: 'Navigate',
   practice: 'Practice',
+  clients: 'Clients',
   obligations: 'Deadlines',
   rules: 'Rules',
   wizard: 'Wizard',
@@ -170,7 +172,7 @@ export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogPro
           </aside>
 
           <div className="min-h-0 overflow-y-auto overscroll-contain px-4 py-4 md:px-5">
-            <div className="grid gap-5">
+            <div className="grid gap-4">
               {groups.map((group) => {
                 return (
                   <section key={group.category} className="grid gap-2">

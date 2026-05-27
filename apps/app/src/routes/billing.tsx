@@ -29,6 +29,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { createBillingPortal } from '@/features/billing/api'
+import { formatDollarPrice } from '@/lib/utils'
 import {
   activeFirmEntitlementLimit,
   billingPlanMonthlyEquivalent,
@@ -73,7 +74,7 @@ function usePlanCards(interval: BillingInterval): PlanCard[] {
   const cadence = monthly ? t`Monthly billing` : t`Billed yearly`
 
   function price(plan: BillingPlan): string {
-    return `$${billingPlanMonthlyEquivalent(plan, interval).toLocaleString('en-US')}`
+    return formatDollarPrice(billingPlanMonthlyEquivalent(plan, interval))
   }
 
   function savings(plan: BillingPlan): string | undefined {
@@ -241,7 +242,7 @@ export function BillingRoute() {
 
   if (firmsQuery.isLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-5 px-4 py-6 md:px-6">
+      <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 py-6 md:px-6">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-72 w-full" />
       </div>
@@ -267,7 +268,7 @@ export function BillingRoute() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-5 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 py-6 md:px-6">
       {/* 2026-05-24 (design-system audit): migrated from ad-hoc
           Breadcrumb + custom header to the shared `<PageHeader>`.
           Breadcrumb routes through the eyebrow slot; current plan
@@ -287,7 +288,7 @@ export function BillingRoute() {
           currentFirm ? (
             <Badge
               variant={paidPlanActive(currentFirm) ? 'success' : 'outline'}
-              className="font-mono tabular-nums"
+              className="tabular-nums"
             >
               {currentPlanName}
             </Badge>
@@ -343,7 +344,7 @@ export function BillingRoute() {
               </Badge>
             </CardAction>
           </CardHeader>
-          <CardContent className="grid gap-5">
+          <CardContent className="grid gap-4">
             {firmsQuery.isLoading ? (
               <div className="grid gap-3 md:grid-cols-3">
                 <Skeleton className="h-20 w-full" />
@@ -362,7 +363,7 @@ export function BillingRoute() {
                     </p>
                   </div>
                   <div className="text-left md:text-right">
-                    <p className="font-mono text-2xl font-semibold tabular-nums text-text-primary">
+                    <p className="text-2xl font-semibold tabular-nums text-text-primary">
                       {currentPlanName}
                     </p>
                     <p className="mt-1 text-sm text-text-secondary">
@@ -557,7 +558,7 @@ function Metric({ label, value, name }: { label: ReactNode; value: string; name:
       className="inline-flex min-w-0 max-w-full flex-none flex-col rounded-lg border border-divider-regular bg-background-default p-4"
     >
       <span className="text-xs font-medium uppercase text-text-tertiary">{label}</span>
-      <p className="mt-2 truncate text-md font-semibold text-text-primary">{value}</p>
+      <p className="mt-2 truncate text-base font-semibold text-text-primary">{value}</p>
     </div>
   )
 }
@@ -629,7 +630,7 @@ function BillingIntervalToggle({
         <Badge
           variant="success"
           className={cn(
-            'font-mono text-caption-xs',
+            'text-caption-xs',
             value === 'yearly' && 'bg-white/20 text-primary-foreground',
           )}
         >
@@ -690,7 +691,7 @@ function PlanOption({
           {!current && plan.badge ? <Badge variant="info">{plan.badge}</Badge> : null}
         </CardAction>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col gap-5">
+      <CardContent className="flex flex-1 flex-col gap-4">
         <div
           className={cn(
             'grid content-start gap-3',
@@ -701,13 +702,13 @@ function PlanOption({
             <span
               className={cn(
                 'text-2xl font-semibold text-text-primary',
-                priceKind === 'numeric' ? 'font-mono tabular-nums' : 'font-sans tracking-normal',
+                priceKind === 'numeric' ? 'tabular-nums' : 'font-sans tracking-normal',
               )}
             >
               {plan.price}
             </span>
             {plan.priceSuffix ? (
-              <span className="font-mono text-lg font-semibold tabular-nums text-text-primary">
+              <span className="text-lg font-semibold tabular-nums text-text-primary">
                 {plan.priceSuffix}
               </span>
             ) : null}
@@ -716,7 +717,7 @@ function PlanOption({
             <div className="flex flex-wrap items-center gap-2">
               <span>{plan.cadence}</span>
               {plan.savings ? (
-                <Badge variant="success" className="font-mono text-caption-xs">
+                <Badge variant="success" className="text-caption-xs">
                   {plan.savings}
                 </Badge>
               ) : null}

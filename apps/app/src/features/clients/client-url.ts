@@ -16,7 +16,7 @@ export function clientNameSlug(name: string): string {
   return slug || 'client'
 }
 
-export function clientRouteKey(client: Pick<ClientPublic, 'id' | 'name'>): string {
+function clientRouteKey(client: Pick<ClientPublic, 'id' | 'name'>): string {
   return `${clientNameSlug(client.name)}-${client.id}`
 }
 

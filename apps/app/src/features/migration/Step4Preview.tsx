@@ -30,7 +30,7 @@ export function Step4Preview({ summary }: Step4Props) {
   )
 
   return (
-    <div className="flex flex-col gap-5 py-5">
+    <div className="flex flex-col gap-4 py-5">
       <div className="flex flex-col gap-1">
         <h2 className="text-lg font-semibold text-text-primary">
           <Trans>Ready to import</Trans>
@@ -43,12 +43,21 @@ export function Step4Preview({ summary }: Step4Props) {
         </p>
       </div>
 
-      <ul className="flex flex-col gap-1.5 text-md">
-        <li className="flex items-center gap-2 font-mono tabular-nums">
+      {/* 2026-05-26 (Step 7 onboarding audit F6-19): the list
+          was `font-mono tabular-nums` on the whole item, so the
+          "X clients" / "X deadlines" copy read as a build log.
+          Step 4 is the user's commit moment — they want a
+          human-readable summary, not terminal output. Kept
+          `tabular-nums` for the numeral itself (alignment) but
+          dropped `font-mono` from the row so the surrounding
+          words look like prose. Step 1-5 reaudit canonicalized
+          `text-md` → `text-base` (same 14px). */}
+      <ul className="flex flex-col gap-1.5 text-base">
+        <li className="flex items-center gap-2 tabular-nums">
           <PlayIcon className="size-3 text-text-accent" aria-hidden />
           <Plural value={clientCount} one="# client" other="# clients" />
         </li>
-        <li className="flex items-center gap-2 font-mono tabular-nums">
+        <li className="flex items-center gap-2 tabular-nums">
           <PlayIcon className="size-3 text-text-accent" aria-hidden />
           <Plural
             value={obligationCount}
@@ -68,14 +77,25 @@ export function Step4Preview({ summary }: Step4Props) {
         ) : null}
       </ul>
 
+      {/* 2026-05-26 (Step 7 onboarding audit F6-20): heading was
+          "Safety" — so abstract it read as throat-clearing.
+          The three bullets are concrete reassurances ("undo
+          for 24h", "audit captures every AI decision", "no
+          emails sent"). Heading now names the moment ("Before
+          you import") so the bullets land as preconditions
+          rather than as a generic safety footer. */}
       <section
-        aria-label={t`Safety`}
+        aria-label={t`Before you import`}
         className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-section p-3"
       >
-        <h3 className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
-          <Trans>Safety</Trans>
+        {/* Step 7 onboarding F6-20: heading copy from "Safety" →
+            "Before you import" so the bullets land as preconditions,
+            not as a generic footer. Step 1-5 reaudit canonicalized
+            tracking — keep `tracking-eyebrow` token, not arbitrary. */}
+        <h3 className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
+          <Trans>Before you import</Trans>
         </h3>
-        <ul className="flex flex-col gap-1.5 text-md text-text-primary">
+        <ul className="flex flex-col gap-1.5 text-base text-text-primary">
           <li className="flex items-center gap-2">
             <CheckCircle2Icon className="size-4 text-text-success" aria-hidden />
             <Trans>This import can be undone for 24 hours and keeps an audit record</Trans>
@@ -181,11 +201,17 @@ export function Step4Preview({ summary }: Step4Props) {
       ) : null}
 
       {summary && summary.errors.length > 0 ? (
-        <section
-          className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-components-badge-bg-red-soft p-3"
-          data-slot="step4-bad-rows"
-        >
-          <h3 className="text-xs font-medium tracking-[0.08em] text-text-destructive uppercase">
+        /* 2026-05-26 (step-1.5 reaudit): hand-rolled <section> with
+           `bg-components-badge-bg-red-soft` replaced with the canonical
+           `<Alert variant="destructive">` primitive. Visual delta is
+           the Alert primitive's leading destructive icon + the
+           components-badge → components-alert background swap. The
+           previous auditor's `848727dd` (C-deeper) ran exactly this
+           migration for 2 hand-rolled error blocks in obligations.tsx
+           but missed this third sibling in the migration wizard. */
+        <Alert variant="destructive" data-slot="step4-bad-rows">
+          <AlertTriangleIcon />
+          <AlertTitle>
             {/* 2026-05-25 (Wizard #40 cross-step polish): aligned
                 with the canonical "needs review" phrase used in
                 Step 2 + Step 3. "Needs attention" was the lone
@@ -196,7 +222,7 @@ export function Step4Preview({ summary }: Step4Props) {
               one="# row needs review"
               other="# rows need review"
             />
-          </h3>
+          </AlertTitle>
           {/*
             Day-3 acceptance: bad rows are listed in full so the user can
             audit "good rows still flow through" without leaving the wizard.
@@ -216,17 +242,19 @@ export function Step4Preview({ summary }: Step4Props) {
               whole step. The list is still inside a section
               the user has to scroll to reach, so it's not in
               the way at the top of the step. */}
-          <ul className="flex flex-col gap-1 text-md text-text-primary">
-            {summary.errors.map((err) => (
-              <li key={err.id} className="flex items-center gap-2">
-                <span className="font-mono text-xs tabular-nums text-text-secondary">
-                  <Trans>Row {err.rowIndex + 1}</Trans>
-                </span>
-                <span className="text-sm">{formatMigrationErrorMessage(err, targetLabels)}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+          <AlertDescription>
+            <ul className="flex flex-col gap-1 text-base text-text-primary">
+              {summary.errors.map((err) => (
+                <li key={err.id} className="flex items-center gap-2">
+                  <span className="font-mono text-xs tabular-nums text-text-secondary">
+                    <Trans>Row {err.rowIndex + 1}</Trans>
+                  </span>
+                  <span className="text-sm">{formatMigrationErrorMessage(err, targetLabels)}</span>
+                </li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
       ) : null}
     </div>
   )

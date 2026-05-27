@@ -1,11 +1,11 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useState, type ReactNode } from 'react'
 import {
+  Astroid,
   ChevronDownIcon,
   CircleHelpIcon,
   ListChecksIcon,
   RefreshCwIcon,
-  SparklesIcon,
   StarIcon,
 } from 'lucide-react'
 
@@ -47,6 +47,7 @@ import {
 } from './mapping-target-labels'
 import { buildMappingSummary } from './migration-summary-view-model'
 import type { MapperState } from './state'
+import { SummaryMetric } from './SummaryMetric'
 
 interface Step2Props {
   mapping: MapperState
@@ -94,12 +95,19 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           <MappingCapabilityBadge mapping={mapping} />
         </div>
         <div className="flex items-center justify-between gap-3">
-          <p className="text-md text-text-secondary">
+          <p className="text-base text-text-secondary">
             <Trans>
               DueDateHQ matched the upload to import fields. Open details only if something looks
               off.
             </Trans>
           </p>
+          {/* 2026-05-26 (Step 7 onboarding audit F6-14): the
+              override-label "Re-run AI with my overrides"
+              implies a stronger guarantee than the server gives
+              (overrides are passed as hints, not guaranteed
+              preserved). Softened to "Re-run AI (keep my
+              changes)" so the verb is clear and the parenthetical
+              describes the intent, not a contract. */}
           <Button
             variant="outline"
             size="sm"
@@ -108,7 +116,7 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           >
             <RefreshCwIcon data-icon="inline-start" />
             {mapping.rows.some((r) => r.userOverridden) ? (
-              <Trans>Re-run AI with my overrides</Trans>
+              <Trans>Re-run AI (keep my changes)</Trans>
             ) : (
               <Trans>Re-run AI</Trans>
             )}
@@ -262,17 +270,6 @@ function MappingSummaryGrid({ summary }: { summary: ReturnType<typeof buildMappi
   )
 }
 
-function SummaryMetric({ label, value }: { label: ReactNode; value: ReactNode }) {
-  return (
-    <div className="min-h-20 rounded-lg border border-divider-regular bg-background-section px-3 py-2">
-      <div className="text-xs font-medium tracking-[0.08em] text-text-secondary uppercase">
-        {label}
-      </div>
-      <div className="mt-2 text-lg font-semibold text-text-primary">{value}</div>
-    </div>
-  )
-}
-
 function MappingDetailsTable({
   rows,
   sampleByHeader,
@@ -332,7 +329,19 @@ function MappingDetailsTable({
                   </span>
                 </TableCell>
                 <TableCell>
-                  <ConfidenceBadge tier={tier} confidence={row.confidence} />
+                  {/* Step 9 F-012: when a user overrides the AI mapping
+                      for a row, show "Overridden" chip instead of the
+                      confidence pill so an AI re-run can't silently
+                      clobber their work. (HEAD's name for the badge
+                      is `MappingConfidenceTier`, not `ConfidenceBadge`
+                      which is the name Step 9 used.) */}
+                  {row.userOverridden ? (
+                    <span className="inline-flex h-5 items-center rounded-md border border-state-accent-active-alt bg-state-accent-hover px-1.5 text-xs font-medium uppercase tracking-wide text-text-accent">
+                      <Trans>Overridden</Trans>
+                    </span>
+                  ) : (
+                    <MappingConfidenceTier tier={tier} confidence={row.confidence} />
+                  )}
                 </TableCell>
                 <TableCell className="max-w-[120px] font-mono text-xs tabular-nums wrap-break-word whitespace-normal text-text-secondary">
                   {sample}
@@ -359,13 +368,22 @@ type Tier = 'high' | 'medium' | 'low' | 'none'
 function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
   const { t } = useLingui()
 
+  // 2026-05-26 (Step 7 onboarding audit F6-11): every variant
+  // here was `variant="destructive"` — including the success
+  // case ("AI Mapper"). All three states therefore rendered in
+  // the same red/orange tone, so the badge encoded zero state
+  // information visually. Mapped each state to its semantic
+  // variant: AI success → outline (calm, not destructive),
+  // template-fallback → outline (informational), all-ignore
+  // (manual) → destructive (genuine warning, action required).
+
   if (mapping.status === 'fallback' && mapping.fallback === 'preset') {
     return (
       <MappingCapabilityHelp
         label={t`Explain import template suggestions`}
         title={t`Import template suggestions mean AI was unavailable and the selected import template filled defaults.`}
         badge={
-          <Badge variant="destructive">
+          <Badge variant="outline">
             <ListChecksIcon data-icon="inline-start" />
             <Trans>Import template</Trans>
           </Badge>
@@ -401,8 +419,14 @@ function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
       label={t`Explain AI Mapper`}
       title={t`AI Mapper means AI suggested the fields.`}
       badge={
-        <Badge variant="destructive">
-          <SparklesIcon data-icon="inline-start" />
+        // Step 9 F-001/F-014: SparklesIcon → canonical Astroid AI
+        // provenance icon. Sparkles reserved for billing/opportunities.
+        // Variant kept at `outline` (HEAD) instead of Step 9's
+        // `destructive` — destructive = red in this design system,
+        // which would falsely flag AI mapping as an error per the
+        // Step 7 audit's similar fix on MappingCapabilityBadge.
+        <Badge variant="outline">
+          <Astroid data-icon="inline-start" />
           <Trans>AI Mapper</Trans>
         </Badge>
       }
@@ -448,9 +472,13 @@ function MappingCapabilityHelp({
             </button>
           }
         />
-        <TooltipContent className="max-w-[280px] text-text-destructive whitespace-normal">
-          {children}
-        </TooltipContent>
+        {/* 2026-05-26 (Step 7 onboarding audit F6-12): tooltip
+            body was `text-text-destructive` — applied to every
+            capability state including the success case. Tooltip
+            now uses default body text; the badge variant
+            (destructive vs outline, set by the caller) carries
+            the state signal. */}
+        <TooltipContent className="max-w-[280px] whitespace-normal">{children}</TooltipContent>
       </Tooltip>
     </span>
   )
@@ -464,7 +492,7 @@ function confidenceTier(c: number | null, target: MappingTarget): Tier {
   return 'low'
 }
 
-function ConfidenceBadge({ tier, confidence }: { tier: Tier; confidence: number | null }) {
+function MappingConfidenceTier({ tier, confidence }: { tier: Tier; confidence: number | null }) {
   if (tier === 'none' || confidence === null) {
     return <span className="text-xs text-text-tertiary">—</span>
   }
@@ -474,10 +502,16 @@ function ConfidenceBadge({ tier, confidence }: { tier: Tier; confidence: number 
     medium: 'bg-background-subtle text-text-secondary border-divider-regular',
     low: 'bg-components-badge-bg-warning-soft text-text-primary border-divider-regular',
   }
-  const label: Record<Exclude<Tier, 'none'>, string> = {
-    high: 'H',
-    medium: 'M',
-    low: 'L',
+  // 2026-05-26 (Step 7 onboarding audit F6-10): the bracketed
+  // `[H]/[M]/[L]` tier letter was redundant with the percentage
+  // and color and read as a code label, not a tier signal. A
+  // CPA user already gets the tier from the percent + color;
+  // the letter was duplicate cognitive load. Dropped from the
+  // visual; kept as `title` for hover + AT exposure.
+  const tierTitle: Record<Exclude<Tier, 'none'>, string> = {
+    high: 'High confidence',
+    medium: 'Medium confidence',
+    low: 'Low confidence',
   }
   return (
     <span
@@ -485,9 +519,9 @@ function ConfidenceBadge({ tier, confidence }: { tier: Tier; confidence: number 
         'inline-flex h-5 items-center gap-1 rounded-md border px-1.5 font-mono text-xs tabular-nums',
         styles[tier],
       )}
+      title={tierTitle[tier]}
     >
       <span>{pct}%</span>
-      <span className="font-semibold">[{label[tier]}]</span>
     </span>
   )
 }

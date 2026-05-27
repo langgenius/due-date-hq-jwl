@@ -8,6 +8,8 @@ import type { NotificationType } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
@@ -55,6 +57,11 @@ export function NotificationsPage() {
   )
 
   const notifications = notificationsQuery.data?.notifications ?? []
+  // 2026-05-26 (step-6 ux-flow audit F1.4): explicit
+  // notifications-have-unread check instead of `every(item =>
+  // item.readAt)` which returns true for [] (silently disabling
+  // the button on an empty list with no explanation).
+  const hasUnread = notifications.some((item) => !item.readAt)
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
@@ -70,7 +77,7 @@ export function NotificationsPage() {
             variant="primary"
             size="sm"
             onClick={() => markAllRead.mutate(undefined)}
-            disabled={markAllRead.isPending || notifications.every((item) => item.readAt)}
+            disabled={markAllRead.isPending || !hasUnread}
           >
             <CheckCheckIcon data-icon="inline-start" />
             <Trans>Mark all read</Trans>
@@ -96,14 +103,55 @@ export function NotificationsPage() {
             </Alert>
           ) : null}
 
+          {/* 2026-05-26 (step-6 ux-flow audit F1.3): loading state
+              was a silent blank Card. Skeleton rows match the rest
+              of the app's list-loading rhythm. */}
+          {notificationsQuery.isLoading ? (
+            <div
+              className="grid gap-3"
+              role="status"
+              aria-live="polite"
+              aria-label={t`Loading inbox`}
+            >
+              {Array.from({ length: 4 }).map((_, index) => (
+                <Skeleton key={index} className="h-20 w-full" />
+              ))}
+            </div>
+          ) : null}
+
           {!notificationsQuery.isLoading && notifications.length === 0 ? (
-            <EmptyState icon={InboxIcon} title={<Trans>No notifications yet.</Trans>} />
+            /* 2026-05-26 (Step 7 onboarding audit F9-05): empty
+               state was title-only — no description telling
+               the user what would appear here. Compared to
+               every other shared EmptyState in the app, this
+               surface was the lone "title without context"
+               instance. Added a one-liner so the empty state
+               teaches the surface. */
+            <EmptyState
+              icon={InboxIcon}
+              title={<Trans>No notifications yet.</Trans>}
+              description={
+                <Trans>
+                  Mentions, assignment changes, and important deadline alerts will show up here.
+                </Trans>
+              }
+            />
           ) : null}
 
           {notifications.map((item) => (
             <article
               key={item.id}
-              className="grid gap-2 rounded-lg border border-divider-subtle bg-background-default p-4"
+              // 2026-05-26 (step-6 ux-flow audit F1.2/F1.6): unread
+              // items get a left-accent bar so they're scannable
+              // from across the row. aria-label exposes read/unread
+              // state to SR users.
+              aria-label={item.readAt ? t`Read: ${item.title}` : t`Unread: ${item.title}`}
+              className={cn(
+                'grid gap-2 rounded-lg border bg-background-default p-4',
+                item.readAt
+                  ? 'border-divider-subtle'
+                  : 'border-l-[3px] border-l-accent-default border-divider-subtle',
+              )}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">

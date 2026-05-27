@@ -27,7 +27,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { Stepper } from './Stepper'
 import type { StepIndex } from './state'
 
-export type WizardTransitionPhase = 'intake' | 'mapping' | 'rerun_mapper' | 'normalize' | 'import'
+type WizardTransitionPhase = 'intake' | 'mapping' | 'rerun_mapper' | 'normalize' | 'import'
 
 export interface WizardTransitionState {
   phase: WizardTransitionPhase
@@ -134,13 +134,12 @@ function WizardFrame({
         layout === 'route' ? 'min-h-0 flex-none' : 'max-h-[calc(100vh-4rem)]',
       )}
     >
-      <div className="sr-only">
-        <Trans>Import clients · Step {step} of 4</Trans>
-        <Trans>
-          Migration Copilot wizard — paste or upload your client roster, review the AI mapping,
-          normalize values, and preview the import before committing.
-        </Trans>
-      </div>
+      {/* 2026-05-26 (Step 7 onboarding audit F6-25): this sr-only
+          block duplicated the DialogTitle + DialogDescription
+          announced at the parent Dialog. Screen readers were
+          announcing the step + description twice. Removed the
+          inner block; the route shell's heading carries the
+          same signal for the route variant. */}
 
       {/* 2026-05-25 (Yuqi #32, #33, #34, #39): header was a
           monospace breadcrumb "Import / Step N / 4" with a mystery
@@ -204,16 +203,20 @@ function WizardFrame({
           forward arrow because there it functions as a "this is the
           next step" cue (and rotates on hover toward Step+1).
           Both buttons now route through the canonical Button size
-          tokens (variant default for Continue, outline for Back). */}
+          tokens (variant default for Continue, outline for Back).
+
+          2026-05-26 (Step 7 onboarding audit F6-22): hide the
+          Back button entirely on Step 1 (was disabled-visible).
+          A disabled control on the first step reads as a dead
+          affordance — and the disabled grey button stole visual
+          weight from the active Continue. Cleaner to render
+          `null` when there's nowhere to go back to. */}
       <footer className="flex h-12 shrink-0 items-center justify-end gap-4 border-divider-subtle px-4">
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={onBack}
-          disabled={busy || backDisabled || step === 1 || !onBack}
-        >
-          <Trans>Back</Trans>
-        </Button>
+        {step > 1 && onBack ? (
+          <Button variant="outline" size="lg" onClick={onBack} disabled={busy || backDisabled}>
+            <Trans>Back</Trans>
+          </Button>
+        ) : null}
         <Button
           size="lg"
           onClick={onContinue}
@@ -292,10 +295,16 @@ export function WizardShell({ open, onClose, confirmOnClose, ...frameProps }: Wi
         <AlertDialog open={confirming} onOpenChange={setConfirming}>
           <AlertDialogContent>
             <AlertDialogHeader>
+              {/* 2026-05-26 (Step 7 onboarding audit F6-23):
+                  "Discard import?" implied destruction of
+                  something the user had committed — but the
+                  user hasn't *imported* yet, they're still
+                  inside the wizard. Renamed to "Leave without
+                  importing?" so the verb matches the state. */}
               <AlertDialogTitle>
-                <Trans>Discard import?</Trans>
+                <Trans>Leave without importing?</Trans>
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-md">
+              <AlertDialogDescription className="text-base">
                 <Trans>Your pasted data and unsaved edits in this wizard will be lost.</Trans>
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -356,10 +365,16 @@ export function WizardRouteShell({
         <AlertDialog open={confirming} onOpenChange={setConfirming}>
           <AlertDialogContent>
             <AlertDialogHeader>
+              {/* 2026-05-26 (Step 7 onboarding audit F6-23):
+                  "Discard import?" implied destruction of
+                  something the user had committed — but the
+                  user hasn't *imported* yet, they're still
+                  inside the wizard. Renamed to "Leave without
+                  importing?" so the verb matches the state. */}
               <AlertDialogTitle>
-                <Trans>Discard import?</Trans>
+                <Trans>Leave without importing?</Trans>
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-md">
+              <AlertDialogDescription className="text-base">
                 <Trans>Your pasted data and unsaved edits in this wizard will be lost.</Trans>
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -396,7 +411,7 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
               <LoaderCircleIcon className="size-5 animate-spin" aria-hidden />
             </span>
             <div className="min-w-0">
-              <h3 className="text-md font-semibold text-text-primary">{copy.title}</h3>
+              <h3 className="text-base font-semibold text-text-primary">{copy.title}</h3>
               <p className="mt-1 text-sm text-text-secondary">{copy.description}</p>
             </div>
           </div>
@@ -409,7 +424,7 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
             aria-valuenow={progressValue}
           >
             <div
-              className="h-full rounded-full bg-state-accent-solid transition-[width] duration-500 ease-out"
+              className="h-full rounded-full bg-state-accent-solid transition-[width] duration-500 ease-out motion-reduce:transition-none"
               style={{ width: `${progressValue}%` }}
             />
           </div>

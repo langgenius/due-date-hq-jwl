@@ -16,6 +16,8 @@ import {
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { PageHeader } from '@/components/patterns/page-header'
+
 /**
  * Workspace settings hub. Replaces the previous "Practice" sidebar group —
  * the routes underneath still exist at their original paths (`/practice`,
@@ -114,29 +116,34 @@ export function SettingsRoute() {
     },
   ]
 
+  // 2026-05-26 (86th pass, audit §16.1 P1 + §16.16):
+  //   • Custom `<header><h1>` block migrated to canonical `<PageHeader>` —
+  //     was a P1 in design-system-drift-audit-2026-05-26.md (settings
+  //     root was the lone holdout in the otherwise-canonical settings
+  //     family).
+  //   • `gap-8` page-shell gap normalized to `gap-6` per §16.16 canonical
+  //     spacing scale (audit P2 spacing item).
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="mx-auto flex w-full max-w-page-wide flex-col gap-8 px-6 py-6">
-          <header className="flex flex-col gap-2">
-            <h1 className="text-2xl leading-7 font-semibold text-text-primary">
-              <Trans>Settings</Trans>
-            </h1>
-            <p className="max-w-[680px] text-[13px] leading-5 text-text-secondary">
-              {/* 2026-05-24 (critique P2 — clarify): dropped the
-                  trailing "Personal account settings live in the user
-                  menu in the sidebar footer" line. It pointed first-
-                  timers at a second settings home before they'd
-                  explored the first one; the user menu is already a
-                  discoverable surface on its own. The page subtitle
-                  should describe what's on this page, not where
-                  other settings live. */}
+        <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-6 py-6">
+          <PageHeader
+            title={<Trans>Settings</Trans>}
+            description={
+              /* 2026-05-24 (critique P2 — clarify): dropped the
+                 trailing "Personal account settings live in the user
+                 menu in the sidebar footer" line. It pointed first-
+                 timers at a second settings home before they'd
+                 explored the first one; the user menu is already a
+                 discoverable surface on its own. The page subtitle
+                 should describe what's on this page, not where
+                 other settings live. */
               <Trans>
                 Workspace configuration for this practice — identity, team, billing, compliance, and
                 automation.
               </Trans>
-            </p>
-          </header>
+            }
+          />
 
           {sections.map((section) => (
             <SettingsSection
@@ -173,7 +180,7 @@ function SettingsSection({
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-col gap-0.5">
-        <h2 className="text-xs font-medium uppercase tracking-[0.08em] text-text-tertiary">
+        <h2 className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
           {label}
         </h2>
         <p className="text-xs text-text-tertiary">{description}</p>

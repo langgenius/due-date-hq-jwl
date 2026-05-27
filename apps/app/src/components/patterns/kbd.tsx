@@ -12,7 +12,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * Wrap each key in its own `<Kbd>`. For multi-key hints render an
  * inline list rather than a single Kbd with a slash.
  */
-export function Kbd({ children, className }: { children: ReactNode; className?: string }) {
+function Kbd({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <kbd
       translate="no"

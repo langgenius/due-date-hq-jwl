@@ -1,4 +1,4 @@
-import { parseAsArrayOf, parseAsString, parseAsStringLiteral, type inferParserType } from 'nuqs'
+import { parseAsArrayOf, parseAsString, parseAsStringLiteral } from 'nuqs'
 
 import type { ClientFilters } from './client-readiness'
 import {
@@ -37,8 +37,6 @@ export const clientsSearchParamsParsers = {
   owner: parseAsArrayOf(parseAsString).withDefault([]).withOptions(REPLACE_HISTORY_OPTIONS),
   importHistory: parseAsStringLiteral(['open']).withOptions(REPLACE_HISTORY_OPTIONS),
 } as const
-
-export type ClientsSearchParams = inferParserType<typeof clientsSearchParamsParsers>
 
 export function normalizeClientsQueryFilters(input: {
   q?: string

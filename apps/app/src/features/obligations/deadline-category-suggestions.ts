@@ -29,7 +29,7 @@ export type DeadlineCategorySuggestion = {
   isSpecialty?: boolean
 }
 
-export type FormVoucherSuggestion = {
+type FormVoucherSuggestion = {
   value: string
   label: string
   description?: string
@@ -42,7 +42,7 @@ export type ResolvedDeadlineRuleCandidate = {
   source: 'custom' | 'explicit' | 'state_generic'
 }
 
-export type ResolvedDeadlineCategory = {
+type ResolvedDeadlineCategory = {
   candidates: readonly ResolvedDeadlineRuleCandidate[]
   normalizedJurisdiction: string
   customFormName: string | null
