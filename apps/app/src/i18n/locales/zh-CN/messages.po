@@ -843,6 +843,10 @@ msgstr "{skipped, plural, other {# 行将被跳过（见错误明细）}}"
 msgid "{totalActive} rules"
 msgstr "{totalActive} 条规则"
 
+#: src/features/dashboard/needs-attention-section.tsx
+msgid "{totalAlertCount, plural, one {# alert} other {# alerts}}"
+msgstr "{totalAlertCount, plural, other {# 条警报}}"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "{totalOpen, plural, one {View # open deadline} other {View # open deadlines}}"
 msgstr "{totalOpen, plural, other {查看 # 个进行中的截止事项}}"

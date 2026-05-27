@@ -146,8 +146,12 @@ function NeedsAttentionSection() {
               monitoring chip. Active alerts are the lead signal; the
               monitoring count is supporting context. */}
           {totalAlertCount > 0 ? (
+            // 2026-05-27 (Yuqi feedback "just write 4 alerts"): bare
+            // count number was ambiguous on its own — chip now spells
+            // out "N alerts" / "N alert" so the destructive pill reads
+            // as a complete clause without leaning on the h2 next to it.
             <span className="rounded-full bg-state-destructive-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-destructive">
-              {totalAlertCount}
+              <Plural value={totalAlertCount} one="# alert" other="# alerts" />
             </span>
           ) : null}
           {monitoringCount > 0 ? (

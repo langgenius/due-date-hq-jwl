@@ -826,6 +826,10 @@ msgstr "{skipped, plural, one {# row will be skipped (see errors)} other {# rows
 msgid "{totalActive} rules"
 msgstr "{totalActive} rules"
 
+#: src/features/dashboard/needs-attention-section.tsx
+msgid "{totalAlertCount, plural, one {# alert} other {# alerts}}"
+msgstr "{totalAlertCount, plural, one {# alert} other {# alerts}}"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "{totalOpen, plural, one {View # open deadline} other {View # open deadlines}}"
 msgstr "{totalOpen, plural, one {View # open deadline} other {View # open deadlines}}"

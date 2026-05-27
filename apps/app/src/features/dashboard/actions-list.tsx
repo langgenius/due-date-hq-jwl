@@ -643,7 +643,7 @@ function DashboardActionsList({
 
   if (isLoading) {
     return (
-      <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
+      <section aria-label={t`Actions this week`} className="flex flex-col gap-4 px-3">
         <ActionsListHeader count={null} onOpenAll={onOpenAllObligations} />
         <div className="flex flex-wrap gap-3">
           <Skeleton className="h-16 w-40" />
@@ -669,7 +669,7 @@ function DashboardActionsList({
     //   3. Caught-up state (rows exist somewhere but Smart Priority
     //      filtered them all out).
     return (
-      <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
+      <section aria-label={t`Actions this week`} className="flex flex-col gap-4 px-3">
         <ActionsListHeader count={0} onOpenAll={onOpenAllObligations} />
         {totalOpen > 0 ? (
           <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
@@ -707,7 +707,7 @@ function DashboardActionsList({
   }
 
   return (
-    <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
+    <section aria-label={t`Actions this week`} className="flex flex-col gap-4 px-3">
       <ActionsListHeader count={totalThisWeek} onOpenAll={onOpenAllObligations} />
       {summaryStrip}
       {/* 2026-05-26 (Yuqi /today feedback): row borders dropped.
