@@ -42,6 +42,7 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import { StatusBanner } from '@/components/patterns/status-banner'
 
 import { usePulseDrawer } from './DrawerProvider'
 import { PulseDetailDrawer } from './PulseDetailDrawer'
@@ -55,7 +56,7 @@ import { PulseAlertCard } from './components/PulseAlertCard'
 import { PULSE_STATUS_ICON } from './components/PulseStatusBadge'
 import { PulseReasonDialog, type PulseReasonAction } from './components/PulseReasonDialog'
 import { PulsingDot } from './components/PulsingDot'
-import { enabledPulseSourceCount, summarizePulseSources } from './lib/source-health-labels'
+import { summarizePulseSources } from './lib/source-health-labels'
 import {
   isPulseImpactFilter,
   matchesPulseImpactFilter,
@@ -875,10 +876,6 @@ function sourceLabel(sources: readonly PulseSourceHealth[]): string {
   return summarizePulseSources(sources, { emptyLabel: 'configured Pulse sources' })
 }
 
-function enabledSourceCount(sources: readonly PulseSourceHealth[]): number {
-  return enabledPulseSourceCount(sources)
-}
-
 // 2026-05-25 (Yuqi /rules/pulse fifth pass — map in dropdown):
 // state-filter popover. Trigger sits inline with the other
 // filter dropdowns; opens a Popover containing the
@@ -1063,12 +1060,9 @@ function SourceFilterPopover({
 
 function FilteredEmptyState() {
   return (
-    <div className="flex items-center gap-3 rounded-md border border-dashed border-divider-regular bg-background-default p-4 text-sm text-text-secondary">
-      <PulsingDot tone="disabled" />
-      <span className="flex-1">
-        <Trans>No alerts match these filters.</Trans>
-      </span>
-    </div>
+    <StatusBanner indicator={<PulsingDot tone="disabled" />}>
+      <Trans>No alerts match these filters.</Trans>
+    </StatusBanner>
   )
 }
 
@@ -1203,27 +1197,27 @@ function SkeletonRow({
 
 // Named for what it actually renders ("we're watching, all clear") not
 // for the EmptyState pattern — this is a status banner, not an empty
-// state slot. Kept inline because it's specific to the Alerts surface
-// (vs the generic icon/title/cta `EmptyState` primitive shared with
-// /deadlines + /rules/library).
+// state slot. Now using the shared `StatusBanner` primitive so
+// AlertsListPage / ClientFactsWorkspace / Today's AlertsEmptyState
+// all share the same dashed-border chrome.
+//
+// 2026-05-27 (Yuqi header unification pass): copy shortened from
+// "All clear. We're watching official federal and state sources
+// (101 sources); new matches will appear here." → "All clear. New
+// matches will appear here." The "N sources" count is now
+// promoted into the page header as a status chip (see
+// rules.pulse.tsx titleNode), so repeating it here was redundant.
+// The `sources` prop is retained on the signature for API
+// stability but no longer reads its count.
+//
+// 2026-05-27 (Yuqi cross-route consistency): inline className lifted
+// into the shared `StatusBanner` primitive at
+// `apps/app/src/components/patterns/status-banner.tsx`.
 function AlertsAllClearBanner({ sources }: { sources: readonly PulseSourceHealth[] }) {
-  const count = enabledSourceCount(sources)
+  void sources
   return (
-    <div className="flex items-center gap-3 rounded-md border border-dashed border-divider-regular bg-background-default p-4 text-sm text-text-secondary">
-      <PulsingDot tone="success" active />
-      <span className="flex-1">
-        {count > 0 ? (
-          <Trans>
-            All clear. We're watching official federal and state sources (
-            <Plural value={count} one="# source" other="# sources" />
-            ); new matches will appear here.
-          </Trans>
-        ) : (
-          <Trans>
-            All clear. We're watching configured Pulse sources; new matches will appear here.
-          </Trans>
-        )}
-      </span>
-    </div>
+    <StatusBanner indicator={<PulsingDot tone="success" active />}>
+      <Trans>All clear. New matches will appear here.</Trans>
+    </StatusBanner>
   )
 }

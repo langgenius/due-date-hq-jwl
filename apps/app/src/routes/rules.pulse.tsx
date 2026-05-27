@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Trans } from '@lingui/react/macro'
+import { Plural, Trans } from '@lingui/react/macro'
 import { HistoryIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
@@ -7,8 +7,13 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { PulseChangesTab } from '@/features/pulse/AlertsListPage'
-import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
+import {
+  usePulseListAlertsQueryOptions,
+  usePulseSourceHealthQueryOptions,
+} from '@/features/pulse/api'
+import { PulsingDot } from '@/features/pulse/components/PulsingDot'
 import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
+import { enabledPulseSourceCount } from '@/features/pulse/lib/source-health-labels'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 
 const TOP_ALERTS_LIMIT = 50
@@ -21,6 +26,16 @@ export function RulesPulseRoute() {
   // request, count rendered in both places).
   const alertsQuery = useQuery(usePulseListAlertsQueryOptions(TOP_ALERTS_LIMIT))
   const alertCount = alertsQuery.data?.alerts.length ?? 0
+  // 2026-05-27 (Yuqi header unification pass): source-monitoring count
+  // promoted from supporting body copy (was an inline Binoculars +
+  // "Monitoring N sources" line below the all-clear banner) into a
+  // status chip in the page header. The watcher being alive is the
+  // page's foundational state — it belongs in the title row, not in
+  // a paragraph below the fold. Same query is also read by
+  // AlertsListPage's empty-state banner so React Query dedupes
+  // (one network request, two render sites).
+  const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
+  const monitoringCount = enabledPulseSourceCount(sourceHealthQuery.data?.sources ?? [])
 
   // 2026-05-25 (Yuqi Alerts #1, #13): breadcrumb dropped. Alerts is
   // now a top-level sidebar destination — the parent crumb back to
@@ -39,25 +54,38 @@ export function RulesPulseRoute() {
   // history — clearer label for a CPA who's never used the
   // surface. "Archive" is the action verb / cold-storage noun;
   // "Alert history" is the destination's actual name.
-  // 2026-05-26 (Yuqi /rules/pulse follow-up #2): title format
-  // changed from "Alerts (N)" parentheses to "Alerts · N" with a
-  // separate font-mono span — matches the pattern used on
-  // /clients, /rules/library, /deadlines (title + count chip).
-  // The parentheses style was a one-off here.
-  // 2026-05-26 (Yuqi /rules/pulse follow-up #3): "Alert history"
-  // action button variant outline → ghost. Same reasoning as the
-  // /deadlines Columns button — header actions that are
-  // navigations (not destructive / not primary) should read
-  // quieter than the title.
-  const titleNode =
-    alertCount > 0 ? (
-      <span className="inline-flex items-baseline gap-2">
-        <Trans>Alerts</Trans>
-        <span className="text-base font-normal tabular-nums text-text-tertiary">{alertCount}</span>
-      </span>
-    ) : (
+  // 2026-05-27 (Yuqi header unification pass): title chip styling
+  // realigned with /clients, /deadlines, /today. Previous treatment
+  // diverged on three axes — items-baseline (not items-center),
+  // text-base font-normal (not text-xs font-medium), and bare text
+  // without the rounded-full pill background — which made the chip
+  // read as a different design system the moment alerts existed.
+  // Now uses the canonical pill, with TWO chips when both pieces
+  // of status are meaningful:
+  //   • Monitoring chip (always visible when sources exist): the
+  //     foundational "watcher is alive" signal. Pulsing green dot
+  //     + "Monitoring N sources" label, sized to match the other
+  //     count chips across the app shell.
+  //   • Alert count chip (only when > 0): destructive-toned pill
+  //     so an active queue reads with appropriate urgency.
+  const titleNode = (
+    <span className="inline-flex items-center gap-2">
       <Trans>Alerts</Trans>
-    )
+      {monitoringCount > 0 ? (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium text-text-secondary">
+          <PulsingDot tone="success" active className="size-1.5" />
+          <Trans>
+            Monitoring <Plural value={monitoringCount} one="# source" other="# sources" />
+          </Trans>
+        </span>
+      ) : null}
+      {alertCount > 0 ? (
+        <span className="rounded-full bg-state-destructive-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-destructive">
+          {alertCount}
+        </span>
+      ) : null}
+    </span>
+  )
   return (
     <RulesPageShell
       title={titleNode}
@@ -106,9 +134,19 @@ export function RulesPulseRoute() {
         panelOpen ? 'max-w-page-expanded min-w-[1440px] !pb-0 md:!pb-0' : 'max-w-page-wide min-w-0',
       )}
       actions={
+        // 2026-05-27 (Yuqi header unification pass): reverted from
+        // variant="ghost" → variant="outline" so the button matches
+        // /clients's "Import history" sibling — both are
+        // navigation-to-history affordances on a top-level page, so
+        // they should read with the same weight. Ghost on the
+        // light-grey app background was disappearing entirely
+        // (no border, no fill — only the icon carried weight).
+        // The earlier "quieter than the title" rationale still
+        // applies, but outline already satisfies it without
+        // collapsing into pure text.
         <Button
           nativeButton={false}
-          variant="ghost"
+          variant="outline"
           size="sm"
           render={<Link to="/rules/pulse/history" />}
         >
