@@ -1881,12 +1881,20 @@ function ClientsSearchControl({
   }
   return (
     <div className="relative w-full md:w-56 md:flex-none">
+      {/* 2026-05-27 (Yuqi step-8 data-finding audit — F-X05 sibling
+          on /clients): collapsed magnifier announces "Filter clients"
+          via aria-label above, but the expanded input previously
+          said "Search clients" — same accessible-name drift the
+          /deadlines fix (F-X05) corrected. Aligning to "Filter
+          clients" so screen-reader users hear one control name
+          regardless of collapsed/expanded state. Placeholder still
+          carries the field hint ("name or EIN") for sighted users. */}
       <SearchInput
         ref={inputRef}
         value={value}
         onChange={onChange}
-        placeholder={t`Search by name or EIN`}
-        ariaLabel={t`Search clients`}
+        placeholder={t`Filter by name or EIN`}
+        ariaLabel={t`Filter clients`}
         onFocus={() => onOpenChange(true)}
         onBlur={() => {
           if (value.length === 0) onOpenChange(false)
