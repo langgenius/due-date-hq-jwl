@@ -2,7 +2,14 @@ import { useMemo, useState } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
-import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FilterIcon, Loader2 } from 'lucide-react'
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DownloadIcon,
+  FilterIcon,
+  Loader2,
+  ScrollTextIcon,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { AuditEventPublic, AuditListInput, FirmPublic } from '@duedatehq/contracts'
@@ -43,6 +50,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/permission-gate'
 
+import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { SearchInput } from '@/components/primitives/search-input'
 
@@ -826,25 +834,42 @@ export function AuditLogPage() {
           ) : null}
 
           {!auditQuery.isLoading && !auditQuery.isError && filteredEvents.length === 0 ? (
-            <div className="grid gap-2 rounded-lg border border-divider-subtle p-6 text-center">
-              <h2 className="text-lg font-semibold text-text-primary">
-                {filtersActive ? (
+            /* 2026-05-27 (step-6 ux-flow audit F9-02 chrome upgrade):
+               replaced the ad-hoc bordered div with the shared
+               EmptyState component so the chrome matches the rest of
+               the app's empty surfaces (dashed border, icon-on-top,
+               consistent typography scale). Filtered state gets a
+               Clear filters CTA — same affordance the toolbar carries
+               above so the user has an inline way to recover without
+               scrolling back up. */
+            <EmptyState
+              icon={ScrollTextIcon}
+              title={
+                filtersActive ? (
                   <Trans>No audit events match these filters.</Trans>
                 ) : (
                   <Trans>No audit events yet.</Trans>
-                )}
-              </h2>
-              <p className="text-sm text-text-secondary">
-                {filtersActive ? (
+                )
+              }
+              description={
+                filtersActive ? (
                   <Trans>Clear filters to return to the latest practice-wide events.</Trans>
                 ) : (
                   <Trans>
                     Deadline status updates and client imports will appear here when they write
                     audit rows.
                   </Trans>
-                )}
-              </p>
-            </div>
+                )
+              }
+              cta={
+                filtersActive ? (
+                  <Button variant="outline" size="sm" onClick={resetFilters}>
+                    <FilterIcon data-icon="inline-start" />
+                    <Trans>Clear filters</Trans>
+                  </Button>
+                ) : undefined
+              }
+            />
           ) : null}
 
           {filteredEvents.length > 0 ? (

@@ -11281,6 +11281,7 @@ msgid "Unconfirm {0}"
 msgstr "Unconfirm {0}"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
+#: src/features/opportunities/opportunities-page.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Undo"
