@@ -153,7 +153,11 @@ export function DashboardRoute() {
     // added. Top/bottom padding also stepped down one tier
     // (pt-6/8 → pt-4/6, pb-4/6 → pb-3/5) so the H1 doesn't claim
     // an outsize share of the work surface.
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-4 pb-3 md:px-6 md:pt-6 md:pb-5">
+    // 2026-05-27 (Yuqi feedback "bigger gap between Today title, Alerts
+    // section, and Actions this week"): gap-4 (16px) → gap-8 (32px) so
+    // the three top-level sections breathe. The number prefix in each
+    // heading + the gray date pattern works better with this rhythm.
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-8 px-4 pt-4 pb-3 md:px-6 md:pt-6 md:pb-5">
       {/* 2026-05-26 (Yuqi seventy-fourth pass — Today joins the
           page-header family): the hand-rolled <header> is gone.
           /today now routes through the same `<PageHeader>`
