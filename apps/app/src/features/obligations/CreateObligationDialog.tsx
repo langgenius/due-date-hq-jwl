@@ -2,7 +2,7 @@ import { Fragment, type ReactElement, useMemo, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useForm, useStore } from '@tanstack/react-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckIcon, ChevronDownIcon, PlusIcon } from 'lucide-react'
+import { CheckIcon, ChevronDownIcon, Loader2Icon, PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
@@ -1343,7 +1343,9 @@ export function CreateObligationDialog({
             </FieldGroup>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              {/* 2026-05-27 (σ cross-route audit D14): outline → ghost.
+                  Matches D13 sibling sweep in CreateClientDialog. */}
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                 <Trans>Cancel</Trans>
               </Button>
               <Button
@@ -1357,6 +1359,15 @@ export function CreateObligationDialog({
                 }
                 aria-busy={createMutation.isPending || undefined}
               >
+                {/* 2026-05-27 (σ cross-route audit D11): added Loader2
+                    spinner during pending to match the cross-app
+                    mutation-button pattern. The existing "Adding…"
+                    label was carrying the in-flight signal solo;
+                    Step 6 cont X2 set the canon as Loader2 + label
+                    text together. */}
+                {createMutation.isPending ? (
+                  <Loader2Icon className="size-4 animate-spin" aria-hidden />
+                ) : null}
                 {createMutation.isPending
                   ? t`Adding…`
                   : rulesQuery.isLoading

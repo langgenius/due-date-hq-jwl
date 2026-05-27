@@ -442,7 +442,11 @@ function AddFirmDialog({
               </p>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              {/* 2026-05-27 (σ cross-route audit D12 — upgrade prompt):
+                  Cancel was the last outline straggler from X1 in the
+                  cross-cutting nav shell. Aligned with the ghost canon
+                  shared by every other dialog Cancel. */}
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 <Trans>Cancel</Trans>
               </Button>
               <Button render={<Link to="/billing" onClick={() => onOpenChange(false)} />}>
@@ -503,7 +507,10 @@ function AddFirmDialog({
               </p>
             ) : null}
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              {/* 2026-05-27 (σ cross-route audit D12 — create-firm
+                  dialog): same outline → ghost as the upgrade-prompt
+                  twin above. */}
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 <Trans>Cancel</Trans>
               </Button>
               <Button

@@ -4317,7 +4317,11 @@ export function ObligationQueueRoute() {
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setExtendedMemoOpen(false)}>
+            {/* 2026-05-27 (σ cross-route audit D9): final outline →
+                ghost straggler in obligations.tsx. Step 6 cont X1
+                migrated Export / Penalty / Calendar-sync / etc., but
+                the extended-memo dialog flew under the radar. */}
+            <Button variant="ghost" onClick={() => setExtendedMemoOpen(false)}>
               <Trans>Cancel</Trans>
             </Button>
             <Button
@@ -6937,7 +6941,17 @@ export function ObligationQueueDetailDrawer({
                               taxYearFiscalInvalid ||
                               updateTaxYearProfileMutation.isPending
                             }
+                            aria-busy={updateTaxYearProfileMutation.isPending || undefined}
                           >
+                            {/* 2026-05-27 (σ cross-route audit D10):
+                                Save in tax-year-profile drawer drifted
+                                from the cross-app mutation-button
+                                pattern — relabel only, no Loader2 + no
+                                aria-busy. Step 6 cont X2 canon: spinner
+                                + busy state + label-change together. */}
+                            {updateTaxYearProfileMutation.isPending ? (
+                              <Loader2 className="size-4 animate-spin" aria-hidden />
+                            ) : null}
                             {updateTaxYearProfileMutation.isPending ? (
                               <Trans>Saving…</Trans>
                             ) : (

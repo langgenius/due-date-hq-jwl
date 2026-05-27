@@ -19,7 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Switch } from '@duedatehq/ui/components/ui/switch'
+import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -281,13 +283,21 @@ function MorningDigestCard({
             <Trans>Recent digest runs</Trans>
           </span>
           {loadingRuns ? (
-            <p className="text-sm text-text-secondary">
-              <Trans>Loading recent digest runs…</Trans>
-            </p>
+            // 2026-05-27 (σ cross-route audit D6): raw "Loading…" text
+            // → stacked skeletons that match the eventual run row
+            // shape. Aligns with audit / opportunities / queue which
+            // already shape skeletons to the eventual content.
+            <div className="grid gap-2" aria-busy="true">
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+            </div>
           ) : runs.length === 0 ? (
-            <p className="rounded-md border border-divider-subtle p-3 text-sm text-text-secondary">
-              <Trans>No morning digests have run yet.</Trans>
-            </p>
+            // 2026-05-27 (σ cross-route audit D3): bordered `<p>` →
+            // canonical EmptyState. Sibling "Upcoming reminders" and
+            // every other empty surface in the app uses the dashed
+            // EmptyState chrome.
+            <EmptyState title={<Trans>No morning digests have run yet.</Trans>} />
           ) : (
             <ul className="grid gap-2">
               {runs.slice(0, 7).map((run) => (

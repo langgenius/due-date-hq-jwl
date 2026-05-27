@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 import { getAssigneeTint } from '@/lib/assignee-tint'
+import { initialsFromName } from '@/lib/auth'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
 import {
@@ -180,6 +181,13 @@ function AuditLogRow({
             collide with the human avatar bucket. ai_assisted events keep
             the human avatar + add a small AI chip below the name. */}
         <div className="flex items-start gap-2">
+          {/* 2026-05-27 (η F-035/F-036 + σ D2 merge): autonomous AI events
+              render a dedicated Astroid tile (accent tint) so they don't
+              collide with the human avatar bucket. Human-actor branch
+              uses the canonical `initialsFromName` helper (σ D2) for
+              consistency with AssigneeAvatar / app-shell / clients
+              team list — single-char and whitespace edge cases handled
+              centrally. `'?'` fallback preserved for unknown actors. */}
           {event.actorType === 'ai' ? (
             <span
               aria-hidden
@@ -195,14 +203,7 @@ function AuditLogRow({
                 actor ? getAssigneeTint(actor) : 'bg-background-subtle text-text-tertiary',
               )}
             >
-              {actor
-                ? actor
-                    .split(/\s+/)
-                    .slice(0, 2)
-                    .map((part) => part.charAt(0))
-                    .join('')
-                    .toUpperCase() || '?'
-                : '?'}
+              {actor ? initialsFromName(actor) : '?'}
             </span>
           )}
           <div className="grid min-w-0 gap-1">

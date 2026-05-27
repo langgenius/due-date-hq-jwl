@@ -378,9 +378,20 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
           <AlertDescription>
             {rpcErrorMessage(alertsQuery.error) ??
               t`Check your network and try again. If this keeps happening, contact support.`}{' '}
-            <button type="button" className="underline" onClick={() => void alertsQuery.refetch()}>
+            {/* 2026-05-27 (σ cross-route audit D5): raw underline button
+                → canonical `<Button variant="link">`. Dashboard /
+                clients / obligations Retry buttons all use this exact
+                shape; pulse was the only surface with a hand-rolled
+                underline (no focus-visible ring, no accent color). */}
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto p-0 align-baseline"
+              onClick={() => void alertsQuery.refetch()}
+            >
               <Trans>Retry</Trans>
-            </button>
+            </Button>
           </AlertDescription>
         </Alert>
       ) : null}

@@ -557,12 +557,11 @@ export function CreateClientDialog({
           </FieldGroup>
 
           <DialogFooter>
-            {/* 2026-05-27 (Step 6 UX audit #77): Cancel was rendering
-                at `variant="outline"`, same weight as the primary
-                action — so the visual binary read as two equal
-                choices. Wave-1 X1 sweep landed the canonical "dialog
-                Cancel uses ghost" pattern; aligning here so Cancel
-                steps back and Create stays the eye anchor. */}
+            {/* 2026-05-27 (Step 6 UX #77 / σ cross-route D13): Cancel
+                was `variant="outline"`, same weight as the primary
+                action. Wave-1 X1 sweep landed the canonical "dialog
+                Cancel uses ghost" pattern; both ν and σ landed the
+                same fix here. Ghost lets Create stay the eye anchor. */}
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               <Trans>Cancel</Trans>
             </Button>

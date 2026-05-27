@@ -75,6 +75,7 @@ import {
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
 import { RelativeTime } from '@/components/primitives/relative-time'
+import { initialsFromName } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
@@ -935,7 +936,14 @@ function MemberIdentity({ member }: { member: MemberPublic }) {
         {member.image ? (
           <img src={member.image} alt="" className="size-full object-cover" />
         ) : (
-          <span className="text-xs">{member.name.slice(0, 1).toUpperCase()}</span>
+          // 2026-05-27 (σ cross-route audit D1): the row used to ship
+          // `member.name.slice(0,1).toUpperCase()` — one initial only.
+          // Every other owner-avatar surface in the app derives initials
+          // via `initialsFromName` (up to 2 letters), so "Sarah Martinez"
+          // read as "S" here and "SM" in queue/clients. Route through
+          // the shared helper so the same person reads identically
+          // everywhere.
+          <span className="text-xs">{initialsFromName(member.name)}</span>
         )}
       </span>
       <span

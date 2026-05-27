@@ -5828,14 +5828,6 @@ msgstr "正在加载邀请"
 msgid "Loading readiness check…"
 msgstr "正在加载准备状态检查…"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Loading recent delivery…"
-msgstr "正在加载最近投递…"
-
-#: src/features/notifications/notification-preferences-page.tsx
-msgid "Loading recent digest runs…"
-msgstr "正在加载最近的 digest 运行记录…"
-
 #: src/features/rules/sources-tab.tsx
 msgid "Loading rule sources…"
 msgstr "正在加载规则来源…"
@@ -5848,10 +5840,6 @@ msgstr "正在加载规则覆盖…"
 msgid "Loading rules…"
 msgstr "正在加载规则…"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Loading suppressions…"
-msgstr "正在加载抑制列表…"
-
 #: src/routes/obligations.tsx
 msgid "Loading team"
 msgstr "正在加载团队"
@@ -5860,17 +5848,9 @@ msgstr "正在加载团队"
 msgid "Loading team workload"
 msgstr "正在加载团队工作负载"
 
-#: src/features/reminders/reminders-page.tsx
-msgid "Loading templates…"
-msgstr "正在加载模板…"
-
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Loading temporary rules…"
 msgstr "正在加载临时规则…"
-
-#: src/features/reminders/reminders-page.tsx
-msgid "Loading upcoming reminders…"
-msgstr "正在加载即将触发的提醒…"
 
 #: src/features/workload/workload-page.tsx
 msgid "Loading workload metrics"
