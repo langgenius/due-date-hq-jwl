@@ -5415,8 +5415,8 @@ msgid "Internal deadline offset must be between 0 and 365 days."
 msgstr "内部截止日提前天数必须在 0 到 365 天之间。"
 
 #: src/routes/obligations.tsx
-msgid "Internal Due"
-msgstr "内部截止日"
+msgid "Internal due date"
+msgstr "内部截止日期"
 
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/routes/obligations.tsx
@@ -7818,6 +7818,11 @@ msgstr "Penalty 输入"
 msgid "Penalty inputs changed"
 msgstr "Penalty 输入已更改"
 
+#. placeholder {0}: row.clientName
+#: src/routes/obligations.tsx
+msgid "Penalty inputs for {0}"
+msgstr "{0} 的罚款输入"
+
 #: src/routes/obligations.tsx
 msgid "Penalty inputs saved"
 msgstr "Penalty 输入已保存"
@@ -9464,6 +9469,10 @@ msgstr "已保存"
 msgid "Saved deadline view"
 msgstr "Saved deadline view"
 
+#: src/routes/obligations.tsx
+msgid "Saved to your Downloads folder."
+msgstr "已保存到你的下载文件夹。"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Saved view created"
 msgstr "已创建保存视图"
@@ -10318,8 +10327,9 @@ msgstr "州"
 msgid "Status"
 msgstr "状态"
 
+#. placeholder {0}: statusLabels[input.status]
 #. placeholder {0}: statusLabels[nextStatus]
-#. placeholder {0}: v2StatusLabels[vars.status]
+#. placeholder {0}: statusLabels[variables.status]
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Status changed to {0}"
@@ -10333,10 +10343,6 @@ msgstr "状态范围"
 #: src/features/obligations/timeline.tsx
 msgid "Status set to {0}."
 msgstr "Status set to {0}."
-
-#: src/routes/obligations.tsx
-msgid "Status updated"
-msgstr "状态已更新"
 
 #: src/routes/obligations.tsx
 msgid "Statutory deadline"

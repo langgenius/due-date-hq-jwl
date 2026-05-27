@@ -1170,7 +1170,11 @@ export function ObligationQueueRoute() {
       clientState: t`State`,
       clientCounty: t`County`,
       taxType: t`Tax type`,
-      currentDueDate: t`Internal Due`,
+      // 2026-05-27 (Step 6 #61 — P3): was "Internal Due" — dropped
+      // the noun and didn't match the neighbouring "Due date" column
+      // header. Restored "date" so the two date-column labels read
+      // as a consistent pair.
+      currentDueDate: t`Internal due date`,
       dueDateExact: t`Due date`,
       daysUntilDue: t`Days`,
       evidenceCount: t`Evidence`,
@@ -1331,7 +1335,7 @@ export function ObligationQueueRoute() {
   )
   const bulkStatusMutation = useMutation(
     orpc.obligations.bulkUpdateStatus.mutationOptions({
-      onSuccess: (result) => {
+      onSuccess: (result, variables) => {
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
@@ -1343,7 +1347,11 @@ export function ObligationQueueRoute() {
         // CPAs say "deadlines" or "filings". Title also dropped the
         // word "Bulk" — the description carries the count which is
         // already the bulk signal.
-        toast.success(t`Status updated`, {
+        // 2026-05-27 (Step 6 #156 — P2): title now reflects which
+        // status was applied so a CPA running several bulk actions
+        // back-to-back can distinguish them at a glance. The status
+        // label resolves through the v2-aware `statusLabels` map.
+        toast.success(t`Status changed to ${statusLabels[variables.status]}`, {
           description: t`${result.updatedCount} deadlines changed`,
         })
       },
@@ -1405,8 +1413,14 @@ export function ObligationQueueRoute() {
       onSuccess: (result) => {
         downloadBase64File(result)
         void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+        // 2026-05-27 (Step 6 #56 — P3): "Export ready" + audit-id
+        // didn't tell the user WHERE the file went. Most browsers
+        // drop to Downloads silently; without the destination cue,
+        // the user can't tell whether they need to click Save
+        // somewhere. Audit-id stays accessible — power-users who
+        // need it can grab it from the audit log.
         toast.success(t`Export ready`, {
-          description: t`Audit ${result.auditId.slice(0, 8)}`,
+          description: t`Saved to your Downloads folder.`,
         })
       },
       onError: (err) => {
@@ -1617,7 +1631,13 @@ export function ObligationQueueRoute() {
       updateStatusMutation.mutate(input, {
         onSuccess: (result) => {
           const canUndo = previousStatus !== input.status
-          toast.success(t`Status updated`, {
+          // 2026-05-27 (Step 6 #156 — P2): all status-change toasts
+          // shared `t\`Status updated\`` regardless of which status
+          // was chosen. A CPA marking 10 rows filed in succession
+          // saw 10 visually identical toasts — losing the ability
+          // to spot at-a-glance when a wrong status was picked.
+          // Mirrors the per-row drawer toast at line ~5303.
+          toast.success(t`Status changed to ${statusLabels[input.status]}`, {
             description: t`Audit ${result.auditId.slice(0, 8)}`,
             ...(canUndo
               ? {
@@ -1633,7 +1653,7 @@ export function ObligationQueueRoute() {
         },
       })
     },
-    [updateStatusMutation, t],
+    [updateStatusMutation, statusLabels, t],
   )
   const statusUpdatePending = updateStatusMutation.isPending || bulkStatusMutation.isPending
   const changeSort = useCallback(
@@ -2025,7 +2045,7 @@ export function ObligationQueueRoute() {
       {
         accessorKey: 'currentDueDate',
         header: () => {
-          const label = t`Internal Due`
+          const label = t`Internal due date`
           // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #5): dropped
           // the RangeHeaderFilterDropdown icon button. Yuqi's call:
           // "remove. Sort by is doing the same thing." The dropdown
@@ -3288,10 +3308,17 @@ export function ObligationQueueRoute() {
                       The `extended` special-case for the memo modal
                       is preserved but only fires under legacy (v2
                       dropdown options don't include `extended`). */}
+                  {/* 2026-05-27 (Step 6 cont Q4.4 — P1): each item now
+                      respects `bulkStatusMutation.isPending` so a CPA
+                      hammering "Filed" on a 47-row selection during the
+                      first request can't fire the mutation twice. The
+                      Base UI DropdownMenuItem honors `disabled` for
+                      both pointer and keyboard activation. */}
                   {statusDropdownOptions.map((status) =>
                     status === 'extended' ? (
                       <DropdownMenuItem
                         key={status}
+                        disabled={bulkStatusMutation.isPending}
                         onClick={() => {
                           setExtendedMemo('')
                           setExtendedMemoOpen(true)
@@ -3300,7 +3327,11 @@ export function ObligationQueueRoute() {
                         {statusLabels[status]}
                       </DropdownMenuItem>
                     ) : (
-                      <DropdownMenuItem key={status} onClick={() => changeSelectedStatus(status)}>
+                      <DropdownMenuItem
+                        key={status}
+                        disabled={bulkStatusMutation.isPending}
+                        onClick={() => changeSelectedStatus(status)}
+                      >
                         {statusLabels[status]}
                       </DropdownMenuItem>
                     ),
@@ -10706,11 +10737,22 @@ function PenaltyInputDialog({
     <Dialog open={row !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <DialogContent>
         <DialogHeader>
+          {/* 2026-05-27 (Step 6 cont Q5.4 — P3): title was generic
+              "Penalty inputs" with the client name buried in the
+              description. CPAs working through a list of clients in
+              one sitting open this dialog repeatedly — the title
+              should answer "whose penalty am I editing?" without a
+              second glance. Description retains the tax-code suffix
+              so the filing context is still legible. */}
           <DialogTitle>
-            <Trans>Penalty inputs</Trans>
+            {row ? (
+              <Trans>Penalty inputs for {row.clientName}</Trans>
+            ) : (
+              <Trans>Penalty inputs</Trans>
+            )}
           </DialogTitle>
           <DialogDescription>
-            {row ? `${row.clientName} - ${formatTaxCode(row.taxType)}` : null}
+            {row ? formatTaxCode(row.taxType) : null}
           </DialogDescription>
         </DialogHeader>
         {/* 2026-05-26 (step-6 ux-flow audit Q5.1/Q5.2): added real
