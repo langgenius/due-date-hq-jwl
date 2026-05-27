@@ -1098,6 +1098,10 @@ msgstr "{0} 的操作"
 msgid "Actions this week"
 msgstr "Actions this week"
 
+#: src/routes/rules.library.tsx
+msgid "active"
+msgstr "活跃"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/calendar/calendar-page.tsx
 #: src/features/members/members-page.tsx
@@ -1147,6 +1151,10 @@ msgstr "当前事务所摘要"
 #: src/features/rules/coverage-tab.tsx
 msgid "Active rule"
 msgstr "Active rule"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Active rule for this entity"
+msgstr "此实体的活跃规则"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Active rule queue"
@@ -1723,6 +1731,10 @@ msgstr "Archive {clientName}"
 msgid "Archive client"
 msgstr "归档客户"
 
+#: src/routes/rules.library.tsx
+msgid "archived"
+msgstr "已归档"
+
 #: src/features/rules/coverage-tab.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
@@ -2246,6 +2258,10 @@ msgstr "已取消"
 #: src/features/members/members-page.tsx
 msgid "Cancelling…"
 msgstr "正在取消…"
+
+#: src/routes/rules.library.tsx
+msgid "candidate"
+msgstr "候选"
 
 #: src/features/workload/workload-page.tsx
 msgid "Capacity pressure"
@@ -3795,6 +3811,10 @@ msgid "Deposit"
 msgstr "缴款"
 
 #: src/routes/rules.library.tsx
+msgid "deprecated"
+msgstr "已弃用"
+
+#: src/routes/rules.library.tsx
 msgid "Describe the due-date pattern in plain English. You can refine the calendar logic from the rule's detail view after creation."
 msgstr "请用通俗语言描述截止日规律。创建后可在规则详情中细化日历逻辑。"
 
@@ -4201,6 +4221,10 @@ msgstr "邮件更新"
 #: src/routes/obligations.tsx
 msgid "Email will be queued"
 msgstr "邮件将进入队列"
+
+#: src/routes/rules.library.tsx
+msgid "Empty rule catalog"
+msgstr "规则目录为空"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Enable full feed"
@@ -6312,6 +6336,10 @@ msgstr "Navigate…"
 msgid "Need help"
 msgstr "需要帮助"
 
+#: src/routes/rules.library.tsx
+msgid "need review"
+msgstr "待审核"
+
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Needs action"
 msgstr "需处理"
@@ -6722,6 +6750,10 @@ msgstr "暂无备注"
 msgid "No notifications yet."
 msgstr "暂无通知。"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "No official source registered"
+msgstr "未登记官方来源"
+
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
@@ -6830,6 +6862,10 @@ msgstr "{0} 尚无规则。"
 #: src/features/members/members-page.tsx
 msgid "No seats are available. Upgrade or suspend a member before inviting."
 msgstr "没有可用席位。请先升级或暂停一名成员再邀请。"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "No source"
+msgstr "无来源"
 
 #: src/features/rules/sources-tab.tsx
 msgid "No source signals yet — watchers haven't surfaced anything."
@@ -7074,6 +7110,10 @@ msgid "Official form or method"
 msgstr "官方表格或方式"
 
 #: src/features/rules/coverage-tab.tsx
+msgid "Official source registered; rule still needs review"
+msgstr "已登记官方来源；规则仍需审核"
+
+#: src/features/rules/coverage-tab.tsx
 msgid "Official sources — pending rules"
 msgstr "Official sources — pending rules"
 
@@ -7224,7 +7264,7 @@ msgid "Open {count} evidence sources for {0}"
 msgstr "打开 {0} 的 {count} 个证据来源"
 
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
-#. placeholder {1}: labelForSourceState(sourceState)
+#. placeholder {1}: labelForSourceState(sourceState, t)
 #: src/features/rules/coverage-tab.tsx
 msgid "Open {fullName} rules for {0} — {1}"
 msgstr "Open {fullName} rules for {0} — {1}"
@@ -7342,6 +7382,15 @@ msgstr "Open Pulse alert details: {0}"
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Open Pulse detail"
 msgstr "打开 Pulse 详情"
+
+#. placeholder {0}: rule.title
+#: src/routes/rules.library.tsx
+msgid "Open rule details for {0}"
+msgstr "打开 {0} 的规则详情"
+
+#: src/routes/rules.library.tsx
+msgid "Open rule details for {displayTitle}"
+msgstr "打开 {displayTitle} 的规则详情"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/routes/obligations.tsx
@@ -7845,6 +7894,10 @@ msgstr "待处理邀请"
 #: src/features/members/members-page.tsx
 msgid "Pending invites"
 msgstr "待处理邀请"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Pending review for this entity"
+msgstr "此实体待审核"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Pending review queue"
@@ -8684,6 +8737,10 @@ msgstr "正在重新生成…"
 msgid "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
 msgstr "匹配你事务所客户的监管 Pulse 信号。复核、批量应用截止日变更、暂缓，或重新查看已关闭变更。"
 
+#: src/routes/rules.library.tsx
+msgid "rejected"
+msgstr "已拒绝"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/rejection-chip.tsx
@@ -8932,6 +8989,7 @@ msgstr "Reverting this batch will commit these changes"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
+#: src/features/rules/coverage-tab.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Review"
@@ -9061,6 +9119,10 @@ msgstr "Review the prepared return and sign off"
 #: src/features/migration/Step4Preview.tsx
 msgid "Review these states in Rule Library to unlock the remaining deadlines."
 msgstr "稍后在规则库审核这些州，即可生成剩余的州级截止日。"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Review workspace"
+msgstr "审核工作区"
 
 #: src/features/concepts/concept-help.tsx
 msgid "Review-only rule"
@@ -9233,6 +9295,10 @@ msgstr "规则已接受"
 #: src/routes/obligations.tsx
 msgid "Rule allows extension"
 msgstr "规则允许申请延期"
+
+#: src/routes/rules.library.tsx
+msgid "Rule catalog breakdown — {breakdown}"
+msgstr "规则目录分布 — {breakdown}"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Rule cells"
@@ -9611,6 +9677,10 @@ msgstr "无法加载安全设置"
 msgid "Select {0}"
 msgstr "选择 {0}"
 
+#: src/routes/rules.library.tsx
+msgid "Select {displayTitle} for batch review"
+msgstr "选择 {displayTitle} 进行批量审核"
+
 #. placeholder {0}: rule.title
 #: src/features/rules/coverage-tab.tsx
 msgid "Select AI draft rule {0}"
@@ -9620,6 +9690,10 @@ msgstr "选择 AI 草案规则 {0}"
 #: src/routes/obligations.tsx
 msgid "Select all"
 msgstr "全选"
+
+#: src/routes/rules.library.tsx
+msgid "Select all {count} rules in {label}"
+msgstr "选择 {label} 中的全部 {count} 条规则"
 
 #: src/routes/rules.library.tsx
 msgid "Select all {totalPending}"
@@ -11525,6 +11599,10 @@ msgstr "变量：client_name、tax_type、due_date、offset_days、obligation_ur
 #: src/routes/two-factor.tsx
 msgid "Verification code"
 msgstr "验证码"
+
+#: src/routes/rules.library.tsx
+msgid "verified"
+msgstr "已核实"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Verified"

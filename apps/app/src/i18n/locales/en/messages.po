@@ -1098,6 +1098,10 @@ msgstr "Actions for {0}"
 msgid "Actions this week"
 msgstr "Actions this week"
 
+#: src/routes/rules.library.tsx
+msgid "active"
+msgstr "active"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/calendar/calendar-page.tsx
 #: src/features/members/members-page.tsx
@@ -1147,6 +1151,10 @@ msgstr "Active practice summary"
 #: src/features/rules/coverage-tab.tsx
 msgid "Active rule"
 msgstr "Active rule"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Active rule for this entity"
+msgstr "Active rule for this entity"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Active rule queue"
@@ -1723,6 +1731,10 @@ msgstr "Archive {clientName}"
 msgid "Archive client"
 msgstr "Archive client"
 
+#: src/routes/rules.library.tsx
+msgid "archived"
+msgstr "archived"
+
 #: src/features/rules/coverage-tab.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
@@ -2246,6 +2258,10 @@ msgstr "Canceled"
 #: src/features/members/members-page.tsx
 msgid "Cancelling…"
 msgstr "Cancelling…"
+
+#: src/routes/rules.library.tsx
+msgid "candidate"
+msgstr "candidate"
 
 #: src/features/workload/workload-page.tsx
 msgid "Capacity pressure"
@@ -3795,6 +3811,10 @@ msgid "Deposit"
 msgstr "Deposit"
 
 #: src/routes/rules.library.tsx
+msgid "deprecated"
+msgstr "deprecated"
+
+#: src/routes/rules.library.tsx
 msgid "Describe the due-date pattern in plain English. You can refine the calendar logic from the rule's detail view after creation."
 msgstr "Describe the due-date pattern in plain English. You can refine the calendar logic from the rule's detail view after creation."
 
@@ -4201,6 +4221,10 @@ msgstr "Email updates"
 #: src/routes/obligations.tsx
 msgid "Email will be queued"
 msgstr "Email will be queued"
+
+#: src/routes/rules.library.tsx
+msgid "Empty rule catalog"
+msgstr "Empty rule catalog"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Enable full feed"
@@ -6312,6 +6336,10 @@ msgstr "Navigate…"
 msgid "Need help"
 msgstr "Need help"
 
+#: src/routes/rules.library.tsx
+msgid "need review"
+msgstr "need review"
+
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Needs action"
 msgstr "Needs action"
@@ -6722,6 +6750,10 @@ msgstr "No notes yet"
 msgid "No notifications yet."
 msgstr "No notifications yet."
 
+#: src/features/rules/coverage-tab.tsx
+msgid "No official source registered"
+msgstr "No official source registered"
+
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
@@ -6830,6 +6862,10 @@ msgstr "No rules yet for {0}."
 #: src/features/members/members-page.tsx
 msgid "No seats are available. Upgrade or suspend a member before inviting."
 msgstr "No seats are available. Upgrade or suspend a member before inviting."
+
+#: src/features/rules/coverage-tab.tsx
+msgid "No source"
+msgstr "No source"
 
 #: src/features/rules/sources-tab.tsx
 msgid "No source signals yet — watchers haven't surfaced anything."
@@ -7074,6 +7110,10 @@ msgid "Official form or method"
 msgstr "Official form or method"
 
 #: src/features/rules/coverage-tab.tsx
+msgid "Official source registered; rule still needs review"
+msgstr "Official source registered; rule still needs review"
+
+#: src/features/rules/coverage-tab.tsx
 msgid "Official sources — pending rules"
 msgstr "Official sources — pending rules"
 
@@ -7224,7 +7264,7 @@ msgid "Open {count} evidence sources for {0}"
 msgstr "Open {count} evidence sources for {0}"
 
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
-#. placeholder {1}: labelForSourceState(sourceState)
+#. placeholder {1}: labelForSourceState(sourceState, t)
 #: src/features/rules/coverage-tab.tsx
 msgid "Open {fullName} rules for {0} — {1}"
 msgstr "Open {fullName} rules for {0} — {1}"
@@ -7342,6 +7382,15 @@ msgstr "Open Pulse alert details: {0}"
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Open Pulse detail"
 msgstr "Open Pulse detail"
+
+#. placeholder {0}: rule.title
+#: src/routes/rules.library.tsx
+msgid "Open rule details for {0}"
+msgstr "Open rule details for {0}"
+
+#: src/routes/rules.library.tsx
+msgid "Open rule details for {displayTitle}"
+msgstr "Open rule details for {displayTitle}"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/routes/obligations.tsx
@@ -7845,6 +7894,10 @@ msgstr "Pending invitations"
 #: src/features/members/members-page.tsx
 msgid "Pending invites"
 msgstr "Pending invites"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Pending review for this entity"
+msgstr "Pending review for this entity"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Pending review queue"
@@ -8684,6 +8737,10 @@ msgstr "Regenerating…"
 msgid "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
 msgstr "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
 
+#: src/routes/rules.library.tsx
+msgid "rejected"
+msgstr "rejected"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/features/obligations/rejection-chip.tsx
@@ -8932,6 +8989,7 @@ msgstr "Reverting this batch will commit these changes"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
+#: src/features/rules/coverage-tab.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Review"
@@ -9061,6 +9119,10 @@ msgstr "Review the prepared return and sign off"
 #: src/features/migration/Step4Preview.tsx
 msgid "Review these states in Rule Library to unlock the remaining deadlines."
 msgstr "Review these states in Rule Library to unlock the remaining deadlines."
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Review workspace"
+msgstr "Review workspace"
 
 #: src/features/concepts/concept-help.tsx
 msgid "Review-only rule"
@@ -9233,6 +9295,10 @@ msgstr "Rule accepted"
 #: src/routes/obligations.tsx
 msgid "Rule allows extension"
 msgstr "Rule allows extension"
+
+#: src/routes/rules.library.tsx
+msgid "Rule catalog breakdown — {breakdown}"
+msgstr "Rule catalog breakdown — {breakdown}"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Rule cells"
@@ -9611,6 +9677,10 @@ msgstr "Security settings couldn't load"
 msgid "Select {0}"
 msgstr "Select {0}"
 
+#: src/routes/rules.library.tsx
+msgid "Select {displayTitle} for batch review"
+msgstr "Select {displayTitle} for batch review"
+
 #. placeholder {0}: rule.title
 #: src/features/rules/coverage-tab.tsx
 msgid "Select AI draft rule {0}"
@@ -9620,6 +9690,10 @@ msgstr "Select AI draft rule {0}"
 #: src/routes/obligations.tsx
 msgid "Select all"
 msgstr "Select all"
+
+#: src/routes/rules.library.tsx
+msgid "Select all {count} rules in {label}"
+msgstr "Select all {count} rules in {label}"
 
 #: src/routes/rules.library.tsx
 msgid "Select all {totalPending}"
@@ -11525,6 +11599,10 @@ msgstr "Variables: client_name, tax_type, due_date, offset_days, obligation_url,
 #: src/routes/two-factor.tsx
 msgid "Verification code"
 msgstr "Verification code"
+
+#: src/routes/rules.library.tsx
+msgid "verified"
+msgstr "verified"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "Verified"
