@@ -30,11 +30,13 @@ import { clientDetailPath } from './client-url'
 // hunting for the next-due. Mirrors the set used by ClientSummaryStrip
 // (the full-page tile) so the peek's next-due matches what the full
 // client page would show.
+// 2026-05-27 (TERMINAL_STATUSES root bug): `'done'` (UI "Filed") is
+// NOT terminal — filing done but payment may be outstanding. Only
+// `'completed'`, `'paid'`, and `'not_applicable'` are. See dev-log
+// 2026-05-27-terminal-statuses-root-bug.md.
 const TERMINAL_STATUSES: ReadonlySet<string> = new Set([
-  'done',
   'paid',
   'completed',
-  'filed',
   'not_applicable',
 ])
 

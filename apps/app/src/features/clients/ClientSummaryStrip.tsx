@@ -145,13 +145,29 @@ function TileShell({
 }
 
 // Open = obligation is still doing work. We exclude terminal states.
-const TERMINAL_STATUSES = new Set(['done', 'paid', 'completed', 'filed', 'not_applicable'])
+// 2026-05-27 (Yuqi screenshot diagnosis — TERMINAL_STATUSES root bug):
+// the prior set treated `'done'` as terminal — but per the canonical
+// 6-state lifecycle v2, `'done'` is the "Filed" state (filing event
+// shipped, PAYMENT MAY STILL BE OUTSTANDING). Only `'completed'` and
+// `'not_applicable'` are truly terminal. Legacy `'paid'` stays in the
+// set because it means "filing + payment both done". Removed dead
+// `'filed'` literal (not in the ObligationStatus union).
+const TERMINAL_STATUSES = new Set(['paid', 'completed', 'not_applicable'])
 
 function isAtRisk(o: ObligationInstancePublic, today: number): boolean {
   if (o.status === 'blocked') return true
   if (o.status === 'review' && o.efileRejectedAt != null) return true
+  // Filing-deadline past + not terminal → at risk.
   const due = Date.parse(o.currentDueDate)
   if (!Number.isNaN(due) && due < today && !TERMINAL_STATUSES.has(o.status)) return true
+  // 2026-05-27: payment-deadline overdue is ALSO at-risk even if the
+  // filing has shipped (the row sits in `filed` waiting on payment).
+  // Closes the screenshot case: Form 1065 status=filed, payment due
+  // 2026-03-16, today 2026-05-27 → 71 days overdue payment → at risk.
+  if (o.paymentDueDate && !TERMINAL_STATUSES.has(o.status)) {
+    const payDue = Date.parse(o.paymentDueDate)
+    if (!Number.isNaN(payDue) && payDue < today) return true
+  }
   return false
 }
 

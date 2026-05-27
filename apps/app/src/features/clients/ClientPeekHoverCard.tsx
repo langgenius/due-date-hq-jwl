@@ -57,11 +57,11 @@ import { clientDetailPath } from './client-url'
 // Statuses that mean "the obligation is done" — exclude these when
 // hunting for the next-due. Mirrors the set used by ClientSummaryStrip
 // and ClientDetailDrawer so all three surfaces agree on "next due."
+// 2026-05-27 (TERMINAL_STATUSES root bug): `'done'` (UI "Filed") is
+// NOT terminal. See dev-log 2026-05-27-terminal-statuses-root-bug.md.
 const TERMINAL_STATUSES: ReadonlySet<string> = new Set([
-  'done',
   'paid',
   'completed',
-  'filed',
   'not_applicable',
 ])
 

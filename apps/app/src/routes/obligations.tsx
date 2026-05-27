@@ -8560,15 +8560,24 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   // badge inside the tile — the header pill carries that text
   // (answers item #4 "what's the relationship"). The tile's tone
   // (red border + tint) is the visual cue.
-  const filingPast = filingIso !== null && filingIso < todayIso && !isTerminal
+  // 2026-05-27 (Yuqi screenshot — pill tone with payment-overdue rows):
+  // `'done'` (UI label "Filed") means the filing event has been
+  // satisfied but the payment may still be outstanding. The prior
+  // tone math painted the FILING tile red whenever the filing date
+  // was past AND the row wasn't terminal — but a `'done'` row IS
+  // satisfied on its filing milestone; the red signal belongs on
+  // payment-due. Split the "satisfied" check by milestone.
+  const filingSatisfied = isTerminal || row.status === 'done' || row.status === 'paid'
+  const paymentSatisfied = isTerminal || row.status === 'paid'
+  const filingPast = filingIso !== null && filingIso < todayIso && !filingSatisfied
   const internalPast = internalIso !== null && internalIso < todayIso && !isTerminal
-  const paymentPast = paymentIso !== null && paymentIso < todayIso && !isTerminal
+  const paymentPast = paymentIso !== null && paymentIso < todayIso && !paymentSatisfied
   return (
     <div aria-label={t`Key deadlines`} className="grid grid-cols-3 gap-2">
       <DeadlineTile
         label={t`Filing deadline`}
         date={filingIso}
-        tone={isTerminal ? 'success' : isMissed ? 'destructive' : 'primary'}
+        tone={filingSatisfied ? 'success' : isMissed ? 'destructive' : 'primary'}
         primary
         valueTone={filingPast ? 'destructive' : 'primary'}
       />
@@ -8581,7 +8590,7 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
       <DeadlineTile
         label={t`Payment due`}
         date={paymentIso}
-        tone="neutral"
+        tone={paymentPast ? 'destructive' : 'neutral'}
         valueTone={paymentPast ? 'destructive' : paymentIso ? 'primary' : 'tertiary'}
       />
     </div>
