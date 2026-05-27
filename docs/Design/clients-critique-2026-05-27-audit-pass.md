@@ -309,3 +309,144 @@ If addressing the full list, this order delivers the most user value with the le
 - `clients-detail-critique-2026-05-26-post-revamp.md` — companion to the macro/micro audit
 - `2026-05-27-page-header-chip-unification.md` (dev-log) — PR #32 baseline
 - `2026-05-27-clients-deadlines-parity-refactor.md` (dev-log) — earlier table chrome unification work
+
+---
+
+## §10. Live interaction audit (pass 2)
+
+After Yuqi pushed back ("you should view and audit from a product design perspective and ensure the flow is good, it has good usability and everything is working"), this section logs findings from actually clicking through the surfaces in a running preview rather than only reading the code. Each finding is a thing I tried that either broke, confused, or behaved in a way the user didn't expect from the visible affordance.
+
+Method: 9 mock clients, 2 personas (Riverbend Draft = needs-facts; Lakeview Medical Partners = populated). Tried every clickable affordance on /clients and /clients/[id] including hover-only ones.
+
+### L1 — "Quick peek" menu item is a lie [CONFIRMED LIVE]
+
+**Reproduced:** /clients list → row menu (`⋯`) → "Quick peek" → navigates to `/clients/[id]` full page. Drawer never opens.
+
+This was hypothesized in §3 P0-3 from the code; now it's confirmed in the running app. The label promises a peek; the action performs full nav. Closest analogy in the rest of the app: a "Preview" button that loads the full editor. Confusing.
+
+**Fix:** either honor the peek (un-redirect the provider on `/clients`) OR rename the menu item to "Open client" so the label matches the behavior. The current state is the worst of both worlds.
+
+### L2 — `FixNeedsFactsSheet` counter has a copy bug
+
+**File:** `apps/app/src/features/clients/FixNeedsFactsSheet.tsx`
+
+Visible string in the sheet header: `"0 of  fixed · 1"`. Two spaces between "of" and "fixed" — the total number is missing from the template. Should read "0 of 1 fixed" or similar. Reads as a broken interpolation in front of the user.
+
+**Why this matters:** the sheet is the canonical surface for resolving the "1 client is missing state or entity type" banner — the page where the CPA is most likely to encounter the broken counter is the page that should feel most polished.
+
+### L3 — Filing plan rows are `<div>`, not `<tr>`
+
+**File:** filing-plan rows on `/clients/[id]` Work tab render as `<div class="group/row flex min-h-14 cursor-pointer items-center …">` instead of `<tr>` inside a `<table>`. Confirmed via DOM inspection.
+
+**Why this matters:**
+- Screen-reader users get no "table" / "row N of M" announcement
+- Column-header relationship is unannounced (the "Form / Internal deadline / Official deadline / Status" header row is also `<div>`)
+- Native keyboard table navigation (arrow keys to traverse cells, Home/End) doesn't work
+- The /clients LIST page uses real `<table>` — so the same product domain renders two different DOM shapes for the same conceptual data
+
+The visual rhythm matches the rest of the workbench tables (h-14, divider-r borders), but the semantics underneath are weaker.
+
+### L4 — User-facing copy leaks raw UUID
+
+**Reproduced:** /clients/[id] → Activity tab → Client summary (AI) → Next step section, copy reads:
+
+> Request a refresh after updating risk inputs for client 10000000-0000-4000-8000-000000000007.
+
+The literal UUID is rendered as part of the CPA-facing instruction. Either the AI prompt template embeds the UUID by mistake, or a substitution was missed. Should be the client name (`Lakeview Medical Partners`) or just dropped from the sentence ("Request a refresh after updating risk inputs.").
+
+### L5 — Title switcher dropdown items have no whitespace between name and state
+
+**Reproduced:** /clients/[id] → click the chevron next to the client title → dropdown lists every client. Items render as:
+
+> "Arbor & Vale LLCCA · llc"
+> "Bright Studio S-CorpCA · s_cor…"
+> "Lakeview Medical PartnersMA · …"
+
+There's no whitespace between the client name and the state code. Also `llc` / `s_cor` etc. are raw enum values, not the canonical entity labels ("LLC" / "S-Corp" used everywhere else on the page).
+
+### L6 — `Opportunities` tab uses stale URL key `?tab=discover`
+
+**Reproduced:** /clients/[id] → click "Opportunities" tab → URL becomes `?tab=discover`. The label says Opportunities but the URL still says `discover` (the prior name).
+
+Side effect: shareable deeplinks to the Opportunities tab use a name that doesn't match what the user clicks. Counts as a small inconsistency for everyone, a real surprise for anyone who has a `?tab=opportunities` muscle memory from anywhere else in the app.
+
+### L7 — Two surfaces named "Opportunities" with different scopes
+
+Sidebar `Opportunities` (firm-wide) vs `/clients/[id]?tab=discover` (per-client). Same label, different scope. The per-client one is also conceptually closer to "Suggested forms" since its main content is a forms-catalog list ("Form 7004, Form 941, Payroll tax deposit, Form 1099-NEC" with `+ Add deadline` actions). Either rename, OR document the two-tier "Opportunities" concept.
+
+### L8 — SummaryStrip tiles navigate AWAY instead of filtering in place
+
+**Reproduced:** /clients/[id] → click "At risk" tile → navigates to `/deadlines?client=…&status=blocked`. Loses scroll position + active tab on the client detail page.
+
+This corrects my P1-2 finding (which assumed the tile was non-interactive — it IS clickable, just with a different destination than expected). Two issues remain:
+- The mental model is "click count to filter view below" not "click count to leave the page"
+- The mapping "at-risk" → `status=blocked` is implicit; the SummaryStrip says "At risk" but the destination filter says "blocked"
+
+### L9 — Right obligation panel squeezes the left column hard
+
+**Reproduced:** /clients/[id] → click a filing-plan row → right panel slides in (~607px / 60% width). The left column compresses:
+- SummaryStrip tiles reflow to 2-per-row + "Open filing 1" hanging on its own row
+- Tab strip ellipsizes: "Activi…" instead of "Activity"
+- The "Add deadline" CTA gets cramped against the title
+- The "More client actions" `⋯` button gets pushed around
+
+The CSS-only width transition is functional but the responsive cascade isn't designed — it's just whatever flexbox produces. Either a min-width on the left column with horizontal scroll, OR a defined narrow layout for when the panel is open.
+
+### L10 — Obligation panel header has conflicting status signals
+
+**Reproduced:** open the obligation panel for the first Form 1065 row of Lakeview (it's a `Filed` row with a payment-overdue notation). Header shows three boxes:
+- `FILING DEADLINE 2026-03-16` with green tinted bg
+- `INTERNAL TARGET 2026-03-16` with red `72 DAYS OVERDUE` chip
+- `PAYMENT DUE 2026-03-16`
+
+The eye reads "this filing is overdue by 72 days" while ALSO reading "this filing is filed (green)." The 72-days-overdue refers to PAYMENT being late (`Payment 73d late` chip on the row) — but it's labeled "INTERNAL TARGET" not "PAYMENT." The semantics need to be tightened: either "internal target" should sit under FILING DEADLINE, or the overdue chip should sit under PAYMENT DUE.
+
+Also `72` vs `73` — the day count differs by 1 between the panel header and the row. Looks like one is computed from "now" and the other from "yesterday" — small but worth investigating for date-rounding consistency.
+
+### L11 — Workpapers empty state is a dead end
+
+**Reproduced:** obligation panel → Evidence tab → "Workpapers" section shows "No workpapers attached to this deadline yet." in a disabled-looking gray box. No "Add workpaper" CTA. No drop zone. No link to where workpapers come from.
+
+If the CPA wants to attach a workpaper, the surface that names workpapers gives them no affordance to add one. Either add a CTA here, OR document the upstream surface that produces workpapers and link to it.
+
+### L12 — "Forms catalog 8 applicable · 8 gap" header is dense
+
+**Reproduced:** /clients/[id]?tab=discover → "Suggested forms" block → header strip reads "Forms catalog · 8 applicable · Lakeview Medical Partners · 8 gap". The "8 gap" chip is in red but it's not clear what "gap" means here — "8 of the 8 applicable forms have no scheduled deadline yet"? "8 gaps in the firm's rule library for this client's entity type"? The word `gap` carries baggage from the rule-library surface where it means "no rule exists."
+
+### L13 — Risk panel button "Explain Risk profile" exists on Work tab too (probably)
+
+Aria-labels enumeration found "Explain Risk profile" even though I was on the Work tab. Either the button is hidden but rendered (dead DOM node — bad for screen readers tabbing through), or it lives on a panel that's mounted regardless of the active tab.
+
+---
+
+## §11. Revised severity ranking after the live audit
+
+Promoted to **P0** (was P1 or lower):
+- **L4 — UUID in user-facing copy.** Embarrassing in front of a customer. Quick fix.
+- **L2 — Broken interpolation in FixNeedsFactsSheet counter.** First impression of the canonical needs-facts fix flow.
+
+Stays P0:
+- **L1 — Quick peek silent nav** (§3 P0-3)
+
+New P1:
+- **L10 — Obligation panel conflicting status signals.** A "Filed" row with a red "72 days overdue" badge is the kind of thing a CPA escalates as a bug because they can't tell whether they're done or not.
+- **L9 — Right-panel layout squeeze.** Painful on common workflow ("click filing → review panel").
+- **L11 — Workpapers dead-end.** Affordance promised, never delivered.
+
+New P2:
+- L3, L5, L6, L7, L8, L12, L13
+
+---
+
+## §12. Updated sequencing (after live pass)
+
+1. **Fix the two broken-string-class bugs** (L2, L4) — both <1h fixes that erase the most visible roughness
+2. **Decide the peek strategy** (§3 P0 cluster + L1) — single decision unblocks the next 3 items
+3. **Disambiguate the obligation panel header** (L10) — tighten the semantics of FILING DEADLINE / INTERNAL TARGET / PAYMENT DUE so the three boxes can't disagree about whether the filing is overdue
+4. **Wire SummaryStrip tiles to filter in-place** OR commit to "tile = nav to /deadlines" and rename the affordance (L8)
+5. **Fix the right-panel layout cascade** (L9) — defined narrow layout instead of whatever flexbox produces
+6. **Title switcher whitespace + canonical entity labels** (L5) — 5-minute fix
+7. **Finish the Discover → Opportunities rename** (L6, L7) — URL key + decide whether two "Opportunities" surfaces is intentional
+8. **Convert filing plan to a real table** (L3) — a11y win, modest code change
+9. **Workpapers empty-state CTA** (L11) — needs upstream design conversation
+10. P2 + P3 items as opportunistic polish
