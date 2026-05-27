@@ -4712,11 +4712,20 @@ function AssigneeQuickPicker({
             onChange(next)
           }}
         >
-          {/* 2026-05-27 (Yuqi "assign是坏的"): empty-state Item was
-              nested inside DropdownMenuRadioGroup — Base UI strict
-              mode requires RadioGroup children to all be RadioItems
-              (same bug we fixed in ClientFactsWorkspace earlier;
-              this is a second copy). Empty-state moved OUTSIDE. */}
+          {/* 2026-05-27 (Yuqi "assign是坏的" round 2): the actual
+              MenuGroupContext crash on this picker was the
+              DropdownMenuLabel rendered as a direct child of
+              DropdownMenuContent — Base UI's MenuPrimitive.GroupLabel
+              calls useMenuGroupRootContext() and throws when there
+              is no <Menu.Group> / <Menu.RadioGroup> ancestor.
+              bb12a8f4 moved the empty-state Item out (which Base UI
+              tolerates either way) but left the Label outside the
+              RadioGroup — the crash kept firing. Placing the Label
+              INSIDE the RadioGroup gives it the context it needs
+              and preserves the "Assign owner" header. */}
+          <DropdownMenuLabel className="text-caption-xs uppercase tracking-wide text-text-tertiary">
+            <Trans>Assign owner</Trans>
+          </DropdownMenuLabel>
           <DropdownMenuRadioItem value="__unassigned__">
             <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
               <UserRoundIcon className="size-3" aria-hidden />

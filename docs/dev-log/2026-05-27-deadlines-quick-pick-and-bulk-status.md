@@ -1,22 +1,35 @@
-# 2026-05-27 - Deadlines: Bulk Status Survives Terminal Rows
+# 2026-05-27 - Deadlines: Quick-Pick Real Fix + Bulk Status Survives Terminal Rows
 
 ## Context
 
-Bulk "Set status" on `/deadlines` threw `Illegal status transition for
-deadline <id>: completed → waiting_on_client.` and reverted the entire batch
-whenever the selection included a terminal row (e.g. one `completed` row in
-a multi-row "Waiting on client" pick). The server's own comment said the
-brief's contract was "<N> rows skipped — illegal status transition", but the
-implementation threw on the first illegal source row, poisoning the whole
-batch. Preparers mid-tax-week lost the click.
+Two `/deadlines` bugs drained in this pass.
 
-(The sibling `AssigneeQuickPicker` `MenuGroupContext` bug was diagnosed
-separately on this branch — bb12a8f4 / 86d037be — and fixed by removing the
-empty-state `DropdownMenuItem` and the `DropdownMenuLabel` from inside the
-`DropdownMenuRadioGroup`. This commit doesn't touch the picker.)
+**1. `AssigneeQuickPicker` MenuGroupContext crash (real root cause).** The
+prior fix on this branch (bb12a8f4 / 86d037be) diagnosed the
+`Base UI: MenuGroupContext is missing` crash as the empty-state
+`DropdownMenuItem` being nested inside the `DropdownMenuRadioGroup`, and
+moved that Item out. That part of Base UI tolerates either placement — the
+real consumer of `useMenuGroupRootContext()` (verified against
+`@base-ui/react/menu`) is `MenuPrimitive.GroupLabel`, which our
+`DropdownMenuLabel` renders. The Label was a direct child of
+`DropdownMenuContent`, with no `Menu.Group` / `Menu.RadioGroup` ancestor,
+so it kept throwing. Placing the Label INSIDE the `DropdownMenuRadioGroup`
+gives it the context it needs and preserves the "Assign owner" header.
+
+**2. Bulk "Set status" threw on terminal rows.** Selecting a mixed batch
+(open + completed) and picking, say, "Waiting on client" returned
+`Illegal status transition for deadline <id>: completed → waiting_on_client.`
+and reverted the entire batch. The server's own comment said the brief's
+contract was "<N> rows skipped — illegal status transition", but the
+implementation threw on the first illegal source row.
 
 ## Changes
 
+- `apps/app/src/routes/obligations.tsx` (`AssigneeQuickPicker`): moved the
+  `DropdownMenuLabel` "Assign owner" header from a direct child of
+  `DropdownMenuContent` to INSIDE the `DropdownMenuRadioGroup`. Kept the
+  bb12a8f4 comment explaining the empty-state move, which is still a valid
+  structural cleanup even though it wasn't the trigger of this crash.
 - `apps/server/src/procedures/obligations/_service.ts`
   (`bulkUpdateObligationStatus`): partition candidates into legal vs. illegal
   via `isLegalObligationTransition`, skip the illegal ones, count them, return
