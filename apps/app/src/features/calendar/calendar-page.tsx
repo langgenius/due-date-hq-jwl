@@ -434,14 +434,17 @@ function CalendarSubscriptionCard({
       </CardHeader>
       <CardContent>
         {config.locked ? (
+          // Audit-drain ρ ROH-D4 (2026-05-27): dropped the hard-coded
+          // `notice` override ("Only owners and managers…") — partner
+          // was missing from the copy even though `firm.calendar.manage`
+          // includes partner. Letting PermissionObscuredContent derive
+          // the required-role text from `requiredRolesForFirmPermission`
+          // keeps the surface in sync with the enum forever.
           <PermissionObscuredContent
             locked
             permission="firm.calendar.manage"
             currentRole={currentRole}
             fallback={<CalendarSubscriptionRedactedContent />}
-            notice={
-              <Trans>Only owners and managers can enable the practice-wide calendar feed.</Trans>
-            }
           >
             <CalendarSubscriptionRedactedContent />
           </PermissionObscuredContent>

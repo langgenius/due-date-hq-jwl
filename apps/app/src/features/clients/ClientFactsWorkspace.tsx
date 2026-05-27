@@ -4165,7 +4165,14 @@ function ClientActivityPanel({
       <EmptyState
         icon={ClipboardCheckIcon}
         title={<Trans>Audit access is role-gated</Trans>}
-        description={<Trans>Owners, managers, and preparers can inspect client activity.</Trans>}
+        description={
+          // Audit-drain ρ ROH-D5-clients (2026-05-27): added "partners"
+          // to match `FIRM_PERMISSION_ROLES['audit.read']`. Same drift
+          // as the `/audit` route description.
+          <Trans>
+            Owners, partners, managers, and preparers can inspect client activity.
+          </Trans>
+        }
       />
     )
   }

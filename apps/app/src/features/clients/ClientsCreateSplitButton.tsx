@@ -42,15 +42,28 @@ export function ClientsCreateSplitButton({
   onCreate,
   onImport,
   canImport,
+  canCreate = true,
 }: {
   entityLabels: Record<ClientEntityType, string>
   isPending: boolean
   onCreate: (input: ClientCreateInput, callbacks: { onSuccess: () => void }) => void
   onImport: () => void
   canImport: boolean
+  /**
+   * Permission-derived gate for the primary "New client" button.
+   * Defaults to `true` so callers that don't pass it stay back-compatible,
+   * but `routes/clients.tsx` now wires `permission.can('client.write')`
+   * so coordinator (read-only role) sees the button disabled with a
+   * tooltip instead of a 403 after submitting the dialog.
+   * Audit-drain ρ ROH-D1, 2026-05-27.
+   */
+  canCreate?: boolean
 }) {
   const { t } = useLingui()
   const [dialogOpen, setDialogOpen] = useState(false)
+  const createDeniedTitle = canCreate
+    ? undefined
+    : t`Creating clients requires owner, partner, manager, or preparer access.`
 
   return (
     <>
@@ -60,6 +73,9 @@ export function ClientsCreateSplitButton({
           size="sm"
           className="rounded-r-none border-r border-r-state-accent-active-alt/30"
           onClick={() => setDialogOpen(true)}
+          disabled={!canCreate}
+          title={createDeniedTitle}
+          aria-label={canCreate ? undefined : t`New client (requires non-coordinator access)`}
         >
           <PlusIcon data-icon="inline-start" />
           <Trans>New client</Trans>
@@ -72,6 +88,8 @@ export function ClientsCreateSplitButton({
                 size="sm"
                 aria-label={t`More create options`}
                 className="rounded-l-none px-2"
+                disabled={!canCreate && !canImport}
+                title={!canCreate && !canImport ? createDeniedTitle : undefined}
               >
                 <ChevronDownIcon className="size-4" aria-hidden />
               </Button>
