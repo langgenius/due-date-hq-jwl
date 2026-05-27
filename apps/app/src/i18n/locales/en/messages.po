@@ -729,6 +729,10 @@ msgstr "{owners} owners ({equity} equity)"
 msgid "{pausedCount, plural, one {# paused} other {# paused}}"
 msgstr "{pausedCount, plural, one {# paused} other {# paused}}"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "{paymentLateDays, plural, one {Payment # day late} other {Payment # days late}}"
+msgstr "{paymentLateDays, plural, one {Payment # day late} other {Payment # days late}}"
+
 #: src/features/members/members-page.tsx
 msgid "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
 msgstr "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"

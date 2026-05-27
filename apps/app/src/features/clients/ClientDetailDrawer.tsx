@@ -20,6 +20,7 @@ import type { ObligationInstancePublic } from '@duedatehq/contracts'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { getClientReadiness } from '@/features/clients/client-readiness'
+import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -121,6 +122,13 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
 
   const entityLabels = useEntityLabels()
   const { t } = useLingui()
+  // 2026-05-27 (D16 — Agent ω, journey-audit drain): threaded the
+  // firm's "as of" date through NextDueLine instead of letting it
+  // call Date.now() directly. Keeps the peek's relative-day text
+  // ("3d late") in sync with the rest of the app's day-math, which
+  // anchors on the firm's timezone rather than the user's browser
+  // clock.
+  const asOfDate = useFirmAsOfDate()
 
   return (
     <Sheet open={isOpen} onOpenChange={(next) => (!next ? onClose() : undefined)}>
@@ -185,7 +193,7 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                 during a peek. Avoids the 3-tile grid that wrapped
                 badly in the narrow drawer (Form 1120-S text breaking
                 mid-name was the trigger for this redesign). */}
-            <NextDueLine nextDue={nextDue} />
+            <NextDueLine nextDue={nextDue} asOfDate={asOfDate} />
 
             {/* Escape hatches. Anything beyond identification lives on
                 the full page; obligations queue is the other natural
@@ -246,7 +254,16 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
  * "Form 941 · 22d late" or "Form 1120-S · due in 5d" or "No open
  * obligations" — whichever fits the obligations state.
  */
-function NextDueLine({ nextDue }: { nextDue: ObligationInstancePublic | null }) {
+function NextDueLine({
+  nextDue,
+  asOfDate,
+}: {
+  nextDue: ObligationInstancePublic | null
+  // 2026-05-27 (D16): firm's "as of" anchor. Falls back to Date.now()
+  // when missing so the component never breaks if the timezone
+  // provider isn't in scope.
+  asOfDate: string | null
+}) {
   const { t } = useLingui()
   if (!nextDue) {
     return (
@@ -255,7 +272,11 @@ function NextDueLine({ nextDue }: { nextDue: ObligationInstancePublic | null }) 
       </p>
     )
   }
-  const days = Math.ceil((Date.parse(nextDue.currentDueDate) - Date.now()) / 86_400_000)
+  const asOfMs = asOfDate ? Date.parse(asOfDate) : Date.now()
+  const days = Math.ceil(
+    (Date.parse(nextDue.currentDueDate) - (Number.isNaN(asOfMs) ? Date.now() : asOfMs)) /
+      86_400_000,
+  )
   const isLate = days < 0
   const daysAbs = Math.abs(days)
   const daysLabel = isLate ? t`${daysAbs}d late` : days === 0 ? t`due today` : t`due in ${days}d`

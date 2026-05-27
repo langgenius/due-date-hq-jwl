@@ -14,6 +14,7 @@ import { ConceptHelp } from '@/features/concepts/concept-help'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { formatDatePretty } from '@/lib/utils'
 import { ObligationStatusReadBadge, STATUS_ICON_COLOR } from '@/features/obligations/status-control'
+import { isPaymentOverdue, paymentOverdueDays } from '@/features/obligations/payment-overdue'
 
 function topPriorityFactors(row: DashboardTopRow): string[] {
   const factors = [...(row.smartPriority.factors ?? [])]
@@ -93,13 +94,50 @@ function useActionPrompt(row: DashboardTopRow, asOfDate: string | null): string 
 // dashboard top-rows query typically filters terminal states out, so
 // this branch is defensive — guards against an optimistic update or
 // a future server expansion landing a completed row in the list.
-const DASHBOARD_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set([
-  'done',
-  'paid',
-  'completed',
-])
+//
+// 2026-05-27 (D12 — Agent ω, journey-audit drain): `'done'` removed
+// from the terminal set. Filing being done does NOT imply the
+// payment side cleared (anti-pattern #1: extension/filing ≠ payment).
+// A row marked `'done'` but with `paymentDueDate < asOfDate` is still
+// payment-overdue and should surface in "Needs attention" with a
+// "Payment N days late" chip. `'paid'` and `'completed'` remain
+// terminal — `'paid'` explicitly means the payment side closed too,
+// and `'completed'` is the canonical end state covering both sides.
+const DASHBOARD_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set(['paid', 'completed'])
 
-function RowMeta({ days, status }: { days: number; status: ObligationStatus }) {
+function RowMeta({
+  days,
+  status,
+  paymentDueDate,
+  asOfDate,
+}: {
+  days: number
+  status: ObligationStatus
+  paymentDueDate: string | null
+  asOfDate: string | null
+}) {
+  // 2026-05-27 (D12 — Agent ω): payment-overdue takes precedence on
+  // the row meta. A filed-but-payment-overdue row's "filing days
+  // late" reading is misleading (the filing is done); the urgent
+  // signal is the unpaid payment. When both apply, the payment chip
+  // wins because that's the action the CPA still needs to take.
+  const paymentLate = isPaymentOverdue(paymentDueDate, asOfDate)
+  const paymentLateDays = paymentOverdueDays(paymentDueDate, asOfDate)
+
+  if (paymentLate) {
+    return (
+      <span className="flex shrink-0 items-baseline whitespace-nowrap text-sm tabular-nums">
+        <span className="text-text-destructive">
+          <Plural
+            value={paymentLateDays}
+            one="Payment # day late"
+            other="Payment # days late"
+          />
+        </span>
+      </span>
+    )
+  }
+
   if (DASHBOARD_TERMINAL_STATUSES.has(status)) {
     if (days === 0) return null
     return (
@@ -298,7 +336,12 @@ function ActionRow({
             <ArrowRightIcon data-icon="inline-end" />
           </Button>
         ) : null}
-        <RowMeta days={days} status={row.status} />
+        <RowMeta
+          days={days}
+          status={row.status}
+          paymentDueDate={row.paymentDueDate}
+          asOfDate={asOfDate}
+        />
       </div>
 
       {/* Inline expansion — sits inside the same wrapper as the row,

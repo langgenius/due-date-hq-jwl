@@ -48,6 +48,11 @@ export interface DashboardTopRow {
   clientEmail: string | null
   taxType: string
   currentDueDate: Date
+  // 2026-05-27 (D12 — Agent ω): payment-side due date threaded from
+  // `obligation_instance.payment_due_date`. Null when the obligation
+  // has no payment side. Render layer uses this to surface
+  // "Payment N days late" on filed-but-payment-overdue rows.
+  paymentDueDate: Date | null
   status: ObligationStatus
   missingPenaltyFacts: string[]
   penaltySourceRefs: PenaltySourceRef[]

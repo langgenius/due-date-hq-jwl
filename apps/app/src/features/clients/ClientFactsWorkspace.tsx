@@ -143,6 +143,7 @@ import {
   useLifecycleV2StatusLabels,
   type ObligationStatus,
 } from '@/features/obligations/status-control'
+import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
 import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
@@ -2163,9 +2164,15 @@ export function ClientDetailWorkspace({
     enabled: canReadAudit,
   })
   const obligations = obligationsQuery.data ?? EMPTY_OBLIGATIONS
+  // 2026-05-27 (D16 — Agent ω, journey-audit drain): anchor the work
+  // plan summary on the firm's "as of" date instead of the browser's
+  // wall clock. Keeps "overdue" / "needs review" / "extension payment
+  // due" counts in sync with the rest of the client surfaces (and
+  // with the server's day-math on the obligations queue).
+  const asOfDate = useFirmAsOfDate()
   const workPlan = useMemo(
-    () => buildClientWorkPlanSummary(obligations, formatDate(new Date().toISOString())),
-    [obligations],
+    () => buildClientWorkPlanSummary(obligations, asOfDate),
+    [obligations, asOfDate],
   )
   const extensionPaymentMismatches = useMemo(
     () => findExtensionWithoutPaymentObligations(obligations),

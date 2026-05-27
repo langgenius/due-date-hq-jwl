@@ -729,6 +729,10 @@ msgstr "{owners} 位所有人(其中 {equity} 位为权益所有人)"
 msgid "{pausedCount, plural, one {# paused} other {# paused}}"
 msgstr "{pausedCount, plural, one {# paused} other {# paused}}"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "{paymentLateDays, plural, one {Payment # day late} other {Payment # days late}}"
+msgstr "{paymentLateDays, plural, one {付款逾期 # 天} other {付款逾期 # 天}}"
+
 #: src/features/members/members-page.tsx
 msgid "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
 msgstr "{pendingCount} 个待处理 · {expiredCount} 个已过期 · magic link，7 天有效"
