@@ -10,7 +10,6 @@ import {
   ArchiveIcon,
   CheckCircle2Icon,
   ChevronDownIcon,
-  ChevronLeftIcon,
   ChevronRightIcon,
   ClipboardCheckIcon,
   ClipboardListIcon,
@@ -689,22 +688,18 @@ export function ClientDetailWorkspace({
       <div className="flex min-h-0 flex-1 flex-col gap-4 xl:flex-row xl:items-stretch xl:gap-6">
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <PageHeader
-            eyebrow={
-              <Link
-                to="/clients"
-                // Eyebrow back-link styling overrides the eyebrow slot's
-                // default uppercase / tracked / 11px tag treatment so the
-                // back-nav reads as a friendly link, not as a section
-                // label tag. The section labels inside tabs (`CONFIGURE`,
-                // `NOTES`) keep that tracked-uppercase style — two
-                // visually distinct typographic tiers for two different
-                // semantic intents.
-                className="inline-flex items-center gap-1 rounded-sm text-xs font-normal normal-case tracking-normal text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-              >
-                <ChevronLeftIcon className="size-3.5" aria-hidden />
-                <Trans>Clients</Trans>
-              </Link>
-            }
+            // 2026-05-28 (audit P2-4): switched from a hand-rolled
+            // `<Link>` in the `eyebrow` slot to the canonical
+            // `breadcrumbs` prop. The earlier rationale ("eyebrow
+            // overrides the uppercase tag styling so the back-nav
+            // reads as a friendly link") predates the `breadcrumbs`
+            // primitive — which IS styled as a friendly link with
+            // chevron separator + ⌘[ hint. Lines up with /settings,
+            // /members, /billing.checkout. `eyebrowAside` still
+            // carries the 1/N ClientCycleArrows pagination on the
+            // right of the same eyebrow row (PageHeader supports
+            // both — see `page-header.tsx`).
+            breadcrumbs={[{ label: t`Clients`, to: '/clients' }]}
             // 2026-05-26 (Yuqi follow-up — "1/9 does not belong to
             // the client detail … should be in the frame of the
             // < Clients, space between far right"): the prev/next
@@ -772,15 +767,6 @@ export function ClientDetailWorkspace({
                     taxClassification: client.taxClassification,
                   })
             }
-            // 2026-05-23: dropped ClientCycleArrows entirely per
-            // critique ("remove first"). The prev/next chevrons +
-            // position counter took space on every client detail page
-            // for a workflow CPAs rarely used. The component file
-            // (./ClientCycleArrows.tsx) is left in place — keyboard
-            // j/k cycling lives inside it, and we may reintroduce
-            // the visual control later in a different surface (e.g.
-            // a peek dropdown). Removing the import + render here is
-            // enough to drop it from this header.
             actions={
               <>
                 {/* 2026-05-26 (Yuqi follow-up — "1/9 does not belong

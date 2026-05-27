@@ -145,6 +145,22 @@ const CLIENTS_PAGE_SIZE_MAX = 50
 //   TableHeader (≈40) + Pagination footer (≈44) + 1px borders + buffer
 const CLIENTS_INSIDE_CHROME_PX = 96
 
+// Column widths for the /clients table. Centralized so the live
+// `meta.{header,cell}ClassName` blocks and the loading-skeleton
+// row widths can't drift (audit P3-1). Update one value here and
+// both surfaces follow.
+const CLIENTS_COL_WIDTH = {
+  client: 'w-[240px]',
+  state: 'w-[120px]',
+  entity: 'w-[110px]',
+  nextDue: 'w-[200px]',
+  services: 'w-[90px]',
+  open: 'w-[130px]',
+  done: 'w-[80px]',
+  assignee: 'w-[80px]',
+  opportunities: 'w-[80px]',
+} as const
+
 function computeClientsResponsivePageSize(containerHeight: number): number {
   const usable = Math.max(0, containerHeight - CLIENTS_INSIDE_CHROME_PX)
   const fit = Math.floor(usable / CLIENTS_ROW_HEIGHT_PX)
@@ -606,14 +622,19 @@ export function ClientFactsWorkspace({
               {/* Hover-revealed peek affordance: row click still goes to
                   the full page; this opens the read-only drawer for a
                   fast "is this the right client?" glance. ⌘-click on
-                  the row is also wired below for a power-user shortcut. */}
+                  the row is also wired below for a power-user shortcut.
+                  2026-05-28 (audit P3-5): added `group-focus-within`
+                  so the button reveals when a sibling control inside
+                  the row receives focus, not only when the eye itself
+                  is focused. Keyboard navigation now surfaces the
+                  affordance as soon as the row enters focus. */}
               <ClientPeekHoverCard clientId={row.original.id}>
                 <button
                   type="button"
                   onClick={(event) => event.stopPropagation()}
                   aria-label={t`Peek ${row.original.name} details`}
                   title={t`Peek details (without leaving the list)`}
-                  className="ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary opacity-0 outline-none transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                 >
                   <EyeIcon className="size-4" aria-hidden />
                 </button>
@@ -622,8 +643,8 @@ export function ClientFactsWorkspace({
           )
         },
         meta: {
-          headerClassName: 'w-[240px]',
-          cellClassName: 'w-[240px]',
+          headerClassName: CLIENTS_COL_WIDTH.client,
+          cellClassName: CLIENTS_COL_WIDTH.client,
         },
       },
       {
@@ -689,8 +710,8 @@ export function ClientFactsWorkspace({
           // `w-[90px]` state column (slightly wider here only because
           // /clients also surfaces up to 2 additional-state SVG
           // badges + the overflow "+N" chip on the same row).
-          headerClassName: 'w-[120px]',
-          cellClassName: 'w-[120px]',
+          headerClassName: CLIENTS_COL_WIDTH.state,
+          cellClassName: CLIENTS_COL_WIDTH.state,
         },
       },
       {
@@ -722,8 +743,8 @@ export function ClientFactsWorkspace({
           </Badge>
         ),
         meta: {
-          headerClassName: 'w-[110px]',
-          cellClassName: 'w-[110px]',
+          headerClassName: CLIENTS_COL_WIDTH.entity,
+          cellClassName: CLIENTS_COL_WIDTH.entity,
         },
       },
       {
@@ -788,8 +809,8 @@ export function ClientFactsWorkspace({
           )
         },
         meta: {
-          headerClassName: 'w-[200px]',
-          cellClassName: 'w-[200px]',
+          headerClassName: CLIENTS_COL_WIDTH.nextDue,
+          cellClassName: CLIENTS_COL_WIDTH.nextDue,
         },
       },
       // 2026-05-26 (Yuqi follow-up — "bring back services"): the
@@ -828,8 +849,8 @@ export function ClientFactsWorkspace({
           // library family. Right-aligned numbers read as a balance
           // sheet; left-aligned matches the rest of the workbench
           // tables and the canonical TableCell default.
-          headerClassName: 'w-[90px]',
-          cellClassName: 'w-[90px]',
+          headerClassName: CLIENTS_COL_WIDTH.services,
+          cellClassName: CLIENTS_COL_WIDTH.services,
         },
       },
       {
@@ -880,8 +901,8 @@ export function ClientFactsWorkspace({
           // 2026-05-26 (Yuqi /clients feedback #3 — "left align"):
           // numeric columns left-aligned to match the rest of the
           // workbench tables.
-          headerClassName: 'w-[130px]',
-          cellClassName: 'w-[130px]',
+          headerClassName: CLIENTS_COL_WIDTH.open,
+          cellClassName: CLIENTS_COL_WIDTH.open,
         },
       },
       {
@@ -940,8 +961,8 @@ export function ClientFactsWorkspace({
           // 2026-05-26 (Yuqi /clients feedback #3 — "left align"):
           // numeric columns left-aligned to match the rest of the
           // workbench tables.
-          headerClassName: 'w-[80px]',
-          cellClassName: 'w-[80px]',
+          headerClassName: CLIENTS_COL_WIDTH.done,
+          cellClassName: CLIENTS_COL_WIDTH.done,
         },
       },
       {
@@ -970,8 +991,8 @@ export function ClientFactsWorkspace({
           />
         ),
         meta: {
-          headerClassName: 'w-[80px]',
-          cellClassName: 'w-[80px]',
+          headerClassName: CLIENTS_COL_WIDTH.assignee,
+          cellClassName: CLIENTS_COL_WIDTH.assignee,
         },
       },
       {
@@ -990,8 +1011,8 @@ export function ClientFactsWorkspace({
           return <ClientOpportunityCountBadge count={count} />
         },
         meta: {
-          headerClassName: 'w-[80px]',
-          cellClassName: 'w-[80px]',
+          headerClassName: CLIENTS_COL_WIDTH.opportunities,
+          cellClassName: CLIENTS_COL_WIDTH.opportunities,
         },
       },
       {
@@ -1727,17 +1748,23 @@ function ClientsActionStripSkeleton() {
 function ClientTableSkeleton() {
   // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor): skeleton
   // column widths track the live-table widths exactly so the loading
-  // shimmer doesn't shift the layout when real rows mount. States
-  // column compressed 220 → 120 in lockstep with the live cell.
+  // shimmer doesn't shift the layout when real rows mount.
+  // 2026-05-28 (audit P3-1): widths now reference the shared
+  // `CLIENTS_COL_WIDTH` const so live + skeleton can't drift.
   const columns = [
-    { id: 'client', className: 'w-[240px]', header: 'w-14', cell: 'w-32' },
-    { id: 'states', className: 'w-[120px]', header: 'w-14', cell: 'w-16' },
-    { id: 'entity', className: 'w-[110px]', header: 'w-12', cell: 'w-14' },
-    { id: 'nextDue', className: 'w-[200px]', header: 'w-16', cell: 'w-28' },
-    { id: 'open', className: 'w-[130px]', header: 'w-28', cell: 'w-4' },
-    { id: 'done', className: 'w-[80px]', header: 'w-10', cell: 'w-4' },
-    { id: 'owner', className: 'w-[80px]', header: 'w-12', cell: 'w-6 rounded-full' },
-    { id: 'opp', className: 'w-[80px]', header: 'w-10', cell: 'w-8' },
+    { id: 'client', className: CLIENTS_COL_WIDTH.client, header: 'w-14', cell: 'w-32' },
+    { id: 'states', className: CLIENTS_COL_WIDTH.state, header: 'w-14', cell: 'w-16' },
+    { id: 'entity', className: CLIENTS_COL_WIDTH.entity, header: 'w-12', cell: 'w-14' },
+    { id: 'nextDue', className: CLIENTS_COL_WIDTH.nextDue, header: 'w-16', cell: 'w-28' },
+    { id: 'open', className: CLIENTS_COL_WIDTH.open, header: 'w-28', cell: 'w-4' },
+    { id: 'done', className: CLIENTS_COL_WIDTH.done, header: 'w-10', cell: 'w-4' },
+    {
+      id: 'owner',
+      className: CLIENTS_COL_WIDTH.assignee,
+      header: 'w-12',
+      cell: 'w-6 rounded-full',
+    },
+    { id: 'opp', className: CLIENTS_COL_WIDTH.opportunities, header: 'w-10', cell: 'w-8' },
   ] as const
   return (
     // 2026-05-26 (Yuqi cross-page audit): skeleton matches the live
