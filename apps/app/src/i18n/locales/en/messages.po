@@ -1871,6 +1871,7 @@ msgstr "Assigned to you ({name})"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/CreateClientDialog.tsx
 #: src/features/migration/mapping-target-labels.ts
 #: src/routes/obligations.tsx
 msgid "Assignee"
@@ -6831,6 +6832,10 @@ msgstr "No assignable members"
 msgid "No assigned work"
 msgstr "No assigned work"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "No assignees"
+msgstr "No assignees"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "No audit events match these filters."
 msgstr "No audit events match these filters."
@@ -7046,10 +7051,6 @@ msgstr "No options"
 #: src/routes/obligations.tsx
 msgid "No owner or partner available"
 msgstr "No owner or partner available"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "No owners"
-msgstr "No owners"
 
 #: src/routes/billing.tsx
 msgid "No paid subscription"
@@ -7876,8 +7877,6 @@ msgstr "Overrode AI suggestion"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
-#: src/features/clients/ClientFactsWorkspace.tsx
-#: src/features/clients/CreateClientDialog.tsx
 #: src/features/concepts/concept-help.tsx
 #: src/features/permissions/permission-gate.tsx
 #: src/features/workload/workload-page.tsx
@@ -9998,6 +9997,10 @@ msgstr "Score"
 msgid "Search actor, entity, action, reason"
 msgstr "Search actor, entity, action, reason"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Search assignees"
+msgstr "Search assignees"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Search audit events"
 msgstr "Search audit events"
@@ -10024,10 +10027,6 @@ msgstr "Search deadline categories…"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Search forms and vouchers…"
 msgstr "Search forms and vouchers…"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Search owners"
-msgstr "Search owners"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Search sources…"
