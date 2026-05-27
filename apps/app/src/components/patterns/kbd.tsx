@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { Trans } from '@lingui/react/macro'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -46,19 +45,22 @@ function Kbd({ children, className }: { children: ReactNode; className?: string 
  */
 export function ShortcutHintChip({ className }: { className?: string }) {
   const { openShortcutHelp } = useKeyboardShell()
+  // 2026-05-27 (Yuqi feedback: "shortcuts this button is toooooo big"):
+  // dropped the visible "for shortcuts" copy — the discoverability is
+  // now carried by the title tooltip + aria-label, while the chip
+  // renders as just the `?` kbd glyph. Roughly 1/3 the width.
   return (
     <button
       type="button"
       onClick={() => openShortcutHelp()}
+      title="Keyboard shortcuts"
+      aria-label="Keyboard shortcuts"
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-caption text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        'inline-flex items-center justify-center rounded-md p-1 text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         className,
       )}
     >
       <Kbd>?</Kbd>
-      <span>
-        <Trans>for shortcuts</Trans>
-      </span>
     </button>
   )
 }
