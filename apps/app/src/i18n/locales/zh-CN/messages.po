@@ -285,6 +285,11 @@ msgstr "{0} — click to {1} detail"
 msgid "{0} · Shift+click to select all of this client's rows"
 msgstr "{0} · 按住 Shift 点击可选中该客户的所有行"
 
+#. placeholder {0}: codes.join(', ')
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "{0} {verb}"
+msgstr "{0} {verb}"
+
 #. placeholder {0}: safePageIndex + 1
 #: src/routes/obligations.tsx
 msgid "{0} / {totalLoadedPages}"
@@ -315,12 +320,6 @@ msgstr "{0} and its imported deadlines"
 #: src/features/members/members-page.tsx
 msgid "{0} available seats"
 msgstr "{0} 个可用席位"
-
-#. placeholder {0}: codes.join(', ')
-#. placeholder {0}: codes[0]
-#: src/features/clients/ClientSummaryStrip.tsx
-msgid "{0} blocked or overdue"
-msgstr "{0} 项已阻塞或逾期"
 
 #. placeholder {0}: result.obligations.length
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -607,7 +606,11 @@ msgstr "{daysAbs, plural, other {已逾期 # 天}}"
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{daysAbs}d late"
-msgstr "逾期 {daysAbs} 天"
+msgstr "逾期 {daysAbs} 天<<<<<<< HEAD======="
+
+#: src/routes/obligations.tsx
+msgid "{drawerPaymentLateDays, plural, one {Payment # day late} other {Payment # days late}}"
+msgstr "{drawerPaymentLateDays, plural, one {付款逾期 # 天} other {付款逾期 # 天}}>>>>>>> design/audit-drain-phi-journey-audit"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{durationMonths, plural, one {# month} other {# months}}"
@@ -2162,6 +2165,10 @@ msgstr "被上游申报阻塞 — 已收到 {checklistCount} 项材料。"
 #: src/routes/obligations.tsx
 msgid "Blocked by upstream return AND awaiting client materials."
 msgstr "被上游申报阻塞，同时也在等待客户材料。"
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "blocked or overdue"
+msgstr "阻塞或逾期"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
@@ -4846,6 +4853,12 @@ msgstr "Filing Rule Changed"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Filing states"
 msgstr "报税州"
+
+#. placeholder {0}: formatDate(obligationQueueRow.paymentDueDate ?? '')
+#. placeholder {0}: formatDate(row.paymentDueDate ?? '')
+#: src/routes/obligations.tsx
+msgid "Filing submitted but the authority payment due {0} hasn't been confirmed. Penalty interest accrues until the wire lands."
+msgstr "申报已提交，但应于 {0} 缴纳的税款尚未确认到账。在汇款入账前会持续累积滞纳利息。"
 
 #. placeholder {0}: formatDatePretty(row.currentDueDate.slice(0, 10))
 #: src/routes/obligations.tsx
@@ -7910,6 +7923,14 @@ msgstr "已暂停"
 msgid "Payment"
 msgstr "付款"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Payment {overdueDays}d late"
+msgstr "付款逾期 {overdueDays} 天"
+
+#: src/routes/obligations.tsx
+msgid "Payment {paymentLateDays}d late"
+msgstr "付款逾期 {paymentLateDays} 天"
+
 #: src/routes/billing.success.tsx
 msgid "Payment confirmation"
 msgstr "支付确认"
@@ -7933,6 +7954,20 @@ msgstr "Payment due"
 #: src/routes/billing.tsx
 msgid "Payment model"
 msgstr "支付模型"
+
+#: src/features/clients/ClientSummaryStrip.tsx
+msgid "payment overdue"
+msgstr "付款逾期"
+
+#: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
+msgid "Payment overdue on {paymentOverdueCount} filings"
+msgstr "{paymentOverdueCount} 项申报的付款逾期"
+
+#: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/clients/ClientPeekHoverCard.tsx
+msgid "Payment overdue on 1 filing"
+msgstr "1 项申报的付款逾期"
 
 #: src/routes/obligations.tsx
 msgid "Payment scheduled with authority"
@@ -11041,6 +11076,11 @@ msgstr "Evidence 标签页存放 8879 文件包"
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
 msgstr "以下字段是 AI 从源公告中提取的。在对客户应用变更前请打开官方来源进行核实。"
+
+#. placeholder {0}: formatDate(obligation.paymentDueDate ?? '')
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "The filing was submitted, but the authority payment due {0} hasn't been confirmed yet. Penalty interest accrues until the wire lands."
+msgstr "申报已提交，但应于 {0} 缴纳的税款尚未确认到账。在汇款入账前会持续累积滞纳利息。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "The firm-side soft target — when this filing should be ready internally for the deadline window"

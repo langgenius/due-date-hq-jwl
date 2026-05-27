@@ -39,6 +39,30 @@ export function findExtensionWithoutPaymentObligations(
   )
 }
 
+/**
+ * 2026-05-27 (phi journey audit J1): Anti-pattern #1 also fires on the
+ * FILING track — a filing that's been Filed (status='done') but whose
+ * authority payment is past due. Previously the work-plan summary
+ * filtered by OPEN_OBLIGATION_STATUSES (which excludes 'done'), so
+ * "Filed but payment overdue" rows became invisible to the header pill.
+ * This helper takes the FULL obligations list (terminal AND open) and
+ * extracts the filed-payment-due bucket; the work-plan summary counts
+ * them separately so the header can priority-order them ahead of
+ * "Extended" and "All on track."
+ */
+export function findFiledWithoutPaymentObligations(
+  obligations: readonly ObligationInstancePublic[],
+  asOfDate: string,
+): ObligationInstancePublic[] {
+  return obligations.filter(
+    (obligation) =>
+      obligation.status === 'done' &&
+      obligation.paymentDueDate !== null &&
+      obligation.paymentDueDate < asOfDate &&
+      !PAYMENT_SETTLED_STATES.has(obligation.paymentState),
+  )
+}
+
 export type ClientWorkPlanSummary = {
   openCount: number
   overdueOpenCount: number
@@ -60,6 +84,11 @@ export type ClientWorkPlanSummary = {
   // renderClientHeaderSubLine in ClientFactsWorkspace.
   statutoryLateUnextendedCount: number
   extensionPaymentDueCount: number
+  // 2026-05-27 (phi journey audit J1): Filed-but-payment-overdue
+  // count. Independent of `overdueOpenCount` (which is status-open
+  // only) and `extensionPaymentDueCount` (which only catches the
+  // extension-track variant). See findFiledWithoutPaymentObligations.
+  filedPaymentOverdueCount: number
   extensionFiledOpenCount: number
   needsReviewCount: number
   estimatedTaxDueCents: number
@@ -173,12 +202,18 @@ export function buildClientWorkPlanSummary(
     EXTENSION_FILED_STATES.has(obligation.extensionState),
   ).length
   const extensionPaymentDueCount = findExtensionWithoutPaymentObligations(open).length
+  // 2026-05-27 (phi journey audit J1): include terminal-status rows
+  // here because Filed (`status='done'`) is exactly the case we want
+  // to catch — the row left OPEN_OBLIGATION_STATUSES the moment it
+  // was filed.
+  const filedPaymentOverdueCount = findFiledWithoutPaymentObligations(obligations, asOfDate).length
 
   return {
     openCount: open.length,
     overdueOpenCount: open.filter((obligation) => obligation.currentDueDate < asOfDate).length,
     statutoryLateUnextendedCount,
     extensionPaymentDueCount,
+    filedPaymentOverdueCount,
     extensionFiledOpenCount,
     needsReviewCount: open.filter(
       (obligation) => obligation.status === 'review' || obligation.readiness === 'needs_review',

@@ -20,6 +20,7 @@ import type { ObligationInstancePublic } from '@duedatehq/contracts'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { getClientReadiness } from '@/features/clients/client-readiness'
+import { isPaymentOverdue } from '@/features/obligations/payment-overdue'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 
@@ -107,7 +108,7 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
 
   // Compute the next-due obligation inline. Same logic as
   // ClientSummaryStrip's tile so the peek matches the full-page tile.
-  const { openCount, nextDue } = useMemo(() => {
+  const { openCount, nextDue, paymentOverdueCount } = useMemo(() => {
     const openObligations = obligations.filter((o) => !TERMINAL_STATUSES.has(o.status))
     let best: ObligationInstancePublic | null = null
     let bestTs = Infinity
@@ -118,7 +119,16 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
         best = o
       }
     }
-    return { openCount: openObligations.length, nextDue: best }
+    // 2026-05-27 (phi journey audit J1): match ClientPeekHoverCard's
+    // payment-overdue surfacing so both peek shapes agree on the
+    // same client. See payment-overdue.ts.
+    const today = Date.now()
+    const paymentOverdue = obligations.filter((o) => isPaymentOverdue(o, today)).length
+    return {
+      openCount: openObligations.length,
+      nextDue: best,
+      paymentOverdueCount: paymentOverdue,
+    }
   }, [obligations])
 
   const entityLabels = useEntityLabels()
@@ -146,6 +156,19 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                       ? t`1 open deadline`
                       : t`${openCount} open deadlines`}
                 </SheetDescription>
+                {/* 2026-05-27 (phi journey audit J1): payment-overdue
+                    line. Mirrors ClientPeekHoverCard so the SAME
+                    client renders the SAME urgency cue whether the
+                    user sees the hover popover or the drawer peek. */}
+                {paymentOverdueCount > 0 ? (
+                  <span className="text-xs font-medium text-text-destructive">
+                    {paymentOverdueCount === 1 ? (
+                      <Trans>Payment overdue on 1 filing</Trans>
+                    ) : (
+                      <Trans>Payment overdue on {paymentOverdueCount} filings</Trans>
+                    )}
+                  </span>
+                ) : null}
               </div>
 
               {/* Identity chips — state + readiness color give a fast

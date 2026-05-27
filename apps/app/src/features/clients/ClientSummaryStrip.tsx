@@ -7,6 +7,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
+import { isPaymentOverdue } from '@/features/obligations/payment-overdue'
 import { formatDatePretty } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 
@@ -157,17 +158,18 @@ const TERMINAL_STATUSES = new Set(['paid', 'completed', 'not_applicable'])
 function isAtRisk(o: ObligationInstancePublic, today: number): boolean {
   if (o.status === 'blocked') return true
   if (o.status === 'review' && o.efileRejectedAt != null) return true
+  // 2026-05-27 (root-bug + phi J1 merge): payment-overdue is an
+  // additive urgency signal that's independent of the filing-leg
+  // lifecycle. A row that's been Filed (`status='done'`) but whose
+  // paymentDueDate has slipped is at risk — the filing leg is done,
+  // the money leg is overdue. The canonical helper in
+  // `features/obligations/payment-overdue.ts` is the single source
+  // of truth — drops `'done'`/`'paid'` from the payment-terminal
+  // set, keeps only `'completed'`/`'not_applicable'`.
+  if (isPaymentOverdue(o, today)) return true
   // Filing-deadline past + not terminal → at risk.
   const due = Date.parse(o.currentDueDate)
   if (!Number.isNaN(due) && due < today && !TERMINAL_STATUSES.has(o.status)) return true
-  // 2026-05-27: payment-deadline overdue is ALSO at-risk even if the
-  // filing has shipped (the row sits in `filed` waiting on payment).
-  // Closes the screenshot case: Form 1065 status=filed, payment due
-  // 2026-03-16, today 2026-05-27 → 71 days overdue payment → at risk.
-  if (o.paymentDueDate && !TERMINAL_STATUSES.has(o.status)) {
-    const payDue = Date.parse(o.paymentDueDate)
-    if (!Number.isNaN(payDue) && payDue < today) return true
-  }
   return false
 }
 
@@ -295,18 +297,25 @@ export function ClientSummaryStrip({
   // 1 form  → "1120-S blocked"
   // 2 forms → "1120-S, 1065 blocked"
   // 3+      → "1120-S, 1065 + 1 more"
+  //
+  // 2026-05-27 (phi journey audit J1): when EVERY at-risk row is at
+  // risk solely because of an overdue payment (status='done' rows that
+  // slipped their paymentDueDate), the generic "blocked or overdue"
+  // label buries the actual signal — a CPA reading the tile thinks
+  // "filings are blocked" when really the filings are done and a
+  // payment is overdue. Switch the verb to "payment overdue" in that
+  // case so the tile actually surfaces the buried state.
   const atRiskSubline = useMemo(() => {
     if (atRiskList.length === 0) return null
     const codes = atRiskList.slice(0, 2).map((o) => formatTaxCode(o.taxType))
     const overflow = atRiskList.length - codes.length
+    const allPaymentOverdue = atRiskList.every((o) => isPaymentOverdue(o, todayTs))
+    const verb = allPaymentOverdue ? t`payment overdue` : t`blocked or overdue`
     if (overflow > 0) {
       return t`${codes.join(', ')} + ${overflow} more`
     }
-    if (codes.length === 1) {
-      return t`${codes[0]} blocked or overdue`
-    }
-    return t`${codes.join(', ')} blocked or overdue`
-  }, [atRiskList, t])
+    return t`${codes.join(', ')} ${verb}`
+  }, [atRiskList, todayTs, t])
 
   // Open-filing subline — count of forms in the filing plan that are
   // still doing work. Singular vs plural phrasing.

@@ -16,6 +16,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { getClientReadiness } from '@/features/clients/client-readiness'
+import { isPaymentOverdue } from '@/features/obligations/payment-overdue'
 import { orpc } from '@/lib/rpc'
 
 import { useEntityLabels } from '@/routes/clients'
@@ -115,7 +116,7 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
 
   const readiness = useMemo(() => (client ? getClientReadiness(client) : undefined), [client])
 
-  const { openCount, nextDue } = useMemo(() => {
+  const { openCount, nextDue, paymentOverdueCount } = useMemo(() => {
     const open = obligations.filter((o) => !TERMINAL_STATUSES.has(o.status))
     let best: ObligationInstancePublic | null = null
     let bestTs = Infinity
@@ -126,7 +127,15 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
         best = o
       }
     }
-    return { openCount: open.length, nextDue: best }
+    // 2026-05-27 (phi journey audit J1): a row that's been Filed
+    // ('done') but whose paymentDueDate has passed is NOT counted in
+    // `openCount` (the filing leg is done, it's not a to-do). But it
+    // IS a live signal the CPA needs to see when hovering the
+    // client — surface it as a separate count so the peek can render
+    // a "Payment overdue on N filings" line under the open count.
+    const today = Date.now()
+    const paymentOverdue = obligations.filter((o) => isPaymentOverdue(o, today)).length
+    return { openCount: open.length, nextDue: best, paymentOverdueCount: paymentOverdue }
   }, [obligations])
 
   if (clientQuery.isError) {
@@ -160,6 +169,23 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
               ? t`1 open deadline`
               : t`${openCount} open deadlines`}
         </span>
+        {/* 2026-05-27 (phi journey audit J1): payment-overdue line.
+            Surfaces "Filed but payment overdue on N filings" inline
+            with the identity subtitle so the peek doesn't bury the
+            most expensive signal. Renders only when the count is > 0
+            so the common case (every filing's payment is up to date)
+            stays quiet. Tinted destructive because penalty interest
+            accrues until the wire lands — this IS active urgency, not
+            a quality stat. */}
+        {paymentOverdueCount > 0 ? (
+          <span className="text-xs font-medium text-text-destructive">
+            {paymentOverdueCount === 1 ? (
+              <Trans>Payment overdue on 1 filing</Trans>
+            ) : (
+              <Trans>Payment overdue on {paymentOverdueCount} filings</Trans>
+            )}
+          </span>
+        ) : null}
       </div>
 
       {/* Identity chips */}
