@@ -11,7 +11,7 @@ export class LoginPage {
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', {
-      name: /Welcome (?:back )?to the workbench\.?|欢迎回到工作台/,
+      name: /Welcome (?:back )?(?:to the workbench|to DueDateHQ)\.?|欢迎回到工作台/,
     })
 
     this.emailInput = page.getByLabel(/(?:Work )?Email address|工作邮箱/)

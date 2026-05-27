@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { Binoculars, CircleCheckIcon, CircleSlashIcon, TriangleAlertIcon } from 'lucide-react'
+import { Binoculars, CircleCheckIcon, CircleSlashIcon } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 
 import type { PulseSourceHealth } from '@duedatehq/contracts'
@@ -167,10 +167,9 @@ function NeedsAttentionSection() {
         // signals stacked:
         //   1. "no alerts right now" — confirms the absence is
         //      intentional, not a missing render.
-        //   2. Source health summary — tells the CPA whether the
-        //      empty list means "monitored sources reporting
-        //      clean" (good) or "feeds are degraded so absence
-        //      is not informative" (bad).
+        //   2. Source count — confirms source monitoring is active
+        //      without exposing source-family names in the Today
+        //      all-clear line.
         <AlertsEmptyState sources={sources} loading={sourceHealthQuery.isLoading} />
       )}
     </section>
@@ -179,9 +178,9 @@ function NeedsAttentionSection() {
 
 // 2026-05-26 (Yuqi Today #2 + #3): displayed in the Alerts section
 // when there are zero active alerts. The first line tells the user
-// nothing needs their attention; the second line gives a per-status
-// rollup of the monitored regulatory sources so the CPA can tell
-// "all quiet" from "feeds broken, we can't know."
+// nothing needs their attention; the second line gives a numeric
+// source-monitoring count so the page stays quiet while still
+// confirming the watcher is active.
 function AlertsEmptyState({
   sources,
   loading,
@@ -190,17 +189,16 @@ function AlertsEmptyState({
   loading: boolean
 }) {
   // 2026-05-26 (Step 6 UX audit #43): aria-labels below were
-  // hardcoded English strings — 'monitoring sources', 'sources
-  // failing', 'sources paused'. Lifted to `t` macro so non-English
+  // hardcoded English strings — 'monitoring sources' and
+  // 'sources paused'. Lifted to `t` macro so non-English
   // assistive-tech users get a localized announcement.
   const { t } = useLingui()
-  const enabled = sources.filter((source) => source.enabled)
-  const enabledCount = enabled.length
-  const failingCount = enabled.filter(
-    (source) => source.healthStatus === 'failing' || source.healthStatus === 'degraded',
+  const watchedCount = sources.filter(
+    (source) => source.enabled && source.healthStatus !== 'paused',
   ).length
-  const pausedCount = enabled.filter((source) => source.healthStatus === 'paused').length
-  const allHealthy = enabledCount > 0 && failingCount === 0 && pausedCount === 0
+  const pausedCount = sources.filter(
+    (source) => source.enabled && source.healthStatus === 'paused',
+  ).length
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -217,12 +215,12 @@ function AlertsEmptyState({
           / standing by," which is the actual semantic. CCTV was
           the alternative Yuqi suggested — binoculars feels less
           surveillance-y, more "regulatory feed scout." */}
-      <p className="flex items-center gap-2 text-xs text-text-tertiary">
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
         {loading ? (
           <Trans>Checking monitored sources…</Trans>
-        ) : enabledCount === 0 ? (
+        ) : watchedCount === 0 ? (
           <Trans>No sources are currently being monitored.</Trans>
-        ) : allHealthy ? (
+        ) : pausedCount === 0 ? (
           <>
             <Binoculars
               className="size-3.5 text-text-tertiary"
@@ -230,53 +228,38 @@ function AlertsEmptyState({
             />
             <span>
               <Plural
-                value={enabledCount}
-                one="Monitoring # source. Receiving correctly."
-                other="Monitoring # sources. Receiving correctly."
+                value={watchedCount}
+                one="Monitoring # source. New matches will appear here."
+                other="Monitoring # sources. New matches will appear here."
               />
             </span>
-          </>
-        ) : (
-          <>
-            {failingCount > 0 ? (
-              <>
-                <TriangleAlertIcon
-                  className="size-3.5 text-text-warning"
-                  aria-label={t`sources failing`}
-                />
-                <span>
-                  <Plural
-                    value={failingCount}
-                    one="# source not receiving correctly"
-                    other="# sources not receiving correctly"
-                  />
-                </span>
-              </>
-            ) : null}
-            {failingCount > 0 && pausedCount > 0 ? (
-              <span aria-hidden className="text-text-tertiary">
-                ·
-              </span>
-            ) : null}
-            {pausedCount > 0 ? (
-              <>
-                <CircleSlashIcon
-                  className="size-3.5 text-text-tertiary"
-                  aria-label={t`sources paused`}
-                />
-                <span>
-                  <Plural value={pausedCount} one="# paused" other="# paused" />
-                </span>
-              </>
-            ) : null}
             <span aria-hidden className="text-text-tertiary">
               ·
             </span>
             <Link
-              to="/rules/pulse"
+              to="/rules/sources"
               className="underline-offset-2 hover:text-text-secondary hover:underline"
             >
-              <Trans>Check sources</Trans>
+              <Trans>View sources</Trans>
+            </Link>
+          </>
+        ) : (
+          <>
+            <CircleSlashIcon
+              className="size-3.5 text-text-tertiary"
+              aria-label={t`sources paused`}
+            />
+            <span>
+              <Plural value={pausedCount} one="# paused" other="# paused" />
+            </span>
+            <span aria-hidden className="text-text-tertiary">
+              ·
+            </span>
+            <Link
+              to="/rules/sources"
+              className="underline-offset-2 hover:text-text-secondary hover:underline"
+            >
+              <Trans>View sources</Trans>
             </Link>
           </>
         )}

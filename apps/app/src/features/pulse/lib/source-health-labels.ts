@@ -61,11 +61,11 @@ function sourceDisplayLabel(source: PulseSourceHealthLabelInput): string {
   if (source.sourceId.startsWith('irs.')) return 'IRS'
   if (source.sourceId.startsWith('ca.ftb.')) return 'CA FTB'
   if (source.sourceId.startsWith('ca.cdtfa.')) return 'CA CDTFA'
-  if (source.sourceId === 'ny.dtf.press') return 'NY'
-  if (source.sourceId === 'tx.cpa.rss') return 'TX'
-  if (source.sourceId === 'fl.dor.tips') return 'FL'
-  if (source.sourceId.startsWith('wa.dor.')) return 'WA'
-  if (source.sourceId === 'ma.dor.press') return 'MA'
+  if (source.sourceId === 'ny.dtf.press') return 'NY DTF'
+  if (source.sourceId === 'tx.cpa.rss') return 'TX Comptroller'
+  if (source.sourceId === 'fl.dor.tips') return 'FL DOR'
+  if (source.sourceId.startsWith('wa.dor.')) return 'WA DOR'
+  if (source.sourceId === 'ma.dor.press') return 'MA DOR'
   if (source.sourceId === 'fema.declarations') return 'FEMA'
 
   const stateIncomeTaxMatch = /^([a-z]{2}|dc)\.income_tax$/.exec(source.sourceId)

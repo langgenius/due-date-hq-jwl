@@ -41,7 +41,7 @@ describe('pulse source health labels', () => {
         source('ca.income_tax'),
         source('co.income_tax'),
       ]),
-    ).toBe('CA FTB + TX + WA + MA + FEMA + 2 more')
+    ).toBe('CA FTB + TX Comptroller + WA DOR + MA DOR + FEMA + 2 more')
   })
 
   it('excludes disabled and paused sources from summaries and counts', () => {

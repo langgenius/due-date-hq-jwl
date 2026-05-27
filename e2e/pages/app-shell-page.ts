@@ -20,7 +20,9 @@ export class AppShellPage {
     this.opportunitiesLink = page.getByRole('link', { name: 'Opportunities' })
     this.rulesLink = page.getByRole('link', { name: /^Rule library(?:\s+\d+)?$/ })
     this.importClientsButton = page
-      .getByRole('button', { name: /^(Import clients|Run migration)$/ })
+      .getByRole('button', {
+        name: /^(Import clients|Run migration)(?: \(owner or manager access required\))?$/,
+      })
       .first()
     this.commandDialog = page.getByRole('dialog', { name: 'Command palette' })
     this.commandPaletteHeading = this.commandDialog.getByRole('heading', {

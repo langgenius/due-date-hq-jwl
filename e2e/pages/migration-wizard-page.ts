@@ -11,7 +11,7 @@ export class MigrationWizardPage {
     this.dialog = page.getByRole('dialog', { name: /Import clients · Step/ })
     this.pasteClientData = page.getByLabel('Paste client data')
     this.closeButton = page.getByRole('button', { name: 'Close wizard' })
-    this.discardDialog = page.getByRole('alertdialog', { name: 'Discard import?' })
+    this.discardDialog = page.getByRole('alertdialog', { name: 'Leave without importing?' })
     this.undoImportDialog = page.getByRole('alertdialog', { name: 'Undo this import?' })
   }
 

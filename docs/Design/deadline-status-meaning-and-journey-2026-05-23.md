@@ -251,7 +251,9 @@ lifecycle v2; should rarely appear.
 - ✅ Compact In Review step strip (Preparing return / Reviewing return /
   Ready to file), derived from prep/review sub-status fields.
 - ✅ Primary "Mark filed" wired.
-- ✅ "Get 8879 signed by client" routes to Evidence.
+- ❌ Form 8879 client authorization is deferred; do not show an In Review
+  Evidence-routing task until the product can send or record that authorization
+  as a real workflow.
 - ✅ Done-this-stage audit chronology (shown in the screenshot).
 - ✅ Notes-open annotation when reviewer feedback is active.
 
@@ -317,8 +319,10 @@ Both end at COMPLETED.
 - ✅ Pipeline visualization for both e-file and payment branches.
 - ✅ Wired primaries on every sub-state that can advance to terminal.
 - ✅ Manual reminders for offline-only steps.
-- ❌ **Gap**: no rejection-reason field surfaced for `rejected`
-  sub-state. The CPA sees the chip but not why the IRS rejected.
+- ✅ Filed Summary now has an Authority response panel. Accepted moves
+  to COMPLETED; rejected opens a structured dialog, writes the rejection
+  detail into audit payload/reason, unwinds to IN REVIEW, and keeps the
+  Rejected chip visible.
 - ❌ **Gap (backend)**: no sub-status RPC, so 8879 → submitted is
   offline-only. Real CPAs would expect to flip those.
 
@@ -406,9 +410,14 @@ IN REVIEW (resumes)
 
 ```
 FILED · submitted
-  → Record authority rejection → markFiledRejected
-IN REVIEW (efile_rejected_at set, Rejected chip rendered)
+  → Record authority rejection (date, authority, reference, reason, next step)
+  → markFiledRejected
+IN REVIEW (efile_rejected_at set, Rejected chip rendered, audit carries reason)
+  → If client-side correction is needed: Request client input
+  → Materials: mark received items as Needs correction
+  → Send correction request (only Needs correction items are included)
   → CPA fixes the return
+  → Approve corrected return
   → Mark filed (again)
 FILED · ... → Confirm acceptance → COMPLETED
 ```
@@ -447,9 +456,10 @@ FILED · ... → Confirm acceptance → COMPLETED
    sub-states can actually advance through the UI. Today they're
    manual reminders only.
 
-6. **Filed (rejected): show rejection reason.** Backend already has
-   `efile_rejected_at`; need a `efile_rejection_reason` field +
-   surface on the stage card.
+6. **Filed (rejected): durable rejection details.** V1 stores the
+   detail in audit payload/reason. A later version may promote
+   rejection reason/reference/next-step into first-class columns if
+   reporting or filtering needs it.
 
 ### P3 — Niceties
 

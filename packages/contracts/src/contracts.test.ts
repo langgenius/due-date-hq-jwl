@@ -43,6 +43,7 @@ import {
   ObligationCreateFromRuleOutputSchema,
   ObligationCreateFromRulesInputSchema,
   ObligationExtensionDecisionInputSchema,
+  ObligationMarkFiledRejectedInputSchema,
   ObligationRequestInputInputSchema,
   ObligationRequestInputOutputSchema,
   ObligationTaxYearProfileUpdateInputSchema,
@@ -547,6 +548,7 @@ describe('@duedatehq/contracts', () => {
         'updateStatus',
         'bulkUpdateStatus',
         'decideExtension',
+        'markFiledRejected',
         'requestInput',
         'listByClient',
       ]),
@@ -680,6 +682,22 @@ describe('@duedatehq/contracts', () => {
       auditIds: ['33333333-3333-4333-8333-333333333333'],
     })
     expect(bulkOutput.updatedCount).toBe(1)
+
+    const filedRejectionInput = ObligationMarkFiledRejectedInputSchema.parse({
+      id: '11111111-1111-4111-8111-111111111111',
+      rejectedAt: '2026-04-21',
+      authority: 'IRS',
+      reference: 'R0000-932-02',
+      reason: 'Dependent EIN mismatch on the transmitted return.',
+      nextStep: 'correct_resubmit',
+    })
+    expect(filedRejectionInput.nextStep).toBe('correct_resubmit')
+    expect(() =>
+      ObligationMarkFiledRejectedInputSchema.parse({
+        id: '11111111-1111-4111-8111-111111111111',
+        nextStep: 'correct_resubmit',
+      }),
+    ).toThrow()
 
     const requestInput = ObligationRequestInputInputSchema.parse({
       obligationId: '11111111-1111-4111-8111-111111111111',

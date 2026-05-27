@@ -94,7 +94,7 @@ export function AppShell(props: AppShellProps) {
           {/* 2026-05-26 (Yuqi seventy-third pass — mount the
               dead SidebarCollapseToggle): the toggle component was
               exported but never rendered. Now sits in the header
-              row beside the firm switcher when expanded; stacks
+              row beside the firm identity when expanded; stacks
               below the monogram when collapsed (the column is
               56px wide, can't fit two size-8 buttons side-by-
               side). Yuqi: "the absolute position of the icon of

@@ -112,10 +112,11 @@ The Billing page defaults to monthly, offers a Monthly/Yearly toggle, and allows
 the same self-serve plan between monthly and yearly intervals when the current subscription interval
 does not already match the selected option.
 
-### Practice Switcher
+### Practice Identity
 
-The practice switcher remains the place where users see and switch active practices. `Add practice` stays
-visible because the action is discoverable, but it has two outcomes:
+The protected app shell currently shows the active practice as static sidebar identity. It does not
+expose practice switching or `Add practice` in sidebar chrome. Billing remains the place to explain
+active-practice entitlement and what happens when a customer needs another workspace:
 
 - Within entitlement: open the create-practice dialog.
 - Past entitlement: open a plan gate explaining the practice limit and linking to Billing or Contact
@@ -151,5 +152,5 @@ Enterprise and is not renamed in persisted data.
 
 - A customer can understand from pricing alone how many practices and seats each plan includes.
 - A Solo or Pro owner cannot accidentally create unpaid extra active practices.
-- Billing and practice switcher explain the same entitlement in customer language.
+- Billing explains active-practice entitlement in customer language while the app shell shows only the active practice identity.
 - Technical docs distinguish current implementation from target product closure until enforcement lands.

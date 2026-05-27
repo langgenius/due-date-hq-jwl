@@ -70,8 +70,8 @@ rows:
 All three are now redundant — clicking the matching pipeline step does
 the same thing as a real mutation. Kept:
 
-- **Pre-stage 8879 packet for client** (routing → Evidence tab) — not a
-  sub-status mutation; opens a different surface
+- Form 8879 routing is not shown in In Review until client authorization is a
+  real workflow; routing to Evidence alone creates a dead-end task.
 - **Mark return submitted to authority** (primary mutation `Mark filed`
   / status='done') — the stage-level forward, separate from the slider
 

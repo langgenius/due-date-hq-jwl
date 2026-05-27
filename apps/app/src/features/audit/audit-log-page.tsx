@@ -46,6 +46,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, PermissionInlineNotice } from '@/features/permissions/permission-gate'
@@ -634,14 +635,12 @@ export function AuditLogPage() {
         permission="audit.read"
         firm={currentFirm}
         description={
-          // Audit-drain ρ ROH-D5 (2026-05-27): added "partners" to the
-          // role list — the previous copy ("owners, managers, and
-          // preparers") drifted from `FIRM_PERMISSION_ROLES['audit.read']`
-          // which includes partner. The badge below the description
-          // already showed the right set via `requiredRolesLabel` — only
-          // the human-readable paragraph was stale.
+          // ROH-D5 (ρ) → ROH-D11 (ψ): ρ hardcoded partners back into the
+          // list; ψ then replaced with the canonical helper so the
+          // description reflects FIRM_PERMISSION_ROLES['audit.read']
+          // (owner/partner/manager/preparer) automatically.
           <Trans>
-            Practice-wide audit events are available to owners, partners, managers, and preparers.
+            Practice-wide audit events are available to {requiredRolesLabel('audit.read')}.
             Contact the practice owner if you need audit access.
           </Trans>
         }

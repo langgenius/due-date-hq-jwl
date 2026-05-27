@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from '@duedatehq/ui/components/ui/popover'
 import { cn } from '@duedatehq/ui/lib/utils'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 
 type ConceptId =
   | 'smartPriority'
@@ -113,12 +114,16 @@ function useConceptCopy(concept: ConceptId): ConceptCopy {
     case 'verifiedRule':
       return {
         title: t`Active practice rule`,
-        description: t`A deadline rule accepted by this practice's owner or manager. It can generate client-facing reminders when it matches a client.`,
+        // ROH-D11 — was "owner or manager"; the actual gate is
+        // pulse.apply (owner/partner/manager). Helper-driven so the
+        // concept-help blurb stays current with FIRM_PERMISSION_ROLES.
+        description: t`A deadline rule accepted by ${requiredRolesLabel('pulse.apply')} at this practice. It can generate client-facing reminders when it matches a client.`,
       }
     case 'candidateRule':
       return {
         title: t`Review-only rule`,
-        description: t`A possible rule or change that is still waiting for owner or manager review. Review-only rules do not update client deadlines or send reminders.`,
+        // ROH-D11 — same gate as verifiedRule above.
+        description: t`A possible rule or change that is still waiting for ${requiredRolesLabel('pulse.apply')} to review. Review-only rules do not update client deadlines or send reminders.`,
       }
     case 'defaultMatrix':
       return {

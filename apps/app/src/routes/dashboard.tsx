@@ -24,6 +24,7 @@ import { CreateObligationDialog } from '@/features/obligations/CreateObligationD
 import type { ObligationStatus } from '@/features/obligations/status-control'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 
 const TRIAGE_TAB_KEYS = ['this_week', 'this_month', 'long_term'] as const
 const DASHBOARD_DUE_BUCKETS = [
@@ -198,9 +199,18 @@ export function DashboardRoute() {
               size="sm"
               onClick={openWizard}
               disabled={!canRunMigration}
-              title={canRunMigration ? undefined : t`Owner or manager access required.`}
+              // ROH-D11 — was "owner or manager"; migration.run is
+              // owner/partner/manager/preparer. Helper-driven so the
+              // tooltip + aria-label always name the right roles.
+              title={
+                canRunMigration
+                  ? undefined
+                  : t`Requires ${requiredRolesLabel('migration.run')} access.`
+              }
               aria-label={
-                canRunMigration ? undefined : t`Import clients (owner or manager access required)`
+                canRunMigration
+                  ? undefined
+                  : t`Import clients (requires ${requiredRolesLabel('migration.run')} access)`
               }
             >
               <UploadIcon data-icon="inline-start" />

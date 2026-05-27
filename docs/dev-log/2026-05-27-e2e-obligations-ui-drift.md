@@ -19,6 +19,9 @@ locator and copy drift in the seeded deadline flows.
   aligned the clients spec with the current full filing-state display (`California`).
 - Matched the Rule Library pending-filter review CTA wait to the route's initial 20s wait after
   CI showed the second render path could exceed Playwright's default 5s timeout.
+- Followed up on E2E run `26483172914` by aligning login, migration, practice, Pulse, RBAC, and
+  obligations specs/page objects with the latest accessible names, review dialog, and bulk-action
+  status behavior.
 
 ## Validation
 
@@ -42,3 +45,7 @@ locator and copy drift in the seeded deadline flows.
   - 16 passed.
 - `pnpm exec playwright test e2e/tests/rules-console.spec.ts --project=chromium --workers=1 --retries=0`
   - 3 passed.
+- `pnpm exec playwright test e2e/tests/auth-gate.spec.ts e2e/tests/migration-wizard.spec.ts e2e/tests/obligations.spec.ts e2e/tests/practice-switch.spec.ts e2e/tests/pulse.spec.ts e2e/tests/rbac-permissions.spec.ts --project=chromium --workers=1 --retries=0`
+  - 25 passed.
+- `pnpm exec playwright test --project=chromium --workers=1 --retries=0`
+  - 72 passed.

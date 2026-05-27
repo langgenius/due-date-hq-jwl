@@ -1,14 +1,14 @@
 import { Trans, useLingui } from '@lingui/react/macro'
 import { LinkIcon } from 'lucide-react'
 
-// Lifecycle v2 "Blocked by" chip — surfaces the upstream obligation
+// Lifecycle v2 blocking-deadline link — surfaces the upstream obligation
 // that's holding up a `blocked` row. Click navigates into Obligations
 // with the parent's drawer open. Encodes PDF anti-pattern #4 (K-1
 // dependency graph) visually: a partner's 1040 that's waiting on a
-// partnership's K-1 shows "by Lakeview Partnership · Form 1065"
-// with a tap-target. Falls back to a short ID when the parent isn't
-// loaded in the current view (the queue paginates, so the parent
-// might be on a different page).
+// partnership's K-1 shows the blocking partnership deadline with a
+// tap-target. Falls back to a short ID when the parent isn't loaded
+// in the current view (the queue paginates, so the parent might be
+// on a different page).
 
 function isBlockedByVisible(input: {
   status: string
@@ -34,8 +34,8 @@ function BlockedByChip({
   const { t } = useLingui()
   const label = parentLabel?.trim() ? parentLabel : t`#${parentObligationId.slice(0, 8)}`
   const title = parentLabel
-    ? t`Blocked by ${label} — click to open.`
-    : t`Open the upstream deadline that's blocking this row.`
+    ? t`Open the deadline blocking this row: ${label}.`
+    : t`Open the linked deadline that's blocking this row.`
   // 2026-05-25 (Yuqi Deadlines #4): chip palette shifted from full-
   // amber to neutral chip + red-icon. Yuqi's call: "这个不能就 icon
   // 是红色，字体是 secondary，背景是浅灰色背景吗" — let the icon
@@ -78,7 +78,8 @@ function BlockedByChip({
         onOpen(parentObligationId)
       }}
       title={title}
-      className="inline-flex max-w-[220px] items-center gap-1 rounded-sm text-sm text-text-secondary underline-offset-2 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      aria-label={title}
+      className="inline-flex max-w-[280px] items-center gap-1 rounded-sm text-sm text-text-secondary underline-offset-2 hover:text-text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
       {/* 2026-05-26 (Yuqi sixty-sixth pass): icon tone aligned to
           the label's text-text-secondary so the icon + text read
@@ -86,7 +87,7 @@ function BlockedByChip({
           different weights. Yuqi: "same gray icon." */}
       <LinkIcon className="size-3.5 shrink-0 text-text-secondary" aria-hidden />
       <span className="truncate">
-        <Trans>by {label}</Trans>
+        <Trans>Blocked by: {label}</Trans>
       </span>
     </button>
   )

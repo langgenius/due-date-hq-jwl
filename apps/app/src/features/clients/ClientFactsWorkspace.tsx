@@ -824,7 +824,7 @@ export function ClientFactsWorkspace({
     }
     return factsModel.stateOptions.map((state) => ({
       value: state,
-      label: state,
+      label: RULE_JURISDICTION_LABELS[state] ?? state,
       count: counts.get(state) ?? 0,
     }))
   }, [clients, factsModel.stateOptions])
@@ -1071,6 +1071,8 @@ export function ClientFactsWorkspace({
         // The standalone STATUS column (added 2026-05-23, retired same
         // day) is gone; the inline pill is its replacement.
         id: 'nextDue',
+        accessorFn: (client) =>
+          obligationSummariesByClient.get(client.id)?.nextDueDate ?? undefined,
         header: ({ column }) => (
           <ColumnSortHeader
             label={t`Next due`}
@@ -1078,19 +1080,9 @@ export function ClientFactsWorkspace({
             onToggle={() => column.toggleSorting()}
           />
         ),
-        // Custom sortingFn — the value comes from the summary map
-        // (not row.original), so the default accessor-based sort
-        // doesn't apply. Rows with no nextDueDate sort last regardless
-        // of direction (clients with nothing open sit at the bottom of
-        // an asc sort and at the top of a desc sort would feel wrong).
-        sortingFn: (rowA, rowB) => {
-          const a = obligationSummariesByClient.get(rowA.original.id)?.nextDueDate
-          const b = obligationSummariesByClient.get(rowB.original.id)?.nextDueDate
-          if (!a && !b) return 0
-          if (!a) return 1
-          if (!b) return -1
-          return a.localeCompare(b)
-        },
+        sortingFn: 'text',
+        sortDescFirst: false,
+        sortUndefined: 'last',
         cell: ({ row }) => {
           const summary = obligationSummariesByClient.get(row.original.id)
           if (!summary?.nextDueDate) {
@@ -1175,18 +1167,24 @@ export function ClientFactsWorkspace({
       },
       {
         id: 'openObligations',
+        accessorFn: (client) => obligationSummariesByClient.get(client.id)?.openCount ?? 0,
         header: ({ column }) => (
           <ColumnSortHeader
-            label={t`Open`}
+            label={t({
+              id: 'clients.openDeadlinesColumn',
+              message: 'Open deadlines',
+              comment: 'Column header for the count of unfinished deadline rows on a client.',
+            })}
             sortState={column.getIsSorted()}
             onToggle={() => column.toggleSorting()}
+            description={t({
+              id: 'clients.openDeadlinesColumnDescription',
+              message: `Counts deadlines still in pending, in progress, extended, waiting on client, or review.`,
+              comment: 'Tooltip for the Open deadlines column header on the clients table.',
+            })}
           />
         ),
-        sortingFn: (rowA, rowB) => {
-          const a = obligationSummariesByClient.get(rowA.original.id)?.openCount ?? 0
-          const b = obligationSummariesByClient.get(rowB.original.id)?.openCount ?? 0
-          return a - b
-        },
+        sortingFn: 'basic',
         cell: ({ row }) => {
           const summary = obligationSummariesByClient.get(row.original.id)
           const count = summary?.openCount ?? 0
@@ -1215,8 +1213,8 @@ export function ClientFactsWorkspace({
           // 2026-05-26 (Yuqi /clients feedback #3 — "left align"):
           // numeric columns left-aligned to match the rest of the
           // workbench tables.
-          headerClassName: 'w-[80px]',
-          cellClassName: 'w-[80px]',
+          headerClassName: 'w-[130px]',
+          cellClassName: 'w-[130px]',
         },
       },
       {
@@ -2022,7 +2020,7 @@ function ClientTableSkeleton() {
     { id: 'states', className: 'w-[220px]', header: 'w-14', cell: 'w-24' },
     { id: 'entity', className: 'w-[110px]', header: 'w-12', cell: 'w-14' },
     { id: 'nextDue', className: 'w-[200px]', header: 'w-16', cell: 'w-28' },
-    { id: 'open', className: 'w-[80px]', header: 'w-10', cell: 'w-4' },
+    { id: 'open', className: 'w-[130px]', header: 'w-28', cell: 'w-4' },
     { id: 'done', className: 'w-[80px]', header: 'w-10', cell: 'w-4' },
     { id: 'owner', className: 'w-[80px]', header: 'w-12', cell: 'w-6 rounded-full' },
     { id: 'opp', className: 'w-[80px]', header: 'w-10', cell: 'w-8' },

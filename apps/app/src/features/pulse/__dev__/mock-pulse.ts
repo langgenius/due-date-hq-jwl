@@ -354,17 +354,43 @@ const SOURCE_HEALTH: PulseSourceHealth[] = [
     lastError: null,
   },
   {
-    sourceId: 'wa.dor',
-    label: 'WA DOR Bulletin',
-    tier: 'T2',
-    jurisdiction: 'state',
+    sourceId: 'ca.ftb.newsroom',
+    label: 'CA FTB Newsroom',
+    tier: 'T1',
+    jurisdiction: 'CA',
     enabled: true,
     healthStatus: 'healthy',
-    lastCheckedAt: '2026-05-18T20:00:00.000Z',
-    lastSuccessAt: '2026-05-17T08:00:00.000Z',
-    nextCheckAt: '2026-05-19T08:00:00.000Z',
-    consecutiveFailures: 3,
-    lastError: 'Timed out fetching change feed',
+    lastCheckedAt: '2026-04-30T16:00:00.000Z',
+    lastSuccessAt: '2026-04-30T16:00:00.000Z',
+    nextCheckAt: '2026-04-30T17:00:00.000Z',
+    consecutiveFailures: 0,
+    lastError: null,
+  },
+  {
+    sourceId: 'ny.dtf.press',
+    label: 'NY DTF Press',
+    tier: 'T1',
+    jurisdiction: 'NY',
+    enabled: true,
+    healthStatus: 'healthy',
+    lastCheckedAt: '2026-04-29T15:00:00.000Z',
+    lastSuccessAt: '2026-04-29T15:00:00.000Z',
+    nextCheckAt: '2026-04-29T17:00:00.000Z',
+    consecutiveFailures: 0,
+    lastError: null,
+  },
+  {
+    sourceId: 'fl.dor.tips',
+    label: 'FL DOR Tax Tips',
+    tier: 'T1',
+    jurisdiction: 'FL',
+    enabled: true,
+    healthStatus: 'healthy',
+    lastCheckedAt: '2026-04-28T14:00:00.000Z',
+    lastSuccessAt: '2026-04-28T14:00:00.000Z',
+    nextCheckAt: '2026-04-28T16:00:00.000Z',
+    consecutiveFailures: 0,
+    lastError: null,
   },
 ]
 
@@ -387,12 +413,15 @@ export function seedPulseMock(queryClient: QueryClient): void {
 
   queryClient.setQueryData(orpc.firms.listMine.queryKey({ input: undefined }), [MOCK_FIRM])
 
-  // Three call sites read listAlerts with different limits — seed each shape.
+  // Call sites read listAlerts with different limits — seed each shape.
   queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: undefined }), { alerts: ALERTS })
   queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: { limit: 5 } }), {
     alerts: ALERTS.slice(0, 5),
   })
   queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: { limit: 20 } }), {
+    alerts: ALERTS,
+  })
+  queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: { limit: 50 } }), {
     alerts: ALERTS,
   })
   queryClient.setQueryData(orpc.pulse.listHistory.queryKey({ input: { limit: 50 } }), {

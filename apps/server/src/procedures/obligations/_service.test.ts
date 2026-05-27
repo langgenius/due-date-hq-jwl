@@ -950,7 +950,7 @@ describe('updateObligationStatus', () => {
   })
 
   it('starts review sub-steps at reviewer review when a rejected filing re-enters In Review', async () => {
-    const { repo, map } = buildScoped(FIRM, [
+    const { repo, audits, map } = buildScoped(FIRM, [
       makeRow({
         status: 'done',
         prepStage: 'prepared',
@@ -959,13 +959,58 @@ describe('updateObligationStatus', () => {
       }),
     ])
 
-    const result = await markObligationFiledRejected(repo, 'user_1', { id: ROW_ID })
+    const result = await markObligationFiledRejected(repo, 'user_1', {
+      id: ROW_ID,
+      rejectedAt: '2026-04-21',
+      authority: 'IRS',
+      reference: 'R0000-932-02',
+      reason: 'Dependent EIN mismatch on the transmitted return.',
+      nextStep: 'correct_resubmit',
+    })
 
     expect(result.obligation.status).toBe('review')
     expect(result.obligation.prepStage).toBe('prepared')
     expect(result.obligation.reviewStage).toBe('in_review')
+    expect(result.obligation.efileRejectedAt).toBe('2026-04-21T00:00:00.000Z')
     expect(map.get(ROW_ID)?.prepStage).toBe('prepared')
     expect(map.get(ROW_ID)?.reviewStage).toBe('in_review')
+    expect(map.get(ROW_ID)?.efileAcceptedAt).toBeNull()
+    expect(audits).toHaveLength(1)
+    expect(audits[0]).toMatchObject({
+      action: 'obligation.efile.rejected',
+      actorId: 'user_1',
+      entityType: 'obligation_instance',
+      entityId: ROW_ID,
+      before: {
+        status: 'done',
+        efileAcceptedAt: '2026-04-20T00:00:00.000Z',
+      },
+      after: {
+        status: 'review',
+        efileRejectedAt: '2026-04-21T00:00:00.000Z',
+        authority: 'IRS',
+        reference: 'R0000-932-02',
+        reason: 'Dependent EIN mismatch on the transmitted return.',
+        nextStep: 'correct_resubmit',
+      },
+      reason: 'Dependent EIN mismatch on the transmitted return.',
+    })
+  })
+
+  it('rejects authority rejection records unless the deadline is Filed', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [makeRow({ status: 'review' })])
+
+    await expect(
+      markObligationFiledRejected(repo, 'user_1', {
+        id: ROW_ID,
+        reason: 'Authority notice arrived before a Filed state existed.',
+        nextStep: 'request_client_input',
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' })
+
+    expect(map.get(ROW_ID)?.status).toBe('review')
+    expect(map.get(ROW_ID)?.efileRejectedAt).toBeNull()
+    expect(audits).toHaveLength(0)
   })
 
   it('throws NOT_FOUND when the obligation does not belong to the firm', async () => {

@@ -37,9 +37,19 @@ test.describe('seeded Pulse alerts', () => {
     await expect(drawer.getByText('Pulse evidence linked to each deadline')).toBeVisible()
 
     await drawer.getByRole('button', { name: 'Apply Deadline Exception' }).click()
+    const verificationDialog = authenticatedPage.getByRole('dialog', {
+      name: 'Verify the new deadline before applying',
+    })
+    await expect(verificationDialog).toBeVisible()
+    await verificationDialog
+      .getByRole('checkbox', {
+        name: 'I have read the official source and verified the new deadline date.',
+      })
+      .check()
+    await verificationDialog.getByRole('button', { name: 'Apply deadline shift' }).click()
     await expect(authenticatedPage.getByText(/Applied to 1 clients?/)).toBeVisible()
 
-    await obligationQueuePage.goto()
+    await obligationQueuePage.goto('/deadlines?asOf=2026-05-26')
     const arborRow = obligationQueuePage.rowFor('Arbor & Vale LLC')
     await expect(arborRow).toContainText('128 days')
     await obligationQueuePage.columnsButton.click()
@@ -85,7 +95,7 @@ test.describe('seeded Pulse alerts', () => {
     await appliedDrawer.getByRole('button', { name: 'Undo (24h)' }).click()
     await expect(authenticatedPage.getByText(/Reverted 1 clients?/)).toBeVisible()
 
-    await obligationQueuePage.goto()
+    await obligationQueuePage.goto('/deadlines?asOf=2026-05-26')
     await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toContainText('72 days late')
   })
 

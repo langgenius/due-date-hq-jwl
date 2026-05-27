@@ -15,8 +15,8 @@ export class ObligationQueuePage {
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Deadlines' })
-    this.searchButton = page.getByRole('button', { name: 'Filter clients' })
-    this.searchInput = page.getByLabel('Filter deadlines')
+    this.searchButton = page.getByRole('button', { name: 'Filter deadlines' })
+    this.searchInput = page.locator('input[aria-label="Filter deadlines"]')
     this.clearSearchButton = page.getByRole('button', { name: 'Clear search' })
     this.dueSortButton = page.getByRole('button', { name: 'Sort Internal Due' })
     this.statusFilterTrigger = page.getByRole('button', { name: /^Status(?:\s+\d+)?$/ })

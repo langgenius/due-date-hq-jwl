@@ -35,6 +35,7 @@ import { PermissionInlineNotice, useFirmPermission } from '@/features/permission
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 
 type ImportHistoryDrawerProps = {
   open: boolean
@@ -234,10 +235,15 @@ export function ImportHistoryDrawer({
                   // `['owner', 'partner', 'manager']`. Default
                   // `PermissionInlineNotice` body derives the required
                   // role text from the enum, so we stay in sync.
-                  <PermissionInlineNotice
-                    permission="migration.revert"
-                    currentRole={permission.firm?.role}
-                  />
+                  >
+                    {/* ROH-D8 (ρ) / D11 (ψ): explicit child copy via
+                        requiredRolesLabel since migration.revert's role set
+                        (owner/partner/manager) needs an inline reminder
+                        the default PermissionInlineNotice body doesn't carry. */}
+                    <Trans>
+                      Only {requiredRolesLabel('migration.revert')} can undo migration imports.
+                    </Trans>
+                  </PermissionInlineNotice>
                 ) : null}
                 {batches.map((batch) => {
                   const canRevertBatch = canRevertMigration && isBatchRevertible(batch)

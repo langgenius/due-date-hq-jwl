@@ -3,19 +3,38 @@ import type { MessageDescriptor } from '@lingui/core'
 
 import { ErrorCodes, type ErrorCode } from '@duedatehq/contracts'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { requiredRolesLabel } from '@/lib/required-roles-label'
 
 // Stable Lingui message descriptors keyed by Pulse-specific ORPCError codes.
 // Resolve at render time with `i18n._(...)` so callers don't have to repeat
 // the catalog wiring.
-const MESSAGE_BY_CODE: Partial<Record<ErrorCode, MessageDescriptor>> = {
-  [ErrorCodes.PULSE_NOT_FOUND]: msg`This alert is no longer available.`,
-  [ErrorCodes.PULSE_APPLY_CONFLICT]: msg`Some deadlines have changed since you opened this alert. Refresh to load the latest list.`,
-  [ErrorCodes.PULSE_REVERT_EXPIRED]: msg`The 24h undo window has expired for this alert.`,
-  [ErrorCodes.PULSE_NO_ELIGIBLE_OBLIGATIONS]: msg`No eligible deadlines are selected.`,
-  [ErrorCodes.PULSE_REVIEW_UNAVAILABLE]: msg`This Pulse alert is closed and cannot be sent for review.`,
-  [ErrorCodes.PULSE_REVIEW_ONLY]: msg`This Pulse is review-only and does not apply due-date overlays.`,
-  [ErrorCodes.FIRM_FORBIDDEN]: msg`Only owners and managers can apply Pulse changes.`,
-  [ErrorCodes.MEMBER_FORBIDDEN]: msg`Only owners and managers can apply Pulse changes.`,
+//
+// ROH-D11 — the FORBIDDEN descriptors used to hard-code "owners and
+// managers". pulse.apply allows owner / partner / manager, so the
+// literal copy was silently dropping `partner`. The descriptor now
+// interpolates `requiredRolesLabel('pulse.apply')` at descriptor-
+// construction time. We resolve once per call to `pulseErrorDescriptor`
+// (cheap — just a map lookup + join) so the role list reflects the
+// current locale's translation of the FIRM_PERMISSION_ROLES set.
+function forbiddenDescriptor(): MessageDescriptor {
+  // Match the `<Trans>Only {requiredRolesLabel(...)} can apply Pulse
+  // changes.</Trans>` msgid in PulseDetailDrawer — both surfaces share
+  // the same translation entry.
+  return msg`Only ${requiredRolesLabel('pulse.apply')} can apply Pulse changes.`
+}
+
+const MESSAGE_BY_CODE: Partial<Record<ErrorCode, () => MessageDescriptor>> = {
+  [ErrorCodes.PULSE_NOT_FOUND]: () => msg`This alert is no longer available.`,
+  [ErrorCodes.PULSE_APPLY_CONFLICT]: () =>
+    msg`Some deadlines have changed since you opened this alert. Refresh to load the latest list.`,
+  [ErrorCodes.PULSE_REVERT_EXPIRED]: () => msg`The 24h undo window has expired for this alert.`,
+  [ErrorCodes.PULSE_NO_ELIGIBLE_OBLIGATIONS]: () => msg`No eligible deadlines are selected.`,
+  [ErrorCodes.PULSE_REVIEW_UNAVAILABLE]: () =>
+    msg`This Pulse alert is closed and cannot be sent for review.`,
+  [ErrorCodes.PULSE_REVIEW_ONLY]: () =>
+    msg`This Pulse is review-only and does not apply due-date overlays.`,
+  [ErrorCodes.FIRM_FORBIDDEN]: forbiddenDescriptor,
+  [ErrorCodes.MEMBER_FORBIDDEN]: forbiddenDescriptor,
 }
 
 const MESSAGE_BY_RAW: Record<string, MessageDescriptor> = {
@@ -32,7 +51,8 @@ function isErrorCode(value: string): value is ErrorCode {
 export function pulseErrorDescriptor(error: unknown): MessageDescriptor {
   const raw = rpcErrorMessage(error)
   if (raw && isErrorCode(raw)) {
-    return MESSAGE_BY_CODE[raw] ?? FALLBACK
+    const factory = MESSAGE_BY_CODE[raw]
+    return factory ? factory() : FALLBACK
   }
   if (raw && MESSAGE_BY_RAW[raw]) return MESSAGE_BY_RAW[raw]
   return FALLBACK
