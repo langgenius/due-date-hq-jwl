@@ -216,12 +216,14 @@ export function AppShell(props: AppShellProps) {
               never established a real scroll container — sticky
               elements like the rule library's TableHeader fell
               back to the document scroll context and never pinned. */}
-            {/* 2026-05-27 (Yuqi feedback "为什么不居中" / "why not
-                centered"): centering restored. Drawer-open expansion
-                handled at route level (obligations.tsx etc) via
-                `useObligationDrawer()` — those routes can drop their
-                own cap when needed; the shell stays centered. */}
-            <div className="mx-auto flex h-full w-full max-w-page-expanded flex-col">
+            {/* 2026-05-27 (Yuqi "drawer 60% + table 40% should fill"):
+                shell-level cap dropped. Reading-column routes (Today,
+                Audit, Members, Opportunities) keep their own
+                `mx-auto max-w-page-wide` (1100px) and stay centered.
+                Data-dense routes (Deadlines, Clients detail) fill
+                the full viewport so 60/40 drawer/table ratios actually
+                fill 100% of the available space. */}
+            <div className="flex h-full w-full flex-col">
               <Outlet />
             </div>
           </main>

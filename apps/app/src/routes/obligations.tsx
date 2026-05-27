@@ -4202,15 +4202,15 @@ export function ObligationQueueRoute() {
               initial={{ x: '100%', opacity: 0 }}
               animate={DETAIL_PANEL_OPEN_ANIM}
               exit={DETAIL_PANEL_CLOSE_ANIM}
-              // 2026-05-27 (Yuqi "让左边的list大一点占满剩下的屏幕"
-              // / "make the left list bigger and fill the remaining
-              // screen"): drawer takes a FIXED 600px at xl+, table
-              // gets `flex-1` and fills everything else. On 1469px
-              // viewport: drawer = 600, table = ~840 (was the inverse
-              // before). On wider: table grows, drawer stays at 600.
-              // Below xl the drawer is full width (mobile sheet
-              // pattern).
-              className="flex min-h-0 self-stretch overflow-hidden w-full xl:w-[600px] xl:flex-shrink-0 xl:flex-grow-0"
+              // 2026-05-27 (Yuqi "draw 60%, table 40%, 但是每次都
+              // 占不满"): 60/40 split via flex-basis so both columns
+              // ALWAYS fill 100% of the available viewport. Drawer
+              // gets basis-3/5 (60%), table column has flex-1 so it
+              // takes the remaining 40%. AppShell cap dropped in
+              // tandem so the available width = full viewport (minus
+              // sidebar) at xl+. Below xl the drawer is full width
+              // (mobile sheet pattern).
+              className="flex min-h-0 self-stretch overflow-hidden w-full xl:basis-3/5 xl:shrink-0 xl:grow-0"
             >
               <motion.div
                 initial={{ y: '100%' }}
