@@ -593,17 +593,21 @@ const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
 // y:'100%' → 0 on enter, dissolves opacity → 0 on exit. Same
 // ease-apple curve, same durations as the Pulse drawer so the
 // two right-rail panels read as siblings.
-const DETAIL_PANEL_WIDTH = '60%'
 const DETAIL_SWIFT_EASE = [0.32, 0.72, 0, 1] as const
-// Animation objects are stable references (not literal-on-render)
-// so Framer Motion never sees a value-identity churn and never
-// re-fires the width animation on a parent re-render.
+// 2026-05-27 (Yuqi feedback "remove width:60%" + "responsive也都
+//是没有的"): dropped the hardcoded width animation. Sizing is now
+// CSS-class driven (responsive: full width on narrow, 3/5 at xl+,
+// max-capped so ultra-wide doesn't bloat the drawer past usefulness).
+// Animation switched from width-interpolation to x-transform so the
+// slide-in works regardless of the final width value.
 const DETAIL_PANEL_OPEN_ANIM = {
-  width: DETAIL_PANEL_WIDTH,
+  x: 0,
+  opacity: 1,
   transition: { duration: 0.3, ease: DETAIL_SWIFT_EASE },
 } as const
 const DETAIL_PANEL_CLOSE_ANIM = {
-  width: 0,
+  x: '100%',
+  opacity: 0,
   transition: { duration: 0.28, ease: DETAIL_SWIFT_EASE },
 } as const
 // 2026-05-27 (Yuqi drawer parity): paper-rise enter matches
@@ -2940,17 +2944,18 @@ export function ObligationQueueRoute() {
           // at, not just the raw total. Other surfaces now use
           // the matching shape: "3 Ongoing" on /alerts,
           // "9 Clients" on /clients, "N Rules" on /rules/library.
-          // 2026-05-27 (Yuqi feedback round 4 — "deadline 标题旁边
-          // 的数字呢"): number is part of the title now, matching the
-          // "10 Actions this week" / "4 Alerts" pattern. Earlier
-          // "remove" instruction meant "remove the separate chip" —
-          // the count itself stays as a heading-style prefix.
-          <span className="inline-flex items-center gap-2 tabular-nums">
+          // 2026-05-27 (Yuqi feedback round 5 — final pattern):
+          // "Deadlines" heading + canonical count chip beside it with
+          // JUST the number (not "17 Deadlines"). Earlier "remove"
+          // meant remove the word "deadlines" from the chip — keep
+          // the chip + the number.
+          <span className="inline-flex items-center gap-2">
+            <Trans>Deadlines</Trans>
             {scopeTotal > 0 ? (
-              <Trans>{scopeTotal} Deadlines</Trans>
-            ) : (
-              <Trans>Deadlines</Trans>
-            )}
+              <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+                {scopeTotal}
+              </span>
+            ) : null}
           </span>
         }
         // 2026-05-26 (Yuqi /deadlines redesign): subtitle surfaces
@@ -4201,10 +4206,19 @@ export function ObligationQueueRoute() {
             <motion.div
               key="obligation-panel"
               data-slot="obligation-detail-panel"
-              initial={{ width: 0 }}
+              initial={{ x: '100%', opacity: 0 }}
               animate={DETAIL_PANEL_OPEN_ANIM}
               exit={DETAIL_PANEL_CLOSE_ANIM}
-              className="flex min-h-0 shrink-0 self-stretch overflow-hidden"
+              // 2026-05-27 (Yuqi "remove width:60%" + responsive):
+              // size via CSS class, not animated width. Below xl the
+              // drawer takes full width (becomes the only visible
+              // column; the table is hidden underneath on narrow
+              // viewports — same pattern as before but now without
+              // a hardcoded 60% that broke on wide screens). At xl+
+              // takes 3/5 of available space (max-capped at 900px so
+              // ultra-wide monitors don't bloat the drawer past
+              // usefulness — the table gets the leftover).
+              className="flex min-h-0 self-stretch overflow-hidden w-full xl:basis-3/5 xl:max-w-[900px] xl:flex-shrink-0"
             >
               <motion.div
                 initial={{ y: '100%' }}
