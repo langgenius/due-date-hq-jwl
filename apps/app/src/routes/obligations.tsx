@@ -28,7 +28,6 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import {
   AlertTriangleIcon,
-  ArrowDownUp,
   ChevronsUpDown,
   ChevronUp,
   ChevronDown,
@@ -1552,13 +1551,21 @@ export function ObligationQueueRoute() {
   // show the client name once on the first row, then render following
   // deadlines as indented continuation rows. If the sort scatters a
   // client's rows, each row stands alone with its own client name.
+  //
+  // 2026-05-27 (Yuqi feedback "discard the group by clients when the
+  // filter is Group by Due Date. Just like any other row"): when
+  // grouped by Due Date the same-client adjacency grouping is
+  // wrong — every row should stand alone with its own client name.
+  // Early-return empty Set when `group !== 'client'` so the
+  // continuation visualization only runs in group=client mode.
   const continuationRowIds = useMemo(() => {
     const set = new Set<string>()
+    if (group !== 'client') return set
     for (let i = 1; i < rows.length; i++) {
       if (rows[i]!.clientId === rows[i - 1]!.clientId) set.add(rows[i]!.id)
     }
     return set
-  }, [rows])
+  }, [rows, group])
   // "Within-group" = this row is NOT the last in its client group, i.e.
   // the NEXT row is a continuation (same client). Within-group rows
   // drop their bottom border so the group reads as a single visual
@@ -2933,22 +2940,16 @@ export function ObligationQueueRoute() {
           // at, not just the raw total. Other surfaces now use
           // the matching shape: "3 Ongoing" on /alerts,
           // "9 Clients" on /clients, "N Rules" on /rules/library.
+          // 2026-05-27 (Yuqi feedback round 3):
+          //   • "Explain Deadline" popover REMOVED — the ConceptLabel
+          //     was wrapping the title with a `?` popover. Dropped
+          //     since the inline page description below the title
+          //     already explains what /deadlines is.
+          //   • "17 deadlines" count chip REMOVED — the status tabs
+          //     below carry per-scope counts, so the title chip was
+          //     duplicating what the tabs say.
           <span className="inline-flex items-center gap-2">
-            <ConceptLabel concept="obligation">
-              <Trans>Deadlines</Trans>
-            </ConceptLabel>
-            {/* 2026-05-27 (Yuqi follow-up — "what does open mean?"):
-                count chip dropped the bare "open" qualifier in favour
-                of the same `# deadline / # deadlines` shape used by
-                /clients ("9 Clients") and /rules/library ("# rules").
-                `scopeTotal` rolls up all status facets (including
-                Completed + Filed), so "open" was both ambiguous to
-                CPAs and factually wrong for a Filed-scope filter.
-                The chip now reads as a noun count, not a state
-                claim — the status tabs below own the state semantics. */}
-            <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
-              <Plural value={scopeTotal} one="# deadline" other="# deadlines" />
-            </span>
+            <Trans>Deadlines</Trans>
           </span>
         }
         // 2026-05-26 (Yuqi /deadlines redesign): subtitle surfaces
@@ -3267,7 +3268,11 @@ export function ObligationQueueRoute() {
                     wireframes Yuqi shared. */}
                 <DropdownMenuTrigger
                   render={
-                    <FilterTrigger leadingIcon={ArrowDownUp}>
+                    /* 2026-05-27 (Yuqi feedback "remove"): ArrowDownUp
+                       leading icon dropped — the "Group by" label
+                       already names the action; the icon was visual
+                       noise. */
+                    <FilterTrigger>
                       <span className="text-text-tertiary">
                         <Trans>Group by</Trans>
                       </span>
