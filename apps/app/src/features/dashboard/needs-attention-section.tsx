@@ -116,14 +116,13 @@ function NeedsAttentionSection() {
         totalAlertCount > 0 && 'gap-2.5 bg-state-destructive-hover p-3',
       )}
     >
-      {/* 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
-          LEFT-aligned with "View all alerts" justify-between on the
-          right. Earlier centring attempt (grid 1fr/auto/1fr) was
-          misreading Yuqi's note — she meant the row should sit on
-          the left, with the title + count sharing one visual midline
-          (`items-center`). Matches the same correction made to the
-          "Actions this week" h2 below. */}
-      <div className="flex items-center justify-between gap-3">
+      {/* 2026-05-27 (Yuqi feedback: "去掉view all alerts. 点击+2 more
+          就是去viewall"): the trailing "View all alerts" link was
+          dropped because the `+ N more` overflow tile already
+          navigates to the same /rules/pulse destination. With one
+          remaining child, the flex justify-between scaffolding is
+          unnecessary — the h2 sits alone on its row. */}
+      <div className="flex items-center gap-3">
         {/* 2026-05-25 (Yuqi Today #1 — second pass): h2 stepped
             down text-xl → text-lg, matching the parallel change
             on Actions-this-week's h2. The page was reading as
@@ -161,40 +160,25 @@ function NeedsAttentionSection() {
             </span>
           ) : null}
         </h2>
-        {/* 2026-05-25 (Yuqi Today #2 — second pass): "View all
-            alerts" link demoted further — was text-sm text-tertiary
-            (hover → secondary). Yuqi flagged it as still too
-            prominent. Now text-xs text-muted (hover → tertiary)
-            and the icon shrinks to size-3 so the affordance reads
-            as quiet meta-text, not a sibling action to the h2.
-            Click target preserved by the `inline-flex` block.
-            2026-05-25 (Yuqi Today #3): trailing ArrowUpRight icon
-            dropped — the rotation flourish on hover was novelty
-            chrome that drew the eye to a navigation hint. Plain
-            text "View all alerts" is enough. Same removal applied
-            to the parallel "All deadlines" link in
-            features/dashboard/actions-list.tsx. */}
-        <Link
-          to="/rules/pulse"
-          className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-tertiary"
-        >
-          <Trans>View all alerts</Trans>
-        </Link>
       </div>
 
       {totalAlertCount > 0 ? (
-        // 2026-05-27 (Yuqi follow-up — "alert card is not occupying the
-        // full width"): the previous grid stacked two alerts side-by-
-        // side (`grid-cols-2`) and reserved a 160px overflow column.
-        // Side-by-side narrows each card and forces the alert body to
-        // wrap — at one alert it was full-width, at two it suddenly
-        // chopped in half. Now every alert renders as a full-width row
-        // stacked vertically. The overflow card sits as a final row at
-        // the same width, so the section reads top-to-bottom like a
-        // mini-inbox instead of a 2-column tile grid.
-        <div className="flex flex-col gap-2">
+        // 2026-05-27 (Yuqi revert — "怎么会变成这样vertical"): restored
+        // the horizontal grid layout. Two alert cards sit side-by-side
+        // with a fixed 160px overflow column when there are extra
+        // alerts. The full-width vertical stack read as a cramped
+        // mini-inbox; the grid lets Today's alerts sit as parallel
+        // tiles like the rest of the dashboard surfaces.
+        <div
+          className={cn(
+            'grid items-stretch gap-3',
+            alerts.length === 1 && 'grid-cols-1',
+            alerts.length === 2 && 'grid-cols-2',
+            overflowCount > 0 && 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px]',
+          )}
+        >
           {visibleAlerts.map((alert) => (
-            <div key={alert.id} className="min-w-0">
+            <div key={alert.id} className="h-full min-w-0">
               <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
             </div>
           ))}
