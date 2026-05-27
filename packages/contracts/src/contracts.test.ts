@@ -679,9 +679,11 @@ describe('@duedatehq/contracts', () => {
     expect(bulkInput.status).toBe('extended')
     const bulkOutput = ObligationBulkStatusUpdateOutputSchema.parse({
       updatedCount: 1,
+      skippedCount: 0,
       auditIds: ['33333333-3333-4333-8333-333333333333'],
     })
     expect(bulkOutput.updatedCount).toBe(1)
+    expect(bulkOutput.skippedCount).toBe(0)
 
     const filedRejectionInput = ObligationMarkFiledRejectedInputSchema.parse({
       id: '11111111-1111-4111-8111-111111111111',

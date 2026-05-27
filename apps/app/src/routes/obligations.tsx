@@ -1457,12 +1457,21 @@ export function ObligationQueueRoute() {
         // CPAs say "deadlines" or "filings". Title also dropped the
         // word "Bulk" — the description carries the count which is
         // already the bulk signal.
-        // 2026-05-27 (Step 6 #156 — P2): title now reflects which
-        // status was applied so a CPA running several bulk actions
-        // back-to-back can distinguish them at a glance. The status
-        // label resolves through the v2-aware `statusLabels` map.
+        // 2026-05-27 (Step 6 #156 — P2): title reflects which status
+        // was applied so a CPA running several bulk actions back-to-
+        // back can distinguish them at a glance. The status label
+        // resolves through the v2-aware `statusLabels` map.
+        // 2026-05-27 (bulk-status partial-skip): the RPC now silently
+        // skips rows whose source status can't reach the target per
+        // the transition matrix (e.g. a terminal `completed` row in
+        // a "Waiting on client" batch). Surface the skipped count so
+        // preparers know the batch wasn't entirely applied.
+        const skipped = result.skippedCount
         toast.success(t`Status changed to ${statusLabels[variables.status]}`, {
-          description: t`${result.updatedCount} deadlines changed`,
+          description:
+            skipped > 0
+              ? t`${result.updatedCount} deadlines changed · ${skipped} skipped (already closed)`
+              : t`${result.updatedCount} deadlines changed`,
         })
       },
       onError: (err) => {
@@ -4695,9 +4704,6 @@ function AssigneeQuickPicker({
         }
       />
       <DropdownMenuContent align="start" className="w-60">
-        <DropdownMenuLabel className="text-caption-xs uppercase tracking-wide text-text-tertiary">
-          <Trans>Assign owner</Trans>
-        </DropdownMenuLabel>
         <DropdownMenuRadioGroup
           value={currentAssigneeId ?? '__unassigned__'}
           onValueChange={(value) => {

@@ -3468,10 +3468,14 @@ function ClientWorkPlanPanel({
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        const skipped = result.skippedCount
         toast.success(
           vars.ids.length === 1
             ? t`Status changed to ${v2StatusLabels[vars.status]}`
             : t`${result.updatedCount} deadlines moved to ${v2StatusLabels[vars.status]}`,
+          skipped > 0
+            ? { description: t`${skipped} skipped (already closed)` }
+            : undefined,
         )
         clearSelection()
       },

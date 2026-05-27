@@ -291,6 +291,7 @@ export type ObligationBulkStatusUpdateInput = z.infer<typeof ObligationBulkStatu
 
 export const ObligationBulkStatusUpdateOutputSchema = z.object({
   updatedCount: z.number().int().min(0),
+  skippedCount: z.number().int().min(0),
   auditIds: z.array(EntityIdSchema),
 })
 export type ObligationBulkStatusUpdateOutput = z.infer<

@@ -695,22 +695,25 @@ export async function bulkUpdateObligationStatus(
     })
   }
 
-  const changedRows = beforeRows.filter((row) => row.status !== input.status)
-  if (changedRows.length === 0) {
-    return { updatedCount: 0, auditIds: [] }
+  const candidateRows = beforeRows.filter((row) => row.status !== input.status)
+  if (candidateRows.length === 0) {
+    return { updatedCount: 0, skippedCount: 0, auditIds: [] }
   }
 
-  // Lifecycle v2: bulk transitions must each pass the matrix. Any
-  // illegal source row blocks the entire batch so the partial-failure
-  // surprise doesn't bite preparers mid-tax-week. (Per the brief's
-  // bulk-error contract: "<N> rows skipped — illegal status transition")
-  const illegalRow = changedRows.find(
-    (row) => !isLegalObligationTransition(row.status, input.status),
+  // Lifecycle v2 bulk-error contract: silently skip rows whose source
+  // status can't reach `input.status` per the transition matrix
+  // (e.g. terminal `completed` rows in a "Set status → Waiting on
+  // client" selection). Return the skipped count so the client can
+  // surface "<N> deadlines skipped" alongside the success toast.
+  // Throwing the whole batch was the prior behavior — it bit
+  // preparers mid-tax-week when one stray closed row poisoned an
+  // otherwise valid bulk action.
+  const changedRows = candidateRows.filter((row) =>
+    isLegalObligationTransition(row.status, input.status),
   )
-  if (illegalRow) {
-    throw new ORPCError('BAD_REQUEST', {
-      message: `Illegal status transition for deadline ${illegalRow.id}: ${illegalRow.status} → ${input.status}.`,
-    })
+  const skippedCount = candidateRows.length - changedRows.length
+  if (changedRows.length === 0) {
+    return { updatedCount: 0, skippedCount, auditIds: [] }
   }
 
   await scoped.obligations.updateStatusMany(
@@ -784,6 +787,7 @@ export async function bulkUpdateObligationStatus(
 
   return {
     updatedCount: changedRows.length,
+    skippedCount,
     auditIds,
   }
 }
