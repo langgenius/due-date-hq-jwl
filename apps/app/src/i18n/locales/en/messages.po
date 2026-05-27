@@ -54,18 +54,6 @@ msgstr "(Medium)"
 msgid "(no longer on team)"
 msgstr "(no longer on team)"
 
-#. placeholder {0}: normalizationSummary.affectedExceptionClients
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, =0 {None} one {# client} other {# clients}}"
-msgstr "{0, plural, =0 {None} one {# client} other {# clients}}"
-
-#. placeholder {0}: normalizationSummary.exceptionGroups
-#. placeholder {0}: normalizationSummary.readyGroups
-#. placeholder {0}: normalizationSummary.totalGroups
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, =0 {None} one {# group} other {# groups}}"
-msgstr "{0, plural, =0 {None} one {# group} other {# groups}}"
-
 #. placeholder {0}: summary.lowConfidenceColumns + summary.badRows
 #: src/features/migration/Step2Mapping.tsx
 msgid "{0, plural, =0 {None} one {# item} other {# items}}"
@@ -76,15 +64,10 @@ msgstr "{0, plural, =0 {None} one {# item} other {# items}}"
 msgid "{0, plural, one {# applicable} other {# applicable}}"
 msgstr "{0, plural, one {# applicable} other {# applicable}}"
 
-#. placeholder {0}: normalizationSummary.affectedExceptionClients
+#. placeholder {0}: summary.clientsCovered
 #: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# client is affected by a safe fallback.} other {# clients are affected by safe fallbacks.}}"
-msgstr "{0, plural, one {# client is affected by a safe fallback.} other {# clients are affected by safe fallbacks.}}"
-
-#. placeholder {0}: summary.reviewClients
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# client will carry state-review context into the preview.} other {# clients will carry state-review context into the preview.}}"
-msgstr "{0, plural, one {# client will carry state-review context into the preview.} other {# clients will carry state-review context into the preview.}}"
+msgid "{0, plural, one {# client covered} other {# clients covered}}"
+msgstr "{0, plural, one {# client covered} other {# clients covered}}"
 
 #. placeholder {0}: cell.appliedClientCount
 #. placeholder {0}: group.affectedClientCount
@@ -152,11 +135,6 @@ msgstr "{0, plural, one {# deadline} other {# deadlines}}"
 msgid "{0, plural, one {# gap} other {# gap}}"
 msgstr "{0, plural, one {# gap} other {# gap}}"
 
-#. placeholder {0}: summary.enabledCells
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# group} other {# groups}}"
-msgstr "{0, plural, one {# group} other {# groups}}"
-
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# jurisdiction} other {# jurisdictions}}"
@@ -177,7 +155,10 @@ msgstr "{0, plural, one {# match for \"{query}\"} other {# matches for \"{query}
 msgid "{0, plural, one {# missing} other {# missing}}"
 msgstr "{0, plural, one {# missing} other {# missing}}"
 
+#. placeholder {0}: category.needsReview
 #. placeholder {0}: group.pendingReviewCount
+#. placeholder {0}: summary.reviewCells
+#: src/features/migration/Step3Normalize.tsx
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# needs review} other {# need review}}"
 msgstr "{0, plural, one {# needs review} other {# need review}}"
@@ -229,20 +210,10 @@ msgstr "{0, plural, one {# source attached} other {# sources attached}}"
 msgid "{0, plural, one {# state rule type} other {# state rule types}}"
 msgstr "{0, plural, one {# state rule type} other {# state rule types}}"
 
-#. placeholder {0}: summary.reviewCells
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# tax type group needs rule review} other {# tax type groups need rule review}}"
-msgstr "{0, plural, one {# tax type group needs rule review} other {# tax type groups need rule review}}"
-
 #. placeholder {0}: yearGroups.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0, plural, one {# tax year} other {# tax years}}"
 msgstr "{0, plural, one {# tax year} other {# tax years}}"
-
-#. placeholder {0}: normalizationSummary.exceptionGroups
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# value group needs review} other {# value groups need review}}"
-msgstr "{0, plural, one {# value group needs review} other {# value groups need review}}"
 
 #. placeholder {0}: -days
 #: src/features/dashboard/actions-list.tsx
@@ -806,6 +777,18 @@ msgstr "{totalPending} rules"
 msgid "{totalRules, plural, one {# rule} other {# rules}}"
 msgstr "{totalRules, plural, one {# rule} other {# rules}}"
 
+#: src/features/migration/Step3Normalize.tsx
+msgid "{totalValues, plural, one {entity type} other {entity types}}"
+msgstr "{totalValues, plural, one {entity type} other {entity types}}"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "{totalValues, plural, one {state} other {states}}"
+msgstr "{totalValues, plural, one {state} other {states}}"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "{totalValues, plural, one {tax type} other {tax types}}"
+msgstr "{totalValues, plural, one {tax type} other {tax types}}"
+
 #: src/features/obligations/CompletedKeyDates.tsx
 msgid "{turnaroundDays, plural, one {# day} other {# days}}"
 msgstr "{turnaroundDays, plural, one {# day} other {# days}}"
@@ -862,6 +845,14 @@ msgstr "+ {0} more"
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
 msgstr "+{0} more"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · <2>{needsReview}</2> need review ({affectedClients, plural, one {# client} other {# clients}} affected)"
+msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · <2>{needsReview}</2> need review ({affectedClients, plural, one {# client} other {# clients}} affected)"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · all matched"
+msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · all matched"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "0 ongoing"
@@ -1506,6 +1497,10 @@ msgstr "All impact"
 #: src/routes/obligations.tsx
 msgid "All items received."
 msgstr "All items received."
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "all matched"
+msgstr "all matched"
 
 #: src/routes/obligations.tsx
 msgid "All received"
@@ -2432,10 +2427,6 @@ msgstr "City"
 msgid "Cleaned up an imported value."
 msgstr "Cleaned up an imported value."
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Cleaned value groups"
-msgstr "Cleaned value groups"
-
 #: src/routes/obligations.tsx
 msgid "Cleaning up client's books"
 msgstr "Cleaning up client's books"
@@ -2691,13 +2682,8 @@ msgid "Clients"
 msgstr "Clients"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/migration/Step3Normalize.tsx
 msgid "Clients affected"
 msgstr "Clients affected"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Clients covered"
-msgstr "Clients covered"
 
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/FixNeedsFactsSheet.tsx
@@ -3740,10 +3726,6 @@ msgstr "Decision memo (required)"
 msgid "Decision memo is required."
 msgstr "Decision memo is required."
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Default tax types are ready for clients without tax types."
-msgstr "Default tax types are ready for clients without tax types."
-
 #: src/routes/practice.tsx
 msgid "Delete practice"
 msgstr "Delete practice"
@@ -3804,10 +3786,6 @@ msgstr "Disable MFA"
 #: src/routes/account.security.tsx
 msgid "Disable two-factor authentication?"
 msgstr "Disable two-factor authentication?"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Disabled"
-msgstr "Disabled"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Disabled cells"
@@ -5078,10 +5056,6 @@ msgstr "Hide"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Hide column details"
 msgstr "Hide column details"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Hide tax type defaults"
-msgstr "Hide tax type defaults"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
@@ -8796,10 +8770,6 @@ msgstr "Removing…"
 msgid "Reopen the return for drafting"
 msgstr "Reopen the return for drafting"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Repeated values are grouped, so large imports stay reviewable."
-msgstr "Repeated values are grouped, so large imports stay reviewable."
-
 #: src/features/migration/Step1Intake.tsx
 msgid "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
 msgstr "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
@@ -8983,10 +8953,6 @@ msgstr "Review {0} in deadline drawer"
 #: src/routes/rules.library.tsx
 msgid "Review {count}"
 msgstr "Review {count}"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Review all groups"
-msgstr "Review all groups"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review applied Pulse exceptions changing due dates."
@@ -9494,6 +9460,10 @@ msgstr "Save these recovery codes now"
 msgid "Saved"
 msgstr "Saved"
 
+#: src/features/migration/Step3Normalize.tsx
+msgid "Saved as default"
+msgstr "Saved as default"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Saved deadline view"
 msgstr "Saved deadline view"
@@ -9949,10 +9919,6 @@ msgstr "Show"
 msgid "Show all"
 msgstr "Show all"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Show fewer groups"
-msgstr "Show fewer groups"
-
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "Showing {0} of {totalGroupCount} jurisdictions"
@@ -10330,10 +10296,6 @@ msgstr "STATE"
 msgid "State context added"
 msgstr "State context added"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "State review"
-msgstr "State review"
-
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "State rule coverage (optional)"
 msgstr "State rule coverage (optional)"
@@ -10471,10 +10433,6 @@ msgstr "Suggested forms"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Suggested forms and vouchers"
 msgstr "Suggested forms and vouchers"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Suggestions"
-msgstr "Suggestions"
 
 #: src/routes/obligations.tsx
 msgid "Summarize what the authority rejected and what needs correction."
@@ -11543,10 +11501,6 @@ msgstr "Using Other"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "UTC time"
 msgstr "UTC time"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Value groups"
-msgstr "Value groups"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Variables: client_name, tax_type, due_date, offset_days, obligation_url, and unsubscribe_url."

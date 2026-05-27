@@ -54,18 +54,6 @@ msgstr "（中）"
 msgid "(no longer on team)"
 msgstr "（已不在团队中）"
 
-#. placeholder {0}: normalizationSummary.affectedExceptionClients
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, =0 {None} one {# client} other {# clients}}"
-msgstr "{0, plural, =0 {无} one {# 个客户} other {# 个客户}}"
-
-#. placeholder {0}: normalizationSummary.exceptionGroups
-#. placeholder {0}: normalizationSummary.readyGroups
-#. placeholder {0}: normalizationSummary.totalGroups
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, =0 {None} one {# group} other {# groups}}"
-msgstr "{0, plural, =0 {无} one {# 组} other {# 组}}"
-
 #. placeholder {0}: summary.lowConfidenceColumns + summary.badRows
 #: src/features/migration/Step2Mapping.tsx
 msgid "{0, plural, =0 {None} one {# item} other {# items}}"
@@ -76,15 +64,10 @@ msgstr "{0, plural, =0 {无} one {# 项} other {# 项}}"
 msgid "{0, plural, one {# applicable} other {# applicable}}"
 msgstr "{0, plural, one {# 个适用} other {# 个适用}}"
 
-#. placeholder {0}: normalizationSummary.affectedExceptionClients
+#. placeholder {0}: summary.clientsCovered
 #: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# client is affected by a safe fallback.} other {# clients are affected by safe fallbacks.}}"
-msgstr "{0, plural, one {# 个客户受安全回退影响。} other {# 个客户受安全回退影响。}}"
-
-#. placeholder {0}: summary.reviewClients
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# client will carry state-review context into the preview.} other {# clients will carry state-review context into the preview.}}"
-msgstr "{0, plural, one {# 个客户会带着州规则复核上下文进入预览。} other {# 个客户会带着州规则复核上下文进入预览。}}"
+msgid "{0, plural, one {# client covered} other {# clients covered}}"
+msgstr "{0, plural, one {覆盖 # 个客户} other {覆盖 # 个客户}}"
 
 #. placeholder {0}: cell.appliedClientCount
 #. placeholder {0}: group.affectedClientCount
@@ -152,11 +135,6 @@ msgstr "{0, plural, other {# 个截止事项}}"
 msgid "{0, plural, one {# gap} other {# gap}}"
 msgstr "{0, plural, one {# 个缺口} other {# 个缺口}}"
 
-#. placeholder {0}: summary.enabledCells
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# group} other {# groups}}"
-msgstr "{0, plural, one {# 组} other {# 组}}"
-
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# jurisdiction} other {# jurisdictions}}"
@@ -177,7 +155,10 @@ msgstr "{0, plural, other {# 条与 \"{query}\" 匹配的结果}}"
 msgid "{0, plural, one {# missing} other {# missing}}"
 msgstr "{0, plural, other {# 项缺失}}"
 
+#. placeholder {0}: category.needsReview
 #. placeholder {0}: group.pendingReviewCount
+#. placeholder {0}: summary.reviewCells
+#: src/features/migration/Step3Normalize.tsx
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# needs review} other {# need review}}"
 msgstr "{0, plural, other {# 项待审核}}"
@@ -229,20 +210,10 @@ msgstr "{0, plural, other {# 个来源已关联}}"
 msgid "{0, plural, one {# state rule type} other {# state rule types}}"
 msgstr "{0, plural, other {# 类州规则}}"
 
-#. placeholder {0}: summary.reviewCells
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# tax type group needs rule review} other {# tax type groups need rule review}}"
-msgstr "{0, plural, one {# 个税种组需要规则复核} other {# 个税种组需要规则复核}}"
-
 #. placeholder {0}: yearGroups.length
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{0, plural, one {# tax year} other {# tax years}}"
 msgstr "{0, plural, one {# 个税年} other {# 个税年}}"
-
-#. placeholder {0}: normalizationSummary.exceptionGroups
-#: src/features/migration/Step3Normalize.tsx
-msgid "{0, plural, one {# value group needs review} other {# value groups need review}}"
-msgstr "{0, plural, one {# 个值组需要复核} other {# 个值组需要复核}}"
 
 #. placeholder {0}: -days
 #: src/features/dashboard/actions-list.tsx
@@ -806,6 +777,18 @@ msgstr "{totalPending} rules"
 msgid "{totalRules, plural, one {# rule} other {# rules}}"
 msgstr "{totalRules, plural, one {# rule} other {# rules}}"
 
+#: src/features/migration/Step3Normalize.tsx
+msgid "{totalValues, plural, one {entity type} other {entity types}}"
+msgstr "{totalValues, plural, one {个实体类型} other {个实体类型}}"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "{totalValues, plural, one {state} other {states}}"
+msgstr "{totalValues, plural, one {个州} other {个州}}"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "{totalValues, plural, one {tax type} other {tax types}}"
+msgstr "{totalValues, plural, one {个税种} other {个税种}}"
+
 #: src/features/obligations/CompletedKeyDates.tsx
 msgid "{turnaroundDays, plural, one {# day} other {# days}}"
 msgstr "{turnaroundDays, plural, other {# 天}}"
@@ -862,6 +845,14 @@ msgstr "还有 {0} 项"
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
 msgstr "+{0} more"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · <2>{needsReview}</2> need review ({affectedClients, plural, one {# client} other {# clients}} affected)"
+msgstr "<0>{totalValues}</0> 个值，分 <1>{categoryCount}</1> 个类别 · <2>{needsReview}</2> 个待复核（影响 {affectedClients, plural, one {# 个客户} other {# 个客户}}）"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · all matched"
+msgstr "<0>{totalValues}</0> 个值，分 <1>{categoryCount}</1> 个类别 · 全部已匹配"
 
 #: src/features/pulse/AlertsListPage.tsx
 msgid "0 ongoing"
@@ -1506,6 +1497,10 @@ msgstr "全部影响"
 #: src/routes/obligations.tsx
 msgid "All items received."
 msgstr "All items received."
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "all matched"
+msgstr "全部已匹配"
 
 #: src/routes/obligations.tsx
 msgid "All received"
@@ -2432,10 +2427,6 @@ msgstr "城市"
 msgid "Cleaned up an imported value."
 msgstr "已清理导入值。"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Cleaned value groups"
-msgstr "已整理的值组"
-
 #: src/routes/obligations.tsx
 msgid "Cleaning up client's books"
 msgstr "正在整理客户账目"
@@ -2691,13 +2682,8 @@ msgid "Clients"
 msgstr "客户"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/migration/Step3Normalize.tsx
 msgid "Clients affected"
 msgstr "受影响客户"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Clients covered"
-msgstr "覆盖客户"
 
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/FixNeedsFactsSheet.tsx
@@ -3740,10 +3726,6 @@ msgstr "决策备注（必填）"
 msgid "Decision memo is required."
 msgstr "必须填写决策备注。"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Default tax types are ready for clients without tax types."
-msgstr "已为没有税种的客户准备默认税种。"
-
 #: src/routes/practice.tsx
 msgid "Delete practice"
 msgstr "删除事务所"
@@ -3804,10 +3786,6 @@ msgstr "停用 MFA"
 #: src/routes/account.security.tsx
 msgid "Disable two-factor authentication?"
 msgstr "要停用双重验证吗？"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Disabled"
-msgstr "已停用"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Disabled cells"
@@ -5078,10 +5056,6 @@ msgstr "隐藏"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Hide column details"
 msgstr "隐藏列详情"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Hide tax type defaults"
-msgstr "隐藏税种默认值"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/clients/CreateClientDialog.tsx
@@ -8796,10 +8770,6 @@ msgstr "正在移除…"
 msgid "Reopen the return for drafting"
 msgstr "重新打开该申报继续起草"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Repeated values are grouped, so large imports stay reviewable."
-msgstr "重复值已按组汇总，因此大批量导入也可以快速复核。"
-
 #: src/features/migration/Step1Intake.tsx
 msgid "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
 msgstr "Reporting CSV 只覆盖受支持且已 e-file 的联邦申报；Intuit Link 文档 ZIP 不是主要客户清单。"
@@ -8983,10 +8953,6 @@ msgstr "在截止日期抽屉中查看 {0}"
 #: src/routes/rules.library.tsx
 msgid "Review {count}"
 msgstr "审核 {count} 项"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Review all groups"
-msgstr "查看全部值组"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review applied Pulse exceptions changing due dates."
@@ -9494,6 +9460,10 @@ msgstr "立即保存这些恢复码"
 msgid "Saved"
 msgstr "已保存"
 
+#: src/features/migration/Step3Normalize.tsx
+msgid "Saved as default"
+msgstr "已设为默认"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Saved deadline view"
 msgstr "Saved deadline view"
@@ -9949,10 +9919,6 @@ msgstr "显示"
 msgid "Show all"
 msgstr "全部显示"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "Show fewer groups"
-msgstr "收起部分值组"
-
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "Showing {0} of {totalGroupCount} jurisdictions"
@@ -10330,10 +10296,6 @@ msgstr "州"
 msgid "State context added"
 msgstr "已补充州级上下文"
 
-#: src/features/migration/Step3Normalize.tsx
-msgid "State review"
-msgstr "州规则复核"
-
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "State rule coverage (optional)"
 msgstr "州规则覆盖范围（可选）"
@@ -10471,10 +10433,6 @@ msgstr "建议表格"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Suggested forms and vouchers"
 msgstr "Suggested forms and vouchers"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Suggestions"
-msgstr "Suggestions"
 
 #: src/routes/obligations.tsx
 msgid "Summarize what the authority rejected and what needs correction."
@@ -11543,10 +11501,6 @@ msgstr "按 Other 导入"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "UTC time"
 msgstr "UTC 时间"
-
-#: src/features/migration/Step3Normalize.tsx
-msgid "Value groups"
-msgstr "值组"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Variables: client_name, tax_type, due_date, offset_days, obligation_url, and unsubscribe_url."
