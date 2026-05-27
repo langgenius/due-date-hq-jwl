@@ -124,6 +124,7 @@ import { SearchInput } from '@/components/primitives/search-input'
 import { getAssigneeTint } from '@/lib/assignee-tint'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
+import { JurisdictionCode } from '@/features/rules/rules-console-primitives'
 import { formatDate, formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -133,6 +134,7 @@ import { useCurrentUserName } from '@/lib/use-current-user-name'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
 import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
@@ -472,31 +474,24 @@ function ClientFilingStateChips({ client }: { client: ClientPublic }) {
   if (states.length === 0) return null
   const visible = states.slice(0, 3)
   const overflow = states.length - visible.length
-  // 2026-05-24 (clarify — critique P1): these used to render as
-  // `Badge variant="secondary"` next to the LIVE owner pill in the
-  // H1 chip cluster. Same visual treatment, but the owner pill is
-  // interactive and these chips are not — that's a UI lie. First-
-  // timer CPAs waste ~30s trying to click them.
-  //
-  // Demoted to plain monospace tokens with a hairline border. They
-  // still scan as filing-state codes (font-mono + uppercase + tabular)
-  // but the badge frame is gone so they read as labels, not affordances.
-  // Live chips in the cluster (owner, readiness, add-state) keep their
-  // badge treatment so the live-vs-dead distinction reads instantly.
+  // Uses the canonical `JurisdictionCode` chip from rules-console so the
+  // same fact reads the same way across /clients/[id] header, the rules
+  // library, and rules sources. JurisdictionCode is intentionally subtle
+  // (h-[18px], rounded-sm, gray, monospace) — it reads as a code label,
+  // not a button, so the earlier "looks-clickable" concern stays solved.
   return (
     <div
-      className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs leading-4 text-text-tertiary"
+      className="flex flex-wrap items-center gap-1"
       title={
         states.length === 1 ? `Filing state: ${states[0]}` : `Filing states: ${states.join(', ')}`
       }
     >
-      {visible.map((state, index) => (
-        <span key={state} className="inline-flex items-center gap-1">
-          {index > 0 ? <span aria-hidden>·</span> : null}
-          <span className="font-mono uppercase tabular-nums text-text-secondary">{state}</span>
-        </span>
+      {visible.map((state) => (
+        <JurisdictionCode key={state} code={state} />
       ))}
-      {overflow > 0 ? <span className="tabular-nums text-text-tertiary">+{overflow}</span> : null}
+      {overflow > 0 ? (
+        <span className="text-caption tabular-nums text-text-tertiary">+{overflow}</span>
+      ) : null}
     </div>
   )
 }
@@ -2016,26 +2011,19 @@ function ClientsActionStrip({
   if (isLoading) return <ClientsActionStripSkeleton />
   if (!hasBanner) return null
 
-  // 2026-05-26 (Yuqi follow-up — "Ugly banner. Fix now can be in red.
-  // Remove the left stroke."): retired the `variant="warning"` Alert
-  // primitive (which paints a full amber border that read as a
-  // heavy/striped frame). The banner now renders as a slim flat strip
-  // — neutral muted background, no border, no leading icon column.
-  // The "Fix now" CTA explicitly red so the action reads as
-  // destructive-toned ("there's a problem here, fix it").
+  // Chrome mirrors the canonical InfoBanner sibling that sits right
+  // above it (the import-CSV tip): h-12 row, `bg-background-subtle`,
+  // `border border-divider-subtle`, `rounded-md`. AlertTriangle + red
+  // button keep the destructive tone — this is "warning + action," not
+  // "tip + dismiss."
   return (
     <div
       role="status"
-      // Action-strip banner: white surface + subtle border + full pill.
-      // White (`bg-background-default`) is required — `bg-background-subtle`
-      // reads as page wallpaper and the strip disappears. Full pill
-      // (rounded-full) signals "single-row status bar," visually distinct
-      // from the table card below.
-      className="flex flex-col gap-2 rounded-full border border-divider-subtle bg-background-default px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+      className="flex flex-col gap-2 rounded-md border border-divider-subtle bg-background-subtle px-3 py-2 sm:h-12 sm:flex-row sm:items-center sm:gap-3 sm:py-0"
     >
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         <AlertTriangleIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
-        <p className="text-sm text-text-primary">
+        <p className="min-w-0 text-sm text-text-secondary">
           <Plural
             value={needsFactsCount}
             one="# client is missing state or entity type — the rule library is skipping it."
@@ -2171,7 +2159,9 @@ export function ClientDetailWorkspace({
   // forms + future business cues), Activity is lazy-loaded history.
   const [activeTab, setActiveTab] = useQueryState(
     'tab',
-    parseAsStringLiteral(['work', 'info', 'discover', 'activity'] as const).withDefault('work'),
+    parseAsStringLiteral(['work', 'info', 'opportunities', 'activity'] as const).withDefault(
+      'work',
+    ),
   )
   // 2026-05-26 (Yuqi tab-body follow-ups, Task 1): wire 1/2/3/4 as
   // hotkeys for the four tabs. Mirrors the J/K cycle pattern in
@@ -2202,10 +2192,10 @@ export function ClientDetailWorkspace({
       scope: 'route',
     },
   })
-  useAppHotkey('3', () => void setActiveTab('discover'), {
+  useAppHotkey('3', () => void setActiveTab('opportunities'), {
     enabled: !shortcutsBlocked,
     meta: {
-      id: 'clients.tab.discover',
+      id: 'clients.tab.opportunities',
       name: 'Opportunities tab',
       description: 'Switch to the Opportunities tab (suggested forms + cues).',
       category: 'navigate',
@@ -2235,6 +2225,11 @@ export function ClientDetailWorkspace({
     setActiveTab: setObligationTab,
     closeDrawer: closeObligationPanel,
   } = useObligationDrawer()
+  // When the right obligation panel is open the left column squeezes
+  // to ~40% width — drive tab strip, summary strip, and the "Add
+  // deadline" CTA into compact icon-only modes so they don't ellipsize
+  // or wrap (audit L9).
+  const panelOpen = activeObligationId !== null
   const riskSummaryQuery = useQuery(
     orpc.clients.getRiskSummary.queryOptions({ input: { clientId: client.id } }),
   )
@@ -2606,7 +2601,22 @@ export function ClientDetailWorkspace({
                   canReadAudit={canReadAudit}
                   onArchive={() => setArchiveOpen(true)}
                 />
-                <CreateObligationDialog defaultClientId={client.id} />
+                <CreateObligationDialog
+                  defaultClientId={client.id}
+                  trigger={
+                    panelOpen ? (
+                      <Button
+                        type="button"
+                        size="icon-sm"
+                        variant="default"
+                        aria-label={t`Add deadline`}
+                        title={t`Add deadline`}
+                      >
+                        <PlusIcon className="size-4" aria-hidden />
+                      </Button>
+                    ) : undefined
+                  }
+                />
               </>
             }
           />
@@ -2663,7 +2673,11 @@ export function ClientDetailWorkspace({
               extensionPaymentMismatches={extensionPaymentMismatches}
             />
 
-            <ClientSummaryStrip clientId={client.id} obligations={obligations} />
+            <ClientSummaryStrip
+              clientId={client.id}
+              obligations={obligations}
+              compact={panelOpen}
+            />
 
             {/* 4-tab body (2026-05-22). Replaces the V14 stacked-
                 sections shape. Reasoning in
@@ -2683,7 +2697,7 @@ export function ClientDetailWorkspace({
                 if (
                   value === 'work' ||
                   value === 'info' ||
-                  value === 'discover' ||
+                  value === 'opportunities' ||
                   value === 'activity'
                 ) {
                   void setActiveTab(value)
@@ -2733,7 +2747,7 @@ export function ClientDetailWorkspace({
                   via `ClientDetailTabTrigger`. */}
               <TabsList
                 variant="line"
-                className="flex shrink-0 gap-1 bg-transparent px-0 text-base"
+                className="flex shrink-0 gap-1 overflow-x-auto bg-transparent px-0 text-base"
               >
                 {/* 2026-05-26 (Yuqi feedback — "add icons for each
                     of them"): leading lucide glyph per tab. Matches
@@ -2748,13 +2762,17 @@ export function ClientDetailWorkspace({
                       • Activity → Activity (timeline / pulse)
                     Sizes match the deadline drawer at `size-3.5` so
                     glyph weight stays consistent across surfaces. */}
-                <ClientDetailTabTrigger value="work" activeTab={activeTab}>
+                <ClientDetailTabTrigger value="work" activeTab={activeTab} compact={panelOpen}>
                   <ClipboardListIcon className="size-3.5" aria-hidden />
-                  <Trans>Work</Trans>
+                  <span data-tab-label>
+                    <Trans>Work</Trans>
+                  </span>
                 </ClientDetailTabTrigger>
-                <ClientDetailTabTrigger value="info" activeTab={activeTab}>
+                <ClientDetailTabTrigger value="info" activeTab={activeTab} compact={panelOpen}>
                   <UserRoundIcon className="size-3.5" aria-hidden />
-                  <Trans>Client info</Trans>
+                  <span data-tab-label>
+                    <Trans>Client info</Trans>
+                  </span>
                   {/* 2026-05-26 (Yuqi post-revamp critique P2 / §5):
                       dot → count chip. The dot signaled "something
                       is missing" but didn't say HOW MUCH. A count
@@ -2769,17 +2787,21 @@ export function ClientDetailWorkspace({
                     </span>
                   ) : null}
                 </ClientDetailTabTrigger>
-                {/* 2026-05-26 (Yuqi post-revamp critique P1 / §5):
-                    tab label renamed `Discover` → `Opportunities`.
-                    URL key stays `discover` so deep links don't
-                    break. */}
-                <ClientDetailTabTrigger value="discover" activeTab={activeTab}>
+                <ClientDetailTabTrigger
+                  value="opportunities"
+                  activeTab={activeTab}
+                  compact={panelOpen}
+                >
                   <SparklesIcon className="size-3.5" aria-hidden />
-                  <Trans>Opportunities</Trans>
+                  <span data-tab-label>
+                    <Trans>Opportunities</Trans>
+                  </span>
                 </ClientDetailTabTrigger>
-                <ClientDetailTabTrigger value="activity" activeTab={activeTab}>
+                <ClientDetailTabTrigger value="activity" activeTab={activeTab} compact={panelOpen}>
                   <ActivityIcon className="size-3.5" aria-hidden />
-                  <Trans>Activity</Trans>
+                  <span data-tab-label>
+                    <Trans>Activity</Trans>
+                  </span>
                 </ClientDetailTabTrigger>
               </TabsList>
 
@@ -2895,7 +2917,7 @@ export function ClientDetailWorkspace({
               </TabsContent>
 
               <TabsContent
-                value="discover"
+                value="opportunities"
                 className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
               >
                 <TabSection
@@ -3331,7 +3353,7 @@ function sortObligations(
   return list.toSorted(cmp)
 }
 
-type ClientDetailTabKey = 'work' | 'info' | 'discover' | 'activity'
+type ClientDetailTabKey = 'work' | 'info' | 'opportunities' | 'activity'
 
 // ClientDetailTabTrigger — adopts the canonical /deadlines
 // ObligationQueueScopeTab visual contract for the four detail-page
@@ -3350,10 +3372,15 @@ type ClientDetailTabKey = 'work' | 'info' | 'discover' | 'activity'
 function ClientDetailTabTrigger({
   value,
   activeTab,
+  compact = false,
   children,
 }: {
   value: ClientDetailTabKey
   activeTab: ClientDetailTabKey
+  /** When true, the trigger hides its text label and renders icon-only.
+   *  Used when the right obligation panel is open to keep the tab strip
+   *  fitting the squeezed left column (audit L9). */
+  compact?: boolean
   children: ReactNode
 }) {
   const active = activeTab === value
@@ -3378,6 +3405,11 @@ function ClientDetailTabTrigger({
         active
           ? 'font-medium text-text-primary'
           : 'border-b-2 border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary',
+        // When compact, the label inside the trigger is wrapped in a
+        // span with `[data-tab-label]` and we hide it via this attribute
+        // selector — keeps the icon visible, lets the label remain in
+        // the DOM as `sr-only` so the trigger still announces correctly.
+        compact && '[&_[data-tab-label]]:sr-only',
       )}
     >
       {children}
@@ -3829,278 +3861,203 @@ function FilingPlanYearSection({
           </span>
         ) : null}
       </div>
-      {/* Column header bar — sits flush against the rows so the
-          header looks like the table's legend, not a separate
-          frame inside the year section.
-
-          2026-05-24 (clarify — critique): added `title` tooltips to
-          Internal vs Official so first-timer CPAs don't have to guess
-          which is which. (Many firms use both terms but with different
-          meanings — explicit tooltip > assumed convention.)
-
-          2026-05-24 (shape — critique): header cells are now real
-          sort buttons. Click cycles asc → desc → no sort. Active
-          sort surfaces a small chevron. The leading slot is now a
-          year-level select-all checkbox. */}
-      {/* 2026-05-26 (Yuqi /clients/[id] feedback #9): column-header
-          band uses the canonical workbench-table head treatment —
-          `bg-background-subtle` + `text-sm` + `text-text-secondary`
-          so it reads as a real column-header band, not a quiet
-          eyebrow row. Matches the TableHeader primitive's defaults. */}
-      <div className="flex items-center gap-2 border-y border-divider-subtle bg-background-subtle px-3 py-2 text-sm font-medium leading-5 text-text-secondary">
-        <span className="w-5 shrink-0">
-          <Checkbox
-            checked={yearAllSelected}
-            indeterminate={yearSomeSelected}
-            onCheckedChange={toggleYear}
-            aria-label={t`Select all deadlines in this year`}
-            className="size-4"
-          />
-        </span>
-        <FilingPlanSortHeader
-          className="flex-1"
-          active={sort.field === 'form'}
-          dir={sort.dir}
-          onClick={() => onCycleSort('form')}
-        >
-          <Trans>Form</Trans>
-        </FilingPlanSortHeader>
-        <FilingPlanSortHeader
-          className="w-[120px]"
-          active={sort.field === 'internal'}
-          dir={sort.dir}
-          title={t`The firm-side soft target — when this filing should be ready internally for the deadline window`}
-          onClick={() => onCycleSort('internal')}
-        >
-          <Trans>Internal deadline</Trans>
-        </FilingPlanSortHeader>
-        <FilingPlanSortHeader
-          className="w-[120px]"
-          active={sort.field === 'official'}
-          dir={sort.dir}
-          title={t`The IRS / state statutory due date — the hard deadline the filing must be submitted by`}
-          onClick={() => onCycleSort('official')}
-        >
-          <Trans>Official deadline</Trans>
-        </FilingPlanSortHeader>
-        <FilingPlanSortHeader
-          className="w-[120px]"
-          active={sort.field === 'status'}
-          dir={sort.dir}
-          // 2026-05-26 (Yuqi /clients/[id] feedback #3 — "where does
-          // this status come from?"): hover title explains the data
-          // source. The status is the deadline's lifecycle state
-          // (Not started / In review / Filed / etc.) stored on each
-          // obligation row — the same pill drives /deadlines table +
-          // the obligation drawer header. Clicking the pill in any
-          // row picks a new status; the change writes back to that
-          // single obligation.
-          title={t`The deadline's lifecycle state. Click any row's pill to change its status — the same control as on /deadlines and inside the obligation drawer.`}
-          onClick={() => onCycleSort('status')}
-        >
-          <Trans>Status</Trans>
-        </FilingPlanSortHeader>
-        {/* 2026-05-26 (Yuqi feedback #8 — "右边panel展开时 form
-            看不见了。可以不显示 estimated tax"): Estimated Tax column
-            retired from the filing-plan view. When the right panel
-            opens, the left column shrinks to ~430px; with 5 columns
-            (Form / Internal / Official / Status / Estimated Tax) the
-            FORM cell gets squeezed below readable width. The
-            estimated-tax figure is still available inside the
-            obligation drawer's Summary tab; the table view stays as a
-            quick-scan grid. */}
-        {/* 2026-05-26 (Stripe Phase B per-row ⋯): trailing slot for
-            the per-row actions menu. Width matches the size-7 trigger
-            below so the column header line stays aligned. */}
-        <span className="w-7 shrink-0" aria-hidden />
-      </div>
-      {/* Rows — flat list against the section frame, each separated
-          by a `#f3f4f6` hairline. Last row has no border-b.
-
-          2026-05-24 (shape — critique): rows now use `sortedObligations`
-          (panel-level sort applied). The leading "N" badge was
-          replaced with a per-row selection checkbox so the same slot
-          carries the multi-select affordance the bulk bar reads from. */}
-      <div className="bg-background-default">
-        {sortedObligations.map((obligation, rowIndex) => {
-          // `hasEstimate` retired with the Estimated Tax column (Yuqi feedback #8).
-          const isLast = rowIndex === sortedObligations.length - 1
-          const isSelected = selectedIds.has(obligation.id)
-          return (
-            // 2026-05-24 (audit — critique P2 a11y): row dropped
-            // `role="link"` + `tabIndex={0}` + `onKeyDown`. The
-            // previous shape made the row a focusable link AND
-            // nested two real buttons inside it (checkbox + status
-            // pill) — a nested-interactive violation that screen
-            // readers can't render sensibly. The keyboard-activation
-            // path moved to the form-code cell (now a real <button>)
-            // so SRs get one unambiguous "Open 1120-S" target
-            // without removing the mouse click-anywhere ergonomic.
-            <div
-              key={obligation.id}
-              className={cn(
-                // 2026-05-26 (Stripe Phase A — /bolder): bumped row
-                // height from py-2 (~36px) to min-h-14 (56px) so the
-                // filing-plan grid carries the same generous row scan
-                // density Stripe's transaction tables use. The
-                // tap-target and visual rhythm match the /clients
-                // list (h-14) and /rules/library (h-14) rows.
-                'group/row flex min-h-14 cursor-pointer items-center gap-2 px-3 py-2 transition-colors hover:bg-state-base-hover',
-                isSelected && 'bg-state-accent-hover-alt',
-                !isLast && 'border-b border-divider-subtle',
-              )}
-              onClick={() => onOpen(obligation.id)}
-            >
-              {/* Per-row selection checkbox. Click stops propagation
-                  so toggling selection doesn't also open the drawer.
-                  The leading "N" row index was retired here — its
-                  visual weight read like a priority signal it didn't
-                  actually carry, and the row already has the form
-                  code as its anchor. */}
-              <span
-                className="w-5 shrink-0"
-                onClick={(event) => event.stopPropagation()}
-                // 2026-05-24 (interaction audit): Escape MUST bubble to
-                // the parent Dialog/Sheet close handler. The previous
-                // shape stopped every key including Escape, so users
-                // hitting Esc inside a checkbox-focused row couldn't
-                // close the drawer above it.
-                onKeyDown={(event) => {
-                  if (event.key === 'Escape') return
-                  event.stopPropagation()
-                }}
-              >
-                <Checkbox
-                  checked={isSelected}
-                  onCheckedChange={() => onToggleRow(obligation.id)}
-                  aria-label={t`Select ${formatTaxCode(obligation.taxType)}`}
-                  className="size-4"
-                />
-              </span>
-              {/* Form code cell is the row's keyboard-focusable
-                  open-row target. Tab brings the user here; Enter /
-                  Space opens the drawer. Mouse users still click
-                  anywhere on the row (the parent div's onClick). */}
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onOpen(obligation.id)
-                }}
-                aria-label={t`Open ${formatTaxCode(obligation.taxType)} due ${formatDate(obligation.currentDueDate)}`}
-                // 2026-05-26 (Yuqi /clients/[id] feedback #5 — "is
-                // this the correct size, as we have the title in the
-                // table on Deadlines?"): bumped form-code from
-                // `text-xs` → `text-sm`. The filing-plan row IS the
-                // primary identity anchor in this nested table, same
-                // role the /deadlines row title plays in the queue.
-                // text-sm reads as a real row title (not a footnote)
-                // while still sitting one notch below the page-level
-                // /deadlines canonical (`text-base`) since this lives
-                // inside a tab body, not a top-level workbench surface.
-                className="min-w-0 flex-1 truncate rounded-sm text-left text-sm font-medium leading-5 text-text-primary outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-              >
-                {/* 2026-05-26: plain label here. The filing-plan row is
-                    already the interactive target, so the tax-code help
-                    tooltip/cursor reads as a stray hover affordance. */}
-                <TaxCodeLabel code={obligation.taxType} tooltip={false} />
-              </button>
-              <span className="flex w-[120px] items-baseline gap-1.5 text-xs leading-4 tabular-nums text-text-primary">
-                {formatDate(obligation.currentDueDate)}
-                {/* 2026-05-24 (critique /polish — clarify): when an
-                    extension is on file, the row's Internal/Current
-                    deadline legitimately lands AFTER the Official one
-                    (the row was extended). Add a tiny "ext." chip so
-                    a CPA scanning the column understands the date
-                    ordering without having to read the section-level
-                    "N extended" badge and infer which row it points
-                    at. Tooltip carries the verbose explanation. */}
-                {obligation.extensionState === 'filed' ||
-                obligation.extensionState === 'accepted' ? (
-                  <span
-                    title={t`This row's deadline has been extended. The Official Deadline column shows the original statutory date; the Internal Deadline reflects the new post-extension target.`}
-                    className="rounded-sm bg-components-badge-bg-blue-soft px-1 py-0 text-caption-xs font-medium leading-4 text-text-accent"
-                  >
-                    ext.
-                  </span>
-                ) : null}
-              </span>
-              <span className="w-[120px] text-xs leading-4 tabular-nums text-text-primary">
-                {formatDate(obligation.filingDueDate ?? obligation.currentDueDate)}
-              </span>
-              <span className="flex w-[120px] flex-wrap items-center gap-1">
-                <ObligationQueueStatusControl
-                  row={{ id: obligation.id, status: obligation.status, clientName }}
-                  labels={statusPickerLabels}
-                  statuses={LIFECYCLE_V2_STATUSES}
-                  disabled={isStatusChangePending}
-                  onChange={onChangeStatus}
-                  readOnly={!canChangeStatus}
-                />
-                {/* 2026-05-27 (phi journey audit J1): payment-overdue
-                    chip. A row that's Filed but whose paymentDueDate
-                    has slipped used to read as "Filed" with no
-                    additional cue in the filing-plan grid — the only
-                    surface that flagged this was the obligation drawer's
-                    Payment due tile, four clicks deep. Now: a small
-                    red chip next to the Filed pill names the lateness
-                    inline. Renders compactly ("Payment 71d late") so
-                    the Status column doesn't blow out width-wise. */}
-                {(() => {
-                  const overdueDays = paymentOverdueDays(obligation, Date.now())
-                  if (overdueDays === null) return null
-                  return (
-                    <span
-                      title={t`The filing was submitted, but the authority payment due ${formatDate(obligation.paymentDueDate ?? '')} hasn't been confirmed yet. Penalty interest accrues until the wire lands.`}
-                      className="rounded-sm bg-state-destructive-hover px-1 py-0 text-caption-xs font-medium leading-4 text-text-destructive"
-                    >
-                      <Trans>Payment {overdueDays}d late</Trans>
-                    </span>
-                  )
-                })()}
-              </span>
-              {/* 2026-05-26 (Yuqi feedback #8): Estimated Tax cell
-                  dropped with the column. Inline tax figure now
-                  surfaces only in the obligation drawer (Summary tab). */}
-              {/* 2026-05-26 (Stripe Phase B per-row ⋯): canonical
-                  row-action menu. Hover-revealed so the row reads
-                  clean at rest. Exposes obligation-level actions that
-                  aren't already first-class controls on the row
-                  (the status pill + form-code button already cover
-                  the primary actions). */}
-              <RowActionsMenu
-                label={t`Actions for ${formatTaxCode(obligation.taxType)}`}
-                items={[
-                  {
-                    label: t`Open obligation`,
-                    icon: EyeIcon,
-                    onSelect: () => onOpen(obligation.id),
-                  },
-                  {
-                    label: t`View in Deadlines`,
-                    icon: ExternalLinkIcon,
-                    onSelect: () => {
-                      void navigate(`/deadlines?obligation=${obligation.id}`)
-                    },
-                  },
-                  {
-                    label: t`Copy obligation ID`,
-                    icon: LinkIcon,
-                    onSelect: () => {
-                      if (typeof window === 'undefined') return
-                      try {
-                        void window.navigator.clipboard?.writeText(obligation.id)
-                      } catch {
-                        // Clipboard can throw in sandboxed iframes.
-                        // Silent fail — the action is non-critical.
-                      }
-                    },
-                  },
-                ]}
+      {/* Real <table> for the filing plan body (audit L3). Earlier shape
+          was nested <div>s — screen readers got no row/column semantics,
+          arrow-key cell navigation was lost. Now: <thead>/<tbody>/<tr>/<td>
+          with table-fixed widths preserve the visual rhythm while restoring
+          row-N-of-M announcement + native keyboard table navigation. The
+          per-row cursor-pointer + onClick stay on <tr>, and the nested
+          buttons (form code, status pill, checkbox, row-actions) still
+          stopPropagation so they don't double-fire the row open.
+          The outer wrapper provides horizontal scroll on narrow viewports
+          (mobile/tablet) where the fixed-width columns would otherwise
+          collide with the Form cell. */}
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-[520px] table-fixed">
+        <thead className="bg-background-subtle text-sm font-medium leading-5 text-text-secondary">
+          <tr className="border-y border-divider-subtle">
+            <th scope="col" className="w-9 px-3 py-2 text-left align-middle">
+              <Checkbox
+                checked={yearAllSelected}
+                indeterminate={yearSomeSelected}
+                onCheckedChange={toggleYear}
+                aria-label={t`Select all deadlines in this year`}
+                className="size-4"
               />
-            </div>
-          )
-        })}
+            </th>
+            <th scope="col" className="px-1 py-2 text-left align-middle font-medium">
+              <FilingPlanSortHeader
+                active={sort.field === 'form'}
+                dir={sort.dir}
+                onClick={() => onCycleSort('form')}
+              >
+                <Trans>Form</Trans>
+              </FilingPlanSortHeader>
+            </th>
+            <th
+              scope="col"
+              className="w-[120px] px-1 py-2 text-left align-middle font-medium"
+            >
+              <FilingPlanSortHeader
+                active={sort.field === 'internal'}
+                dir={sort.dir}
+                title={t`The firm-side soft target — when this filing should be ready internally for the deadline window`}
+                onClick={() => onCycleSort('internal')}
+              >
+                <Trans>Internal deadline</Trans>
+              </FilingPlanSortHeader>
+            </th>
+            <th
+              scope="col"
+              className="w-[120px] px-1 py-2 text-left align-middle font-medium"
+            >
+              <FilingPlanSortHeader
+                active={sort.field === 'official'}
+                dir={sort.dir}
+                title={t`The IRS / state statutory due date — the hard deadline the filing must be submitted by`}
+                onClick={() => onCycleSort('official')}
+              >
+                <Trans>Official deadline</Trans>
+              </FilingPlanSortHeader>
+            </th>
+            <th
+              scope="col"
+              className="w-[120px] px-1 py-2 text-left align-middle font-medium"
+            >
+              <FilingPlanSortHeader
+                active={sort.field === 'status'}
+                dir={sort.dir}
+                title={t`The deadline's lifecycle state. Click any row's pill to change its status — the same control as on /deadlines and inside the obligation drawer.`}
+                onClick={() => onCycleSort('status')}
+              >
+                <Trans>Status</Trans>
+              </FilingPlanSortHeader>
+            </th>
+            <th scope="col" className="w-9 px-1 py-2" aria-hidden />
+          </tr>
+        </thead>
+        <tbody className="bg-background-default">
+          {sortedObligations.map((obligation, rowIndex) => {
+            const isLast = rowIndex === sortedObligations.length - 1
+            const isSelected = selectedIds.has(obligation.id)
+            return (
+              <tr
+                key={obligation.id}
+                className={cn(
+                  'group/row cursor-pointer transition-colors hover:bg-state-base-hover',
+                  isSelected && 'bg-state-accent-hover-alt',
+                  !isLast && 'border-b border-divider-subtle',
+                )}
+                onClick={() => onOpen(obligation.id)}
+              >
+                <td
+                  className="w-9 px-3 py-2 align-middle"
+                  onClick={(event) => event.stopPropagation()}
+                  // Escape MUST bubble to the parent Dialog/Sheet close
+                  // handler. Other keys stay scoped so checkbox toggle
+                  // doesn't accidentally fire row open.
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') return
+                    event.stopPropagation()
+                  }}
+                >
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => onToggleRow(obligation.id)}
+                    aria-label={t`Select ${formatTaxCode(obligation.taxType)}`}
+                    className="size-4"
+                  />
+                </td>
+                <td className="min-h-14 px-1 py-2 align-middle">
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onOpen(obligation.id)
+                    }}
+                    aria-label={t`Open ${formatTaxCode(obligation.taxType)} due ${formatDate(obligation.currentDueDate)}`}
+                    className="block w-full min-w-0 truncate rounded-sm text-left text-sm font-medium leading-5 text-text-primary outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  >
+                    <TaxCodeLabel code={obligation.taxType} tooltip={false} />
+                  </button>
+                </td>
+                <td className="w-[120px] px-1 py-2 align-middle">
+                  <span className="flex items-baseline gap-1.5 text-[14px] leading-5 tabular-nums text-text-primary">
+                    {formatDate(obligation.currentDueDate)}
+                    {obligation.extensionState === 'filed' ||
+                    obligation.extensionState === 'accepted' ? (
+                      <span
+                        title={t`This row's deadline has been extended. The Official Deadline column shows the original statutory date; the Internal Deadline reflects the new post-extension target.`}
+                        className="rounded-sm bg-components-badge-bg-blue-soft px-1 py-0 text-caption-xs font-medium leading-4 text-text-accent"
+                      >
+                        ext.
+                      </span>
+                    ) : null}
+                  </span>
+                </td>
+                <td className="w-[120px] px-1 py-2 align-middle text-[14px] leading-5 tabular-nums text-text-primary">
+                  {formatDate(obligation.filingDueDate ?? obligation.currentDueDate)}
+                </td>
+                <td className="w-[120px] px-1 py-2 align-middle">
+                  <span className="flex flex-wrap items-center gap-1">
+                    <ObligationQueueStatusControl
+                      row={{ id: obligation.id, status: obligation.status, clientName }}
+                      labels={statusPickerLabels}
+                      statuses={LIFECYCLE_V2_STATUSES}
+                      disabled={isStatusChangePending}
+                      onChange={onChangeStatus}
+                      readOnly={!canChangeStatus}
+                    />
+                    {(() => {
+                      const overdueDays = paymentOverdueDays(obligation, Date.now())
+                      if (overdueDays === null) return null
+                      return (
+                        <span
+                          title={t`The filing was submitted, but the authority payment due ${formatDate(obligation.paymentDueDate ?? '')} hasn't been confirmed yet. Penalty interest accrues until the wire lands.`}
+                          className="rounded-sm bg-state-destructive-hover px-1 py-0 text-caption-xs font-medium leading-4 text-text-destructive"
+                        >
+                          <Trans>Payment {overdueDays}d late</Trans>
+                        </span>
+                      )
+                    })()}
+                  </span>
+                </td>
+                <td className="w-9 px-1 py-2 align-middle">
+                  <RowActionsMenu
+                    label={t`Actions for ${formatTaxCode(obligation.taxType)}`}
+                    items={[
+                      {
+                        label: t`Open obligation`,
+                        icon: EyeIcon,
+                        onSelect: () => onOpen(obligation.id),
+                      },
+                      {
+                        label: t`View in Deadlines`,
+                        icon: ExternalLinkIcon,
+                        onSelect: () => {
+                          void navigate(`/deadlines?obligation=${obligation.id}`)
+                        },
+                      },
+                      {
+                        label: t`Copy obligation ID`,
+                        icon: LinkIcon,
+                        onSelect: () => {
+                          if (typeof window === 'undefined') return
+                          try {
+                            void window.navigator.clipboard?.writeText(obligation.id)
+                          } catch {
+                            // Clipboard can throw in sandboxed iframes.
+                          }
+                        },
+                      },
+                    ]}
+                  />
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
       </div>
     </div>
   )
@@ -4932,11 +4889,11 @@ function FactCheckRow({
 }
 
 /**
- * Owner avatar for the client table — mirrors the obligations queue
- * pattern (`routes/obligations.tsx`'s `AssigneeAvatar`) so a CPA's
- * "is this mine?" scan reads the same shape across both surfaces.
- * 24px circle with uppercase initials; accent background when the
- * row belongs to the current user; dashed outline when unassigned.
+ * Owner avatar for the client table. Delegates the assigned-name case
+ * to the canonical `AssigneeAvatar` shared with /deadlines so the two
+ * surfaces stay shape-locked; the null-name silhouette is local because
+ * /clients shows a muted person icon while /deadlines opens an inline
+ * picker (different IA per surface).
  */
 function ClientAssigneeAvatar({
   name,
@@ -4947,17 +4904,7 @@ function ClientAssigneeAvatar({
 }) {
   const { t } = useLingui()
   if (!name) {
-    // 2026-05-23: empty-silhouette circle replaces the dashed "?" badge.
-    // The "?" read as a status indicator (suggesting *something is
-    // missing*); the silhouette reads as "no person assigned here yet"
-    // and matches the muted treatment in the design mock. Title stays
-    // explicit for screen readers and tooltip discovery.
     return (
-      // 2026-05-26 (Yuqi cross-table drift #10): unassigned silhouette
-      // bumped from size-6 → size-8 to match the assigned avatar size
-      // canonical (/deadlines AssigneeAvatar). Icon inside stays at
-      // size-3.5 so the silhouette still reads as "icon in a chip,"
-      // not "icon at full disc."
       <span
         aria-label={t`Unassigned`}
         title={t`Unassigned`}
@@ -4970,33 +4917,7 @@ function ClientAssigneeAvatar({
   const isMine =
     currentUserName !== null && name.trim().toLowerCase() === currentUserName.toLowerCase()
   const title = isMine ? t`Assigned to you (${name})` : name
-  // Stable color hash so "AR" and "KP" look visually distinct even
-  // though they're both gray-on-gray badges otherwise. Hash the
-  // assignee name to a 6-bucket palette of background + text colors
-  // that all read as muted/quiet (no high-saturation accent colors —
-  // these are avatars, not status). `isMine` overrides with the
-  // accent palette to keep the "yours" signal louder than the
-  // identity-distinction signal.
-  // 2026-05-26 (Yuqi cross-table drift #10 — "Owner/Assignee avatar
-  // size + initials hash consistency"): bumped size-6 → size-8 and
-  // text-caption-xs → text-sm to match /deadlines AssigneeAvatar (the
-  // canonical "owner column" avatar, sized to match the Today dashboard
-  // owner pill). The /clients owner column is `w-[80px]` so size-8
-  // (32px) fits comfortably; the initials no longer read as cramped
-  // beside the surrounding text-sm meta.
-  const tint = getAssigneeTint(name)
-  return (
-    <span
-      aria-label={title}
-      title={title}
-      className={cn(
-        'inline-flex size-8 items-center justify-center rounded-full text-sm font-semibold uppercase tracking-tight',
-        isMine ? 'bg-state-accent-hover-alt text-text-accent' : tint,
-      )}
-    >
-      {initialsFromName(name)}
-    </span>
-  )
+  return <AssigneeAvatar name={name} isMine={isMine} title={title} />
 }
 
 // ClientOwnerHeaderPill (2026-05-23, rewired 2026-05-24).

@@ -17,10 +17,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *    `ActionsSummaryTile` (text-lg variant, with Link wrapper)
  *
  * Bespoke tiles that intentionally stay outside this primitive:
- *  - `ClientSummaryStrip.TileShell` (`/clients/[id]`) — Figma-replica
- *    anchor tile: 12px-rounded off-white fill, 30%-opacity label,
- *    custom subline composition. Functions as a page anchor signal,
- *    not a generic stat. Different design language; documented inline.
  *  - `RemindersPage.StatTile` — settings-tier tile inside Card chrome
  *    with an icon slot + caption row. Settings pages keep their Card
  *    framing; this primitive targets frameless body surfaces.
@@ -45,8 +41,13 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *  - `critical` — `text-text-destructive`. Use only when the magnitude
  *    is genuinely stuck (Blocked, At risk). Per DESIGN.md §7,
  *    severity color is a scarce resource; never default to it.
+ *  - `muted` — `text-text-tertiary`. For strips that always render the
+ *    same slot count (e.g. /clients/[id] 3-tile anchor) so empty
+ *    values whisper instead of competing with the populated ones.
+ *    Surfaces that just hide zero-count tiles (/today, /opportunities)
+ *    don't need this — they drop empty tiles entirely.
  */
-export type StatTileTone = 'neutral' | 'critical'
+export type StatTileTone = 'neutral' | 'critical' | 'muted'
 
 export function StatTile({
   value,
@@ -83,7 +84,9 @@ export function StatTile({
   // h1 fix (audit T1) restores the proper title/value scale ratio.
   const valueClass = cn(
     'text-xl font-semibold leading-tight tabular-nums tracking-tight',
-    tone === 'critical' ? 'text-text-destructive' : 'text-text-primary',
+    tone === 'critical' && 'text-text-destructive',
+    tone === 'muted' && 'text-text-tertiary',
+    tone === 'neutral' && 'text-text-primary',
   )
 
   const baseClass = cn(

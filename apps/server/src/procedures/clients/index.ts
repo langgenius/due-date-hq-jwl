@@ -819,7 +819,7 @@ const updateSourceDetails = os.clients.updateSourceDetails.handler(async ({ inpu
   }
 })
 
-function clientRiskFallback(clientId: string) {
+function clientRiskFallback() {
   return [
     {
       key: 'risk',
@@ -836,7 +836,7 @@ function clientRiskFallback(clientId: string) {
     {
       key: 'next_step',
       label: 'Next step',
-      text: `Request a refresh after updating risk inputs for client ${clientId}.`,
+      text: 'Request a refresh after updating risk inputs.',
       citationRefs: [],
     },
   ]
@@ -860,7 +860,7 @@ const getRiskSummary = os.clients.getRiskSummary.handler(async ({ input, context
   return toAiInsightPublic(insight, {
     kind: 'client_risk_summary',
     subjectId: input.clientId,
-    sections: clientRiskFallback(input.clientId),
+    sections: clientRiskFallback(),
   })
 })
 
@@ -893,7 +893,7 @@ const requestRiskSummaryRefresh = os.clients.requestRiskSummaryRefresh.handler(
       insight: toAiInsightPublic(insight, {
         kind: 'client_risk_summary',
         subjectId: input.clientId,
-        sections: clientRiskFallback(input.clientId),
+        sections: clientRiskFallback(),
       }),
     }
   },

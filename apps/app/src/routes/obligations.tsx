@@ -2934,7 +2934,7 @@ export function ObligationQueueRoute() {
         // footer that needs to ride flush to the viewport bottom.
         // `gap-4` retained too: dense table page intentionally
         // tighter than the gap-6 used by header-heavy pages.
-        'flex flex-col gap-4 px-4 pt-8 pb-0 md:px-6 md:pb-0',
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-8 pb-0 md:px-6 md:pb-0',
         'xl:h-screen xl:overflow-hidden xl:pb-0',
       )}
     >
@@ -7463,11 +7463,29 @@ export function ObligationQueueDetailDrawer({
                       >
                         <Trans>Workpapers</Trans>
                       </h3>
-                      {detail.evidence.length > 0 ? (
-                        <span className="text-xs tabular-nums text-text-tertiary">
-                          {detail.evidence.length}
-                        </span>
-                      ) : null}
+                      <div className="flex items-center gap-2">
+                        {detail.evidence.length > 0 ? (
+                          <span className="text-xs tabular-nums text-text-tertiary">
+                            {detail.evidence.length}
+                          </span>
+                        ) : null}
+                        {/* Stub CTA so the workpapers section isn't a dead
+                            end (audit L11). Upload pipeline isn't wired yet,
+                            so the click acknowledges + sets expectation
+                            without losing the user. */}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            toast.info(t`Workpaper upload is coming soon`, {
+                              description: t`We'll let you attach PDFs and exports here as soon as ingest lands.`,
+                            })
+                          }
+                        >
+                          <Trans>Add workpaper</Trans>
+                        </Button>
+                      </div>
                     </header>
                     {detail.evidence.length > 0 ? (
                       <div className="grid gap-2">
@@ -9134,7 +9152,13 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   // payment-due. Split the "satisfied" check by milestone.
   const filingSatisfied = isTerminal || row.status === 'done' || row.status === 'paid'
   const filingPast = filingIso !== null && filingIso < todayIso && !filingSatisfied
-  const internalPast = internalIso !== null && internalIso < todayIso && !isTerminal
+  // Internal target overdueness is moot once the filing is satisfied —
+  // the firm's earlier internal goal stops being actionable once the
+  // statutory filing event has happened (Filed / Paid / Completed).
+  // Gating on `filingSatisfied` (not `isTerminal`) keeps `'paid'` rows
+  // from showing a red "INTERNAL TARGET N DAYS OVERDUE" chip beside a
+  // green "Filed" status pill — the conflict the audit (L10) flagged.
+  const internalPast = internalIso !== null && internalIso < todayIso && !filingSatisfied
   // 2026-05-27 (root-bug + phi J1 merge): payment-overdue isn't gated
   // by `isTerminal` / filing-satisfied. A row that's been Filed
   // (status='done') but whose payment date has slipped should STILL
@@ -9151,7 +9175,11 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
     row.status !== 'paid'
   const filingLateDays = filingPast ? -dayDiff(filingIso)! : null
   const internalLateDays = internalPast ? -dayDiff(internalIso)! : null
-  const paymentLateDays = paymentPast ? -dayDiff(paymentIso)! : null
+  // Route the payment-late count through the canonical helper so the
+  // panel tile agrees with the row chip (audit L10 off-by-one 72/73
+  // came from the panel using `dayDiff` midnight math while the row
+  // used `paymentOverdueDays` real-now math).
+  const paymentLateDays = paymentOverdueDays(row, Date.now())
   const formatDaysOverdue = (d: number) =>
     i18n._(plural(d, { one: '# day overdue', other: '# days overdue' }))
   const formatPaymentLate = (d: number) =>

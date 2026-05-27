@@ -1,197 +1,59 @@
-import { useMemo, type ReactNode } from 'react'
-import { Link, useNavigate } from 'react-router'
-import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { useMemo } from 'react'
+import { useNavigate } from 'react-router'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 import type { ObligationInstancePublic } from '@duedatehq/contracts'
+
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { StatTile } from '@/components/patterns/stat-tile'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
-import { isPaymentOverdue } from '@/features/obligations/payment-overdue'
-import { formatDatePretty } from '@/lib/utils'
-import { formatTaxCode } from '@/lib/tax-codes'
 
 /**
- * ClientSummaryStrip — three-tile horizontal strip on the Client detail
- * page that answers "what should I do here?" in a single scan: Next due,
- * At risk, Open Filing.
+ * ClientSummaryStrip — three-tile horizontal anchor on /clients/[id]:
+ * Next due / At risk / Open filing. Always renders all three slots so
+ * the strip stays a stable page anchor — empty slots use the `muted`
+ * tone on the canonical StatTile (see `stat-tile.tsx`).
  *
- * 2026-05-23: Tile 3 swapped from Team → Open Filing. The owner (who is
- * this client assigned to?) now lives as a pill in the H1 chip cluster,
- * so the third tile slot can carry a count signal instead. Each tile
- * also gains a quiet secondary line under the value — "17 days late"
- * under Next due, the kind of obligation under At risk, etc.
- *
- * Visual rhythm mirrors `apps/app/src/features/dashboard/exposure-strip.tsx`:
- * Link-styled tiles, big sans-serif numeral over a small label, only
- * truly-stuck signals use the destructive tone.
- *
- * Each tile is its own click target so the user can drill straight into
- * the matching obligation row (via the drawer) or into a filtered queue
- * view, instead of bouncing through the page first.
+ * Each tile is its own click target so the user drills straight into
+ * the matching obligation (drawer) or filtered queue.
  */
 
-type TileTone = 'neutral' | 'warning' | 'critical' | 'muted'
-
-function TileShell({
-  tone,
-  value,
-  label,
-  subline,
-  sublineTone = 'tertiary',
-  onClick,
-  to,
-  ariaLabel,
-}: {
-  tone: TileTone
-  value: React.ReactNode
-  label: React.ReactNode
-  subline?: React.ReactNode
-  sublineTone?: 'tertiary' | 'destructive'
-  onClick?: (() => void) | undefined
-  to?: string | undefined
-  ariaLabel?: string | undefined
-}) {
-  // 2026-05-24 (Figma replica pass): tile dimensions snapped to the
-  // exact pixel spec exported from Figma Make.
-  //   - Fill `bg-util-colors-gray-25` (#fcfcfd) — off-white, NOT pure
-  //     white. The fill itself does the section-anchoring; no border.
-  //   - `rounded-xl` = 12px (was rounded-md / 8px).
-  //   - Label opacity dropped to ~30% (Figma uses `rgba(16,24,40,0.3)`)
-  //     so the eyebrow whispers instead of competing with the value.
-  //   - Inner padding split into a label row (`pt-3 pb-1 px-3`) +
-  //     a value row (`pt-1 pb-3 px-3`) to match the two-frame Figma
-  //     structure. Subline sits inline with the value at 13px.
-  //
-  // 2026-05-24 (typeset pass — critique P0): value scaled from 14px →
-  // 20px (`text-xl font-semibold leading-7`). The Figma export had it
-  // at 14px which made the tile WHISPER — visually equivalent to the
-  // filing-plan row form names below, so the strip stopped anchoring
-  // the eye. 20px is the Ramp / Linear "headline number" sweet spot:
-  // big enough to read first, small enough not to feel like an AI-slop
-  // dashboard hero metric. Subline stays at 13px so the value gets
-  // genuine primacy.
-  // 2026-05-26 (Yuqi follow-up — "copy Today's tile shape"):
-  // TileShell adopts the /today exposure-strip pattern exactly.
-  // Value (text-lg font-medium leading-tight) sits on top; label
-  // (text-sm text-text-secondary) below; unified px-4 py-3 padding;
-  // no upper-label kicker, no split frames. Same shape /today
-  // ships on its In review / Blocked / Waiting on client tiles.
-  const valueClass = cn(
-    'text-lg font-medium leading-tight tabular-nums tracking-tight',
-    tone === 'critical' && 'text-text-destructive',
-    tone === 'warning' && 'text-text-warning',
-    tone === 'neutral' && 'text-text-primary',
-    tone === 'muted' && 'text-text-tertiary',
-  )
-  // 2026-05-26 (Yuqi feedback #3 — "卡片样式看看别的地方有没有
-  // 在用，可以拿过来的"): TileShell aligned to the canonical
-  // inset-surface card chrome used app-wide (see
-  // `inset-surface-design-system.md` §card-chrome):
-  //   - `bg-background-default` (white) instead of off-white arbitrary
-  //   - `border border-divider-subtle` (the canonical card border)
-  //   - `rounded-md` (6px) instead of `rounded-xl` (12px)
-  // Earlier `rounded-xl` + raw-hex bg was a Figma-replica one-off; the
-  // inset-surface system shipped after and made `rounded-md` +
-  // `bg-default` + `border-divider-subtle` the family-wide card.
-  // 2026-05-26 (Yuqi /clients/[id] feedback #1 — "copy Today's <div ...>"):
-  // exact match for the /today exposure-strip tile. Drops `flex-1`
-  // (tiles no longer stretch to fill the row — they grow to their
-  // natural width + min-w-[160px] floor). Container switches from
-  // `grid grid-cols-3` to `flex flex-wrap gap-3` so the tiles cluster
-  // left rather than stretching across the row. Subline is dropped
-  // here to match Today exactly — see TileShell's `subline` prop
-  // (kept for prop stability but unused below).
-  const baseClass =
-    'group flex min-w-[160px] flex-col gap-1 rounded-md border border-divider-subtle bg-background-default px-4 py-3 transition-colors hover:border-divider-regular hover:bg-background-default-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt'
-
-  // 2026-05-26 (Yuqi /clients/[id] feedback #1): subline render dropped
-  // to match Today's tile pattern exactly. `subline` + `sublineTone`
-  // props kept on the type so callers don't break, but the body just
-  // renders value + label now. If subline context is needed later,
-  // restore conditional render here.
-  void subline
-  void sublineTone
-  const body = (
-    <>
-      <span className={valueClass}>{value}</span>
-      <span className="text-sm text-text-secondary">{label}</span>
-    </>
-  )
-
-  if (to) {
-    return (
-      <Link to={to} aria-label={ariaLabel} className={baseClass}>
-        {body}
-      </Link>
-    )
-  }
-  if (onClick) {
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        aria-label={ariaLabel}
-        className={cn(baseClass, 'text-left')}
-      >
-        {body}
-      </button>
-    )
-  }
-  return (
-    <div className={baseClass} aria-label={ariaLabel}>
-      {body}
-    </div>
-  )
-}
-
-// Open = obligation is still doing work. We exclude terminal states.
-// 2026-05-27 (Yuqi screenshot diagnosis — TERMINAL_STATUSES root bug):
-// the prior set treated `'done'` as terminal — but per the canonical
-// 6-state lifecycle v2, `'done'` is the "Filed" state (filing event
-// shipped, PAYMENT MAY STILL BE OUTSTANDING). Only `'completed'` and
-// `'not_applicable'` are truly terminal. Legacy `'paid'` stays in the
-// set because it means "filing + payment both done". Removed dead
-// `'filed'` literal (not in the ObligationStatus union).
+// Terminal states per the 6-state lifecycle v2. `done` is "Filed" —
+// the filing event shipped but payment may still be outstanding, so
+// it is NOT terminal. Only `completed`/`not_applicable` are. Legacy
+// `paid` stays in the set because it means filing + payment both done.
 const TERMINAL_STATUSES = new Set(['paid', 'completed', 'not_applicable'])
-
-function isAtRisk(o: ObligationInstancePublic, today: number): boolean {
-  if (o.status === 'blocked') return true
-  if (o.status === 'review' && o.efileRejectedAt != null) return true
-  // 2026-05-27 (root-bug + phi J1 merge): payment-overdue is an
-  // additive urgency signal that's independent of the filing-leg
-  // lifecycle. A row that's been Filed (`status='done'`) but whose
-  // paymentDueDate has slipped is at risk — the filing leg is done,
-  // the money leg is overdue. The canonical helper in
-  // `features/obligations/payment-overdue.ts` is the single source
-  // of truth — drops `'done'`/`'paid'` from the payment-terminal
-  // set, keeps only `'completed'`/`'not_applicable'`.
-  if (isPaymentOverdue(o, today)) return true
-  // Filing-deadline past + not terminal → at risk.
-  const due = Date.parse(o.currentDueDate)
-  if (!Number.isNaN(due) && due < today && !TERMINAL_STATUSES.has(o.status)) return true
-  return false
-}
 
 export function ClientSummaryStrip({
   clientId,
   obligations,
+  compact = false,
 }: {
   clientId: string
   obligations: readonly ObligationInstancePublic[]
+  /** When true, the strip switches from wrap-on-narrow to horizontal
+   *  scroll so the three tiles stay on one row even when the
+   *  obligation panel squeezes the left column (audit L9). */
+  compact?: boolean
 }) {
   const { t } = useLingui()
   const navigate = useNavigate()
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
-  // 2026-05-27 (D16 — Agent ω, journey-audit drain): replaced the
-  // strip's internal `Date.now()` / midnight-of-now anchor with the
-  // firm's "as of" date so isAtRisk and the next-due "Xd late"
-  // computations stay in sync with the firm's clock (the dashboard
-  // already centralized on this anchor; the client surfaces were
-  // drifting). Falls back to Date.now() when the hook returns an
-  // unparseable string, so the strip never breaks the page.
+  // Anchor day-math to the firm's "as of" date (matches the dashboard).
+  // Fallback to real-now when the hook returns an unparseable string so
+  // the strip never breaks the page.
   const asOfDate = useFirmAsOfDate()
+
+  const todayTs = useMemo(() => {
+    const parsed = asOfDate ? Date.parse(asOfDate) : NaN
+    if (!Number.isNaN(parsed)) return parsed
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d.getTime()
+  }, [asOfDate])
 
   const nextDue = useMemo(() => {
     const open = obligations.filter((o) => !TERMINAL_STATUSES.has(o.status))
@@ -207,179 +69,77 @@ export function ClientSummaryStrip({
     return best
   }, [obligations])
 
-  const todayTs = useMemo(() => {
-    const parsed = asOfDate ? Date.parse(asOfDate) : NaN
-    if (!Number.isNaN(parsed)) return parsed
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    return d.getTime()
-  }, [asOfDate])
-
-  const atRiskList = useMemo(
-    () => obligations.filter((o) => isAtRisk(o, todayTs)),
-    [obligations, todayTs],
+  // Blocked count tracks the destination filter (?status=blocked)
+  // exactly so the tile and the deadlines queue agree on what they
+  // mean. Earlier the count was a broader "at risk" set (blocked +
+  // efile-rejected + payment-overdue + past-due) but the click went
+  // to ?status=blocked only — the audit (L8) flagged the mismatch.
+  // Payment-overdue and efile-rejected still surface as row-level
+  // chips in the filing plan; the strip's job here is to anchor the
+  // blocked count.
+  const blockedCount = useMemo(
+    () => obligations.filter((o) => o.status === 'blocked').length,
+    [obligations],
   )
-  const atRiskCount = atRiskList.length
 
-  // Open filing count (2026-05-23). All non-terminal obligations on
-  // this client — the third tile slot's number. "Open filing" matches
-  // the language used in /clients table (Open count column) and the
-  // year-section badge in the Filing plan below.
   const openCount = useMemo(
     () => obligations.filter((o) => !TERMINAL_STATUSES.has(o.status)).length,
     [obligations],
   )
 
-  let nextDueValue: React.ReactNode = t`Nothing open`
-  let nextDueLabel: React.ReactNode = <Trans>Next due</Trans>
-  let nextDueTone: TileTone = 'muted'
-  let nextDueOnClick: (() => void) | undefined
-  let nextDueAria: string | undefined
-  let nextDueSubline: React.ReactNode = null
-  let nextDueSublineTone: 'tertiary' | 'destructive' = 'tertiary'
-
-  if (nextDue) {
-    const dueTs = Date.parse(nextDue.currentDueDate)
-    // 2026-05-27 (D16): anchored to the firm's asOfDate (via todayTs),
-    // matching the dashboard's day-math. Falls through to a real-now
-    // anchor when the firm clock is unavailable so the tile never
-    // renders NaN.
-    const days = Math.ceil((dueTs - todayTs) / 86_400_000)
-    const daysAbs = Math.abs(days)
-    // 2026-05-24 (Figma replica): subline renders as a split phrase —
-    // the calendar anchor ("Due May 6") stays gray-tertiary while the
-    // lateness tail ("17 days late") tints red. Matches the Figma
-    // exactly; previously the whole subline shared one tone. Tile
-    // value (the form code) STAYS BLACK — the Figma keeps the value
-    // neutral and lets the subline carry the urgency signal alone.
-    const dueDateLabel = formatDatePretty(nextDue.currentDueDate)
-    const sublineNode: ReactNode =
-      days < 0 ? (
-        <span className="inline-flex items-center gap-1.5">
-          <span className="text-text-tertiary">
-            <Trans>Due {dueDateLabel}</Trans>
-          </span>
-          <span className="text-text-destructive">
-            <Plural value={daysAbs} one="# day late" other="# days late" />
-          </span>
-        </span>
-      ) : days === 0 ? (
-        <span className="text-text-warning">
-          <Trans>Due today ({dueDateLabel})</Trans>
-        </span>
-      ) : (
-        <span className="inline-flex items-center gap-1.5 text-text-tertiary">
-          <span>
-            <Trans>Due {dueDateLabel}</Trans>
-          </span>
-          <span>
-            <Plural value={days} one="in # day" other="in # days" />
-          </span>
-        </span>
-      )
-    nextDueValue = (
-      <span className="inline-flex items-baseline gap-2">
-        {/* `asChild` so TaxCodeLabel renders its TooltipTrigger as a
-            <span>, not a <button>. The Next-due tile itself is a
-            <button> (TileShell renders one when `onClick` is set), so
-            without `asChild` we get button-in-button DOM nesting and
-            a hydration warning. */}
-        <TaxCodeLabel code={nextDue.taxType} asChild />
-      </span>
-    )
-    nextDueLabel = <Trans>Next due</Trans>
-    // 2026-05-24 (Figma replica): tile VALUE stays neutral (black)
-    // even when overdue — the subline tail carries the red signal,
-    // not the value itself. Previously the value tinted critical
-    // when late; the replica shows that's not the Figma rhythm.
-    nextDueTone = 'neutral'
-    nextDueOnClick = () => openObligationDrawer(nextDue.id)
-    nextDueAria = t`Open next-due deadline`
-    nextDueSubline = sublineNode
-    // Subline is now a composite node that owns its own per-segment
-    // tones — TileShell's blanket `sublineTone` no longer applies to
-    // this tile. Keeping the prop wired to 'tertiary' as a no-op so
-    // the prop contract stays stable.
-    nextDueSublineTone = 'tertiary'
-  }
-
-  // At-risk subline — surfaces the actual form codes so the CPA can
-  // see *which* filings are blocked / overdue without having to drill
-  // into the filtered queue first. Previously read just "Blocked or
-  // overdue", which was a tease — the page already has the data in
-  // memory, so the tile may as well name names.
-  //
-  // 1 form  → "1120-S blocked"
-  // 2 forms → "1120-S, 1065 blocked"
-  // 3+      → "1120-S, 1065 + 1 more"
-  //
-  // 2026-05-27 (phi journey audit J1): when EVERY at-risk row is at
-  // risk solely because of an overdue payment (status='done' rows that
-  // slipped their paymentDueDate), the generic "blocked or overdue"
-  // label buries the actual signal — a CPA reading the tile thinks
-  // "filings are blocked" when really the filings are done and a
-  // payment is overdue. Switch the verb to "payment overdue" in that
-  // case so the tile actually surfaces the buried state.
-  const atRiskSubline = useMemo(() => {
-    if (atRiskList.length === 0) return null
-    const codes = atRiskList.slice(0, 2).map((o) => formatTaxCode(o.taxType))
-    const overflow = atRiskList.length - codes.length
-    const allPaymentOverdue = atRiskList.every((o) => isPaymentOverdue(o, todayTs))
-    const verb = allPaymentOverdue ? t`payment overdue` : t`blocked or overdue`
-    if (overflow > 0) {
-      return t`${codes.join(', ')} + ${overflow} more`
-    }
-    return t`${codes.join(', ')} ${verb}`
-  }, [atRiskList, todayTs, t])
-
-  // Open-filing subline — count of forms in the filing plan that are
-  // still doing work. Singular vs plural phrasing.
-  const openFilingSubline =
-    openCount === 0
-      ? t`Nothing open right now`
-      : openCount === 1
-        ? t`1 form in motion`
-        : t`${openCount} forms in motion`
+  // `asChild` so TaxCodeLabel renders its TooltipTrigger as a <span>,
+  // not a <button>. The tile itself is a <button> (StatTile renders one
+  // when `onClick` is set), so without `asChild` we'd get
+  // button-in-button DOM nesting and a hydration warning.
+  const nextDueValue: React.ReactNode = nextDue ? (
+    <TaxCodeLabel code={nextDue.taxType} asChild />
+  ) : (
+    '—'
+  )
+  const nextDueProps = nextDue
+    ? { onClick: () => openObligationDrawer(nextDue.id), ariaLabel: t`Open next-due deadline` }
+    : {}
+  const blockedProps =
+    blockedCount > 0
+      ? {
+          onClick: () => void navigate(`/deadlines?client=${clientId}&status=blocked`),
+          ariaLabel: t`View blocked deadlines`,
+        }
+      : {}
+  const openProps =
+    openCount > 0
+      ? {
+          onClick: () => void navigate(`/deadlines?client=${clientId}`),
+          ariaLabel: t`View open filings for this client`,
+        }
+      : {}
 
   return (
-    <section aria-label={t`Client summary`} className="flex flex-wrap gap-3">
-      <TileShell
-        tone={nextDueTone}
+    <section
+      aria-label={t`Client summary`}
+      className={cn(
+        'flex gap-3',
+        compact ? 'flex-nowrap overflow-x-auto' : 'flex-wrap',
+      )}
+    >
+      <StatTile
+        tone={nextDue ? 'neutral' : 'muted'}
         value={nextDueValue}
-        label={nextDueLabel}
-        subline={nextDueSubline}
-        sublineTone={nextDueSublineTone}
-        onClick={nextDueOnClick}
-        ariaLabel={nextDueAria}
+        label={<Trans>Next filing</Trans>}
+        {...nextDueProps}
       />
-      <TileShell
-        tone={atRiskCount > 0 ? 'critical' : 'muted'}
-        value={atRiskCount}
-        label={<Trans>At risk</Trans>}
-        subline={atRiskSubline}
-        sublineTone={atRiskCount > 0 ? 'destructive' : 'tertiary'}
-        onClick={
-          atRiskCount > 0
-            ? () => void navigate(`/deadlines?client=${clientId}&status=blocked`)
-            : undefined
-        }
-        ariaLabel={t`View at-risk deadlines`}
+      <StatTile
+        tone={blockedCount > 0 ? 'critical' : 'muted'}
+        value={blockedCount}
+        label={<Trans>Blocked</Trans>}
+        {...blockedProps}
       />
-      <TileShell
+      <StatTile
         tone={openCount > 0 ? 'neutral' : 'muted'}
         value={openCount}
         label={<Trans>Open filing</Trans>}
-        subline={openFilingSubline}
-        onClick={openCount > 0 ? () => void navigate(`/deadlines?client=${clientId}`) : undefined}
-        ariaLabel={t`View open filings for this client`}
+        {...openProps}
       />
     </section>
   )
 }
-
-// `TeamAvatarStack` + the team-tint palette + the hashTeamMember
-// helper were dropped 2026-05-23 with the Team-tile retirement. The
-// owner identity now lives in the H1 chip cluster (see
-// ClientOwnerHeaderPill in ClientFactsWorkspace.tsx) and the third
-// summary tile slot carries Open Filing instead. Git history has the
-// stack component if we ever bring back a multi-reviewer surface.

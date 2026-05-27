@@ -89,7 +89,7 @@ export function ClientDetailRoute() {
     // `flex w-full flex-col` with horizontal padding only.
     <div
       className={cn(
-        'flex w-full flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
         'xl:h-screen xl:overflow-hidden',
       )}
     >

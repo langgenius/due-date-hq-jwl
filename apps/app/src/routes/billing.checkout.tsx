@@ -283,7 +283,7 @@ export function BillingCheckoutRoute() {
     //
     // Also dropped `gap-5` → `gap-4` to align with §16.16 canonical
     // spacing scale (audit P2 swept here since the file was open).
-    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-4 px-4 py-6 md:px-6">
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-8 pb-6 md:px-6">
       <PageHeader
         breadcrumbs={[{ label: t`Billing`, to: '/billing' }, { label: t`Confirm checkout` }]}
         title={

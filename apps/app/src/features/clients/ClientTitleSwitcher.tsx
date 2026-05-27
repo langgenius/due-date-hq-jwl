@@ -17,6 +17,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/component
 
 import { orpc } from '@/lib/rpc'
 
+import { useEntityLabels } from '@/routes/clients'
+
 import { clientDetailPath } from './client-url'
 
 const CLIENTS_LIST_INPUT = { limit: 500 } as const
@@ -38,6 +40,7 @@ const EMPTY_CLIENTS: readonly ClientPublic[] = []
 export function ClientTitleSwitcher({ client }: { client: Pick<ClientPublic, 'id' | 'name'> }) {
   const { t } = useLingui()
   const navigate = useNavigate()
+  const entityLabels = useEntityLabels()
   const [open, setOpen] = useState(false)
 
   const clientsQuery = useQuery({
@@ -115,7 +118,7 @@ export function ClientTitleSwitcher({ client }: { client: Pick<ClientPublic, 'id
                             {entry.name}
                           </span>
                           <span className="block truncate text-xs text-text-tertiary">
-                            {[entry.state, entry.entityType]
+                            {[entry.state, entityLabels[entry.entityType]]
                               .filter((value): value is string => Boolean(value))
                               .join(' · ')}
                           </span>
