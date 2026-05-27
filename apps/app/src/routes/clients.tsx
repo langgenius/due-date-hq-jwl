@@ -31,6 +31,7 @@ import {
   normalizeClientsQueryFilters,
   nullableQueryArray,
 } from '@/features/clients/client-query-state'
+import { queryInputUrlUpdateRateLimit } from '@/lib/query-rate-limit'
 import {
   buildClientFactsModel,
   filterClients,
@@ -230,10 +231,25 @@ export function ClientsRoute() {
   // → filters.search → filterClients haystack. Passing `null` when the
   // value is empty clears the param entirely so shared URLs don't carry
   // dangling `?q=` suffixes.
+  // 2026-05-27 (Yuqi step-8 data-finding audit — F-C01): rate-limit
+  // the URL write the same way /deadlines does. Every keystroke
+  // previously rewrote the address bar AND grew the history-replace
+  // stack on each character; rate-limiting batches the URL settle
+  // ~350ms after the user stops typing. The SearchInput `value`
+  // still binds to the URL-backed `searchQuery` (nuqs returns the
+  // pending value optimistically during the rate-limit window — see
+  // https://nuqs.dev/docs/options#limitUrlUpdates), so the visible
+  // text keeps repainting on every keystroke and the address bar
+  // catches up after the user stops. Clearing (empty value) skips
+  // the rate-limit so the cleared state appears immediately on
+  // Escape / X-click.
   const handleSearchChange = useCallback(
     (next: string) => {
       const trimmed = next.trim()
-      void setClientsQuery({ q: trimmed.length > 0 ? next : null })
+      void setClientsQuery(
+        { q: trimmed.length > 0 ? next : null },
+        trimmed.length === 0 ? undefined : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
+      )
     },
     [setClientsQuery],
   )

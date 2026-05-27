@@ -1,7 +1,9 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, CheckCheckIcon, CheckIcon, InboxIcon } from 'lucide-react'
+import { parseAsString, useQueryState } from 'nuqs'
 import { toast } from 'sonner'
 
 import type { NotificationType } from '@duedatehq/contracts'
@@ -12,6 +14,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
+import { SearchInput } from '@/components/primitives/search-input'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -31,6 +34,18 @@ export function NotificationsPage() {
   const { t } = useLingui()
   const practiceTimezone = usePracticeTimezone()
   const queryClient = useQueryClient()
+  // 2026-05-27 (Yuqi step-8 data-finding audit — F-X14): notifications
+  // inbox is text-heavy (title + body free-text), capped at 50 rows,
+  // and previously had zero find affordance. SearchInput is wired to
+  // a `q` URL param so a shared `/notifications?q=Section%20199A`
+  // deep-link lands the recipient on the same filtered subset.
+  // Filtering is client-side over the loaded list — same shape as
+  // /audit (q parser + client-side scan); backend support can come
+  // later without churning the surface.
+  const [searchQuery, setSearchQuery] = useQueryState(
+    'q',
+    parseAsString.withDefault('').withOptions({ history: 'replace' }),
+  )
   const notificationsQuery = useQuery(
     orpc.notifications.list.queryOptions({ input: { status: 'all', limit: 50 } }),
   )
@@ -62,6 +77,20 @@ export function NotificationsPage() {
   // item.readAt)` which returns true for [] (silently disabling
   // the button on an empty list with no explanation).
   const hasUnread = notifications.some((item) => !item.readAt)
+  // 2026-05-27 (Yuqi step-8 data-finding audit — F-X14): client-side
+  // filter over title + body. Trimmed lower-case haystack lets a CPA
+  // narrow to a specific deadline / client / topic without the
+  // server roundtrip. Empty query is the identity (full list).
+  const filteredNotifications = useMemo(() => {
+    const needle = searchQuery.trim().toLowerCase()
+    if (!needle) return notifications
+    return notifications.filter((item) => {
+      if (item.title.toLowerCase().includes(needle)) return true
+      if (item.body.toLowerCase().includes(needle)) return true
+      return false
+    })
+  }, [notifications, searchQuery])
+  const isFiltering = searchQuery.trim().length > 0
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6">
@@ -83,6 +112,27 @@ export function NotificationsPage() {
             <Trans>Mark all read</Trans>
           </Button>
         }
+      />
+
+      {/* 2026-05-27 (Yuqi step-8 data-finding audit — F-X14):
+          inbox-level search input. Capped at the loaded 50; URL-
+          synced so a shared `/notifications?q=...` link lands the
+          recipient on the filtered subset. `/` hotkey wires through
+          the canonical primitive so the help dialog lists it. */}
+      <SearchInput
+        value={searchQuery}
+        onChange={(next) => void setSearchQuery(next.length > 0 ? next : null)}
+        placeholder={t`Filter inbox`}
+        ariaLabel={t`Filter notifications`}
+        className="md:max-w-sm"
+        hotkey="/"
+        hotkeyMeta={{
+          id: 'notifications.focus-search',
+          name: 'Filter inbox',
+          description: 'Focus the inbox filter input.',
+          category: 'practice',
+          scope: 'route',
+        }}
       />
 
       <Card>
@@ -138,7 +188,26 @@ export function NotificationsPage() {
             />
           ) : null}
 
-          {notifications.map((item) => (
+          {/* 2026-05-27 (Yuqi step-8 data-finding audit — F-X14):
+              filtered-but-empty branch — distinct copy so the CPA
+              knows the inbox isn't empty, just narrowed to zero by
+              the active query. Matches the
+              `isEmpty / isFilteredEmpty` shape used on /alerts +
+              /deadlines. */}
+          {!notificationsQuery.isLoading &&
+          notifications.length > 0 &&
+          filteredNotifications.length === 0 &&
+          isFiltering ? (
+            <EmptyState
+              icon={InboxIcon}
+              title={<Trans>No notifications match your search.</Trans>}
+              description={
+                <Trans>Clear the search or try a different term to see the full inbox.</Trans>
+              }
+            />
+          ) : null}
+
+          {filteredNotifications.map((item) => (
             <article
               key={item.id}
               // 2026-05-26 (step-6 ux-flow audit F1.2/F1.6): unread

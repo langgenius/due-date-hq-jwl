@@ -2562,6 +2562,7 @@ msgstr "Clear filters"
 msgid "Clear filters to return to the latest practice-wide events."
 msgstr "Clear filters to return to the latest practice-wide events."
 
+#: src/components/patterns/table-header-filter.tsx
 #: src/components/primitives/search-input.tsx
 msgid "Clear search"
 msgstr "Clear search"
@@ -2573,6 +2574,10 @@ msgstr "Clear search or filters to return to the full practice directory."
 #: src/routes/obligations.tsx
 msgid "Clear selection"
 msgstr "Clear selection"
+
+#: src/features/notifications/notifications-page.tsx
+msgid "Clear the search or try a different term to see the full inbox."
+msgstr "Clear the search or try a different term to see the full inbox."
 
 #. placeholder {0}: before.node
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -4869,6 +4874,10 @@ msgstr "Filter by change type"
 msgid "Filter by impact"
 msgstr "Filter by impact"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "Filter by name or EIN"
+msgstr "Filter by name or EIN"
+
 #: src/routes/rules.library.tsx
 msgid "Filter by scope"
 msgstr "Filter by scope"
@@ -4898,6 +4907,10 @@ msgstr "Filter deadlines"
 msgid "Filter deadlines  ·  press / to focus"
 msgstr "Filter deadlines  ·  press / to focus"
 
+#: src/features/notifications/notifications-page.tsx
+msgid "Filter inbox"
+msgstr "Filter inbox"
+
 #: src/features/rules/sources-tab.tsx
 msgid "Filter jurisdictions"
 msgstr "Filter jurisdictions"
@@ -4909,6 +4922,10 @@ msgstr "Filter jurisdictions or rules"
 #: src/features/rules/coverage-tab.tsx
 msgid "Filter jurisdictions or rules…"
 msgstr "Filter jurisdictions or rules…"
+
+#: src/features/notifications/notifications-page.tsx
+msgid "Filter notifications"
+msgstr "Filter notifications"
 
 #: src/routes/rules.library.tsx
 msgid "Filter rules"
@@ -6840,6 +6857,10 @@ msgstr "No next client"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "No notes yet"
 msgstr "No notes yet"
+
+#: src/features/notifications/notifications-page.tsx
+msgid "No notifications match your search."
+msgstr "No notifications match your search."
 
 #: src/features/notifications/notifications-page.tsx
 msgid "No notifications yet."
@@ -9762,10 +9783,6 @@ msgid "Search by actor, entity, action, or reason — or narrow by time range, a
 msgstr "Search by actor, entity, action, or reason — or narrow by time range, action category, actor, or entity type."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Search by name or EIN"
-msgstr "Search by name or EIN"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/routes/obligations.tsx
 msgid "Search clients"
 msgstr "Search clients"
@@ -10160,6 +10177,10 @@ msgstr "Showing {firstItemNumber}-{lastItemNumber} of {loadedCount} loaded event
 #: src/features/rules/rules-console-primitives.tsx
 msgid "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
 msgstr "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
+
+#: src/components/patterns/table-header-filter.tsx
+msgid "Showing first {maxSelections} selections — refine the list to add more."
+msgstr "Showing first {maxSelections} selections — refine the list to add more."
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Showing jurisdictions with active rules"
