@@ -177,6 +177,11 @@ msgstr "{0, plural, other {# 条与 \"{query}\" 匹配的结果}}"
 msgid "{0, plural, one {# missing} other {# missing}}"
 msgstr "{0, plural, other {# 项缺失}}"
 
+#. placeholder {0}: (auditQuery.data.events.length ?? 0) - MAX_VISIBLE_EVENTS
+#: src/features/dashboard/changes-since-last-section.tsx
+msgid "{0, plural, one {# more in the audit log} other {# more in the audit log}}"
+msgstr "{0, plural, one {审计日志中还有 # 条} other {审计日志中还有 # 条}}"
+
 #. placeholder {0}: group.pendingReviewCount
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# needs review} other {# need review}}"
@@ -2283,6 +2288,14 @@ msgstr "从 {0} 改为 {1}"
 #: src/routes/obligations.tsx
 msgid "Changed from {before} to {after}"
 msgstr "从 {before} 改为 {after}"
+
+#: src/features/dashboard/changes-since-last-section.tsx
+msgid "Changes since last visit"
+msgstr "上次访问后的变更"
+
+#: src/features/dashboard/changes-since-last-section.tsx
+msgid "Changes since your last visit"
+msgstr "自上次访问以来的变更"
 
 #: src/routes/obligations.tsx
 msgid "Check materials"
@@ -5072,6 +5085,7 @@ msgid "Group by"
 msgstr "分组依据"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/dashboard/changes-since-last-section.tsx
 msgid "Hide"
 msgstr "隐藏"
 
@@ -7026,6 +7040,11 @@ msgstr "当前无进行中的事项"
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Nothing to fix"
 msgstr "无需修复"
+
+#. placeholder {0}: formatRelativeTime(lastSeenAt)
+#: src/features/dashboard/changes-since-last-section.tsx
+msgid "Nothing's changed since {0}."
+msgstr "自 {0} 起没有任何变更。"
 
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/route-summary.ts
@@ -9942,6 +9961,7 @@ msgid "Shareholder count"
 msgstr "股东数量"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/dashboard/changes-since-last-section.tsx
 msgid "Show"
 msgstr "显示"
 

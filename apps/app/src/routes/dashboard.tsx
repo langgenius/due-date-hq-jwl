@@ -17,6 +17,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
+import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
@@ -138,7 +139,16 @@ export function DashboardRoute() {
     // to /clients, /deadlines, /audit (see route files); the
     // narrower pages /settings, /practice, /billing already use
     // py-6 which reads correctly at their tighter width.
-    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6">
+    // 2026-05-27 (audit-drain X1 D18): tightened above-the-fold
+    // density. Outer gap-6 → gap-4 trims 24px of vertical between
+    // each of the four sections (header → changes-since →
+    // alerts → actions) — at 1440×900 this pulls the first
+    // overdue row up into the third visible band instead of
+    // landing below the fold once the new "Changes since" row is
+    // added. Top/bottom padding also stepped down one tier
+    // (pt-6/8 → pt-4/6, pb-4/6 → pb-3/5) so the H1 doesn't claim
+    // an outsize share of the work surface.
+    <div className="mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-4 pb-3 md:px-6 md:pt-6 md:pb-5">
       {/* 2026-05-26 (Yuqi seventy-fourth pass — Today joins the
           page-header family): the hand-rolled <header> is gone.
           /today now routes through the same `<PageHeader>`
@@ -152,8 +162,16 @@ export function DashboardRoute() {
         title={
           <span className="inline-flex items-center gap-2">
             <Trans>Today</Trans>
+            {/* 2026-05-27 (audit-drain X1 D18): tighter pill —
+                px-2 py-0.5 → px-1.5 (no vertical padding). At
+                text-xs/12px with a font-medium tabular-nums
+                glyph the cap-height already gives the chip its
+                vertical anchor; the previous py-0.5 added a
+                4px buffer that read as a button slot, not a
+                caption. Saves a hair of vertical and quiets the
+                pill so the H1 "Today" stays the primary read. */}
             {!dashboardQuery.isLoading && data?.asOfDate ? (
-              <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+              <span className="rounded-full bg-state-base-hover px-1.5 text-xs font-medium tabular-nums text-text-secondary">
                 {formatTodayHeader(data.asOfDate)}
               </span>
             ) : null}
@@ -216,6 +234,17 @@ export function DashboardRoute() {
           </AlertDescription>
         </Alert>
       ) : null}
+
+      {/* 2026-05-27 (audit-drain X1 D17): "Changes since last visit"
+          surface — addresses φ's J5 journey ("returned from
+          vacation"). Sits between PageHeader and Alerts because
+          it's a read-back ("here's what shifted while you were
+          away"), not live work. MVP uses localStorage for
+          last-seen tracking; upgrade path is a server-side
+          `lastDashboardVisitAt` on the user model (ω-territory
+          contract change). The section ships its own collapse
+          affordance so power users who don't want it can hide. */}
+      <ChangesSinceLastSection />
 
       <NeedsAttentionSection />
 
