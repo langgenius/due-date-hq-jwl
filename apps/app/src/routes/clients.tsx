@@ -12,6 +12,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { InfoBanner } from '@/components/patterns/info-banner'
+import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
 import { clientDetailPath } from '@/features/clients/client-url'
@@ -351,6 +352,11 @@ export function ClientsRoute() {
         }
         actions={
           <>
+            {/* 2026-05-27 (Step 6 UX flows audit H2.7): keyboard
+                shortcut chip — same as /today and /alerts.
+                Discoverability for `?` without forcing users to
+                guess which key opens the help dialog. */}
+            <ShortcutHintChip className="hidden md:inline-flex" />
             {/* 2026-05-25 (Yuqi /clients #2): the button opens migration
                 import history, not client archival. Keep the visible label
                 aligned with the drawer title so "Archive" does not read as

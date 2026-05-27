@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react'
+import { Trans } from '@lingui/react/macro'
 
 import { cn } from '@duedatehq/ui/lib/utils'
+
+import { useKeyboardShell } from './keyboard-shell'
 
 /**
  * Kbd — inline keyboard shortcut hint.
@@ -23,6 +26,40 @@ function Kbd({ children, className }: { children: ReactNode; className?: string 
     >
       {children}
     </kbd>
+  )
+}
+
+/**
+ * ShortcutHintChip — small discoverability chip for page toolbars.
+ *
+ * Renders `<kbd>?</kbd> for shortcuts` as a clickable button that opens
+ * the global ShortcutHelpDialog. Lives in the right-side of page
+ * headers (dashboard, clients list, rules library, pulse alerts) so
+ * keyboard-shortcut affordances are discoverable without having to
+ * guess that `?` is a magic key.
+ *
+ * The chip is keyboard-accessible (Enter/Space activate via native
+ * <button>), focus-visible-ringed, and quiet enough not to compete
+ * with primary actions in the same cluster.
+ *
+ * 2026-05-27 (Step 6 UX flows audit H1.4 / H2.6 / H2.7).
+ */
+export function ShortcutHintChip({ className }: { className?: string }) {
+  const { openShortcutHelp } = useKeyboardShell()
+  return (
+    <button
+      type="button"
+      onClick={() => openShortcutHelp()}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 text-caption text-text-tertiary hover:bg-state-base-hover hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        className,
+      )}
+    >
+      <Kbd>?</Kbd>
+      <span>
+        <Trans>for shortcuts</Trans>
+      </span>
+    </button>
   )
 }
 

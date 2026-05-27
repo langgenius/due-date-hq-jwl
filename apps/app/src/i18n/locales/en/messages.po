@@ -214,6 +214,11 @@ msgstr "{0, plural, one {# row ready to import} other {# rows ready to import}}"
 msgid "{0, plural, one {# rule} other {# rules}}"
 msgstr "{0, plural, one {# rule} other {# rules}}"
 
+#. placeholder {0}: view.seatLimit
+#: src/routes/billing.checkout.tsx
+msgid "{0, plural, one {# seat} other {# seats}}"
+msgstr "{0, plural, one {# seat} other {# seats}}"
+
 #. placeholder {0}: selectedIds.length
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# selected deadline} other {# selected deadlines}}"
@@ -564,6 +569,10 @@ msgstr "{count} sources attached"
 msgid "{count} tax-type services managed for this client"
 msgstr "{count} tax-type services managed for this client"
 
+#: src/routes/billing.checkout.tsx
+msgid "{currentPlanSeatLimit, plural, one {# seat} other {# seats}}"
+msgstr "{currentPlanSeatLimit, plural, one {# seat} other {# seats}}"
+
 #: src/routes/obligations.tsx
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, one {# day} other {# days}}"
@@ -593,12 +602,6 @@ msgstr "{daysAbs, plural, one {# day late} other {# days late}}"
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{daysAbs}d late"
 msgstr "{daysAbs}d late"
-
-#. placeholder {0}: opportunity.title
-#. placeholder {1}: opportunity.title
-#: src/features/opportunities/opportunities-page.tsx
-msgid "{DEFAULT_SNOOZE_DAYS, plural, one {Snooze {0} for # day} other {Snooze {1} for # days}}"
-msgstr "{DEFAULT_SNOOZE_DAYS, plural, one {Snooze {0} for # day} other {Snooze {1} for # days}}"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{durationMonths, plural, one {# month} other {# months}}"
@@ -744,6 +747,10 @@ msgstr "{pausedCount, plural, one {# paused} other {# paused}}"
 #: src/features/members/members-page.tsx
 msgid "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
 msgstr "{pendingCount} pending · {expiredCount} expired · magic link, 7-day expiry"
+
+#: src/features/opportunities/opportunities-page.tsx
+msgid "{pickedSnoozeDays, plural, one {Snoozed for # day} other {Snoozed for # days}}"
+msgstr "{pickedSnoozeDays, plural, one {Snoozed for # day} other {Snoozed for # days}}"
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{pulseCount} active alerts"
@@ -4904,6 +4911,10 @@ msgstr "For practices coordinating a larger operations team."
 #: src/features/migration/Step1Intake.tsx
 msgid "For return facts, use Reporting > Download return data to download the eligible e-filed return CSV."
 msgstr "For return facts, use Reporting > Download return data to download the eligible e-filed return CSV."
+
+#: src/components/patterns/kbd.tsx
+msgid "for shortcuts"
+msgstr "for shortcuts"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -10024,10 +10035,31 @@ msgstr "Snooze"
 msgid "Snooze (coming soon)"
 msgstr "Snooze (coming soon)"
 
+#. placeholder {0}: opportunity.title
+#: src/features/opportunities/opportunities-page.tsx
+msgid "Snooze {0}"
+msgstr "Snooze {0}"
+
+#: src/features/opportunities/opportunities-page.tsx
+msgid "Snooze 14 days (default)"
+msgstr "Snooze 14 days (default)"
+
 #: src/features/pulse/components/PulseAlertCard.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Snooze 24h"
 msgstr "Snooze 24h"
+
+#: src/features/opportunities/opportunities-page.tsx
+msgid "Snooze 30 days"
+msgstr "Snooze 30 days"
+
+#: src/features/opportunities/opportunities-page.tsx
+msgid "Snooze 7 days"
+msgstr "Snooze 7 days"
+
+#: src/features/opportunities/opportunities-page.tsx
+msgid "Snooze 90 days"
+msgstr "Snooze 90 days"
 
 #: src/features/pulse/components/PulseReasonDialog.tsx
 msgid "Snooze alert 24h"
@@ -10042,10 +10074,6 @@ msgstr "Snooze selected deadlines (coming soon)"
 #: src/features/pulse/components/PulseStatusBadge.tsx
 msgid "Snoozed"
 msgstr "Snoozed"
-
-#: src/features/opportunities/opportunities-page.tsx
-msgid "Snoozed for {DEFAULT_SNOOZE_DAYS} days"
-msgstr "Snoozed for {DEFAULT_SNOOZE_DAYS} days"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Snoozed until"
@@ -11696,6 +11724,10 @@ msgstr "What"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "What changed"
 msgstr "What changed"
+
+#: src/routes/billing.checkout.tsx
+msgid "What changes"
+msgstr "What changes"
 
 #: src/features/pulse/components/PulseReasonDialog.tsx
 msgid "What did you review?"

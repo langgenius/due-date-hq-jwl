@@ -1,5 +1,10 @@
 export { KeyboardProvider } from './KeyboardProvider'
-export { useAppHotkey, useAppHotkeySequence, useKeyboardShortcutsBlocked } from './hooks'
+export {
+  useAppHotkey,
+  useAppHotkeySequence,
+  useKeyboardShell,
+  useKeyboardShortcutsBlocked,
+} from './hooks'
 export { isEditableEventTarget, isInteractiveEventTarget } from './types'
 export type { AppHotkeyMeta, ShortcutCategory, ShortcutScope } from './types'
 export {

@@ -14,6 +14,7 @@ import { DASHBOARD_FILTER_MAX_SELECTIONS } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { PageHeader } from '@/components/patterns/page-header'
+import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
@@ -161,6 +162,14 @@ export function DashboardRoute() {
         }
         actions={
           <>
+            {/* 2026-05-27 (Step 6 UX flows audit H2.6): the
+                keyboard shortcut help dialog opens on `?` but
+                that key was undiscoverable from the dashboard.
+                Tiny chip aligned with the action cluster gives
+                first-time keyboardists a path in; mouse users
+                can also click. Mirrors the bottom-of-queue
+                pattern in /deadlines. */}
+            <ShortcutHintChip className="hidden md:inline-flex" />
             <CreateObligationDialog />
             {/* 2026-05-25 (Yuqi Today #6): FileSearchIcon → UploadIcon.
                 The button's job is "upload my client list", not
