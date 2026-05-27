@@ -107,7 +107,7 @@ export function RulesPageShell({
             as /today; this is that one-line change. */}
         <div
           className={cn(
-            'mx-auto flex w-full flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6',
+            'mx-auto flex w-full flex-col gap-6 px-4 pt-8 pb-4 md:px-6 md:pb-6',
             wide ? 'max-w-page-expanded' : 'max-w-page-wide',
             lockViewport && 'h-full min-h-0',
             contentClassName,

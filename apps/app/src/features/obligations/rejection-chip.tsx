@@ -1,3 +1,4 @@
+import { XIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -38,21 +39,14 @@ function RejectionChip({ compact = false }: { compact?: boolean }) {
   const { t } = useLingui()
   const title = t`Returned from filed status — IRS/state rejected the submission.`
   if (compact) {
-    // 2026-05-26 (Yuqi sixty-ninth pass follow-up): the compact
-    // variant also drops the AlertTriangleIcon now — Yuqi's
-    // "remove icon" applies to both modes. Replaced with a filled
-    // solid-red dot (`bg-state-destructive-solid`, no glyph, no
-    // border). At 8×8 it reads as "this row carries a destructive
-    // flag" without claiming "warning" semantics (which belong to
-    // amber-tier signals). The Status pill in the same cell still
-    // carries the lifecycle word ("Review"); the dot is just the
-    // "by the way, the e-file bounced" addon.
     return (
       <span
         title={title}
         aria-label={t`Rejected`}
-        className="inline-block size-2 shrink-0 rounded-full bg-state-destructive-solid"
-      />
+        className="inline-flex size-4 shrink-0 items-center justify-center text-text-destructive"
+      >
+        <XIcon className="size-4" aria-hidden strokeWidth={2.5} />
+      </span>
     )
   }
   // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #18, follow-up #5):

@@ -348,7 +348,7 @@ export function ClientsRoute() {
     // xl:h-screen xl:overflow-hidden`).
     <div
       className={cn(
-        'mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
+        'mx-auto flex w-full max-w-page-wide flex-col gap-4 px-4 pt-8 pb-0 md:px-6 md:pb-0',
         'xl:h-screen xl:overflow-hidden',
       )}
     >

@@ -522,12 +522,8 @@ export function Step1Intake({
                     onPaste={handleRowsPaste}
                     placeholder={t`Paste here — any shape, we'll figure it out. Include the header row if you have one.`}
                     className={cn(
-                      // 2026-05-27 (Yuqi feedback "both can be shorter,
-                      // same height as paste inbox"): textarea was
-                      // h-[240/320], dropzone was min-h-[200/280] — both
-                      // now h-[200/240] to read as siblings.
                       'resize-y border-0 bg-transparent p-3 font-mono text-base tabular-nums shadow-none focus-visible:ring-0',
-                      compact ? 'h-[200px]' : 'h-[240px]',
+                      compact ? 'h-[140px]' : 'h-[160px]',
                     )}
                   />
                 </div>
@@ -557,13 +553,8 @@ export function Step1Intake({
                     }
                   }}
                   className={cn(
-                    // 2026-05-27 (Yuqi feedback "both can be shorter,
-                    // same height as paste inbox"): dropzone height
-                    // now matches the paste textarea (h-[200/240])
-                    // and uses fixed `h-` (was min-h) so they're
-                    // structurally identical when the user toggles.
                     'flex w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border border-dashed text-center transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none',
-                    compact ? 'h-[200px] px-6 py-6' : 'h-[240px] px-8 py-10',
+                    compact ? 'h-[140px] px-6 py-5' : 'h-[160px] px-8 py-6',
                     isFileDragActive
                       ? 'border-state-accent-solid bg-state-accent-hover-alt text-text-accent'
                       : 'border-divider-regular bg-components-panel-bg text-text-secondary hover:border-state-accent-solid hover:bg-state-accent-hover-alt',
