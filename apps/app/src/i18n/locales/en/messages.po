@@ -6362,7 +6362,6 @@ msgstr "Needs help"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
-#: src/features/obligations/status-control.tsx
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/pulse/components/AffectedClientsTable.tsx
 #: src/features/rules/coverage-tab.tsx
@@ -11672,7 +11671,6 @@ msgid "WA subtotal minus credits"
 msgstr "WA subtotal minus credits"
 
 #: src/features/workload/workload-page.tsx
-#: src/routes/obligations.tsx
 msgid "Waiting"
 msgstr "Waiting"
 

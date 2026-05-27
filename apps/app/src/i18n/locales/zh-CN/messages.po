@@ -6362,7 +6362,6 @@ msgstr "需要协助"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
-#: src/features/obligations/status-control.tsx
 #: src/features/pulse/AlertsListPage.tsx
 #: src/features/pulse/components/AffectedClientsTable.tsx
 #: src/features/rules/coverage-tab.tsx
@@ -11672,7 +11671,6 @@ msgid "WA subtotal minus credits"
 msgstr "WA 扣除抵免后的小计"
 
 #: src/features/workload/workload-page.tsx
-#: src/routes/obligations.tsx
 msgid "Waiting"
 msgstr "等待中"
 

@@ -175,11 +175,17 @@ function isObligationStatus(value: string): value is ObligationStatus {
 function useStatusLabels(): StatusLabels {
   const { t } = useLingui()
   return useMemo(
+    // 2026-05-27 (Agent X3 milestone audit M-06): `review` label flipped
+    // from "Needs review" → "In review" to match the v2 collapse and the
+    // tone audit on the pill (`review` reads as work-in-progress, not
+    // "needs attention"). The v2 label hook already returned "In review";
+    // surfaces falling back to this legacy map (admin / debug surfaces)
+    // used to disagree with the queue pill on the same row.
     () => ({
       pending: t`Not started`,
       in_progress: t`In progress`,
       waiting_on_client: t`Waiting on client`,
-      review: t`Needs review`,
+      review: t`In review`,
       done: t`Filed`,
       paid: t`Paid`,
       extended: t`Extended`,

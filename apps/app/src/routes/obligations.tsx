@@ -4617,10 +4617,24 @@ function AssigneeQuickPicker({
 // quality signal, not active red. Mirrors the same three statuses
 // that `features/obligations/status-control.tsx` displays as
 // "Filed" / "Completed".
+//
+// 2026-05-27 (Agent X3 milestone audit M-08/W-4): added `extended`
+// and `not_applicable`. Both are CLOSED_OBLIGATION_STATUSES (per
+// packages/core/src/obligation-workflow/index.ts) — `extended`
+// means the authority granted an extension (the deadline has been
+// moved, so the current internal-due late-counter is calculating
+// against a deadline that no longer matters); `not_applicable`
+// means the obligation doesn't apply (lateness is meaningless).
+// Both used to render the live red "N days late" pill on top of
+// their muted "In review · Extension active" / "Not started"
+// stage labels — a mixed signal saying "this is closed AND has
+// urgent overdue work."
 const DUE_DAYS_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set([
   'done',
   'paid',
   'completed',
+  'extended',
+  'not_applicable',
 ])
 
 // 2026-05-24 (re-critique): stages whose `isPastInternalDue` red
@@ -4636,7 +4650,18 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
     // Quality stat, not active urgency. Skip the dot, drop the
     // urgency tone, render as a muted line. Drop entirely when the
     // row landed exactly on its deadline — no signal there.
-    if (days === 0) return <span className="text-sm text-text-tertiary tabular-nums">—</span>
+    //
+    // 2026-05-27 (Agent X3 milestone audit M-08): `extended` and
+    // `not_applicable` are closed states where the "Filed N days
+    // late/early" phrasing doesn't apply (the row wasn't filed —
+    // `extended` means the deadline was officially extended via an
+    // extension filing; `not_applicable` means the obligation never
+    // applied). Render a quiet em-dash for both so the column still
+    // reserves its baseline without claiming a filing event that
+    // didn't happen.
+    if (status === 'extended' || status === 'not_applicable' || days === 0) {
+      return <span className="text-sm text-text-tertiary tabular-nums">—</span>
+    }
     return (
       // 2026-05-26 (Yuqi fifty-fourth pass — terminal pill larger):
       // "Filed N days late/early" was text-xs (12px), which read as
@@ -9149,10 +9174,17 @@ function PathToFilingSummary({
 }) {
   const { t } = useLingui()
   const stages = useMemo(
+    // 2026-05-27 (Agent X3 milestone audit M-04): "Waiting" → "Waiting
+    // on client" so the strip matches the queue pill + drawer header
+    // pill + readiness overview headline + v2 label hook. Same row,
+    // one name across every milestone surface. The short form was a
+    // legacy convenience from when this strip was a tight 6-column
+    // grid; the column now has enough width to carry the full label
+    // and the consistency win outweighs the few pixels saved.
     () =>
       [
         { key: 'pending', label: t`Not started` },
-        { key: 'waiting_on_client', label: t`Waiting` },
+        { key: 'waiting_on_client', label: t`Waiting on client` },
         { key: 'blocked', label: t`Blocked` },
         { key: 'review', label: t`In review` },
         { key: 'done', label: t`Filed` },
@@ -9959,9 +9991,13 @@ function ActiveStageDetailCard({
   const { openDrawer } = useObligationDrawer()
   const stageIdx = timelineIndexForStatus(row.status)
   const stageKey: TimelineStageKey = TIMELINE_STAGE_KEYS[stageIdx] ?? 'pending'
+  // 2026-05-27 (Agent X3 milestone audit M-04): "Waiting" → "Waiting on
+  // client" so this card's header label matches the strip above it, the
+  // queue pill, and the v2 label hook. See PathToFilingSummary for the
+  // matching change on the strip.
   const stageLabels: Record<TimelineStageKey, string> = {
     pending: t`Not started`,
-    waiting_on_client: t`Waiting`,
+    waiting_on_client: t`Waiting on client`,
     blocked: t`Blocked`,
     review: t`In review`,
     done: t`Filed`,
