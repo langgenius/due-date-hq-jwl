@@ -17,11 +17,11 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { getClientReadiness } from '@/features/clients/client-readiness'
 import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
-import { isPaymentOverdue } from '@/features/obligations/payment-overdue'
 import { orpc } from '@/lib/rpc'
 
 import { useEntityLabels } from '@/routes/clients'
 import { clientDetailPath } from './client-url'
+import { useClientNextDue } from './use-client-next-due'
 
 /**
  * `ClientPeekHoverCard` — the *hover* form of a client peek.
@@ -55,13 +55,6 @@ import { clientDetailPath } from './client-url'
  * goes to the full page. The drawer remains available for legacy
  * call sites that need a sheet-shaped peek.
  */
-
-// Statuses that mean "the obligation is done" — exclude these when
-// hunting for the next-due. Mirrors the set used by ClientSummaryStrip
-// and ClientDetailDrawer so all three surfaces agree on "next due."
-// 2026-05-27 (TERMINAL_STATUSES root bug): `'done'` (UI "Filed") is
-// NOT terminal. See dev-log 2026-05-27-terminal-statuses-root-bug.md.
-const TERMINAL_STATUSES: ReadonlySet<string> = new Set(['paid', 'completed', 'not_applicable'])
 
 export function ClientPeekHoverCard({
   clientId,
@@ -118,27 +111,7 @@ function ClientPeekBody({ clientId }: { clientId: string }) {
 
   const readiness = useMemo(() => (client ? getClientReadiness(client) : undefined), [client])
 
-  const { openCount, nextDue, paymentOverdueCount } = useMemo(() => {
-    const open = obligations.filter((o) => !TERMINAL_STATUSES.has(o.status))
-    let best: ObligationInstancePublic | null = null
-    let bestTs = Infinity
-    for (const o of open) {
-      const ts = Date.parse(o.currentDueDate)
-      if (!Number.isNaN(ts) && ts < bestTs) {
-        bestTs = ts
-        best = o
-      }
-    }
-    // 2026-05-27 (phi journey audit J1): a row that's been Filed
-    // ('done') but whose paymentDueDate has passed is NOT counted in
-    // `openCount` (the filing leg is done, it's not a to-do). But it
-    // IS a live signal the CPA needs to see when hovering the
-    // client — surface it as a separate count so the peek can render
-    // a "Payment overdue on N filings" line under the open count.
-    const today = Date.now()
-    const paymentOverdue = obligations.filter((o) => isPaymentOverdue(o, today)).length
-    return { openCount: open.length, nextDue: best, paymentOverdueCount: paymentOverdue }
-  }, [obligations])
+  const { openCount, nextDue, paymentOverdueCount } = useClientNextDue(obligations)
 
   if (clientQuery.isError) {
     return (

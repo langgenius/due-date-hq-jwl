@@ -474,19 +474,14 @@ export function ClientsRoute() {
         clientFilter={filters.clientFilters}
         entityFilter={filters.entityFilters}
         stateFilter={filters.stateFilters}
-        readinessFilter={filters.readinessFilters}
-        sourceFilter={filters.sourceFilters}
         ownerFilter={filters.ownerFilters}
-        pulseFilter={filters.pulseFilters}
         pulseMatchesByClient={pulseMatchesByClient}
         obligationSummariesByClient={obligationSummariesByClient}
         opportunityCountByClient={opportunityCountByClient}
         onClientFilterChange={handleClientFilterChange}
         onEntityFilterChange={handleEntityFilterChange}
         onStateFilterChange={handleStateFilterChange}
-        onSourceFilterChange={handleSourceFilterChange}
         onOwnerFilterChange={handleOwnerFilterChange}
-        onPulseFilterChange={handlePulseFilterChange}
         onImport={openWizard}
         canImport={canRunMigration}
       />

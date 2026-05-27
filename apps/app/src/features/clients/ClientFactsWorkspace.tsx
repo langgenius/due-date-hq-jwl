@@ -150,10 +150,6 @@ import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
 import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
-// `SectionFrame` + `SectionLabel` imports retired 2026-05-24 with the
-// switch to <TabSection>. They're still exported from
-// rules-console-primitives for any rules-console caller that wants
-// them.
 
 import { ClientCycleArrows } from './ClientCycleArrows'
 import { ClientTitleSwitcher } from './ClientTitleSwitcher'
@@ -170,10 +166,7 @@ import {
   getClientSourceType,
   type ClientEntityType,
   type ClientFactsModel,
-  type ClientPulseFilter,
   type ClientReadiness,
-  type ClientReadinessStatus,
-  type ClientSourceType,
 } from './client-readiness'
 import { writeClientCycleList } from './client-cycle'
 import {
@@ -212,22 +205,22 @@ type ClientFactsWorkspaceProps = {
   // back to the URL on every keystroke (the route debounces if needed).
   searchQuery: string
   onSearchChange: (value: string) => void
+  // `readinessFilter`, `sourceFilter`, `pulseFilter` and their
+  // `on*Change` handlers used to live here as planned-for filter inputs
+  // — they were always passed by the route but never consumed in the
+  // workspace body. Removed 2026-05-27 (audit P3-2). If those filter
+  // surfaces come back, re-add the prop alongside the actual consumer.
   clientFilter: readonly string[]
   entityFilter: readonly ClientEntityType[]
   stateFilter: readonly string[]
-  readinessFilter: readonly ClientReadinessStatus[]
-  sourceFilter: readonly ClientSourceType[]
   ownerFilter: readonly string[]
-  pulseFilter: readonly ClientPulseFilter[]
   pulseMatchesByClient: ReadonlyMap<string, readonly ClientPulseMatch[]>
   obligationSummariesByClient: ReadonlyMap<string, ClientObligationListSummary>
   opportunityCountByClient: ReadonlyMap<string, number>
   onClientFilterChange: (value: string[]) => void
   onEntityFilterChange: (value: string[]) => void
   onStateFilterChange: (value: string[]) => void
-  onSourceFilterChange: (value: string[]) => void
   onOwnerFilterChange: (value: string[]) => void
-  onPulseFilterChange: (value: string[]) => void
   onImport: () => void
   canImport: boolean
 }
@@ -2196,8 +2189,8 @@ export function ClientDetailWorkspace({
     enabled: !shortcutsBlocked,
     meta: {
       id: 'clients.tab.opportunities',
-      name: 'Opportunities tab',
-      description: 'Switch to the Opportunities tab (suggested forms + cues).',
+      name: 'Suggested forms tab',
+      description: 'Switch to the Suggested forms tab on this client.',
       category: 'navigate',
       scope: 'route',
     },
@@ -2230,9 +2223,16 @@ export function ClientDetailWorkspace({
   // deadline" CTA into compact icon-only modes so they don't ellipsize
   // or wrap (audit L9).
   const panelOpen = activeObligationId !== null
-  const riskSummaryQuery = useQuery(
-    orpc.clients.getRiskSummary.queryOptions({ input: { clientId: client.id } }),
-  )
+  // Activity-tab-only fetches: risk summary + audit log are consumed
+  // exclusively inside the Activity tab body, so gate them on
+  // `activeTab === 'activity'`. Saves ~2 round-trips on every detail
+  // page open when the CPA only ever hits Work / Client info / Suggested
+  // forms (audit P1-3).
+  const activityTabActive = activeTab === 'activity'
+  const riskSummaryQuery = useQuery({
+    ...orpc.clients.getRiskSummary.queryOptions({ input: { clientId: client.id } }),
+    enabled: activityTabActive,
+  })
   const obligationsQuery = useQuery(
     orpc.obligations.listByClient.queryOptions({ input: { clientId: client.id } }),
   )
@@ -2246,7 +2246,7 @@ export function ClientDetailWorkspace({
     ...orpc.audit.list.queryOptions({
       input: { entityType: 'client', entityId: client.id, range: '30d', limit: 6 },
     }),
-    enabled: canReadAudit,
+    enabled: canReadAudit && activityTabActive,
   })
   const obligations = obligationsQuery.data ?? EMPTY_OBLIGATIONS
   // 2026-05-27 (D16 — Agent ω, journey-audit drain): anchor the work
@@ -2603,19 +2603,21 @@ export function ClientDetailWorkspace({
                 />
                 <CreateObligationDialog
                   defaultClientId={client.id}
-                  trigger={
-                    panelOpen ? (
-                      <Button
-                        type="button"
-                        size="icon-sm"
-                        variant="default"
-                        aria-label={t`Add deadline`}
-                        title={t`Add deadline`}
-                      >
-                        <PlusIcon className="size-4" aria-hidden />
-                      </Button>
-                    ) : undefined
-                  }
+                  {...(panelOpen
+                    ? {
+                        trigger: (
+                          <Button
+                            type="button"
+                            size="icon-sm"
+                            variant="default"
+                            aria-label={t`Add deadline`}
+                            title={t`Add deadline`}
+                          >
+                            <PlusIcon className="size-4" aria-hidden />
+                          </Button>
+                        ),
+                      }
+                    : {})}
                 />
               </>
             }
@@ -2782,7 +2784,14 @@ export function ClientDetailWorkspace({
                       readiness chip (warning, not destructive) per
                       §3.7 canonical color reservation. */}
                   {readiness && readiness.missingRequiredFacts.length > 0 ? (
-                    <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-state-warning-border bg-state-warning-hover px-1.5 text-[10px] font-medium leading-none tabular-nums text-text-warning">
+                    <span
+                      className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-state-warning-border bg-state-warning-hover px-1.5 text-[10px] font-medium leading-none tabular-nums text-text-warning"
+                      // 2026-05-27 (audit P2-2): the bare "1" badge was
+                      // unlabeled. Title gives a CPA hovering it the
+                      // actual meaning ("# required fact(s) missing").
+                      title={t`${readiness.missingRequiredFacts.length} required fact(s) missing`}
+                      aria-label={t`${readiness.missingRequiredFacts.length} required fact(s) missing`}
+                    >
                       {readiness.missingRequiredFacts.length}
                     </span>
                   ) : null}
@@ -2794,7 +2803,12 @@ export function ClientDetailWorkspace({
                 >
                   <SparklesIcon className="size-3.5" aria-hidden />
                   <span data-tab-label>
-                    <Trans>Opportunities</Trans>
+                    {/* Per-client tab labeled "Suggested forms" so it
+                        doesn't collide with the firm-wide /opportunities
+                        surface in the sidebar (audit L7). URL key stays
+                        `opportunities` (see L6 rename) — same tab key,
+                        narrower visible label. */}
+                    <Trans>Suggested forms</Trans>
                   </span>
                 </ClientDetailTabTrigger>
                 <ClientDetailTabTrigger value="activity" activeTab={activeTab} compact={panelOpen}>
@@ -5449,22 +5463,33 @@ function SuggestedFormsCatalogPanel({
           </span>
           <span className="inline-flex items-center gap-2 truncate text-xs text-text-tertiary">
             <span>
-              <Plural value={applicable.length} one="# applicable" other="# applicable" /> ·{' '}
-              {client.name}
+              <Plural
+                value={applicable.length}
+                one="# applicable form"
+                other="# applicable forms"
+              />{' '}
+              · {client.name}
             </span>
             {/* D-6e (2026-05-23): the gap count is now a tooltip-
                 anchored chip. Hover reveals the actual form list so
                 the CPA can scan what's missing without opening the
                 accordion. Inert (no click target) — Tooltip is the
-                right primitive per Dify's overlay rules. */}
+                right primitive per Dify's overlay rules.
+                2026-05-27 (audit L12): "# gap" was opaque and
+                grammatically broken (singular and plural both read
+                "# gap"). Switched to "# not yet scheduled" which
+                names the actual product state — these are applicable
+                forms that don't have a deadline row yet. */}
             {suggested.length > 0 ? (
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    // 2026-05-26 (Yuqi macro→micro audit, Fix #7 /
-                    // §3.3): retired uppercase kicker on the badge.
                     <Badge variant="warning" className="cursor-default rounded-sm text-xs">
-                      <Plural value={suggested.length} one="# gap" other="# gap" />
+                      <Plural
+                        value={suggested.length}
+                        one="# not yet scheduled"
+                        other="# not yet scheduled"
+                      />
                     </Badge>
                   }
                 />
