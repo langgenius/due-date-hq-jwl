@@ -41,10 +41,10 @@ const confidenceDot = {
   <div class="lg:col-span-4">
     <div class="flex items-baseline gap-4">
       <span class="font-mono text-[48px] font-bold leading-none text-accent-default">{t.index}</span>
-      <span class="pb-1 font-mono text-[12px] tracking-[0.18em] text-text-muted">{t.tag}</span>
+      <span class="pb-1 font-mono text-sm tracking-[0.18em] text-text-muted">{t.tag}</span>
     </div>
     <h3 class="mt-8 text-[28px] font-semibold leading-snug text-text-primary">{t.headline}</h3>
-    <p class="mt-6 text-[14px] leading-relaxed text-text-secondary">{t.body}</p>
+    <p class="mt-6 text-base leading-relaxed text-text-secondary">{t.body}</p>
     <div class="mt-8 flex items-center gap-3">
       {t.hints.map((hint) => (
         <KbdHint keys={hint.keys} label={hint.label} />

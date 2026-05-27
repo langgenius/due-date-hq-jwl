@@ -289,6 +289,11 @@
     0px 1px 2px 0px var(--components-badge-status-light-disabled-halo),
     0px 0px 0px 1px var(--components-badge-status-light-border-outer);
 
+  /* ===== Upgrade-CTA hover bloom (mu F-21) ============================== */
+  --shadow-upgrade-cta-hover:
+    0 0 0 1px rgb(from var(--state-warning-solid) r g b / 0.4),
+    0 12px 28px rgb(from var(--state-warning-solid) r g b / 0.42);
+
   /* ===== Legacy aliases ================================================= */
   --background: var(--background-body);
   --foreground: var(--text-primary);
