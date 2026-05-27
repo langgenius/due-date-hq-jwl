@@ -508,11 +508,19 @@ function ActionsSummaryTile({
           dropped text-xl → text-lg and font-semibold → font-medium.
           The number is a magnitude cue, not a hero — at xl/semibold
           it competed with the page h1. Critical tone now carries
-          the eye via color, not weight. */}
+          the eye via color, not weight.
+          2026-05-27 (Step 6 UX audit #38): critical tone steps the
+          weight back up to `font-semibold`. At parity weight the
+          destructive color alone wasn't enough — the eye scanned
+          past "12 Blocked" the same as "47 In review". The bump
+          restores the visual hierarchy the color hint was
+          supposed to deliver. */}
       <span
         className={cn(
-          'text-lg font-medium leading-tight tabular-nums tracking-tight',
-          tone === 'critical' ? 'text-text-destructive' : 'text-text-primary',
+          'text-lg leading-tight tabular-nums tracking-tight',
+          tone === 'critical'
+            ? 'font-semibold text-text-destructive'
+            : 'font-medium text-text-primary',
         )}
       >
         {value}
@@ -603,6 +611,12 @@ function DashboardActionsList({
       tone: 'neutral',
     })
   }
+  // 2026-05-27 (Step 6 UX audit #37): when every exposure count is
+  // zero the strip used to vanish, which read as "the data hasn't
+  // loaded" — same shape as the isLoading skeleton above. Render an
+  // explicit "all caught up" tile so the slot is claimed and the
+  // CPA sees an affirmative signal. The tile routes to the deadlines
+  // queue so the user can still drill in if they want to verify.
   const summaryStrip =
     summaryTiles.length > 0 ? (
       <div className="flex flex-wrap gap-3">
@@ -610,7 +624,16 @@ function DashboardActionsList({
           <ActionsSummaryTile key={tile.href} {...tile} />
         ))}
       </div>
-    ) : null
+    ) : (
+      <div className="flex flex-wrap gap-3">
+        <ActionsSummaryTile
+          value="0"
+          label={t`All caught up`}
+          href="/deadlines"
+          tone="neutral"
+        />
+      </div>
+    )
 
   if (isLoading) {
     return (

@@ -381,6 +381,12 @@ msgstr "{0} items"
 msgid "{0} items recorded"
 msgstr "已记录 {0} 项"
 
+#. placeholder {0}: filteredClients.length
+#. placeholder {1}: clients.length
+#: src/routes/clients.tsx
+msgid "{0} of {1}"
+msgstr "{0} / {1}"
+
 #. placeholder {0}: groupHeader.lateCount
 #: src/routes/obligations.tsx
 msgid "{0} of this client's deadlines are past the internal target"
@@ -1205,8 +1211,8 @@ msgid "Add {0}% across factors to balance. Weights must total 100%."
 msgstr "为各因子合计增加 {0}% 以达到平衡。权重总和须为 100%。"
 
 #: src/features/clients/CreateClientDialog.tsx
-msgid "Add a manual client record to the active practice directory."
-msgstr "添加手动客户记录到当前事务所目录。"
+msgid "Add a client to this practice."
+msgstr "为此事务所添加一个客户。"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Add a review note and try again."
@@ -1495,6 +1501,7 @@ msgid "All categories"
 msgstr "所有分类"
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
+#: src/features/dashboard/actions-list.tsx
 msgid "All caught up"
 msgstr "全部完成"
 
@@ -5807,6 +5814,10 @@ msgstr "正在加载即将触发的提醒…"
 #: src/features/workload/workload-page.tsx
 msgid "Loading workload metrics"
 msgstr "正在加载工作负载指标"
+
+#: src/routes/dashboard.tsx
+msgid "loading…"
+msgstr "加载中…"
 
 #: src/components/patterns/pulse-notifications-bell.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -11304,6 +11315,10 @@ msgstr "信托"
 #: src/routes/obligations.tsx
 msgid "Try a different filter combination, or clear all filters to see the full queue."
 msgstr "Try a different filter combination, or clear all filters to see the full queue."
+
+#: src/routes/clients.$clientId.tsx
+msgid "Try again"
+msgstr "重试"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Try again, or skip this rule for now."

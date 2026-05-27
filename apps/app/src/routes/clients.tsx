@@ -343,9 +343,17 @@ export function ClientsRoute() {
                 (page-family-canonical §3) where the chip carries a
                 qualifier number only ("47") or noun+number when the
                 noun differs from the title (e.g. "17 open" on
-                /deadlines). */}
+                /deadlines).
+                2026-05-27 (Step 6 UX audit #62): when any filter is
+                active the chip now shows "N of M" so the CPA can see
+                both the filtered subset AND the total at a glance.
+                Previously the chip kept the unfiltered total even
+                when 8 of 47 rows were visible, which made the chip
+                lie about the visible list. */}
             <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium text-text-secondary tabular-nums">
-              {clients.length}
+              {filteredClients.length === clients.length
+                ? clients.length
+                : t`${filteredClients.length} of ${clients.length}`}
             </span>
           </span>
         }
@@ -355,12 +363,16 @@ export function ClientsRoute() {
                 import history, not client archival. Keep the visible label
                 aligned with the drawer title so "Archive" does not read as
                 a destructive client action. */}
+            {/* 2026-05-27 (Step 6 UX audit #63): button has a visible
+                "Import history" label already; the duplicate `title`
+                tooltip just repeated the same text on hover. Dropped
+                the redundant title — `aria-label` stays for AT users
+                if the visible label ever becomes icon-only. */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => handleImportHistoryOpenChange(true)}
               aria-label={t`Import history`}
-              title={t`Import history`}
             >
               <HistoryIcon data-icon="inline-start" />
               <Trans>Import history</Trans>
