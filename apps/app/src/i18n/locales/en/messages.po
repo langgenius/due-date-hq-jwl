@@ -528,6 +528,10 @@ msgstr "{count, plural, one {View # more Pulse alert} other {View # more Pulse a
 msgid "{count} {noun} updated"
 msgstr "{count} {noun} updated"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "{count} Actions this week"
+msgstr "{count} Actions this week"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "{count} additional fields changed"
 msgstr "{count} additional fields changed"
@@ -827,8 +831,8 @@ msgid "{totalActive} rules"
 msgstr "{totalActive} rules"
 
 #: src/features/dashboard/needs-attention-section.tsx
-msgid "{totalAlertCount, plural, one {# alert} other {# alerts}}"
-msgstr "{totalAlertCount, plural, one {# alert} other {# alerts}}"
+msgid "{totalAlertCount, plural, one {# Alert} other {# Alerts}}"
+msgstr "{totalAlertCount, plural, one {# Alert} other {# Alerts}}"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "{totalOpen, plural, one {View # open deadline} other {View # open deadlines}}"

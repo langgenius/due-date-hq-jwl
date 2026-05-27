@@ -536,6 +536,10 @@ msgstr "{count, plural, one {再查看 # 条 Pulse 提醒} other {再查看 # �
 msgid "{count} {noun} updated"
 msgstr "已更新 {count} 个{noun}"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "{count} Actions this week"
+msgstr "{count} 本周待办"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "{count} additional fields changed"
 msgstr "另有 {count} 个字段已变更"
@@ -844,7 +848,7 @@ msgid "{totalActive} rules"
 msgstr "{totalActive} 条规则"
 
 #: src/features/dashboard/needs-attention-section.tsx
-msgid "{totalAlertCount, plural, one {# alert} other {# alerts}}"
+msgid "{totalAlertCount, plural, one {# Alert} other {# Alerts}}"
 msgstr "{totalAlertCount, plural, other {# 条警报}}"
 
 #: src/features/dashboard/actions-list.tsx

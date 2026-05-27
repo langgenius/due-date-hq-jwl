@@ -165,19 +165,19 @@ export function DashboardRoute() {
           primitive propagates here automatically. */}
       <PageHeader
         title={
-          <span className="inline-flex items-center gap-2">
+          // 2026-05-27 (Yuqi feedback: "should be like this but May 27
+          // in gray"): the date renders inline at the same heading
+          // type-style as "Today", just in text-text-tertiary. Drops
+          // the rounded-pill chrome — the date is part of the title,
+          // not a count-chip beside it.
+          <span className="inline-flex items-baseline gap-2">
             <Trans>Today</Trans>
-            {/* 2026-05-27 (ν #31 + X1 D18): loading-state placeholder
-                pill so the date slot stays visually claimed during
-                fetch (ν #31), and a tighter px-1.5 no-py pill once
-                the date arrives so the chip reads as caption-not-
-                button (X1 D18). */}
             {dashboardQuery.isLoading ? (
-              <span className="rounded-full bg-state-base-hover px-1.5 text-xs font-normal italic text-text-tertiary">
+              <span className="font-normal text-text-tertiary italic">
                 <Trans>loading…</Trans>
               </span>
             ) : data?.asOfDate ? (
-              <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+              <span className="font-normal tabular-nums text-text-tertiary">
                 {formatTodayHeader(data.asOfDate)}
               </span>
             ) : null}

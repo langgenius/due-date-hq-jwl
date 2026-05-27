@@ -624,7 +624,7 @@ function DashboardActionsList({
   // queue so the user can still drill in if they want to verify.
   const summaryStrip =
     summaryTiles.length > 0 ? (
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 px-3">
         {summaryTiles.map((tile) => (
           <StatTile
             key={tile.href}
@@ -636,16 +636,16 @@ function DashboardActionsList({
         ))}
       </div>
     ) : (
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 px-3">
         <StatTile value="0" label={t`All caught up`} href="/deadlines" tone="neutral" />
       </div>
     )
 
   if (isLoading) {
     return (
-      <section aria-label={t`Actions this week`} className="flex flex-col gap-4 px-3">
+      <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
         <ActionsListHeader count={null} onOpenAll={onOpenAllObligations} />
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 px-3">
           <Skeleton className="h-16 w-40" />
           <Skeleton className="h-16 w-40" />
           <Skeleton className="h-16 w-40" />
@@ -669,7 +669,7 @@ function DashboardActionsList({
     //   3. Caught-up state (rows exist somewhere but Smart Priority
     //      filtered them all out).
     return (
-      <section aria-label={t`Actions this week`} className="flex flex-col gap-4 px-3">
+      <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
         <ActionsListHeader count={0} onOpenAll={onOpenAllObligations} />
         {totalOpen > 0 ? (
           <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
@@ -707,7 +707,7 @@ function DashboardActionsList({
   }
 
   return (
-    <section aria-label={t`Actions this week`} className="flex flex-col gap-4 px-3">
+    <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
       <ActionsListHeader count={totalThisWeek} onOpenAll={onOpenAllObligations} />
       {summaryStrip}
       {/* 2026-05-26 (Yuqi /today feedback): row borders dropped.
@@ -752,7 +752,11 @@ function ActionsListHeader({ count, onOpenAll }: { count: number | null; onOpenA
     // misreading Yuqi's note — she meant the row should sit on the
     // left, with the title/count/caption sharing one visual midline
     // (`items-center`, not `items-baseline`).
-    <div className="flex items-center justify-between gap-3">
+    // 2026-05-27 (Yuqi feedback "px-3 is to the actions this week title,
+    // and the three card columns row"): px-3 lives on the heading row +
+    // tile row only, NOT on the section as a whole. Action rows below
+    // stay flush so the arrow column reads as a visual anchor.
+    <div className="flex items-center justify-between gap-3 px-3">
       {/* 2026-05-25 (Yuqi #27 + Today follow-up): sort order was
           implicit ("list is ordered by Smart Priority desc"). Surfaced
           inline as "Sorted by priority" so the CPA knows why row 3 is
@@ -770,11 +774,17 @@ function ActionsListHeader({ count, onOpenAll }: { count: number | null; onOpenA
           body. Same change made to the "Alerts" h2 in
           needs-attention-section.tsx. */}
       <h2 className="flex items-center flex-wrap gap-x-2 gap-y-0.5 text-lg font-semibold tracking-tight text-text-primary">
-        <span className="inline-flex items-center gap-2">
-          <Trans>Actions this week</Trans>
+        {/* 2026-05-27 (Yuqi feedback "write 10 Actions this week, the
+            numbers are part of the title"): count prefix is now part
+            of the heading string itself (same type-style as "Actions
+            this week"). Matches the "4 Alerts" pattern on the section
+            above. When count is 0/null, the bare phrase shows. */}
+        <span className="inline-flex items-center gap-2 tabular-nums">
           {count !== null && count > 0 ? (
-            <span className="text-base font-normal tabular-nums text-text-tertiary">{count}</span>
-          ) : null}
+            <Trans>{count} Actions this week</Trans>
+          ) : (
+            <Trans>Actions this week</Trans>
+          )}
         </span>
         {/* 2026-05-25 (info-icon audit): the bare `<span title=…>
             <Info /></span>` non-focusable affordance becomes a

@@ -140,30 +140,21 @@ function NeedsAttentionSection() {
             signals are meaningful: monitoring (always when sources
             exist) + alert count (when > 0, destructive-toned). */}
         <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-text-primary">
-          <Trans>Alerts</Trans>
-          {/* 2026-05-27 (Yuqi feedback): order swapped so the
-              destructive-toned alert count sits BEFORE the neutral
-              monitoring chip. Active alerts are the lead signal; the
-              monitoring count is supporting context. */}
+          {/* 2026-05-27 (Yuqi feedback: "the numbers are part of the
+              title. write 4 Alerts"): count + noun read as one phrase
+              at the heading type-style. Number prefix matches the
+              "10 Actions this week" pattern. When no alerts exist,
+              the heading collapses to the bare noun. */}
           {totalAlertCount > 0 ? (
-            // 2026-05-27 (Yuqi feedback "just write 4 alerts"): bare
-            // count number was ambiguous on its own — chip now spells
-            // out "N alerts" / "N alert" so the destructive pill reads
-            // as a complete clause without leaning on the h2 next to it.
-            <span className="rounded-full bg-state-destructive-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-destructive">
-              <Plural value={totalAlertCount} one="# alert" other="# alerts" />
-            </span>
-          ) : null}
+            <Trans>
+              <Plural value={totalAlertCount} one="# Alert" other="# Alerts" />
+            </Trans>
+          ) : (
+            <Trans>Alerts</Trans>
+          )}
           {monitoringCount > 0 ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
-              {/* 2026-05-27 (Yuqi feedback "dot is not square"):
-                  PulsingDot's outer was overridden to `size-1.5` (6px)
-                  but its inner has hardcoded `size-2` (8px) — the 8px
-                  fill got clipped in a 6px container, reading as a
-                  flattened/non-square pill. Drop the override and let
-                  the dot use its canonical 8px size. */}
               <PulsingDot tone="success" active />
-
               <Trans>
                 Monitoring <Plural value={monitoringCount} one="# source" other="# sources" />
               </Trans>
