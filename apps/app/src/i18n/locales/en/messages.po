@@ -7976,10 +7976,6 @@ msgstr "Practice AI included"
 msgid "Practice billing stays scoped to the selected practice."
 msgstr "Practice billing stays scoped to the selected practice."
 
-#: src/routes/billing.checkout.tsx
-msgid "Practice context"
-msgstr "Practice context"
-
 #: src/routes/billing.tsx
 msgid "Practice context couldn't load"
 msgstr "Practice context couldn't load"
@@ -11893,6 +11889,10 @@ msgstr "Your column"
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Your current plan includes one active practice. Additional practices are available on the Enterprise plan."
 msgstr "Your current plan includes one active practice. Additional practices are available on the Enterprise plan."
+
+#: src/routes/billing.checkout.tsx
+msgid "Your current practice"
+msgstr "Your current practice"
 
 #: src/features/permissions/permission-gate.tsx
 msgid "Your current role cannot use this surface. Contact the practice owner if you need access."

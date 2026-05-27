@@ -7976,10 +7976,6 @@ msgstr "已包含 Practice AI"
 msgid "Practice billing stays scoped to the selected practice."
 msgstr "事务所账单始终限定在所选事务所。"
 
-#: src/routes/billing.checkout.tsx
-msgid "Practice context"
-msgstr "事务所上下文"
-
 #: src/routes/billing.tsx
 msgid "Practice context couldn't load"
 msgstr "无法加载事务所上下文"
@@ -11893,6 +11889,10 @@ msgstr "你的列"
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Your current plan includes one active practice. Additional practices are available on the Enterprise plan."
 msgstr "你当前的计划包含 1 个 active 事务所。额外事务所属于 Enterprise 计划。"
+
+#: src/routes/billing.checkout.tsx
+msgid "Your current practice"
+msgstr "你的当前事务所"
 
 #: src/features/permissions/permission-gate.tsx
 msgid "Your current role cannot use this surface. Contact the practice owner if you need access."

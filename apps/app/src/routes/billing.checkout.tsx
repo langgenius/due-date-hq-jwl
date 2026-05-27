@@ -478,7 +478,12 @@ export function BillingCheckoutRoute() {
         <Card size="sm">
           <CardHeader>
             <CardTitle>
-              <Trans>Practice context</Trans>
+              {/* 2026-05-27 (Step 7 F8-03 — P2): "Practice context"
+                  was vague — the card lists the active practice
+                  name, current plan, and seat/practice limits, so
+                  it's really "what's on file for this practice".
+                  Rename to make the card scannable at a glance. */}
+              <Trans>Your current practice</Trans>
             </CardTitle>
             <CardDescription>
               <Trans>
