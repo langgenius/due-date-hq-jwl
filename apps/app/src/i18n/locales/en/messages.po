@@ -889,10 +889,6 @@ msgstr "{visibleHideableCount} of {totalHideableCount} columns visible"
 msgid "{visibleSelectableCount} batch-ready · {visibleSingleReviewCount} need single review"
 msgstr "{visibleSelectableCount} batch-ready · {visibleSingleReviewCount} need single review"
 
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "{watchedCount, plural, one {Monitoring # source. New matches will appear here.} other {Monitoring # sources. New matches will appear here.}}"
-msgstr "{watchedCount, plural, one {Monitoring # source. New matches will appear here.} other {Monitoring # sources. New matches will appear here.}}"
-
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "{year} (current year)"
 msgstr "{year} (current year)"
@@ -1575,12 +1571,8 @@ msgid "All change types"
 msgstr "All change types"
 
 #: src/features/pulse/AlertsListPage.tsx
-msgid "All clear. We're watching configured Pulse sources; new matches will appear here."
-msgstr "All clear. We're watching configured Pulse sources; new matches will appear here."
-
-#: src/features/pulse/AlertsListPage.tsx
-msgid "All clear. We're watching official federal and state sources ({count, plural, one {# source} other {# sources}}); new matches will appear here."
-msgstr "All clear. We're watching official federal and state sources ({count, plural, one {# source} other {# sources}}); new matches will appear here."
+msgid "All clear. New matches will appear here."
+msgstr "All clear. New matches will appear here."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "All clients"
@@ -6435,8 +6427,9 @@ msgid "Model"
 msgstr "Model"
 
 #: src/features/dashboard/needs-attention-section.tsx
-msgid "monitoring sources"
-msgstr "monitoring sources"
+#: src/routes/rules.pulse.tsx
+msgid "Monitoring {monitoringCount, plural, one {# source} other {# sources}}"
+msgstr "Monitoring {monitoringCount, plural, one {# source} other {# sources}}"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx

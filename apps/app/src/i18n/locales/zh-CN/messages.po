@@ -889,10 +889,6 @@ msgstr "已显示 {visibleHideableCount} 列(共 {totalHideableCount} 列)"
 msgid "{visibleSelectableCount} batch-ready · {visibleSingleReviewCount} need single review"
 msgstr "{visibleSelectableCount} 条可批量 · {visibleSingleReviewCount} 条需单条审核"
 
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "{watchedCount, plural, one {Monitoring # source. New matches will appear here.} other {Monitoring # sources. New matches will appear here.}}"
-msgstr "{watchedCount, plural, one {正在监控 # 个来源。新的匹配会显示在这里。} other {正在监控 # 个来源。新的匹配会显示在这里。}}"
-
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "{year} (current year)"
 msgstr "{year}（当前年度）"
@@ -1575,12 +1571,8 @@ msgid "All change types"
 msgstr "所有变更类型"
 
 #: src/features/pulse/AlertsListPage.tsx
-msgid "All clear. We're watching configured Pulse sources; new matches will appear here."
-msgstr "全部正常。我们正在监控已配置的 Pulse 来源；新的匹配会显示在这里。"
-
-#: src/features/pulse/AlertsListPage.tsx
-msgid "All clear. We're watching official federal and state sources ({count, plural, one {# source} other {# sources}}); new matches will appear here."
-msgstr "全部正常。我们正在监控官方联邦和州来源（{count, plural, one {# 个来源} other {# 个来源}}）；新的匹配会显示在这里。"
+msgid "All clear. New matches will appear here."
+msgstr ""
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "All clients"
@@ -6435,8 +6427,9 @@ msgid "Model"
 msgstr "模型"
 
 #: src/features/dashboard/needs-attention-section.tsx
-msgid "monitoring sources"
-msgstr "监控来源"
+#: src/routes/rules.pulse.tsx
+msgid "Monitoring {monitoringCount, plural, one {# source} other {# sources}}"
+msgstr ""
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx

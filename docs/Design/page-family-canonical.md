@@ -82,21 +82,26 @@ Pick exactly one; do not mix.
 
 ### Intent
 
-Identify the page and qualify it with one number. Surface the
-1-2 primary cross-page actions to the right. Nothing else
-belongs in the header — no search, no filters, no metrics.
+Identify the page and qualify it with one number (or with a
+count + an always-on status indicator). Surface the 1-2
+primary cross-page actions to the right. Nothing else belongs
+in the header — no search, no filters, no metrics.
 
 ### Tokens
 
-| Slot                | Token                                                                            |
-| ------------------- | -------------------------------------------------------------------------------- |
-| Title type          | `--text-page-title` (`text-2xl leading-7 font-semibold`, `text-text-primary`)    |
-| Count chip bg       | `--state-base-hover`                                                             |
-| Count chip text     | `--text-secondary`                                                               |
-| Count chip type     | `--text-caption` (`text-xs font-medium tabular-nums`)                            |
-| Count chip shape    | `--radius-full` + `--space-chip-x` (`px-2`) + `--space-chip-y` (`py-0.5`)        |
-| Description         | `--text-body-small` (`text-[13px] leading-5`, `text-text-secondary`, max-w 1080) |
-| Actions cluster gap | `--space-cluster-gap` (`gap-2`)                                                  |
+| Slot                  | Token                                                                            |
+| --------------------- | -------------------------------------------------------------------------------- |
+| Title type            | `--text-page-title` (`text-2xl leading-7 font-semibold`, `text-text-primary`)    |
+| Count chip bg         | `--state-base-hover`                                                             |
+| Count chip text       | `--text-secondary`                                                               |
+| Count chip type       | `--text-caption` (`text-xs font-medium tabular-nums`)                            |
+| Count chip shape      | `--radius-full` + `--space-chip-x` (`px-2`) + `--space-chip-y` (`py-0.5`)        |
+| Urgent count chip bg  | `--state-destructive-hover`                                                      |
+| Urgent count chip txt | `--text-destructive`                                                             |
+| Status chip dot       | `PulsingDot tone="success" className="size-1.5"` (leading)                       |
+| Status chip gap       | `gap-1.5` between dot and label                                                  |
+| Description           | `--text-body-small` (`text-[13px] leading-5`, `text-text-secondary`, max-w 1080) |
+| Actions cluster gap   | `--space-cluster-gap` (`gap-2`)                                                  |
 
 ### Direction
 
@@ -105,21 +110,66 @@ count chip immediately to its right qualifies what the user is
 looking at (`17 open`, `3 ongoing`, `9 Clients`). Read order:
 noun → number → done.
 
+### Dual-chip pattern
+
+Some pages carry **two** chip-worthy signals: a primary count
+AND a foundational always-on status. The canonical example is
+`/rules/pulse` (Alerts):
+
+- **Monitoring chip** (status, always when sources exist) —
+  grey pill + leading PulsingDot + "Monitoring N sources". This
+  is the watcher-is-alive signal; it must read at a glance even
+  when the alert queue is empty, so it cannot live in body copy.
+- **Alert count chip** (count, only when > 0) — destructive-toned
+  pill so an active queue reads with urgency. Joins the row to
+  the right of the monitoring chip when present.
+
+Both chips share the same `text-xs font-medium tabular-nums`
+type and `rounded-full px-2 py-0.5` shape — only the
+foreground/background colors differ to encode tone (neutral
+status vs. urgent count). When a page adopts the dual-chip
+pattern, any restatement of the same signal in supporting body
+copy MUST be removed (see Restrictions below).
+
+### Action variant rules
+
+- **Default**: `variant="outline"` for all header actions.
+- **Primary CTA exception**: pages whose dominant job is
+  creation (`/clients` → "New client", `/today` → "Add deadline")
+  may render ONE filled primary `variant="default"` button in
+  the actions slot. The companion secondary action stays
+  outline. Non-creation pages (`/deadlines`, `/rules/pulse`)
+  do not get a filled primary — they stay outline-only.
+- **Ghost variant** is not used in the header actions cluster
+  on the light-grey app background; it collapses to icon-only
+  visual weight.
+
 ### Restrictions
 
 - ❌ Title in title-case (e.g. `Deadlines View`). Use a single
   noun.
 - ❌ Count chip without `tabular-nums`. Digits must align across
   pages and across loading states.
+- ❌ Count or status chip that diverges from the canonical
+  `text-xs font-medium` + `rounded-full bg pill` shape. The
+  shape encodes "this is a chip"; bare text reads as a different
+  language and breaks scan rhythm.
+- ❌ `items-baseline` on the title row. Use `items-center` so the
+  chip(s) sit on the title's vertical midline, not below its
+  baseline.
 - ❌ Actions cluster of more than 2 buttons. If three, the
   third belongs in a dropdown.
-- ❌ `<Button variant="default">` (solid) in the actions slot.
-  Use `variant="outline"` — these are secondary actions, not
-  the page's primary CTA.
+- ❌ More than one filled primary `variant="default"` button in
+  the actions slot.
+- ❌ Filled primary on a page that isn't a creation surface.
+- ❌ `variant="ghost"` in the header actions slot on light bg.
 - ❌ `DownloadIcon` for "Export" buttons. Export = data leaving
   the app = `ArrowUpRightIcon` (matches Linear / Notion / Figma).
 - ❌ Description longer than one sentence. If two are needed,
   the second is doing the count chip's job — drop it.
+- ❌ Restating a chip's signal in body copy. If "Monitoring N
+  sources" is in the chip, the empty-state banner does not also
+  say it.
 
 ### When to omit the description
 
