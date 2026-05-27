@@ -3316,9 +3316,10 @@ export function ObligationQueueRoute() {
                   and this toolbar slot should reflect the same
                   semantic ("how many things am I working with"),
                   not "how many things are on this page right now." */}
-              <span className="tabular-nums text-xs text-text-tertiary">
-                <Plural value={rows.length} one="# deadline" other="# deadlines" />
-              </span>
+              {/* 2026-05-27 (Yuqi "去掉这个17 deadlines"): inline
+                  "{N} deadlines" count next to Group-by removed —
+                  was duplicating what the status tabs above already
+                  show (All 17, Not started 3, etc.). */}
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
@@ -4871,11 +4872,14 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-2 text-sm tabular-nums leading-tight',
+        // 2026-05-27 (Yuqi "去掉这个点"): BadgeStatusDot removed
+        // entirely. The tinted text color already carries the
+        // urgency signal (text-text-destructive for late, etc.);
+        // the dot was redundant noise next to the date.
+        'inline-flex items-center text-sm tabular-nums leading-tight',
         tintedTextClass,
       )}
     >
-      <BadgeStatusDot tone={tone.dot} className={`size-1.5 ${tone.dotClassName ?? ''}`} />
       {days === 0 ? (
         <Trans>Today</Trans>
       ) : isLate ? (
