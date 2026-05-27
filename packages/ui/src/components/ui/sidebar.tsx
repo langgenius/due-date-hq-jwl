@@ -827,8 +827,14 @@ export function SidebarMenuBadge({
   const pillBaseExpanded =
     'pointer-events-none inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full px-1 font-mono text-[10px] font-semibold tabular-nums leading-none'
   const expandedPos = 'ml-auto'
+  // 2026-05-27 (Yuqi feedback "collapsed sidebar is hard to read the
+  // notification number. remove the shining effect, and the border of
+  // the number badge"): dropped `border-2 border-components-panel-bg`
+  // — the 2px border ate into the pill's already-small footprint at
+  // 14×14, making the inner digit unreadable. Without the border the
+  // digit gets full pill width.
   const collapsedPos =
-    'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:-top-0.5 group-data-[collapsed=true]/sidebar:-right-0.5 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:h-3.5 group-data-[collapsed=true]/sidebar:min-w-3.5 group-data-[collapsed=true]/sidebar:px-0.5 group-data-[collapsed=true]/sidebar:text-[9px] group-data-[collapsed=true]/sidebar:border-2 group-data-[collapsed=true]/sidebar:border-components-panel-bg'
+    'group-data-[collapsed=true]/sidebar:absolute group-data-[collapsed=true]/sidebar:-top-0.5 group-data-[collapsed=true]/sidebar:-right-0.5 group-data-[collapsed=true]/sidebar:ml-0 group-data-[collapsed=true]/sidebar:h-3.5 group-data-[collapsed=true]/sidebar:min-w-3.5 group-data-[collapsed=true]/sidebar:px-0.5 group-data-[collapsed=true]/sidebar:text-[9px]'
   if (tone === 'inventory') {
     return (
       <span
@@ -854,10 +860,12 @@ export function SidebarMenuBadge({
         expandedPos,
         'bg-state-destructive-solid text-text-inverted',
         collapsedPos,
-        // Subtle pulse on the urgent badge — communicates "fresh /
-        // needs attention" without being annoying. Only in collapsed
-        // mode so expanded reads as a calm count.
-        'group-data-[collapsed=true]/sidebar:animate-[pulse_2.4s_ease-in-out_infinite] group-data-[collapsed=true]/sidebar:motion-reduce:animate-none',
+        // 2026-05-27 (Yuqi feedback "remove the shining effect"): the
+        // collapsed-mode animate-pulse was making the digit pulse in
+        // and out of opacity, which Yuqi flagged as hard-to-read.
+        // Calm red pill stands on its own as a "fresh / needs
+        // attention" signal — the destructive solid tone is already
+        // loud enough.
         className,
       )}
       {...props}
