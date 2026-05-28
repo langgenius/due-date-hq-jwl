@@ -11787,10 +11787,6 @@ msgstr "此阶段已跳过 — 无适用日期。"
 msgid "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
 msgstr "此模板用于 Materials 发送 checklist 收集请求。变量：client_name、tax_type、due_date、request_url、outstanding_checklist 和 received_checklist。"
 
-#: src/routes/rules.library.tsx
-msgid "Tier"
-msgstr "级别"
-
 #: src/features/audit/audit-log-table.tsx
 msgid "Time"
 msgstr "时间"
@@ -11921,6 +11917,10 @@ msgstr "TXT、CSV 或 Excel"
 #: src/routes/rules.library.tsx
 msgid "TY {0}"
 msgstr "税年 {0}"
+
+#: src/routes/rules.library.tsx
+msgid "Type"
+msgstr "类型"
 
 #: src/features/rules/sources-tab.tsx
 msgid "TYPE"
