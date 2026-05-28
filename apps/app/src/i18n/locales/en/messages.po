@@ -12162,10 +12162,6 @@ msgstr "View {0}"
 msgid "View {count} open deadlines for this client"
 msgstr "View {count} open deadlines for this client"
 
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "View all alerts"
-msgstr "View all alerts"
-
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "View all deadlines"
 msgstr "View all deadlines"
