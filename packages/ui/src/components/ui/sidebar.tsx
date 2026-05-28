@@ -602,7 +602,18 @@ export function SidebarMenuItem({ className, ...props }: React.ComponentProps<'l
 
 const sidebarMenuButtonVariants = cva(
   cn(
-    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-md px-3 text-left text-base font-normal text-text-secondary outline-none transition-colors',
+    // 2026-05-28 (Yuqi sidebar expanded polish — "look nice both
+    // when expanded and collapsed"): menu item text scaled
+    // text-base (16px) → text-sm (14px). At text-base the items
+    // read as hero-rank — they sat at the same scale as the
+    // firm-switcher header above (which IS meant to anchor the
+    // rail). Stepping items to text-sm restores the 3-tier rail
+    // hierarchy: firm name `text-base font-medium` (top anchor) →
+    // menu items `text-sm font-normal` (quiet nav) → group label
+    // eyebrows `text-xs uppercase` (faint section markers). Matches
+    // Linear / Notion / Cloudflare sidebar density. Item height
+    // stays h-8 (32px); icon size unchanged at size-4 (16px).
+    'group/menu-button peer/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-md px-3 text-left text-sm font-normal text-text-secondary outline-none transition-colors',
     // Hover uses a neutral surface token; selected state below uses the
     // explicit accent tint so route wayfinding stays distinct from row hover.
     'hover:bg-background-default-hover hover:text-text-primary',
