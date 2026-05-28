@@ -2,6 +2,7 @@ import {
   isTemporaryAnnouncementSource,
   listHiddenPolicyWatchSources,
   listRuleSources,
+  policyWatchAutomationStatusForSource,
   type PolicyWatchSource,
   type RuleSource,
 } from '@duedatehq/core/rules'
@@ -102,7 +103,6 @@ export function createRuleSourceAdapter(source: RuleSource): SourceAdapter {
     tier: tierForPriority(source.priority),
     cronIntervalMs: intervalForCadence(source.cadence),
     jurisdiction: source.jurisdiction,
-    canCreatePulse: isRuleSourcePulsePromoted(source),
     async fetch(ctx) {
       return [await fetchTextSnapshot(ctx, { sourceId: source.id, url: source.url })]
     },
@@ -133,11 +133,13 @@ export function createTemporaryAnnouncementAdapter(source: RuleSource): SourceAd
 }
 
 export function createPolicyWatchAdapter(source: PolicyWatchSource): SourceAdapter {
+  const isAutomatedAlertSource = isPolicyWatchPulsePromoted(source)
   return {
     id: source.id,
     tier: tierForPriority(source.priority),
     cronIntervalMs: intervalForCadence(source.cadence),
     jurisdiction: source.jurisdiction,
+    allowEmptyParse: true,
     fetcher: 'browserless',
     async fetch(ctx) {
       return [
@@ -157,10 +159,19 @@ export function createPolicyWatchAdapter(source: PolicyWatchSource): SourceAdapt
           jurisdiction: source.jurisdiction,
         },
         snapshot,
-        { fallbackToSourceSnapshot: true },
+        { fallbackToSourceSnapshot: !isAutomatedAlertSource },
       )
     },
   }
+}
+
+export function isPolicyWatchPulsePromoted(source: PolicyWatchSource): boolean {
+  return policyWatchAutomationStatusForSource(source) === 'automated'
+}
+
+export function isPolicyWatchAdapterEligible(source: PolicyWatchSource): boolean {
+  const automationStatus = policyWatchAutomationStatusForSource(source)
+  return automationStatus !== 'manual_review' && automationStatus !== 'blocked'
 }
 
 export function isRuleSourceAdapterEligible(source: RuleSource): boolean {
@@ -187,15 +198,33 @@ export const temporaryAnnouncementSourceAdapters = listRuleSources()
   .filter(isTemporaryAnnouncementAdapterEligible)
   .map(createTemporaryAnnouncementAdapter)
 
-export const hiddenPolicyWatchAdapters =
-  listHiddenPolicyWatchSources().map(createPolicyWatchAdapter)
+export const hiddenPolicyWatchAdapters = listHiddenPolicyWatchSources()
+  .filter(isPolicyWatchAdapterEligible)
+  .map(createPolicyWatchAdapter)
 
 export const hiddenPolicyWatchSourceIds = new Set(
   hiddenPolicyWatchAdapters.map((adapter) => adapter.id),
 )
 
+export const reviewOnlyPulseSourceIds = new Set([
+  'fema.declarations',
+  'govdelivery.inbound',
+  ...listRuleSources()
+    .filter(isRuleSourceAdapterEligible)
+    .filter((source) => !isRuleSourcePulsePromoted(source))
+    .map((source) => source.id),
+  ...listHiddenPolicyWatchSources()
+    .filter(isPolicyWatchAdapterEligible)
+    .filter((source) => policyWatchAutomationStatusForSource(source) === 'signal_only')
+    .map((source) => source.id),
+])
+
 export function isHiddenPolicyWatchSourceId(sourceId: string): boolean {
   return hiddenPolicyWatchSourceIds.has(sourceId)
+}
+
+export function requiresReviewOnlyPulseAlert(sourceId: string): boolean {
+  return reviewOnlyPulseSourceIds.has(sourceId)
 }
 
 export const visibleRegulatorySourceAdapters = [

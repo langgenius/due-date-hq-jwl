@@ -11,10 +11,13 @@ import {
   createRuleSourceAdapter,
   hiddenPolicyWatchAdapters,
   isHiddenPolicyWatchSourceId,
+  isPolicyWatchAdapterEligible,
+  isPolicyWatchPulsePromoted,
   isRuleSourceAdapterEligible,
   isRuleSourcePulsePromoted,
   isTemporaryAnnouncementAdapterEligible,
   liveRegulatorySourceAdapters,
+  requiresReviewOnlyPulseAlert,
   ruleSourceAdapters,
   temporaryAnnouncementSourceAdapters,
   visibleRegulatorySourceAdapters,
@@ -47,12 +50,13 @@ describe('rule source adapters', () => {
 
   it('adds hidden national policy-watch adapters without exposing them as visible sources', async () => {
     const hiddenSources = listHiddenPolicyWatchSources()
+    const eligibleHiddenSources = hiddenSources.filter(isPolicyWatchAdapterEligible)
     const visibleAdapterIds = new Set(visibleRegulatorySourceAdapters.map((adapter) => adapter.id))
     const publicSourceIds = new Set(listRuleSources().map((source) => source.id))
 
     expect(hiddenSources).toHaveLength(52)
     expect(hiddenPolicyWatchAdapters.map((adapter) => adapter.id).toSorted()).toEqual(
-      hiddenSources.map((source) => source.id).toSorted(),
+      eligibleHiddenSources.map((source) => source.id).toSorted(),
     )
 
     for (const adapter of hiddenPolicyWatchAdapters) {
@@ -67,7 +71,9 @@ describe('rule source adapters', () => {
 
     const source = hiddenSources.find((candidate) => candidate.jurisdiction === 'AZ')!
     expect(source.feedUrl).toBe('https://azdor.gov/news-center')
-    const items = await createPolicyWatchAdapter(source).parse(
+    const adapter = createPolicyWatchAdapter(source)
+    expect(requiresReviewOnlyPulseAlert(adapter.id)).toBe(false)
+    const items = await adapter.parse(
       {
         sourceId: source.id,
         fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
@@ -92,6 +98,58 @@ describe('rule source adapters', () => {
       officialSourceUrl: 'https://azdor.gov/news/tpt-filer',
       jurisdiction: 'AZ',
     })
+  })
+
+  it('keeps hidden policy-watch list noise out of extract and marks PDF watch review-only', async () => {
+    const hiddenSources = listHiddenPolicyWatchSources()
+    const automatedSource = hiddenSources.find((source) => isPolicyWatchPulsePromoted(source))!
+    const automatedAdapter = createPolicyWatchAdapter(automatedSource)
+    const noisyItems = await automatedAdapter.parse(
+      {
+        sourceId: automatedSource.id,
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        contentHash: 'hash',
+        r2Key: 'raw.html',
+        contentType: 'text/html',
+        etag: null,
+        lastModified: null,
+        body: '<main><a href="/news/webinar">Sales tax webinar for small businesses</a></main>',
+      },
+      {
+        fetch: async () => new Response(''),
+        async archiveRaw() {
+          return { r2Key: 'unused', contentHash: 'unused' }
+        },
+      },
+    )
+    expect(automatedAdapter.allowEmptyParse).toBe(true)
+    expect(noisyItems).toEqual([])
+
+    const pdfSource = hiddenSources.find((source) => source.acquisitionMethod === 'pdf_watch')!
+    const pdfAdapter = createPolicyWatchAdapter(pdfSource)
+    expect(isPolicyWatchAdapterEligible(pdfSource), pdfSource.id).toBe(true)
+    expect(isPolicyWatchPulsePromoted(pdfSource), pdfSource.id).toBe(false)
+    expect(requiresReviewOnlyPulseAlert(pdfAdapter.id)).toBe(true)
+    const signalItems = await pdfAdapter.parse(
+      {
+        sourceId: pdfSource.id,
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        contentHash: 'hash',
+        r2Key: 'raw.pdf',
+        contentType: 'application/pdf',
+        etag: null,
+        lastModified: null,
+        body: 'PDF relief bulletin',
+      },
+      {
+        fetch: async () => new Response(''),
+        async archiveRaw() {
+          return { r2Key: 'unused', contentHash: 'unused' }
+        },
+      },
+    )
+    expect(signalItems).toHaveLength(1)
+    expect(signalItems[0]).toMatchObject({ sourceId: pdfSource.id })
   })
 
   it('adds API-backed temporary announcement adapters through the aggregate feed interface', async () => {
@@ -169,12 +227,10 @@ describe('rule source adapters', () => {
     expect(isRuleSourceAdapterEligible(pdfSource!)).toBe(false)
   })
 
-  it('only promotes concrete basis sources from the rules registry into the extract queue', () => {
+  it('keeps concrete basis sources from the rules registry in the extract queue', () => {
     const sourcesById = new Map(listRuleSources().map((source) => [source.id, source]))
 
-    for (const adapter of ruleSourceAdapters.filter(
-      (candidate) => candidate.canCreatePulse !== false,
-    )) {
+    for (const adapter of ruleSourceAdapters) {
       const source = sourcesById.get(adapter.id)
       expect(source, `${adapter.id} should map back to a rule source`).toBeDefined()
       if (!source) continue
@@ -184,7 +240,7 @@ describe('rule source adapters', () => {
     }
   })
 
-  it('keeps lower-priority rule source adapters signal-only', () => {
+  it('keeps lower-priority rule source adapters review-only', () => {
     const basis = listRuleSources().find((candidate) => candidate.id === 'tx.franchise_forms_2026')
     expect(basis).toBeDefined()
     const source = {
@@ -195,6 +251,6 @@ describe('rule source adapters', () => {
 
     expect(isRuleSourceAdapterEligible(source)).toBe(true)
     expect(isRuleSourcePulsePromoted(source)).toBe(false)
-    expect(createRuleSourceAdapter(source).canCreatePulse).toBe(false)
+    expect(createRuleSourceAdapter(source).id).toBe('tx.medium_review_fixture')
   })
 })

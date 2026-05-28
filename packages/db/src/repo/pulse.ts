@@ -36,14 +36,12 @@ import {
   pulseApplication,
   pulseFirmAlert,
   pulsePriorityReview,
-  pulseSourceSignal,
   pulseSourceState,
   pulseSourceSnapshot,
   type NewPulse,
   type NewPulseApplication,
   type NewPulseFirmAlert,
   type NewPulsePriorityReview,
-  type NewPulseSourceSignal,
   type NewPulseSourceState,
   type NewPulseSourceSnapshot,
   type Pulse,
@@ -51,7 +49,6 @@ import {
   type PulseChangeKind,
   type PulseFirmAlertStatus,
   type PulsePriorityReviewStatus,
-  type PulseSourceSignal,
   type PulseSourceHealthStatus,
   type PulseSourceState,
   type PulseSourceSnapshot,
@@ -73,6 +70,7 @@ const AUDIT_BATCH_SIZE = Math.floor(100 / 12)
 const EMAIL_BATCH_SIZE = 1
 const NOTIFICATION_BATCH_SIZE = Math.floor(100 / 10)
 const REVERT_WINDOW_MS = 24 * 60 * 60 * 1000
+const PULSE_DUPLICATE_WINDOW_MS = 45 * 24 * 60 * 60 * 1000
 
 export type PulseAffectedClientStatus = 'eligible' | 'needs_review' | 'already_applied' | 'reverted'
 export type PulseReviewOnlyChangeKind = Exclude<PulseChangeKind, 'deadline_shift'>
@@ -237,40 +235,6 @@ export interface PulseSourceStateRow {
   lastModified: string | null
 }
 
-export interface PulseSourceSignalInput {
-  id?: string
-  sourceId: string
-  externalId: string
-  title: string
-  officialSourceUrl: string
-  publishedAt: Date
-  fetchedAt: Date
-  contentHash: string
-  rawR2Key: string
-  tier: string
-  jurisdiction: string
-  signalType?: string
-}
-
-export interface PulseSourceSignalRow {
-  id: string
-  sourceId: string
-  externalId: string
-  title: string
-  officialSourceUrl: string
-  publishedAt: Date
-  fetchedAt: Date
-  contentHash: string
-  rawR2Key: string
-  tier: string
-  jurisdiction: string
-  signalType: string
-  status: 'open' | 'linked' | 'reviewed' | 'dismissed'
-  linkedPulseId: string | null
-  reviewedRuleId: string | null
-  reviewDecisionId: string | null
-}
-
 export type PulsePriorityReasonKey =
   | 'preparer_requested'
   | 'needs_review_matches'
@@ -357,6 +321,22 @@ export interface PulseExtractInput {
   confidence: number
   requiresHumanReview?: boolean
   isSample?: boolean
+}
+
+export interface PulseExtractDuplicateInput extends Pick<
+  PulseExtractInput,
+  | 'publishedAt'
+  | 'sourceUrl'
+  | 'parsedJurisdiction'
+  | 'parsedCounties'
+  | 'parsedForms'
+  | 'parsedEntityTypes'
+  | 'parsedOriginalDueDate'
+  | 'parsedNewDueDate'
+  | 'changeKind'
+  | 'actionMode'
+> {
+  windowDays?: number
 }
 
 interface AlertJoinedRow {
@@ -472,16 +452,6 @@ interface PulseDigestObligationRow {
   reason: string | null
 }
 
-export interface PulseSourceSignalListInput {
-  limit?: number
-  status?: PulseSourceSignalRow['status']
-}
-
-export interface PulseSignalLinkResult {
-  linked: number
-  inspected: number
-}
-
 export class PulseRepoError extends Error {
   constructor(
     readonly code: 'not_found' | 'conflict' | 'revert_expired' | 'no_eligible' | 'review_only',
@@ -573,27 +543,6 @@ function toSourceState(row: PulseSourceState): PulseSourceStateRow {
     lastError: row.lastError,
     etag: row.etag,
     lastModified: row.lastModified,
-  }
-}
-
-function toSourceSignal(row: PulseSourceSignal): PulseSourceSignalRow {
-  return {
-    id: row.id,
-    sourceId: row.sourceId,
-    externalId: row.externalId,
-    title: row.title,
-    officialSourceUrl: row.officialSourceUrl,
-    publishedAt: row.publishedAt,
-    fetchedAt: row.fetchedAt,
-    contentHash: row.contentHash,
-    rawR2Key: row.rawR2Key,
-    tier: row.tier,
-    jurisdiction: row.jurisdiction,
-    signalType: row.signalType,
-    status: row.status,
-    linkedPulseId: row.linkedPulseId,
-    reviewedRuleId: row.reviewedRuleId,
-    reviewDecisionId: row.reviewDecisionId,
   }
 }
 
@@ -796,6 +745,62 @@ function normalizeCountyName(value: string): string {
     .replace(/\bparish\b/g, '')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+function normalizePulseDuplicateUrl(value: string): string {
+  try {
+    const url = new URL(value)
+    url.hash = ''
+    for (const key of Array.from(url.searchParams.keys())) {
+      if (/^utm_|^(fbclid|gclid)$/i.test(key)) url.searchParams.delete(key)
+    }
+    const normalized = url.toString()
+    return normalized.endsWith('/') ? normalized.slice(0, -1) : normalized
+  } catch {
+    return value.trim().replace(/\/+$/, '')
+  }
+}
+
+function normalizePulseDuplicateList(values: readonly string[], kind: 'county' | 'plain'): string {
+  return [
+    ...new Set(
+      values
+        .map((value) =>
+          kind === 'county' ? normalizeCountyName(value) : value.toLowerCase().trim(),
+        )
+        .filter(Boolean),
+    ),
+  ]
+    .toSorted()
+    .join('|')
+}
+
+function pulseDuplicateScopeHasEvidence(input: PulseExtractDuplicateInput): boolean {
+  return (
+    input.parsedCounties.length > 0 ||
+    input.parsedForms.length > 0 ||
+    input.parsedEntityTypes.length > 0 ||
+    input.parsedOriginalDueDate !== null ||
+    input.parsedNewDueDate !== null
+  )
+}
+
+function rowMatchesPulseDuplicateScope(
+  row: Pick<Pulse, 'sourceUrl' | 'parsedCounties' | 'parsedForms' | 'parsedEntityTypes'>,
+  input: PulseExtractDuplicateInput,
+): boolean {
+  if (normalizePulseDuplicateUrl(row.sourceUrl) === normalizePulseDuplicateUrl(input.sourceUrl)) {
+    return true
+  }
+  if (!pulseDuplicateScopeHasEvidence(input)) return false
+  return (
+    normalizePulseDuplicateList(row.parsedCounties, 'county') ===
+      normalizePulseDuplicateList(input.parsedCounties, 'county') &&
+    normalizePulseDuplicateList(row.parsedForms, 'plain') ===
+      normalizePulseDuplicateList(input.parsedForms, 'plain') &&
+    normalizePulseDuplicateList(row.parsedEntityTypes, 'plain') ===
+      normalizePulseDuplicateList(input.parsedEntityTypes, 'plain')
+  )
 }
 
 function countyValues(row: { county: string | null; counties: string[] | null }): string[] {
@@ -1596,32 +1601,11 @@ export function makePulseRepo(db: Db, firmId: string) {
       return rows.map(toSourceState)
     },
 
-    async listSourceSignals(
-      opts: PulseSourceSignalListInput = {},
-    ): Promise<PulseSourceSignalRow[]> {
-      const ops = makePulseOpsRepo(db)
-      return ops.listSourceSignals(opts)
-    },
-
-    async getSourceSignal(signalId: string): Promise<PulseSourceSignalRow | null> {
-      const ops = makePulseOpsRepo(db)
-      return ops.getSourceSignal(signalId)
-    },
-
     async getLatestSourceSnapshotBySourceId(
       sourceId: string,
     ): Promise<PulseSourceSnapshotRow | null> {
       const ops = makePulseOpsRepo(db)
       return ops.getLatestSourceSnapshotBySourceId(sourceId)
-    },
-
-    async reviewSourceSignalForRule(input: {
-      signalId: string
-      ruleId: string
-      reviewDecisionId: string
-    }): Promise<PulseSourceSignalRow> {
-      const ops = makePulseOpsRepo(db)
-      return ops.reviewSourceSignalForRule(input)
     },
 
     async getDetail(alertId: string): Promise<PulseDetailRow> {
@@ -3030,78 +3014,6 @@ export function makePulseOpsRepo(db: Db) {
       return { snapshot: toSnapshot(snapshot), inserted: snapshot.id === id }
     },
 
-    async createSourceSignal(input: PulseSourceSignalInput): Promise<{
-      signal: PulseSourceSignalRow
-      inserted: boolean
-    }> {
-      const id = input.id ?? crypto.randomUUID()
-      const row: NewPulseSourceSignal = {
-        id,
-        sourceId: input.sourceId,
-        externalId: input.externalId,
-        title: input.title,
-        officialSourceUrl: input.officialSourceUrl,
-        publishedAt: input.publishedAt,
-        fetchedAt: input.fetchedAt,
-        contentHash: input.contentHash,
-        rawR2Key: input.rawR2Key,
-        tier: input.tier,
-        jurisdiction: input.jurisdiction,
-        signalType: input.signalType ?? 'anticipated_pulse',
-        status: 'open',
-        linkedPulseId: null,
-      }
-
-      await db
-        .insert(pulseSourceSignal)
-        .values(row)
-        .onConflictDoNothing({
-          target: [
-            pulseSourceSignal.sourceId,
-            pulseSourceSignal.externalId,
-            pulseSourceSignal.contentHash,
-          ],
-        })
-
-      const rows = await db
-        .select()
-        .from(pulseSourceSignal)
-        .where(
-          and(
-            eq(pulseSourceSignal.sourceId, input.sourceId),
-            eq(pulseSourceSignal.externalId, input.externalId),
-            eq(pulseSourceSignal.contentHash, input.contentHash),
-          ),
-        )
-        .limit(1)
-      const signal = rows[0]
-      if (!signal) throw new PulseRepoError('not_found')
-      return { signal: toSourceSignal(signal), inserted: signal.id === id }
-    },
-
-    async listSourceSignals(
-      opts: PulseSourceSignalListInput = {},
-    ): Promise<PulseSourceSignalRow[]> {
-      const limit = Math.min(Math.max(opts.limit ?? 50, 1), 100)
-      const statusFilter = opts.status ? eq(pulseSourceSignal.status, opts.status) : undefined
-      const rows = await db
-        .select()
-        .from(pulseSourceSignal)
-        .where(statusFilter)
-        .orderBy(desc(pulseSourceSignal.publishedAt), desc(pulseSourceSignal.createdAt))
-        .limit(limit)
-      return rows.map(toSourceSignal)
-    },
-
-    async getSourceSignal(signalId: string): Promise<PulseSourceSignalRow | null> {
-      const rows = await db
-        .select()
-        .from(pulseSourceSignal)
-        .where(eq(pulseSourceSignal.id, signalId))
-        .limit(1)
-      return rows[0] ? toSourceSignal(rows[0]) : null
-    },
-
     async getLatestSourceSnapshotBySourceId(
       sourceId: string,
     ): Promise<PulseSourceSnapshotRow | null> {
@@ -3112,99 +3024,6 @@ export function makePulseOpsRepo(db: Db) {
         .orderBy(desc(pulseSourceSnapshot.fetchedAt), desc(pulseSourceSnapshot.createdAt))
         .limit(1)
       return rows[0] ? toSnapshot(rows[0]) : null
-    },
-
-    async linkSourceSignal(input: {
-      signalId: string
-      pulseId: string
-    }): Promise<PulseSourceSignalRow> {
-      const linkedPulse = await getPulse(input.pulseId)
-      if (!linkedPulse) throw new PulseRepoError('not_found')
-      await db
-        .update(pulseSourceSignal)
-        .set({ status: 'linked', linkedPulseId: input.pulseId })
-        .where(eq(pulseSourceSignal.id, input.signalId))
-      const rows = await db
-        .select()
-        .from(pulseSourceSignal)
-        .where(eq(pulseSourceSignal.id, input.signalId))
-        .limit(1)
-      const row = rows[0]
-      if (!row) throw new PulseRepoError('not_found')
-      return toSourceSignal(row)
-    },
-
-    async dismissSourceSignal(signalId: string): Promise<PulseSourceSignalRow> {
-      await db
-        .update(pulseSourceSignal)
-        .set({ status: 'dismissed' })
-        .where(eq(pulseSourceSignal.id, signalId))
-      const rows = await db
-        .select()
-        .from(pulseSourceSignal)
-        .where(eq(pulseSourceSignal.id, signalId))
-        .limit(1)
-      const row = rows[0]
-      if (!row) throw new PulseRepoError('not_found')
-      return toSourceSignal(row)
-    },
-
-    async reviewSourceSignalForRule(input: {
-      signalId: string
-      ruleId: string
-      reviewDecisionId: string
-    }): Promise<PulseSourceSignalRow> {
-      await db
-        .update(pulseSourceSignal)
-        .set({
-          status: 'reviewed',
-          reviewedRuleId: input.ruleId,
-          reviewDecisionId: input.reviewDecisionId,
-        })
-        .where(eq(pulseSourceSignal.id, input.signalId))
-      const row = await this.getSourceSignal(input.signalId)
-      if (!row) throw new PulseRepoError('not_found')
-      return row
-    },
-
-    async linkOpenSignalsToPulses(
-      opts: { windowDays?: number } = {},
-    ): Promise<PulseSignalLinkResult> {
-      const windowMs = (opts.windowDays ?? 30) * 24 * 60 * 60 * 1000
-      const signals = await db
-        .select()
-        .from(pulseSourceSignal)
-        .where(eq(pulseSourceSignal.status, 'open'))
-        .orderBy(desc(pulseSourceSignal.publishedAt))
-        .limit(100)
-      const linkedResults = await Promise.all(
-        signals.map(async (signal) => {
-          const earliest = new Date(signal.publishedAt.getTime() - windowMs)
-          const latest = new Date(signal.publishedAt.getTime() + windowMs)
-          const candidates = await db
-            .select({ id: pulse.id })
-            .from(pulse)
-            .where(
-              and(
-                inArray(pulse.status, ['pending_review', 'approved']),
-                eq(pulse.parsedJurisdiction, signal.jurisdiction),
-                gte(pulse.publishedAt, earliest),
-                lte(pulse.publishedAt, latest),
-              ),
-            )
-            .orderBy(desc(pulse.publishedAt))
-            .limit(1)
-          const candidate = candidates[0]
-          if (!candidate) return 0
-          await db
-            .update(pulseSourceSignal)
-            .set({ status: 'linked', linkedPulseId: candidate.id })
-            .where(eq(pulseSourceSignal.id, signal.id))
-          return 1
-        }),
-      )
-      const linked = linkedResults.filter((count) => count > 0).length
-      return { linked, inspected: signals.length }
     },
 
     async setSourceEnabled(input: {
@@ -3310,6 +3129,42 @@ export function makePulseOpsRepo(db: Db) {
           ...(patch.failureReason !== undefined ? { failureReason: patch.failureReason } : {}),
         })
         .where(eq(pulseSourceSnapshot.id, snapshotId))
+    },
+
+    async findDuplicatePulseForExtract(input: PulseExtractDuplicateInput): Promise<string | null> {
+      const windowMs =
+        (input.windowDays ?? PULSE_DUPLICATE_WINDOW_MS / 24 / 60 / 60 / 1000) * 24 * 60 * 60 * 1000
+      const earliest = new Date(input.publishedAt.getTime() - windowMs)
+      const latest = new Date(input.publishedAt.getTime() + windowMs)
+      const rows = await db
+        .select({
+          id: pulse.id,
+          sourceUrl: pulse.sourceUrl,
+          parsedCounties: pulse.parsedCounties,
+          parsedForms: pulse.parsedForms,
+          parsedEntityTypes: pulse.parsedEntityTypes,
+        })
+        .from(pulse)
+        .where(
+          and(
+            inArray(pulse.status, ['pending_review', 'approved', 'quarantined']),
+            eq(pulse.parsedJurisdiction, input.parsedJurisdiction),
+            eq(pulse.changeKind, input.changeKind ?? 'deadline_shift'),
+            eq(pulse.actionMode, input.actionMode ?? 'due_date_overlay'),
+            input.parsedOriginalDueDate
+              ? eq(pulse.parsedOriginalDueDate, input.parsedOriginalDueDate)
+              : isNull(pulse.parsedOriginalDueDate),
+            input.parsedNewDueDate
+              ? eq(pulse.parsedNewDueDate, input.parsedNewDueDate)
+              : isNull(pulse.parsedNewDueDate),
+            gte(pulse.publishedAt, earliest),
+            lte(pulse.publishedAt, latest),
+          ),
+        )
+        .orderBy(desc(pulse.publishedAt))
+        .limit(20)
+      const duplicate = rows.find((row) => rowMatchesPulseDuplicateScope(row, input))
+      return duplicate?.id ?? null
     },
 
     async createPulseForFirmReviewFromExtract(

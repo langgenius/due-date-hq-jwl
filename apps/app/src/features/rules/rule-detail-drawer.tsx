@@ -452,7 +452,6 @@ function CandidateReviewForm({
       verifyMutation.mutate({
         ruleId: rule.id,
         sourceId: reviewSourceId,
-        ...(concreteDraft?.sourceSignalId ? { sourceSignalId: concreteDraft.sourceSignalId } : {}),
         aiOutputId: draft.aiOutputId,
         reviewNote: t`Accepted AI concrete draft from rule detail review.`,
       })

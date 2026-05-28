@@ -43,7 +43,6 @@ function allowedAuthOrigin(origin: string, env: Env): string | null {
  *   /rpc/*            → RPCHandler (internal frontend only)
  *   /api/auth/*       → better-auth
  *   /api/webhook/*    → narrow external callbacks
- *   /api/ops/*        → token-protected internal operational endpoints
  *   /api/health       → liveness
  *   /api/v1/*         → OpenAPIHandler (Phase 2, reserved; do not add here)
  *   other             → ASSETS binding + SPA fallback (wrangler.toml)

@@ -221,7 +221,6 @@ erDiagram
   firm_profile ||--o{ audit_event : records
   firm_profile ||--o{ pulse_firm_alert : receives
   pulse_announcement ||--o{ pulse_firm_alert : fans_out
-  pulse_announcement ||--o{ pulse_source_signal : derived_from
   firm_profile ||--o{ dashboard_brief : caches
   firm_profile ||--o{ email_outbox : sends
 ```

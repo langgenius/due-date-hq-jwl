@@ -222,7 +222,6 @@ function statusGroupOf(status: RuleStatus): StatusGroupKey {
 type RuleConcreteDraftTarget = {
   ruleId: string
   sourceId: string
-  sourceSignalId?: string
 }
 
 function isSourceDefinedRule(rule: Pick<ObligationRule, 'dueDateLogic'>): boolean {
@@ -240,11 +239,7 @@ function concreteDraftTargetForRule(rule: ObligationRule): RuleConcreteDraftTarg
   return { ruleId: rule.id, sourceId }
 }
 
-function concreteDraftTargetKey(input: {
-  ruleId: string
-  sourceId: string
-  sourceSignalId?: string | null
-}): string {
+function concreteDraftTargetKey(input: { ruleId: string; sourceId: string }): string {
   return [input.ruleId, input.sourceId].join(':')
 }
 

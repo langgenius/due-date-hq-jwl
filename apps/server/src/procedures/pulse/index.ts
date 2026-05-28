@@ -7,17 +7,13 @@ import {
   type PulsePriorityQueueItem,
   type PulsePriorityReason,
   type PulsePriorityReview,
-  type PulseSourceSignal,
   type PulseSourceHealth,
   type PulseStatus,
 } from '@duedatehq/contracts'
 import { planHasFeature } from '@duedatehq/core/plan-entitlements'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
 import { runPulseIngest } from '../../jobs/pulse/ingest'
-import {
-  isHiddenPolicyWatchSourceId,
-  visibleRegulatorySourceAdapters,
-} from '../../jobs/pulse/rule-source-adapters'
+import { visibleRegulatorySourceAdapters } from '../../jobs/pulse/rule-source-adapters'
 import { requireTenant, type RpcContext } from '../_context'
 import { requireCurrentFirmRole } from '../_permissions'
 import { requirePriorityPulseMatching, requireProductionPulse } from '../_plan-gates'
@@ -76,23 +72,6 @@ interface PulseAffectedClientRow {
   status: PulseAffectedClient['status']
   matchStatus: PulseAffectedClient['matchStatus']
   reason: string | null
-}
-
-interface PulseSourceSignalRow {
-  id: string
-  sourceId: string
-  externalId: string
-  title: string
-  officialSourceUrl: string
-  publishedAt: Date
-  fetchedAt: Date
-  tier: string
-  jurisdiction: string
-  signalType: string
-  status: PulseSourceSignal['status']
-  linkedPulseId: string | null
-  reviewedRuleId: string | null
-  reviewDecisionId: string | null
 }
 
 interface PulsePriorityReasonRow {
@@ -190,25 +169,6 @@ function toAffectedClientPublic(row: PulseAffectedClientRow): PulseAffectedClien
     status: row.status,
     matchStatus: row.matchStatus,
     reason: row.reason,
-  }
-}
-
-function toSourceSignalPublic(row: PulseSourceSignalRow): PulseSourceSignal {
-  return {
-    id: row.id,
-    sourceId: row.sourceId,
-    externalId: row.externalId,
-    title: row.title,
-    officialSourceUrl: row.officialSourceUrl,
-    publishedAt: row.publishedAt.toISOString(),
-    fetchedAt: row.fetchedAt.toISOString(),
-    tier: row.tier === 'T2' || row.tier === 'T3' ? row.tier : 'T1',
-    jurisdiction: row.jurisdiction,
-    signalType: row.signalType,
-    status: row.status,
-    linkedPulseId: row.linkedPulseId,
-    reviewedRuleId: row.reviewedRuleId,
-    reviewDecisionId: row.reviewDecisionId,
   }
 }
 
@@ -384,26 +344,6 @@ async function listSourceHealthForScopedRepo(
 const listSourceHealth = os.pulse.listSourceHealth.handler(async ({ context }) => {
   const { scoped } = requireTenant(context)
   return listSourceHealthForScopedRepo(scoped)
-})
-
-const listSourceSignals = os.pulse.listSourceSignals.handler(async ({ input, context }) => {
-  await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
-  const { scoped } = requireTenant(context)
-  const opts: Parameters<typeof scoped.pulse.listSourceSignals>[0] =
-    input === undefined
-      ? {}
-      : {
-          ...(input.limit !== undefined ? { limit: input.limit } : {}),
-          ...(input.status !== undefined ? { status: input.status } : {}),
-        }
-  const requestedLimit = opts.limit ?? 50
-  const signals = await scoped.pulse.listSourceSignals({ ...opts, limit: 100 })
-  return {
-    signals: signals
-      .filter((signal) => !isHiddenPolicyWatchSourceId(signal.sourceId))
-      .slice(0, requestedLimit)
-      .map(toSourceSignalPublic),
-  }
 })
 
 const retrySourceHealth = os.pulse.retrySourceHealth.handler(async ({ input, context }) => {
@@ -813,7 +753,6 @@ export const pulseHandlers = {
   activeCount,
   listHistory,
   listSourceHealth,
-  listSourceSignals,
   retrySourceHealth,
   getDetail,
   getDetailsBatch,

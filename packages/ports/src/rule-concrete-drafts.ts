@@ -9,7 +9,6 @@ export interface RuleConcreteDraftCacheInput {
   ruleId: string
   ruleVersion: number
   sourceId: string
-  sourceSignalId: string | null
   sourceSnapshotId: string | null
   sourceUrl: string
   sourceFetchedAt: Date | null

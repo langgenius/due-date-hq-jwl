@@ -203,7 +203,7 @@ function upsertMirrorRow(dbPath: string, row: AiOutputRow): 'updated' | 'skipped
   sqliteExec(
     dbPath,
     [
-      `insert into rule_concrete_draft (ai_output_id, firm_id, user_id, input_context_ref, input_hash, prompt_version, model, rule_id, rule_version, source_id, source_signal_id, source_snapshot_id, source_url, source_fetched_at, source_published_at, source_excerpt, source_text, output_text, citations_json, generated_at, updated_at) values (${[
+      `insert into rule_concrete_draft (ai_output_id, firm_id, user_id, input_context_ref, input_hash, prompt_version, model, rule_id, rule_version, source_id, source_snapshot_id, source_url, source_fetched_at, source_published_at, source_excerpt, source_text, output_text, citations_json, generated_at, updated_at) values (${[
         sqlString(row.id),
         sqlString(row.firm_id),
         sqlString(row.user_id),
@@ -214,7 +214,6 @@ function upsertMirrorRow(dbPath: string, row: AiOutputRow): 'updated' | 'skipped
         sqlString(rule.id),
         sqlNumber(rule.version),
         sqlString(source.id),
-        sqlString(stringValue(citations.sourceSignalId)),
         sqlString(stringValue(citations.sourceSnapshotId)),
         sqlString(sourceUrl),
         sqlDate(citations.sourceFetchedAt),
@@ -236,7 +235,6 @@ function upsertMirrorRow(dbPath: string, row: AiOutputRow): 'updated' | 'skipped
         rule_id = excluded.rule_id,
         rule_version = excluded.rule_version,
         source_id = excluded.source_id,
-        source_signal_id = excluded.source_signal_id,
         source_snapshot_id = excluded.source_snapshot_id,
         source_url = excluded.source_url,
         source_fetched_at = excluded.source_fetched_at,

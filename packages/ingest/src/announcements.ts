@@ -82,7 +82,9 @@ export function announcementItemsFromSnapshot(
       xml: snapshot.body,
       limit,
       ...(source.jurisdiction ? { jurisdiction: source.jurisdiction } : {}),
-    })
+    }).filter((item) =>
+      linkLooksTaxAnnouncementRelevant(`${item.title} ${item.rawText}`, item.officialSourceUrl),
+    )
     if (items.length > 0) return items
   }
 

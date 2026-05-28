@@ -13,7 +13,7 @@ import {
   type RuleSource,
 } from '@duedatehq/core/rules'
 import { announcementItemsFromSnapshot } from '@duedatehq/ingest'
-import { fetchTextSnapshot, hashText } from '@duedatehq/ingest/http'
+import { fetchTextSnapshot } from '@duedatehq/ingest/http'
 import type { Env } from '../../env'
 import {
   cachedConcreteDraftKey,
@@ -201,36 +201,6 @@ export async function enqueueDueRuleSourceScans(
   return { queued: queueItems.length }
 }
 
-async function recordManualSourceSignal(input: {
-  env: Env
-  source: RuleSource
-  reason: PulseRuleSourceScanMessage['reason']
-  now: Date
-}): Promise<void> {
-  const pulseOps = makePulseOpsRepo(createDb(input.env.DB))
-  const externalId = `${input.source.id}:${input.reason}:${input.now.toISOString().slice(0, 10)}`
-  const contentHash = await hashText(externalId)
-  await pulseOps.createSourceSignal({
-    sourceId: input.source.id,
-    externalId,
-    title: `${input.source.title} source check due`,
-    officialSourceUrl: input.source.url,
-    publishedAt: input.now,
-    fetchedAt: input.now,
-    contentHash,
-    rawR2Key: `ops/rule-source/${input.source.id}/${contentHash}.txt`,
-    tier: sourceTier(input.source),
-    jurisdiction: input.source.jurisdiction,
-    signalType: 'source_check_due',
-  })
-  await pulseOps.recordSourceSuccess({
-    sourceId: input.source.id,
-    checkedAt: input.now,
-    nextCheckAt: nextCheckAt(input.now, input.source),
-    changed: true,
-  })
-}
-
 export async function consumePulseRuleSourceScan(
   message: PulseRuleSourceScanMessage,
   env: Env,
@@ -253,7 +223,12 @@ export async function consumePulseRuleSourceScan(
   })
 
   if (!sourceCanAutoScan(source)) {
-    await recordManualSourceSignal({ env, source, reason: message.reason, now })
+    await pulseOps.recordSourceSuccess({
+      sourceId: source.id,
+      checkedAt: now,
+      nextCheckAt: nextCheckAt(now, source),
+      changed: false,
+    })
     return
   }
 

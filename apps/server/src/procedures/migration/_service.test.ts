@@ -611,17 +611,8 @@ function buildScopedRepo(
     async listSourceStates() {
       return unexpectedRepoCall('pulse.listSourceStates')
     },
-    async listSourceSignals() {
-      return unexpectedRepoCall('pulse.listSourceSignals')
-    },
-    async getSourceSignal() {
-      return unexpectedRepoCall('pulse.getSourceSignal')
-    },
     async getLatestSourceSnapshotBySourceId() {
       return unexpectedRepoCall('pulse.getLatestSourceSnapshotBySourceId')
-    },
-    async reviewSourceSignalForRule() {
-      return unexpectedRepoCall('pulse.reviewSourceSignalForRule')
     },
     async getDetail() {
       return unexpectedRepoCall('pulse.getDetail')

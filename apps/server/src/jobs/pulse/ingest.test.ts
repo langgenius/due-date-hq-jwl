@@ -11,7 +11,6 @@ const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
   const repo = {
     ensureSourceState: vi.fn(),
     getSourceState: vi.fn(),
-    createSourceSignal: vi.fn(),
     createSourceSnapshot: vi.fn(),
     recordSourceSuccess: vi.fn(),
     recordSourceFailure: vi.fn(),
@@ -60,7 +59,6 @@ function adapter(overrides: Partial<SourceAdapter> = {}): SourceAdapter {
     tier: 'T2',
     jurisdiction: 'US',
     cronIntervalMs: 60_000,
-    canCreatePulse: false,
     async fetch() {
       return [
         {
@@ -102,7 +100,6 @@ describe('runPulseIngest', () => {
       nextCheckAt: null,
     })
     repoMocks.getSourceState.mockResolvedValue(null)
-    repoMocks.createSourceSignal.mockResolvedValue({ inserted: true, signal: { id: 'signal-1' } })
     repoMocks.createSourceSnapshot.mockResolvedValue({
       inserted: true,
       snapshot: { id: 'snapshot-1' },
@@ -114,41 +111,60 @@ describe('runPulseIngest', () => {
     vi.unstubAllGlobals()
   })
 
-  it('keeps T2 adapters as source signals instead of queueing extract', async () => {
+  it('queues parsed items from T2 adapters for CPA-facing extract', async () => {
     const queueSend = vi.fn()
 
     const result = await runPulseIngest(env(queueSend), [adapter()])
 
-    expect(result).toMatchObject({ signals: 1, queued: 0, failures: 0 })
-    expect(repoMocks.createSourceSignal).toHaveBeenCalledWith(
+    expect(result).toMatchObject({ snapshots: 1, queued: 1, failures: 0 })
+    expect(repoMocks.createSourceSnapshot).toHaveBeenCalledWith(
       expect.objectContaining({
         sourceId: 'fema.declarations',
-        jurisdiction: 'CA',
-        signalType: 'anticipated_pulse',
       }),
     )
     expect(repoMocks.recordSourceSuccess).toHaveBeenCalledWith(
       expect.objectContaining({ sourceId: 'fema.declarations' }),
     )
-    expect(repoMocks.createSourceSnapshot).not.toHaveBeenCalled()
-    expect(queueSend).not.toHaveBeenCalled()
+    expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
   })
 
   it('classifies changed snapshots with no parsed items as selector drift', async () => {
     const result = await runPulseIngest(env(), [
       adapter({
-        canCreatePulse: true,
         async parse() {
           return []
         },
       }),
     ])
 
-    expect(result).toMatchObject({ failures: 1, queued: 0, signals: 0 })
+    expect(result).toMatchObject({ failures: 1, queued: 0 })
     expect(repoMocks.recordSourceFailure).toHaveBeenCalledWith(
       expect.objectContaining({
         sourceId: 'fema.declarations',
         error: expect.stringContaining('selector_drift'),
+      }),
+    )
+  })
+
+  it('allows sparse announcement-list adapters to report no relevant items', async () => {
+    const result = await runPulseIngest(env(), [
+      adapter({
+        id: 'policy-watch.az.announcements',
+        tier: 'T1',
+        jurisdiction: 'AZ',
+        allowEmptyParse: true,
+        async parse() {
+          return []
+        },
+      }),
+    ])
+
+    expect(result).toMatchObject({ failures: 0, queued: 0 })
+    expect(repoMocks.createSourceSnapshot).not.toHaveBeenCalled()
+    expect(repoMocks.recordSourceSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceId: 'policy-watch.az.announcements',
+        changed: false,
       }),
     )
   })
@@ -221,7 +237,7 @@ describe('runPulseIngest', () => {
       ],
     )
 
-    expect(result).toMatchObject({ failures: 0, signals: 1 })
+    expect(result).toMatchObject({ failures: 0, snapshots: 1, queued: 1 })
     expect(fetchMock).toHaveBeenCalledWith(
       'https://browserless.test/content?token=browserless-token',
       expect.objectContaining({

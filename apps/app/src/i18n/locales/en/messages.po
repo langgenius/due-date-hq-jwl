@@ -374,11 +374,6 @@ msgstr "{0} other"
 msgid "{0} ready · {1} estimated deadline matches"
 msgstr "{0} ready · {1} estimated deadline matches"
 
-#. placeholder {0}: signals.length
-#: src/features/rules/sources-tab.tsx
-msgid "{0} recent"
-msgstr "{0} recent"
-
 #. placeholder {0}: readiness.missingRequiredFacts.length
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "{0} required fact(s) missing"
@@ -5978,7 +5973,6 @@ msgstr "loading…"
 
 #: src/components/patterns/pulse-notifications-bell.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/rules/sources-tab.tsx
 msgid "Loading…"
 msgstr "Loading…"
 
@@ -7118,10 +7112,6 @@ msgstr "No seats are available. Upgrade or suspend a member before inviting."
 #: src/features/rules/coverage-tab.tsx
 msgid "No source"
 msgstr "No source"
-
-#: src/features/rules/sources-tab.tsx
-msgid "No source signals yet — watchers haven't surfaced anything."
-msgstr "No source signals yet — watchers haven't surfaced anything."
 
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "No sources are currently being monitored."
@@ -9067,8 +9057,8 @@ msgid "Regenerating…"
 msgstr "Regenerating…"
 
 #: src/features/pulse/AlertsListPage.tsx
-msgid "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
-msgstr "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
+msgid "Regulatory Pulse alerts that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
+msgstr "Regulatory Pulse alerts that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
 
 #: src/routes/obligations.tsx
 msgid "Reject code / notice reference"
@@ -10690,10 +10680,6 @@ msgstr "Source revoked"
 #: src/features/migration/Step1Intake.tsx
 msgid "Source set to {selectedPresetLabel}."
 msgstr "Source set to {selectedPresetLabel}."
-
-#: src/features/rules/sources-tab.tsx
-msgid "Source signal trail"
-msgstr "Source signal trail"
 
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/migration/mapping-target-labels.ts

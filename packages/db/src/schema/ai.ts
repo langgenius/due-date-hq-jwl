@@ -86,7 +86,6 @@ export const ruleConcreteDraft = sqliteTable(
     ruleId: text('rule_id').notNull(),
     ruleVersion: integer('rule_version').notNull(),
     sourceId: text('source_id').notNull(),
-    sourceSignalId: text('source_signal_id'),
     sourceSnapshotId: text('source_snapshot_id'),
     sourceUrl: text('source_url').notNull(),
     sourceFetchedAt: integer('source_fetched_at', { mode: 'timestamp_ms' }),

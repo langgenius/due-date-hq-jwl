@@ -29,7 +29,6 @@ import {
   type RequiredSourceCoverageCell,
   type RuleGenerationEntity,
 } from '@duedatehq/core/rules'
-import type { PulseSourceSignalRow } from '@duedatehq/ports/pulse'
 import type { AiOutputRow } from '@duedatehq/ports/ai'
 import type {
   PracticeRuleRow,
@@ -70,7 +69,6 @@ const BUSINESS_COVERAGE_ENTITIES = new Set<keyof RuleCoverageRow['entityCoverage
   'c_corp',
   'sole_prop',
 ])
-type CandidateSourceSignal = PulseSourceSignalRow | null
 
 function toSource(source: ReturnType<typeof listRuleSources>[number]): RuleSource {
   const { localFactRequirements, ...sourceRest } = source
@@ -336,12 +334,9 @@ async function loadCandidateSourceContext(input: {
   context: RpcContext
   base: CoreObligationRule
   sourceId: string
-  sourceSignalId?: string
 }): Promise<{
   source: ReturnType<typeof listRuleSources>[number]
-  sourceSignal: CandidateSourceSignal
 }> {
-  const { scoped } = requireTenant(input.context)
   const source = listRuleSources().find((item) => item.id === input.sourceId)
   if (!source) throw new ORPCError('BAD_REQUEST', { message: 'Official source was not found.' })
   if (source.jurisdiction !== input.base.jurisdiction && source.jurisdiction !== 'FED') {
@@ -355,34 +350,7 @@ async function loadCandidateSourceContext(input: {
     })
   }
 
-  const sourceSignal = input.sourceSignalId
-    ? await scoped.pulse.getSourceSignal(input.sourceSignalId)
-    : null
-  if (input.sourceSignalId && !sourceSignal) {
-    throw new ORPCError('NOT_FOUND', { message: 'Source signal was not found.' })
-  }
-  if (sourceSignal) {
-    if (sourceSignal.status !== 'open') {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'Only open source signals can be attached to rule review.',
-      })
-    }
-    if (sourceSignal.sourceId !== input.sourceId) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'Source signal does not match the selected official source.',
-      })
-    }
-    if (
-      sourceSignal.jurisdiction !== input.base.jurisdiction &&
-      sourceSignal.jurisdiction !== 'FED'
-    ) {
-      throw new ORPCError('BAD_REQUEST', {
-        message: 'Source signal jurisdiction does not match the rule template.',
-      })
-    }
-  }
-
-  return { source, sourceSignal }
+  return { source }
 }
 
 function toReviewDecision(row: RuleReviewDecisionRow): RuleReviewDecision {
@@ -1443,10 +1411,7 @@ const listConcreteDrafts = os.rules.listConcreteDrafts.handler(async ({ input, c
   const { scoped } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
 
-  const lookup = new Map<
-    string,
-    { ruleId: string; sourceId: string; sourceSignalId: string | null }
-  >()
+  const lookup = new Map<string, { ruleId: string; sourceId: string }>()
   for (const ruleInput of input.rules) {
     const base = templateRuleById(ruleInput.ruleId)
     if (!base || !isSourceDefinedRule(base)) continue
@@ -1455,12 +1420,10 @@ const listConcreteDrafts = os.rules.listConcreteDrafts.handler(async ({ input, c
       ruleId: ruleInput.ruleId,
       ruleVersion: base.version,
       sourceId: ruleInput.sourceId,
-      sourceSignalId: ruleInput.sourceSignalId,
     })
     lookup.set(contextRef, {
       ruleId: ruleInput.ruleId,
       sourceId: ruleInput.sourceId,
-      sourceSignalId: ruleInput.sourceSignalId ?? null,
     })
   }
   if (lookup.size === 0) return []
@@ -1478,7 +1441,6 @@ const listConcreteDrafts = os.rules.listConcreteDrafts.handler(async ({ input, c
     return [
       {
         ...target,
-        sourceSignalId: concreteDraftSourceSignalId(run) ?? target.sourceSignalId,
         draft: RuleConcreteDraftSchema.parse({
           aiOutputId: run.id,
           ...draft,
@@ -1511,22 +1473,6 @@ function skipConcreteDraftSelection(
       reason,
     },
   }
-}
-
-function concreteDraftSourceSignalId(run: AiOutputRow): string | null {
-  const citations = parseConcreteDraftRunCitations(run)
-  if (!citations) return null
-  const sourceSignalId = citations.sourceSignalId
-  return typeof sourceSignalId === 'string' && sourceSignalId.length > 0 ? sourceSignalId : null
-}
-
-function parseConcreteDraftRunCitations(run: AiOutputRow): Record<string, unknown> | null {
-  if (!isRecord(run.citations)) return null
-  return run.citations
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function missingAcceptedConcreteDraftError(): never {
@@ -1630,11 +1576,10 @@ const draftConcreteRule = os.rules.draftConcreteRule.handler(async ({ input, con
 
   const base = templateRuleById(input.ruleId)
   if (!base) throw new ORPCError('NOT_FOUND', { message: 'Rule template was not found.' })
-  const { source, sourceSignal } = await loadCandidateSourceContext({
+  const { source } = await loadCandidateSourceContext({
     context,
     base,
     sourceId: input.sourceId,
-    ...(input.sourceSignalId ? { sourceSignalId: input.sourceSignalId } : {}),
   })
   const latestSourceSnapshot = await loadLatestSourceSnapshot({ context, sourceId: source.id })
   try {
@@ -1646,7 +1591,6 @@ const draftConcreteRule = os.rules.draftConcreteRule.handler(async ({ input, con
       userId: null,
       base,
       source,
-      sourceSignal,
       latestSourceSnapshot,
     })
   } catch (error) {
@@ -1661,17 +1605,15 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
   const base = templateRuleById(input.ruleId)
   if (!base) throw new ORPCError('NOT_FOUND', { message: 'Rule template was not found.' })
 
-  const { source, sourceSignal } = await loadCandidateSourceContext({
+  const { source } = await loadCandidateSourceContext({
     context,
     base,
     sourceId: input.sourceId,
-    ...(input.sourceSignalId ? { sourceSignalId: input.sourceSignalId } : {}),
   })
   const contextRef = cachedConcreteDraftKey({
     ruleId: base.id,
     ruleVersion: base.version,
     sourceId: source.id,
-    sourceSignalId: sourceSignal?.id ?? null,
   })
   const { draft, cachedRun } = await loadAcceptedConcreteDraft({
     scoped,
@@ -1709,13 +1651,6 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     reviewedBy: userId,
     reviewedAt,
   })
-  if (sourceSignal) {
-    await scoped.pulse.reviewSourceSignalForRule({
-      signalId: sourceSignal.id,
-      ruleId: base.id,
-      reviewDecisionId: row.id,
-    })
-  }
   void task
   return toReviewDecision(row)
 })
@@ -1741,7 +1676,6 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
       ruleId: selection.ruleId,
       ruleVersion: base.version,
       sourceId: selection.sourceId,
-      sourceSignalId: selection.sourceSignalId,
     })
   })
   const { allRuns } = await findConcreteDraftRuns({
@@ -1785,7 +1719,6 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
         ruleId: selection.ruleId,
         ruleVersion: base.version,
         sourceId: selection.sourceId,
-        sourceSignalId: selection.sourceSignalId,
       })
       const cachedRun = cachedRunByContextAndId.get(`${contextRef}:${selection.aiOutputId}`)
       const draft = parseCachedConcreteDraft(cachedRun?.outputText ?? null)
@@ -1802,7 +1735,6 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
           context,
           base,
           sourceId: selection.sourceId,
-          ...(selection.sourceSignalId ? { sourceSignalId: selection.sourceSignalId } : {}),
         })
       } catch {
         return skipConcreteDraftSelection(selection, 'validation_failed')
@@ -1837,13 +1769,6 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
         reviewedBy: userId,
         reviewedAt,
       })
-      if (sourceContext.sourceSignal) {
-        await scoped.pulse.reviewSourceSignalForRule({
-          signalId: sourceContext.sourceSignal.id,
-          ruleId: base.id,
-          reviewDecisionId: row.id,
-        })
-      }
       return {
         verified: toReviewDecision(row),
         acceptedRule: toCoreRule(editedRule),

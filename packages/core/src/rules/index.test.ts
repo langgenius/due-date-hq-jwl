@@ -8,6 +8,7 @@ import {
   listHiddenPolicyWatchSources,
   listNationalPolicyWatchCoverage,
   listObligationRules,
+  listPolicyWatchCoverageAudit,
   listPolicyWatchSources,
   listRequiredSourceCoverage,
   listRuleSources,
@@ -198,8 +199,24 @@ describe('@duedatehq/core/rules', () => {
       ])
       for (const family of cell.families) {
         expect(family.status, `${cell.jurisdiction}:${family.family}`).not.toBe('missing_source')
+        expect(family.automationStatus, `${cell.jurisdiction}:${family.family}`).toMatch(
+          /^(automated|signal_only|manual_review|blocked)$/,
+        )
+        expect(family.quality, `${cell.jurisdiction}:${family.family}`).toMatch(
+          /^(strong|partial|manual|blocked)$/,
+        )
         if (family.family !== 'baseline_rule') {
           expect(family.hiddenSourceIds, `${cell.jurisdiction}:${family.family}`).toHaveLength(1)
+          expect(family.quality, `${cell.jurisdiction}:${family.family}`).toBe('partial')
+          if (family.automationStatus === 'signal_only') {
+            expect(family.riskReason, `${cell.jurisdiction}:${family.family}`).toContain(
+              'signal-only',
+            )
+          } else {
+            expect(family.riskReason, `${cell.jurisdiction}:${family.family}`).toContain(
+              'combined announcement source',
+            )
+          }
         }
       }
     }
@@ -215,6 +232,34 @@ describe('@duedatehq/core/rules', () => {
     expect(listPolicyWatchSources().filter((source) => !source.visibleInSourcesPage)).toHaveLength(
       hiddenSources.length,
     )
+  })
+
+  it('audits policy-watch automation quality without treating manual or PDF as strong automation', () => {
+    const audit = listPolicyWatchCoverageAudit()
+    expect(audit).toHaveLength(52)
+    expect(audit.map((cell) => cell.jurisdiction)).toEqual(MVP_RULE_JURISDICTIONS)
+
+    const baselineFamilies = audit.map((cell) => {
+      const baseline = cell.families.find((family) => family.family === 'baseline_rule')
+      expect(baseline, cell.jurisdiction).toBeDefined()
+      return baseline!
+    })
+    expect(
+      baselineFamilies.filter((family) => family.automationStatus === 'manual_review'),
+    ).toHaveLength(24)
+    expect(
+      baselineFamilies.filter(
+        (family) => family.automationStatus === 'manual_review' && family.quality === 'strong',
+      ),
+    ).toHaveLength(0)
+
+    const signalOnlyFamilies = audit.flatMap((cell) =>
+      cell.families.filter((family) => family.automationStatus === 'signal_only'),
+    )
+    for (const family of signalOnlyFamilies) {
+      expect(family.quality, family.family).not.toBe('strong')
+      expect(family.riskReason, family.family).toContain('signal-only')
+    }
   })
 
   it('does not let temporary watch sources satisfy baseline source coverage', () => {

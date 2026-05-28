@@ -190,8 +190,8 @@ snoozed / reverted` — each with `reason` (now required, per
 | **Obligation drawer**  | New "History" tab. Reverse-chronological events filtered by category (status / extension / payment / evidence / Pulse / client touch).                                                                                       |
 | **Client detail**      | Already has an audit panel ([apps/app/src/features/clients/ClientFactsWorkspace.tsx:1146](../../apps/app/src/features/clients/ClientFactsWorkspace.tsx)). Add categorization filters + the new tax-profile field categories. |
 | **Rule library row**   | Per-rule "Version history" tab — diff between versions, who reviewed, when.                                                                                                                                                  |
-| **Pulse alert drawer** | "Activity" tab — signal arrival → review → apply chain.                                                                                                                                                                      |
-| **Pulse source row**   | Per-source signal trail — drill in from the page-level signal panel that just shipped.                                                                                                                                       |
+| **Pulse alert drawer** | "Activity" tab — source snapshot arrival → review → apply chain.                                                                                                                                                             |
+| **Pulse source row**   | Per-source health and snapshot freshness; no separate signal trail panel.                                                                                                                                                    |
 
 ---
 
@@ -204,8 +204,7 @@ snoozed / reverted` — each with `reason` (now required, per
   - Per-client embed — `apps/app/src/features/clients/ClientFactsWorkspace.tsx`
   - Per-obligation timeline — `apps/app/src/features/obligations/timeline.tsx`
   - Audit event drawer — `apps/app/src/features/audit/audit-event-drawer.tsx`
-- Pulse source signals (just wired): `apps/app/src/features/rules/sources-tab.tsx`
-  `SourceSignalsPanel`
+- Pulse source health: `apps/app/src/features/rules/sources-tab.tsx`
 
 ## When you come back
 

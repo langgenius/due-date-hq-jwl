@@ -46,7 +46,6 @@ function cacheInput(
     ruleId: 'rule-1',
     ruleVersion: 1,
     sourceId: 'source-1',
-    sourceSignalId: null,
     sourceSnapshotId: null,
     sourceUrl: 'https://example.test/source',
     sourceFetchedAt: new Date('2026-05-25T00:00:00.000Z'),

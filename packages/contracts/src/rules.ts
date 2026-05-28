@@ -699,7 +699,6 @@ export type RulesReviewListInput = z.infer<typeof RulesReviewListInputSchema>
 export const RuleVerifyCandidateInputSchema = z.object({
   ruleId: z.string().min(1),
   sourceId: z.string().min(1),
-  sourceSignalId: EntityIdSchema.optional(),
   aiOutputId: EntityIdSchema,
   reviewNote: z.string().trim().max(1000).optional(),
 })
@@ -708,7 +707,6 @@ export type RuleVerifyCandidateInput = z.infer<typeof RuleVerifyCandidateInputSc
 export const RuleDraftConcreteRuleInputSchema = z.object({
   ruleId: z.string().min(1),
   sourceId: z.string().min(1),
-  sourceSignalId: EntityIdSchema.optional(),
 })
 export type RuleDraftConcreteRuleInput = z.infer<typeof RuleDraftConcreteRuleInputSchema>
 
@@ -734,7 +732,6 @@ export type RuleListConcreteDraftsInput = z.infer<typeof RuleListConcreteDraftsI
 export const RuleConcreteDraftCacheEntrySchema = z.object({
   ruleId: z.string().min(1),
   sourceId: z.string().min(1),
-  sourceSignalId: EntityIdSchema.nullable(),
   draft: RuleConcreteDraftSchema,
 })
 export type RuleConcreteDraftCacheEntry = z.infer<typeof RuleConcreteDraftCacheEntrySchema>
@@ -742,7 +739,6 @@ export type RuleConcreteDraftCacheEntry = z.infer<typeof RuleConcreteDraftCacheE
 export const RuleBulkVerifyCandidateSelectionSchema = z.object({
   ruleId: z.string().min(1),
   sourceId: z.string().min(1),
-  sourceSignalId: EntityIdSchema.optional(),
   aiOutputId: EntityIdSchema,
 })
 export type RuleBulkVerifyCandidateSelection = z.infer<

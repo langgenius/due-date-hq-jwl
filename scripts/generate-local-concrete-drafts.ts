@@ -364,7 +364,7 @@ function makeSqliteRuleConcreteDraftRepo(dbPath: string): RuleConcreteDraftRepo 
       sqliteExec(
         dbPath,
         [
-          `insert into rule_concrete_draft (ai_output_id, firm_id, user_id, input_context_ref, input_hash, prompt_version, model, rule_id, rule_version, source_id, source_signal_id, source_snapshot_id, source_url, source_fetched_at, source_published_at, source_excerpt, source_text, output_text, citations_json, generated_at, updated_at) values (${[
+          `insert into rule_concrete_draft (ai_output_id, firm_id, user_id, input_context_ref, input_hash, prompt_version, model, rule_id, rule_version, source_id, source_snapshot_id, source_url, source_fetched_at, source_published_at, source_excerpt, source_text, output_text, citations_json, generated_at, updated_at) values (${[
             sqlString(input.aiOutputId),
             sqlString(input.firmId),
             sqlString(input.userId),
@@ -375,7 +375,6 @@ function makeSqliteRuleConcreteDraftRepo(dbPath: string): RuleConcreteDraftRepo 
             sqlString(input.ruleId),
             sqlNumber(input.ruleVersion),
             sqlString(input.sourceId),
-            sqlString(input.sourceSignalId),
             sqlString(input.sourceSnapshotId),
             sqlString(input.sourceUrl),
             dateSql(input.sourceFetchedAt),
@@ -397,7 +396,6 @@ function makeSqliteRuleConcreteDraftRepo(dbPath: string): RuleConcreteDraftRepo 
             rule_id = excluded.rule_id,
             rule_version = excluded.rule_version,
             source_id = excluded.source_id,
-            source_signal_id = excluded.source_signal_id,
             source_snapshot_id = excluded.source_snapshot_id,
             source_url = excluded.source_url,
             source_fetched_at = excluded.source_fetched_at,
@@ -498,7 +496,6 @@ async function generateStructuredLocalDraftWithText(input: {
   const aiInput = concreteDraftAiInput({
     base: input.base,
     source: input.source,
-    sourceSignal: null,
     sourceText,
   })
   const basePrompt = [
@@ -569,7 +566,6 @@ async function generateStructuredLocalDraftWithText(input: {
       const aiPayload = concreteDraftAiInput({
         base: input.base,
         source: input.source,
-        sourceSignal: null,
         sourceText,
       })
       const inputHash = await hashAiInput(aiPayload)
@@ -597,7 +593,6 @@ async function generateStructuredLocalDraftWithText(input: {
         citations: {
           sourceId: input.source.id,
           sourceUrl: input.source.url,
-          sourceSignalId: null,
           sourceExcerpt: parsed.sourceExcerpt,
           sourceText,
         },
@@ -709,7 +704,6 @@ async function processTarget(target: DraftTarget): Promise<DraftResult> {
         userId: null,
         base,
         source,
-        sourceSignal: null,
       })
       aiOutputId = draft.aiOutputId
     } catch {

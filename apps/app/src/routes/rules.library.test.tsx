@@ -689,7 +689,6 @@ describe('RulesLibraryRoute', () => {
       {
         ruleId: rule.id,
         sourceId: 'az.income_tax',
-        sourceSignalId: null,
         draft: concreteDraft(),
       },
     ])

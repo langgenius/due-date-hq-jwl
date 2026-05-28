@@ -87,25 +87,6 @@ export interface PulseSourceStateRow {
   lastModified: string | null
 }
 
-export interface PulseSourceSignalRow {
-  id: string
-  sourceId: string
-  externalId: string
-  title: string
-  officialSourceUrl: string
-  publishedAt: Date
-  fetchedAt: Date
-  contentHash: string
-  rawR2Key: string
-  tier: string
-  jurisdiction: string
-  signalType: string
-  status: 'open' | 'linked' | 'reviewed' | 'dismissed'
-  linkedPulseId: string | null
-  reviewedRuleId: string | null
-  reviewDecisionId: string | null
-}
-
 export interface PulseSourceSnapshotRow {
   id: string
   sourceId: string
@@ -265,17 +246,7 @@ export interface PulseRepo {
   countActiveAlerts(): Promise<number>
   listHistory(opts?: { limit?: number; status?: PulseAlertRow['status'] }): Promise<PulseAlertRow[]>
   listSourceStates(): Promise<PulseSourceStateRow[]>
-  listSourceSignals(opts?: {
-    limit?: number
-    status?: PulseSourceSignalRow['status']
-  }): Promise<PulseSourceSignalRow[]>
-  getSourceSignal(signalId: string): Promise<PulseSourceSignalRow | null>
   getLatestSourceSnapshotBySourceId(sourceId: string): Promise<PulseSourceSnapshotRow | null>
-  reviewSourceSignalForRule(input: {
-    signalId: string
-    ruleId: string
-    reviewDecisionId: string
-  }): Promise<PulseSourceSignalRow>
   getDetail(alertId: string): Promise<PulseDetailRow>
   listPriorityQueue(opts?: { limit?: number }): Promise<PulsePriorityQueueItemRow[]>
   requestPriorityReview(input: {

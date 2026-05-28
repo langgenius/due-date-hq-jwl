@@ -411,7 +411,6 @@ export const femaDeclarationsAdapter: SourceAdapter = {
   tier: 'T2',
   cronIntervalMs: 30 * 60 * 1000,
   jurisdiction: 'federal',
-  canCreatePulse: false,
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: FEMA_API_URL })]
   },

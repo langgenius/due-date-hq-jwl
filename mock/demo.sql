@@ -74,7 +74,6 @@ DELETE FROM rule_review_decision WHERE firm_id IN ('mock_firm_brightline', 'mock
 DELETE FROM pulse_application WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM pulse_priority_review WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 DELETE FROM pulse_firm_alert WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
-DELETE FROM pulse_source_signal WHERE source_id = 'fema.declarations' AND external_id IN ('fema-ca-2026-early-signal', 'fema-tx-2026-early-signal');
 DELETE FROM pulse_source_snapshot WHERE id LIKE 'mock_%';
 DELETE FROM pulse
 WHERE id LIKE 'mock_%'
@@ -701,12 +700,6 @@ INSERT INTO pulse_source_snapshot
 VALUES
   ('mock_snapshot_irs_ca_fire_relief', 'irs.disaster', 'irs-2026-ca-fire-relief', 'IRS announces CA fire relief', 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations', CAST(unixepoch('2026-05-01 07:30:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:35:00') * 1000 AS INTEGER), 'mockhashirsrelief', 'mock/pulse/irs-ca-fire-relief.html', 'extracted', '40000000-0000-4000-8000-000000000001', '50000000-0000-4000-8000-000000000002', NULL, CAST(unixepoch('2026-05-01 07:35:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:45:00') * 1000 AS INTEGER)),
   ('mock_snapshot_tx_retry', 'tx.cpa.rss', 'tx-franchise-feed-retry', 'TX Comptroller feed retry', 'https://comptroller.texas.gov/taxes/franchise/', CAST(unixepoch('2026-05-01 06:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:20:00') * 1000 AS INTEGER), 'mockhashtxretry', 'mock/pulse/tx-retry.xml', 'failed', NULL, NULL, 'Temporary upstream 503 after retry budget.', CAST(unixepoch('2026-05-01 09:20:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:20:00') * 1000 AS INTEGER));
-
-INSERT INTO pulse_source_signal
-  (id, source_id, external_id, title, official_source_url, published_at, fetched_at, content_hash, raw_r2_key, tier, jurisdiction, signal_type, status, linked_pulse_id, created_at, updated_at)
-VALUES
-  ('41000000-0000-4000-8000-000000000001', 'fema.declarations', 'fema-ca-2026-early-signal', 'FEMA early signal for CA counties', 'https://www.fema.gov/disaster/declarations', CAST(unixepoch('2026-04-30 12:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 12:05:00') * 1000 AS INTEGER), 'mockhashfema', 'mock/pulse/fema-ca-signal.json', 'T2', 'CA', 'anticipated_pulse', 'linked', '40000000-0000-4000-8000-000000000001', CAST(unixepoch('2026-04-30 12:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:45:00') * 1000 AS INTEGER)),
-  ('41000000-0000-4000-8000-000000000002', 'fema.declarations', 'fema-tx-2026-early-signal', 'FEMA early signal for TX counties', 'https://www.fema.gov/disaster/declarations', CAST(unixepoch('2026-04-30 13:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 13:05:00') * 1000 AS INTEGER), 'mockhashfematx', 'mock/pulse/fema-tx-signal.json', 'T2', 'TX', 'anticipated_pulse', 'open', NULL, CAST(unixepoch('2026-04-30 13:05:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 13:05:00') * 1000 AS INTEGER));
 
 INSERT INTO ai_output
   (id, firm_id, user_id, kind, prompt_version, model, input_context_ref, input_hash, output_text, citations_json, guard_result, refusal_code, generated_at, tokens_in, tokens_out, latency_ms, cost_usd)

@@ -3,6 +3,7 @@ import { createDb, makePulseOpsRepo } from '@duedatehq/db'
 import { aiOutput, llmLog } from '@duedatehq/db/schema/ai'
 import type { Env } from '../../env'
 import { recordPulseAlert, recordPulseMetric } from './metrics'
+import { requiresReviewOnlyPulseAlert } from './rule-source-adapters'
 
 function dateFromIsoDate(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`)
@@ -145,6 +146,39 @@ export async function extractPulseSnapshot(
     return { pulseId: null, status: 'failed' }
   }
 
+  const actionMode = requiresReviewOnlyPulseAlert(snapshot.sourceId)
+    ? 'review_only'
+    : result.result.actionMode
+
+  const duplicatePulseId = await repo.findDuplicatePulseForExtract({
+    publishedAt: snapshot.publishedAt,
+    sourceUrl: snapshot.officialSourceUrl,
+    parsedJurisdiction: result.result.jurisdiction,
+    parsedCounties: result.result.counties,
+    parsedForms: result.result.forms,
+    parsedEntityTypes: result.result.entityTypes,
+    parsedOriginalDueDate: nullableDateFromIsoDate(result.result.originalDueDate),
+    parsedNewDueDate: nullableDateFromIsoDate(result.result.newDueDate),
+    changeKind: result.result.changeKind,
+    actionMode,
+  })
+  if (duplicatePulseId) {
+    await repo.updateSourceSnapshotStatus(snapshotId, {
+      parseStatus: 'duplicate',
+      pulseId: duplicatePulseId,
+      aiOutputId,
+      failureReason: null,
+    })
+    recordPulseMetric('pulse.extract.result', {
+      snapshotId,
+      sourceId: snapshot.sourceId,
+      result: 'duplicate',
+      refusalCode: null,
+      confidence: result.result.confidence,
+    })
+    return { pulseId: duplicatePulseId, status: 'skipped' }
+  }
+
   const created = await repo.createPulseForFirmReviewFromExtract({
     snapshotId,
     aiOutputId,
@@ -153,7 +187,7 @@ export async function extractPulseSnapshot(
     rawR2Key: snapshot.rawR2Key,
     publishedAt: snapshot.publishedAt,
     changeKind: result.result.changeKind,
-    actionMode: result.result.actionMode,
+    actionMode,
     aiSummary: result.result.summary,
     verbatimQuote: result.result.sourceExcerpt,
     parsedJurisdiction: result.result.jurisdiction,

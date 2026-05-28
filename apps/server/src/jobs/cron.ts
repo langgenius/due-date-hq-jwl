@@ -3,7 +3,6 @@ import { eq } from 'drizzle-orm'
 import type { Env } from '../env'
 import { enqueueDashboardBriefRefresh } from './dashboard-brief/enqueue'
 import { runPulseIngest } from './pulse/ingest'
-import { linkPulseSourceSignals } from './pulse/signals'
 import { dispatchDeadlineReminders } from './reminders/dispatch'
 import { dispatchMorningDigests } from './notifications/morning-digest'
 import { enqueueDueRuleSourceScans, enqueueRuleRegistryCatalogSync } from './rules/reconcile'
@@ -110,15 +109,11 @@ export async function scheduled(
   _ctx: ExecutionContext,
 ): Promise<void> {
   const now = new Date(controller.scheduledTime)
-  const pulseJobs = async () => {
-    await runPulseIngest(env)
-    await linkPulseSourceSignals(env)
-  }
   await Promise.all([
     enqueueRuleRegistryCatalogSync(env),
     enqueueDueRuleSourceScans(env, now),
     enqueueScheduledDashboardBriefs(env, now),
-    pulseJobs(),
+    runPulseIngest(env),
     dispatchDeadlineReminders(env, now),
     dispatchMorningDigests(env, now),
     env.EMAIL_QUEUE.send({ type: 'email.flush' }),

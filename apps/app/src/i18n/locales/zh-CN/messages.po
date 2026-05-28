@@ -382,11 +382,6 @@ msgstr "{0} 项"
 msgid "{0} ready · {1} estimated deadline matches"
 msgstr "{0} 项就绪 · 估计匹配 {1} 个截止事项"
 
-#. placeholder {0}: signals.length
-#: src/features/rules/sources-tab.tsx
-msgid "{0} recent"
-msgstr "最近 {0} 条"
-
 #. placeholder {0}: readiness.missingRequiredFacts.length
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "{0} required fact(s) missing"
@@ -6038,7 +6033,6 @@ msgstr "加载中…"
 
 #: src/components/patterns/pulse-notifications-bell.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/rules/sources-tab.tsx
 msgid "Loading…"
 msgstr "加载中…"
 
@@ -7188,10 +7182,6 @@ msgstr "没有可用席位。请先升级或暂停一名成员再邀请。"
 #, fuzzy
 msgid "No source"
 msgstr "来源"
-
-#: src/features/rules/sources-tab.tsx
-msgid "No source signals yet — watchers haven't surfaced anything."
-msgstr "尚无来源信号 — 监控器还没有发现内容。"
 
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "No sources are currently being monitored."
@@ -9161,8 +9151,8 @@ msgid "Regenerating…"
 msgstr "正在重新生成…"
 
 #: src/features/pulse/AlertsListPage.tsx
-msgid "Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
-msgstr "匹配你事务所客户的监管 Pulse 信号。复核、批量应用截止日变更、暂缓，或重新查看已关闭变更。"
+msgid "Regulatory Pulse alerts that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes."
+msgstr "匹配事务所客户的 Regulatory Pulse alerts。复核、批量应用截止日变更、稍后处理，或查看已关闭变更。"
 
 #: src/routes/obligations.tsx
 msgid "Reject code / notice reference"
@@ -10802,10 +10792,6 @@ msgstr "来源已撤销"
 #: src/features/migration/Step1Intake.tsx
 msgid "Source set to {selectedPresetLabel}."
 msgstr "Source set to {selectedPresetLabel}."
-
-#: src/features/rules/sources-tab.tsx
-msgid "Source signal trail"
-msgstr "来源信号记录"
 
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/migration/mapping-target-labels.ts

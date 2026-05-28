@@ -1,7 +1,7 @@
 import { createDb, makePulseOpsRepo } from '@duedatehq/db'
 import { hashText } from '@duedatehq/ingest/http'
 import type { Env } from '../../env'
-import { archivePulseRaw } from './ingest'
+import { archivePulseRaw, type PulseExtractQueueMessage } from './ingest'
 import { recordPulseMetric } from './metrics'
 
 interface InboundEmailMessage {
@@ -85,9 +85,9 @@ function inferJurisdiction(text: string): string {
 }
 
 export async function ingestGovDeliveryEmail(
-  env: Pick<Env, 'DB' | 'R2_PULSE'>,
+  env: Pick<Env, 'DB' | 'R2_PULSE' | 'PULSE_QUEUE'>,
   message: InboundEmailMessage,
-): Promise<{ inserted: boolean; signalId: string }> {
+): Promise<{ inserted: boolean; snapshotId: string }> {
   const rawText = await new Response(message.raw).text()
   const now = new Date()
   const subject = extractSubject(message.headers)
@@ -101,7 +101,7 @@ export async function ingestGovDeliveryEmail(
     contentType: 'message/rfc822',
   })
   const repo = makePulseOpsRepo(createDb(env.DB))
-  const result = await repo.createSourceSignal({
+  const result = await repo.createSourceSnapshot({
     sourceId: 'govdelivery.inbound',
     externalId,
     title: subject,
@@ -110,14 +110,17 @@ export async function ingestGovDeliveryEmail(
     fetchedAt: now,
     contentHash: archived.contentHash,
     rawR2Key: archived.r2Key,
-    tier: 'T2',
-    jurisdiction: inferJurisdiction(`${subject}\n${rawText}`),
-    signalType: 'govdelivery_inbound',
   })
-  recordPulseMetric('pulse.govdelivery.inbound_signal', {
+  if (result.inserted) {
+    await env.PULSE_QUEUE.send({
+      type: 'pulse.extract',
+      snapshotId: result.snapshot.id,
+    } satisfies PulseExtractQueueMessage)
+  }
+  recordPulseMetric('pulse.govdelivery.inbound_snapshot', {
     inserted: result.inserted,
-    sourceId: result.signal.sourceId,
-    jurisdiction: result.signal.jurisdiction,
+    sourceId: result.snapshot.sourceId,
+    jurisdiction: inferJurisdiction(`${subject}\n${rawText}`),
   })
-  return { inserted: result.inserted, signalId: result.signal.id }
+  return { inserted: result.inserted, snapshotId: result.snapshot.id }
 }

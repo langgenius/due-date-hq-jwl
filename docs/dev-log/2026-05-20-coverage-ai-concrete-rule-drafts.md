@@ -14,7 +14,7 @@ Implemented the source-defined review path for rules:
 
 - Replaced the visible "generating" copy in the rule detail AI concrete draft panel with the shared `Skeleton` primitive, matching the rest of the app's loading pattern.
 - Kept `Accept rule` disabled while the AI draft is still pending, but removed the separate generating text prompt from the review panel and disabled-reason line.
-- Reused successful `rule_concrete_draft` AI outputs from `ai_output` by `rule/source/sourceSignal + inputHash + promptVersion`, so reopening the same rule no longer calls the model again unless the source-backed input changes.
+- Reused successful `rule_concrete_draft` AI outputs from `ai_output` by `rule/source/snapshot + inputHash + promptVersion`, so reopening the same rule no longer calls the model again unless the source-backed input changes.
 - No DESIGN.md change was needed; the panel now uses the existing app skeleton token and spacing pattern.
 
 ## Validation

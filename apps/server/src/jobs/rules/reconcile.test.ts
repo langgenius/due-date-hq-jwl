@@ -25,7 +25,6 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
     ensureSourceState: vi.fn(),
     getSourceState: vi.fn(),
     createSourceSnapshot: vi.fn(),
-    createSourceSignal: vi.fn(),
     recordSourceSuccess: vi.fn(),
     recordSourceFailure: vi.fn(),
   }
@@ -198,10 +197,6 @@ describe('rule source scan jobs', () => {
     dbMocks.pulseOpsRepo.createSourceSnapshot.mockResolvedValue({
       inserted: true,
       snapshot: { id: 'snapshot-1' },
-    })
-    dbMocks.pulseOpsRepo.createSourceSignal.mockResolvedValue({
-      inserted: true,
-      signal: { id: 'signal-1' },
     })
     dbMocks.pulseOpsRepo.recordSourceSuccess.mockResolvedValue(undefined)
     dbMocks.pulseOpsRepo.recordSourceFailure.mockResolvedValue(undefined)
@@ -423,7 +418,7 @@ describe('rule source scan jobs', () => {
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
   })
 
-  it('records non-automated source checks as Pulse source signals', async () => {
+  it('records non-automated source checks as healthy scheduler state only', async () => {
     coreMocks.sources.splice(
       0,
       coreMocks.sources.length,
@@ -439,14 +434,8 @@ describe('rule source scan jobs', () => {
       env() as Env,
     )
 
-    expect(dbMocks.pulseOpsRepo.createSourceSignal).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sourceId: 'manual-source',
-        signalType: 'source_check_due',
-      }),
-    )
     expect(dbMocks.pulseOpsRepo.recordSourceSuccess).toHaveBeenCalledWith(
-      expect.objectContaining({ sourceId: 'manual-source', changed: true }),
+      expect.objectContaining({ sourceId: 'manual-source', changed: false }),
     )
   })
 

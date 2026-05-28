@@ -23,7 +23,6 @@ export interface RuleConcreteDraftGenerateMessage {
   type: typeof RULE_CONCRETE_DRAFT_GENERATE_MESSAGE_TYPE
   ruleId: string
   sourceId: string
-  sourceSignalId?: string
   reason: RuleConcreteDraftGenerateReason
 }
 
@@ -43,7 +42,6 @@ export function isRuleConcreteDraftGenerateMessage(
   if (value.type !== RULE_CONCRETE_DRAFT_GENERATE_MESSAGE_TYPE) return false
   if (typeof value.ruleId !== 'string') return false
   if (typeof value.sourceId !== 'string') return false
-  if (value.sourceSignalId !== undefined && typeof value.sourceSignalId !== 'string') return false
   return (
     value.reason === 'prewarm' || value.reason === 'source_changed' || value.reason === 'manual'
   )
@@ -70,7 +68,6 @@ function listConcreteDraftTargets(): ConcreteDraftTarget[] {
 export function ruleConcreteDraftMessagesForSource(
   sourceId: string,
   reason: RuleConcreteDraftGenerateReason,
-  opts?: { sourceSignalId?: string },
 ): RuleConcreteDraftGenerateMessage[] {
   return listConcreteDraftTargets()
     .filter((target) => target.source.id === sourceId)
@@ -81,7 +78,6 @@ export function ruleConcreteDraftMessagesForSource(
         sourceId: target.source.id,
         reason,
       }
-      if (opts?.sourceSignalId) message.sourceSignalId = opts.sourceSignalId
       return message
     })
 }
@@ -142,15 +138,10 @@ export async function enqueueRuleConcreteDraftsForSource(
   queue: Pick<Queue, 'send'>,
   input: {
     sourceId: string
-    sourceSignalId?: string
     reason: RuleConcreteDraftGenerateReason
   },
 ): Promise<number> {
-  const messages = ruleConcreteDraftMessagesForSource(
-    input.sourceId,
-    input.reason,
-    input.sourceSignalId ? { sourceSignalId: input.sourceSignalId } : undefined,
-  )
+  const messages = ruleConcreteDraftMessagesForSource(input.sourceId, input.reason)
   await Promise.all(messages.map((message) => queue.send(message)))
   return messages.length
 }
@@ -174,9 +165,6 @@ export async function consumeRuleConcreteDraftGenerate(
 
   const db = createDb(env.DB)
   const pulseRepo = makePulseOpsRepo(db)
-  const sourceSignal = message.sourceSignalId
-    ? await pulseRepo.getSourceSignal(message.sourceSignalId)
-    : null
   const latestSourceSnapshot = await pulseRepo.getLatestSourceSnapshotBySourceId(source.id)
 
   try {
@@ -188,7 +176,6 @@ export async function consumeRuleConcreteDraftGenerate(
       userId: null,
       base: rule,
       source,
-      sourceSignal,
       latestSourceSnapshot,
     })
     recordPulseMetric('rule.concrete_draft.generate_success', {

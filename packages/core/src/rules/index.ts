@@ -9311,6 +9311,10 @@ export type PolicyWatchFamily = 'baseline_rule' | 'tax_news' | 'disaster_relief'
 
 export type PolicyWatchCoverageStatus = 'covered' | 'manual_review' | 'blocked' | 'missing_source'
 
+export type PolicyWatchAutomationStatus = 'automated' | 'signal_only' | 'manual_review' | 'blocked'
+
+export type PolicyWatchCoverageQuality = 'strong' | 'partial' | 'manual' | 'blocked'
+
 export interface PolicyWatchSource {
   id: string
   jurisdiction: RuleJurisdiction
@@ -9331,14 +9335,21 @@ export interface PolicyWatchSource {
 export interface PolicyWatchFamilyCoverage {
   family: PolicyWatchFamily
   status: PolicyWatchCoverageStatus
+  automationStatus: PolicyWatchAutomationStatus
+  quality: PolicyWatchCoverageQuality
   sourceIds: readonly string[]
   hiddenSourceIds: readonly string[]
   missingReason: string | null
+  riskReason: string | null
 }
 
 export interface PolicyWatchCoverage {
   jurisdiction: RuleJurisdiction
   families: readonly PolicyWatchFamilyCoverage[]
+}
+
+export interface PolicyWatchCoverageAuditRow extends PolicyWatchCoverage {
+  riskReasons: readonly string[]
 }
 
 const TEMPORARY_ANNOUNCEMENT_SOURCE_TYPES = new Set<RuleSourceType>(['emergency_relief', 'news'])
@@ -9453,19 +9464,80 @@ export function listTemporaryAnnouncementSourceCoverage(
   })
 }
 
+export function policyWatchAutomationStatusForSource(
+  source: Pick<PolicyWatchSource, 'acquisitionMethod' | 'adapterKind' | 'healthStatus'>,
+): PolicyWatchAutomationStatus {
+  if (source.healthStatus === 'failing' || source.healthStatus === 'paused') return 'blocked'
+  if (source.acquisitionMethod === 'manual_review') return 'manual_review'
+  if (source.healthStatus !== 'healthy') return 'signal_only'
+  if (source.acquisitionMethod === 'html_watch') return 'automated'
+  if (
+    source.acquisitionMethod === 'api_watch' &&
+    source.adapterKind === 'rss_or_announcement_list'
+  ) {
+    return 'automated'
+  }
+  return 'signal_only'
+}
+
+function policyWatchAutomationStatusForSources(
+  sources: readonly Pick<PolicyWatchSource, 'acquisitionMethod' | 'adapterKind' | 'healthStatus'>[],
+): PolicyWatchAutomationStatus {
+  if (sources.length === 0) return 'manual_review'
+  const statuses = new Set(sources.map(policyWatchAutomationStatusForSource))
+  if (statuses.has('automated')) return 'automated'
+  if (statuses.has('signal_only')) return 'signal_only'
+  if (statuses.has('manual_review')) return 'manual_review'
+  return 'blocked'
+}
+
 function policyWatchStatusForSources(
-  sources: readonly Pick<PolicyWatchSource, 'acquisitionMethod' | 'healthStatus'>[],
+  sources: readonly Pick<PolicyWatchSource, 'acquisitionMethod' | 'adapterKind' | 'healthStatus'>[],
 ): PolicyWatchCoverageStatus {
   if (sources.length === 0) return 'missing_source'
-  if (
-    sources.some(
-      (source) => source.healthStatus === 'healthy' && source.acquisitionMethod !== 'manual_review',
-    )
-  ) {
-    return 'covered'
-  }
-  if (sources.some((source) => source.healthStatus === 'failing')) return 'blocked'
+  const automationStatus = policyWatchAutomationStatusForSources(sources)
+  if (automationStatus === 'automated' || automationStatus === 'signal_only') return 'covered'
+  if (automationStatus === 'blocked') return 'blocked'
   return 'manual_review'
+}
+
+function policyWatchQualityForCoverage(input: {
+  family: PolicyWatchFamily
+  status: PolicyWatchCoverageStatus
+  automationStatus: PolicyWatchAutomationStatus
+  sources: readonly PolicyWatchSource[]
+}): PolicyWatchCoverageQuality {
+  if (input.status === 'blocked' || input.automationStatus === 'blocked') return 'blocked'
+  if (input.status === 'manual_review' || input.automationStatus === 'manual_review') {
+    return 'manual'
+  }
+  if (input.automationStatus === 'signal_only') return 'partial'
+  return input.sources.some((source) => source.families.length === 1) ? 'strong' : 'partial'
+}
+
+function policyWatchRiskReason(input: {
+  family: PolicyWatchFamily
+  status: PolicyWatchCoverageStatus
+  automationStatus: PolicyWatchAutomationStatus
+  quality: PolicyWatchCoverageQuality
+  sources: readonly PolicyWatchSource[]
+}): string | null {
+  if (input.status === 'missing_source') {
+    return `No ${input.family} policy-watch source is registered.`
+  }
+  if (input.status === 'blocked' || input.automationStatus === 'blocked') {
+    return `All registered ${input.family} policy-watch sources are failing or paused.`
+  }
+  if (input.automationStatus === 'manual_review') {
+    return `Only manual-review ${input.family} policy-watch sources are registered.`
+  }
+  if (input.automationStatus === 'signal_only') {
+    return `${input.family} coverage is signal-only until a reliable automated parser is available.`
+  }
+  if (input.quality === 'partial' && input.sources.some((source) => source.families.length > 1)) {
+    return `${input.family} coverage uses a combined announcement source, not a dedicated family source.`
+  }
+  return null
 }
 
 function baselinePolicyWatchSource(source: RuleSource): PolicyWatchSource {
@@ -9546,13 +9618,30 @@ function familyCoverage(
     .filter((source) => !source.visibleInSourcesPage)
     .map((source) => source.id)
   const status = policyWatchStatusForSources(matchingSources)
+  const automationStatus = policyWatchAutomationStatusForSources(matchingSources)
+  const quality = policyWatchQualityForCoverage({
+    family,
+    status,
+    automationStatus,
+    sources: matchingSources,
+  })
+  const riskReason = policyWatchRiskReason({
+    family,
+    status,
+    automationStatus,
+    quality,
+    sources: matchingSources,
+  })
   return {
     family,
     status,
+    automationStatus,
+    quality,
     sourceIds: matchingSources.map((source) => source.id),
     hiddenSourceIds,
     missingReason:
       status === 'missing_source' ? `No ${family} policy-watch source is registered.` : null,
+    riskReason,
   }
 }
 
@@ -9571,6 +9660,18 @@ export function listNationalPolicyWatchCoverage(
       ],
     }
   })
+}
+
+export function listPolicyWatchCoverageAudit(
+  jurisdiction?: RuleJurisdiction,
+): readonly PolicyWatchCoverageAuditRow[] {
+  return listNationalPolicyWatchCoverage(jurisdiction).map((coverage) => ({
+    jurisdiction: coverage.jurisdiction,
+    families: coverage.families,
+    riskReasons: coverage.families.flatMap((family) =>
+      family.riskReason ? [`${family.family}: ${family.riskReason}`] : [],
+    ),
+  }))
 }
 
 export function listSourceCoverageGaps(

@@ -297,7 +297,7 @@ tone is the same as a non-click target's tone of the same kind. Hover
 1. ~~**Snapshot stats not clickable**~~ — _resolved 2026-05-19 UX
    audit_: catalog stats dropped from the page (they were column sums
    of the table below). The watched source banner is now the only
-   top-of-page source signal and IS clickable.
+   top-of-page source health entry point and is clickable.
 2. ~~**Source watcher incidents in Coverage**~~ — _resolved
    2026-05-21_: fetch/parser failures stay in internal diagnostics;
    Coverage always links to `/rules/sources` without degraded filters.

@@ -1067,9 +1067,9 @@ const en: LandingCopy = {
               'Franchise-tax updates are important, but the workflow also watches public filing notices, deadline movement, relief material, and entity-context signals.',
           },
           {
-            question: 'What happens after a Texas source signal is reviewed?',
+            question: 'What happens after a Texas Pulse alert is reviewed?',
             answer:
-              'Reviewed signals can become Deadlines actions or triage context for affected clients; filing decisions remain with the CPA firm.',
+              'Review-only alerts can be dismissed or marked reviewed, while apply-ready alerts can become deadline actions after CPA confirmation.',
           },
         ],
       },

@@ -40,9 +40,6 @@ export type PulseActionMode = z.infer<typeof PulseActionModeSchema>
 export const PulseSourceHealthStatusSchema = z.enum(['healthy', 'degraded', 'failing', 'paused'])
 export type PulseSourceHealthStatus = z.infer<typeof PulseSourceHealthStatusSchema>
 
-export const PulseSourceSignalStatusSchema = z.enum(['open', 'linked', 'reviewed', 'dismissed'])
-export type PulseSourceSignalStatus = z.infer<typeof PulseSourceSignalStatusSchema>
-
 export const PulseAffectedClientStatusSchema = z.enum([
   'eligible',
   'needs_review',
@@ -197,34 +194,9 @@ export const PulseSourceHealthSchema = z.object({
 })
 export type PulseSourceHealth = z.infer<typeof PulseSourceHealthSchema>
 
-export const PulseSourceSignalSchema = z.object({
-  id: EntityIdSchema,
-  sourceId: z.string().min(1),
-  externalId: z.string().min(1),
-  title: z.string().min(1),
-  officialSourceUrl: z.url(),
-  publishedAt: z.iso.datetime(),
-  fetchedAt: z.iso.datetime(),
-  tier: z.enum(['T1', 'T2', 'T3']),
-  jurisdiction: z.string().min(1),
-  signalType: z.string().min(1),
-  status: PulseSourceSignalStatusSchema,
-  linkedPulseId: EntityIdSchema.nullable(),
-  reviewedRuleId: z.string().min(1).nullable(),
-  reviewDecisionId: EntityIdSchema.nullable(),
-})
-export type PulseSourceSignal = z.infer<typeof PulseSourceSignalSchema>
-
 export const PulseAlertIdInputSchema = z.object({ alertId: EntityIdSchema })
 export const PulseSourceHealthInputSchema = z.object({ sourceId: z.string().min(1) })
 export type PulseSourceHealthInput = z.infer<typeof PulseSourceHealthInputSchema>
-export const PulseListSourceSignalsInputSchema = z
-  .object({
-    limit: z.number().int().min(1).max(100).default(50).optional(),
-    status: PulseSourceSignalStatusSchema.optional(),
-  })
-  .optional()
-export type PulseListSourceSignalsInput = z.infer<typeof PulseListSourceSignalsInputSchema>
 
 export const PulseApplyInputSchema = z.object({
   alertId: EntityIdSchema,
@@ -325,9 +297,6 @@ export const pulseContract = oc.router({
   listSourceHealth: oc
     .input(z.undefined())
     .output(z.object({ sources: z.array(PulseSourceHealthSchema) })),
-  listSourceSignals: oc
-    .input(PulseListSourceSignalsInputSchema)
-    .output(z.object({ signals: z.array(PulseSourceSignalSchema) })),
   retrySourceHealth: oc
     .input(PulseSourceHealthInputSchema)
     .output(z.object({ sources: z.array(PulseSourceHealthSchema) })),

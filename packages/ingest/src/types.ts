@@ -49,7 +49,7 @@ export interface SourceAdapter {
   readonly tier: SourceTier
   readonly cronIntervalMs: number
   readonly jurisdiction: SourceJurisdiction
-  readonly canCreatePulse?: boolean
+  readonly allowEmptyParse?: boolean
   readonly fetcher?: 'cloudflare' | 'browserless' | 'govdelivery'
   fetch(ctx: IngestCtx): Promise<RawSnapshot[]>
   parse(snapshot: RawSnapshot, ctx: IngestCtx): Promise<ParsedItem[]>

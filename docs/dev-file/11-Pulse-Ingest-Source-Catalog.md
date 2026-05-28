@@ -33,25 +33,27 @@
 | **T2** | 政府官方衍生信号（API / 第三方转发 / 跨域联动） | `Signal` badge              | 0.7（需 T1 交叉验证）  | FEMA API / GovDelivery / broad newsroom |
 | **T3** | 商业聚合 / 行业协会 / 邮件订阅解析              | `Reference` badge（隐藏源） | 0.5（仅作触发器）      | FTA / AICPA / Checkpoint / Avalara      |
 
-**规则：** 只有 T1 可以直接进入 `approved → Rules > Pulse Changes`；T2/T3 仅能触发"去 T1 查验"的 worker 任务，自身不出现在 Evidence Chain。GovDelivery 属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` canonical page；邮件正文只作为内部信号与快照。
+**规则：** T1 自动源在证据完整时可以进入 apply flow；T2/T3、PDF-only、manual-check、
+FEMA/GovDelivery early signal 一律进入 CPA-facing review-only Alert，不显示 Apply。GovDelivery
+属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` canonical page；邮件正文只作为快照证据。
 
-**当前实现状态（2026-05-04）：**
+**当前实现状态（2026-05-28）：**
 
-- `SourceAdapter.canCreatePulse !== false` 的源会写 `pulse_source_snapshot` 并投递
-  `PULSE_QUEUE { type: 'pulse.extract', snapshotId }`，后续经 AI Extract 进入
-  `pulse.status='approved'` 并 fan-out 到匹配 firm 的 Rules > Pulse Changes review queue。
-- `canCreatePulse=false` 的 T2/T3 源只写 `pulse_source_signal`，
-  `signal_type='anticipated_pulse'`，不进入 Evidence Chain、不创建 firm alert。
-- FEMA 当前按 `canCreatePulse=false` 落地；它只能作为 IRS/州 T1 命中后的置信度辅助信号。
+- 所有 parsed item 都写 `pulse_source_snapshot` 并投递
+  `PULSE_QUEUE { type: 'pulse.extract', snapshotId }`，后续经 AI Extract 进入 CPA-facing Alerts。
+- `signal_only` source 不再是内部队列；它表示 extract 结果强制 `action_mode='review_only'`，
+  可提醒、复核、dismiss/mark reviewed，但永远没有 Apply 操作。
+- FEMA/GovDelivery early signal 会生成 review-only Alert；低相关列表噪声仍在 adapter/extract
+  前过滤。
 - Rules registry 已登记 50 州 + DC 的官方 tax-topic、filing FAQ、statute、due-date
   与 income-tax 具体页面；这些来源先服务 Rules evidence / practice review，不等于都进入自动
   Pulse 抓取。
 - `apps/server/src/jobs/pulse/rule-source-adapters.ts` 只会把带
   `practice_rule_review` 且 `acquisitionMethod='html_watch'` 的 rule sources 接入
   `pulse_source_state`。`manual_review`、`pdf_watch`、`email_subscription`、`api_watch`
-  需要专用 adapter 或人工流程，不能通过 generic HTML adapter 自动抓取。符合条件的
-  high/critical basis source 写 `pulse_source_snapshot` 并进入 `pulse.extract`；medium/low
-  辅助源仍只写 `pulse_source_signal`。
+  需要专用 adapter 或人工流程，不能通过 generic HTML adapter 自动抓取。符合条件的 source
+  写 `pulse_source_snapshot` 并进入 `pulse.extract`；不具备 apply 条件的 source 强制
+  review-only。
 
 ---
 
@@ -97,12 +99,13 @@
 
 ### 3.3 Disaster Signal（T2 预判层）
 
-| ID                  | 名称                           | URL                                                              | 协议     | 频率   | 用法                                                                                              |
-| ------------------- | ------------------------------ | ---------------------------------------------------------------- | -------- | ------ | ------------------------------------------------------------------------------------------------- |
-| `fema.declarations` | FEMA Disaster Declarations API | `https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries` | JSON API | 30 min | IRS 灾害延期几乎 100% 跟随 FEMA；**先抓 FEMA → 标记 `anticipated_pulse` → 等 IRS 原文落地后交叉** |
-| `weather.alerts`    | NWS Active Alerts (optional)   | `https://api.weather.gov/alerts/active`                          | GeoJSON  | 60 min | Phase 2；仅在做"前置预警"功能时启用                                                               |
+| ID                  | 名称                           | URL                                                              | 协议     | 频率   | 用法                                                                               |
+| ------------------- | ------------------------------ | ---------------------------------------------------------------- | -------- | ------ | ---------------------------------------------------------------------------------- |
+| `fema.declarations` | FEMA Disaster Declarations API | `https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries` | JSON API | 30 min | IRS 灾害延期常跟随 FEMA；FEMA item 作为 CPA-facing review-only Alert，不进入 Apply |
+| `weather.alerts`    | NWS Active Alerts (optional)   | `https://api.weather.gov/alerts/active`                          | GeoJSON  | 60 min | Phase 2；仅在做"前置预警"功能时启用                                                |
 
-**关键设计：** FEMA 信号**不独立生成 Pulse**，只在 `anticipated_pulse` 表登记一条"可能即将发生"的提示，等 `irs.disaster` worker 抓到原文后，按 `(state, county, declaration_date)` 自动 join 提升置信度。这是 PRD §6.3.1 没写但强烈推荐的增量设计。
+**关键设计：** FEMA 信号独立生成 review-only Alert。只有官方税务来源同时给出原截止日、
+新截止日、jurisdiction/scope 时，才允许 `deadline_shift + due_date_overlay` 进入 Apply flow。
 
 ### 3.4 Aggregator & Association（T3 参考层）
 
@@ -258,7 +261,7 @@ export interface SourceAdapter {
   readonly tier: 'T1' | 'T2' | 'T3'
   readonly cronIntervalMs: number
   readonly jurisdiction: 'federal' | UsStateCode
-  readonly canCreatePulse?: boolean // false => write pulse_source_signal only
+  readonly allowEmptyParse?: boolean
 
   fetch(ctx: IngestCtx): Promise<RawSnapshot[]>
   parse(snapshot: RawSnapshot): Promise<ParsedItem[]>
@@ -337,7 +340,7 @@ packages/ingest/
 2026-04-30 implementation note: `fetcher.ts` exposes the per-source registry boundary and keeps
 Cloudflare `fetch` as the default. Browserless is now configurable through
 `PULSE_BROWSERLESS_URL` / `PULSE_BROWSERLESS_TOKEN`, and GovDelivery inbound email is parsed into
-T2 `pulse_source_signal` rows via Cloudflare Email Routing. Both integrations remain default-off
+review-only Pulse snapshots via Cloudflare Email Routing. Both integrations remain default-off
 unless the relevant Worker secret/routing is configured.
 
 ---
@@ -347,7 +350,7 @@ unless the relevant Worker secret/routing is configured.
 | 阶段                      | 源                                                                   | 工程量   | 成功标准                             |
 | ------------------------- | -------------------------------------------------------------------- | -------- | ------------------------------------ |
 | **Phase 0 · Demo Sprint** | `irs.disaster` + `tx.cpa.rss` + seeded `ny.dtf.press` fixture        | 已完成   | S3 场景能真实触发 + mock 兜底齐全    |
-| **Pilot hardening**       | `ca.ftb.*` + `ca.cdtfa.news` + real `ny.dtf.press` + FL/WA + FEMA T2 | 已落地   | Live catalog 可跑；FEMA 不出客户链   |
+| **Pilot hardening**       | `ca.ftb.*` + `ca.cdtfa.news` + real `ny.dtf.press` + FL/WA + FEMA T2 | 已落地   | Live catalog 可跑；FEMA review-only  |
 | **Phase 1**               | GovDelivery inbound fallback + Browserless fallback                  | 已落地   | 可配置降级；WAF 源优先走 browserless |
 | **Phase 2**               | + `ma.dor.press` + 更多州 DOR                                        | 2 人周   | 15+ 源；10 源 ≥ 99% SLA              |
 | **Phase 3（商单触发）**   | Checkpoint / Bloomberg Tax / Avalara 商业 API                        | 谈单驱动 | 客户合同签字后再采购                 |
@@ -358,8 +361,8 @@ unless the relevant Worker secret/routing is configured.
 
 1. 确定 **Tier**（T1/T2/T3）与 `jurisdiction`
 2. 查 **robots.txt** 与 **ToS**，确认自动化抓取合规
-3. 写 **Source Adapter**（`packages/ingest/adapters/...`），实现 `fetch + parse`，并为
-   T2/T3 明确设置 `canCreatePulse=false`
+3. 写 **Source Adapter**（`packages/ingest/adapters/...`），实现 `fetch + parse`；T2/T3 或
+   PDF/manual-check source 必须在 server adapter map 中标记为 review-only
 4. 写 **Selector Fallback Chain**（HTML 源必做）
 5. 在 `SOURCE_FETCHER` 注册默认 fetcher（通常是 `cloudflare`）
 6. 加 **queue / R2 binding**（`apps/server/wrangler.toml`）

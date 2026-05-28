@@ -117,13 +117,11 @@ function queueModeForRule(rule: Pick<ObligationRule, 'status'>): RuleQueueMode {
 type RuleConcreteDraftTarget = {
   ruleId: string
   sourceId: string
-  sourceSignalId?: string
 }
 
 type SelectedConcreteDraftRule = {
   rule: ObligationRule
   sourceId: string
-  sourceSignalId: string | null
   draft: RuleConcreteDraft
 }
 
@@ -138,11 +136,7 @@ function concreteDraftTargetForRule(rule: ObligationRule): RuleConcreteDraftTarg
   return { ruleId: rule.id, sourceId }
 }
 
-function concreteDraftTargetKey(input: {
-  ruleId: string
-  sourceId: string
-  sourceSignalId?: string | null
-}): string {
+function concreteDraftTargetKey(input: { ruleId: string; sourceId: string }): string {
   return [input.ruleId, input.sourceId].join(':')
 }
 
@@ -464,7 +458,6 @@ export function CoverageTab({
       {
         rule,
         sourceId: entry.sourceId,
-        sourceSignalId: entry.sourceSignalId,
         draft: entry.draft,
       },
     ]
@@ -477,7 +470,6 @@ export function CoverageTab({
   const concreteDraftSelections = concreteDraftRows.map((entry) => ({
     ruleId: entry.rule.id,
     sourceId: entry.sourceId,
-    ...(entry.sourceSignalId ? { sourceSignalId: entry.sourceSignalId } : {}),
     aiOutputId: entry.draft.aiOutputId,
   }))
   const visibleSelectableRows = visiblePendingQueue.filter((rule) =>

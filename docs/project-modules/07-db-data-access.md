@@ -73,7 +73,6 @@ legacy client state。
 - `pulse_announcement`
 - `pulse_source_snapshot`
 - `pulse_source_state`
-- `pulse_source_signal`
 - `pulse_firm_alert`
 - `pulse_application`
 

@@ -55,9 +55,6 @@ export type PulseSourceSnapshotStatus = (typeof PULSE_SOURCE_SNAPSHOT_STATUSES)[
 export const PULSE_SOURCE_HEALTH_STATUSES = ['healthy', 'degraded', 'failing', 'paused'] as const
 export type PulseSourceHealthStatus = (typeof PULSE_SOURCE_HEALTH_STATUSES)[number]
 
-export const PULSE_SOURCE_SIGNAL_STATUSES = ['open', 'linked', 'reviewed', 'dismissed'] as const
-export type PulseSourceSignalStatus = (typeof PULSE_SOURCE_SIGNAL_STATUSES)[number]
-
 /**
  * pulse — source-backed regulatory announcement routed to practice review.
  *
@@ -195,53 +192,6 @@ export const pulseSourceState = sqliteTable(
   (table) => [
     index('idx_pss_health_next').on(table.healthStatus, table.nextCheckAt),
     index('idx_pss_enabled_next').on(table.enabled, table.nextCheckAt),
-  ],
-)
-
-/**
- * pulse_source_signal — non-feed regulatory signal from T2/T3 sources.
- *
- * FEMA/GovDelivery/commercial references are useful early warnings, but they
- * must not become customer-facing Pulse alerts until a T1 official source is
- * reviewed. This table keeps those signals auditable without entering the
- * `pulse` feed or Evidence Chain.
- */
-export const pulseSourceSignal = sqliteTable(
-  'pulse_source_signal',
-  {
-    id: text('id').primaryKey(),
-    sourceId: text('source_id').notNull(),
-    externalId: text('external_id').notNull(),
-    title: text('title').notNull(),
-    officialSourceUrl: text('official_source_url').notNull(),
-    publishedAt: integer('published_at', { mode: 'timestamp_ms' }).notNull(),
-    fetchedAt: integer('fetched_at', { mode: 'timestamp_ms' }).notNull(),
-    contentHash: text('content_hash').notNull(),
-    rawR2Key: text('raw_r2_key').notNull(),
-    tier: text('tier').notNull(),
-    jurisdiction: text('jurisdiction').notNull(),
-    signalType: text('signal_type').notNull().default('anticipated_pulse'),
-    status: text('status', { enum: PULSE_SOURCE_SIGNAL_STATUSES }).notNull().default('open'),
-    linkedPulseId: text('linked_pulse_id').references(() => pulse.id, { onDelete: 'set null' }),
-    reviewedRuleId: text('reviewed_rule_id'),
-    reviewDecisionId: text('review_decision_id'),
-
-    createdAt: integer('created_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .notNull(),
-    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
-      .$onUpdate(() => /* @__PURE__ */ new Date())
-      .notNull(),
-  },
-  (table) => [
-    uniqueIndex('uq_pulse_signal_source_external_hash').on(
-      table.sourceId,
-      table.externalId,
-      table.contentHash,
-    ),
-    index('idx_pulse_signal_status_time').on(table.status, table.publishedAt),
-    index('idx_pulse_signal_source_time').on(table.sourceId, table.publishedAt),
   ],
 )
 
@@ -389,13 +339,6 @@ export const pulseSourceSnapshotRelations = relations(pulseSourceSnapshot, ({ on
 
 export const pulseSourceStateRelations = relations(pulseSourceState, () => ({}))
 
-export const pulseSourceSignalRelations = relations(pulseSourceSignal, ({ one }) => ({
-  linkedPulse: one(pulse, {
-    fields: [pulseSourceSignal.linkedPulseId],
-    references: [pulse.id],
-  }),
-}))
-
 export const pulseFirmAlertRelations = relations(pulseFirmAlert, ({ one }) => ({
   pulse: one(pulse, {
     fields: [pulseFirmAlert.pulseId],
@@ -467,8 +410,6 @@ export type PulseSourceSnapshot = typeof pulseSourceSnapshot.$inferSelect
 export type NewPulseSourceSnapshot = typeof pulseSourceSnapshot.$inferInsert
 export type PulseSourceState = typeof pulseSourceState.$inferSelect
 export type NewPulseSourceState = typeof pulseSourceState.$inferInsert
-export type PulseSourceSignal = typeof pulseSourceSignal.$inferSelect
-export type NewPulseSourceSignal = typeof pulseSourceSignal.$inferInsert
 export type PulseFirmAlert = typeof pulseFirmAlert.$inferSelect
 export type NewPulseFirmAlert = typeof pulseFirmAlert.$inferInsert
 export type PulsePriorityReview = typeof pulsePriorityReview.$inferSelect

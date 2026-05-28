@@ -110,6 +110,28 @@ describe('@duedatehq/ingest', () => {
     ])
   })
 
+  it('filters noisy RSS announcement items before Pulse extraction', () => {
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'az.temporary_announcements',
+        title: 'Arizona DOR News',
+        url: 'https://azdor.gov/news-center/feed',
+        jurisdiction: 'AZ',
+      },
+      {
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        body: `<rss><channel>
+          <item><guid>noise-1</guid><title>Sales tax webinar for small businesses</title><link>https://azdor.gov/news/webinar</link><description>Join agency staff for education.</description></item>
+          <item><guid>signal-1</guid><title>Disaster relief extends filing and payment deadline</title><link>https://azdor.gov/news/relief</link><description>Affected taxpayers have a new filing deadline.</description></item>
+        </channel></rss>`,
+      },
+    )
+
+    expect(items.map((item) => item.title)).toEqual([
+      'Disaster relief extends filing and payment deadline',
+    ])
+  })
+
   it('runs the NY DTF fixture adapter end-to-end', async () => {
     const ctx: IngestCtx = {
       async fetch() {

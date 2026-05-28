@@ -112,14 +112,14 @@ flowchart TB
   Metadata["id/tier/jurisdiction/cron"]
   Fetcher["fetch(ctx)"]
   Parser["parse(snapshot, ctx)"]
-  Snapshot["SourceSnapshot"]
-  Signal["SourceSignal"]
+  Raw["RawSnapshot"]
+  Item["ParsedItem"]
 
   Adapter --> Metadata
   Adapter --> Fetcher
-  Fetcher --> Snapshot
+  Fetcher --> Raw
   Adapter --> Parser
-  Parser --> Signal
+  Parser --> Item
 ```
 
 ### Fetcher 选择
@@ -188,7 +188,7 @@ flowchart TB
 
 1. Adapter 获取政府来源页面。
 2. 保存 source snapshot 和 source state。
-3. parse 生成 source signal。
+3. parse 生成 source snapshot item。
 4. queue 调用 AI 抽取 structured Pulse candidate。
 5. 抽取成功后 fan-out 到 firm alert。
 6. firm owner/manager review 后 apply/dismiss/snooze。

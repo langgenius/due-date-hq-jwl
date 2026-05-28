@@ -355,7 +355,7 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
               />
             </span>
           }
-          description={t`Regulatory Pulse signals that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes.`}
+          description={t`Regulatory Pulse alerts that match your practice's clients. Review, batch-apply due-date changes, snooze, or revisit closed changes.`}
           actions={
             <>
               {/* 2026-05-27 (Step 6 UX flows audit H1.4): shortcut

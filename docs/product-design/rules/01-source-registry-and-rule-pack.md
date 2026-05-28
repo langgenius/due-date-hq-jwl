@@ -170,15 +170,15 @@ Source watch 到 Pulse 的流程：
 ```text
 Worker scheduled gate (Monday 09:00 UTC)
   -> pulse.rule_source.scan queue item per RuleSource
-  -> source freshness + R2 snapshot or source_check_due signal
+  -> source freshness + R2 snapshot
   -> pulse.extract@v2 classification
   -> deadline_shift: Pulse due-date overlay workflow
   -> non-deadline changes: review-only Pulse alert
 ```
 
 这个流程不再生成内部 rule-pack proposal。`html_watch` 和 `pdf_watch` source 会自动抓取、归档
-R2、更新 freshness；`manual_review`、`email_subscription` 和 `api_watch` source 会生成
-`source_check_due` Pulse source signal，不伪装成机器已核验。source 内容未变化时只更新
+R2、更新 freshness；`manual_review`、`email_subscription` 和 `api_watch` source 只更新
+freshness，不伪装成机器已核验。source 内容未变化时只更新
 freshness，不触碰 AI concrete draft。source 内容变化后进入 Pulse：`deadline_shift` 且同时解析出
 original/new due date 时走 due-date overlay；filing requirement、applicability、form
 instruction、source status、new obligation 和 other 均为 review-only Pulse alert，只允许
@@ -194,7 +194,7 @@ rule version 变化或新 rule 发布后，catalog sync 会 enqueue 当前版本
 report/inspect/backfill/snapshot CLI 已退役；concrete draft 不再作为 Rule Library source watch 的
 运维入口，也不作为 source 变化的审核通道。失败仅记录为 AI output / metric，不阻塞 review task。
 
-Concrete draft live source fetch 会先使用已归档的 source signal / source snapshot / rule
+Concrete draft live source fetch 会先使用已归档的 source snapshot / rule
 evidence；只有没有 source-backed text 时才 fallback 到官方 URL。配置
 `PULSE_BROWSERLESS_URL` 后，live fetch 可在 direct fetch 失败时走 Browserless；配置
 `PULSE_BROWSERLESS_SOURCE_IDS` 可让已知困难 source 优先走 Browserless。`manual_review`、
@@ -610,7 +610,8 @@ MVP 的用户提醒只消费 `obligation_instance`，不直接消费 `rule_templ
 
 ## 7. 验收标准
 
-- Source Registry 当前代码覆盖 Federal + 50 州 + DC；新增州源先进入 source signal / practice review，不能直接显示为 reminder-ready active coverage。
+- Source Registry 当前代码覆盖 Federal + 50 州 + DC；新增州源先进入 review-only Alert /
+  practice review，不能直接显示为 reminder-ready active coverage。
 - 初始 Rule Pack 至少包含本文件 §3 的 rule IDs。
 - 每条 active practice rule 至少有 1 个 primary official source；高风险/extension/payment rule 需要 2 个 source 或明确 cross-check note。
 - 每条 rule 都有 `dueDateLogic`、`eventType`、`ruleTier`、`qualityChecklist`。

@@ -196,7 +196,6 @@ describe('rule concrete draft generation cache', () => {
       userId: null,
       base: fakeRule(),
       source: fakeSource(),
-      sourceSignal: null,
     })
 
     expect(draft.aiOutputId).toBe('00000000-0000-4000-8000-000000000001')
@@ -258,7 +257,6 @@ describe('rule concrete draft generation cache', () => {
         userId: null,
         base: fakeRule(),
         source: fakeSource(),
-        sourceSignal: null,
       }),
     ).rejects.toThrow()
 

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon } from 'lucide-react'
 
-import type { PulseSourceHealth, PulseSourceSignal, RuleSource } from '@duedatehq/contracts'
+import type { PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
 import {
   Table,
   TableBody,
@@ -13,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
-import { cn } from '@duedatehq/ui/lib/utils'
 
 import {
   TableHeaderMultiFilter,
@@ -266,113 +265,7 @@ export function SourcesTab() {
           onNextPage={() => setPageIndex(Math.min(pageCount - 1, currentPageIndex + 1))}
         />
       </SectionFrame>
-      <SourceSignalsPanel sources={rows} />
     </div>
-  )
-}
-
-// SourceSignalsPanel — the per-source signal trail a CPA needs for
-// "history of sources" (PDF guide §audit). Wires the existing
-// `pulse.listSourceSignals` ORPC into a compact table: what was
-// fetched, when, what status it landed in, and a link to the
-// authority document. No filters yet — that comes next iteration.
-function SourceSignalsPanel({ sources }: { sources: readonly RuleSource[] }) {
-  const signalsQuery = useQuery(orpc.pulse.listSourceSignals.queryOptions({ input: { limit: 50 } }))
-  const signals = signalsQuery.data?.signals ?? []
-  const sourceLabelById = useMemo(() => {
-    const map = new Map<string, string>()
-    for (const source of sources) map.set(source.id, source.title)
-    return map
-  }, [sources])
-
-  return (
-    <SectionFrame>
-      <div className="flex items-baseline justify-between gap-3 px-4 pt-3 pb-1">
-        <h3 className="text-base font-semibold text-text-primary">
-          <Trans>Source signal trail</Trans>
-        </h3>
-        <span className="text-sm text-text-tertiary tabular-nums">
-          {signalsQuery.isLoading ? (
-            <Trans>Loading…</Trans>
-          ) : (
-            <Trans>{signals.length} recent</Trans>
-          )}
-        </span>
-      </div>
-      <Table className="table-fixed">
-        <TableHeader className="bg-background-subtle">
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="w-[96px] px-4">FETCHED</TableHead>
-            <TableHead className="px-4">SOURCE · SIGNAL</TableHead>
-            <TableHead className="w-[112px] px-2">TYPE</TableHead>
-            <TableHead className="w-[88px] px-2">STATUS</TableHead>
-            <TableHead className="w-[42px] px-0" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {signals.map((signal) => (
-            <SignalRow
-              key={signal.id}
-              signal={signal}
-              sourceLabel={sourceLabelById.get(signal.sourceId) ?? signal.sourceId}
-            />
-          ))}
-          {!signalsQuery.isLoading && signals.length === 0 ? (
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={5} className="px-4 py-8 text-center text-sm text-text-tertiary">
-                <Trans>No source signals yet — watchers haven't surfaced anything.</Trans>
-              </TableCell>
-            </TableRow>
-          ) : null}
-        </TableBody>
-      </Table>
-    </SectionFrame>
-  )
-}
-
-function SignalRow({ signal, sourceLabel }: { signal: PulseSourceSignal; sourceLabel: string }) {
-  return (
-    <TableRow>
-      <TableCell className="px-4 py-2 align-top">
-        <span className="text-sm tabular-nums text-text-secondary" title={signal.fetchedAt}>
-          {relativeTimeShort(signal.fetchedAt)}
-        </span>
-      </TableCell>
-      <TableCell className="px-4 py-2 align-top">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-sm text-text-tertiary">{sourceLabel}</span>
-          <span className="line-clamp-2 text-sm text-text-primary">{signal.title}</span>
-        </div>
-      </TableCell>
-      <TableCell className="px-2 py-2 align-top text-sm text-text-secondary">
-        {signal.signalType}
-      </TableCell>
-      <TableCell className="px-2 py-2 align-top">
-        <span
-          className={cn(
-            'inline-flex items-center rounded-sm px-1.5 py-0.5 text-xs uppercase tracking-eyebrow-tight',
-            signal.status === 'open' && 'bg-state-warning-hover text-text-warning',
-            signal.status === 'linked' && 'bg-state-accent-hover text-text-accent',
-            signal.status === 'reviewed' &&
-              'border border-divider-subtle bg-background-default text-text-secondary',
-            signal.status === 'dismissed' && 'bg-background-subtle text-text-tertiary',
-          )}
-        >
-          {signal.status}
-        </span>
-      </TableCell>
-      <TableCell className="px-0 py-2 align-top">
-        <a
-          href={signal.officialSourceUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary hover:bg-state-base-hover hover:text-text-primary"
-          aria-label="Open authority source"
-        >
-          <ExternalLinkIcon className="size-3.5" aria-hidden />
-        </a>
-      </TableCell>
-    </TableRow>
   )
 }
 

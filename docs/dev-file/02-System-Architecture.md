@@ -225,13 +225,13 @@ Cron Trigger（*/30 * * * *，每源独立 interval 见 11 §3）
 scheduled(controller, env) → jobs/pulse/ingest
         │
         ▼
-SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► T1 入 PULSE_QUEUE { type: 'pulse.extract', snapshotId }
+SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► PULSE_QUEUE { type: 'pulse.extract', snapshotId }
 （HTML / RSS / JSON API / email signal，选择与降级见 11 §4）
                                         │
-                              T2/T3 写 pulse_source_signal
+                              AI extract + relevance guard
                                         │
                                         ▼
-                              不进入 Evidence Chain
+                              CPA-facing Alert
                                         │
                                         ▼
                                  Queue consumer

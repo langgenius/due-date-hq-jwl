@@ -15,7 +15,6 @@ export interface PulseExtractQueueMessage {
 
 interface IngestCounts {
   snapshots: number
-  signals: number
   queued: number
   duplicates: number
   failures: number
@@ -75,12 +74,11 @@ function sumCounts(rows: readonly IngestCounts[]): IngestCounts {
   return rows.reduce(
     (acc, row) => ({
       snapshots: acc.snapshots + row.snapshots,
-      signals: acc.signals + row.signals,
       queued: acc.queued + row.queued,
       duplicates: acc.duplicates + row.duplicates,
       failures: acc.failures + row.failures,
     }),
-    { snapshots: 0, signals: 0, queued: 0, duplicates: 0, failures: 0 },
+    { snapshots: 0, queued: 0, duplicates: 0, failures: 0 },
   )
 }
 
@@ -151,7 +149,7 @@ async function ingestAdapter(
     !state.enabled ||
     (!opts.force && state.nextCheckAt && state.nextCheckAt.getTime() > checkedAt.getTime())
   ) {
-    return { snapshots: 0, signals: 0, queued: 0, duplicates: 0, failures: 0 }
+    return { snapshots: 0, queued: 0, duplicates: 0, failures: 0 }
   }
 
   try {
@@ -178,7 +176,7 @@ async function ingestAdapter(
     )
     const changedSnapshots = rawSnapshots.filter((snapshot) => !snapshot.notModified).length
     const parsedItemCount = parsedGroups.reduce((count, group) => count + group.items.length, 0)
-    if (changedSnapshots > 0 && parsedItemCount === 0) {
+    if (changedSnapshots > 0 && parsedItemCount === 0 && !adapter.allowEmptyParse) {
       throw new Error(`selector_drift: ${adapter.id} produced no parsed items`)
     }
 
@@ -191,28 +189,6 @@ async function ingestAdapter(
           body: item.rawText,
           contentType: 'text/plain; charset=utf-8',
         })
-        if (adapter.canCreatePulse === false) {
-          const result = await repo.createSourceSignal({
-            sourceId: item.sourceId,
-            externalId: item.externalId,
-            title: item.title,
-            officialSourceUrl: item.officialSourceUrl,
-            publishedAt: item.publishedAt,
-            fetchedAt: rawSnapshot.fetchedAt,
-            contentHash: archived.contentHash,
-            rawR2Key: archived.r2Key,
-            tier: adapter.tier,
-            jurisdiction: item.jurisdiction ?? adapter.jurisdiction,
-            signalType: 'anticipated_pulse',
-          })
-          return {
-            snapshots: 0,
-            signals: result.inserted ? 1 : 0,
-            queued: 0,
-            duplicates: result.inserted ? 0 : 1,
-            failures: 0,
-          }
-        }
         const result = await repo.createSourceSnapshot({
           sourceId: item.sourceId,
           externalId: item.externalId,
@@ -224,7 +200,7 @@ async function ingestAdapter(
           rawR2Key: archived.r2Key,
         })
         if (!result.inserted) {
-          return { snapshots: 1, signals: 0, queued: 0, duplicates: 1, failures: 0 }
+          return { snapshots: 1, queued: 0, duplicates: 1, failures: 0 }
         }
         await queue.send({
           type: 'pulse.extract',
@@ -232,7 +208,6 @@ async function ingestAdapter(
         } satisfies PulseExtractQueueMessage)
         return {
           snapshots: 1,
-          signals: 0,
           queued: 1,
           duplicates: 0,
           failures: 0,
@@ -246,7 +221,7 @@ async function ingestAdapter(
       sourceId: adapter.id,
       checkedAt,
       nextCheckAt: nextCheckAt(checkedAt, adapter.cronIntervalMs),
-      changed: counts.queued + counts.signals > 0,
+      changed: counts.queued > 0,
       ...(freshest?.etag !== undefined ? { etag: freshest.etag } : {}),
       ...(freshest?.lastModified !== undefined ? { lastModified: freshest.lastModified } : {}),
     })
@@ -256,7 +231,6 @@ async function ingestAdapter(
       fetcher: effectiveFetcher,
       durationMs: Date.now() - startedAt,
       snapshots: counts.snapshots,
-      signals: counts.signals,
       queued: counts.queued,
       duplicates: counts.duplicates,
     })
@@ -275,7 +249,7 @@ async function ingestAdapter(
       durationMs: Date.now() - checkedAt.getTime(),
       error: error instanceof Error ? error.message : 'Pulse ingest failed.',
     })
-    return { snapshots: 0, signals: 0, queued: 0, duplicates: 0, failures: 1 }
+    return { snapshots: 0, queued: 0, duplicates: 0, failures: 1 }
   }
 }
 
@@ -293,7 +267,6 @@ export async function runPulseIngest(
   opts: { force?: boolean } = {},
 ): Promise<{
   snapshots: number
-  signals: number
   queued: number
   duplicates: number
   failures: number

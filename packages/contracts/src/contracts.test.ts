@@ -122,7 +122,6 @@ import {
   PulseListAlertsInputSchema,
   PulseRequestReviewInputSchema,
   PulseRequestReviewOutputSchema,
-  PulseSourceSignalSchema,
   pulseContract,
 } from './pulse'
 import {
@@ -1191,9 +1190,9 @@ describe('@duedatehq/contracts', () => {
       'activeCount',
       'listHistory',
       'listSourceHealth',
-      'listSourceSignals',
       'retrySourceHealth',
       'getDetail',
+      'getDetailsBatch',
       'listPriorityQueue',
       'reviewPriorityMatches',
       'applyReviewed',
@@ -1285,24 +1284,6 @@ describe('@duedatehq/contracts', () => {
     })
     expect(requestReview.notificationCount).toBe(2)
     expect(requestReview.emailCount).toBe(2)
-
-    const sourceSignal = PulseSourceSignalSchema.parse({
-      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-      sourceId: 'ca.income_tax',
-      externalId: 'source-url-hash',
-      title: 'CA individual income tax source changed',
-      officialSourceUrl: 'https://www.ftb.ca.gov/file/personal/',
-      publishedAt: '2026-05-04T10:00:00.000Z',
-      fetchedAt: '2026-05-04T10:01:00.000Z',
-      tier: 'T1',
-      jurisdiction: 'CA',
-      signalType: 'anticipated_pulse',
-      status: 'reviewed',
-      linkedPulseId: null,
-      reviewedRuleId: 'ca.individual_income_return.candidate.2026',
-      reviewDecisionId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-    })
-    expect(sourceSignal.status).toBe('reviewed')
   })
 
   it('freezes evidence.listByObligation public shape', () => {
@@ -1649,11 +1630,9 @@ describe('@duedatehq/contracts', () => {
     const verifyInput = RuleVerifyCandidateInputSchema.parse({
       ruleId: 'ca.individual_income_return.candidate.2026',
       sourceId: 'ca.income_tax',
-      sourceSignalId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
       aiOutputId: '44444444-4444-4444-8444-444444444444',
       reviewNote: 'Accepted cached AI concrete draft.',
     })
-    expect(verifyInput.sourceSignalId).toBe('cccccccc-cccc-4ccc-8ccc-cccccccccccc')
     expect(verifyInput.aiOutputId).toBe('44444444-4444-4444-8444-444444444444')
 
     const concreteDraft = RuleConcreteDraftSchema.parse({

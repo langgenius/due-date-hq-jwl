@@ -68,7 +68,7 @@ Root router 覆盖：
 
 ### 队列与定时任务
 
-- `scheduled`：按 cron fan-out dashboard brief、Pulse ingest、source signal linking、deadline reminders、email flush。
+- `scheduled`：按 cron fan-out dashboard brief、Pulse ingest、deadline reminders、email flush。
 - `queue`：处理 `dashboard.brief.refresh`、`pulse.extract`、`email.flush`、`audit.package.generate`。
 - `email`：GovDelivery 或邮件入口。
 

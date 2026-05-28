@@ -7,7 +7,7 @@ import {
   type RuleConcreteDraft,
 } from '@duedatehq/contracts'
 import type { AiRepo } from '@duedatehq/ports/ai'
-import type { PulseSourceSignalRow, PulseSourceSnapshotRow } from '@duedatehq/ports/pulse'
+import type { PulseSourceSnapshotRow } from '@duedatehq/ports/pulse'
 import type { RuleConcreteDraftRepo } from '@duedatehq/ports/rule-concrete-drafts'
 import type {
   ObligationRule as CoreObligationRule,
@@ -369,14 +369,6 @@ interface ConcreteDraftAiInput {
     acquisitionMethod: string
     lastReviewedOn: string
   }
-  sourceSignal?: {
-    id: string
-    title: string
-    officialSourceUrl: string
-    publishedAt: string
-    fetchedAt: string
-    signalType: string
-  }
   sourceText: string
 }
 
@@ -384,7 +376,6 @@ export function ruleConcreteDraftContextRef(input: {
   ruleId: string
   ruleVersion: number
   sourceId: string
-  sourceSignalId?: string | null
 }): string {
   return ['rule', input.ruleId, `v${input.ruleVersion}`, input.sourceId].join(':')
 }
@@ -393,13 +384,11 @@ export function cachedConcreteDraftKey(input: {
   ruleId: string
   ruleVersion: number
   sourceId: string
-  sourceSignalId?: string | null | undefined
 }): string {
   return ruleConcreteDraftContextRef({
     ruleId: input.ruleId,
     ruleVersion: input.ruleVersion,
     sourceId: input.sourceId,
-    ...(input.sourceSignalId ? { sourceSignalId: input.sourceSignalId } : {}),
   })
 }
 
@@ -773,7 +762,6 @@ export async function buildConcreteDraftSourceText(input: {
   >
   base: CoreObligationRule
   source: CoreRuleSource
-  sourceSignal: PulseSourceSignalRow | null
   latestSourceSnapshot?: PulseSourceSnapshotRow | null
 }): Promise<ConcreteDraftSourceText> {
   const chunks: string[] = []
@@ -809,25 +797,6 @@ export async function buildConcreteDraftSourceText(input: {
       .filter((value): value is string => Boolean(value))
       .join('\n'),
   )
-
-  if (evidenceChunks.length === 0 && input.sourceSignal) {
-    const rawText = await readR2Text(input.env, input.sourceSignal.rawR2Key)
-    if (rawText) {
-      hasSourceBackedText = true
-      sourceFetchedAt = input.sourceSignal.fetchedAt.toISOString()
-      sourcePublishedAt = input.sourceSignal.publishedAt.toISOString()
-    }
-    chunks.push(
-      [
-        input.sourceSignal.title,
-        input.sourceSignal.officialSourceUrl,
-        input.sourceSignal.publishedAt.toISOString().slice(0, 10),
-        rawText,
-      ]
-        .filter((value): value is string => Boolean(value))
-        .join('\n'),
-    )
-  }
 
   if (evidenceChunks.length === 0 && input.latestSourceSnapshot) {
     const snapshotText = await readR2Text(input.env, input.latestSourceSnapshot.rawR2Key)
@@ -878,7 +847,6 @@ export function requireConcreteDraftSourceText(sourceContext: ConcreteDraftSourc
 export function concreteDraftAiInput(input: {
   base: CoreObligationRule
   source: CoreRuleSource
-  sourceSignal: PulseSourceSignalRow | null
   sourceText: string
 }): ConcreteDraftAiInput {
   return {
@@ -910,18 +878,6 @@ export function concreteDraftAiInput(input: {
       acquisitionMethod: input.source.acquisitionMethod,
       lastReviewedOn: input.source.lastReviewedOn,
     },
-    ...(input.sourceSignal
-      ? {
-          sourceSignal: {
-            id: input.sourceSignal.id,
-            title: input.sourceSignal.title,
-            officialSourceUrl: input.sourceSignal.officialSourceUrl,
-            publishedAt: input.sourceSignal.publishedAt.toISOString(),
-            fetchedAt: input.sourceSignal.fetchedAt.toISOString(),
-            signalType: input.sourceSignal.signalType,
-          },
-        }
-      : {}),
     sourceText: selectConcreteDraftSourceText(input.base, input.source.id, input.sourceText),
   }
 }
@@ -1034,7 +990,6 @@ async function mirrorConcreteDraftRun(input: {
   model: string
   base: CoreObligationRule
   source: CoreRuleSource
-  sourceSignal: PulseSourceSignalRow | null
   sourceContext: ConcreteDraftSourceText
   draft: RuleConcreteDraftPayload
   outputText: string
@@ -1052,7 +1007,6 @@ async function mirrorConcreteDraftRun(input: {
     ruleId: input.base.id,
     ruleVersion: input.base.version,
     sourceId: input.source.id,
-    sourceSignalId: input.sourceSignal?.id ?? null,
     sourceSnapshotId: input.sourceContext.sourceSnapshotId,
     sourceUrl: input.source.url,
     sourceFetchedAt: nullableDate(input.sourceContext.sourceFetchedAt),
@@ -1073,7 +1027,6 @@ export async function generateConcreteDraft(input: {
   userId: string | null
   base: CoreObligationRule
   source: CoreRuleSource
-  sourceSignal: PulseSourceSignalRow | null
   latestSourceSnapshot?: PulseSourceSnapshotRow | null
 }): Promise<RuleConcreteDraft> {
   const startedAt = Date.now()
@@ -1081,21 +1034,18 @@ export async function generateConcreteDraft(input: {
     env: input.env,
     base: input.base,
     source: input.source,
-    sourceSignal: input.sourceSignal,
     latestSourceSnapshot: input.latestSourceSnapshot ?? null,
   })
   const sourceText = sourceContext.sourceText
   const aiInput = concreteDraftAiInput({
     base: input.base,
     source: input.source,
-    sourceSignal: input.sourceSignal,
     sourceText,
   })
   const inputContextRef = ruleConcreteDraftContextRef({
     ruleId: input.base.id,
     ruleVersion: input.base.version,
     sourceId: input.source.id,
-    sourceSignalId: input.sourceSignal?.id ?? null,
   })
   const inputHash = await hashAiInput(aiInput)
   if (!sourceContext.hasSourceBackedText) {
@@ -1116,7 +1066,6 @@ export async function generateConcreteDraft(input: {
       citations: {
         sourceId: input.source.id,
         sourceUrl: input.source.url,
-        sourceSignalId: input.sourceSignal?.id ?? null,
         sourceSnapshotId: sourceContext.sourceSnapshotId,
         sourceFetchedAt: sourceContext.sourceFetchedAt,
         sourcePublishedAt: sourceContext.sourcePublishedAt,
@@ -1168,7 +1117,6 @@ export async function generateConcreteDraft(input: {
           model: cached.model,
           base: input.base,
           source: input.source,
-          sourceSignal: input.sourceSignal,
           sourceContext,
           draft: cachedDraft,
           outputText: cached.outputText,
@@ -1209,7 +1157,6 @@ export async function generateConcreteDraft(input: {
   const citations = {
     sourceId: input.source.id,
     sourceUrl: input.source.url,
-    sourceSignalId: input.sourceSignal?.id ?? null,
     sourceSnapshotId: sourceContext.sourceSnapshotId,
     sourceFetchedAt: sourceContext.sourceFetchedAt,
     sourcePublishedAt: sourceContext.sourcePublishedAt,
@@ -1262,7 +1209,6 @@ export async function generateConcreteDraft(input: {
     model,
     base: input.base,
     source: input.source,
-    sourceSignal: input.sourceSignal,
     sourceContext,
     draft,
     outputText,

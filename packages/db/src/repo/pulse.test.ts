@@ -811,6 +811,64 @@ describe('makePulseOpsRepo', () => {
     ).toBe(true)
   })
 
+  it('finds duplicate extracted pulses by normalized policy scope', async () => {
+    const { db } = fakeDb([
+      [
+        {
+          id: 'pulse-existing',
+          sourceUrl: 'https://www.irs.gov/newsroom/relief?utm_source=email#top',
+          parsedCounties: ['Los Angeles County'],
+          parsedForms: ['federal_1065'],
+          parsedEntityTypes: ['llc'],
+        },
+      ],
+    ])
+
+    const duplicate = await makePulseOpsRepo(db).findDuplicatePulseForExtract({
+      publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+      sourceUrl: 'https://www.ftb.ca.gov/about-ftb/newsroom/relief.html',
+      parsedJurisdiction: 'CA',
+      parsedCounties: ['Los Angeles'],
+      parsedForms: ['FEDERAL_1065'],
+      parsedEntityTypes: ['llc'],
+      parsedOriginalDueDate: new Date('2026-03-15T00:00:00.000Z'),
+      parsedNewDueDate: new Date('2026-10-15T00:00:00.000Z'),
+      changeKind: 'deadline_shift',
+      actionMode: 'due_date_overlay',
+    })
+
+    expect(duplicate).toBe('pulse-existing')
+  })
+
+  it('does not collapse scope-free review-only pulses from different URLs', async () => {
+    const { db } = fakeDb([
+      [
+        {
+          id: 'pulse-existing',
+          sourceUrl: 'https://tax.example.gov/news/one',
+          parsedCounties: [],
+          parsedForms: [],
+          parsedEntityTypes: [],
+        },
+      ],
+    ])
+
+    const duplicate = await makePulseOpsRepo(db).findDuplicatePulseForExtract({
+      publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+      sourceUrl: 'https://tax.example.gov/news/two',
+      parsedJurisdiction: 'CA',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+      changeKind: 'other',
+      actionMode: 'review_only',
+    })
+
+    expect(duplicate).toBeNull()
+  })
+
   it('does not write synthetic system actor ids into user foreign keys', async () => {
     const approvedPulse = {
       id: 'pulse-approve',

@@ -20,7 +20,6 @@ const { dbMocks, draftMocks, metricsMocks, pulseRepoMocks } = vi.hoisted(() => {
     health: vi.fn(),
   }
   const pulseRepo = {
-    getSourceSignal: vi.fn(),
     getLatestSourceSnapshotBySourceId: vi.fn(),
   }
   return {
@@ -98,7 +97,6 @@ describe('rule concrete draft prewarm jobs', () => {
         `rule:${input.ruleId}:v${input.ruleVersion}:${input.sourceId}`,
     )
     draftMocks.generateConcreteDraft.mockResolvedValue({})
-    pulseRepoMocks.getSourceSignal.mockResolvedValue(null)
     pulseRepoMocks.getLatestSourceSnapshotBySourceId.mockResolvedValue(null)
   })
 

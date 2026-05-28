@@ -903,7 +903,6 @@ describe('CoverageTab canonical layout', () => {
       {
         ruleId: sourceDefinedRule.id,
         sourceId: 'fed.source.2026',
-        sourceSignalId: 'source_signal_1',
         draft,
       },
     ])
@@ -952,7 +951,6 @@ describe('CoverageTab canonical layout', () => {
         {
           ruleId: sourceDefinedRule.id,
           sourceId: 'fed.source.2026',
-          sourceSignalId: 'source_signal_1',
           aiOutputId: draft.aiOutputId,
         },
       ],
