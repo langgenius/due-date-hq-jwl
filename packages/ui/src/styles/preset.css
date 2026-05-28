@@ -69,15 +69,29 @@
    * used to be inlined as `max-w-[1100px]` / `max-w-[920px]` /
    * `max-w-[880px]` across 14 route + page components. Centralizing
    * them here means a single change updates every page container at
-   * once; the call sites read `max-w-page-wide` / `max-w-page-medium`
-   * / `max-w-page-narrow` instead of magic pixel values.
+   * once; the call sites read `max-w-page-expanded` / `max-w-page-wide`
+   * / `max-w-page-medium` / `max-w-page-narrow` instead of magic pixel
+   * values.
    *
-   *   wide   → content-heavy lists & detail pages (Today, Clients,
-   *            Obligations, Opportunities, Audit, Settings, Dashboard,
-   *            Pulse alerts list).
-   *   medium → form-density pages with side metadata (Account →
-   *            Security).
-   *   narrow → focused single-column settings (Practice profile).
+   * Reality check 2026-05-28: the original `wide` description below
+   * was aspirational — Today, Dashboard, Clients, Obligations, Pulse
+   * list, and Rules library have all since been promoted to
+   * `expanded` (1440) so dense list + dashboard surfaces have room
+   * for a side panel without re-collapsing the body. Updated mapping:
+   *
+   *   expanded → dense list & dashboard surfaces (Today, Dashboard,
+   *              Clients list + detail, Obligations / Deadlines,
+   *              Rules library, Pulse alerts list). Default for
+   *              "scan-and-act" workbench surfaces; gives the body
+   *              room when a right-side drawer opens without
+   *              re-collapsing content.
+   *   wide     → operational pages where 1100 is still enough
+   *              (Settings hub, Billing, Migration onboarding,
+   *              Pulse-panel-closed legacy fallback).
+   *   medium   → form-density pages with side metadata (Account →
+   *              Security).
+   *   narrow   → focused single-column settings (Practice profile,
+   *              Migration → import step, Readiness).
    * ----------------------------------------------------------------- */
   --container-page-wide: 1100px;
   --container-page-medium: 920px;
@@ -86,7 +100,9 @@
   /* `page-expanded` is the wide-mode content cap (max-w-page-expanded)
    * used when a right-side panel opens and the body needs to fill more
    * horizontal real estate. Previously inlined as `max-w-[1440px]`
-   * across rules-pulse / rules-library / alerts-list / app-shell. */
+   * across rules-pulse / rules-library / alerts-list / app-shell. As of
+   * 2026-05-28 this is the default for dense workbench surfaces — see
+   * the mapping comment above. */
   --container-page-expanded: 1440px;
 
   /* -----------------------------------------------------------------
