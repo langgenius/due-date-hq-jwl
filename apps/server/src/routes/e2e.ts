@@ -111,12 +111,74 @@ export const DEMO_ACCOUNTS = [
 }[]
 
 type DemoAccountId = (typeof DEMO_ACCOUNTS)[number]['id']
+type DemoAccount = (typeof DEMO_ACCOUNTS)[number]
 
 const DEMO_ACCOUNT_IDS = DEMO_ACCOUNTS.map((account) => account.id)
 const DEMO_USER_IDS = DEMO_ACCOUNTS.map((account) => account.userId)
 const DEMO_ROLES = DEMO_ACCOUNTS.map((account) => account.role)
 const DEMO_FIRM_IDS = Array.from(new Set(DEMO_ACCOUNTS.map((account) => account.firmId)))
-const DEMO_DATA_MISSING = 'Demo data is missing. Run `pnpm db:seed:demo` first.'
+const DEMO_FIRMS = [
+  {
+    id: DEMO_FIRM_ID,
+    name: 'Brightline Demo CPA',
+    slug: 'brightline-demo-cpa',
+    plan: 'pro',
+    seatLimit: 5,
+    timezone: 'America/Los_Angeles',
+    ownerUserId: 'mock_user_owner_sarah',
+    stripeCustomerId: 'cus_mock_brightline',
+    stripeSubscriptionId: 'sub_mock_brightline_pro',
+    coordinatorCanSeeDollars: false,
+  },
+  {
+    id: 'mock_firm_plan_solo',
+    name: 'Solo Plan Demo CPA',
+    slug: 'solo-plan-demo-cpa',
+    plan: 'solo',
+    seatLimit: 1,
+    timezone: 'America/New_York',
+    ownerUserId: 'mock_user_plan_solo',
+    stripeCustomerId: 'cus_mock_plan_solo',
+    stripeSubscriptionId: 'sub_mock_plan_solo',
+    coordinatorCanSeeDollars: false,
+  },
+  {
+    id: 'mock_firm_plan_pro',
+    name: 'Pro Plan Demo CPA',
+    slug: 'pro-plan-demo-cpa',
+    plan: 'pro',
+    seatLimit: 3,
+    timezone: 'America/Chicago',
+    ownerUserId: 'mock_user_plan_pro',
+    stripeCustomerId: 'cus_mock_plan_pro',
+    stripeSubscriptionId: 'sub_mock_plan_pro',
+    coordinatorCanSeeDollars: false,
+  },
+  {
+    id: 'mock_firm_plan_team',
+    name: 'Team Plan Demo CPA',
+    slug: 'team-plan-demo-cpa',
+    plan: 'team',
+    seatLimit: 10,
+    timezone: 'America/Los_Angeles',
+    ownerUserId: 'mock_user_plan_team',
+    stripeCustomerId: 'cus_mock_plan_team',
+    stripeSubscriptionId: 'sub_mock_plan_team',
+    coordinatorCanSeeDollars: true,
+  },
+] as const satisfies readonly {
+  id: string
+  name: string
+  slug: string
+  plan: DemoPlan
+  seatLimit: number
+  timezone: string
+  ownerUserId: string
+  stripeCustomerId: string
+  stripeSubscriptionId: string
+  coordinatorCanSeeDollars: boolean
+}[]
+type DemoFirm = (typeof DEMO_FIRMS)[number]
 
 function hasE2ESeedAccess(c: { env: Env; req: { header(name: string): string | undefined } }) {
   if (c.env.ENV === 'development') return true
@@ -167,12 +229,214 @@ export function pickSafeDemoRedirect(raw: string | null, fallback = '/'): string
   return raw
 }
 
+export function resolveDemoLoginRedirect(
+  requestUrl: URL,
+  appUrl: string | undefined,
+  redirectTo: string | null,
+): string {
+  if (redirectTo !== null) return pickSafeDemoRedirect(redirectTo)
+  if (!appUrl) return '/'
+
+  try {
+    const target = new URL(appUrl)
+    if (isLoopbackHost(requestUrl.hostname) && isLoopbackHost(target.hostname)) {
+      target.hostname = requestUrl.hostname
+    }
+    return target.toString()
+  } catch {
+    return '/'
+  }
+}
+
+export function shouldRenderDemoLoginHtml(request: Request): boolean {
+  const requestUrl = new URL(request.url)
+  const format = requestUrl.searchParams.get('format')
+  if (format === 'json') return false
+  if (format === 'html') return true
+  return request.headers.get('accept')?.includes('text/html') ?? false
+}
+
 function demoAccountForRole(role: DemoRole) {
   return DEMO_ACCOUNTS.find((account) => account.role === role) ?? DEMO_ACCOUNTS[0]
 }
 
 function demoAccountForId(accountId: DemoAccountId) {
   return DEMO_ACCOUNTS.find((account) => account.id === accountId) ?? null
+}
+
+function demoFirmForId(firmId: string): DemoFirm {
+  const firm = DEMO_FIRMS.find((item) => item.id === firmId)
+  if (!firm) throw new Error(`Missing demo firm contract for ${firmId}`)
+  return firm
+}
+
+function demoAccountsForSameFirms(accounts: readonly DemoAccount[]): DemoAccount[] {
+  const firmIds = new Set(accounts.map((account) => account.firmId))
+  return DEMO_ACCOUNTS.filter((account) => firmIds.has(account.firmId))
+}
+
+function demoMemberId(account: DemoAccount): string {
+  return `mock_member_${account.id.replaceAll('-', '_')}`
+}
+
+function isLoopbackHost(hostname: string): boolean {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]'
+}
+
+function escapeHtmlAttribute(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+}
+
+function renderDemoLoginHandoffHtml(redirectTo: string): string {
+  const scriptTarget = JSON.stringify(redirectTo)
+  const href = escapeHtmlAttribute(redirectTo)
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex">
+  <meta http-equiv="refresh" content="0; url=${href}">
+  <title>DueDateHQ demo login</title>
+  <script>window.location.replace(${scriptTarget})</script>
+</head>
+<body>
+  <p>Signed in. <a href="${href}">Continue to DueDateHQ</a>.</p>
+</body>
+</html>`
+}
+
+async function ensureDemoIdentities(
+  db: ReturnType<typeof createDb>,
+  accounts: readonly DemoAccount[],
+) {
+  if (accounts.length === 0) return
+
+  const now = new Date()
+  const accountsToEnsure = demoAccountsForSameFirms(accounts)
+  const firmsToEnsure = Array.from(
+    new Set(accountsToEnsure.map((account) => account.firmId)),
+    demoFirmForId,
+  )
+
+  await Promise.all(
+    accountsToEnsure.map((account) =>
+      db
+        .insert(authSchema.user)
+        .values({
+          id: account.userId,
+          name: account.name,
+          email: account.email,
+          emailVerified: true,
+          twoFactorEnabled: false,
+          image: null,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .onConflictDoUpdate({
+          target: authSchema.user.id,
+          set: {
+            name: account.name,
+            email: account.email,
+            emailVerified: true,
+            twoFactorEnabled: false,
+            image: null,
+            updatedAt: now,
+          },
+        }),
+    ),
+  )
+
+  await Promise.all(
+    firmsToEnsure.map((firm) =>
+      db
+        .insert(authSchema.organization)
+        .values({
+          id: firm.id,
+          name: firm.name,
+          slug: firm.slug,
+          logo: null,
+          stripeCustomerId: firm.stripeCustomerId,
+          createdAt: now,
+          metadata: null,
+        })
+        .onConflictDoUpdate({
+          target: authSchema.organization.id,
+          set: {
+            name: firm.name,
+            slug: firm.slug,
+            logo: null,
+            stripeCustomerId: firm.stripeCustomerId,
+            metadata: null,
+          },
+        }),
+    ),
+  )
+
+  await Promise.all(
+    firmsToEnsure.map((firm) =>
+      db
+        .insert(firmSchema.firmProfile)
+        .values({
+          id: firm.id,
+          name: firm.name,
+          plan: firm.plan,
+          seatLimit: firm.seatLimit,
+          timezone: firm.timezone,
+          internalDeadlineOffsetDays: 14,
+          ownerUserId: firm.ownerUserId,
+          status: 'active',
+          billingCustomerId: firm.stripeCustomerId,
+          billingSubscriptionId: firm.stripeSubscriptionId,
+          coordinatorCanSeeDollars: firm.coordinatorCanSeeDollars,
+          createdAt: now,
+          updatedAt: now,
+          deletedAt: null,
+        })
+        .onConflictDoUpdate({
+          target: firmSchema.firmProfile.id,
+          set: {
+            name: firm.name,
+            plan: firm.plan,
+            seatLimit: firm.seatLimit,
+            timezone: firm.timezone,
+            internalDeadlineOffsetDays: 14,
+            ownerUserId: firm.ownerUserId,
+            status: 'active',
+            billingCustomerId: firm.stripeCustomerId,
+            billingSubscriptionId: firm.stripeSubscriptionId,
+            coordinatorCanSeeDollars: firm.coordinatorCanSeeDollars,
+            updatedAt: now,
+            deletedAt: null,
+          },
+        }),
+    ),
+  )
+
+  await Promise.all(
+    accountsToEnsure.map((account) =>
+      db
+        .insert(authSchema.member)
+        .values({
+          id: demoMemberId(account),
+          organizationId: account.firmId,
+          userId: account.userId,
+          role: account.role,
+          createdAt: now,
+          status: 'active',
+        })
+        .onConflictDoUpdate({
+          target: [authSchema.member.organizationId, authSchema.member.userId],
+          set: {
+            role: account.role,
+            status: 'active',
+          },
+        }),
+    ),
+  )
 }
 
 function roleLabel(role: DemoRole): string {
@@ -351,6 +615,7 @@ e2eRoute.get('/demo-login', async (c) => {
   const demoAccount = accountId ? demoAccountForId(accountId) : demoAccountForRole(role ?? 'owner')
   if (!demoAccount) return c.json({ error: 'Invalid demo account.' }, 400)
   const db = createDb(c.env.DB)
+  await ensureDemoIdentities(db, [demoAccount])
   const [demoMember] = await db
     .select({
       userId: authSchema.user.id,
@@ -375,7 +640,7 @@ e2eRoute.get('/demo-login', async (c) => {
     .limit(1)
 
   if (!demoMember || !demoFirm || demoFirm.plan !== demoAccount.plan) {
-    return c.text(DEMO_DATA_MISSING, 409)
+    return c.text('Demo login identity could not be prepared.', 500)
   }
 
   const now = new Date()
@@ -408,11 +673,25 @@ e2eRoute.get('/demo-login', async (c) => {
       expires: Math.floor(expiresAt.getTime() / 1000),
     }),
   )
-  const redirectTo = requestUrl.searchParams.get('redirectTo')
-  return c.redirect(
-    redirectTo === null ? c.env.APP_URL || '/' : pickSafeDemoRedirect(redirectTo),
-    302,
+  c.header('Cache-Control', 'no-store')
+
+  const redirectTo = resolveDemoLoginRedirect(
+    requestUrl,
+    c.env.APP_URL,
+    requestUrl.searchParams.get('redirectTo'),
   )
+  if (!shouldRenderDemoLoginHtml(c.req.raw)) {
+    return c.json({
+      ok: true,
+      account: demoAccount.id,
+      user: { id: demoAccount.userId, name: demoAccount.name, email: demoAccount.email },
+      firmId: demoAccount.firmId,
+      role: demoAccount.role,
+      redirectTo,
+    })
+  }
+
+  return c.html(renderDemoLoginHandoffHtml(redirectTo), 200)
 })
 
 e2eRoute.get('/demo-accounts', async (c) => {
@@ -421,6 +700,7 @@ e2eRoute.get('/demo-accounts', async (c) => {
   }
 
   const db = createDb(c.env.DB)
+  await ensureDemoIdentities(db, DEMO_ACCOUNTS)
   const demoFirms = await db
     .select({ id: firmSchema.firmProfile.id })
     .from(firmSchema.firmProfile)
@@ -475,9 +755,10 @@ e2eRoute.get('/demo-accounts', async (c) => {
   )
 
   if (demoFirms.length !== DEMO_FIRM_IDS.length || accounts.length !== DEMO_ACCOUNTS.length) {
-    return c.text(DEMO_DATA_MISSING, 409)
+    return c.text('Demo account identities could not be prepared.', 500)
   }
 
+  c.header('Cache-Control', 'no-store')
   return c.json({ accounts })
 })
 

@@ -6,6 +6,8 @@ import {
   pickSafeDemoRedirect,
   readDemoAccountParam,
   readDemoRoleParam,
+  resolveDemoLoginRedirect,
+  shouldRenderDemoLoginHtml,
 } from './routes/e2e'
 
 describe('@duedatehq/server app', () => {
@@ -165,5 +167,43 @@ describe('@duedatehq/server app', () => {
     expect(pickSafeDemoRedirect('https://example.com')).toBe('/')
     expect(pickSafeDemoRedirect('//example.com')).toBe('/')
     expect(pickSafeDemoRedirect(null)).toBe('/')
+    expect(
+      resolveDemoLoginRedirect(
+        new URL('http://127.0.0.1:8787/api/e2e/demo-login'),
+        'http://localhost:5173',
+        null,
+      ),
+    ).toBe('http://127.0.0.1:5173/')
+    expect(
+      resolveDemoLoginRedirect(
+        new URL('http://localhost:8787/api/e2e/demo-login'),
+        'http://localhost:5173',
+        '/deadlines',
+      ),
+    ).toBe('/deadlines')
+  })
+
+  it('uses html handoff only for browser demo login requests', () => {
+    expect(
+      shouldRenderDemoLoginHtml(
+        new Request('http://localhost/api/e2e/demo-login', {
+          headers: { accept: 'text/html,application/xhtml+xml' },
+        }),
+      ),
+    ).toBe(true)
+    expect(
+      shouldRenderDemoLoginHtml(
+        new Request('http://localhost/api/e2e/demo-login?format=json', {
+          headers: { accept: 'text/html,application/xhtml+xml' },
+        }),
+      ),
+    ).toBe(false)
+    expect(
+      shouldRenderDemoLoginHtml(
+        new Request('http://localhost/api/e2e/demo-login', {
+          headers: { accept: 'application/json' },
+        }),
+      ),
+    ).toBe(false)
   })
 })

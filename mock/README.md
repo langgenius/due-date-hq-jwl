@@ -17,8 +17,11 @@ http://localhost:8787/api/e2e/demo-login
 ```
 
 That development-only helper signs in as `Sarah Martinez` and activates
-`Brightline Demo CPA`, then redirects to `APP_URL` from `apps/server/.dev.vars`
-(usually `http://localhost:5173`). It expects this seed to have run first.
+`Brightline Demo CPA`, then returns a 200 handoff page that sends the browser to
+`APP_URL` from `apps/server/.dev.vars` (usually `http://localhost:5173`). API
+callers receive 200 JSON instead. The endpoint self-heals the minimum demo
+identity rows required to sign in; run the seed first for the full clients,
+deadlines, Pulse, billing, audit, and notification dataset.
 
 ## Archive Solo Pulse Supplement
 
