@@ -1538,7 +1538,7 @@ export function RulesLibraryRoute() {
           <span className="inline-flex items-center gap-2">
             <Trans>Rule library</Trans>
             {!rulesQuery.isLoading ? (
-              <span className="rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+              <span className="rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
                 <Plural value={totalRules} one="# rule" other="# rules" />
               </span>
             ) : null}

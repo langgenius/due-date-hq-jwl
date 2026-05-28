@@ -237,29 +237,28 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
       other: 'View # more Pulse alerts',
     }),
   )
-  // 2026-05-27 (Yuqi follow-up — "alert card is not occupying the
-  // full width"): when the parent section stacks alert cards as
-  // full-width rows, the overflow tile sits as a final row at the
-  // same width. The old centred column-shaped tile (h-full + items-
-  // center justify-center) read as a giant empty button. Now it's
-  // a short flat row — left-aligned with the section, quiet text
-  // tone, mirrors the "+ N more" affordance pattern used by the
-  // workload + queue empty states.
+  // 2026-05-27 (Yuqi revert — "怎么会变成这样vertical"): restored the
+  // column-shaped overflow tile so it claims its 160px grid column
+  // alongside the two alert cards. The flat inline button paired
+  // with the vertical stack; with the grid back, this tile reads as
+  // a parallel sibling to the alert cards again.
   return (
     <button
       type="button"
       onClick={onOpen}
       aria-label={ariaLabel}
-      className="group/overflow inline-flex items-center justify-center gap-1.5 self-start rounded-md px-2 py-1 text-sm text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className="group/overflow flex h-full shrink-0 flex-col items-center justify-center gap-1 self-stretch rounded-md px-4 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
     >
       {/* 2026-05-25 (Yuqi typography rebalance): "+ N more" drops
           from font-medium to regular — it's a navigation hint, not
           a labeled affordance, so it should read at body weight. */}
-      <Plus
-        className="size-3.5 transition-transform duration-200 group-hover/overflow:rotate-90"
-        aria-hidden
-      />
-      <Trans>{count} more</Trans>
+      <span className="inline-flex items-center gap-1 text-sm">
+        <Plus
+          className="size-3.5 transition-transform duration-200 group-hover/overflow:rotate-90"
+          aria-hidden
+        />
+        <Trans>{count} more</Trans>
+      </span>
     </button>
   )
 }
