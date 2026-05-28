@@ -115,7 +115,14 @@ export function PageHeader({
           {/* `min-w-0` so the title block can shrink when the actions
               cluster sits beside it at lg+ and the page narrows
               (e.g. right drawer opens). */}
-          <h1 className="min-w-0 text-2xl leading-7 font-semibold text-text-primary">{title}</h1>
+          {/* 2026-05-28 (Yuqi /clients/[id] polish — "标题被cropped"):
+              `leading-7` (28px) was too tight for `text-2xl` (24px)
+              at Inter's actual ascender height. Capital letters
+              like "B" / "A" had their very top 1-2px clipped by
+              the parent's intrinsic flex-row baseline. Bumped to
+              `leading-8` (32px) so glyph ascenders have room. No
+              other dimension change — the gap-2 to metaRow stays. */}
+          <h1 className="min-w-0 text-2xl leading-8 font-semibold text-text-primary">{title}</h1>
           {metaRow ? (
             <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-xs leading-5 text-text-secondary">
               {metaRow}
