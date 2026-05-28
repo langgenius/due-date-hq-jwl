@@ -2533,7 +2533,23 @@ function GroupedRulesTable({
             same visual gray tone WITHOUT alpha. */}
           <TableHeader className="sticky top-0 z-10">
             <TableRow>
-              <TableHead className="w-[38%]">
+              {/* 2026-05-28 (Yuqi /rules/library polish #7 —
+                  "responsive 应该首选缩短 progress + width of entity
+                  + Form，最后才是 Rule 长文字"): column widths now
+                  express a shrink PRIORITY ladder.
+                    • Rule:   `min-w-[260px]` — protected baseline so
+                              the title (the most important column —
+                              see #11) wraps last when the viewport
+                              narrows.
+                    • Form:   stays at `w-[140px]` — fixed.
+                    • Entity (7×): each `w-12` (48px) — already
+                              minimal; if the viewport falls below
+                              what fits, the entire row falls back to
+                              the existing `break-words` strategy.
+                    • Type:   `w-[120px]` — fixed cap so Type +
+                              progress bar share a stable rightmost
+                              column. */}
+              <TableHead className="min-w-[260px]">
                 <Trans>Rule</Trans>
               </TableHead>
               <TableHead className="w-[140px]">
@@ -2555,7 +2571,7 @@ function GroupedRulesTable({
                 the pending-review count into the Tier cell as a
                 number-only chip next to the gap chip + progress
                 bar. */}
-              <TableHead>
+              <TableHead className="w-[140px]">
                 <Trans>Tier</Trans>
               </TableHead>
             </TableRow>
@@ -2829,8 +2845,15 @@ function GroupHeaderRow({
             represents. Switched the chip tone to brown (sienna text
             + mustard dot) so every "needs review" indicator on the
             page shares one color — matches the top progress bar's
-            updated segment and the row-bar's review segment. */}
-        <div className="flex items-center justify-end gap-3">
+            updated segment and the row-bar's review segment.
+            2026-05-28 (Yuqi /rules/library polish #13 — "Basic /
+            Enterprise … left aligned, 并且和 Progress bar left align"):
+            dropped `justify-end`. The progress bar + count now sit at
+            the LEFT edge of the Tier cell, matching the Type label's
+            left edge in rule rows below. The two visuals — progress
+            bar above + Type label below — read as one stacked
+            column anchored to the same vertical line. */}
+        <div className="flex items-center gap-3">
           <CountDotChip
             count={group.gapEntities.length}
             tone="destructive"
