@@ -9307,6 +9307,40 @@ export interface TemporaryAnnouncementSourceCoverage {
   missingReason: string | null
 }
 
+export type PolicyWatchFamily = 'baseline_rule' | 'tax_news' | 'disaster_relief'
+
+export type PolicyWatchCoverageStatus = 'covered' | 'manual_review' | 'blocked' | 'missing_source'
+
+export interface PolicyWatchSource {
+  id: string
+  jurisdiction: RuleJurisdiction
+  title: string
+  url: string
+  sourceType: RuleSourceType
+  acquisitionMethod: AcquisitionMethod
+  cadence: SourceCadence
+  priority: SourcePriority
+  healthStatus: SourceHealthStatus
+  families: readonly PolicyWatchFamily[]
+  visibleInSourcesPage: boolean
+  adapterKind?: SourceAdapterKind
+  feedUrl?: string
+  derivedFromSourceIds?: readonly string[]
+}
+
+export interface PolicyWatchFamilyCoverage {
+  family: PolicyWatchFamily
+  status: PolicyWatchCoverageStatus
+  sourceIds: readonly string[]
+  hiddenSourceIds: readonly string[]
+  missingReason: string | null
+}
+
+export interface PolicyWatchCoverage {
+  jurisdiction: RuleJurisdiction
+  families: readonly PolicyWatchFamilyCoverage[]
+}
+
 const TEMPORARY_ANNOUNCEMENT_SOURCE_TYPES = new Set<RuleSourceType>(['emergency_relief', 'news'])
 const TEMPORARY_ANNOUNCEMENT_ACQUISITION_METHODS = new Set<AcquisitionMethod>([
   'html_watch',
@@ -9415,6 +9449,126 @@ export function listTemporaryAnnouncementSourceCoverage(
           : announcementSources.length === 0
             ? 'No official temporary announcement source is registered.'
             : 'Registered temporary announcement sources are not healthy html_watch/pdf_watch/api_watch sources.',
+    }
+  })
+}
+
+function policyWatchStatusForSources(
+  sources: readonly Pick<PolicyWatchSource, 'acquisitionMethod' | 'healthStatus'>[],
+): PolicyWatchCoverageStatus {
+  if (sources.length === 0) return 'missing_source'
+  if (
+    sources.some(
+      (source) => source.healthStatus === 'healthy' && source.acquisitionMethod !== 'manual_review',
+    )
+  ) {
+    return 'covered'
+  }
+  if (sources.some((source) => source.healthStatus === 'failing')) return 'blocked'
+  return 'manual_review'
+}
+
+function baselinePolicyWatchSource(source: RuleSource): PolicyWatchSource {
+  return {
+    id: source.id,
+    jurisdiction: source.jurisdiction,
+    title: source.title,
+    url: source.url,
+    sourceType: source.sourceType,
+    acquisitionMethod: source.acquisitionMethod,
+    cadence: source.cadence,
+    priority: source.priority,
+    healthStatus: source.healthStatus,
+    families: ['baseline_rule'],
+    visibleInSourcesPage: true,
+    ...(source.adapterKind ? { adapterKind: source.adapterKind } : {}),
+    ...(source.feedUrl ? { feedUrl: source.feedUrl } : {}),
+  }
+}
+
+function hiddenPolicyAnnouncementSource(jurisdiction: RuleJurisdiction): PolicyWatchSource | null {
+  const registered = listRuleSources(jurisdiction).filter(isTemporaryAnnouncementSource)
+  const preferred =
+    registered.find(isCoveredTemporaryAnnouncementSource) ??
+    registered.find((source) => source.healthStatus !== 'failing') ??
+    registered[0]
+
+  if (!preferred) return null
+
+  return {
+    id: `policy-watch.${jurisdiction.toLowerCase()}.announcements`,
+    jurisdiction,
+    title:
+      jurisdiction === 'FED'
+        ? 'Federal tax news and disaster relief watch'
+        : `${jurisdiction} tax news and disaster relief watch`,
+    url: preferred.url,
+    sourceType: preferred.sourceType,
+    acquisitionMethod: preferred.acquisitionMethod,
+    cadence: 'daily',
+    priority: preferred.priority === 'critical' ? 'critical' : 'high',
+    healthStatus: preferred.healthStatus,
+    families: ['tax_news', 'disaster_relief'],
+    visibleInSourcesPage: false,
+    derivedFromSourceIds: [preferred.id],
+    ...(preferred.adapterKind ? { adapterKind: preferred.adapterKind } : {}),
+    ...(preferred.feedUrl ? { feedUrl: preferred.feedUrl } : {}),
+  }
+}
+
+export function listHiddenPolicyWatchSources(
+  jurisdiction?: RuleJurisdiction,
+): readonly PolicyWatchSource[] {
+  const jurisdictions = jurisdiction ? [jurisdiction] : MVP_RULE_JURISDICTIONS
+  return jurisdictions
+    .map(hiddenPolicyAnnouncementSource)
+    .filter((source): source is PolicyWatchSource => Boolean(source))
+}
+
+export function listPolicyWatchSources(
+  jurisdiction?: RuleJurisdiction,
+): readonly PolicyWatchSource[] {
+  const jurisdictions = jurisdiction ? [jurisdiction] : MVP_RULE_JURISDICTIONS
+  const baseline = jurisdictions.flatMap((currentJurisdiction) =>
+    listRuleSources(currentJurisdiction)
+      .filter((source) => source.authorityRole === 'basis')
+      .map(baselinePolicyWatchSource),
+  )
+  return [...baseline, ...listHiddenPolicyWatchSources(jurisdiction)]
+}
+
+function familyCoverage(
+  family: PolicyWatchFamily,
+  sources: readonly PolicyWatchSource[],
+): PolicyWatchFamilyCoverage {
+  const matchingSources = sources.filter((source) => source.families.includes(family))
+  const hiddenSourceIds = matchingSources
+    .filter((source) => !source.visibleInSourcesPage)
+    .map((source) => source.id)
+  const status = policyWatchStatusForSources(matchingSources)
+  return {
+    family,
+    status,
+    sourceIds: matchingSources.map((source) => source.id),
+    hiddenSourceIds,
+    missingReason:
+      status === 'missing_source' ? `No ${family} policy-watch source is registered.` : null,
+  }
+}
+
+export function listNationalPolicyWatchCoverage(
+  jurisdiction?: RuleJurisdiction,
+): readonly PolicyWatchCoverage[] {
+  const jurisdictions = jurisdiction ? [jurisdiction] : MVP_RULE_JURISDICTIONS
+  return jurisdictions.map((currentJurisdiction) => {
+    const sources = listPolicyWatchSources(currentJurisdiction)
+    return {
+      jurisdiction: currentJurisdiction,
+      families: [
+        familyCoverage('baseline_rule', sources),
+        familyCoverage('tax_news', sources),
+        familyCoverage('disaster_relief', sources),
+      ],
     }
   })
 }

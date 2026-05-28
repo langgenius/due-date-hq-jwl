@@ -5,7 +5,10 @@ import {
   findRuleById,
   isTaxYearDrivenRule,
   isCoveredTemporaryAnnouncementSource,
+  listHiddenPolicyWatchSources,
+  listNationalPolicyWatchCoverage,
   listObligationRules,
+  listPolicyWatchSources,
   listRequiredSourceCoverage,
   listRuleSources,
   listSourceCoverageGaps,
@@ -180,6 +183,38 @@ describe('@duedatehq/core/rules', () => {
         expect(['emergency_relief', 'news'], sourceId).toContain(source.sourceType)
       }
     }
+  })
+
+  it('keeps national policy-watch coverage complete while hiding internal watch sources', () => {
+    const coverage = listNationalPolicyWatchCoverage()
+    expect(coverage).toHaveLength(52)
+    expect(coverage.map((cell) => cell.jurisdiction)).toEqual(MVP_RULE_JURISDICTIONS)
+
+    for (const cell of coverage) {
+      expect(cell.families.map((family) => family.family)).toEqual([
+        'baseline_rule',
+        'tax_news',
+        'disaster_relief',
+      ])
+      for (const family of cell.families) {
+        expect(family.status, `${cell.jurisdiction}:${family.family}`).not.toBe('missing_source')
+        if (family.family !== 'baseline_rule') {
+          expect(family.hiddenSourceIds, `${cell.jurisdiction}:${family.family}`).toHaveLength(1)
+        }
+      }
+    }
+
+    const publicSourceIds = new Set(listRuleSources().map((source) => source.id))
+    const hiddenSources = listHiddenPolicyWatchSources()
+    expect(hiddenSources).toHaveLength(52)
+    for (const source of hiddenSources) {
+      expect(publicSourceIds.has(source.id), source.id).toBe(false)
+      expect(source.visibleInSourcesPage, source.id).toBe(false)
+      expect(source.families, source.id).toEqual(['tax_news', 'disaster_relief'])
+    }
+    expect(listPolicyWatchSources().filter((source) => !source.visibleInSourcesPage)).toHaveLength(
+      hiddenSources.length,
+    )
   })
 
   it('does not let temporary watch sources satisfy baseline source coverage', () => {

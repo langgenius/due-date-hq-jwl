@@ -1,15 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import { listRuleSources, type RuleSource } from '@duedatehq/core/rules'
+import {
+  listHiddenPolicyWatchSources,
+  listRuleSources,
+  type RuleSource,
+} from '@duedatehq/core/rules'
 import { livePulseAdapters } from '@duedatehq/ingest/adapters'
 import {
+  createPolicyWatchAdapter,
   createTemporaryAnnouncementAdapter,
   createRuleSourceAdapter,
+  hiddenPolicyWatchAdapters,
+  isHiddenPolicyWatchSourceId,
   isRuleSourceAdapterEligible,
   isRuleSourcePulsePromoted,
   isTemporaryAnnouncementAdapterEligible,
   liveRegulatorySourceAdapters,
   ruleSourceAdapters,
   temporaryAnnouncementSourceAdapters,
+  visibleRegulatorySourceAdapters,
 } from './rule-source-adapters'
 
 describe('rule source adapters', () => {
@@ -24,14 +32,66 @@ describe('rule source adapters', () => {
     expect(ruleSourceAdapters.map((adapter) => adapter.id).toSorted()).toEqual(
       candidateReviewSources.map((source) => source.id).toSorted(),
     )
-    expect(liveRegulatorySourceAdapters).toHaveLength(
+    expect(visibleRegulatorySourceAdapters).toHaveLength(
       livePulseAdapters.length +
         candidateReviewSources.length +
         temporaryAnnouncementSourceAdapters.length,
     )
+    expect(liveRegulatorySourceAdapters).toHaveLength(
+      visibleRegulatorySourceAdapters.length + hiddenPolicyWatchAdapters.length,
+    )
     expect(new Set(liveRegulatorySourceAdapters.map((adapter) => adapter.id)).size).toBe(
       liveRegulatorySourceAdapters.length,
     )
+  })
+
+  it('adds hidden national policy-watch adapters without exposing them as visible sources', async () => {
+    const hiddenSources = listHiddenPolicyWatchSources()
+    const visibleAdapterIds = new Set(visibleRegulatorySourceAdapters.map((adapter) => adapter.id))
+    const publicSourceIds = new Set(listRuleSources().map((source) => source.id))
+
+    expect(hiddenSources).toHaveLength(52)
+    expect(hiddenPolicyWatchAdapters.map((adapter) => adapter.id).toSorted()).toEqual(
+      hiddenSources.map((source) => source.id).toSorted(),
+    )
+
+    for (const adapter of hiddenPolicyWatchAdapters) {
+      expect(isHiddenPolicyWatchSourceId(adapter.id), adapter.id).toBe(true)
+      expect(visibleAdapterIds.has(adapter.id), adapter.id).toBe(false)
+      expect(publicSourceIds.has(adapter.id), adapter.id).toBe(false)
+      expect(
+        liveRegulatorySourceAdapters.map((candidate) => candidate.id),
+        adapter.id,
+      ).toContain(adapter.id)
+    }
+
+    const source = hiddenSources.find((candidate) => candidate.jurisdiction === 'AZ')!
+    expect(source.feedUrl).toBe('https://azdor.gov/news-center')
+    const items = await createPolicyWatchAdapter(source).parse(
+      {
+        sourceId: source.id,
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        contentHash: 'hash',
+        r2Key: 'raw.xml',
+        contentType: 'application/rss+xml',
+        etag: null,
+        lastModified: null,
+        body: `<rss><channel><item><title>TPT Filer - Please Submit Your Return</title><link>https://azdor.gov/news/tpt-filer</link><pubDate>Wed, 08 Apr 2026 00:00:00 GMT</pubDate><description>Taxpayers can file now and schedule payments up until the deadline.</description></item></channel></rss>`,
+      },
+      {
+        fetch: async () => new Response(''),
+        async archiveRaw() {
+          return { r2Key: 'unused', contentHash: 'unused' }
+        },
+      },
+    )
+
+    expect(items[0]).toMatchObject({
+      sourceId: 'policy-watch.az.announcements',
+      title: 'TPT Filer - Please Submit Your Return',
+      officialSourceUrl: 'https://azdor.gov/news/tpt-filer',
+      jurisdiction: 'AZ',
+    })
   })
 
   it('adds API-backed temporary announcement adapters through the aggregate feed interface', async () => {

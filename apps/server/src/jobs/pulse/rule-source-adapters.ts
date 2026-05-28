@@ -1,6 +1,8 @@
 import {
   isTemporaryAnnouncementSource,
+  listHiddenPolicyWatchSources,
   listRuleSources,
+  type PolicyWatchSource,
   type RuleSource,
 } from '@duedatehq/core/rules'
 import { announcementItemsFromSnapshot } from '@duedatehq/ingest'
@@ -33,6 +35,10 @@ const TEMPORARY_ANNOUNCEMENT_ADAPTER_METHODS = new Set<RuleSource['acquisitionMe
 ])
 
 function sourceFetchUrl(source: RuleSource): string {
+  return source.feedUrl ?? source.url
+}
+
+function policyWatchFetchUrl(source: PolicyWatchSource): string {
   return source.feedUrl ?? source.url
 }
 
@@ -126,6 +132,37 @@ export function createTemporaryAnnouncementAdapter(source: RuleSource): SourceAd
   }
 }
 
+export function createPolicyWatchAdapter(source: PolicyWatchSource): SourceAdapter {
+  return {
+    id: source.id,
+    tier: tierForPriority(source.priority),
+    cronIntervalMs: intervalForCadence(source.cadence),
+    jurisdiction: source.jurisdiction,
+    fetcher: 'browserless',
+    async fetch(ctx) {
+      return [
+        await fetchTextSnapshot(ctx, {
+          sourceId: source.id,
+          url: policyWatchFetchUrl(source),
+        }),
+      ]
+    },
+    async parse(snapshot) {
+      if (snapshot.notModified) return []
+      return announcementItemsFromSnapshot(
+        {
+          id: source.id,
+          title: source.title,
+          url: policyWatchFetchUrl(source),
+          jurisdiction: source.jurisdiction,
+        },
+        snapshot,
+        { fallbackToSourceSnapshot: true },
+      )
+    },
+  }
+}
+
 export function isRuleSourceAdapterEligible(source: RuleSource): boolean {
   if (!source.notificationChannels.includes('practice_rule_review')) return false
   if (!AUTOMATED_RULE_SOURCE_METHODS.has(source.acquisitionMethod)) return false
@@ -150,8 +187,24 @@ export const temporaryAnnouncementSourceAdapters = listRuleSources()
   .filter(isTemporaryAnnouncementAdapterEligible)
   .map(createTemporaryAnnouncementAdapter)
 
-export const liveRegulatorySourceAdapters = [
+export const hiddenPolicyWatchAdapters =
+  listHiddenPolicyWatchSources().map(createPolicyWatchAdapter)
+
+export const hiddenPolicyWatchSourceIds = new Set(
+  hiddenPolicyWatchAdapters.map((adapter) => adapter.id),
+)
+
+export function isHiddenPolicyWatchSourceId(sourceId: string): boolean {
+  return hiddenPolicyWatchSourceIds.has(sourceId)
+}
+
+export const visibleRegulatorySourceAdapters = [
   ...livePulseAdapters,
   ...ruleSourceAdapters,
   ...temporaryAnnouncementSourceAdapters,
+] as const
+
+export const liveRegulatorySourceAdapters = [
+  ...visibleRegulatorySourceAdapters,
+  ...hiddenPolicyWatchAdapters,
 ] as const

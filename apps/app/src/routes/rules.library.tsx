@@ -2767,16 +2767,15 @@ function GroupHeaderRow({
       {/* State row layout:
           - Cell 1 (Rule column): identity — chevron + state badge +
             full name + rule count.
-          - Cell 2 (Form column): total number — sum of all per-entity
-            counts. Mirrors the per-entity overview numbers in the
-            7 columns to its right; tells the eye "this state covers
-            N rules across all entities" at column-true position.
+          - Cell 2 (Form column): unique rule count for this
+            jurisdiction. Expanded rule rows use the same column for
+            the concrete form/rule name.
           - Cells 3-9: per-entity overview via EntityStateCell —
             plain count of rules for that entity in this state.
           - Cell 10 (Tier column): attention badges + status bar. */}
       <TableCell
         className="py-2"
-        title={`${group.label} — ${group.ruleCount} rule${group.ruleCount === 1 ? '' : 's'} across all entities. Expand to see the breakdown.`}
+        title={`${group.label} — ${group.ruleCount} rule${group.ruleCount === 1 ? '' : 's'}. Expand to see the breakdown.`}
       >
         <div className="flex flex-wrap items-center gap-2">
           <ChevronRightIcon
@@ -2804,14 +2803,11 @@ function GroupHeaderRow({
           </span>
         </div>
       </TableCell>
-      {/* Form column on the state row: total count across all
-          entities. Per Yuqi follow-up — "for the overall Form for
-          the state, you could write the total number." Gives the
-          eye a column-anchored summary that lines up with the
-          per-entity counts to the right. */}
+      {/* Form column on the state row: unique rule count, not the
+          per-entity applicability-slot total. */}
       <TableCell className="py-2">
         <span className="text-sm font-medium tabular-nums text-text-primary">
-          {ENTITY_KEYS.reduce((sum, entity) => sum + group.entityCounts[entity], 0)}
+          {group.ruleCount}
         </span>
       </TableCell>
       {/* Per-entity overview cells — one per ENTITY_KEY. Plain
@@ -3708,7 +3704,12 @@ function BulkReviewBar({
         </>
       ) : null}
       <span aria-hidden className="h-4 w-px bg-divider-subtle" />
-      <Button type="button" size="sm" onClick={onReview}>
+      <Button
+        type="button"
+        size="sm"
+        onClick={onReview}
+        className="!text-components-button-primary-text hover:!bg-components-button-primary-bg-hover hover:!text-components-button-primary-text"
+      >
         <Trans>Review {count}</Trans>
         <ChevronRightIcon data-icon="inline-end" />
       </Button>

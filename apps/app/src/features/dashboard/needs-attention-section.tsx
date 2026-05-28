@@ -4,6 +4,7 @@ import { CircleCheckIcon, CircleSlashIcon } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 
 import type { PulseSourceHealth } from '@duedatehq/contracts'
+import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
@@ -12,7 +13,6 @@ import {
   usePulseSourceHealthQueryOptions,
 } from '@/features/pulse/api'
 import { PulsingDot } from '@/features/pulse/components/PulsingDot'
-import { enabledPulseSourceCount } from '@/features/pulse/lib/source-health-labels'
 import { StatusBanner } from '@/components/patterns/status-banner'
 
 import { NeedsAttentionCard, NeedsAttentionOverflowCard } from './needs-attention-card'
@@ -46,13 +46,11 @@ function NeedsAttentionSection() {
   const visibleAlerts = alerts.slice(0, VISIBLE_ALERTS)
   const overflowCount = Math.max(alerts.length - VISIBLE_ALERTS, 0)
   const totalAlertCount = alerts.length
-  // 2026-05-27 (Yuqi header unification pass): monitoring count
-  // promoted into the h2 row alongside the alert count, mirroring
-  // the same chip on /rules/pulse. Empty-state body drops the
-  // redundant healthy-state Binoculars paragraph since the chip
-  // now carries that signal (paused warning + zero-sources branch
-  // stay in the body — those are NOT redundant with the chip).
-  const monitoringCount = enabledPulseSourceCount(sources)
+  // 2026-05-28 (national policy watch): this chip describes
+  // jurisdiction coverage, not raw source/adapter count. Hidden
+  // policy-watch adapters can grow without making the Today header
+  // read as "monitoring 150 sources."
+  const monitoringJurisdictionCount = MVP_RULE_JURISDICTIONS.length
 
   return (
     // 2026-05-25 (Yuqi review #4): Alerts is the most important
@@ -152,11 +150,16 @@ function NeedsAttentionSection() {
           ) : (
             <Trans>Alerts</Trans>
           )}
-          {monitoringCount > 0 ? (
+          {monitoringJurisdictionCount > 0 ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
               <PulsingDot tone="success" active />
               <Trans>
-                Monitoring <Plural value={monitoringCount} one="# source" other="# sources" />
+                Monitoring{' '}
+                <Plural
+                  value={monitoringJurisdictionCount}
+                  one="# jurisdiction"
+                  other="# jurisdictions"
+                />
               </Trans>
             </span>
           ) : null}
@@ -213,9 +216,9 @@ function NeedsAttentionSection() {
         // signals stacked:
         //   1. "no alerts right now" — confirms the absence is
         //      intentional, not a missing render.
-        //   2. Source count — confirms source monitoring is active
-        //      without exposing source-family names in the Today
-        //      all-clear line.
+        //   2. Source health edge cases — the healthy-state signal
+        //      lives in the heading chip as jurisdiction coverage,
+        //      while paused/zero-source states remain in the body.
         <AlertsEmptyState sources={sources} loading={sourceHealthQuery.isLoading} />
       )}
     </section>
@@ -229,8 +232,9 @@ function NeedsAttentionSection() {
 //
 // 2026-05-27 (Yuqi header unification pass): the healthy-state
 // "Monitoring N sources. New matches will appear here. · View sources"
-// paragraph was dropped — the same count is now in the h2's
-// monitoring chip, so a second restatement was redundant chrome.
+// paragraph was dropped; the h2 now carries jurisdiction coverage
+// instead of raw source count, so a second restatement would be
+// redundant chrome.
 // The paused-state warning and the "no sources monitored at all"
 // branch were retained because the chip does NOT surface those
 // states; they remain meaningful here. The loading branch was
@@ -285,9 +289,9 @@ function AlertsEmptyState({
   return (
     // 2026-05-27 (Yuqi header-chip merge into audit-drain): old
     // body's Binoculars + "Monitoring N sources" paragraph dropped
-    // because the same count is now in the section h2's chip (see
-    // PageHeader treatment above) — duplicate signal across header
-    // and body was the cross-route inconsistency Yuqi flagged. The
+    // because the section h2 now carries national jurisdiction
+    // coverage — duplicate signal across header and body was the
+    // cross-route inconsistency Yuqi flagged. The
     // paused-state warning ("N paused · View sources"), the loading
     // hint, and the zero-sources-monitored branch are all retained
     // via `supportingLine` because the chip does NOT surface those.

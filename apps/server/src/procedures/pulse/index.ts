@@ -14,7 +14,10 @@ import {
 import { planHasFeature } from '@duedatehq/core/plan-entitlements'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
 import { runPulseIngest } from '../../jobs/pulse/ingest'
-import { liveRegulatorySourceAdapters } from '../../jobs/pulse/rule-source-adapters'
+import {
+  isHiddenPolicyWatchSourceId,
+  visibleRegulatorySourceAdapters,
+} from '../../jobs/pulse/rule-source-adapters'
 import { requireTenant, type RpcContext } from '../_context'
 import { requireCurrentFirmRole } from '../_permissions'
 import { requirePriorityPulseMatching, requireProductionPulse } from '../_plan-gates'
@@ -357,7 +360,7 @@ async function listSourceHealthForScopedRepo(
   const persisted = new Map(
     (await scoped.pulse.listSourceStates()).map((row) => [row.sourceId, row]),
   )
-  const sources: PulseSourceHealth[] = liveRegulatorySourceAdapters.map((adapter) => {
+  const sources: PulseSourceHealth[] = visibleRegulatorySourceAdapters.map((adapter) => {
     const state = persisted.get(adapter.id)
     const healthStatus =
       state?.enabled === false || state?.healthStatus === 'paused' ? 'paused' : 'healthy'
@@ -393,15 +396,22 @@ const listSourceSignals = os.pulse.listSourceSignals.handler(async ({ input, con
           ...(input.limit !== undefined ? { limit: input.limit } : {}),
           ...(input.status !== undefined ? { status: input.status } : {}),
         }
+  const requestedLimit = opts.limit ?? 50
+  const signals = await scoped.pulse.listSourceSignals({ ...opts, limit: 100 })
   return {
-    signals: (await scoped.pulse.listSourceSignals(opts)).map(toSourceSignalPublic),
+    signals: signals
+      .filter((signal) => !isHiddenPolicyWatchSourceId(signal.sourceId))
+      .slice(0, requestedLimit)
+      .map(toSourceSignalPublic),
   }
 })
 
 const retrySourceHealth = os.pulse.retrySourceHealth.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
   const { scoped } = requireTenant(context)
-  const adapter = liveRegulatorySourceAdapters.find((candidate) => candidate.id === input.sourceId)
+  const adapter = visibleRegulatorySourceAdapters.find(
+    (candidate) => candidate.id === input.sourceId,
+  )
   if (!adapter) {
     throw new ORPCError('NOT_FOUND', { message: ErrorCodes.PULSE_NOT_FOUND })
   }
