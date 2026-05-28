@@ -138,6 +138,8 @@ function AuditLogRow({
   onOpenEvent: (id: string) => void
 }) {
   const { t } = useLingui()
+  const hasActorSecondaryLine = event.actorType === 'ai_assisted' || Boolean(event.actorId)
+  const actorAvatarOffsetClass = hasActorSecondaryLine ? 'mt-0.5' : ''
   const handleClick = useCallback(() => onOpenEvent(event.id), [event.id, onOpenEvent])
   const handleKeyDown = useCallback(
     (keyboardEvent: KeyboardEvent<HTMLTableRowElement>) => {
@@ -180,7 +182,7 @@ function AuditLogRow({
             a dedicated AI tile (Astroid icon, accent tint) so they don't
             collide with the human avatar bucket. ai_assisted events keep
             the human avatar + add a small AI chip below the name. */}
-        <div className="flex items-start gap-2">
+        <div className={cn('flex gap-2', hasActorSecondaryLine ? 'items-start' : 'items-center')}>
           {/* 2026-05-27 (η F-035/F-036 + σ D2 merge): autonomous AI events
               render a dedicated Astroid tile (accent tint) so they don't
               collide with the human avatar bucket. Human-actor branch
@@ -191,7 +193,10 @@ function AuditLogRow({
           {event.actorType === 'ai' ? (
             <span
               aria-hidden
-              className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-state-accent-subtle text-text-accent"
+              className={cn(
+                'inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-state-accent-subtle text-text-accent',
+                actorAvatarOffsetClass,
+              )}
             >
               <Astroid className="size-3.5" />
             </span>
@@ -199,7 +204,8 @@ function AuditLogRow({
             <span
               aria-hidden
               className={cn(
-                'mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
+                'inline-flex size-6 shrink-0 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
+                actorAvatarOffsetClass,
                 actor ? getAssigneeTint(actor) : 'bg-background-subtle text-text-tertiary',
               )}
             >
