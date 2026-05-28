@@ -626,6 +626,9 @@ function buildScopedRepo(
     async reviewPriorityMatches() {
       return unexpectedRepoCall('pulse.reviewPriorityMatches')
     },
+    async reviewDueDateOverlayDetails() {
+      return unexpectedRepoCall('pulse.reviewDueDateOverlayDetails')
+    },
     async applyReviewed() {
       return unexpectedRepoCall('pulse.applyReviewed')
     },

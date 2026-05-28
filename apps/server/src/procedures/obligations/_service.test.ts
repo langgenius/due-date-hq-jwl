@@ -377,6 +377,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     async reviewPriorityMatches() {
       return unused('pulse.reviewPriorityMatches')
     },
+    async reviewDueDateOverlayDetails() {
+      return unused('pulse.reviewDueDateOverlayDetails')
+    },
     async applyReviewed() {
       return unused('pulse.applyReviewed')
     },

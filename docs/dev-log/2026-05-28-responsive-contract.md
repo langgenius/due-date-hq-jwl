@@ -14,7 +14,7 @@
 
 - Sidebar 是真正响应式的（`useIsMobile` + 768 breakpoint + 280px mobile Sheet drawer）
 - `/obligations` 重度响应式（23 处断点）
-- 其余路由：dashboard、settings 家族、rules.*、workload 等大多 0-3 处断点
+- 其余路由：dashboard、settings 家族、rules.\*、workload 等大多 0-3 处断点
 - 表格主件没 `overflow-x-auto`，硬编 `min-w-[200px]` 在窄屏直接溢出
 - `needs-attention-section` 用 `grid-cols-2 + 160px overflow column` 不折叠
 
@@ -23,12 +23,12 @@ Yuqi 明确："不需要关注 mobile"。把这条写死，避免下一轮 audit
 
 ## Viewport 支持矩阵（写入 §6）
 
-| viewport | 状态 |
-|---|---|
-| ≥ 1280px | ✅ 主要设计目标 |
+| viewport    | 状态                                  |
+| ----------- | ------------------------------------- |
+| ≥ 1280px    | ✅ 主要设计目标                       |
 | 1024–1279px | ✅ 必须可用（允许密度降级，功能完整） |
-| 768–1023px | ⚠️ best-effort（不做 QA / 设计 pass） |
-| < 768px | ❌ 不支持 |
+| 768–1023px  | ⚠️ best-effort（不做 QA / 设计 pass） |
+| < 768px     | ❌ 不支持                             |
 
 ## 影响
 
