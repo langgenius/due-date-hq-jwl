@@ -12282,10 +12282,6 @@ msgstr "查看 {0}"
 msgid "View {count} open deadlines for this client"
 msgstr "查看该客户的 {count} 个未完成截止日期"
 
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "View all alerts"
-msgstr "查看全部提醒"
-
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "View all deadlines"
 msgstr "查看所有截止日期"

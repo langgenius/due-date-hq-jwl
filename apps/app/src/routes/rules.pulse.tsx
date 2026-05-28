@@ -72,7 +72,7 @@ export function RulesPulseRoute() {
   const titleNode = (
     <span className="inline-flex items-center gap-2">
       <Trans>Alerts</Trans>
-<span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
         <PulsingDot tone="success" active className="size-1.5" />
         <Trans>
           Monitoring{' '}
