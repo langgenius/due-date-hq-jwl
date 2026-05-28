@@ -58,6 +58,25 @@ const NEEDS_REVIEW = {
   status: 'review' as const,
 }
 
+function withDeadlineSelection(
+  alert: typeof ALERT,
+  obligationIds = ['oi-eligible'],
+  currentDueDate = '2026-03-15',
+) {
+  return {
+    ...alert,
+    structuredChange: {
+      deadlineSelectionReview: {
+        selectedObligationIds: obligationIds,
+        snapshots: obligationIds.map((obligationId) => ({
+          obligationId,
+          currentDueDate,
+        })),
+      },
+    },
+  }
+}
+
 function selectChain(response: unknown[]) {
   const chain = response.slice() as unknown[] & {
     from: ReturnType<typeof vi.fn>
@@ -222,6 +241,10 @@ describe('makePulseRepo', () => {
         },
       ],
       [],
+      [ELIGIBLE],
+      [],
+      [],
+      [],
     ])
     const repo = makePulseRepo(db, 'firm-1')
 
@@ -229,9 +252,9 @@ describe('makePulseRepo', () => {
 
     expect(detail.applyReadiness).toEqual({
       status: 'needs_details',
-      missing: ['original_due_date', 'forms', 'entity_types'],
+      missing: ['affected_clients'],
     })
-    expect(detail.affectedClients).toHaveLength(0)
+    expect(detail.affectedClients).toHaveLength(1)
   })
 
   it('updates due-date overlay details and refreshes affected-client counts', async () => {
@@ -245,14 +268,35 @@ describe('makePulseRepo', () => {
       parsedNewDueDate: new Date('2026-10-15T00:00:00.000Z'),
     }
     const updatedAlert = {
-      ...ALERT,
+      ...withDeadlineSelection(ALERT),
       reviewedBy: 'user-1',
       reviewedAt: new Date('2026-04-15T18:30:00.000Z'),
     }
     const { db, batchStatements, directStatements } = fakeDb([
       [incompleteAlert],
+      [ELIGIBLE],
+      [],
+      [],
+      [
+        {
+          id: 'priority-1',
+          alertId: 'alert-1',
+          pulseId: 'pulse-1',
+          status: 'reviewed',
+          priorityScore: 3,
+          priorityReasonsJson: [],
+          selectedObligationIdsJson: ['oi-eligible'],
+          confirmedObligationIdsJson: ['oi-eligible'],
+          excludedObligationIdsJson: [],
+          note: 'Verified against source.',
+          requestedBy: null,
+          reviewedBy: 'user-1',
+          reviewedAt: new Date('2026-04-15T18:30:00.000Z'),
+        },
+      ],
       [updatedAlert],
       [ELIGIBLE],
+      [],
       [],
       [],
     ])
@@ -260,11 +304,9 @@ describe('makePulseRepo', () => {
 
     const detail = await repo.reviewDueDateOverlayDetails({
       alertId: 'alert-1',
-      originalDueDate: new Date('2026-03-15T00:00:00.000Z'),
       newDueDate: new Date('2026-10-15T00:00:00.000Z'),
-      forms: [' federal_1065 '],
-      entityTypes: ['llc'],
-      counties: [' Los Angeles County '],
+      selectedObligationIds: ['oi-eligible'],
+      confirmedObligationIds: ['oi-eligible'],
       note: 'Verified against source.',
       userId: 'user-1',
       now: new Date('2026-04-15T18:30:00.000Z'),
@@ -367,6 +409,7 @@ describe('makePulseRepo', () => {
   it('rejects apply when the requested obligation was already applied', async () => {
     const { db } = fakeDb([
       [ALERT],
+      [ELIGIBLE],
       [],
       [
         {
@@ -386,6 +429,7 @@ describe('makePulseRepo', () => {
           afterDueDate: new Date('2026-10-15T00:00:00.000Z'),
         },
       ],
+      [],
     ])
     const repo = makePulseRepo(db, 'firm-1')
 
@@ -400,8 +444,9 @@ describe('makePulseRepo', () => {
 
   it('rejects apply when the selected obligation due date changed before write', async () => {
     const { db, batchStatements } = fakeDb([
-      [ALERT],
+      [withDeadlineSelection(ALERT)],
       [ELIGIBLE],
+      [],
       [],
       [],
       [
@@ -410,6 +455,7 @@ describe('makePulseRepo', () => {
           currentDueDate: new Date('2026-03-16T00:00:00.000Z'),
         },
       ],
+      [],
       [],
     ])
     const repo = makePulseRepo(db, 'firm-1')
@@ -551,7 +597,7 @@ describe('makePulseRepo', () => {
   })
 
   it('rejects apply with no eligible candidates when selections are outside the alert', async () => {
-    const { db, batchStatements } = fakeDb([[ALERT], [], []])
+    const { db, batchStatements } = fakeDb([[ALERT], [ELIGIBLE], [], []])
     const repo = makePulseRepo(db, 'firm-1')
 
     await expect(

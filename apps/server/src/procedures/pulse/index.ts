@@ -474,14 +474,12 @@ const reviewDueDateOverlayDetails = os.pulse.reviewDueDateOverlayDetails.handler
     try {
       const detail = await scoped.pulse.reviewDueDateOverlayDetails({
         alertId: input.alertId,
-        originalDueDate: dateFromDateOnly(input.originalDueDate),
         newDueDate: dateFromDateOnly(input.newDueDate),
-        forms: input.forms,
-        entityTypes: input.entityTypes,
-        counties: input.counties ?? [],
+        selectedObligationIds: input.selectedObligationIds,
+        confirmedObligationIds: input.confirmedObligationIds ?? [],
+        excludedObligationIds: input.excludedObligationIds ?? [],
         note: input.note ?? null,
         userId,
-        ...(input.affectedRuleIds !== undefined ? { affectedRuleIds: input.affectedRuleIds } : {}),
       })
       return {
         alert: toAlertPublic(detail.alert),

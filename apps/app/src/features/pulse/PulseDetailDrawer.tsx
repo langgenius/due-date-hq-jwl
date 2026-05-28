@@ -49,7 +49,6 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
-import { CLIENT_ENTITY_TYPES, type ClientEntityType } from '@/features/clients/client-readiness'
 
 import { AffectedClientsTable } from './components/AffectedClientsTable'
 // Step 9 retired `PulseConfidenceBadge` in favor of the canonical
@@ -123,13 +122,6 @@ export function canRequestPulseReview(input: {
   )
 }
 
-const EDITABLE_DEADLINE_DETAIL_FIELDS = new Set([
-  'original_due_date',
-  'new_due_date',
-  'forms',
-  'entity_types',
-])
-
 type PulseDeadlineReadinessInput = {
   alert: Pick<PulseDetail['alert'], 'actionMode'>
   applyReadiness: PulseDetail['applyReadiness']
@@ -138,8 +130,7 @@ type PulseDeadlineReadinessInput = {
 export function hasMissingDeadlineDetails(detail: PulseDeadlineReadinessInput): boolean {
   return (
     detail.alert.actionMode === 'due_date_overlay' &&
-    detail.applyReadiness.status === 'needs_details' &&
-    detail.applyReadiness.missing.some((field) => EDITABLE_DEADLINE_DETAIL_FIELDS.has(field))
+    detail.applyReadiness.status === 'needs_details'
   )
 }
 
@@ -279,10 +270,13 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
       ].join(':')
     : null
   if (detail && resetKey !== nextResetKey) {
+    const needsDeadlineDecision = hasMissingDeadlineDetails(detail)
     setSelection(
       priorityReview
         ? new Set(priorityReview.selectedObligationIds)
-        : defaultSelection(detail.affectedClients),
+        : needsDeadlineDecision
+          ? new Set()
+          : defaultSelection(detail.affectedClients),
     )
     setConfirmedReviewIds(new Set(priorityReview?.confirmedObligationIds ?? []))
     setExcludedIds(new Set(priorityReview?.excludedObligationIds ?? []))
@@ -511,12 +505,12 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
     orpc.pulse.reviewDueDateOverlayDetails.mutationOptions({
       onSuccess: () => {
         invalidate()
-        toast.success(t`Deadline details saved`, {
-          description: t`Client matches refreshed from the confirmed scope.`,
+        toast.success(t`Deadline change confirmed`, {
+          description: t`Selected deadlines are ready for final Apply review.`,
         })
       },
       onError: (err) => {
-        toast.error(t`Couldn't save deadline details`, {
+        toast.error(t`Couldn't save deadline selection`, {
           description: i18n._(pulseErrorDescriptor(err)),
         })
       },
@@ -568,7 +562,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
   const handleApply = () => {
     if (!detail) return
     if (!canApplyPulseDeadline(detail)) {
-      toast.error(t`Complete deadline details before applying`)
+      toast.error(t`Confirm the new date and deadlines before applying`)
       return
     }
     setApplyVerified(false)
@@ -834,6 +828,14 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                 detail={detail}
                 canManage={permissions.canApply}
                 pending={reviewDueDateDetailsMutation.isPending}
+                selection={selection}
+                confirmedReviewIds={confirmedReviewIds}
+                excludedIds={excludedIds}
+                onChangeSelection={setSelection}
+                onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
+                onToggleExcluded={
+                  permissions.canViewPriorityQueue ? handleToggleExcluded : undefined
+                }
                 onSubmit={(input) =>
                   reviewDueDateDetailsMutation.mutate({
                     alertId: detail.alert.id,
@@ -1352,7 +1354,7 @@ function DrawerActions({
           {reviewOnly ? (
             <Trans>Mark reviewed</Trans>
           ) : needsDeadlineDetails ? (
-            <Trans>Complete details to apply</Trans>
+            <Trans>Confirm date and deadlines</Trans>
           ) : selectionCount === 0 ? (
             <Trans>Select deadlines to apply</Trans>
           ) : (
@@ -1379,36 +1381,12 @@ function DrawerActions({
 }
 
 type DeadlineDetailsSubmitInput = {
-  originalDueDate: string
   newDueDate: string
-  forms: string[]
-  entityTypes: ClientEntityType[]
-  counties: string[]
-  affectedRuleIds: string[]
+  selectedObligationIds: string[]
+  confirmedObligationIds: string[]
+  excludedObligationIds: string[]
   note?: string
 }
-
-function splitCsv(value: string): string[] {
-  return Array.from(
-    new Set(
-      value
-        .split(',')
-        .map((item) => item.trim())
-        .filter(Boolean),
-    ),
-  )
-}
-
-const ENTITY_TYPE_LABELS = {
-  llc: 'LLC',
-  s_corp: 'S corp',
-  partnership: 'Partnership',
-  c_corp: 'C corp',
-  sole_prop: 'Sole prop',
-  trust: 'Trust',
-  individual: 'Individual',
-  other: 'Other',
-} satisfies Record<ClientEntityType, string>
 
 function MissingDetailBadgeLabel({
   field,
@@ -1425,7 +1403,7 @@ function MissingDetailBadgeLabel({
     case 'entity_types':
       return <Trans>Entity types</Trans>
     case 'affected_clients':
-      return <Trans>Affected clients</Trans>
+      return <Trans>Selected deadlines</Trans>
   }
   return null
 }
@@ -1434,44 +1412,46 @@ function DeadlineDetailsPanel({
   detail,
   canManage,
   pending,
+  selection,
+  confirmedReviewIds,
+  excludedIds,
+  onChangeSelection,
+  onToggleNeedsReviewConfirmation,
+  onToggleExcluded,
   onSubmit,
 }: {
   detail: PulseDetail
   canManage: boolean
   pending: boolean
+  selection: ReadonlySet<string>
+  confirmedReviewIds: ReadonlySet<string>
+  excludedIds: ReadonlySet<string>
+  onChangeSelection: (next: Set<string>) => void
+  onToggleNeedsReviewConfirmation: (obligationId: string, confirmed: boolean) => void
+  onToggleExcluded?: ((obligationId: string, excluded: boolean) => void) | undefined
   onSubmit: (input: DeadlineDetailsSubmitInput) => void
 }) {
-  const [originalDueDate, setOriginalDueDate] = useState(detail.originalDueDate ?? '')
   const [newDueDate, setNewDueDate] = useState(detail.newDueDate ?? '')
-  const [formsText, setFormsText] = useState(detail.forms.join(', '))
-  const [countiesText, setCountiesText] = useState(detail.counties.join(', '))
-  const [affectedRuleIdsText, setAffectedRuleIdsText] = useState(detail.affectedRuleIds.join(', '))
   const [note, setNote] = useState('')
-  const [entityTypes, setEntityTypes] = useState<Set<ClientEntityType>>(
-    () => new Set(detail.entityTypes),
+  const deadlineRows = detail.affectedClients.map((row) => ({
+    ...row,
+    newDueDate: newDueDate || row.newDueDate,
+  }))
+  const stats = computeSelectionStats(deadlineRows, selection, confirmedReviewIds)
+  const selectedObligationIds = Array.from(selection).filter((obligationId) =>
+    deadlineRows.some((row) => row.obligationId === obligationId),
   )
-  const forms = splitCsv(formsText)
-  const counties = splitCsv(countiesText)
-  const affectedRuleIds = splitCsv(affectedRuleIdsText)
-  const selectedEntityTypes = Array.from(entityTypes)
-  const canSave =
-    canManage &&
-    !pending &&
-    Boolean(originalDueDate) &&
-    Boolean(newDueDate) &&
-    forms.length > 0 &&
-    selectedEntityTypes.length > 0
+  const canSave = canManage && !pending && Boolean(newDueDate) && stats.selectedCount > 0
 
   return (
     <section className="flex flex-col gap-3 rounded-md border border-warning/40 bg-warning/5 p-4">
       <div className="flex flex-col gap-1">
         <h3 className="text-sm font-semibold text-text-primary">
-          <Trans>Complete deadline details</Trans>
+          <Trans>Confirm deadline change</Trans>
         </h3>
         <p className="text-sm text-text-secondary">
           <Trans>
-            This alert appears to involve a due-date change, but the extracted fields are not ready
-            for Apply. Confirm the missing fields against the official source.
+            Confirm the new due date and choose the existing deadlines that should receive it.
           </Trans>
         </p>
         <div className="flex flex-wrap gap-1.5 pt-1">
@@ -1484,33 +1464,21 @@ function DeadlineDetailsPanel({
       </div>
 
       <form
-        className="grid gap-3 md:grid-cols-2"
+        className="grid gap-3"
         onSubmit={(event) => {
           event.preventDefault()
           if (!canSave) return
           onSubmit({
-            originalDueDate,
             newDueDate,
-            forms,
-            entityTypes: selectedEntityTypes,
-            counties,
-            affectedRuleIds,
+            selectedObligationIds,
+            confirmedObligationIds: Array.from(confirmedReviewIds).filter((obligationId) =>
+              selection.has(obligationId),
+            ),
+            excludedObligationIds: Array.from(excludedIds),
             ...(note.trim() ? { note: note.trim() } : {}),
           })
         }}
       >
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="pulse-original-due-date">
-            <Trans>Original due date</Trans>
-          </Label>
-          <Input
-            id="pulse-original-due-date"
-            type="date"
-            value={originalDueDate}
-            disabled={!canManage || pending}
-            onChange={(event) => setOriginalDueDate(event.target.value)}
-          />
-        </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="pulse-new-due-date">
             <Trans>New due date</Trans>
@@ -1518,77 +1486,42 @@ function DeadlineDetailsPanel({
           <Input
             id="pulse-new-due-date"
             type="date"
+            className="cursor-pointer"
             value={newDueDate}
             disabled={!canManage || pending}
             onChange={(event) => setNewDueDate(event.target.value)}
           />
         </div>
-        <div className="flex flex-col gap-1.5 md:col-span-2">
-          <Label htmlFor="pulse-forms">
-            <Trans>Forms</Trans>
-          </Label>
-          <Input
-            id="pulse-forms"
-            value={formsText}
-            disabled={!canManage || pending}
-            placeholder="federal_1065, federal_1120s"
-            onChange={(event) => setFormsText(event.target.value)}
-          />
-        </div>
-        <fieldset className="flex flex-col gap-2 md:col-span-2">
-          <legend className="text-sm font-medium text-text-primary">
-            <Trans>Entity types</Trans>
-          </legend>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {CLIENT_ENTITY_TYPES.map((entityType) => {
-              const checked = entityTypes.has(entityType)
-              return (
-                <label
-                  key={entityType}
-                  className="flex items-center gap-2 rounded-md border border-divider-subtle bg-background-default px-3 py-2 text-sm"
-                >
-                  <Checkbox
-                    checked={checked}
-                    disabled={!canManage || pending}
-                    onCheckedChange={(value) => {
-                      setEntityTypes((current) => {
-                        const next = new Set(current)
-                        if (value) next.add(entityType)
-                        else next.delete(entityType)
-                        return next
-                      })
-                    }}
-                  />
-                  <span>{ENTITY_TYPE_LABELS[entityType]}</span>
-                </label>
-              )
-            })}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-3">
+            <Label>
+              <Trans>Choose deadlines to apply this date to</Trans>
+            </Label>
+            <span className="text-xs text-text-tertiary">
+              <Trans>{stats.selectedCount} selected</Trans>
+            </span>
           </div>
-        </fieldset>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="pulse-counties">
-            <Trans>Counties</Trans>
-          </Label>
-          <Input
-            id="pulse-counties"
-            value={countiesText}
-            disabled={!canManage || pending}
-            placeholder="Los Angeles, Ventura"
-            onChange={(event) => setCountiesText(event.target.value)}
-          />
+          {deadlineRows.length > 0 ? (
+            <AffectedClientsTable
+              rows={deadlineRows}
+              selection={selection}
+              confirmedReviewIds={confirmedReviewIds}
+              excludedIds={excludedIds}
+              onChangeSelection={onChangeSelection}
+              onToggleNeedsReviewConfirmation={onToggleNeedsReviewConfirmation}
+              onToggleExcluded={onToggleExcluded}
+              readOnly={!canManage || pending}
+            />
+          ) : (
+            <p className="rounded-md border border-divider-subtle bg-background-default px-4 py-3 text-sm text-text-secondary">
+              <Trans>
+                No open deadlines are available for this alert's jurisdiction. Add or reopen a
+                deadline before applying this change.
+              </Trans>
+            </p>
+          )}
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="pulse-affected-rules">
-            <Trans>Affected rule IDs</Trans>
-          </Label>
-          <Input
-            id="pulse-affected-rules"
-            value={affectedRuleIdsText}
-            disabled={!canManage || pending}
-            onChange={(event) => setAffectedRuleIdsText(event.target.value)}
-          />
-        </div>
-        <div className="flex flex-col gap-1.5 md:col-span-2">
           <Label htmlFor="pulse-detail-note">
             <Trans>Review note</Trans>
           </Label>
@@ -1599,16 +1532,16 @@ function DeadlineDetailsPanel({
             onChange={(event) => setNote(event.target.value)}
           />
         </div>
-        <div className="flex items-center justify-between gap-3 md:col-span-2">
+        <div className="flex items-center justify-between gap-3">
           {!canManage ? (
             <p className="text-sm text-text-secondary">
-              <Trans>Only authorized reviewers can confirm deadline details.</Trans>
+              <Trans>Only authorized reviewers can confirm deadline changes.</Trans>
             </p>
           ) : (
             <span />
           )}
           <Button type="submit" disabled={!canSave}>
-            {pending ? <Trans>Saving…</Trans> : <Trans>Save deadline details</Trans>}
+            {pending ? <Trans>Saving…</Trans> : <Trans>Save deadline selection</Trans>}
           </Button>
         </div>
       </form>

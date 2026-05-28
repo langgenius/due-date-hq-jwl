@@ -355,12 +355,10 @@ export interface PulseExtractDuplicateInput extends Pick<
 
 export interface PulseDueDateOverlayDetailsReviewInput {
   alertId: string
-  originalDueDate: Date
   newDueDate: Date
-  forms: string[]
-  entityTypes: ClientEntityType[]
-  counties?: string[]
-  affectedRuleIds?: string[]
+  selectedObligationIds: string[]
+  confirmedObligationIds?: string[]
+  excludedObligationIds?: string[]
   note?: string | null
   userId: string
   now?: Date
@@ -511,32 +509,91 @@ function isDueDateOverlayAlert(alert: Pick<AlertJoinedRow, 'actionMode'>): boole
   return alert.actionMode === 'due_date_overlay'
 }
 
-function applyReadinessForAlert(
+function hasCompleteStructuredDueDateScope(
   alert: Pick<
     AlertJoinedRow,
-    | 'actionMode'
-    | 'parsedOriginalDueDate'
-    | 'parsedNewDueDate'
-    | 'parsedForms'
-    | 'parsedEntityTypes'
+    'parsedOriginalDueDate' | 'parsedForms' | 'parsedEntityTypes' | 'parsedNewDueDate'
   >,
+): boolean {
+  return Boolean(
+    alert.parsedOriginalDueDate &&
+    alert.parsedNewDueDate &&
+    alert.parsedForms.length > 0 &&
+    alert.parsedEntityTypes.length > 0,
+  )
+}
+
+function applyReadinessForAlert(
+  alert: Pick<AlertJoinedRow, 'actionMode' | 'parsedNewDueDate'>,
   affectedClients: readonly PulseAffectedClientRow[],
+  opts: { affectedDeadlinesConfirmed: boolean },
 ): PulseApplyReadinessRow {
   if (!isDueDateOverlayAlert(alert)) return { status: 'not_applicable', missing: [] }
 
   const missing: PulseApplyReadinessMissing[] = []
-  if (!alert.parsedOriginalDueDate) missing.push('original_due_date')
   if (!alert.parsedNewDueDate) missing.push('new_due_date')
-  if (alert.parsedForms.length === 0) missing.push('forms')
-  if (alert.parsedEntityTypes.length === 0) missing.push('entity_types')
 
-  const detailsComplete = missing.length === 0
   const hasApplicableClients = affectedClients.some(
     (row) => row.matchStatus === 'eligible' || row.matchStatus === 'needs_review',
   )
-  if (detailsComplete && !hasApplicableClients) missing.push('affected_clients')
+  if (!opts.affectedDeadlinesConfirmed || !hasApplicableClients) {
+    missing.push('affected_clients')
+  }
 
   return { status: missing.length === 0 ? 'ready' : 'needs_details', missing }
+}
+
+const DEADLINE_SELECTION_REVIEW_KEY = 'deadlineSelectionReview'
+
+interface DeadlineSelectionSnapshot {
+  obligationId: string
+  currentDueDate: string
+}
+
+interface DeadlineSelectionReviewSnapshot {
+  selectedObligationIds: string[]
+  snapshots: DeadlineSelectionSnapshot[]
+}
+
+function isDeadlineSelectionReviewSnapshot(
+  value: unknown,
+): value is DeadlineSelectionReviewSnapshot {
+  if (!isRecord(value)) return false
+  return (
+    Array.isArray(value.selectedObligationIds) &&
+    value.selectedObligationIds.every((item) => typeof item === 'string') &&
+    Array.isArray(value.snapshots) &&
+    value.snapshots.every(
+      (item) =>
+        isRecord(item) &&
+        typeof item.obligationId === 'string' &&
+        typeof item.currentDueDate === 'string',
+    )
+  )
+}
+
+function deadlineSelectionReviewFromStructuredChange(
+  structuredChange: unknown,
+): DeadlineSelectionReviewSnapshot | null {
+  if (!isRecord(structuredChange)) return null
+  const value = structuredChange[DEADLINE_SELECTION_REVIEW_KEY]
+  return isDeadlineSelectionReviewSnapshot(value) ? value : null
+}
+
+function deadlineSelectionSnapshotsById(
+  review: DeadlineSelectionReviewSnapshot | null,
+): Map<string, DeadlineSelectionSnapshot> {
+  return new Map((review?.snapshots ?? []).map((row) => [row.obligationId, row]))
+}
+
+function withDeadlineSelectionReview(
+  structuredChange: unknown,
+  review: DeadlineSelectionReviewSnapshot,
+): unknown {
+  return {
+    ...(isRecord(structuredChange) ? structuredChange : {}),
+    [DEADLINE_SELECTION_REVIEW_KEY]: review,
+  }
 }
 
 function toNonEmptyBatch<T>(items: T[]): [T, ...T[]] {
@@ -1066,6 +1123,122 @@ export function makePulseRepo(db: Db, firmId: string) {
       .filter((row): row is PulseAffectedClientRow => row !== null)
   }
 
+  async function listDeadlineSelectionCandidateRows(
+    alert: AlertJoinedRow,
+  ): Promise<PulseAffectedClientRow[]> {
+    if (!isDueDateOverlayAlert(alert)) return []
+
+    const rows = await db
+      .select({
+        obligationId: obligationInstance.id,
+        clientId: client.id,
+        clientName: client.name,
+        state: obligationInstance.jurisdiction,
+        county: client.county,
+        counties: clientFilingProfile.countiesJson,
+        entityType: client.entityType,
+        taxType: obligationInstance.taxType,
+        currentDueDate: obligationInstance.currentDueDate,
+        status: obligationInstance.status,
+      })
+      .from(obligationInstance)
+      .innerJoin(client, eq(obligationInstance.clientId, client.id))
+      .leftJoin(
+        clientFilingProfile,
+        eq(obligationInstance.clientFilingProfileId, clientFilingProfile.id),
+      )
+      .where(
+        and(
+          eq(obligationInstance.firmId, firmId),
+          eq(client.firmId, firmId),
+          eq(obligationInstance.jurisdiction, alert.parsedJurisdiction),
+          inArray(obligationInstance.status, OPEN_STATUSES),
+          isNull(client.deletedAt),
+        ),
+      )
+      .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
+
+    const activeApplicationIds = await listActiveApplicationIds(
+      alert.pulseId,
+      rows.map((row) => row.obligationId),
+    )
+    const forms = new Set(alert.parsedForms)
+    const entityTypes = new Set(toClientEntityTypes(alert.parsedEntityTypes))
+    const counties = new Set(alert.parsedCounties.map(normalizeCountyName))
+    const effectiveRows = await withEffectiveDueDates(rows as CandidateRow[])
+    return effectiveRows
+      .filter((row) => !activeApplicationIds.has(row.obligationId))
+      .map((row): PulseAffectedClientRow & { rank: number } => {
+        let rank = 0
+        if (forms.has(row.taxType)) rank += 4
+        if (entityTypes.has(row.entityType)) rank += 3
+        if (sameTimestamp(row.currentDueDate, alert.parsedOriginalDueDate)) rank += 2
+        if (counties.size > 0 && rowMatchesCounty(row, counties) === 'match') rank += 1
+        return {
+          obligationId: row.obligationId,
+          clientId: row.clientId,
+          clientName: row.clientName,
+          state: row.state,
+          county: displayCounty(row),
+          entityType: row.entityType,
+          taxType: row.taxType,
+          currentDueDate: row.currentDueDate,
+          status: row.status,
+          newDueDate: alert.parsedNewDueDate,
+          matchStatus: 'eligible',
+          reason: null,
+          rank,
+        }
+      })
+      .toSorted((left, right) => {
+        const rankDelta = right.rank - left.rank
+        if (rankDelta !== 0) return rankDelta
+        return compareAffected(left, right)
+      })
+  }
+
+  async function listSelectedDeadlineRows(
+    alert: AlertJoinedRow,
+    selectedObligationIds: readonly string[],
+  ): Promise<PulseAffectedClientRow[]> {
+    if (!isDueDateOverlayAlert(alert) || selectedObligationIds.length === 0) return []
+
+    const rows = await withEffectiveDueDates(await listSelectedRows(selectedObligationIds))
+    const activeApplicationIds = await listActiveApplicationIds(
+      alert.pulseId,
+      selectedObligationIds,
+    )
+    const snapshots = deadlineSelectionSnapshotsById(
+      deadlineSelectionReviewFromStructuredChange(alert.structuredChange),
+    )
+    return rows
+      .filter((row) => {
+        if (row.state !== alert.parsedJurisdiction) return false
+        if (!isOpenObligationStatus(row.status)) return false
+        if (activeApplicationIds.has(row.obligationId)) return false
+        const snapshot = snapshots.get(row.obligationId)
+        if (snapshot && snapshot.currentDueDate !== toDateOnly(row.currentDueDate)) return false
+        return true
+      })
+      .map(
+        (row): PulseAffectedClientRow => ({
+          obligationId: row.obligationId,
+          clientId: row.clientId,
+          clientName: row.clientName,
+          state: row.state,
+          county: displayCounty(row),
+          entityType: row.entityType,
+          taxType: row.taxType,
+          currentDueDate: row.currentDueDate,
+          status: row.status,
+          newDueDate: alert.parsedNewDueDate,
+          matchStatus: 'eligible',
+          reason: null,
+        }),
+      )
+      .toSorted(compareAffected)
+  }
+
   async function listApplicationRows(pulseId: string): Promise<PulseAffectedClientRow[]> {
     const rows = await db
       .select({
@@ -1202,7 +1375,6 @@ export function makePulseRepo(db: Db, firmId: string) {
   async function listFreshEligibleRows(
     alert: AlertJoinedRow,
     obligationIds: readonly string[],
-    confirmedReviewIds: ReadonlySet<string> = new Set(),
   ): Promise<PulseAffectedClientRow[]> {
     if (obligationIds.length === 0) throw new PulseRepoError('no_eligible')
 
@@ -1211,28 +1383,19 @@ export function makePulseRepo(db: Db, firmId: string) {
     if (rowsById.size !== obligationIds.length) throw new PulseRepoError('conflict')
 
     const activeApplicationIds = await listActiveApplicationIds(alert.pulseId, obligationIds)
-    const forms = new Set(alert.parsedForms)
-    const entityTypes = new Set(toClientEntityTypes(alert.parsedEntityTypes))
-    const counties = new Set(alert.parsedCounties.map(normalizeCountyName))
+    const snapshots = deadlineSelectionSnapshotsById(
+      deadlineSelectionReviewFromStructuredChange(alert.structuredChange),
+    )
 
     return obligationIds.map((obligationId) => {
       const row = rowsById.get(obligationId)
       if (!row) throw new PulseRepoError('conflict')
       if (activeApplicationIds.has(row.obligationId)) throw new PulseRepoError('conflict')
       if (row.state !== alert.parsedJurisdiction) throw new PulseRepoError('conflict')
-      if (!forms.has(row.taxType)) throw new PulseRepoError('conflict')
-      if (!entityTypes.has(row.entityType)) throw new PulseRepoError('conflict')
       if (!isOpenObligationStatus(row.status)) throw new PulseRepoError('conflict')
-      if (!sameTimestamp(row.currentDueDate, alert.parsedOriginalDueDate)) {
+      const snapshot = snapshots.get(row.obligationId)
+      if (snapshot && snapshot.currentDueDate !== toDateOnly(row.currentDueDate)) {
         throw new PulseRepoError('conflict')
-      }
-      if (counties.size > 0) {
-        const countyMatch = rowMatchesCounty(row, counties)
-        if (countyMatch === 'missing') {
-          if (!confirmedReviewIds.has(row.obligationId)) throw new PulseRepoError('conflict')
-        } else if (countyMatch === 'miss') {
-          throw new PulseRepoError('conflict')
-        }
       }
 
       return {
@@ -1254,7 +1417,28 @@ export function makePulseRepo(db: Db, firmId: string) {
 
   async function buildDetail(alert: AlertJoinedRow): Promise<PulseDetailRow> {
     const affected = new Map<string, PulseAffectedClientRow>()
-    for (const row of await listCandidateRows(alert)) affected.set(row.obligationId, row)
+    let affectedDeadlinesConfirmed = false
+    const deadlineSelectionReview = deadlineSelectionReviewFromStructuredChange(
+      alert.structuredChange,
+    )
+    if (deadlineSelectionReview && deadlineSelectionReview.selectedObligationIds.length > 0) {
+      const selectedRows = await listSelectedDeadlineRows(
+        alert,
+        deadlineSelectionReview.selectedObligationIds,
+      )
+      affectedDeadlinesConfirmed = selectedRows.length > 0
+      for (const row of selectedRows) affected.set(row.obligationId, row)
+    } else {
+      const structuredRows = await listCandidateRows(alert)
+      affectedDeadlinesConfirmed =
+        structuredRows.length > 0 && hasCompleteStructuredDueDateScope(alert)
+      for (const row of structuredRows) affected.set(row.obligationId, row)
+      if (structuredRows.length === 0 && isDueDateOverlayAlert(alert)) {
+        for (const row of await listDeadlineSelectionCandidateRows(alert)) {
+          affected.set(row.obligationId, row)
+        }
+      }
+    }
     for (const row of await listApplicationRows(alert.pulseId)) {
       if (alert.alertStatus === 'reverted' || row.matchStatus !== 'reverted') {
         affected.set(row.obligationId, row)
@@ -1276,7 +1460,9 @@ export function makePulseRepo(db: Db, firmId: string) {
       structuredChange: alert.structuredChange,
       sourceExcerpt: alert.verbatimQuote,
       reviewedAt: alert.reviewedAt,
-      applyReadiness: applyReadinessForAlert(alert, affectedClients),
+      applyReadiness: applyReadinessForAlert(alert, affectedClients, {
+        affectedDeadlinesConfirmed,
+      }),
       affectedClients,
     }
   }
@@ -1289,12 +1475,13 @@ export function makePulseRepo(db: Db, firmId: string) {
     needsReviewCount: number
   }> {
     const detail = await buildDetail(alert)
-    const matchedCount = detail.affectedClients.filter(
-      (row) => row.matchStatus === 'eligible',
-    ).length
-    const needsReviewCount = detail.affectedClients.filter(
-      (row) => row.matchStatus === 'needs_review',
-    ).length
+    const countable = detail.applyReadiness.status === 'ready' || alert.alertStatus === 'applied'
+    const matchedCount = countable
+      ? detail.affectedClients.filter((row) => row.matchStatus === 'eligible').length
+      : 0
+    const needsReviewCount = countable
+      ? detail.affectedClients.filter((row) => row.matchStatus === 'needs_review').length
+      : 0
 
     await db
       .update(pulseFirmAlert)
@@ -1877,26 +2064,41 @@ export function makePulseRepo(db: Db, firmId: string) {
       if (!isDueDateOverlayAlert(alert)) throw new PulseRepoError('review_only')
 
       const now = input.now ?? new Date()
-      const forms = uniqueStrings(input.forms)
-      const entityTypes = Array.from(new Set(input.entityTypes))
-      if (forms.length === 0 || entityTypes.length === 0) throw new PulseRepoError('needs_details')
-      const counties = uniqueStrings(input.counties)
-      const affectedRuleIds =
-        input.affectedRuleIds === undefined
-          ? alert.affectedRuleIds
-          : uniqueStrings(input.affectedRuleIds)
+      const selectedObligationIds = uniqueStrings(input.selectedObligationIds)
+      const confirmedObligationIds =
+        input.confirmedObligationIds === undefined
+          ? selectedObligationIds
+          : uniqueStrings(input.confirmedObligationIds)
+      const excludedObligationIds = uniqueStrings(input.excludedObligationIds)
+      if (selectedObligationIds.length === 0) throw new PulseRepoError('no_eligible')
+      const selectedSet = new Set(selectedObligationIds)
+      if (confirmedObligationIds.some((obligationId) => !selectedSet.has(obligationId))) {
+        throw new PulseRepoError('conflict')
+      }
+      if (excludedObligationIds.some((obligationId) => selectedSet.has(obligationId))) {
+        throw new PulseRepoError('conflict')
+      }
+
+      const selectedRows = await listSelectedDeadlineRows(alert, selectedObligationIds)
+      if (selectedRows.length !== selectedObligationIds.length) throw new PulseRepoError('conflict')
+      const selectionReview: DeadlineSelectionReviewSnapshot = {
+        selectedObligationIds,
+        snapshots: selectedRows.map((row) => ({
+          obligationId: row.obligationId,
+          currentDueDate: toDateOnly(row.currentDueDate),
+        })),
+      }
       const auditId = crypto.randomUUID()
 
       await db.batch([
         db
           .update(pulse)
           .set({
-            parsedCounties: counties,
-            parsedForms: forms,
-            parsedEntityTypes: entityTypes,
-            parsedOriginalDueDate: input.originalDueDate,
             parsedNewDueDate: input.newDueDate,
-            affectedRuleIdsJson: affectedRuleIds,
+            structuredChangeJson: withDeadlineSelectionReview(
+              alert.structuredChange,
+              selectionReview,
+            ),
             reviewedBy: input.userId,
             reviewedAt: now,
           })
@@ -1910,27 +2112,31 @@ export function makePulseRepo(db: Db, firmId: string) {
           action: 'pulse.reviewed',
           beforeJson: {
             pulseId: alert.pulseId,
-            originalDueDate: toDateOnlyOrNull(alert.parsedOriginalDueDate),
             newDueDate: toDateOnlyOrNull(alert.parsedNewDueDate),
-            counties: alert.parsedCounties,
-            forms: alert.parsedForms,
-            entityTypes: alert.parsedEntityTypes,
-            affectedRuleIds: alert.affectedRuleIds,
+            selectedObligationIds:
+              deadlineSelectionReviewFromStructuredChange(alert.structuredChange)
+                ?.selectedObligationIds ?? [],
           },
           afterJson: {
             pulseId: alert.pulseId,
-            originalDueDate: toDateOnly(input.originalDueDate),
             newDueDate: toDateOnly(input.newDueDate),
-            counties,
-            forms,
-            entityTypes,
-            affectedRuleIds,
+            selectedObligationIds,
           },
           reason: normalizePriorityNote(input.note),
           ipHash: null,
           userAgentHash: null,
         }),
       ])
+      await upsertPriorityReview(alert, {
+        status: 'reviewed',
+        selectedObligationIds,
+        confirmedObligationIds,
+        excludedObligationIds,
+        reviewedBy: input.userId,
+        reviewedAt: now,
+        ...(input.note !== undefined ? { note: input.note } : {}),
+        now,
+      })
 
       const updated = await getAlert(input.alertId)
       const detail = await buildDetail(updated)
@@ -1989,21 +2195,24 @@ export function makePulseRepo(db: Db, firmId: string) {
     }): Promise<PulseApplyResult> {
       const alert = await getAlert(input.alertId)
       if (!isDueDateOverlayAlert(alert)) throw new PulseRepoError('review_only')
-      if (
-        !alert.parsedOriginalDueDate ||
-        !alert.parsedNewDueDate ||
-        alert.parsedForms.length === 0 ||
-        alert.parsedEntityTypes.length === 0
-      ) {
-        throw new PulseRepoError('needs_details')
-      }
-      const originalDueDate = alert.parsedOriginalDueDate
+      if (!alert.parsedNewDueDate) throw new PulseRepoError('needs_details')
       const newDueDate = alert.parsedNewDueDate
       const now = input.now ?? new Date()
       const detail = await buildDetail(alert)
       const requestedIds = Array.from(new Set(input.obligationIds))
       const confirmedReviewIds = new Set(input.confirmedObligationIds ?? [])
       const affectedById = new Map(detail.affectedClients.map((row) => [row.obligationId, row]))
+      for (const obligationId of requestedIds) {
+        const row = affectedById.get(obligationId)
+        if (
+          row &&
+          row.matchStatus !== 'eligible' &&
+          !(row.matchStatus === 'needs_review' && confirmedReviewIds.has(obligationId))
+        ) {
+          throw new PulseRepoError('conflict')
+        }
+      }
+      if (detail.applyReadiness.status !== 'ready') throw new PulseRepoError('needs_details')
       const selectedApplicableCount = requestedIds.filter((obligationId) => {
         const row = affectedById.get(obligationId)
         return (
@@ -2025,7 +2234,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           throw new PulseRepoError('conflict')
         }
       }
-      const eligible = await listFreshEligibleRows(alert, requestedIds, confirmedReviewIds)
+      const eligible = await listFreshEligibleRows(alert, requestedIds)
       const reactivatedApplicationIds = await listRevertedApplicationIds(
         alert.pulseId,
         eligible.map((row) => row.obligationId),
@@ -2033,17 +2242,24 @@ export function makePulseRepo(db: Db, firmId: string) {
 
       const revertExpiresAt = new Date(now.getTime() + REVERT_WINDOW_MS)
       const exceptionRuleId = crypto.randomUUID()
+      const affectedForms = uniqueStrings(eligible.map((row) => row.taxType))
+      const affectedEntityTypes = Array.from(new Set(eligible.map((row) => row.entityType)))
+      const originalDatesByObligation = Object.fromEntries(
+        eligible.map((row) => [row.obligationId, toDateOnly(row.currentDueDate)]),
+      )
+      const uniqueOriginalDates = uniqueStrings(Object.values(originalDatesByObligation))
       const exception: NewExceptionRule = {
         id: exceptionRuleId,
         firmId,
         sourcePulseId: alert.pulseId,
         jurisdiction: alert.parsedJurisdiction,
         counties: alert.parsedCounties,
-        affectedForms: alert.parsedForms,
-        affectedEntityTypes: alert.parsedEntityTypes,
+        affectedForms,
+        affectedEntityTypes,
         overrideType: 'extend_due_date',
         overrideValueJson: {
-          originalDueDate: toDateOnly(originalDueDate),
+          originalDueDate: uniqueOriginalDates.length === 1 ? uniqueOriginalDates[0] : null,
+          originalDueDatesByObligation: originalDatesByObligation,
           newDueDate: toDateOnly(newDueDate),
         },
         overrideDueDate: newDueDate,
@@ -2172,10 +2388,9 @@ export function makePulseRepo(db: Db, firmId: string) {
       for (const chunk of chunkRows(newApplications, APPLICATION_BATCH_SIZE)) {
         queries.push(db.insert(pulseApplication).values(chunk))
       }
-      for (const chunk of chunkRows(
-        Array.from(reactivatedApplicationIds.values()),
-        APPLICATION_BATCH_SIZE,
-      )) {
+      for (const row of eligible) {
+        const reactivatedApplicationId = reactivatedApplicationIds.get(row.obligationId)
+        if (!reactivatedApplicationId) continue
         queries.push(
           db
             .update(pulseApplication)
@@ -2184,14 +2399,14 @@ export function makePulseRepo(db: Db, firmId: string) {
               appliedAt: now,
               revertedBy: null,
               revertedAt: null,
-              beforeDueDate: originalDueDate,
+              beforeDueDate: row.currentDueDate,
               afterDueDate: newDueDate,
             })
             .where(
               and(
                 eq(pulseApplication.firmId, firmId),
                 eq(pulseApplication.pulseId, alert.pulseId),
-                inArray(pulseApplication.id, chunk),
+                eq(pulseApplication.id, reactivatedApplicationId),
                 isNotNull(pulseApplication.revertedAt),
               ),
             ),

@@ -78,12 +78,10 @@ export interface PulseDetailRow {
 
 export interface PulseDueDateOverlayDetailsReviewInput {
   alertId: string
-  originalDueDate: Date
   newDueDate: Date
-  forms: string[]
-  entityTypes: ClientEntityType[]
-  counties?: string[]
-  affectedRuleIds?: string[]
+  selectedObligationIds: string[]
+  confirmedObligationIds?: string[]
+  excludedObligationIds?: string[]
   note?: string | null
   userId: string
   now?: Date

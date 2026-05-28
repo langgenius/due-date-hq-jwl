@@ -1275,11 +1275,11 @@ describe('@duedatehq/contracts', () => {
       reviewedAt: null,
       applyReadiness: {
         status: 'needs_details',
-        missing: ['original_due_date'],
+        missing: ['affected_clients'],
       },
       affectedClients: [affected],
     })
-    expect(detail.applyReadiness.missing).toEqual(['original_due_date'])
+    expect(detail.applyReadiness.missing).toEqual(['affected_clients'])
     expect(
       PulseDetailSchema.parse({
         ...detail,
@@ -1298,14 +1298,13 @@ describe('@duedatehq/contracts', () => {
 
     const detailsInput = PulseReviewDueDateOverlayDetailsInputSchema.parse({
       alertId: alert.id,
-      originalDueDate: '2026-03-15',
       newDueDate: '2026-10-15',
-      forms: [' federal_1065 '],
-      entityTypes: ['llc'],
-      counties: [' Los Angeles '],
+      selectedObligationIds: ['33333333-3333-4333-8333-333333333333'],
+      confirmedObligationIds: ['33333333-3333-4333-8333-333333333333'],
+      excludedObligationIds: [],
       note: ' Verified against source. ',
     })
-    expect(detailsInput.forms).toEqual(['federal_1065'])
+    expect(detailsInput.selectedObligationIds).toEqual(['33333333-3333-4333-8333-333333333333'])
     expect(detailsInput.note).toBe('Verified against source.')
 
     const apply = PulseApplyOutputSchema.parse({

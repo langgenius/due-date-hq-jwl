@@ -393,6 +393,11 @@ msgid "{0} seat limit"
 msgstr "{0} 个席位上限"
 
 #. placeholder {0}: stats.selectedCount
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "{0} selected"
+msgstr "已选择 {0} 项"
+
+#. placeholder {0}: stats.selectedCount
 #. placeholder {1}: stats.selectableCount
 #. placeholder {2}: stats.needsReviewCount
 #: src/features/pulse/PulseDetailDrawer.tsx
@@ -1374,10 +1379,6 @@ msgstr "咨询、业务范围与留存机会"
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Affected clients"
 msgstr "受影响客户"
-
-#: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Affected rule IDs"
-msgstr "受影响规则 ID"
 
 #: src/features/workload/workload-page.tsx
 msgid "Aggregated from open deadlines and client owner labels. Open any row in Deadlines to triage the underlying deadlines."
@@ -2585,6 +2586,10 @@ msgstr "选择其他计划"
 msgid "Choose Client Contact, General Client Information, or General Return Information, then select clients."
 msgstr "选择 Client Contact、General Client Information 或 General Return Information，然后选择客户。"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Choose deadlines to apply this date to"
+msgstr "选择要应用此日期的截止事项"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Choose Export client data files, select Export to CSV for a spreadsheet-friendly file, then Continue."
 msgstr "选择 Export client data files，勾选 Export to CSV 以生成便于表格处理的文件，然后点击 Continue。"
@@ -2774,10 +2779,6 @@ msgstr "客户重要性"
 msgid "Client info"
 msgstr "客户信息"
 
-#: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Client matches refreshed from the confirmed scope."
-msgstr "已根据确认后的范围刷新客户匹配。"
-
 #: src/routes/obligations.tsx
 msgid "Client materials response"
 msgstr "客户材料回复"
@@ -2956,18 +2957,6 @@ msgstr "即将推出"
 msgid "Command palette"
 msgstr "命令面板"
 
-#: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Complete deadline details"
-msgstr "补全截止日详情"
-
-#: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Complete deadline details before applying"
-msgstr "应用前先补全截止日详情"
-
-#: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Complete details to apply"
-msgstr "补全详情后才能应用"
-
 #: src/features/pulse/lib/error-mapping.ts
 msgid "Complete the deadline details before applying this alert."
 msgstr "请先补全截止日详情，再应用此提醒。"
@@ -3033,6 +3022,14 @@ msgstr "确认税务机关已收到付款"
 msgid "Confirm checkout"
 msgstr "确认支付"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Confirm date and deadlines"
+msgstr "确认日期和截止事项"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Confirm deadline change"
+msgstr "确认截止日变更"
+
 #: src/routes/obligations.tsx
 msgid "Confirm engagement letter is on file for this client"
 msgstr "确认该客户的服务协议已存档"
@@ -3044,6 +3041,14 @@ msgstr "与第三方确认到货时间"
 #: src/features/dashboard/actions-list.tsx
 msgid "Confirm filing or payment status — due today"
 msgstr "确认申报或缴款状态 — 今日到期"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Confirm the new date and deadlines before applying"
+msgstr "应用前请先确认新日期和截止事项"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Confirm the new due date and choose the existing deadlines that should receive it."
+msgstr "确认新的截止日，并选择要接收该日期的现有截止事项。"
 
 #: src/routes/obligations.tsx
 msgid "Confirm the payment cleared (offline)"
@@ -3494,8 +3499,8 @@ msgid "Couldn't save client details"
 msgstr "无法保存客户详情"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Couldn't save deadline details"
-msgstr "无法保存截止日详情"
+msgid "Couldn't save deadline selection"
+msgstr "无法保存截止事项选择"
 
 #: src/routes/obligations.tsx
 msgid "Couldn't save extension plan"
@@ -3636,7 +3641,6 @@ msgid "Couldn't verify the code"
 msgstr "无法验证代码"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
-#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Counties"
 msgstr "县"
 
@@ -3880,13 +3884,13 @@ msgstr "截止日期批次"
 msgid "Deadline category"
 msgstr "截止日类别"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Deadline change confirmed"
+msgstr "截止日变更已确认"
+
 #: src/routes/obligations.tsx
 msgid "Deadline detail"
 msgstr "截止事项详情"
-
-#: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Deadline details saved"
-msgstr "截止日详情已保存"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Deadline evidence"
@@ -7106,6 +7110,10 @@ msgstr "打开官方来源"
 msgid "No open deadlines"
 msgstr "无未完成截止日期"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "No open deadlines are available for this alert's jurisdiction. Add or reopen a deadline before applying this change."
+msgstr "此提醒所属辖区没有可用的未完成截止事项。请先新增或重新打开截止事项，再应用此变更。"
+
 #: src/routes/practice.tsx
 msgid "No open deadlines available for preview."
 msgstr "没有可供预览的进行中截止事项。"
@@ -7544,8 +7552,8 @@ msgid "Only {0} can manage billing."
 msgstr "只有 Owner 可以管理账单。"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Only authorized reviewers can confirm deadline details."
-msgstr "只有授权审核人可以确认截止日详情。"
+msgid "Only authorized reviewers can confirm deadline changes."
+msgstr "只有授权审核人可以确认截止日变更。"
 
 #: src/routes/billing.tsx
 msgid "Only practice owners can change plans or open the portal."
@@ -9977,8 +9985,8 @@ msgid "Save client details"
 msgstr "保存客户详情"
 
 #: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Save deadline details"
-msgstr "保存截止日详情"
+msgid "Save deadline selection"
+msgstr "保存截止事项选择"
 
 #: src/routes/obligations.tsx
 msgid "Save extension"
@@ -10329,9 +10337,14 @@ msgstr "选择可见的可批量规则"
 msgid "Selected deadline"
 msgstr "已选截止事项"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Selected deadlines"
 msgstr "已选截止事项"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Selected deadlines are ready for final Apply review."
+msgstr "已选截止事项已准备好进入最终应用审核。"
 
 #: src/routes/billing.checkout.tsx
 msgid "Selected plan"
@@ -11590,10 +11603,6 @@ msgstr "该操作尚未接入。"
 #: src/features/clients/ClientFactPanels.tsx
 msgid "This AI insight was generated before the client's facts changed. Refresh to get an up-to-date summary."
 msgstr "此 AI 洞察是在客户信息变更前生成的。请刷新以获取最新摘要。"
-
-#: src/features/pulse/PulseDetailDrawer.tsx
-msgid "This alert appears to involve a due-date change, but the extracted fields are not ready for Apply. Confirm the missing fields against the official source."
-msgstr "此提醒似乎涉及截止日变更，但提取字段尚不足以执行应用。请根据官方来源确认缺失字段。"
 
 #: src/features/pulse/lib/error-mapping.ts
 msgid "This alert is no longer available."

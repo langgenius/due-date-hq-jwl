@@ -64,7 +64,7 @@ describe('Pulse due-date apply readiness helpers', () => {
       alert: { actionMode: 'due_date_overlay' as const },
       applyReadiness: {
         status: 'needs_details' as const,
-        missing: ['original_due_date' as const],
+        missing: ['affected_clients' as const],
       },
     }
 

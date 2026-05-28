@@ -194,7 +194,7 @@ const NEEDS_DETAILS_ALERT: PulseAlertPublic = {
   changeKind: 'deadline_shift',
   actionMode: 'due_date_overlay',
   summary:
-    'Arizona tax officials posted a storm-extension notice. The model identified a possible due-date change, but the original due date and eligible forms still need CPA confirmation before Apply.',
+    'Arizona tax officials posted a storm-extension notice. Confirm the new due date and choose the deadlines before Apply.',
   publishedAt: new Date(NOW.getTime() - 1000 * 60 * 35).toISOString(),
   matchedCount: 0,
   needsReviewCount: 0,
@@ -202,6 +202,37 @@ const NEEDS_DETAILS_ALERT: PulseAlertPublic = {
   isSample: true,
   jurisdiction: 'AZ',
 }
+
+const NEEDS_DETAILS_AFFECTED: PulseAffectedClient[] = [
+  {
+    obligationId: obligationId('a0000011', 11),
+    clientId: obligationId('c0000011', 11),
+    clientName: 'Sonoran Design LLC',
+    state: 'AZ',
+    county: 'Maricopa',
+    entityType: 'llc',
+    taxType: 'Form 1065',
+    currentDueDate: isoDate(12),
+    newDueDate: isoDate(42),
+    status: 'pending',
+    matchStatus: 'eligible',
+    reason: null,
+  },
+  {
+    obligationId: obligationId('a0000012', 12),
+    clientId: obligationId('c0000012', 12),
+    clientName: 'Mesa Clinic S-Corp',
+    state: 'AZ',
+    county: 'Pima',
+    entityType: 's_corp',
+    taxType: 'Form 1120-S',
+    currentDueDate: isoDate(14),
+    newDueDate: isoDate(42),
+    status: 'review',
+    matchStatus: 'eligible',
+    reason: null,
+  },
+]
 
 const NEEDS_DETAILS_DETAIL: PulseDetail = {
   alert: NEEDS_DETAILS_ALERT,
@@ -215,16 +246,16 @@ const NEEDS_DETAILS_DETAIL: PulseDetail = {
   effectiveUntil: null,
   affectedRuleIds: [],
   structuredChange: {
-    note: 'Due-date candidate. Scope requires CPA confirmation before matching clients.',
+    note: 'Due-date candidate. CPA must confirm the new date and selected deadlines.',
   },
   sourceExcerpt:
     'The Department has announced relief for taxpayers affected by recent storms. Certain filing and payment due dates may be extended; review the notice for the covered forms and original deadlines.',
   reviewedAt: null,
   applyReadiness: {
     status: 'needs_details',
-    missing: ['original_due_date', 'forms', 'entity_types'],
+    missing: ['affected_clients'],
   },
-  affectedClients: [],
+  affectedClients: NEEDS_DETAILS_AFFECTED,
 }
 
 // --- Alert 3: applied (Revert / Undo path) --------------------------------

@@ -260,12 +260,10 @@ export type PulseReviewPriorityMatchesInput = z.infer<typeof PulseReviewPriority
 
 export const PulseReviewDueDateOverlayDetailsInputSchema = z.object({
   alertId: EntityIdSchema,
-  originalDueDate: z.iso.date(),
   newDueDate: z.iso.date(),
-  forms: z.array(z.string().trim().min(1)).min(1).max(50),
-  entityTypes: z.array(EntityTypeSchema).min(1).max(20),
-  counties: z.array(z.string().trim().min(1)).max(100).default([]),
-  affectedRuleIds: z.array(z.string().trim().min(1)).max(100).optional(),
+  selectedObligationIds: z.array(EntityIdSchema).min(1).max(100),
+  confirmedObligationIds: z.array(EntityIdSchema).max(100).default([]).optional(),
+  excludedObligationIds: z.array(EntityIdSchema).max(100).default([]).optional(),
   note: z.string().trim().max(500).optional(),
 })
 export type PulseReviewDueDateOverlayDetailsInput = z.infer<
