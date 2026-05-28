@@ -46,9 +46,9 @@ signal 的 `officialSourceUrl` 必须指向具体公告、bulletin、declaration
 - WA DOR news/whats new。
 - MA DOR press。
 - FEMA declarations，T2 且默认不直接创建 Pulse。
-- Rules registry 中带 `practice_rule_review` 的来源只有在 `acquisitionMethod='html_watch'`
-  时才会通过 generic rule-source adapter 接入自动抓取；`manual_review`、`pdf_watch`、
-  `email_subscription`、`api_watch` 需要专用 adapter 或人工流程。
+- Rules registry 中带 `practice_rule_review` 的 parser-backed 来源会通过 generic
+  rule-source adapter 接入自动抓取。HTML/RSS/API/PDF 可以产出 snapshot；PDF、manual URL
+  推导出的 parser、弱结构 baseline source 默认进入 review-only Alert。
 - fixture adapter。
 
 ### Fetch helper

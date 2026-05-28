@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { hashText } from './http'
+import { PDFDocument, StandardFonts } from 'pdf-lib'
+import { fetchTextSnapshot, hashText } from './http'
 import { runFixtureAdapter, sourceFixtureBodies } from './fixtures'
 import {
   caFtbNewsroomAdapter,
@@ -22,6 +23,39 @@ describe('@duedatehq/ingest', () => {
   it('hashes text with stable sha256 output', async () => {
     await expect(hashText('pulse')).resolves.toMatch(/^[a-f0-9]{64}$/)
     await expect(hashText('pulse')).resolves.toBe(await hashText('pulse'))
+  })
+
+  it('extracts PDF source text before archiving snapshots', async () => {
+    const pdf = await PDFDocument.create()
+    const page = pdf.addPage([400, 160])
+    const font = await pdf.embedFont(StandardFonts.Helvetica)
+    page.drawText('April 15 filing deadline for individual income tax returns', {
+      x: 24,
+      y: 96,
+      size: 12,
+      font,
+    })
+    const bytes = await pdf.save()
+    const archivedBodies: string[] = []
+
+    const snapshot = await fetchTextSnapshot(
+      {
+        async fetch(input) {
+          const url = String(input)
+          if (url.endsWith('/robots.txt')) return new Response('', { status: 404 })
+          return new Response(bytes, { headers: { 'content-type': 'application/pdf' } })
+        },
+        async archiveRaw({ body }) {
+          archivedBodies.push(body)
+          return { r2Key: 'pdf-text.txt', contentHash: await hashText(body) }
+        },
+      },
+      { sourceId: 'nm.income_tax', url: 'https://tax.example/source.pdf' },
+    )
+
+    expect(snapshot.body).toContain('April 15 filing deadline')
+    expect(snapshot.contentType).toBe('text/plain; charset=utf-8')
+    expect(archivedBodies[0]).toContain('individual income tax returns')
   })
 
   it('picks the first selector with results', () => {

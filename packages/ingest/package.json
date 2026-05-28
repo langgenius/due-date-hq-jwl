@@ -12,17 +12,22 @@
     "./adapters": "./src/adapters/index.ts",
     "./fixtures": "./src/fixtures.ts",
     "./http": "./src/http.ts",
+    "./pdf": "./src/pdf.ts",
     "./selectors": "./src/selectors.ts",
     "./types": "./src/types.ts"
   },
   "scripts": {
     "test": "vp test"
   },
+  "dependencies": {
+    "pdfjs-dist": "catalog:"
+  },
   "devDependencies": {
     "@cloudflare/workers-types": "catalog:",
     "@duedatehq/typescript-config": "workspace:*",
     "@types/node": "catalog:",
     "@typescript/native-preview": "catalog:",
+    "pdf-lib": "catalog:",
     "typescript": "catalog:",
     "vite-plus": "catalog:",
     "vitest": "catalog:"

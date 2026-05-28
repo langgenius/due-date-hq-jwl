@@ -198,7 +198,14 @@ export const LocalJurisdictionRefSchema = z.object({
 })
 export type LocalJurisdictionRef = z.infer<typeof LocalJurisdictionRefSchema>
 
-export const SourceAdapterKindSchema = z.enum(['rss_or_announcement_list'])
+export const SourceAdapterKindSchema = z.enum([
+  'rss_or_announcement_list',
+  'html_due_date_page',
+  'html_announcement_list',
+  'pdf_due_date_document',
+  'pdf_index',
+  'email_inbound',
+])
 export type SourceAdapterKind = z.infer<typeof SourceAdapterKindSchema>
 
 export const RuleSourceSchema = z.object({

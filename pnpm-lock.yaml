@@ -725,6 +725,10 @@ importers:
         version: '@voidzero-dev/vite-plus-test@0.1.22(@opentelemetry/api@1.9.1)(@types/node@25.9.1)(@voidzero-dev/vite-plus-core@0.1.22(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)(typescript@6.0.3)(yaml@2.9.0))(esbuild@0.28.0)(happy-dom@20.9.0)(jiti@2.7.0)(tsx@4.22.3)(typescript@6.0.3)(yaml@2.9.0)'
 
   packages/ingest:
+    dependencies:
+      pdfjs-dist:
+        specifier: 'catalog:'
+        version: 5.7.284
     devDependencies:
       '@cloudflare/workers-types':
         specifier: 'catalog:'
@@ -738,6 +742,9 @@ importers:
       '@typescript/native-preview':
         specifier: 'catalog:'
         version: 7.0.0-dev.20260429.1
+      pdf-lib:
+        specifier: 'catalog:'
+        version: 1.17.1
       typescript:
         specifier: 'catalog:'
         version: 6.0.3

@@ -1,10 +1,13 @@
 import {
   isTemporaryAnnouncementSource,
+  isParserBackedRuleSource,
   listHiddenPolicyWatchSources,
   listRuleSources,
+  parserBackedAdapterKindForSource,
   policyWatchAutomationStatusForSource,
   type PolicyWatchSource,
   type RuleSource,
+  type SourceAdapterKind,
 } from '@duedatehq/core/rules'
 import { announcementItemsFromSnapshot } from '@duedatehq/ingest'
 import { fetchTextSnapshot, stableExternalId, textExcerpt } from '@duedatehq/ingest/http'
@@ -30,7 +33,6 @@ const PULSE_BASIS_SOURCE_TYPES = new Set<RuleSource['sourceType']>([
   'emergency_relief',
   'form',
 ])
-const AUTOMATED_RULE_SOURCE_METHODS = new Set<RuleSource['acquisitionMethod']>(['html_watch'])
 const TEMPORARY_ANNOUNCEMENT_ADAPTER_METHODS = new Set<RuleSource['acquisitionMethod']>([
   'api_watch',
 ])
@@ -88,27 +90,79 @@ function parsedItemForSourceSnapshot(
   }
 }
 
+function fetcherForParserKind(kind: SourceAdapterKind | null): SourceAdapter['fetcher'] {
+  if (kind === 'html_due_date_page' || kind === 'html_announcement_list') return 'browserless'
+  if (kind === 'email_inbound') return 'govdelivery'
+  return undefined
+}
+
+function sourceConfigForRuleSource(source: RuleSource): {
+  id: string
+  title: string
+  url: string
+  jurisdiction: string
+} {
+  return {
+    id: source.id,
+    title: source.title,
+    url: sourceFetchUrl(source),
+    jurisdiction: source.jurisdiction,
+  }
+}
+
+function parsedItemsForRuleSourceSnapshot(
+  source: RuleSource,
+  adapterKind: SourceAdapterKind | null,
+  body: string,
+  fetchedAt: Date,
+): ParsedItem[] {
+  if (
+    adapterKind === 'rss_or_announcement_list' ||
+    adapterKind === 'html_announcement_list' ||
+    adapterKind === 'pdf_index'
+  ) {
+    return announcementItemsFromSnapshot(
+      sourceConfigForRuleSource(source),
+      { body, fetchedAt },
+      {
+        fallbackToSourceSnapshot: true,
+      },
+    )
+  }
+
+  return [parsedItemForSourceSnapshot(source, body, fetchedAt)]
+}
+
 export function isRuleSourcePulsePromoted(source: RuleSource): boolean {
   return (
     source.jurisdiction !== 'FED' &&
-    AUTOMATED_RULE_SOURCE_METHODS.has(source.acquisitionMethod) &&
+    policyWatchAutomationStatusForSource({ ...source, families: ['baseline_rule'] }) ===
+      'automated' &&
     PULSE_BASIS_SOURCE_TYPES.has(source.sourceType) &&
     (source.priority === 'critical' || source.priority === 'high')
   )
 }
 
 export function createRuleSourceAdapter(source: RuleSource): SourceAdapter {
+  const adapterKind = parserBackedAdapterKindForSource({ ...source, families: ['baseline_rule'] })
+  const fetcher = fetcherForParserKind(adapterKind)
   return {
     id: source.id,
     tier: tierForPriority(source.priority),
     cronIntervalMs: intervalForCadence(source.cadence),
     jurisdiction: source.jurisdiction,
+    ...(fetcher ? { fetcher } : {}),
     async fetch(ctx) {
-      return [await fetchTextSnapshot(ctx, { sourceId: source.id, url: source.url })]
+      return [await fetchTextSnapshot(ctx, { sourceId: source.id, url: sourceFetchUrl(source) })]
     },
     async parse(snapshot) {
       if (snapshot.notModified) return []
-      return [parsedItemForSourceSnapshot(source, snapshot.body, snapshot.fetchedAt)]
+      return parsedItemsForRuleSourceSnapshot(
+        source,
+        adapterKind,
+        snapshot.body,
+        snapshot.fetchedAt,
+      )
     },
   }
 }
@@ -176,8 +230,9 @@ export function isPolicyWatchAdapterEligible(source: PolicyWatchSource): boolean
 
 export function isRuleSourceAdapterEligible(source: RuleSource): boolean {
   if (!source.notificationChannels.includes('practice_rule_review')) return false
-  if (!AUTOMATED_RULE_SOURCE_METHODS.has(source.acquisitionMethod)) return false
   if (source.authorityRole !== 'basis') return false
+  if (!PULSE_BASIS_SOURCE_TYPES.has(source.sourceType)) return false
+  if (!isParserBackedRuleSource(source)) return false
   if (EXISTING_ADAPTER_IDS.has(source.id)) return false
   return !SOURCE_INDEX_IDS.has(source.id)
 }

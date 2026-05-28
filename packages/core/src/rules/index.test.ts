@@ -5,6 +5,7 @@ import {
   findRuleById,
   isTaxYearDrivenRule,
   isCoveredTemporaryAnnouncementSource,
+  isParserBackedRuleSource,
   listHiddenPolicyWatchSources,
   listNationalPolicyWatchCoverage,
   listObligationRules,
@@ -12,6 +13,7 @@ import {
   listPolicyWatchSources,
   listRequiredSourceCoverage,
   listRuleSources,
+  listSourceAutomationRemediationAudit,
   listSourceCoverageGaps,
   listSourcesByNotificationChannel,
   listTemporaryAnnouncementSourceCoverage,
@@ -234,7 +236,7 @@ describe('@duedatehq/core/rules', () => {
     )
   })
 
-  it('audits policy-watch automation quality without treating manual or PDF as strong automation', () => {
+  it('audits policy-watch automation quality without leaving manual or blocked coverage', () => {
     const audit = listPolicyWatchCoverageAudit()
     expect(audit).toHaveLength(52)
     expect(audit.map((cell) => cell.jurisdiction)).toEqual(MVP_RULE_JURISDICTIONS)
@@ -244,9 +246,12 @@ describe('@duedatehq/core/rules', () => {
       expect(baseline, cell.jurisdiction).toBeDefined()
       return baseline!
     })
-    expect(
-      baselineFamilies.filter((family) => family.automationStatus === 'manual_review'),
-    ).toHaveLength(24)
+    expect(audit.flatMap((cell) => cell.families)).not.toContainEqual(
+      expect.objectContaining({ automationStatus: 'manual_review' }),
+    )
+    expect(audit.flatMap((cell) => cell.families)).not.toContainEqual(
+      expect.objectContaining({ automationStatus: 'blocked' }),
+    )
     expect(
       baselineFamilies.filter(
         (family) => family.automationStatus === 'manual_review' && family.quality === 'strong',
@@ -259,6 +264,47 @@ describe('@duedatehq/core/rules', () => {
     for (const family of signalOnlyFamilies) {
       expect(family.quality, family.family).not.toBe('strong')
       expect(family.riskReason, family.family).toContain('signal-only')
+    }
+  })
+
+  it('lists parser-backed remediation details for every policy-watch family', () => {
+    const audit = listSourceAutomationRemediationAudit()
+    expect(audit).toHaveLength(52)
+    expect(audit.map((cell) => cell.jurisdiction)).toEqual(MVP_RULE_JURISDICTIONS)
+
+    for (const row of audit) {
+      expect(row.families.map((family) => family.family)).toEqual([
+        'baseline_rule',
+        'tax_news',
+        'disaster_relief',
+      ])
+      for (const family of row.families) {
+        expect(family.sources.length, `${row.jurisdiction}:${family.family}`).toBeGreaterThan(0)
+        for (const source of family.sources) {
+          if (source.parserBacked) {
+            expect(source.suggestedAdapterKind, source.sourceId).toMatch(
+              /^(rss_or_announcement_list|html_due_date_page|html_announcement_list|pdf_due_date_document|pdf_index|email_inbound)$/,
+            )
+          }
+        }
+      }
+    }
+
+    const signalOnlySources = audit.flatMap((row) =>
+      row.families.flatMap((family) =>
+        family.automationStatus === 'signal_only' ? family.sources : [],
+      ),
+    )
+    expect(signalOnlySources.length).toBeGreaterThan(0)
+    expect(signalOnlySources.every((source) => source.parserBacked)).toBe(true)
+  })
+
+  it('treats manual registry URLs as parser-backed Pulse candidates', () => {
+    const sourcesById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
+    for (const sourceId of ['dc.income_tax', 'az.tpt_due_dates', 'wa.excise_due_dates_2026']) {
+      const source = sourcesById.get(sourceId)
+      expect(source, sourceId).toBeDefined()
+      expect(isParserBackedRuleSource(source!), sourceId).toBe(true)
     }
   })
 

@@ -1,3 +1,4 @@
+import { extractPdfText } from './pdf'
 import type { IngestCtx, RawSnapshot } from './types'
 
 export const DEFAULT_HEADERS = {
@@ -32,6 +33,10 @@ export function stableExternalId(url: string): string {
 
 export function textExcerpt(text: string, max = 6000): string {
   return text.replace(/\s+/g, ' ').trim().slice(0, max)
+}
+
+function isPdfSourceResponse(contentType: string, url: string): boolean {
+  return contentType.includes('application/pdf') || /\.pdf(?:[?#]|$)/i.test(url)
 }
 
 function pathDisallowedByRobots(robots: string, userAgent: string, path: string): boolean {
@@ -114,13 +119,25 @@ export async function fetchTextSnapshot(
     throw new Error(`Pulse source fetch failed for ${input.sourceId}: ${response.status}`)
   }
 
-  const body = await response.text()
+  const contentType = response.headers.get('content-type') ?? ''
+  const body = isPdfSourceResponse(contentType, input.url)
+    ? await response
+        .arrayBuffer()
+        .then(extractPdfText)
+        .then((text) => {
+          if (!text)
+            throw new Error(`Pulse source PDF text extraction failed for ${input.sourceId}`)
+          return text
+        })
+    : await response.text()
   const archived = await ctx.archiveRaw({
     sourceId: input.sourceId,
     externalId,
     fetchedAt,
     body,
-    contentType: response.headers.get('content-type'),
+    contentType: isPdfSourceResponse(contentType, input.url)
+      ? 'text/plain; charset=utf-8'
+      : response.headers.get('content-type'),
   })
 
   return {
@@ -129,7 +146,9 @@ export async function fetchTextSnapshot(
     body,
     contentHash: archived.contentHash,
     r2Key: archived.r2Key,
-    contentType: response.headers.get('content-type'),
+    contentType: isPdfSourceResponse(contentType, input.url)
+      ? 'text/plain; charset=utf-8'
+      : response.headers.get('content-type'),
     etag: response.headers.get('etag'),
     lastModified: response.headers.get('last-modified'),
   }

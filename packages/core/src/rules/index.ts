@@ -87,7 +87,13 @@ export type AcquisitionMethod =
 export type SourceCadence = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'pre_season'
 export type SourcePriority = 'critical' | 'high' | 'medium' | 'low'
 export type SourceHealthStatus = 'healthy' | 'degraded' | 'failing' | 'paused'
-export type SourceAdapterKind = 'rss_or_announcement_list'
+export type SourceAdapterKind =
+  | 'rss_or_announcement_list'
+  | 'html_due_date_page'
+  | 'html_announcement_list'
+  | 'pdf_due_date_document'
+  | 'pdf_index'
+  | 'email_inbound'
 
 export type RuleSourceDomain =
   | 'individual_income_return'
@@ -9352,6 +9358,27 @@ export interface PolicyWatchCoverageAuditRow extends PolicyWatchCoverage {
   riskReasons: readonly string[]
 }
 
+export interface SourceAutomationRemediationSource {
+  sourceId: string
+  title: string
+  url: string
+  acquisitionMethod: AcquisitionMethod
+  adapterKind: SourceAdapterKind | null
+  suggestedAdapterKind: SourceAdapterKind | null
+  healthStatus: SourceHealthStatus
+  parserBacked: boolean
+}
+
+export interface SourceAutomationRemediationFamilyAudit extends PolicyWatchFamilyCoverage {
+  sources: readonly SourceAutomationRemediationSource[]
+  needsRemediation: boolean
+}
+
+export interface SourceAutomationRemediationAuditRow {
+  jurisdiction: RuleJurisdiction
+  families: readonly SourceAutomationRemediationFamilyAudit[]
+}
+
 const TEMPORARY_ANNOUNCEMENT_SOURCE_TYPES = new Set<RuleSourceType>(['emergency_relief', 'news'])
 const TEMPORARY_ANNOUNCEMENT_ACQUISITION_METHODS = new Set<AcquisitionMethod>([
   'html_watch',
@@ -9380,6 +9407,58 @@ export function isCoveredTemporaryAnnouncementSource(source: RuleSource): boolea
     TEMPORARY_ANNOUNCEMENT_ACQUISITION_METHODS.has(source.acquisitionMethod) &&
     (source.acquisitionMethod !== 'api_watch' || source.adapterKind === 'rss_or_announcement_list')
   )
+}
+
+function urlLooksPdf(url: string): boolean {
+  return /\.pdf(?:[?#]|$)/i.test(url)
+}
+
+function sourceLooksLikeAnnouncementList(
+  source: Pick<PolicyWatchSource, 'sourceType' | 'families'>,
+): boolean {
+  return (
+    source.sourceType === 'news' ||
+    source.sourceType === 'emergency_relief' ||
+    source.families.includes('tax_news') ||
+    source.families.includes('disaster_relief')
+  )
+}
+
+function sourceAdapterKindForParserBackedSource(
+  source: Pick<
+    PolicyWatchSource,
+    'acquisitionMethod' | 'adapterKind' | 'families' | 'healthStatus' | 'sourceType' | 'url'
+  >,
+): SourceAdapterKind | null {
+  if (source.healthStatus === 'failing' || source.healthStatus === 'paused') return null
+  if (source.adapterKind) return source.adapterKind
+  if (source.acquisitionMethod === 'api_watch') return 'rss_or_announcement_list'
+  if (source.acquisitionMethod === 'email_subscription') return null
+  if (source.acquisitionMethod === 'pdf_watch' || urlLooksPdf(source.url)) {
+    return sourceLooksLikeAnnouncementList(source) ? 'pdf_index' : 'pdf_due_date_document'
+  }
+  if (source.acquisitionMethod === 'html_watch' || source.acquisitionMethod === 'manual_review') {
+    return sourceLooksLikeAnnouncementList(source) ? 'html_announcement_list' : 'html_due_date_page'
+  }
+  return null
+}
+
+export function isParserBackedRuleSource(
+  source: Pick<
+    RuleSource,
+    'acquisitionMethod' | 'adapterKind' | 'healthStatus' | 'sourceType' | 'url'
+  >,
+): boolean {
+  return sourceAdapterKindForParserBackedSource({ ...source, families: ['baseline_rule'] }) !== null
+}
+
+export function parserBackedAdapterKindForSource(
+  source: Pick<
+    PolicyWatchSource,
+    'acquisitionMethod' | 'adapterKind' | 'families' | 'healthStatus' | 'sourceType' | 'url'
+  >,
+): SourceAdapterKind | null {
+  return sourceAdapterKindForParserBackedSource(source)
 }
 
 function mergeSourceCoverageStatus(
@@ -9465,10 +9544,17 @@ export function listTemporaryAnnouncementSourceCoverage(
 }
 
 export function policyWatchAutomationStatusForSource(
-  source: Pick<PolicyWatchSource, 'acquisitionMethod' | 'adapterKind' | 'healthStatus'>,
+  source: Pick<
+    PolicyWatchSource,
+    'acquisitionMethod' | 'adapterKind' | 'families' | 'healthStatus' | 'sourceType' | 'url'
+  >,
 ): PolicyWatchAutomationStatus {
   if (source.healthStatus === 'failing' || source.healthStatus === 'paused') return 'blocked'
-  if (source.acquisitionMethod === 'manual_review') return 'manual_review'
+  const parserKind = sourceAdapterKindForParserBackedSource(source)
+  if (!parserKind) {
+    return source.acquisitionMethod === 'manual_review' ? 'manual_review' : 'signal_only'
+  }
+  if (source.acquisitionMethod === 'manual_review') return 'signal_only'
   if (source.healthStatus !== 'healthy') return 'signal_only'
   if (source.acquisitionMethod === 'html_watch') return 'automated'
   if (
@@ -9481,7 +9567,10 @@ export function policyWatchAutomationStatusForSource(
 }
 
 function policyWatchAutomationStatusForSources(
-  sources: readonly Pick<PolicyWatchSource, 'acquisitionMethod' | 'adapterKind' | 'healthStatus'>[],
+  sources: readonly Pick<
+    PolicyWatchSource,
+    'acquisitionMethod' | 'adapterKind' | 'families' | 'healthStatus' | 'sourceType' | 'url'
+  >[],
 ): PolicyWatchAutomationStatus {
   if (sources.length === 0) return 'manual_review'
   const statuses = new Set(sources.map(policyWatchAutomationStatusForSource))
@@ -9492,7 +9581,10 @@ function policyWatchAutomationStatusForSources(
 }
 
 function policyWatchStatusForSources(
-  sources: readonly Pick<PolicyWatchSource, 'acquisitionMethod' | 'adapterKind' | 'healthStatus'>[],
+  sources: readonly Pick<
+    PolicyWatchSource,
+    'acquisitionMethod' | 'adapterKind' | 'families' | 'healthStatus' | 'sourceType' | 'url'
+  >[],
 ): PolicyWatchCoverageStatus {
   if (sources.length === 0) return 'missing_source'
   const automationStatus = policyWatchAutomationStatusForSources(sources)
@@ -9672,6 +9764,65 @@ export function listPolicyWatchCoverageAudit(
       family.riskReason ? [`${family.family}: ${family.riskReason}`] : [],
     ),
   }))
+}
+
+function sourceAutomationRemediationSource(
+  source: PolicyWatchSource,
+): SourceAutomationRemediationSource {
+  const suggestedAdapterKind = parserBackedAdapterKindForSource(source)
+  return {
+    sourceId: source.id,
+    title: source.title,
+    url: source.feedUrl ?? source.url,
+    acquisitionMethod: source.acquisitionMethod,
+    adapterKind: source.adapterKind ?? null,
+    suggestedAdapterKind,
+    healthStatus: source.healthStatus,
+    parserBacked: suggestedAdapterKind !== null,
+  }
+}
+
+export function listSourceAutomationRemediationAudit(
+  jurisdiction?: RuleJurisdiction,
+): readonly SourceAutomationRemediationAuditRow[] {
+  const jurisdictions = jurisdiction ? [jurisdiction] : MVP_RULE_JURISDICTIONS
+  return jurisdictions.map((currentJurisdiction) => {
+    const sources = listPolicyWatchSources(currentJurisdiction)
+    const coverage = listNationalPolicyWatchCoverage(currentJurisdiction)[0]
+    if (!coverage) {
+      return {
+        jurisdiction: currentJurisdiction,
+        families: [],
+      }
+    }
+
+    return {
+      jurisdiction: currentJurisdiction,
+      families: coverage.families.map((family) => {
+        const familySources = sources.filter((source) => source.families.includes(family.family))
+        return {
+          family: family.family,
+          status: family.status,
+          automationStatus: family.automationStatus,
+          quality: family.quality,
+          sourceIds: family.sourceIds,
+          hiddenSourceIds: family.hiddenSourceIds,
+          missingReason: family.missingReason,
+          riskReason: family.riskReason,
+          sources: familySources.map(sourceAutomationRemediationSource),
+          needsRemediation:
+            family.automationStatus !== 'automated' ||
+            family.quality !== 'strong' ||
+            familySources.some(
+              (source) =>
+                source.healthStatus === 'failing' ||
+                source.healthStatus === 'paused' ||
+                !parserBackedAdapterKindForSource(source),
+            ),
+        }
+      }),
+    }
+  })
 }
 
 export function listSourceCoverageGaps(

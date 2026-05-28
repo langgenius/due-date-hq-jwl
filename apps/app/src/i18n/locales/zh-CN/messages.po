@@ -6489,11 +6489,8 @@ msgstr "缺少来源"
 msgid "Model"
 msgstr "Model"
 
-#: src/routes/rules.pulse.tsx
-msgid "Monitoring {monitoringCount, plural, one {# source} other {# sources}}"
-msgstr "{monitoringCount, plural, other {正在监控 # 个数据源}}"
-
 #: src/features/dashboard/needs-attention-section.tsx
+#: src/routes/rules.pulse.tsx
 msgid "Monitoring {monitoringJurisdictionCount, plural, one {# jurisdiction} other {# jurisdictions}}"
 msgstr "{monitoringJurisdictionCount, plural, one {正在监控 # 个辖区} other {正在监控 # 个辖区}}"
 

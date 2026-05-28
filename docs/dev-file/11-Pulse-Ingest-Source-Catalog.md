@@ -48,12 +48,11 @@ FEMA/GovDelivery early signal 一律进入 CPA-facing review-only Alert，不显
 - Rules registry 已登记 50 州 + DC 的官方 tax-topic、filing FAQ、statute、due-date
   与 income-tax 具体页面；这些来源先服务 Rules evidence / practice review，不等于都进入自动
   Pulse 抓取。
-- `apps/server/src/jobs/pulse/rule-source-adapters.ts` 只会把带
-  `practice_rule_review` 且 `acquisitionMethod='html_watch'` 的 rule sources 接入
-  `pulse_source_state`。`manual_review`、`pdf_watch`、`email_subscription`、`api_watch`
-  需要专用 adapter 或人工流程，不能通过 generic HTML adapter 自动抓取。符合条件的 source
-  写 `pulse_source_snapshot` 并进入 `pulse.extract`；不具备 apply 条件的 source 强制
-  review-only。
+- `apps/server/src/jobs/pulse/rule-source-adapters.ts` 会把带 `practice_rule_review` 的
+  parser-backed rule sources 接入 `pulse_source_state`。HTML、RSS/API、PDF 文档/索引都能
+  产出 `pulse_source_snapshot` 并进入 `pulse.extract`；manual registry URL 会按 URL 形态降级
+  为 parser-backed review-only source，而不是停留在人工队列。PDF、弱结构 baseline、
+  signal-only source 强制 review-only。
 
 ---
 

@@ -4,16 +4,13 @@ import { HistoryIcon, RadioTowerIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { PulseChangesTab } from '@/features/pulse/AlertsListPage'
-import {
-  usePulseListAlertsQueryOptions,
-  usePulseSourceHealthQueryOptions,
-} from '@/features/pulse/api'
+import { usePulseListAlertsQueryOptions } from '@/features/pulse/api'
 import { PulsingDot } from '@/features/pulse/components/PulsingDot'
 import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
-import { enabledPulseSourceCount } from '@/features/pulse/lib/source-health-labels'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 
 const TOP_ALERTS_LIMIT = 50
@@ -26,16 +23,11 @@ export function RulesPulseRoute() {
   // request, count rendered in both places).
   const alertsQuery = useQuery(usePulseListAlertsQueryOptions(TOP_ALERTS_LIMIT))
   const alertCount = alertsQuery.data?.alerts.length ?? 0
-  // 2026-05-27 (Yuqi header unification pass): source-monitoring count
-  // promoted from supporting body copy (was an inline Binoculars +
-  // "Monitoring N sources" line below the all-clear banner) into a
-  // status chip in the page header. The watcher being alive is the
-  // page's foundational state — it belongs in the title row, not in
-  // a paragraph below the fold. Same query is also read by
-  // AlertsListPage's empty-state banner so React Query dedupes
-  // (one network request, two render sites).
-  const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
-  const monitoringCount = enabledPulseSourceCount(sourceHealthQuery.data?.sources ?? [])
+  // 2026-05-28 (source automation remediation): this chip is a
+  // product coverage metric, not an adapter/source-health count.
+  // Parser-backed baseline sources can grow to hundreds of adapters
+  // while the CPA-facing promise remains national coverage.
+  const monitoringJurisdictionCount = MVP_RULE_JURISDICTIONS.length
 
   // 2026-05-25 (Yuqi Alerts #1, #13): breadcrumb dropped. Alerts is
   // now a top-level sidebar destination — the parent crumb back to
@@ -62,16 +54,13 @@ export function RulesPulseRoute() {
   // read as a different design system the moment alerts existed.
   // Now uses the canonical pill, with TWO chips when both pieces
   // of status are meaningful:
-  //   • Monitoring chip (always visible when sources exist): the
-  //     foundational "watcher is alive" signal. Pulsing green dot
-  //     + "Monitoring N sources" label, sized to match the other
-  //     count chips across the app shell.
+  //   • Monitoring chip: the foundational national coverage signal.
   //   • Alert count chip (only when > 0): destructive-toned pill
   //     so an active queue reads with appropriate urgency.
   // 2026-05-27 (Yuqi IA pass — disambiguate monitoring vs alerts):
   // the two sibling chips were reading as peers but carry different
-  // meanings — "Monitoring N sources" is the always-on watcher
-  // signal (how many federal/state feeds we're tailing); the bare
+  // meanings — "Monitoring N jurisdictions" is the always-on coverage
+  // signal (Federal + 50 states + DC); the bare
   // "4" alert pill is the actionable queue ("4 alerts open right
   // now"). They looked alike enough that Yuqi flagged the
   // relationship as opaque. Fix: the alert pill is now explicit
@@ -83,14 +72,17 @@ export function RulesPulseRoute() {
   const titleNode = (
     <span className="inline-flex items-center gap-2">
       <Trans>Alerts</Trans>
-      {monitoringCount > 0 ? (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
-          <PulsingDot tone="success" active className="size-1.5" />
-          <Trans>
-            Monitoring <Plural value={monitoringCount} one="# source" other="# sources" />
-          </Trans>
-        </span>
-      ) : null}
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-0.5 text-xs font-medium tabular-nums text-text-secondary">
+        <PulsingDot tone="success" active className="size-1.5" />
+        <Trans>
+          Monitoring{' '}
+          <Plural
+            value={monitoringJurisdictionCount}
+            one="# jurisdiction"
+            other="# jurisdictions"
+          />
+        </Trans>
+      </span>
       {alertCount > 0 ? (
         <span className="inline-flex items-center gap-1 rounded-full bg-state-destructive-hover px-2 py-0.5 text-xs font-medium text-text-destructive">
           <span className="tabular-nums">{alertCount}</span>

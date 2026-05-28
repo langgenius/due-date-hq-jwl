@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  isParserBackedRuleSource,
   listHiddenPolicyWatchSources,
   listRuleSources,
   type RuleSource,
@@ -24,11 +25,11 @@ import {
 } from './rule-source-adapters'
 
 describe('rule source adapters', () => {
-  it('adds adapters only for automated candidate-review rule sources without duplicating live adapters', () => {
+  it('adds adapters for parser-backed candidate-review rule sources without duplicating live adapters', () => {
     const liveIds = new Set(livePulseAdapters.map((adapter) => adapter.id))
     const candidateReviewSources = listRuleSources()
       .filter((source) => source.notificationChannels.includes('practice_rule_review'))
-      .filter((source) => source.acquisitionMethod === 'html_watch')
+      .filter(isParserBackedRuleSource)
       .filter((source) => !liveIds.has(source.id))
       .filter(isRuleSourceAdapterEligible)
 
@@ -201,30 +202,32 @@ describe('rule source adapters', () => {
     })
   })
 
-  it('keeps manual-review and pdf-only sources out of the automated ingest set', () => {
+  it('promotes parser-backed manual-review and PDF sources as review-only ingest adapters', () => {
     const sourcesById = new Map(listRuleSources().map((source) => [source.id, source]))
     const automatedIds = ruleSourceAdapters.map((adapter) => adapter.id)
 
     for (const sourceId of [
       'ca.income_tax',
       'dc.income_tax',
-      'wa.capital_gains_exception_2026',
-      'tx.temporary_announcements',
+      'wa.esd_quarterly_tax_wage_reports',
     ]) {
       const source = sourcesById.get(sourceId)
-      if (sourceId === 'tx.temporary_announcements') {
-        expect(source?.authorityRole, sourceId).toBe('watch')
-      } else {
-        expect(source?.acquisitionMethod, sourceId).toBe('manual_review')
-      }
-      expect(isRuleSourceAdapterEligible(source!), sourceId).toBe(false)
+      expect(source?.acquisitionMethod, sourceId).toBe('manual_review')
+      expect(isRuleSourceAdapterEligible(source!), sourceId).toBe(true)
       expect(isRuleSourcePulsePromoted(source!), sourceId).toBe(false)
-      expect(automatedIds, sourceId).not.toContain(sourceId)
+      expect(requiresReviewOnlyPulseAlert(sourceId), sourceId).toBe(true)
+      expect(automatedIds, sourceId).toContain(sourceId)
     }
+
+    const watchSource = sourcesById.get('tx.temporary_announcements')
+    expect(watchSource?.authorityRole).toBe('watch')
+    expect(isRuleSourceAdapterEligible(watchSource!)).toBe(false)
 
     const pdfSource = sourcesById.get('fl.income_tax')
     expect(pdfSource?.acquisitionMethod).toBe('pdf_watch')
-    expect(isRuleSourceAdapterEligible(pdfSource!)).toBe(false)
+    expect(isRuleSourceAdapterEligible(pdfSource!)).toBe(true)
+    expect(isRuleSourcePulsePromoted(pdfSource!)).toBe(false)
+    expect(requiresReviewOnlyPulseAlert('fl.income_tax')).toBe(true)
   })
 
   it('keeps concrete basis sources from the rules registry in the extract queue', () => {

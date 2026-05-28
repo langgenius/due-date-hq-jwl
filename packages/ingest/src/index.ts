@@ -33,6 +33,7 @@ export {
   type AnnouncementSourceConfig,
 } from './announcements'
 export { DEFAULT_HEADERS, RATE_LIMIT, fetchTextSnapshot, hashText, stableExternalId } from './http'
+export { extractPdfText } from './pdf'
 export { runFixtureAdapter, snapshotFromFixture } from './fixtures'
 export { parseRssItems, parsedItemsFromRss, type RssFeedItem } from './rss'
 export { extractLinks, pickSelector, stripHtml } from './selectors'
