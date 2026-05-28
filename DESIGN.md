@@ -5,7 +5,7 @@ description: Dense CPA compliance workbench for dollar-aware deadline triage wit
 colors:
   primary: '#0A2540'
   secondary: '#475569'
-  tertiary: '#5B5BD6'
+  tertiary: '#155aef'
   neutral: '#FFFFFF'
   surface-canvas: '#FFFFFF'
   surface-panel: '#FAFAFA'
@@ -18,11 +18,11 @@ colors:
   text-secondary: '#475569'
   text-muted: '#94A3B8'
   text-disabled: '#CBD5E1'
-  accent-default: '#5B5BD6'
-  accent-hover: '#4F46E5'
-  accent-active: '#4338CA'
-  accent-text: '#4338CA'
-  accent-tint: '#F1F1FD'
+  accent-default: '#155aef'
+  accent-hover: '#004aeb'
+  accent-active: '#003dc1'
+  accent-text: '#004aeb'
+  accent-tint: '#eff4ff'
   severity-critical: '#DC2626'
   severity-critical-tint: '#FEF2F2'
   severity-critical-border: '#FCA5A5'
@@ -528,11 +528,11 @@ The UI must prioritize dense scanning, clear risk hierarchy, and traceable evide
 
 ## Colors
 
-The palette is semantic, not decorative. Navy is the authoritative text color, indigo is reserved for focus, selected navigation, and primary actions, and risk colors are the only intentionally saturated colors.
+The palette is semantic, not decorative. Navy is the authoritative text color, Dify UI Blue is reserved for focus, selected navigation, and primary actions, and risk colors are the only intentionally saturated colors. (Legacy indigo `#5B5BD6` was replaced by Dify Blue `#155aef` per the 2026-05 token unification — every primary-600 reference in `primitives.css` now resolves to the blue.)
 
 - Primary `#0A2540`: core headings, hero risk numbers, and client names.
 - Secondary `#475569`: standard operational copy and table content.
-- Tertiary `#5B5BD6`: CTA, focus, selected state, and active navigation.
+- Tertiary `#155aef` (Dify UI Blue, `primary-600`): CTA, focus, selected state, and active navigation.
 - Neutral `#FFFFFF`: light workbench canvas.
 
 Do not place raw color utilities in business components. Use semantic utilities such as `text-accent-default`, `bg-bg-panel`, `border-border-default`, and `text-severity-critical`.

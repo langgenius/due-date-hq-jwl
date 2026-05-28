@@ -289,7 +289,7 @@ Toast（红色，常驻 12s 可手动关闭）
 | Radar 命中脉冲        | boxShadow / ring | `{colors.severity-critical}` + 200ms             |
 | 焦点环（按钮 / 卡片） | outline          | `{colors.accent-default}`（`:focus-visible`）    |
 
-> 硬规则：本文件一律用 token 名引用；禁止把 `#5B5BD6` / `#DC2626` 等 hex 直接写入本文件与实现代码（对齐 `DESIGN.md` 的 semantic utility 要求）。
+> 硬规则：本文件一律用 token 名引用；禁止把 `#155aef` / `#DC2626` 等 hex 直接写入本文件与实现代码（对齐 `DESIGN.md` 的 semantic utility 要求）。
 
 ---
 
