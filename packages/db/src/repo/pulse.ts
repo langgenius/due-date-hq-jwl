@@ -103,9 +103,10 @@ export interface PulseAlertRow {
   needsReviewCount: number
   confidence: number
   isSample: boolean
-  // 2026-05-25 (Yuqi Alerts #9): jurisdiction (US state code, e.g.
-  // "CA") on each list-item alert. Mirrors `pulse.parsedJurisdiction`
-  // — same source field used by PulseDetailRow.jurisdiction.
+  // 2026-05-25 (Yuqi Alerts #9): jurisdiction (`FED` or a US
+  // state/DC code, e.g. "CA") on each list-item alert. Mirrors
+  // `pulse.parsedJurisdiction` — same source field used by
+  // PulseDetailRow.jurisdiction.
   jurisdiction: string
 }
 
@@ -563,7 +564,7 @@ function toAlert(row: AlertJoinedRow): PulseAlertRow {
     isSample: row.isSample,
     // 2026-05-25 (Yuqi Alerts #9): pass through the joined-row's
     // `parsedJurisdiction` (already selected via the pulse join in
-    // `loadAlertJoined`) so list consumers can filter by state
+    // `loadAlertJoined`) so list consumers can filter by jurisdiction
     // without a per-row detail fetch.
     jurisdiction: row.parsedJurisdiction,
   }

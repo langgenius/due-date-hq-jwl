@@ -72,6 +72,9 @@ export const PulseApplyReadinessSchema = z.object({
 })
 export type PulseApplyReadiness = z.infer<typeof PulseApplyReadinessSchema>
 
+export const PulseJurisdictionSchema = z.union([z.literal('FED'), StateCodeSchema])
+export type PulseJurisdiction = z.infer<typeof PulseJurisdictionSchema>
+
 export const PulsePriorityReasonKeySchema = z.enum([
   'preparer_requested',
   'needs_review_matches',
@@ -104,14 +107,14 @@ export const PulseAlertPublicSchema = z.object({
   needsReviewCount: z.number().int().min(0),
   confidence: z.number().min(0).max(1),
   isSample: z.boolean(),
-  // 2026-05-25 (Yuqi Alerts #9): jurisdiction (US state code) now
+  // 2026-05-25 (Yuqi Alerts #9): jurisdiction now
   // travels with each list-item alert so the alerts list page can
-  // filter / group / map by state without an N+1 detail fetch. The
+  // filter / group / map without an N+1 detail fetch. The
   // value mirrors `PulseDetail.jurisdiction` — same underlying
-  // `pulse.parsedJurisdiction` column in the DB. Marked as required
-  // because every pulse alert has a parsed jurisdiction at insertion
-  // time (the ingest pipeline rejects rows without one).
-  jurisdiction: StateCodeSchema,
+  // `pulse.parsedJurisdiction` column in the DB. It accepts `FED`
+  // plus state/DC codes because federal policy-watch and federal
+  // obligation alerts are first-class Pulse rows.
+  jurisdiction: PulseJurisdictionSchema,
 })
 export type PulseAlertPublic = z.infer<typeof PulseAlertPublicSchema>
 
@@ -119,7 +122,7 @@ export const PulseAffectedClientSchema = z.object({
   obligationId: EntityIdSchema,
   clientId: EntityIdSchema,
   clientName: z.string().min(1),
-  state: StateCodeSchema.nullable(),
+  state: PulseJurisdictionSchema.nullable(),
   county: z.string().nullable(),
   entityType: EntityTypeSchema,
   taxType: z.string().min(1),
@@ -133,7 +136,7 @@ export type PulseAffectedClient = z.infer<typeof PulseAffectedClientSchema>
 
 export const PulseDetailSchema = z.object({
   alert: PulseAlertPublicSchema,
-  jurisdiction: StateCodeSchema,
+  jurisdiction: PulseJurisdictionSchema,
   counties: z.array(z.string()),
   forms: z.array(z.string()),
   entityTypes: z.array(EntityTypeSchema),

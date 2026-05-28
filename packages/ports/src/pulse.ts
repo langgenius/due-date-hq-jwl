@@ -30,10 +30,10 @@ export interface PulseAlertRow {
   needsReviewCount: number
   confidence: number
   isSample: boolean
-  // 2026-05-25 (Yuqi Alerts #9): jurisdiction (US state code, e.g.
-  // "CA", "TX") on each list-item alert. Same value as
+  // 2026-05-25 (Yuqi Alerts #9): jurisdiction (`FED` or a US
+  // state/DC code, e.g. "CA", "TX") on each list-item alert. Same value as
   // PulseDetailRow.jurisdiction — mirrors `pulse.parsedJurisdiction`
-  // from the DB. Lets the alerts list page filter / group by state
+  // from the DB. Lets the alerts list page filter / group by jurisdiction
   // without an N+1 detail fetch.
   jurisdiction: string
 }

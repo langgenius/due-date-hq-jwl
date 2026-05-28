@@ -36,9 +36,9 @@ interface PulseAlertRow {
   confidence: number
   isSample: boolean
   // 2026-05-25 (Yuqi Alerts #9): mirrors the repo's PulseAlertRow
-  // jurisdiction field. Local interface stays a structural twin of
-  // the repo type (history-deep separation; merging the two is a
-  // refactor task on its own).
+  // jurisdiction field (`FED` or state/DC). Local interface stays a
+  // structural twin of the repo type (history-deep separation;
+  // merging the two is a refactor task on its own).
   jurisdiction: string
 }
 
@@ -161,7 +161,8 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     confidence: row.confidence,
     isSample: row.isSample,
     // 2026-05-25 (Yuqi Alerts #9): plumb jurisdiction through to the
-    // public row so the alerts list page can group/filter by state.
+    // public row so the alerts list page can group/filter without
+    // losing federal Pulse rows.
     jurisdiction: row.jurisdiction,
   }
 }

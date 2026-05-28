@@ -1240,6 +1240,7 @@ describe('@duedatehq/contracts', () => {
       isSample: true,
     })
     expect(alert.isSample).toBe(true)
+    expect(PulseAlertPublicSchema.parse({ ...alert, jurisdiction: 'FED' }).jurisdiction).toBe('FED')
 
     const affected = PulseAffectedClientSchema.parse({
       obligationId: '33333333-3333-4333-8333-333333333333',
@@ -1256,6 +1257,7 @@ describe('@duedatehq/contracts', () => {
       reason: 'Client county is missing; confirm county applicability before applying.',
     })
     expect(affected.matchStatus).toBe('needs_review')
+    expect(PulseAffectedClientSchema.parse({ ...affected, state: 'FED' }).state).toBe('FED')
 
     const detail = PulseDetailSchema.parse({
       alert,
@@ -1278,6 +1280,14 @@ describe('@duedatehq/contracts', () => {
       affectedClients: [affected],
     })
     expect(detail.applyReadiness.missing).toEqual(['original_due_date'])
+    expect(
+      PulseDetailSchema.parse({
+        ...detail,
+        alert: { ...detail.alert, jurisdiction: 'FED' },
+        jurisdiction: 'FED',
+        affectedClients: [{ ...affected, state: 'FED' }],
+      }).jurisdiction,
+    ).toBe('FED')
 
     const applyInput = PulseApplyInputSchema.parse({
       alertId: '11111111-1111-4111-8111-111111111111',
