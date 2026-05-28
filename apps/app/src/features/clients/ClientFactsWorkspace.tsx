@@ -229,8 +229,17 @@ export function TabSection({
   children: ReactNode
 }) {
   return (
+    // 2026-05-28 (Yuqi /clients/[id] polish — section header
+    // alignment): added `pl-3` (12px) to the header row so the
+    // section heading line aligns with the canonical 12px content
+    // gutter used elsewhere in the workbench (sidebar menu items,
+    // rule rows, etc). Actions cluster on the right pushes in by
+    // the same 12px so the header stays visually balanced. Outer
+    // `gap-3` between heading and children kept as the standard
+    // section vertical rhythm — same value used by other sections
+    // on the page so the rhythm reads consistent.
     <section className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pl-3">
         <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <div className="flex min-w-0 items-center gap-1">
             <h2 className="text-base font-semibold text-text-primary">{title}</h2>
