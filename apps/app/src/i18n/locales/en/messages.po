@@ -3019,6 +3019,10 @@ msgstr "Confirm the payment cleared (offline)"
 msgid "Confirm this client is in scope?"
 msgstr "Confirm this client is in scope?"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Confirm this date against the source notice before saving the deadline selection."
+msgstr "Confirm this date against the source notice before saving the deadline selection."
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Confirmed"
 msgstr "Confirmed"

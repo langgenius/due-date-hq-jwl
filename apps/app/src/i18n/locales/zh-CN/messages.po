@@ -3058,6 +3058,10 @@ msgstr "线下确认付款已到账"
 msgid "Confirm this client is in scope?"
 msgstr "确认此客户在范围内？"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Confirm this date against the source notice before saving the deadline selection."
+msgstr "保存截止日选择前，请对照来源公告确认这个日期。"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Confirmed"
 msgstr "已确认"

@@ -22,6 +22,8 @@ receive it, then explicitly Apply.
   current due date at application time, while forms/entity types come from the selected deadlines.
 - Updated the Pulse drawer to show a “Confirm deadline change” panel with only the new due date,
   deadline selector, and review note. Review-only Alerts still do not expose Apply.
+- Added a reminder under the new due date input so the CPA confirms the entered date against the
+  source notice before saving the deadline selection.
 - Wired `pulse.reviewDueDateOverlayDetails` into the root oRPC router. The handler existed in the
   Pulse procedure module, but the root router had not exposed it, causing `/rpc/pulse/reviewDueDateOverlayDetails`
   to return 500 before the handler ran.
