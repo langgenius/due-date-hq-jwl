@@ -461,12 +461,19 @@ export function SidebarContent({ className, ...props }: React.ComponentProps<'di
       data-slot="sidebar-content"
       className={cn(
         // 2026-05-26 (Yuqi sidebar fix — height parity): dropped the
-        // collapsed `gap-3` override. Same gap-4 (16px) between
-        // SidebarGroup blocks in both modes so the vertical rhythm
-        // doesn't drift. Horizontal padding still tightens in
-        // collapsed (px-1.5) so the 32×32 tile centers in the 56px
-        // rail — that one's a width concern, not a height one.
-        'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pt-4 pb-2',
+        // collapsed `gap-3` override. Same vertical rhythm between
+        // SidebarGroup blocks in both modes so the column doesn't
+        // drift. Horizontal padding still tightens in collapsed
+        // (px-1.5) so the 32×32 tile centers in the 56px rail —
+        // that one's a width concern, not a height one.
+        // 2026-05-29 (Yuqi sidebar expanded polish): inter-group gap
+        // stepped `gap-4` → `gap-3` (12px). Matches the app-wide
+        // canonical section gap codified in the gap consistency
+        // sweep (PR #44) — the sidebar now reads on the same
+        // rhythm as the body's section headers. Tighter groups also
+        // let the visible eyebrow text-headers carry their own
+        // breathing room instead of leaning on a bigger outer gap.
+        'flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-2 pt-4 pb-2',
         'group-data-[collapsed=true]/sidebar:px-1.5',
         className,
       )}
