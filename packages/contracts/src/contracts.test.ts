@@ -118,8 +118,10 @@ import {
   PulseAlertPublicSchema,
   PulseApplyInputSchema,
   PulseApplyOutputSchema,
+  PulseDetailSchema,
   PulseFirmAlertStatusSchema,
   PulseListAlertsInputSchema,
+  PulseReviewDueDateOverlayDetailsInputSchema,
   PulseRequestReviewInputSchema,
   PulseRequestReviewOutputSchema,
   pulseContract,
@@ -1195,6 +1197,7 @@ describe('@duedatehq/contracts', () => {
       'getDetailsBatch',
       'listPriorityQueue',
       'reviewPriorityMatches',
+      'reviewDueDateOverlayDetails',
       'applyReviewed',
       'apply',
       'dismiss',
@@ -1214,6 +1217,7 @@ describe('@duedatehq/contracts', () => {
       'reviewed',
     ])
     expect(ErrorCodes.PULSE_APPLY_CONFLICT).toBe('PULSE_APPLY_CONFLICT')
+    expect(ErrorCodes.PULSE_NEEDS_DETAILS).toBe('PULSE_NEEDS_DETAILS')
     expect(PulseListAlertsInputSchema.parse({ limit: 50 })).toEqual({ limit: 50 })
     expect(PulseListAlertsInputSchema.safeParse({ limit: 51 }).success).toBe(false)
 
@@ -1253,12 +1257,46 @@ describe('@duedatehq/contracts', () => {
     })
     expect(affected.matchStatus).toBe('needs_review')
 
+    const detail = PulseDetailSchema.parse({
+      alert,
+      jurisdiction: 'CA',
+      counties: ['Los Angeles'],
+      forms: ['federal_1065'],
+      entityTypes: ['llc'],
+      originalDueDate: null,
+      newDueDate: '2026-10-15',
+      effectiveFrom: null,
+      effectiveUntil: null,
+      affectedRuleIds: [],
+      structuredChange: null,
+      sourceExcerpt: 'some deadlines were extended',
+      reviewedAt: null,
+      applyReadiness: {
+        status: 'needs_details',
+        missing: ['original_due_date'],
+      },
+      affectedClients: [affected],
+    })
+    expect(detail.applyReadiness.missing).toEqual(['original_due_date'])
+
     const applyInput = PulseApplyInputSchema.parse({
       alertId: '11111111-1111-4111-8111-111111111111',
       obligationIds: ['33333333-3333-4333-8333-333333333333'],
       confirmedObligationIds: ['33333333-3333-4333-8333-333333333333'],
     })
     expect(applyInput.confirmedObligationIds).toEqual(['33333333-3333-4333-8333-333333333333'])
+
+    const detailsInput = PulseReviewDueDateOverlayDetailsInputSchema.parse({
+      alertId: alert.id,
+      originalDueDate: '2026-03-15',
+      newDueDate: '2026-10-15',
+      forms: [' federal_1065 '],
+      entityTypes: ['llc'],
+      counties: [' Los Angeles '],
+      note: ' Verified against source. ',
+    })
+    expect(detailsInput.forms).toEqual(['federal_1065'])
+    expect(detailsInput.note).toBe('Verified against source.')
 
     const apply = PulseApplyOutputSchema.parse({
       alert: { ...alert, status: 'applied', matchedCount: 0, needsReviewCount: 1 },

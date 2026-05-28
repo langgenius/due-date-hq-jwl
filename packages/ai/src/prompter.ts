@@ -298,7 +298,8 @@ Rules:
 - Use no_regulatory_change for navigation, formatting, contact details, generic instructions, or freshness-only changes.
 - Use no_regulatory_change for non-tax agency news, staffing, awards, auctions, fraud warnings, unclaimed property, portal availability, office hours, and generic taxpayer education unless the text changes a filing/payment requirement or due date.
 - RSS or news-list items are already narrowed to one candidate item. Classify only that item; do not infer a broader regulatory change from surrounding feed/list boilerplate.
-- Use deadline_shift with actionMode due_date_overlay only when both originalDueDate and newDueDate are explicitly present.
+- Use deadline_shift with actionMode due_date_overlay when the source appears to discuss a due-date change.
+- Leave originalDueDate, newDueDate, forms, counties, entityTypes, or affectedRuleIds null/[] when the source does not state them; never infer missing due-date scope.
 - Use review_only for filing requirement, applicability, form/instruction, source status, new obligation, and other non-date changes.
 - Do not infer deadlines, forms, jurisdictions, or eligibility that are not stated.
 - For no_regulatory_change, set changeKind/actionMode to null and all arrays to [] when not applicable.

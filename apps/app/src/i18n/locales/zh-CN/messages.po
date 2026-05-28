@@ -1375,6 +1375,10 @@ msgstr "咨询、业务范围与留存机会"
 msgid "Affected clients"
 msgstr "受影响客户"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Affected rule IDs"
+msgstr "受影响规则 ID"
+
 #: src/features/workload/workload-page.tsx
 msgid "Aggregated from open deadlines and client owner labels. Open any row in Deadlines to triage the underlying deadlines."
 msgstr "由进行中的截止事项和客户负责人标签汇总而来。打开「截止事项」中的任意行即可对底层截止事项进行分诊。"
@@ -2770,6 +2774,10 @@ msgstr "客户重要性"
 msgid "Client info"
 msgstr "客户信息"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Client matches refreshed from the confirmed scope."
+msgstr "已根据确认后的范围刷新客户匹配。"
+
 #: src/routes/obligations.tsx
 msgid "Client materials response"
 msgstr "客户材料回复"
@@ -2947,6 +2955,22 @@ msgstr "即将推出"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Command palette"
 msgstr "命令面板"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Complete deadline details"
+msgstr "补全截止日详情"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Complete deadline details before applying"
+msgstr "应用前先补全截止日详情"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Complete details to apply"
+msgstr "补全详情后才能应用"
+
+#: src/features/pulse/lib/error-mapping.ts
+msgid "Complete the deadline details before applying this alert."
+msgstr "请先补全截止日详情，再应用此提醒。"
 
 #: src/features/obligations/CompletedKeyDates.tsx
 #: src/features/obligations/status-control.tsx
@@ -3469,6 +3493,10 @@ msgstr "无法保存"
 msgid "Couldn't save client details"
 msgstr "无法保存客户详情"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Couldn't save deadline details"
+msgstr "无法保存截止日详情"
+
 #: src/routes/obligations.tsx
 msgid "Couldn't save extension plan"
 msgstr "无法保存延期计划"
@@ -3608,6 +3636,7 @@ msgid "Couldn't verify the code"
 msgstr "无法验证代码"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
+#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Counties"
 msgstr "县"
 
@@ -3854,6 +3883,10 @@ msgstr "截止日类别"
 #: src/routes/obligations.tsx
 msgid "Deadline detail"
 msgstr "截止事项详情"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Deadline details saved"
+msgstr "截止日详情已保存"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Deadline evidence"
@@ -4508,6 +4541,7 @@ msgid "Entity type · enum"
 msgstr "实体类型"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
+#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Entity types"
 msgstr "实体类型"
 
@@ -5214,6 +5248,7 @@ msgid "Former teammate"
 msgstr "前团队成员"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
+#: src/features/pulse/PulseDetailDrawer.tsx
 #: src/features/rules/coverage-tab.tsx
 msgid "Forms"
 msgstr "表格"
@@ -6728,6 +6763,10 @@ msgstr "新建自定义规则"
 msgid "New deadlines"
 msgstr "新截止事项"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "New due date"
+msgstr "新截止日"
+
 #: src/routes/rules.library.tsx
 msgid "New rule"
 msgstr "新建规则"
@@ -7504,6 +7543,10 @@ msgstr "仅 Owner 与 Manager 可应用监管提醒。"
 msgid "Only {0} can manage billing."
 msgstr "只有 Owner 可以管理账单。"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Only authorized reviewers can confirm deadline details."
+msgstr "只有授权审核人可以确认截止日详情。"
+
 #: src/routes/billing.tsx
 msgid "Only practice owners can change plans or open the portal."
 msgstr "只有事务所 Owner 可以更改计划或打开 portal。"
@@ -7851,6 +7894,10 @@ msgstr "或使用 SSO 继续"
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "or press <0>Enter</0>"
 msgstr "or press <0>Enter</0>"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Original due date"
+msgstr "原截止日"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Original entry"
@@ -9471,6 +9518,10 @@ msgstr "查看覆盖、来源和待审核规则。"
 msgid "Review lightweight client business cues."
 msgstr "查看轻量客户业务提示。"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Review note"
+msgstr "审核备注"
+
 #: src/routes/obligations.tsx
 msgid "Review notes open"
 msgstr "复核备注已打开"
@@ -9925,6 +9976,10 @@ msgstr "保存更改"
 msgid "Save client details"
 msgstr "保存客户详情"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Save deadline details"
+msgstr "保存截止日详情"
+
 #: src/routes/obligations.tsx
 msgid "Save extension"
 msgstr "保存延期"
@@ -10020,6 +10075,7 @@ msgstr "正在保存已确认字段，并将值分组以供复核。"
 
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/pulse/components/PulseReasonDialog.tsx
+#: src/features/pulse/PulseDetailDrawer.tsx
 #: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 msgid "Saving…"
@@ -11534,6 +11590,10 @@ msgstr "该操作尚未接入。"
 #: src/features/clients/ClientFactPanels.tsx
 msgid "This AI insight was generated before the client's facts changed. Refresh to get an up-to-date summary."
 msgstr "此 AI 洞察是在客户信息变更前生成的。请刷新以获取最新摘要。"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "This alert appears to involve a due-date change, but the extracted fields are not ready for Apply. Confirm the missing fields against the official source."
+msgstr "此提醒似乎涉及截止日变更，但提取字段尚不足以执行应用。请根据官方来源确认缺失字段。"
 
 #: src/features/pulse/lib/error-mapping.ts
 msgid "This alert is no longer available."

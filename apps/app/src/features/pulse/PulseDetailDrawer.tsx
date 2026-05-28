@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
 import { Label } from '@duedatehq/ui/components/ui/label'
+import { Input } from '@duedatehq/ui/components/ui/input'
 import {
   Sheet,
   SheetContent,
@@ -48,6 +49,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
+import { CLIENT_ENTITY_TYPES, type ClientEntityType } from '@/features/clients/client-readiness'
 
 import { AffectedClientsTable } from './components/AffectedClientsTable'
 // Step 9 retired `PulseConfidenceBadge` in favor of the canonical
@@ -119,6 +121,30 @@ export function canRequestPulseReview(input: {
     input.sourceStatus !== 'source_revoked' &&
     !REVIEW_UNAVAILABLE_STATUSES.has(input.alertStatus)
   )
+}
+
+const EDITABLE_DEADLINE_DETAIL_FIELDS = new Set([
+  'original_due_date',
+  'new_due_date',
+  'forms',
+  'entity_types',
+])
+
+type PulseDeadlineReadinessInput = {
+  alert: Pick<PulseDetail['alert'], 'actionMode'>
+  applyReadiness: PulseDetail['applyReadiness']
+}
+
+export function hasMissingDeadlineDetails(detail: PulseDeadlineReadinessInput): boolean {
+  return (
+    detail.alert.actionMode === 'due_date_overlay' &&
+    detail.applyReadiness.status === 'needs_details' &&
+    detail.applyReadiness.missing.some((field) => EDITABLE_DEADLINE_DETAIL_FIELDS.has(field))
+  )
+}
+
+export function canApplyPulseDeadline(detail: PulseDeadlineReadinessInput): boolean {
+  return detail.alert.actionMode !== 'due_date_overlay' || detail.applyReadiness.status === 'ready'
 }
 
 // Read RBAC from the firms cache the layout already primed. The Apply CTA stays
@@ -282,6 +308,8 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
       detail ? computeSelectionStats(detail.affectedClients, selection, confirmedReviewIds) : null,
     [detail, selection, confirmedReviewIds],
   )
+  const missingDeadlineDetails = detail ? hasMissingDeadlineDetails(detail) : false
+  const deadlineApplyReady = detail ? canApplyPulseDeadline(detail) : false
 
   const handleToggleNeedsReviewConfirmation = (obligationId: string, confirmed: boolean) => {
     setConfirmedReviewIds((current) => {
@@ -479,6 +507,22 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
     }),
   )
 
+  const reviewDueDateDetailsMutation = useMutation(
+    orpc.pulse.reviewDueDateOverlayDetails.mutationOptions({
+      onSuccess: () => {
+        invalidate()
+        toast.success(t`Deadline details saved`, {
+          description: t`Client matches refreshed from the confirmed scope.`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't save deadline details`, {
+          description: i18n._(pulseErrorDescriptor(err)),
+        })
+      },
+    }),
+  )
+
   const applyReviewedMutation = useMutation(
     orpc.pulse.applyReviewed.mutationOptions({
       onSuccess: (result) => {
@@ -505,6 +549,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
     applyMutation.isPending ||
     dismissMutation.isPending ||
     markReviewedMutation.isPending ||
+    reviewDueDateDetailsMutation.isPending ||
     reviewPriorityMutation.isPending ||
     reactivateMutation.isPending ||
     requestReviewMutation.isPending ||
@@ -522,6 +567,10 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
   // (DrawerActions L1154), which has its own reason-capture flow.
   const handleApply = () => {
     if (!detail) return
+    if (!canApplyPulseDeadline(detail)) {
+      toast.error(t`Complete deadline details before applying`)
+      return
+    }
     setApplyVerified(false)
     setApplyVerificationOpen(true)
   }
@@ -534,6 +583,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
   // the next alert opens with a fresh gate.
   const runApply = () => {
     if (!detail) return
+    if (!canApplyPulseDeadline(detail)) return
     applyMutation.mutate({
       alertId: detail.alert.id,
       obligationIds: Array.from(selection),
@@ -779,6 +829,20 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
 
         {detail ? (
           <>
+            {missingDeadlineDetails ? (
+              <DeadlineDetailsPanel
+                detail={detail}
+                canManage={permissions.canApply}
+                pending={reviewDueDateDetailsMutation.isPending}
+                onSubmit={(input) =>
+                  reviewDueDateDetailsMutation.mutate({
+                    alertId: detail.alert.id,
+                    ...input,
+                  })
+                }
+              />
+            ) : null}
+
             {/* 2026-05-25 (Yuqi #10): Affected clients moved to
                   the top of the drawer body. This is THE most
                   important question the CPA brings to a Pulse alert
@@ -788,7 +852,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                   metadata before seeing the impact list. Empty case
                   (#10): if the alert has no affected clients, say
                   so explicitly instead of just hiding the table. */}
-            {detail.alert.actionMode === 'due_date_overlay' ? (
+            {detail.alert.actionMode === 'due_date_overlay' && !missingDeadlineDetails ? (
               <section className="flex flex-col gap-3">
                 <header className="flex items-baseline justify-between">
                   {/* 2026-05-25 (info-icon audit): unwrapped —
@@ -823,7 +887,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                     onToggleExcluded={
                       permissions.canViewPriorityQueue ? handleToggleExcluded : undefined
                     }
-                    readOnly={!canApply}
+                    readOnly={!canApply || !deadlineApplyReady}
                   />
                 ) : (
                   <p className="rounded-md border border-divider-subtle bg-background-soft px-4 py-3 text-sm text-text-secondary">
@@ -903,7 +967,9 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
               </Alert>
             ) : null}
 
-            {detail.alert.actionMode === 'due_date_overlay' && permissions.canViewPriorityQueue ? (
+            {detail.alert.actionMode === 'due_date_overlay' &&
+            permissions.canViewPriorityQueue &&
+            deadlineApplyReady ? (
               <ManagerReviewPanel
                 canManage={permissions.canManagePriorityReview}
                 reviewStatus={priorityReview?.status ?? null}
@@ -923,7 +989,9 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
               />
             ) : null}
 
-            {detail.alert.actionMode === 'due_date_overlay' ? <ApplySafetyChecklist /> : null}
+            {detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady ? (
+              <ApplySafetyChecklist />
+            ) : null}
           </>
         ) : null}
       </div>
@@ -959,6 +1027,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
             sourceStatus={detail.alert.sourceStatus}
             selectionCount={stats?.selectedCount ?? 0}
             actionMode={detail.alert.actionMode}
+            requiresDeadlineDetails={missingDeadlineDetails}
             canApply={canApply}
             // ROH-D15 — Undo button now gates on `pulse.revert` instead
             // of the `pulse.apply` proxy.
@@ -969,7 +1038,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
               sourceStatus: detail.alert.sourceStatus,
             })}
             canApplyReviewed={permissions.canManagePriorityReview}
-            reviewedSetReady={priorityReview?.status === 'reviewed'}
+            reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
             isMutating={isMutating}
             onApply={handleApply}
             onMarkReviewed={() => {
@@ -1153,6 +1222,7 @@ function DrawerActions({
   sourceStatus,
   selectionCount,
   actionMode,
+  requiresDeadlineDetails,
   canApply,
   canRevert,
   canRequestReview,
@@ -1173,6 +1243,7 @@ function DrawerActions({
   sourceStatus: PulseStatus
   selectionCount: number
   actionMode: PulseDetail['alert']['actionMode']
+  requiresDeadlineDetails: boolean
   canApply: boolean
   // ROH-D15 — gate the Undo button on the dedicated `pulse.revert`
   // permission instead of borrowing `canApply`. Same role set today,
@@ -1198,6 +1269,7 @@ function DrawerActions({
   const sourceRevoked = sourceStatus === 'source_revoked'
   const isClosed = alertStatus === 'reverted' || isDismissed || sourceRevoked
   const reviewOnly = actionMode === 'review_only'
+  const needsDeadlineDetails = actionMode === 'due_date_overlay' && requiresDeadlineDetails
   return (
     // 2026-05-26 (Yuqi forty-fourth pass — footer two-cluster
     // layout): reversal actions (Undo / Reactivate) split out to
@@ -1268,12 +1340,19 @@ function DrawerActions({
             stay sm so this one reads as the dominant call-to-action. */}
         <Button
           variant={canRequestReview ? 'outline' : undefined}
-          disabled={!canApply || isMutating || isClosed || (!reviewOnly && selectionCount === 0)}
+          disabled={
+            !canApply ||
+            isMutating ||
+            isClosed ||
+            (!reviewOnly && (needsDeadlineDetails || selectionCount === 0))
+          }
           onClick={reviewOnly ? onMarkReviewed : onApply}
           aria-busy={isMutating || undefined}
         >
           {reviewOnly ? (
             <Trans>Mark reviewed</Trans>
+          ) : needsDeadlineDetails ? (
+            <Trans>Complete details to apply</Trans>
           ) : selectionCount === 0 ? (
             <Trans>Select deadlines to apply</Trans>
           ) : (
@@ -1288,7 +1367,7 @@ function DrawerActions({
         {canApplyReviewed && !reviewOnly ? (
           <Button
             size="sm"
-            disabled={isMutating || isClosed || !reviewedSetReady}
+            disabled={isMutating || isClosed || needsDeadlineDetails || !reviewedSetReady}
             onClick={onApplyReviewed}
           >
             <Trans>Apply reviewed set</Trans>
@@ -1296,6 +1375,244 @@ function DrawerActions({
         ) : null}
       </div>
     </div>
+  )
+}
+
+type DeadlineDetailsSubmitInput = {
+  originalDueDate: string
+  newDueDate: string
+  forms: string[]
+  entityTypes: ClientEntityType[]
+  counties: string[]
+  affectedRuleIds: string[]
+  note?: string
+}
+
+function splitCsv(value: string): string[] {
+  return Array.from(
+    new Set(
+      value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  )
+}
+
+const ENTITY_TYPE_LABELS = {
+  llc: 'LLC',
+  s_corp: 'S corp',
+  partnership: 'Partnership',
+  c_corp: 'C corp',
+  sole_prop: 'Sole prop',
+  trust: 'Trust',
+  individual: 'Individual',
+  other: 'Other',
+} satisfies Record<ClientEntityType, string>
+
+function MissingDetailBadgeLabel({
+  field,
+}: {
+  field: PulseDetail['applyReadiness']['missing'][number]
+}) {
+  switch (field) {
+    case 'original_due_date':
+      return <Trans>Original due date</Trans>
+    case 'new_due_date':
+      return <Trans>New due date</Trans>
+    case 'forms':
+      return <Trans>Forms</Trans>
+    case 'entity_types':
+      return <Trans>Entity types</Trans>
+    case 'affected_clients':
+      return <Trans>Affected clients</Trans>
+  }
+  return null
+}
+
+function DeadlineDetailsPanel({
+  detail,
+  canManage,
+  pending,
+  onSubmit,
+}: {
+  detail: PulseDetail
+  canManage: boolean
+  pending: boolean
+  onSubmit: (input: DeadlineDetailsSubmitInput) => void
+}) {
+  const [originalDueDate, setOriginalDueDate] = useState(detail.originalDueDate ?? '')
+  const [newDueDate, setNewDueDate] = useState(detail.newDueDate ?? '')
+  const [formsText, setFormsText] = useState(detail.forms.join(', '))
+  const [countiesText, setCountiesText] = useState(detail.counties.join(', '))
+  const [affectedRuleIdsText, setAffectedRuleIdsText] = useState(detail.affectedRuleIds.join(', '))
+  const [note, setNote] = useState('')
+  const [entityTypes, setEntityTypes] = useState<Set<ClientEntityType>>(
+    () => new Set(detail.entityTypes),
+  )
+  const forms = splitCsv(formsText)
+  const counties = splitCsv(countiesText)
+  const affectedRuleIds = splitCsv(affectedRuleIdsText)
+  const selectedEntityTypes = Array.from(entityTypes)
+  const canSave =
+    canManage &&
+    !pending &&
+    Boolean(originalDueDate) &&
+    Boolean(newDueDate) &&
+    forms.length > 0 &&
+    selectedEntityTypes.length > 0
+
+  return (
+    <section className="flex flex-col gap-3 rounded-md border border-warning/40 bg-warning/5 p-4">
+      <div className="flex flex-col gap-1">
+        <h3 className="text-sm font-semibold text-text-primary">
+          <Trans>Complete deadline details</Trans>
+        </h3>
+        <p className="text-sm text-text-secondary">
+          <Trans>
+            This alert appears to involve a due-date change, but the extracted fields are not ready
+            for Apply. Confirm the missing fields against the official source.
+          </Trans>
+        </p>
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {detail.applyReadiness.missing.map((field) => (
+            <Badge key={field} variant="outline" className="bg-background-default">
+              <MissingDetailBadgeLabel field={field} />
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <form
+        className="grid gap-3 md:grid-cols-2"
+        onSubmit={(event) => {
+          event.preventDefault()
+          if (!canSave) return
+          onSubmit({
+            originalDueDate,
+            newDueDate,
+            forms,
+            entityTypes: selectedEntityTypes,
+            counties,
+            affectedRuleIds,
+            ...(note.trim() ? { note: note.trim() } : {}),
+          })
+        }}
+      >
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="pulse-original-due-date">
+            <Trans>Original due date</Trans>
+          </Label>
+          <Input
+            id="pulse-original-due-date"
+            type="date"
+            value={originalDueDate}
+            disabled={!canManage || pending}
+            onChange={(event) => setOriginalDueDate(event.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="pulse-new-due-date">
+            <Trans>New due date</Trans>
+          </Label>
+          <Input
+            id="pulse-new-due-date"
+            type="date"
+            value={newDueDate}
+            disabled={!canManage || pending}
+            onChange={(event) => setNewDueDate(event.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5 md:col-span-2">
+          <Label htmlFor="pulse-forms">
+            <Trans>Forms</Trans>
+          </Label>
+          <Input
+            id="pulse-forms"
+            value={formsText}
+            disabled={!canManage || pending}
+            placeholder="federal_1065, federal_1120s"
+            onChange={(event) => setFormsText(event.target.value)}
+          />
+        </div>
+        <fieldset className="flex flex-col gap-2 md:col-span-2">
+          <legend className="text-sm font-medium text-text-primary">
+            <Trans>Entity types</Trans>
+          </legend>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {CLIENT_ENTITY_TYPES.map((entityType) => {
+              const checked = entityTypes.has(entityType)
+              return (
+                <label
+                  key={entityType}
+                  className="flex items-center gap-2 rounded-md border border-divider-subtle bg-background-default px-3 py-2 text-sm"
+                >
+                  <Checkbox
+                    checked={checked}
+                    disabled={!canManage || pending}
+                    onCheckedChange={(value) => {
+                      setEntityTypes((current) => {
+                        const next = new Set(current)
+                        if (value) next.add(entityType)
+                        else next.delete(entityType)
+                        return next
+                      })
+                    }}
+                  />
+                  <span>{ENTITY_TYPE_LABELS[entityType]}</span>
+                </label>
+              )
+            })}
+          </div>
+        </fieldset>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="pulse-counties">
+            <Trans>Counties</Trans>
+          </Label>
+          <Input
+            id="pulse-counties"
+            value={countiesText}
+            disabled={!canManage || pending}
+            placeholder="Los Angeles, Ventura"
+            onChange={(event) => setCountiesText(event.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="pulse-affected-rules">
+            <Trans>Affected rule IDs</Trans>
+          </Label>
+          <Input
+            id="pulse-affected-rules"
+            value={affectedRuleIdsText}
+            disabled={!canManage || pending}
+            onChange={(event) => setAffectedRuleIdsText(event.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5 md:col-span-2">
+          <Label htmlFor="pulse-detail-note">
+            <Trans>Review note</Trans>
+          </Label>
+          <Textarea
+            id="pulse-detail-note"
+            value={note}
+            disabled={!canManage || pending}
+            onChange={(event) => setNote(event.target.value)}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-3 md:col-span-2">
+          {!canManage ? (
+            <p className="text-sm text-text-secondary">
+              <Trans>Only authorized reviewers can confirm deadline details.</Trans>
+            </p>
+          ) : (
+            <span />
+          )}
+          <Button type="submit" disabled={!canSave}>
+            {pending ? <Trans>Saving…</Trans> : <Trans>Save deadline details</Trans>}
+          </Button>
+        </div>
+      </form>
+    </section>
   )
 }
 

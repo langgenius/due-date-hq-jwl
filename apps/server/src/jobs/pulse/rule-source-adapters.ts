@@ -261,18 +261,7 @@ export const hiddenPolicyWatchSourceIds = new Set(
   hiddenPolicyWatchAdapters.map((adapter) => adapter.id),
 )
 
-export const reviewOnlyPulseSourceIds = new Set([
-  'fema.declarations',
-  'govdelivery.inbound',
-  ...listRuleSources()
-    .filter(isRuleSourceAdapterEligible)
-    .filter((source) => !isRuleSourcePulsePromoted(source))
-    .map((source) => source.id),
-  ...listHiddenPolicyWatchSources()
-    .filter(isPolicyWatchAdapterEligible)
-    .filter((source) => policyWatchAutomationStatusForSource(source) === 'signal_only')
-    .map((source) => source.id),
-])
+export const reviewOnlyPulseSourceIds = new Set(['fema.declarations', 'govdelivery.inbound'])
 
 export function isHiddenPolicyWatchSourceId(sourceId: string): boolean {
   return hiddenPolicyWatchSourceIds.has(sourceId)

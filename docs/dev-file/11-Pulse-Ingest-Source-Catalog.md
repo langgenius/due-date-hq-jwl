@@ -30,20 +30,25 @@
 | Tier   | 含义                                            | Evidence Mode 显示          | 默认 `confidence` 起点 | 示例                                    |
 | ------ | ----------------------------------------------- | --------------------------- | ---------------------- | --------------------------------------- |
 | **T1** | 政府官方主站，可作直接证据链引用                | `Official` badge + 原文链接 | 0.9                    | IRS Disaster Relief / CA FTB / NY DTF   |
-| **T2** | 政府官方衍生信号（API / 第三方转发 / 跨域联动） | `Signal` badge              | 0.7（需 T1 交叉验证）  | FEMA API / GovDelivery / broad newsroom |
+| **T2** | 政府官方衍生线索（API / 第三方转发 / 跨域联动） | `Review` badge              | 0.7（需 T1 交叉验证）  | FEMA API / GovDelivery / broad newsroom |
 | **T3** | 商业聚合 / 行业协会 / 邮件订阅解析              | `Reference` badge（隐藏源） | 0.5（仅作触发器）      | FTA / AICPA / Checkpoint / Avalara      |
 
-**规则：** T1 自动源在证据完整时可以进入 apply flow；T2/T3、PDF-only、manual-check、
-FEMA/GovDelivery early signal 一律进入 CPA-facing review-only Alert，不显示 Apply。GovDelivery
-属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` canonical page；邮件正文只作为快照证据。
+**规则：** Ingest / extract 只允许创建 CPA-facing Alert，任何情况下都不能自动批量更改
+客户 deadline。官方税务来源如果显示可能存在 due-date change，可以创建
+`deadline_shift + due_date_overlay` candidate；字段完整且命中客户时为 `ready`，字段缺失时为
+`needs_details`，Apply 禁用，直到 CPA 在 Alert 中补齐并确认 scope。`review_only` 只表示
+永远不能 Apply，用于非 due-date 政策变化、参考线索、非税务权威 disaster early notice。
+GovDelivery 属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` canonical page；邮件正文只作为
+快照证据。
 
 **当前实现状态（2026-05-28）：**
 
 - 所有 parsed item 都写 `pulse_source_snapshot` 并投递
   `PULSE_QUEUE { type: 'pulse.extract', snapshotId }`，后续经 AI Extract 进入 CPA-facing Alerts。
-- `signal_only` source 不再是内部队列；它表示 extract 结果强制 `action_mode='review_only'`，
-  可提醒、复核、dismiss/mark reviewed，但永远没有 Apply 操作。
-- FEMA/GovDelivery early signal 会生成 review-only Alert；低相关列表噪声仍在 adapter/extract
+- `signal_only` source 不再是内部队列；它表示 CPA-facing Alert 默认不能直接 Apply。若官方税务
+  文本明确涉及 due-date change，则可以进入 `due_date_overlay + needs_details`，否则为
+  `review_only`。
+- FEMA/GovDelivery early notice 会生成 review-only Alert；低相关列表噪声仍在 adapter/extract
   前过滤。
 - Rules registry 已登记 50 州 + DC 的官方 tax-topic、filing FAQ、statute、due-date
   与 income-tax 具体页面；这些来源先服务 Rules evidence / practice review，不等于都进入自动
@@ -51,8 +56,14 @@ FEMA/GovDelivery early signal 一律进入 CPA-facing review-only Alert，不显
 - `apps/server/src/jobs/pulse/rule-source-adapters.ts` 会把带 `practice_rule_review` 的
   parser-backed rule sources 接入 `pulse_source_state`。HTML、RSS/API、PDF 文档/索引都能
   产出 `pulse_source_snapshot` 并进入 `pulse.extract`；manual registry URL 会按 URL 形态降级
-  为 parser-backed review-only source，而不是停留在人工队列。PDF、弱结构 baseline、
-  signal-only source 强制 review-only。
+  为 parser-backed source，而不是停留在人工队列。PDF、弱结构 baseline、signal-only source
+  不是强制 `review_only` 的充分条件；是否可 Apply 取决于 due-date intent、CPA 补齐后的
+  `applyReadiness`，以及匹配到的 eligible clients。
+- PDF 默认先走 `pdfjs-dist` 的确定性文本抽取，再把文本交给 AI Extract；不把二进制 PDF
+  直接作为默认 AI 输入。direct-PDF / vision fallback 只适合在抽取文本为空、疑似扫描件或
+  版面证据不足时启用。该 fallback 仍不能自动修改客户 deadline；如果识别出 due-date change，
+  也必须先进入 CPA-facing Alert 并通过 `applyReadiness` gate。启用该 fallback 前，需要把原始
+  PDF binary 一并归档到 R2，保留可审计 source artifact。
 
 ---
 
@@ -65,7 +76,7 @@ FEMA/GovDelivery early signal 一律进入 CPA-facing review-only Alert，不显
 | `irs.disaster` | IRS Disaster Relief | `https://www.irs.gov/newsroom/tax-relief-in-disaster-situations` | HTML detail diff | 60 min  | 高         | 联邦灾害延期的 T1 主源；抓 "Recent Tax Relief" 表格 + detail page       |
 | `irs.newsroom` | IRS Newsroom        | `https://www.irs.gov/newsroom`                                   | HTML list/detail | 120 min | 中         | 广谱新闻信号，噪声高；不作为灾害延期主源；不得依赖未复核的 RSS endpoint |
 | `irs.guidance` | IRS Guidance        | `https://www.irs.gov/newsroom/irs-guidance`                      | HTML list/detail | 120 min | 中         | Revenue Ruling / Procedure / Notice；比新闻稿更硬，但不进 Demo Sprint   |
-| `irs.tips`     | IRS Tax Tips        | `https://www.irs.gov/newsroom/irs-tax-tips`                      | HTML list/detail | 120 min | 中         | 补充信号，命中 Pulse 匹配的概率低，默认 `Signal` badge（T2）            |
+| `irs.tips`     | IRS Tax Tips        | `https://www.irs.gov/newsroom/irs-tax-tips`                      | HTML list/detail | 120 min | 中         | 补充线索，命中 Pulse 匹配的概率低，默认 review-only（T2）               |
 
 ### 3.2 State Primary（DOR · T1，全辖区 source-backed 模型）
 
@@ -96,23 +107,24 @@ FEMA/GovDelivery early signal 一律进入 CPA-facing review-only Alert，不显
   TX adapter 在 retry 路径只抓列表页并保留详情 `officialSourceUrl`，避免同步 source health
   refresh 串行拉详情页导致超时。
 
-### 3.3 Disaster Signal（T2 预判层）
+### 3.3 Disaster Watch（T2 预判层）
 
 | ID                  | 名称                           | URL                                                              | 协议     | 频率   | 用法                                                                               |
 | ------------------- | ------------------------------ | ---------------------------------------------------------------- | -------- | ------ | ---------------------------------------------------------------------------------- |
 | `fema.declarations` | FEMA Disaster Declarations API | `https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries` | JSON API | 30 min | IRS 灾害延期常跟随 FEMA；FEMA item 作为 CPA-facing review-only Alert，不进入 Apply |
 | `weather.alerts`    | NWS Active Alerts (optional)   | `https://api.weather.gov/alerts/active`                          | GeoJSON  | 60 min | Phase 2；仅在做"前置预警"功能时启用                                                |
 
-**关键设计：** FEMA 信号独立生成 review-only Alert。只有官方税务来源同时给出原截止日、
-新截止日、jurisdiction/scope 时，才允许 `deadline_shift + due_date_overlay` 进入 Apply flow。
+**关键设计：** FEMA 来源独立生成 review-only Alert。只有官方税务来源同时给出原截止日、
+新截止日、jurisdiction/scope 时，才允许创建 `deadline_shift + due_date_overlay` Alert；客户
+deadline 变更仍只能由 CPA 在 Alert 中 review 后手动 Apply。
 
 ### 3.4 Aggregator & Association（T3 参考层）
 
-| ID              | 名称                                             | URL / 接入方式                           | 用途                                                                    |
-| --------------- | ------------------------------------------------ | ---------------------------------------- | ----------------------------------------------------------------------- |
-| `fta.directory` | Federation of Tax Administrators                 | `https://taxadmin.org/`                  | 50 州 DOR 目录，扩州时的源发现入口                                      |
-| `aicpa.chart`   | AICPA State Tax Filing Guidance Chart            | 会员 PDF                                 | 人工复核时的 cross-check 材料，不抓                                     |
-| `govdelivery.*` | GovDelivery / 官方邮件订阅（TX/FL/WA/MA 等候选） | Inbound Email → Cloudflare Email Routing | **免反爬的官方投递信号**；只作内部触发器，Evidence 回链 `.gov`；见 §5.3 |
+| ID              | 名称                                             | URL / 接入方式                           | 用途                                                                           |
+| --------------- | ------------------------------------------------ | ---------------------------------------- | ------------------------------------------------------------------------------ |
+| `fta.directory` | Federation of Tax Administrators                 | `https://taxadmin.org/`                  | 50 州 DOR 目录，扩州时的源发现入口                                             |
+| `aicpa.chart`   | AICPA State Tax Filing Guidance Chart            | 会员 PDF                                 | 人工复核时的 cross-check 材料，不抓                                            |
+| `govdelivery.*` | GovDelivery / 官方邮件订阅（TX/FL/WA/MA 等候选） | Inbound Email → Cloudflare Email Routing | **免反爬的官方投递信号**；生成 CPA-facing Alert，Evidence 回链 `.gov`；见 §5.3 |
 
 ### 3.5 Commercial Fallback（T3 备选，Demo 后再评估）
 
@@ -159,7 +171,7 @@ export const RATE_LIMIT = {
 | 源类型                                      | 风险                                                     | 预案                                                                                                                                               |
 | ------------------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `irs.disaster` / `irs.newsroom`             | 几乎不封，但偶发 WAF 503                                 | 403/503 时退避 15min；连续 3 次失败 → Sentry + owner/manager digest；灾害延期以 `irs.disaster` 为准                                                |
-| `ca.ftb.*` / `ca.cdtfa.news`                | 偶尔触发 Akamai Bot Manager                              | 走可配置 `browserless` fetcher；未配置时只用 Cloudflare fetch，并按 ingest metrics/source diagnostics 告警给 ops                                   |
+| `ca.ftb.*` / `ca.cdtfa.news`                | 偶尔触发 Akamai Bot Manager                              | 走可配置 `browserless` fetcher；未配置时只用 Cloudflare fetch，并按 ingest metrics/source diagnostics 暴露失败                                     |
 | `ny.dtf.press`                              | HTML archive 结构可能调整                                | 不假设 RSS；HTML selector fallback + NY Email Services 兜底                                                                                        |
 | `tx.cpa.rss`                                | 官方新闻页可抓；GovDelivery topic feed robots-disallowed | 抓 Comptroller 官方 News Releases HTML 列表链接；GovDelivery 仅用于人工订阅 / inbound email，不作为 crawler endpoint；按 tax relevance filter 过滤 |
 | `fl.dor.tips` / `wa.dor.*` / `ma.dor.press` | 中风险，页面结构年度改版或 WAF 挑战                      | 每条 selector 必须附 **selector fallback chain**（见 §6.2），失败 → Browserless / 官方邮件兜底 / 人工录入                                          |
@@ -201,7 +213,8 @@ export const SOURCE_FETCHER: Record<SourceId, FetcherId> = {
 ### 4.4 法务与合规边界
 
 - 每个源上线前逐项确认 `robots.txt` / ToS；默认只抓公开页面，商用口径需法务确认
-- `GovDelivery` 订阅邮件转发受用户协议保护，**不可作为公开 API 对外暴露**，仅作内部信号
+- `GovDelivery` 订阅邮件转发受用户协议保护，**不可作为公开 API 对外暴露**；只可作为
+  CPA-facing Alert 的 source snapshot 输入
 - 抓到的原文（`raw_r2_key`）保留 90 天，用于 Evidence Mode 回看；超期自动归档
 - **严禁** 登录后抓取（no authenticated scraping），一律走公开页
 
@@ -211,13 +224,13 @@ export const SOURCE_FETCHER: Record<SourceId, FetcherId> = {
 
 ### 5.1 单源失败场景
 
-| 失败类型                | 检测方式                                    | 响应                                                                          | 用户可见影响                                  |
-| ----------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- | --------------------------------------------- |
-| HTTP 5xx / timeout      | worker 直接 catch                           | 退避 + 重试 3 次；失败 → Sentry                                               | `Last checked X min ago` 显示真实时间（诚实） |
-| HTTP 403 / 429（反爬）  | status code                                 | 退避 15min + 切 `browserless` fetcher（Phase 2）                              | 同上                                          |
-| 结构变更（selector 挂） | 解析后字段为空 / hash 长期不变              | worker 主动报 `selector-drift` 事件；降级 mock 数据（仅 Demo 环境）           | CPA UI 仍显示 watched；ops 看 failure metric  |
-| 内容污染（钓鱼页）      | AI SDK Extract `confidence < 0.3` 连续 3 次 | 该源打入 `quarantined` 状态，下次 cron 跳过，创建 owner/manager review task   | 源从 Feed 隐藏                                |
-| 法律下架（Takedown）    | owner/manager 手动触发                      | 源 `disabled`，历史 Pulse 保留但打 `source_revoked` 标记，Evidence 链保留快照 | Evidence Drawer 显示 "Source no longer live"  |
+| 失败类型                | 检测方式                                    | 响应                                                                          | 用户可见影响                                                  |
+| ----------------------- | ------------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| HTTP 5xx / timeout      | worker 直接 catch                           | 退避 + 重试 3 次；失败 → Sentry                                               | `Last checked X min ago` 显示真实时间（诚实）                 |
+| HTTP 403 / 429（反爬）  | status code                                 | 退避 15min + 切 `browserless` fetcher（Phase 2）                              | 同上                                                          |
+| 结构变更（selector 挂） | 解析后字段为空 / hash 长期不变              | worker 主动报 `selector-drift` 事件；降级 mock 数据（仅 Demo 环境）           | CPA UI 仍显示 watched；source diagnostics 记录 failure metric |
+| 内容污染（钓鱼页）      | AI SDK Extract `confidence < 0.3` 连续 3 次 | 该源打入 `quarantined` 状态，下次 cron 跳过，创建 owner/manager review task   | 源从 Feed 隐藏                                                |
+| 法律下架（Takedown）    | owner/manager 手动触发                      | 源 `disabled`，历史 Pulse 保留但打 `source_revoked` 标记，Evidence 链保留快照 | Evidence Drawer 显示 "Source no longer live"                  |
 
 ### 5.2 可观测指标（上报到 07-DevOps-Testing）
 
@@ -240,9 +253,11 @@ pulse.ingest.confidence_avg_24h   (gauge,     label: source_id)
 
 **方案：**
 
-1. 运营用 `pulse-ingest@duedatehq.com` 订阅该州 DOR 的 GovDelivery 邮件列表
+1. 用 `pulse-ingest@duedatehq.com` 订阅该州 DOR 的 GovDelivery 邮件列表
 2. Cloudflare Email Routing 把该邮箱路由到 Worker
-3. Worker 解析 email body → 生成内部 `Signal` → 再查找 `.gov` canonical page → 进入 Rules > Pulse Changes review
+3. Worker 解析 email body → 写 `pulse_source_snapshot` → 进入 AI Extract → 生成 CPA-facing Alert；
+   非税务权威 early notice 为 `review_only`，官方税务 due-date candidate 走 `applyReadiness`
+   gate
 
 **优点：** 用户主动订阅、零反爬、低工程维护成本。
 **缺点：** 延迟高（取决于 DOR 发信间隔，通常 1-24h），做**最后一道兜底**而非主路径。
@@ -336,11 +351,11 @@ packages/ingest/
         └── govdelivery-inbound.ts
 ```
 
-2026-04-30 implementation note: `fetcher.ts` exposes the per-source registry boundary and keeps
+2026-05-28 implementation note: `fetcher.ts` exposes the per-source registry boundary and keeps
 Cloudflare `fetch` as the default. Browserless is now configurable through
 `PULSE_BROWSERLESS_URL` / `PULSE_BROWSERLESS_TOKEN`, and GovDelivery inbound email is parsed into
-review-only Pulse snapshots via Cloudflare Email Routing. Both integrations remain default-off
-unless the relevant Worker secret/routing is configured.
+Pulse snapshots via Cloudflare Email Routing. Both integrations remain default-off unless the
+relevant Worker secret/routing is configured.
 
 ---
 
@@ -361,7 +376,8 @@ unless the relevant Worker secret/routing is configured.
 1. 确定 **Tier**（T1/T2/T3）与 `jurisdiction`
 2. 查 **robots.txt** 与 **ToS**，确认自动化抓取合规
 3. 写 **Source Adapter**（`packages/ingest/adapters/...`），实现 `fetch + parse`；T2/T3 或
-   PDF/manual-check source 必须在 server adapter map 中标记为 review-only
+   PDF/manual-check source 不得自动 Apply，若命中 due-date intent 则通过 `applyReadiness`
+   gate，否则标记为 `review_only`
 4. 写 **Selector Fallback Chain**（HTML 源必做）
 5. 在 `SOURCE_FETCHER` 注册默认 fetcher（通常是 `cloudflare`）
 6. 加 **queue / R2 binding**（`apps/server/wrangler.toml`）

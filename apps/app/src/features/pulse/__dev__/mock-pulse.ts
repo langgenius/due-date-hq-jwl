@@ -6,8 +6,8 @@
 //
 // What gets seeded:
 //   - `firms.listMine`     → one firm with role `owner` (so apply/dismiss CTAs unlock).
-//   - `pulse.listAlerts`   → 4 alerts covering matched / applied / dismissed states and
-//                            success / info / warning / sub-50% confidence examples.
+//   - `pulse.listAlerts`   → 5 alerts covering matched / needs-details / applied / dismissed
+//                            states and success / info / warning / sub-50% confidence examples.
 //   - `pulse.getDetail`    → matching detail per alert with affected clients.
 //
 // What is NOT mocked: the actual mutations (apply / dismiss / revert) still hit
@@ -29,6 +29,7 @@ import { orpc } from '@/lib/rpc'
 
 const ALERT_IDS = {
   matched: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  needsDetails: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
   applied: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
   dismissed: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
   veryLow: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
@@ -36,6 +37,7 @@ const ALERT_IDS = {
 
 const PULSE_IDS = {
   matched: '11111111-1111-4111-8111-111111111111',
+  needsDetails: '55555555-5555-4555-8555-555555555555',
   applied: '22222222-2222-4222-8222-222222222222',
   dismissed: '33333333-3333-4333-8333-333333333333',
   veryLow: '44444444-4444-4444-8444-444444444444',
@@ -175,10 +177,57 @@ const MATCHED_DETAIL: PulseDetail = {
   sourceExcerpt:
     'Affected taxpayers in the disaster area now have until May 25, 2026 to file most tax returns, including individual income tax returns, partnership returns, S-corporation returns, and fiduciary returns originally due on or after April 25, 2026.',
   reviewedAt: null,
+  applyReadiness: { status: 'ready', missing: [] },
   affectedClients: MATCHED_AFFECTED,
 }
 
-// --- Alert 2: applied (Revert / Undo path) --------------------------------
+// --- Alert 2: needs details before Apply -----------------------------------
+
+const NEEDS_DETAILS_ALERT: PulseAlertPublic = {
+  id: ALERT_IDS.needsDetails,
+  pulseId: PULSE_IDS.needsDetails,
+  status: 'matched',
+  sourceStatus: 'approved',
+  title: 'AZ DOR posts storm-extension notice with incomplete scope',
+  source: 'AZ DOR',
+  sourceUrl: 'https://azdor.gov/news-events-notices/mock-storm-extension-2026',
+  changeKind: 'deadline_shift',
+  actionMode: 'due_date_overlay',
+  summary:
+    'Arizona tax officials posted a storm-extension notice. The model identified a possible due-date change, but the original due date and eligible forms still need CPA confirmation before Apply.',
+  publishedAt: new Date(NOW.getTime() - 1000 * 60 * 35).toISOString(),
+  matchedCount: 0,
+  needsReviewCount: 0,
+  confidence: 0.68,
+  isSample: true,
+  jurisdiction: 'AZ',
+}
+
+const NEEDS_DETAILS_DETAIL: PulseDetail = {
+  alert: NEEDS_DETAILS_ALERT,
+  jurisdiction: 'AZ',
+  counties: [],
+  forms: [],
+  entityTypes: [],
+  originalDueDate: null,
+  newDueDate: isoDate(42),
+  effectiveFrom: null,
+  effectiveUntil: null,
+  affectedRuleIds: [],
+  structuredChange: {
+    note: 'Due-date candidate. Scope requires CPA confirmation before matching clients.',
+  },
+  sourceExcerpt:
+    'The Department has announced relief for taxpayers affected by recent storms. Certain filing and payment due dates may be extended; review the notice for the covered forms and original deadlines.',
+  reviewedAt: null,
+  applyReadiness: {
+    status: 'needs_details',
+    missing: ['original_due_date', 'forms', 'entity_types'],
+  },
+  affectedClients: [],
+}
+
+// --- Alert 3: applied (Revert / Undo path) --------------------------------
 
 const APPLIED_AFFECTED: PulseAffectedClient[] = [
   {
@@ -246,10 +295,11 @@ const APPLIED_DETAIL: PulseDetail = {
   sourceExcerpt:
     'The Franchise Tax Board extends the franchise-tax payment due date for the 2025 taxable year by 30 days for entities with a principal place of business in the affected counties.',
   reviewedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 2).toISOString(),
+  applyReadiness: { status: 'ready', missing: [] },
   affectedClients: APPLIED_AFFECTED,
 }
 
-// --- Alert 3: dismissed (closed view) -------------------------------------
+// --- Alert 4: dismissed (closed view) -------------------------------------
 
 const DISMISSED_ALERT: PulseAlertPublic = {
   id: ALERT_IDS.dismissed,
@@ -288,10 +338,11 @@ const DISMISSED_DETAIL: PulseDetail = {
   sourceExcerpt:
     'The Department of Taxation and Finance reminds taxpayers that the PTET election for tax year 2026 must be made by March 15, 2026.',
   reviewedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 24).toISOString(),
+  applyReadiness: { status: 'not_applicable', missing: [] },
   affectedClients: [],
 }
 
-// --- Alert 4: very low confidence -------------------------------------------
+// --- Alert 5: very low confidence -------------------------------------------
 
 const VERY_LOW_ALERT: PulseAlertPublic = {
   id: ALERT_IDS.veryLow,
@@ -330,14 +381,27 @@ const VERY_LOW_DETAIL: PulseDetail = {
   sourceExcerpt:
     'Corporate income tax filing dates may depend on entity status, fiscal year, and extension election.',
   reviewedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 36).toISOString(),
+  applyReadiness: { status: 'not_applicable', missing: [] },
   affectedClients: [],
 }
 
 // --- Index ----------------------------------------------------------------
 
-const ALERTS: PulseAlertPublic[] = [MATCHED_ALERT, APPLIED_ALERT, DISMISSED_ALERT, VERY_LOW_ALERT]
+const ALERTS: PulseAlertPublic[] = [
+  MATCHED_ALERT,
+  NEEDS_DETAILS_ALERT,
+  APPLIED_ALERT,
+  DISMISSED_ALERT,
+  VERY_LOW_ALERT,
+]
 
-const DETAILS: PulseDetail[] = [MATCHED_DETAIL, APPLIED_DETAIL, DISMISSED_DETAIL, VERY_LOW_DETAIL]
+const DETAILS: PulseDetail[] = [
+  MATCHED_DETAIL,
+  NEEDS_DETAILS_DETAIL,
+  APPLIED_DETAIL,
+  DISMISSED_DETAIL,
+  VERY_LOW_DETAIL,
+]
 
 const SOURCE_HEALTH: PulseSourceHealth[] = [
   {

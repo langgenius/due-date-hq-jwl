@@ -192,6 +192,7 @@ function pulseDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
     structuredChange: null,
     sourceExcerpt: 'Official extension.',
     reviewedAt: null,
+    applyReadiness: { status: 'ready', missing: [] },
     affectedClients: [
       {
         obligationId: 'obligation_1',

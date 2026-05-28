@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { canRequestPulseReview } from './PulseDetailDrawer'
+import {
+  canApplyPulseDeadline,
+  canRequestPulseReview,
+  hasMissingDeadlineDetails,
+} from './PulseDetailDrawer'
 
 describe('canRequestPulseReview', () => {
   it('allows preparers to request review for active Pulse alerts', () => {
@@ -49,6 +53,36 @@ describe('canRequestPulseReview', () => {
         role: 'preparer',
         alertStatus: 'matched',
         sourceStatus: 'source_revoked',
+      }),
+    ).toBe(false)
+  })
+})
+
+describe('Pulse due-date apply readiness helpers', () => {
+  it('requires details before applying incomplete due-date overlays', () => {
+    const detail = {
+      alert: { actionMode: 'due_date_overlay' as const },
+      applyReadiness: {
+        status: 'needs_details' as const,
+        missing: ['original_due_date' as const],
+      },
+    }
+
+    expect(hasMissingDeadlineDetails(detail)).toBe(true)
+    expect(canApplyPulseDeadline(detail)).toBe(false)
+  })
+
+  it('allows ready due-date overlays and treats review-only alerts as not applicable', () => {
+    expect(
+      canApplyPulseDeadline({
+        alert: { actionMode: 'due_date_overlay' },
+        applyReadiness: { status: 'ready', missing: [] },
+      }),
+    ).toBe(true)
+    expect(
+      hasMissingDeadlineDetails({
+        alert: { actionMode: 'review_only' },
+        applyReadiness: { status: 'not_applicable', missing: [] },
       }),
     ).toBe(false)
   })

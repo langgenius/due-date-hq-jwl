@@ -54,6 +54,24 @@ export type PulsePriorityReviewStatus = z.infer<typeof PulsePriorityReviewStatus
 export const PulsePriorityLevelSchema = z.enum(['normal', 'high', 'urgent'])
 export type PulsePriorityLevel = z.infer<typeof PulsePriorityLevelSchema>
 
+export const PulseApplyReadinessStatusSchema = z.enum(['ready', 'needs_details', 'not_applicable'])
+export type PulseApplyReadinessStatus = z.infer<typeof PulseApplyReadinessStatusSchema>
+
+export const PulseApplyReadinessMissingSchema = z.enum([
+  'original_due_date',
+  'new_due_date',
+  'forms',
+  'entity_types',
+  'affected_clients',
+])
+export type PulseApplyReadinessMissing = z.infer<typeof PulseApplyReadinessMissingSchema>
+
+export const PulseApplyReadinessSchema = z.object({
+  status: PulseApplyReadinessStatusSchema,
+  missing: z.array(PulseApplyReadinessMissingSchema),
+})
+export type PulseApplyReadiness = z.infer<typeof PulseApplyReadinessSchema>
+
 export const PulsePriorityReasonKeySchema = z.enum([
   'preparer_requested',
   'needs_review_matches',
@@ -127,6 +145,7 @@ export const PulseDetailSchema = z.object({
   structuredChange: z.unknown().nullable(),
   sourceExcerpt: z.string().min(1),
   reviewedAt: z.iso.datetime().nullable(),
+  applyReadiness: PulseApplyReadinessSchema,
   affectedClients: z.array(PulseAffectedClientSchema),
 })
 export type PulseDetail = z.infer<typeof PulseDetailSchema>
@@ -236,6 +255,20 @@ export const PulseReviewPriorityMatchesInputSchema = z.object({
 })
 export type PulseReviewPriorityMatchesInput = z.infer<typeof PulseReviewPriorityMatchesInputSchema>
 
+export const PulseReviewDueDateOverlayDetailsInputSchema = z.object({
+  alertId: EntityIdSchema,
+  originalDueDate: z.iso.date(),
+  newDueDate: z.iso.date(),
+  forms: z.array(z.string().trim().min(1)).min(1).max(50),
+  entityTypes: z.array(EntityTypeSchema).min(1).max(20),
+  counties: z.array(z.string().trim().min(1)).max(100).default([]),
+  affectedRuleIds: z.array(z.string().trim().min(1)).max(100).optional(),
+  note: z.string().trim().max(500).optional(),
+})
+export type PulseReviewDueDateOverlayDetailsInput = z.infer<
+  typeof PulseReviewDueDateOverlayDetailsInputSchema
+>
+
 export const PulseApplyOutputSchema = z.object({
   alert: PulseAlertPublicSchema,
   appliedCount: z.number().int().min(0),
@@ -317,6 +350,9 @@ export const pulseContract = oc.router({
   reviewPriorityMatches: oc
     .input(PulseReviewPriorityMatchesInputSchema)
     .output(PulsePriorityReviewSchema),
+  reviewDueDateOverlayDetails: oc
+    .input(PulseReviewDueDateOverlayDetailsInputSchema)
+    .output(PulseDetailSchema),
   applyReviewed: oc.input(PulseAlertIdInputSchema).output(PulseApplyOutputSchema),
   apply: oc.input(PulseApplyInputSchema).output(PulseApplyOutputSchema),
   dismiss: oc.input(PulseDismissInputSchema).output(PulseDismissOutputSchema),

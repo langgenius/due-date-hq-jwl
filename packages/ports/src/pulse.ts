@@ -67,7 +67,26 @@ export interface PulseDetailRow {
   structuredChange: unknown
   sourceExcerpt: string
   reviewedAt: Date | null
+  applyReadiness: {
+    status: 'ready' | 'needs_details' | 'not_applicable'
+    missing: Array<
+      'original_due_date' | 'new_due_date' | 'forms' | 'entity_types' | 'affected_clients'
+    >
+  }
   affectedClients: PulseAffectedClientRow[]
+}
+
+export interface PulseDueDateOverlayDetailsReviewInput {
+  alertId: string
+  originalDueDate: Date
+  newDueDate: Date
+  forms: string[]
+  entityTypes: ClientEntityType[]
+  counties?: string[]
+  affectedRuleIds?: string[]
+  note?: string | null
+  userId: string
+  now?: Date
 }
 
 export interface PulseSourceStateRow {
@@ -255,6 +274,7 @@ export interface PulseRepo {
     now?: Date
   }): Promise<PulsePriorityReviewRow>
   reviewPriorityMatches(input: PulseReviewPriorityMatchesInput): Promise<PulsePriorityReviewRow>
+  reviewDueDateOverlayDetails(input: PulseDueDateOverlayDetailsReviewInput): Promise<PulseDetailRow>
   applyReviewed(input: PulseAlertActionInput): Promise<PulseApplyResult>
   apply(input: PulseApplyInput): Promise<PulseApplyResult>
   dismiss(input: PulseDismissReasonInput): Promise<PulseDismissResult>

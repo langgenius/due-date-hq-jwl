@@ -1347,6 +1347,10 @@ msgstr "Advisory, scope, and retention opportunities"
 msgid "Affected clients"
 msgstr "Affected clients"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Affected rule IDs"
+msgstr "Affected rule IDs"
+
 #: src/features/workload/workload-page.tsx
 msgid "Aggregated from open deadlines and client owner labels. Open any row in Deadlines to triage the underlying deadlines."
 msgstr "Aggregated from open deadlines and client owner labels. Open any row in Deadlines to triage the underlying deadlines."
@@ -2735,6 +2739,10 @@ msgstr "Client importance"
 msgid "Client info"
 msgstr "Client info"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Client matches refreshed from the confirmed scope."
+msgstr "Client matches refreshed from the confirmed scope."
+
 #: src/routes/obligations.tsx
 msgid "Client materials response"
 msgstr "Client materials response"
@@ -2910,6 +2918,22 @@ msgstr "Coming soon"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Command palette"
 msgstr "Command palette"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Complete deadline details"
+msgstr "Complete deadline details"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Complete deadline details before applying"
+msgstr "Complete deadline details before applying"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Complete details to apply"
+msgstr "Complete details to apply"
+
+#: src/features/pulse/lib/error-mapping.ts
+msgid "Complete the deadline details before applying this alert."
+msgstr "Complete the deadline details before applying this alert."
 
 #: src/features/obligations/CompletedKeyDates.tsx
 #: src/features/obligations/status-control.tsx
@@ -3428,6 +3452,10 @@ msgstr "Couldn't save"
 msgid "Couldn't save client details"
 msgstr "Couldn't save client details"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Couldn't save deadline details"
+msgstr "Couldn't save deadline details"
+
 #: src/routes/obligations.tsx
 msgid "Couldn't save extension plan"
 msgstr "Couldn't save extension plan"
@@ -3566,6 +3594,7 @@ msgid "Couldn't verify the code"
 msgstr "Couldn't verify the code"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
+#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Counties"
 msgstr "Counties"
 
@@ -3810,6 +3839,10 @@ msgstr "Deadline category"
 #: src/routes/obligations.tsx
 msgid "Deadline detail"
 msgstr "Deadline detail"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Deadline details saved"
+msgstr "Deadline details saved"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Deadline evidence"
@@ -4461,6 +4494,7 @@ msgid "Entity type · enum"
 msgstr "Entity type · enum"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
+#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Entity types"
 msgstr "Entity types"
 
@@ -5162,6 +5196,7 @@ msgid "Former teammate"
 msgstr "Former teammate"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
+#: src/features/pulse/PulseDetailDrawer.tsx
 #: src/features/rules/coverage-tab.tsx
 msgid "Forms"
 msgstr "Forms"
@@ -6662,6 +6697,10 @@ msgstr "New custom rule"
 msgid "New deadlines"
 msgstr "New deadlines"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "New due date"
+msgstr "New due date"
+
 #: src/routes/rules.library.tsx
 msgid "New rule"
 msgstr "New rule"
@@ -7428,6 +7467,10 @@ msgstr "Only {0} can apply Pulse changes."
 msgid "Only {0} can manage billing."
 msgstr "Only {0} can manage billing."
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Only authorized reviewers can confirm deadline details."
+msgstr "Only authorized reviewers can confirm deadline details."
+
 #: src/routes/billing.tsx
 msgid "Only practice owners can change plans or open the portal."
 msgstr "Only practice owners can change plans or open the portal."
@@ -7773,6 +7816,10 @@ msgstr "or continue with SSO"
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "or press <0>Enter</0>"
 msgstr "or press <0>Enter</0>"
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Original due date"
+msgstr "Original due date"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Original entry"
@@ -9374,6 +9421,10 @@ msgstr "Review coverage, sources, and pending rules."
 msgid "Review lightweight client business cues."
 msgstr "Review lightweight client business cues."
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Review note"
+msgstr "Review note"
+
 #: src/routes/obligations.tsx
 msgid "Review notes open"
 msgstr "Review notes open"
@@ -9824,6 +9875,10 @@ msgstr "Save changes"
 msgid "Save client details"
 msgstr "Save client details"
 
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "Save deadline details"
+msgstr "Save deadline details"
+
 #: src/routes/obligations.tsx
 msgid "Save extension"
 msgstr "Save extension"
@@ -9918,6 +9973,7 @@ msgstr "Saving your confirmed fields and grouping values for review."
 
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/pulse/components/PulseReasonDialog.tsx
+#: src/features/pulse/PulseDetailDrawer.tsx
 #: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 msgid "Saving…"
@@ -11418,6 +11474,10 @@ msgstr "This action isn't wired up yet."
 #: src/features/clients/ClientFactPanels.tsx
 msgid "This AI insight was generated before the client's facts changed. Refresh to get an up-to-date summary."
 msgstr "This AI insight was generated before the client's facts changed. Refresh to get an up-to-date summary."
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "This alert appears to involve a due-date change, but the extracted fields are not ready for Apply. Confirm the missing fields against the official source."
+msgstr "This alert appears to involve a due-date change, but the extracted fields are not ready for Apply. Confirm the missing fields against the official source."
 
 #: src/features/pulse/lib/error-mapping.ts
 msgid "This alert is no longer available."

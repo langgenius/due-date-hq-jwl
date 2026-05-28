@@ -31,7 +31,7 @@ describe('seedPulseMock', () => {
       orpc.pulse.listSourceHealth.queryKey({ input: undefined }),
     )
 
-    expect(alerts?.alerts).toHaveLength(4)
+    expect(alerts?.alerts).toHaveLength(5)
     expect(sourceHealth?.sources.map((source) => source.sourceId)).toEqual([
       'irs.disaster',
       'ca.ftb.newsroom',

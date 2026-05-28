@@ -74,15 +74,6 @@ export function verifyPulseSourceExcerpt(input: unknown, output: unknown): void 
       )
     }
   }
-  if (output.changeKind === 'deadline_shift' || output.actionMode === 'due_date_overlay') {
-    if (output.originalDueDate === null || output.newDueDate === null) {
-      throw new GuardRejection(
-        'Pulse extract rejected because deadline shifts require original and new due dates.',
-        'SCHEMA_INVALID',
-      )
-    }
-  }
-
   const rawText = input.rawText
   const sourceExcerpt = output.sourceExcerpt
   if (typeof rawText !== 'string' || typeof sourceExcerpt !== 'string') return

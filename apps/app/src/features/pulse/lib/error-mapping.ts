@@ -29,6 +29,8 @@ const MESSAGE_BY_CODE: Partial<Record<ErrorCode, () => MessageDescriptor>> = {
     msg`Some deadlines have changed since you opened this alert. Refresh to load the latest list.`,
   [ErrorCodes.PULSE_REVERT_EXPIRED]: () => msg`The 24h undo window has expired for this alert.`,
   [ErrorCodes.PULSE_NO_ELIGIBLE_OBLIGATIONS]: () => msg`No eligible deadlines are selected.`,
+  [ErrorCodes.PULSE_NEEDS_DETAILS]: () =>
+    msg`Complete the deadline details before applying this alert.`,
   [ErrorCodes.PULSE_REVIEW_UNAVAILABLE]: () =>
     msg`This Pulse alert is closed and cannot be sent for review.`,
   [ErrorCodes.PULSE_REVIEW_ONLY]: () =>

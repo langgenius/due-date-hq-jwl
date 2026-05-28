@@ -105,7 +105,13 @@ interface PulsePriorityQueueItemRow {
 }
 
 type PulseRepoErrorShape = Error & {
-  code: 'not_found' | 'conflict' | 'revert_expired' | 'no_eligible' | 'review_only'
+  code:
+    | 'not_found'
+    | 'conflict'
+    | 'revert_expired'
+    | 'no_eligible'
+    | 'review_only'
+    | 'needs_details'
 }
 
 const REVIEW_UNAVAILABLE_ALERT_STATUSES: ReadonlySet<PulseFirmAlertStatus> = new Set([
@@ -121,7 +127,8 @@ function pulseRepoErrorCode(error: unknown): PulseRepoErrorShape['code'] | null 
     code === 'conflict' ||
     code === 'revert_expired' ||
     code === 'no_eligible' ||
-    code === 'review_only'
+    code === 'review_only' ||
+    code === 'needs_details'
   ) {
     return code
   }
@@ -130,6 +137,10 @@ function pulseRepoErrorCode(error: unknown): PulseRepoErrorShape['code'] | null 
 
 function toDateOnly(date: Date): string {
   return date.toISOString().slice(0, 10)
+}
+
+function dateFromDateOnly(value: string): Date {
+  return new Date(`${value}T00:00:00.000Z`)
 }
 
 function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
@@ -246,6 +257,9 @@ function mapPulseError(error: unknown): never {
     }
     if (code === 'review_only') {
       throw new ORPCError('BAD_REQUEST', { message: ErrorCodes.PULSE_REVIEW_ONLY })
+    }
+    if (code === 'needs_details') {
+      throw new ORPCError('BAD_REQUEST', { message: ErrorCodes.PULSE_NEEDS_DETAILS })
     }
   }
   throw error
@@ -378,6 +392,7 @@ const getDetail = os.pulse.getDetail.handler(async ({ input, context }) => {
       structuredChange: detail.structuredChange ?? null,
       sourceExcerpt: detail.sourceExcerpt,
       reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
+      applyReadiness: detail.applyReadiness,
       affectedClients: detail.affectedClients.map(toAffectedClientPublic),
     }
   } catch (error) {
@@ -416,6 +431,7 @@ const getDetailsBatch = os.pulse.getDetailsBatch.handler(async ({ input, context
         structuredChange: detail.structuredChange ?? null,
         sourceExcerpt: detail.sourceExcerpt,
         reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
+        applyReadiness: detail.applyReadiness,
         affectedClients: detail.affectedClients.map(toAffectedClientPublic),
       },
     ]
@@ -448,6 +464,46 @@ const reviewPriorityMatches = os.pulse.reviewPriorityMatches.handler(async ({ in
     return mapPulseError(error)
   }
 })
+
+const reviewDueDateOverlayDetails = os.pulse.reviewDueDateOverlayDetails.handler(
+  async ({ input, context }) => {
+    const { userId } = await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
+    const { scoped, tenant } = requireTenant(context)
+    requireProductionPulse(tenant.plan)
+    try {
+      const detail = await scoped.pulse.reviewDueDateOverlayDetails({
+        alertId: input.alertId,
+        originalDueDate: dateFromDateOnly(input.originalDueDate),
+        newDueDate: dateFromDateOnly(input.newDueDate),
+        forms: input.forms,
+        entityTypes: input.entityTypes,
+        counties: input.counties ?? [],
+        note: input.note ?? null,
+        userId,
+        ...(input.affectedRuleIds !== undefined ? { affectedRuleIds: input.affectedRuleIds } : {}),
+      })
+      return {
+        alert: toAlertPublic(detail.alert),
+        jurisdiction: detail.jurisdiction,
+        counties: detail.counties,
+        forms: detail.forms,
+        entityTypes: detail.entityTypes,
+        originalDueDate: detail.originalDueDate ? toDateOnly(detail.originalDueDate) : null,
+        newDueDate: detail.newDueDate ? toDateOnly(detail.newDueDate) : null,
+        effectiveFrom: detail.effectiveFrom ? toDateOnly(detail.effectiveFrom) : null,
+        effectiveUntil: detail.effectiveUntil ? toDateOnly(detail.effectiveUntil) : null,
+        affectedRuleIds: detail.affectedRuleIds,
+        structuredChange: detail.structuredChange ?? null,
+        sourceExcerpt: detail.sourceExcerpt,
+        reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
+        applyReadiness: detail.applyReadiness,
+        affectedClients: detail.affectedClients.map(toAffectedClientPublic),
+      }
+    } catch (error) {
+      return mapPulseError(error)
+    }
+  },
+)
 
 const applyReviewed = os.pulse.applyReviewed.handler(async ({ input, context }) => {
   const { userId } = await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
@@ -758,6 +814,7 @@ export const pulseHandlers = {
   getDetailsBatch,
   listPriorityQueue,
   reviewPriorityMatches,
+  reviewDueDateOverlayDetails,
   applyReviewed,
   apply,
   dismiss,

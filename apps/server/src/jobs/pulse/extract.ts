@@ -5,6 +5,25 @@ import type { Env } from '../../env'
 import { recordPulseAlert, recordPulseMetric } from './metrics'
 import { requiresReviewOnlyPulseAlert } from './rule-source-adapters'
 
+type PulseExtractRepo = Pick<
+  ReturnType<typeof makePulseOpsRepo>,
+  | 'getSourceSnapshot'
+  | 'updateSourceSnapshotStatus'
+  | 'findDuplicatePulseForExtract'
+  | 'createPulseForFirmReviewFromExtract'
+>
+
+function makePulseExtractRepo(db: ReturnType<typeof createDb>): PulseExtractRepo {
+  const repo = makePulseOpsRepo(db)
+  return {
+    getSourceSnapshot: (snapshotId) => repo.getSourceSnapshot(snapshotId),
+    updateSourceSnapshotStatus: (snapshotId, patch) =>
+      repo.updateSourceSnapshotStatus(snapshotId, patch),
+    findDuplicatePulseForExtract: (input) => repo.findDuplicatePulseForExtract(input),
+    createPulseForFirmReviewFromExtract: (input) => repo.createPulseForFirmReviewFromExtract(input),
+  }
+}
+
 function dateFromIsoDate(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`)
 }
@@ -30,7 +49,7 @@ export async function extractPulseSnapshot(
   snapshotId: string,
 ): Promise<{ pulseId: string | null; status: 'created' | 'failed' | 'missing' | 'skipped' }> {
   const db = createDb(env.DB)
-  const repo = makePulseOpsRepo(db)
+  const repo = makePulseExtractRepo(db)
   const snapshot = await repo.getSourceSnapshot(snapshotId)
   if (!snapshot) return { pulseId: null, status: 'missing' }
   if (snapshot.pulseId || snapshot.parseStatus === 'extracted') {

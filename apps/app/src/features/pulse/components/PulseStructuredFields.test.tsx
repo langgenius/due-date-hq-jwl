@@ -65,6 +65,7 @@ function reviewOnlyDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
     sourceExcerpt:
       'The Department of Taxation and Finance reminds taxpayers that the PTET election for tax year 2026 must be made by March 15, 2026.',
     reviewedAt: null,
+    applyReadiness: { status: 'not_applicable', missing: [] },
     affectedClients: [],
     ...overrides,
   }

@@ -460,7 +460,7 @@ describe('@duedatehq/ai', () => {
     ).resolves.toMatchObject({ result: { actionMode: 'due_date_overlay' } })
   })
 
-  it('rejects deadline shift Pulse output unless both due dates are explicit', async () => {
+  it('allows incomplete due-date candidates as due-date overlays', async () => {
     callGatewayMock.mockResolvedValueOnce({
       output: {
         classification: 'regulatory_change',
@@ -491,8 +491,13 @@ describe('@duedatehq/ai', () => {
       rawText: 'some deadlines were extended',
     })
 
-    expect(result.result).toBeNull()
-    expect(result.refusal?.code).toBe('GUARD_REJECTED')
+    expect(result.result).toMatchObject({
+      changeKind: 'deadline_shift',
+      actionMode: 'due_date_overlay',
+      originalDueDate: null,
+      newDueDate: '2026-10-15',
+    })
+    expect(result.refusal).toBeNull()
   })
 
   it('rejects rule concrete drafts when the source excerpt is not source-backed', async () => {

@@ -15,6 +15,8 @@ const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
     recordSourceSuccess: vi.fn(),
     recordSourceFailure: vi.fn(),
     listSourceStates: vi.fn(),
+    apply: vi.fn(),
+    applyReviewed: vi.fn(),
   }
   return {
     repoMocks: repo,
@@ -105,6 +107,10 @@ describe('runPulseIngest', () => {
       snapshot: { id: 'snapshot-1' },
     })
     repoMocks.listSourceStates.mockResolvedValue([])
+    repoMocks.apply.mockRejectedValue(new Error('ingest must not apply deadline changes'))
+    repoMocks.applyReviewed.mockRejectedValue(
+      new Error('ingest must not apply reviewed deadline changes'),
+    )
   })
 
   afterEach(() => {
@@ -126,6 +132,8 @@ describe('runPulseIngest', () => {
       expect.objectContaining({ sourceId: 'fema.declarations' }),
     )
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
+    expect(repoMocks.apply).not.toHaveBeenCalled()
+    expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
   })
 
   it('classifies changed snapshots with no parsed items as selector drift', async () => {

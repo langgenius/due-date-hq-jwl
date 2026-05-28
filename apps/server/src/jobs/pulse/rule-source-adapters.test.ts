@@ -101,7 +101,7 @@ describe('rule source adapters', () => {
     })
   })
 
-  it('keeps hidden policy-watch list noise out of extract and marks PDF watch review-only', async () => {
+  it('keeps hidden policy-watch list noise out of extract without forcing PDF watch review-only', async () => {
     const hiddenSources = listHiddenPolicyWatchSources()
     const automatedSource = hiddenSources.find((source) => isPolicyWatchPulsePromoted(source))!
     const automatedAdapter = createPolicyWatchAdapter(automatedSource)
@@ -130,7 +130,7 @@ describe('rule source adapters', () => {
     const pdfAdapter = createPolicyWatchAdapter(pdfSource)
     expect(isPolicyWatchAdapterEligible(pdfSource), pdfSource.id).toBe(true)
     expect(isPolicyWatchPulsePromoted(pdfSource), pdfSource.id).toBe(false)
-    expect(requiresReviewOnlyPulseAlert(pdfAdapter.id)).toBe(true)
+    expect(requiresReviewOnlyPulseAlert(pdfAdapter.id)).toBe(false)
     const signalItems = await pdfAdapter.parse(
       {
         sourceId: pdfSource.id,
@@ -202,7 +202,7 @@ describe('rule source adapters', () => {
     })
   })
 
-  it('promotes parser-backed manual-review and PDF sources as review-only ingest adapters', () => {
+  it('promotes parser-backed manual-review and PDF sources as due-date candidate adapters', () => {
     const sourcesById = new Map(listRuleSources().map((source) => [source.id, source]))
     const automatedIds = ruleSourceAdapters.map((adapter) => adapter.id)
 
@@ -215,7 +215,7 @@ describe('rule source adapters', () => {
       expect(source?.acquisitionMethod, sourceId).toBe('manual_review')
       expect(isRuleSourceAdapterEligible(source!), sourceId).toBe(true)
       expect(isRuleSourcePulsePromoted(source!), sourceId).toBe(false)
-      expect(requiresReviewOnlyPulseAlert(sourceId), sourceId).toBe(true)
+      expect(requiresReviewOnlyPulseAlert(sourceId), sourceId).toBe(false)
       expect(automatedIds, sourceId).toContain(sourceId)
     }
 
@@ -227,7 +227,7 @@ describe('rule source adapters', () => {
     expect(pdfSource?.acquisitionMethod).toBe('pdf_watch')
     expect(isRuleSourceAdapterEligible(pdfSource!)).toBe(true)
     expect(isRuleSourcePulsePromoted(pdfSource!)).toBe(false)
-    expect(requiresReviewOnlyPulseAlert('fl.income_tax')).toBe(true)
+    expect(requiresReviewOnlyPulseAlert('fl.income_tax')).toBe(false)
   })
 
   it('keeps concrete basis sources from the rules registry in the extract queue', () => {
@@ -255,5 +255,6 @@ describe('rule source adapters', () => {
     expect(isRuleSourceAdapterEligible(source)).toBe(true)
     expect(isRuleSourcePulsePromoted(source)).toBe(false)
     expect(createRuleSourceAdapter(source).id).toBe('tx.medium_review_fixture')
+    expect(requiresReviewOnlyPulseAlert(source.id)).toBe(false)
   })
 })

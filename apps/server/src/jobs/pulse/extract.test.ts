@@ -11,6 +11,8 @@ const { aiMocks, dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
     updateSourceSnapshotStatus: vi.fn(),
     findDuplicatePulseForExtract: vi.fn(),
     createPulseForFirmReviewFromExtract: vi.fn(),
+    apply: vi.fn(),
+    applyReviewed: vi.fn(),
   }
   return {
     aiMocks: {
@@ -89,6 +91,10 @@ describe('extractPulseSnapshot', () => {
     aiMocks.createAI.mockReturnValue({ extractPulse: aiMocks.extractPulse })
     repoMocks.findDuplicatePulseForExtract.mockResolvedValue(null)
     repoMocks.createPulseForFirmReviewFromExtract.mockResolvedValue({ pulseId: 'pulse-created' })
+    repoMocks.apply.mockRejectedValue(new Error('extract must not apply deadline changes'))
+    repoMocks.applyReviewed.mockRejectedValue(
+      new Error('extract must not apply reviewed deadline changes'),
+    )
   })
 
   it('marks duplicate extracts without creating another Pulse alert', async () => {
@@ -142,6 +148,123 @@ describe('extractPulseSnapshot', () => {
       aiOutputId: expect.any(String),
       failureReason: null,
     })
+    expect(repoMocks.apply).not.toHaveBeenCalled()
+    expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
+  })
+
+  it('creates due-date change Alerts without applying deadline changes', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      id: 'snapshot-az',
+      sourceId: 'policy-watch.az.announcements',
+      title: 'Arizona deadline relief',
+      officialSourceUrl: 'https://azdor.gov/news/relief',
+      publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+      rawR2Key: 'raw/az.txt',
+      pulseId: null,
+      parseStatus: 'pending_extract',
+    })
+    aiMocks.extractPulse.mockResolvedValue({
+      result: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
+        summary: 'Arizona extends selected filing deadlines.',
+        sourceExcerpt: 'extended from April 15, 2026 to October 15, 2026',
+        jurisdiction: 'AZ',
+        counties: ['Maricopa'],
+        forms: ['state_income_tax'],
+        entityTypes: ['individual'],
+        originalDueDate: '2026-04-15',
+        newDueDate: '2026-10-15',
+        effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
+        confidence: 0.9,
+      },
+      trace: {
+        promptVersion: 'pulse-extract@v2',
+        model: 'test-model',
+        inputHash: 'hash',
+        guardResult: 'pass',
+        latencyMs: 1,
+      },
+      model: 'test-model',
+      refusal: null,
+    })
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-az')
+
+    expect(result).toEqual({ pulseId: 'pulse-created', status: 'created' })
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actionMode: 'due_date_overlay',
+        requiresHumanReview: true,
+      }),
+    )
+    expect(repoMocks.apply).not.toHaveBeenCalled()
+    expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
+  })
+
+  it('keeps incomplete due-date overlay evidence as an apply-gated due-date candidate', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      id: 'snapshot-incomplete',
+      sourceId: 'policy-watch.az.announcements',
+      title: 'Arizona possible deadline relief',
+      officialSourceUrl: 'https://azdor.gov/news/possible-relief',
+      publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+      rawR2Key: 'raw/az-incomplete.txt',
+      pulseId: null,
+      parseStatus: 'pending_extract',
+    })
+    aiMocks.extractPulse.mockResolvedValue({
+      result: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
+        summary: 'Arizona says selected deadlines may be extended.',
+        sourceExcerpt: 'selected deadlines may be extended',
+        jurisdiction: 'AZ',
+        counties: [],
+        forms: [],
+        entityTypes: [],
+        originalDueDate: null,
+        newDueDate: '2026-10-15',
+        effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
+        confidence: 0.65,
+      },
+      trace: {
+        promptVersion: 'pulse-extract@v2',
+        model: 'test-model',
+        inputHash: 'hash',
+        guardResult: 'pass',
+        latencyMs: 1,
+      },
+      model: 'test-model',
+      refusal: null,
+    })
+
+    const result = await extractPulseSnapshot(
+      env('selected deadlines may be extended'),
+      'snapshot-incomplete',
+    )
+
+    expect(result).toEqual({ pulseId: 'pulse-created', status: 'created' })
+    expect(repoMocks.findDuplicatePulseForExtract).toHaveBeenCalledWith(
+      expect.objectContaining({ actionMode: 'due_date_overlay' }),
+    )
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actionMode: 'due_date_overlay',
+        parsedOriginalDueDate: null,
+        parsedNewDueDate: new Date('2026-10-15T00:00:00.000Z'),
+      }),
+    )
+    expect(repoMocks.apply).not.toHaveBeenCalled()
+    expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
   })
 
   it('forces signal-only sources into review-only Alerts without Apply mode', async () => {
@@ -194,5 +317,7 @@ describe('extractPulseSnapshot', () => {
     expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
       expect.objectContaining({ actionMode: 'review_only' }),
     )
+    expect(repoMocks.apply).not.toHaveBeenCalled()
+    expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
   })
 })

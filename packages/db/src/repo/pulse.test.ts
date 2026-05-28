@@ -210,6 +210,78 @@ describe('makePulseRepo', () => {
     expect(detail.alert.sourceStatus).toBe('source_revoked')
   })
 
+  it('marks incomplete due-date overlays as needing details', async () => {
+    const { db } = fakeDb([
+      [
+        {
+          ...ALERT,
+          parsedForms: [],
+          parsedEntityTypes: [],
+          parsedOriginalDueDate: null,
+          parsedNewDueDate: new Date('2026-10-15T00:00:00.000Z'),
+        },
+      ],
+      [],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const detail = await repo.getDetail('alert-1')
+
+    expect(detail.applyReadiness).toEqual({
+      status: 'needs_details',
+      missing: ['original_due_date', 'forms', 'entity_types'],
+    })
+    expect(detail.affectedClients).toHaveLength(0)
+  })
+
+  it('updates due-date overlay details and refreshes affected-client counts', async () => {
+    const incompleteAlert = {
+      ...ALERT,
+      matchedCount: 0,
+      needsReviewCount: 0,
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: new Date('2026-10-15T00:00:00.000Z'),
+    }
+    const updatedAlert = {
+      ...ALERT,
+      reviewedBy: 'user-1',
+      reviewedAt: new Date('2026-04-15T18:30:00.000Z'),
+    }
+    const { db, batchStatements, directStatements } = fakeDb([
+      [incompleteAlert],
+      [updatedAlert],
+      [ELIGIBLE],
+      [],
+      [],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const detail = await repo.reviewDueDateOverlayDetails({
+      alertId: 'alert-1',
+      originalDueDate: new Date('2026-03-15T00:00:00.000Z'),
+      newDueDate: new Date('2026-10-15T00:00:00.000Z'),
+      forms: [' federal_1065 '],
+      entityTypes: ['llc'],
+      counties: [' Los Angeles County '],
+      note: 'Verified against source.',
+      userId: 'user-1',
+      now: new Date('2026-04-15T18:30:00.000Z'),
+    })
+
+    expect(detail.applyReadiness).toEqual({ status: 'ready', missing: [] })
+    expect(detail.alert.matchedCount).toBe(1)
+    expect(detail.affectedClients).toHaveLength(1)
+    expect(batchStatements.filter((statement) => isKind(statement, 'update'))).toHaveLength(1)
+    expect(batchStatements.filter((statement) => isKind(statement, 'insert'))).toHaveLength(1)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, { matchedCount: 1, needsReviewCount: 0 }),
+      ),
+    ).toBe(true)
+  })
+
   it('batch-applies due date overlays with applications, evidence, audit, and outbox', async () => {
     const { db, batchStatements } = fakeDb([
       [ALERT],
@@ -268,6 +340,28 @@ describe('makePulseRepo', () => {
     expect(batchStatements).toHaveLength(7)
     expect(batchStatements.filter((statement) => isKind(statement, 'insert'))).toHaveLength(5)
     expect(batchStatements.filter((statement) => isKind(statement, 'update'))).toHaveLength(2)
+  })
+
+  it('rejects apply when due-date overlay details are incomplete', async () => {
+    const { db, batchStatements } = fakeDb([
+      [
+        {
+          ...ALERT,
+          parsedOriginalDueDate: null,
+          parsedForms: [],
+        },
+      ],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await expect(
+      repo.apply({
+        alertId: 'alert-1',
+        obligationIds: ['oi-eligible'],
+        userId: 'user-1',
+      }),
+    ).rejects.toMatchObject({ code: 'needs_details' } satisfies Partial<PulseRepoError>)
+    expect(batchStatements).toHaveLength(0)
   })
 
   it('rejects apply when the requested obligation was already applied', async () => {

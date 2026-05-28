@@ -20,6 +20,28 @@ interface IngestCounts {
   failures: number
 }
 
+type PulseIngestRepo = Pick<
+  ReturnType<typeof makePulseOpsRepo>,
+  | 'ensureSourceState'
+  | 'getSourceState'
+  | 'createSourceSnapshot'
+  | 'recordSourceSuccess'
+  | 'recordSourceFailure'
+  | 'listSourceStates'
+>
+
+function makePulseIngestRepo(db: ReturnType<typeof createDb>): PulseIngestRepo {
+  const repo = makePulseOpsRepo(db)
+  return {
+    ensureSourceState: (input) => repo.ensureSourceState(input),
+    getSourceState: (sourceId) => repo.getSourceState(sourceId),
+    createSourceSnapshot: (input) => repo.createSourceSnapshot(input),
+    recordSourceSuccess: (input) => repo.recordSourceSuccess(input),
+    recordSourceFailure: (input) => repo.recordSourceFailure(input),
+    listSourceStates: () => repo.listSourceStates(),
+  }
+}
+
 function parseSourceIdList(value: string | undefined): ReadonlySet<string> {
   if (!value) return new Set()
   return new Set(
@@ -133,7 +155,7 @@ export function createPoliteFetch(fetchImpl: typeof fetch): typeof fetch {
 async function ingestAdapter(
   adapter: SourceAdapter,
   ctx: IngestCtx,
-  repo: ReturnType<typeof makePulseOpsRepo>,
+  repo: PulseIngestRepo,
   queue: Pick<Queue, 'send'>,
   opts: { force?: boolean; browserlessSourceIds?: ReadonlySet<string> } = {},
 ): Promise<IngestCounts> {
@@ -272,7 +294,7 @@ export async function runPulseIngest(
   failures: number
 }> {
   const db = createDb(env.DB)
-  const repo = makePulseOpsRepo(db)
+  const repo = makePulseIngestRepo(db)
   const browserlessFetch = createBrowserlessFetch({
     ...(env.PULSE_BROWSERLESS_URL ? { endpoint: env.PULSE_BROWSERLESS_URL } : {}),
     ...(env.PULSE_BROWSERLESS_TOKEN ? { token: env.PULSE_BROWSERLESS_TOKEN } : {}),
