@@ -165,7 +165,10 @@ describe('Migration Wizard RPC flow', () => {
     await clickButton('Continue')
     await waitForText('AI prepared your columns')
 
-    expect(document.body.textContent).toContain('Review column details')
+    // 2026-05-27 (Step 2 banner-row redesign): the "Review column details"
+    // toggle is gone — every row is its own review affordance. Anchor on
+    // the new summary header instead.
+    expect(document.body.textContent).toContain('columns mapped')
     expect(document.body.textContent).not.toContain('Your column')
 
     await clickButton('Continue')
@@ -344,6 +347,12 @@ function renderWizard(children: ReactNode = <div />) {
 }
 
 async function pasteRows(rows: string) {
+  // 2026-05-27 (bold-IA Step 1 redesign): the paste textarea is opt-in —
+  // Step 1 shows a file dropzone by default. Click "Paste a list instead →"
+  // to reveal the textarea before driving it.
+  if (!document.querySelector('textarea[aria-label="Paste client data"]')) {
+    await clickButton('Paste a list instead')
+  }
   const textarea = document.querySelector('textarea[aria-label="Paste client data"]')
   if (!(textarea instanceof HTMLTextAreaElement)) {
     throw new Error('Expected paste textarea to render.')
