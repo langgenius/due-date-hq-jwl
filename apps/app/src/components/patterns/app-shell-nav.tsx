@@ -57,6 +57,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@duedatehq/ui/components/ui/sidebar'
+import { PulseNotificationsBell } from '@/components/patterns/pulse-notifications-bell'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
@@ -876,6 +877,15 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
         {items.footer.map((item) => (
           <NavMenuItem key={item.href} item={item} />
         ))}
+        {/* 2026-05-28 (Yuqi /today polish — bell back in sidebar):
+            Inbox bell sits with the rest of the footer's account-
+            level controls (Audit log, Settings). The bell renders
+            its own sidebar-styled trigger inside `PulseNotifications-
+            Bell`, so we just drop it next to its siblings inside the
+            `SidebarMenuItem` envelope. */}
+        <SidebarMenuItem>
+          <PulseNotificationsBell />
+        </SidebarMenuItem>
       </NavGroupSection>
     </nav>
   )
