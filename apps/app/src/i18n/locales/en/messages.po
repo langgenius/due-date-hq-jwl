@@ -3960,6 +3960,7 @@ msgstr "deadlines"
 #: src/features/concepts/concept-help.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/rules/generation-preview-tab.tsx
+#: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
 msgid "Deadlines"
@@ -5425,6 +5426,7 @@ msgid "Ignored"
 msgstr "Ignored"
 
 #: src/routes/clients.tsx
+#: src/routes/migration.new.tsx
 msgid "Import"
 msgstr "Import"
 
@@ -9692,6 +9694,10 @@ msgstr "Risk profile updated"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Risk summary refresh queued"
 msgstr "Risk summary refresh queued"
+
+#: src/routes/migration.new.tsx
+msgid "Risk view"
+msgstr "Risk view"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/members/members-page.tsx

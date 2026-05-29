@@ -189,7 +189,15 @@ function WizardFrame({
           <ProcessingOverlay transition={transition} />
         </div>
       ) : (
-        <div className="relative min-h-0 flex-1 overflow-y-auto px-6" aria-busy={busy || undefined}>
+        // 2026-05-29 (R4 follow-up #5 — "alignment between the title,
+        // the progress bar, and the drop zone"): body was `px-6` while
+        // header, Stepper, and footer all sat at `px-4`. That offset
+        // made the dropzone inset 8px deeper than the active step pill
+        // and the wizard title above, breaking the vertical visual
+        // line down the leading edge. Aligned body to `px-4` so the
+        // dropzone's left edge stacks with "Import clients" + the
+        // step-1 pill.
+        <div className="relative min-h-0 flex-1 overflow-y-auto px-4" aria-busy={busy || undefined}>
           {children}
         </div>
       )}

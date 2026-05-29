@@ -1,5 +1,5 @@
 import { Plural, Trans } from '@lingui/react/macro'
-import { ArrowLeftIcon } from 'lucide-react'
+import { ArrowLeftIcon, CheckCircle2Icon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import type { FirmPublic } from '@duedatehq/contracts'
@@ -161,16 +161,6 @@ function MigrationActivationIntro({
             <Trans>Back</Trans>
           </button>
         ) : null}
-        {/* 2026-05-29 (R4 migration polish #1 + #5): the three
-            ActivationOutcome chips (Import / Deadlines / Risk view)
-            sat next to the eyebrow in a horizontal small-pill row.
-            With the 4-step Stepper rendering identical small pills a
-            few rows below, the chips read as steps competing with
-            the wizard's actual progress indicator. The chips also
-            duplicated the H1's verbs ("Import + generate
-            deadlines") and the description's noun list ("deadlines,
-            evidence, Today risk view"). Removed — the H1 + tightened
-            description now carry the same signal once. */}
         <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent-tint px-2.5 py-1 font-mono text-caption tracking-[0.16em] text-accent-text">
           <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-accent-default" />
           <Trans>PRACTICE ACTIVATION</Trans>
@@ -197,6 +187,43 @@ function MigrationActivationIntro({
             Import your client list to generate deadlines and unlock the first Today risk view.
           </Trans>
         </p>
+        {/* 2026-05-29 (R4 follow-up — Yuqi "PRACTICE ACTIVATION should
+            still signal the three highlights we had"): the three
+            outcome chips (Import / Deadlines / Risk view) were removed
+            in the previous round because they competed visually with
+            the 4-step Stepper rendered inside the wizard card. The
+            user still wants the three outcomes to surface up here as
+            "what activation includes," just NOT in a step-shaped row.
+            Brought back as a quiet icon + label row at body type with
+            bullet separators — no rounded background, no count
+            slot, no fixed pill — so it reads as a description list,
+            not as numbered steps. Sits BELOW the descriptive
+            paragraph so it elaborates on "import / deadlines / risk
+            view" the sentence already named. */}
+        <div
+          role="list"
+          aria-label="Practice activation outcomes"
+          className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary"
+        >
+          <span role="listitem" className="inline-flex items-center gap-1.5">
+            <FileSpreadsheetIcon aria-hidden className="size-4 text-text-accent" />
+            <Trans>Import</Trans>
+          </span>
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+          <span role="listitem" className="inline-flex items-center gap-1.5">
+            <CheckCircle2Icon aria-hidden className="size-4 text-text-accent" />
+            <Trans>Deadlines</Trans>
+          </span>
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+          <span role="listitem" className="inline-flex items-center gap-1.5">
+            <GaugeIcon aria-hidden className="size-4 text-text-accent" />
+            <Trans>Risk view</Trans>
+          </span>
+        </div>
         {ruleReviewCount > 0 ? (
           <Alert className="mt-4 max-w-4xl">
             <AlertTitle>

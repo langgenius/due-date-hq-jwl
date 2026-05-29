@@ -83,12 +83,17 @@ export function Step3Normalize({
         {/* 2026-05-29 (R4 migration polish, follow-up): the
             file-stays-unchanged reassurance is a privacy claim
             ("we don't mutate your source data") — same role as
-            Step 1's SSN-block chip. Aligned to the same chip
-            shape so privacy reassurance reads consistently
-            across the wizard, not as a paragraph here and a
-            chip there. */}
-        <p className="inline-flex w-fit items-center gap-1.5 rounded-md bg-state-accent-hover-alt px-2.5 py-1.5 text-sm text-text-secondary ring-1 ring-state-accent-active-alt/50">
-          <LockIcon className="size-3.5 shrink-0 text-text-accent" aria-hidden />
+            Step 1's SSN-block chip. Aligned to the same shape so
+            privacy reassurance reads consistently across the
+            wizard.
+
+            2026-05-29 (R4 follow-up #4 — Yuqi "ugly highlight"):
+            dropped the accent-tint background + ring; matched
+            Step 1's revised plain-line treatment. Privacy is
+            information, not status — quiet inline line with a
+            small lock icon, no chip surface. */}
+        <p className="inline-flex w-fit items-center gap-1.5 text-sm text-text-tertiary">
+          <LockIcon className="size-3.5 shrink-0" aria-hidden />
           <Trans>
             Your uploaded file stays unchanged — this clean draft is used only after you import.
           </Trans>

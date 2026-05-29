@@ -602,8 +602,14 @@ export function Step1Intake({
                 the visual hierarchy. Per-chip disclosure opens the
                 export guide only when the user explicitly toggles a chip
                 without uploading — the brief's "acknowledging I need help
-                exporting first" affordance. */}
-            <div className="flex flex-col gap-2 border-t border-divider-subtle pt-4">
+                exporting first" affordance.
+
+                2026-05-29 (R4 follow-up #2): dropped the `border-t` rule
+                that used to sit above this section. The motion.div
+                already has `gap-6` separating its children, which gives
+                enough vertical breathing room without a hard horizontal
+                line cutting the empty-state panel into two halves. */}
+            <div className="flex flex-col gap-2">
               {/* 2026-05-29 (R4 migration polish #9): clarified that
                   the picker is only needed when auto-detection isn't
                   going to fire (paste path, generic CSV, no logo
@@ -611,8 +617,13 @@ export function Step1Intake({
                   the dropzone above, the source-manifest pipeline
                   already detects it — the chip would have toggled
                   itself. Telling the user that up front prevents
-                  the "did I already say Drake?" double-step. */}
-              <span className="text-xs text-text-tertiary">
+                  the "did I already say Drake?" double-step.
+
+                  2026-05-29 (R4 follow-up #3): label was `text-xs`
+                  which read smaller than the dropzone helper line
+                  above and undersold the section. Bumped to
+                  `text-sm` so the picker prompt sits at body type. */}
+              <span className="text-sm text-text-tertiary">
                 <Trans>
                   Coming from a specific tool? (Optional — we auto-detect from uploaded files.)
                 </Trans>
@@ -669,13 +680,22 @@ export function Step1Intake({
           since the alert carries a stronger version of the same
           claim with the specific column names. Also suppressed
           for parse-error and submit-error states so it doesn't
-          compete with the error message. */}
+          compete with the error message.
+
+          2026-05-29 (R4 follow-up #4 — "ugly highlight"): dropped the
+          `bg-state-accent-hover-alt` + `ring-1 ring-state-accent-active-alt`
+          chip surface. The accent-tint background was loud enough to
+          read as a status banner, which then competed with the real
+          status banners (`<Alert>`) rendered below this region.
+          Privacy reassurance is information, not status — restyled as
+          a centered inline line with a small lock icon, no background,
+          no ring. Reads as a quiet footnote to the dropzone above. */}
       {intake.ssnBlockedColumnIndexes.length === 0 && !intake.parseError && !intake.submitError ? (
         <p
           id="paste-hint"
-          className="mx-auto inline-flex items-center gap-1.5 rounded-md bg-state-accent-hover-alt px-2.5 py-1.5 text-sm text-text-secondary ring-1 ring-state-accent-active-alt/50"
+          className="mx-auto inline-flex items-center gap-1.5 text-sm text-text-tertiary"
         >
-          <LockIcon className="size-3.5 text-text-accent" aria-hidden />
+          <LockIcon className="size-3.5 shrink-0" aria-hidden />
           <Trans>SSN-like columns are blocked before anything goes to the AI.</Trans>
         </p>
       ) : null}
