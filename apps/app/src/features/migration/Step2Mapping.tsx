@@ -108,7 +108,14 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
     <div className="flex flex-col gap-4 py-5">
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-lg font-semibold text-text-primary">
+          {/* 2026-05-29 (Yuqi — wizard title hierarchy): step h2 from
+              text-lg → text-base. The wizard frame title "Import
+              clients" above is the MASTER for this card; each step's
+              h2 (here, on Step 3, and on Step 4) describes the
+              current step's outcome — child of the master. Sized
+              one notch down so the master title wins the visual
+              weight and the step h2 reads as a sub-section. */}
+          <h2 className="text-base font-semibold text-text-primary">
             <Trans>AI prepared your columns</Trans>
           </h2>
           <MappingCapabilityBadge mapping={mapping} />
