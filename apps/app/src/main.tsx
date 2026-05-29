@@ -6,7 +6,6 @@ import { Toaster } from '@duedatehq/ui/components/ui/sonner'
 import { TooltipProvider } from '@duedatehq/ui/components/ui/tooltip'
 import { bootstrapI18n } from '@/i18n/bootstrap'
 import { AppI18nProvider } from '@/i18n/provider'
-import { installMockPulse } from '@/features/pulse/__dev__/mock-pulse'
 import { createAppRouter } from './router'
 import './styles/globals.css'
 
@@ -16,48 +15,61 @@ const queryClient = new QueryClient({
   },
 })
 
-// Dev-only: opt-in pulse mock seeding via `?mockPulse=1`. No-op in prod builds.
-installMockPulse(queryClient)
+async function installDevMocks(): Promise<void> {
+  if (!import.meta.env.DEV) return
+  if (typeof window === 'undefined') return
+  if (new URLSearchParams(window.location.search).get('mockPulse') !== '1') return
+
+  const { installMockPulse } = await import('@/features/pulse/__dev__/mock-pulse')
+  installMockPulse(queryClient)
+}
 
 const rootEl = document.getElementById('root')
 if (!rootEl) {
   throw new Error('Root element #root not found')
 }
+const appRoot = rootEl
 
-bootstrapI18n()
-const router = createAppRouter()
+void startApp()
 
-const AgentationDevtools = import.meta.env.DEV
-  ? lazy(async () => {
-      const { Agentation } = await import('agentation')
+async function startApp() {
+  await installDevMocks()
 
-      return { default: Agentation }
-    })
-  : null
+  bootstrapI18n()
+  const router = createAppRouter()
 
-function AppDevtools() {
-  if (!AgentationDevtools) return null
+  const AgentationDevtools = import.meta.env.DEV
+    ? lazy(async () => {
+        const { Agentation } = await import('agentation')
 
-  return (
-    <Suspense fallback={null}>
-      <AgentationDevtools />
-    </Suspense>
+        return { default: Agentation }
+      })
+    : null
+
+  function AppDevtools() {
+    if (!AgentationDevtools) return null
+
+    return (
+      <Suspense fallback={null}>
+        <AgentationDevtools />
+      </Suspense>
+    )
+  }
+
+  createRoot(appRoot).render(
+    <StrictMode>
+      <AppI18nProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <RouterProvider router={router} />
+            <Toaster />
+            <AppDevtools />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </AppI18nProvider>
+    </StrictMode>,
   )
 }
-
-createRoot(rootEl).render(
-  <StrictMode>
-    <AppI18nProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <RouterProvider router={router} />
-          <Toaster />
-          <AppDevtools />
-        </TooltipProvider>
-      </QueryClientProvider>
-    </AppI18nProvider>
-  </StrictMode>,
-)
 
 // PWA / Service Worker / Web Push intentionally omitted for Phase 0
 // (docs/dev-file/00 §7 · /05 §8).

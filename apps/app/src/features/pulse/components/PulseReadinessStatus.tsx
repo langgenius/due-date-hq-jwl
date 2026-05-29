@@ -22,6 +22,8 @@ export function PulseReadinessChip({ readiness }: { readiness: PulseApplyReadine
 }
 
 export function PulseDecisionStatusNotice({ alert }: { alert: PulseAlertPublic }) {
+  if (alert.status !== 'matched') return null
+
   const readiness = alert.applyReadiness
   const variant =
     readiness.status === 'ready'

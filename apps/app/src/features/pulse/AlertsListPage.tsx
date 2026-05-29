@@ -726,6 +726,7 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                         alert={alert}
                         active={alert.id === openAlertId}
                         compactClients={panelOpen}
+                        showReadiness={!historyMode}
                         onReview={() => openDrawerAndCollapseSidebar(alert.id)}
                         {...(canSnooze
                           ? {

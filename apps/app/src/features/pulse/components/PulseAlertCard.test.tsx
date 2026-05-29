@@ -1,4 +1,4 @@
-import { act } from 'react'
+import { act, type ComponentProps } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -47,7 +47,10 @@ function baseAlert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic 
   }
 }
 
-function renderCard(alert: PulseAlertPublic) {
+function renderCard(
+  alert: PulseAlertPublic,
+  props: Omit<Partial<ComponentProps<typeof PulseAlertCard>>, 'alert' | 'onReview'> = {},
+) {
   container = document.createElement('div')
   document.body.append(container)
   root = createRoot(container)
@@ -55,7 +58,7 @@ function renderCard(alert: PulseAlertPublic) {
   act(() => {
     root?.render(
       <AppI18nProvider>
-        <PulseAlertCard alert={alert} onReview={() => {}} />
+        <PulseAlertCard alert={alert} onReview={() => {}} {...props} />
       </AppI18nProvider>,
     )
   })
@@ -109,6 +112,21 @@ describe('PulseAlertCard readiness', () => {
       )
     })
     expect(document.body.textContent).toContain('Review only')
+  })
+
+  it('hides readiness on history and already-actioned alerts', () => {
+    renderCard(baseAlert(), { showReadiness: false })
+    expect(document.body.textContent).not.toContain('Ready to apply')
+
+    act(() => {
+      root?.render(
+        <AppI18nProvider>
+          <PulseAlertCard alert={baseAlert({ status: 'applied' })} onReview={() => {}} />
+        </AppI18nProvider>,
+      )
+    })
+    expect(document.body.textContent).toContain('Applied')
+    expect(document.body.textContent).not.toContain('Ready to apply')
   })
 
   it('shows merged duplicate source update count without source names', () => {

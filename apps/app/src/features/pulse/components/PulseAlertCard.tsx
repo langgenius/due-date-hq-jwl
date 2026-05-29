@@ -54,6 +54,12 @@ interface PulseAlertCardProps {
    */
   compactClients?: boolean
   /**
+   * History/archive rows have already been reviewed, applied, dismissed, or
+   * otherwise closed. Hide readiness there so the footer doesn't say "Ready to
+   * apply" next to an Applied/Reviewed status.
+   */
+  showReadiness?: boolean
+  /**
    * 2026-05-26 (Yuqi /rules/pulse #4): when this card is the one
    * currently being viewed in the right-hand panel, render a left
    * border + brighter background so the user can quickly find the
@@ -97,6 +103,7 @@ export function PulseAlertCard({
   compact = false,
   active = false,
   compactClients = false,
+  showReadiness = true,
 }: PulseAlertCardProps) {
   const { t } = useLingui()
   const impacted = alert.matchedCount + alert.needsReviewCount
@@ -143,6 +150,7 @@ export function PulseAlertCard({
   const confidenceLevel = aiConfidenceTier(alert.confidence)
   const lowConfidence = confidenceLevel === 'low'
   const mediumConfidence = confidenceLevel === 'medium'
+  const showReadinessChip = showReadiness && alert.status === 'matched'
 
   // 2026-05-25 (Yuqi /rules/pulse fourth pass — #3, #4, #8):
   //   • #3: Review button moves from a bottom-of-action-column slot
@@ -526,7 +534,7 @@ export function PulseAlertCard({
             <PulseSourceBadge source={alert.source} sourceUrl={alert.sourceUrl} />
             <PulseSourceStatusBadge status={alert.sourceStatus} />
             <PulseStatusBadge status={alert.status} />
-            <PulseReadinessChip readiness={alert.applyReadiness} />
+            {showReadinessChip ? <PulseReadinessChip readiness={alert.applyReadiness} /> : null}
             {alert.duplicateSourceSnapshotCount > 0 ? (
               <span className="text-xs text-text-tertiary">
                 <Plural

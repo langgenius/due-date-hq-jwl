@@ -104,4 +104,11 @@ describe('PulseDecisionStatusNotice', () => {
     expect(document.body.textContent).toContain('Ready to apply')
     expect(document.body.textContent).toContain('Continue to Apply when ready')
   })
+
+  it('does not show apply readiness for already-actioned alerts', () => {
+    renderNotice(alert({ status: 'applied' }))
+
+    expect(document.body.textContent).not.toContain('Ready to apply')
+    expect(document.body.textContent).not.toContain('Continue to Apply when ready')
+  })
 })

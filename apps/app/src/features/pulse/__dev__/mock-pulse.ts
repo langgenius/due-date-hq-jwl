@@ -1,8 +1,8 @@
-// Dev-only mock seeder for Pulse alerts + drawer. Activated by adding
-// `?mockPulse=1` to the URL (handled in `main.tsx`). Pre-fills the React Query
-// cache so the UI can be inspected end-to-end without a working backend or DB
-// seed. NEVER imported in production builds — `installMockPulse` short-circuits
-// outside `import.meta.env.DEV`.
+// Dev-only mock seeder for Pulse alerts + drawer. Activated by demo/e2e flows
+// adding `?mockPulse=1` to the URL. Pre-fills the React Query cache so the UI
+// can be inspected end-to-end without a working backend or DB seed. NEVER
+// imported in production builds — `installMockPulse` short-circuits outside
+// `import.meta.env.DEV`.
 //
 // What gets seeded:
 //   - `firms.listMine`     → one firm with role `owner` (so apply/dismiss CTAs unlock).
@@ -562,13 +562,13 @@ export function seedPulseMock(queryClient: QueryClient): void {
   )
 }
 
+export function shouldInstallMockPulse(search: string): boolean {
+  return new URLSearchParams(search).get('mockPulse') === '1'
+}
+
 export function installMockPulse(queryClient: QueryClient): void {
-  // Preview-integration: default-on in dev so the NEEDS ATTENTION
-  // surface always has cards to render. Explicit `?mockPulse=0`
-  // turns it off for users who want an empty-state preview.
   if (!import.meta.env.DEV) return
   if (typeof window === 'undefined') return
-  const explicit = new URLSearchParams(window.location.search).get('mockPulse')
-  if (explicit === '0') return
+  if (!shouldInstallMockPulse(window.location.search)) return
   seedPulseMock(queryClient)
 }

@@ -8,6 +8,7 @@ import {
   readDemoRoleParam,
   resolveDemoLoginRedirect,
   shouldRenderDemoLoginHtml,
+  withDemoPulseMockFlag,
 } from './routes/e2e'
 
 describe('@duedatehq/server app', () => {
@@ -181,6 +182,17 @@ describe('@duedatehq/server app', () => {
         '/deadlines',
       ),
     ).toBe('/deadlines')
+  })
+
+  it('marks browser demo-login redirects as Pulse mock eligible', () => {
+    expect(withDemoPulseMockFlag('/')).toBe('/?mockPulse=1')
+    expect(withDemoPulseMockFlag('/rules/pulse?status=active#top')).toBe(
+      '/rules/pulse?status=active&mockPulse=1#top',
+    )
+    expect(withDemoPulseMockFlag('/deadlines?mockPulse=0')).toBe('/deadlines?mockPulse=0')
+    expect(withDemoPulseMockFlag('http://127.0.0.1:5173/rules/pulse')).toBe(
+      'http://127.0.0.1:5173/rules/pulse?mockPulse=1',
+    )
   })
 
   it('uses html handoff only for browser demo login requests', () => {

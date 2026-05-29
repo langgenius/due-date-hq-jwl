@@ -23,6 +23,10 @@ callers receive 200 JSON instead. The endpoint self-heals the minimum demo
 identity rows required to sign in; run the seed first for the full clients,
 deadlines, Pulse, billing, audit, and notification dataset.
 
+The browser handoff also appends `mockPulse=1` to the app URL so the dev-only
+five-card Pulse mock appears only from the demo/e2e entrypoint. Normal app
+loads in development use the database-backed Pulse rows instead.
+
 ## Archive Solo Pulse Supplement
 
 `Archive Solo Practice` is intentionally blank in the main demo seed for import walkthroughs.

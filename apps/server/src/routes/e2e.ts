@@ -248,6 +248,23 @@ export function resolveDemoLoginRedirect(
   }
 }
 
+export function withDemoPulseMockFlag(redirectTo: string): string {
+  try {
+    const target = new URL(redirectTo, 'http://duedatehq.local')
+    if (!target.searchParams.has('mockPulse')) {
+      target.searchParams.set('mockPulse', '1')
+    }
+
+    if (redirectTo.startsWith('/')) {
+      return `${target.pathname}${target.search}${target.hash}`
+    }
+
+    return target.toString()
+  } catch {
+    return redirectTo
+  }
+}
+
 export function shouldRenderDemoLoginHtml(request: Request): boolean {
   const requestUrl = new URL(request.url)
   const format = requestUrl.searchParams.get('format')
@@ -678,10 +695,8 @@ e2eRoute.get('/demo-login', async (c) => {
   )
   c.header('Cache-Control', 'no-store')
 
-  const redirectTo = resolveDemoLoginRedirect(
-    requestUrl,
-    c.env.APP_URL,
-    requestUrl.searchParams.get('redirectTo'),
+  const redirectTo = withDemoPulseMockFlag(
+    resolveDemoLoginRedirect(requestUrl, c.env.APP_URL, requestUrl.searchParams.get('redirectTo')),
   )
   if (!shouldRenderDemoLoginHtml(c.req.raw)) {
     return c.json({

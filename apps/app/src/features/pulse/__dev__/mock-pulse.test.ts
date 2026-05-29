@@ -4,9 +4,16 @@ import { describe, expect, it } from 'vitest'
 import type { FirmPublic, PulseAlertPublic, PulseSourceHealth } from '@duedatehq/contracts'
 
 import { orpc } from '@/lib/rpc'
-import { seedPulseMock } from './mock-pulse'
+import { seedPulseMock, shouldInstallMockPulse } from './mock-pulse'
 
 describe('seedPulseMock', () => {
+  it('requires the demo-login mockPulse flag before installing fixed alerts', () => {
+    expect(shouldInstallMockPulse('')).toBe(false)
+    expect(shouldInstallMockPulse('?mockPulse=0')).toBe(false)
+    expect(shouldInstallMockPulse('?mockPulse=1')).toBe(true)
+    expect(shouldInstallMockPulse('?redirectTo=%2Frules%2Fpulse&mockPulse=1')).toBe(true)
+  })
+
   it('does not create a global deadline badge for an unseeded deadline queue', () => {
     const queryClient = new QueryClient()
 
