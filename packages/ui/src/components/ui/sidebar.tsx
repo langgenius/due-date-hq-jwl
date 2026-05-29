@@ -460,14 +460,19 @@ export function SidebarContent({ className, ...props }: React.ComponentProps<'di
     <div
       data-slot="sidebar-content"
       className={cn(
-        // 2026-05-26 (Yuqi sidebar fix — height parity): dropped the
-        // collapsed `gap-3` override. Same gap-4 (16px) between
-        // SidebarGroup blocks in both modes so the vertical rhythm
-        // doesn't drift. Horizontal padding still tightens in
-        // collapsed (px-1.5) so the 32×32 tile centers in the 56px
-        // rail — that one's a width concern, not a height one.
+        // 2026-05-28 (Yuqi sidebar polish — divider symmetry): in
+        // collapsed mode the SidebarGroupLabel becomes a 28px wide
+        // hairline divider (see SidebarGroupLabel below), so the
+        // parent `gap-4` between groups stacks on top of the label's
+        // own `my-N` margin — the icon visually closer to one
+        // divider than the other ("Rule library" sat 24px from the
+        // top divider and 8px from the bottom). Drop parent gap to
+        // 0 in collapsed mode so the icon-to-divider distance comes
+        // SOLELY from the label's symmetric `my-3` (see below). In
+        // expanded mode the labels are text headers, not dividers,
+        // so the gap-4 between groups stays for breathing room.
         'flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pt-4 pb-2',
-        'group-data-[collapsed=true]/sidebar:px-1.5',
+        'group-data-[collapsed=true]/sidebar:px-1.5 group-data-[collapsed=true]/sidebar:gap-0',
         className,
       )}
       {...props}
@@ -552,7 +557,14 @@ export function SidebarGroupLabel({ className, ...props }: React.ComponentProps<
         // icon column, not a divider that touches the panel edges.
         // `divider-subtle` → `divider-deep` so the 28px line still
         // reads at 1px tall.
-        'group-data-[collapsed=true]/sidebar:my-2 group-data-[collapsed=true]/sidebar:h-px group-data-[collapsed=true]/sidebar:w-7 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:overflow-hidden group-data-[collapsed=true]/sidebar:bg-divider-deep group-data-[collapsed=true]/sidebar:text-transparent',
+        // 2026-05-28 (Yuqi sidebar polish — divider symmetry):
+        // bumped `my-2` → `my-3` so each hairline divider sits
+        // 12px from the icon above AND 12px from the icon below
+        // (parent `gap-0` in collapsed mode — see SidebarContent).
+        // Net: icons between two dividers are mathematically
+        // centered between them, not visually drifted toward the
+        // top one as they were before.
+        'group-data-[collapsed=true]/sidebar:my-3 group-data-[collapsed=true]/sidebar:h-px group-data-[collapsed=true]/sidebar:w-7 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:overflow-hidden group-data-[collapsed=true]/sidebar:bg-divider-deep group-data-[collapsed=true]/sidebar:text-transparent',
         'group-data-[collapsed=true]/sidebar:[&>*]:hidden',
         className,
       )}
