@@ -5539,14 +5539,14 @@ msgstr "Import template suggestions mean AI was unavailable and the selected imp
 msgid "Import undone"
 msgstr "Import undone"
 
+#: src/routes/migration.new.tsx
+msgid "Import your client list to generate deadlines and unlock the first Today risk view."
+msgstr "Import your client list to generate deadlines and unlock the first Today risk view."
+
 #: src/features/dashboard/actions-list.tsx
 #: src/routes/obligations.tsx
 msgid "Import your client list to start tracking filing deadlines."
 msgstr "Import your client list to start tracking filing deadlines."
-
-#: src/routes/migration.new.tsx
-msgid "Import your client list to generate deadlines and unlock the first Today risk view."
-msgstr "Import your client list to generate deadlines and unlock the first Today risk view."
 
 #: src/features/concepts/concept-help.tsx
 msgid "Import-time suggestions for tax types based on entity type and jurisdiction when the uploaded rows do not provide tax types."

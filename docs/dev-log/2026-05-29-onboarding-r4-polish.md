@@ -96,7 +96,7 @@ and clients will see."
 
 ## Design / Docs
 
-The canonical onboarding doc in `docs/Design/` describes the F5-* hierarchy
+The canonical onboarding doc in `docs/Design/` describes the F5-\* hierarchy
 this round was rebalancing — covered separately when the next design-sync
 sweep lands; this dev-log is the source of truth for R4 specifically.
 

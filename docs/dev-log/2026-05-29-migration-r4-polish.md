@@ -212,4 +212,3 @@ Inspected for consistency. No changes:
 Strings dropped: "Source set to {selectedPresetLabel}." retained its
 slot (still useful when manual preset differs from detection); the old
 two-sentence Step 3 reassurance was replaced by the em-dash chip copy.
-
