@@ -447,13 +447,26 @@ function ActionRow({
                   (`bg-background-default rounded-md px-2`) so the
                   eye lands on it ahead of the other meta rows. */}
               {/* 2026-05-29 (Yuqi /today round 3 — #8): each dl item is
-                  now a real link to the surface that holds the full
+                  a real link to the surface that holds the full
                   detail. stopPropagation on each so clicking a sub-link
                   doesn't ALSO fire the parent row's "open obligation
                   drawer" click. Sources is the lone exception — it
                   still calls onOpenObligation (the obligation drawer
                   carries the evidence list) rather than navigating
-                  away. */}
+                  away.
+
+                  2026-05-29 (Yuqi /today round 4 — "the hover state for
+                  each of the link should try to be same"): unified the
+                  hover treatment across all 4 sub-affordances. All
+                  four share the canonical
+                    `rounded-sm outline-none underline-offset-2
+                     hover:underline
+                     focus-visible:ring-2 ring-state-accent-active-alt`
+                  pattern. The Deadlines chip drops its earlier
+                  chip-style `hover:bg-state-base-hover` so it matches
+                  the inline-text affordances — its bordered surface
+                  comes from the static chip frame, hover signals
+                  clickability via the underline alone. */}
               <dt className="text-text-tertiary">
                 <Trans>Deadlines</Trans>
               </dt>
@@ -461,7 +474,7 @@ function ActionRow({
                 <Link
                   to="/deadlines/calendar"
                   onClick={(event) => event.stopPropagation()}
-                  className="inline-flex items-center gap-2 rounded-md border border-divider-subtle bg-background-default px-2 py-0.5 outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="inline-flex items-center gap-2 rounded-sm border border-divider-subtle bg-background-default px-2 py-0.5 outline-none underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                 >
                   <span>
                     <Trans>
@@ -487,13 +500,11 @@ function ActionRow({
               <dd>
                 {/* 2026-05-25 (status-pill audit #1): point at the
                     canonical `ObligationStatusReadBadge` instead of
-                    inlining `badgeVariants` + `BadgeStatusDot`.
-                    2026-05-29 (#8): wrapped in a Link to the
-                    deadlines queue filtered by this status. */}
+                    inlining `badgeVariants` + `BadgeStatusDot`. */}
                 <Link
                   to={`/deadlines?status=${encodeURIComponent(row.status)}`}
                   onClick={(event) => event.stopPropagation()}
-                  className="inline-flex rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="inline-flex rounded-sm outline-none underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   aria-label={t`See all ${row.status} deadlines`}
                 >
                   <ObligationStatusReadBadge status={row.status} className="h-6 text-xs" />

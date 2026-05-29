@@ -119,10 +119,17 @@ function NeedsAttentionSection() {
       // 2026-05-29 (Yuqi /today follow-up): inter-section gap tightened
       // gap-4 → gap-3 to match Actions this week's new internal
       // rhythm. Universal "gap smaller — apply to everywhere" pass.
-      className={cn(
-        'flex flex-col gap-3 rounded-xl',
-        totalAlertCount > 0 && 'bg-state-destructive-hover p-3',
-      )}
+      //
+      // 2026-05-29 (Yuqi /today round 4): the destructive bg-tint +
+      // p-3 now ALWAYS render, regardless of alert count. Empty state
+      // used to drop the bg entirely, which made the section read as
+      // "no section, just a heading" instead of "the alerts zone is
+      // calm right now." Keeping the frame consistent across both
+      // states gives Today a stable left-column rhythm — the
+      // alerts-tint anchors the section even when nothing's wrong,
+      // and the StatusBanner inside still uses success tone so
+      // urgency is signalled by CONTENT, not chrome.
+      className="flex flex-col gap-3 rounded-xl bg-state-destructive-hover p-3"
     >
       {/* 2026-05-27 (Yuqi feedback: "去掉view all alerts. 点击+2 more
           就是去viewall"): the trailing "View all alerts" link was
@@ -131,20 +138,13 @@ function NeedsAttentionSection() {
           remaining child, the flex justify-between scaffolding is
           unnecessary — the h2 sits alone on its row.
 
-          2026-05-29 (Yuqi /today follow-up — "follow the gap"): added
-          `px-3` on empty-state Alerts so the h2 left edge aligns with
-          Actions this week's h2 (which already had px-3). In the
-          alerts-present case the outer `p-3` on the section already
-          provides the same indent, so we only apply the inset
-          padding here when there's no outer panel padding. */}
-      {/* 2026-05-29 (Yuqi /today round 3 — "follow the gap"): h2 row
-          now ALWAYS gets `px-3` (no longer conditional on the empty
-          state). When alerts are present the outer `p-3` already
-          provides the same left inset, but the px-3 is harmless and
-          makes the heading row's class consistent across both
-          states — matches Actions this week's `px-3 ActionsListHeader`
-          unconditionally. */}
-      <div className="flex items-center gap-3 px-3">
+          2026-05-29 (Yuqi /today round 4 — "no left padding when it is
+          encapsulated inside another frame"): h2 row drops its
+          internal `px-3` since the outer section now always carries
+          `p-3` (see comment above). Double-padding was making the
+          heading sit visually inset from the bg-tint frame; flush
+          alignment with the panel edge is cleaner. */}
+      <div className="flex items-center gap-3">
         {/* 2026-05-25 (Yuqi Today #1 — second pass): h2 stepped
             down text-xl → text-lg, matching the parallel change
             on Actions-this-week's h2. The page was reading as
