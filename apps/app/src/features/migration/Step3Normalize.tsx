@@ -1,7 +1,13 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
-import { AlertTriangleIcon, CheckCircle2Icon, ChevronDownIcon, ShieldCheckIcon } from 'lucide-react'
+import {
+  AlertTriangleIcon,
+  CheckCircle2Icon,
+  ChevronDownIcon,
+  LockIcon,
+  ShieldCheckIcon,
+} from 'lucide-react'
 
 import type { MappingRow } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
@@ -65,7 +71,7 @@ export function Step3Normalize({
 
   return (
     <div className="flex flex-col gap-4 py-5">
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-2">
         {/* 2026-05-26 (Step 7 onboarding audit F6-16): "cleaned"
             implied the source data was dirty — a passive
             criticism of the user's roster. "Standardized" is
@@ -74,10 +80,22 @@ export function Step3Normalize({
         <h2 className="text-lg font-semibold text-text-primary">
           <Trans>AI standardized your values</Trans>
         </h2>
-        <p className="text-sm text-text-secondary">
+        {/* 2026-05-29 (R4 migration polish, follow-up): the
+            file-stays-unchanged reassurance is a privacy claim
+            ("we don't mutate your source data") — same role as
+            Step 1's SSN-block chip. Aligned to the same shape so
+            privacy reassurance reads consistently across the
+            wizard.
+
+            2026-05-29 (R4 follow-up #4 — Yuqi "ugly highlight"):
+            dropped the accent-tint background + ring; matched
+            Step 1's revised plain-line treatment. Privacy is
+            information, not status — quiet inline line with a
+            small lock icon, no chip surface. */}
+        <p className="inline-flex w-fit items-center gap-1.5 text-sm text-text-tertiary">
+          <LockIcon className="size-3.5 shrink-0" aria-hidden />
           <Trans>
-            Your uploaded file stays unchanged. DueDateHQ will use this clean import draft only
-            after you import.
+            Your uploaded file stays unchanged — this clean draft is used only after you import.
           </Trans>
         </p>
       </div>

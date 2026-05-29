@@ -1,6 +1,5 @@
 import { Plural, Trans } from '@lingui/react/macro'
-import { CheckCircle2Icon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { ArrowLeftIcon, CheckCircle2Icon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
 import { HotkeysProvider } from '@tanstack/react-hotkeys'
 import type { FirmPublic } from '@duedatehq/contracts'
@@ -26,6 +25,15 @@ export function MigrationNewRoute() {
   const canRunMigration = permission.can('migration.run')
   const skipToDashboard = () => void navigate('/')
   const isOnboardingSource = params.get('source') === 'onboarding'
+  // 2026-05-29 (R4 migration polish #10): "should there be a back
+  // option?" — yes, but conditionally. When source=onboarding, the
+  // logical chain is signup → onboarding (one-shot, now complete)
+  // → migration; there's nothing to go back to (history-back would
+  // hit /onboarding which redirects right back here). For other
+  // entry points (e.g. "Import clients" CTA from /today), the prior
+  // page is a real, mountable surface — `navigate(-1)` works.
+  const goBack = () => void navigate(-1)
+  const showBack = !isOnboardingSource
   const ruleReviewCount = parseRuleReviewCount(params.get('ruleReview'))
   const ruleReviewJurisdictions = parseRuleReviewJurisdictions(params.get('ruleReviewJur'))
   const reviewRules = () => {
@@ -46,6 +54,7 @@ export function MigrationNewRoute() {
           onReviewRules={reviewRules}
           showRuleReviewAction={!isOnboardingSource}
           ruleReviewCount={ruleReviewCount}
+          onBack={showBack ? goBack : undefined}
         />
         <div className="rounded-xl border border-divider-regular bg-components-panel-bg p-4">
           <Skeleton className="h-8 w-56" />
@@ -70,6 +79,7 @@ export function MigrationNewRoute() {
           onReviewRules={reviewRules}
           showRuleReviewAction={!isOnboardingSource}
           ruleReviewCount={ruleReviewCount}
+          onBack={showBack ? goBack : undefined}
         />
         <PermissionGate
           permission="migration.run"
@@ -98,6 +108,7 @@ export function MigrationNewRoute() {
             onReviewRules={reviewRules}
             showRuleReviewAction={!isOnboardingSource}
             ruleReviewCount={ruleReviewCount}
+            onBack={showBack ? goBack : undefined}
           />
         )}
         onClose={skipToDashboard}
@@ -123,58 +134,96 @@ function MigrationActivationIntro({
   onReviewRules,
   showRuleReviewAction = true,
   ruleReviewCount,
+  onBack,
 }: {
   onSkip: () => void
   onReviewRules: () => void
   showRuleReviewAction?: boolean | undefined
   ruleReviewCount: number
+  onBack?: (() => void) | undefined
 }) {
   return (
     <header className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent-tint px-2.5 py-1 font-mono text-caption tracking-[0.16em] text-accent-text">
-            <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-accent-default" />
-            <Trans>PRACTICE ACTIVATION</Trans>
-          </span>
-          {/* 2026-05-27 (Step 7 onboarding audit F6-02): the
-              three chips were ordered `facts → list → risk` and
-              led with internal nouns. Reordered to the user's
-              mental model (act → see → assess): Import →
-              Deadlines → Risk view. "Today risk" was the
-              hardest noun to parse for a first-time user — the
-              chip describes the surface the import unlocks, not
-              a metric, so renamed to "Risk view" (matches the
-              dashboard column header). */}
-          <ActivationOutcome
-            icon={<FileSpreadsheetIcon aria-hidden className="size-3.5" />}
-            label={<Trans>Import</Trans>}
-          />
-          <ActivationOutcome
-            icon={<CheckCircle2Icon aria-hidden className="size-3.5" />}
-            label={<Trans>Deadlines</Trans>}
-          />
-          <ActivationOutcome
-            icon={<GaugeIcon aria-hidden className="size-3.5" />}
-            label={<Trans>Risk view</Trans>}
-          />
-        </div>
-        {/* 2026-05-26 (Step 7 onboarding audit F6-01): the
-            headline used "deadline list" — a product-internal
-            noun that doesn't appear anywhere else. The wizard's
-            own footer says "Import & Generate"; the dashboard
-            says "deadlines"; users say "deadlines". Aligned the
-            headline to the verbs the wizard actually performs. */}
-        <h1 className="mt-3 text-xl font-semibold tracking-tight text-text-primary">
-          <Trans>Import your clients and generate deadlines.</Trans>
+        {/* 2026-05-29 (R4 migration polish #10): "← Back" surfaces on
+            the leading edge when there's a real previous surface to
+            return to. Suppressed when source=onboarding (one-shot
+            chain; history-back would loop). Visually nests above the
+            eyebrow so it reads as page-level navigation, not as a
+            second eyebrow. */}
+        {onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className="mb-2 inline-flex items-center gap-1.5 rounded-sm text-caption text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <ArrowLeftIcon className="size-3.5" aria-hidden />
+            <Trans>Back</Trans>
+          </button>
+        ) : null}
+        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent-tint px-2.5 py-1 font-mono text-caption tracking-[0.16em] text-accent-text">
+          <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-accent-default" />
+          <Trans>PRACTICE ACTIVATION</Trans>
+        </span>
+        {/* 2026-05-29 (R4 migration polish #4): H1 sized up to
+            text-2xl to match the entry-shell family (login uses
+            text-[26px], onboarding uses text-2xl; this page was
+            stuck at text-xl). Trailing period intentionally kept —
+            login ("Welcome to DueDateHQ.") and onboarding ("We
+            pre-filled a name from your account.") both end H1s with
+            a period as part of the entry-shell declarative voice.
+
+            2026-05-29 (R4 migration polish #3 + #5): copy tightened.
+            Old H1 named two verbs ("Import your clients and generate
+            deadlines.") that the description then re-listed. New H1
+            frames the page's purpose ("Activate your practice.")
+            mirroring the eyebrow; the description names the
+            outcomes once. */}
+        <h1 className="mt-3 text-2xl font-semibold leading-[1.15] tracking-tight text-text-primary">
+          <Trans>Activate your practice.</Trans>
         </h1>
         <p className="mt-1 max-w-4xl text-sm leading-relaxed text-text-secondary">
           <Trans>
-            Your practice workspace is ready. Import a spreadsheet now to turn client facts into
-            deadlines, evidence, and the first Today risk view. You can skip and import later from
-            Today, Clients, or Command Palette.
+            Import your client list to generate deadlines and unlock the first Today risk view.
           </Trans>
         </p>
+        {/* 2026-05-29 (R4 follow-up — Yuqi "PRACTICE ACTIVATION should
+            still signal the three highlights we had"): the three
+            outcome chips (Import / Deadlines / Risk view) were removed
+            in the previous round because they competed visually with
+            the 4-step Stepper rendered inside the wizard card. The
+            user still wants the three outcomes to surface up here as
+            "what activation includes," just NOT in a step-shaped row.
+            Brought back as a quiet icon + label row at body type with
+            bullet separators — no rounded background, no count
+            slot, no fixed pill — so it reads as a description list,
+            not as numbered steps. Sits BELOW the descriptive
+            paragraph so it elaborates on "import / deadlines / risk
+            view" the sentence already named. */}
+        <div
+          role="list"
+          aria-label="Practice activation outcomes"
+          className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary"
+        >
+          <span role="listitem" className="inline-flex items-center gap-1.5">
+            <FileSpreadsheetIcon aria-hidden className="size-4 text-text-accent" />
+            <Trans>Import</Trans>
+          </span>
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+          <span role="listitem" className="inline-flex items-center gap-1.5">
+            <CheckCircle2Icon aria-hidden className="size-4 text-text-accent" />
+            <Trans>Deadlines</Trans>
+          </span>
+          <span aria-hidden className="text-text-tertiary">
+            ·
+          </span>
+          <span role="listitem" className="inline-flex items-center gap-1.5">
+            <GaugeIcon aria-hidden className="size-4 text-text-accent" />
+            <Trans>Risk view</Trans>
+          </span>
+        </div>
         {ruleReviewCount > 0 ? (
           <Alert className="mt-4 max-w-4xl">
             <AlertTitle>
@@ -206,14 +255,17 @@ function MigrationActivationIntro({
         ) : null}
       </div>
 
-      {/* Step 6 UX #138 (icon dropped — "Skip" is lateral, not
-          continuation) + Step 7 F6-26 / F6-03 (Tooltip names the
-          future import paths so the reassurance lands at the
-          decision point, not just in the body paragraph above). */}
+      {/* 2026-05-29 (R4 migration polish #2): "Skip for now" was
+          variant="outline" — bordered, filled, weight equal to
+          Continue inside the wizard frame below. That weight
+          encouraged users to read it as a primary action competing
+          with Continue. Dropped to ghost so it reads as a quiet
+          lateral exit. Tooltip stays — it carries the reassurance
+          about where to find import later. */}
       <Tooltip>
         <TooltipTrigger
           render={
-            <Button variant="outline" size="sm" className="w-fit shrink-0" onClick={onSkip}>
+            <Button variant="ghost" size="sm" className="w-fit shrink-0" onClick={onSkip}>
               <Trans>Skip for now</Trans>
             </Button>
           }
@@ -223,14 +275,5 @@ function MigrationActivationIntro({
         </TooltipContent>
       </Tooltip>
     </header>
-  )
-}
-
-function ActivationOutcome({ icon, label }: { icon: ReactNode; label: ReactNode }) {
-  return (
-    <span className="inline-flex min-h-7 items-center gap-1.5 rounded-md border border-divider-subtle bg-background-body px-2 text-xs text-text-secondary">
-      <span className="text-text-accent">{icon}</span>
-      {label}
-    </span>
   )
 }

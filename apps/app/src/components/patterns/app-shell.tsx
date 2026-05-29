@@ -14,7 +14,6 @@ import type { ThemePreference } from '@duedatehq/ui/theme'
 import { FirmSwitcherTrigger, NavGroups } from './app-shell-nav'
 import { SIDEBAR_TOGGLE_HOTKEY } from './keyboard-shell/display'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from './keyboard-shell/hooks'
-import { PulseNotificationsBell } from './pulse-notifications-bell'
 import { UserMenuTrigger } from './app-shell-user-menu'
 import type { FirmPublic } from '@duedatehq/contracts'
 import type { AuthUser } from '@/lib/auth'
@@ -175,27 +174,17 @@ export function AppShell(props: AppShellProps) {
             retone the entire product's work surface — no need to
             touch consumer code. */}
         <SidebarInset className="relative bg-background-inset">
-          {/* 2026-05-26 (Yuqi sidebar reorg — bell moves out):
-              notifications bell now floats at the top-right
-              corner of the work surface, absolutely positioned
-              against `SidebarInset` (which is `relative`). z-30
-              keeps it above route content; `pointer-events-none`
-              on the wrapper + `pointer-events-auto` on the
-              inner div is unnecessary since the bell is small
-              (32×32) and pages route around it via their own
-              top-right padding. Page headers with their own
-              top-right actions (e.g. /rules/pulse "Alert
-              history" button) sit BELOW this bell in the page
-              layout's natural padding, not collision-positioned
-              against it. */}
-          <div className="absolute right-3 top-3 z-30 md:right-4 md:top-4">
-            <PulseNotificationsBell />
-          </div>
+          {/* 2026-05-28 (Yuqi /today polish — bell back in sidebar):
+              the floating top-right bell was a free-floating utility
+              chip that read as orphaned chrome — no neighbour, no
+              navigation context. Moved into the sidebar footer
+              alongside Audit log + Settings so it sits in the
+              navigation family. See app-shell-nav.tsx. */}
           {/* Route header strip removed — page title was redundant
             with the sidebar selection state, and the user menu
             lives in the sidebar footer where account-level
-            controls belong. The notifications bell floats at
-            the top-right corner of this inset (above).
+            controls belong. The notifications bell lives in the
+            sidebar footer (see app-shell-nav.tsx).
             bg-background-default makes the inset white (Notion/Linear
             pattern: gray rail, white work surface). */}
           <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">

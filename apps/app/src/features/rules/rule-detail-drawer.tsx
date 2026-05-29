@@ -238,7 +238,7 @@ function DetailSection({ label, children }: { label: React.ReactNode; children: 
   // as section titles; 16px gives them their own tier in the
   // hierarchy.
   return (
-    <section className="flex flex-col gap-2">
+    <section className="flex flex-col gap-3">
       <h4 className="text-base font-semibold text-text-primary">{label}</h4>
       {children}
     </section>
@@ -728,7 +728,7 @@ function ApplicabilitySection({ rule }: { rule: ObligationRule }) {
   //     payment" instead of "· also payment") so the suffix reads
   //     as a sentence.
   return (
-    <section className="flex flex-col gap-2">
+    <section className="flex flex-col gap-3">
       <RuleSectionHeading>
         <Trans>Applicability</Trans>
       </RuleSectionHeading>
@@ -796,7 +796,7 @@ function DueDateLogicSection({ rule }: { rule: ObligationRule }) {
   // before reading the answer. Padding tightened so the answer
   // sits closer to the label.
   return (
-    <section className="flex flex-col gap-1.5">
+    <section className="flex flex-col gap-3">
       <RuleSectionHeading>
         <Trans>When it's due</Trans>
       </RuleSectionHeading>
@@ -817,7 +817,7 @@ function ExtensionSection({ rule }: { rule: ObligationRule }) {
   const { extensionPolicy } = rule
   const durationMonths = extensionPolicy.durationMonths
   return (
-    <section className="flex flex-col gap-2">
+    <section className="flex flex-col gap-3">
       <RuleSectionHeading>
         <Trans>Extension</Trans>
       </RuleSectionHeading>
@@ -947,7 +947,7 @@ function EvidenceSection({
   sourceLookup: ReadonlyMap<string, RuleSource>
 }) {
   return (
-    <section className="flex flex-col gap-2">
+    <section className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between">
         <RuleSectionHeading>
           <Trans>Evidence</Trans>
@@ -1077,7 +1077,7 @@ function VerificationSection({ rule }: { rule: ObligationRule }) {
   if (!rule.reviewedAt) return null
 
   return (
-    <section className="flex flex-col gap-1.5 border-t border-divider-subtle pt-4">
+    <section className="flex flex-col gap-3 border-t border-divider-subtle pt-4">
       <RuleSectionHeading>
         <Trans>Practice review</Trans>
       </RuleSectionHeading>

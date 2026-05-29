@@ -1350,7 +1350,7 @@ function ExpandedRowDetail({
     <TableRow className="bg-background-default hover:bg-background-default">
       <TableCell colSpan={totalColumnCount} className="p-0">
         <div className="flex flex-col gap-4 px-6 py-4">
-          <section className="flex flex-col gap-2">
+          <section className="flex flex-col gap-3">
             <p className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>Active rules</Trans>
             </p>
@@ -1373,7 +1373,7 @@ function ExpandedRowDetail({
             )}
           </section>
 
-          <section className="flex flex-col gap-2">
+          <section className="flex flex-col gap-3">
             <p className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>Pending rules</Trans>
             </p>
@@ -1396,7 +1396,7 @@ function ExpandedRowDetail({
             )}
           </section>
 
-          <section className="flex flex-col gap-2">
+          <section className="flex flex-col gap-3">
             <p className="text-xs font-semibold tracking-eyebrow text-text-tertiary uppercase">
               <Trans>Watched sources</Trans>
             </p>
@@ -2090,7 +2090,7 @@ function BulkReviewDrawer({
         </SheetHeader>
         <div className="flex-1 overflow-y-auto px-5 py-4">
           <div className="flex flex-col gap-4">
-            <section className="flex flex-col gap-2">
+            <section className="flex flex-col gap-3">
               <BulkSectionLabel>
                 <Trans>SELECTED RULES</Trans>
               </BulkSectionLabel>
@@ -2126,7 +2126,7 @@ function BulkReviewDrawer({
               </div>
             </section>
             {selectedConcreteDrafts.length > 0 ? (
-              <section className="flex flex-col gap-2">
+              <section className="flex flex-col gap-3">
                 <BulkSectionLabel>
                   <Trans>AI CONCRETE DRAFTS</Trans>
                 </BulkSectionLabel>
@@ -2134,7 +2134,7 @@ function BulkReviewDrawer({
               </section>
             ) : null}
             {templateRuleCount > 0 ? (
-              <section className="flex flex-col gap-2">
+              <section className="flex flex-col gap-3">
                 <BulkSectionLabel>
                   <Trans>PREVIEW</Trans>
                 </BulkSectionLabel>

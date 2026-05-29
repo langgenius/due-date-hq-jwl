@@ -118,7 +118,14 @@ describe('DashboardActionsList', () => {
       button.textContent?.includes('Import clients'),
     )
     expect(importButton).toBeInstanceOf(HTMLButtonElement)
-    expect(importButton?.className).toContain('bg-components-button-primary-bg')
+    // 2026-05-29 (PR #40 empty-state polish): the no-deadlines CTA
+    // dropped from a primary-tone button to `variant="outline"` so it
+    // stops competing with the page's primary actions on Today (Today
+    // is read-first, not import-first). Test now matches the outline
+    // surface (`border-components-button-secondary-border` +
+    // `bg-components-button-secondary-bg`) and still confirms it isn't
+    // a link variant (no `underline-offset-4`).
+    expect(importButton?.className).toContain('border-components-button-secondary-border')
     expect(importButton?.className).not.toContain('underline-offset-4')
 
     act(() => {

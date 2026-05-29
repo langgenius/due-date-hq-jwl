@@ -809,7 +809,16 @@ describe('RulesLibraryRoute', () => {
 
     expect(document.body.textContent).not.toContain('Your rule catalog is empty.')
     expect(document.body.textContent).not.toContain('Import from sources')
-    expect(document.body.textContent).not.toContain('New rule')
+    // 2026-05-28 (Yuqi /rules/library polish #4 — "Missing scope时
+    // New rule消失了"): the prior guard hid the header "New rule" CTA
+    // on the Missing scope on the assumption that gap rows carry an
+    // `Add rule (prefilled)` action. That left CPAs on a scope view
+    // with no global way to add a brand-new (unseeded) rule. Header
+    // CTA now shows on every scope, so this assertion was inverted.
+    // We still assert the empty-state body itself doesn't carry its
+    // own "New rule" CTA — verified via the scope-specific empty
+    // state message ("No missing rules") rendered without a button.
+    expect(document.body.textContent).toContain('No missing rules')
   })
 
   it('shows cached AI concrete drafts in the selected rule detail', async () => {

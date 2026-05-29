@@ -71,7 +71,6 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 import { initialsFromName } from '@/lib/auth'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { useCurrentUserName } from '@/lib/use-current-user-name'
-import { UpgradeCtaButton } from '@/features/billing/upgrade-cta-button'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
@@ -749,6 +748,32 @@ export function ClientDetailWorkspace({
                 ) : null}
               </span>
             }
+            // 2026-05-28 (Yuqi /clients/[id] polish — "client name
+            // 下面很空，感觉缺了内容"): pulled `ClientContactMetaRow`
+            // (entity badge / owner pill / state chips / email /
+            // phone / address) UP into the PageHeader's metaRow
+            // slot. Previously it rendered as the first child of
+            // the body section below the header, separated by the
+            // outer `gap-4` (16px). Now it sits inside the
+            // PageHeader column at the canonical `gap-2` (8px)
+            // below the H1 — title and identity facts read as one
+            // anchored block instead of "client name then a void."
+            metaRow={
+              <ClientContactMetaRow
+                client={client}
+                entityLabel={entityLabels[client.entityType]}
+                ownerSlot={
+                  <ClientOwnerHeaderPill
+                    assigneeId={client.assigneeId ?? null}
+                    name={client.assigneeName ?? null}
+                    currentUserName={currentUserName}
+                    assignableMembers={assignableMembers}
+                    disabled={bulkAssigneeMutation.isPending}
+                    onChange={changeOwner}
+                  />
+                }
+              />
+            }
             // 2026-05-23: subtitle suppressed when readiness gap chip is
             // present in the H1 chip cluster. The "Missing filing state"
             // chip is itself the page-level signal; piling a workPlan
@@ -806,7 +831,12 @@ export function ClientDetailWorkspace({
           {/* Body — client-context content. The outer xl:flex-row
             split (one wrapper above) already separates this from the
             right-rail obligation panel, so this section just renders
-            the column-of-content inline. */}
+            the column-of-content inline.
+            2026-05-28 (Yuqi /clients/[id] polish — "client name下面
+            很空"): ClientContactMetaRow moved UP into the PageHeader
+            `metaRow` slot above so the identity row sits tight
+            against the H1 (gap-2 internal) instead of the body
+            section's `gap-4`. */}
           <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
             {/* Provenance (Imported / Manual) lived here briefly during
                 the D-2 transition. Dropped 2026-05-22 per design call —
@@ -814,21 +844,6 @@ export function ClientDetailWorkspace({
                 Imported chip never changed a CPA's behavior. The
                 migration history is still discoverable from the
                 /clients header Import-history drawer. */}
-
-            <ClientContactMetaRow
-              client={client}
-              entityLabel={entityLabels[client.entityType]}
-              ownerSlot={
-                <ClientOwnerHeaderPill
-                  assigneeId={client.assigneeId ?? null}
-                  name={client.assigneeName ?? null}
-                  currentUserName={currentUserName}
-                  assignableMembers={assignableMembers}
-                  disabled={bulkAssigneeMutation.isPending}
-                  onChange={changeOwner}
-                />
-              }
-            />
 
             {/* 2026-05-26 (Stripe-bar /clarify pass — re-applied per
                 Yuqi's "address all" direction): inline tip pairs the
@@ -1185,9 +1200,15 @@ export function ClientDetailWorkspace({
                             <Trans>Refresh</Trans>
                           )}
                         </Button>
-                      ) : (
-                        <UpgradeCtaButton />
-                      )}
+                      ) : null}
+                      {/* 2026-05-28 (Yuqi /clients/[id] polish): removed
+                          the `<UpgradeCtaButton />` upsell from the
+                          Client summary (AI) section header. The
+                          orange Pro upsell pulled the eye away from
+                          the section's actual content. Practices
+                          without AI just see no Refresh button next
+                          to the InsightStatusBadge in this slot;
+                          billing surface up-sells elsewhere. */}
                     </>
                   }
                 >
@@ -1767,17 +1788,27 @@ function ClientOwnerHeaderPill({
           // 2026-05-26 (Yuqi feedback #5 — "可以更大，现在点击 area 太小"):
           // pill expanded to a real click target. Was a tiny chip
           // (px-2 py-0.5, text-xs, 4×4px avatar, 3×3px chevron). Now
-          // h-7 (28px) + px-2.5 + size-5 avatar + size-3.5 chevron.
+          // h-7 (28px) + size-5 avatar + size-3.5 chevron.
           // Same shape rules as other owner pills used in /deadlines
           // queue cells so the picker reads as a real interactive
           // control.
+          //
+          // 2026-05-28 (Yuqi /clients/[id] polish — "左边的padding
+          // 和上下一样，右边保持现在的"): horizontal padding made
+          // asymmetric — `pl-1 pr-2.5` (4px left, 10px right) so the
+          // avatar circle has the same 4px breathing room from the
+          // pill's left edge that it already has from the top + bottom
+          // edges (the h-7 / size-5 differential = 4px inset top + 4px
+          // bottom). Right side keeps the original 10px so the chevron
+          // doesn't feel cramped against the pill border. The 6px gap
+          // between avatar + label + chevron is unchanged.
           <button
             type="button"
             aria-label={triggerLabel}
             title={triggerLabel}
             disabled={disabled}
             className={cn(
-              'inline-flex h-7 items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2.5 text-xs outline-none transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
+              'inline-flex h-7 items-center gap-1.5 rounded-full border border-divider-regular bg-background-default pl-1 pr-2.5 text-xs outline-none transition-colors hover:border-divider-deep hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
               name === null ? 'text-text-secondary' : 'text-text-primary',
             )}
           >

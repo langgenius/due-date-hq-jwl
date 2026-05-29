@@ -32,7 +32,25 @@ export function Stepper({ current }: { current: StepIndex }) {
       // bare English "Wizard steps"; routed through `t\`` so it
       // translates with the rest of the wizard.
       aria-label={t`Wizard steps`}
-      className="flex h-12 items-center justify-center gap-2 border-b border-divider-subtle px-4"
+      // 2026-05-29 (R4 migration polish #7): the stepper used to be
+      // `justify-center gap-2` with `w-6` fixed connector lines —
+      // the steps clustered in the middle of the wizard frame and
+      // the connectors became decorative ticks rather than a real
+      // progress rail. Now `justify-between gap-3` lets each step
+      // anchor to its column and the connectors flex to fill the
+      // remaining space. The track now reads as one continuous
+      // path across the full width.
+      //
+      // 2026-05-29 (R4 follow-up #1 + #5): dropped the `border-b`. The
+      // wizard header (above) already carries one border-b separating
+      // the title from progress; stacking a second rule between the
+      // Stepper and body content read as "boxes inside boxes." The
+      // Stepper now flows into the body, and the body's horizontal
+      // padding was retuned to `px-4` (in WizardShell) so the active
+      // step pill, the header title, and the dropzone all share the
+      // same left edge — see feedback #5 ("alignment between the
+      // title, the progress bar, and the drop zone").
+      className="flex h-12 items-center justify-between gap-3 px-4"
     >
       {STEP_LABELS.map((step, idx) => {
         const isDone = step.index < current
@@ -46,12 +64,12 @@ export function Stepper({ current }: { current: StepIndex }) {
         return (
           <li
             key={step.key}
-            className="flex items-center gap-2"
+            className={cn('flex items-center gap-3', idx < STEP_LABELS.length - 1 && 'flex-1')}
             aria-current={isActive ? 'step' : undefined}
           >
             <div
               className={cn(
-                'flex h-8 items-center gap-1.5 rounded-md border px-3 text-sm transition-colors',
+                'flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-3 text-sm transition-colors',
                 isActive && 'font-medium',
                 tone,
               )}
@@ -61,7 +79,7 @@ export function Stepper({ current }: { current: StepIndex }) {
               <span>{step.label}</span>
             </div>
             {idx < STEP_LABELS.length - 1 ? (
-              <span aria-hidden className="h-px w-6 bg-divider-regular" />
+              <span aria-hidden className="h-px flex-1 bg-divider-regular" />
             ) : null}
           </li>
         )

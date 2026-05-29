@@ -76,7 +76,11 @@ export function RulesPulseRoute() {
       <Trans>Alerts</Trans>
       {hasNationalMonitoringCoverage ? (
         <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
-          <PulsingDot tone="success" active className="size-1.5" />
+          {/* 2026-05-29 (PR #38): dropped the `size-1.5` override on
+              PulsingDot so this monitoring chip's dot matches every
+              other PulsingDot use in the app (Today header chip,
+              source-health states, etc.). */}
+          <PulsingDot tone="success" active />
           <Trans>Monitoring Federal + 50 states + DC</Trans>
         </span>
       ) : null}

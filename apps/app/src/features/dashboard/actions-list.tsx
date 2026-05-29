@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, ArrowUpRightIcon } from 'lucide-react'
+import { ArrowRightIcon, ArrowUpRightIcon, CalendarIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow, ObligationStatus } from '@duedatehq/contracts'
@@ -685,10 +685,21 @@ function DashboardActionsList({
             </Button>
           </p>
         ) : canRunMigration ? (
+          // 2026-05-28 (Yuqi /today polish): empty state refined to
+          // follow the design system —
+          //   • title + description split (was crammed into title)
+          //   • CalendarIcon at the top echoes the page's Today icon
+          //   • CTA dropped from primary → outline so Dify Blue stays
+          //     reserved for the ONE next action per surface (synthesis
+          //     §2 taste principle #2: "one accent, one viewport, one
+          //     action"). Empty-state CTA is helpful but not the
+          //     primary path on Today.
           <SharedEmptyState
-            title={<Trans>No deadlines yet. Import clients to get started.</Trans>}
+            icon={CalendarIcon}
+            title={<Trans>No deadlines yet</Trans>}
+            description={<Trans>Import your client list to start tracking filing deadlines.</Trans>}
             cta={
-              <Button size="sm" onClick={onOpenWizard}>
+              <Button size="sm" variant="outline" onClick={onOpenWizard}>
                 <Trans>Import clients</Trans>
               </Button>
             }

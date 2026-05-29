@@ -111,9 +111,14 @@ function NeedsAttentionSection() {
       // tinted padded box was double chrome. This compresses the
       // empty section more aggressively than D18's `gap-2 px-3 py-2`
       // while also unifying with the canonical StatusBanner shape.
+      // 2026-05-28 (Yuqi /today polish): always set `gap-4` so the
+      // section heading + body have the same rhythm as Actions this
+      // week. Previously empty state had 0 gap (heading sat flush
+      // against the dashed StatusBanner), while alerts-present had
+      // gap-2.5. Now both states match the dashboard's section gap.
       className={cn(
-        'flex flex-col rounded-xl',
-        totalAlertCount > 0 && 'gap-2.5 bg-state-destructive-hover p-3',
+        'flex flex-col gap-4 rounded-xl',
+        totalAlertCount > 0 && 'bg-state-destructive-hover p-3',
       )}
     >
       {/* 2026-05-27 (Yuqi feedback: "去掉view all alerts. 点击+2 more
@@ -259,35 +264,27 @@ function AlertsEmptyState({
     </>
   ) : null
 
-  // 2026-05-27 (Yuqi cross-route consistency): adopted the shared
-  // `StatusBanner` primitive so /today's empty alerts state matches
-  // /rules/pulse's all-clear banner and /clients's needs-facts
-  // banner — same dashed-border chrome across all three surfaces.
-  // The two-line body (status + supporting source-health line)
-  // stacks inside the banner's body slot.
+  // 2026-05-28 (Yuqi /today polish — "信息重复了"): when the section
+  // is healthy AND the supporting line carries no substantive issue
+  // (no paused sources / no loading / sources monitored > 0), the
+  // dashed StatusBanner body just restates what the h2 + green
+  // "Monitoring N jurisdictions" chip already said — "we're watching,
+  // nothing to act on." Drop the banner in that case; the header row
+  // is the full empty state. The banner only renders when it carries
+  // non-redundant signal (paused / loading / zero-sources), where the
+  // chip alone wouldn't tell the story.
+  if (!supportingLine) {
+    return null
+  }
   return (
-    // 2026-05-27 (Yuqi header-chip merge into audit-drain): old
-    // body's Binoculars + "Monitoring N sources" paragraph dropped
-    // because the section h2 now carries national jurisdiction
-    // coverage — duplicate signal across header and body was the
-    // cross-route inconsistency Yuqi flagged. The
-    // paused-state warning ("N paused · View sources"), the loading
-    // hint, and the zero-sources-monitored branch are all retained
-    // via `supportingLine` because the chip does NOT surface those.
-    //
-    // Inner stack uses `gap-1` (not `gap-1.5`) to honor audit-drain
-    // X1 D18's compression intent — the two lines stack as one
-    // paragraph, not two.
     <StatusBanner indicator={<CircleCheckIcon className="size-4 text-text-success" aria-hidden />}>
       <span className="flex flex-col gap-1">
         <span className="text-sm text-text-secondary">
           <Trans>No active alerts — nothing needs your review right now.</Trans>
         </span>
-        {supportingLine ? (
-          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
-            {supportingLine}
-          </span>
-        ) : null}
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
+          {supportingLine}
+        </span>
       </span>
     </StatusBanner>
   )

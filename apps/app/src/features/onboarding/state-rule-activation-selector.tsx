@@ -101,37 +101,53 @@ export function StateRuleActivationSelector({
 
   return (
     <div className="mt-5 flex flex-col gap-2.5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          {/* 2026-05-26 (Step 7 onboarding F5-07): copy gained "(optional)"
-              so users don't feel obligated to pick a state — federal-only
-              practice is allowed. Step 1-5 reaudit kept tracking-eyebrow
-              as the canonical token over the arbitrary 0.08em. */}
-          <p className="text-caption font-medium tracking-eyebrow text-text-secondary uppercase">
-            <Trans>State rule coverage (optional)</Trans>
-          </p>
-          <p className="mt-1 text-sm leading-relaxed text-text-muted">
-            <Trans>
-              Selected states activate with federal rules after this practice is created. Skip if
-              you only need federal rules — you can activate states later from Rule Library.
-            </Trans>
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={toggleAllStates}
-            aria-label={allStatesSelected ? t`Clear all states` : t`Select all states`}
-            aria-pressed={allStatesSelected}
-            className="inline-flex h-7 items-center gap-1.5 rounded-sm border border-divider-subtle bg-background-default px-2 text-caption font-medium text-text-secondary outline-none transition-colors hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <CheckIcon className="size-3.5" aria-hidden />
-            <span>{allStatesSelected ? <Trans>Clear all</Trans> : <Trans>Select all</Trans>}</span>
-          </button>
-          <span className="rounded-sm border border-divider-subtle bg-background-subtle px-2 py-1 font-mono text-caption text-text-secondary tabular-nums">
-            {selectedSet.size}/{ALL_RULE_GENERATION_STATES.length}
+      {/* 2026-05-29 (R4 onboarding polish #5 + #6): the header used
+          to be a horizontal row — title block (eyebrow-styled
+          "STATE RULE COVERAGE (OPTIONAL)" + helper) on the left,
+          [Select all] [0/56] on the right. Two issues. (#5) The
+          eyebrow treatment didn't match the canonical <Label>
+          primitive used for "Practice name" and "Internal deadline
+          lead time" three lines above — same visual concept ("name
+          of this field"), three different stylings. (#6) At
+          max-w-[400px] the two right-side controls competed with
+          the two-line description for horizontal room and squashed
+          everything. Vertical layout puts the field name + helper
+          on top in the canonical Label style; the controls drop
+          below at full width with [Select all] taking the lead
+          edge and [0/56] anchoring the trailing edge — same visual
+          grammar as a typical settings row. */}
+      <div className="flex flex-col gap-1.5">
+        {/* Mirrors the canonical <Label> token (text-sm font-medium
+            leading-none text-text-primary) — using a <p> instead of
+            <label> because this title covers a multi-tile grid, not
+            a single named input. */}
+        <p className="text-sm font-medium leading-none text-text-primary">
+          <Trans>State rule coverage</Trans>{' '}
+          <span className="font-normal text-text-muted">
+            <Trans>(optional)</Trans>
           </span>
-        </div>
+        </p>
+        <p className="text-sm leading-relaxed text-text-muted">
+          <Trans>
+            Selected states activate with federal rules. Skip to use federal rules only — add states
+            later from Rule Library.
+          </Trans>
+        </p>
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={toggleAllStates}
+          aria-label={allStatesSelected ? t`Clear all states` : t`Select all states`}
+          aria-pressed={allStatesSelected}
+          className="inline-flex h-7 items-center gap-1.5 rounded-sm border border-divider-subtle bg-background-default px-2 text-caption font-medium text-text-secondary outline-none transition-colors hover:border-divider-solid-alt hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          <CheckIcon className="size-3.5" aria-hidden />
+          <span>{allStatesSelected ? <Trans>Clear all</Trans> : <Trans>Select all</Trans>}</span>
+        </button>
+        <span className="rounded-sm border border-divider-subtle bg-background-subtle px-2 py-1 font-mono text-caption text-text-secondary tabular-nums">
+          {selectedSet.size}/{ALL_RULE_GENERATION_STATES.length}
+        </span>
       </div>
 
       <div className="rounded-md border border-divider-regular bg-background-default p-3">
@@ -157,8 +173,15 @@ export function StateRuleActivationSelector({
                         aria-label={selectedState ? t`${label}, selected` : label}
                         aria-pressed={selectedState}
                         style={{ gridRow: row, gridColumn: column }}
+                        // 2026-05-29 (R4 onboarding polish #8): tile
+                        // label was text-caption-xs (11px) + font-
+                        // semibold which read heavy against the
+                        // 28px tile. Dropped to text-[10px] +
+                        // font-medium so the 2-letter code reads
+                        // as a state abbreviation, not a button
+                        // label competing with the tile itself.
                         className={cn(
-                          'relative flex size-7 shrink-0 items-center justify-center rounded-sm border font-mono text-caption-xs font-semibold transition-colors outline-none',
+                          'relative flex size-7 shrink-0 items-center justify-center rounded-sm border font-mono text-[10px] font-medium transition-colors outline-none',
                           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
                           selectedState
                             ? 'border-state-accent-active-alt bg-state-accent-solid text-text-inverted shadow-sm'
