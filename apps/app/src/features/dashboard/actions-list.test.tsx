@@ -108,6 +108,9 @@ describe('DashboardActionsList', () => {
         blockedCount={0}
         waitingOnClientCount={0}
         canRunMigration={true}
+        // No clients yet → fresh-practice path; Import CTA is the
+        // correct empty-state action.
+        hasClients={false}
         onOpenWizard={openWizard}
         onOpenObligation={vi.fn()}
         onOpenAllObligations={vi.fn()}
@@ -157,6 +160,7 @@ describe('DashboardActionsList', () => {
         blockedCount={0}
         waitingOnClientCount={0}
         canRunMigration={false}
+        hasClients={true}
         onOpenWizard={vi.fn()}
         onOpenObligation={vi.fn()}
         onOpenAllObligations={vi.fn()}
@@ -178,6 +182,7 @@ describe('DashboardActionsList', () => {
         blockedCount={0}
         waitingOnClientCount={0}
         canRunMigration={false}
+        hasClients={true}
         onOpenWizard={vi.fn()}
         onOpenObligation={vi.fn()}
         onOpenAllObligations={vi.fn()}

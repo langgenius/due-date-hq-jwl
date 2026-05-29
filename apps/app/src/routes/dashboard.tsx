@@ -125,6 +125,20 @@ export function DashboardRoute() {
     ...orpc.dashboard.load.queryOptions({ input: dashboardTableInput }),
     placeholderData: keepPreviousData,
   })
+  // 2026-05-29 (Yuqi /today follow-up — "empty state: no clients vs no
+  // deadlines"): a `totalOpen === 0` page used to render a single
+  // "No deadlines yet, import clients" CTA. That copy was right for
+  // a fresh practice but wrong for a practice that already imported
+  // and just doesn't have generated deadlines yet. We split with a
+  // cheap probe — `limit: 1` so the server returns at most one row,
+  // and we only look at .length to decide. The query result is
+  // shared across the page, so dropdowns / pickers that need a
+  // client list share the same cache key.
+  const clientsProbeQuery = useQuery({
+    ...orpc.clients.listByFirm.queryOptions({ input: { limit: 1 } }),
+    placeholderData: keepPreviousData,
+  })
+  const hasClients = (clientsProbeQuery.data?.length ?? 0) > 0
   const data = dashboardQuery.data
 
   const triageTabs = data?.triageTabs ?? []
@@ -164,7 +178,15 @@ export function DashboardRoute() {
     // /deadlines, /rules/library, /rules/pulse, /alerts). At
     // 1920px the alerts + actions sections now use 1440px of
     // canvas instead of 1100px, removing ~340px of dead margin.
-    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-8 pb-3 md:px-6 md:pb-5">
+    // 2026-05-29 (Yuqi /today follow-up — "gap smaller, apply to
+    // everywhere"): outer page gap stepped gap-8 → gap-6. The earlier
+    // gap-8 was added for a "bigger gap between Today title, Alerts,
+    // and Actions" round, but with section-internal gaps now at
+    // gap-3 (Alerts + Actions) the outer 32px read disproportionately
+    // loud against the 12px inside each section. gap-6 (24px) keeps
+    // the three top-level sections distinct while pulling the first
+    // content row up into the user's eye line.
+    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-6 px-4 pt-8 pb-3 md:px-6 md:pb-5">
       {/* 2026-05-26 (Yuqi seventy-fourth pass — Today joins the
           page-header family): the hand-rolled <header> is gone.
           /today now routes through the same `<PageHeader>`
@@ -305,6 +327,7 @@ export function DashboardRoute() {
             facets?.statuses.find((s) => s.value === 'waiting_on_client')?.count ?? 0
           }
           canRunMigration={canRunMigration}
+          hasClients={hasClients}
           onOpenWizard={openWizard}
           // Clicking an action navigates to the obligations queue with
           // the right panel pre-opened for that obligation. The

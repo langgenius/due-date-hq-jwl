@@ -552,6 +552,7 @@ function DashboardActionsList({
   needDecisionCount,
   blockedCount,
   waitingOnClientCount,
+  hasClients,
 }: {
   rows: DashboardTopRow[]
   asOfDate: string | null
@@ -563,6 +564,13 @@ function DashboardActionsList({
   // here's the rest."
   totalOpen: number
   canRunMigration: boolean
+  // 2026-05-29 (Yuqi /today follow-up — "no clients vs no deadlines"):
+  // when there are 0 open obligations we need to distinguish a
+  // fresh practice (no clients yet, encourage import) from a
+  // practice that already imported and just doesn't have deadlines
+  // generated yet (don't ask them to import again). Probed once at
+  // the route level via `clients.listByFirm({ limit: 1 })`.
+  hasClients: boolean
   onOpenWizard: () => void
   onOpenObligation: (row: DashboardTopRow) => void
   onOpenAllObligations: () => void
@@ -643,7 +651,7 @@ function DashboardActionsList({
 
   if (isLoading) {
     return (
-      <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
+      <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
         <ActionsListHeader count={null} onOpenAll={onOpenAllObligations} />
         <div className="flex flex-wrap gap-3 px-3">
           <Skeleton className="h-16 w-40" />
@@ -669,7 +677,7 @@ function DashboardActionsList({
     //   3. Caught-up state (rows exist somewhere but Smart Priority
     //      filtered them all out).
     return (
-      <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
+      <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
         <ActionsListHeader count={0} onOpenAll={onOpenAllObligations} />
         {totalOpen > 0 ? (
           <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
@@ -694,16 +702,51 @@ function DashboardActionsList({
           //     §2 taste principle #2: "one accent, one viewport, one
           //     action"). Empty-state CTA is helpful but not the
           //     primary path on Today.
-          <SharedEmptyState
-            icon={CalendarIcon}
-            title={<Trans>No deadlines yet</Trans>}
-            description={<Trans>Import your client list to start tracking filing deadlines.</Trans>}
-            cta={
-              <Button size="sm" variant="outline" onClick={onOpenWizard}>
-                <Trans>Import clients</Trans>
-              </Button>
-            }
-          />
+          //
+          // 2026-05-29 (Yuqi /today follow-up — "the empty state - there
+          // is a difference between no clients and no deadline"): split
+          // the zero-obligations message into two distinct states.
+          //   • No clients: "No clients yet" + Import CTA — the fresh-
+          //     practice path. The user needs data; importing is the
+          //     correct next action.
+          //   • Has clients, no deadlines: "No active deadlines yet" +
+          //     guidance toward Rule Library — the post-import path
+          //     where the user already imported but their rules
+          //     haven't generated future deadlines (could be
+          //     monitoring start date is in the past, or all rules
+          //     are still pending review). Pointing them at /clients
+          //     to verify state is the right move; importing again
+          //     would create dupes.
+          hasClients ? (
+            <SharedEmptyState
+              icon={CalendarIcon}
+              title={<Trans>No active deadlines yet</Trans>}
+              description={
+                <Trans>
+                  Your clients are imported, but no future deadlines have been generated. Check
+                  client filing profiles or Rule Library for what's pending.
+                </Trans>
+              }
+              cta={
+                <Button size="sm" variant="outline" onClick={onOpenAllObligations}>
+                  <Trans>View deadlines</Trans>
+                </Button>
+              }
+            />
+          ) : (
+            <SharedEmptyState
+              icon={CalendarIcon}
+              title={<Trans>No clients yet</Trans>}
+              description={
+                <Trans>Import your client list to start tracking filing deadlines.</Trans>
+              }
+              cta={
+                <Button size="sm" variant="outline" onClick={onOpenWizard}>
+                  <Trans>Import clients</Trans>
+                </Button>
+              }
+            />
+          )
         ) : (
           <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
             {/* 2026-05-26 (Step 7 onboarding audit F9-08):
@@ -718,7 +761,7 @@ function DashboardActionsList({
   }
 
   return (
-    <section aria-label={t`Actions this week`} className="flex flex-col gap-4">
+    <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
       <ActionsListHeader count={totalThisWeek} onOpenAll={onOpenAllObligations} />
       {summaryStrip}
       {/* 2026-05-26 (Yuqi /today feedback): row borders dropped.
