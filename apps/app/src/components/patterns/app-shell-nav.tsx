@@ -541,18 +541,6 @@ function AddFirmDialog({
 // surfaces claiming the same word counted three different things
 // (2 sidebar, 3 Today, 4 Pulse-page history).
 //
-// 2026-05-26 (Yuqi feedback — "why is it 3 besides Alert, where
-// there are 4 alerts?"): the sidebar previously used the dedicated
-// `pulse.activeCount` endpoint (active/open alerts only), while
-// /rules/pulse renders `pulse.listHistory` (all alerts including
-// Applied + Dismissed). When a CPA has, say, 3 open + 1 dismissed
-// alerts visible on the page, the sidebar said "3" but the page
-// showed 4 items — confusing. Switched the sidebar to use the same
-// `listHistory.length` count the page chip uses so the two numbers
-// always agree. The semantic is now "alerts in your queue" (including
-// dismissed/applied that remain visible on the page) rather than
-// "alerts you still need to act on."
-//
 // 2026-05-24 (B2): the badge now uses the dedicated `pulse.activeCount`
 // endpoint — a true `COUNT(*)` against the same WHERE clause
 // `listAlerts` uses. The previous shape fetched up to 50 rows just to
@@ -560,14 +548,14 @@ function AddFirmDialog({
 // alerts saw "50" in the badge (silent truncation). The count endpoint
 // has no upper bound; Today's section still uses `listAlerts(50)`
 // because it needs the row contents to render the alert cards.
+//
+// 2026-05-29 (Pulse active/history split): keep this badge scoped to
+// the active queue. Alert history is now CPA-handled alerts and can
+// include snoozed / applied / dismissed rows that should not inflate
+// the sidebar's needs-attention count.
 function useActivePulseAlertCount(): number {
-  // Source-of-truth count for the sidebar badge. Matches what
-  // /rules/pulse shows in its page-header chip (which renders all
-  // alerts from listHistory, including dismissed/applied). Limit
-  // 50 mirrors the /rules/pulse fetch cap; the page itself displays
-  // alerts.length so we count the same array.
-  const query = useQuery(orpc.pulse.listHistory.queryOptions({ input: { limit: 50 } }))
-  return query.data?.alerts.length ?? 0
+  const query = useQuery(orpc.pulse.activeCount.queryOptions({ input: undefined }))
+  return query.data?.count ?? 0
 }
 
 function useRuleLibraryPendingCount(): number {
@@ -588,11 +576,6 @@ function useRuleLibraryPendingCount(): number {
 // surfaces. On a cold load the sidebar triggers the first fetch; the
 // downstream surfaces hit warm cache after that.
 const CLIENTS_LIST_INPUT = { limit: 500 } as const
-
-// 2026-05-24 (B2): retired `SIDEBAR_PULSE_LIMIT = 50`. The sidebar
-// badge now goes through `pulse.activeCount` (true COUNT(*) with no
-// upper bound) instead of slicing `pulse.listAlerts`. See the comment
-// on `useActivePulseAlertCount` above for the full history.
 
 function useClientsCount(): number {
   const query = useQuery(orpc.clients.listByFirm.queryOptions({ input: CLIENTS_LIST_INPUT }))

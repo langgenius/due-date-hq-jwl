@@ -297,6 +297,32 @@ describe('makePulseRepo', () => {
     expect(alerts[2]?.duplicateSourceSnapshotCount).toBe(1)
   })
 
+  it('keeps unhandled matched alerts out of alert history', async () => {
+    const handledStatuses = [
+      'dismissed',
+      'snoozed',
+      'partially_applied',
+      'applied',
+      'reverted',
+      'reviewed',
+    ] as const
+    const { db } = fakeDb([
+      [
+        ALERT,
+        ...handledStatuses.map((status) => ({
+          ...ALERT,
+          alertId: `alert-${status}`,
+          alertStatus: status,
+        })),
+      ],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const alerts = await repo.listHistory({ limit: 50 })
+
+    expect(alerts.map((alert) => alert.status)).toEqual([...handledStatuses])
+  })
+
   it('updates due-date overlay details and refreshes affected-client counts', async () => {
     const incompleteAlert = {
       ...ALERT,

@@ -1621,6 +1621,10 @@ msgstr "All done"
 msgid "All entity types"
 msgstr "All entity types"
 
+#: src/features/pulse/AlertsListPage.tsx
+msgid "All handled"
+msgstr "All handled"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "All ignored"
 msgstr "All ignored"

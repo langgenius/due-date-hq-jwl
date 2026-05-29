@@ -120,7 +120,9 @@ import {
   PulseApplyOutputSchema,
   PulseDetailSchema,
   PulseFirmAlertStatusSchema,
+  PulseHandledFirmAlertStatusSchema,
   PulseListAlertsInputSchema,
+  PulseListHistoryInputSchema,
   PulseReviewDueDateOverlayDetailsInputSchema,
   PulseRequestReviewInputSchema,
   PulseRequestReviewOutputSchema,
@@ -1224,10 +1226,23 @@ describe('@duedatehq/contracts', () => {
       'reverted',
       'reviewed',
     ])
+    expect(PulseHandledFirmAlertStatusSchema.options).toEqual([
+      'dismissed',
+      'snoozed',
+      'partially_applied',
+      'applied',
+      'reverted',
+      'reviewed',
+    ])
     expect(ErrorCodes.PULSE_APPLY_CONFLICT).toBe('PULSE_APPLY_CONFLICT')
     expect(ErrorCodes.PULSE_NEEDS_DETAILS).toBe('PULSE_NEEDS_DETAILS')
     expect(PulseListAlertsInputSchema.parse({ limit: 50 })).toEqual({ limit: 50 })
     expect(PulseListAlertsInputSchema.safeParse({ limit: 51 }).success).toBe(false)
+    expect(PulseListHistoryInputSchema.safeParse({ status: 'matched' }).success).toBe(false)
+    expect(PulseListHistoryInputSchema.parse({ status: 'snoozed' })).toEqual({
+      limit: 20,
+      status: 'snoozed',
+    })
 
     const alert = PulseAlertPublicSchema.parse({
       id: '11111111-1111-4111-8111-111111111111',

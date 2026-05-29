@@ -72,9 +72,18 @@ const EMAIL_BATCH_SIZE = 1
 const NOTIFICATION_BATCH_SIZE = Math.floor(100 / 10)
 const REVERT_WINDOW_MS = 24 * 60 * 60 * 1000
 const PULSE_DUPLICATE_WINDOW_MS = 45 * 24 * 60 * 60 * 1000
+const PULSE_HANDLED_ALERT_STATUSES = [
+  'dismissed',
+  'snoozed',
+  'partially_applied',
+  'applied',
+  'reverted',
+  'reviewed',
+] as const satisfies ReadonlyArray<PulseFirmAlertStatus>
 
 export type PulseAffectedClientStatus = 'eligible' | 'needs_review' | 'already_applied' | 'reverted'
 export type PulseReviewOnlyChangeKind = Exclude<PulseChangeKind, 'deadline_shift'>
+type PulseHandledFirmAlertStatus = (typeof PULSE_HANDLED_ALERT_STATUSES)[number]
 export type PulseApplyReadinessStatus = 'ready' | 'needs_details' | 'not_applicable'
 export type PulseApplyReadinessMissing =
   | 'original_due_date'
@@ -635,6 +644,12 @@ function duplicateSourceSnapshotCountForPulse() {
     where ${pulseSourceSnapshot.parseStatus} = 'duplicate'
       and ${pulseSourceSnapshot.pulseId} = ${pulse.id}
   )`
+}
+
+function isHandledFirmAlertStatus(
+  status: PulseFirmAlertStatus,
+): status is PulseHandledFirmAlertStatus {
+  return PULSE_HANDLED_ALERT_STATUSES.some((handledStatus) => handledStatus === status)
 }
 
 function toAlert(row: AlertJoinedRow): PulseAlertRow {
@@ -1840,10 +1855,12 @@ export function makePulseRepo(db: Db, firmId: string) {
     },
 
     async listHistory(
-      opts: { limit?: number; status?: PulseFirmAlertStatus } = {},
+      opts: { limit?: number; status?: PulseHandledFirmAlertStatus } = {},
     ): Promise<PulseAlertRow[]> {
       const limit = Math.min(Math.max(opts.limit ?? 20, 1), 100)
-      const statusFilter = opts.status ? eq(pulseFirmAlert.status, opts.status) : undefined
+      const statusFilter = opts.status
+        ? eq(pulseFirmAlert.status, opts.status)
+        : inArray(pulseFirmAlert.status, PULSE_HANDLED_ALERT_STATUSES)
       const rows = await db
         .select({
           alertId: pulseFirmAlert.id,
@@ -1881,13 +1898,15 @@ export function makePulseRepo(db: Db, firmId: string) {
           and(
             eq(pulseFirmAlert.firmId, firmId),
             inArray(pulse.status, ['approved', 'source_revoked']),
-            ...(statusFilter ? [statusFilter] : []),
+            statusFilter,
           ),
         )
         .orderBy(desc(pulse.publishedAt), desc(pulseFirmAlert.updatedAt))
         .limit(limit)
 
-      return rows.map((row) => toAlert(row))
+      return rows
+        .filter((row) => isHandledFirmAlertStatus(row.alertStatus))
+        .map((row) => toAlert(row))
     },
 
     async listSourceStates(): Promise<PulseSourceStateRow[]> {

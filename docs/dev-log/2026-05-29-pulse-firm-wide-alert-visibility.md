@@ -28,3 +28,12 @@
   firm-wide alert fan-out so newly enabled firm-wide visibility is backfilled during resend tests.
 - Kept duplicate snapshots that point to non-approved or missing Pulse rows side-effect-free; they
   report `alertCount=0` in the extract metric.
+
+## Active/history refresh follow-up
+
+- Split active alert list semantics from alert history semantics. `/rules/pulse` now reads the same
+  active-alert query as the page-title count, while `/rules/pulse/history` reads handled alerts.
+- Defined history as CPA-handled alerts: `dismissed`, `snoozed`, `partially_applied`, `applied`,
+  `reverted`, and `reviewed`. Unhandled `matched` alerts stay out of history.
+- Restored the sidebar Alerts badge to the active queue count so handled history rows do not inflate
+  the needs-attention count.

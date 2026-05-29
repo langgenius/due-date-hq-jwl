@@ -13,6 +13,7 @@ import { AppI18nProvider } from '@/i18n/provider'
 import { PulseChangesTab } from './AlertsListPage'
 
 const rpcMocks = vi.hoisted(() => ({
+  listAlertsQueryFn: vi.fn(),
   listHistoryQueryFn: vi.fn(),
   listSourceHealthQueryFn: vi.fn(),
   dismissMutationFn: vi.fn(),
@@ -26,9 +27,15 @@ vi.mock('@/lib/rpc', () => ({
     obligations: { list: { key: () => ['obligations', 'list'] } },
     pulse: {
       key: () => ['pulse'],
+      listAlerts: {
+        queryOptions: (args: { input: unknown }) => ({
+          queryKey: ['pulse', 'listAlerts', args.input],
+          queryFn: rpcMocks.listAlertsQueryFn,
+        }),
+      },
       listHistory: {
-        queryOptions: () => ({
-          queryKey: ['pulse', 'listHistory'],
+        queryOptions: (args: { input: unknown }) => ({
+          queryKey: ['pulse', 'listHistory', args.input],
           queryFn: rpcMocks.listHistoryQueryFn,
         }),
       },
@@ -114,11 +121,14 @@ async function waitForText(text: string, attempts = 100): Promise<void> {
 
 beforeEach(() => {
   bootstrapI18n()
+  rpcMocks.listAlertsQueryFn.mockReset()
   rpcMocks.listHistoryQueryFn.mockReset()
   rpcMocks.listSourceHealthQueryFn.mockReset()
   rpcMocks.dismissMutationFn.mockReset()
   rpcMocks.snoozeMutationFn.mockReset()
+  rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [] })
   rpcMocks.listHistoryQueryFn.mockResolvedValue({ alerts: [] })
+  rpcMocks.listSourceHealthQueryFn.mockResolvedValue({ sources: [] })
 })
 
 afterEach(() => {
@@ -133,6 +143,22 @@ afterEach(() => {
 })
 
 describe('PulseChangesTab source health display', () => {
+  it('uses the active alert query on the active alerts surface', async () => {
+    await render(<PulseChangesTab embedded />)
+
+    await waitForText('All clear')
+    expect(rpcMocks.listAlertsQueryFn).toHaveBeenCalled()
+    expect(rpcMocks.listHistoryQueryFn).not.toHaveBeenCalled()
+  })
+
+  it('uses the handled history query on the history surface', async () => {
+    await render(<PulseChangesTab embedded historyMode />)
+
+    await waitForText('All clear')
+    expect(rpcMocks.listHistoryQueryFn).toHaveBeenCalled()
+    expect(rpcMocks.listAlertsQueryFn).not.toHaveBeenCalled()
+  })
+
   it('keeps legacy degraded and failing source health out of the CPA Pulse surface', async () => {
     rpcMocks.listSourceHealthQueryFn.mockResolvedValue({
       sources: [

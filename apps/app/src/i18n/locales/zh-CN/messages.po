@@ -1648,6 +1648,10 @@ msgstr "全部完成"
 msgid "All entity types"
 msgstr "全部实体类型"
 
+#: src/features/pulse/AlertsListPage.tsx
+msgid "All handled"
+msgstr "全部已处理"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "All ignored"
 msgstr "全部忽略"

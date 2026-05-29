@@ -50,6 +50,7 @@ import { PulseDetailDrawer } from './PulseDetailDrawer'
 import { StateTilegram } from './components/StateTilegram'
 import {
   usePulseInvalidation,
+  usePulseListAlertsQueryOptions,
   usePulseListHistoryQueryOptions,
   usePulseSourceHealthQueryOptions,
 } from './api'
@@ -65,26 +66,21 @@ import {
   type PulseImpactFilter,
 } from './lib/impact-filter'
 
-// 2026-05-26 (Yuqi /rules/pulse thirteenth pass): status filter
-// reordered from alphabetical → workflow lifecycle stages:
-//   active → snoozed → applied → partially_applied → reviewed
-//   → reverted → dismissed
-// Reads top-to-bottom as the alert's possible journey: starts
-// active, can be parked (snoozed), resolved (applied / partial /
-// reviewed), or undone (reverted / dismissed). Filter dropdown
-// now mirrors that mental model instead of an A-Z sort that
-// drops "reverted" next to "snoozed".
-const STATUS_FILTER_OPTIONS = [
+// Status filters are scoped by surface: the active queue exposes only
+// active-workflow states, while history exposes CPA-handled states.
+const ACTIVE_STATUS_FILTER_OPTIONS = ['all', 'active', 'snoozed', 'partially_applied'] as const
+const HISTORY_STATUS_FILTER_OPTIONS = [
   'all',
-  'active',
   'snoozed',
-  'applied',
   'partially_applied',
+  'applied',
   'reviewed',
   'reverted',
   'dismissed',
 ] as const
-type PulseStatusFilter = (typeof STATUS_FILTER_OPTIONS)[number]
+type PulseStatusFilter =
+  | (typeof ACTIVE_STATUS_FILTER_OPTIONS)[number]
+  | (typeof HISTORY_STATUS_FILTER_OPTIONS)[number]
 const CHANGE_KIND_FILTER_OPTIONS = [
   'all',
   'deadline_shift',
@@ -103,8 +99,8 @@ interface PulseChangesTabProps {
   embedded?: boolean
   /**
    * 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): when true, the
-   * page renders the closed-alerts archive — initial status filter
-   * locked to `applied` (the most common terminal state), the
+   * page renders CPA-handled alert history — initial status filter
+   * shows all handled statuses, the
    * "View history" cross-link in the header is hidden (we're
    * already on it), and the impact/source filters still work as
    * normal. The dedicated `/rules/pulse/history` route mounts
@@ -136,9 +132,7 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
   // auto-collapse properly via `setAutoCollapsed` (see that
   // component) — no wrapper needed here. Just open the drawer.
   const openDrawerAndCollapseSidebar = openDrawer
-  const [statusFilter, setStatusFilter] = useState<PulseStatusFilter>(
-    historyMode ? 'applied' : 'all',
-  )
+  const [statusFilter, setStatusFilter] = useState<PulseStatusFilter>('all')
   const [impactFilter, setImpactFilter] = useState<PulseImpactFilter>('all')
   const [changeKindFilter, setChangeKindFilter] = useState<PulseChangeKindFilter>('all')
   const [sourceFilter, setSourceFilter] = useState('all')
@@ -211,10 +205,15 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
       },
     }),
   )
-  const alertsQuery = useQuery(usePulseListHistoryQueryOptions(50))
+  const activeAlertsQueryOptions = usePulseListAlertsQueryOptions(50)
+  const historyAlertsQueryOptions = usePulseListHistoryQueryOptions(50)
+  const alertsQuery = useQuery(historyMode ? historyAlertsQueryOptions : activeAlertsQueryOptions)
   const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
+  const statusFilterOptions = historyMode
+    ? HISTORY_STATUS_FILTER_OPTIONS
+    : ACTIVE_STATUS_FILTER_OPTIONS
   const sourceOptions = useMemo(
     () =>
       alerts
@@ -628,7 +627,7 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                         className={panelOpen ? 'w-auto' : 'w-[180px]'}
                       >
                         <span className="min-w-0 flex-1 truncate text-left">
-                          {statusFilterLabel(statusFilter)}
+                          {statusFilterLabel(statusFilter, historyMode)}
                         </span>
                       </FilterTrigger>
                     }
@@ -637,13 +636,13 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                     <DropdownMenuRadioGroup
                       value={statusFilter}
                       onValueChange={(value) => {
-                        if (typeof value === 'string' && isStatusFilter(value))
+                        if (typeof value === 'string' && isStatusFilter(value, statusFilterOptions))
                           setStatusFilter(value)
                       }}
                     >
-                      {STATUS_FILTER_OPTIONS.map((option) => (
+                      {statusFilterOptions.map((option) => (
                         <DropdownMenuRadioItem key={option} value={option}>
-                          {statusFilterLabel(option)}
+                          {statusFilterLabel(option, historyMode)}
                         </DropdownMenuRadioItem>
                       ))}
                     </DropdownMenuRadioGroup>
@@ -1096,8 +1095,11 @@ function FilteredEmptyState() {
   )
 }
 
-function isStatusFilter(value: string): value is PulseStatusFilter {
-  return STATUS_FILTER_OPTIONS.some((option) => option === value)
+function isStatusFilter(
+  value: string,
+  options: readonly PulseStatusFilter[],
+): value is PulseStatusFilter {
+  return options.some((option) => option === value)
 }
 
 function isChangeKindFilter(value: string): value is PulseChangeKindFilter {
@@ -1135,8 +1137,9 @@ const STATUS_FILTER_ICON: Record<PulseStatusFilter, LucideIcon | null> = {
   dismissed: PULSE_STATUS_ICON.dismissed,
 }
 
-function statusFilterText(filter: PulseStatusFilter): React.ReactNode {
-  if (filter === 'all') return <Trans>All statuses</Trans>
+function statusFilterText(filter: PulseStatusFilter, historyMode: boolean): React.ReactNode {
+  if (filter === 'all')
+    return historyMode ? <Trans>All handled</Trans> : <Trans>All statuses</Trans>
   if (filter === 'active') return <Trans>Active</Trans>
   if (filter === 'partially_applied') return <Trans>Partially applied</Trans>
   if (filter === 'applied') return <Trans>Applied</Trans>
@@ -1146,12 +1149,12 @@ function statusFilterText(filter: PulseStatusFilter): React.ReactNode {
   return <Trans>Snoozed</Trans>
 }
 
-function statusFilterLabel(filter: PulseStatusFilter): React.ReactNode {
+function statusFilterLabel(filter: PulseStatusFilter, historyMode: boolean): React.ReactNode {
   const Icon = STATUS_FILTER_ICON[filter]
   return (
     <span className="inline-flex items-center gap-2">
       {Icon ? <Icon className="size-3.5 text-text-tertiary" aria-hidden /> : null}
-      {statusFilterText(filter)}
+      {statusFilterText(filter, historyMode)}
     </span>
   )
 }
