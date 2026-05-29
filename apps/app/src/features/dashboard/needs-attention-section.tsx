@@ -137,7 +137,14 @@ function NeedsAttentionSection() {
           alerts-present case the outer `p-3` on the section already
           provides the same indent, so we only apply the inset
           padding here when there's no outer panel padding. */}
-      <div className={cn('flex items-center gap-3', totalAlertCount === 0 && 'px-3')}>
+      {/* 2026-05-29 (Yuqi /today round 3 — "follow the gap"): h2 row
+          now ALWAYS gets `px-3` (no longer conditional on the empty
+          state). When alerts are present the outer `p-3` already
+          provides the same left inset, but the px-3 is harmless and
+          makes the heading row's class consistent across both
+          states — matches Actions this week's `px-3 ActionsListHeader`
+          unconditionally. */}
+      <div className="flex items-center gap-3 px-3">
         {/* 2026-05-25 (Yuqi Today #1 — second pass): h2 stepped
             down text-xl → text-lg, matching the parallel change
             on Actions-this-week's h2. The page was reading as
@@ -276,25 +283,27 @@ function AlertsEmptyState({
 
   // 2026-05-28 (Yuqi /today polish — "信息重复了"): when the section
   // is healthy AND the supporting line carries no substantive issue
-  // (no paused sources / no loading / sources monitored > 0), the
-  // dashed StatusBanner body just restates what the h2 + green
-  // "Monitoring N jurisdictions" chip already said — "we're watching,
-  // nothing to act on." Drop the banner in that case; the header row
-  // is the full empty state. The banner only renders when it carries
-  // non-redundant signal (paused / loading / zero-sources), where the
-  // chip alone wouldn't tell the story.
-  if (!supportingLine) {
-    return null
-  }
+  // we used to drop the banner entirely. That left the Alerts section
+  // with only the h2 row — no body, no gap, the eye saw a stacked
+  // pair of headings instead of a section with content.
+  //
+  // 2026-05-29 (Yuqi /today round 3 — "no gap here? follow the gap"):
+  // restored a single-line affirmation in the healthy empty state so
+  // the section consistently renders body content (h2 + body), giving
+  // the section the same "header → gap-3 → body" rhythm as Actions
+  // this week. The supporting line is folded inline only when it
+  // carries non-redundant signal (paused / loading / zero-sources).
   return (
     <StatusBanner indicator={<CircleCheckIcon className="size-4 text-text-success" aria-hidden />}>
       <span className="flex flex-col gap-1">
         <span className="text-sm text-text-secondary">
           <Trans>No active alerts — nothing needs your review right now.</Trans>
         </span>
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
-          {supportingLine}
-        </span>
+        {supportingLine ? (
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
+            {supportingLine}
+          </span>
+        ) : null}
       </span>
     </StatusBanner>
   )

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { Astroid, ChevronRightIcon, Plus } from 'lucide-react'
+import { ChevronRightIcon, Plus, SquareArrowRight } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -103,22 +103,23 @@ function NeedsAttentionCard({
     >
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          {/* 2026-05-25 (Yuqi Today follow-up): the Pulse identity
-              mark on the dashboard card was an Atom icon in
-              accent-blue. The Atom read as "Pulse / AI signal" but
-              was the ONLY surface using it — every other AI surface
-              uses Astroid.
-              2026-05-26 (Step 9 AI Visibility Audit F-001):
-              swapped Atom → Astroid so the dashboard's Pulse
-              identity mark matches the canonical AI provenance icon
-              used by `PulseAlertCard`, `PulseDetailDrawer`, and
-              `LowConfidenceBadge`. Three icons for "AI" → one. */}
           {/* 2026-05-25 (Yuqi Today #3 — second pass): source label
               text-base → text-sm. The source eyebrow is meta info,
               not body — at 16px it competed with the title below
-              for first-read attention. */}
-          <Astroid
-            className="size-4 text-state-accent-solid"
+              for first-read attention.
+              2026-05-29 (Yuqi /today round 3): swapped Astroid → an
+              "enter / open" arrow (`SquareArrowRight`). The Astroid
+              AI-provenance mark was historically tied to "this is a
+              Pulse signal" but on the dashboard card the source
+              eyebrow text already names the source — the icon was
+              redundant identity chrome. The new arrow telegraphs
+              the card's actual affordance ("click to drill in"),
+              echoing the chevron on the right edge with a denser
+              "enter this row" reading.
+              Sized down from size-4 → size-3.5 so the icon reads as
+              meta marker, not heading icon. */}
+          <SquareArrowRight
+            className="size-3.5 text-text-tertiary"
             aria-label={pulseAlertToneLabel(tone)}
           />
           <span className="text-sm text-text-tertiary">{alert.source}</span>
@@ -159,7 +160,14 @@ function NeedsAttentionCard({
           aliasing shift on the bg change made the text look
           slightly heavier. Locking the weight explicitly so it
           stays at 400 in both rest and hover states. */}
-      <p className="line-clamp-2 min-h-8 text-sm font-medium leading-snug text-text-primary">
+      {/* 2026-05-29 (Yuqi /today round 3 — "slightly bigger text size"):
+          title stepped text-sm → text-base. The card's hero is the
+          alert title; at text-sm it sat at the same scale as the body
+          chips below ("Acme Inc · Foo Co"), so a quick scan didn't
+          land on the title first. text-base anchors the eye on the
+          title before the supporting chips. min-h bumped accordingly
+          so two short-title cards still stack at equal heights. */}
+      <p className="line-clamp-2 min-h-10 text-base font-medium leading-snug text-text-primary">
         {alert.title}
       </p>
 

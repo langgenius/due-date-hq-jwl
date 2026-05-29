@@ -403,7 +403,13 @@ function ActionRow({
             // tier as the row header above. text-sm (14px) keeps
             // the panel readable while making it visually
             // subordinate to the row that opened it.
-            className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 pt-3 pb-4 text-left text-sm transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            // 2026-05-29 (Yuqi /today round 3 — "top bottom margin of
+            // the collapsed and expanded row should be the same"):
+            // panel padding swapped pt-3 pb-4 → py-3. The 16px bottom
+            // made the expanded block read taller below its content
+            // than above; symmetric 12px frames the dl cleanly so the
+            // row+panel together feel like one balanced block.
+            className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 py-3 text-left text-sm transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             {/* 2026-05-25 (Yuqi Today intro): each row of the dl
                 pinned to the same min-height so the dt/dd gaps
