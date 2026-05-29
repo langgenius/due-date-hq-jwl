@@ -489,19 +489,18 @@ export function Step1Intake({
             transition={STATE_TRANSITION}
             className="flex flex-col gap-6"
           >
-            <div className="flex flex-col items-center gap-1 text-center">
-              {/* 2026-05-27: single sentence-case headline, body family,
-                  text-2xl. No display-serif. The bold move is the
-                  size + the empty space around it, not the typography. */}
-              <h2
-                className={cn('font-semibold text-text-primary', compact ? 'text-xl' : 'text-2xl')}
-              >
-                <Trans>Drop your client file.</Trans>
-              </h2>
-              <p className={cn('text-text-secondary', compact ? 'text-sm' : 'text-base')}>
-                <Trans>Any shape works. We&apos;ll figure out the columns.</Trans>
-              </p>
-            </div>
+            {/* 2026-05-29 (R4 migration polish #6): the "Drop your
+                client file." h2 + "Any shape works. We'll figure
+                out the columns." sub-headline were a third title in
+                the orientation zone — the wizard frame's <header>
+                already says "Import clients" and the Stepper says
+                "Intake". The dropzone label below ("Drop a file or
+                click to browse" + the format/limit line) is the
+                actual affordance and covers the action. The "any
+                shape works" promise lives downstream: Step 2
+                (Mapping) is where the AI's column-detection result
+                shows up, which is where the reassurance becomes
+                observable rather than just promised. */}
 
             {/* Primary affordance — large, centered. ~60% of the wizard
                 body height via aspect ratio. Swaps to a textarea when
@@ -599,11 +598,21 @@ export function Step1Intake({
               </div>
             )}
 
+            {/* 2026-05-29 (R4 migration polish #8): SSN-blocked
+                paragraph used to sit as plain tertiary text and a
+                tiny lock icon — it disappeared visually next to the
+                large dropzone above. Privacy reassurance is exactly
+                the line a first-time user needs to see before
+                uploading client data, so it earns a quiet but
+                discoverable treatment: subtle accent-tint surface
+                with a matching ring. Still small in scale, but
+                anchored as a discrete privacy chip rather than a
+                footnote that runs into the next section. */}
             <p
               id="paste-hint"
-              className="flex items-center justify-center gap-1.5 text-sm text-text-tertiary"
+              className="mx-auto inline-flex items-center gap-1.5 rounded-md bg-state-accent-hover-alt px-2.5 py-1.5 text-sm text-text-secondary ring-1 ring-state-accent-active-alt/50"
             >
-              <LockIcon className="size-3.5" aria-hidden />
+              <LockIcon className="size-3.5 text-text-accent" aria-hidden />
               <Trans>SSN-like columns are blocked before anything goes to the AI.</Trans>
             </p>
 
@@ -613,8 +622,18 @@ export function Step1Intake({
                 without uploading — the brief's "acknowledging I need help
                 exporting first" affordance. */}
             <div className="flex flex-col gap-2 border-t border-divider-subtle pt-4">
+              {/* 2026-05-29 (R4 migration polish #9): clarified that
+                  the picker is only needed when auto-detection isn't
+                  going to fire (paste path, generic CSV, no logo
+                  signature). When a user drops a Drake export into
+                  the dropzone above, the source-manifest pipeline
+                  already detects it — the chip would have toggled
+                  itself. Telling the user that up front prevents
+                  the "did I already say Drake?" double-step. */}
               <span className="text-xs text-text-tertiary">
-                <Trans>Coming from a specific tool? (Optional)</Trans>
+                <Trans>
+                  Coming from a specific tool? (Optional — we auto-detect from uploaded files.)
+                </Trans>
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {SOURCE_PRESET_IDS.map((id) => (

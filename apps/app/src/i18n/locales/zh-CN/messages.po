@@ -1163,6 +1163,10 @@ msgstr "{0} 的操作"
 msgid "Actions this week"
 msgstr "本周操作"
 
+#: src/routes/migration.new.tsx
+msgid "Activate your practice."
+msgstr "启用您的事务所。"
+
 #: src/routes/rules.library.tsx
 #: src/routes/rules.pulse.tsx
 #, fuzzy
@@ -1747,10 +1751,6 @@ msgstr "请回答每个项目，方便您的 CPA 确认申报准备状态。"
 msgid "Any device subscribed to the current {0} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
 msgstr "所有订阅当前 {0} feed 的设备都会停止同步。你需要把新的 URL 分享给持有旧 URL 的人员。"
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Any shape works. We'll figure out the columns."
-msgstr "Any shape works. We'll figure out the columns."
-
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Any state"
 msgstr "任意州"
@@ -2111,6 +2111,7 @@ msgid "Awaiting sources"
 msgstr "等待来源"
 
 #: src/features/migration/WizardShell.tsx
+#: src/routes/migration.new.tsx
 msgid "Back"
 msgstr "返回"
 
@@ -2955,8 +2956,8 @@ msgid "Columns — {visibleHideableCount} of {totalHideableCount} visible"
 msgstr "列 — 已显示 {visibleHideableCount} 列(共 {totalHideableCount} 列)"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Coming from a specific tool? (Optional)"
-msgstr "Coming from a specific tool? (Optional)"
+msgid "Coming from a specific tool? (Optional — we auto-detect from uploaded files.)"
+msgstr "来自特定工具？（可选 — 已上传的文件会自动识别。）"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
@@ -3998,7 +3999,6 @@ msgstr "截止日"
 #: src/features/concepts/concept-help.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/rules/generation-preview-tab.tsx
-#: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
 msgid "Deadlines"
@@ -4267,10 +4267,6 @@ msgstr "已开始起草，但客户材料尚未收齐。"
 #: src/features/migration/Step1Intake.tsx
 msgid "Drop a file or click to browse"
 msgstr "Drop a file or click to browse"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Drop your client file."
-msgstr "Drop your client file."
 
 #: src/features/migration/Stepper.tsx
 msgid "Dry run"
@@ -5478,7 +5474,6 @@ msgid "Ignored"
 msgstr "已忽略"
 
 #: src/routes/clients.tsx
-#: src/routes/migration.new.tsx
 msgid "Import"
 msgstr "导入"
 
@@ -5595,8 +5590,8 @@ msgid "Import undone"
 msgstr "导入已撤销"
 
 #: src/routes/migration.new.tsx
-msgid "Import your clients and generate deadlines."
-msgstr "导入您的客户并生成截止日期。"
+msgid "Import your client list to generate deadlines and unlock the first Today risk view."
+msgstr "导入您的客户列表以生成截止事项，并解锁首个 Today 风险视图。"
 
 #: src/features/concepts/concept-help.tsx
 msgid "Import-time suggestions for tax types based on entity type and jurisdiction when the uploaded rows do not provide tax types."
@@ -9786,11 +9781,6 @@ msgstr "风险档案已更新"
 msgid "Risk summary refresh queued"
 msgstr "风险摘要刷新已排队"
 
-#: src/routes/migration.new.tsx
-#, fuzzy
-msgid "Risk view"
-msgstr "风险档案"
-
 #: src/features/audit/audit-log-labels.ts
 #: src/features/members/members-page.tsx
 msgid "Role"
@@ -12723,10 +12713,6 @@ msgstr "你的事务所已被停用，请联系支持团队恢复访问。"
 #: src/routes/billing.success.tsx
 msgid "Your practice plan is ready."
 msgstr "你的事务所计划已就绪。"
-
-#: src/routes/migration.new.tsx
-msgid "Your practice workspace is ready. Import a spreadsheet now to turn client facts into deadlines, evidence, and the first Today risk view. You can skip and import later from Today, Clients, or Command Palette."
-msgstr "您的事务所工作区已就绪。立即导入电子表格，将客户信息转化为截止事项、证据和首个今日风险视图。您也可以跳过，稍后从今日、客户或命令面板导入。"
 
 #: src/routes/rules.library.tsx
 msgid "Your rule catalog is empty."

@@ -1141,6 +1141,10 @@ msgstr "Actions for {0}"
 msgid "Actions this week"
 msgstr "Actions this week"
 
+#: src/routes/migration.new.tsx
+msgid "Activate your practice."
+msgstr "Activate your practice."
+
 #: src/routes/rules.library.tsx
 #: src/routes/rules.pulse.tsx
 msgid "active"
@@ -1719,10 +1723,6 @@ msgstr "Answer each item so your CPA can confirm filing readiness."
 msgid "Any device subscribed to the current {0} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
 msgstr "Any device subscribed to the current {0} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
 
-#: src/features/migration/Step1Intake.tsx
-msgid "Any shape works. We'll figure out the columns."
-msgstr "Any shape works. We'll figure out the columns."
-
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Any state"
 msgstr "Any state"
@@ -2082,6 +2082,7 @@ msgid "Awaiting sources"
 msgstr "Awaiting sources"
 
 #: src/features/migration/WizardShell.tsx
+#: src/routes/migration.new.tsx
 msgid "Back"
 msgstr "Back"
 
@@ -2919,8 +2920,8 @@ msgid "Columns — {visibleHideableCount} of {totalHideableCount} visible"
 msgstr "Columns — {visibleHideableCount} of {totalHideableCount} visible"
 
 #: src/features/migration/Step1Intake.tsx
-msgid "Coming from a specific tool? (Optional)"
-msgstr "Coming from a specific tool? (Optional)"
+msgid "Coming from a specific tool? (Optional — we auto-detect from uploaded files.)"
+msgstr "Coming from a specific tool? (Optional — we auto-detect from uploaded files.)"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Coming from File In Time? We'll map available calendar fields and flag gaps before generating deadlines."
@@ -3955,7 +3956,6 @@ msgstr "deadlines"
 #: src/features/concepts/concept-help.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/rules/generation-preview-tab.tsx
-#: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
 msgid "Deadlines"
@@ -4222,10 +4222,6 @@ msgstr "Drafting started without all client materials in hand."
 #: src/features/migration/Step1Intake.tsx
 msgid "Drop a file or click to browse"
 msgstr "Drop a file or click to browse"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Drop your client file."
-msgstr "Drop your client file."
 
 #: src/features/migration/Stepper.tsx
 msgid "Dry run"
@@ -5425,7 +5421,6 @@ msgid "Ignored"
 msgstr "Ignored"
 
 #: src/routes/clients.tsx
-#: src/routes/migration.new.tsx
 msgid "Import"
 msgstr "Import"
 
@@ -5541,8 +5536,8 @@ msgid "Import undone"
 msgstr "Import undone"
 
 #: src/routes/migration.new.tsx
-msgid "Import your clients and generate deadlines."
-msgstr "Import your clients and generate deadlines."
+msgid "Import your client list to generate deadlines and unlock the first Today risk view."
+msgstr "Import your client list to generate deadlines and unlock the first Today risk view."
 
 #: src/features/concepts/concept-help.tsx
 msgid "Import-time suggestions for tax types based on entity type and jurisdiction when the uploaded rows do not provide tax types."
@@ -9688,10 +9683,6 @@ msgstr "Risk profile updated"
 msgid "Risk summary refresh queued"
 msgstr "Risk summary refresh queued"
 
-#: src/routes/migration.new.tsx
-msgid "Risk view"
-msgstr "Risk view"
-
 #: src/features/audit/audit-log-labels.ts
 #: src/features/members/members-page.tsx
 msgid "Role"
@@ -12601,10 +12592,6 @@ msgstr "Your practice is suspended. Contact support to restore access."
 #: src/routes/billing.success.tsx
 msgid "Your practice plan is ready."
 msgstr "Your practice plan is ready."
-
-#: src/routes/migration.new.tsx
-msgid "Your practice workspace is ready. Import a spreadsheet now to turn client facts into deadlines, evidence, and the first Today risk view. You can skip and import later from Today, Clients, or Command Palette."
-msgstr "Your practice workspace is ready. Import a spreadsheet now to turn client facts into deadlines, evidence, and the first Today risk view. You can skip and import later from Today, Clients, or Command Palette."
 
 #: src/routes/rules.library.tsx
 msgid "Your rule catalog is empty."
