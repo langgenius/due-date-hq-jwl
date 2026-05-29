@@ -21,6 +21,7 @@ import { NeedsAttentionCard, NeedsAttentionOverflowCard } from './needs-attentio
 // Pulse alerts from a first-class card row.
 
 const VISIBLE_ALERTS = 2
+const NATIONAL_MONITORING_JURISDICTION_COUNT = 52
 
 // 2026-05-24 (critique P0): aligned with the sidebar's
 // `SIDEBAR_PULSE_LIMIT` so this page and the sidebar Alerts badge
@@ -50,7 +51,8 @@ function NeedsAttentionSection() {
   // jurisdiction coverage, not raw source/adapter count. Hidden
   // policy-watch adapters can grow without making the Today header
   // read as "monitoring 150 sources."
-  const monitoringJurisdictionCount = MVP_RULE_JURISDICTIONS.length
+  const hasNationalMonitoringCoverage =
+    MVP_RULE_JURISDICTIONS.length === NATIONAL_MONITORING_JURISDICTION_COUNT
 
   return (
     // 2026-05-25 (Yuqi review #4): Alerts is the most important
@@ -149,17 +151,10 @@ function NeedsAttentionSection() {
           ) : (
             <Trans>Alerts</Trans>
           )}
-          {monitoringJurisdictionCount > 0 ? (
+          {hasNationalMonitoringCoverage ? (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
               <PulsingDot tone="success" active />
-              <Trans>
-                Monitoring{' '}
-                <Plural
-                  value={monitoringJurisdictionCount}
-                  one="# jurisdiction"
-                  other="# jurisdictions"
-                />
-              </Trans>
+              <Trans>Monitoring Federal + 50 states + DC</Trans>
             </span>
           ) : null}
         </h2>

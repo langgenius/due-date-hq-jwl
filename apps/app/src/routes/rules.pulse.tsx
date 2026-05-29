@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Plural, Trans } from '@lingui/react/macro'
+import { Trans } from '@lingui/react/macro'
 import { HistoryIcon, RadioTowerIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
@@ -14,6 +14,7 @@ import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 
 const TOP_ALERTS_LIMIT = 50
+const NATIONAL_MONITORING_JURISDICTION_COUNT = 52
 
 export function RulesPulseRoute() {
   const { open: panelOpen } = usePulseDrawer()
@@ -27,7 +28,8 @@ export function RulesPulseRoute() {
   // product coverage metric, not an adapter/source-health count.
   // Parser-backed baseline sources can grow to hundreds of adapters
   // while the CPA-facing promise remains national coverage.
-  const monitoringJurisdictionCount = MVP_RULE_JURISDICTIONS.length
+  const hasNationalMonitoringCoverage =
+    MVP_RULE_JURISDICTIONS.length === NATIONAL_MONITORING_JURISDICTION_COUNT
 
   // 2026-05-25 (Yuqi Alerts #1, #13): breadcrumb dropped. Alerts is
   // now a top-level sidebar destination — the parent crumb back to
@@ -59,8 +61,8 @@ export function RulesPulseRoute() {
   //     so an active queue reads with appropriate urgency.
   // 2026-05-27 (Yuqi IA pass — disambiguate monitoring vs alerts):
   // the two sibling chips were reading as peers but carry different
-  // meanings — "Monitoring N jurisdictions" is the always-on coverage
-  // signal (Federal + 50 states + DC); the bare
+  // meanings — "Monitoring Federal + 50 states + DC" is the always-on coverage
+  // signal; the bare
   // "4" alert pill is the actionable queue ("4 alerts open right
   // now"). They looked alike enough that Yuqi flagged the
   // relationship as opaque. Fix: the alert pill is now explicit
@@ -72,17 +74,12 @@ export function RulesPulseRoute() {
   const titleNode = (
     <span className="inline-flex items-center gap-2">
       <Trans>Alerts</Trans>
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
-        <PulsingDot tone="success" active className="size-1.5" />
-        <Trans>
-          Monitoring{' '}
-          <Plural
-            value={monitoringJurisdictionCount}
-            one="# jurisdiction"
-            other="# jurisdictions"
-          />
-        </Trans>
-      </span>
+      {hasNationalMonitoringCoverage ? (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
+          <PulsingDot tone="success" active className="size-1.5" />
+          <Trans>Monitoring Federal + 50 states + DC</Trans>
+        </span>
+      ) : null}
       {alertCount > 0 ? (
         <span className="inline-flex items-center gap-1 rounded-full bg-state-destructive-hover px-2 py-1.5 text-xs font-medium text-text-destructive">
           <span className="tabular-nums">{alertCount}</span>

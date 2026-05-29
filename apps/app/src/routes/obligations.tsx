@@ -5040,7 +5040,7 @@ export function ObligationQueueDetailDrawer({
   const prepStagePreviousRef = useRef<ObligationPrepStage | null>(null)
   const reviewStagePreviousRef = useRef<ObligationReviewStage | null>(null)
   // Materials tab multi-select model (2026-05-23). Keyed by the
-  // checklist item id so the floating action bar can batch a
+  // checklist item id so the checklist action row can batch a
   // "Mark received" mutation across every selected row. Carries the
   // owning obligationId so the selection clears automatically when
   // the user switches rows — selection is local to the open drawer,
@@ -5350,6 +5350,11 @@ export function ObligationQueueDetailDrawer({
   const correctionChecklistItems = checklist.filter((item) => item.status === 'needs_review')
   const canOpenMaterialsRequestPreview =
     checklist.length > 0 && (!correctionMaterialsMode || correctionChecklistItems.length > 0)
+  const canShowMaterialsRequestAction =
+    !latestRequest ||
+    latestRequest.status === 'revoked' ||
+    (correctionMaterialsMode &&
+      (latestRequest.status === 'responded' || latestRequest.status === 'expired'))
   // 2026-05-26 (Step 9 AI Visibility Audit F-020): surface the
   // "degraded fallback list" signal as an inline banner above the
   // checklist, not just a 4-second toast that disappears forever.
@@ -5723,9 +5728,10 @@ export function ObligationQueueDetailDrawer({
   }
 
   // Materials multi-select handlers (2026-05-23). Toggling a row's
-  // selection updates the local Set; the floating action bar mounts
-  // when itemIds.size > 0. The batch "Mark received" calls the
-  // existing per-item update RPC for each selected id in parallel.
+  // selection updates the local Set; the checklist action row shows
+  // selected-item actions when itemIds.size > 0. The batch "Mark
+  // received" calls the existing per-item update RPC for each selected
+  // id in parallel.
   // Items already received are skipped to avoid emitting no-op audit
   // events; if the batch leaves every item received, the row advances
   // to In review from the Summary tab.
@@ -7097,35 +7103,76 @@ export function ObligationQueueDetailDrawer({
                           )
                         })()}
                         {/* Primary CTA below the checklist — the actual
-                        workflow terminal action. Promoted from the
-                        cluster at the top so the user's eye lands on
-                        it after reading the list of items they're
-                        requesting. Disabled if a request is already
-                        pending out to the client (no implicit resend). */}
-                        {!latestRequest ||
-                        latestRequest.status === 'revoked' ||
-                        (correctionMaterialsMode &&
-                          (latestRequest.status === 'responded' ||
-                            latestRequest.status === 'expired')) ? (
-                          <div className="flex justify-end pt-1">
-                            <Button
-                              size="sm"
-                              onClick={() => openMaterialsRequestPreview(row.id)}
-                              disabled={
-                                previewRequestEmailMutation.isPending ||
-                                sendRequestMutation.isPending ||
-                                !canOpenMaterialsRequestPreview
-                              }
-                            >
-                              <SendIcon data-icon="inline-start" />
-                              {correctionMaterialsMode ? (
-                                <Trans>Send correction request</Trans>
-                              ) : (
-                                <Trans>Send to client</Trans>
-                              )}
-                            </Button>
+                        workflow terminal action. Selection state now
+                        lives in the same row, with client-send on the
+                        left and selected-item batch actions on the right. */}
+                        {canShowMaterialsRequestAction || selectedChecklistItemCount > 0 ? (
+                          <div className="flex flex-wrap items-center gap-2 pt-1">
+                            {canShowMaterialsRequestAction ? (
+                              <Button
+                                size="sm"
+                                onClick={() => openMaterialsRequestPreview(row.id)}
+                                disabled={
+                                  previewRequestEmailMutation.isPending ||
+                                  sendRequestMutation.isPending ||
+                                  !canOpenMaterialsRequestPreview
+                                }
+                              >
+                                <SendIcon data-icon="inline-start" />
+                                {correctionMaterialsMode ? (
+                                  <Trans>Send correction request</Trans>
+                                ) : (
+                                  <Trans>Send to client</Trans>
+                                )}
+                              </Button>
+                            ) : null}
+                            {selectedChecklistItemCount > 0 ? (
+                              <div className="ml-auto flex flex-wrap items-center gap-2">
+                                <span className="text-xs font-medium text-text-primary">
+                                  <Plural
+                                    value={selectedChecklistItemCount}
+                                    one="# item selected"
+                                    other="# items selected"
+                                  />
+                                </span>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={clearMaterialsSelection}
+                                  disabled={updateChecklistItemMutation.isPending}
+                                >
+                                  <Trans>Deselect</Trans>
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={correctionMaterialsMode ? 'outline' : 'default'}
+                                  onClick={() =>
+                                    void (correctionMaterialsMode
+                                      ? batchMarkNeedsCorrection(
+                                          new Set(selectedChecklistItemIdsForAction),
+                                        )
+                                      : batchMarkReceived(
+                                          new Set(selectedChecklistItemIdsForAction),
+                                        ))
+                                  }
+                                  disabled={updateChecklistItemMutation.isPending}
+                                >
+                                  {correctionMaterialsMode ? (
+                                    <>
+                                      <Trans>Mark needs correction</Trans>
+                                      <AlertTriangleIcon data-icon="inline-end" />
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Trans>Mark client docs received</Trans>
+                                      <CheckCircle2Icon data-icon="inline-end" />
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            ) : null}
                             {correctionMaterialsMode && correctionChecklistItems.length === 0 ? (
-                              <p className="ml-auto text-xs text-text-tertiary">
+                              <p className="text-xs text-text-tertiary">
                                 <Trans>
                                   Mark at least one received item needs correction first.
                                 </Trans>
@@ -7628,61 +7675,6 @@ export function ObligationQueueDetailDrawer({
           </div>
         ) : null}
       </div>
-      {/* Floating multi-select action bar (2026-05-23). Mounts only
-          when the Materials tab is active and the user has selected
-          at least one document item via the row-leading checkbox.
-          Sits between the scrolling body and the persistent footer
-          so it floats over the dates panel without covering the
-          provenance line + Copy-link / Close cluster. Primary action
-          is "Mark received" (most common batch op); Deselect clears
-          the selection back to zero. Receivd items are skipped
-          server-side via batchMarkReceived's filter. */}
-      {row && activeTab === 'readiness' && selectedChecklistItemCount > 0 ? (
-        // 2026-05-26 (Yuqi drawer canonical): materials-selection
-        // bar inline-padding aligned to px-12. Vertical bumped 2.5
-        // → 4 to match the canonical drawer footer rhythm.
-        <div className="flex flex-wrap items-center gap-2 border-t border-divider-subtle bg-background-section px-12 py-4">
-          <span className="text-xs font-medium text-text-primary">
-            <Plural
-              value={selectedChecklistItemCount}
-              one="# item selected"
-              other="# items selected"
-            />
-          </span>
-          <div className="ml-auto flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={clearMaterialsSelection}
-              disabled={updateChecklistItemMutation.isPending}
-            >
-              <Trans>Deselect</Trans>
-            </Button>
-            <Button
-              size="sm"
-              variant={correctionMaterialsMode ? 'outline' : 'default'}
-              onClick={() =>
-                void (correctionMaterialsMode
-                  ? batchMarkNeedsCorrection(new Set(selectedChecklistItemIdsForAction))
-                  : batchMarkReceived(new Set(selectedChecklistItemIdsForAction)))
-              }
-              disabled={updateChecklistItemMutation.isPending}
-            >
-              {correctionMaterialsMode ? (
-                <>
-                  <Trans>Mark needs correction</Trans>
-                  <AlertTriangleIcon data-icon="inline-end" />
-                </>
-              ) : (
-                <>
-                  <Trans>Mark client docs received</Trans>
-                  <CheckCircle2Icon data-icon="inline-end" />
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      ) : null}
       <DeadlineInputRequestDialog
         open={requestInputDialogOpen}
         recipients={requestRecipients}

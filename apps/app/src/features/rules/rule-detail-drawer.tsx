@@ -1003,7 +1003,6 @@ function RuleEvidenceCard({
       </div>
       <EvidenceLocator evidence={evidence} />
       <p className="line-clamp-2 text-xs text-text-secondary italic">“{evidence.sourceExcerpt}”</p>
-      <EvidenceMeta evidence={evidence} />
     </>
   )
 
@@ -1071,20 +1070,6 @@ function EvidenceLocator({ evidence }: { evidence: RuleEvidence }) {
   if (evidence.locator.pdfPage !== undefined) parts.push(`p.${evidence.locator.pdfPage}`)
   if (parts.length === 0) return null
   return <p className="text-xs text-text-tertiary">{parts.join(' · ')}</p>
-}
-
-function EvidenceMeta({ evidence }: { evidence: RuleEvidence }) {
-  return (
-    <div className="flex items-center gap-2 font-mono text-caption-xs text-text-muted">
-      <span>retrieved {evidence.retrievedAt}</span>
-      {evidence.sourceUpdatedOn ? (
-        <>
-          <span aria-hidden>·</span>
-          <span>updated {evidence.sourceUpdatedOn}</span>
-        </>
-      ) : null}
-    </div>
-  )
 }
 
 function VerificationSection({ rule }: { rule: ObligationRule }) {

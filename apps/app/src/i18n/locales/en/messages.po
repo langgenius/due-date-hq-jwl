@@ -6487,8 +6487,8 @@ msgstr "Model"
 
 #: src/features/dashboard/needs-attention-section.tsx
 #: src/routes/rules.pulse.tsx
-msgid "Monitoring {monitoringJurisdictionCount, plural, one {# jurisdiction} other {# jurisdictions}}"
-msgstr "Monitoring {monitoringJurisdictionCount, plural, one {# jurisdiction} other {# jurisdictions}}"
+msgid "Monitoring Federal + 50 states + DC"
+msgstr "Monitoring Federal + 50 states + DC"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx

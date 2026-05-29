@@ -19,7 +19,7 @@
 - `pdfjs-dist` 已用于 PDF text layer 抽取。
 - AI Extract 使用 `rawText` 分析 source snapshot，并要求 `sourceExcerpt` 能从 `rawText` 中定位。
 - Cloudflare Email Routing 已有 GovDelivery inbound skeleton，可把邮件写成 snapshot。
-- Today 产品指标应继续使用 jurisdiction coverage 语义，例如 `Monitoring 52 jurisdictions`，而不是 raw source/adapter 数量。
+- Today 产品指标应继续使用 jurisdiction coverage 语义，例如 `Monitoring Federal + 50 states + DC`，而不是 raw source/adapter 数量。
 
 当前主要缺口：
 
@@ -400,7 +400,7 @@ pnpm --filter @duedatehq/app test -- src/features/pulse
 
 - review-only Alert 不显示 Apply。
 - due-date overlay Alert 显示 Apply 前仍要求 CPA review。
-- Today 显示 `Monitoring 52 jurisdictions` 语义。
+- Today 显示 `Monitoring Federal + 50 states + DC` 语义。
 - Sources 页不出现 hidden policy-watch source。
 
 建议测试：

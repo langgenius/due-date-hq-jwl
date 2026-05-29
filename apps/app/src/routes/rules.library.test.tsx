@@ -763,6 +763,32 @@ describe('RulesLibraryRoute', () => {
     expect(open).toHaveBeenCalledWith(source.url, '_blank', 'noopener,noreferrer')
   })
 
+  it('keeps evidence retrieval and source update timestamps out of the selected rule detail', async () => {
+    const rule = obligationRule({
+      evidence: [
+        {
+          sourceId: 'az.income_tax',
+          authorityRole: 'basis',
+          locator: { kind: 'html', heading: 'Due Date for Calendar Year Filers' },
+          summary: 'Arizona individual income tax due date.',
+          sourceExcerpt: 'Returns are due by April 15, 2026.',
+          retrievedAt: '2026-05-22',
+          sourceUpdatedOn: '2026-04-27',
+        },
+      ],
+    })
+    const source = ruleSource()
+    nuqsMocks.rule = rule.id
+    rpcMocks.listRulesQueryFn.mockResolvedValue([rule])
+    rpcMocks.listSourcesQueryFn.mockResolvedValue([source])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText(source.title)
+
+    expect(document.body.textContent).not.toContain('retrieved 2026-05-22')
+    expect(document.body.textContent).not.toContain('updated 2026-04-27')
+  })
+
   it('keeps the current page in place when evidence opens with noopener', async () => {
     const rule = obligationRule({})
     const source = ruleSource()

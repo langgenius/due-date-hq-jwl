@@ -39,12 +39,12 @@ export function ChecklistItemRow({
   correctionMode?: boolean
   pending: boolean
   // Multi-select model (2026-05-23). The leading Checkbox tracks
-  // selection (for the floating "Mark client docs received" batch
+  // selection (for the "Mark client docs received" batch
   // action), NOT the item's received-state. Status is communicated
   // via the small inline status chip on received / needs-review
   // items; mutating status one-at-a-time happens via the row body
-  // click-through (future: dedicated inline editor) or the floating
-  // bar's batch action.
+  // click-through (future: dedicated inline editor) or the checklist
+  // action row's batch action.
   selected: boolean
   selectionDisabled: boolean
   onToggleSelect: () => void
@@ -82,9 +82,9 @@ export function ChecklistItemRow({
   // The card now reads as a clean checkbox + title + description
   // block; status is a small chip on the right when non-default;
   // selection state shows a strong accent border + filled checkbox.
-  // The floating action bar at the bottom of the drawer owns the
+  // The checklist action row owns the
   // mark-received affordance (single-item case: select one, click
-  // bar). Edit/delete moved behind an overflow menu (… on hover).
+  // action row). Edit/delete moved behind an overflow menu (… on hover).
   return (
     <div
       className={cn(
