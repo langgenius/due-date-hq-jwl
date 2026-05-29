@@ -6940,6 +6940,10 @@ msgstr "没有活跃提醒 — 当前无需复核任何事项。"
 msgid "No active alerts right now"
 msgstr "当前没有活跃提醒"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "No active deadlines yet"
+msgstr "暂无活跃截止日期"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 #: src/routes/practice.tsx
@@ -7034,6 +7038,7 @@ msgid "No clients matched this alert's scope. You can dismiss it or wait — if 
 msgstr "没有客户匹配此提醒的范围。您可以忽略它或等待 — 如有匹配范围的新客户加入，提醒会重新打开。"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/dashboard/actions-list.tsx
 msgid "No clients yet"
 msgstr "还没有客户"
 
@@ -7058,7 +7063,6 @@ msgid "No deadlines match these filters."
 msgstr "没有截止事项匹配这些筛选条件。"
 
 #: src/features/clients/ClientWorkPlanPanel.tsx
-#: src/features/dashboard/actions-list.tsx
 #: src/routes/obligations.tsx
 msgid "No deadlines yet"
 msgstr "暂无截止日期"
@@ -9371,6 +9375,10 @@ msgstr "正在移除…"
 #: src/routes/obligations.tsx
 msgid "Reopen the return for drafting"
 msgstr "重新打开该申报继续起草"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Replace this file"
+msgstr "替换此文件"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
@@ -12381,6 +12389,10 @@ msgstr "查看账单"
 msgid "View blocked deadlines"
 msgstr "查看已阻塞截止日"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "View deadlines"
+msgstr "查看截止日期"
+
 #: src/features/pulse/AlertsListPage.tsx
 msgid "View history"
 msgstr "查看历史"
@@ -12692,6 +12704,10 @@ msgstr "you@yourpractice.com"
 #: src/lib/i18n-error.ts
 msgid "Your account isn't linked to a practice yet."
 msgstr "你的账户尚未关联任何事务所。"
+
+#: src/features/dashboard/actions-list.tsx
+msgid "Your clients are imported, but no future deadlines have been generated. Check client filing profiles or Rule Library for what's pending."
+msgstr "您的客户已导入，但尚未生成未来的截止日期。请查看客户申报概况或规则库以了解待处理项。"
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Your current plan includes one active practice. Additional practices are available on the Enterprise plan."

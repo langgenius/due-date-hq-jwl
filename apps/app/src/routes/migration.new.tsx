@@ -265,7 +265,19 @@ function MigrationActivationIntro({
       <Tooltip>
         <TooltipTrigger
           render={
-            <Button variant="ghost" size="sm" className="w-fit shrink-0" onClick={onSkip}>
+            <Button
+              variant="ghost"
+              size="sm"
+              // 2026-05-29 (Yuqi — "dimmed skip"): the ghost button still
+              // inherited `text-text-primary` on idle so Skip read at the
+              // same weight as page body copy and competed for the eye.
+              // Dropped to `text-text-tertiary` so the button reads as a
+              // quiet lateral escape. Hover keeps the canonical ghost
+              // background so the affordance still confirms when pointed
+              // at — only the resting state is dimmer.
+              className="w-fit shrink-0 text-text-tertiary"
+              onClick={onSkip}
+            >
               <Trans>Skip for now</Trans>
             </Button>
           }

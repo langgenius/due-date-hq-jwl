@@ -457,6 +457,21 @@ export function Step1Intake({
       className={cn('flex flex-col', compact ? 'gap-4 py-3' : 'gap-6 pt-5 pb-5')}
       id="wizard-step1-body"
     >
+      {/* 2026-05-29 (Yuqi — "click to reupload?"): the OS file picker
+          input lives at the section root so it's always mounted —
+          both the empty-state dropzone AND the uploaded-state
+          DetectionHero card trigger it via the same fileInputRef.
+          Previously the input was nested inside the empty-state
+          dropzone, which meant the ref dangled in the uploaded
+          state. */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv,.tsv,.txt,.xlsx,.zip,.iif,.json,.fbk,.qbb,.qbw,.qbm,.cab,.pdf,.xls,.dif,.rtnbak,.rctrl,.dbf,.mdx,.csd,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip"
+        className="hidden"
+        onClick={(event) => event.stopPropagation()}
+        onChange={handleFilePicked}
+      />
       <AnimatePresence mode="wait" initial={false}>
         {hasIntake ? (
           <motion.div
@@ -477,6 +492,12 @@ export function Step1Intake({
               selectedPresetLabel={selectedPresetLabel}
               parseError={intake.parseError}
               onRemove={handleRemoveFile}
+              // 2026-05-29 (Yuqi — "click to reupload?"): the uploaded
+              // card now accepts clicks to re-open the OS file picker.
+              // Threads through the same file-input ref used by the
+              // empty-state dropzone — see the always-mounted <input>
+              // below.
+              onReupload={() => fileInputRef.current?.click()}
               compact={compact}
             />
           </motion.div>
@@ -579,14 +600,6 @@ export function Step1Intake({
                       <Trans>CSV, Excel, ZIP, TXT, or IIF · up to 1,000 rows · 5 MB</Trans>
                     </span>
                   </span>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".csv,.tsv,.txt,.xlsx,.zip,.iif,.json,.fbk,.qbb,.qbw,.qbm,.cab,.pdf,.xls,.dif,.rtnbak,.rctrl,.dbf,.mdx,.csd,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip"
-                    className="hidden"
-                    onClick={(event) => event.stopPropagation()}
-                    onChange={handleFilePicked}
-                  />
                 </div>
                 <button
                   type="button"
@@ -794,6 +807,10 @@ interface DetectionHeroProps {
   selectedPresetLabel: string
   parseError: string | null
   onRemove: () => void
+  // 2026-05-29 (Yuqi — "click to reupload?"): opens the OS file
+  // picker; parent owns the hidden <input> ref so the same picker
+  // serves both empty and uploaded states.
+  onReupload: () => void
   compact: boolean
 }
 
@@ -827,8 +844,10 @@ function DetectionHero({
   selectedPresetLabel,
   parseError,
   onRemove,
+  onReupload,
   compact,
 }: DetectionHeroProps) {
+  const { t } = useLingui()
   const fileSizeLabel = useMemo(() => formatBytes(sizeBytes), [sizeBytes])
 
   if (parseError) {
@@ -851,12 +870,29 @@ function DetectionHero({
     )
   }
 
+  // 2026-05-29 (Yuqi — "click to reupload?"): the card is now a
+  // clickable button that re-opens the OS file picker so a user
+  // who realises they dropped the wrong file can swap it without
+  // first hitting Remove. Disabled while still reading so a mid-
+  // upload click doesn't race the parse. Keyboard activation
+  // (Enter/Space) mirrors the empty-state dropzone. The "Remove
+  // file" link below stays as a separate explicit affordance for
+  // the "just go back to empty" path.
+  const cardInteractive = !isReadingFile
+
   return (
     <div className="flex flex-col items-center gap-3">
-      <div
+      <button
+        type="button"
+        onClick={cardInteractive ? onReupload : undefined}
+        disabled={!cardInteractive}
+        aria-label={t`Replace this file`}
         className={cn(
-          'flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-divider-regular bg-components-panel-bg text-center',
+          'flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-divider-regular bg-components-panel-bg text-center outline-none transition-colors',
           compact ? 'px-6 py-5' : 'px-8 py-6',
+          cardInteractive
+            ? 'cursor-pointer hover:border-state-accent-solid hover:bg-state-accent-hover-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
+            : 'cursor-default',
         )}
       >
         {isReadingFile ? (
@@ -916,7 +952,7 @@ function DetectionHero({
             </>
           ) : null}
         </div>
-      </div>
+      </button>
 
       <button
         type="button"

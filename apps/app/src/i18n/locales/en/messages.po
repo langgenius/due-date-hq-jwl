@@ -6875,6 +6875,10 @@ msgstr "No active alerts — nothing needs your review right now."
 msgid "No active alerts right now"
 msgstr "No active alerts right now"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "No active deadlines yet"
+msgstr "No active deadlines yet"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 #: src/routes/practice.tsx
@@ -6969,6 +6973,7 @@ msgid "No clients matched this alert's scope. You can dismiss it or wait — if 
 msgstr "No clients matched this alert's scope. You can dismiss it or wait — if a new client is added that matches the scope, the alert will reopen."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/dashboard/actions-list.tsx
 msgid "No clients yet"
 msgstr "No clients yet"
 
@@ -6993,7 +6998,6 @@ msgid "No deadlines match these filters."
 msgstr "No deadlines match these filters."
 
 #: src/features/clients/ClientWorkPlanPanel.tsx
-#: src/features/dashboard/actions-list.tsx
 #: src/routes/obligations.tsx
 msgid "No deadlines yet"
 msgstr "No deadlines yet"
@@ -9277,6 +9281,10 @@ msgstr "Removing…"
 #: src/routes/obligations.tsx
 msgid "Reopen the return for drafting"
 msgstr "Reopen the return for drafting"
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Replace this file"
+msgstr "Replace this file"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
@@ -12263,6 +12271,10 @@ msgstr "View billing"
 msgid "View blocked deadlines"
 msgstr "View blocked deadlines"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "View deadlines"
+msgstr "View deadlines"
+
 #: src/features/pulse/AlertsListPage.tsx
 msgid "View history"
 msgstr "View history"
@@ -12572,6 +12584,10 @@ msgstr "you@yourpractice.com"
 #: src/lib/i18n-error.ts
 msgid "Your account isn't linked to a practice yet."
 msgstr "Your account isn't linked to a practice yet."
+
+#: src/features/dashboard/actions-list.tsx
+msgid "Your clients are imported, but no future deadlines have been generated. Check client filing profiles or Rule Library for what's pending."
+msgstr "Your clients are imported, but no future deadlines have been generated. Check client filing profiles or Rule Library for what's pending."
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Your current plan includes one active practice. Additional practices are available on the Enterprise plan."

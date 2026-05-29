@@ -116,8 +116,11 @@ function NeedsAttentionSection() {
       // week. Previously empty state had 0 gap (heading sat flush
       // against the dashed StatusBanner), while alerts-present had
       // gap-2.5. Now both states match the dashboard's section gap.
+      // 2026-05-29 (Yuqi /today follow-up): inter-section gap tightened
+      // gap-4 → gap-3 to match Actions this week's new internal
+      // rhythm. Universal "gap smaller — apply to everywhere" pass.
       className={cn(
-        'flex flex-col gap-4 rounded-xl',
+        'flex flex-col gap-3 rounded-xl',
         totalAlertCount > 0 && 'bg-state-destructive-hover p-3',
       )}
     >
@@ -126,8 +129,15 @@ function NeedsAttentionSection() {
           dropped because the `+ N more` overflow tile already
           navigates to the same /rules/pulse destination. With one
           remaining child, the flex justify-between scaffolding is
-          unnecessary — the h2 sits alone on its row. */}
-      <div className="flex items-center gap-3">
+          unnecessary — the h2 sits alone on its row.
+
+          2026-05-29 (Yuqi /today follow-up — "follow the gap"): added
+          `px-3` on empty-state Alerts so the h2 left edge aligns with
+          Actions this week's h2 (which already had px-3). In the
+          alerts-present case the outer `p-3` on the section already
+          provides the same indent, so we only apply the inset
+          padding here when there's no outer panel padding. */}
+      <div className={cn('flex items-center gap-3', totalAlertCount === 0 && 'px-3')}>
         {/* 2026-05-25 (Yuqi Today #1 — second pass): h2 stepped
             down text-xl → text-lg, matching the parallel change
             on Actions-this-week's h2. The page was reading as
