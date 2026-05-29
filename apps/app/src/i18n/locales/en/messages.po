@@ -11738,10 +11738,6 @@ msgstr "This stage was skipped — no date applies."
 msgid "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
 msgstr "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
 
-#: src/routes/rules.library.tsx
-msgid "Tier"
-msgstr "Tier"
-
 #: src/features/audit/audit-log-table.tsx
 msgid "Time"
 msgstr "Time"
@@ -11871,6 +11867,10 @@ msgstr "TXT, CSV, or Excel"
 #: src/routes/rules.library.tsx
 msgid "TY {0}"
 msgstr "TY {0}"
+
+#: src/routes/rules.library.tsx
+msgid "Type"
+msgstr "Type"
 
 #: src/features/rules/sources-tab.tsx
 msgid "TYPE"

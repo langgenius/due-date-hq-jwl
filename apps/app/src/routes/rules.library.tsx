@@ -148,6 +148,24 @@ const ENTITY_LABELS: Record<EntityKey, string> = {
   trust: 'Trust',
 }
 
+// 2026-05-28 (Yuqi /rules/library polish #5 — "hover显示全称"):
+// the per-entity column headers are abbreviated to fit the dense
+// 7-column grid (LLC / PART / S-CORP / C-CORP / SOLE / IND / TRUST).
+// The compact `ENTITY_LABELS` was used as `title` before but that
+// just echoed the visible abbreviation ("LLC" → tooltip "LLC"). The
+// full legal-name map sits here so the native browser tooltip
+// explains what each column actually means to a CPA reading at a
+// glance.
+const ENTITY_FULL_LABELS: Record<EntityKey, string> = {
+  llc: 'Limited Liability Company',
+  partnership: 'Partnership',
+  s_corp: 'S Corporation',
+  c_corp: 'C Corporation',
+  sole_prop: 'Sole Proprietorship',
+  individual: 'Individual',
+  trust: 'Trust',
+}
+
 type CoverageState = 'active' | 'review' | 'none' | 'not_applicable'
 
 // Short column-header labels for the 7 per-entity columns. Fit in
@@ -192,10 +210,19 @@ const RULES_TABLE_COLUMN_COUNT = 3 + ENTITY_KEYS.length
 // neutral khaki. Held in local consts rather than a new semantic
 // token so the rollout is contained to this surface; if/when other
 // pages adopt the same tone we can promote to `--state-review-*`.
+//
+// 2026-05-28 (Yuqi /rules/library polish #2 — "改成浅棕色"):
+// the SOFT bg + TINT bg + BORDER moved from the yellow palette
+// (#fefbe8 / #fef7c3 / #feee95 — read as cream/lemon) to the
+// orange palette (#fef6ee / #fdead7 / #f9dbaf — warm peach-tan).
+// Combined with the sienna text/dot below, the surface now reads
+// as "warm brown attention" rather than "yellow caution." Text +
+// dot stay yellow-700/600 because those hues are already brown
+// enough at saturated strength.
 const REVIEW_TEXT_CLS = 'text-[var(--color-util-colors-yellow-700)]'
-const REVIEW_BG_SOFT_CLS = 'bg-[var(--color-util-colors-yellow-50)]'
-const REVIEW_BG_TINT_CLS = 'bg-[var(--color-util-colors-yellow-100)]'
-const REVIEW_BORDER_CLS = 'border-[var(--color-util-colors-yellow-200)]'
+const REVIEW_BG_SOFT_CLS = 'bg-[var(--color-util-colors-orange-50)]'
+const REVIEW_BG_TINT_CLS = 'bg-[var(--color-util-colors-orange-100)]'
+const REVIEW_BORDER_CLS = 'border-[var(--color-util-colors-orange-200)]'
 const REVIEW_DOT_CLS = 'bg-[var(--color-util-colors-yellow-600)]'
 
 // Status sub-grouping inside an expanded jurisdiction. Rules are
@@ -403,7 +430,18 @@ function EntityApplicabilityCell({ applies, status }: { applies: boolean; status
   }
   const tone = STATUS_TONE[status]
   if (tone === 'success') {
-    return <Check aria-hidden className="mx-auto size-3.5 text-text-tertiary" />
+    // 2026-05-28 (Yuqi /rules/library polish #10): the active-row
+    // check tick recolors from neutral gray to success green when
+    // the parent row is hovered, mirroring the leading bullet's
+    // hover treatment. The whole row's "active" identity reads as
+    // one motion — bullet greens + every applicable-entity tick
+    // greens together.
+    return (
+      <Check
+        aria-hidden
+        className="mx-auto size-3.5 text-text-tertiary transition-colors group-hover/row:text-state-success-solid"
+      />
+    )
   }
   if (tone === 'review') {
     return <Circle aria-hidden className={cn('mx-auto size-3.5', REVIEW_TEXT_CLS)} />
@@ -1299,11 +1337,19 @@ export function RulesLibraryRoute() {
   // Layout per scope:
   //   reviewCount > 0  → [⋯] [Sources] [+ New rule (outline)] [Start review N (primary)]
   //   reviewCount === 0 → [⋯] [Sources] [+ New rule (primary)]
-  //   Missing scope    → hides unseeded New rule; gap rows carry the prefilled Add rule action.
   //
   // The header keeps a single primary CTA. When there's a review
   // queue Start review wins; otherwise New rule becomes primary so
   // the default catalog view never has zero primary actions.
+  //
+  // 2026-05-28 (Yuqi /rules/library polish #4 — "Missing scope时
+  // New rule消失了"): the prior `activeScope === 'missing'` guards
+  // hid the header New rule on the Missing scope on the assumption
+  // that gap rows already carry an `Add rule (prefilled)` action.
+  // That left CPAs on a scope view with no global way to add a
+  // brand-new (unseeded) rule. Restored the header CTA on every
+  // scope; the gap-row prefilled action remains as a quicker path
+  // for the specific row case.
   const headerActions = (
     <>
       {/* 2026-05-27 (Step 6 UX flows audit H2.7): shortcut
@@ -1332,12 +1378,10 @@ export function RulesLibraryRoute() {
       </Button>
       {reviewCount > 0 ? (
         <>
-          {activeScope === 'missing' ? null : (
-            <Button variant="outline" size="sm" onClick={openNewRule}>
-              <PlusIcon data-icon="inline-start" />
-              <Trans>New rule</Trans>
-            </Button>
-          )}
+          <Button variant="outline" size="sm" onClick={openNewRule}>
+            <PlusIcon data-icon="inline-start" />
+            <Trans>New rule</Trans>
+          </Button>
           <Button size="sm" onClick={startReviewAll}>
             <Trans>Start review</Trans>
             <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 text-xs tabular-nums text-text-accent">
@@ -1345,7 +1389,7 @@ export function RulesLibraryRoute() {
             </span>
           </Button>
         </>
-      ) : activeScope === 'missing' ? null : (
+      ) : (
         // No-review baseline: + New rule promotes to the primary
         // slot so the header always carries a single primary action.
         <Button size="sm" onClick={openNewRule}>
@@ -1601,6 +1645,14 @@ export function RulesLibraryRoute() {
         'xl:h-screen xl:overflow-hidden',
       )}
     >
+      {/* 2026-05-28 (Yuqi /rules/library polish — pill into header):
+          the "N rules need review" callout used to sit on its own
+          row below the title alongside the description paragraph.
+          Moved INTO the PageHeader title slot, inline with the
+          "N rules" count pill, so the two pieces of state
+          information ("total catalog size" + "queue waiting") read
+          as one phrase at the page anchor. Frees the strip below
+          to just carry the framing description. */}
       <PageHeader
         title={
           <span className="inline-flex items-center gap-2">
@@ -1610,62 +1662,38 @@ export function RulesLibraryRoute() {
                 <Plural value={totalRules} one="# rule" other="# rules" />
               </span>
             ) : null}
+            {!statsLoading && totalPendingReview > 0 ? (
+              <button
+                type="button"
+                onClick={() => void setScope('review')}
+                aria-label={t`Show rules needing review`}
+                className={cn(
+                  'inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium outline-none transition-colors focus-visible:ring-2',
+                  REVIEW_BORDER_CLS,
+                  REVIEW_BG_SOFT_CLS,
+                  REVIEW_TEXT_CLS,
+                  'hover:bg-[var(--color-util-colors-orange-100)] focus-visible:ring-[var(--color-util-colors-orange-200)]',
+                )}
+              >
+                <span aria-hidden className={cn('size-1.5 rounded-full', REVIEW_DOT_CLS)} />
+                <Plural
+                  value={totalPendingReview}
+                  one="# rule needs review"
+                  other="# rules need review"
+                />
+              </button>
+            ) : null}
           </span>
         }
         actions={headerActions}
       />
 
-      {/* 2026-05-27 (Yuqi IA pass — push-to-action framing): the
-          page landed CPAs on a dense table without ever stating
-          what the surface is FOR or what they're expected to do
-          here. Two-line framing strip:
-            • Left: one sentence stating the page's purpose so a
-              first-time visitor reads "review is the verb."
-            • Right (when totalPendingReview > 0): a warning-toned
-              count chip ("N rules need review") that's clickable
-              to switch the Needs review scope tab. This is the
-              concrete CTA — the eye is pulled to it precisely
-              when there's work waiting. When the queue is empty
-              the chip collapses; the framing line stands alone
-              and the page reads as "all caught up."
-          Inline + dismiss-less so the page chrome stays calm
-          (no banner with an X). Sits between the page header
-          and the catalog progress bar so it's the first thing
-          read after the title. */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="max-w-[720px] text-description leading-5 text-text-secondary">
-          <Trans>
-            These are the deadline rules that drive your client deadlines. Review and approve new
-            rules before they trigger reminders.
-          </Trans>
-        </p>
-        {!statsLoading && totalPendingReview > 0 ? (
-          // 2026-05-27 (Yuqi brown unification): callout was painted
-          // warning-coral (read as "alarm"). Switched to the same
-          // sienna-on-cream brown the top progress bar + row chips
-          // use so the eye learns "brown = review work" once and
-          // carries it across every needs-review surface.
-          <button
-            type="button"
-            onClick={() => void setScope('review')}
-            aria-label={t`Show rules needing review`}
-            className={cn(
-              'inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium outline-none transition-colors focus-visible:ring-2',
-              REVIEW_BORDER_CLS,
-              REVIEW_BG_SOFT_CLS,
-              REVIEW_TEXT_CLS,
-              'hover:bg-[var(--color-util-colors-yellow-100)] focus-visible:ring-[var(--color-util-colors-yellow-200)]',
-            )}
-          >
-            <span aria-hidden className={cn('size-1.5 rounded-full', REVIEW_DOT_CLS)} />
-            <Plural
-              value={totalPendingReview}
-              one="# rule needs review"
-              other="# rules need review"
-            />
-          </button>
-        ) : null}
-      </div>
+      <p className="max-w-[720px] text-description leading-5 text-text-secondary">
+        <Trans>
+          These are the deadline rules that drive your client deadlines. Review and approve new
+          rules before they trigger reminders.
+        </Trans>
+      </p>
 
       {/* Progress bar — completion meter (active LEFT / needs-review
           RIGHT). Yuqi explicitly asked for this to stay at the top
@@ -1754,6 +1782,7 @@ export function RulesLibraryRoute() {
             )
           ) : (
             <GroupedRulesTable
+              activeScope={activeScope}
               groups={groups}
               expanded={expanded}
               onToggle={toggleGroup}
@@ -2425,6 +2454,7 @@ function MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
 // ---------------------------------------------------------------------------
 
 function GroupedRulesTable({
+  activeScope,
   groups,
   expanded,
   onToggle,
@@ -2440,6 +2470,12 @@ function GroupedRulesTable({
   hasMoreGroups,
   onLoadMore,
 }: {
+  // 2026-05-28 (Yuqi /rules/library polish #9): the current scope
+  // (`all` / `active` / `review` / `missing`) gets threaded down so
+  // the per-jurisdiction sub-section headers ("NEEDS REVIEW N" /
+  // "ACTIVE N") can be hidden when the scope already filters to
+  // that one status — the label would just restate the scope tab.
+  activeScope: ScopeKey
   groups: JurisdictionGroup[]
   expanded: Set<RuleJurisdiction>
   onToggle: (jur: RuleJurisdiction) => void
@@ -2610,7 +2646,7 @@ function GroupedRulesTable({
               {ENTITY_KEYS.map((entity) => (
                 <TableHead
                   key={entity}
-                  title={ENTITY_LABELS[entity]}
+                  title={ENTITY_FULL_LABELS[entity]}
                   className="w-12 text-center text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-tertiary"
                 >
                   {ENTITY_COLUMN_LABELS[entity]}
@@ -2624,7 +2660,14 @@ function GroupedRulesTable({
                 number-only chip next to the gap chip + progress
                 bar. */}
               <TableHead>
-                <Trans>Tier</Trans>
+                {/* 2026-05-28 (Yuqi rename): "Tier" implied subscription
+                  tier; the actual values (Basic / Annual rolling /
+                  Exception / Applicability review) describe rule
+                  KIND, not tier level. Renamed to "Type" — the
+                  visible column label only; the internal RuleTier
+                  type + useRuleTierLabels helper stay since they
+                  match the contract field name `ruleTier`. */}
+                <Trans>Type</Trans>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -2668,20 +2711,33 @@ function GroupedRulesTable({
                             : selectedInSection === rulesInGroup.length
                               ? 'all'
                               : 'some'
+                        // 2026-05-28 (Yuqi /rules/library polish #9):
+                        // when the scope tab already selects ONE
+                        // status family, the sub-section header
+                        // inside the jurisdiction would just restate
+                        // it ("NEEDS REVIEW 10" under the Needs review
+                        // scope). Hide the header row in that case;
+                        // the rules still render inline beneath the
+                        // jurisdiction title.
+                        const hideSectionHeader =
+                          (activeScope === 'review' && statusKey === 'needs_review') ||
+                          (activeScope === 'active' && statusKey === 'active')
                         return (
                           <Fragment key={statusKey}>
-                            <StatusSectionHeaderRow
-                              label={statusGroupLabels[statusKey]}
-                              count={rulesInGroup.length}
-                              statusKey={statusKey}
-                              {...(isReviewable
-                                ? {
-                                    selectAllState,
-                                    onToggleSelectAll: () =>
-                                      onToggleRulesSelection(rulesInGroup.map((r) => r.id)),
-                                  }
-                                : {})}
-                            />
+                            {hideSectionHeader ? null : (
+                              <StatusSectionHeaderRow
+                                label={statusGroupLabels[statusKey]}
+                                count={rulesInGroup.length}
+                                statusKey={statusKey}
+                                {...(isReviewable
+                                  ? {
+                                      selectAllState,
+                                      onToggleSelectAll: () =>
+                                        onToggleRulesSelection(rulesInGroup.map((r) => r.id)),
+                                    }
+                                  : {})}
+                              />
+                            )}
                             {rulesInGroup.map((rule) => (
                               <RuleTableRow
                                 key={rule.id}
@@ -3015,11 +3071,10 @@ function RuleTableRow({
         // matches /clients list rows + /clients/[id] filing-plan
         // rows for cross-surface consistency.
         'group/row h-14 cursor-pointer hover:bg-state-base-hover',
-        // 2026-05-27 (Yuqi brown unification): needs-review row tint
-        // was coral (`bg-state-warning-hover/40`). Brown cream
-        // (`yellow-50/60`) keeps the "this row needs you" signal but
-        // in the page's unified review tone.
-        needsReviewRow && 'bg-[var(--color-util-colors-yellow-50)]/60',
+        // 2026-05-28 (Yuqi /rules/library polish #2 — same orange
+        // shift as the top callout pill): needs-review row tint
+        // moved from yellow-50 to orange-50 for the warm-brown read.
+        needsReviewRow && 'bg-[var(--color-util-colors-orange-50)]/60',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onClick(rule)}
@@ -3037,8 +3092,14 @@ function RuleTableRow({
           regular weight (was text-sm font-medium). Matches /clients
           + /deadlines so all three workbench tables share the same
           canonical title scale. Tier label + meta below stay text-xs
-          so the title still reads as the primary anchor. */}
-      <TableCell className="!pl-9 min-h-10 whitespace-normal py-2 text-base">
+          so the title still reads as the primary anchor.
+          2026-05-28 (Yuqi /rules/library polish #11 — "Rule是最重
+          要的"): added `font-medium` + `text-text-primary` so the
+          Rule cell carries more visual weight than the surrounding
+          Form / Type / progress cells. Rule reads as the row's
+          anchor at scan distance. Form + Tier cells stay at the
+          text-xs secondary weight so the eye lands on Rule first. */}
+      <TableCell className="!pl-9 min-h-10 whitespace-normal py-2 text-base font-medium text-text-primary">
         {/* 2026-05-26 (Yuqi follow-up — "the checkbox and text do not
             middle align. The dot and the text do not middle align"):
             outer flex is now `items-center` (was `items-start` with a
@@ -3065,26 +3126,35 @@ function RuleTableRow({
               </span>
             </span>
           ) : (
-            // HEAD's tone-dot indicator for non-selectable rules (gray
-            // dot + hover-reveals status label) preserved. Step 6 cont
-            // R4.2 added `group-focus-within:underline` for keyboard
-            // a11y — applied to the title span below.
+            // 2026-05-28 (Yuqi /rules/library polish #10 — "hover
+            // active row的时候不显示Active小字，前面的bullet point变
+            // 成绿色"): for ACTIVE rows, the resting state shows a
+            // neutral gray dot (calm "established"). On hover the
+            // dot recolors to success green so the row visually
+            // confirms its active status without spilling a
+            // textual "Active" label that adds noise. Non-success
+            // tones (destructive / review / muted) still surface
+            // their short status label on hover since those carry
+            // signal the dot color alone doesn't.
             (() => {
               const tone = STATUS_TONE[rule.status]
               return (
                 <span aria-hidden className="inline-flex shrink-0 items-center gap-1.5">
                   <span
                     className={cn(
-                      'inline-block size-1.5 rounded-full',
-                      tone === 'success' && 'bg-divider-regular',
+                      'inline-block size-1.5 rounded-full transition-colors',
+                      tone === 'success' &&
+                        'bg-divider-regular group-hover/row:bg-state-success-solid',
                       tone === 'destructive' && 'bg-state-destructive-solid',
                       tone === 'review' && 'bg-state-accent-solid',
                       tone === 'muted' && 'bg-divider-regular',
                     )}
                   />
-                  <span className="hidden whitespace-nowrap text-xs text-text-tertiary group-hover/row:inline">
-                    {STATUS_LABEL_SHORT[rule.status]}
-                  </span>
+                  {tone === 'success' ? null : (
+                    <span className="hidden whitespace-nowrap text-xs text-text-tertiary group-hover/row:inline">
+                      {STATUS_LABEL_SHORT[rule.status]}
+                    </span>
+                  )}
                 </span>
               )
             })()
@@ -3107,63 +3177,56 @@ function RuleTableRow({
           <EntityApplicabilityCell applies={applicabilitySet.has(entity)} status={rule.status} />
         </TableCell>
       ))}
-      {/* Tier label + trailing chevron + canonical row-action menu.
-          The chevron stays as the "this row opens detail" affordance
-          cue (fades in on row hover). The ⋯ menu lives next to it as
-          the per-row sub-action surface — Stripe Phase B pattern,
-          consistent with /clients list rows + /clients/[id]
-          filing-plan rows. */}
+      {/* 2026-05-28 (Yuqi /rules/library polish #14 — "right arrow
+          也不需要，很多余"): the trailing chevron was redundant
+          decoration alongside the ⋯ RowActionsMenu and the
+          row-level hover bg. Removed so the Type label sits in its
+          own column without the visual noise of a permanent 30%
+          chevron. Keyboard/touch affordance now lives in the row's
+          hover bg + the ⋯ menu. Left-aligned so the Type label
+          stacks with the progress bar column above. */}
       <TableCell className="py-2">
-        <div className="flex items-center justify-end gap-2 text-xs text-text-secondary">
+        <div className="flex items-center gap-2 text-xs text-text-secondary">
           <span>{tierLabels[rule.ruleTier]}</span>
-          {/* 2026-05-26 (step-6 ux-flow audit R4.1): chevron was
-              fully hidden at rest — keyboard / touch users got no
-              row-click affordance. Now permanently shown at 30%
-              opacity, full opacity on hover/focus-within. */}
-          <ChevronRightIcon
-            aria-hidden
-            // Step 6 cont R4.1: chevron permanently 30% opacity at rest,
-            // 100% on hover + focus-within so keyboard/touch users get
-            // an affordance cue.
-            className="size-3.5 shrink-0 text-text-tertiary opacity-30 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100"
-          />
-          <RowActionsMenu
-            label={`Actions for ${displayTitle}`}
-            items={[
-              {
-                label: 'Open rule',
-                icon: ArrowUpRightIcon,
-                onSelect: () => onClick(rule),
-              },
-              {
-                label: 'Copy rule ID',
-                icon: LinkIcon,
-                onSelect: () => {
-                  if (typeof window === 'undefined') return
-                  try {
-                    void window.navigator.clipboard?.writeText(rule.id)
-                  } catch {
-                    // Clipboard can throw in sandboxed iframes.
-                    // Silent fail — the action is non-critical.
-                  }
+          <span className="ml-auto inline-flex items-center">
+            <RowActionsMenu
+              label={`Actions for ${displayTitle}`}
+              items={[
+                {
+                  label: 'Open rule',
+                  icon: ArrowUpRightIcon,
+                  onSelect: () => onClick(rule),
                 },
-              },
-              {
-                label: 'Copy link',
-                icon: ExternalLinkIcon,
-                onSelect: () => {
-                  if (typeof window === 'undefined') return
-                  try {
-                    const url = `${window.location.origin}/rules/library?rule=${rule.id}`
-                    void window.navigator.clipboard?.writeText(url)
-                  } catch {
-                    // Clipboard can throw in sandboxed iframes.
-                    // Silent fail — the action is non-critical.
-                  }
+                {
+                  label: 'Copy rule ID',
+                  icon: LinkIcon,
+                  onSelect: () => {
+                    if (typeof window === 'undefined') return
+                    try {
+                      void window.navigator.clipboard?.writeText(rule.id)
+                    } catch {
+                      // Clipboard can throw in sandboxed iframes.
+                      // Silent fail — the action is non-critical.
+                    }
+                  },
                 },
-              },
-            ]}
-          />
+                {
+                  label: 'Copy link',
+                  icon: ExternalLinkIcon,
+                  onSelect: () => {
+                    if (typeof window === 'undefined') return
+                    try {
+                      const url = `${window.location.origin}/rules/library?rule=${rule.id}`
+                      void window.navigator.clipboard?.writeText(url)
+                    } catch {
+                      // Clipboard can throw in sandboxed iframes.
+                      // Silent fail — the action is non-critical.
+                    }
+                  },
+                },
+              ]}
+            />
+          </span>
         </div>
       </TableCell>
     </TableRow>
@@ -3405,7 +3468,7 @@ function SearchResultsTable({
             {ENTITY_KEYS.map((entity) => (
               <TableHead
                 key={entity}
-                title={ENTITY_LABELS[entity]}
+                title={ENTITY_FULL_LABELS[entity]}
                 className="w-12 text-center text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-tertiary"
               >
                 {ENTITY_COLUMN_LABELS[entity]}
@@ -3424,7 +3487,14 @@ function SearchResultsTable({
                 the column header sits at the column's natural
                 left edge, matching the Rule / Form headers above. */}
             <TableHead>
-              <Trans>Tier</Trans>
+              {/* 2026-05-28 (Yuqi rename): "Tier" implied subscription
+                  tier; the actual values (Basic / Annual rolling /
+                  Exception / Applicability review) describe rule
+                  KIND, not tier level. Renamed to "Type" — the
+                  visible column label only; the internal RuleTier
+                  type + useRuleTierLabels helper stay since they
+                  match the contract field name `ruleTier`. */}
+              <Trans>Type</Trans>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -3493,52 +3563,49 @@ function SearchResultsTable({
                       <EmptyCellMark label="" />
                     )}
                   </TableCell>
-                  {/* Trailing affordance chevron + canonical row-action
-                      menu — same shape as the grouped table above so
-                      search results carry the identical per-row
-                      affordance. */}
+                  {/* 2026-05-28 (Yuqi /rules/library polish #14):
+                      chevron removed here too so search results
+                      stay in family with the grouped-table rows. */}
                   <TableCell className="py-2">
-                    <div className="flex items-center justify-end gap-2 text-xs text-text-secondary">
+                    <div className="flex items-center gap-2 text-xs text-text-secondary">
                       <span>{tierLabels[rule.ruleTier]}</span>
-                      <ChevronRightIcon
-                        aria-hidden
-                        className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition-opacity group-hover/row:opacity-100"
-                      />
-                      <RowActionsMenu
-                        label={`Actions for ${rule.title}`}
-                        items={[
-                          {
-                            label: 'Open rule',
-                            icon: ArrowUpRightIcon,
-                            onSelect: () => onRuleClick(rule),
-                          },
-                          {
-                            label: 'Copy rule ID',
-                            icon: LinkIcon,
-                            onSelect: () => {
-                              if (typeof window === 'undefined') return
-                              try {
-                                void window.navigator.clipboard?.writeText(rule.id)
-                              } catch {
-                                // Clipboard can throw in sandboxed iframes.
-                              }
+                      <span className="ml-auto inline-flex items-center">
+                        <RowActionsMenu
+                          label={`Actions for ${rule.title}`}
+                          items={[
+                            {
+                              label: 'Open rule',
+                              icon: ArrowUpRightIcon,
+                              onSelect: () => onRuleClick(rule),
                             },
-                          },
-                          {
-                            label: 'Copy link',
-                            icon: ExternalLinkIcon,
-                            onSelect: () => {
-                              if (typeof window === 'undefined') return
-                              try {
-                                const url = `${window.location.origin}/rules/library?rule=${rule.id}`
-                                void window.navigator.clipboard?.writeText(url)
-                              } catch {
-                                // Clipboard can throw in sandboxed iframes.
-                              }
+                            {
+                              label: 'Copy rule ID',
+                              icon: LinkIcon,
+                              onSelect: () => {
+                                if (typeof window === 'undefined') return
+                                try {
+                                  void window.navigator.clipboard?.writeText(rule.id)
+                                } catch {
+                                  // Clipboard can throw in sandboxed iframes.
+                                }
+                              },
                             },
-                          },
-                        ]}
-                      />
+                            {
+                              label: 'Copy link',
+                              icon: ExternalLinkIcon,
+                              onSelect: () => {
+                                if (typeof window === 'undefined') return
+                                try {
+                                  const url = `${window.location.origin}/rules/library?rule=${rule.id}`
+                                  void window.navigator.clipboard?.writeText(url)
+                                } catch {
+                                  // Clipboard can throw in sandboxed iframes.
+                                }
+                              },
+                            },
+                          ]}
+                        />
+                      </span>
                     </div>
                   </TableCell>
                 </TableRow>
