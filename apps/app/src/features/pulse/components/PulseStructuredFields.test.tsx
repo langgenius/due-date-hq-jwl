@@ -39,6 +39,7 @@ function reviewOnlyDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       sourceStatus: 'approved',
       changeKind: 'form_instruction',
       actionMode: 'review_only',
+      firmImpact: 'review_only',
       title: 'NY DTF clarifies pass-through entity tax election window',
       source: 'NY DTF',
       sourceUrl: 'https://www.tax.ny.gov/notice-mock-pte-2026',

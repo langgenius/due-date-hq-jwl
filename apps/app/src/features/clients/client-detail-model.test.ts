@@ -172,6 +172,7 @@ function pulseDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       sourceUrl: 'https://example.com/source',
       changeKind: 'deadline_shift',
       actionMode: 'due_date_overlay',
+      firmImpact: 'matched',
       summary: 'Deadline moved.',
       publishedAt: '2026-05-01T00:00:00.000Z',
       matchedCount: 1,

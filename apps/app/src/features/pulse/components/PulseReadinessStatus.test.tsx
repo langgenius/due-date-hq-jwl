@@ -27,6 +27,7 @@ function alert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic {
     sourceStatus: 'approved',
     changeKind: 'deadline_shift',
     actionMode: 'due_date_overlay',
+    firmImpact: 'matched',
     title: 'CA deadline relief',
     source: 'CA FTB',
     sourceUrl: 'https://example.com/source',
@@ -88,6 +89,7 @@ describe('PulseDecisionStatusNotice', () => {
           <PulseDecisionStatusNotice
             alert={alert({
               actionMode: 'review_only',
+              firmImpact: 'review_only',
               applyReadiness: { status: 'not_applicable', missing: [] },
             })}
           />
@@ -103,6 +105,22 @@ describe('PulseDecisionStatusNotice', () => {
 
     expect(document.body.textContent).toContain('Ready to apply')
     expect(document.body.textContent).toContain('Continue to Apply when ready')
+  })
+
+  it('shows no-current-match as review without Apply copy', () => {
+    renderNotice(
+      alert({
+        firmImpact: 'no_current_match',
+        matchedCount: 0,
+        needsReviewCount: 0,
+        applyReadiness: { status: 'needs_details', missing: ['affected_clients'] },
+      }),
+    )
+
+    expect(document.body.textContent).toContain('No current match')
+    expect(document.body.textContent).toContain('No matching open deadlines')
+    expect(document.body.textContent).toContain('confirm this firm has no affected open deadlines')
+    expect(document.body.textContent).not.toContain('Continue to Apply when ready')
   })
 
   it('does not show apply readiness for already-actioned alerts', () => {

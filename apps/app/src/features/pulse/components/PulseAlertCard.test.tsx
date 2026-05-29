@@ -31,6 +31,7 @@ function baseAlert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic 
     sourceStatus: 'approved',
     changeKind: 'deadline_shift',
     actionMode: 'due_date_overlay',
+    firmImpact: 'matched',
     title: 'CA deadline relief',
     source: 'CA FTB',
     sourceUrl: 'https://example.com/source',
@@ -104,6 +105,7 @@ describe('PulseAlertCard readiness', () => {
           <PulseAlertCard
             alert={baseAlert({
               actionMode: 'review_only',
+              firmImpact: 'review_only',
               applyReadiness: { status: 'not_applicable', missing: [] },
             })}
             onReview={() => {}}
@@ -126,6 +128,21 @@ describe('PulseAlertCard readiness', () => {
       )
     })
     expect(document.body.textContent).toContain('Applied')
+    expect(document.body.textContent).not.toContain('Ready to apply')
+  })
+
+  it('labels no-current-match alerts as review/no-action rows', () => {
+    renderCard(
+      baseAlert({
+        firmImpact: 'no_current_match',
+        matchedCount: 0,
+        needsReviewCount: 0,
+        applyReadiness: { status: 'needs_details', missing: ['affected_clients'] },
+      }),
+    )
+
+    expect(document.body.textContent).toContain('No current match')
+    expect(document.body.textContent).toContain('No matching open deadlines in this practice')
     expect(document.body.textContent).not.toContain('Ready to apply')
   })
 

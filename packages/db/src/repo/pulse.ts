@@ -562,6 +562,13 @@ function applyReadinessForAlertSummary(
   return { status: missing.length === 0 ? 'ready' : 'needs_details', missing }
 }
 
+function pulseAlertHasFirmImpact(alert: {
+  matchedCount: number
+  needsReviewCount: number
+}): boolean {
+  return alert.matchedCount + alert.needsReviewCount > 0
+}
+
 const DEADLINE_SELECTION_REVIEW_KEY = 'deadlineSelectionReview'
 
 interface DeadlineSelectionSnapshot {
@@ -2847,107 +2854,87 @@ export function makePulseOpsRepo(db: Db) {
     const row = await getPulse(pulseId)
     if (!row || row.status !== 'approved') throw new PulseRepoError('not_found')
 
-    if (row.actionMode === 'review_only') {
-      const firms = await db
-        .select({ id: firmProfile.id })
-        .from(firmProfile)
-        .where(eq(firmProfile.status, 'active'))
-      await Promise.all(
-        firms.map((firm) =>
-          db
-            .insert(pulseFirmAlert)
-            .values({
-              id: crypto.randomUUID(),
-              pulseId,
-              firmId: firm.id,
-              status: 'matched',
-              matchedCount: 0,
-              needsReviewCount: 0,
-            })
-            .onConflictDoUpdate({
-              target: [pulseFirmAlert.firmId, pulseFirmAlert.pulseId],
-              set: {
-                status: 'matched',
-                matchedCount: 0,
-                needsReviewCount: 0,
-              },
-            }),
-        ),
-      )
-      return firms.length
-    }
+    const firms = await db
+      .select({ id: firmProfile.id })
+      .from(firmProfile)
+      .where(eq(firmProfile.status, 'active'))
+    const counts = new Map(firms.map((firm) => [firm.id, { matchedCount: 0, needsReviewCount: 0 }]))
 
     const forms = row.parsedForms
     const entityTypes = toClientEntityTypes(row.parsedEntityTypes)
-    if (forms.length === 0 || entityTypes.length === 0 || !row.parsedOriginalDueDate) return 0
-
-    const candidates = await db
-      .select({
-        firmId: obligationInstance.firmId,
-        obligationId: obligationInstance.id,
-        currentDueDate: obligationInstance.currentDueDate,
-        county: client.county,
-        counties: clientFilingProfile.countiesJson,
-      })
-      .from(obligationInstance)
-      .innerJoin(client, eq(obligationInstance.clientId, client.id))
-      .leftJoin(
-        clientFilingProfile,
-        eq(obligationInstance.clientFilingProfileId, clientFilingProfile.id),
-      )
-      .where(
-        and(
-          eq(obligationInstance.jurisdiction, row.parsedJurisdiction),
-          inArray(client.entityType, entityTypes),
-          inArray(obligationInstance.taxType, forms),
-          inArray(obligationInstance.status, OPEN_STATUSES),
-          isNull(client.deletedAt),
-        ),
-      )
-
-    const counties = new Set(row.parsedCounties.map(normalizeCountyName))
-    const counts = new Map<string, { matchedCount: number; needsReviewCount: number }>()
-    const candidatesByFirm = new Map<string, AllFirmCandidateRow[]>()
-    for (const candidate of candidates as AllFirmCandidateRow[]) {
-      const group = candidatesByFirm.get(candidate.firmId) ?? []
-      group.push(candidate)
-      candidatesByFirm.set(candidate.firmId, group)
-    }
-    const firmCountEntries = await Promise.all(
-      Array.from(candidatesByFirm.entries()).map(async ([candidateFirmId, firmCandidates]) => {
-        const count = { matchedCount: 0, needsReviewCount: 0 }
-        const overlays = await listActiveOverlayDueDates(
-          db,
-          candidateFirmId,
-          firmCandidates.map((candidate) => candidate.obligationId),
+    if (
+      row.actionMode === 'due_date_overlay' &&
+      forms.length > 0 &&
+      entityTypes.length > 0 &&
+      row.parsedOriginalDueDate
+    ) {
+      const candidates = await db
+        .select({
+          firmId: obligationInstance.firmId,
+          obligationId: obligationInstance.id,
+          currentDueDate: obligationInstance.currentDueDate,
+          county: client.county,
+          counties: clientFilingProfile.countiesJson,
+        })
+        .from(obligationInstance)
+        .innerJoin(client, eq(obligationInstance.clientId, client.id))
+        .leftJoin(
+          clientFilingProfile,
+          eq(obligationInstance.clientFilingProfileId, clientFilingProfile.id),
         )
-        for (const candidate of firmCandidates) {
-          const currentDueDate = overlays.get(candidate.obligationId) ?? candidate.currentDueDate
-          if (!sameTimestamp(currentDueDate, row.parsedOriginalDueDate)) continue
-          if (counties.size > 0) {
-            const countyMatch = rowMatchesCounty(candidate, counties)
-            if (countyMatch === 'missing') count.needsReviewCount += 1
-            else if (countyMatch === 'match') count.matchedCount += 1
-          } else {
-            count.matchedCount += 1
+        .where(
+          and(
+            eq(obligationInstance.jurisdiction, row.parsedJurisdiction),
+            inArray(client.entityType, entityTypes),
+            inArray(obligationInstance.taxType, forms),
+            inArray(obligationInstance.status, OPEN_STATUSES),
+            isNull(client.deletedAt),
+          ),
+        )
+
+      const counties = new Set(row.parsedCounties.map(normalizeCountyName))
+      const candidatesByFirm = new Map<string, AllFirmCandidateRow[]>()
+      for (const candidate of candidates as AllFirmCandidateRow[]) {
+        const group = candidatesByFirm.get(candidate.firmId) ?? []
+        group.push(candidate)
+        candidatesByFirm.set(candidate.firmId, group)
+      }
+      const firmCountEntries = await Promise.all(
+        Array.from(candidatesByFirm.entries()).map(async ([candidateFirmId, firmCandidates]) => {
+          const count = { matchedCount: 0, needsReviewCount: 0 }
+          const overlays = await listActiveOverlayDueDates(
+            db,
+            candidateFirmId,
+            firmCandidates.map((candidate) => candidate.obligationId),
+          )
+          for (const candidate of firmCandidates) {
+            const currentDueDate = overlays.get(candidate.obligationId) ?? candidate.currentDueDate
+            if (!sameTimestamp(currentDueDate, row.parsedOriginalDueDate)) continue
+            if (counties.size > 0) {
+              const countyMatch = rowMatchesCounty(candidate, counties)
+              if (countyMatch === 'missing') count.needsReviewCount += 1
+              else if (countyMatch === 'match') count.matchedCount += 1
+            } else {
+              count.matchedCount += 1
+            }
           }
-        }
-        return [candidateFirmId, count] as const
-      }),
-    )
-    for (const [candidateFirmId, count] of firmCountEntries) {
-      counts.set(candidateFirmId, count)
+          return [candidateFirmId, count] as const
+        }),
+      )
+      for (const [candidateFirmId, count] of firmCountEntries) {
+        if (counts.has(candidateFirmId)) counts.set(candidateFirmId, count)
+      }
     }
 
     let alertCount = 0
     const alertWrites = []
-    for (const [matchedFirmId, count] of counts) {
-      if (count.matchedCount + count.needsReviewCount === 0) continue
+    for (const firm of firms) {
+      const count = counts.get(firm.id) ?? { matchedCount: 0, needsReviewCount: 0 }
       alertCount += 1
       const alertRow: NewPulseFirmAlert = {
         id: crypto.randomUUID(),
         pulseId,
-        firmId: matchedFirmId,
+        firmId: firm.id,
         status: 'matched',
         matchedCount: count.matchedCount,
         needsReviewCount: count.needsReviewCount,
@@ -3044,7 +3031,8 @@ export function makePulseOpsRepo(db: Db) {
     }[],
     now: Date,
   ): Promise<NewInAppNotification[]> {
-    const alertIds = alerts.map((alert) => alert.id)
+    const impactedAlerts = alerts.filter((alert) => pulseAlertHasFirmImpact(alert))
+    const alertIds = impactedAlerts.map((alert) => alert.id)
     if (alertIds.length === 0) return []
 
     const existing = await db
@@ -3061,7 +3049,7 @@ export function makePulseOpsRepo(db: Db) {
       )
     const existingKeys = new Set(existing.map((row) => `${row.entityId}:${row.userId}`))
     const recipientEntries = await Promise.all(
-      alerts.map(async (alert) => ({
+      impactedAlerts.map(async (alert) => ({
         alert,
         recipients: await listFirmPulseNotificationRecipients(alert.firmId),
       })),
@@ -3111,10 +3099,11 @@ export function makePulseOpsRepo(db: Db) {
     }[],
     now: Date,
   ): Promise<void> {
-    if (alerts.length === 0) return
+    const impactedAlerts = alerts.filter((alert) => pulseAlertHasFirmImpact(alert))
+    if (impactedAlerts.length === 0) return
 
     const reviewEmails = await Promise.all(
-      alerts.map(
+      impactedAlerts.map(
         async (alert): Promise<NewEmailOutbox> => ({
           id: crypto.randomUUID(),
           firmId: alert.firmId,
@@ -3150,7 +3139,11 @@ export function makePulseOpsRepo(db: Db) {
         }),
       ),
     )
-    const reviewNotifications = await buildPulseAlertNotifications(approvedPulse, alerts, now)
+    const reviewNotifications = await buildPulseAlertNotifications(
+      approvedPulse,
+      impactedAlerts,
+      now,
+    )
     const writes: BatchItem<'sqlite'>[] = []
     for (const chunk of chunkRows(reviewEmails, EMAIL_BATCH_SIZE)) {
       writes.push(db.insert(emailOutbox).values(chunk))
@@ -3725,6 +3718,7 @@ export function makePulseOpsRepo(db: Db) {
         .from(pulseFirmAlert)
         .where(eq(pulseFirmAlert.pulseId, input.pulseId))
       if (alerts.length > 0) {
+        const impactedAlerts = alerts.filter((alert) => pulseAlertHasFirmImpact(alert))
         const audits: NewAuditEvent[] = alerts.map((alert) => ({
           id: crypto.randomUUID(),
           firmId: alert.firmId,
@@ -3745,7 +3739,7 @@ export function makePulseOpsRepo(db: Db) {
           userAgentHash: null,
         }))
         const approvedEmails = await Promise.all(
-          alerts.map(
+          impactedAlerts.map(
             async (alert): Promise<NewEmailOutbox> => ({
               id: crypto.randomUUID(),
               firmId: alert.firmId,
@@ -3782,7 +3776,11 @@ export function makePulseOpsRepo(db: Db) {
             }),
           ),
         )
-        const approvedNotifications = await buildPulseAlertNotifications(approvedPulse, alerts, now)
+        const approvedNotifications = await buildPulseAlertNotifications(
+          approvedPulse,
+          impactedAlerts,
+          now,
+        )
         const writes: BatchItem<'sqlite'>[] = [db.insert(auditEvent).values(audits)]
         for (const chunk of chunkRows(approvedEmails, EMAIL_BATCH_SIZE)) {
           writes.push(db.insert(emailOutbox).values(chunk))

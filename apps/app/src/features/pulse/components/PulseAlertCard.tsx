@@ -395,7 +395,7 @@ export function PulseAlertCard({
                 <Trans>Review-only source change. No due-date overlay will be applied.</Trans>
               </span>
             </p>
-          ) : impacted === 0 ? (
+          ) : alert.firmImpact === 'no_current_match' ? (
             // 2026-05-26 (Yuqi /rules/pulse fifth pass — A#4): empty-state
             // text bumped `text-sm text-text-tertiary` → `text-base
             // text-text-secondary`. Yuqi flagged it as too quiet — the
@@ -410,7 +410,9 @@ export function PulseAlertCard({
             // `text-text-secondary` (darker than the meta-tertiary
             // surrounding text), not from a size bump.
             <p className="text-sm text-text-secondary">
-              <Trans>No matching clients in this practice.</Trans>
+              <Trans>
+                No matching open deadlines in this practice. Review and confirm no action.
+              </Trans>
             </p>
           ) : (
             // 2026-05-26 (Yuqi /rules/pulse #5): impact line collapsed
@@ -534,7 +536,9 @@ export function PulseAlertCard({
             <PulseSourceBadge source={alert.source} sourceUrl={alert.sourceUrl} />
             <PulseSourceStatusBadge status={alert.sourceStatus} />
             <PulseStatusBadge status={alert.status} />
-            {showReadinessChip ? <PulseReadinessChip readiness={alert.applyReadiness} /> : null}
+            {showReadinessChip ? (
+              <PulseReadinessChip readiness={alert.applyReadiness} firmImpact={alert.firmImpact} />
+            ) : null}
             {alert.duplicateSourceSnapshotCount > 0 ? (
               <span className="text-xs text-text-tertiary">
                 <Plural

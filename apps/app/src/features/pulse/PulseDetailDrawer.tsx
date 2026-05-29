@@ -124,18 +124,24 @@ export function canRequestPulseReview(input: {
 }
 
 type PulseDeadlineReadinessInput = {
-  alert: Pick<PulseDetail['alert'], 'actionMode'>
+  alert: Pick<PulseDetail['alert'], 'actionMode' | 'firmImpact'>
   applyReadiness: PulseDetail['applyReadiness']
+}
+
+export function isNoActionReviewAlert(detail: PulseDeadlineReadinessInput): boolean {
+  return detail.alert.actionMode === 'review_only' || detail.alert.firmImpact === 'no_current_match'
 }
 
 export function hasMissingDeadlineDetails(detail: PulseDeadlineReadinessInput): boolean {
   return (
     detail.alert.actionMode === 'due_date_overlay' &&
+    detail.alert.firmImpact !== 'no_current_match' &&
     detail.applyReadiness.status === 'needs_details'
   )
 }
 
 export function canApplyPulseDeadline(detail: PulseDeadlineReadinessInput): boolean {
+  if (detail.alert.firmImpact === 'no_current_match') return false
   return detail.alert.actionMode !== 'due_date_overlay' || detail.applyReadiness.status === 'ready'
 }
 
@@ -857,7 +863,9 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                   metadata before seeing the impact list. Empty case
                   (#10): if the alert has no affected clients, say
                   so explicitly instead of just hiding the table. */}
-            {detail.alert.actionMode === 'due_date_overlay' && !missingDeadlineDetails ? (
+            {detail.alert.actionMode === 'due_date_overlay' &&
+            detail.alert.firmImpact !== 'no_current_match' &&
+            !missingDeadlineDetails ? (
               <section className="flex flex-col gap-3">
                 <header className="flex items-baseline justify-between">
                   {/* 2026-05-25 (info-icon audit): unwrapped —
@@ -934,24 +942,38 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
               <Alert variant="warning">
                 <AlertTitle>
                   <ConceptLabel concept="aiConfidence">
-                    <Trans>
-                      AI confidence {Math.round(detail.alert.confidence * 100)}% — review source
-                      before applying
-                    </Trans>
+                    {detail.alert.firmImpact === 'no_current_match' ? (
+                      <Trans>
+                        AI confidence {Math.round(detail.alert.confidence * 100)}% — review source
+                      </Trans>
+                    ) : (
+                      <Trans>
+                        AI confidence {Math.round(detail.alert.confidence * 100)}% — review source
+                        before applying
+                      </Trans>
+                    )}
                   </ConceptLabel>
                 </AlertTitle>
                 <AlertDescription>
-                  <Trans>
-                    The model extracted these fields with low confidence. Compare against the source
-                    excerpt below and the structured scope before pushing changes to clients.
-                  </Trans>
+                  {detail.alert.firmImpact === 'no_current_match' ? (
+                    <Trans>
+                      The model extracted these fields with low confidence. Compare against the
+                      source excerpt below and the structured scope before marking it reviewed.
+                    </Trans>
+                  ) : (
+                    <Trans>
+                      The model extracted these fields with low confidence. Compare against the
+                      source excerpt below and the structured scope before pushing changes to
+                      clients.
+                    </Trans>
+                  )}
                 </AlertDescription>
               </Alert>
             ) : null}
 
             <PulseStructuredFields detail={detail} />
 
-            {!canApply ? (
+            {detail.alert.firmImpact !== 'no_current_match' && !canApply ? (
               // ρ ROH-D6: canonical PermissionInlineNotice derives the
               // required-role text from the enum. ψ ROH-D11's hand-rolled
               // Alert+helper alternative was already redundant here.
@@ -1032,6 +1054,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
             sourceStatus={detail.alert.sourceStatus}
             selectionCount={stats?.selectedCount ?? 0}
             actionMode={detail.alert.actionMode}
+            firmImpact={detail.alert.firmImpact}
             requiresDeadlineDetails={missingDeadlineDetails}
             canApply={canApply}
             // ROH-D15 — Undo button now gates on `pulse.revert` instead
@@ -1227,6 +1250,7 @@ function DrawerActions({
   sourceStatus,
   selectionCount,
   actionMode,
+  firmImpact,
   requiresDeadlineDetails,
   canApply,
   canRevert,
@@ -1248,6 +1272,7 @@ function DrawerActions({
   sourceStatus: PulseStatus
   selectionCount: number
   actionMode: PulseDetail['alert']['actionMode']
+  firmImpact: PulseDetail['alert']['firmImpact']
   requiresDeadlineDetails: boolean
   canApply: boolean
   // ROH-D15 — gate the Undo button on the dedicated `pulse.revert`
@@ -1273,8 +1298,11 @@ function DrawerActions({
   const isDismissed = alertStatus === 'dismissed'
   const sourceRevoked = sourceStatus === 'source_revoked'
   const isClosed = alertStatus === 'reverted' || isDismissed || sourceRevoked
-  const reviewOnly = actionMode === 'review_only'
-  const needsDeadlineDetails = actionMode === 'due_date_overlay' && requiresDeadlineDetails
+  const noActionReview = actionMode === 'review_only' || firmImpact === 'no_current_match'
+  const needsDeadlineDetails =
+    actionMode === 'due_date_overlay' &&
+    firmImpact !== 'no_current_match' &&
+    requiresDeadlineDetails
   return (
     // 2026-05-26 (Yuqi forty-fourth pass — footer two-cluster
     // layout): reversal actions (Undo / Reactivate) split out to
@@ -1314,10 +1342,12 @@ function DrawerActions({
         ) : null}
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="ghost" size="sm" disabled={isMutating} onClick={onCopyDraft}>
-          <MailIcon data-icon="inline-start" />
-          <Trans>Copy client email draft</Trans>
-        </Button>
+        {firmImpact !== 'no_current_match' ? (
+          <Button variant="ghost" size="sm" disabled={isMutating} onClick={onCopyDraft}>
+            <MailIcon data-icon="inline-start" />
+            <Trans>Copy client email draft</Trans>
+          </Button>
+        ) : null}
         {canRequestReview ? (
           <Button size="sm" disabled={isMutating} onClick={onRequestReview}>
             <MessageSquareIcon data-icon="inline-start" />
@@ -1349,12 +1379,12 @@ function DrawerActions({
             !canApply ||
             isMutating ||
             isClosed ||
-            (!reviewOnly && (needsDeadlineDetails || selectionCount === 0))
+            (!noActionReview && (needsDeadlineDetails || selectionCount === 0))
           }
-          onClick={reviewOnly ? onMarkReviewed : onApply}
+          onClick={noActionReview ? onMarkReviewed : onApply}
           aria-busy={isMutating || undefined}
         >
-          {reviewOnly ? (
+          {noActionReview ? (
             <Trans>Mark reviewed</Trans>
           ) : needsDeadlineDetails ? (
             <Trans>Confirm date and deadlines</Trans>
@@ -1369,7 +1399,7 @@ function DrawerActions({
             <Trans>Apply Deadline Exception</Trans>
           )}
         </Button>
-        {canApplyReviewed && !reviewOnly ? (
+        {canApplyReviewed && !noActionReview ? (
           <Button
             size="sm"
             disabled={isMutating || isClosed || needsDeadlineDetails || !reviewedSetReady}

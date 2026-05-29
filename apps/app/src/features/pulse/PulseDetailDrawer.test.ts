@@ -3,6 +3,7 @@ import {
   canApplyPulseDeadline,
   canRequestPulseReview,
   hasMissingDeadlineDetails,
+  isNoActionReviewAlert,
 } from './PulseDetailDrawer'
 
 describe('canRequestPulseReview', () => {
@@ -61,7 +62,7 @@ describe('canRequestPulseReview', () => {
 describe('Pulse due-date apply readiness helpers', () => {
   it('requires details before applying incomplete due-date overlays', () => {
     const detail = {
-      alert: { actionMode: 'due_date_overlay' as const },
+      alert: { actionMode: 'due_date_overlay' as const, firmImpact: 'matched' as const },
       applyReadiness: {
         status: 'needs_details' as const,
         missing: ['affected_clients' as const],
@@ -75,15 +76,29 @@ describe('Pulse due-date apply readiness helpers', () => {
   it('allows ready due-date overlays and treats review-only alerts as not applicable', () => {
     expect(
       canApplyPulseDeadline({
-        alert: { actionMode: 'due_date_overlay' },
+        alert: { actionMode: 'due_date_overlay', firmImpact: 'matched' },
         applyReadiness: { status: 'ready', missing: [] },
       }),
     ).toBe(true)
     expect(
       hasMissingDeadlineDetails({
-        alert: { actionMode: 'review_only' },
+        alert: { actionMode: 'review_only', firmImpact: 'review_only' },
         applyReadiness: { status: 'not_applicable', missing: [] },
       }),
     ).toBe(false)
+  })
+
+  it('treats no-current-match due-date overlays as review/no-action alerts', () => {
+    const detail = {
+      alert: { actionMode: 'due_date_overlay' as const, firmImpact: 'no_current_match' as const },
+      applyReadiness: {
+        status: 'needs_details' as const,
+        missing: ['affected_clients' as const],
+      },
+    }
+
+    expect(isNoActionReviewAlert(detail)).toBe(true)
+    expect(hasMissingDeadlineDetails(detail)).toBe(false)
+    expect(canApplyPulseDeadline(detail)).toBe(false)
   })
 })

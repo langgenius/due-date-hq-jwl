@@ -23,8 +23,8 @@ export function matchesPulseImpactFilter(
   if (filter === 'needs_action') {
     return impacted > 0 && (alert.status === 'matched' || alert.status === 'partially_applied')
   }
-  if (filter === 'needs_review') return alert.needsReviewCount > 0
-  if (filter === 'no_matches') return impacted === 0
+  if (filter === 'needs_review') return alert.firmImpact === 'needs_review'
+  if (filter === 'no_matches') return alert.firmImpact === 'no_current_match'
   return (
     alert.status === 'applied' ||
     alert.status === 'dismissed' ||

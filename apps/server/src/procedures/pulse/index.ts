@@ -59,6 +59,11 @@ const SOURCE_LABELS: Record<string, string> = {
   'fema.declarations': 'FEMA declarations',
   'ny.dtf.press': 'NY DTF Press',
   'ny.email_services': 'NY Tax Department Email Services',
+  'oh.temporary_announcements': 'Ohio Department of Taxation Tax Alerts',
+  'fl.tips': 'Florida DOR Tax Information Publications',
+  'wa.news': 'Washington DOR News Releases',
+  'ma.temporary_announcements': 'Massachusetts DOR Press Releases',
+  'tx.temporary_announcements': 'Texas Comptroller News',
   'govdelivery.inbound': 'GovDelivery inbound email',
   'govdelivery.inbound.unmatched': 'GovDelivery unmatched email',
 }
@@ -148,6 +153,15 @@ function dateFromDateOnly(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`)
 }
 
+function firmImpactForAlert(
+  row: Pick<PulseAlertRow, 'actionMode' | 'matchedCount' | 'needsReviewCount'>,
+): PulseAlertPublic['firmImpact'] {
+  if (row.actionMode === 'review_only') return 'review_only'
+  if (row.needsReviewCount > 0) return 'needs_review'
+  if (row.matchedCount > 0) return 'matched'
+  return 'no_current_match'
+}
+
 function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
   return {
     id: row.id,
@@ -156,6 +170,7 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     sourceStatus: row.sourceStatus,
     changeKind: row.changeKind,
     actionMode: row.actionMode,
+    firmImpact: firmImpactForAlert(row),
     title: row.title,
     source: SOURCE_LABELS[row.source] ?? row.source,
     sourceUrl: row.sourceUrl,

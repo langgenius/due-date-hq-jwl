@@ -1239,6 +1239,7 @@ describe('@duedatehq/contracts', () => {
       sourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
       changeKind: 'deadline_shift',
       actionMode: 'due_date_overlay',
+      firmImpact: 'needs_review',
       jurisdiction: 'CA',
       summary: 'IRS extends selected filing deadlines for Los Angeles County.',
       publishedAt: '2026-04-15T17:00:00.000Z',

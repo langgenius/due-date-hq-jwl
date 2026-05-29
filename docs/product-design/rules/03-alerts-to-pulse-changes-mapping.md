@@ -12,8 +12,8 @@ This repository's canonical implementation is narrower and more operational:
 1. `jobs/pulse/ingest` watches official sources and records watched/paused source state,
    internal diagnostics, snapshots, or T2/T3 signals.
 2. `pulse.extract` turns T1 source snapshots into approved `pulse` records.
-3. The DB repo fans approved records into firm-scoped `pulse_firm_alert` rows only when client
-   obligations match.
+3. The DB repo fans approved records into firm-scoped `pulse_firm_alert` rows for every active
+   firm, then derives each firm's impact from current open obligations.
 4. `Rules > Pulse Changes` is the decision surface for apply, dismiss, snooze, re-open, and revert.
 5. `pulse.apply` writes due-date overlays, audit, evidence, and email outbox rows in one server
    transaction.
@@ -39,13 +39,14 @@ This repository's canonical implementation is narrower and more operational:
 
 - **Needs action**: matched or partially applied firm alerts with at least one affected obligation.
 - **Needs review**: alerts with obligations that require human applicability confirmation.
-- **No matches**: retained watch-only rows in demo or future no-match review contexts.
+- **No matches**: source-backed due-date alerts with no matching open obligations for that firm;
+  visible for review, but no Apply entry and no proactive notification.
 - **Closed**: applied, dismissed, or reverted alerts.
 
-The drawer follows the same sequence: source context -> parsed scope -> affected obligations ->
-suggested actions -> safety checklist. That sequence brings over the reference Alerts workbench's
-"what changed, who is affected, what should I do" loop while preserving this product's actual
-server transaction boundary.
+The drawer follows the same sequence for impacted firms: source context -> parsed scope -> affected
+obligations -> suggested actions -> safety checklist. For no-match firms it stops at source/scope
+review evidence plus Mark reviewed / Dismiss / Snooze / Request review, preserving visibility
+without implying a due-date overlay is available.
 
 This maps the reference Alerts product strength into the current architecture without reviving the
 old standalone Alerts route or widening Pulse beyond source-backed due-date changes.

@@ -991,6 +991,188 @@ describe('makePulseOpsRepo', () => {
     ).toBe(true)
   })
 
+  it('creates visible due-date alerts for all active firms but notifies only impacted firms', async () => {
+    const originalDueDate = new Date('2026-04-15T00:00:00.000Z')
+    const extractedPulse = {
+      id: 'pulse-created',
+      source: 'oh.temporary_announcements',
+      sourceUrl: 'https://tax.ohio.gov/help-center/communications/temporary-announcements',
+      status: 'approved' as const,
+      actionMode: 'due_date_overlay' as const,
+      aiSummary: 'Ohio moved IT 1040 deadline',
+      parsedJurisdiction: 'OH',
+      parsedCounties: [],
+      parsedForms: ['oh_it1040'],
+      parsedEntityTypes: ['individual'],
+      parsedOriginalDueDate: originalDueDate,
+      parsedNewDueDate: new Date('2026-05-15T00:00:00.000Z'),
+    }
+    const refreshCandidate = {
+      firmId: 'firm-hit',
+      obligationId: 'oi-hit',
+      currentDueDate: originalDueDate,
+      county: null,
+      counties: null,
+    }
+    const digestCandidate = {
+      obligationId: 'oi-hit',
+      clientId: 'client-hit',
+      clientName: 'Ohio Individual',
+      state: 'OH',
+      county: null,
+      counties: null,
+      taxType: 'oh_it1040',
+      currentDueDate: originalDueDate,
+    }
+    const { db, batchStatements, directStatements } = fakeDb([
+      [extractedPulse],
+      [extractedPulse],
+      [{ id: 'firm-hit' }, { id: 'firm-empty' }],
+      [refreshCandidate],
+      [],
+      [
+        { id: 'alert-hit', firmId: 'firm-hit', matchedCount: 1, needsReviewCount: 0 },
+        { id: 'alert-empty', firmId: 'firm-empty', matchedCount: 0, needsReviewCount: 0 },
+      ],
+      [{ email: 'owner@example.com' }],
+      [digestCandidate],
+      [],
+      [],
+      [
+        {
+          userId: 'owner-1',
+          email: 'owner@example.com',
+          inAppEnabled: true,
+          pulseEnabled: true,
+        },
+      ],
+    ])
+
+    const result = await makePulseOpsRepo(db).createPulseForFirmReviewFromExtract({
+      snapshotId: 'snapshot-1',
+      source: 'oh.temporary_announcements',
+      sourceUrl: 'https://tax.ohio.gov/help-center/communications/temporary-announcements',
+      publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+      aiSummary: 'Ohio moved IT 1040 deadline',
+      verbatimQuote: 'Ohio IT 1040 filings due April 15 now have until May 15, 2026.',
+      parsedJurisdiction: 'OH',
+      parsedCounties: [],
+      parsedForms: ['oh_it1040'],
+      parsedEntityTypes: ['individual'],
+      parsedOriginalDueDate: originalDueDate,
+      parsedNewDueDate: new Date('2026-05-15T00:00:00.000Z'),
+      parsedEffectiveFrom: new Date('2026-04-15T00:00:00.000Z'),
+      confidence: 0.94,
+      requiresHumanReview: false,
+    })
+
+    expect(result.alertCount).toBe(2)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, {
+          firmId: 'firm-hit',
+          matchedCount: 1,
+          needsReviewCount: 0,
+        }),
+      ),
+    ).toBe(true)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, {
+          firmId: 'firm-empty',
+          matchedCount: 0,
+          needsReviewCount: 0,
+        }),
+      ),
+    ).toBe(true)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, { firmId: 'firm-hit', type: 'pulse_digest' }),
+      ),
+    ).toBe(true)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, { firmId: 'firm-empty', type: 'pulse_digest' }),
+      ),
+    ).toBe(false)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, { entityId: 'alert-hit', type: 'pulse_alert' }),
+      ),
+    ).toBe(true)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, { entityId: 'alert-empty', type: 'pulse_alert' }),
+      ),
+    ).toBe(false)
+  })
+
+  it('keeps review-only fallback alerts visible to all active firms', async () => {
+    const reviewOnlyPulse = {
+      id: 'pulse-review-only',
+      source: 'govdelivery.inbound',
+      sourceUrl: 'https://content.govdelivery.com/accounts/example/bulletins/1',
+      status: 'approved' as const,
+      actionMode: 'review_only' as const,
+      aiSummary: 'Generic inbound policy bulletin',
+      parsedJurisdiction: 'OH',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+    }
+    const { db, directStatements } = fakeDb([
+      [reviewOnlyPulse],
+      [reviewOnlyPulse],
+      [{ id: 'firm-a' }, { id: 'firm-b' }],
+      [
+        { id: 'alert-a', firmId: 'firm-a', matchedCount: 0, needsReviewCount: 0 },
+        { id: 'alert-b', firmId: 'firm-b', matchedCount: 0, needsReviewCount: 0 },
+      ],
+    ])
+
+    const result = await makePulseOpsRepo(db).createPulseForFirmReviewFromExtract({
+      snapshotId: 'snapshot-1',
+      source: 'govdelivery.inbound',
+      sourceUrl: 'https://content.govdelivery.com/accounts/example/bulletins/1',
+      publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+      aiSummary: 'Generic inbound policy bulletin',
+      verbatimQuote: 'A policy bulletin was sent by email.',
+      parsedJurisdiction: 'OH',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+      parsedEffectiveFrom: new Date('2026-04-15T00:00:00.000Z'),
+      confidence: 0.74,
+      actionMode: 'review_only',
+      changeKind: 'other',
+      requiresHumanReview: true,
+    })
+
+    expect(result.alertCount).toBe(2)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, {
+          firmId: 'firm-a',
+          matchedCount: 0,
+          needsReviewCount: 0,
+        }),
+      ),
+    ).toBe(true)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, {
+          firmId: 'firm-b',
+          matchedCount: 0,
+          needsReviewCount: 0,
+        }),
+      ),
+    ).toBe(true)
+  })
+
   it('finds duplicate extracted pulses by normalized policy scope', async () => {
     const { db } = fakeDb([
       [
@@ -1113,6 +1295,12 @@ describe('makePulseOpsRepo', () => {
       matchedCount: 1,
       needsReviewCount: 0,
     }
+    const noMatchAlert = {
+      id: 'alert-empty',
+      firmId: 'firm-empty',
+      matchedCount: 0,
+      needsReviewCount: 0,
+    }
     const candidate = {
       firmId: 'firm-1',
       obligationId: 'oi-eligible',
@@ -1129,9 +1317,10 @@ describe('makePulseOpsRepo', () => {
       [{ id: 'reviewer-1' }],
       [approvedPulse],
       [approvedPulse],
+      [{ id: 'firm-1' }, { id: 'firm-empty' }],
       [candidate],
       [],
-      [alert],
+      [alert, noMatchAlert],
       [{ email: 'owner@example.com' }],
       [candidate],
       [],
@@ -1168,6 +1357,22 @@ describe('makePulseOpsRepo', () => {
         }),
       ),
     ).toBe(true)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, {
+          type: 'pulse_alert',
+          entityId: 'alert-empty',
+        }),
+      ),
+    ).toBe(false)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, {
+          type: 'pulse_digest',
+          firmId: 'firm-empty',
+        }),
+      ),
+    ).toBe(false)
     expect(
       batchStatements.some((statement) =>
         statementHasValue(statement, {

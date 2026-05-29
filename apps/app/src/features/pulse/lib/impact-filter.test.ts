@@ -13,6 +13,7 @@ function alert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic {
     sourceUrl: 'https://www.ftb.ca.gov/newsroom/news-releases/state-tax-relief.html',
     changeKind: 'deadline_shift',
     actionMode: 'due_date_overlay',
+    firmImpact: 'matched',
     summary: 'Deadline relief applies to affected counties.',
     publishedAt: '2026-05-06T10:00:00.000Z',
     matchedCount: 3,
@@ -43,9 +44,17 @@ describe('matchesPulseImpactFilter', () => {
   })
 
   it('separates manager-review, no-match, and closed lanes', () => {
-    expect(matchesPulseImpactFilter(alert({ needsReviewCount: 2 }), 'needs_review')).toBe(true)
     expect(
-      matchesPulseImpactFilter(alert({ matchedCount: 0, needsReviewCount: 0 }), 'no_matches'),
+      matchesPulseImpactFilter(
+        alert({ needsReviewCount: 2, firmImpact: 'needs_review' }),
+        'needs_review',
+      ),
+    ).toBe(true)
+    expect(
+      matchesPulseImpactFilter(
+        alert({ matchedCount: 0, needsReviewCount: 0, firmImpact: 'no_current_match' }),
+        'no_matches',
+      ),
     ).toBe(true)
     expect(matchesPulseImpactFilter(alert({ status: 'dismissed' }), 'closed')).toBe(true)
     expect(matchesPulseImpactFilter(alert({ status: 'reverted' }), 'closed')).toBe(true)

@@ -153,6 +153,7 @@ const MATCHED_ALERT: PulseAlertPublic = {
   sourceUrl: 'https://www.irs.gov/newsroom/mock-ca-wildfire-2026-04',
   changeKind: 'deadline_shift',
   actionMode: 'due_date_overlay',
+  firmImpact: 'needs_review',
   summary:
     'IRS grants 30-day extension for individuals and businesses in Los Angeles + Ventura counties affected by the April 2026 wildfires. Applies to Forms 1040, 1065, 1120-S, 1041 with original due dates between Apr 25 and May 25, 2026.',
   publishedAt: ISO_NOW,
@@ -196,6 +197,7 @@ const NEEDS_DETAILS_ALERT: PulseAlertPublic = {
   sourceUrl: 'https://azdor.gov/news-events-notices/mock-storm-extension-2026',
   changeKind: 'deadline_shift',
   actionMode: 'due_date_overlay',
+  firmImpact: 'no_current_match',
   summary:
     'Arizona tax officials posted a storm-extension notice. Confirm the new due date and choose the deadlines before Apply.',
   publishedAt: new Date(NOW.getTime() - 1000 * 60 * 35).toISOString(),
@@ -306,6 +308,7 @@ const APPLIED_ALERT: PulseAlertPublic = {
   sourceUrl: 'https://www.ftb.ca.gov/notice-mock-2026-12',
   changeKind: 'deadline_shift',
   actionMode: 'due_date_overlay',
+  firmImpact: 'matched',
   summary:
     'California Franchise Tax Board pushes franchise-tax payment deadline by 30 days for storm-affected entities in Alameda and San Francisco counties.',
   publishedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 26).toISOString(),
@@ -349,6 +352,7 @@ const DISMISSED_ALERT: PulseAlertPublic = {
   sourceUrl: 'https://www.tax.ny.gov/notice-mock-pte-2026',
   changeKind: 'form_instruction',
   actionMode: 'review_only',
+  firmImpact: 'review_only',
   summary:
     'No matching clients in this practice - informational notice only. Dismissed by Sarah on 2026-04-28.',
   publishedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 48).toISOString(),
@@ -394,6 +398,7 @@ const VERY_LOW_ALERT: PulseAlertPublic = {
   sourceUrl: 'https://floridarevenue.com/taxes/taxesfees/Pages/corporate.aspx',
   changeKind: 'applicability_scope',
   actionMode: 'review_only',
+  firmImpact: 'review_only',
   summary:
     'Very-low-confidence extraction: deadline details depend on entity status, fiscal year, and extension election.',
   publishedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 72).toISOString(),

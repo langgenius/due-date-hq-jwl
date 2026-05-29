@@ -52,6 +52,7 @@ function pulseDetail(status: Status = 'matched', sourceStatus: SourceStatus = 'a
       sourceStatus,
       changeKind: 'deadline_shift',
       actionMode: 'due_date_overlay',
+      firmImpact: 'matched',
       title: 'IRS CA storm relief',
       source: 'IRS Disaster Relief',
       sourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',

@@ -1407,6 +1407,11 @@ msgstr "AI confidence"
 
 #. placeholder {0}: Math.round(detail.alert.confidence * 100)
 #: src/features/pulse/PulseDetailDrawer.tsx
+msgid "AI confidence {0}% — review source"
+msgstr "AI confidence {0}% — review source"
+
+#. placeholder {0}: Math.round(detail.alert.confidence * 100)
+#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "AI confidence {0}% — review source before applying"
 msgstr "AI confidence {0}% — review source before applying"
 
@@ -6985,6 +6990,10 @@ msgstr "No closed source-year deadlines matched this rollover preview."
 msgid "No commands found."
 msgstr "No commands found."
 
+#: src/features/pulse/components/PulseReadinessStatus.tsx
+msgid "No current match"
+msgstr "No current match"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "No deadline categories match."
 msgstr "No deadline categories match."
@@ -7067,9 +7076,16 @@ msgid "No matches"
 msgstr "No matches"
 
 #: src/features/dashboard/needs-attention-card.tsx
-#: src/features/pulse/components/PulseAlertCard.tsx
 msgid "No matching clients in this practice."
 msgstr "No matching clients in this practice."
+
+#: src/features/pulse/components/PulseReadinessStatus.tsx
+msgid "No matching open deadlines"
+msgstr "No matching open deadlines"
+
+#: src/features/pulse/components/PulseAlertCard.tsx
+msgid "No matching open deadlines in this practice. Review and confirm no action."
+msgstr "No matching open deadlines in this practice. Review and confirm no action."
 
 #: src/routes/rules.library.tsx
 msgid "No missing rules"
@@ -9593,6 +9609,10 @@ msgstr "Review the practice subscription before opening secure checkout."
 msgid "Review the prepared return and sign off"
 msgstr "Review the prepared return and sign off"
 
+#: src/features/pulse/components/PulseReadinessStatus.tsx
+msgid "Review the source change and confirm this firm has no affected open deadlines. No deadline overlay will be applied."
+msgstr "Review the source change and confirm this firm has no affected open deadlines. No deadline overlay will be applied."
+
 #: src/features/migration/Step4Preview.tsx
 msgid "Review these states in Rule Library to unlock the remaining deadlines."
 msgstr "Review these states in Rule Library to unlock the remaining deadlines."
@@ -11427,6 +11447,10 @@ msgstr "The magic link sent to {0} will stop working. You can re-invite them lat
 #: src/features/rules/generation-preview-tab.tsx
 msgid "The matched active practice rule and period, or the reason this row is duplicate or skipped."
 msgstr "The matched active practice rule and period, or the reason this row is duplicate or skipped."
+
+#: src/features/pulse/PulseDetailDrawer.tsx
+msgid "The model extracted these fields with low confidence. Compare against the source excerpt below and the structured scope before marking it reviewed."
+msgstr "The model extracted these fields with low confidence. Compare against the source excerpt below and the structured scope before marking it reviewed."
 
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "The model extracted these fields with low confidence. Compare against the source excerpt below and the structured scope before pushing changes to clients."

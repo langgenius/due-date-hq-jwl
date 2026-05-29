@@ -37,6 +37,14 @@ export type PulseChangeKind = z.infer<typeof PulseChangeKindSchema>
 export const PulseActionModeSchema = z.enum(['due_date_overlay', 'review_only'])
 export type PulseActionMode = z.infer<typeof PulseActionModeSchema>
 
+export const PulseFirmImpactSchema = z.enum([
+  'matched',
+  'needs_review',
+  'no_current_match',
+  'review_only',
+])
+export type PulseFirmImpact = z.infer<typeof PulseFirmImpactSchema>
+
 export const PulseSourceHealthStatusSchema = z.enum(['healthy', 'degraded', 'failing', 'paused'])
 export type PulseSourceHealthStatus = z.infer<typeof PulseSourceHealthStatusSchema>
 
@@ -98,6 +106,7 @@ export const PulseAlertPublicSchema = z.object({
   sourceStatus: PulseStatusSchema,
   changeKind: PulseChangeKindSchema,
   actionMode: PulseActionModeSchema,
+  firmImpact: PulseFirmImpactSchema,
   title: z.string().min(1),
   source: z.string().min(1),
   sourceUrl: z.url(),

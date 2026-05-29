@@ -15,6 +15,7 @@ function makeAlert(status: PulseAlertPublic['status']): PulseAlertPublic {
     sourceUrl: 'https://irs.gov',
     changeKind: 'deadline_shift',
     actionMode: 'due_date_overlay',
+    firmImpact: 'no_current_match',
     summary: 'IRS extends deadlines.',
     publishedAt: new Date('2026-04-15T00:00:00Z').toISOString(),
     matchedCount: 0,
