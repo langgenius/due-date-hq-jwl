@@ -74,6 +74,8 @@ describe('rule source adapters', () => {
     expect(source.feedUrl).toBe('https://azdor.gov/news-center')
     const adapter = createPolicyWatchAdapter(source)
     expect(requiresReviewOnlyPulseAlert(adapter.id)).toBe(false)
+    const ohioSource = hiddenSources.find((candidate) => candidate.jurisdiction === 'OH')!
+    expect(requiresReviewOnlyPulseAlert(ohioSource.id)).toBe(true)
     const items = await adapter.parse(
       {
         sourceId: source.id,
@@ -101,7 +103,7 @@ describe('rule source adapters', () => {
     })
   })
 
-  it('keeps hidden policy-watch list noise out of extract without forcing PDF watch review-only', async () => {
+  it('keeps hidden policy-watch list noise and PDF index fallback out of extract', async () => {
     const hiddenSources = listHiddenPolicyWatchSources()
     const automatedSource = hiddenSources.find((source) => isPolicyWatchPulsePromoted(source))!
     const automatedAdapter = createPolicyWatchAdapter(automatedSource)
@@ -130,7 +132,7 @@ describe('rule source adapters', () => {
     const pdfAdapter = createPolicyWatchAdapter(pdfSource)
     expect(isPolicyWatchAdapterEligible(pdfSource), pdfSource.id).toBe(true)
     expect(isPolicyWatchPulsePromoted(pdfSource), pdfSource.id).toBe(false)
-    expect(requiresReviewOnlyPulseAlert(pdfAdapter.id)).toBe(false)
+    expect(requiresReviewOnlyPulseAlert(pdfAdapter.id)).toBe(true)
     const signalItems = await pdfAdapter.parse(
       {
         sourceId: pdfSource.id,
@@ -149,8 +151,32 @@ describe('rule source adapters', () => {
         },
       },
     )
-    expect(signalItems).toHaveLength(1)
-    expect(signalItems[0]).toMatchObject({ sourceId: pdfSource.id })
+    expect(signalItems).toEqual([])
+
+    const taxUpdateItems = await pdfAdapter.parse(
+      {
+        sourceId: pdfSource.id,
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        contentHash: 'hash',
+        r2Key: 'raw.html',
+        contentType: 'text/html',
+        etag: null,
+        lastModified: null,
+        body: '<main><a href="/content/dam/copapwp-pagov/en/revenue/documents/tax-update/2026/pa-tax-update-march-april-2026.pdf">PA Tax Update - March/April 2026</a></main>',
+      },
+      {
+        fetch: async () => new Response(''),
+        async archiveRaw() {
+          return { r2Key: 'unused', contentHash: 'unused' }
+        },
+      },
+    )
+    expect(taxUpdateItems[0]).toMatchObject({
+      sourceId: 'policy-watch.pa.announcements',
+      title: 'PA Tax Update - March/April 2026',
+      officialSourceUrl:
+        'https://www.pa.gov/content/dam/copapwp-pagov/en/revenue/documents/tax-update/2026/pa-tax-update-march-april-2026.pdf',
+    })
   })
 
   it('adds API-backed temporary announcement adapters through the aggregate feed interface', async () => {
@@ -167,6 +193,7 @@ describe('rule source adapters', () => {
       'mo.temporary_announcements',
       'nd.temporary_announcements',
       'nh.temporary_announcements',
+      'nv.temporary_announcements',
       'ri.temporary_announcements',
     ])
 
@@ -215,7 +242,7 @@ describe('rule source adapters', () => {
       expect(source?.acquisitionMethod, sourceId).toBe('manual_review')
       expect(isRuleSourceAdapterEligible(source!), sourceId).toBe(true)
       expect(isRuleSourcePulsePromoted(source!), sourceId).toBe(false)
-      expect(requiresReviewOnlyPulseAlert(sourceId), sourceId).toBe(false)
+      expect(requiresReviewOnlyPulseAlert(sourceId), sourceId).toBe(true)
       expect(automatedIds, sourceId).toContain(sourceId)
     }
 
@@ -227,7 +254,7 @@ describe('rule source adapters', () => {
     expect(pdfSource?.acquisitionMethod).toBe('pdf_watch')
     expect(isRuleSourceAdapterEligible(pdfSource!)).toBe(true)
     expect(isRuleSourcePulsePromoted(pdfSource!)).toBe(false)
-    expect(requiresReviewOnlyPulseAlert('fl.income_tax')).toBe(false)
+    expect(requiresReviewOnlyPulseAlert('fl.income_tax')).toBe(true)
   })
 
   it('keeps concrete basis sources from the rules registry in the extract queue', () => {

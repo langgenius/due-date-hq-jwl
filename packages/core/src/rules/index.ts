@@ -4121,8 +4121,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'ak.temporary_announcements',
     jurisdiction: 'AK',
-    title: 'Alaska Department of Revenue Announcements and Publications',
-    url: 'https://dor.alaska.gov/',
+    title: 'Alaska Department of Revenue Press Releases',
+    url: 'https://dor.alaska.gov/archived-press-releases',
   },
   {
     id: 'al.temporary_announcements',
@@ -4134,7 +4134,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ar.temporary_announcements',
     jurisdiction: 'AR',
     title: 'Arkansas DFA News',
-    url: 'https://www.dfa.arkansas.gov/',
+    url: 'https://www.dfa.arkansas.gov/about/news/',
   },
   {
     id: 'az.temporary_announcements',
@@ -4165,8 +4165,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'ct.temporary_announcements',
     jurisdiction: 'CT',
-    title: 'Connecticut DRS News Releases',
-    url: 'https://portal.ct.gov/drs/news-releases',
+    title: 'Connecticut DRS Media Room',
+    url: 'https://portal.ct.gov/drs/news---press-releases/media-room',
   },
   {
     id: 'dc.temporary_announcements',
@@ -4178,7 +4178,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'de.temporary_announcements',
     jurisdiction: 'DE',
     title: 'Delaware Division of Revenue News',
-    url: 'https://revenue.delaware.gov/',
+    url: 'https://revenue.delaware.gov/press-and-media/',
   },
   {
     id: 'fl.temporary_announcements',
@@ -4342,8 +4342,11 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'nv.temporary_announcements',
     jurisdiction: 'NV',
-    title: 'Nevada Department of Taxation Tax Notes',
-    url: 'https://tax.nv.gov/News/Tax_Notes/',
+    title: 'Nevada Department of Taxation News and Publications',
+    url: 'https://tax.nv.gov/news-publications/',
+    acquisitionMethod: 'api_watch',
+    adapterKind: 'rss_or_announcement_list',
+    feedUrl: 'https://tax.nv.gov/feed/',
   },
   {
     id: 'ny.temporary_announcements',
@@ -4354,9 +4357,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'oh.temporary_announcements',
     jurisdiction: 'OH',
-    title: 'Ohio Department of Taxation Tax Alert',
-    url: 'https://dam.assets.ohio.gov/image/upload/tax.ohio.gov/ohiotaxalert/archivedalerts/incometaxformsavailable-122821.pdf',
-    acquisitionMethod: 'pdf_watch',
+    title: 'Ohio Department of Taxation Tax Alerts',
+    url: 'https://public.govdelivery.com/accounts/OHTAX/subscriber/new',
   },
   {
     id: 'ok.temporary_announcements',
@@ -4373,8 +4375,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'pa.temporary_announcements',
     jurisdiction: 'PA',
-    title: 'Pennsylvania DOR News and Statistics',
-    url: 'https://www.revenue.pa.gov/News-and-Statistics/Pages/default.aspx',
+    title: 'Pennsylvania DOR PA Tax Update Newsletter',
+    url: 'https://www.pa.gov/agencies/revenue/resources/pa-tax-update-newsletter#sortCriteria=%40copapwpyear%20descending%2C%40copapwpissuedate%20descending',
+    acquisitionMethod: 'pdf_watch',
+    adapterKind: 'pdf_index',
   },
   {
     id: 'ri.temporary_announcements',
@@ -4389,7 +4393,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'sc.temporary_announcements',
     jurisdiction: 'SC',
     title: 'South Carolina DOR News',
-    url: 'https://dor.sc.gov/index.php/',
+    url: 'https://dor.sc.gov/news',
   },
   {
     id: 'sd.temporary_announcements',
@@ -4437,13 +4441,13 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'wi.temporary_announcements',
     jurisdiction: 'WI',
     title: 'Wisconsin DOR News',
-    url: 'https://www.revenue.wi.gov/',
+    url: 'https://www.revenue.wi.gov/Pages/News/home.aspx',
   },
   {
     id: 'wv.temporary_announcements',
     jurisdiction: 'WV',
-    title: 'West Virginia Tax Division',
-    url: 'https://tax.wv.gov/',
+    title: 'West Virginia Tax Division Administrative Notices',
+    url: 'https://tax.wv.gov/TaxProfessionals/AdministrativeNotices/Pages/AdministrativeNotices2026.aspx',
   },
   {
     id: 'wy.temporary_announcements',
@@ -9321,6 +9325,14 @@ export type PolicyWatchAutomationStatus = 'automated' | 'signal_only' | 'manual_
 
 export type PolicyWatchCoverageQuality = 'strong' | 'partial' | 'manual' | 'blocked'
 
+export type PolicyWatchSourceReliabilityQuality =
+  | 'parser_ready'
+  | 'reachable_but_generic'
+  | 'stale_or_redirected'
+  | 'stale_pdf_root'
+  | 'transient_fetch_blocked'
+  | 'needs_replacement'
+
 export interface PolicyWatchSource {
   id: string
   jurisdiction: RuleJurisdiction
@@ -9377,6 +9389,22 @@ export interface SourceAutomationRemediationFamilyAudit extends PolicyWatchFamil
 export interface SourceAutomationRemediationAuditRow {
   jurisdiction: RuleJurisdiction
   families: readonly SourceAutomationRemediationFamilyAudit[]
+}
+
+export interface PolicyWatchSourceReliabilityAuditRow {
+  jurisdiction: RuleJurisdiction
+  family: PolicyWatchFamily
+  sourceId: string
+  title: string
+  url: string
+  finalUrl: string | null
+  httpStatus: number | null
+  contentType: string | null
+  acquisitionMethod: AcquisitionMethod
+  adapterKind: SourceAdapterKind | null
+  quality: PolicyWatchSourceReliabilityQuality
+  failureReason: string | null
+  recommendedAction: string | null
 }
 
 const TEMPORARY_ANNOUNCEMENT_SOURCE_TYPES = new Set<RuleSourceType>(['emergency_relief', 'news'])
@@ -9687,6 +9715,120 @@ export function listHiddenPolicyWatchSources(
   return jurisdictions
     .map(hiddenPolicyAnnouncementSource)
     .filter((source): source is PolicyWatchSource => Boolean(source))
+}
+
+const TRANSIENT_FETCH_BLOCKED_POLICY_WATCH_SOURCE_IDS = new Set([
+  'co.temporary_announcements',
+  'nh.temporary_announcements',
+  'vt.temporary_announcements',
+  'policy-watch.co.announcements',
+  'policy-watch.nh.announcements',
+  'policy-watch.vt.announcements',
+])
+
+const STALE_OR_REDIRECTED_POLICY_WATCH_URLS = new Set([
+  'https://portal.ct.gov/drs/news-releases',
+  'https://www.revenue.pa.gov/News-and-Statistics/Pages/default.aspx',
+  'https://tax.nv.gov/News/Tax_Notes/',
+])
+
+const GENERIC_POLICY_WATCH_URLS = new Set([
+  'https://dor.alaska.gov/',
+  'https://www.dfa.arkansas.gov/',
+  'https://revenue.delaware.gov/',
+  'https://dor.sc.gov/index.php/',
+  'https://tax.wv.gov/',
+  'https://www.revenue.wi.gov/',
+  'https://revenue.wyo.gov/',
+])
+
+function policyWatchSourceHasTransientFetchBlock(source: PolicyWatchSource): boolean {
+  return (
+    TRANSIENT_FETCH_BLOCKED_POLICY_WATCH_SOURCE_IDS.has(source.id) ||
+    Boolean(
+      source.derivedFromSourceIds?.some((sourceId) =>
+        TRANSIENT_FETCH_BLOCKED_POLICY_WATCH_SOURCE_IDS.has(sourceId),
+      ),
+    )
+  )
+}
+
+function policyWatchSourceReliability(source: PolicyWatchSource): {
+  quality: PolicyWatchSourceReliabilityQuality
+  failureReason: string | null
+  recommendedAction: string | null
+} {
+  const url = source.feedUrl ?? source.url
+  if (policyWatchSourceHasTransientFetchBlock(source)) {
+    return {
+      quality: 'transient_fetch_blocked',
+      failureReason:
+        'Direct fetch may return a transient 403 even though the page can open in a browser.',
+      recommendedAction: 'Keep the official URL and observe fetch stability before replacing it.',
+    }
+  }
+  if (STALE_OR_REDIRECTED_POLICY_WATCH_URLS.has(url)) {
+    return {
+      quality: 'stale_or_redirected',
+      failureReason:
+        'The source URL is known to redirect to an error page, stale path, or generic agency page.',
+      recommendedAction: 'Replace it with the current official tax-specific news or update source.',
+    }
+  }
+  if (urlLooksPdf(url) && source.adapterKind !== 'pdf_index') {
+    return {
+      quality: 'stale_pdf_root',
+      failureReason: 'A single PDF cannot serve as an ongoing announcement source root.',
+      recommendedAction:
+        'Replace it with an official PDF index, archive, feed, or announcement list.',
+    }
+  }
+  if (GENERIC_POLICY_WATCH_URLS.has(url)) {
+    return {
+      quality: 'reachable_but_generic',
+      failureReason:
+        'The source is an agency homepage or generic landing page rather than a tax update list.',
+      recommendedAction:
+        'Replace it with an official tax news, alert, update, relief, or notice list.',
+    }
+  }
+  if (url.includes('public.govdelivery.com/accounts/OHTAX/subscriber/new')) {
+    return {
+      quality: 'needs_replacement',
+      failureReason:
+        'The source is a subscription page, not an archive of individual tax alert items.',
+      recommendedAction:
+        'Connect the GovDelivery inbox/archive or replace it with a current Ohio Tax Alert index.',
+    }
+  }
+  return {
+    quality: 'parser_ready',
+    failureReason: null,
+    recommendedAction: null,
+  }
+}
+
+export function listPolicyWatchSourceReliabilityAudit(
+  jurisdiction?: RuleJurisdiction,
+): readonly PolicyWatchSourceReliabilityAuditRow[] {
+  return listHiddenPolicyWatchSources(jurisdiction).flatMap((source) => {
+    const reliability = policyWatchSourceReliability(source)
+    return source.families.map((family) => ({
+      jurisdiction: source.jurisdiction,
+      family,
+      sourceId: source.id,
+      title: source.title,
+      url: source.feedUrl ?? source.url,
+      finalUrl: null,
+      httpStatus: null,
+      contentType: null,
+      acquisitionMethod: source.acquisitionMethod,
+      adapterKind: source.adapterKind ?? null,
+      quality: reliability.quality,
+      failureReason: reliability.failureReason,
+      recommendedAction: reliability.recommendedAction,
+    }))
+  })
 }
 
 export function listPolicyWatchSources(

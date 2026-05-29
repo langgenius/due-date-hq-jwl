@@ -116,16 +116,16 @@ function parsedItemsForRuleSourceSnapshot(
   body: string,
   fetchedAt: Date,
 ): ParsedItem[] {
-  if (
+  const isAnnouncementIndex =
     adapterKind === 'rss_or_announcement_list' ||
     adapterKind === 'html_announcement_list' ||
     adapterKind === 'pdf_index'
-  ) {
+  if (isAnnouncementIndex) {
     return announcementItemsFromSnapshot(
       sourceConfigForRuleSource(source),
       { body, fetchedAt },
       {
-        fallbackToSourceSnapshot: true,
+        fallbackToSourceSnapshot: false,
       },
     )
   }
@@ -180,7 +180,7 @@ export function createTemporaryAnnouncementAdapter(source: RuleSource): SourceAd
     async parse(snapshot) {
       if (snapshot.notModified) return []
       return announcementItemsFromSnapshot({ ...source, url: sourceFetchUrl(source) }, snapshot, {
-        fallbackToSourceSnapshot: true,
+        fallbackToSourceSnapshot: false,
       })
     },
   }
@@ -188,6 +188,11 @@ export function createTemporaryAnnouncementAdapter(source: RuleSource): SourceAd
 
 export function createPolicyWatchAdapter(source: PolicyWatchSource): SourceAdapter {
   const isAutomatedAlertSource = isPolicyWatchPulsePromoted(source)
+  const adapterKind = parserBackedAdapterKindForSource(source)
+  const isAnnouncementIndex =
+    adapterKind === 'rss_or_announcement_list' ||
+    adapterKind === 'html_announcement_list' ||
+    adapterKind === 'pdf_index'
   return {
     id: source.id,
     tier: tierForPriority(source.priority),
@@ -213,7 +218,7 @@ export function createPolicyWatchAdapter(source: PolicyWatchSource): SourceAdapt
           jurisdiction: source.jurisdiction,
         },
         snapshot,
-        { fallbackToSourceSnapshot: !isAutomatedAlertSource },
+        { fallbackToSourceSnapshot: !isAutomatedAlertSource && !isAnnouncementIndex },
       )
     },
   }
@@ -261,11 +266,33 @@ export const hiddenPolicyWatchSourceIds = new Set(
   hiddenPolicyWatchAdapters.map((adapter) => adapter.id),
 )
 
-export const reviewOnlyPulseSourceIds = new Set(['fema.declarations', 'govdelivery.inbound'])
-
 export function isHiddenPolicyWatchSourceId(sourceId: string): boolean {
   return hiddenPolicyWatchSourceIds.has(sourceId)
 }
+
+const reviewOnlyRuleSourceIds = listRuleSources()
+  .filter(isRuleSourceAdapterEligible)
+  .filter((source) => !isRuleSourcePulsePromoted(source))
+  .map((source) => source.id)
+
+const reviewOnlyHiddenPolicyWatchSourceIds = listHiddenPolicyWatchSources()
+  .filter(isPolicyWatchAdapterEligible)
+  .filter((source) => {
+    const adapterKind = parserBackedAdapterKindForSource(source)
+    return (
+      !isPolicyWatchPulsePromoted(source) ||
+      adapterKind === 'pdf_index' ||
+      source.url.includes('public.govdelivery.com/accounts/OHTAX/subscriber/new')
+    )
+  })
+  .map((source) => source.id)
+
+export const reviewOnlyPulseSourceIds = new Set([
+  'fema.declarations',
+  'govdelivery.inbound',
+  ...reviewOnlyRuleSourceIds,
+  ...reviewOnlyHiddenPolicyWatchSourceIds,
+])
 
 export function requiresReviewOnlyPulseAlert(sourceId: string): boolean {
   return reviewOnlyPulseSourceIds.has(sourceId)

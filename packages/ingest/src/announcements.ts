@@ -11,8 +11,9 @@ export interface AnnouncementSourceConfig {
 }
 
 const TAX_ANNOUNCEMENT_RE =
-  /deadline|due date|relief|disaster|storm|wildfire|flood|filing|payment|extension|franchise|return|tax alert|tax notice|withholding|sales tax|estimated tax/i
-const HIGH_SIGNAL_TAX_CHANGE_RE = /deadline|due date|relief|disaster|extension|filing|payment/i
+  /deadline|due date|relief|disaster|storm|wildfire|flood|filing|payment|extension|franchise|return|tax alert|tax update|tax bulletin|tax notice|administrative notice|technical assistance|policy statement|withholding|sales tax|estimated tax/i
+const HIGH_SIGNAL_TAX_CHANGE_RE =
+  /deadline|due date|relief|disaster|extension|filing|payment|tax alert|tax update|tax bulletin|administrative notice|technical assistance/i
 const ANNOUNCEMENT_NOISE_RE =
   /award|auction|career|hiring|job opening|staff|appointment|webinar|seminar|office hour|office closure|holiday schedule|unclaimed property|scam|fraud|phishing|identity theft|password|login|portal maintenance|system maintenance|newsletter/i
 

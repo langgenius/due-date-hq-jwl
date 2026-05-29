@@ -11,6 +11,7 @@ import {
   listObligationRules,
   listPolicyWatchCoverageAudit,
   listPolicyWatchSources,
+  listPolicyWatchSourceReliabilityAudit,
   listRequiredSourceCoverage,
   listRuleSources,
   listSourceAutomationRemediationAudit,
@@ -94,6 +95,7 @@ const OFFICIAL_NON_GOV_HOSTS = new Set([
   'workforcewv.org',
   'uimn.org',
   'www2.laworks.net',
+  'public.govdelivery.com',
 ])
 const STATE_INCOME_CANDIDATE_TAX_TYPE_SUFFIXES = ['_state_individual_income_tax'] as const
 const STATE_BUSINESS_CANDIDATE_TAX_TYPE_SUFFIXES = [
@@ -297,6 +299,35 @@ describe('@duedatehq/core/rules', () => {
     )
     expect(signalOnlySources.length).toBeGreaterThan(0)
     expect(signalOnlySources.every((source) => source.parserBacked)).toBe(true)
+  })
+
+  it('audits hidden policy-watch source reliability without treating transient 403 as failure', () => {
+    const audit = listPolicyWatchSourceReliabilityAudit()
+    expect(audit).toHaveLength(104)
+
+    const rowsBySourceId = new Map(audit.map((row) => [row.sourceId, row]))
+    expect(rowsBySourceId.get('policy-watch.co.announcements')).toMatchObject({
+      quality: 'transient_fetch_blocked',
+    })
+    expect(rowsBySourceId.get('policy-watch.pa.announcements')).toMatchObject({
+      quality: 'parser_ready',
+      url: 'https://www.pa.gov/agencies/revenue/resources/pa-tax-update-newsletter#sortCriteria=%40copapwpyear%20descending%2C%40copapwpissuedate%20descending',
+      adapterKind: 'pdf_index',
+    })
+    expect(rowsBySourceId.get('policy-watch.oh.announcements')).toMatchObject({
+      quality: 'needs_replacement',
+      failureReason: expect.stringContaining('subscription page'),
+    })
+    expect(rowsBySourceId.get('policy-watch.wy.announcements')).toMatchObject({
+      quality: 'reachable_but_generic',
+    })
+
+    const urls = audit.map((row) => row.url)
+    expect(urls).not.toContain('https://portal.ct.gov/drs/news-releases')
+    expect(urls).not.toContain('https://www.revenue.pa.gov/News-and-Statistics/Pages/default.aspx')
+    expect(urls).not.toContain(
+      'https://dam.assets.ohio.gov/image/upload/tax.ohio.gov/ohiotaxalert/archivedalerts/incometaxformsavailable-122821.pdf',
+    )
   })
 
   it('treats manual registry URLs as parser-backed Pulse candidates', () => {

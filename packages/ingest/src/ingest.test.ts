@@ -166,6 +166,33 @@ describe('@duedatehq/ingest', () => {
     ])
   })
 
+  it('keeps tax update newsletter PDF links as policy-change candidates', () => {
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'policy-watch.pa.announcements',
+        title: 'Pennsylvania DOR PA Tax Update Newsletter',
+        url: 'https://www.pa.gov/agencies/revenue/resources/pa-tax-update-newsletter',
+        jurisdiction: 'PA',
+      },
+      {
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        body: [
+          '<a href="/content/dam/copapwp-pagov/en/revenue/documents/tax-update/2026/pa-tax-update-march-april-2026.pdf">PA Tax Update - March/April 2026</a>',
+          '<a href="/agencies/revenue/contact-us">Contact Revenue</a>',
+        ].join(''),
+      },
+    )
+
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      sourceId: 'policy-watch.pa.announcements',
+      title: 'PA Tax Update - March/April 2026',
+      officialSourceUrl:
+        'https://www.pa.gov/content/dam/copapwp-pagov/en/revenue/documents/tax-update/2026/pa-tax-update-march-april-2026.pdf',
+      jurisdiction: 'PA',
+    })
+  })
+
   it('runs the NY DTF fixture adapter end-to-end', async () => {
     const ctx: IngestCtx = {
       async fetch() {

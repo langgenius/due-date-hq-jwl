@@ -24,6 +24,17 @@ states + DC.
 - Tightened hidden announcement-list ingest: hidden policy-watch adapters no longer fallback from a
   generic list page into an alert candidate, RSS/list noise is filtered before extraction, and
   PDF-only hidden watch sources become CPA-facing review-only Alerts instead of entering Apply.
+- Added a hidden source reliability audit for parser-ready, generic, stale/redirected, stale PDF
+  root, transient fetch-blocked, and needs-replacement source states. CO/NH/VT-style direct-fetch
+  403s are tracked as transient browser-openable issues instead of hard failures.
+- Replaced deterministic weak hidden watch roots with more specific official sources where
+  available: CT DRS Media Room, NV News and Publications/feed, PA Tax Update Newsletter PDF index,
+  SC DOR News, WI DOR News, WV Administrative Notices, and more specific AK/AR/DE pages. Ohio no
+  longer uses an old single PDF as the watch root; it is held as review-only through the official
+  OHTAX GovDelivery subscription source until a proper archive/inbound parser is connected.
+- Expanded announcement parsing so tax update, tax bulletin, administrative notice, and technical
+  assistance links can reach extract. PA Tax Update Newsletter PDFs are now treated as tax-policy
+  Alert candidates and remain review-only.
 - Removed the separate legacy source-event product/interface path. Parsed items now write
   `pulse_source_snapshot` and enter extract; `signal_only` means review-only Alert, not an
   internal queue.
