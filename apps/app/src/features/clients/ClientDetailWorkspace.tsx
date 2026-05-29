@@ -748,6 +748,32 @@ export function ClientDetailWorkspace({
                 ) : null}
               </span>
             }
+            // 2026-05-28 (Yuqi /clients/[id] polish — "client name
+            // 下面很空，感觉缺了内容"): pulled `ClientContactMetaRow`
+            // (entity badge / owner pill / state chips / email /
+            // phone / address) UP into the PageHeader's metaRow
+            // slot. Previously it rendered as the first child of
+            // the body section below the header, separated by the
+            // outer `gap-4` (16px). Now it sits inside the
+            // PageHeader column at the canonical `gap-2` (8px)
+            // below the H1 — title and identity facts read as one
+            // anchored block instead of "client name then a void."
+            metaRow={
+              <ClientContactMetaRow
+                client={client}
+                entityLabel={entityLabels[client.entityType]}
+                ownerSlot={
+                  <ClientOwnerHeaderPill
+                    assigneeId={client.assigneeId ?? null}
+                    name={client.assigneeName ?? null}
+                    currentUserName={currentUserName}
+                    assignableMembers={assignableMembers}
+                    disabled={bulkAssigneeMutation.isPending}
+                    onChange={changeOwner}
+                  />
+                }
+              />
+            }
             // 2026-05-23: subtitle suppressed when readiness gap chip is
             // present in the H1 chip cluster. The "Missing filing state"
             // chip is itself the page-level signal; piling a workPlan
@@ -805,7 +831,12 @@ export function ClientDetailWorkspace({
           {/* Body — client-context content. The outer xl:flex-row
             split (one wrapper above) already separates this from the
             right-rail obligation panel, so this section just renders
-            the column-of-content inline. */}
+            the column-of-content inline.
+            2026-05-28 (Yuqi /clients/[id] polish — "client name下面
+            很空"): ClientContactMetaRow moved UP into the PageHeader
+            `metaRow` slot above so the identity row sits tight
+            against the H1 (gap-2 internal) instead of the body
+            section's `gap-4`. */}
           <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
             {/* Provenance (Imported / Manual) lived here briefly during
                 the D-2 transition. Dropped 2026-05-22 per design call —
@@ -813,21 +844,6 @@ export function ClientDetailWorkspace({
                 Imported chip never changed a CPA's behavior. The
                 migration history is still discoverable from the
                 /clients header Import-history drawer. */}
-
-            <ClientContactMetaRow
-              client={client}
-              entityLabel={entityLabels[client.entityType]}
-              ownerSlot={
-                <ClientOwnerHeaderPill
-                  assigneeId={client.assigneeId ?? null}
-                  name={client.assigneeName ?? null}
-                  currentUserName={currentUserName}
-                  assignableMembers={assignableMembers}
-                  disabled={bulkAssigneeMutation.isPending}
-                  onChange={changeOwner}
-                />
-              }
-            />
 
             {/* 2026-05-26 (Stripe-bar /clarify pass — re-applied per
                 Yuqi's "address all" direction): inline tip pairs the
