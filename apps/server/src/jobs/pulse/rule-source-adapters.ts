@@ -270,29 +270,7 @@ export function isHiddenPolicyWatchSourceId(sourceId: string): boolean {
   return hiddenPolicyWatchSourceIds.has(sourceId)
 }
 
-const reviewOnlyRuleSourceIds = listRuleSources()
-  .filter(isRuleSourceAdapterEligible)
-  .filter((source) => !isRuleSourcePulsePromoted(source))
-  .map((source) => source.id)
-
-const reviewOnlyHiddenPolicyWatchSourceIds = listHiddenPolicyWatchSources()
-  .filter(isPolicyWatchAdapterEligible)
-  .filter((source) => {
-    const adapterKind = parserBackedAdapterKindForSource(source)
-    return (
-      !isPolicyWatchPulsePromoted(source) ||
-      adapterKind === 'pdf_index' ||
-      source.url.includes('public.govdelivery.com/accounts/OHTAX/subscriber/new')
-    )
-  })
-  .map((source) => source.id)
-
-export const reviewOnlyPulseSourceIds = new Set([
-  'fema.declarations',
-  'govdelivery.inbound',
-  ...reviewOnlyRuleSourceIds,
-  ...reviewOnlyHiddenPolicyWatchSourceIds,
-])
+export const reviewOnlyPulseSourceIds = new Set(['fema.declarations', 'govdelivery.inbound'])
 
 export function requiresReviewOnlyPulseAlert(sourceId: string): boolean {
   return reviewOnlyPulseSourceIds.has(sourceId)

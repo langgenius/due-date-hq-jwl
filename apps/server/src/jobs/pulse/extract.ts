@@ -32,22 +32,6 @@ function nullableDateFromIsoDate(value: string | null): Date | null {
   return value ? dateFromIsoDate(value) : null
 }
 
-function hasCompleteDueDateOverlayEvidence(result: {
-  changeKind: string | null
-  actionMode: string | null
-  originalDueDate: string | null
-  newDueDate: string | null
-  jurisdiction: string | null
-}): boolean {
-  return (
-    result.changeKind === 'deadline_shift' &&
-    result.actionMode === 'due_date_overlay' &&
-    Boolean(result.originalDueDate) &&
-    Boolean(result.newDueDate) &&
-    Boolean(result.jurisdiction)
-  )
-}
-
 export async function extractPulseSnapshot(
   env: Pick<
     Env,
@@ -181,12 +165,9 @@ export async function extractPulseSnapshot(
     return { pulseId: null, status: 'failed' }
   }
 
-  const actionMode =
-    requiresReviewOnlyPulseAlert(snapshot.sourceId) ||
-    (result.result.actionMode === 'due_date_overlay' &&
-      !hasCompleteDueDateOverlayEvidence(result.result))
-      ? 'review_only'
-      : result.result.actionMode
+  const actionMode = requiresReviewOnlyPulseAlert(snapshot.sourceId)
+    ? 'review_only'
+    : result.result.actionMode
 
   const duplicatePulseId = await repo.findDuplicatePulseForExtract({
     publishedAt: snapshot.publishedAt,

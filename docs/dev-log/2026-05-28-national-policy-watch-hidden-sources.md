@@ -12,32 +12,37 @@ states + DC.
 - Added hidden national policy-watch adapters for Federal + 50 states + DC. They participate in
   Pulse ingest but are not added to the public Rule Source registry.
 - Added an internal policy-watch coverage audit so coverage can distinguish automated,
-  review-only, manual-review, and blocked source families. The current audit keeps 52
+  apply-readiness candidate, manual-review, and blocked source families. The current audit keeps 52
   jurisdictions present and now reports no manual-review or blocked family coverage; the former 24
-  manual baseline-rule families are parser-backed review-only coverage.
+  manual baseline-rule families are parser-backed due-date candidate coverage.
 - Added source automation remediation audit details so manual/blocked/signal-only gaps list
   source IDs, URLs, acquisition method, health, and suggested parser kind. The audit is internal and
   does not alter `/rules/sources`.
 - Expanded parser-backed rule-source adapters: HTML pages, RSS/API lists, PDF documents/indexes,
   and inferred manual registry URLs can now write snapshots and enter extract. PDF and weak
-  baseline sources remain review-only and never expose Apply unless extract evidence is complete.
+  baseline sources may produce `due_date_overlay` Alerts; Apply stays blocked by readiness until
+  the CPA confirms a new due date and selects affected deadlines.
 - Tightened hidden announcement-list ingest: hidden policy-watch adapters no longer fallback from a
   generic list page into an alert candidate, RSS/list noise is filtered before extraction, and
-  PDF-only hidden watch sources become CPA-facing review-only Alerts instead of entering Apply.
+  PDF-only hidden watch sources can still surface CPA-facing due-date candidates when extract finds
+  deadline intent.
 - Added a hidden source reliability audit for parser-ready, generic, stale/redirected, stale PDF
   root, transient fetch-blocked, and needs-replacement source states. CO/NH/VT-style direct-fetch
   403s are tracked as transient browser-openable issues instead of hard failures.
 - Replaced deterministic weak hidden watch roots with more specific official sources where
   available: CT DRS Media Room, NV News and Publications/feed, PA Tax Update Newsletter PDF index,
   SC DOR News, WI DOR News, WV Administrative Notices, and more specific AK/AR/DE pages. Ohio no
-  longer uses an old single PDF as the watch root; it is held as review-only through the official
-  OHTAX GovDelivery subscription source until a proper archive/inbound parser is connected.
+  longer uses an old single PDF as the watch root; the official OHTAX GovDelivery subscription
+  source is treated as a due-date candidate source while Apply remains CPA-gated.
 - Expanded announcement parsing so tax update, tax bulletin, administrative notice, and technical
   assistance links can reach extract. PA Tax Update Newsletter PDFs are now treated as tax-policy
-  Alert candidates and remain review-only.
+  Alert candidates and are not source-level forced into review-only mode.
 - Removed the separate legacy source-event product/interface path. Parsed items now write
-  `pulse_source_snapshot` and enter extract; `signal_only` means review-only Alert, not an
-  internal queue.
+  `pulse_source_snapshot` and enter extract; `signal_only` is an internal coverage-quality flag,
+  not an internal queue and not an automatic review-only downgrade.
+- Narrowed source-level review-only forcing to aggregate early-signal channels
+  (`fema.declarations`, generic `govdelivery.inbound`). Incomplete due-date evidence now stays
+  `due_date_overlay`; Apply readiness handles the missing new date or affected deadline selection.
 - Added DB migration 0056, preserving legacy source-event rows as source snapshots before dropping
   the old table and concrete-draft legacy reference column.
 - Added lightweight duplicate suppression before creating extracted Pulse rows, keyed by

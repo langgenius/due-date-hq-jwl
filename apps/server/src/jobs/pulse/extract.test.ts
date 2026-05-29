@@ -206,7 +206,7 @@ describe('extractPulseSnapshot', () => {
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
   })
 
-  it('forces incomplete due-date overlay evidence into review-only Alerts', async () => {
+  it('keeps incomplete due-date overlay evidence as an Apply-readiness candidate', async () => {
     repoMocks.getSourceSnapshot.mockResolvedValue({
       id: 'snapshot-incomplete',
       sourceId: 'policy-watch.az.announcements',
@@ -254,11 +254,11 @@ describe('extractPulseSnapshot', () => {
 
     expect(result).toEqual({ pulseId: 'pulse-created', status: 'created' })
     expect(repoMocks.findDuplicatePulseForExtract).toHaveBeenCalledWith(
-      expect.objectContaining({ actionMode: 'review_only' }),
+      expect.objectContaining({ actionMode: 'due_date_overlay' }),
     )
     expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
       expect.objectContaining({
-        actionMode: 'review_only',
+        actionMode: 'due_date_overlay',
         parsedOriginalDueDate: null,
         parsedNewDueDate: new Date('2026-10-15T00:00:00.000Z'),
       }),
@@ -267,7 +267,7 @@ describe('extractPulseSnapshot', () => {
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
   })
 
-  it('forces signal-only sources into review-only Alerts without Apply mode', async () => {
+  it('forces non-tax early-signal sources into review-only Alerts without Apply mode', async () => {
     repoMocks.getSourceSnapshot.mockResolvedValue({
       id: 'snapshot-fema',
       sourceId: 'fema.declarations',

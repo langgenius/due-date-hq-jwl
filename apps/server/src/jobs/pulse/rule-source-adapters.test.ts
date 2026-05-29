@@ -75,7 +75,7 @@ describe('rule source adapters', () => {
     const adapter = createPolicyWatchAdapter(source)
     expect(requiresReviewOnlyPulseAlert(adapter.id)).toBe(false)
     const ohioSource = hiddenSources.find((candidate) => candidate.jurisdiction === 'OH')!
-    expect(requiresReviewOnlyPulseAlert(ohioSource.id)).toBe(true)
+    expect(requiresReviewOnlyPulseAlert(ohioSource.id)).toBe(false)
     const items = await adapter.parse(
       {
         sourceId: source.id,
@@ -132,7 +132,7 @@ describe('rule source adapters', () => {
     const pdfAdapter = createPolicyWatchAdapter(pdfSource)
     expect(isPolicyWatchAdapterEligible(pdfSource), pdfSource.id).toBe(true)
     expect(isPolicyWatchPulsePromoted(pdfSource), pdfSource.id).toBe(false)
-    expect(requiresReviewOnlyPulseAlert(pdfAdapter.id)).toBe(true)
+    expect(requiresReviewOnlyPulseAlert(pdfAdapter.id)).toBe(false)
     const signalItems = await pdfAdapter.parse(
       {
         sourceId: pdfSource.id,
@@ -242,7 +242,7 @@ describe('rule source adapters', () => {
       expect(source?.acquisitionMethod, sourceId).toBe('manual_review')
       expect(isRuleSourceAdapterEligible(source!), sourceId).toBe(true)
       expect(isRuleSourcePulsePromoted(source!), sourceId).toBe(false)
-      expect(requiresReviewOnlyPulseAlert(sourceId), sourceId).toBe(true)
+      expect(requiresReviewOnlyPulseAlert(sourceId), sourceId).toBe(false)
       expect(automatedIds, sourceId).toContain(sourceId)
     }
 
@@ -254,7 +254,12 @@ describe('rule source adapters', () => {
     expect(pdfSource?.acquisitionMethod).toBe('pdf_watch')
     expect(isRuleSourceAdapterEligible(pdfSource!)).toBe(true)
     expect(isRuleSourcePulsePromoted(pdfSource!)).toBe(false)
-    expect(requiresReviewOnlyPulseAlert('fl.income_tax')).toBe(true)
+    expect(requiresReviewOnlyPulseAlert('fl.income_tax')).toBe(false)
+  })
+
+  it('keeps non-tax early-signal sources review-only', () => {
+    expect(requiresReviewOnlyPulseAlert('fema.declarations')).toBe(true)
+    expect(requiresReviewOnlyPulseAlert('govdelivery.inbound')).toBe(true)
   })
 
   it('keeps concrete basis sources from the rules registry in the extract queue', () => {
@@ -270,7 +275,7 @@ describe('rule source adapters', () => {
     }
   })
 
-  it('keeps lower-priority rule source adapters review-only', () => {
+  it('does not force lower-priority rule source adapters into review-only mode', () => {
     const basis = listRuleSources().find((candidate) => candidate.id === 'tx.franchise_forms_2026')
     expect(basis).toBeDefined()
     const source = {
