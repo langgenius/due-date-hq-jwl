@@ -17,3 +17,20 @@
 - DueDateHQ does not create or subscribe government inboxes automatically. Ops must configure
   Cloudflare Email Routing for the real inbound domain and manually subscribe the routed address to
   each government list.
+
+## P0 follow-up
+
+- Added `docs/ops/runbooks/pulse-email-inbound.md` with the Cloudflare Email Routing setup,
+  subaddressing requirement, subscription address table, local smoke test, verification SQL, and
+  troubleshooting notes.
+- Added `mock/pulse-email-inbound/*.eml` fixtures and `pnpm pulse:email:smoke` so ops/engineering
+  can POST RFC 5322 mail to Wrangler's local `/cdn-cgi/handler/email` endpoint before touching real
+  government subscriptions.
+
+## Email source expansion
+
+- Added inbound routing metadata for `fl.tips`, `wa.news`, `ma.temporary_announcements`, and
+  `tx.temporary_announcements`.
+- Tightened fallback attribution so generic GovDelivery sender domains do not override source-specific
+  `List-ID` or canonical URL signals.
+- Added smoke fixtures for `fl`, `wa`, `ma`, and `tx`.

@@ -4256,6 +4256,17 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'MA',
     title: 'Massachusetts DOR Press Releases',
     url: 'https://www.mass.gov/lists/2026-dor-press-releases',
+    inboundEmail: {
+      localParts: ['pulse-ingest+ma-dor-press'],
+      senderDomains: [
+        'content.govdelivery.com',
+        'public.govdelivery.com',
+        'service.govdelivery.com',
+        'mass.gov',
+      ],
+      listIdPatterns: ['mador', 'massachusetts department of revenue', 'massachusetts dor'],
+      canonicalUrlHosts: ['content.govdelivery.com', 'mass.gov', 'www.mass.gov'],
+    },
   },
   {
     id: 'md.temporary_announcements',
@@ -4431,6 +4442,17 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'TX',
     title: 'Texas Comptroller News',
     url: 'https://comptroller.texas.gov/about/media-center/news/',
+    inboundEmail: {
+      localParts: ['pulse-ingest+tx-comptroller-news'],
+      senderDomains: [
+        'content.govdelivery.com',
+        'public.govdelivery.com',
+        'service.govdelivery.com',
+        'comptroller.texas.gov',
+      ],
+      listIdPatterns: ['txcompt', 'texas comptroller', 'comptroller of public accounts'],
+      canonicalUrlHosts: ['content.govdelivery.com', 'comptroller.texas.gov'],
+    },
   },
   {
     id: 'ut.temporary_announcements',
@@ -5092,6 +5114,12 @@ export const RULE_SOURCES = hydrateRuleSources([
     isEarlyWarning: false,
     notificationChannels: ['source_change', 'practice_rule_review'],
     lastReviewedOn: VERIFIED_AT,
+    inboundEmail: {
+      localParts: ['pulse-ingest+fl-tax-publications'],
+      senderDomains: ['floridarevenue.com', 'www.floridarevenue.com'],
+      listIdPatterns: ['florida department of revenue', 'tax information publications'],
+      canonicalUrlHosts: ['floridarevenue.com', 'www.floridarevenue.com'],
+    },
   },
   {
     id: 'wa.excise_due_dates_2026',
@@ -5134,6 +5162,17 @@ export const RULE_SOURCES = hydrateRuleSources([
     isEarlyWarning: false,
     notificationChannels: ['source_change', 'practice_rule_review'],
     lastReviewedOn: VERIFIED_AT,
+    inboundEmail: {
+      localParts: ['pulse-ingest+wa-dor-news'],
+      senderDomains: [
+        'content.govdelivery.com',
+        'public.govdelivery.com',
+        'service.govdelivery.com',
+        'dor.wa.gov',
+      ],
+      listIdPatterns: ['wador', 'washington department of revenue', 'wa department of revenue'],
+      canonicalUrlHosts: ['content.govdelivery.com', 'dor.wa.gov', 'www.dor.wa.gov'],
+    },
   },
   {
     id: 'wa.capital_gains_exception_2026',

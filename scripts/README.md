@@ -6,6 +6,8 @@ Operational CLI utilities (docs/dev-file/08 §1).
 - `ensure-cloudflare-queues.mjs` — reads Queue producer/consumer/DLQ names from
   `apps/server/wrangler.toml` and creates any missing Cloudflare Queues before deploy. Wired into
   `pnpm cf:ensure-queues` and `workspace-deploy`.
+- `pulse-inbound-email-smoke.mjs` — posts RFC 5322 email fixtures to a local Wrangler Email
+  Routing handler at `/cdn-cgi/handler/email`. Used by `docs/ops/runbooks/pulse-email-inbound.md`.
 
 Planned (Phase 0 / Phase 1):
 

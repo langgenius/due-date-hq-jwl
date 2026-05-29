@@ -3,6 +3,11 @@ import { describe, expect, it } from 'vitest'
 import {
   canSaveInternalExtensionPlan,
   countOutstandingReadinessDocuments,
+  daysUntilEffectiveInternalDueDate,
+  effectiveInternalDueDate,
+  emptyExtensionPlanDraft,
+  extensionPlanDraftFromRow,
+  isDueDaysSuppressedForStatus,
   isObligationQueueRowControlClick,
   isThisWeekFilterActive,
   isInternalExtensionTargetDateValid,
@@ -185,6 +190,59 @@ describe('internal extension plan save state', () => {
         memo: 'Proceed with extension.',
       }),
     ).toBe(false)
+  })
+
+  it('clears the same-row extension draft after save without triggering row rehydration', () => {
+    const currentDraft = extensionPlanDraftFromRow({
+      id: 'deadline_1',
+      extensionInternalTargetDate: '2026-04-15',
+      extensionMemo: 'Client materials are late.',
+      extensionSource: 'Partner approval',
+    })
+
+    expect(currentDraft).toEqual({
+      obligationId: 'deadline_1',
+      internalTargetDate: '2026-04-15',
+      memo: 'Client materials are late.',
+      source: 'Partner approval',
+    })
+    expect(emptyExtensionPlanDraft(currentDraft.obligationId)).toEqual({
+      obligationId: 'deadline_1',
+      internalTargetDate: '',
+      memo: '',
+      source: '',
+    })
+  })
+})
+
+describe('internal due date queue display', () => {
+  it('keeps extension-active rows eligible for the internal due date value', () => {
+    expect(isDueDaysSuppressedForStatus('extended')).toBe(false)
+    expect(isDueDaysSuppressedForStatus('not_applicable')).toBe(true)
+  })
+
+  it('uses the saved extension target before the original current due date', () => {
+    const row = {
+      currentDueDate: '2026-06-10',
+      daysUntilDue: 12,
+      extensionInternalTargetDate: '2026-05-30',
+    }
+
+    expect(effectiveInternalDueDate(row)).toBe('2026-05-30')
+    expect(daysUntilEffectiveInternalDueDate(row, '2026-05-29')).toBe(1)
+  })
+
+  it('keeps the server-provided relative days when no extension target is saved', () => {
+    expect(
+      daysUntilEffectiveInternalDueDate(
+        {
+          currentDueDate: '2026-06-10',
+          daysUntilDue: 12,
+          extensionInternalTargetDate: null,
+        },
+        '2026-05-29',
+      ),
+    ).toBe(12)
   })
 })
 

@@ -266,10 +266,15 @@ pulse.ingest.confidence_avg_24h   (gauge,     label: source_id)
 一个 source 时才归因。未匹配邮件写入 `govdelivery.inbound.unmatched`，不投递
 `pulse.extract`，因此不会生成 CPA-facing Alert。
 
+当前已配置 inbound metadata 的真实源包括 `ny.email_services`、`oh.temporary_announcements`、
+`fl.tips`、`wa.news`、`ma.temporary_announcements`、`tx.temporary_announcements`。扩新州时沿用
+`pulse-ingest+<source-slug>@<inbound-domain>`，并至少配置 sender、`List-ID` 或 canonical URL
+host 中的一种可信信号。
+
 **部署要求：** 代码不会自动创建收件邮箱。生产或 staging 必须在 Cloudflare Email Routing 中
 为实际接收域配置 MX 和 route，把 `pulse-ingest*` 收件地址转发到 SaaS Worker 的 `email()`
 handler；否则邮件会按该域现有 MX 投递，或在没有有效收件路由时退信，DueDateHQ Worker
-不会收到。
+不会收到。配置和 smoke test 步骤见 `docs/ops/runbooks/pulse-email-inbound.md`。
 
 **优点：** 用户主动订阅、零反爬、低工程维护成本。
 **缺点：** 延迟高（取决于 DOR 发信间隔，通常 1-24h），做**最后一道兜底**而非主路径。

@@ -1,0 +1,17 @@
+Received: from mta.public.govdelivery.com (mta.public.govdelivery.com [127.0.0.1])
+  by cloudflare-email.com with ESMTP id ny-email-services-smoke
+  for <pulse-ingest+ny-email-services@duedatehq.com>; Fri, 29 May 2026 03:00:00 +0000
+From: "New York Tax Department" <updates@public.govdelivery.com>
+To: pulse-ingest+ny-email-services@duedatehq.com
+Subject: NY Tax Department update
+Date: Fri, 29 May 2026 03:00:00 +0000
+Message-ID: <ny-email-services-smoke-20260529@duedatehq.test>
+List-ID: <tax.ny.gov.public.govdelivery.com>
+Content-Type: text/plain; charset=utf-8
+
+New York Tax Department update.
+
+Official source:
+https://www.tax.ny.gov/news/2026/relief.htm
+
+This fixture exercises plus-address source attribution for ny.email_services.

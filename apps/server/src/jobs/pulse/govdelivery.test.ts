@@ -8,6 +8,7 @@ import { ingestGovDeliveryEmail } from './govdelivery'
 const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
   const repo = {
     createSourceSnapshot: vi.fn(),
+    updateSourceSnapshotStatus: vi.fn(),
   }
   return {
     repoMocks: repo,
@@ -69,6 +70,7 @@ describe('ingestGovDeliveryEmail', () => {
       inserted: true,
       snapshot: { id: `snapshot-${input.sourceId}`, sourceId: input.sourceId },
     }))
+    repoMocks.updateSourceSnapshotStatus.mockResolvedValue(undefined)
   })
 
   it('routes plus-addressed NY GovDelivery mail to the NY email source', async () => {
@@ -154,6 +156,126 @@ describe('ingestGovDeliveryEmail', () => {
     })
   })
 
+  it.each([
+    {
+      label: 'Florida TIP subscriptions',
+      from: 'Florida Department of Revenue <taxpublications@floridarevenue.com>',
+      to: 'pulse-ingest+fl-tax-publications@duedatehq.com',
+      subject: 'Florida Tax Information Publication',
+      listId: '<Florida Department of Revenue Tax Information Publications>',
+      raw: [
+        'Florida Department of Revenue posted a new Tax Information Publication.',
+        'https://floridarevenue.com/taxes/tips/Documents/TIP_26A01-01.pdf',
+      ].join('\n'),
+      sourceId: 'fl.tips',
+      officialSourceUrl: 'https://floridarevenue.com/taxes/tips/Documents/TIP_26A01-01.pdf',
+    },
+    {
+      label: 'Washington DOR GovDelivery news',
+      from: 'Washington Department of Revenue <updates@content.govdelivery.com>',
+      to: 'pulse-ingest+wa-dor-news@duedatehq.com',
+      subject: 'Update from WA State Department of Revenue',
+      listId: '<WADOR.public.govdelivery.com>',
+      raw: [
+        'Washington Department of Revenue sent this bulletin.',
+        'https://content.govdelivery.com/accounts/WADOR/bulletins/3e6ae24',
+        'https://dor.wa.gov/about/news-releases',
+      ].join('\n'),
+      sourceId: 'wa.news',
+      officialSourceUrl: 'https://content.govdelivery.com/accounts/WADOR/bulletins/3e6ae24',
+    },
+    {
+      label: 'Massachusetts DOR GovDelivery updates',
+      from: 'Massachusetts Department of Revenue <updates@content.govdelivery.com>',
+      to: 'pulse-ingest+ma-dor-press@duedatehq.com',
+      subject: 'Massachusetts DOR update',
+      listId: '<MADOR.public.govdelivery.com>',
+      raw: [
+        'Massachusetts Department of Revenue sent this bulletin.',
+        'https://content.govdelivery.com/accounts/MADOR/bulletins/39c79e6',
+        'https://www.mass.gov/lists/massachusetts-dor-press-releases',
+      ].join('\n'),
+      sourceId: 'ma.temporary_announcements',
+      officialSourceUrl: 'https://content.govdelivery.com/accounts/MADOR/bulletins/39c79e6',
+    },
+    {
+      label: 'Texas Comptroller GovDelivery updates',
+      from: 'Texas Comptroller <updates@content.govdelivery.com>',
+      to: 'pulse-ingest+tx-comptroller-news@duedatehq.com',
+      subject: 'Texas Comptroller news release',
+      listId: '<TXCOMPT.public.govdelivery.com>',
+      raw: [
+        'Texas Comptroller of Public Accounts sent this bulletin.',
+        'https://content.govdelivery.com/accounts/TXCOMPT/bulletins/3fa54a0',
+        'https://comptroller.texas.gov/about/media-center/news/',
+      ].join('\n'),
+      sourceId: 'tx.temporary_announcements',
+      officialSourceUrl: 'https://content.govdelivery.com/accounts/TXCOMPT/bulletins/3fa54a0',
+    },
+  ])('routes plus-addressed $label to its configured source', async (input) => {
+    const queueSend = vi.fn()
+    const result = await ingestGovDeliveryEmail(
+      env(queueSend),
+      inboundMessage({
+        from: input.from,
+        to: input.to,
+        headers: {
+          subject: input.subject,
+          'list-id': input.listId,
+        },
+        raw: input.raw,
+      }),
+    )
+
+    expect(result).toMatchObject({
+      inserted: true,
+      matched: true,
+      queued: true,
+      snapshotId: `snapshot-${input.sourceId}`,
+    })
+    expect(repoMocks.createSourceSnapshot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceId: input.sourceId,
+        title: input.subject,
+        officialSourceUrl: input.officialSourceUrl,
+      }),
+    )
+    expect(queueSend).toHaveBeenCalledWith({
+      type: 'pulse.extract',
+      snapshotId: `snapshot-${input.sourceId}`,
+    })
+  })
+
+  it('routes fallback GovDelivery sender mail by List-ID before generic sender domain', async () => {
+    const queueSend = vi.fn()
+    await ingestGovDeliveryEmail(
+      env(queueSend),
+      inboundMessage({
+        from: 'Updates <updates@content.govdelivery.com>',
+        to: 'pulse-ingest@duedatehq.com',
+        headers: {
+          subject: 'Update from WA State Department of Revenue',
+          'list-id': '<WADOR.public.govdelivery.com>',
+        },
+        raw: [
+          'Washington Department of Revenue sent this bulletin.',
+          'https://content.govdelivery.com/accounts/WADOR/bulletins/3e6ae24',
+        ].join('\n'),
+      }),
+    )
+
+    expect(repoMocks.createSourceSnapshot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceId: 'wa.news',
+        officialSourceUrl: 'https://content.govdelivery.com/accounts/WADOR/bulletins/3e6ae24',
+      }),
+    )
+    expect(queueSend).toHaveBeenCalledWith({
+      type: 'pulse.extract',
+      snapshotId: 'snapshot-wa.news',
+    })
+  })
+
   it('archives unmatched inbound mail without queueing CPA-facing extraction', async () => {
     const queueSend = vi.fn()
     const result = await ingestGovDeliveryEmail(
@@ -176,6 +298,13 @@ describe('ingestGovDeliveryEmail', () => {
         sourceId: 'govdelivery.inbound.unmatched',
         officialSourceUrl: 'https://public.govdelivery.com/',
       }),
+    )
+    expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith(
+      'snapshot-govdelivery.inbound.unmatched',
+      {
+        parseStatus: 'ignored',
+        failureReason: 'unmatched_inbound_email',
+      },
     )
     expect(queueSend).not.toHaveBeenCalled()
   })

@@ -164,7 +164,6 @@ import {
   SheetDescription,
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { useSidebar } from '@duedatehq/ui/components/ui/sidebar'
 
 import {
@@ -293,7 +292,6 @@ type ObligationQueueGroup = (typeof GROUP_OPTIONS)[number]
 const DEFAULT_GROUP: ObligationQueueGroup = 'due'
 const DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS = 3_000
 const DEADLINE_TIP_REFRESH_TIMEOUT_MS = 60_000
-const EXTENSION_SAVE_SUCCESS_TOOLTIP_MS = 1_800
 const EMPTY_OBLIGATION_QUEUE_ROWS: ObligationQueueRow[] = []
 const EMPTY_ASSIGNEES: MemberAssigneeOption[] = []
 const EMPTY_DOCUMENT_CHECKLIST: ReadinessDocumentChecklistItemPublic[] = []
@@ -510,6 +508,36 @@ export function canSaveInternalExtensionPlan({
     memo.trim().length > 0 &&
     isInternalExtensionTargetDateValid(draftTargetDate, filingDeadline)
   )
+}
+
+type ExtensionPlanDraft = {
+  obligationId: string
+  memo: string
+  source: string
+  internalTargetDate: string
+}
+
+export function emptyExtensionPlanDraft(obligationId = ''): ExtensionPlanDraft {
+  return {
+    obligationId,
+    memo: '',
+    source: '',
+    internalTargetDate: '',
+  }
+}
+
+export function extensionPlanDraftFromRow(
+  row: Pick<
+    ObligationQueueRow,
+    'id' | 'extensionInternalTargetDate' | 'extensionMemo' | 'extensionSource'
+  >,
+): ExtensionPlanDraft {
+  return {
+    obligationId: row.id,
+    memo: row.extensionMemo ?? '',
+    source: row.extensionSource ?? '',
+    internalTargetDate: row.extensionInternalTargetDate ?? '',
+  }
 }
 
 function formatFiscalYearEnd(month: number, day: number): string {
@@ -2179,7 +2207,10 @@ export function ObligationQueueRoute() {
         // triage decisions only need the relative urgency, and the
         // date row is signal-to-noise tax.
         cell: ({ row: tableRow }) => (
-          <DueDaysPill days={tableRow.original.daysUntilDue} status={tableRow.original.status} />
+          <DueDaysPill
+            days={daysUntilEffectiveInternalDueDate(tableRow.original)}
+            status={tableRow.original.status}
+          />
         ),
         meta: { cellClassName: `tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}` },
       },
@@ -2192,7 +2223,7 @@ export function ObligationQueueRoute() {
         id: 'dueDateExact',
         header: () => <span>{t`Due date`}</span>,
         cell: ({ row: tableRow }) => {
-          const internal = tableRow.original.currentDueDate
+          const internal = effectiveInternalDueDate(tableRow.original)
           const statutory = tableRow.original.baseDueDate
           const divergent = statutory && statutory !== internal
           return (
@@ -4797,24 +4828,36 @@ function AssigneeQuickPicker({
 // that `features/obligations/status-control.tsx` displays as
 // "Filed" / "Completed".
 //
-// 2026-05-27 (Agent X3 milestone audit M-08/W-4): added `extended`
-// and `not_applicable`. Both are CLOSED_OBLIGATION_STATUSES (per
-// packages/core/src/obligation-workflow/index.ts) — `extended`
-// means the authority granted an extension (the deadline has been
-// moved, so the current internal-due late-counter is calculating
-// against a deadline that no longer matters); `not_applicable`
-// means the obligation doesn't apply (lateness is meaningless).
-// Both used to render the live red "N days late" pill on top of
-// their muted "In review · Extension active" / "Not started"
-// stage labels — a mixed signal saying "this is closed AND has
-// urgent overdue work."
+// 2026-05-29: `extended` stays out of this terminal set. The Extension
+// tab saves an internal target and the detail strip still shows that
+// target as active date context, so the queue cell must not collapse
+// to an em dash just because the row has an extension plan.
 const DUE_DAYS_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set([
   'done',
   'paid',
   'completed',
-  'extended',
   'not_applicable',
 ])
+
+export function isDueDaysSuppressedForStatus(status: ObligationStatus): boolean {
+  return DUE_DAYS_TERMINAL_STATUSES.has(status)
+}
+
+export function effectiveInternalDueDate(
+  row: Pick<ObligationQueueRow, 'currentDueDate' | 'extensionInternalTargetDate'>,
+): string {
+  return row.extensionInternalTargetDate ?? row.currentDueDate
+}
+
+export function daysUntilEffectiveInternalDueDate(
+  row: Pick<ObligationQueueRow, 'currentDueDate' | 'daysUntilDue' | 'extensionInternalTargetDate'>,
+  today = todayIsoDate(),
+): number {
+  const internalDueDate = effectiveInternalDueDate(row)
+  if (internalDueDate === row.currentDueDate) return row.daysUntilDue
+  const ms = new Date(internalDueDate).getTime() - new Date(today).getTime()
+  return Math.round(ms / DAY_MS)
+}
 
 // 2026-05-24 (re-critique): stages whose `isPastInternalDue` red
 // ring should be suppressed in the milestone timeline. Lateness on
@@ -4825,20 +4868,17 @@ const DUE_DAYS_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set([
 const TIMELINE_TERMINAL_STAGE_KEYS: ReadonlySet<string> = new Set(['done', 'completed'])
 
 function DueDaysPill({ days, status }: { days: number; status: ObligationStatus }) {
-  if (DUE_DAYS_TERMINAL_STATUSES.has(status)) {
+  if (isDueDaysSuppressedForStatus(status)) {
     // Quality stat, not active urgency. Skip the dot, drop the
     // urgency tone, render as a muted line. Drop entirely when the
     // row landed exactly on its deadline — no signal there.
     //
-    // 2026-05-27 (Agent X3 milestone audit M-08): `extended` and
-    // `not_applicable` are closed states where the "Filed N days
-    // late/early" phrasing doesn't apply (the row wasn't filed —
-    // `extended` means the deadline was officially extended via an
-    // extension filing; `not_applicable` means the obligation never
-    // applied). Render a quiet em-dash for both so the column still
-    // reserves its baseline without claiming a filing event that
-    // didn't happen.
-    if (status === 'extended' || status === 'not_applicable' || days === 0) {
+    // 2026-05-27 (Agent X3 milestone audit M-08): `not_applicable`
+    // is a closed state where the "Filed N days late/early" phrasing
+    // doesn't apply because the obligation never applied. Render a
+    // quiet em-dash so the column still reserves its baseline without
+    // claiming a filing event that didn't happen.
+    if (status === 'not_applicable' || days === 0) {
       return <span className="text-sm text-text-tertiary tabular-nums">—</span>
     }
     return (
@@ -4982,12 +5022,7 @@ export function ObligationQueueDetailDrawer({
   // computed only to immediately `void` it. If the pill comes back,
   // re-derive from LIFECYCLE_V2_STATUSES / ALL_STATUSES at that
   // point — the cost is negligible.
-  const [extensionDraft, setExtensionDraft] = useState({
-    obligationId: '',
-    memo: '',
-    source: '',
-    internalTargetDate: '',
-  })
+  const [extensionDraft, setExtensionDraft] = useState(() => emptyExtensionPlanDraft())
   const [taxYearDraft, setTaxYearDraft] = useState<{
     obligationId: string
     taxYearType: ObligationQueueRow['taxYearType']
@@ -4997,8 +5032,6 @@ export function ObligationQueueDetailDrawer({
     taxYearType: 'calendar',
     fiscalYearEndDate: '',
   })
-  const [extensionSaveSuccessOpen, setExtensionSaveSuccessOpen] = useState(false)
-  const extensionSaveSuccessTimeoutRef = useRef<number | null>(null)
   // Previous-value snapshots for the In Review sub-status mutations.
   // Captured at click time (in the handlers passed to ActiveStageDetailCard)
   // so the success toast can offer an Undo that fires the reverse
@@ -5216,12 +5249,7 @@ export function ObligationQueueDetailDrawer({
   const taxYearProfileEditable = Boolean(row?.taxYearProfileEditable)
 
   if (row && extensionDraft.obligationId !== row.id) {
-    setExtensionDraft({
-      obligationId: row.id,
-      memo: row.extensionMemo ?? '',
-      source: row.extensionSource ?? '',
-      internalTargetDate: row.extensionInternalTargetDate ?? '',
-    })
+    setExtensionDraft(extensionPlanDraftFromRow(row))
   }
   if (row && taxYearDraft.obligationId !== row.id) {
     setTaxYearDraft({
@@ -5464,16 +5492,9 @@ export function ObligationQueueDetailDrawer({
   )
   const decideExtensionMutation = useMutation(
     orpc.obligations.decideExtension.mutationOptions({
-      onSuccess: (result) => {
+      onSuccess: (result, variables) => {
         invalidateDetail()
-        setExtensionSaveSuccessOpen(true)
-        if (extensionSaveSuccessTimeoutRef.current !== null) {
-          window.clearTimeout(extensionSaveSuccessTimeoutRef.current)
-        }
-        extensionSaveSuccessTimeoutRef.current = window.setTimeout(() => {
-          setExtensionSaveSuccessOpen(false)
-          extensionSaveSuccessTimeoutRef.current = null
-        }, EXTENSION_SAVE_SUCCESS_TOOLTIP_MS)
+        setExtensionDraft(emptyExtensionPlanDraft(variables.id))
         toast.success(t`Extension plan saved`, {
           description: t`Audit ${result.auditId.slice(0, 8)}`,
         })
@@ -7393,24 +7414,13 @@ export function ObligationQueueDetailDrawer({
                     }
                   />
                   <div className="flex flex-wrap items-center gap-3">
-                    <Tooltip open={extensionSaveSuccessOpen}>
-                      <TooltipTrigger
-                        render={
-                          <span className="inline-flex w-fit">
-                            <Button
-                              className="w-fit"
-                              onClick={saveExtensionDecision}
-                              disabled={saveExtensionPlanDisabled}
-                            >
-                              <Trans>Save extension</Trans>
-                            </Button>
-                          </span>
-                        }
-                      />
-                      <TooltipContent>
-                        <Trans>Extension plan saved</Trans>
-                      </TooltipContent>
-                    </Tooltip>
+                    <Button
+                      className="w-fit"
+                      onClick={saveExtensionDecision}
+                      disabled={saveExtensionPlanDisabled}
+                    >
+                      <Trans>Save extension</Trans>
+                    </Button>
                     {/* Decided-at hint replaces the prior right-sidebar
                           status block. Current status + internal target
                           date were duplicates of the drawer header + the

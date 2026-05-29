@@ -1,0 +1,12 @@
+Received: from newsletter.example.test (newsletter.example.test [127.0.0.1])
+  by cloudflare-email.com with ESMTP id unmatched-smoke
+  for <pulse-ingest@duedatehq.com>; Fri, 29 May 2026 03:10:00 +0000
+From: "Unmatched Newsletter" <updates@example.test>
+To: pulse-ingest@duedatehq.com
+Subject: Generic newsletter with no official source link
+Date: Fri, 29 May 2026 03:10:00 +0000
+Message-ID: <unmatched-smoke-20260529@duedatehq.test>
+Content-Type: text/plain; charset=utf-8
+
+This message intentionally has no trusted sender, List-ID, or official source URL.
+It should archive to govdelivery.inbound.unmatched and should not enqueue pulse.extract.

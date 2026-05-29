@@ -363,7 +363,8 @@ describe('@duedatehq/core/rules', () => {
   })
 
   it('keeps email subscription source routing metadata internal to source governance', () => {
-    const source = listRuleSources().find((candidate) => candidate.id === 'ny.email_services')
+    const sourcesById = new Map(listRuleSources().map((candidate) => [candidate.id, candidate]))
+    const source = sourcesById.get('ny.email_services')
 
     expect(source?.sourceType).toBe('subscription')
     expect(source?.acquisitionMethod).toBe('email_subscription')
@@ -373,15 +374,35 @@ describe('@duedatehq/core/rules', () => {
     })
     expect(isParserBackedRuleSource(source!)).toBe(false)
 
-    const ohioSource = listRuleSources().find(
-      (candidate) => candidate.id === 'oh.temporary_announcements',
-    )
+    const ohioSource = sourcesById.get('oh.temporary_announcements')
     expect(ohioSource?.acquisitionMethod).toBe('email_subscription')
     expect(ohioSource?.adapterKind).toBe('email_inbound')
     expect(ohioSource?.inboundEmail).toMatchObject({
       localParts: ['pulse-ingest+oh-tax-alerts'],
       canonicalUrlHosts: ['content.govdelivery.com', 'tax.ohio.gov'],
     })
+
+    expect(sourcesById.get('fl.tips')?.inboundEmail).toMatchObject({
+      localParts: ['pulse-ingest+fl-tax-publications'],
+      canonicalUrlHosts: ['floridarevenue.com', 'www.floridarevenue.com'],
+    })
+    expect(sourcesById.get('wa.news')?.inboundEmail).toMatchObject({
+      localParts: ['pulse-ingest+wa-dor-news'],
+      canonicalUrlHosts: ['content.govdelivery.com', 'dor.wa.gov', 'www.dor.wa.gov'],
+    })
+    expect(sourcesById.get('ma.temporary_announcements')?.inboundEmail).toMatchObject({
+      localParts: ['pulse-ingest+ma-dor-press'],
+      canonicalUrlHosts: ['content.govdelivery.com', 'mass.gov', 'www.mass.gov'],
+    })
+    expect(sourcesById.get('tx.temporary_announcements')?.inboundEmail).toMatchObject({
+      localParts: ['pulse-ingest+tx-comptroller-news'],
+      canonicalUrlHosts: ['content.govdelivery.com', 'comptroller.texas.gov'],
+    })
+
+    const localParts = listRuleSources().flatMap(
+      (candidate) => candidate.inboundEmail?.localParts ?? [],
+    )
+    expect(new Set(localParts).size).toBe(localParts.length)
   })
 
   it('does not let temporary watch sources satisfy baseline source coverage', () => {

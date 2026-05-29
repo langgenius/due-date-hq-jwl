@@ -202,16 +202,22 @@ function resolveInboundEmailSource(
     trustSignalMatchesSource(source, message, rawText),
   )
   const fallbackAddressed = localParts.some((part) => FALLBACK_LOCAL_PARTS.has(part))
-  const trustedMatches = sources.filter((source) =>
-    trustSignalMatchesSource(source, message, rawText),
-  )
+  const listIdMatches = sources.filter((source) => listIdMatchesSource(source, message.headers))
+  const urlMatches = sources.filter((source) => firstCanonicalSourceUrl(source, rawText) !== null)
+  const senderMatches = sources.filter((source) => senderMatchesSource(source, message))
+  const fallbackSource =
+    listIdMatches.length === 1
+      ? listIdMatches[0]
+      : listIdMatches.length === 0 && urlMatches.length === 1
+        ? urlMatches[0]
+        : listIdMatches.length === 0 && urlMatches.length === 0 && senderMatches.length === 1
+          ? senderMatches[0]
+          : null
   const matchedSource =
     trustedDirectMatches.length === 1
       ? trustedDirectMatches[0]
       : directMatches.length === 0 || fallbackAddressed
-        ? trustedMatches.length === 1
-          ? trustedMatches[0]
-          : null
+        ? fallbackSource
         : null
 
   if (matchedSource) {
@@ -262,6 +268,12 @@ export async function ingestGovDeliveryEmail(
     rawR2Key: archived.r2Key,
   })
   const queued = result.inserted && resolution.matched
+  if (result.inserted && !resolution.matched) {
+    await repo.updateSourceSnapshotStatus(result.snapshot.id, {
+      parseStatus: 'ignored',
+      failureReason: 'unmatched_inbound_email',
+    })
+  }
   if (queued) {
     await env.PULSE_QUEUE.send({
       type: 'pulse.extract',
