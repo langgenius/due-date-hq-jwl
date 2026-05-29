@@ -76,8 +76,14 @@ export function Step3Normalize({
             implied the source data was dirty — a passive
             criticism of the user's roster. "Standardized" is
             neutral and matches the step's own name
-            ("Normalize") with no value judgment. */}
-        <h2 className="text-lg font-semibold text-text-primary">
+            ("Normalize") with no value judgment.
+
+            2026-05-29 (Yuqi — wizard title hierarchy): step h2 from
+            text-lg → text-base; the wizard frame title "Import
+            clients" is now text-lg (master), and step h2s sit one
+            notch down as sub-sections. See Step 2 + WizardShell for
+            the same rationale. */}
+        <h2 className="text-base font-semibold text-text-primary">
           <Trans>AI standardized your values</Trans>
         </h2>
         {/* 2026-05-29 (R4 migration polish, follow-up): the

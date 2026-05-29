@@ -150,11 +150,31 @@ function WizardFrame({
           - The "Step N / 4" breadcrumb duplicated the Stepper
             below — same info, two surfaces (#34, #36).
           Fixed: dropped the dot, drop the breadcrumb, set
-          "Import" as a real `text-base font-semibold` title in
-          regular case. Step progress lives in the Stepper below
-          as the single source of truth. */}
-      <header className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-4">
-        <h2 className="text-base font-semibold text-text-primary">
+          "Import" as a real `font-semibold` title in regular case.
+          Step progress lives in the Stepper below as the single
+          source of truth.
+
+          2026-05-29 (Yuqi — wizard title hierarchy): bumped from
+          `text-base` to `text-lg`. The wizard title is the MASTER
+          for this card (each step's h2 below describes the current
+          step's outcome — child content). With both sitting at the
+          same weight, the master must be the larger of the two.
+          Previously: wizard title text-base + step h2 text-lg made
+          step content visually outrank the section title, so a
+          first-time user reading top-to-bottom thought "AI prepared
+          your columns" was the page title and "Import clients" was
+          a kicker. Step h2s now sit at text-base (see Step 2/3/4),
+          so the hierarchy reads page-H1 (text-2xl) > wizard title
+          (text-lg) > step h2 (text-base). */}
+      <header
+        className={cn(
+          'flex shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-4',
+          // Bumped row height to keep the larger title vertically
+          // centered with the close-button cluster on the right.
+          'h-12',
+        )}
+      >
+        <h2 className="text-lg font-semibold text-text-primary">
           <ConceptLabel concept="migrationCopilot">
             <Trans>Import clients</Trans>
           </ConceptLabel>

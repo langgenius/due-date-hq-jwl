@@ -33,7 +33,12 @@ export function Step4Preview({ summary }: Step4Props) {
   return (
     <div className="flex flex-col gap-4 py-5">
       <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold text-text-primary">
+        {/* 2026-05-29 (Yuqi — wizard title hierarchy): step h2 from
+            text-lg → text-base; the wizard frame title "Import
+            clients" is now text-lg (master), and step h2s sit one
+            notch down as sub-sections. See Step 2 + WizardShell for
+            the same rationale. */}
+        <h2 className="text-base font-semibold text-text-primary">
           <Trans>Ready to import</Trans>
         </h2>
         {/* 2026-05-25 (Wizard #40 copy polish): added terminal
