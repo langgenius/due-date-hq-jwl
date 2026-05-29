@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type MouseEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -1411,6 +1411,16 @@ function MissingDetailBadgeLabel({
   return null
 }
 
+function openNativeDatePicker(event: MouseEvent<HTMLInputElement>) {
+  const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void }
+  input.focus()
+  try {
+    input.showPicker?.()
+  } catch {
+    // Some browsers throw if the picker is unavailable; focus still keeps the field usable.
+  }
+}
+
 function DeadlineDetailsPanel({
   detail,
   canManage,
@@ -1492,6 +1502,7 @@ function DeadlineDetailsPanel({
             className="cursor-pointer"
             value={newDueDate}
             disabled={!canManage || pending}
+            onClick={openNativeDatePicker}
             onChange={(event) => setNewDueDate(event.target.value)}
           />
         </div>

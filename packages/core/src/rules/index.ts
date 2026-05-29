@@ -164,6 +164,13 @@ export interface LocalJurisdictionRef {
   sourceAuthority: string
 }
 
+export interface InboundEmailRuleSourceConfig {
+  localParts: readonly string[]
+  senderDomains: readonly string[]
+  listIdPatterns: readonly string[]
+  canonicalUrlHosts: readonly string[]
+}
+
 export interface RuleSource {
   id: string
   jurisdiction: RuleJurisdiction
@@ -184,6 +191,7 @@ export interface RuleSource {
   lastReviewedOn: string
   adapterKind?: SourceAdapterKind
   feedUrl?: string
+  inboundEmail?: InboundEmailRuleSourceConfig
 }
 
 export type EntityApplicability =
@@ -4117,6 +4125,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   priority?: SourcePriority
   adapterKind?: SourceAdapterKind
   feedUrl?: string
+  inboundEmail?: InboundEmailRuleSourceConfig
 }[] = [
   {
     id: 'ak.temporary_announcements',
@@ -4357,6 +4366,18 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'OH',
     title: 'Ohio Department of Taxation Tax Alerts',
     url: 'https://public.govdelivery.com/accounts/OHTAX/subscriber/new',
+    acquisitionMethod: 'email_subscription',
+    adapterKind: 'email_inbound',
+    inboundEmail: {
+      localParts: ['pulse-ingest+oh-tax-alerts'],
+      senderDomains: [
+        'content.govdelivery.com',
+        'public.govdelivery.com',
+        'service.govdelivery.com',
+      ],
+      listIdPatterns: ['ohtax', 'ohio department of taxation', 'ohio tax'],
+      canonicalUrlHosts: ['content.govdelivery.com', 'tax.ohio.gov'],
+    },
   },
   {
     id: 'ok.temporary_announcements',
@@ -4480,6 +4501,7 @@ const TEMPORARY_ANNOUNCEMENT_RULE_SOURCES = STATE_TEMPORARY_ANNOUNCEMENT_SOURCES
     }
     if (source.adapterKind) record.adapterKind = source.adapterKind
     if (source.feedUrl) record.feedUrl = source.feedUrl
+    if (source.inboundEmail) record.inboundEmail = source.inboundEmail
     return record
   },
 )
@@ -4924,6 +4946,12 @@ export const RULE_SOURCES = hydrateRuleSources([
     isEarlyWarning: false,
     notificationChannels: ['source_change', 'practice_rule_review'],
     lastReviewedOn: VERIFIED_AT,
+    inboundEmail: {
+      localParts: ['pulse-ingest+ny-email-services'],
+      senderDomains: ['public.govdelivery.com', 'service.govdelivery.com', 'tax.ny.gov'],
+      listIdPatterns: ['tax.ny.gov', 'new-york-tax-department', 'new york tax department'],
+      canonicalUrlHosts: ['tax.ny.gov', 'www.tax.ny.gov'],
+    },
   },
   {
     id: 'ny.article_9a',
@@ -9414,6 +9442,7 @@ const TEMPORARY_ANNOUNCEMENT_ACQUISITION_METHODS = new Set<AcquisitionMethod>([
   'html_watch',
   'pdf_watch',
   'api_watch',
+  'email_subscription',
 ])
 
 function sourceVerificationStatus(source: RuleSource): SourceCoverageStatus {
@@ -9435,7 +9464,9 @@ export function isCoveredTemporaryAnnouncementSource(source: RuleSource): boolea
     isTemporaryAnnouncementSource(source) &&
     source.healthStatus === 'healthy' &&
     TEMPORARY_ANNOUNCEMENT_ACQUISITION_METHODS.has(source.acquisitionMethod) &&
-    (source.acquisitionMethod !== 'api_watch' || source.adapterKind === 'rss_or_announcement_list')
+    (source.acquisitionMethod !== 'api_watch' ||
+      source.adapterKind === 'rss_or_announcement_list') &&
+    (source.acquisitionMethod !== 'email_subscription' || source.adapterKind === 'email_inbound')
   )
 }
 
@@ -9769,7 +9800,10 @@ function policyWatchSourceReliability(source: PolicyWatchSource): {
         'Replace it with an official tax news, alert, update, relief, or notice list.',
     }
   }
-  if (url.includes('public.govdelivery.com/accounts/OHTAX/subscriber/new')) {
+  if (
+    url.includes('public.govdelivery.com/accounts/OHTAX/subscriber/new') &&
+    source.adapterKind !== 'email_inbound'
+  ) {
     return {
       quality: 'needs_replacement',
       failureReason:

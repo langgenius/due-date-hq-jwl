@@ -258,6 +258,8 @@ describe('rule source adapters', () => {
   it('keeps non-tax early-signal sources review-only', () => {
     expect(requiresReviewOnlyPulseAlert('fema.declarations')).toBe(true)
     expect(requiresReviewOnlyPulseAlert('govdelivery.inbound')).toBe(true)
+    expect(requiresReviewOnlyPulseAlert('govdelivery.inbound.unmatched')).toBe(true)
+    expect(requiresReviewOnlyPulseAlert('ny.email_services')).toBe(false)
   })
 
   it('keeps concrete basis sources from the rules registry in the extract queue', () => {

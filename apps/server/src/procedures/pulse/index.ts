@@ -58,6 +58,9 @@ const SOURCE_LABELS: Record<string, string> = {
   'ma.dor.press': 'MA DOR Press',
   'fema.declarations': 'FEMA declarations',
   'ny.dtf.press': 'NY DTF Press',
+  'ny.email_services': 'NY Tax Department Email Services',
+  'govdelivery.inbound': 'GovDelivery inbound email',
+  'govdelivery.inbound.unmatched': 'GovDelivery unmatched email',
 }
 const PULSE_REVIEW_ROLES = ['owner', 'partner', 'manager'] as const
 
@@ -154,7 +157,7 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     changeKind: row.changeKind,
     actionMode: row.actionMode,
     title: row.title,
-    source: row.source,
+    source: SOURCE_LABELS[row.source] ?? row.source,
     sourceUrl: row.sourceUrl,
     summary: row.summary,
     publishedAt: row.publishedAt.toISOString(),

@@ -230,6 +230,7 @@ export function isPolicyWatchPulsePromoted(source: PolicyWatchSource): boolean {
 
 export function isPolicyWatchAdapterEligible(source: PolicyWatchSource): boolean {
   const automationStatus = policyWatchAutomationStatusForSource(source)
+  if (parserBackedAdapterKindForSource(source) === 'email_inbound') return false
   return automationStatus !== 'manual_review' && automationStatus !== 'blocked'
 }
 
@@ -270,7 +271,11 @@ export function isHiddenPolicyWatchSourceId(sourceId: string): boolean {
   return hiddenPolicyWatchSourceIds.has(sourceId)
 }
 
-export const reviewOnlyPulseSourceIds = new Set(['fema.declarations', 'govdelivery.inbound'])
+export const reviewOnlyPulseSourceIds = new Set([
+  'fema.declarations',
+  'govdelivery.inbound',
+  'govdelivery.inbound.unmatched',
+])
 
 export function requiresReviewOnlyPulseAlert(sourceId: string): boolean {
   return reviewOnlyPulseSourceIds.has(sourceId)

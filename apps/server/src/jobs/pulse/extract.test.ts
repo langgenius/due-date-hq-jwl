@@ -206,6 +206,57 @@ describe('extractPulseSnapshot', () => {
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
   })
 
+  it('keeps official email subscription sources eligible for Apply-readiness candidates', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      id: 'snapshot-ny-email',
+      sourceId: 'ny.email_services',
+      title: 'NY Tax Department filing update',
+      officialSourceUrl: 'https://www.tax.ny.gov/news/2026/deadline-relief.htm',
+      publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+      rawR2Key: 'raw/ny-email.txt',
+      pulseId: null,
+      parseStatus: 'pending_extract',
+    })
+    aiMocks.extractPulse.mockResolvedValue({
+      result: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
+        summary: 'New York extends selected filing deadlines.',
+        sourceExcerpt: 'extended from April 15, 2026 to October 15, 2026',
+        jurisdiction: 'NY',
+        counties: [],
+        forms: ['ny_it201'],
+        entityTypes: ['individual'],
+        originalDueDate: '2026-04-15',
+        newDueDate: '2026-10-15',
+        effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
+        confidence: 0.88,
+      },
+      trace: {
+        promptVersion: 'pulse-extract@v2',
+        model: 'test-model',
+        inputHash: 'hash',
+        guardResult: 'pass',
+        latencyMs: 1,
+      },
+      model: 'test-model',
+      refusal: null,
+    })
+
+    await extractPulseSnapshot(env(), 'snapshot-ny-email')
+
+    expect(repoMocks.findDuplicatePulseForExtract).toHaveBeenCalledWith(
+      expect.objectContaining({ actionMode: 'due_date_overlay' }),
+    )
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({ actionMode: 'due_date_overlay' }),
+    )
+  })
+
   it('keeps incomplete due-date overlay evidence as an Apply-readiness candidate', async () => {
     repoMocks.getSourceSnapshot.mockResolvedValue({
       id: 'snapshot-incomplete',

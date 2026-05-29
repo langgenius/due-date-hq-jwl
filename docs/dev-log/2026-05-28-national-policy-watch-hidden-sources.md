@@ -43,6 +43,9 @@ states + DC.
 - Replaced the generic Wyoming DOR homepage watch with the official Wyoming DOR Rules and
   Regulations page and expanded announcement matching for rules-and-regulations/effective-date
   links.
+- Replaced the OH GovDelivery subscription-page polling placeholder with an `email_inbound`
+  configuration for Ohio Tax Alerts. OHTAX messages now match `oh.temporary_announcements` through
+  the GovDelivery inbound email path instead of trying to scrape the subscriber signup page.
 - Browserless target requests now use browser-compatible page headers instead of forwarding the
   Pulse bot user agent into WAF-protected government pages.
 - Removed the separate legacy source-event product/interface path. Parsed items now write

@@ -178,12 +178,16 @@ describe('@duedatehq/core/rules', () => {
         if (!source) continue
         expect(isCoveredTemporaryAnnouncementSource(source), sourceId).toBe(true)
         expect(source.authorityRole, sourceId).toBe('watch')
-        expect(['html_watch', 'pdf_watch', 'api_watch'], sourceId).toContain(
+        expect(['html_watch', 'pdf_watch', 'api_watch', 'email_subscription'], sourceId).toContain(
           source.acquisitionMethod,
         )
         if (source.acquisitionMethod === 'api_watch') {
           expect(source.adapterKind, sourceId).toBe('rss_or_announcement_list')
           expect(source.feedUrl, sourceId).toMatch(/^https:\/\//)
+        }
+        if (source.acquisitionMethod === 'email_subscription') {
+          expect(source.adapterKind, sourceId).toBe('email_inbound')
+          expect(source.inboundEmail?.localParts.length, sourceId).toBeGreaterThan(0)
         }
         expect(['emergency_relief', 'news'], sourceId).toContain(source.sourceType)
       }
@@ -327,8 +331,9 @@ describe('@duedatehq/core/rules', () => {
       adapterKind: 'pdf_index',
     })
     expect(rowsBySourceId.get('policy-watch.oh.announcements')).toMatchObject({
-      quality: 'needs_replacement',
-      failureReason: expect.stringContaining('subscription page'),
+      quality: 'parser_ready',
+      url: 'https://public.govdelivery.com/accounts/OHTAX/subscriber/new',
+      adapterKind: 'email_inbound',
     })
     expect(rowsBySourceId.get('policy-watch.wy.announcements')).toMatchObject({
       quality: 'parser_ready',
@@ -355,6 +360,28 @@ describe('@duedatehq/core/rules', () => {
       expect(source, sourceId).toBeDefined()
       expect(isParserBackedRuleSource(source!), sourceId).toBe(true)
     }
+  })
+
+  it('keeps email subscription source routing metadata internal to source governance', () => {
+    const source = listRuleSources().find((candidate) => candidate.id === 'ny.email_services')
+
+    expect(source?.sourceType).toBe('subscription')
+    expect(source?.acquisitionMethod).toBe('email_subscription')
+    expect(source?.inboundEmail).toMatchObject({
+      localParts: ['pulse-ingest+ny-email-services'],
+      canonicalUrlHosts: ['tax.ny.gov', 'www.tax.ny.gov'],
+    })
+    expect(isParserBackedRuleSource(source!)).toBe(false)
+
+    const ohioSource = listRuleSources().find(
+      (candidate) => candidate.id === 'oh.temporary_announcements',
+    )
+    expect(ohioSource?.acquisitionMethod).toBe('email_subscription')
+    expect(ohioSource?.adapterKind).toBe('email_inbound')
+    expect(ohioSource?.inboundEmail).toMatchObject({
+      localParts: ['pulse-ingest+oh-tax-alerts'],
+      canonicalUrlHosts: ['content.govdelivery.com', 'tax.ohio.gov'],
+    })
   })
 
   it('does not let temporary watch sources satisfy baseline source coverage', () => {

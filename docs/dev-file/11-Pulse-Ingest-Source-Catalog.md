@@ -259,6 +259,18 @@ pulse.ingest.confidence_avg_24h   (gauge,     label: source_id)
    非税务权威 early notice 为 `review_only`，官方税务 due-date candidate 走 `applyReadiness`
    gate
 
+**2026-05-29 实现边界：** inbound email 现在按 source 归因，而不是固定写入
+`govdelivery.inbound`。优先通过 plus-addressing（例如
+`pulse-ingest+ny-email-services@<inbound-domain>`）匹配具体 source；普通
+`pulse-ingest@<inbound-domain>` 只在 sender / `List-ID` / 正文 canonical `.gov` URL 能唯一指向
+一个 source 时才归因。未匹配邮件写入 `govdelivery.inbound.unmatched`，不投递
+`pulse.extract`，因此不会生成 CPA-facing Alert。
+
+**部署要求：** 代码不会自动创建收件邮箱。生产或 staging 必须在 Cloudflare Email Routing 中
+为实际接收域配置 MX 和 route，把 `pulse-ingest*` 收件地址转发到 SaaS Worker 的 `email()`
+handler；否则邮件会按该域现有 MX 投递，或在没有有效收件路由时退信，DueDateHQ Worker
+不会收到。
+
 **优点：** 用户主动订阅、零反爬、低工程维护成本。
 **缺点：** 延迟高（取决于 DOR 发信间隔，通常 1-24h），做**最后一道兜底**而非主路径。
 

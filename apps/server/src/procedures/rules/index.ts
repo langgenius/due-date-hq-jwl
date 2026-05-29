@@ -71,7 +71,7 @@ const BUSINESS_COVERAGE_ENTITIES = new Set<keyof RuleCoverageRow['entityCoverage
 ])
 
 function toSource(source: ReturnType<typeof listRuleSources>[number]): RuleSource {
-  const { localFactRequirements, ...sourceRest } = source
+  const { inboundEmail: _inboundEmail, localFactRequirements, ...sourceRest } = source
   return {
     ...sourceRest,
     ...(localFactRequirements !== undefined
