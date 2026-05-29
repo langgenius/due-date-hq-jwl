@@ -20,3 +20,11 @@
   snoozes it, but it does not trigger proactive email/in-app notification.
 - Source-level `actionMode` remains whatever extraction produced; a firm's lack of open deadline
   matches does not downgrade the source Pulse to global `review_only`.
+
+## Duplicate extract follow-up
+
+- Refreshed firm alerts when a queued source snapshot is classified as a duplicate of an existing
+  approved Pulse. The snapshot still ends as `duplicate`, but the approved Pulse now re-runs the
+  firm-wide alert fan-out so newly enabled firm-wide visibility is backfilled during resend tests.
+- Kept duplicate snapshots that point to non-approved or missing Pulse rows side-effect-free; they
+  report `alertCount=0` in the extract metric.

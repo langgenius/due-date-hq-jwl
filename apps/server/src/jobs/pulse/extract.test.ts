@@ -10,6 +10,7 @@ const { aiMocks, dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
     getSourceSnapshot: vi.fn(),
     updateSourceSnapshotStatus: vi.fn(),
     findDuplicatePulseForExtract: vi.fn(),
+    refreshFirmAlertsForApprovedPulse: vi.fn(),
     createPulseForFirmReviewFromExtract: vi.fn(),
     apply: vi.fn(),
     applyReviewed: vi.fn(),
@@ -90,6 +91,7 @@ describe('extractPulseSnapshot', () => {
     Object.values(repoMocks).forEach((mock) => mock.mockReset())
     aiMocks.createAI.mockReturnValue({ extractPulse: aiMocks.extractPulse })
     repoMocks.findDuplicatePulseForExtract.mockResolvedValue(null)
+    repoMocks.refreshFirmAlertsForApprovedPulse.mockResolvedValue(0)
     repoMocks.createPulseForFirmReviewFromExtract.mockResolvedValue({ pulseId: 'pulse-created' })
     repoMocks.apply.mockRejectedValue(new Error('extract must not apply deadline changes'))
     repoMocks.applyReviewed.mockRejectedValue(
@@ -141,6 +143,7 @@ describe('extractPulseSnapshot', () => {
     const result = await extractPulseSnapshot(env(), 'snapshot-1')
 
     expect(result).toEqual({ pulseId: 'pulse-existing', status: 'skipped' })
+    expect(repoMocks.refreshFirmAlertsForApprovedPulse).toHaveBeenCalledWith('pulse-existing')
     expect(repoMocks.createPulseForFirmReviewFromExtract).not.toHaveBeenCalled()
     expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith('snapshot-1', {
       parseStatus: 'duplicate',

@@ -3567,6 +3567,12 @@ export function makePulseOpsRepo(db: Db) {
       return duplicate?.id ?? null
     },
 
+    async refreshFirmAlertsForApprovedPulse(pulseId: string): Promise<number> {
+      const row = await getPulse(pulseId)
+      if (!row || row.status !== 'approved') return 0
+      return refreshFirmAlertsForPulse(pulseId)
+    },
+
     async createPulseForFirmReviewFromExtract(
       input: PulseExtractInput,
     ): Promise<{ pulseId: string; alertCount: number }> {

@@ -10,6 +10,7 @@ type PulseExtractRepo = Pick<
   | 'getSourceSnapshot'
   | 'updateSourceSnapshotStatus'
   | 'findDuplicatePulseForExtract'
+  | 'refreshFirmAlertsForApprovedPulse'
   | 'createPulseForFirmReviewFromExtract'
 >
 
@@ -20,6 +21,7 @@ function makePulseExtractRepo(db: ReturnType<typeof createDb>): PulseExtractRepo
     updateSourceSnapshotStatus: (snapshotId, patch) =>
       repo.updateSourceSnapshotStatus(snapshotId, patch),
     findDuplicatePulseForExtract: (input) => repo.findDuplicatePulseForExtract(input),
+    refreshFirmAlertsForApprovedPulse: (pulseId) => repo.refreshFirmAlertsForApprovedPulse(pulseId),
     createPulseForFirmReviewFromExtract: (input) => repo.createPulseForFirmReviewFromExtract(input),
   }
 }
@@ -182,6 +184,7 @@ export async function extractPulseSnapshot(
     actionMode,
   })
   if (duplicatePulseId) {
+    const alertCount = await repo.refreshFirmAlertsForApprovedPulse(duplicatePulseId)
     await repo.updateSourceSnapshotStatus(snapshotId, {
       parseStatus: 'duplicate',
       pulseId: duplicatePulseId,
@@ -194,6 +197,7 @@ export async function extractPulseSnapshot(
       result: 'duplicate',
       refusalCode: null,
       confidence: result.result.confidence,
+      alertCount,
     })
     return { pulseId: duplicatePulseId, status: 'skipped' }
   }

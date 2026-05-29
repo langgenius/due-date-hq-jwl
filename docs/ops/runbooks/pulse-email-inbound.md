@@ -116,7 +116,8 @@ For deployed staging/prod, verify in this order:
   subaddressing is enabled.
 - Plus-address mail routes as unmatched: confirm the base route is `pulse-ingest@...`, not only a
   literal plus-address route, and confirm the source has `inboundEmail.localParts` configured.
-- Snapshot exists but no CPA Alert appears: check `parse_status`; no-regulatory-change output is
-  intentionally ignored, and incomplete due-date changes may require review before Apply is enabled.
+- Snapshot exists but no CPA Alert appears: check `parse_status` and the `pulse.extract.result`
+  metric. `ignored` means the extractor found no regulatory change; `failed` needs the failure
+  reason; `duplicate` should refresh firm alerts when it points to an approved Pulse.
 - Unmatched volume increases: inspect sender, `List-ID`, and body URLs, then add or tighten source
   registry metadata only after confirming the source is official.
