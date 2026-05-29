@@ -110,6 +110,7 @@ export const FirmPublicSchema = z.object({
   seatLimit: z.number().int().min(1),
   timezone: z.string().min(1),
   internalDeadlineOffsetDays: InternalDeadlineOffsetDaysSchema,
+  monitoringStartDate: z.iso.date(),
   status: FirmStatusSchema,
   role: FirmRoleSchema,
   ownerUserId: z.string().min(1),
@@ -128,6 +129,7 @@ export const FirmCreateInputSchema = z.object({
   internalDeadlineOffsetDays: InternalDeadlineOffsetDaysSchema.default(
     DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
   ),
+  monitoringStartDate: z.iso.date().optional(),
 })
 
 export const FirmUpdateInputSchema = z.object({

@@ -819,6 +819,8 @@ export function RulesLibraryRoute() {
   const [batchReviewRuleIds, setBatchReviewRuleIds] = useState<string[] | null>(null)
   const [batchReviewIndex, setBatchReviewIndex] = useState<number | null>(null)
   const [batchReviewDirty, setBatchReviewDirty] = useState(false)
+  const batchAcceptedRuleIdsRef = useRef<Set<string>>(new Set())
+  const autoExpandAfterBatchRef = useRef<Set<RuleJurisdiction>>(new Set())
   // New-rule modal. `null` = closed. Setting to an object opens the
   // modal with the given seed (used to pre-fill jurisdiction + entity
   // when launched from a "+ Add rule" gap row).
@@ -868,6 +870,7 @@ export function RulesLibraryRoute() {
     () => buildGroups(filteredRules, coverageRows),
     [filteredRules, coverageRows],
   )
+  const allCatalogGroups = useMemo(() => buildGroups(rules, coverageRows), [rules, coverageRows])
   const filteredGroups = useMemo(() => {
     if (activeScope !== 'missing') return groupsAll
     // Missing scope: only state groups that have at least one
@@ -985,11 +988,23 @@ export function RulesLibraryRoute() {
   )
   // useMemo on the fingerprint gives us a single re-init point.
   useMemo(() => {
-    setExpanded(defaultExpandedSet())
+    const visibleJurisdictions = new Set(
+      jurisdictionFingerprint
+        .split(',')
+        .filter((value): value is RuleJurisdiction => value.length > 0),
+    )
+    setExpanded(() => {
+      const next = defaultExpandedSet()
+      for (const jurisdiction of autoExpandAfterBatchRef.current) {
+        if (visibleJurisdictions.has(jurisdiction)) next.add(jurisdiction)
+      }
+      return next
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
   }, [jurisdictionFingerprint])
 
   const toggleGroup = useCallback((jur: RuleJurisdiction) => {
+    autoExpandAfterBatchRef.current.delete(jur)
     setExpanded((current) => {
       const next = new Set(current)
       if (next.has(jur)) next.delete(jur)
@@ -1002,6 +1017,7 @@ export function RulesLibraryRoute() {
     setExpanded(new Set(groups.map((g) => g.jurisdiction)))
   }, [groups])
   const collapseAll = useCallback(() => {
+    autoExpandAfterBatchRef.current = new Set()
     setExpanded(new Set())
   }, [])
 
@@ -1123,10 +1139,33 @@ export function RulesLibraryRoute() {
 
   const openBatchReview = useCallback(() => {
     if (selectedReviewRules.length === 0) return
+    batchAcceptedRuleIdsRef.current = new Set()
+    autoExpandAfterBatchRef.current = new Set()
     setBatchReviewRuleIds(selectedReviewRules.map((rule) => rule.id))
     setBatchReviewIndex(0)
     setBatchReviewDirty(false)
   }, [selectedReviewRules])
+
+  const completedJurisdictionsForAcceptedBatch = useCallback(
+    (acceptedRuleIds: ReadonlySet<string>) => {
+      const completed = new Set<RuleJurisdiction>()
+      if (acceptedRuleIds.size === 0) return completed
+      for (const group of allCatalogGroups) {
+        if (group.rules.length === 0 || group.gapEntities.length > 0) continue
+        let acceptedRuleInGroup = false
+        const fullyActiveAfterAccept = group.rules.every((rule) => {
+          if (rule.status === 'active' || rule.status === 'verified') return true
+          const acceptedInThisBatch =
+            acceptedRuleIds.has(rule.id) && statusGroupOf(rule.status) === 'needs_review'
+          if (acceptedInThisBatch) acceptedRuleInGroup = true
+          return acceptedInThisBatch
+        })
+        if (acceptedRuleInGroup && fullyActiveAfterAccept) completed.add(group.jurisdiction)
+      }
+      return completed
+    },
+    [allCatalogGroups],
+  )
 
   const refreshAfterBatchReview = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: orpc.rules.listRules.key() })
@@ -1141,12 +1180,26 @@ export function RulesLibraryRoute() {
 
   const finishBatchReview = useCallback(
     (shouldRefresh: boolean) => {
-      if (shouldRefresh) refreshAfterBatchReview()
+      if (shouldRefresh) {
+        const completedJurisdictions = completedJurisdictionsForAcceptedBatch(
+          batchAcceptedRuleIdsRef.current,
+        )
+        autoExpandAfterBatchRef.current = completedJurisdictions
+        if (completedJurisdictions.size > 0) {
+          setExpanded((current) => {
+            const next = new Set(current)
+            for (const jurisdiction of completedJurisdictions) next.add(jurisdiction)
+            return next
+          })
+        }
+        refreshAfterBatchReview()
+      }
+      batchAcceptedRuleIdsRef.current = new Set()
       setBatchReviewRuleIds(null)
       setBatchReviewIndex(null)
       setBatchReviewDirty(false)
     },
-    [refreshAfterBatchReview],
+    [completedJurisdictionsForAcceptedBatch, refreshAfterBatchReview],
   )
 
   const closeBatchReview = useCallback(() => {
@@ -1168,6 +1221,8 @@ export function RulesLibraryRoute() {
 
   const completeBatchReviewAction = useCallback(() => {
     if (batchReviewIndex === null) return
+    const acceptedRuleId = batchReviewRuleIds?.[batchReviewIndex] ?? null
+    if (acceptedRuleId) batchAcceptedRuleIdsRef.current.add(acceptedRuleId)
     const total = batchReviewRuleIds?.length ?? 0
     const next = batchReviewIndex + 1
     if (next >= total) {
@@ -1213,6 +1268,8 @@ export function RulesLibraryRoute() {
   // (CPA opens the page, hits Start review, walks through 459 cards).
   const startReviewAll = useCallback(() => {
     if (allReviewableRuleIds.length === 0) return
+    batchAcceptedRuleIdsRef.current = new Set()
+    autoExpandAfterBatchRef.current = new Set()
     setSelectedRuleIds(new Set(allReviewableRuleIds))
     setBatchReviewRuleIds(allReviewableRuleIds)
     setBatchReviewIndex(0)

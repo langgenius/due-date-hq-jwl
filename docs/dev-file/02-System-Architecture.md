@@ -281,7 +281,7 @@ SourceAdapter.fetch()  ──► raw 存 R2_PULSE ──► PULSE_QUEUE { type: 
             ↓
           d1.batch([
             INSERT clients × N,
-            INSERT obligations × N·M（规则引擎生成）,
+            INSERT obligations × N·M（规则引擎生成；只包含 practice monitoring_start_date 当天或之后的 statutory due date）,
             INSERT evidence_link × N·M,
             INSERT audit_event,
             UPDATE migration_batch SET status=applied, revert_expires_at=now()+24h

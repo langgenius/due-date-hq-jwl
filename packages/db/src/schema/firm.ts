@@ -53,6 +53,13 @@ export const firmProfile = sqliteTable('firm_profile', {
   // obligations and when the practice profile policy changes.
   internalDeadlineOffsetDays: integer('internal_deadline_offset_days').notNull().default(14),
 
+  // Practice-level monitoring start. Automatically generated obligations
+  // with a statutory/base due date before this date stay historical and do
+  // not enter the active deadline queue.
+  monitoringStartDate: text('monitoring_start_date')
+    .notNull()
+    .default(sql`(date('now'))`),
+
   // onDelete:'restrict' — deleting a user must first transfer ownership (or
   // soft-delete the firm). Application layer (P1 owner transfer flow)
   // enforces this; D1 catches programmer errors.

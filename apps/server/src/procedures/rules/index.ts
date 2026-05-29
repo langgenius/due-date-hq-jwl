@@ -7,6 +7,7 @@ import {
   type RuleBulkImpactPreview,
   RuleConcreteDraftSchema,
   type RuleGenerationState,
+  RuleGenerationStateValues,
   type RuleCoverageRow,
   type RuleBulkVerifyCandidateSkip,
   type RuleJurisdiction,
@@ -39,6 +40,7 @@ import type {
 import { requireTenant, type RpcContext } from '../_context'
 import { requireCurrentFirmRole } from '../_permissions'
 import { os } from '../_root'
+import { isOnOrAfterDateOnly } from '../../lib/date-only'
 import { generateObligationsForAcceptedRules } from './_obligation-generation'
 import {
   cachedConcreteDraftKey,
@@ -69,6 +71,11 @@ const BUSINESS_COVERAGE_ENTITIES = new Set<keyof RuleCoverageRow['entityCoverage
   'c_corp',
   'sole_prop',
 ])
+const RULE_GENERATION_STATES = new Set<string>(RuleGenerationStateValues)
+
+function isRuleGenerationState(value: string | null | undefined): value is RuleGenerationState {
+  return typeof value === 'string' && RULE_GENERATION_STATES.has(value)
+}
 
 function toSource(source: ReturnType<typeof listRuleSources>[number]): RuleSource {
   const { inboundEmail: _inboundEmail, localFactRequirements, ...sourceRest } = source
@@ -645,6 +652,7 @@ export async function activateOnboardingJurisdictionRules(input: {
   scoped: ScopedRepo
   userId: string
   internalDeadlineOffsetDays: number
+  monitoringStartDate?: string
   states: readonly RuleGenerationState[]
   now?: Date
   ensureCatalog?: () => Promise<void>
@@ -739,6 +747,7 @@ export async function activateOnboardingJurisdictionRules(input: {
     userId: input.userId,
     rules: activeCoreRules,
     internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
+    ...(input.monitoringStartDate ? { monitoringStartDate: input.monitoringStartDate } : {}),
     now: reviewedAt,
     reason: ONBOARDING_RULE_REVIEW_NOTE,
   })
@@ -775,7 +784,7 @@ async function previewBulkImpactForSelections(
   context: RpcContext,
   selections: readonly { ruleId: string; expectedVersion: number }[],
 ): Promise<RuleBulkImpactPreview> {
-  const { scoped } = requireTenant(context)
+  const { scoped, tenant } = requireTenant(context)
   const templateById = new Map(templateRules().map((rule) => [rule.id, rule]))
   const practiceById = new Map(
     (await scoped.rules.listPracticeRules()).map((rule) => [rule.ruleId, rule]),
@@ -865,7 +874,25 @@ async function previewBulkImpactForSelections(
       const jurisdictionMatches = rule.jurisdiction === 'FED' || rule.jurisdiction === client.state
       if (!jurisdictionMatches) continue
       if (!ruleMatchesEntity(rule, client.entityType)) continue
-      estimatedObligationCount += 1
+      const generationState = rule.jurisdiction === 'FED' ? client.state : rule.jurisdiction
+      if (!isRuleGenerationState(generationState)) continue
+      const previews = previewObligationsFromRules({
+        client: {
+          id: client.id,
+          entityType: client.entityType,
+          state: generationState,
+          taxTypes: [rule.taxType],
+          taxYearType: client.taxYearType,
+          fiscalYearEndMonth: client.fiscalYearEndMonth,
+          fiscalYearEndDay: client.fiscalYearEndDay,
+          ...(client.taxClassification ? { taxClassification: client.taxClassification } : {}),
+        },
+        rules: [rule],
+      })
+      estimatedObligationCount += previews.filter(
+        (preview) =>
+          preview.dueDate && isOnOrAfterDateOnly(preview.dueDate, tenant.monitoringStartDate),
+      ).length
     }
   }
 
@@ -945,6 +972,7 @@ export async function acceptTemplateRule(input: {
       userId: input.reviewedBy,
       rules: [toCoreRule(activeRule)],
       internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+      monitoringStartDate: tenant.monitoringStartDate,
       now: input.reviewedAt,
       reason: input.reviewNote,
     })
@@ -1164,6 +1192,7 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
     userId,
     rules: acceptInputs,
     internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+    monitoringStartDate: tenant.monitoringStartDate,
     now: reviewedAt,
     reason: input.reviewNote,
   })
@@ -1193,6 +1222,7 @@ const activateOnboardingJurisdictions = os.rules.activateOnboardingJurisdictions
       scoped,
       userId,
       internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+      monitoringStartDate: tenant.monitoringStartDate,
       states: input.states,
       ensureCatalog: () => ensureGlobalTemplateCatalog(context),
     })
@@ -1792,6 +1822,7 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
           userId,
           rules: acceptedRules,
           internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+          monitoringStartDate: tenant.monitoringStartDate,
           now: reviewedAt,
           reason: input.reviewNote,
         })
@@ -1956,7 +1987,7 @@ type RuleCoverageRowAccumulator = Map<
 >
 
 const previewObligations = os.rules.previewObligations.handler(async ({ input, context }) => {
-  const { scoped } = requireTenant(context)
+  const { scoped, tenant } = requireTenant(context)
   await ensureTemplateReviewTasks(context)
   const activeRules = await listActiveCoreRules(scoped)
   const activeIds = new Set(activeRules.map((rule) => rule.id))
@@ -2000,7 +2031,12 @@ const previewObligations = os.rules.previewObligations.handler(async ({ input, c
     generationInput.holidays = input.holidays
   }
 
-  return previewObligationsFromRules(generationInput).map(toPreview)
+  return previewObligationsFromRules(generationInput)
+    .filter(
+      (preview) =>
+        !preview.dueDate || isOnOrAfterDateOnly(preview.dueDate, tenant.monitoringStartDate),
+    )
+    .map(toPreview)
 })
 
 export const rulesHandlers = {

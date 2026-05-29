@@ -305,6 +305,56 @@ describe('generateObligationsForAcceptedRules', () => {
     )
   })
 
+  it('filters automatic generation by statutory due date on or after monitoring start', async () => {
+    const client = makeClient({
+      entityType: 'individual',
+      taxClassification: 'individual',
+      migrationBatchId: null,
+    })
+    const profile = makeProfile({
+      taxTypes: ['federal_1040'],
+      migrationBatchId: null,
+    })
+    const septemberRule: ObligationRule = {
+      ...mustRule('fed.1040.return.2025'),
+      id: 'test.federal_1040.future.2025',
+      title: 'Test future Form 1040 deadline',
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: '2026-09-15',
+        holidayRollover: 'next_business_day',
+      },
+    }
+    const { scoped, createdInputs } = makeScoped({
+      clients: [client],
+      profiles: new Map([[CLIENT_ID, [profile]]]),
+    })
+
+    const result = await generateObligationsForAcceptedRules({
+      scoped,
+      userId: USER_ID,
+      rules: [mustRule('fed.1040.return.2025'), septemberRule],
+      internalDeadlineOffsetDays: 14,
+      monitoringStartDate: '2026-09-15',
+      now: new Date('2026-05-29T00:00:00.000Z'),
+    })
+
+    expect(result).toMatchObject({
+      candidateCount: 2,
+      createdCount: 1,
+      duplicateCount: 0,
+      historicalSkippedCount: 1,
+    })
+    expect(createdInputs).toEqual([
+      expect.objectContaining({
+        ruleId: 'test.federal_1040.future.2025',
+        baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        currentDueDate: new Date('2026-09-01T00:00:00.000Z'),
+        filingDueDate: new Date('2026-09-15T00:00:00.000Z'),
+      }),
+    ])
+  })
+
   it('creates state fiduciary obligations from accepted concrete trust rules', async () => {
     const client = makeClient({
       entityType: 'trust',

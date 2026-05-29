@@ -153,7 +153,6 @@ function AuditEventDrawerContent({
               label={t`User agent hash`}
               value={event.userAgentHash ?? t`Not recorded`}
             />
-            <AuditEventField label={t`Practice ID`} value={event.firmId} />
           </dl>
         </div>
       </div>

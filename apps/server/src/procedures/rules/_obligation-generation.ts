@@ -13,12 +13,14 @@ import type { ClientRow } from '@duedatehq/ports/clients'
 import type { ClientFilingProfileRow } from '@duedatehq/ports/client-filing-profiles'
 import type { ObligationCreateInput } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
+import { isOnOrAfterDateOnly } from '../../lib/date-only'
 
 interface GenerateForAcceptedRulesInput {
   scoped: ScopedRepo
   userId: string
   rules: readonly ObligationRule[]
   internalDeadlineOffsetDays: number
+  monitoringStartDate?: string
   now?: Date
   reason?: string | null
 }
@@ -27,6 +29,7 @@ interface GenerateForAcceptedRulesSummary {
   candidateCount: number
   createdCount: number
   duplicateCount: number
+  historicalSkippedCount: number
   clientCount: number
 }
 
@@ -217,12 +220,24 @@ export async function generateObligationsForAcceptedRules(
   const now = input.now ?? new Date()
   const rules = input.rules.filter((rule) => rule.status === 'verified')
   if (rules.length === 0) {
-    return { candidateCount: 0, createdCount: 0, duplicateCount: 0, clientCount: 0 }
+    return {
+      candidateCount: 0,
+      createdCount: 0,
+      duplicateCount: 0,
+      historicalSkippedCount: 0,
+      clientCount: 0,
+    }
   }
 
   const clients = await input.scoped.clients.listByFirm()
   if (clients.length === 0) {
-    return { candidateCount: 0, createdCount: 0, duplicateCount: 0, clientCount: 0 }
+    return {
+      candidateCount: 0,
+      createdCount: 0,
+      duplicateCount: 0,
+      historicalSkippedCount: 0,
+      clientCount: 0,
+    }
   }
 
   const profilesByClient = await input.scoped.filingProfiles.listByClients(
@@ -256,6 +271,7 @@ export async function generateObligationsForAcceptedRules(
   const clientIdsWithCandidates = new Set<string>()
   let candidateCount = 0
   let duplicateCount = 0
+  let historicalSkippedCount = 0
 
   for (const client of clients) {
     const profiles = profilesByClient.get(client.id) ?? []
@@ -280,6 +296,13 @@ export async function generateObligationsForAcceptedRules(
         if (!rule || !preview.dueDate) continue
         candidateCount += 1
         clientIdsWithCandidates.add(client.id)
+        if (
+          input.monitoringStartDate &&
+          !isOnOrAfterDateOnly(preview.dueDate, input.monitoringStartDate)
+        ) {
+          historicalSkippedCount += 1
+          continue
+        }
 
         const key = keyForGenerated({
           clientId: client.id,
@@ -313,6 +336,7 @@ export async function generateObligationsForAcceptedRules(
       candidateCount,
       createdCount: 0,
       duplicateCount,
+      historicalSkippedCount,
       clientCount: clientIdsWithCandidates.size,
     }
   }
@@ -356,6 +380,7 @@ export async function generateObligationsForAcceptedRules(
       ruleIds: rules.map((rule) => rule.id),
       createdCount: ids.length,
       duplicateCount,
+      historicalSkippedCount,
       clientCount: clientIdsWithCandidates.size,
       createdObligationIds: ids,
     },
@@ -366,6 +391,7 @@ export async function generateObligationsForAcceptedRules(
     candidateCount,
     createdCount: ids.length,
     duplicateCount,
+    historicalSkippedCount,
     clientCount: clientIdsWithCandidates.size,
   }
 }

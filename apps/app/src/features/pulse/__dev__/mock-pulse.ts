@@ -67,6 +67,7 @@ const MOCK_FIRM: FirmPublic = {
   seatLimit: 10,
   timezone: 'America/Los_Angeles',
   internalDeadlineOffsetDays: 14,
+  monitoringStartDate: isoDate(0),
   status: 'active',
   role: 'owner',
   ownerUserId: 'user_mock_001',

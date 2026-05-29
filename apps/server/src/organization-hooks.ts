@@ -40,6 +40,7 @@ export function buildOrganizationHooks(db: Db): OrganizationHooks {
           // P1 onboarding will let the user pick — see ADR 0010 follow-ups.
           timezone: 'America/New_York',
           internalDeadlineOffsetDays: 14,
+          monitoringStartDate: now.toISOString().slice(0, 10),
           ownerUserId: user.id,
           status: 'active',
           createdAt: now,

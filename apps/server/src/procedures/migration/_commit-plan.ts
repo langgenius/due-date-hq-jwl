@@ -19,6 +19,7 @@ import {
 import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
 import type { MappingRow, MappingTarget, NormalizationRow } from '@duedatehq/contracts'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
+import { isOnOrAfterDateOnly } from '../../lib/date-only'
 import { validateRows } from './_deterministic'
 import type { MappingJsonPayload, MatrixApplicationEntry } from './_types'
 import { matrixApplicationModeForTaxTypes, normalizeTaxTypesFromRows } from './_tax-type-matrix'
@@ -36,7 +37,12 @@ interface BuildCommitPlanInput {
   userId: string
   payload: MappingJsonPayload
   internalDeadlineOffsetDays: number
+  monitoringStartDate?: string
   rules?: readonly ObligationRule[]
+}
+
+type CommitPlan = CommitImportInput & {
+  historicalDeadlineSkippedCount: number
 }
 
 interface FilingProfileImportFacts {
@@ -53,7 +59,7 @@ interface PendingClientGroup {
   profilesByState: Map<string, FilingProfileImportFacts>
 }
 
-function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
+function buildCommitPlan(input: BuildCommitPlanInput): CommitPlan {
   const { batchId, firmId, userId, payload } = input
   if (!payload.rawInput || !payload.confirmedMappings) {
     throw new ORPCError('BAD_REQUEST', {
@@ -77,6 +83,7 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
   const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
   const runtimeRules = input.rules ?? listObligationRules({ includeCandidates: true })
   const ruleById = new Map(runtimeRules.map((rule) => [rule.id, rule]))
+  let historicalDeadlineSkippedCount = 0
 
   const skippedRows = new Set<number>()
   const rowErrors = validateRows(
@@ -220,6 +227,13 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
         const previewKey = concretePreviewKey(preview)
         if (seenPreviewKeys.has(previewKey)) continue
         seenPreviewKeys.add(previewKey)
+        if (
+          input.monitoringStartDate &&
+          !isOnOrAfterDateOnly(preview.dueDate ?? '', input.monitoringStartDate)
+        ) {
+          historicalDeadlineSkippedCount += 1
+          continue
+        }
 
         const obligationId = crypto.randomUUID()
         const dueDate = new Date(`${preview.dueDate}T00:00:00.000Z`)
@@ -312,6 +326,7 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
       afterJson: {
         clientCount: clients.length,
         obligationCount: obligations.length,
+        historicalDeadlineSkippedCount,
         skippedCount: skippedRows.size,
       },
       reason: null,
@@ -357,6 +372,7 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitImportInput {
     skippedCount: skippedRows.size,
     appliedAt,
     revertExpiresAt,
+    historicalDeadlineSkippedCount,
   }
 }
 

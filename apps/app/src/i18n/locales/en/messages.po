@@ -628,6 +628,10 @@ msgstr "{hiddenDraftCount} more AI drafts"
 msgid "{hiddenRuleCount} more selected rules"
 msgstr "{hiddenRuleCount} more selected rules"
 
+#: src/features/migration/Step4Preview.tsx
+msgid "{historicalDeadlinesSkipped, plural, one {# historical deadline before monitoring start will be skipped} other {# historical deadlines before monitoring start will be skipped}}"
+msgstr "{historicalDeadlinesSkipped, plural, one {# historical deadline before monitoring start will be skipped} other {# historical deadlines before monitoring start will be skipped}}"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "{ignored, plural, =0 {0 ignored} one {# ignored} other {# ignored}}"
 msgstr "{ignored, plural, =0 {0 ignored} one {# ignored} other {# ignored}}"
@@ -665,8 +669,8 @@ msgid "{needsReview, plural, =0 {0 need review} one {# needs review} other {# ne
 msgstr "{needsReview, plural, =0 {0 need review} one {# needs review} other {# need review}}"
 
 #: src/features/migration/Step4Preview.tsx
-msgid "{obligationCount, plural, one {# deadline (full tax year)} other {# deadlines (full tax year)}}"
-msgstr "{obligationCount, plural, one {# deadline (full tax year)} other {# deadlines (full tax year)}}"
+msgid "{obligationCount, plural, one {# deadline to monitor} other {# deadlines to monitor}}"
+msgstr "{obligationCount, plural, one {# deadline to monitor} other {# deadlines to monitor}}"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "{offsetDays} days before"
@@ -2120,6 +2124,10 @@ msgstr "BATCH REVIEW NOTE"
 #: src/features/rules/coverage-tab.tsx
 msgid "Batch review note is required."
 msgstr "Batch review note is required."
+
+#: src/features/rules/generation-preview-tab.tsx
+msgid "Before monitoring"
+msgstr "Before monitoring"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "Before you import"
@@ -4277,6 +4285,10 @@ msgstr "Due-date extension"
 msgid "DueDateHQ does not store card numbers or invoice payment data."
 msgstr "DueDateHQ does not store card numbers or invoice payment data."
 
+#: src/routes/practice.tsx
+msgid "DueDateHQ only auto-generates active filing plans from statutory deadlines on or after this date."
+msgstr "DueDateHQ only auto-generates active filing plans from statutory deadlines on or after this date."
+
 #: src/routes/readiness.tsx
 msgid "DueDateHQ readiness portal"
 msgstr "DueDateHQ readiness portal"
@@ -4284,6 +4296,10 @@ msgstr "DueDateHQ readiness portal"
 #: src/routes/practice.tsx
 msgid "DueDateHQ shows work as due this many days before each statutory base deadline. Changing this recalculates current deadline dates."
 msgstr "DueDateHQ shows work as due this many days before each statutory base deadline. Changing this recalculates current deadline dates."
+
+#: src/routes/onboarding.tsx
+msgid "DueDateHQ will create filing plans from the first applicable deadline on or after this date. Earlier statutory deadlines will not be added to your active overdue queue."
+msgstr "DueDateHQ will create filing plans from the first applicable deadline on or after this date. Earlier statutory deadlines will not be added to your active overdue queue."
 
 #: src/features/concepts/concept-help.tsx
 msgid "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and materials pressure."
@@ -6486,6 +6502,20 @@ msgstr "Model"
 msgid "Monitoring Federal + 50 states + DC"
 msgstr "Monitoring Federal + 50 states + DC"
 
+#. placeholder {0}: formatDate(firm.monitoringStartDate)
+#: src/routes/practice.tsx
+msgid "Monitoring since {0}"
+msgstr "Monitoring since {0}"
+
+#: src/routes/onboarding.tsx
+#: src/routes/practice.tsx
+msgid "Monitoring start date"
+msgstr "Monitoring start date"
+
+#: src/routes/onboarding.tsx
+msgid "Monitoring start date cannot be in the future."
+msgstr "Monitoring start date cannot be in the future."
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "Monthly"
@@ -8412,10 +8442,6 @@ msgstr "Practice created"
 msgid "Practice deleted"
 msgstr "Practice deleted"
 
-#: src/features/audit/audit-event-drawer.tsx
-msgid "Practice ID"
-msgstr "Practice ID"
-
 #: src/routes/accept-invite.tsx
 msgid "Practice invitation"
 msgstr "Practice invitation"
@@ -10217,6 +10243,10 @@ msgstr "Select deadlines to apply"
 #: src/features/obligations/ChecklistItemRow.tsx
 msgid "Select document {0} for batch action"
 msgstr "Select document {0} for batch action"
+
+#: src/routes/onboarding.tsx
+msgid "Select monitoring start date"
+msgstr "Select monitoring start date"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Select pending rules from the queue."

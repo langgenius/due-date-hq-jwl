@@ -133,6 +133,7 @@ function contextFor(
         seatLimit: 5,
         status: 'active',
         internalDeadlineOffsetDays: 14,
+        monitoringStartDate: '2026-05-29',
         ownerUserId: 'user_owner',
         coordinatorCanSeeDollars: false,
       },

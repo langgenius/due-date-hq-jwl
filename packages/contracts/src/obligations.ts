@@ -339,6 +339,7 @@ export const AnnualRolloverDispositionSchema = z.enum([
   'will_create',
   'review',
   'duplicate',
+  'before_monitoring_start',
   'missing_verified_rule',
   'missing_due_date',
 ])

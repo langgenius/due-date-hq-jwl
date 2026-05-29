@@ -474,6 +474,7 @@ function dryRunSummary(): DryRunSummary {
     batchId: BATCH_ID,
     clientsToCreate: 1,
     obligationsToCreate: 1,
+    historicalDeadlinesSkipped: 0,
     skippedRows: 0,
     errors: [],
     ruleReviewWarnings: [],

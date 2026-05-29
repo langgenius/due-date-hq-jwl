@@ -468,6 +468,7 @@ function makeContext(input: {
         seatLimit: 1,
         status: 'active',
         internalDeadlineOffsetDays: 14,
+        monitoringStartDate: '2026-05-29',
         ownerUserId: USER_ID,
         coordinatorCanSeeDollars: false,
       },

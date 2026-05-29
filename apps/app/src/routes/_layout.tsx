@@ -154,6 +154,7 @@ function pickCurrentFirm(firms: FirmPublic[] | undefined, user: AuthUser): FirmP
     seatLimit: 1,
     timezone: 'America/New_York',
     internalDeadlineOffsetDays: 14,
+    monitoringStartDate: new Date(0).toISOString().slice(0, 10),
     status: 'active',
     role: 'owner',
     ownerUserId: user.id,

@@ -12,6 +12,7 @@ import type { FirmBillingSubscriptionRow } from '@duedatehq/ports/tenants'
 import { createWorkerAuth } from '../../auth'
 import { requireSession } from '../_context'
 import { os } from '../_root'
+import { dateInTimezone, isDateOnly } from '../../lib/date-only'
 
 const MAX_RETRIES_ON_SLUG_COLLISION = 1
 const SLUG_CONFLICT_PATTERN = /unique|already exists|slug/i
@@ -51,6 +52,7 @@ function toFirmPublic(
     seatLimit: row.seatLimit,
     timezone: row.timezone,
     internalDeadlineOffsetDays: row.internalDeadlineOffsetDays,
+    monitoringStartDate: row.monitoringStartDate,
     status: row.status,
     role: row.role,
     ownerUserId: row.ownerUserId,
@@ -68,19 +70,6 @@ function toFirmPublic(
 
 function toNullableIso(value: Date | null): string | null {
   return value ? toIso(value) : null
-}
-
-function dateInTimezone(timezone: string, date = new Date()): string {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(date)
-  const year = parts.find((part) => part.type === 'year')?.value
-  const month = parts.find((part) => part.type === 'month')?.value
-  const day = parts.find((part) => part.type === 'day')?.value
-  return `${year}-${month}-${day}`
 }
 
 function toDateOnly(value: Date): string {
@@ -198,6 +187,13 @@ const create = os.firms.create.handler(async ({ input, context }) => {
       message: ErrorCodes.FIRM_LIMIT_EXCEEDED,
     })
   }
+  const today = dateInTimezone(input.timezone)
+  const monitoringStartDate = input.monitoringStartDate ?? today
+  if (!isDateOnly(monitoringStartDate) || monitoringStartDate > today) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'Monitoring start date cannot be in the future.',
+    })
+  }
 
   const auth = createWorkerAuth(context.env)
   const firmId = await createOrganizationWithRetry({
@@ -210,6 +206,7 @@ const create = os.firms.create.handler(async ({ input, context }) => {
     name: input.name,
     timezone: input.timezone,
     internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
+    monitoringStartDate,
   })
   await firms.setActiveSession(session.id, userId, firmId)
 
@@ -230,6 +227,7 @@ const create = os.firms.create.handler(async ({ input, context }) => {
       name: row.name,
       timezone: row.timezone,
       internalDeadlineOffsetDays: row.internalDeadlineOffsetDays,
+      monitoringStartDate: row.monitoringStartDate,
     },
   })
 

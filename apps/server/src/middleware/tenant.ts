@@ -12,6 +12,7 @@ import {
 } from '@duedatehq/db'
 import type { Env, ContextVars } from '../env'
 import { createAuthSessionsRepo } from '../auth-sessions'
+import { auditRequestMetadata, withAuditRequestMetadata } from '../lib/audit-request-metadata'
 
 /**
  * Tenant isolation gate (docs/dev-file/06 §4.1, §4.2; ADR 0010).
@@ -31,7 +32,7 @@ import { createAuthSessionsRepo } from '../auth-sessions'
  *   continues uninterrupted.
  */
 export const tenantMiddleware = createMiddleware<{
-  Bindings: Pick<Env, 'DB'>
+  Bindings: Pick<Env, 'AUTH_SECRET' | 'DB'>
   Variables: ContextVars
 }>(async (c, next) => {
   if (c.req.path.startsWith('/rpc/firms/')) {
@@ -105,6 +106,7 @@ export const tenantMiddleware = createMiddleware<{
     seatLimit: profile.seatLimit,
     timezone: profile.timezone,
     internalDeadlineOffsetDays: profile.internalDeadlineOffsetDays,
+    monitoringStartDate: profile.monitoringStartDate,
     status: profile.status,
     ownerUserId: profile.ownerUserId,
     coordinatorCanSeeDollars: profile.coordinatorCanSeeDollars,
@@ -112,7 +114,13 @@ export const tenantMiddleware = createMiddleware<{
   }
   c.set('tenantContext', tenant)
   c.set('authSessions', createAuthSessionsRepo(db))
-  c.set('scoped', scoped(db, firmId))
+  c.set(
+    'scoped',
+    withAuditRequestMetadata(
+      scoped(db, firmId),
+      await auditRequestMetadata(c.env.AUTH_SECRET, c.req.raw.headers),
+    ),
+  )
   return next()
 })
 
@@ -172,6 +180,7 @@ async function insertLazyFirmProfile(
       seatLimit: 1,
       timezone: 'America/New_York',
       internalDeadlineOffsetDays: 14,
+      monitoringStartDate: now.toISOString().slice(0, 10),
       ownerUserId: init.ownerUserId,
       status: 'active',
       createdAt: now,

@@ -601,6 +601,98 @@ describe('RulesLibraryRoute', () => {
     expect(alaskaTierCell?.querySelector('[title="1 need review"]')).toBeNull()
   })
 
+  it('auto-expands a state after batch review activates every pending rule and moves it into view', async () => {
+    const federalRule = obligationRule({
+      id: 'fed.1040.return.active.2026',
+      title: 'Federal individual income tax return',
+      jurisdiction: 'FED',
+      status: 'active',
+    })
+    const activeStateRules = (
+      ['CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID'] satisfies Array<
+        ObligationRule['jurisdiction']
+      >
+    ).map((jurisdiction) =>
+      obligationRule({
+        id: `${jurisdiction.toLowerCase()}.active.2026`,
+        title: `${jurisdiction} active tax return`,
+        jurisdiction,
+        formName: `${jurisdiction} Row Form`,
+        status: 'active',
+      }),
+    )
+    const alaskaFinalRule = obligationRule({
+      id: 'ak.individual_income_return.candidate.2026',
+      title: 'Alaska individual income tax return',
+      jurisdiction: 'AK',
+      formName: 'Alaska Row Form',
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: '2026-04-15',
+        holidayRollover: 'source_adjusted',
+      },
+      sourceIds: [],
+      evidence: [],
+    })
+    rpcMocks.coverageQueryFn.mockResolvedValue([
+      coverageRow({
+        jurisdiction: 'AK',
+        activeRuleCount: 0,
+        pendingReviewCount: 1,
+        entityCoverage: {
+          llc: 'active',
+          partnership: 'active',
+          s_corp: 'active',
+          c_corp: 'active',
+          sole_prop: 'active',
+          individual: 'review',
+          trust: 'active',
+        },
+        entitySourceCoverage: {
+          llc: 'rule_active',
+          partnership: 'rule_active',
+          s_corp: 'rule_active',
+          c_corp: 'rule_active',
+          sole_prop: 'rule_active',
+          individual: 'rule_pending_review',
+          trust: 'rule_active',
+        },
+      }),
+    ])
+    rpcMocks.listRulesQueryFn
+      .mockResolvedValueOnce([alaskaFinalRule, ...activeStateRules, federalRule])
+      .mockResolvedValue([
+        { ...alaskaFinalRule, status: 'active' as const },
+        ...activeStateRules,
+        federalRule,
+      ])
+
+    await render(<RulesLibraryRoute />)
+    await waitForButton('Start review 1')
+
+    await clickButton('Start review 1')
+    await waitForText('1 / 1')
+    await waitForText(alaskaFinalRule.title)
+
+    await clickButton('Accept rule')
+    await waitForAssertion(() => {
+      expect(rpcMocks.listRulesQueryFn.mock.calls.length).toBeGreaterThan(1)
+    })
+    await waitForText('Alaska Row Form')
+
+    const groupRows = Array.from(document.querySelectorAll('tbody tr[data-state]'))
+    const federalIndex = groupRows.findIndex((row) => row.textContent?.includes('Federal'))
+    const alaskaIndex = groupRows.findIndex((row) => row.textContent?.includes('Alaska'))
+    const californiaIndex = groupRows.findIndex((row) => row.textContent?.includes('California'))
+    const alaskaRow = groupRows[alaskaIndex]
+
+    expect(federalIndex).toBe(0)
+    expect(alaskaIndex).toBeGreaterThan(federalIndex)
+    expect(alaskaIndex).toBeLessThan(californiaIndex)
+    expect(alaskaRow?.getAttribute('data-state')).toBe('expanded')
+    expect(document.body.textContent).toContain('Alaska Row Form')
+  })
+
   it('does not render add-rule gaps for not-applicable entity coverage', async () => {
     rpcMocks.coverageQueryFn.mockResolvedValue([
       coverageRow({

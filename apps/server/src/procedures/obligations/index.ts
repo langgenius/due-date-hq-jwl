@@ -616,6 +616,7 @@ const previewAnnualRollover = os.obligations.previewAnnualRollover.handler(
       params: input,
       mode: 'preview',
       internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+      monitoringStartDate: tenant.monitoringStartDate,
     })
   },
 )
@@ -630,6 +631,7 @@ const createAnnualRollover = os.obligations.createAnnualRollover.handler(
       params: input,
       mode: 'create',
       internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+      monitoringStartDate: tenant.monitoringStartDate,
     })
     if (result.summary.createdCount > 0) {
       await enqueueDashboardBriefRefresh(context.env, {

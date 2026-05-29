@@ -636,6 +636,10 @@ msgstr "另有 {hiddenDraftCount} 个 AI 草案"
 msgid "{hiddenRuleCount} more selected rules"
 msgstr "另有 {hiddenRuleCount} 条已选规则"
 
+#: src/features/migration/Step4Preview.tsx
+msgid "{historicalDeadlinesSkipped, plural, one {# historical deadline before monitoring start will be skipped} other {# historical deadlines before monitoring start will be skipped}}"
+msgstr "{historicalDeadlinesSkipped, plural, other {将跳过 # 条早于监控起点的历史截止日}}"
+
 #: src/features/migration/Step2Mapping.tsx
 #, fuzzy
 msgid "{ignored, plural, =0 {0 ignored} one {# ignored} other {# ignored}}"
@@ -676,8 +680,8 @@ msgid "{needsReview, plural, =0 {0 need review} one {# needs review} other {# ne
 msgstr "{0, plural, other {# 项待审核}}"
 
 #: src/features/migration/Step4Preview.tsx
-msgid "{obligationCount, plural, one {# deadline (full tax year)} other {# deadlines (full tax year)}}"
-msgstr "{obligationCount, plural, other {# 个截止事项（完整税年）}}"
+msgid "{obligationCount, plural, one {# deadline to monitor} other {# deadlines to monitor}}"
+msgstr "{obligationCount, plural, other {# 条将纳入监控的截止日}}"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "{offsetDays} days before"
@@ -2149,6 +2153,10 @@ msgstr "批量审核说明"
 #: src/features/rules/coverage-tab.tsx
 msgid "Batch review note is required."
 msgstr "必须填写批量审核说明。"
+
+#: src/features/rules/generation-preview-tab.tsx
+msgid "Before monitoring"
+msgstr "早于监控起点"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "Before you import"
@@ -4322,6 +4330,10 @@ msgstr "截止日延期"
 msgid "DueDateHQ does not store card numbers or invoice payment data."
 msgstr "DueDateHQ 不保存卡号或发票支付数据。"
 
+#: src/routes/practice.tsx
+msgid "DueDateHQ only auto-generates active filing plans from statutory deadlines on or after this date."
+msgstr "DueDateHQ 只会从该日期当天或之后的法定截止日开始自动生成活跃申报计划。"
+
 #: src/routes/readiness.tsx
 msgid "DueDateHQ readiness portal"
 msgstr "DueDateHQ 准备状态门户"
@@ -4329,6 +4341,10 @@ msgstr "DueDateHQ 准备状态门户"
 #: src/routes/practice.tsx
 msgid "DueDateHQ shows work as due this many days before each statutory base deadline. Changing this recalculates current deadline dates."
 msgstr "DueDateHQ 会在每个法定基准截止日期前的这些天数显示为待办。修改此值会重新计算当前的截止日期。"
+
+#: src/routes/onboarding.tsx
+msgid "DueDateHQ will create filing plans from the first applicable deadline on or after this date. Earlier statutory deadlines will not be added to your active overdue queue."
+msgstr "DueDateHQ 会从该日期当天或之后第一个适用的截止日开始创建申报计划。更早的法定截止日不会加入你的活跃逾期队列。"
 
 #: src/features/concepts/concept-help.tsx
 msgid "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and materials pressure."
@@ -6550,6 +6566,20 @@ msgstr "Model"
 msgid "Monitoring Federal + 50 states + DC"
 msgstr "监控美国联邦 + 50 个州 + DC"
 
+#. placeholder {0}: formatDate(firm.monitoringStartDate)
+#: src/routes/practice.tsx
+msgid "Monitoring since {0}"
+msgstr "自 {0} 起监控"
+
+#: src/routes/onboarding.tsx
+#: src/routes/practice.tsx
+msgid "Monitoring start date"
+msgstr "监控起始日期"
+
+#: src/routes/onboarding.tsx
+msgid "Monitoring start date cannot be in the future."
+msgstr "监控起始日期不能是未来日期。"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "Monthly"
@@ -8501,10 +8531,6 @@ msgstr "事务所已创建"
 msgid "Practice deleted"
 msgstr "事务所已删除"
 
-#: src/features/audit/audit-event-drawer.tsx
-msgid "Practice ID"
-msgstr "事务所 ID"
-
 #: src/routes/accept-invite.tsx
 msgid "Practice invitation"
 msgstr "事务所邀请"
@@ -10321,6 +10347,10 @@ msgstr "选择要应用的截止事项"
 #: src/features/obligations/ChecklistItemRow.tsx
 msgid "Select document {0} for batch action"
 msgstr "选中文件 {0} 用于批量操作"
+
+#: src/routes/onboarding.tsx
+msgid "Select monitoring start date"
+msgstr "选择监控起始日期"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Select pending rules from the queue."

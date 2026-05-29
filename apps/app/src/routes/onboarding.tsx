@@ -16,11 +16,13 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
 import { StateRuleActivationSelector } from '@/features/onboarding/state-rule-activation-selector'
+import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { type AuthUser } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
 import { activateOrCreateOnboardingFirm, postOnboardingTarget } from './onboarding-firm-flow'
 
 const MIN_NAME_LENGTH = 2
+const DEFAULT_FIRM_TIMEZONE = 'America/New_York'
 
 type OnboardingLoaderData = { user: AuthUser }
 
@@ -32,6 +34,19 @@ function readErrorMessage(error: unknown, fallback: string): string {
   if (!error || typeof error !== 'object' || !('message' in error)) return fallback
   const message = Reflect.get(error, 'message')
   return typeof message === 'string' && message ? message : fallback
+}
+
+function todayInTimezone(timezone: string, date = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date)
+  const year = parts.find((part) => part.type === 'year')?.value
+  const month = parts.find((part) => part.type === 'month')?.value
+  const day = parts.find((part) => part.type === 'day')?.value
+  return `${year}-${month}-${day}`
 }
 
 export function OnboardingRoute() {
@@ -57,7 +72,11 @@ export function OnboardingRoute() {
   const [internalDeadlineOffsetDays, setInternalDeadlineOffsetDays] = useState(
     DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
   )
+  const today = todayInTimezone(DEFAULT_FIRM_TIMEZONE)
+  const [monitoringStartDate, setMonitoringStartDate] = useState(today)
   const [selectedRuleStates, setSelectedRuleStates] = useState<RuleGenerationState[]>([])
+  const monitoringStartDateInvalid =
+    !isValidIsoDate(monitoringStartDate) || monitoringStartDate > today
 
   const redirectToParam = params.get('redirectTo')
   const redirectTo = isInAppPath(redirectToParam) ? redirectToParam : '/'
@@ -79,11 +98,15 @@ export function OnboardingRoute() {
       setError(t`Internal deadline offset must be between 0 and 365 days.`)
       return
     }
+    if (monitoringStartDateInvalid) {
+      return
+    }
 
     setIsSubmitting(true)
     void activateOrCreateOnboardingFirm({
       name: trimmed,
       internalDeadlineOffsetDays,
+      monitoringStartDate,
       gateway: {
         listMine: () =>
           queryClient.fetchQuery(orpc.firms.listMine.queryOptions({ input: undefined })),
@@ -188,6 +211,31 @@ export function OnboardingRoute() {
         />
 
         <div className="mt-5 flex flex-col gap-1.5">
+          <Label htmlFor="monitoring-start-date">
+            <Trans>Monitoring start date</Trans>
+          </Label>
+          <IsoDatePicker
+            id="monitoring-start-date"
+            value={monitoringStartDate}
+            maxIsoDate={today}
+            invalid={monitoringStartDateInvalid}
+            ariaLabel={t`Select monitoring start date`}
+            onValueChange={setMonitoringStartDate}
+          />
+          {monitoringStartDateInvalid ? (
+            <p role="alert" className="text-sm leading-relaxed text-destructive">
+              <Trans>Monitoring start date cannot be in the future.</Trans>
+            </p>
+          ) : null}
+          <p className="text-sm leading-relaxed text-text-muted">
+            <Trans>
+              DueDateHQ will create filing plans from the first applicable deadline on or after this
+              date. Earlier statutory deadlines will not be added to your active overdue queue.
+            </Trans>
+          </p>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-1.5">
           {/* 2026-05-26 (Step 7 onboarding audit F5-04 + F5-05 +
               F5-01 + F7-02): the field had three independent
               issues. (1) label "Internal deadline" is jargon for
@@ -235,7 +283,7 @@ export function OnboardingRoute() {
         <Button
           type="submit"
           className="mt-5 w-full justify-center gap-2"
-          disabled={isSubmitting || activateRulesMutation.isPending}
+          disabled={isSubmitting || activateRulesMutation.isPending || monitoringStartDateInvalid}
           aria-busy={isSubmitting || activateRulesMutation.isPending}
         >
           {isSubmitting || activateRulesMutation.isPending ? (

@@ -725,9 +725,11 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
                   {row.targetStatus ? targetStatusLabel(row.targetStatus, t) : '—'}
                 </span>
                 <span className="min-w-0 truncate text-text-tertiary">
-                  {row.preview
-                    ? `${row.preview.ruleTitle} · ${row.preview.period}`
-                    : skippedReasonLabel(row.skippedReason, t)}
+                  {row.skippedReason
+                    ? skippedReasonLabel(row.skippedReason, t)
+                    : row.preview
+                      ? `${row.preview.ruleTitle} · ${row.preview.period}`
+                      : skippedReasonLabel(row.skippedReason, t)}
                 </span>
                 <span className="flex justify-end">
                   {obligationId ? (
@@ -839,6 +841,7 @@ function RolloverDispositionBadge({ disposition }: { disposition: AnnualRollover
     will_create: t`Will create`,
     review: t`Review`,
     duplicate: t`Duplicate`,
+    before_monitoring_start: t`Before monitoring`,
     missing_verified_rule: t`Missing rule`,
     missing_due_date: t`Missing due date`,
   }
@@ -850,6 +853,8 @@ function RolloverDispositionBadge({ disposition }: { disposition: AnnualRollover
         disposition === 'review' &&
           'border-status-review/20 bg-status-review/10 text-status-review',
         disposition === 'duplicate' &&
+          'border-divider-regular bg-background-subtle text-text-muted',
+        disposition === 'before_monitoring_start' &&
           'border-divider-regular bg-background-subtle text-text-muted',
         disposition === 'missing_verified_rule' &&
           'border-severity-medium/20 bg-severity-medium-tint text-severity-medium',
@@ -904,6 +909,7 @@ function skippedReasonLabel(reason: string | null, t: ReturnType<typeof useLingu
   if (reason === 'client_not_found') return t`Client not found`
   if (reason === 'no_verified_rule_for_target_year') return t`No active target-year rule`
   if (reason === 'target_obligation_already_exists') return t`Target deadline already exists`
+  if (reason === 'before_monitoring_start_date') return t`Before monitoring start`
   if (reason === 'verified_rule_has_no_concrete_due_date') return t`No concrete due date`
   return reason ?? t`No rule matched`
 }

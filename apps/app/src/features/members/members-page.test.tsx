@@ -55,6 +55,7 @@ function firm(overrides: Partial<FirmPublic> = {}): FirmPublic {
     seatLimit: 1,
     timezone: 'America/New_York',
     internalDeadlineOffsetDays: 14,
+    monitoringStartDate: '2026-05-03',
     status: 'active',
     role: 'owner',
     ownerUserId: 'user_1',

@@ -16,6 +16,7 @@ function firm(overrides: Partial<FirmPublic> = {}): FirmPublic {
     seatLimit: 1,
     timezone: 'America/New_York',
     internalDeadlineOffsetDays: 14,
+    monitoringStartDate: '2026-05-29',
     status: 'active',
     role: 'owner',
     ownerUserId: 'user_1',
@@ -34,8 +35,14 @@ function gateway(overrides: Partial<OnboardingFirmGateway> = {}): OnboardingFirm
   return {
     listMine: vi.fn(async () => []),
     switchActive: vi.fn(async ({ firmId }) => firm({ id: firmId, isCurrent: true })),
-    create: vi.fn(async ({ name, timezone, internalDeadlineOffsetDays }) =>
-      firm({ id: 'firm_new', name, timezone, internalDeadlineOffsetDays }),
+    create: vi.fn(async ({ name, timezone, internalDeadlineOffsetDays, monitoringStartDate }) =>
+      firm({
+        id: 'firm_new',
+        name,
+        timezone,
+        internalDeadlineOffsetDays,
+        ...(monitoringStartDate ? { monitoringStartDate } : {}),
+      }),
     ),
     activateOnboardingJurisdictions: vi.fn(async ({ states }) => ({
       selectedStates: states,
@@ -111,6 +118,23 @@ describe('activateOrCreateOnboardingFirm', () => {
     })
     expect(api.activateOnboardingJurisdictions).toHaveBeenCalledWith({
       states: ['CA', 'TX'],
+    })
+  })
+
+  it('passes the monitoring start date when creating a practice', async () => {
+    const api = gateway()
+
+    await activateOrCreateOnboardingFirm({
+      gateway: api,
+      name: 'New Practice',
+      monitoringStartDate: '2026-05-29',
+    })
+
+    expect(api.create).toHaveBeenCalledWith({
+      name: 'New Practice',
+      timezone: 'America/New_York',
+      internalDeadlineOffsetDays: 14,
+      monitoringStartDate: '2026-05-29',
     })
   })
 

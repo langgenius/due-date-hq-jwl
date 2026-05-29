@@ -60,6 +60,7 @@ function makeContext() {
         seatLimit: 10,
         timezone: 'America/New_York',
         internalDeadlineOffsetDays: 14,
+        monitoringStartDate: '2026-05-29',
         status: 'active',
         ownerUserId: 'user_owner',
         coordinatorCanSeeDollars: false,

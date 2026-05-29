@@ -31,6 +31,7 @@ export async function activateOrCreateOnboardingFirm(input: {
   gateway: OnboardingFirmGateway
   name: string
   internalDeadlineOffsetDays?: number
+  monitoringStartDate?: string
   selectedRuleStates?: RuleGenerationState[]
 }): Promise<OnboardingFirmActivationResult> {
   const firms = await input.gateway.listMine()
@@ -46,6 +47,7 @@ export async function activateOrCreateOnboardingFirm(input: {
     timezone: DEFAULT_FIRM_TIMEZONE,
     internalDeadlineOffsetDays:
       input.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+    ...(input.monitoringStartDate ? { monitoringStartDate: input.monitoringStartDate } : {}),
   })
   const selectedRuleStates = input.selectedRuleStates ?? []
   const ruleActivation =

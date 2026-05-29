@@ -128,6 +128,7 @@ describe('onboarding rule activation', () => {
       candidateCount: 0,
       createdCount: 0,
       duplicateCount: 0,
+      historicalSkippedCount: 0,
       clientCount: 0,
     }))
     const ensureCatalog = vi.fn(async () => undefined)
@@ -220,6 +221,7 @@ describe('onboarding rule activation', () => {
       candidateCount: 0,
       createdCount: 0,
       duplicateCount: 0,
+      historicalSkippedCount: 0,
       clientCount: 0,
     }))
 

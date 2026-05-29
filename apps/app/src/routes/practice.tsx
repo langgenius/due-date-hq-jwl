@@ -512,6 +512,20 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                 </Trans>
               </p>
             </div>
+            <div className="grid gap-1.5">
+              <Label>
+                <Trans>Monitoring start date</Trans>
+              </Label>
+              <div className="rounded-md border border-divider-regular bg-background-subtle px-3 py-2 text-sm text-text-secondary">
+                <Trans>Monitoring since {formatDate(firm.monitoringStartDate)}</Trans>
+              </div>
+              <p className="text-xs leading-5 text-text-tertiary">
+                <Trans>
+                  DueDateHQ only auto-generates active filing plans from statutory deadlines on or
+                  after this date.
+                </Trans>
+              </p>
+            </div>
             {error ? (
               <p role="alert" className="text-sm text-text-destructive">
                 {error}

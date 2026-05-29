@@ -210,6 +210,7 @@ export interface MigrationDeps {
   userId: string
   plan?: BillingPlan
   internalDeadlineOffsetDays?: number
+  monitoringStartDate?: string
   firmCreatedAt?: Date
   rawBucket?: R2Bucket
 }
@@ -731,6 +732,9 @@ export class MigrationService {
       payload,
       internalDeadlineOffsetDays:
         this.deps.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+      ...(this.deps.monitoringStartDate
+        ? { monitoringStartDate: this.deps.monitoringStartDate }
+        : {}),
       rules,
     })
 
@@ -937,6 +941,9 @@ export class MigrationService {
             payload,
             internalDeadlineOffsetDays:
               this.deps.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
+            ...(this.deps.monitoringStartDate
+              ? { monitoringStartDate: this.deps.monitoringStartDate }
+              : {}),
             rules,
           })
         : null
@@ -944,6 +951,7 @@ export class MigrationService {
       batchId,
       clientsToCreate: stats.clientsToCreate,
       obligationsToCreate: exactPlan ? exactPlan.obligations.length : stats.obligationsToCreate,
+      historicalDeadlinesSkipped: exactPlan ? exactPlan.historicalDeadlineSkippedCount : 0,
       skippedRows: stats.skippedRows,
       errors: stats.errors,
       ruleReviewWarnings: computeRuleReviewWarnings(payload, rules),

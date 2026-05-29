@@ -21,6 +21,7 @@ export function Step4Preview({ summary }: Step4Props) {
   const targetLabels = useMappingTargetLabels()
   const clientCount = summary?.clientsToCreate ?? 0
   const obligationCount = summary?.obligationsToCreate ?? 0
+  const historicalDeadlinesSkipped = summary?.historicalDeadlinesSkipped ?? 0
   const skipped = summary?.skippedRows ?? 0
   const ruleReviewWarnings = summary?.ruleReviewWarnings ?? []
   const ruleReviewStateSummaries = buildRuleReviewStateSummaries(ruleReviewWarnings)
@@ -61,8 +62,8 @@ export function Step4Preview({ summary }: Step4Props) {
           <PlayIcon className="size-3 text-text-accent" aria-hidden />
           <Plural
             value={obligationCount}
-            one="# deadline (full tax year)"
-            other="# deadlines (full tax year)"
+            one="# deadline to monitor"
+            other="# deadlines to monitor"
           />
         </li>
         {skipped > 0 ? (
@@ -72,6 +73,16 @@ export function Step4Preview({ summary }: Step4Props) {
               value={skipped}
               one="# row will be skipped (see errors)"
               other="# rows will be skipped (see errors)"
+            />
+          </li>
+        ) : null}
+        {historicalDeadlinesSkipped > 0 ? (
+          <li className="flex items-center gap-2 text-text-tertiary">
+            <PlayIcon className="size-3" aria-hidden />
+            <Plural
+              value={historicalDeadlinesSkipped}
+              one="# historical deadline before monitoring start will be skipped"
+              other="# historical deadlines before monitoring start will be skipped"
             />
           </li>
         ) : null}

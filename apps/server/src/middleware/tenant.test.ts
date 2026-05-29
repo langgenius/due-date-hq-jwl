@@ -2,9 +2,10 @@ import { Hono } from 'hono'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ErrorCodes } from '@duedatehq/contracts/errors'
 import type { ContextVars, Env } from '../env'
+import { hashAuditValue } from '../lib/audit-request-metadata'
 import { tenantMiddleware } from './tenant'
 
-type TenantTestEnv = Pick<Env, 'DB'>
+type TenantTestEnv = Pick<Env, 'AUTH_SECRET' | 'DB'>
 
 const testD1: D1Database = {
   prepare(_query) {
@@ -18,7 +19,10 @@ const testD1: D1Database = {
   dump: async () => new ArrayBuffer(0),
 }
 
-const testEnv: TenantTestEnv = { DB: testD1 }
+const testEnv: TenantTestEnv = {
+  AUTH_SECRET: 'test-secret-test-secret-test-secret-123',
+  DB: testD1,
+}
 
 /**
  * Drizzle's chained query builder is mocked at the leaf-call boundary.
@@ -46,7 +50,18 @@ const dbMocks = vi.hoisted(() => {
   const insert = vi.fn(() => ({ values }))
   const fakeDb = { select, insert }
   const createDb = vi.fn(() => fakeDb)
-  const scoped = vi.fn((_db, firmId: string) => ({ firmId }))
+  const auditWrite = vi.fn(async () => ({ id: 'audit_1' }))
+  const auditWriteBatch = vi.fn(async (events: unknown[]) => ({
+    ids: events.map((_, index) => `audit_${index + 1}`),
+  }))
+  const scoped = vi.fn((_db, firmId: string) => ({
+    firmId,
+    audit: {
+      firmId,
+      write: auditWrite,
+      writeBatch: auditWriteBatch,
+    },
+  }))
 
   return {
     createDb,
@@ -57,6 +72,8 @@ const dbMocks = vi.hoisted(() => {
     values,
     onConflictDoNothing,
     scoped,
+    auditWrite,
+    auditWriteBatch,
     enqueueLimit(...rows: Array<unknown[]>) {
       limitQueue.push(...rows)
     },
@@ -96,6 +113,16 @@ function createTestApp(vars: Pick<ContextVars, 'firmId' | 'userId'> = {}) {
       tenant,
     })
   })
+  app.get('/rpc/write-audit', async (c) => {
+    const scoped = c.get('scoped')
+    const result = await scoped?.audit.write({
+      actorId: 'user_123',
+      entityType: 'rule',
+      entityId: 'rule_123',
+      action: 'rule.accepted',
+    })
+    return c.json(result)
+  })
 
   return app
 }
@@ -107,6 +134,7 @@ const activeProfile = {
   seatLimit: 1,
   timezone: 'America/New_York',
   internalDeadlineOffsetDays: 14,
+  monitoringStartDate: '2026-05-29',
   ownerUserId: 'user_owner',
   status: 'active',
   createdAt: new Date(0),
@@ -198,6 +226,7 @@ describe('tenantMiddleware', () => {
         seatLimit: 1,
         timezone: 'America/New_York',
         internalDeadlineOffsetDays: 14,
+        monitoringStartDate: '2026-05-29',
         status: 'active',
         ownerUserId: 'user_owner',
         createdAt: '1970-01-01T00:00:00.000Z',
@@ -205,6 +234,29 @@ describe('tenantMiddleware', () => {
     })
     expect(dbMocks.scoped).toHaveBeenCalledWith(expect.anything(), 'firm_123')
     expect(dbMocks.insert).not.toHaveBeenCalled()
+  })
+
+  it('injects hashed request metadata into scoped audit writes', async () => {
+    dbMocks.enqueueLimit([{ status: 'active' }], [activeProfile])
+
+    const response = await createTestApp({ firmId: 'firm_123', userId: 'user_123' }).request(
+      '/rpc/write-audit',
+      {
+        headers: {
+          'x-forwarded-for': '198.51.100.5, 198.51.100.99',
+          'user-agent': 'DueDateHQ Test Browser',
+        },
+      },
+      testEnv,
+    )
+
+    expect(response.status).toBe(200)
+    expect(dbMocks.auditWrite).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ipHash: await hashAuditValue(testEnv.AUTH_SECRET, '198.51.100.5'),
+        userAgentHash: await hashAuditValue(testEnv.AUTH_SECRET, 'DueDateHQ Test Browser'),
+      }),
+    )
   })
 
   it('lazy-creates firm_profile when missing, deriving owner from earliest owner member', async () => {

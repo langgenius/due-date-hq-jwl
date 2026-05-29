@@ -8,6 +8,7 @@ export interface TenantContext {
   readonly seatLimit: number
   readonly timezone: string
   readonly internalDeadlineOffsetDays: number
+  readonly monitoringStartDate: string
   readonly status: FirmStatus
   readonly ownerUserId: string
   readonly coordinatorCanSeeDollars: boolean
@@ -22,6 +23,7 @@ export interface FirmMembershipRow {
   seatLimit: number
   timezone: string
   internalDeadlineOffsetDays: number
+  monitoringStartDate: string
   status: FirmStatus
   role: FirmRole
   ownerUserId: string
@@ -37,6 +39,7 @@ export interface FirmUpdateInput {
   name: string
   timezone: string
   internalDeadlineOffsetDays: number
+  monitoringStartDate?: string
   coordinatorCanSeeDollars?: boolean
   smartPriorityProfile?: SmartPriorityProfile
 }

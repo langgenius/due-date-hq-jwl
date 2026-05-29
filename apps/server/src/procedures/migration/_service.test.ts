@@ -2583,6 +2583,69 @@ Fiscal S Corp,CA,S-Corp,federal_1120s,Fiscal,6/30`,
     })
   })
 
+  it('skips imported historical deadlines before the monitoring start date', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({
+      scoped: repo,
+      ai,
+      userId: USER,
+      monitoringStartDate: '2026-05-29',
+    })
+
+    const batch = await service.createBatch({ source: 'paste' })
+    await service.uploadRaw({
+      batchId: batch.id,
+      kind: 'paste',
+      text: `Client Name,State,Entity Type,Tax Types,Tax Year Type,Fiscal Year End
+Calendar S Corp,CA,S-Corp,federal_1120s,,
+Fiscal S Corp,CA,S-Corp,federal_1120s,Fiscal,6/30`,
+    })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Tax Types': 'client.tax_types',
+        'Tax Year Type': 'client.tax_year_type',
+        'Fiscal Year End': 'client.fiscal_year_end',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+
+    const summary = await service.applyDefaultMatrix(batch.id)
+    const result = await service.apply(batch.id)
+
+    const calendarClient = state.importedClients.find((client) => client.name === 'Calendar S Corp')
+    const fiscalClient = state.importedClients.find((client) => client.name === 'Fiscal S Corp')
+    const calendarObligations = state.importedObligations.filter(
+      (obligation) => obligation.clientId === calendarClient?.id,
+    )
+    const fiscalObligations = state.importedObligations.filter(
+      (obligation) => obligation.clientId === fiscalClient?.id,
+    )
+
+    expect(summary.historicalDeadlinesSkipped).toBe(2)
+    expect(summary.obligationsToCreate).toBe(2)
+    expect(result.obligationCount).toBe(2)
+    expect(calendarObligations).toEqual([])
+    expect(fiscalObligations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          taxType: 'federal_1120s',
+          baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        }),
+        expect.objectContaining({
+          taxType: 'ca_100s',
+          baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        }),
+      ]),
+    )
+  })
+
   it('creates the fiscal client but skips deadline creation when fiscal year end is missing', async () => {
     const { repo, state } = buildScopedRepo(FIRM)
     const ai = buildAi()

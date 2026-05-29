@@ -48,6 +48,7 @@ describe('firm_profile schema', () => {
         'seat_limit',
         'timezone',
         'internal_deadline_offset_days',
+        'monitoring_start_date',
         'owner_user_id',
         'status',
         'billing_customer_id',
@@ -64,6 +65,7 @@ describe('firm_profile schema', () => {
     expect(byName.id?.getSQLType()).toBe('text')
     expect(byName.seat_limit?.getSQLType()).toBe('integer')
     expect(byName.internal_deadline_offset_days?.getSQLType()).toBe('integer')
+    expect(byName.monitoring_start_date?.getSQLType()).toBe('text')
     expect(byName.coordinator_can_see_dollars?.getSQLType()).toBe('integer')
     expect(byName.smart_priority_profile_json?.getSQLType()).toBe('text')
     expect(byName.created_at?.getSQLType()).toBe('integer')
@@ -88,6 +90,7 @@ describe('firm_profile schema', () => {
     expect(findColumn('seat_limit').default).toBe(1)
     expect(findColumn('timezone').default).toBe('America/New_York')
     expect(findColumn('internal_deadline_offset_days').default).toBe(14)
+    expect(findColumn('monitoring_start_date').notNull).toBe(true)
     expect(findColumn('coordinator_can_see_dollars').default).toBe(false)
   })
 
@@ -128,6 +131,7 @@ describe('firm_profile schema', () => {
       seatLimit: 1,
       timezone: 'America/New_York',
       internalDeadlineOffsetDays: 14,
+      monitoringStartDate: '2026-05-29',
       ownerUserId: 'user_1',
       status: 'active',
       billingCustomerId: null,

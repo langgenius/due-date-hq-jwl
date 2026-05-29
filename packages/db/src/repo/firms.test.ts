@@ -15,6 +15,7 @@ type FirmSelectRow = {
   seatLimit: number
   timezone: string
   internalDeadlineOffsetDays: number
+  monitoringStartDate: string
   status: 'active'
   role: string
   ownerUserId: string
@@ -35,6 +36,7 @@ function makeFirmRow(overrides: Partial<FirmSelectRow> = {}): FirmSelectRow {
     seatLimit: overrides.seatLimit ?? 1,
     timezone: overrides.timezone ?? 'America/New_York',
     internalDeadlineOffsetDays: overrides.internalDeadlineOffsetDays ?? 14,
+    monitoringStartDate: overrides.monitoringStartDate ?? '2026-05-25',
     status: overrides.status ?? 'active',
     role: overrides.role ?? 'owner',
     ownerUserId: overrides.ownerUserId ?? 'user_1',

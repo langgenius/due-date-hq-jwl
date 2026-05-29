@@ -16,6 +16,7 @@ import {
 import { rollTaxPeriodForward } from '@duedatehq/core/tax-periods'
 import type { ObligationCreateInput } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
+import { isOnOrAfterDateOnly } from '../../lib/date-only'
 import { toCoreRule } from '../rules/runtime'
 
 type AnnualRolloverInput = {
@@ -140,7 +141,9 @@ function summarize(
     duplicateCount: output.rows.filter((row) => row.disposition === 'duplicate').length,
     skippedCount: output.rows.filter(
       (row) =>
-        row.disposition === 'missing_verified_rule' || row.disposition === 'missing_due_date',
+        row.disposition === 'before_monitoring_start' ||
+        row.disposition === 'missing_verified_rule' ||
+        row.disposition === 'missing_due_date',
     ).length,
     createdCount: output.rows.filter((row) => row.createdObligationId).length,
   }
@@ -179,6 +182,7 @@ export async function runAnnualRollover(input: {
   params: AnnualRolloverInput
   mode: AnnualRolloverMode
   internalDeadlineOffsetDays?: number
+  monitoringStartDate?: string
   rules?: readonly ObligationRule[]
   now?: Date
 }): Promise<AnnualRolloverOutput> {
@@ -316,13 +320,20 @@ export async function runAnnualRollover(input: {
             )
           : undefined
         const targetStatus = preview.reminderReady ? 'pending' : 'review'
+        const beforeMonitoringStart = Boolean(
+          preview.dueDate &&
+          input.monitoringStartDate &&
+          !isOnOrAfterDateOnly(preview.dueDate, input.monitoringStartDate),
+        )
         const disposition = duplicateId
           ? 'duplicate'
-          : preview.dueDate
-            ? targetStatus === 'pending'
-              ? 'will_create'
-              : 'review'
-            : 'missing_due_date'
+          : beforeMonitoringStart
+            ? 'before_monitoring_start'
+            : preview.dueDate
+              ? targetStatus === 'pending'
+                ? 'will_create'
+                : 'review'
+              : 'missing_due_date'
         const row: AnnualRolloverOutput['rows'][number] = {
           clientId: client.id,
           clientName: client.name,
@@ -337,13 +348,23 @@ export async function runAnnualRollover(input: {
           skippedReason:
             disposition === 'duplicate'
               ? 'target_obligation_already_exists'
-              : disposition === 'missing_due_date'
-                ? 'verified_rule_has_no_concrete_due_date'
-                : null,
+              : disposition === 'before_monitoring_start'
+                ? 'before_monitoring_start_date'
+                : disposition === 'missing_due_date'
+                  ? 'verified_rule_has_no_concrete_due_date'
+                  : null,
         }
         rows.push(row)
 
-        if (input.mode !== 'create' || !rule || !preview.dueDate || duplicateId) continue
+        if (
+          input.mode !== 'create' ||
+          !rule ||
+          !preview.dueDate ||
+          duplicateId ||
+          beforeMonitoringStart
+        ) {
+          continue
+        }
 
         const dueDate = new Date(`${preview.dueDate}T00:00:00.000Z`)
         const internalDueDate = internalDeadlineFromBaseDueDate(

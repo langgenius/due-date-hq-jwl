@@ -83,6 +83,7 @@ describe('buildOrganizationHooks', () => {
           seatLimit: 1,
           timezone: 'America/New_York',
           internalDeadlineOffsetDays: 14,
+          monitoringStartDate: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
           ownerUserId: 'user_1',
           status: 'active',
         }),

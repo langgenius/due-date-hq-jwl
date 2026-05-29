@@ -54,6 +54,7 @@ describe('Step4Preview rule review warnings', () => {
       batchId: '550e8400-e29b-41d4-a716-446655440001',
       clientsToCreate: 1,
       obligationsToCreate: 1,
+      historicalDeadlinesSkipped: 0,
       skippedRows: 0,
       errors: [],
       ruleReviewWarnings: [
@@ -84,5 +85,21 @@ describe('Step4Preview rule review warnings', () => {
     expect(document.body.textContent).not.toContain('tx_state_franchise_or_entity_tax')
     const link = document.querySelector('a[href*="/rules/library"]')
     expect(link).toBeNull()
+  })
+
+  it('explains historical deadlines skipped by the monitoring start date', () => {
+    renderPreview({
+      batchId: '550e8400-e29b-41d4-a716-446655440001',
+      clientsToCreate: 1,
+      obligationsToCreate: 1,
+      historicalDeadlinesSkipped: 2,
+      skippedRows: 0,
+      errors: [],
+      ruleReviewWarnings: [],
+    })
+
+    expect(document.body.textContent).toContain(
+      '2 historical deadlines before monitoring start will be skipped',
+    )
   })
 })

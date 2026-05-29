@@ -259,6 +259,12 @@ describe('@duedatehq/contracts', () => {
     expect(FirmCreateInputSchema.parse({ name: 'Bright CPA' }).timezone).toBe('America/New_York')
     expect(FirmCreateInputSchema.parse({ name: 'Bright CPA' }).internalDeadlineOffsetDays).toBe(14)
     expect(
+      FirmCreateInputSchema.parse({
+        name: 'Bright CPA',
+        monitoringStartDate: '2026-05-29',
+      }).monitoringStartDate,
+    ).toBe('2026-05-29')
+    expect(
       FirmPublicSchema.parse({
         id: 'firm_123',
         name: 'Bright CPA',
@@ -267,6 +273,7 @@ describe('@duedatehq/contracts', () => {
         seatLimit: 5,
         timezone: 'America/New_York',
         internalDeadlineOffsetDays: 14,
+        monitoringStartDate: '2026-05-29',
         status: 'active',
         role: 'owner',
         ownerUserId: 'user_123',
@@ -288,6 +295,7 @@ describe('@duedatehq/contracts', () => {
         seatLimit: 5,
         timezone: 'America/New_York',
         internalDeadlineOffsetDays: 14,
+        monitoringStartDate: '2026-05-29',
         status: 'active',
         role: 'manager',
         ownerUserId: 'user_123',

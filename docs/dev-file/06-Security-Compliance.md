@@ -12,7 +12,7 @@
 | ------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | **S**poofing        | 伪冒 CPA 登录                   | Google / Microsoft OAuth + device/IP fingerprint；Owner TOTP 在 production Owner-only 操作前强制，Manager TOTP 随 Team Phase 1 强制 |
 | **T**ampering       | 篡改 `current_due_date` / Pulse | Phase 1 Overlay 独立留痕不改 base；所有变更写 `audit_event`（永不删）                                                               |
-| **R**epudiation     | "不是我改的"                    | `audit_event` 记 actor + ip_hash + ua_hash                                                                                          |
+| **R**epudiation     | "不是我改的"                    | `audit_event` 记 actor + request-level ip_hash + ua_hash                                                                            |
 | **I**nfo disclosure | 跨 firm 数据泄露                | Middleware + `scoped(db, firmId)` + oxlint 三层                                                                                     |
 | **D**oS             | Ask 恶意构造 query              | Rate Limit binding + DSL 白名单 + 3s 超时                                                                                           |
 | **E**levation       | Preparer 跑 Owner 操作          | better-auth Access Control plugin 校验（Phase 1）                                                                                   |
@@ -294,8 +294,11 @@ ai.refusal / ai.guard_failed
 - `audit_event` **硬约束不删**；任何 migration / 运维脚本禁止 `DELETE FROM audit_event`
 - 写入永远走 `packages/db/audit-writer.ts` 的 `writeAudit(input, tx?)`，不允许其他入口
 - Pulse Apply / Migration Import 等批量操作必须在同一事务写 audit
+- Tenant-scoped RPC 请求由 middleware 从 `cf-connecting-ip`（fallback:
+  `x-forwarded-for` 第一项、`x-real-ip`）和 `user-agent` 生成 `AUTH_SECRET` 加盐
+  SHA-256 hash，并作为默认 metadata 注入 `scoped.audit.write/writeBatch`；不存明文 IP / UA
 - 读取永远走 `audit.list` / `scoped.audit.list`，由 repo 层硬编码 `firm_id = scoped.firmId`；
-  Audit Log 页面只显示 hash 后的 IP / UA，不显示明文设备指纹
+  Audit Log 页面只显示 hash 后的 IP / UA，不显示明文设备指纹，也不展示 raw practice id
 
 ---
 

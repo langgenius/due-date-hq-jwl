@@ -27,6 +27,7 @@ function contextFor(role: string, status = 'active'): RpcContext {
         seatLimit: 1,
         status: 'active',
         internalDeadlineOffsetDays: 14,
+        monitoringStartDate: '2026-05-29',
         ownerUserId: 'user_1',
         coordinatorCanSeeDollars: false,
       },

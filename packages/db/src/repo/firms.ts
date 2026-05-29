@@ -25,6 +25,7 @@ export interface FirmMembershipRow {
   seatLimit: number
   timezone: string
   internalDeadlineOffsetDays: number
+  monitoringStartDate: string
   status: FirmProfile['status']
   role: FirmRole
   ownerUserId: string
@@ -40,6 +41,7 @@ export interface FirmUpdateInput {
   name: string
   timezone: string
   internalDeadlineOffsetDays: number
+  monitoringStartDate?: string
   coordinatorCanSeeDollars?: boolean
   smartPriorityProfile?: SmartPriorityProfile
 }
@@ -86,6 +88,7 @@ function toMembershipRow(row: {
   seatLimit: number
   timezone: string
   internalDeadlineOffsetDays: number
+  monitoringStartDate: string
   status: FirmProfile['status']
   role: string
   ownerUserId: string
@@ -104,6 +107,7 @@ function toMembershipRow(row: {
     seatLimit: row.seatLimit,
     timezone: row.timezone,
     internalDeadlineOffsetDays: row.internalDeadlineOffsetDays,
+    monitoringStartDate: row.monitoringStartDate,
     status: row.status,
     role: normalizeRole(row.role),
     ownerUserId: row.ownerUserId,
@@ -126,6 +130,7 @@ function baseFirmSelect(db: Db) {
       seatLimit: firmProfile.seatLimit,
       timezone: firmProfile.timezone,
       internalDeadlineOffsetDays: firmProfile.internalDeadlineOffsetDays,
+      monitoringStartDate: firmProfile.monitoringStartDate,
       status: firmProfile.status,
       role: member.role,
       ownerUserId: firmProfile.ownerUserId,
@@ -299,6 +304,9 @@ export function makeFirmsRepo(db: Db) {
         timezone: input.timezone,
         internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
         updatedAt: now,
+      }
+      if (input.monitoringStartDate !== undefined) {
+        patch.monitoringStartDate = input.monitoringStartDate
       }
       if (input.coordinatorCanSeeDollars !== undefined) {
         patch.coordinatorCanSeeDollars = input.coordinatorCanSeeDollars
