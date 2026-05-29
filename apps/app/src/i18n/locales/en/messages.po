@@ -58,6 +58,10 @@ msgstr "(Medium)"
 msgid "(no longer on team)"
 msgstr "(no longer on team)"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "(optional)"
+msgstr "(optional)"
+
 #. placeholder {0}: applicable.length
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "{0, plural, one {# applicable form} other {# applicable forms}}"
@@ -10281,8 +10285,8 @@ msgid "SELECTED RULES"
 msgstr "SELECTED RULES"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
-msgid "Selected states activate with federal rules after this practice is created. Skip if you only need federal rules — you can activate states later from Rule Library."
-msgstr "Selected states activate with federal rules after this practice is created. Skip if you only need federal rules — you can activate states later from Rule Library."
+msgid "Selected states activate with federal rules. Skip to use federal rules only — add states later from Rule Library."
+msgstr "Selected states activate with federal rules. Skip to use federal rules only — add states later from Rule Library."
 
 #: src/features/members/members-page.tsx
 msgid "Send a 7-day magic link to add a member to this practice."
@@ -10399,10 +10403,6 @@ msgstr "Set to {after}"
 #: src/routes/account.security.tsx
 msgid "Set up authenticator"
 msgstr "Set up authenticator"
-
-#: src/routes/onboarding.tsx
-msgid "Set up your practice."
-msgstr "Set up your practice."
 
 #: src/routes/onboarding.tsx
 msgid "Setting up your practice…"
@@ -10878,8 +10878,8 @@ msgid "State context added"
 msgstr "State context added"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
-msgid "State rule coverage (optional)"
-msgstr "State rule coverage (optional)"
+msgid "State rule coverage"
+msgstr "State rule coverage"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "States"
@@ -11580,8 +11580,8 @@ msgid "This is the 7-day client countdown email. Variables: client_name, tax_typ
 msgstr "This is the 7-day client countdown email. Variables: client_name, tax_type, due_date, offset_days, obligation_url, and unsubscribe_url."
 
 #: src/routes/onboarding.tsx
-msgid "This is what your team and clients will see."
-msgstr "This is what your team and clients will see."
+msgid "This is what your team and clients will see. You can change it later."
+msgstr "This is what your team and clients will see. You can change it later."
 
 #: src/routes/account.security.tsx
 msgid "This is your current session — revoking it will sign you out and send you to the login screen."
@@ -12336,8 +12336,8 @@ msgid "We found a header, but no data rows. Add at least one client row to conti
 msgstr "We found a header, but no data rows. Add at least one client row to continue."
 
 #: src/routes/onboarding.tsx
-msgid "We pre-filled a name based on your account. You can change it now or anytime in the Practice profile."
-msgstr "We pre-filled a name based on your account. You can change it now or anytime in the Practice profile."
+msgid "We pre-filled a name from your account."
+msgstr "We pre-filled a name from your account."
 
 #: src/routes/billing.tsx
 msgid "We store the plan and seat limit needed for app permissions."

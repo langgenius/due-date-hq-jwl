@@ -58,6 +58,10 @@ msgstr "（中）"
 msgid "(no longer on team)"
 msgstr "（已不在团队中）"
 
+#: src/features/onboarding/state-rule-activation-selector.tsx
+msgid "(optional)"
+msgstr "（可选）"
+
 #. placeholder {0}: applicable.length
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "{0, plural, one {# applicable form} other {# applicable forms}}"
@@ -10385,8 +10389,8 @@ msgid "SELECTED RULES"
 msgstr "已选规则"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
-msgid "Selected states activate with federal rules after this practice is created. Skip if you only need federal rules — you can activate states later from Rule Library."
-msgstr "所选州将在创建此事务所后与联邦规则一起激活。如果您只需要联邦规则，可跳过——稍后可从规则库激活州规则。"
+msgid "Selected states activate with federal rules. Skip to use federal rules only — add states later from Rule Library."
+msgstr "已选州将与联邦规则一同启用。如仅需联邦规则可跳过 — 之后可在规则库中添加。"
 
 #: src/features/members/members-page.tsx
 msgid "Send a 7-day magic link to add a member to this practice."
@@ -10503,10 +10507,6 @@ msgstr "设置为 {after}"
 #: src/routes/account.security.tsx
 msgid "Set up authenticator"
 msgstr "设置身份验证器"
-
-#: src/routes/onboarding.tsx
-msgid "Set up your practice."
-msgstr "设置你的事务所。"
 
 #: src/routes/onboarding.tsx
 msgid "Setting up your practice…"
@@ -10990,8 +10990,8 @@ msgid "State context added"
 msgstr "已补充州级上下文"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
-msgid "State rule coverage (optional)"
-msgstr "州规则覆盖范围（可选）"
+msgid "State rule coverage"
+msgstr "州规则覆盖范围"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "States"
@@ -11695,8 +11695,8 @@ msgid "This is the 7-day client countdown email. Variables: client_name, tax_typ
 msgstr "这是发送给客户的 7 天倒计时邮件。变量：client_name、tax_type、due_date、offset_days、obligation_url 和 unsubscribe_url。"
 
 #: src/routes/onboarding.tsx
-msgid "This is what your team and clients will see."
-msgstr "你的团队和客户都会看到这个名字。"
+msgid "This is what your team and clients will see. You can change it later."
+msgstr "这是您的团队和客户将看到的名称。您可以稍后更改。"
 
 #: src/routes/account.security.tsx
 msgid "This is your current session — revoking it will sign you out and send you to the login screen."
@@ -12455,8 +12455,8 @@ msgid "We found a header, but no data rows. Add at least one client row to conti
 msgstr "找到了表头，但没有数据行。请至少添加一条客户记录后继续。"
 
 #: src/routes/onboarding.tsx
-msgid "We pre-filled a name based on your account. You can change it now or anytime in the Practice profile."
-msgstr "我们已根据您的账户预填了名称。您可以现在或随时在事务所档案中修改。"
+msgid "We pre-filled a name from your account."
+msgstr "我们已根据您的账户预填了名称。"
 
 #: src/routes/billing.tsx
 msgid "We store the plan and seat limit needed for app permissions."
