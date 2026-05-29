@@ -1760,6 +1760,7 @@ export function RulesLibraryRoute() {
             <LoadingState />
           ) : isSearching ? (
             <SearchResultsTable
+              activeRuleId={ruleId}
               rules={matchedRules}
               query={searchLower}
               onRuleClick={handleRuleClick}
@@ -1783,6 +1784,7 @@ export function RulesLibraryRoute() {
           ) : (
             <GroupedRulesTable
               activeScope={activeScope}
+              activeRuleId={ruleId}
               groups={groups}
               expanded={expanded}
               onToggle={toggleGroup}
@@ -2455,6 +2457,7 @@ function MissingRulesEmptyState({ onViewAll }: { onViewAll: () => void }) {
 
 function GroupedRulesTable({
   activeScope,
+  activeRuleId,
   groups,
   expanded,
   onToggle,
@@ -2476,6 +2479,10 @@ function GroupedRulesTable({
   // "ACTIVE N") can be hidden when the scope already filters to
   // that one status — the label would just restate the scope tab.
   activeScope: ScopeKey
+  // 2026-05-28 (Yuqi /rules/library polish #15): the URL `?rule=<id>`
+  // state — when set, the matching RuleTableRow paints the
+  // accent-tint bg + 2px rail "drawer is on this row" treatment.
+  activeRuleId: string | null
   groups: JurisdictionGroup[]
   expanded: Set<RuleJurisdiction>
   onToggle: (jur: RuleJurisdiction) => void
@@ -2746,6 +2753,7 @@ function GroupedRulesTable({
                                 jurisdictionLabel={group.label}
                                 selectable={isReviewable}
                                 selected={selectedRuleIds.has(rule.id)}
+                                isOpen={rule.id === activeRuleId}
                                 focused={focusedRowId === `rule:${rule.id}`}
                                 onSelectChange={() => onToggleRuleSelection(rule.id)}
                                 onClick={onRuleClick}
@@ -2860,24 +2868,22 @@ function GroupHeaderRow({
         // "don't like state header to be gray"). Anchors by
         // typography (bigger semibold name) alone.
         //
-        // No extra border-t! The TableRow primitive already adds
-        // `border-b border-divider-subtle` on every row, so adding
-        // a border-t here stacked with the previous row's border-b
-        // and painted as a 2px line — that read as a heavy
-        // chunk-divider. Letting the primitive's natural border-b
-        // be the only line between states gives one clean hairline
-        // and lets typography do the anchoring.
-        // 2026-05-26 (Stripe-bar /polish pass): row height bumped
-        // to h-14 (56px) so the catalog reads at the same premium
-        // breathing room as /clients + /deadlines tables.
-        // 2026-05-26 (Yuqi cross-table drift #11 — group header
-        // hover): KEEP hover-bg here. The canonical rule across
-        // tables: group headers that are CLICKABLE (this state row
-        // expands/collapses) keep hover-bg + cursor-pointer as the
-        // "this is interactive" affordance. Group headers that are
-        // PASSIVE section labels (/deadlines client-group row) stay
-        // static. The semantic difference drives the visual.
-        'h-14 cursor-pointer hover:bg-state-base-hover',
+        // 2026-05-28 (Yuqi /rules/library polish #6 — "当列表展开
+        // 的时候，现在有点难分清每个state"): added a 2px deep top
+        // border that paints over the previous row's faint
+        // `border-b divider-subtle`. The combined ~2.5px solid line
+        // gives a clear visual break between an expanded
+        // jurisdiction's rule rows and the NEXT jurisdiction header,
+        // so the eye can find the next state at a glance even after
+        // a long scroll-through of expanded rules. The first
+        // GroupHeaderRow in the table doesn't need the top border
+        // (no preceding content to separate from), but rendering it
+        // there is harmless — the sticky TableHeader sits above it
+        // anyway. `border-t-2 border-divider-deep` chosen so the
+        // line lands at deep-gray (#171717 / 0.14 alpha) rather than
+        // pulling the page tint; it has to win against the rule
+        // row's border-b without competing with row text.
+        'h-14 cursor-pointer border-t-2 border-divider-deep hover:bg-state-base-hover',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onToggle(group.jurisdiction)}
@@ -2962,10 +2968,17 @@ function GroupHeaderRow({
             label={<Plural value={group.gapEntities.length} one="# missing" other="# missing" />}
           />
           <RuleStatusBar rules={group.rules} />
-          {/* Reserve the trailing count slot so the fixed-width
-              progress bars stay right-aligned across 1- and 2-digit
-              counts. Needs-review rows use review tone; fully-active
-              rows use success tone instead of leaving the slot empty. */}
+          {/* 2026-05-28 (Yuqi /rules/library polish #8 — "数字应该
+              是固定width" + polish #9 fully-active mirror): the
+              trailing count slot has a fixed width so 1-digit,
+              2-digit, and 3-digit values keep their right edge
+              aligned across rows. `tabular-nums` handles digit-glyph
+              widths, but the dot + gap span shifts horizontally
+              without a width floor. The outer `w-9 justify-end`
+              wrapper keeps the chip's right edge stable so progress
+              bars above the count line up cleanly column-by-column.
+              Needs-review rows use review tone; fully-active rows
+              use success tone instead of leaving the slot empty. */}
           <span className="inline-flex w-9 justify-end">
             {group.pendingReviewCount > 0 ? (
               <span
@@ -3006,6 +3019,7 @@ function RuleTableRow({
   jurisdictionLabel: jurisLabel,
   selectable,
   selected,
+  isOpen,
   focused,
   onSelectChange,
   onClick,
@@ -3019,6 +3033,13 @@ function RuleTableRow({
   // affordance honest.
   selectable: boolean
   selected: boolean
+  // 2026-05-28 (Yuqi /rules/library polish #15): true when the
+  // rule drawer is currently open for THIS rule (i.e. `?rule=<id>`
+  // matches this row). Drives the bg-accent-tint + 2px accent rail
+  // "the drawer is on this rule" visual treatment. Distinct from
+  // `selected` (bulk-review checkbox state) so the two states never
+  // conflate.
+  isOpen: boolean
   // 2026-05-26 (Yuqi rule library deferred batch — /adapt):
   // J/K nav focus indicator. Paints a 2px accent inset rail +
   // subtle bg to mark "Enter opens THIS rule."
@@ -3076,6 +3097,17 @@ function RuleTableRow({
         // moved from yellow-50 to orange-50 for the warm-brown read.
         needsReviewRow && 'bg-[var(--color-util-colors-orange-50)]/60',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
+        // 2026-05-28 (Yuqi /rules/library polish #15 — "如果一个row
+        // 被点开，那需要indicate它expanded了"): when the rule drawer
+        // is open for this row, paint the accent-tint bg + 2px left
+        // accent rail. Mirrors the focused-state inset rail
+        // vocabulary so the eye learns one indicator; the accent
+        // tint wins over `focused` so "the drawer is on this rule"
+        // reads distinct from "this row is keyboard-focused." Uses
+        // its own `isOpen` prop so it never conflates with bulk-
+        // select state (`selected`, driven by the row checkbox).
+        isOpen &&
+          'bg-state-accent-active-alt shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onClick(rule)}
       aria-label={t`Open rule details for ${displayTitle}`}
@@ -3416,11 +3448,16 @@ function StatusSectionHeaderRow({
 // ---------------------------------------------------------------------------
 
 function SearchResultsTable({
+  activeRuleId,
   rules,
   query,
   onRuleClick,
   focusedRowId,
 }: {
+  // 2026-05-28 (Yuqi /rules/library polish #15): same `activeRuleId`
+  // thread as `GroupedRulesTable` so the "drawer is on this row"
+  // treatment carries over to search results.
+  activeRuleId: string | null
   rules: ObligationRule[]
   query: string
   onRuleClick: (rule: ObligationRule) => void
@@ -3511,6 +3548,7 @@ function SearchResultsTable({
           ) : (
             rules.map((rule) => {
               const isFocused = focusedRowId === `rule:${rule.id}`
+              const isOpen = rule.id === activeRuleId
               return (
                 <TableRow
                   key={rule.id}
@@ -3522,6 +3560,12 @@ function SearchResultsTable({
                     'group/row cursor-pointer hover:bg-state-base-hover',
                     isFocused &&
                       'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
+                    // 2026-05-28 (Yuqi /rules/library polish #15): same
+                    // accent-tint + 2px rail treatment as the grouped
+                    // table so search-results rows also visualise
+                    // "drawer is on this row."
+                    isOpen &&
+                      'bg-state-accent-active-alt shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
                   )}
                   onClick={() => onRuleClick(rule)}
                   aria-label={t`Open rule details for ${rule.title}`}
