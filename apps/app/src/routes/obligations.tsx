@@ -11856,12 +11856,18 @@ function ObligationQueueEmptyState({
   // workspace may very well have data hidden by the filter).
   // Without filters: import-clients CTA (workspace is genuinely empty).
   return (
+    // 2026-05-28 (Yuqi /today polish — extended to /deadlines): empty
+    // state aligned with /today's Actions-this-week treatment —
+    // icon at top + split title/description + outline CTA. Dify Blue
+    // primary stays reserved for the one next action per surface, so
+    // the empty-state CTA renders as a quieter secondary button.
     <EmptyState
+      icon={CalendarDaysIcon}
       title={
         hasActiveFilters ? (
           <Trans>No deadlines match these filters.</Trans>
         ) : (
-          <Trans>No deadlines yet. Import clients to get started.</Trans>
+          <Trans>No deadlines yet</Trans>
         )
       }
       description={
@@ -11869,15 +11875,17 @@ function ObligationQueueEmptyState({
           <Trans>
             Try a different filter combination, or clear all filters to see the full queue.
           </Trans>
-        ) : null
+        ) : (
+          <Trans>Import your client list to start tracking filing deadlines.</Trans>
+        )
       }
       cta={
         hasActiveFilters ? (
-          <Button size="sm" onClick={onClearFilters}>
+          <Button size="sm" variant="outline" onClick={onClearFilters}>
             <Trans>Clear filters</Trans>
           </Button>
         ) : (
-          <Button size="sm" onClick={onOpenWizard} disabled={!canRunMigration}>
+          <Button size="sm" variant="outline" onClick={onOpenWizard} disabled={!canRunMigration}>
             <Trans>Import clients</Trans>
           </Button>
         )

@@ -108,34 +108,51 @@ function PulseNotificationsBell() {
           <button
             type="button"
             aria-label={unreadCount > 0 ? t`Inbox, ${unreadCount} unread` : t`Inbox`}
-            // 2026-05-25 (Yuqi rail alignment fix): bumped size-7
-            // (28px) → size-8 (32px) so the bell sits at the
-            // same hit-box size as the firm-switcher trigger and
-            // sidebar collapse toggle.
-            // 2026-05-26 (Yuqi sidebar reorg — bell moves out):
-            // bell now floats at the top-right corner of
-            // `SidebarInset`, never inside the sidebar. The
-            // collapsed-mode style overrides
-            // (`group-data-[collapsed=true]/sidebar:` selectors)
-            // are dropped — they were a layout hack for when
-            // the bell stacked into the 56px rail and looked
-            // alien there. As a free-floating top-right widget
-            // it just renders as the canonical outlined icon
-            // button in all states.
+            // 2026-05-28 (Yuqi /today polish — bell moves back IN):
+            // bell lives in the sidebar footer alongside Audit log
+            // and Settings (see app-shell-nav.tsx). Mirrors the
+            // SidebarMenuButton chrome — full-width row in expanded
+            // mode with icon + "Inbox" label + count badge; collapses
+            // to a 32×32 centered icon in collapsed mode with a
+            // small destructive dot when unread > 0. Same hover /
+            // focus / disabled treatment as the other footer items
+            // so it reads as part of the navigation chrome instead
+            // of as a floating utility chip.
             className={cn(
-              'relative inline-flex size-8 shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-md border border-divider-regular bg-background-default text-text-secondary outline-none transition-[background-color,border-color,color] duration-150 ease',
+              'group/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-md px-3 text-left text-base font-normal text-text-secondary outline-none transition-colors',
               'hover:bg-background-default-hover hover:text-text-primary',
               'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+              // Collapsed sidebar: shrink to 32×32 tile, center the
+              // icon, hide the label. Matches SidebarMenuButton's
+              // collapsed treatment so the bell sits in family with
+              // siblings.
+              'group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:overflow-visible',
             )}
           >
-            <BellIcon className="size-4" aria-hidden />
+            <BellIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+            <span
+              data-slot="sidebar-menu-label"
+              className="flex-1 truncate transition-[opacity,max-width] duration-240 ease-apple group-data-[collapsed=true]/sidebar:max-w-0 group-data-[collapsed=true]/sidebar:opacity-0 group-data-[collapsed=true]/sidebar:pointer-events-none group-data-[collapsed=true]/sidebar:overflow-hidden"
+            >
+              <Trans>Inbox</Trans>
+            </span>
             {unreadCount > 0 ? (
-              <span
-                aria-hidden
-                className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-state-destructive-solid px-1 text-xs font-medium tabular-nums text-text-inverted"
-              >
-                {unreadCount}
-              </span>
+              <>
+                {/* Expanded: count badge inline on the right. */}
+                <span
+                  aria-hidden
+                  className="ml-auto inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-state-destructive-solid px-1 text-xs font-medium tabular-nums text-text-inverted group-data-[collapsed=true]/sidebar:hidden"
+                >
+                  {unreadCount}
+                </span>
+                {/* Collapsed: replace count chip with a small
+                    destructive dot overlay so the rail signal stays
+                    legible at 32×32 without a number. */}
+                <span
+                  aria-hidden
+                  className="absolute -top-0.5 -right-0.5 hidden size-2 rounded-full bg-state-destructive-solid group-data-[collapsed=true]/sidebar:block"
+                />
+              </>
             ) : null}
           </button>
         }

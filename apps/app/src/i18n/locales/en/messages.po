@@ -5540,6 +5540,11 @@ msgstr "Import template suggestions mean AI was unavailable and the selected imp
 msgid "Import undone"
 msgstr "Import undone"
 
+#: src/features/dashboard/actions-list.tsx
+#: src/routes/obligations.tsx
+msgid "Import your client list to start tracking filing deadlines."
+msgstr "Import your client list to start tracking filing deadlines."
+
 #: src/routes/migration.new.tsx
 msgid "Import your clients and generate deadlines."
 msgstr "Import your clients and generate deadlines."
@@ -6987,13 +6992,10 @@ msgid "No deadlines match these filters."
 msgstr "No deadlines match these filters."
 
 #: src/features/clients/ClientWorkPlanPanel.tsx
-msgid "No deadlines yet"
-msgstr "No deadlines yet"
-
 #: src/features/dashboard/actions-list.tsx
 #: src/routes/obligations.tsx
-msgid "No deadlines yet. Import clients to get started."
-msgstr "No deadlines yet. Import clients to get started."
+msgid "No deadlines yet"
+msgstr "No deadlines yet"
 
 #: src/routes/obligations.tsx
 msgid "No document checklist was attached to this filing."
