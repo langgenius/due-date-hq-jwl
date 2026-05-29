@@ -9331,6 +9331,10 @@ msgstr "提醒"
 msgid "Remove"
 msgstr "移除"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Remove file"
+msgstr "移除文件"
+
 #: src/features/members/members-page.tsx
 msgid "Remove from practice"
 msgstr "从事务所移除"
@@ -12723,8 +12727,8 @@ msgid "Your subscription is confirmed and the plan is active."
 msgstr "订阅已确认，当前计划已生效。"
 
 #: src/features/migration/Step3Normalize.tsx
-msgid "Your uploaded file stays unchanged. DueDateHQ will use this clean import draft only after you import."
-msgstr "你上传的文件不会被修改。只有点击导入后，DueDateHQ 才会使用这个整理后的导入草稿。"
+msgid "Your uploaded file stays unchanged — this clean draft is used only after you import."
+msgstr "您上传的文件保持不变 — 此清洁副本仅在导入后使用。"
 
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/migration/mapping-target-labels.ts

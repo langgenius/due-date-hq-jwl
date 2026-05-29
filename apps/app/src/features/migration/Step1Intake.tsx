@@ -11,7 +11,7 @@ import { msg } from '@lingui/core/macro'
 import { type MessageDescriptor } from '@lingui/core'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
-import { LoaderCircleIcon, LockIcon, UploadCloudIcon } from 'lucide-react'
+import { FileCheck2Icon, LoaderCircleIcon, LockIcon, UploadCloudIcon } from 'lucide-react'
 import type { MigrationSourceManifest } from '@duedatehq/contracts'
 
 import { parseTabular, TabularParseError } from '@duedatehq/core/csv-parser'
@@ -598,24 +598,6 @@ export function Step1Intake({
               </div>
             )}
 
-            {/* 2026-05-29 (R4 migration polish #8): SSN-blocked
-                paragraph used to sit as plain tertiary text and a
-                tiny lock icon — it disappeared visually next to the
-                large dropzone above. Privacy reassurance is exactly
-                the line a first-time user needs to see before
-                uploading client data, so it earns a quiet but
-                discoverable treatment: subtle accent-tint surface
-                with a matching ring. Still small in scale, but
-                anchored as a discrete privacy chip rather than a
-                footnote that runs into the next section. */}
-            <p
-              id="paste-hint"
-              className="mx-auto inline-flex items-center gap-1.5 rounded-md bg-state-accent-hover-alt px-2.5 py-1.5 text-sm text-text-secondary ring-1 ring-state-accent-active-alt/50"
-            >
-              <LockIcon className="size-3.5 text-text-accent" aria-hidden />
-              <Trans>SSN-like columns are blocked before anything goes to the AI.</Trans>
-            </p>
-
             {/* Quiet source row at the bottom. Smaller weight, lower in
                 the visual hierarchy. Per-chip disclosure opens the
                 export guide only when the user explicitly toggles a chip
@@ -677,6 +659,26 @@ export function Step1Intake({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 2026-05-29 (R4 migration polish, follow-up): SSN privacy
+          chip lifted out of the empty state so it ALSO renders in
+          the uploaded state. The chip is forward-looking
+          ("blocked before anything goes to the AI") — the AI runs
+          on Continue, which is after both states. Suppressed when
+          the destructive SSN-detected alert below takes over,
+          since the alert carries a stronger version of the same
+          claim with the specific column names. Also suppressed
+          for parse-error and submit-error states so it doesn't
+          compete with the error message. */}
+      {intake.ssnBlockedColumnIndexes.length === 0 && !intake.parseError && !intake.submitError ? (
+        <p
+          id="paste-hint"
+          className="mx-auto inline-flex items-center gap-1.5 rounded-md bg-state-accent-hover-alt px-2.5 py-1.5 text-sm text-text-secondary ring-1 ring-state-accent-active-alt/50"
+        >
+          <LockIcon className="size-3.5 text-text-accent" aria-hidden />
+          <Trans>SSN-like columns are blocked before anything goes to the AI.</Trans>
+        </p>
+      ) : null}
 
       {/* Stable status region — lives outside AnimatePresence so warnings
           don't get re-mounted across state changes. */}
@@ -785,6 +787,15 @@ interface DetectionHeroProps {
  * same line. If the AI is uncertain (confidence < 0.7): the readout
  * stays cautious ("Looks like Drake or Lacerte — pick one.") with two
  * chips. If parsing failed: an error Alert renders in the slot.
+ *
+ * 2026-05-29 (R4 migration polish, follow-up): restructured to mirror
+ * the empty-state dropzone shape. The empty state is a single centered
+ * hero card (dashed border, ~160px tall, soft surface) — the uploaded
+ * state was a left-aligned compact row + bold readout that read as a
+ * different page. Now both states share the same shell: a centered card
+ * with an icon at top, a hero readout, supporting file/source info, and
+ * a quiet action link. The dashed→solid border swap is the only visual
+ * difference — same surface, same alignment, same size, same rhythm.
  */
 function DetectionHero({
   fileName,
@@ -800,82 +811,151 @@ function DetectionHero({
 }: DetectionHeroProps) {
   const fileSizeLabel = useMemo(() => formatBytes(sizeBytes), [sizeBytes])
 
-  return (
-    <div className="flex flex-col gap-4">
-      {/* Compact file card — replaces the large dropzone */}
-      <div className="flex items-center justify-between gap-3 rounded-md border border-divider-regular bg-components-panel-bg px-3 py-2 shadow-subtle">
-        <div className="flex min-w-0 items-center gap-2.5">
-          {isReadingFile ? (
-            <LoaderCircleIcon
-              className="size-4 shrink-0 animate-spin text-text-accent"
-              aria-hidden
-            />
-          ) : (
-            <UploadCloudIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
-          )}
-          <span className="truncate font-mono text-sm tabular-nums text-text-primary">
-            {fileName ?? ''}
-          </span>
-          {sizeBytes > 0 ? (
-            <span className="shrink-0 font-mono text-xs tabular-nums text-text-tertiary">
-              {fileSizeLabel}
-            </span>
-          ) : null}
-        </div>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="shrink-0 rounded-sm text-sm text-text-tertiary underline-offset-2 hover:text-text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
-          <Trans>Remove</Trans>
-        </button>
-      </div>
-
-      {/* Detection readout — the hero. Either the AI is reading, the AI
-          has determined the source, or parsing failed. */}
-      {parseError ? (
+  if (parseError) {
+    return (
+      <div className="flex flex-col gap-3">
+        <FileSummaryRow
+          fileName={fileName}
+          fileSizeLabel={fileSizeLabel}
+          sizeBytes={sizeBytes}
+          isReadingFile={false}
+          onRemove={onRemove}
+        />
         <Alert variant="destructive" role="alert" aria-live="assertive">
           <AlertTitle>
             <Trans>Couldn&apos;t read your data</Trans>
           </AlertTitle>
           <AlertDescription>{parseError}</AlertDescription>
         </Alert>
-      ) : isReadingFile ? (
-        <p
-          role="status"
-          aria-live="polite"
-          className={cn('font-medium text-text-secondary', compact ? 'text-base' : 'text-lg')}
-        >
-          <Trans>Reading file…</Trans>
-        </p>
-      ) : sourceManifest && rowCount > 0 ? (
-        <DetectionReadout
-          productLabel={sourceProductLabel}
-          rowCount={rowCount}
-          confidence={sourceManifest.confidence}
-          compact={compact}
-        />
-      ) : rowCount > 0 ? (
-        // Paste path or generic source — we can confirm rows but not a tool
-        <p
-          className={cn(
-            'font-medium tabular-nums text-text-primary',
-            compact ? 'text-base' : 'text-lg',
-          )}
-        >
-          <Plural
-            value={rowCount}
-            one="# client ready to import"
-            other="# clients ready to import"
-          />
-        </p>
-      ) : null}
+      </div>
+    )
+  }
 
-      {selectedPresetLabel && !isReadingFile && !parseError ? (
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div
+        className={cn(
+          'flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-divider-regular bg-components-panel-bg text-center',
+          compact ? 'px-6 py-5' : 'px-8 py-6',
+        )}
+      >
+        {isReadingFile ? (
+          <LoaderCircleIcon className="size-9 shrink-0 animate-spin text-text-accent" aria-hidden />
+        ) : (
+          <FileCheck2Icon className="size-9 shrink-0 text-text-success" aria-hidden />
+        )}
+
+        {isReadingFile ? (
+          <p
+            role="status"
+            aria-live="polite"
+            className={cn('font-medium text-text-secondary', compact ? 'text-base' : 'text-lg')}
+          >
+            <Trans>Reading file…</Trans>
+          </p>
+        ) : sourceManifest && rowCount > 0 ? (
+          <DetectionReadout
+            productLabel={sourceProductLabel}
+            rowCount={rowCount}
+            confidence={sourceManifest.confidence}
+            compact={compact}
+          />
+        ) : rowCount > 0 ? (
+          <p
+            className={cn(
+              'font-medium tabular-nums text-text-primary',
+              compact ? 'text-base' : 'text-lg',
+            )}
+          >
+            <Plural
+              value={rowCount}
+              one="# client ready to import"
+              other="# clients ready to import"
+            />
+          </p>
+        ) : null}
+
+        {/* File name + size + Remove sit BELOW the hero readout as
+            supporting info — the readout is the hero, the file is
+            its provenance. Mirrors the empty-state dropzone's
+            "label + format constraints" hierarchy. */}
+        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+          {fileName ? (
+            <span className="truncate font-mono text-sm tabular-nums text-text-tertiary">
+              {fileName}
+            </span>
+          ) : null}
+          {sizeBytes > 0 ? (
+            <>
+              <span aria-hidden className="text-text-tertiary">
+                ·
+              </span>
+              <span className="font-mono text-xs tabular-nums text-text-tertiary">
+                {fileSizeLabel}
+              </span>
+            </>
+          ) : null}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={onRemove}
+        className="text-sm text-text-tertiary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+      >
+        <Trans>Remove file</Trans>
+      </button>
+
+      {selectedPresetLabel && !isReadingFile ? (
         <p className="text-xs text-text-tertiary">
           <Trans>Source set to {selectedPresetLabel}.</Trans>
         </p>
       ) : null}
+    </div>
+  )
+}
+
+/**
+ * Parse-error fallback file row — kept compact because the error
+ * Alert below is the primary focus, not the file metadata.
+ */
+function FileSummaryRow({
+  fileName,
+  fileSizeLabel,
+  sizeBytes,
+  isReadingFile,
+  onRemove,
+}: {
+  fileName: string | null
+  fileSizeLabel: string
+  sizeBytes: number
+  isReadingFile: boolean
+  onRemove: () => void
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md border border-divider-regular bg-components-panel-bg px-3 py-2 shadow-subtle">
+      <div className="flex min-w-0 items-center gap-2.5">
+        {isReadingFile ? (
+          <LoaderCircleIcon className="size-4 shrink-0 animate-spin text-text-accent" aria-hidden />
+        ) : (
+          <UploadCloudIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
+        )}
+        <span className="truncate font-mono text-sm tabular-nums text-text-primary">
+          {fileName ?? ''}
+        </span>
+        {sizeBytes > 0 ? (
+          <span className="shrink-0 font-mono text-xs tabular-nums text-text-tertiary">
+            {fileSizeLabel}
+          </span>
+        ) : null}
+      </div>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="shrink-0 rounded-sm text-sm text-text-tertiary underline-offset-2 outline-none hover:text-text-accent hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      >
+        <Trans>Remove</Trans>
+      </button>
     </div>
   )
 }

@@ -9237,6 +9237,10 @@ msgstr "Reminders"
 msgid "Remove"
 msgstr "Remove"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Remove file"
+msgstr "Remove file"
+
 #: src/features/members/members-page.tsx
 msgid "Remove from practice"
 msgstr "Remove from practice"
@@ -12602,8 +12606,8 @@ msgid "Your subscription is confirmed and the plan is active."
 msgstr "Your subscription is confirmed and the plan is active."
 
 #: src/features/migration/Step3Normalize.tsx
-msgid "Your uploaded file stays unchanged. DueDateHQ will use this clean import draft only after you import."
-msgstr "Your uploaded file stays unchanged. DueDateHQ will use this clean import draft only after you import."
+msgid "Your uploaded file stays unchanged — this clean draft is used only after you import."
+msgstr "Your uploaded file stays unchanged — this clean draft is used only after you import."
 
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/migration/mapping-target-labels.ts

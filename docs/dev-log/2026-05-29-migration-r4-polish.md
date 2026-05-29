@@ -69,14 +69,14 @@ at 1512×861. Touches three files: `apps/app/src/routes/migration.new.tsx`,
 ### Step 1 (`Step1Intake.tsx`)
 
 6. **Empty-state title block removed (#6).** "Drop your client file." h2
-   + "Any shape works. We'll figure out the columns." sub-headline were
-   a third title in the orientation zone — the wizard frame's `<header>`
-   already says "Import clients" and the Stepper says "Intake". The
-   dropzone label below ("Drop a file or click to browse" + the
-   format/limit line) is the actual affordance and already covers the
-   action. The "any shape works" promise lives downstream: Step 2
-   (Mapping) is where the AI's column-detection result shows up, which
-   is where the reassurance becomes observable rather than just promised.
+   - "Any shape works. We'll figure out the columns." sub-headline were
+     a third title in the orientation zone — the wizard frame's `<header>`
+     already says "Import clients" and the Stepper says "Intake". The
+     dropzone label below ("Drop a file or click to browse" + the
+     format/limit line) is the actual affordance and already covers the
+     action. The "any shape works" promise lives downstream: Step 2
+     (Mapping) is where the AI's column-detection result shows up, which
+     is where the reassurance becomes observable rather than just promised.
 7. **SSN-blocked privacy line gets a chip (#8).** The line "SSN-like
    columns are blocked before anything goes to the AI." used to render
    as plain tertiary text + a tiny lock icon — it disappeared visually
@@ -103,6 +103,7 @@ the catalog still reports 0 missing:
 - "Coming from a specific tool? (Optional — we auto-detect from uploaded files.)" → "来自特定工具？（可选 — 已上传的文件会自动识别。）"
 
 Strings dropped (extract --clean):
+
 - "Import" / "Deadlines" / "Risk view" (chip labels — chip removed)
 - "Import your clients and generate deadlines." (old H1)
 - "Your practice workspace is ready. Import a spreadsheet now to turn client facts into deadlines, evidence, and the first Today risk view. You can skip and import later from Today, Clients, or Command Palette." (old description)
@@ -134,3 +135,81 @@ read as a competing stepper unless they're explicitly disambiguated
 (e.g. with leading "Includes:" copy or a different visual scale).
 Removing the chips was cheaper than redesigning them; the H1 +
 description now carry the activation outcomes once, in prose.
+
+## Follow-up — cross-state consistency
+
+User feedback: "this uploaded UI should follow the style of not uploaded
+yet style. all of the changes you have made, ensure they are applied to
+the other screens." Two further changes landed after the initial commit.
+
+### DetectionHero restructured (Step 1 uploaded state)
+
+The empty state is a single centered hero card (dashed border, ~160px
+tall, soft `bg-components-panel-bg` surface) — the uploaded state was a
+left-aligned compact file row + a bold left-aligned readout that read as
+a different page. Now both states share the same shell:
+
+- Centered hero card with the same panel surface and matching padding
+  (`compact ? 'px-6 py-5' : 'px-8 py-6'`).
+- Icon at the top: spinner during read, `FileCheck2Icon` (success tone)
+  once the readout is ready.
+- Hero readout in the same slot as the empty state's "Drop a file or
+  click to browse" label — same hierarchy, different content.
+- File name + size moved BELOW the readout as supporting info (mirrors
+  the empty state's "format · row limit · size" caption line).
+- Solid border instead of dashed — the only visual signal that the
+  state has changed; everything else matches.
+- "Remove file" button moved outside the card as a quiet text link,
+  parallel to the empty state's "Paste a list instead →" link.
+- Parse-error path still gets a compact `FileSummaryRow` + the
+  destructive Alert (the alert is the focus, the file is metadata).
+
+### SSN privacy chip lifted to both states
+
+The chip was rendered inside the empty state motion.div, so it
+disappeared on upload. The privacy claim ("blocked before anything goes
+to the AI") is forward-looking — the AI mapper runs on Continue, which
+is downstream of BOTH states. Moved the chip outside `AnimatePresence`
+so it renders consistently in empty and uploaded states. Suppressed when
+the destructive SSN-detected alert below takes over (that alert carries
+a stronger version of the same claim with the specific blocked column
+names), and suppressed for parse-error / submit-error states so it
+doesn't compete with the error.
+
+### Step 3 file-stays-unchanged copy aligned to chip
+
+Step 3's "Your uploaded file stays unchanged. DueDateHQ will use this
+clean import draft only after you import." was a privacy claim
+(non-mutation of the user's source file) rendered as plain `text-sm
+text-text-secondary` body copy — same role as Step 1's SSN-block chip
+but with a different visual treatment. Aligned to the same chip shape
+(`bg-state-accent-hover-alt`, lock icon, accent-tint ring) so privacy
+reassurance reads consistently across the wizard. Copy tightened from
+two sentences into one em-dash phrasing to fit the chip width.
+
+### Steps 2 and 4
+
+Inspected for consistency. No changes:
+
+- Step 2 (`AI prepared your columns`) and Step 4 (`Ready to import`)
+  keep their `text-lg font-semibold` h2 status declarations — these
+  describe what the AI just did and aren't redundant with the Stepper
+  label (which is a terse step name like "Mapping" / "Dry run").
+- Step 4's `tracking-eyebrow uppercase` "Before you import" subhead
+  was flagged as potentially inconsistent with the canonical Label
+  pattern but left in place — it's a section divider inside a
+  callout, not a field label, so the eyebrow treatment is
+  semantically appropriate. Can be revisited if a future pass
+  decides to drop all uppercase tracking-eyebrow tokens.
+
+## i18n follow-up
+
+2 additional strings; zh-CN catalog still 0-missing:
+
+- "Remove file" → "移除文件"
+- "Your uploaded file stays unchanged — this clean draft is used only after you import." → "您上传的文件保持不变 — 此清洁副本仅在导入后使用。"
+
+Strings dropped: "Source set to {selectedPresetLabel}." retained its
+slot (still useful when manual preset differs from detection); the old
+two-sentence Step 3 reassurance was replaced by the em-dash chip copy.
+
