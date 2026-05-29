@@ -2,8 +2,6 @@ import { useLingui } from '@lingui/react/macro'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { StateBadge } from '@/components/primitives/state-badge'
-
 /**
  * StateTilegram — clickable US-state filter map for `/rules/pulse`.
  *
@@ -148,19 +146,30 @@ export function StateTilegram({ counts, activeState, onSelect, className }: Stat
             )}
             style={{ left, top, width: CELL_SIZE, height: CELL_SIZE }}
           >
-            <StateBadge code={code} size="xs" aria-hidden />
+            {/* 2026-05-29 (Yuqi /clients round 1 — "remove the state
+                icon everywhere"): SVG StateBadge dropped from the
+                tilegram cell. Each tile now reads as a code-led tile:
+                code on the leading row, count beneath when there are
+                alerts. The tile-border + bg already provides the
+                state-grid identity. */}
             <span
               className={cn(
-                'mt-0.5 text-[9px] font-medium leading-none tabular-nums',
-                active
-                  ? 'text-text-accent'
-                  : hasCount
-                    ? 'text-text-secondary'
-                    : 'text-text-tertiary',
+                'text-[11px] font-semibold leading-none tabular-nums',
+                active ? 'text-text-accent' : hasCount ? 'text-text-primary' : 'text-text-tertiary',
               )}
             >
-              {hasCount ? count : code}
+              {code}
             </span>
+            {hasCount ? (
+              <span
+                className={cn(
+                  'mt-0.5 text-[9px] leading-none tabular-nums',
+                  active ? 'text-text-accent' : 'text-text-secondary',
+                )}
+              >
+                {count}
+              </span>
+            ) : null}
           </button>
         )
       })}

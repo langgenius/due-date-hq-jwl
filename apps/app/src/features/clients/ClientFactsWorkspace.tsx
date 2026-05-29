@@ -58,7 +58,6 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
 import { RowActionsMenu, type RowActionsMenuItem } from '@/components/patterns/row-actions-menu'
 import { SearchInput } from '@/components/primitives/search-input'
-import { StateBadge } from '@/components/primitives/state-badge'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
 import { formatDate, formatDatePretty } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
@@ -366,12 +365,15 @@ export function ClientFilingStateChips({ client }: { client: ClientPublic }) {
   const [primary, ...others] = states
   const visibleOthers = others.slice(0, 2)
   const overflow = others.length - visibleOthers.length
-  // Primary state wraps `<StateBadge> CODE` in the h-7 rounded-full
-  // pill frame that the entity badge + owner pill next to it use —
-  // Yuqi flagged that the unframed flag+text floated awkwardly
-  // beside the other framed identity chips. Same chrome unifies the
-  // meta-row visually. Additional states stay as compact unframed
-  // StateBadge glyphs (they're a tail enumeration, not a primary fact).
+  // 2026-05-29 (Yuqi /clients round 1 — "ensure the state badge is in
+  // the unified consistent state badge style (with a border). and
+  // remove the state icon everywhere in the software"): dropped the
+  // SVG StateBadge glyph and switched to the canonical
+  // `Badge variant="outline"` pill the entity badge uses two cells
+  // over. Each state code now reads as a uniform bordered pill —
+  // primary, additional, and overflow ("+N") all share the same
+  // chrome so the meta-row reads as one consistent identity strip
+  // instead of "framed primary + bare flag motifs."
   return (
     <div
       className="flex flex-wrap items-center gap-1.5"
@@ -379,15 +381,22 @@ export function ClientFilingStateChips({ client }: { client: ClientPublic }) {
         states.length === 1 ? `Filing state: ${states[0]}` : `Filing states: ${states.join(', ')}`
       }
     >
-      <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-3 text-xs tabular-nums text-text-secondary">
-        <StateBadge code={primary!} size="xs" aria-hidden />
-        <span>{primary}</span>
-      </span>
+      <Badge variant="outline" className="text-xs font-normal tabular-nums">
+        {primary}
+      </Badge>
       {visibleOthers.map((state) => (
-        <StateBadge key={state} code={state} size="xs" title={state} />
+        <Badge key={state} variant="outline" className="text-xs font-normal tabular-nums">
+          {state}
+        </Badge>
       ))}
       {overflow > 0 ? (
-        <span className="text-caption tabular-nums text-text-tertiary">+{overflow}</span>
+        <Badge
+          variant="outline"
+          className="text-xs font-normal tabular-nums text-text-tertiary"
+          title={others.slice(2).join(', ')}
+        >
+          +{overflow}
+        </Badge>
       ) : null}
     </div>
   )
@@ -678,16 +687,15 @@ export function ClientFactsWorkspace({
         // duplicated header space + forced the user's eye to track both.
         // See `docs/Design/clients-list-and-detail-critique-2026-05-22.md`
         // L-7 for the rationale.
-        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
-        // state cell adopts the /deadlines canonical motif (route
-        // obligations.tsx column `clientState`, ~line 2100): leading
-        // `<StateBadge>` SVG + bare 2-letter code in
-        // `text-text-secondary`. Drops the rounded-full pill +
-        // full-state-name redundancy — same fact rendered the same
-        // way across the two workbench tables. Other-state badges
-        // stay as bare StateBadge motifs (compact) with a tail "+N"
-        // overflow chip for clients filing in many jurisdictions.
-        // Empty cell follows /deadlines: bare "—" in tertiary text.
+        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor): the
+        // state cell used to render `<StateBadge>` SVG glyphs +
+        // 2-letter code text.
+        // 2026-05-29 (Yuqi /clients round 1 — "remove the state icon
+        // everywhere"): swept to the bordered `Badge variant="outline"`
+        // pill so every state code reads identically to the Entity
+        // badge two cells over. The SVG decorative flag is gone; the
+        // pill is the identity. Same chrome applied to additional and
+        // overflow chips so the row reads as one consistent strip.
         cell: ({ row }) => {
           const primary = getPrimaryFilingState(row.original)
           if (!primary) {
@@ -698,20 +706,22 @@ export function ClientFactsWorkspace({
           const overflow = others.length - visibleOthers.length
           return (
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center gap-1.5 tabular-nums text-text-secondary">
-                <StateBadge code={primary} size="xs" aria-hidden />
-                <span>{primary}</span>
-              </span>
+              <Badge variant="outline" className="text-xs font-normal tabular-nums">
+                {primary}
+              </Badge>
               {visibleOthers.map((state) => (
-                <StateBadge key={state} code={state} size="xs" title={state} />
+                <Badge key={state} variant="outline" className="text-xs font-normal tabular-nums">
+                  {state}
+                </Badge>
               ))}
               {overflow > 0 ? (
-                <span
-                  className="text-caption tabular-nums text-text-tertiary"
+                <Badge
+                  variant="outline"
+                  className="text-xs font-normal tabular-nums text-text-tertiary"
                   title={others.slice(2).join(', ')}
                 >
                   +{overflow}
-                </span>
+                </Badge>
               ) : null}
             </div>
           )

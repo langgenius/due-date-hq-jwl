@@ -39,7 +39,6 @@ import {
 
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { StateBadge } from '@/components/primitives/state-badge'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
@@ -933,7 +932,10 @@ function StateFilterPopover({
           <FilterTrigger active={Boolean(activeState)} aria-label={t`Filter by state`}>
             {activeState ? (
               <>
-                <StateBadge code={activeState} size="xs" aria-hidden />
+                {/* 2026-05-29 (Yuqi /clients round 1 — "remove the state
+                    icon everywhere"): SVG StateBadge dropped; the
+                    2-letter code with the FilterTrigger's active
+                    surface already telegraphs the active filter. */}
                 <span className="font-medium">{activeState}</span>
                 <span className="tabular-nums text-text-accent/70">
                   <Plural value={activeCount} one="# alert" other="# alerts" />

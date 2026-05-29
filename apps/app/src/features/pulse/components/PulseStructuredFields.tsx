@@ -11,7 +11,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { formatDate } from '@/lib/utils'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { RULE_JURISDICTION_LABELS } from '@/features/rules/rules-console-model'
-import { StateBadge } from '@/components/primitives/state-badge'
 import { FieldLabel } from '@/components/primitives/field-label'
 
 interface PulseStructuredFieldsProps {
@@ -146,8 +145,10 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
       // matches the drawer header kicker + card state pill — same
       // `rounded-sm` framed shape, no monospace on the 2-letter
       // code. Three different surfaces, one chip pattern.
-      <span className="inline-flex w-fit items-center gap-1.5 rounded-sm border border-divider-regular bg-background-default py-0.5 pl-0.5 pr-2">
-        <StateBadge code={detail.jurisdiction} size="xs" aria-hidden />
+      // 2026-05-29 (Yuqi /clients round 1 — "remove the state icon
+      // everywhere"): SVG StateBadge dropped; the bordered pill +
+      // jurisdiction code carries the identity on its own.
+      <span className="inline-flex w-fit items-center gap-1.5 rounded-sm border border-divider-regular bg-background-default px-2 py-0.5">
         <span className="text-xs font-semibold uppercase tracking-wide text-text-primary">
           {detail.jurisdiction}
         </span>

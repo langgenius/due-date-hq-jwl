@@ -19,7 +19,6 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { StateBadge } from '@/components/primitives/state-badge'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
 import { usePulseDetailQueryOptions } from '../api'
@@ -269,11 +268,13 @@ export function PulseAlertCard({
           outer article gap-6 separates this combined block from
           the kebab on the right. */}
       <div className="flex min-w-0 flex-1 items-start gap-2">
+        {/* 2026-05-29 (Yuqi /clients round 1 — "remove the state icon
+            everywhere"): SVG StateBadge dropped; the bordered pill +
+            jurisdiction code carries the identity. */}
         <span
-          className="inline-flex shrink-0 items-center gap-1 self-start rounded-sm border border-divider-regular bg-background-default py-0.5 pl-0.5 pr-1.5"
+          className="inline-flex shrink-0 items-center self-start rounded-sm border border-divider-regular bg-background-default px-1.5 py-0.5"
           aria-hidden
         >
-          <StateBadge code={alert.jurisdiction} size="xs" aria-hidden />
           <span className="font-semibold uppercase tracking-wide text-xs text-text-primary">
             {alert.jurisdiction}
           </span>
