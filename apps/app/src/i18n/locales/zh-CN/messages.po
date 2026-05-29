@@ -7774,6 +7774,11 @@ msgstr "打开截止日期。"
 msgid "Open detail"
 msgstr "打开详情"
 
+#. placeholder {0}: row.clientName
+#: src/features/dashboard/actions-list.tsx
+msgid "Open evidence for {0}"
+msgstr "查看 {0} 的证据"
+
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "Open filing"
 msgstr "进行中的申报"
@@ -10248,6 +10253,11 @@ msgstr "搜索截止日类别…"
 msgid "Search forms and vouchers…"
 msgstr "搜索表单和凭单…"
 
+#. placeholder {0}: row.taxType
+#: src/features/dashboard/actions-list.tsx
+msgid "Search Rule Library for {0}"
+msgstr "在规则库中搜索 {0}"
+
 #: src/features/pulse/AlertsListPage.tsx
 msgid "Search sources…"
 msgstr "搜索来源…"
@@ -10291,6 +10301,11 @@ msgstr "安全"
 #: src/routes/account.security.tsx
 msgid "Security settings couldn't load"
 msgstr "无法加载安全设置"
+
+#. placeholder {0}: row.status
+#: src/features/dashboard/actions-list.tsx
+msgid "See all {0} deadlines"
+msgstr "查看所有 {0} 截止事项"
 
 #. placeholder {0}: formatTaxCode(obligation.taxType)
 #. placeholder {0}: row.clientName

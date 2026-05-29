@@ -201,7 +201,16 @@ describe('DashboardActionsList', () => {
     const detail = document.getElementById(detailId)
     expect(detail).toBeInstanceOf(HTMLDivElement)
     expect(detail?.getAttribute('role')).toBe('button')
-    expect(detail?.querySelector('button')).toBeNull()
+    // 2026-05-29 (Yuqi /today round 3 — #8): the expanded dl items
+    // are now intentional sub-affordances (Link → /deadlines?status=,
+    // Link → /rules/library?q=, button → onOpenObligation/Sources).
+    // Each one uses stopPropagation so the parent row's "open
+    // obligation" click doesn't double-fire. The original guard ("no
+    // buttons inside detail") existed when the panel was a single
+    // click target; now we ALLOW the Sources button but assert it has
+    // the expected aria-label so the affordance stays identifiable.
+    const sourcesButton = detail?.querySelector('button[aria-label^="Open evidence"]')
+    expect(sourcesButton).toBeInstanceOf(HTMLButtonElement)
     expect(detail?.querySelector('[data-slot="tooltip-trigger"]')?.tagName).toBe('SPAN')
   })
 })
