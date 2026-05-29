@@ -1,4 +1,5 @@
 name = "due-date-hq-app-staging"
+account_id = "8f7d374db5cb1f025b7f71e28b84c9bb"
 main = "src/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
