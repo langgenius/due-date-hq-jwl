@@ -6154,7 +6154,7 @@ export function ObligationQueueDetailDrawer({
                       drawer's authoritative h1. Both drawers now use
                       the same anchor weight. */}
                   <h2 className="text-2xl font-semibold leading-tight text-text-primary">
-                    <TaxCodeLabel code={row.taxType} />
+                    <TaxCodeLabel code={row.taxType} className="cursor-default" />
                   </h2>
                   {/* 2026-05-26 (Yuqi feedback #4): dropped the drawer
                       header's ObligationQueueStatusControl. With the
@@ -9188,8 +9188,6 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   const paymentLateDays = paymentOverdueDays(row, Date.now())
   const formatDaysOverdue = (d: number) =>
     i18n._(plural(d, { one: '# day overdue', other: '# days overdue' }))
-  const formatPaymentLate = (d: number) =>
-    i18n._(plural(d, { one: 'Payment # day late', other: 'Payment # days late' }))
   return (
     <div aria-label={t`Key deadlines`} className="grid grid-cols-3 gap-2">
       <DeadlineTile
@@ -9217,7 +9215,7 @@ function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
         tone={paymentPast ? 'destructive' : 'neutral'}
         valueTone={paymentPast ? 'destructive' : paymentIso ? 'primary' : 'tertiary'}
         {...(paymentLateDays !== null && paymentLateDays > 0
-          ? { lateLabel: formatPaymentLate(paymentLateDays) }
+          ? { lateLabel: formatDaysOverdue(paymentLateDays) }
           : {})}
       />
     </div>

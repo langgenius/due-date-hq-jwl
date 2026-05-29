@@ -23,3 +23,8 @@ interaction surface, so the form name should read as plain row text.
 - Browser check on `/deadlines?row=2bf81cb3-b73d-4d43-ab84-be0705712eb9`:
   both `CA State Individual Income Tax` table cells render as plain `<span>`
   content with no enclosing tooltip button and no `cursor-help`.
+
+## 2026-05-29 drawer header follow-up
+
+- Deadline drawer title tax labels keep their tooltip but override the hover cursor to
+  the default arrow. The form name should read like the drawer title, not a help target.

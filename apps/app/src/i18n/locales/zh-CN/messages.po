@@ -572,10 +572,6 @@ msgid "{d, plural, one {# day overdue} other {# days overdue}}"
 msgstr "{d, plural, one {逾期 # 天} other {逾期 # 天}}"
 
 #: src/routes/obligations.tsx
-msgid "{d, plural, one {Payment # day late} other {Payment # days late}}"
-msgstr "{d, plural, one {付款逾期 # 天} other {付款逾期 # 天}}"
-
-#: src/routes/obligations.tsx
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, other {# 天}}"
 
