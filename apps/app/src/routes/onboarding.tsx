@@ -133,41 +133,38 @@ export function OnboardingRoute() {
   }
 
   return (
+    // 2026-05-29 (R4 onboarding polish #9): max-w stays at 400px. The
+    // state grid (11 cols × 28px tile + 4px gap × 10 + 24px wrapper
+    // pad ≈ 372px) is the natural width floor; everything else (input,
+    // CTA, copy) reads comfortably at 400. Wider would push the tile
+    // grid off-center and start to feel like a marketing splash.
     <div className="flex w-full max-w-[400px] flex-col">
       <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent-tint px-2.5 py-1 font-mono text-caption tracking-[0.16em] text-accent-text">
         <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-accent-default" />
         <Trans>PRACTICE PROFILE</Trans>
       </span>
 
+      {/* 2026-05-29 (R4 onboarding polish #1): hierarchy flip. The old
+          H1 ("Set up your practice.") restated the eyebrow pill
+          ("PRACTICE PROFILE") and pushed the actual informative copy
+          ("we pre-filled a name…") into a smaller secondary line. The
+          pre-fill explanation IS the page's purpose — it tells the
+          user why they're seeing an editable field and what the system
+          already did for them. Promoted to H1; the redundant
+          action-framing headline is dropped. The "change it later"
+          half of the original copy was demoted to the input's helper
+          text (#3) so the H1 stays one sentence. */}
       <h1 className="mt-5 text-2xl font-semibold leading-[1.15] tracking-tight text-text-primary">
-        <Trans>Set up your practice.</Trans>
+        <Trans>We pre-filled a name from your account.</Trans>
       </h1>
 
-      {/* 2026-05-26 (Step 7 F5-02): copy now provider-agnostic
-          ("based on your account") since `derivePracticeName`
-          doesn't know which SSO/OTP provider was used. Size
-          kept as `text-base` (Step 7's text-[14px] = same px). */}
-      <p className="mt-3 text-base leading-relaxed text-text-secondary">
-        <Trans>
-          We pre-filled a name based on your account. You can change it now or anytime in the
-          Practice profile.
-        </Trans>
-      </p>
-
-      {/* 2026-05-27 (Step 7 onboarding audit F5-13 drain): the
-          trust pill used to sit below the Continue CTA. Pill
-          teaches "this is reversible" — Encrypted, saves on
-          continue, renamable later — which is exactly the
-          reassurance a first-time user needs *before* clicking
-          Continue, not after. Moved to sit below the sub-
-          headline (parallels F1-03 on /login). */}
-      <p className="mt-4 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
-        <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
-        <Trans>Encrypted · Saves on continue · Renamable later</Trans>
-      </p>
-
       <form onSubmit={handleSubmit} noValidate className="contents">
-        <div className="mt-8 flex flex-col gap-1.5">
+        {/* 2026-05-29 (R4 onboarding polish #7): the practice-name
+            field used to sit at mt-8 from the trust pill. With the
+            pill moved down (#2) and the secondary paragraph removed
+            (#1), mt-7 keeps proportional breathing room from H1 →
+            input without feeling marketing-loose. */}
+        <div className="mt-7 flex flex-col gap-1.5">
           {/* 2026-05-27 (Step 7 onboarding audit F5-03 / F7-01):
               dropped the uppercase-tracking-eyebrow treatment in
               favor of the canonical <Label> primitive used in
@@ -199,8 +196,14 @@ export function OnboardingRoute() {
               {error}
             </p>
           ) : (
+            // 2026-05-29 (R4 onboarding polish #3): added "You can
+            // change it later" to absorb the "change it now or anytime
+            // in Practice profile" copy that used to live in the
+            // sub-headline. Helper text is the right home for
+            // reversibility reassurance — it sits next to the field
+            // the user is deciding about.
             <p id="practice-name-helper" className="text-sm leading-relaxed text-text-muted">
-              <Trans>This is what your team and clients will see.</Trans>
+              <Trans>This is what your team and clients will see. You can change it later.</Trans>
             </p>
           )}
         </div>
@@ -302,15 +305,25 @@ export function OnboardingRoute() {
             </>
           )}
         </Button>
-      </form>
 
-      {/* 2026-05-26 (Step 6 UX audit #20): "Auto-saves" claim was a
-          lie — the form only saves on Continue. A first-time user
-          reading "Auto-saves" assumes mid-form network drops are
-          safe; they aren't. Replaced with "Saves on continue" which
-          truthfully describes the data-loss model.
-          2026-05-27 (F5-13 drain): moved up to sit below the
-          sub-headline — see comment near the form's open. */}
+        {/* 2026-05-26 (Step 6 UX audit #20): "Auto-saves" was a lie —
+            the form only saves on Continue.
+            2026-05-29 (R4 onboarding polish #2): pill returns to live
+            with the Continue button. The F5-13 rationale (place
+            reassurance *before* the CTA so the user reads it during
+            decision time) was sound in isolation, but with the
+            hierarchy flip (#1) the top of the page is now packed
+            (eyebrow + H1 + input + state grid + offset field). The
+            pill became one more thing competing for the user's eyes
+            in the orientation zone. Co-locating with the CTA makes
+            the literal claim "Saves on continue" map to the literal
+            button being clicked — the phrase is now read AS the
+            button's footnote, which is what it always meant. */}
+        <p className="mt-3 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
+          <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
+          <Trans>Encrypted · Saves on continue · Renamable later</Trans>
+        </p>
+      </form>
     </div>
   )
 }
