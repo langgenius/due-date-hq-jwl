@@ -96,7 +96,8 @@ import { orpc } from '@/lib/rpc'
  * Rule library v3 (2026-05-21 preview) — one surface, no toggle.
  *
  * Structure:
- *   - Rules grouped by jurisdiction (Federal first, states alphabetical)
+ *   - Rules grouped by jurisdiction (Federal first, fully active states next,
+ *     then review/missing work, alphabetical inside each bucket)
  *   - Each group header shows: chevron, name, rule count, 7 entity dots
  *   - Expanded groups reveal rule rows aligned to a STICKY column header
  *     (Rule / Form / Entity / Tier / Status) — header lives once at the
@@ -584,6 +585,7 @@ type JurisdictionGroup = {
   ruleCount: number
   gapEntities: EntityKey[]
   hasGap: boolean
+  isFullyActive: boolean
   pendingReviewCount: number
   // Count of rules in this jurisdiction applicable to each entity
   // type. Pre-computed in buildGroups so the state-row entity-coverage
@@ -659,6 +661,10 @@ function buildGroups(
         }
       }
     }
+    const isFullyActive =
+      groupRules.length > 0 &&
+      gapEntities.length === 0 &&
+      groupRules.every((rule) => rule.status === 'active' || rule.status === 'verified')
     groups.push({
       jurisdiction: jur,
       label: jurisdictionLabel(jur),
@@ -668,15 +674,20 @@ function buildGroups(
       ruleCount: groupRules.length,
       gapEntities,
       hasGap: gapEntities.length > 0 || pendingReviewCount > 0,
+      isFullyActive,
       pendingReviewCount,
       entityCounts,
       entityPendingReviewCounts,
     })
   }
-  // Sort: federal first, then jurisdictions with gaps, then by name.
+  // Sort: Federal first, then states whose catalog is already active,
+  // then jurisdictions with review/missing work, then the remaining
+  // inactive/archived tail. Within each bucket keep the state-name
+  // order predictable.
   return groups.toSorted((a, b) => {
     if (a.jurisdiction === 'FED' && b.jurisdiction !== 'FED') return -1
     if (b.jurisdiction === 'FED' && a.jurisdiction !== 'FED') return 1
+    if (a.isFullyActive !== b.isFullyActive) return a.isFullyActive ? -1 : 1
     if (a.hasGap !== b.hasGap) return a.hasGap ? -1 : 1
     return a.label.localeCompare(b.label)
   })
@@ -2838,21 +2849,38 @@ function GroupHeaderRow({
             label={<Plural value={group.gapEntities.length} one="# missing" other="# missing" />}
           />
           <RuleStatusBar rules={group.rules} />
-          {group.pendingReviewCount > 0 ? (
-            <span
-              className={cn(
-                'inline-flex items-center gap-1 text-xs font-medium tabular-nums',
-                REVIEW_TEXT_CLS,
-              )}
-              title={`${group.pendingReviewCount} need review`}
-            >
+          {/* Reserve the trailing count slot so the fixed-width
+              progress bars stay right-aligned across 1- and 2-digit
+              counts. Needs-review rows use review tone; fully-active
+              rows use success tone instead of leaving the slot empty. */}
+          <span className="inline-flex w-9 justify-end">
+            {group.pendingReviewCount > 0 ? (
               <span
-                aria-hidden
-                className={cn('inline-block size-1.5 shrink-0 rounded-full', REVIEW_DOT_CLS)}
-              />
-              {group.pendingReviewCount}
-            </span>
-          ) : null}
+                className={cn(
+                  'inline-flex items-center gap-1 text-xs font-medium tabular-nums',
+                  REVIEW_TEXT_CLS,
+                )}
+                title={`${group.pendingReviewCount} need review`}
+              >
+                <span
+                  aria-hidden
+                  className={cn('inline-block size-1.5 shrink-0 rounded-full', REVIEW_DOT_CLS)}
+                />
+                {group.pendingReviewCount}
+              </span>
+            ) : group.isFullyActive ? (
+              <span
+                className="inline-flex items-center gap-1 text-xs font-medium tabular-nums text-text-success"
+                title={`${group.ruleCount} active`}
+              >
+                <span
+                  aria-hidden
+                  className="inline-block size-1.5 shrink-0 rounded-full bg-state-success-solid"
+                />
+                {group.ruleCount}
+              </span>
+            ) : null}
+          </span>
         </div>
       </TableCell>
     </TableRow>

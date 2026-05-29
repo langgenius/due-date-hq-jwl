@@ -5,14 +5,24 @@ export interface BrowserlessConfig {
   token?: string | undefined
 }
 
+const BROWSERLESS_TARGET_HEADERS = {
+  'User-Agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+  Accept: 'text/html,application/xhtml+xml,application/xml,application/rss+xml,application/json',
+  'Accept-Language': 'en-US,en;q=0.9',
+} as const
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-function serializableHeaders(headers: RequestInit['headers']): HeadersInit | undefined {
-  if (!headers) return undefined
-  if (headers instanceof Headers) return Object.fromEntries(headers.entries())
-  return headers
+function browserlessTargetHeaders(headers: RequestInit['headers']): HeadersInit {
+  const serializable = new Headers(headers)
+  for (const [key, value] of Object.entries(BROWSERLESS_TARGET_HEADERS)) {
+    serializable.set(key, value)
+  }
+  serializable.delete('Cache-Control')
+  return Object.fromEntries(serializable.entries())
 }
 
 function browserlessEndpoint(config: BrowserlessConfig): string {
@@ -82,7 +92,7 @@ export function createBrowserlessFetch(config: BrowserlessConfig): IngestFetch |
       body: JSON.stringify({
         url: targetUrl,
         method: init?.method ?? 'GET',
-        headers: serializableHeaders(init?.headers),
+        headers: browserlessTargetHeaders(init?.headers),
         body: typeof init?.body === 'string' ? init.body : undefined,
       }),
     })

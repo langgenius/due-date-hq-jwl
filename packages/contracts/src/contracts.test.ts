@@ -1236,10 +1236,16 @@ describe('@duedatehq/contracts', () => {
       publishedAt: '2026-04-15T17:00:00.000Z',
       matchedCount: 1,
       needsReviewCount: 1,
+      applyReadiness: {
+        status: 'needs_details',
+        missing: ['affected_clients'],
+      },
+      duplicateSourceSnapshotCount: 2,
       confidence: 0.94,
       isSample: true,
     })
     expect(alert.isSample).toBe(true)
+    expect(alert.duplicateSourceSnapshotCount).toBe(2)
     expect(PulseAlertPublicSchema.parse({ ...alert, jurisdiction: 'FED' }).jurisdiction).toBe('FED')
 
     const affected = PulseAffectedClientSchema.parse({

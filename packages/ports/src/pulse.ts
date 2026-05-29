@@ -28,6 +28,13 @@ export interface PulseAlertRow {
   publishedAt: Date
   matchedCount: number
   needsReviewCount: number
+  applyReadiness: {
+    status: 'ready' | 'needs_details' | 'not_applicable'
+    missing: Array<
+      'original_due_date' | 'new_due_date' | 'forms' | 'entity_types' | 'affected_clients'
+    >
+  }
+  duplicateSourceSnapshotCount: number
   confidence: number
   isSample: boolean
   // 2026-05-25 (Yuqi Alerts #9): jurisdiction (`FED` or a US

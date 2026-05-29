@@ -176,6 +176,8 @@ function pulseDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       publishedAt: '2026-05-01T00:00:00.000Z',
       matchedCount: 1,
       needsReviewCount: 0,
+      applyReadiness: { status: 'ready', missing: [] },
+      duplicateSourceSnapshotCount: 0,
       confidence: 0.92,
       isSample: false,
       jurisdiction: 'CA',

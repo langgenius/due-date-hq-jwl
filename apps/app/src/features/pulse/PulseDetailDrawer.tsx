@@ -56,6 +56,7 @@ import { AffectedClientsTable } from './components/AffectedClientsTable'
 // `PulseConfidencePill` kept — still rendered in the drawer header.
 import { PulseConfidencePill } from './components/PulseConfidencePill'
 import { PulseReasonDialog } from './components/PulseReasonDialog'
+import { PulseDecisionStatusNotice } from './components/PulseReadinessStatus'
 import { PulseSourceBadge } from './components/PulseSourceBadge'
 import { PulseSourceStatusBadge } from './components/PulseSourceStatusBadge'
 import { PulseStatusBadge } from './components/PulseStatusBadge'
@@ -823,6 +824,8 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
 
         {detail ? (
           <>
+            <PulseDecisionStatusNotice alert={detail.alert} />
+
             {missingDeadlineDetails ? (
               <DeadlineDetailsPanel
                 detail={detail}
@@ -1491,11 +1494,6 @@ function DeadlineDetailsPanel({
             disabled={!canManage || pending}
             onChange={(event) => setNewDueDate(event.target.value)}
           />
-          <p className="rounded-md border border-state-destructive-border bg-state-destructive-hover px-3 py-2 text-xs leading-5 text-text-destructive">
-            <Trans>
-              Confirm this date against the source notice before saving the deadline selection.
-            </Trans>
-          </p>
         </div>
         <div className="flex flex-col gap-2">
           <div className="flex items-baseline justify-between gap-3">

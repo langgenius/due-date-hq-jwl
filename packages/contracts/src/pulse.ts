@@ -105,6 +105,8 @@ export const PulseAlertPublicSchema = z.object({
   publishedAt: z.iso.datetime(),
   matchedCount: z.number().int().min(0),
   needsReviewCount: z.number().int().min(0),
+  applyReadiness: PulseApplyReadinessSchema,
+  duplicateSourceSnapshotCount: z.number().int().min(0),
   confidence: z.number().min(0).max(1),
   isSample: z.boolean(),
   // 2026-05-25 (Yuqi Alerts #9): jurisdiction now

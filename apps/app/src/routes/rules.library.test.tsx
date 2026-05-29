@@ -562,6 +562,45 @@ describe('RulesLibraryRoute', () => {
     await waitForText('Federal Row Form')
   })
 
+  it('sorts fully active state groups ahead of jurisdictions that still need review', async () => {
+    const federalRule = obligationRule({
+      id: 'fed.1040.return.active.2026',
+      title: 'Federal individual income tax return',
+      jurisdiction: 'FED',
+      status: 'active',
+    })
+    const activeAlaskaRule = obligationRule({
+      id: 'ak.business_income_return.active.2026',
+      title: 'Alaska business income tax return',
+      jurisdiction: 'AK',
+      status: 'active',
+    })
+    const pendingAlabamaRule = obligationRule({
+      id: 'al.individual_income_return.candidate.2026',
+      title: 'Alabama individual income tax return',
+      jurisdiction: 'AL',
+      status: 'candidate',
+    })
+    rpcMocks.listRulesQueryFn.mockResolvedValue([pendingAlabamaRule, activeAlaskaRule, federalRule])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('Federal')
+    await waitForText('Alaska')
+    await waitForText('Alabama')
+
+    const groupRows = Array.from(document.querySelectorAll('tbody tr[data-state="collapsed"]'))
+    const federalIndex = groupRows.findIndex((row) => row.textContent?.includes('Federal'))
+    const alaskaIndex = groupRows.findIndex((row) => row.textContent?.includes('Alaska'))
+    const alabamaIndex = groupRows.findIndex((row) => row.textContent?.includes('Alabama'))
+    const alaskaTierCell = groupRows[alaskaIndex]?.querySelector('td:nth-child(10)')
+
+    expect(federalIndex).toBe(0)
+    expect(alaskaIndex).toBeGreaterThan(federalIndex)
+    expect(alaskaIndex).toBeLessThan(alabamaIndex)
+    expect(alaskaTierCell?.querySelector('[title="1 active"]')).toBeDefined()
+    expect(alaskaTierCell?.querySelector('[title="1 need review"]')).toBeNull()
+  })
+
   it('does not render add-rule gaps for not-applicable entity coverage', async () => {
     rpcMocks.coverageQueryFn.mockResolvedValue([
       coverageRow({

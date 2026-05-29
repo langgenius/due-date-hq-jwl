@@ -33,6 +33,8 @@ interface PulseAlertRow {
   publishedAt: Date
   matchedCount: number
   needsReviewCount: number
+  applyReadiness: PulseAlertPublic['applyReadiness']
+  duplicateSourceSnapshotCount: number
   confidence: number
   isSample: boolean
   // 2026-05-25 (Yuqi Alerts #9): mirrors the repo's PulseAlertRow
@@ -158,6 +160,8 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     publishedAt: row.publishedAt.toISOString(),
     matchedCount: row.matchedCount,
     needsReviewCount: row.needsReviewCount,
+    applyReadiness: row.applyReadiness,
+    duplicateSourceSnapshotCount: row.duplicateSourceSnapshotCount,
     confidence: row.confidence,
     isSample: row.isSample,
     // 2026-05-25 (Yuqi Alerts #9): plumb jurisdiction through to the

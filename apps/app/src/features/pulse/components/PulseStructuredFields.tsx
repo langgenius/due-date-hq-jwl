@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, Astroid, CopyIcon, ExternalLinkIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -262,6 +262,15 @@ export function PulseStructuredFields({ detail }: PulseStructuredFieldsProps) {
           </Trans>
         </span>
       </div>
+      {detail.alert.duplicateSourceSnapshotCount > 0 ? (
+        <div className="rounded-md border border-divider-subtle bg-background-soft px-3 py-2 text-xs text-text-secondary">
+          <Plural
+            value={detail.alert.duplicateSourceSnapshotCount}
+            one="# similar source update was merged into this alert."
+            other="# similar source updates were merged into this alert."
+          />
+        </div>
+      ) : null}
       <FactCard
         title={<Trans>Source</Trans>}
         action={

@@ -257,6 +257,46 @@ describe('makePulseRepo', () => {
     expect(detail.affectedClients).toHaveLength(1)
   })
 
+  it('returns list-level readiness and duplicate counts for active alerts', async () => {
+    const reviewOnlyAlert = {
+      ...ALERT,
+      alertId: 'alert-review-only',
+      pulseId: 'pulse-review-only',
+      changeKind: 'form_instruction' as const,
+      actionMode: 'review_only' as const,
+      matchedCount: 0,
+      needsReviewCount: 0,
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+      duplicateSourceSnapshotCount: 2,
+    }
+    const needsDetailsAlert = {
+      ...ALERT,
+      alertId: 'alert-needs-details',
+      pulseId: 'pulse-needs-details',
+      matchedCount: 0,
+      needsReviewCount: 0,
+      parsedOriginalDueDate: null,
+      duplicateSourceSnapshotCount: 1,
+    }
+    const { db } = fakeDb([
+      [{ ...ALERT, duplicateSourceSnapshotCount: 3 }, reviewOnlyAlert, needsDetailsAlert],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const alerts = await repo.listAlerts({ limit: 50 })
+
+    expect(alerts[0]?.applyReadiness).toEqual({ status: 'ready', missing: [] })
+    expect(alerts[0]?.duplicateSourceSnapshotCount).toBe(3)
+    expect(alerts[1]?.applyReadiness).toEqual({ status: 'not_applicable', missing: [] })
+    expect(alerts[1]?.duplicateSourceSnapshotCount).toBe(2)
+    expect(alerts[2]?.applyReadiness).toEqual({
+      status: 'needs_details',
+      missing: ['affected_clients'],
+    })
+    expect(alerts[2]?.duplicateSourceSnapshotCount).toBe(1)
+  })
+
   it('updates due-date overlay details and refreshes affected-client counts', async () => {
     const incompleteAlert = {
       ...ALERT,

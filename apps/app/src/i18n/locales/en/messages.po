@@ -192,6 +192,11 @@ msgstr "{0, plural, one {# seat} other {# seats}}"
 msgid "{0, plural, one {# selected deadline} other {# selected deadlines}}"
 msgstr "{0, plural, one {# selected deadline} other {# selected deadlines}}"
 
+#. placeholder {0}: detail.alert.duplicateSourceSnapshotCount
+#: src/features/pulse/components/PulseStructuredFields.tsx
+msgid "{0, plural, one {# similar source update was merged into this alert.} other {# similar source updates were merged into this alert.}}"
+msgstr "{0, plural, one {# similar source update was merged into this alert.} other {# similar source updates were merged into this alert.}}"
+
 #. placeholder {0}: row.evidenceCount
 #: src/features/dashboard/actions-list.tsx
 msgid "{0, plural, one {# source attached} other {# sources attached}}"
@@ -221,6 +226,11 @@ msgstr "{0, plural, one {Filed # day late} other {Filed # days late}}"
 #: src/features/dashboard/actions-list.tsx
 msgid "{0, plural, one {filed #d late} other {filed #d late}}"
 msgstr "{0, plural, one {filed #d late} other {filed #d late}}"
+
+#. placeholder {0}: alert.duplicateSourceSnapshotCount
+#: src/features/pulse/components/PulseAlertCard.tsx
+msgid "{0, plural, one {Merged # similar source update} other {Merged # similar source updates}}"
+msgstr "{0, plural, one {Merged # similar source update} other {Merged # similar source updates}}"
 
 #. placeholder {0}: intake.rowCount
 #: src/features/migration/Step1Intake.tsx
@@ -2991,6 +3001,10 @@ msgstr "Confirm date and deadlines"
 msgid "Confirm deadline change"
 msgstr "Confirm deadline change"
 
+#: src/features/pulse/components/PulseReadinessStatus.tsx
+msgid "Confirm deadline details before applying"
+msgstr "Confirm deadline details before applying"
+
 #: src/routes/obligations.tsx
 msgid "Confirm engagement letter is on file for this client"
 msgstr "Confirm engagement letter is on file for this client"
@@ -3007,6 +3021,10 @@ msgstr "Confirm filing or payment status — due today"
 msgid "Confirm the new date and deadlines before applying"
 msgstr "Confirm the new date and deadlines before applying"
 
+#: src/features/pulse/components/PulseReadinessStatus.tsx
+msgid "Confirm the new due date and choose the deadlines before Apply is enabled."
+msgstr "Confirm the new due date and choose the deadlines before Apply is enabled."
+
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Confirm the new due date and choose the existing deadlines that should receive it."
 msgstr "Confirm the new due date and choose the existing deadlines that should receive it."
@@ -3018,10 +3036,6 @@ msgstr "Confirm the payment cleared (offline)"
 #: src/features/pulse/components/AffectedClientsTable.tsx
 msgid "Confirm this client is in scope?"
 msgstr "Confirm this client is in scope?"
-
-#: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Confirm this date against the source notice before saving the deadline selection."
-msgstr "Confirm this date against the source notice before saving the deadline selection."
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Confirmed"
@@ -3876,6 +3890,10 @@ msgstr "Deadline reminder"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Deadline reminders"
 msgstr "Deadline reminders"
+
+#: src/features/pulse/components/PulseReadinessStatus.tsx
+msgid "Deadline selection confirmed"
+msgstr "Deadline selection confirmed"
 
 #: src/features/pulse/components/PulseStructuredFields.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx
@@ -6629,6 +6647,10 @@ msgstr "Needs CPA confirmation each year"
 msgid "Needs CPA review"
 msgstr "Needs CPA review"
 
+#: src/features/pulse/components/PulseReadinessStatus.tsx
+msgid "Needs deadline selection"
+msgstr "Needs deadline selection"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Needs entity"
 msgstr "Needs entity"
@@ -6929,6 +6951,10 @@ msgstr "No commands found."
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "No deadline categories match."
 msgstr "No deadline categories match."
+
+#: src/features/pulse/components/PulseReadinessStatus.tsx
+msgid "No deadline overlay will be applied"
+msgstr "No deadline overlay will be applied"
 
 #: src/routes/obligations.tsx
 msgid "No deadlines match these filters."
@@ -8929,6 +8955,10 @@ msgstr "Ready answers"
 msgid "Ready for rules"
 msgstr "Ready for rules"
 
+#: src/features/pulse/components/PulseReadinessStatus.tsx
+msgid "Ready to apply"
+msgstr "Ready to apply"
+
 #: src/routes/obligations.tsx
 msgid "Ready to e-file the return"
 msgstr "Ready to e-file the return"
@@ -9441,6 +9471,7 @@ msgstr "Review note"
 msgid "Review notes open"
 msgstr "Review notes open"
 
+#: src/features/pulse/components/PulseReadinessStatus.tsx
 #: src/features/pulse/components/PulseStructuredFields.tsx
 msgid "Review only"
 msgstr "Review only"
@@ -11364,6 +11395,10 @@ msgstr "The matched active practice rule and period, or the reason this row is d
 msgid "The model extracted these fields with low confidence. Compare against the source excerpt below and the structured scope before pushing changes to clients."
 msgstr "The model extracted these fields with low confidence. Compare against the source excerpt below and the structured scope before pushing changes to clients."
 
+#: src/features/pulse/components/PulseReadinessStatus.tsx
+msgid "The new due date and affected deadlines are confirmed. Continue to Apply when ready."
+msgstr "The new due date and affected deadlines are confirmed. Continue to Apply when ready."
+
 #: src/features/concepts/concept-help.tsx
 msgid "The number of days before a deadline where urgency reaches its maximum Smart Priority contribution."
 msgstr "The number of days before a deadline where urgency reaches its maximum Smart Priority contribution."
@@ -11491,6 +11526,10 @@ msgstr "This action isn't wired up yet."
 #: src/features/clients/ClientFactPanels.tsx
 msgid "This AI insight was generated before the client's facts changed. Refresh to get an up-to-date summary."
 msgstr "This AI insight was generated before the client's facts changed. Refresh to get an up-to-date summary."
+
+#: src/features/pulse/components/PulseReadinessStatus.tsx
+msgid "This alert is for review only. Mark it reviewed or dismiss it; no deadline overlay will be applied."
+msgstr "This alert is for review only. Mark it reviewed or dismiss it; no deadline overlay will be applied."
 
 #: src/features/pulse/lib/error-mapping.ts
 msgid "This alert is no longer available."

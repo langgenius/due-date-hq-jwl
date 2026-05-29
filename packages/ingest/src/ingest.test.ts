@@ -193,6 +193,64 @@ describe('@duedatehq/ingest', () => {
     })
   })
 
+  it('keeps technical guidance PDF links as policy-change candidates', () => {
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'policy-watch.nh.announcements',
+        title: 'New Hampshire DRA Technical Information Releases',
+        url: 'https://www.revenue.nh.gov/tirs',
+        jurisdiction: 'NH',
+      },
+      {
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        body: [
+          '<a href="/sites/g/files/ehbemt736/files/documents/2026-001-technical-information-release.pdf">Technical Information Release 2026-001</a>',
+          '<a href="/contact">Contact DRA</a>',
+          '<a href="/sites/tax/files/documents/TB62.pdf">Technical Bulletin TB-62</a>',
+        ].join(''),
+      },
+    )
+
+    expect(items).toHaveLength(2)
+    expect(items.map((item) => item.title)).toEqual([
+      'Technical Information Release 2026-001',
+      'Technical Bulletin TB-62',
+    ])
+    expect(items[0]).toMatchObject({
+      sourceId: 'policy-watch.nh.announcements',
+      jurisdiction: 'NH',
+      officialSourceUrl:
+        'https://www.revenue.nh.gov/sites/g/files/ehbemt736/files/documents/2026-001-technical-information-release.pdf',
+    })
+  })
+
+  it('keeps official rules and regulations links as policy-change candidates', () => {
+    const items = announcementItemsFromSnapshot(
+      {
+        id: 'policy-watch.wy.announcements',
+        title: 'Wyoming DOR Rules and Regulations',
+        url: 'https://revenue.wyo.gov/rules-and-regulations',
+        jurisdiction: 'WY',
+      },
+      {
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        body: [
+          '<a href="/division-pages/excise-tax-division/rules-and-regulations/chapter-2-effective-date">Chapter 2 effective date - Sales Tax Rules and Regulations</a>',
+          '<a href="/contact">Contact the Department</a>',
+        ].join(''),
+      },
+    )
+
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      sourceId: 'policy-watch.wy.announcements',
+      title: 'Chapter 2 effective date - Sales Tax Rules and Regulations',
+      officialSourceUrl:
+        'https://revenue.wyo.gov/division-pages/excise-tax-division/rules-and-regulations/chapter-2-effective-date',
+      jurisdiction: 'WY',
+    })
+  })
+
   it('runs the NY DTF fixture adapter end-to-end', async () => {
     const ctx: IngestCtx = {
       async fetch() {

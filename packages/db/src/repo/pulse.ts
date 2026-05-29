@@ -10,6 +10,7 @@ import {
   isNull,
   lte,
   or,
+  sql,
 } from 'drizzle-orm'
 import type { BatchItem } from 'drizzle-orm/batch'
 import type { Db } from '../client'
@@ -101,6 +102,8 @@ export interface PulseAlertRow {
   publishedAt: Date
   matchedCount: number
   needsReviewCount: number
+  applyReadiness: PulseApplyReadinessRow
+  duplicateSourceSnapshotCount: number
   confidence: number
   isSample: boolean
   // 2026-05-25 (Yuqi Alerts #9): jurisdiction (`FED` or a US
@@ -392,6 +395,7 @@ interface AlertJoinedRow {
   reviewedBy: string | null
   reviewedAt: Date | null
   isSample: boolean
+  duplicateSourceSnapshotCount?: number
 }
 
 interface PriorityReviewJoinedRow {
@@ -543,6 +547,21 @@ function applyReadinessForAlert(
   return { status: missing.length === 0 ? 'ready' : 'needs_details', missing }
 }
 
+function applyReadinessForAlertSummary(
+  alert: Pick<
+    AlertJoinedRow,
+    'actionMode' | 'matchedCount' | 'needsReviewCount' | 'parsedNewDueDate'
+  >,
+): PulseApplyReadinessRow {
+  if (!isDueDateOverlayAlert(alert)) return { status: 'not_applicable', missing: [] }
+
+  const missing: PulseApplyReadinessMissing[] = []
+  if (!alert.parsedNewDueDate) missing.push('new_due_date')
+  if (alert.matchedCount + alert.needsReviewCount === 0) missing.push('affected_clients')
+
+  return { status: missing.length === 0 ? 'ready' : 'needs_details', missing }
+}
+
 const DEADLINE_SELECTION_REVIEW_KEY = 'deadlineSelectionReview'
 
 interface DeadlineSelectionSnapshot {
@@ -602,6 +621,15 @@ function toNonEmptyBatch<T>(items: T[]): [T, ...T[]] {
   return [first, ...rest]
 }
 
+function duplicateSourceSnapshotCountForPulse() {
+  return sql<number>`(
+    select count(*)
+    from ${pulseSourceSnapshot}
+    where ${pulseSourceSnapshot.parseStatus} = 'duplicate'
+      and ${pulseSourceSnapshot.pulseId} = ${pulse.id}
+  )`
+}
+
 function toAlert(row: AlertJoinedRow): PulseAlertRow {
   return {
     id: row.alertId,
@@ -617,6 +645,8 @@ function toAlert(row: AlertJoinedRow): PulseAlertRow {
     publishedAt: row.publishedAt,
     matchedCount: row.matchedCount,
     needsReviewCount: row.needsReviewCount,
+    applyReadiness: applyReadinessForAlertSummary(row),
+    duplicateSourceSnapshotCount: row.duplicateSourceSnapshotCount ?? 0,
     confidence: row.confidence,
     isSample: row.isSample,
     // 2026-05-25 (Yuqi Alerts #9): pass through the joined-row's
@@ -974,6 +1004,7 @@ export function makePulseRepo(db: Db, firmId: string) {
         reviewedBy: pulse.reviewedBy,
         reviewedAt: pulse.reviewedAt,
         isSample: pulse.isSample,
+        duplicateSourceSnapshotCount: duplicateSourceSnapshotCountForPulse(),
       })
       .from(pulseFirmAlert)
       .innerJoin(pulse, eq(pulseFirmAlert.pulseId, pulse.id))
@@ -1445,9 +1476,15 @@ export function makePulseRepo(db: Db, firmId: string) {
       }
     }
     const affectedClients = Array.from(affected.values()).toSorted(compareAffected)
+    const applyReadiness = applyReadinessForAlert(alert, affectedClients, {
+      affectedDeadlinesConfirmed,
+    })
 
     return {
-      alert: toAlert(alert),
+      alert: {
+        ...toAlert(alert),
+        applyReadiness,
+      },
       jurisdiction: alert.parsedJurisdiction,
       counties: alert.parsedCounties,
       forms: alert.parsedForms,
@@ -1460,9 +1497,7 @@ export function makePulseRepo(db: Db, firmId: string) {
       structuredChange: alert.structuredChange,
       sourceExcerpt: alert.verbatimQuote,
       reviewedAt: alert.reviewedAt,
-      applyReadiness: applyReadinessForAlert(alert, affectedClients, {
-        affectedDeadlinesConfirmed,
-      }),
+      applyReadiness,
       affectedClients,
     }
   }
@@ -1744,6 +1779,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           reviewedBy: pulse.reviewedBy,
           reviewedAt: pulse.reviewedAt,
           isSample: pulse.isSample,
+          duplicateSourceSnapshotCount: duplicateSourceSnapshotCountForPulse(),
         })
         .from(pulseFirmAlert)
         .innerJoin(pulse, eq(pulseFirmAlert.pulseId, pulse.id))
@@ -1830,6 +1866,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           reviewedBy: pulse.reviewedBy,
           reviewedAt: pulse.reviewedAt,
           isSample: pulse.isSample,
+          duplicateSourceSnapshotCount: duplicateSourceSnapshotCountForPulse(),
         })
         .from(pulseFirmAlert)
         .innerJoin(pulse, eq(pulseFirmAlert.pulseId, pulse.id))
@@ -1894,6 +1931,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           reviewedBy: pulse.reviewedBy,
           reviewedAt: pulse.reviewedAt,
           isSample: pulse.isSample,
+          duplicateSourceSnapshotCount: duplicateSourceSnapshotCountForPulse(),
           sourceHealthStatus: pulseSourceState.healthStatus,
           reviewId: pulsePriorityReview.id,
           reviewStatus: pulsePriorityReview.status,
@@ -1957,6 +1995,7 @@ export function makePulseRepo(db: Db, firmId: string) {
             reviewedBy: row.reviewedBy,
             reviewedAt: row.reviewedAt,
             isSample: row.isSample,
+            duplicateSourceSnapshotCount: row.duplicateSourceSnapshotCount,
           }
           const review =
             row.reviewId === null

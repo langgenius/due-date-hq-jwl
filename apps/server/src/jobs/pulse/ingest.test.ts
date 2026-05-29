@@ -278,6 +278,36 @@ describe('createBrowserlessFetch', () => {
     )
   })
 
+  it('uses browser-compatible target headers for Browserless page requests', async () => {
+    const fetchMock = vi.fn(async (_input: string | URL | Request, _init?: RequestInit) => {
+      return new Response('<main>ok</main>')
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const browserlessFetch = createBrowserlessFetch({
+      endpoint: 'https://browserless.test/content',
+      token: 'secret-token',
+    })
+
+    await browserlessFetch?.('https://state-tax.example/news', {
+      headers: {
+        'User-Agent': 'DueDateHQ-PulseBot/1.0',
+        'Cache-Control': 'no-cache',
+      },
+    })
+
+    const [, init] = fetchMock.mock.calls[0]!
+    expect(typeof init?.body).toBe('string')
+    const requestBody = init?.body
+    if (typeof requestBody !== 'string') throw new Error('Browserless request body must be JSON')
+    const body = JSON.parse(requestBody) as {
+      headers: Record<string, string>
+    }
+    expect(body.headers['user-agent']).toContain('Chrome/')
+    expect(body.headers['cache-control']).toBeUndefined()
+    expect(body.headers.accept).toContain('text/html')
+  })
+
   it('maps target response codes reported by Browserless', async () => {
     vi.stubGlobal(
       'fetch',

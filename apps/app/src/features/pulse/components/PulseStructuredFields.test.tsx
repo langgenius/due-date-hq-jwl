@@ -46,6 +46,8 @@ function reviewOnlyDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       publishedAt: '2026-05-24T12:00:00.000Z',
       matchedCount: 0,
       needsReviewCount: 0,
+      applyReadiness: { status: 'not_applicable', missing: [] },
+      duplicateSourceSnapshotCount: 0,
       confidence: 0.58,
       isSample: true,
       jurisdiction: 'NY',
@@ -95,5 +97,23 @@ describe('PulseStructuredFields', () => {
     expect(document.body.textContent).not.toContain('Structured change')
     expect(document.body.textContent).not.toContain('"note"')
     expect(document.body.textContent).not.toContain('PTET election reminder only')
+  })
+
+  it('shows duplicate source updates as an aggregated count only', () => {
+    render(
+      <PulseStructuredFields
+        detail={reviewOnlyDetail({
+          alert: {
+            ...reviewOnlyDetail().alert,
+            duplicateSourceSnapshotCount: 2,
+          },
+        })}
+      />,
+    )
+
+    expect(document.body.textContent).toContain(
+      '2 similar source updates were merged into this alert.',
+    )
+    expect(document.body.textContent).not.toContain('policy-watch')
   })
 })

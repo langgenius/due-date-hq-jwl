@@ -17,6 +17,8 @@ function alert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic {
     publishedAt: '2026-05-06T10:00:00.000Z',
     matchedCount: 3,
     needsReviewCount: 0,
+    applyReadiness: { status: 'ready', missing: [] },
+    duplicateSourceSnapshotCount: 0,
     confidence: 0.92,
     isSample: false,
     jurisdiction: 'CA',

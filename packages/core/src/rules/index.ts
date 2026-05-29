@@ -4156,11 +4156,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'co.temporary_announcements',
     jurisdiction: 'CO',
-    title: 'Colorado DOR Tax Newsroom',
-    url: 'https://tax.colorado.gov/newsroom',
-    acquisitionMethod: 'api_watch',
-    adapterKind: 'rss_or_announcement_list',
-    feedUrl: 'https://tax.colorado.gov/newsroom',
+    title: 'Colorado DOR Press Releases',
+    url: 'https://tax.colorado.gov/category/press-release?page=0',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
   },
   {
     id: 'ct.temporary_announcements',
@@ -4321,11 +4320,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'nh.temporary_announcements',
     jurisdiction: 'NH',
-    title: 'New Hampshire DRA News and Media',
-    url: 'https://www.revenue.nh.gov/',
-    acquisitionMethod: 'api_watch',
-    adapterKind: 'rss_or_announcement_list',
-    feedUrl: 'https://www.revenue.nh.gov/',
+    title: 'New Hampshire DRA Technical Information Releases',
+    url: 'https://www.revenue.nh.gov/tirs',
+    acquisitionMethod: 'pdf_watch',
+    adapterKind: 'pdf_index',
   },
   {
     id: 'nj.temporary_announcements',
@@ -4428,8 +4426,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'vt.temporary_announcements',
     jurisdiction: 'VT',
-    title: 'Vermont Department of Taxes',
-    url: 'https://tax.vermont.gov/',
+    title: 'Vermont Department of Taxes Technical Bulletins',
+    url: 'https://tax.vermont.gov/tax-law-and-guidance/technical-bulletins',
+    acquisitionMethod: 'pdf_watch',
+    adapterKind: 'pdf_index',
   },
   {
     id: 'wa.temporary_announcements',
@@ -4452,8 +4452,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'wy.temporary_announcements',
     jurisdiction: 'WY',
-    title: 'Wyoming Department of Revenue News',
-    url: 'https://revenue.wyo.gov/',
+    title: 'Wyoming DOR Rules and Regulations',
+    url: 'https://revenue.wyo.gov/rules-and-regulations',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
   },
 ] as const
 
@@ -9717,16 +9719,10 @@ export function listHiddenPolicyWatchSources(
     .filter((source): source is PolicyWatchSource => Boolean(source))
 }
 
-const TRANSIENT_FETCH_BLOCKED_POLICY_WATCH_SOURCE_IDS = new Set([
-  'co.temporary_announcements',
-  'nh.temporary_announcements',
-  'vt.temporary_announcements',
-  'policy-watch.co.announcements',
-  'policy-watch.nh.announcements',
-  'policy-watch.vt.announcements',
-])
-
 const STALE_OR_REDIRECTED_POLICY_WATCH_URLS = new Set([
+  'https://tax.colorado.gov/newsroom',
+  'https://www.revenue.nh.gov/',
+  'https://tax.vermont.gov/',
   'https://portal.ct.gov/drs/news-releases',
   'https://www.revenue.pa.gov/News-and-Statistics/Pages/default.aspx',
   'https://tax.nv.gov/News/Tax_Notes/',
@@ -9742,31 +9738,12 @@ const GENERIC_POLICY_WATCH_URLS = new Set([
   'https://revenue.wyo.gov/',
 ])
 
-function policyWatchSourceHasTransientFetchBlock(source: PolicyWatchSource): boolean {
-  return (
-    TRANSIENT_FETCH_BLOCKED_POLICY_WATCH_SOURCE_IDS.has(source.id) ||
-    Boolean(
-      source.derivedFromSourceIds?.some((sourceId) =>
-        TRANSIENT_FETCH_BLOCKED_POLICY_WATCH_SOURCE_IDS.has(sourceId),
-      ),
-    )
-  )
-}
-
 function policyWatchSourceReliability(source: PolicyWatchSource): {
   quality: PolicyWatchSourceReliabilityQuality
   failureReason: string | null
   recommendedAction: string | null
 } {
   const url = source.feedUrl ?? source.url
-  if (policyWatchSourceHasTransientFetchBlock(source)) {
-    return {
-      quality: 'transient_fetch_blocked',
-      failureReason:
-        'Direct fetch may return a transient 403 even though the page can open in a browser.',
-      recommendedAction: 'Keep the official URL and observe fetch stability before replacing it.',
-    }
-  }
   if (STALE_OR_REDIRECTED_POLICY_WATCH_URLS.has(url)) {
     return {
       quality: 'stale_or_redirected',

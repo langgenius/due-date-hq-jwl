@@ -301,13 +301,25 @@ describe('@duedatehq/core/rules', () => {
     expect(signalOnlySources.every((source) => source.parserBacked)).toBe(true)
   })
 
-  it('audits hidden policy-watch source reliability without treating transient 403 as failure', () => {
+  it('audits hidden policy-watch source reliability against parser-backed official sources', () => {
     const audit = listPolicyWatchSourceReliabilityAudit()
     expect(audit).toHaveLength(104)
 
     const rowsBySourceId = new Map(audit.map((row) => [row.sourceId, row]))
     expect(rowsBySourceId.get('policy-watch.co.announcements')).toMatchObject({
-      quality: 'transient_fetch_blocked',
+      quality: 'parser_ready',
+      url: 'https://tax.colorado.gov/category/press-release?page=0',
+      adapterKind: 'html_announcement_list',
+    })
+    expect(rowsBySourceId.get('policy-watch.nh.announcements')).toMatchObject({
+      quality: 'parser_ready',
+      url: 'https://www.revenue.nh.gov/tirs',
+      adapterKind: 'pdf_index',
+    })
+    expect(rowsBySourceId.get('policy-watch.vt.announcements')).toMatchObject({
+      quality: 'parser_ready',
+      url: 'https://tax.vermont.gov/tax-law-and-guidance/technical-bulletins',
+      adapterKind: 'pdf_index',
     })
     expect(rowsBySourceId.get('policy-watch.pa.announcements')).toMatchObject({
       quality: 'parser_ready',
@@ -319,10 +331,16 @@ describe('@duedatehq/core/rules', () => {
       failureReason: expect.stringContaining('subscription page'),
     })
     expect(rowsBySourceId.get('policy-watch.wy.announcements')).toMatchObject({
-      quality: 'reachable_but_generic',
+      quality: 'parser_ready',
+      url: 'https://revenue.wyo.gov/rules-and-regulations',
+      adapterKind: 'html_announcement_list',
     })
 
     const urls = audit.map((row) => row.url)
+    expect(urls).not.toContain('https://tax.colorado.gov/newsroom')
+    expect(urls).not.toContain('https://www.revenue.nh.gov/')
+    expect(urls).not.toContain('https://tax.vermont.gov/')
+    expect(urls).not.toContain('https://revenue.wyo.gov/')
     expect(urls).not.toContain('https://portal.ct.gov/drs/news-releases')
     expect(urls).not.toContain('https://www.revenue.pa.gov/News-and-Statistics/Pages/default.aspx')
     expect(urls).not.toContain(

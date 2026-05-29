@@ -27,8 +27,9 @@ states + DC.
   PDF-only hidden watch sources can still surface CPA-facing due-date candidates when extract finds
   deadline intent.
 - Added a hidden source reliability audit for parser-ready, generic, stale/redirected, stale PDF
-  root, transient fetch-blocked, and needs-replacement source states. CO/NH/VT-style direct-fetch
-  403s are tracked as transient browser-openable issues instead of hard failures.
+  root, transient fetch-blocked, and needs-replacement source states. The original CO/NH/VT
+  homepage/newsroom roots were confirmed as browser-only/WAF-sensitive for backend fetching and
+  replaced with more specific parser-backed official entries.
 - Replaced deterministic weak hidden watch roots with more specific official sources where
   available: CT DRS Media Room, NV News and Publications/feed, PA Tax Update Newsletter PDF index,
   SC DOR News, WI DOR News, WV Administrative Notices, and more specific AK/AR/DE pages. Ohio no
@@ -37,6 +38,13 @@ states + DC.
 - Expanded announcement parsing so tax update, tax bulletin, administrative notice, and technical
   assistance links can reach extract. PA Tax Update Newsletter PDFs are now treated as tax-policy
   Alert candidates and are not source-level forced into review-only mode.
+- Added technical bulletin and technical information release matching so NH DRA TIRs and Vermont
+  Department of Taxes Technical Bulletins can produce tax-policy Alert candidates from PDF indexes.
+- Replaced the generic Wyoming DOR homepage watch with the official Wyoming DOR Rules and
+  Regulations page and expanded announcement matching for rules-and-regulations/effective-date
+  links.
+- Browserless target requests now use browser-compatible page headers instead of forwarding the
+  Pulse bot user agent into WAF-protected government pages.
 - Removed the separate legacy source-event product/interface path. Parsed items now write
   `pulse_source_snapshot` and enter extract; `signal_only` is an internal coverage-quality flag,
   not an internal queue and not an automatic review-only downgrade.

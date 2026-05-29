@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   AlertCircle,
   Astroid,
@@ -26,6 +26,7 @@ import { usePulseDetailQueryOptions } from '../api'
 import { PulseConfidencePill } from './PulseConfidencePill'
 import { PulseSourceBadge } from './PulseSourceBadge'
 import { PulseSourceStatusBadge } from './PulseSourceStatusBadge'
+import { PulseReadinessChip } from './PulseReadinessStatus'
 import { PulseStatusBadge } from './PulseStatusBadge'
 
 const VISIBLE_CLIENT_NAMES = 3
@@ -525,6 +526,16 @@ export function PulseAlertCard({
             <PulseSourceBadge source={alert.source} sourceUrl={alert.sourceUrl} />
             <PulseSourceStatusBadge status={alert.sourceStatus} />
             <PulseStatusBadge status={alert.status} />
+            <PulseReadinessChip readiness={alert.applyReadiness} />
+            {alert.duplicateSourceSnapshotCount > 0 ? (
+              <span className="text-xs text-text-tertiary">
+                <Plural
+                  value={alert.duplicateSourceSnapshotCount}
+                  one="Merged # similar source update"
+                  other="Merged # similar source updates"
+                />
+              </span>
+            ) : null}
             {/* 2026-05-26 (Yuqi sixteenth pass #5 + #10): confidence
                 pill anchors the footer alongside the other status
                 signals. "Confidence" word dropped from the label

@@ -128,7 +128,7 @@ describe('rule source adapters', () => {
     expect(automatedAdapter.allowEmptyParse).toBe(true)
     expect(noisyItems).toEqual([])
 
-    const pdfSource = hiddenSources.find((source) => source.acquisitionMethod === 'pdf_watch')!
+    const pdfSource = hiddenSources.find((source) => source.jurisdiction === 'PA')!
     const pdfAdapter = createPolicyWatchAdapter(pdfSource)
     expect(isPolicyWatchAdapterEligible(pdfSource), pdfSource.id).toBe(true)
     expect(isPolicyWatchPulsePromoted(pdfSource), pdfSource.id).toBe(false)
@@ -187,12 +187,10 @@ describe('rule source adapters', () => {
     )
     expect(sources.map((source) => source.id).toSorted()).toEqual([
       'az.temporary_announcements',
-      'co.temporary_announcements',
       'ks.temporary_announcements',
       'mi.temporary_announcements',
       'mo.temporary_announcements',
       'nd.temporary_announcements',
-      'nh.temporary_announcements',
       'nv.temporary_announcements',
       'ri.temporary_announcements',
     ])

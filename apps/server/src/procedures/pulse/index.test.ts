@@ -50,6 +50,8 @@ function pulseDetail(status: Status = 'matched', sourceStatus: SourceStatus = 'a
       pulseId: 'pulse_1',
       status,
       sourceStatus,
+      changeKind: 'deadline_shift',
+      actionMode: 'due_date_overlay',
       title: 'IRS CA storm relief',
       source: 'IRS Disaster Relief',
       sourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
@@ -57,8 +59,11 @@ function pulseDetail(status: Status = 'matched', sourceStatus: SourceStatus = 'a
       publishedAt: new Date('2026-04-15T17:00:00.000Z'),
       matchedCount: 1,
       needsReviewCount: 0,
+      applyReadiness: { status: 'ready', missing: [] },
+      duplicateSourceSnapshotCount: 0,
       confidence: 0.94,
       isSample: true,
+      jurisdiction: 'CA',
     },
     jurisdiction: 'CA',
     counties: ['Los Angeles'],
@@ -69,6 +74,7 @@ function pulseDetail(status: Status = 'matched', sourceStatus: SourceStatus = 'a
     effectiveFrom: null,
     sourceExcerpt: 'Tax relief applies.',
     reviewedAt: null,
+    applyReadiness: { status: 'ready', missing: [] },
     affectedClients: [],
   }
 }
