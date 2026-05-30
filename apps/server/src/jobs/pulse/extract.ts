@@ -41,22 +41,31 @@ function normalizeExtractJurisdiction(sourceId: string, jurisdiction: string): s
   return normalized
 }
 
+type PulseExtractEnv = Pick<
+  Env,
+  | 'AI_GATEWAY_ACCOUNT_ID'
+  | 'AI_GATEWAY_SLUG'
+  | 'AI_GATEWAY_API_KEY'
+  | 'AI_GATEWAY_PROVIDER'
+  | 'AI_GATEWAY_PROVIDER_API_KEY'
+  | 'AI_GATEWAY_MODEL_FAST_JSON'
+  | 'AI_GATEWAY_MODEL_QUALITY_JSON'
+  | 'AI_GATEWAY_MODEL_REASONING'
+  | 'DB'
+  | 'R2_PULSE'
+>
+
+type PulseExtractResult = {
+  pulseId: string | null
+  status: 'created' | 'failed' | 'missing' | 'skipped'
+}
+
+type PulseExtractSnapshot = NonNullable<Awaited<ReturnType<PulseExtractRepo['getSourceSnapshot']>>>
+
 export async function extractPulseSnapshot(
-  env: Pick<
-    Env,
-    | 'AI_GATEWAY_ACCOUNT_ID'
-    | 'AI_GATEWAY_SLUG'
-    | 'AI_GATEWAY_API_KEY'
-    | 'AI_GATEWAY_PROVIDER'
-    | 'AI_GATEWAY_PROVIDER_API_KEY'
-    | 'AI_GATEWAY_MODEL_FAST_JSON'
-    | 'AI_GATEWAY_MODEL_QUALITY_JSON'
-    | 'AI_GATEWAY_MODEL_REASONING'
-    | 'DB'
-    | 'R2_PULSE'
-  >,
+  env: PulseExtractEnv,
   snapshotId: string,
-): Promise<{ pulseId: string | null; status: 'created' | 'failed' | 'missing' | 'skipped' }> {
+): Promise<PulseExtractResult> {
   const db = createDb(env.DB)
   const repo = makePulseExtractRepo(db)
   const snapshot = await repo.getSourceSnapshot(snapshotId)
@@ -64,11 +73,53 @@ export async function extractPulseSnapshot(
   if (snapshot.pulseId || snapshot.parseStatus === 'extracted') {
     return { pulseId: snapshot.pulseId, status: 'skipped' }
   }
-  if (snapshot.parseStatus !== 'pending_extract' && snapshot.parseStatus !== 'failed') {
+  // `extracting` is intentionally re-enterable: a prior attempt that was
+  // hard-killed (CPU / wall-clock limit) after marking `extracting` but before
+  // its catch ran would otherwise strand the snapshot here forever, turning
+  // every queue retry into a no-op `skipped`.
+  if (
+    snapshot.parseStatus !== 'pending_extract' &&
+    snapshot.parseStatus !== 'failed' &&
+    snapshot.parseStatus !== 'extracting'
+  ) {
     return { pulseId: null, status: 'skipped' }
   }
 
   await repo.updateSourceSnapshotStatus(snapshotId, { parseStatus: 'extracting' })
+  try {
+    return await runPulseExtractionAfterMark(env, db, repo, snapshot, snapshotId)
+  } catch (error) {
+    // A *thrown* error (R2 / AI / DB infra) is transient — distinct from an AI
+    // refusal, which returns a `failed` result below. Reset `extracting` →
+    // `failed` so the queue retry can re-enter and the DB never shows a dead
+    // row as perpetually `extracting`. Best-effort: swallow a secondary write
+    // error so the original error still propagates to the queue for retry / DLQ.
+    try {
+      await repo.updateSourceSnapshotStatus(snapshotId, {
+        parseStatus: 'failed',
+        failureReason: error instanceof Error ? error.message : 'Pulse extract threw.',
+      })
+    } catch {
+      // ignore — surface the original error below
+    }
+    recordPulseMetric('pulse.extract.result', {
+      snapshotId,
+      sourceId: snapshot.sourceId,
+      result: 'failed',
+      refusalCode: null,
+      confidence: null,
+    })
+    throw error
+  }
+}
+
+async function runPulseExtractionAfterMark(
+  env: PulseExtractEnv,
+  db: ReturnType<typeof createDb>,
+  repo: PulseExtractRepo,
+  snapshot: PulseExtractSnapshot,
+  snapshotId: string,
+): Promise<PulseExtractResult> {
   const raw = await env.R2_PULSE.get(snapshot.rawR2Key)
   if (!raw) {
     await repo.updateSourceSnapshotStatus(snapshotId, {

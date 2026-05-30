@@ -106,6 +106,16 @@ max_batch_timeout = 5
 max_retries = 5
 dead_letter_queue = "due-date-hq-pulse-dlq-staging"
 
+# Drains the Pulse dead-letter queue: snapshots that exhausted max_retries above.
+# The consumer (jobs/queue.ts → drainDeadLetterBatch) emits a pulse.queue.dead_letter
+# alert and acks so poisoned messages are observable instead of dying silently.
+# No retries / no chained DLQ — draining must not re-run the failing handler.
+[[queues.consumers]]
+queue = "due-date-hq-pulse-dlq-staging"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 0
+
 [[queues.consumers]]
 queue = "due-date-hq-dashboard-staging"
 max_batch_size = 5

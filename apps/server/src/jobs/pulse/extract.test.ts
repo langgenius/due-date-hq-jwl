@@ -456,4 +456,76 @@ describe('extractPulseSnapshot', () => {
     expect(repoMocks.apply).not.toHaveBeenCalled()
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
   })
+
+  it('resets the snapshot to failed and rethrows when extraction throws mid-flight', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      id: 'snapshot-throw',
+      sourceId: 'policy-watch.az.announcements',
+      title: 'Arizona deadline relief',
+      officialSourceUrl: 'https://azdor.gov/news/relief',
+      publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+      rawR2Key: 'raw/throw.txt',
+      pulseId: null,
+      parseStatus: 'pending_extract',
+    })
+    aiMocks.extractPulse.mockRejectedValue(new Error('gateway 503'))
+
+    await expect(extractPulseSnapshot(env(), 'snapshot-throw')).rejects.toThrow('gateway 503')
+
+    expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith('snapshot-throw', {
+      parseStatus: 'extracting',
+    })
+    expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith('snapshot-throw', {
+      parseStatus: 'failed',
+      failureReason: 'gateway 503',
+    })
+    expect(repoMocks.createPulseForFirmReviewFromExtract).not.toHaveBeenCalled()
+  })
+
+  it('re-processes a snapshot stranded in the extracting state', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      id: 'snapshot-stranded',
+      sourceId: 'policy-watch.az.announcements',
+      title: 'Arizona deadline relief',
+      officialSourceUrl: 'https://azdor.gov/news/relief',
+      publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+      rawR2Key: 'raw/stranded.txt',
+      pulseId: null,
+      parseStatus: 'extracting',
+    })
+    aiMocks.extractPulse.mockResolvedValue({
+      result: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
+        summary: 'Arizona extends selected filing deadlines.',
+        sourceExcerpt: 'extended from April 15, 2026 to October 15, 2026',
+        jurisdiction: 'AZ',
+        counties: ['Maricopa'],
+        forms: ['state_income_tax'],
+        entityTypes: ['individual'],
+        originalDueDate: '2026-04-15',
+        newDueDate: '2026-10-15',
+        effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
+        confidence: 0.9,
+      },
+      trace: {
+        promptVersion: 'pulse-extract@v2',
+        model: 'test-model',
+        inputHash: 'hash',
+        guardResult: 'pass',
+        latencyMs: 1,
+      },
+      model: 'test-model',
+      refusal: null,
+    })
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-stranded')
+
+    expect(result).toEqual({ pulseId: 'pulse-created', status: 'created' })
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalled()
+  })
 })

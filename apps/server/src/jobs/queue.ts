@@ -6,7 +6,7 @@ import { consumeDashboardBriefRefresh } from './dashboard-brief/consumer'
 import { isDashboardBriefRefreshMessage } from './dashboard-brief/message'
 import { flushEmailOutbox } from './email/outbox'
 import { extractPulseSnapshot } from './pulse/extract'
-import { recordPulseMetric } from './pulse/metrics'
+import { recordPulseAlert } from './pulse/metrics'
 import {
   consumeRuleConcreteDraftGenerate,
   isRuleConcreteDraftGenerateMessage,
@@ -66,9 +66,49 @@ function isAuditPackageGenerateMessage(
   )
 }
 
+export function queueMessageType(body: unknown): string {
+  return isRecord(body) && typeof body.type === 'string' ? body.type : 'unknown'
+}
+
+// Dead-letter queues are wired in wrangler.toml (e.g. due-date-hq-pulse-dlq-*).
+// A batch arriving from the Pulse DLQ means a snapshot exhausted max_retries —
+// re-dispatching would just re-run the failing handler, so we alert and ack to
+// drain it instead. Without this consumer the messages die silently.
+export function isPulseDeadLetterQueue(queueName: string): boolean {
+  return queueName.includes('pulse') && queueName.includes('dlq')
+}
+
+function recordQueueRetry(body: unknown, error: unknown): void {
+  console.warn(
+    JSON.stringify({
+      type: 'queue.metric',
+      name: 'queue.dispatch.retry',
+      at: new Date().toISOString(),
+      messageType: queueMessageType(body),
+      error: error instanceof Error ? error.message : 'Queue dispatch failed.',
+    }),
+  )
+}
+
+function drainDeadLetterBatch(batch: MessageBatch): void {
+  for (const message of batch.messages) {
+    recordPulseAlert('pulse.queue.dead_letter', {
+      queue: batch.queue,
+      messageType: queueMessageType(message.body),
+      attempts: message.attempts,
+      snapshotId: isPulseExtractMessage(message.body) ? message.body.snapshotId : null,
+    })
+    message.ack()
+  }
+}
+
 // Queue consumer entry. Keep message contracts explicit so additional queues
 // can be routed here without conflating job payloads.
 export async function queue(batch: MessageBatch, env: Env, _ctx: ExecutionContext): Promise<void> {
+  if (isPulseDeadLetterQueue(batch.queue)) {
+    drainDeadLetterBatch(batch)
+    return
+  }
   assertQueueDispatchable(batch)
   await Promise.all(batch.messages.map((message) => dispatchMessage(message, env)))
 }
@@ -102,10 +142,7 @@ async function dispatchMessage(message: Message, env: Env): Promise<void> {
     }
     message.ack()
   } catch (error) {
-    recordPulseMetric('pulse.queue.retry', {
-      queue: 'unknown',
-      error: error instanceof Error ? error.message : 'Queue dispatch failed.',
-    })
+    recordQueueRetry(message.body, error)
     message.retry()
   }
 }
