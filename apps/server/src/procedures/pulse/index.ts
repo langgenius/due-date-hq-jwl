@@ -57,6 +57,7 @@ const SOURCE_LABELS: Record<string, string> = {
   'wa.dor.whats_new': 'WA DOR What’s New',
   'ma.dor.press': 'MA DOR Press',
   'fema.declarations': 'FEMA declarations',
+  'fed.irs_newswire': 'IRS Newswire',
   'ny.dtf.press': 'NY DTF Press',
   'ny.email_services': 'NY Tax Department Email Services',
   'oh.temporary_announcements': 'Ohio Department of Taxation Tax Alerts',

@@ -266,10 +266,15 @@ pulse.ingest.confidence_avg_24h   (gauge,     label: source_id)
 一个 source 时才归因。未匹配邮件写入 `govdelivery.inbound.unmatched`，不投递
 `pulse.extract`，因此不会生成 CPA-facing Alert。
 
-当前已配置 inbound metadata 的真实源包括 `ny.email_services`、`oh.temporary_announcements`、
-`fl.tips`、`wa.news`、`ma.temporary_announcements`、`tx.temporary_announcements`。扩新州时沿用
-`pulse-ingest+<source-slug>@<inbound-domain>`，并至少配置 sender、`List-ID` 或 canonical URL
-host 中的一种可信信号。
+当前已配置 inbound metadata 的真实源包括 `ny.email_services`、`fed.irs_newswire`、
+`oh.temporary_announcements`、`fl.tips`、`wa.news`、`ma.temporary_announcements`、
+`tx.temporary_announcements`。扩新州时沿用 `pulse-ingest+<source-slug>@<inbound-domain>`，
+并至少配置 sender、`List-ID`、GovDelivery account code 或 canonical URL host 中的一种可信信号。
+本轮保留现有 sender / `List-ID` / URL 规则；仅对 `USIRS` 增加精确优先级，当
+`X-Accountcode` 或 `content.govdelivery.com/accounts/<code>/...` 明确命中 `USIRS` 时，
+邮件归因到 `fed.irs_newswire`，即使它进入了其他 plus-address。Inbound 邮件写入 R2 时
+保留同一个 `raw_r2_key`，artifact 第一段是 decoded canonical email text，第二段是 raw
+RFC822 `.eml`。
 
 **部署要求：** 代码不会自动创建收件邮箱。生产或 staging 必须在 Cloudflare Email Routing 中
 为实际接收域配置 MX 和 route，把 `pulse-ingest*` 收件地址转发到 SaaS Worker 的 `email()`

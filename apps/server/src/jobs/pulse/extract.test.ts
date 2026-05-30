@@ -3,6 +3,12 @@
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Env } from '../../env'
+import {
+  CANONICAL_EMAIL_TEXT_BEGIN,
+  CANONICAL_EMAIL_TEXT_END,
+  RAW_EMAIL_ARTIFACT_BEGIN,
+  RAW_EMAIL_ARTIFACT_END,
+} from './email-artifact'
 import { extractPulseSnapshot } from './extract'
 
 const { aiMocks, dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
@@ -257,6 +263,82 @@ describe('extractPulseSnapshot', () => {
     )
     expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
       expect.objectContaining({ actionMode: 'due_date_overlay' }),
+    )
+  })
+
+  it('extracts from canonical email text and normalizes federal US jurisdiction to FED', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      id: 'snapshot-irs-newswire',
+      sourceId: 'fed.irs_newswire',
+      title: 'IR-2026-69',
+      officialSourceUrl: 'https://www.federalregister.gov/public-inspection/2026-10841',
+      publishedAt: new Date('2026-05-29T13:38:26.000Z'),
+      rawR2Key: 'raw/irs-newswire.txt',
+      pulseId: null,
+      parseStatus: 'pending_extract',
+    })
+    aiMocks.extractPulse.mockResolvedValue({
+      result: {
+        classification: 'regulatory_change',
+        changeKind: 'applicability_scope',
+        actionMode: 'review_only',
+        summary: 'IRS issued Section 892 transitional relief guidance.',
+        sourceExcerpt: 'grandfathering protection and transitional relief',
+        jurisdiction: 'US',
+        counties: [],
+        forms: [],
+        entityTypes: [],
+        originalDueDate: null,
+        newDueDate: null,
+        effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
+        confidence: 0.84,
+      },
+      trace: {
+        promptVersion: 'pulse-extract@v2',
+        model: 'test-model',
+        inputHash: 'hash',
+        guardResult: 'pass',
+        latencyMs: 1,
+      },
+      model: 'test-model',
+      refusal: null,
+    })
+    const artifact = [
+      CANONICAL_EMAIL_TEXT_BEGIN,
+      'Subject: IR-2026-69',
+      '',
+      'Body:',
+      'This additional guidance provides grandfathering protection and transitional relief.',
+      CANONICAL_EMAIL_TEXT_END,
+      RAW_EMAIL_ARTIFACT_BEGIN,
+      'This additional guidance provides grandfather=\r\ning protection and transitional relief.',
+      RAW_EMAIL_ARTIFACT_END,
+    ].join('\n')
+
+    const result = await extractPulseSnapshot(env(artifact), 'snapshot-irs-newswire')
+
+    expect(result).toEqual({ pulseId: 'pulse-created', status: 'created' })
+    expect(aiMocks.extractPulse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceId: 'fed.irs_newswire',
+        rawText: expect.stringContaining('grandfathering protection and transitional relief'),
+      }),
+      { taskKind: 'pulse' },
+    )
+    expect(aiMocks.extractPulse).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        rawText: expect.stringContaining('grandfather='),
+      }),
+      { taskKind: 'pulse' },
+    )
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actionMode: 'review_only',
+        parsedJurisdiction: 'FED',
+      }),
     )
   })
 

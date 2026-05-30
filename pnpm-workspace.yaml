@@ -176,6 +176,7 @@ catalog:
 
   # ───────── infra / transport ─────────
   resend: 6.12.3
+  postal-mime: 2.7.4
   '@react-email/components': 1.0.12
   '@sentry/cloudflare': 10.53.1
   posthog-js: 1.376.0

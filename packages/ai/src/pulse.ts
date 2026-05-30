@@ -24,7 +24,7 @@ export const PulseExtractOutputSchema = z.object({
   actionMode: z.enum(['due_date_overlay', 'review_only']).nullable(),
   summary: z.string().min(1),
   sourceExcerpt: z.string().min(1),
-  jurisdiction: z.string().length(2),
+  jurisdiction: z.union([z.literal('FED'), z.string().length(2)]),
   counties: z.array(z.string()),
   forms: z.array(z.string().min(1)),
   entityTypes: z.array(
