@@ -8,6 +8,7 @@ import { makeClientsRepo } from './repo/clients'
 import { makeDashboardRepo } from './repo/dashboard'
 import { makeEvidenceRepo } from './repo/evidence'
 import { makeMigrationRepo } from './repo/migration'
+import { makeMutationLockRepo } from './repo/mutation-lock'
 import { makeNotificationsRepo } from './repo/notifications'
 import { makeObligationsRepo } from './repo/obligations'
 import { makeOpportunityDismissalsRepo } from './repo/opportunities'
@@ -53,6 +54,7 @@ export function scoped(db: Db, firmId: string): ScopedRepo {
     readiness: makeReadinessRepo(db, firmId),
     ruleConcreteDrafts: makeRuleConcreteDraftRepo(db),
     rules: makeRulesRepo(db, firmId),
+    mutationLock: makeMutationLockRepo(db),
     migration: makeMigrationRepo(db, firmId),
     notifications: makeNotificationsRepo(db, firmId),
     reminders: makeRemindersRepo(db, firmId),

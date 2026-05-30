@@ -7,6 +7,7 @@ import type { ClientsRepo } from './clients'
 import type { DashboardRepo } from './dashboard'
 import type { EvidenceRepo } from './evidence'
 import type { MigrationRepo } from './migration'
+import type { MutationLockRepo } from './mutation-lock'
 import type { NotificationsRepo } from './notifications'
 import type { ObligationsRepo } from './obligations'
 import type { OpportunityDismissalsRepo } from './opportunities'
@@ -38,6 +39,10 @@ export interface ScopedRepo {
   readonly readiness: ReadinessRepo
   readonly ruleConcreteDrafts?: RuleConcreteDraftRepo
   readonly rules: RulesRepo
+  // Optional for the same reason as the other non-firm-scoped repos above:
+  // some legacy/test scoped doubles skip it. Mutating Pulse handlers fall back
+  // to DB constraints when it isn't wired (see withPulseMutationLock).
+  readonly mutationLock?: MutationLockRepo
   readonly migration: MigrationRepo
   readonly notifications?: NotificationsRepo
   readonly reminders?: RemindersRepo

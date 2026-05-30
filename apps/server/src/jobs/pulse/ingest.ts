@@ -13,6 +13,32 @@ export interface PulseExtractQueueMessage {
   snapshotId: string
 }
 
+export const PULSE_INGEST_SOURCE_MESSAGE_TYPE = 'pulse.ingest.source'
+
+// One message per *due* source, enqueued by the cron path (`enqueuePulseIngestScans`)
+// and consumed one-source-per-invocation (`consumePulseIngestSource`). This keeps the
+// scheduled tick O(1) — it only decides which sources are due and fans them out — so a
+// slow or hanging source can no longer burn the whole cron invocation's CPU/wall-clock
+// budget. Mirrors the rules-scan pattern (jobs/rules/reconcile.ts).
+export interface PulseIngestSourceMessage {
+  type: typeof PULSE_INGEST_SOURCE_MESSAGE_TYPE
+  sourceId: string
+  reason: 'cadence_due'
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+export function isPulseIngestSourceMessage(value: unknown): value is PulseIngestSourceMessage {
+  return (
+    isRecord(value) &&
+    value.type === PULSE_INGEST_SOURCE_MESSAGE_TYPE &&
+    typeof value.sourceId === 'string' &&
+    value.reason === 'cadence_due'
+  )
+}
+
 interface IngestCounts {
   snapshots: number
   queued: number
@@ -108,6 +134,15 @@ function nextCheckAt(from: Date, intervalMs: number): Date {
   return new Date(from.getTime() + intervalMs)
 }
 
+// Shared due-check used by both the synchronous `ingestAdapter` guard and the
+// `enqueuePulseIngestScans` cron fan-out, so the enqueue side never queues a source
+// the consumer would just skip.
+function sourceIsDue(state: { enabled?: boolean; nextCheckAt?: Date | null }, now: Date): boolean {
+  return (
+    state.enabled !== false && (!state.nextCheckAt || state.nextCheckAt.getTime() <= now.getTime())
+  )
+}
+
 function resolveFetcherForAdapter(
   adapter: SourceAdapter,
   ctx: Pick<IngestCtx, 'browserlessFetch' | 'govdeliveryFetch'>,
@@ -167,10 +202,7 @@ async function ingestAdapter(
     cadenceMs: adapter.cronIntervalMs,
     now: checkedAt,
   })
-  if (
-    !state.enabled ||
-    (!opts.force && state.nextCheckAt && state.nextCheckAt.getTime() > checkedAt.getTime())
-  ) {
+  if (!state.enabled || (!opts.force && !sourceIsDue(state, checkedAt))) {
     return { snapshots: 0, queued: 0, duplicates: 0, failures: 0 }
   }
 
@@ -275,26 +307,24 @@ async function ingestAdapter(
   }
 }
 
-export async function runPulseIngest(
-  env: Pick<
-    Env,
-    | 'DB'
-    | 'R2_PULSE'
-    | 'PULSE_QUEUE'
-    | 'PULSE_BROWSERLESS_URL'
-    | 'PULSE_BROWSERLESS_TOKEN'
-    | 'PULSE_BROWSERLESS_SOURCE_IDS'
-  >,
-  adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
-  opts: { force?: boolean } = {},
-): Promise<{
-  snapshots: number
-  queued: number
-  duplicates: number
-  failures: number
-}> {
-  const db = createDb(env.DB)
-  const repo = makePulseIngestRepo(db)
+type PulseIngestEnv = Pick<
+  Env,
+  | 'DB'
+  | 'R2_PULSE'
+  | 'PULSE_QUEUE'
+  | 'PULSE_BROWSERLESS_URL'
+  | 'PULSE_BROWSERLESS_TOKEN'
+  | 'PULSE_BROWSERLESS_SOURCE_IDS'
+>
+
+// Builds the per-run ingest context (polite fetch, browserless wiring, R2 archive,
+// source-state lookup). Shared by the synchronous `runPulseIngest` (retry button +
+// tests) and the queued single-source `consumePulseIngestSource` so both fetch
+// identically.
+function createPulseIngestCtx(
+  env: PulseIngestEnv,
+  repo: PulseIngestRepo,
+): { ctx: IngestCtx; browserlessSourceIds: ReadonlySet<string> } {
   const browserlessFetch = createBrowserlessFetch({
     ...(env.PULSE_BROWSERLESS_URL ? { endpoint: env.PULSE_BROWSERLESS_URL } : {}),
     ...(env.PULSE_BROWSERLESS_TOKEN ? { token: env.PULSE_BROWSERLESS_TOKEN } : {}),
@@ -309,6 +339,22 @@ export async function runPulseIngest(
     },
     archiveRaw: (input: Parameters<IngestCtx['archiveRaw']>[0]) => archivePulseRaw(env, input),
   }
+  return { ctx, browserlessSourceIds }
+}
+
+export async function runPulseIngest(
+  env: PulseIngestEnv,
+  adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
+  opts: { force?: boolean } = {},
+): Promise<{
+  snapshots: number
+  queued: number
+  duplicates: number
+  failures: number
+}> {
+  const db = createDb(env.DB)
+  const repo = makePulseIngestRepo(db)
+  const { ctx, browserlessSourceIds } = createPulseIngestCtx(env, repo)
 
   const results = await Promise.all(
     adapters.map((adapter) =>
@@ -322,4 +368,70 @@ export async function runPulseIngest(
   )
   recordPulseMetric('pulse.ingest.run_result', { ...counts })
   return counts
+}
+
+// Cron entry point. Decides which sources are due and fans out one queue message per
+// due source — it does NOT fetch. This bounds the scheduled tick's work regardless of
+// how many sources exist (the P0 scaling fix). `emitSourceIdleAlerts` runs here over the
+// full source set; it reflects prior runs' success times (independent of this tick's
+// not-yet-run fetches), so computing it pre-fetch is correct and not masked by the tick.
+export async function enqueuePulseIngestScans(
+  env: Pick<Env, 'DB' | 'PULSE_QUEUE'>,
+  adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
+  now: Date = new Date(),
+): Promise<{ queued: number }> {
+  const db = createDb(env.DB)
+  const repo = makePulseIngestRepo(db)
+  const dueSourceIds = (
+    await Promise.all(
+      adapters.map(async (adapter) => {
+        const state = await repo.ensureSourceState({
+          sourceId: adapter.id,
+          tier: adapter.tier,
+          jurisdiction: adapter.jurisdiction,
+          cadenceMs: adapter.cronIntervalMs,
+          now,
+        })
+        return sourceIsDue(state, now) ? adapter.id : null
+      }),
+    )
+  ).filter((sourceId): sourceId is string => sourceId !== null)
+
+  await Promise.all(
+    dueSourceIds.map((sourceId) =>
+      env.PULSE_QUEUE.send({
+        type: PULSE_INGEST_SOURCE_MESSAGE_TYPE,
+        sourceId,
+        reason: 'cadence_due',
+      } satisfies PulseIngestSourceMessage),
+    ),
+  )
+
+  const activeSourceIds = new Set(adapters.map((adapter) => adapter.id))
+  emitSourceIdleAlerts(
+    (await repo.listSourceStates()).filter((row) => activeSourceIds.has(row.sourceId)),
+    now,
+  )
+  recordPulseMetric('pulse.ingest.enqueued', { queued: dueSourceIds.length })
+  return { queued: dueSourceIds.length }
+}
+
+// Queue consumer for a single source enqueued by `enqueuePulseIngestScans`. Runs with
+// `force: true` because the due-check already happened at enqueue time, and so a queue
+// retry re-fetches rather than short-circuiting on a stale `nextCheckAt`. Idempotency is
+// still guaranteed downstream by the snapshot unique index + the extract status guard.
+export async function consumePulseIngestSource(
+  env: PulseIngestEnv,
+  message: PulseIngestSourceMessage,
+  adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
+): Promise<IngestCounts> {
+  const adapter = adapters.find((candidate) => candidate.id === message.sourceId)
+  if (!adapter) {
+    recordPulseMetric('pulse.ingest.source_missing', { sourceId: message.sourceId })
+    return { snapshots: 0, queued: 0, duplicates: 0, failures: 0 }
+  }
+  const db = createDb(env.DB)
+  const repo = makePulseIngestRepo(db)
+  const { ctx, browserlessSourceIds } = createPulseIngestCtx(env, repo)
+  return ingestAdapter(adapter, ctx, repo, env.PULSE_QUEUE, { force: true, browserlessSourceIds })
 }

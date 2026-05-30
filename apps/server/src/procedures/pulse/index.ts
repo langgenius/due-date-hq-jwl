@@ -247,20 +247,32 @@ function toIsoOrNull(date: Date | null): string | null {
   return date ? date.toISOString() : null
 }
 
+const PULSE_MUTATION_LOCK_TTL_MS = 60_000
+
+// Serializes mutating Pulse operations on a single alert. The lock key is
+// per-(firm, alert) and deliberately omits the action: apply and revert on the
+// same alert must block each other (the cross race that no DB unique constraint
+// guards), not only apply-vs-apply. Backed by a D1 conditional upsert
+// (scoped.mutationLock) so acquisition is atomic — the prior KV get-then-put
+// had a TOCTOU window where two callers could both pass the read. The TTL
+// self-heals the lock if a holder dies mid-mutation. When the lock repo is not
+// wired (test scoped doubles), fall back to running directly under the DB
+// constraints, matching the other optional scoped repos.
 async function withPulseMutationLock<T>(
-  context: RpcContext,
-  input: { firmId: string; alertId: string; action: 'apply' | 'revert' },
+  scoped: ReturnType<typeof requireTenant>['scoped'],
+  input: { firmId: string; alertId: string },
   run: () => Promise<T>,
 ): Promise<T> {
-  const key = `pulse:lock:${input.firmId}:${input.alertId}:${input.action}`
-  if (await context.env.CACHE.get(key)) {
+  const locks = scoped.mutationLock
+  if (!locks) return run()
+  const key = `pulse:lock:${input.firmId}:${input.alertId}`
+  if (!(await locks.tryAcquire(key, PULSE_MUTATION_LOCK_TTL_MS))) {
     throw new ORPCError('CONFLICT', { message: ErrorCodes.PULSE_APPLY_CONFLICT })
   }
-  await context.env.CACHE.put(key, String(Date.now()), { expirationTtl: 60 })
   try {
     return await run()
   } finally {
-    await context.env.CACHE.delete(key).catch(() => undefined)
+    await locks.release(key).catch(() => undefined)
   }
 }
 
@@ -533,8 +545,8 @@ const applyReviewed = os.pulse.applyReviewed.handler(async ({ input, context }) 
   requirePriorityPulseMatching(tenant.plan)
   try {
     const result = await withPulseMutationLock(
-      context,
-      { firmId: tenant.firmId, alertId: input.alertId, action: 'apply' },
+      scoped,
+      { firmId: tenant.firmId, alertId: input.alertId },
       () => scoped.pulse.applyReviewed({ alertId: input.alertId, userId }),
     )
     const output = {
@@ -562,8 +574,8 @@ const apply = os.pulse.apply.handler(async ({ input, context }) => {
   requireProductionPulse(tenant.plan)
   try {
     const result = await withPulseMutationLock(
-      context,
-      { firmId: tenant.firmId, alertId: input.alertId, action: 'apply' },
+      scoped,
+      { firmId: tenant.firmId, alertId: input.alertId },
       () =>
         scoped.pulse.apply({
           alertId: input.alertId,
@@ -658,8 +670,8 @@ const revert = os.pulse.revert.handler(async ({ input, context }) => {
   requireProductionPulse(tenant.plan)
   try {
     const result = await withPulseMutationLock(
-      context,
-      { firmId: tenant.firmId, alertId: input.alertId, action: 'revert' },
+      scoped,
+      { firmId: tenant.firmId, alertId: input.alertId },
       () => scoped.pulse.revert({ alertId: input.alertId, userId }),
     )
     const output = {
