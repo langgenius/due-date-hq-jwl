@@ -1542,11 +1542,8 @@ msgstr "提醒历史"
 msgid "Alert reactivated"
 msgstr "提醒已重新激活"
 
-#: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Alert snoozed"
-msgstr "提醒已暂缓"
-
 #: src/features/pulse/AlertsListPage.tsx
+#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Alert snoozed for 24h"
 msgstr "提醒已暂缓 24 小时"
 
@@ -1647,6 +1644,10 @@ msgstr "全部完成"
 #: src/features/audit/audit-log-page.tsx
 msgid "All entity types"
 msgstr "全部实体类型"
+
+#: src/features/pulse/AlertsListPage.tsx
+msgid "All handled"
+msgstr "全部已处理"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "All ignored"
@@ -6293,7 +6294,6 @@ msgstr "标记已读"
 msgid "Mark return submitted to authority"
 msgstr "标记该申报已提交税务机关"
 
-#: src/features/pulse/components/PulseReasonDialog.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Mark reviewed"
 msgstr "标记为已审核"
@@ -8223,10 +8223,6 @@ msgstr "已逾期"
 #: src/features/migration/Step1Intake.tsx
 msgid "Paste a list instead →"
 msgstr "Paste a list instead →"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Paste client data"
-msgstr "粘贴客户数据"
 
 #: src/features/migration/Step1Intake.tsx
 #, fuzzy
@@ -10989,7 +10985,6 @@ msgstr "来源定义规则会跳过批量接受。请逐条生成并审核其 AI
 #: src/features/dashboard/actions-list.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.library.tsx
-#: src/routes/rules.pulse.tsx
 #: src/routes/rules.sources.tsx
 msgid "Sources"
 msgstr "来源"
@@ -12430,7 +12425,6 @@ msgid "View open filings for this client"
 msgstr "查看此客户的进行中申报"
 
 #: src/features/dashboard/needs-attention-section.tsx
-#: src/features/pulse/AlertsListPage.tsx
 msgid "View sources"
 msgstr "查看来源"
 
@@ -12550,10 +12544,6 @@ msgstr "变更内容"
 #, fuzzy
 msgid "What changes"
 msgstr "变更内容"
-
-#: src/features/pulse/components/PulseReasonDialog.tsx
-msgid "What did you review?"
-msgstr "你审核了什么？"
 
 #: src/routes/billing.tsx
 msgid "What stays in DueDateHQ"

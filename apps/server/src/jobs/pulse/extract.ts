@@ -2,6 +2,7 @@ import { createAI } from '@duedatehq/ai'
 import { createDb, makePulseOpsRepo } from '@duedatehq/db'
 import { aiOutput, llmLog } from '@duedatehq/db/schema/ai'
 import type { Env } from '../../env'
+import { extractCanonicalEmailText } from './email-artifact'
 import { recordPulseAlert, recordPulseMetric } from './metrics'
 import { requiresReviewOnlyPulseAlert } from './rule-source-adapters'
 
@@ -32,6 +33,12 @@ function dateFromIsoDate(value: string): Date {
 
 function nullableDateFromIsoDate(value: string | null): Date | null {
   return value ? dateFromIsoDate(value) : null
+}
+
+function normalizeExtractJurisdiction(sourceId: string, jurisdiction: string): string {
+  const normalized = jurisdiction.toUpperCase()
+  if (sourceId.startsWith('fed.') && normalized === 'US') return 'FED'
+  return normalized
 }
 
 export async function extractPulseSnapshot(
@@ -71,7 +78,7 @@ export async function extractPulseSnapshot(
     return { pulseId: null, status: 'failed' }
   }
 
-  const rawText = await raw.text()
+  const rawText = extractCanonicalEmailText(await raw.text())
   const ai = createAI(env)
   const result = await ai.extractPulse(
     {
@@ -170,11 +177,15 @@ export async function extractPulseSnapshot(
   const actionMode = requiresReviewOnlyPulseAlert(snapshot.sourceId)
     ? 'review_only'
     : result.result.actionMode
+  const parsedJurisdiction = normalizeExtractJurisdiction(
+    snapshot.sourceId,
+    result.result.jurisdiction,
+  )
 
   const duplicatePulseId = await repo.findDuplicatePulseForExtract({
     publishedAt: snapshot.publishedAt,
     sourceUrl: snapshot.officialSourceUrl,
-    parsedJurisdiction: result.result.jurisdiction,
+    parsedJurisdiction,
     parsedCounties: result.result.counties,
     parsedForms: result.result.forms,
     parsedEntityTypes: result.result.entityTypes,
@@ -213,7 +224,7 @@ export async function extractPulseSnapshot(
     actionMode,
     aiSummary: result.result.summary,
     verbatimQuote: result.result.sourceExcerpt,
-    parsedJurisdiction: result.result.jurisdiction,
+    parsedJurisdiction,
     parsedCounties: result.result.counties,
     parsedForms: result.result.forms,
     parsedEntityTypes: result.result.entityTypes,

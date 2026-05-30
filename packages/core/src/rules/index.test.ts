@@ -374,6 +374,21 @@ describe('@duedatehq/core/rules', () => {
     })
     expect(isParserBackedRuleSource(source!)).toBe(false)
 
+    const irsNewswire = sourcesById.get('fed.irs_newswire')
+    expect(irsNewswire?.jurisdiction).toBe('FED')
+    expect(irsNewswire?.acquisitionMethod).toBe('email_subscription')
+    expect(irsNewswire?.adapterKind).toBe('email_inbound')
+    expect(irsNewswire?.inboundEmail).toMatchObject({
+      localParts: ['pulse-ingest+fed-irs-newswire'],
+      accountCodes: ['USIRS'],
+      canonicalUrlHosts: [
+        'irs.gov',
+        'www.irs.gov',
+        'federalregister.gov',
+        'www.federalregister.gov',
+      ],
+    })
+
     const ohioSource = sourcesById.get('oh.temporary_announcements')
     expect(ohioSource?.acquisitionMethod).toBe('email_subscription')
     expect(ohioSource?.adapterKind).toBe('email_inbound')

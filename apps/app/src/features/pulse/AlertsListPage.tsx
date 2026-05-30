@@ -3,13 +3,7 @@ import { Link } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
-import {
-  AlertCircleIcon,
-  ArrowUpRightIcon,
-  CheckIcon,
-  HistoryIcon,
-  type LucideIcon,
-} from 'lucide-react'
+import { AlertCircleIcon, CheckIcon, HistoryIcon, type LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -49,6 +43,7 @@ import { PulseDetailDrawer } from './PulseDetailDrawer'
 import { StateTilegram } from './components/StateTilegram'
 import {
   usePulseInvalidation,
+  usePulseListAlertsQueryOptions,
   usePulseListHistoryQueryOptions,
   usePulseSourceHealthQueryOptions,
 } from './api'
@@ -64,26 +59,21 @@ import {
   type PulseImpactFilter,
 } from './lib/impact-filter'
 
-// 2026-05-26 (Yuqi /rules/pulse thirteenth pass): status filter
-// reordered from alphabetical → workflow lifecycle stages:
-//   active → snoozed → applied → partially_applied → reviewed
-//   → reverted → dismissed
-// Reads top-to-bottom as the alert's possible journey: starts
-// active, can be parked (snoozed), resolved (applied / partial /
-// reviewed), or undone (reverted / dismissed). Filter dropdown
-// now mirrors that mental model instead of an A-Z sort that
-// drops "reverted" next to "snoozed".
-const STATUS_FILTER_OPTIONS = [
+// Status filters are scoped by surface: the active queue exposes only
+// active-workflow states, while history exposes CPA-handled states.
+const ACTIVE_STATUS_FILTER_OPTIONS = ['all', 'active', 'snoozed', 'partially_applied'] as const
+const HISTORY_STATUS_FILTER_OPTIONS = [
   'all',
-  'active',
   'snoozed',
-  'applied',
   'partially_applied',
+  'applied',
   'reviewed',
   'reverted',
   'dismissed',
 ] as const
-type PulseStatusFilter = (typeof STATUS_FILTER_OPTIONS)[number]
+type PulseStatusFilter =
+  | (typeof ACTIVE_STATUS_FILTER_OPTIONS)[number]
+  | (typeof HISTORY_STATUS_FILTER_OPTIONS)[number]
 const CHANGE_KIND_FILTER_OPTIONS = [
   'all',
   'deadline_shift',
@@ -102,8 +92,8 @@ interface PulseChangesTabProps {
   embedded?: boolean
   /**
    * 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): when true, the
-   * page renders the closed-alerts archive — initial status filter
-   * locked to `applied` (the most common terminal state), the
+   * page renders CPA-handled alert history — initial status filter
+   * shows all handled statuses, the
    * "View history" cross-link in the header is hidden (we're
    * already on it), and the impact/source filters still work as
    * normal. The dedicated `/rules/pulse/history` route mounts
@@ -135,9 +125,7 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
   // auto-collapse properly via `setAutoCollapsed` (see that
   // component) — no wrapper needed here. Just open the drawer.
   const openDrawerAndCollapseSidebar = openDrawer
-  const [statusFilter, setStatusFilter] = useState<PulseStatusFilter>(
-    historyMode ? 'applied' : 'all',
-  )
+  const [statusFilter, setStatusFilter] = useState<PulseStatusFilter>('all')
   const [impactFilter, setImpactFilter] = useState<PulseImpactFilter>('all')
   const [changeKindFilter, setChangeKindFilter] = useState<PulseChangeKindFilter>('all')
   const [sourceFilter, setSourceFilter] = useState('all')
@@ -151,12 +139,9 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
   const invalidatePulse = usePulseInvalidation()
   // 2026-05-24 (re-critique): the dismiss / snooze row-actions used
   // to grab the reason via `window.prompt()` — system-styled, no
-  // textarea, no character counter, no app context. The drawer
-  // already had a proper `PulseReasonDialog` for the same flow;
-  // extracted it to a shared component (see
-  // `./components/PulseReasonDialog.tsx`) and wired both surfaces
-  // through it so the dismiss / snooze experience is consistent
-  // whether the user is in the drawer or running through the list.
+  // textarea, no character counter, no app context. The list keeps
+  // `PulseReasonDialog` for row-level quick actions; the drawer
+  // footer uses direct audited mutations.
   const [reasonState, setReasonState] = useState<{
     action: PulseReasonAction
     alertId: string
@@ -210,10 +195,15 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
       },
     }),
   )
-  const alertsQuery = useQuery(usePulseListHistoryQueryOptions(50))
+  const activeAlertsQueryOptions = usePulseListAlertsQueryOptions(50)
+  const historyAlertsQueryOptions = usePulseListHistoryQueryOptions(50)
+  const alertsQuery = useQuery(historyMode ? historyAlertsQueryOptions : activeAlertsQueryOptions)
   const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
+  const statusFilterOptions = historyMode
+    ? HISTORY_STATUS_FILTER_OPTIONS
+    : ACTIVE_STATUS_FILTER_OPTIONS
   const sourceOptions = useMemo(
     () =>
       alerts
@@ -326,12 +316,11 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
         // favor of the canonical PageHeader primitive. Title +
         // canonical chip + PulsingDot inline (preserved — it
         // carries the "live signal" semantics specific to Alerts).
-        // "View sources" / "View history" promoted from text links
-        // → outline Button shapes so the action cluster reads as
-        // actions, not soft links. Description survives via the
-        // primitive's description prop, picking up the canonical
-        // text-[13px] leading-5 instead of the hand-rolled
-        // text-md.
+        // "View history" promoted from a text link → outline Button
+        // shape so the action cluster reads as actions, not soft
+        // links. Description survives via the primitive's description
+        // prop, picking up the canonical text-[13px] leading-5
+        // instead of the hand-rolled text-md.
         <PageHeader
           title={
             <span className="inline-flex items-center gap-2">
@@ -362,15 +351,6 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                   J/K row nav (per AlertsListPage hotkeys) but `?` was
                   undiscoverable. */}
               <ShortcutHintChip className="hidden md:inline-flex" />
-              <Button
-                variant="outline"
-                size="sm"
-                render={<Link to="/rules/library" />}
-                aria-label={t`View sources`}
-              >
-                <ArrowUpRightIcon data-icon="inline-start" />
-                <Trans>View sources</Trans>
-              </Button>
               {!historyMode ? (
                 <Button
                   variant="outline"
@@ -627,7 +607,7 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                         className={panelOpen ? 'w-auto' : 'w-[180px]'}
                       >
                         <span className="min-w-0 flex-1 truncate text-left">
-                          {statusFilterLabel(statusFilter)}
+                          {statusFilterLabel(statusFilter, historyMode)}
                         </span>
                       </FilterTrigger>
                     }
@@ -636,13 +616,13 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                     <DropdownMenuRadioGroup
                       value={statusFilter}
                       onValueChange={(value) => {
-                        if (typeof value === 'string' && isStatusFilter(value))
+                        if (typeof value === 'string' && isStatusFilter(value, statusFilterOptions))
                           setStatusFilter(value)
                       }}
                     >
-                      {STATUS_FILTER_OPTIONS.map((option) => (
+                      {statusFilterOptions.map((option) => (
                         <DropdownMenuRadioItem key={option} value={option}>
-                          {statusFilterLabel(option)}
+                          {statusFilterLabel(option, historyMode)}
                         </DropdownMenuRadioItem>
                       ))}
                     </DropdownMenuRadioGroup>
@@ -1098,8 +1078,11 @@ function FilteredEmptyState() {
   )
 }
 
-function isStatusFilter(value: string): value is PulseStatusFilter {
-  return STATUS_FILTER_OPTIONS.some((option) => option === value)
+function isStatusFilter(
+  value: string,
+  options: readonly PulseStatusFilter[],
+): value is PulseStatusFilter {
+  return options.some((option) => option === value)
 }
 
 function isChangeKindFilter(value: string): value is PulseChangeKindFilter {
@@ -1137,8 +1120,9 @@ const STATUS_FILTER_ICON: Record<PulseStatusFilter, LucideIcon | null> = {
   dismissed: PULSE_STATUS_ICON.dismissed,
 }
 
-function statusFilterText(filter: PulseStatusFilter): React.ReactNode {
-  if (filter === 'all') return <Trans>All statuses</Trans>
+function statusFilterText(filter: PulseStatusFilter, historyMode: boolean): React.ReactNode {
+  if (filter === 'all')
+    return historyMode ? <Trans>All handled</Trans> : <Trans>All statuses</Trans>
   if (filter === 'active') return <Trans>Active</Trans>
   if (filter === 'partially_applied') return <Trans>Partially applied</Trans>
   if (filter === 'applied') return <Trans>Applied</Trans>
@@ -1148,12 +1132,12 @@ function statusFilterText(filter: PulseStatusFilter): React.ReactNode {
   return <Trans>Snoozed</Trans>
 }
 
-function statusFilterLabel(filter: PulseStatusFilter): React.ReactNode {
+function statusFilterLabel(filter: PulseStatusFilter, historyMode: boolean): React.ReactNode {
   const Icon = STATUS_FILTER_ICON[filter]
   return (
     <span className="inline-flex items-center gap-2">
       {Icon ? <Icon className="size-3.5 text-text-tertiary" aria-hidden /> : null}
-      {statusFilterText(filter)}
+      {statusFilterText(filter, historyMode)}
     </span>
   )
 }

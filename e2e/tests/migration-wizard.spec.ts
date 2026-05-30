@@ -29,7 +29,7 @@ test('AC: E2E-MIGRATION-INTAKE parses pasted rows and protects discard', async (
     ].join('\n'),
   )
 
-  await expect(authenticatedPage.getByText('2 rows ready to import')).toBeVisible()
+  await expect(authenticatedPage.getByText('2 clients ready to import')).toBeVisible()
   await expect(authenticatedPage.getByRole('alert')).toContainText('SSN-like columns blocked')
   await expect(authenticatedPage.getByRole('alert')).toContainText('SSN')
 
@@ -99,8 +99,8 @@ test('AC: E2E-MIGRATION-EXPOSURE imports tax inputs into Dashboard and Evidence 
   await migrationWizardPage.presetButton('TaxDome').click()
   await migrationWizardPage.pasteRows(
     [
-      'Account Name\tState\tType\tEstimated Tax Due\tOwner Count',
-      `${importedClient}\tCA\tLLC\t75000\t1`,
+      'Account Name\tState\tType\tReturn Type\tEstimated Tax Due\tOwner Count',
+      `${importedClient}\tCA\tLLC\tForm 1065\t75000\t1`,
     ].join('\n'),
   )
 
@@ -108,6 +108,8 @@ test('AC: E2E-MIGRATION-EXPOSURE imports tax inputs into Dashboard and Evidence 
   await expect(
     authenticatedPage.getByRole('heading', { name: 'AI prepared your columns' }),
   ).toBeVisible({ timeout: AI_STEP_TIMEOUT })
+  await migrationWizardPage.mapColumn('Type', 'Entity type')
+  await migrationWizardPage.mapColumn('Return Type', 'Tax types')
   await migrationWizardPage.mapColumn('Estimated Tax Due', 'Penalty tax due')
   await migrationWizardPage.mapColumn('Owner Count', 'Partner count')
 
@@ -118,8 +120,10 @@ test('AC: E2E-MIGRATION-EXPOSURE imports tax inputs into Dashboard and Evidence 
 
   await migrationWizardPage.continue()
   await expect(authenticatedPage.getByRole('heading', { name: 'Ready to import' })).toBeVisible()
-  await expect(authenticatedPage.getByText(/\d+ deadlines \(full tax year\)/)).toBeVisible()
-  await expect(authenticatedPage.getByRole('status')).toContainText('Ready to generate deadlines')
+  await expect(authenticatedPage.getByText(/\d+ deadlines? to monitor/)).toBeVisible()
+  await expect(
+    authenticatedPage.getByRole('status').filter({ hasText: 'Ready to generate deadlines' }),
+  ).toContainText('Ready to generate deadlines')
 
   await migrationWizardPage.importAndGenerate()
 

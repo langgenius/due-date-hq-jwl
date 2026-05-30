@@ -3,6 +3,7 @@ import type { Locator, Page } from '@playwright/test'
 export class MigrationWizardPage {
   readonly dialog: Locator
   readonly pasteClientData: Locator
+  readonly pasteListButton: Locator
   readonly closeButton: Locator
   readonly discardDialog: Locator
   readonly undoImportDialog: Locator
@@ -15,9 +16,16 @@ export class MigrationWizardPage {
     // the empty state. Tests must click the toggle before they can
     // fill — see `pasteRows()` below.
     this.pasteClientData = page.getByLabel('Paste client rows')
+    this.pasteListButton = page.getByRole('button', { name: /Paste a list instead/ })
     this.closeButton = page.getByRole('button', { name: 'Close wizard' })
     this.discardDialog = page.getByRole('alertdialog', { name: 'Leave without importing?' })
     this.undoImportDialog = page.getByRole('alertdialog', { name: 'Undo this import?' })
+  }
+
+  async revealPasteRows() {
+    if (await this.pasteListButton.isVisible().catch(() => false)) {
+      await this.pasteListButton.click()
+    }
   }
 
   async pasteRows(rows: string) {
@@ -26,10 +34,7 @@ export class MigrationWizardPage {
     // (empty state shows the dropzone by default). If the textarea
     // is already visible (e.g. the page just reloaded with content),
     // the toggle won't be there — fall through to fill().
-    const toggle = this.page.getByRole('button', { name: /Paste a list instead/ })
-    if (await toggle.isVisible().catch(() => false)) {
-      await toggle.click()
-    }
+    await this.revealPasteRows()
     await this.pasteClientData.fill(rows)
   }
 
@@ -47,8 +52,8 @@ export class MigrationWizardPage {
     // banner that expands inline. The row-actions menu is gone too;
     // the Edit affordance is now an inline "Change →" text link
     // next to the DueDateHQ field name.
-    const row = this.page.getByRole('row').filter({ hasText: sourceHeader })
-    const changeLink = row.getByRole('button', { name: /^Change/ })
+    const row = this.page.getByRole('listitem').filter({ hasText: sourceHeader })
+    const changeLink = row.getByRole('button', { name: /^Change/ }).first()
     await changeLink.click()
     await this.page.getByRole('menuitemradio', { name: targetLabel }).click()
   }

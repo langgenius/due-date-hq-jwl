@@ -91,6 +91,8 @@ test('AC: E2E-AUTH-COMMANDS navigates and opens implemented actions', async ({
   await appShellPage.commandItem('Import clients').click()
 
   await expect(migrationWizardPage.dialog).toBeVisible()
+  await expect(migrationWizardPage.pasteListButton).toBeVisible()
+  await migrationWizardPage.revealPasteRows()
   await expect(migrationWizardPage.pasteClientData).toBeVisible()
 })
 

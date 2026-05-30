@@ -31,12 +31,18 @@ vi.mock('./metrics', () => ({
   recordPulseMetric: metricsMocks.recordPulseMetric,
 }))
 
-function env(queueSend = vi.fn()): Pick<Env, 'DB' | 'R2_PULSE' | 'PULSE_QUEUE'> {
+type TestEnv = Pick<Env, 'DB' | 'R2_PULSE' | 'PULSE_QUEUE'> & {
+  R2_PULSE: R2Bucket & { putMock: ReturnType<typeof vi.fn> }
+}
+
+function env(queueSend = vi.fn()): TestEnv {
+  const putMock = vi.fn(async () => undefined)
   return {
     DB: {} as D1Database,
     R2_PULSE: {
-      put: vi.fn(async () => undefined),
-    } as unknown as R2Bucket,
+      put: putMock,
+      putMock,
+    } as unknown as R2Bucket & { putMock: typeof putMock },
     PULSE_QUEUE: {
       send: queueSend,
     } as unknown as Queue,
@@ -94,6 +100,58 @@ describe('ingestGovDeliveryEmail', () => {
       type: 'pulse.extract',
       snapshotId: 'snapshot-ny.email_services',
     })
+  })
+
+  it('routes USIRS GovDelivery mail to the IRS Newswire source even through a NY plus address', async () => {
+    const queueSend = vi.fn()
+    const testEnv = env(queueSend)
+    const result = await ingestGovDeliveryEmail(
+      testEnv,
+      inboundMessage({
+        from: 'IRS Newswire <irs@service.govdelivery.com>',
+        to: 'pulse-ingest+ny-email-services@duedatehq.com',
+        headers: {
+          subject: 'IR-2026-69: Treasury, IRS issue Section 892 proposed regulations',
+        },
+        raw: [
+          'From: IRS Newswire <irs@service.govdelivery.com>',
+          'To: pulse-ingest+ny-email-services@duedatehq.com',
+          'Subject: IR-2026-69: Treasury, IRS issue Section 892 proposed regulations',
+          'X-Accountcode: USIRS',
+          'Content-Type: text/plain; charset="utf-8"',
+          'Content-Transfer-Encoding: quoted-printable',
+          '',
+          'Treasury, IRS issue Section 892 proposed regulations to provide grandfather=',
+          'ing protection and transitional relief to sovereign investors.',
+          'https://content.govdelivery.com/accounts/USIRS/bulletins/4197e47',
+          'https://www.federalregister.gov/public-inspection/2026-10841',
+        ].join('\r\n'),
+      }),
+    )
+
+    expect(result).toMatchObject({
+      inserted: true,
+      matched: true,
+      queued: true,
+      snapshotId: 'snapshot-fed.irs_newswire',
+    })
+    expect(repoMocks.createSourceSnapshot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceId: 'fed.irs_newswire',
+        officialSourceUrl: 'https://www.federalregister.gov/public-inspection/2026-10841',
+      }),
+    )
+    expect(queueSend).toHaveBeenCalledWith({
+      type: 'pulse.extract',
+      snapshotId: 'snapshot-fed.irs_newswire',
+    })
+
+    const archivedBody = testEnv.R2_PULSE.putMock.mock.calls[0]?.[1]
+    expect(typeof archivedBody).toBe('string')
+    expect(archivedBody).toContain('---BEGIN DUEDATEHQ CANONICAL EMAIL TEXT---')
+    expect(archivedBody).toContain('grandfathering protection and transitional relief')
+    expect(archivedBody).toContain('---BEGIN DUEDATEHQ RAW RFC822 EMAIL---')
+    expect(archivedBody).toContain('grandfather=\r\ning protection')
   })
 
   it('routes fallback inbox mail by official list id or canonical NY URL', async () => {

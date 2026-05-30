@@ -332,6 +332,41 @@ describe('@duedatehq/ai', () => {
     expect(result.refusal).toBeNull()
   })
 
+  it('accepts federal Pulse extract jurisdiction labels', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        classification: 'regulatory_change',
+        changeKind: 'applicability_scope',
+        actionMode: 'review_only',
+        summary: 'IRS issued transitional relief guidance.',
+        sourceExcerpt: 'grandfathering protection and transitional relief',
+        jurisdiction: 'FED',
+        counties: [],
+        forms: [],
+        entityTypes: [],
+        originalDueDate: null,
+        newDueDate: null,
+        effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
+        confidence: 0.84,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.extractPulse({
+      sourceId: 'fed.irs_newswire',
+      title: 'IRS Newswire',
+      officialSourceUrl: 'https://www.irs.gov/newsroom/e-news-subscriptions',
+      rawText: 'IRS guidance provides grandfathering protection and transitional relief.',
+    })
+
+    expect(result.result?.jurisdiction).toBe('FED')
+    expect(result.refusal).toBeNull()
+  })
+
   it('rejects Pulse extract output when the excerpt is not in the source', async () => {
     callGatewayMock.mockResolvedValueOnce({
       output: {

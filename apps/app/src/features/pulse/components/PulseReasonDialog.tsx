@@ -12,13 +12,13 @@ import {
 import { Label } from '@duedatehq/ui/components/ui/label'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 
-export type PulseReasonAction = 'dismiss' | 'snooze' | 'reviewed'
+export type PulseReasonAction = 'dismiss' | 'snooze'
 
 /**
- * Single in-app modal for Pulse alert dismiss / snooze / mark-reviewed,
- * each of which the audit trail requires a typed reason for. Used by:
+ * Single in-app modal for Pulse alert dismiss / snooze flows that still
+ * capture a typed reason. Footer actions can call audited mutations directly
+ * and let the server write a default audit reason. Used by:
  *
- *  - `PulseDetailDrawer` (deep review of a single alert)
  *  - `AlertsListPage` (quick action on a row in the /rules/pulse list)
  *
  * 2026-05-24 (re-critique): the list-page surface used to call
@@ -51,7 +51,6 @@ export function PulseReasonDialog({
   const { t } = useLingui()
   const open = action !== null
   const isDismiss = action === 'dismiss'
-  const isReviewed = action === 'reviewed'
   const trimmed = reason.trim()
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -65,13 +64,7 @@ export function PulseReasonDialog({
         >
           <DialogHeader>
             <DialogTitle>
-              {isReviewed ? (
-                <Trans>Mark reviewed</Trans>
-              ) : isDismiss ? (
-                <Trans>Dismiss alert</Trans>
-              ) : (
-                <Trans>Snooze alert 24h</Trans>
-              )}
+              {isDismiss ? <Trans>Dismiss alert</Trans> : <Trans>Snooze alert 24h</Trans>}
             </DialogTitle>
             <DialogDescription>
               <Trans>
@@ -89,11 +82,9 @@ export function PulseReasonDialog({
               maxLength={500}
               disabled={pending}
               placeholder={
-                isReviewed
-                  ? t`What did you review?`
-                  : isDismiss
-                    ? t`Why is this alert not relevant?`
-                    : t`Why snooze — what unblocks it tomorrow?`
+                isDismiss
+                  ? t`Why is this alert not relevant?`
+                  : t`Why snooze — what unblocks it tomorrow?`
               }
               onChange={(event) => onChangeReason(event.target.value)}
               autoFocus
@@ -114,8 +105,6 @@ export function PulseReasonDialog({
             <Button type="submit" disabled={pending || trimmed.length === 0}>
               {pending ? (
                 <Trans>Saving…</Trans>
-              ) : isReviewed ? (
-                <Trans>Mark reviewed</Trans>
               ) : isDismiss ? (
                 <Trans>Dismiss</Trans>
               ) : (
