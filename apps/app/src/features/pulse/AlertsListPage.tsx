@@ -3,13 +3,7 @@ import { Link } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
-import {
-  AlertCircleIcon,
-  ArrowUpRightIcon,
-  CheckIcon,
-  HistoryIcon,
-  type LucideIcon,
-} from 'lucide-react'
+import { AlertCircleIcon, CheckIcon, HistoryIcon, type LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -146,12 +140,9 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
   const invalidatePulse = usePulseInvalidation()
   // 2026-05-24 (re-critique): the dismiss / snooze row-actions used
   // to grab the reason via `window.prompt()` — system-styled, no
-  // textarea, no character counter, no app context. The drawer
-  // already had a proper `PulseReasonDialog` for the same flow;
-  // extracted it to a shared component (see
-  // `./components/PulseReasonDialog.tsx`) and wired both surfaces
-  // through it so the dismiss / snooze experience is consistent
-  // whether the user is in the drawer or running through the list.
+  // textarea, no character counter, no app context. The list keeps
+  // `PulseReasonDialog` for row-level quick actions; the drawer
+  // footer uses direct audited mutations.
   const [reasonState, setReasonState] = useState<{
     action: PulseReasonAction
     alertId: string
@@ -326,12 +317,11 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
         // favor of the canonical PageHeader primitive. Title +
         // canonical chip + PulsingDot inline (preserved — it
         // carries the "live signal" semantics specific to Alerts).
-        // "View sources" / "View history" promoted from text links
-        // → outline Button shapes so the action cluster reads as
-        // actions, not soft links. Description survives via the
-        // primitive's description prop, picking up the canonical
-        // text-[13px] leading-5 instead of the hand-rolled
-        // text-md.
+        // "View history" promoted from a text link → outline Button
+        // shape so the action cluster reads as actions, not soft
+        // links. Description survives via the primitive's description
+        // prop, picking up the canonical text-[13px] leading-5
+        // instead of the hand-rolled text-md.
         <PageHeader
           title={
             <span className="inline-flex items-center gap-2">
@@ -362,15 +352,6 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                   J/K row nav (per AlertsListPage hotkeys) but `?` was
                   undiscoverable. */}
               <ShortcutHintChip className="hidden md:inline-flex" />
-              <Button
-                variant="outline"
-                size="sm"
-                render={<Link to="/rules/library" />}
-                aria-label={t`View sources`}
-              >
-                <ArrowUpRightIcon data-icon="inline-start" />
-                <Trans>View sources</Trans>
-              </Button>
               {!historyMode ? (
                 <Button
                   variant="outline"

@@ -119,13 +119,16 @@ import {
   PulseApplyInputSchema,
   PulseApplyOutputSchema,
   PulseDetailSchema,
+  PulseDismissInputSchema,
   PulseFirmAlertStatusSchema,
   PulseHandledFirmAlertStatusSchema,
   PulseListAlertsInputSchema,
   PulseListHistoryInputSchema,
+  PulseMarkReviewedInputSchema,
   PulseReviewDueDateOverlayDetailsInputSchema,
   PulseRequestReviewInputSchema,
   PulseRequestReviewOutputSchema,
+  PulseSnoozeInputSchema,
   pulseContract,
 } from './pulse'
 import {
@@ -1353,6 +1356,17 @@ describe('@duedatehq/contracts', () => {
       note: ' Please review LA County applicability. ',
     })
     expect(requestReviewInput.note).toBe('Please review LA County applicability.')
+
+    expect(PulseDismissInputSchema.parse({ alertId: alert.id })).toEqual({ alertId: alert.id })
+    expect(
+      PulseSnoozeInputSchema.parse({
+        alertId: alert.id,
+        until: '2026-04-16T18:00:00.000Z',
+      }),
+    ).toEqual({ alertId: alert.id, until: '2026-04-16T18:00:00.000Z' })
+    expect(PulseMarkReviewedInputSchema.parse({ alertId: alert.id })).toEqual({
+      alertId: alert.id,
+    })
 
     const requestReview = PulseRequestReviewOutputSchema.parse({
       notificationCount: 2,

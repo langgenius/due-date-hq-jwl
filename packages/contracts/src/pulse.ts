@@ -251,13 +251,13 @@ export type PulseApplyInput = z.infer<typeof PulseApplyInputSchema>
 export const PulseSnoozeInputSchema = z.object({
   alertId: EntityIdSchema,
   until: z.iso.datetime(),
-  reason: z.string().trim().min(1).max(500),
+  reason: z.string().trim().min(1).max(500).optional(),
 })
 export type PulseSnoozeInput = z.infer<typeof PulseSnoozeInputSchema>
 
 export const PulseDismissInputSchema = z.object({
   alertId: EntityIdSchema,
-  reason: z.string().trim().min(1).max(500),
+  reason: z.string().trim().min(1).max(500).optional(),
 })
 export type PulseDismissInput = z.infer<typeof PulseDismissInputSchema>
 

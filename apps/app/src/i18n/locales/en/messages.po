@@ -1515,11 +1515,8 @@ msgstr "Alert history"
 msgid "Alert reactivated"
 msgstr "Alert reactivated"
 
-#: src/features/pulse/PulseDetailDrawer.tsx
-msgid "Alert snoozed"
-msgstr "Alert snoozed"
-
 #: src/features/pulse/AlertsListPage.tsx
+#: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Alert snoozed for 24h"
 msgstr "Alert snoozed for 24h"
 
@@ -6237,7 +6234,6 @@ msgstr "Mark read"
 msgid "Mark return submitted to authority"
 msgstr "Mark return submitted to authority"
 
-#: src/features/pulse/components/PulseReasonDialog.tsx
 #: src/features/pulse/PulseDetailDrawer.tsx
 msgid "Mark reviewed"
 msgstr "Mark reviewed"
@@ -8147,10 +8143,6 @@ msgstr "Past due"
 #: src/features/migration/Step1Intake.tsx
 msgid "Paste a list instead →"
 msgstr "Paste a list instead →"
-
-#: src/features/migration/Step1Intake.tsx
-msgid "Paste client data"
-msgstr "Paste client data"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Paste client rows"
@@ -10883,7 +10875,6 @@ msgstr "Source-defined rules are skipped from bulk accept. Generate and review t
 #: src/features/dashboard/actions-list.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.library.tsx
-#: src/routes/rules.pulse.tsx
 #: src/routes/rules.sources.tsx
 msgid "Sources"
 msgstr "Sources"
@@ -12316,7 +12307,6 @@ msgid "View open filings for this client"
 msgstr "View open filings for this client"
 
 #: src/features/dashboard/needs-attention-section.tsx
-#: src/features/pulse/AlertsListPage.tsx
 msgid "View sources"
 msgstr "View sources"
 
@@ -12435,10 +12425,6 @@ msgstr "What changed"
 #: src/routes/billing.checkout.tsx
 msgid "What changes"
 msgstr "What changes"
-
-#: src/features/pulse/components/PulseReasonDialog.tsx
-msgid "What did you review?"
-msgstr "What did you review?"
 
 #: src/routes/billing.tsx
 msgid "What stays in DueDateHQ"

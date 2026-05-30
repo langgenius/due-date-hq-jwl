@@ -598,7 +598,7 @@ const dismiss = os.pulse.dismiss.handler(async ({ input, context }) => {
     const result = await scoped.pulse.dismiss({
       alertId: input.alertId,
       userId,
-      reason: input.reason,
+      ...(input.reason ? { reason: input.reason } : {}),
     })
     await enqueueDashboardBriefRefresh(context.env, {
       firmId: tenant.firmId,
@@ -619,7 +619,7 @@ const snooze = os.pulse.snooze.handler(async ({ input, context }) => {
       alertId: input.alertId,
       userId,
       until: new Date(input.until),
-      reason: input.reason,
+      ...(input.reason ? { reason: input.reason } : {}),
     })
     await enqueueDashboardBriefRefresh(context.env, {
       firmId: tenant.firmId,
@@ -639,7 +639,7 @@ const markReviewed = os.pulse.markReviewed.handler(async ({ input, context }) =>
     const result = await scoped.pulse.markReviewed({
       alertId: input.alertId,
       userId,
-      reason: input.reason,
+      ...(input.reason ? { reason: input.reason } : {}),
     })
     await enqueueDashboardBriefRefresh(context.env, {
       firmId: tenant.firmId,

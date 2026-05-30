@@ -702,7 +702,6 @@ describe('makePulseRepo', () => {
     const result = await repo.markReviewed({
       alertId: 'alert-1',
       userId: 'user-1',
-      reason: 'Reviewed source instruction change.',
       now: new Date('2026-04-15T19:00:00.000Z'),
     })
 
@@ -716,6 +715,60 @@ describe('makePulseRepo', () => {
     expect(
       batchStatements.some((statement) =>
         statementHasValue(statement, { action: 'pulse.reviewed' }),
+      ),
+    ).toBe(true)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, { reason: 'Marked reviewed from Pulse detail.' }),
+      ),
+    ).toBe(true)
+  })
+
+  it('writes default audit reasons for direct dismiss and snooze actions', async () => {
+    const { db: dismissDb, batchStatements: dismissStatements } = fakeDb([
+      [ALERT],
+      [{ ...ALERT, alertStatus: 'dismissed' as const }],
+    ])
+    const dismissRepo = makePulseRepo(dismissDb, 'firm-1')
+
+    await dismissRepo.dismiss({
+      alertId: 'alert-1',
+      userId: 'user-1',
+      now: new Date('2026-04-15T19:00:00.000Z'),
+    })
+
+    expect(
+      dismissStatements.some((statement) =>
+        statementHasValue(statement, { action: 'pulse.dismiss' }),
+      ),
+    ).toBe(true)
+    expect(
+      dismissStatements.some((statement) =>
+        statementHasValue(statement, { reason: 'Dismissed from Pulse detail.' }),
+      ),
+    ).toBe(true)
+
+    const { db: snoozeDb, batchStatements: snoozeStatements } = fakeDb([
+      [ALERT],
+      [{ ...ALERT, alertStatus: 'snoozed' as const }],
+    ])
+    const snoozeRepo = makePulseRepo(snoozeDb, 'firm-1')
+
+    await snoozeRepo.snooze({
+      alertId: 'alert-1',
+      userId: 'user-1',
+      until: new Date('2026-04-16T19:00:00.000Z'),
+      now: new Date('2026-04-15T19:00:00.000Z'),
+    })
+
+    expect(
+      snoozeStatements.some((statement) =>
+        statementHasValue(statement, { action: 'pulse.snooze' }),
+      ),
+    ).toBe(true)
+    expect(
+      snoozeStatements.some((statement) =>
+        statementHasValue(statement, { reason: 'Snoozed for 24 hours from Pulse detail.' }),
       ),
     ).toBe(true)
   })
