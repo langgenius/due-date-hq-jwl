@@ -6,13 +6,13 @@ import { bootstrapI18n } from '@/i18n/bootstrap'
 import { activateLocale } from '@/i18n/i18n'
 import { AppI18nProvider } from '@/i18n/provider'
 
+import { DrawerActions } from './AlertDetailDrawer'
 import {
-  DrawerActions,
   canApplyAlertDeadline,
   canRequestAlertReview,
   hasMissingDeadlineDetails,
   isNoActionReviewAlert,
-} from './AlertDetailDrawer'
+} from './lib/alert-permissions'
 
 declare global {
   // eslint-disable-next-line no-var
