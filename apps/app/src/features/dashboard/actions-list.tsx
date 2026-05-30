@@ -403,7 +403,13 @@ function ActionRow({
             // tier as the row header above. text-sm (14px) keeps
             // the panel readable while making it visually
             // subordinate to the row that opened it.
-            className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 pt-3 pb-4 text-left text-sm transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            // 2026-05-29 (Yuqi /today round 3 — "top bottom margin of
+            // the collapsed and expanded row should be the same"):
+            // panel padding swapped pt-3 pb-4 → py-3. The 16px bottom
+            // made the expanded block read taller below its content
+            // than above; symmetric 12px frames the dl cleanly so the
+            // row+panel together feel like one balanced block.
+            className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 py-3 text-left text-sm transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             {/* 2026-05-25 (Yuqi Today intro): each row of the dl
                 pinned to the same min-height so the dt/dd gaps
@@ -440,11 +446,36 @@ function ActionRow({
                   the date cluster in a soft inset chip
                   (`bg-background-default rounded-md px-2`) so the
                   eye lands on it ahead of the other meta rows. */}
+              {/* 2026-05-29 (Yuqi /today round 3 — #8): each dl item is
+                  a real link to the surface that holds the full
+                  detail. stopPropagation on each so clicking a sub-link
+                  doesn't ALSO fire the parent row's "open obligation
+                  drawer" click. Sources is the lone exception — it
+                  still calls onOpenObligation (the obligation drawer
+                  carries the evidence list) rather than navigating
+                  away.
+
+                  2026-05-29 (Yuqi /today round 4 — "the hover state for
+                  each of the link should try to be same"): unified the
+                  hover treatment across all 4 sub-affordances. All
+                  four share the canonical
+                    `rounded-sm outline-none underline-offset-2
+                     hover:underline
+                     focus-visible:ring-2 ring-state-accent-active-alt`
+                  pattern. The Deadlines chip drops its earlier
+                  chip-style `hover:bg-state-base-hover` so it matches
+                  the inline-text affordances — its bordered surface
+                  comes from the static chip frame, hover signals
+                  clickability via the underline alone. */}
               <dt className="text-text-tertiary">
                 <Trans>Deadlines</Trans>
               </dt>
               <dd className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-text-primary tabular-nums">
-                <span className="inline-flex items-center gap-2 rounded-md border border-divider-subtle bg-background-default px-2 py-0.5">
+                <Link
+                  to="/deadlines/calendar"
+                  onClick={(event) => event.stopPropagation()}
+                  className="inline-flex items-center gap-2 rounded-sm border border-divider-subtle bg-background-default px-2 py-0.5 outline-none underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                >
                   <span>
                     <Trans>
                       Internal{' '}
@@ -460,7 +491,7 @@ function ActionRow({
                       <span className="font-medium">{formatDatePretty(row.currentDueDate)}</span>
                     </Trans>
                   </span>
-                </span>
+                </Link>
               </dd>
 
               <dt className="text-text-tertiary">
@@ -469,36 +500,56 @@ function ActionRow({
               <dd>
                 {/* 2026-05-25 (status-pill audit #1): point at the
                     canonical `ObligationStatusReadBadge` instead of
-                    inlining `badgeVariants` + `BadgeStatusDot`. The
-                    canonical badge is icon-led (no dot), matching
-                    finding 2.3 in the status-pill audit. One
-                    component swap; semantics + label text
-                    unchanged. */}
-                <ObligationStatusReadBadge status={row.status} className="h-6 text-xs" />
+                    inlining `badgeVariants` + `BadgeStatusDot`. */}
+                <Link
+                  to={`/deadlines?status=${encodeURIComponent(row.status)}`}
+                  onClick={(event) => event.stopPropagation()}
+                  className="inline-flex rounded-sm outline-none underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  aria-label={t`See all ${row.status} deadlines`}
+                >
+                  <ObligationStatusReadBadge status={row.status} className="h-6 text-xs" />
+                </Link>
               </dd>
 
               <dt className="text-text-tertiary">
                 <Trans>Form</Trans>
               </dt>
               <dd className="text-text-primary">
-                <TaxCodeLabel code={row.taxType} asChild />
+                <Link
+                  to={`/rules/library?q=${encodeURIComponent(row.taxType)}`}
+                  onClick={(event) => event.stopPropagation()}
+                  className="rounded-sm outline-none underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  aria-label={t`Search Rule Library for ${row.taxType}`}
+                >
+                  <TaxCodeLabel code={row.taxType} asChild />
+                </Link>
               </dd>
 
               <dt className="text-text-tertiary">
                 <Trans>Sources</Trans>
               </dt>
               <dd className="text-text-primary tabular-nums">
-                {row.evidenceCount > 0 ? (
-                  <Plural
-                    value={row.evidenceCount}
-                    one="# source attached"
-                    other="# sources attached"
-                  />
-                ) : (
-                  <span className="text-text-warning">
-                    <Trans>None attached</Trans>
-                  </span>
-                )}
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onOpenObligation()
+                  }}
+                  className="rounded-sm text-left outline-none underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  aria-label={t`Open evidence for ${row.clientName}`}
+                >
+                  {row.evidenceCount > 0 ? (
+                    <Plural
+                      value={row.evidenceCount}
+                      one="# source attached"
+                      other="# sources attached"
+                    />
+                  ) : (
+                    <span className="text-text-warning">
+                      <Trans>None attached</Trans>
+                    </span>
+                  )}
+                </button>
               </dd>
 
               {row.penaltyFormulaLabel ? (

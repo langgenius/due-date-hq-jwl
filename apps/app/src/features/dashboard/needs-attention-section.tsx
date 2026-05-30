@@ -119,10 +119,17 @@ function NeedsAttentionSection() {
       // 2026-05-29 (Yuqi /today follow-up): inter-section gap tightened
       // gap-4 → gap-3 to match Actions this week's new internal
       // rhythm. Universal "gap smaller — apply to everywhere" pass.
-      className={cn(
-        'flex flex-col gap-3 rounded-xl',
-        totalAlertCount > 0 && 'bg-state-destructive-hover p-3',
-      )}
+      //
+      // 2026-05-29 (Yuqi /today round 4): the destructive bg-tint +
+      // p-3 now ALWAYS render, regardless of alert count. Empty state
+      // used to drop the bg entirely, which made the section read as
+      // "no section, just a heading" instead of "the alerts zone is
+      // calm right now." Keeping the frame consistent across both
+      // states gives Today a stable left-column rhythm — the
+      // alerts-tint anchors the section even when nothing's wrong,
+      // and the StatusBanner inside still uses success tone so
+      // urgency is signalled by CONTENT, not chrome.
+      className="flex flex-col gap-3 rounded-xl bg-state-destructive-hover p-3"
     >
       {/* 2026-05-27 (Yuqi feedback: "去掉view all alerts. 点击+2 more
           就是去viewall"): the trailing "View all alerts" link was
@@ -131,13 +138,13 @@ function NeedsAttentionSection() {
           remaining child, the flex justify-between scaffolding is
           unnecessary — the h2 sits alone on its row.
 
-          2026-05-29 (Yuqi /today follow-up — "follow the gap"): added
-          `px-3` on empty-state Alerts so the h2 left edge aligns with
-          Actions this week's h2 (which already had px-3). In the
-          alerts-present case the outer `p-3` on the section already
-          provides the same indent, so we only apply the inset
-          padding here when there's no outer panel padding. */}
-      <div className={cn('flex items-center gap-3', totalAlertCount === 0 && 'px-3')}>
+          2026-05-29 (Yuqi /today round 4 — "no left padding when it is
+          encapsulated inside another frame"): h2 row drops its
+          internal `px-3` since the outer section now always carries
+          `p-3` (see comment above). Double-padding was making the
+          heading sit visually inset from the bg-tint frame; flush
+          alignment with the panel edge is cleaner. */}
+      <div className="flex items-center gap-3">
         {/* 2026-05-25 (Yuqi Today #1 — second pass): h2 stepped
             down text-xl → text-lg, matching the parallel change
             on Actions-this-week's h2. The page was reading as
@@ -276,25 +283,27 @@ function AlertsEmptyState({
 
   // 2026-05-28 (Yuqi /today polish — "信息重复了"): when the section
   // is healthy AND the supporting line carries no substantive issue
-  // (no paused sources / no loading / sources monitored > 0), the
-  // dashed StatusBanner body just restates what the h2 + green
-  // "Monitoring N jurisdictions" chip already said — "we're watching,
-  // nothing to act on." Drop the banner in that case; the header row
-  // is the full empty state. The banner only renders when it carries
-  // non-redundant signal (paused / loading / zero-sources), where the
-  // chip alone wouldn't tell the story.
-  if (!supportingLine) {
-    return null
-  }
+  // we used to drop the banner entirely. That left the Alerts section
+  // with only the h2 row — no body, no gap, the eye saw a stacked
+  // pair of headings instead of a section with content.
+  //
+  // 2026-05-29 (Yuqi /today round 3 — "no gap here? follow the gap"):
+  // restored a single-line affirmation in the healthy empty state so
+  // the section consistently renders body content (h2 + body), giving
+  // the section the same "header → gap-3 → body" rhythm as Actions
+  // this week. The supporting line is folded inline only when it
+  // carries non-redundant signal (paused / loading / zero-sources).
   return (
     <StatusBanner indicator={<CircleCheckIcon className="size-4 text-text-success" aria-hidden />}>
       <span className="flex flex-col gap-1">
         <span className="text-sm text-text-secondary">
           <Trans>No active alerts — nothing needs your review right now.</Trans>
         </span>
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
-          {supportingLine}
-        </span>
+        {supportingLine ? (
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
+            {supportingLine}
+          </span>
+        ) : null}
       </span>
     </StatusBanner>
   )
