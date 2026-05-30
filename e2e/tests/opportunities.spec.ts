@@ -56,7 +56,7 @@ test.describe('seeded opportunities', () => {
       .click()
 
     await expect(authenticatedPage.getByRole('heading', { name: 'Arbor & Vale LLC' })).toBeVisible()
-    await authenticatedPage.getByRole('tab', { name: 'Opportunities' }).click()
+    await authenticatedPage.getByRole('tab', { name: 'Suggested forms' }).click()
     const card = authenticatedPage
       .locator('section')
       .filter({

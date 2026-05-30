@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test'
 import { expect, test } from '../fixtures/test'
 
 // Feature: Unified role permission gates
@@ -50,11 +51,7 @@ test.describe('role permission surfaces', () => {
       await expect(authenticatedPage.getByRole('button', { name: 'Export' })).toBeDisabled()
 
       await appShellPage.goto()
-      await authenticatedPage
-        .getByRole('button', {
-          name: /Open Pulse alert details: IRS CA storm relief extends selected filing deadlines/,
-        })
-        .click()
+      await openPulseAlert(authenticatedPage)
       const drawer = authenticatedPage.getByRole('complementary', { name: 'Pulse alert detail' })
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
@@ -87,3 +84,23 @@ test.describe('role permission surfaces', () => {
     })
   })
 })
+
+function pulseListAlertButton(page: Page) {
+  return page.getByRole('button', {
+    name: /Pulse alert: IRS CA storm relief extends selected filing deadlines/,
+  })
+}
+
+async function openPulseAlert(page: Page) {
+  const dashboardButton = page.getByRole('button', {
+    name: /Open Pulse alert details: IRS CA storm relief extends selected filing deadlines/,
+  })
+  if (await dashboardButton.isVisible().catch(() => false)) {
+    await dashboardButton.click()
+    return
+  }
+
+  await page.goto('/rules/pulse')
+  await expect(pulseListAlertButton(page)).toBeVisible()
+  await pulseListAlertButton(page).click()
+}

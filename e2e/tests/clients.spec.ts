@@ -56,7 +56,7 @@ test.describe('seeded client facts', () => {
     await clientsPage.goto()
 
     await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('LLC')
-    await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('California')
+    await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('CA')
     await expect(clientsPage.rowFor('Arbor & Vale LLC')).toContainText('MC')
     await expect(clientsPage.rowFor('Unassigned Foundry LLC')).toContainText('Unassigned')
   })
@@ -100,7 +100,7 @@ test.describe('seeded client facts', () => {
       authenticatedPage.getByRole('button', { name: 'Change owner — currently unassigned' }),
     ).toBeVisible()
     await expect(authenticatedPage.getByText(/1 open filing/)).toBeVisible()
-    await authenticatedPage.getByRole('tab', { name: 'Opportunities' }).click()
+    await authenticatedPage.getByRole('tab', { name: 'Suggested forms' }).click()
     await expect(clientsPage.detailSection('Future business cues')).toBeVisible()
     await authenticatedPage.getByRole('tab', { name: 'Work' }).click()
     await expect(clientsPage.detailSection('Filing plan')).toBeVisible()

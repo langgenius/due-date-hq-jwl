@@ -350,10 +350,10 @@ async function pasteRows(rows: string) {
   // 2026-05-27 (bold-IA Step 1 redesign): the paste textarea is opt-in —
   // Step 1 shows a file dropzone by default. Click "Paste a list instead →"
   // to reveal the textarea before driving it.
-  if (!document.querySelector('textarea[aria-label="Paste client data"]')) {
+  if (!document.querySelector('textarea[aria-label="Paste client rows"]')) {
     await clickButton('Paste a list instead')
   }
-  const textarea = document.querySelector('textarea[aria-label="Paste client data"]')
+  const textarea = document.querySelector('textarea[aria-label="Paste client rows"]')
   if (!(textarea instanceof HTMLTextAreaElement)) {
     throw new Error('Expected paste textarea to render.')
   }
