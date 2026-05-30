@@ -197,7 +197,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
 
   // 2026-05-25 (Yuqi /alerts #9 — drawer → page panel): when
   // an alert is open, the page splits into a left column (header,
-  // filters, alert list) + a right column (the inline PulseDetail
+  // filters, alert list) + a right column (the inline alert-detail
   // panel). When no alert is open the page renders as a single
   // column. Mirrors the /deadlines + obligation-drawer pattern. The
   // panel is only rendered in `historyMode=false || true` — both
@@ -284,7 +284,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
           actions={
             <>
               {/* 2026-05-27 (Step 6 UX flows audit H1.4): shortcut
-                  discoverability chip for /alerts toolbar. Pulse has
+                  discoverability chip for /alerts toolbar. Alerts have
                   J/K row nav (per AlertsListPage hotkeys) but `?` was
                   undiscoverable. */}
               <ShortcutHintChip className="hidden md:inline-flex" />
@@ -316,7 +316,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
             {/* 2026-05-27 (σ cross-route audit D5): raw underline button
                 → canonical `<Button variant="link">`. Dashboard /
                 clients / obligations Retry buttons all use this exact
-                shape; pulse was the only surface with a hand-rolled
+                shape; Alerts was the only surface with a hand-rolled
                 underline (no focus-visible ring, no accent color). */}
             <Button
               type="button"
@@ -976,7 +976,7 @@ function impactFilterLabel(filter: AlertImpactFilter): React.ReactNode {
 }
 
 // 2026-05-26 (Yuqi /alerts thirteenth pass): each non-`all`
-// filter renders a leading lucide icon — the canonical pulse-status
+// filter renders a leading lucide icon — the canonical alert-status
 // vocabulary (CircleCheckBig / AlarmClock / Undo2 / FileCheck) is
 // duplicated here so the dropdown rows read as "[icon] Label" and
 // the active trigger label gets the icon too. Filter values map to
@@ -1093,8 +1093,8 @@ function SkeletonRow({
 // "All clear. We're watching official federal and state sources
 // (101 sources); new matches will appear here." → "All clear. New
 // matches will appear here." The "N sources" count is now
-// promoted into the page header as a status chip (see
-// rules.pulse.tsx titleNode), so repeating it here was redundant.
+// promoted into the page header as a status chip, so repeating it here
+// was redundant.
 // The `sources` prop is retained on the signature for API
 // stability but no longer reads its count.
 //

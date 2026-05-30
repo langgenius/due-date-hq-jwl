@@ -98,7 +98,7 @@ packages/
   core        Pure domain logic for dates, rules, imports, risk, priority
   db          Drizzle schema, migrations, D1 repositories
   i18n        Shared locale helpers
-  ingest      Pulse source adapters and fetch/parse utilities
+  ingest      Alert source adapters and fetch/parse utilities
   ports       Boundary interfaces
   ui          Design tokens and reusable UI primitives
 ```

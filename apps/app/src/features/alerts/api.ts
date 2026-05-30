@@ -12,9 +12,9 @@ function normalizeAlertsListLimit(limit: number | undefined): number | undefined
   return Math.min(Math.max(Math.trunc(limit), 1), ALERT_LIST_ALERTS_MAX_LIMIT)
 }
 
-// All Pulse-related cache invalidation flows through this hook so every
+// All alert-related cache invalidation flows through this hook so every
 // mutation (apply, dismiss, revert) refreshes the same surfaces:
-//   - pulse.* queries (banner / detail / history)
+//   - pulse.* engine queries (banner / detail / history)
 //   - dashboard.load (open obligations + risk summary)
 //   - obligations.list (the underlying obligations may have moved due dates)
 //   - audit.* (newly written audit events)

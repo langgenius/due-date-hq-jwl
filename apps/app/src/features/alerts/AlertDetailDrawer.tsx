@@ -215,7 +215,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
   const open = alertId !== null
   // 2026-05-26 (Yuqi sidebar mental-model pass): same pattern as the
   // /deadlines obligation drawer (see routes/obligations.tsx). When the
-  // pulse alert drawer is open it needs horizontal room — auto-collapse
+  // alert drawer is open it needs horizontal room — auto-collapse
   // the sidebar while open, restore on close. The user's persistent
   // collapse preference (localStorage) is untouched; closing the drawer
   // restores whatever they last chose. If a consumer renders this
@@ -249,7 +249,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
   const [resetKey, setResetKey] = useState<string | null>(null)
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
   const [reviewNote, setReviewNote] = useState('')
-  // 2026-05-26 (F-041 — Pulse deadline-shift verification gate):
+  // 2026-05-26 (F-041 — alert deadline-shift verification gate):
   // Apply on a `due_date_overlay` alert opens a confirmation dialog
   // that surfaces the AI-extracted dates, source excerpt, and a
   // direct link to the official source. The CPA must tick "I have
@@ -514,7 +514,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
     requestReviewMutation.isPending ||
     revertMutation.isPending
 
-  // F-041 — Pulse deadline-shift Apply now opens a verification gate
+  // F-041 — alert deadline-shift Apply now opens a verification gate
   // BEFORE firing the mutation. The CPA must read the official
   // source excerpt + click "verified" to acknowledge they checked
   // the new date against the authority. AI hallucinating a date is
@@ -775,7 +775,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
               {i18n._(alertErrorDescriptor(detailQuery.error))}{' '}
               {/* 2026-05-27 (σ cross-route audit D8): raw underline
                   button → canonical `<Button variant="link">`. Pairs
-                  with D5 in AlertsListPage — both pulse retry sites
+                  with D5 in AlertsListPage — both alert retry sites
                   now match dashboard/clients/obligations. */}
               <Button
                 type="button"
@@ -831,9 +831,9 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
               <section className="flex flex-col gap-3">
                 <header className="flex items-baseline justify-between">
                   {/* 2026-05-25 (info-icon audit): unwrapped —
-                      re-defining "Pulse" inside a alert drawer
+                      re-defining "Alerts" inside an alert drawer
                       is noise. The list page (AlertsListPage)
-                      keeps the canonical pulse explainer. */}
+                      keeps the canonical alert explainer. */}
                   {/* 2026-05-26 (Yuqi drawer canonical — body section
                       heading): dropped `text-base font-semibold` →
                       `text-sm font-semibold`. Per the drawer canonical,
@@ -1528,7 +1528,7 @@ function ManagerReviewPanel({
       </header>
       <p className="text-sm text-text-secondary">
         <Trans>
-          Save the reviewed client set before applying when a Pulse has low confidence, review
+          Save the reviewed client set before applying when an alert has low confidence, review
           flags, or a preparer escalation.
         </Trans>
       </p>
@@ -1587,7 +1587,7 @@ function AlertReviewRequestDialog({
             </DialogTitle>
             <DialogDescription>
               <Trans>
-                Ask an owner or manager to review and apply this Pulse. This does not change any
+                Ask an owner or manager to review and apply this alert. This does not change any
                 deadlines.
               </Trans>
             </DialogDescription>
@@ -1628,7 +1628,7 @@ function AlertReviewRequestDialog({
 }
 
 /**
- * 2026-05-26 (F-041 — Pulse deadline-shift verification gate).
+ * 2026-05-26 (F-041 — alert deadline-shift verification gate).
  *
  * Confirmation dialog that intercepts the Apply mutation on a
  * `due_date_overlay` alert. Surfaces the three artifacts the CPA
@@ -1875,7 +1875,7 @@ function DetailHeaderSkeleton() {
 // files) so the panel header pill reads the same as the card
 // pill. If this label diverges across all three sites in the
 // future, promote to a shared util at
-// `apps/app/src/features/pulse/components/pulse-change-kind.ts`.
+// `apps/app/src/features/alerts/components/alert-change-kind.ts`.
 function drawerChangeKindLabel(kind: PulseDetail['alert']['changeKind']) {
   switch (kind) {
     case 'deadline_shift':

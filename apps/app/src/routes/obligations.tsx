@@ -620,7 +620,7 @@ const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
 // from 0 → 60% (matching the alerts panel in
 // AlertsListPage.tsx L838-867), the inner surface rises from
 // y:'100%' → 0 on enter, dissolves opacity → 0 on exit. Same
-// ease-apple curve, same durations as the Pulse drawer so the
+// ease-apple curve, same durations as the alert drawer so the
 // two right-rail panels read as siblings.
 const DETAIL_SWIFT_EASE = [0.32, 0.72, 0, 1] as const
 // 2026-05-27 (Yuqi feedback "remove width:60%" + "responsive也都
@@ -3313,7 +3313,7 @@ export function ObligationQueueRoute() {
                   to DropdownMenu puts Sort-by in the same interaction
                   family as the Columns dropdown right next to it.
                   Trigger chrome unchanged (single "Sort by X" label,
-                  matches Pulse). */}
+                  matches Alerts). */}
               <DropdownMenu>
                 {/* 2026-05-26 (Yuqi feedback — "change the icon for
                     sort by to lucide arrow-down-up"): the FilterTrigger
@@ -4250,7 +4250,7 @@ export function ObligationQueueRoute() {
             // The INNER motion.div is the PAPER-RISE surface.
             // On initial open it slides up from y:'100%' → 0
             // (paper extrudes from below the slot), matching
-            // Pulse's "paper printing from the desk" motion.
+            // the alert drawer's "paper printing from the desk" motion.
             // On ROW SWITCH (activeDetailId changes), the inner
             // `<AnimatePresence mode="wait">` swaps the content
             // with a quick fade so the user gets feedback that
@@ -6005,7 +6005,7 @@ export function ObligationQueueDetailDrawer({
           meta line — about 80-100px of content. py-10 (40+40)
           added 80px of dead chrome around it. py-6 (24+24) gives
           enough breathing room without the panel reading as half-
-          empty before the body even starts. Pulse drawer keeps
+          empty before the body even starts. Alert drawer keeps
           py-10 because its header has a state kicker + bigger h1
           + chip row + description — more content earning more
           vertical space. */}
@@ -6282,7 +6282,7 @@ export function ObligationQueueDetailDrawer({
           // so the panel reads as one continuous paper-document
           // surface edge-to-edge. The earlier inset-followups
           // tightening (px-8 pt-0) was reverted for cross-drawer
-          // consistency; the body's pt-10 buffer mirrors Pulse's
+          // consistency; the body's pt-10 buffer mirrors the alert drawer's
           // header → body breathing room.
           // 2026-05-27 (Yuqi "remove padding-top"): pt-10 dropped.
           'flex flex-col gap-4 px-12 pb-12',
@@ -7742,7 +7742,7 @@ export function ObligationQueueDetailDrawer({
       />
       {row ? (
         /* 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
-           footer chrome reinstated to match the Pulse drawer's
+           footer chrome reinstated to match the alert drawer's
            sticky action bar (AlertDetailDrawer.tsx L955):
              • `border-t-2 border-divider-regular` — committed
                decision surface separator (vs. relying on body's
@@ -7750,7 +7750,7 @@ export function ObligationQueueDetailDrawer({
                drawers).
              • `px-12` — match header/body left margin.
            The pt-4 pb-6 vertical rhythm and `min-h-16` stay —
-           those already mirror Pulse. */
+           those already mirror the alert drawer. */
         <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t-2 border-divider-regular bg-background-default px-12 pt-4 pb-6">
           {/* 2026-05-26 (Yuqi feedback #7): "Last updated" stacked
               vertically — label on line 1, timestamp on line 2.

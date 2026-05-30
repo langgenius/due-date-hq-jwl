@@ -73,7 +73,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           items: [
             {
               title: 'Monday triage',
-              body: 'Penalty exposure, days remaining, evidence state, and Pulse changes are meant to fit into a short weekly review.',
+              body: 'Penalty exposure, days remaining, evidence state, and alerts are meant to fit into a short weekly review.',
             },
             {
               title: 'Migration-first setup',
@@ -135,7 +135,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           items: [
             {
               title: 'Source evidence',
-              body: 'Rules and Pulse signals preserve source URL, excerpt, verification timestamp, and review status.',
+              body: 'Rules and alerts preserve source URL, excerpt, verification timestamp, and review status.',
             },
             {
               title: 'Human approval',
@@ -229,7 +229,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
         eyebrow: 'TERMS',
         title: 'DueDateHQ is deadline operations software for professional teams.',
         description:
-          'The product helps practices organize source-backed deadline work, evidence review, Pulse monitoring, migration, and audit-ready operational history.',
+          'The product helps practices organize source-backed deadline work, evidence review, Alerts monitoring, migration, and audit-ready operational history.',
         note: 'This page is a public summary. Contractual terms are handled through the DueDateHQ legal channel.',
       },
       sections: [
@@ -259,7 +259,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           items: [
             {
               title: 'Candidate signals',
-              body: 'Pulse and source updates start as review work until a firm decides what to do.',
+              body: 'Alerts and source updates start as review work until a firm decides what to do.',
             },
             {
               title: 'Migration outputs',
@@ -309,7 +309,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
             },
             {
               title: 'Source monitoring',
-              body: 'Pulse source monitoring and email/queue workflows are operational surfaces distinct from public SEO pages.',
+              body: 'Alert source monitoring and email/queue workflows are operational surfaces distinct from public SEO pages.',
             },
           ],
         },
@@ -324,7 +324,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
             },
             {
               title: 'Data operations',
-              body: 'Use support for migration, Pulse, evidence, or deadline workflow issues.',
+              body: 'Use support for migration, Alerts, evidence, or deadline workflow issues.',
             },
             {
               title: 'Public site',
@@ -384,7 +384,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           items: [
             {
               title: '周一分诊',
-              body: '罚款敞口、剩余天数、证据状态和 Pulse 变化应能进入短时间周会复核。',
+              body: '罚款敞口、剩余天数、证据状态和提醒应能进入短时间周会复核。',
             },
             {
               title: '迁移优先',
@@ -446,7 +446,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           items: [
             {
               title: '来源证据',
-              body: '规则和 Pulse 信号保留 source URL、摘录、验证时间戳和复核状态。',
+              body: '规则和提醒保留 source URL、摘录、验证时间戳和复核状态。',
             },
             {
               title: '人工批准',
@@ -533,14 +533,14 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       meta: {
         title: 'DueDateHQ 条款 — 公开条款摘要',
         description:
-          'DueDateHQ 公开条款摘要说明截止日运营软件的产品边界：产品支持来源复核、迁移、Pulse 和审计历史，但不替事务所做申报或专业判断。',
+          'DueDateHQ 公开条款摘要说明截止日运营软件的产品边界：产品支持来源复核、迁移、提醒和审计历史，但不替事务所做申报或专业判断。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
         eyebrow: '条款',
         title: 'DueDateHQ 是面向专业团队的截止日运营软件。',
         description:
-          '产品帮助事务所组织带来源的截止日工作、证据复核、Pulse 监控、迁移和可审计运营历史。',
+          '产品帮助事务所组织带来源的截止日工作、证据复核、提醒监控、迁移和可审计运营历史。',
         note: '本页是公开摘要。合同条款通过 DueDateHQ legal 渠道处理。',
       },
       sections: [
@@ -570,7 +570,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
           items: [
             {
               title: '候选信号',
-              body: 'Pulse 和来源更新在事务所决定处理方式前都是复核工作。',
+              body: '提醒和来源更新在事务所决定处理方式前都是复核工作。',
             },
             {
               title: '迁移输出',
@@ -595,7 +595,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
       meta: {
         title: 'DueDateHQ 状态 — 公开服务状态',
         description:
-          'DueDateHQ 公开服务状态摘要，说明 marketing 公开站、认证 app 工作台、Pulse 来源监控和数据运营工作流如何作为不同 surface 跟踪。',
+          'DueDateHQ 公开服务状态摘要，说明 marketing 公开站、认证 app 工作台、提醒来源监控和数据运营工作流如何作为不同 surface 跟踪。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
@@ -621,7 +621,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
             },
             {
               title: '来源监控',
-              body: 'Pulse 来源监控和邮件/队列工作流是不同于公开 SEO 页面的一类运营 surface。',
+              body: '提醒来源监控和邮件/队列工作流是不同于公开 SEO 页面的一类运营 surface。',
             },
           ],
         },
@@ -636,7 +636,7 @@ export const trustPages: Record<Locale, TrustPageCopy[]> = {
             },
             {
               title: '数据运营',
-              body: '迁移、Pulse、证据或截止日工作流问题走 support。',
+              body: '迁移、提醒、证据或截止日工作流问题走 support。',
             },
             {
               title: '公开站',

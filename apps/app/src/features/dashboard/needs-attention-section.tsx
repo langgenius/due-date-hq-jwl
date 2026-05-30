@@ -21,7 +21,7 @@ const VISIBLE_ALERTS = 2
 const NATIONAL_MONITORING_JURISDICTION_COUNT = 52
 
 // 2026-05-24 (critique P0): aligned with the sidebar's
-// `SIDEBAR_PULSE_LIMIT` so this page and the sidebar Alerts badge
+// `TODAY_ALERTS_LIMIT` so this page and the sidebar Alerts badge
 // share a single React Query cache entry. Previously this section
 // fetched 5 and the sidebar fetched the unified-inbox count from a
 // different endpoint — three surfaces, three numbers.
@@ -63,7 +63,7 @@ function NeedsAttentionSection() {
     // `rounded-2xl` (16px). On a section this large (full content
     // width × ~140px tall) the smaller radius read as a button
     // frame, not a card. 16px reads as a content surface — the same
-    // family as the Pulse drawer's outer corners and the dashboard's
+    // family as the alert drawer's outer corners and the dashboard's
     // own NeedsAttentionCard tiles.
     // 2026-05-25 (GitHub-density pass): rounded-2xl → rounded-xl,
     // p-4 → p-3, inner gap-3 → gap-2.5. Reads as one tighter

@@ -59,7 +59,7 @@ export interface HeroSurfaceCopy {
     text: string
     citation: string
   }
-  pulse: {
+  alert: {
     tag: string
     text: string
     source: string
@@ -184,7 +184,7 @@ export interface WorkflowDashboardCopy {
     exposure: string
     evidence: string
   }
-  pulse: { tag: string; text: string; cta: string }
+  alert: { tag: string; text: string; cta: string }
   rows: WorkflowDashboardRow[]
 }
 

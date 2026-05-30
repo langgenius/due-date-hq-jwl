@@ -646,7 +646,7 @@ function AiDraftReviewPanel({
             {/* 2026-05-26 (Step 9 AI Visibility Audit F-013): qualitative
                 tier (Low/Medium/High) renders alongside the raw
                 percentage so a CPA reading the draft can match against
-                the same Low/Medium/High vocabulary used in Pulse,
+                the same Low/Medium/High vocabulary used in Alerts,
                 instead of mentally translating "72%" into the canonical
                 ladder. */}
             <span className="font-mono text-text-secondary">

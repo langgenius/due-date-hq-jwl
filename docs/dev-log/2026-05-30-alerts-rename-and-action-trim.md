@@ -57,3 +57,19 @@ contract types and calls `orpc.pulse.*`; that is intentional.
 - Browser smoke (no backend auth): `/rules/pulse?alert=abc123` redirects to
   `/alerts?alert=abc123` (alias loader + query preservation confirmed at runtime);
   no routing console errors.
+
+## Follow-up cleanup — visible Pulse remnants
+
+After the rename, a second pass removed remaining visible Pulse vocabulary while keeping the
+engine boundary intact:
+
+- Live app copy: manager-review drawer text and temporary-rule empty-state text now say
+  `alert` instead of `Pulse`; Lingui catalogs were extracted, zh-CN translations were filled,
+  and `i18n:compile --strict` passed.
+- Current guidance and external copy: `DESIGN.md`, `docs/Design/pulse-vocabulary.md`,
+  README project summaries, marketing page copy, and `llms.txt` guidance now use Alerts /
+  alert wording.
+- Developer comments: app-layer comments that referred to the old product name were updated to
+  Alerts / alert drawer where they were describing the frontend surface. Contract types,
+  `orpc.pulse`, permission keys, DB/job naming, raw engine errors, legacy redirects, and
+  historical docs intentionally remain `pulse`.

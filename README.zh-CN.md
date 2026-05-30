@@ -78,7 +78,7 @@ packages/
   core        日期、规则、导入、风险、优先级等纯领域逻辑
   db          Drizzle schema、迁移和 D1 repository
   i18n        共享 locale helper
-  ingest      Pulse 来源 adapter 和抓取/解析工具
+  ingest      提醒来源 adapter 和抓取/解析工具
   ports       边界接口
   ui          设计 token 和可复用 UI primitives
 ```

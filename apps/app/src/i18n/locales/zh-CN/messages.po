@@ -1969,8 +1969,8 @@ msgid "As of {0} · next {windowDays} days"
 msgstr "截至 {0} · 未来 {windowDays} 天"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Ask an owner or manager to review and apply this Pulse. This does not change any deadlines."
-msgstr "请求 Owner 或 Manager 审核并应用此 Pulse。这不会更改任何截止日。"
+msgid "Ask an owner or manager to review and apply this alert. This does not change any deadlines."
+msgstr "请求 Owner 或 Manager 审核并应用此提醒。这不会更改任何截止日。"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Ask query run"
@@ -10068,8 +10068,8 @@ msgid "Save the export as EXPORT.CSV or choose your own CSV file name."
 msgstr "将导出保存为 EXPORT.CSV，或自行选择 CSV 文件名。"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Save the reviewed client set before applying when a Pulse has low confidence, review flags, or a preparer escalation."
-msgstr "当 Pulse 置信度较低、带复核标记，或由经办人升级时，请先保存已审核客户集合再应用。"
+msgid "Save the reviewed client set before applying when an alert has low confidence, review flags, or a preparer escalation."
+msgstr "当提醒置信度较低、带复核标记，或由经办人升级时，请先保存已审核客户集合再应用。"
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Save these recovery codes now"
@@ -11371,9 +11371,8 @@ msgstr "临时规则"
 
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/rules/temporary-rules-tab.tsx
-#, fuzzy
-msgid "Temporary rules appear here after {0} apply a Pulse Change to matched deadlines."
-msgstr "当业主或经理对匹配的截止事项应用 Pulse 变更后，临时规则会显示在此处。"
+msgid "Temporary rules appear here after {0} apply an alert to matched deadlines."
+msgstr "当 {0} 对匹配的截止事项应用提醒后，临时规则会显示在此处。"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "That deadline already exists for this client and tax year."

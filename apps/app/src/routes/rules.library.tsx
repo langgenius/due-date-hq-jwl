@@ -3785,7 +3785,7 @@ function RuleDetailKicker({ rule }: { rule: ObligationRule }) {
     // 2026-05-25 (Yuqi rule library fourth pass #9): jurisdiction
     // marker upgraded from the mono-text Badge to the StateBadge
     // SVG primitive used everywhere else US-states surface in the
-    // app (the GroupHeaderRow above, Alerts page, Pulse drawer,
+    // app (the GroupHeaderRow above, Alerts page, alert drawer,
     // /clients States column). One visual grammar for "this is a
     // jurisdiction" instead of two parallel ones. The 2-letter
     // code text follows the SVG so the chip remains keyboard-

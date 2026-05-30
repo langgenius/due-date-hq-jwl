@@ -485,7 +485,7 @@ export function ClientFactsWorkspace({
   onStateFilterChange,
   onOwnerFilterChange,
   // 2026-05-26 (Yuqi /clients directory pivot brief): retired
-  // `onAlertFilterChange` consumer (was driving the Pulse hits
+  // `onAlertFilterChange` consumer (was driving the alert hits
   // StatTile click). Prop still typed for caller stability; will
   // be removed end-to-end in a follow-up cleanup pass when the
   // route's `handleAlertFilterChange` retires too.
@@ -1704,7 +1704,7 @@ function ClientsSearchControl({
  *     on the actionable queue, not a filtered client list.
  *   - **Waiting on client** — clients with ≥1 `waiting_on_client`
  *     obligation (warning tone). Click -> `/deadlines?status=waiting_on_client`.
- *   - **Pulse hits** — clients matched by a recent Alert
+ *   - **Alert hits** — clients matched by a recent Alert
  *     (review tone). Click → applies the `pulse=affected` filter on
  *     the current list so the CPA can triage which of *their*
  *     clients are touched by the new source change.
@@ -1724,7 +1724,7 @@ function ClientsActionStrip({
   onFixNeedsFacts: () => void
 }) {
   // 2026-05-26 (Yuqi /clients directory pivot brief): the 3-tile
-  // StatTile strip (At risk / Waiting on client / Pulse hits) is
+  // StatTile strip (At risk / Waiting on client / Alert hits) is
   // retired. /clients is now a directory-first surface; the
   // triage signals belong on /today and /deadlines where
   // dollar-exposure context is also present. The needs-facts

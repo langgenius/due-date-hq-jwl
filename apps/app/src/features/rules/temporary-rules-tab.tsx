@@ -73,8 +73,8 @@ export function TemporaryRulesTab() {
               owner/partner/manager. Helper-driven plural noun keeps the
               gate label honest as roles change. */}
           <Trans>
-            Temporary rules appear here after {requiredRolesLabel('pulse.apply')} apply a Pulse
-            Change to matched deadlines.
+            Temporary rules appear here after {requiredRolesLabel('pulse.apply')} apply an alert to
+            matched deadlines.
           </Trans>
         </p>
       </SectionFrame>
@@ -110,7 +110,7 @@ export function TemporaryRulesTab() {
                 key={rule.id}
                 rule={rule}
                 practiceTimezone={practiceTimezone}
-                onOpenPulse={openDrawer}
+                onOpenAlert={openDrawer}
               />
             ))}
           </TableBody>
@@ -123,11 +123,11 @@ export function TemporaryRulesTab() {
 function TemporaryRuleRow({
   rule,
   practiceTimezone,
-  onOpenPulse,
+  onOpenAlert,
 }: {
   rule: TemporaryRule
   practiceTimezone: string
-  onOpenPulse: (alertId: string) => void
+  onOpenAlert: (alertId: string) => void
 }) {
   const { t } = useLingui()
   return (
@@ -182,7 +182,7 @@ function TemporaryRuleRow({
               variant="ghost"
               size="icon-sm"
               aria-label={t`Open alert detail`}
-              onClick={() => onOpenPulse(rule.alertId!)}
+              onClick={() => onOpenAlert(rule.alertId!)}
             >
               <RotateCcwIcon className="size-4" aria-hidden />
             </Button>

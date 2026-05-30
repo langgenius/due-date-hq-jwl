@@ -10,7 +10,7 @@ import { Breadcrumb, type BreadcrumbItem } from './breadcrumb'
  * The AppShell no longer renders a route header strip (see app-shell.tsx),
  * so each route owns its own page header. To keep typography, padding,
  * eyebrow tracking, and action-cluster placement in lockstep across
- * Dashboard / Obligations / Clients / Coverage / Rule library / Pulse /
+ * Dashboard / Obligations / Clients / Coverage / Rule library / Alerts /
  * Members / Settings / Calendar / Workload / Notifications / Reminders /
  * Audit, all of them route through this single component.
  *

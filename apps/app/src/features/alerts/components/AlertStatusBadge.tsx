@@ -18,7 +18,7 @@ interface AlertStatusBadgeProps {
 // 2026-05-26 (Yuqi /alerts thirteenth pass): per-status lucide
 // icon. Kept distinct from the obligation status icon set (per
 // Yuqi's earlier note "you should not use their icons") — this
-// vocabulary is pulse-specific: CircleCheckBig = the alert is open
+// vocabulary is alert-specific: CircleCheckBig = the alert is open
 // / active; Undo2 = the alert is in a terminal state that could be
 // reversed (applied / partially_applied / reverted / dismissed);
 // AlarmClock = snoozed (will return later); FileCheck = reviewed
@@ -83,7 +83,7 @@ export function AlertStatusBadge({ status }: AlertStatusBadgeProps) {
   // looked shorter than the source pill next to it.
   // 2026-05-26 (Yuqi thirteenth pass): icon added per status —
   // see ALERT_STATUS_ICON map above. Yuqi reversed the earlier
-  // "no icons" call now that we have a pulse-specific
+  // "no icons" call now that we have an alert-specific
   // vocabulary that doesn't collide with obligation status.
   return (
     <Badge variant={entry.variant} className="h-6 text-sm">

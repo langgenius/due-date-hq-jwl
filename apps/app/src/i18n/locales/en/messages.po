@@ -1940,8 +1940,8 @@ msgid "As of {0} · next {windowDays} days"
 msgstr "As of {0} · next {windowDays} days"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Ask an owner or manager to review and apply this Pulse. This does not change any deadlines."
-msgstr "Ask an owner or manager to review and apply this Pulse. This does not change any deadlines."
+msgid "Ask an owner or manager to review and apply this alert. This does not change any deadlines."
+msgstr "Ask an owner or manager to review and apply this alert. This does not change any deadlines."
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Ask query run"
@@ -9970,8 +9970,8 @@ msgid "Save the export as EXPORT.CSV or choose your own CSV file name."
 msgstr "Save the export as EXPORT.CSV or choose your own CSV file name."
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Save the reviewed client set before applying when a Pulse has low confidence, review flags, or a preparer escalation."
-msgstr "Save the reviewed client set before applying when a Pulse has low confidence, review flags, or a preparer escalation."
+msgid "Save the reviewed client set before applying when an alert has low confidence, review flags, or a preparer escalation."
+msgstr "Save the reviewed client set before applying when an alert has low confidence, review flags, or a preparer escalation."
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Save these recovery codes now"
@@ -11259,8 +11259,8 @@ msgstr "Temporary rules"
 
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/rules/temporary-rules-tab.tsx
-msgid "Temporary rules appear here after {0} apply a Pulse Change to matched deadlines."
-msgstr "Temporary rules appear here after {0} apply a Pulse Change to matched deadlines."
+msgid "Temporary rules appear here after {0} apply an alert to matched deadlines."
+msgstr "Temporary rules appear here after {0} apply an alert to matched deadlines."
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "That deadline already exists for this client and tax year."

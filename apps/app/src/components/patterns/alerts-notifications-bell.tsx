@@ -31,7 +31,7 @@ import { formatDatePretty } from '@/lib/utils'
 // Three surfaces, three roles:
 //   - Bell + popover = the Inbox (compact form)
 //   - /notifications (via the expand icon) = the Inbox (full-page form)
-//   - Dashboard "Alerts" section = daily Pulse scan
+//   - Dashboard "Alerts" section = daily source-alert scan
 //   - ⌘K palette "What's new" = power-user shortcut to the same place
 //
 // Originally translated from the BellDropdown pattern in

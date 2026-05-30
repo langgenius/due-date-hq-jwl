@@ -4,7 +4,7 @@ import { redirect, type LoaderFunctionArgs } from 'react-router'
 // into multiple destinations:
 //   - Coverage / Sources / Rule library → merged into one `/rules/library`
 //     page with section anchors
-//   - Pulse changes → its own direct entry `/alerts` (sidebar-promoted)
+//   - Alerts → their own direct entry `/alerts` (sidebar-promoted)
 //   - Temporary rules → unlisted but reachable at `/rules/temporary`
 //   - Deadline preview → unlisted but reachable at `/rules/preview`
 //

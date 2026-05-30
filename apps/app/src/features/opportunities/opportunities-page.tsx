@@ -329,7 +329,7 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
   // 2026-05-27 (step-6 ux-flow audit F3.1): Sonner toast supports an
   // `action` slot — used here so the user can undo a dismiss without
   // hunting the "Recently dismissed" disclosure at the bottom of the
-  // page. Mirrors the Pulse/Migration/Obligations undo patterns
+  // page. Mirrors the Alerts/Migration/Obligations undo patterns
   // already in the codebase.
   const restoreFromToast = useMutation(
     orpc.opportunities.restore.mutationOptions({

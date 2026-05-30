@@ -24,7 +24,7 @@ import { alertTone, alertToneLabel } from '@/features/alerts/alert-tone'
 // 2026-05-26 (Step 9 AI Visibility Audit F-019): threshold migrated
 // to the canonical `isLowAiConfidence(0.5)`. Previously this card
 // fired the LowConfidenceBadge for confidence in [0.5, 0.7) while
-// the Pulse drawer for the same alert showed nothing — same alert,
+// the alert drawer for the same alert showed nothing — same alert,
 // two different confidence stories. Now: card + drawer both
 // pick up the same 0.5 floor.
 const VISIBLE_CLIENT_NAMES = 2
@@ -70,10 +70,10 @@ function NeedsAttentionCard({
   const lowConfidence = isLowAiConfidence(alert.confidence)
   const { names, hasMore, isLoading: clientsLoading } = useUniqueAffectedClientNames(alert.id)
 
-  // 2026-05-25 (Yuqi #47): clicking this card opens the Pulse drawer
+  // 2026-05-25 (Yuqi #47): clicking this card opens the alert drawer
   // in-place on the dashboard (via `useAlertDrawer().openDrawer`) —
   // not a navigation to /alerts. This is intentional:
-  //   • Pulse review is list-driven and quick (1-3 min per alert).
+  //   • Alert review is list-driven and quick (1-3 min per alert).
   //     Keeping the user on Today lets them sweep through the 2-3
   //     cards without losing place.
   //   • Same pattern the obligation drawer + client drawer use —
@@ -110,7 +110,7 @@ function NeedsAttentionCard({
               2026-05-29 (Yuqi /today round 3): swapped Astroid → an
               "enter / open" arrow (`SquareArrowRight`). The Astroid
               AI-provenance mark was historically tied to "this is a
-              Pulse signal" but on the dashboard card the source
+              alert signal" but on the dashboard card the source
               eyebrow text already names the source — the icon was
               redundant identity chrome. The new arrow telegraphs
               the card's actual affordance ("click to drill in"),
@@ -129,7 +129,7 @@ function NeedsAttentionCard({
               <LowConfidenceBadge> primitive in
               components/primitives/low-confidence-badge.tsx so the
               same visual can replace other ad-hoc low-confidence
-              treatments across the product (Pulse drawer,
+              treatments across the product (alert drawer,
               wizard normalisation rows, etc). Same shape, same
               tone — single source of truth. */}
           {lowConfidence ? <LowConfidenceBadge /> : null}

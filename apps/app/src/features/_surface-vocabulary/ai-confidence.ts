@@ -24,7 +24,7 @@
  *    answer is good enough to render without a warning chip.
  *  - The 0.5–0.85 band is "I lean this way, but check" — Medium.
  *
- * Three tiers, two thresholds. Same model across Pulse, dashboard,
+ * Three tiers, two thresholds. Same model across Alerts, dashboard,
  * checklist generation, rule drafts. Migration + Evidence retain
  * their domain-specific ladders for now (different semantics —
  * "Confirmed by human" in Evidence is a tier above AI confidence,

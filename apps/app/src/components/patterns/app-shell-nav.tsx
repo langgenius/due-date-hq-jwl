@@ -537,9 +537,9 @@ function AddFirmDialog({
 // from `notifications.unreadCount`. That bucket covers @-mentions,
 // status changes, system events — anything that lands in the unified
 // Inbox — while the Alerts sidebar entry and the Today "Alerts" strip
-// both scope to *Pulse* (statutory-source changes). Result: three
+// both scope to alert-source changes. Result: three
 // surfaces claiming the same word counted three different things
-// (2 sidebar, 3 Today, 4 Pulse-page history).
+// (2 sidebar, 3 Today, 4 Alerts history).
 //
 // 2026-05-24 (B2): the badge now uses the dedicated `pulse.activeCount`
 // endpoint — a true `COUNT(*)` against the same WHERE clause
@@ -549,7 +549,7 @@ function AddFirmDialog({
 // has no upper bound; Today's section still uses `listAlerts(50)`
 // because it needs the row contents to render the alert cards.
 //
-// 2026-05-29 (Pulse active/history split): keep this badge scoped to
+// 2026-05-29 (Alerts active/history split): keep this badge scoped to
 // the active queue. Alert history is now CPA-handled alerts and can
 // include snoozed / applied / dismissed rows that should not inflate
 // the sidebar's needs-attention count.
@@ -586,7 +586,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
   const { t } = useLingui()
   // 2026-05-24 (critique P0): switched from notifications.unreadCount
   // (which mixed @-mentions and system notifications into the count)
-  // to useActiveAlertCount (Pulse-only). Sidebar and Today now
+  // to useActiveAlertCount (alert-source only). Sidebar and Today now
   // share one cache entry and report the same number.
   const alertCount = useActiveAlertCount()
   const alertBadge = alertCount > 0 ? String(alertCount) : undefined
@@ -628,7 +628,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
         //                   variant — the open grid reads cleaner
         //                   at sidebar scale)
         //   Alerts       → Megaphone (a literal announcement vector,
-        //                   matches the Pulse concept of "the system
+        //                   matches the alert concept of "the system
         //                   is broadcasting at you")
         //   Deadlines    → SquareChartGantt (Gantt = scheduling /
         //                   timeline view, matches the Deadlines
@@ -705,7 +705,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           // of /alerts (review what already happened on the same
           // surface), not a peer of Audit log / Settings.
           // Now lives as an "Archive" button inside the /alerts
-          // page header instead. See features/pulse/AlertsListPage.tsx.
+          // page header instead. See features/alerts/AlertsListPage.tsx.
           { href: '/audit', label: t`Audit log`, icon: ScrollTextIcon, end: false },
           { href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false },
         ],

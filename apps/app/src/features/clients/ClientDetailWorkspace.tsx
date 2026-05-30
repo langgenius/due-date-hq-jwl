@@ -1472,7 +1472,7 @@ function ClientDetailTabTrigger({
 }
 
 /**
- * Active alerts affecting this specific client. Pulse matches +
+ * Active alerts affecting this specific client. Alert matches +
  * extension-without-payment warnings live here. The old
  * `ClientAlertsBand` lumped these together with missing-facts into a
  * single warning strip — D-3 split them apart:
