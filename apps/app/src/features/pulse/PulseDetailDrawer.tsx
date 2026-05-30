@@ -47,7 +47,7 @@ import { formatDate } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
-import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
+import { getJurisdictionName } from '@/components/primitives/state-badge'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
 import { AffectedClientsTable } from './components/AffectedClientsTable'
@@ -690,8 +690,13 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                           complete jurisdiction tag in the drawer
                           header where there's more room than on the
                           card. */}
-                    <span className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-sm border border-divider-regular bg-background-default py-0.5 pl-0.5 pr-2">
-                      <StateBadge code={detail.jurisdiction} size="xs" aria-hidden />
+                    {/* 2026-05-29 (Yuqi /clients round 1 — "remove the
+                        state icon everywhere"): dropped the SVG
+                        StateBadge from the jurisdiction kicker. The
+                        bordered pill + code + jurisdiction name
+                        carries the identity on its own; the SVG was
+                        adding visual weight without adding signal. */}
+                    <span className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-sm border border-divider-regular bg-background-default px-2 py-0.5">
                       <span className="text-xs font-semibold uppercase tracking-wide text-text-primary">
                         {detail.jurisdiction}
                       </span>

@@ -82,7 +82,6 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { CountDotChip } from '@/components/primitives/count-dot-chip'
 import { SearchInput } from '@/components/primitives/search-input'
-import { StateBadge } from '@/components/primitives/state-badge'
 import {
   CandidateReviewSection,
   RuleDetailCompact,
@@ -2936,8 +2935,11 @@ function GroupHeaderRow({
               to `border-divider-deep` (14% alpha) so the border
               actually defines the chip the way Yuqi's reference image
               showed. */}
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-divider-deep bg-background-subtle px-1.5 py-0.5">
-            <StateBadge code={group.jurisdiction} size="xs" title={group.jurisdiction} />
+          {/* 2026-05-29 (Yuqi /clients round 1 — "remove the state
+              icon everywhere"): SVG StateBadge dropped from the
+              jurisdiction header pill. The bordered pill alone
+              carries the identity. */}
+          <span className="inline-flex items-center rounded-md border border-divider-deep bg-background-subtle px-1.5 py-0.5">
             <span className="text-caption-xs uppercase tracking-wider text-text-secondary">
               {group.jurisdiction}
             </span>
@@ -3800,11 +3802,11 @@ function RuleDetailKicker({ rule }: { rule: ObligationRule }) {
     // code text follows the SVG so the chip remains keyboard-
     // typable and the kicker reads at a glance.
     <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
-      <span className="inline-flex items-center gap-1.5">
-        <StateBadge code={rule.jurisdiction} size="xs" title={rule.jurisdiction} />
-        <span className="text-caption-xs uppercase tracking-wider text-text-secondary">
-          {rule.jurisdiction}
-        </span>
+      {/* 2026-05-29 (Yuqi /clients round 1 — "remove the state icon
+          everywhere"): SVG StateBadge dropped; the uppercase code
+          alone carries the jurisdiction identity in this kicker row. */}
+      <span className="inline-flex items-center text-caption-xs uppercase tracking-wider text-text-secondary">
+        {rule.jurisdiction}
       </span>
       <span aria-hidden>·</span>
       <span className="font-medium text-text-secondary">{rule.formName}</span>

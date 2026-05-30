@@ -183,7 +183,6 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { SearchInput } from '@/components/primitives/search-input'
-import { StateBadge } from '@/components/primitives/state-badge'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { ClientPeekHoverCard } from '@/features/clients/ClientPeekHoverCard'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
@@ -2140,11 +2139,14 @@ export function ObligationQueueRoute() {
         cell: (info) => {
           const state = info.getValue<string | null>()
           if (!state) return <span className="text-text-tertiary">—</span>
+          // 2026-05-29 (Yuqi /clients round 1 — "remove the state icon
+          // everywhere"): swept to a bordered Badge for cross-route
+          // consistency with /clients. The SVG flag glyph is gone;
+          // the code itself sits in the unified outline pill.
           return (
-            <span className="inline-flex items-center gap-1.5 tabular-nums text-text-secondary">
-              <StateBadge code={state} size="xs" aria-hidden />
-              <span>{state}</span>
-            </span>
+            <Badge variant="outline" className="text-xs font-normal tabular-nums">
+              {state}
+            </Badge>
           )
         },
         meta: { cellClassName: 'text-text-secondary' },
