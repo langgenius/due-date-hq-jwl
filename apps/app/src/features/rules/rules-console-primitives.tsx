@@ -82,7 +82,7 @@ export function RulesPageShell({
    * outer 1440px cap from `app-shell.tsx`. Matches the /deadlines
    * page where the table benefits from the extra horizontal room
    * (jurisdiction + 7 entity columns + tier + chevrons). Default
-   * stays at 1100px so /rules/pulse and /rules/coverage are
+   * stays at 1100px so /alerts and /rules/coverage are
    * unaffected.
    */
   wide?: boolean
@@ -98,7 +98,7 @@ export function RulesPageShell({
         which felt "stuck" at the boundary. Drawer + settings shells
         still trap (different intent). */}
       <div className={cn('min-h-0 flex-1', lockViewport ? 'overflow-hidden' : 'overflow-y-auto')}>
-        {/* 2026-05-26 (Yuqi /rules/pulse fifth pass — B#1): page chrome
+        {/* 2026-05-26 (Yuqi /alerts fifth pass — B#1): page chrome
             now mirrors `/today` exactly — `mx-auto max-w-page-wide`
             cap + responsive padding (`px-4 md:px-6 pt-6 md:pt-8 pb-4
             md:pb-6`). Previously the shell used fixed `px-6 py-6`

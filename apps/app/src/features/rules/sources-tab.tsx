@@ -18,7 +18,7 @@ import {
   TableHeaderMultiFilter,
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
-import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
+import { useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
 import { orpc } from '@/lib/rpc'
 
 import {
@@ -62,7 +62,7 @@ export function SourcesTab() {
   // RuleSource registry doesn't carry these — they're operational signals
   // owned by the Pulse subsystem. Join here by id so the Sources table can
   // surface diagnostic columns alongside the registry metadata.
-  const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
+  const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const sourceHealthBySourceId = useMemo(() => {
     const map = new Map<string, PulseSourceHealth>()
     for (const entry of sourceHealthQuery.data?.sources ?? []) {

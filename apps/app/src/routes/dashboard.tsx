@@ -175,7 +175,7 @@ export function DashboardRoute() {
     // viewports): bumped from max-w-page-wide (1100) to
     // max-w-page-expanded (1440) so the page matches the rest
     // of the workbench family (/clients, /clients/[id],
-    // /deadlines, /rules/library, /rules/pulse, /alerts). At
+    // /deadlines, /rules/library, /alerts, /alerts). At
     // 1920px the alerts + actions sections now use 1440px of
     // canvas instead of 1100px, removing ~340px of dead margin.
     // 2026-05-29 (Yuqi /today follow-up — "gap smaller, apply to

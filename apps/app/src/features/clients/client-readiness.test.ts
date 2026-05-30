@@ -133,7 +133,7 @@ describe('client readiness', () => {
         readinessFilters: [],
         sourceFilters: [],
         ownerFilters: [],
-        pulseFilters: [],
+        alertFilters: [],
       }).map((client) => client.id),
     ).toEqual(['1'])
   })
@@ -164,12 +164,12 @@ describe('client readiness', () => {
         readinessFilters: ['needs_facts'],
         sourceFilters: ['manual'],
         ownerFilters: [CLIENT_UNASSIGNED_OWNER_FILTER],
-        pulseFilters: [],
+        alertFilters: [],
       }).map((client) => client.id),
     ).toEqual(['2'])
   })
 
-  it('filters by Radar alert presence using affectedClientIds context', () => {
+  it('filters by alert presence using affectedClientIds context', () => {
     const clients = [
       makeClient({ id: 'affected_1' }),
       makeClient({ id: 'clear_1' }),
@@ -187,19 +187,19 @@ describe('client readiness', () => {
     const context = { affectedClientIds: new Set(['affected_1', 'affected_2']) }
 
     expect(
-      filterClients(clients, { ...baseFilters, pulseFilters: ['affected'] }, context).map(
+      filterClients(clients, { ...baseFilters, alertFilters: ['affected'] }, context).map(
         (client) => client.id,
       ),
     ).toEqual(['affected_1', 'affected_2'])
 
     expect(
-      filterClients(clients, { ...baseFilters, pulseFilters: ['clear'] }, context).map(
+      filterClients(clients, { ...baseFilters, alertFilters: ['clear'] }, context).map(
         (client) => client.id,
       ),
     ).toEqual(['clear_1'])
 
     expect(
-      filterClients(clients, { ...baseFilters, pulseFilters: ['affected', 'clear'] }, context).map(
+      filterClients(clients, { ...baseFilters, alertFilters: ['affected', 'clear'] }, context).map(
         (client) => client.id,
       ),
     ).toEqual(['affected_1', 'clear_1', 'affected_2'])
@@ -218,13 +218,13 @@ describe('client readiness', () => {
     } as const
 
     expect(
-      filterClients(clients, { ...baseFilters, pulseFilters: ['affected'] }).map(
+      filterClients(clients, { ...baseFilters, alertFilters: ['affected'] }).map(
         (client) => client.id,
       ),
     ).toEqual([])
 
     expect(
-      filterClients(clients, { ...baseFilters, pulseFilters: ['clear'] }).map(
+      filterClients(clients, { ...baseFilters, alertFilters: ['clear'] }).map(
         (client) => client.id,
       ),
     ).toEqual(['a', 'b'])

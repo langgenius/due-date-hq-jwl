@@ -8,10 +8,10 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
-import { usePulseDetailQueryOptions } from '@/features/pulse/api'
-import { pulseAlertTone, pulseAlertToneLabel } from '@/features/pulse/pulse-alert-tone'
+import { useAlertDetailQueryOptions } from '@/features/alerts/api'
+import { alertTone, alertToneLabel } from '@/features/alerts/alert-tone'
 
-// Dashboard variant of the Pulse alert card. Tuned for the dashboard's
+// Dashboard variant of the Alert card. Tuned for the dashboard's
 // "scan-and-act" mode:
 // - The whole card is the action target — no separate Review button.
 // - AI confidence hidden unless low enough to need review.
@@ -34,7 +34,7 @@ function useUniqueAffectedClientNames(alertId: string): {
   hasMore: number
   isLoading: boolean
 } {
-  const detailQuery = useQuery(usePulseDetailQueryOptions(alertId))
+  const detailQuery = useQuery(useAlertDetailQueryOptions(alertId))
   const affected = detailQuery.data?.affectedClients ?? []
   const seen = new Set<string>()
   const ordered: string[] = []
@@ -66,20 +66,20 @@ function NeedsAttentionCard({
   // showed green/yellow based on impacted-count alone, while the
   // drawer used confidence-first logic — so the SAME alert read
   // green outside and red inside.
-  const tone = pulseAlertTone(alert)
+  const tone = alertTone(alert)
   const lowConfidence = isLowAiConfidence(alert.confidence)
   const { names, hasMore, isLoading: clientsLoading } = useUniqueAffectedClientNames(alert.id)
 
   // 2026-05-25 (Yuqi #47): clicking this card opens the Pulse drawer
-  // in-place on the dashboard (via `usePulseDrawer().openDrawer`) —
-  // not a navigation to /rules/pulse. This is intentional:
+  // in-place on the dashboard (via `useAlertDrawer().openDrawer`) —
+  // not a navigation to /alerts. This is intentional:
   //   • Pulse review is list-driven and quick (1-3 min per alert).
   //     Keeping the user on Today lets them sweep through the 2-3
   //     cards without losing place.
   //   • Same pattern the obligation drawer + client drawer use —
   //     consistency across surfaces beats per-page novelty.
   //   • The overflow tile ("View N more") DOES navigate to
-  //     /rules/pulse — that's the right behaviour when the user is
+  //     /alerts — that's the right behaviour when the user is
   //     asking for the full list, not one specific alert.
   // If alerts grow into long-form investigation work later we'll
   // revisit and promote to a route.
@@ -93,7 +93,7 @@ function NeedsAttentionCard({
     <button
       type="button"
       onClick={onReview}
-      aria-label={t`Open Pulse alert details: ${alert.title}`}
+      aria-label={t`Open Alert details: ${alert.title}`}
       // 2026-05-25 (GitHub-density pass): card padding p-3.5 → p-3,
       // inner gap-2.5 → gap-2. Card content stays scannable but the
       // tile collapses to a more efficient footprint, matching the
@@ -120,7 +120,7 @@ function NeedsAttentionCard({
               meta marker, not heading icon. */}
           <SquareArrowRight
             className="size-3.5 text-text-tertiary"
-            aria-label={pulseAlertToneLabel(tone)}
+            aria-label={alertToneLabel(tone)}
           />
           <span className="text-sm text-text-tertiary">{alert.source}</span>
         </div>
@@ -241,8 +241,8 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
   // Lingui's extractor catches every plural variant.
   const ariaLabel = i18n._(
     plural(count, {
-      one: 'View # more Pulse alert',
-      other: 'View # more Pulse alerts',
+      one: 'View # more Alert',
+      other: 'View # more Alerts',
     }),
   )
   // 2026-05-27 (Yuqi revert — "怎么会变成这样vertical"): restored the

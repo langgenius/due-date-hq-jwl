@@ -187,18 +187,18 @@ export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresen
   'readiness.checklist_item.deleted': genericPresenter,
   'readiness.checklist_item.updated': genericPresenter,
   'penalty.override': penaltyPresenter,
-  'pulse.apply': pulseDueDatePresenter,
-  'pulse.approve': pulseAlertPresenter,
-  'pulse.dismiss': pulseAlertPresenter,
+  'pulse.apply': alertDueDatePresenter,
+  'pulse.approve': alertPresenter,
+  'pulse.dismiss': alertPresenter,
   'pulse.extract': genericPresenter,
   'pulse.ingest': genericPresenter,
-  'pulse.quarantine': pulseOpsPresenter,
-  'pulse.reactivate': pulseAlertPresenter,
-  'pulse.reject': pulseOpsPresenter,
-  'pulse.revert': pulseDueDatePresenter,
+  'pulse.quarantine': alertOpsPresenter,
+  'pulse.reactivate': alertPresenter,
+  'pulse.reject': alertOpsPresenter,
+  'pulse.revert': alertDueDatePresenter,
   'pulse.review_requested': genericPresenter,
-  'pulse.snooze': pulseAlertPresenter,
-  'pulse.source_revoked': pulseOpsPresenter,
+  'pulse.snooze': alertPresenter,
+  'pulse.source_revoked': alertOpsPresenter,
   'role.check': genericPresenter,
   'rule.report_issue': genericPresenter,
   'rule.updated': genericPresenter,
@@ -476,7 +476,7 @@ function obligationDueDatePresenter(context: AuditChangeContext): AuditChangeVie
   )
 }
 
-function pulseDueDatePresenter(context: AuditChangeContext): AuditChangeView {
+function alertDueDatePresenter(context: AuditChangeContext): AuditChangeView {
   const rows = changedRowsForKeys(context, ['currentDueDate'])
   const row = rows[0]
   return view(
@@ -648,14 +648,14 @@ function annualRolloverPresenter(context: AuditChangeContext): AuditChangeView {
   )
 }
 
-function pulseAlertPresenter(context: AuditChangeContext): AuditChangeView {
+function alertPresenter(context: AuditChangeContext): AuditChangeView {
   const rows = changedRowsForKeys(context, ['status']).concat(
     rowsForKeys(context, ['snoozedUntil', 'matchedCount', 'needsReviewCount']),
   )
   return view(headlineFromRows(context, rows), rows, appendGenericNotes(context, rows))
 }
 
-function pulseOpsPresenter(context: AuditChangeContext): AuditChangeView {
+function alertOpsPresenter(context: AuditChangeContext): AuditChangeView {
   const rows = changedRowsForKeys(context, ['pulseStatus', 'alertStatus']).concat(
     rowsForKeys(context, ['matchedCount', 'needsReviewCount']),
   )

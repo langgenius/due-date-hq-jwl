@@ -24,7 +24,7 @@ function notificationTypeLabel(type: NotificationType): React.ReactNode {
   if (type === 'deadline_reminder') return <Trans>Deadline reminder</Trans>
   if (type === 'overdue') return <Trans>Overdue</Trans>
   if (type === 'client_reminder') return <Trans>Client reminder</Trans>
-  if (type === 'pulse_alert') return <Trans>Pulse alert</Trans>
+  if (type === 'pulse_alert') return <Trans>Alert</Trans>
   if (type === 'audit_package_ready') return <Trans>Audit package</Trans>
   if (type === 'internal_request') return <Trans>Internal request</Trans>
   return <Trans>System notification</Trans>
@@ -101,7 +101,7 @@ export function NotificationsPage() {
         title={<Trans>Inbox</Trans>}
         description={
           <Trans>
-            Everything that wants your attention — Pulse alerts, deadline reminders, system updates.
+            Everything that wants your attention — Alerts, deadline reminders, system updates.
           </Trans>
         }
         actions={

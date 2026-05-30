@@ -7,18 +7,15 @@ import type { PulseSourceHealth } from '@duedatehq/contracts'
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
-import {
-  usePulseListAlertsQueryOptions,
-  usePulseSourceHealthQueryOptions,
-} from '@/features/pulse/api'
-import { PulsingDot } from '@/features/pulse/components/PulsingDot'
+import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
+import { useAlertsListQueryOptions, useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
+import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 import { StatusBanner } from '@/components/patterns/status-banner'
 
 import { NeedsAttentionCard, NeedsAttentionOverflowCard } from './needs-attention-card'
 
 // Dashboard "Needs attention" section — top surface that promotes
-// Pulse alerts from a first-class card row.
+// Alerts from a first-class card row.
 
 const VISIBLE_ALERTS = 2
 const NATIONAL_MONITORING_JURISDICTION_COUNT = 52
@@ -33,15 +30,15 @@ const TODAY_ALERTS_LIMIT = 50
 function NeedsAttentionSection() {
   const { t } = useLingui()
   const navigate = useNavigate()
-  const { openDrawer: openAlert } = usePulseDrawer()
+  const { openDrawer: openAlert } = useAlertDrawer()
 
-  const alertsQuery = useQuery(usePulseListAlertsQueryOptions(TODAY_ALERTS_LIMIT))
+  const alertsQuery = useQuery(useAlertsListQueryOptions(TODAY_ALERTS_LIMIT))
   // 2026-05-26 (Yuqi Today #3): also pull source-health so we can
   // surface "are we even receiving signal from the monitored
   // jurisdictions?" alongside the alert count. Without this, an
   // empty alerts list could mean either "all good" or "feed
   // broken" — same UI, opposite meaning.
-  const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
+  const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? []
   const sources = sourceHealthQuery.data?.sources ?? []
   const visibleAlerts = alerts.slice(0, VISIBLE_ALERTS)
@@ -107,7 +104,7 @@ function NeedsAttentionSection() {
       // because the urgent rows earn that weight. Empty state drops
       // ALL outer styling — the inner `StatusBanner` primitive
       // provides its own dashed border, bg, and padding (matching
-      // /rules/pulse and /clients), so wrapping it in a second
+      // /alerts and /clients), so wrapping it in a second
       // tinted padded box was double chrome. This compresses the
       // empty section more aggressively than D18's `gap-2 px-3 py-2`
       // while also unifying with the canonical StatusBanner shape.
@@ -134,7 +131,7 @@ function NeedsAttentionSection() {
       {/* 2026-05-27 (Yuqi feedback: "去掉view all alerts. 点击+2 more
           就是去viewall"): the trailing "View all alerts" link was
           dropped because the `+ N more` overflow tile already
-          navigates to the same /rules/pulse destination. With one
+          navigates to the same /alerts destination. With one
           remaining child, the flex justify-between scaffolding is
           unnecessary — the h2 sits alone on its row.
 
@@ -157,7 +154,7 @@ function NeedsAttentionSection() {
             2026-05-27 (Yuqi header unification pass): chips now
             use the canonical pill (rounded-full bg + font-medium)
             instead of bare tertiary text, matching /clients,
-            /deadlines, /today, /rules/pulse. Two chips when both
+            /deadlines, /today, /alerts. Two chips when both
             signals are meaningful: monitoring (always when sources
             exist) + alert count (when > 0, destructive-toned). */}
         <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-text-primary">
@@ -208,7 +205,7 @@ function NeedsAttentionSection() {
           {overflowCount > 0 ? (
             <NeedsAttentionOverflowCard
               count={overflowCount}
-              onOpen={() => void navigate('/rules/pulse')}
+              onOpen={() => void navigate('/alerts')}
             />
           ) : null}
         </div>

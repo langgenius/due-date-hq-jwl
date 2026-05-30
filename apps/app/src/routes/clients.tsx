@@ -20,7 +20,7 @@ import { ClientsCreateSplitButton } from '@/features/clients/ClientsCreateSplitB
 import {
   buildClientObligationListSummaries,
   buildOpportunityCountByClient,
-  buildPulseMatchesByClient,
+  buildAlertMatchesByClient,
 } from '@/features/clients/client-detail-model'
 import {
   CLIENT_LIST_LIMIT,
@@ -46,7 +46,7 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 
 const EMPTY_CLIENTS: ClientPublic[] = []
 const EMPTY_AFFECTED_CLIENT_IDS: ReadonlySet<string> = new Set()
-const PULSE_HISTORY_LIMIT = 50
+const ALERT_HISTORY_LIMIT = 50
 const OBLIGATION_LIST_LIMIT = 100
 const OPPORTUNITY_LIST_LIMIT = 50
 const OPEN_OBLIGATION_STATUSES: ObligationStatus[] = [
@@ -74,7 +74,7 @@ const OBLIGATIONS_LIST_INPUT = {
   limit: OBLIGATION_LIST_LIMIT,
 }
 const OPPORTUNITIES_LIST_INPUT = { limit: OPPORTUNITY_LIST_LIMIT }
-const PULSE_HISTORY_INPUT = { limit: PULSE_HISTORY_LIMIT }
+const ALERT_HISTORY_INPUT = { limit: ALERT_HISTORY_LIMIT }
 const CLIENTS_LIST_INPUT = { limit: CLIENT_LIST_LIMIT }
 
 export function useEntityLabels(): Record<ClientEntityType, string> {
@@ -115,7 +115,7 @@ export function ClientsRoute() {
       state: stateFilter,
       readiness: readinessFilter,
       source: sourceFilter,
-      pulse: pulseFilter,
+      pulse: alertFilter,
       owner: ownerFilter,
       importHistory,
     },
@@ -141,34 +141,34 @@ export function ClientsRoute() {
     () => buildOpportunityCountByClient(opportunitiesList ?? []),
     [opportunitiesList],
   )
-  const pulseHistoryQuery = useQuery(
-    orpc.pulse.listHistory.queryOptions({ input: PULSE_HISTORY_INPUT }),
+  const alertHistoryQuery = useQuery(
+    orpc.pulse.listHistory.queryOptions({ input: ALERT_HISTORY_INPUT }),
   )
   // Audit P1-4: replaced the N+1 useQueries fan-out (one
   // `pulse.getDetail` request per alert) with a single
   // `pulse.getDetailsBatch` round-trip. With ~50 alerts in history
   // this collapses 50 requests into 1 and ends a slow-to-mutate
   // refetch cascade when the history list changes.
-  const pulseAlertIds = useMemo(
-    () => (pulseHistoryQuery.data?.alerts ?? []).map((alert) => alert.id),
-    [pulseHistoryQuery.data?.alerts],
+  const alertIds = useMemo(
+    () => (alertHistoryQuery.data?.alerts ?? []).map((alert) => alert.id),
+    [alertHistoryQuery.data?.alerts],
   )
-  const pulseDetailsBatchQuery = useQuery({
-    ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds: pulseAlertIds } }),
-    enabled: pulseAlertIds.length > 0,
+  const alertDetailsBatchQuery = useQuery({
+    ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds: alertIds } }),
+    enabled: alertIds.length > 0,
   })
-  const pulseDetailsLoading = pulseAlertIds.length > 0 && pulseDetailsBatchQuery.isLoading
-  const pulseDetails = pulseDetailsBatchQuery.data?.details ?? []
-  const pulseDetailsKey = pulseDetails.map((detail) => detail.alert.id).join('|')
-  const pulseMatchesByClient = useMemo(
-    () => buildPulseMatchesByClient(pulseDetails),
+  const alertDetailsLoading = alertIds.length > 0 && alertDetailsBatchQuery.isLoading
+  const alertDetails = alertDetailsBatchQuery.data?.details ?? []
+  const alertDetailsKey = alertDetails.map((detail) => detail.alert.id).join('|')
+  const alertMatchesByClient = useMemo(
+    () => buildAlertMatchesByClient(alertDetails),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [pulseDetailsKey],
+    [alertDetailsKey],
   )
   const affectedClientIds = useMemo<ReadonlySet<string>>(() => {
-    if (pulseMatchesByClient.size === 0) return EMPTY_AFFECTED_CLIENT_IDS
-    return new Set(pulseMatchesByClient.keys())
-  }, [pulseMatchesByClient])
+    if (alertMatchesByClient.size === 0) return EMPTY_AFFECTED_CLIENT_IDS
+    return new Set(alertMatchesByClient.keys())
+  }, [alertMatchesByClient])
   const filters = useMemo(
     () =>
       normalizeClientsQueryFilters({
@@ -179,14 +179,14 @@ export function ClientsRoute() {
         readiness: readinessFilter,
         source: sourceFilter,
         owner: ownerFilter,
-        pulse: pulseFilter,
+        pulse: alertFilter,
       }),
     [
       searchQuery,
       clientFilter,
       entityFilter,
       ownerFilter,
-      pulseFilter,
+      alertFilter,
       readinessFilter,
       sourceFilter,
       stateFilter,
@@ -200,8 +200,8 @@ export function ClientsRoute() {
     clientsQuery.isLoading ||
     obligationsListQuery.isLoading ||
     opportunitiesQuery.isLoading ||
-    pulseHistoryQuery.isLoading ||
-    pulseDetailsLoading
+    alertHistoryQuery.isLoading ||
+    alertDetailsLoading
 
   // 2026-05-24 (useEffect audit): cycle-list write moved into the
   // row-click handler inside ClientFactsWorkspace. That writes
@@ -454,7 +454,7 @@ export function ClientsRoute() {
         entityFilter={filters.entityFilters}
         stateFilter={filters.stateFilters}
         ownerFilter={filters.ownerFilters}
-        pulseMatchesByClient={pulseMatchesByClient}
+        alertMatchesByClient={alertMatchesByClient}
         obligationSummariesByClient={obligationSummariesByClient}
         opportunityCountByClient={opportunityCountByClient}
         onClientFilterChange={handleClientFilterChange}

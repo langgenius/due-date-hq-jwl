@@ -614,7 +614,7 @@ const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
 const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
   'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
 
-// 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
+// 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
 // the obligation detail panel now shares the alerts panel's
 // width contract and motion choreography. The flex slot opens
 // from 0 → 60% (matching the alerts panel in
@@ -640,7 +640,7 @@ const DETAIL_PANEL_CLOSE_ANIM = {
   transition: { duration: 0.28, ease: DETAIL_SWIFT_EASE },
 } as const
 // 2026-05-27 (Yuqi drawer parity): paper-rise enter matches
-// PulseDetailDrawer's inner choreography (y:100%→0, 0.64s
+// AlertDetailDrawer's inner choreography (y:100%→0, 0.64s
 // duration, 0.14s delay) — the surface visibly extrudes from
 // below the slot. Exit collapses to opacity-only dissolve
 // (0.22s) so the slot closes underneath without a slide-down
@@ -4217,7 +4217,7 @@ export function ObligationQueueRoute() {
         {/* 2026-05-26 (Yuqi fifty-ninth pass — architectural parity with
             Alerts panel): wrap in AnimatePresence + motion.div so the
             panel uses the same paper-rises enter + dissolve exit motion
-            that /rules/pulse uses. Two layered motion divs:
+            that /alerts uses. Two layered motion divs:
               • Outer: animates the flex slot's width (0 → 600px on xl+,
                 or full-width on narrower viewports). Fast (300ms) with
                 Apple's swiftOut curve so the column opens cleanly.
@@ -4230,14 +4230,14 @@ export function ObligationQueueRoute() {
             with the same feel as Alerts. */}
         <AnimatePresence initial={false}>
           {activeDetailId ? (
-            // 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
+            // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
             //
             // The OUTER motion.div is the FLEX SLOT — it owns
             // width: 0 → 60%. Stable key so AnimatePresence
             // doesn't remount on row switch; the queue beside
             // it holds its geometry.
             //
-            // Width contract (matches PulseDetailDrawer wrapper
+            // Width contract (matches AlertDetailDrawer wrapper
             // in AlertsListPage.tsx L838-867):
             //   • `shrink-0` so the slot's animated width is the
             //     authoritative source, never compressed by the
@@ -6009,14 +6009,14 @@ export function ObligationQueueDetailDrawer({
           py-10 because its header has a state kicker + bigger h1
           + chip row + description — more content earning more
           vertical space. */}
-      {/* 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
-          header padding aligned to PulseDetailDrawer.tsx L574
+      {/* 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
+          header padding aligned to AlertDetailDrawer.tsx L574
           (`px-12 py-10`). Both right-rail drawers in the product
           now share the same paper-document header rhythm — same
           left margin top-to-bottom, same vertical breathing room
           above the title. The earlier inset-followups tightening
           (px-8 py-5) was reverted in favor of cross-drawer
-          consistency per Yuqi's "should match Pulse alert detail"
+          consistency per Yuqi's "should match Alert detail"
           instruction. */}
       {/* 2026-05-27 (Yuqi "remove top padding"): header pt-10 → pt-4
           so the title sits closer to the top of the drawer. Bottom
@@ -6034,8 +6034,8 @@ export function ObligationQueueDetailDrawer({
             since Radix already owns the corner there. */}
         {mode === 'panel' && row ? (
           // 2026-05-27 (Yuqi drawer parity): close-button cluster
-          // pinned at `right-3 top-3` to match PulseDetailDrawer's
-          // close affordance (PulseDetailDrawer.tsx L1112). Both
+          // pinned at `right-3 top-3` to match AlertDetailDrawer's
+          // close affordance (AlertDetailDrawer.tsx L1112). Both
           // drawers' close X now sit at the identical corner inset.
           <div className="absolute right-3 top-3 flex items-center gap-0.5">
             <button
@@ -6260,11 +6260,11 @@ export function ObligationQueueDetailDrawer({
           unit (containing TabsList + tab content). */}
       {/* 2026-05-26 (Yuqi drawer canonical): body padding `px-5 pb-5`
           → `px-12 py-10` per the drawer canonical. Same paper-document
-          padding as PulseDetailDrawer body — left margin runs as one
+          padding as AlertDetailDrawer body — left margin runs as one
           line from header through body. */}
       {/* 2026-05-26 (Yuqi forty-seventh pass — sticky-footer buffer):
           body bottom padding bumped `py-10` → `pt-10 pb-24` to match
-          PulseDetailDrawer. Sticky footer (min-h-16 + py-4) was
+          AlertDetailDrawer. Sticky footer (min-h-16 + py-4) was
           covering the last content row when scrolled — 96px buffer
           guarantees clean separation between bottom content and
           action bar. */}
@@ -6272,12 +6272,12 @@ export function ObligationQueueDetailDrawer({
           body wrapper is now `flex flex-col gap-4` per drawer
           canonical. Children get a consistent 16px gap between
           them instead of each carrying its own `mb-*` margin.
-          Same shape as PulseDetailDrawer body so the two drawers
+          Same shape as AlertDetailDrawer body so the two drawers
           read with identical rhythm. */}
       <div
         className={cn(
-          // 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
-          // body padding aligned to PulseDetailDrawer.tsx L752
+          // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
+          // body padding aligned to AlertDetailDrawer.tsx L752
           // (`px-12 pt-10 pb-24`). Same left margin as header/footer
           // so the panel reads as one continuous paper-document
           // surface edge-to-edge. The earlier inset-followups
@@ -7741,9 +7741,9 @@ export function ObligationQueueDetailDrawer({
         }}
       />
       {row ? (
-        /* 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
+        /* 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
            footer chrome reinstated to match the Pulse drawer's
-           sticky action bar (PulseDetailDrawer.tsx L955):
+           sticky action bar (AlertDetailDrawer.tsx L955):
              • `border-t-2 border-divider-regular` — committed
                decision surface separator (vs. relying on body's
                pb-24 alone, which read inconsistent between
@@ -7825,7 +7825,7 @@ export function ObligationQueueDetailDrawer({
         aria-label={titleText ?? t`Deadline detail`}
         // 2026-05-26 (Yuqi forty-eighth pass — drawer canonical
         // applied to obligation panel): chrome migrated to match
-        // PulseDetailDrawer's panel-mode aside exactly. Both
+        // AlertDetailDrawer's panel-mode aside exactly. Both
         // drawers in the product now read as the same surface
         // treatment from a CPA's perspective.
         //   • `rounded-lg border` → `border-l` only — the panel

@@ -1182,7 +1182,7 @@ StateBadge.displayName = 'StateBadge'
  * uppercased code itself when no name is registered, so layout never
  * collapses to an empty string.
  *
- * 2026-05-26 (Yuqi /rules/pulse follow-up): exported so the alerts
+ * 2026-05-26 (Yuqi /alerts follow-up): exported so the alerts
  * table's jurisdiction chip can render `[SVG] CA · California` without
  * each call site hand-rolling its own state-name map.
  */

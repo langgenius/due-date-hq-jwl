@@ -78,7 +78,7 @@ import {
   type ClientReadiness,
 } from './client-readiness'
 import { writeClientCycleList } from './client-cycle'
-import type { ClientObligationListSummary, ClientPulseMatch } from './client-detail-model'
+import type { ClientObligationListSummary, ClientAlertMatch } from './client-detail-model'
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
@@ -105,7 +105,7 @@ type ClientFactsWorkspaceProps = {
   // back to the URL on every keystroke (the route debounces if needed).
   searchQuery: string
   onSearchChange: (value: string) => void
-  // `readinessFilter`, `sourceFilter`, `pulseFilter` and their
+  // `readinessFilter`, `sourceFilter`, `alertFilter` and their
   // `on*Change` handlers used to live here as planned-for filter inputs
   // — they were always passed by the route but never consumed in the
   // workspace body. Removed 2026-05-27 (audit P3-2). If those filter
@@ -114,7 +114,7 @@ type ClientFactsWorkspaceProps = {
   entityFilter: readonly ClientEntityType[]
   stateFilter: readonly string[]
   ownerFilter: readonly string[]
-  pulseMatchesByClient: ReadonlyMap<string, readonly ClientPulseMatch[]>
+  alertMatchesByClient: ReadonlyMap<string, readonly ClientAlertMatch[]>
   obligationSummariesByClient: ReadonlyMap<string, ClientObligationListSummary>
   opportunityCountByClient: ReadonlyMap<string, number>
   onClientFilterChange: (value: string[]) => void
@@ -477,7 +477,7 @@ export function ClientFactsWorkspace({
   stateFilter,
   ownerFilter,
   entityFilter,
-  pulseMatchesByClient,
+  alertMatchesByClient,
   obligationSummariesByClient,
   opportunityCountByClient,
   onClientFilterChange,
@@ -485,10 +485,10 @@ export function ClientFactsWorkspace({
   onStateFilterChange,
   onOwnerFilterChange,
   // 2026-05-26 (Yuqi /clients directory pivot brief): retired
-  // `onPulseFilterChange` consumer (was driving the Pulse hits
+  // `onAlertFilterChange` consumer (was driving the Pulse hits
   // StatTile click). Prop still typed for caller stability; will
   // be removed end-to-end in a follow-up cleanup pass when the
-  // route's `handlePulseFilterChange` retires too.
+  // route's `handleAlertFilterChange` retires too.
   onImport,
   canImport,
 }: ClientFactsWorkspaceProps) {
@@ -604,7 +604,7 @@ export function ClientFactsWorkspace({
           />
         ),
         cell: ({ row }) => {
-          const matches = pulseMatchesByClient.get(row.original.id)
+          const matches = alertMatchesByClient.get(row.original.id)
           const readiness = factsModel.readinessById.get(row.original.id)
           return (
             <div className="flex min-w-0 items-center gap-2">
@@ -640,7 +640,7 @@ export function ClientFactsWorkspace({
                 {readiness?.status === 'needs_facts' ? (
                   <ClientReadinessBadge readiness={readiness} compact />
                 ) : null}
-                {matches && matches.length > 0 ? <ClientRadarBadge matches={matches} /> : null}
+                {matches && matches.length > 0 ? <ClientAlertMatchBadge matches={matches} /> : null}
               </div>
               {/* Hover-revealed peek affordance: row click still goes to
                   the full page; this opens the read-only drawer for a
@@ -1097,7 +1097,7 @@ export function ClientFactsWorkspace({
       obligationSummariesByClient,
       openClientDrawer,
       opportunityCountByClient,
-      pulseMatchesByClient,
+      alertMatchesByClient,
       t,
     ],
   )
@@ -1195,7 +1195,7 @@ export function ClientFactsWorkspace({
       />
 
       {/* 2026-05-25 (Yuqi /clients #8): toolbar filter row above the
-          table — same rhythm as /rules/pulse, where the filter
+          table — same rhythm as /alerts, where the filter
           dropdowns live in their own row above the alert list. Was
           previously inline funnel icons on each column header (one
           per filter), which read as random table chrome rather than
@@ -1452,7 +1452,7 @@ function handleClientRowKeyDown(
  * 2026-05-25 (Yuqi /clients #8): toolbar filter row above the
  * /clients table. Lifts the four column-header funnel filters
  * (Client / States / Entity / Owner) into one scannable strip,
- * matching the /rules/pulse rhythm. Each filter is a toolbar-
+ * matching the /alerts rhythm. Each filter is a toolbar-
  * trigger TableHeaderMultiFilter (wide outline button with the
  * label inline + a count chip when active). Reset on the right
  * clears every filter at once.
@@ -1704,7 +1704,7 @@ function ClientsSearchControl({
  *     on the actionable queue, not a filtered client list.
  *   - **Waiting on client** — clients with ≥1 `waiting_on_client`
  *     obligation (warning tone). Click -> `/deadlines?status=waiting_on_client`.
- *   - **Pulse hits** — clients matched by a recent Pulse alert
+ *   - **Pulse hits** — clients matched by a recent Alert
  *     (review tone). Click → applies the `pulse=affected` filter on
  *     the current list so the CPA can triage which of *their*
  *     clients are touched by the new source change.
@@ -1935,7 +1935,7 @@ function ClientOpportunityCountBadge({ count }: { count: number }) {
   )
 }
 
-function ClientRadarBadge({ matches }: { matches: readonly ClientPulseMatch[] }) {
+function ClientAlertMatchBadge({ matches }: { matches: readonly ClientAlertMatch[] }) {
   const { t } = useLingui()
   const count = matches.length
   const titles = matches
@@ -1945,17 +1945,12 @@ function ClientRadarBadge({ matches }: { matches: readonly ClientPulseMatch[] })
   const tooltip = count > 3 ? `${titles}\n+${count - 3} more` : titles
   const label =
     count > 1
-      ? t`Pulse · ${count}`
+      ? t`Alerts · ${count}`
       : matches[0]?.taxType
-        ? t`Pulse · ${formatTaxCode(matches[0].taxType)}`
-        : t`Pulse`
+        ? t`Alerts · ${formatTaxCode(matches[0].taxType)}`
+        : t`Alerts`
   return (
-    <Badge
-      variant="warning"
-      className="shrink-0"
-      title={tooltip}
-      aria-label={t`Pulse alert: ${tooltip}`}
-    >
+    <Badge variant="warning" className="shrink-0" title={tooltip} aria-label={t`Alert: ${tooltip}`}>
       <ActivityIcon data-icon="inline-start" aria-hidden />
       {label}
     </Badge>

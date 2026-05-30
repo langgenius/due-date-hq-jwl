@@ -31,7 +31,7 @@ export const NAVIGATION_SHORTCUTS = [
     sequence: ['G', 'I'],
     path: '/notifications',
     name: "What's new",
-    description: 'Open the Inbox — Pulse alerts, reminders, and system notifications.',
+    description: 'Open the Inbox — Alerts, reminders, and system notifications.',
     displayKeys: 'G then I',
   },
   {

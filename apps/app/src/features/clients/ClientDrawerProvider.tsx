@@ -17,7 +17,7 @@ const ClientDrawerContext = createContext<ClientDrawerContextValue | null>(null)
  * `useClientDrawer().openDrawer(id)` to peek a client without losing
  * context.
  *
- * Mirrors `ObligationDrawerProvider` / `PulseDrawerProvider` /
+ * Mirrors `ObligationDrawerProvider` / `AlertDrawerProvider` /
  * `EvidenceDrawerProvider`. Before this existed, every "open client"
  * affordance navigated to `/clients/[id]` and dropped the user's
  * queue / dashboard / Pulse context. The drawer is the glance form;

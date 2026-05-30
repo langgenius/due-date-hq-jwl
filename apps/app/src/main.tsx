@@ -20,7 +20,7 @@ async function installDevMocks(): Promise<void> {
   if (typeof window === 'undefined') return
   if (new URLSearchParams(window.location.search).get('mockPulse') !== '1') return
 
-  const { installMockPulse } = await import('@/features/pulse/__dev__/mock-pulse')
+  const { installMockPulse } = await import('@/features/alerts/__dev__/mock-alerts')
   installMockPulse(queryClient)
 }
 

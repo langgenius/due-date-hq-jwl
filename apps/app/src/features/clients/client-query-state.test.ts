@@ -28,7 +28,7 @@ describe('client query state', () => {
       readinessFilters: ['ready'],
       sourceFilters: ['imported'],
       ownerFilters: ['Casey'],
-      pulseFilters: ['affected'],
+      alertFilters: ['affected'],
     })
   })
 

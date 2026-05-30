@@ -433,7 +433,7 @@ export function ClientFactChecklist({
       <FactCheckRow
         isComplete={!readiness?.missingRequiredFacts.includes('state')}
         label={<Trans>Filing jurisdiction</Trans>}
-        detail={<Trans>Required for rules and Pulse matching.</Trans>}
+        detail={<Trans>Required for rules and alert matching.</Trans>}
       />
       <FactCheckRow
         isComplete={!readiness?.missingRequiredFacts.includes('entityType')}

@@ -3,12 +3,12 @@ import { parseAsArrayOf, parseAsString, parseAsStringLiteral } from 'nuqs'
 import type { ClientFilters } from './client-readiness'
 import {
   CLIENT_ENTITY_TYPES,
-  CLIENT_PULSE_FILTERS,
+  CLIENT_ALERT_FILTERS,
   CLIENT_READINESS_FILTERS,
   CLIENT_SOURCE_FILTERS,
   STATE_FILTER_ALL,
   isClientEntityType,
-  isClientPulseFilter,
+  isClientAlertFilter,
   isClientReadinessStatus,
   isClientSourceType,
 } from './client-readiness'
@@ -31,7 +31,7 @@ export const clientsSearchParamsParsers = {
   source: parseAsArrayOf(parseAsStringLiteral(CLIENT_SOURCE_FILTERS))
     .withDefault([])
     .withOptions(REPLACE_HISTORY_OPTIONS),
-  pulse: parseAsArrayOf(parseAsStringLiteral(CLIENT_PULSE_FILTERS))
+  pulse: parseAsArrayOf(parseAsStringLiteral(CLIENT_ALERT_FILTERS))
     .withDefault([])
     .withOptions(REPLACE_HISTORY_OPTIONS),
   owner: parseAsArrayOf(parseAsString).withDefault([]).withOptions(REPLACE_HISTORY_OPTIONS),
@@ -61,7 +61,7 @@ export function normalizeClientsQueryFilters(input: {
     readinessFilters: input.readiness.filter(isClientReadinessStatus),
     sourceFilters: input.source.filter(isClientSourceType),
     ownerFilters: cleanStringFilters(input.owner),
-    pulseFilters: input.pulse.filter(isClientPulseFilter),
+    alertFilters: input.pulse.filter(isClientAlertFilter),
   }
 }
 

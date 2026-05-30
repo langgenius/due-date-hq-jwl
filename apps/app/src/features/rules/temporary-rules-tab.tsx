@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 
-import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
+import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
@@ -34,7 +34,7 @@ const EMPTY_RULES: readonly TemporaryRule[] = []
 
 export function TemporaryRulesTab() {
   const { t } = useLingui()
-  const { openDrawer } = usePulseDrawer()
+  const { openDrawer } = useAlertDrawer()
   const practiceTimezone = usePracticeTimezone()
   const [filter, setFilter] = useState<TemporaryRuleFilter>('all')
   const rulesQuery = useQuery(orpc.rules.listTemporaryRules.queryOptions({ input: undefined }))
@@ -181,7 +181,7 @@ function TemporaryRuleRow({
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label={t`Open Pulse detail`}
+              aria-label={t`Open alert detail`}
               onClick={() => onOpenPulse(rule.alertId!)}
             >
               <RotateCcwIcon className="size-4" aria-hidden />

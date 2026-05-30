@@ -3,6 +3,17 @@
 **Date:** 2026-05-21 (revised 2026-05-22)
 **Status:** Canonical. Every Pulse mount must conform to this doc.
 
+> **2026-05-30 — superseded for the user/frontend split.** The product now uses
+> **one word everywhere a person reads it: "Alerts"** — user-facing copy _and_
+> the frontend code layer (`apps/app/src/features/alerts/`, components, hooks,
+> route `/alerts`). `pulse` survives only as the **engine name at the boundary
+> users never see**: DB tables (`pulse_*`), contract schemas (`Pulse*`), the
+> `orpc.pulse` RPC namespace, ports, and server jobs. The engine/dev-side tables
+> below still apply to that layer; the "surface label" guidance below is now
+> simply "Alerts." See `docs/dev-log/2026-05-30-alerts-rename-and-action-trim.md`.
+> Note: the **Dismiss / Snooze / Archive** actions described below were removed
+> from the UI on 2026-05-30 — `Mark reviewed` is the single clear-without-apply path.
+
 ## 2026-05-22 revision — engine name vs surface label
 
 The "Always 'Pulse alert' (singular noun)" rule below was written before

@@ -11,10 +11,10 @@ import {
   buildClientContactPlan,
   buildClientHeaderContactItems,
   buildClientObligationListSummaries,
-  buildClientPulseMatches,
+  buildClientAlertMatches,
   buildClientWorkPlanSummary,
   buildOpportunityCountByClient,
-  buildPulseMatchesByClient,
+  buildAlertMatchesByClient,
   findExtensionWithoutPaymentObligations,
 } from './client-detail-model'
 
@@ -160,7 +160,7 @@ function makeOpportunity(id: string, clientId: string): OpportunityPublic {
   }
 }
 
-function pulseDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
+function alertDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
   return {
     alert: {
       id: 'alert_1',
@@ -369,18 +369,18 @@ describe('client detail model', () => {
   })
 
   it('keeps Pulse matches scoped to the selected client', () => {
-    const matches = buildClientPulseMatches(
+    const matches = buildClientAlertMatches(
       [
-        pulseDetail(),
-        pulseDetail({
+        alertDetail(),
+        alertDetail({
           alert: {
-            ...pulseDetail().alert,
+            ...alertDetail().alert,
             id: 'alert_2',
             publishedAt: '2026-05-02T00:00:00.000Z',
           },
           affectedClients: [
             {
-              ...pulseDetail().affectedClients[0]!,
+              ...alertDetail().affectedClients[0]!,
               clientId: 'client_2',
               obligationId: 'obligation_2',
             },
@@ -540,8 +540,8 @@ describe('client detail model', () => {
   })
 
   it('groups active pulse matches by client and ignores resolved or reverted matches', () => {
-    const baseAffected = pulseDetail().affectedClients[0]!
-    const detail = pulseDetail({
+    const baseAffected = alertDetail().affectedClients[0]!
+    const detail = alertDetail({
       affectedClients: [
         { ...baseAffected, clientId: 'client_a', obligationId: 'ob_a', matchStatus: 'eligible' },
         {
@@ -564,9 +564,9 @@ describe('client detail model', () => {
         },
       ],
     })
-    const secondDetail = pulseDetail({
+    const secondDetail = alertDetail({
       alert: {
-        ...pulseDetail().alert,
+        ...alertDetail().alert,
         id: 'alert_2',
         publishedAt: '2026-05-10T00:00:00.000Z',
       },
@@ -575,7 +575,7 @@ describe('client detail model', () => {
       ],
     })
 
-    const byClient = buildPulseMatchesByClient([detail, secondDetail])
+    const byClient = buildAlertMatchesByClient([detail, secondDetail])
 
     expect([...byClient.keys()].toSorted()).toEqual(['client_a', 'client_b'])
     const matchesForA = byClient.get('client_a')!

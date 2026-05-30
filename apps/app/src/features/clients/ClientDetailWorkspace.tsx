@@ -109,11 +109,11 @@ import {
 } from './client-readiness'
 import {
   buildClientHeaderContactItems,
-  buildClientPulseMatches,
+  buildClientAlertMatches,
   buildClientWorkPlanSummary,
   findExtensionWithoutPaymentObligations,
   type ClientHeaderContactItem,
-  type ClientPulseMatch,
+  type ClientAlertMatch,
   type ClientWorkPlanSummary,
 } from './client-detail-model'
 
@@ -424,15 +424,15 @@ export function ClientDetailWorkspace({
   const obligationsQuery = useQuery(
     orpc.obligations.listByClient.queryOptions({ input: { clientId: client.id } }),
   )
-  const pulseHistoryQuery = useQuery(orpc.pulse.listHistory.queryOptions({ input: { limit: 30 } }))
+  const alertHistoryQuery = useQuery(orpc.pulse.listHistory.queryOptions({ input: { limit: 30 } }))
   // Audit P1-4: single batch round-trip instead of N+1 useQueries.
-  const pulseAlertIds = useMemo(
-    () => (pulseHistoryQuery.data?.alerts ?? []).map((alert) => alert.id),
-    [pulseHistoryQuery.data?.alerts],
+  const alertIds = useMemo(
+    () => (alertHistoryQuery.data?.alerts ?? []).map((alert) => alert.id),
+    [alertHistoryQuery.data?.alerts],
   )
-  const pulseDetailsBatchQuery = useQuery({
-    ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds: pulseAlertIds } }),
-    enabled: pulseAlertIds.length > 0,
+  const alertDetailsBatchQuery = useQuery({
+    ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds: alertIds } }),
+    enabled: alertIds.length > 0,
   })
   const auditQuery = useQuery({
     ...orpc.audit.list.queryOptions({
@@ -455,8 +455,8 @@ export function ClientDetailWorkspace({
     () => findExtensionWithoutPaymentObligations(obligations),
     [obligations],
   )
-  const pulseDetails = pulseDetailsBatchQuery.data?.details ?? []
-  const pulseMatches = buildClientPulseMatches(pulseDetails, client.id)
+  const alertDetails = alertDetailsBatchQuery.data?.details ?? []
+  const alertMatches = buildClientAlertMatches(alertDetails, client.id)
   const updateRiskProfileMutation = useMutation(
     orpc.clients.updateRiskProfile.mutationOptions({
       onSuccess: (result) => {
@@ -866,7 +866,7 @@ export function ClientDetailWorkspace({
                 with this client right now?") that apply regardless of
                 which tab is open. */}
             <ClientActiveAlertsSection
-              pulseMatches={pulseMatches}
+              alertMatches={alertMatches}
               extensionPaymentMismatches={extensionPaymentMismatches}
             />
 
@@ -1317,10 +1317,10 @@ export function ClientDetailWorkspace({
             // the parent's xl:gap-6 so the unused gap doesn't show
             // up as a void on the right edge.
             'xl:w-0 xl:-mr-6',
-            // 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
+            // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
             // open width switched from a fixed 600px to 60% of the
             // parent flex row so the obligation panel mirrors
-            // PulseDetailDrawer's wrapper (AlertsListPage.tsx L844:
+            // AlertDetailDrawer's wrapper (AlertsListPage.tsx L844:
             // `width: '60%'`). Same proportional split between the
             // client-facts left column and the obligation drawer on
             // the right; both right-rail panels in the product now
@@ -1489,13 +1489,13 @@ function ClientDetailTabTrigger({
  * nothing is active, the whole section disappears.
  */
 function ClientActiveAlertsSection({
-  pulseMatches,
+  alertMatches,
   extensionPaymentMismatches,
 }: {
-  pulseMatches: readonly ClientPulseMatch[]
+  alertMatches: readonly ClientAlertMatch[]
   extensionPaymentMismatches: readonly ObligationInstancePublic[]
 }) {
-  const totalCount = pulseMatches.length + extensionPaymentMismatches.length
+  const totalCount = alertMatches.length + extensionPaymentMismatches.length
   if (totalCount === 0) return null
   return (
     <section
@@ -1513,9 +1513,9 @@ function ClientActiveAlertsSection({
         <span className="text-xs tabular-nums text-text-tertiary">{totalCount}</span>
       </header>
       <ul className="divide-y divide-divider-subtle">
-        {pulseMatches.map((match) => (
+        {alertMatches.map((match) => (
           <li key={match.alertId}>
-            <ClientActiveAlertsPulseCard match={match} />
+            <ClientActiveAlertsCard match={match} />
           </li>
         ))}
         {extensionPaymentMismatches.length > 0 ? (
@@ -1528,8 +1528,8 @@ function ClientActiveAlertsSection({
   )
 }
 
-function ClientActiveAlertsPulseCard({ match }: { match: ClientPulseMatch }) {
-  // `ClientPulseMatch` doesn't carry a jurisdiction code today (the
+function ClientActiveAlertsCard({ match }: { match: ClientAlertMatch }) {
+  // `ClientAlertMatch` doesn't carry a jurisdiction code today (the
   // server-side model returns `source` as a free-text label like
   // "Pennsylvania Department of Revenue"). Show the tax code as the
   // leading chip so the CPA sees what kind of filing is affected;
@@ -1544,7 +1544,7 @@ function ClientActiveAlertsPulseCard({ match }: { match: ClientPulseMatch }) {
         <p className="text-sm font-medium text-text-primary">{match.title}</p>
         <p className="mt-0.5 text-xs text-text-tertiary">{match.source}</p>
       </div>
-      <Button variant="ghost" size="sm" render={<Link to="/rules/pulse" />}>
+      <Button variant="ghost" size="sm" render={<Link to="/alerts" />}>
         <Trans>Review</Trans>
         <ChevronRightIcon data-icon="inline-end" aria-hidden />
       </Button>

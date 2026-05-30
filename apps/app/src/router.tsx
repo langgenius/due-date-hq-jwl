@@ -139,6 +139,17 @@ function rulesCoverageAliasLoader({ request }: LoaderFunctionArgs) {
   throw redirect(target)
 }
 
+// /rules/pulse[/history] → /alerts[/history]. Alerts moved out of the
+// Rules subtree to a top-level destination; these aliases keep old
+// bookmarks + emailed deep links (e.g. ?alert=<id>) and any hash working.
+function alertsAliasLoader({ request }: LoaderFunctionArgs) {
+  redirectToPathPreservingRequest(request, '/alerts')
+}
+
+function alertsHistoryAliasLoader({ request }: LoaderFunctionArgs) {
+  redirectToPathPreservingRequest(request, '/alerts/history')
+}
+
 // Only reachable when unauthenticated. If the session resolves, bounce to the
 // post-login target (honouring ?redirectTo=... but only for in-app paths).
 async function guestLoader(args: LoaderFunctionArgs) {
@@ -573,30 +584,37 @@ export function createAppRouter() {
               },
             },
             {
-              path: 'rules/pulse',
-              handle: routeHandle(routeSummaries.rulesPulse),
+              path: 'alerts',
+              handle: routeHandle(routeSummaries.alerts),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
-                const { RulesPulseRoute } = await import('@/routes/rules.pulse')
+                const { AlertsRoute } = await import('@/routes/alerts')
 
-                return { Component: RulesPulseRoute }
+                return { Component: AlertsRoute }
               },
             },
             {
-              // 2026-05-25 (Yuqi Alerts #2 — sub-page sweep): closed-
-              // alerts archive promoted from a soft-filter on
-              // /rules/pulse to a dedicated route. Mounts the same
-              // PulseChangesTab with `historyMode={true}` so the
-              // archive is deep-linkable + bookmarkable +
-              // sidebar-reachable.
-              path: 'rules/pulse/history',
-              handle: routeHandle(routeSummaries.rulesPulseHistory),
+              // Closed-alerts archive: a dedicated route so it's
+              // deep-linkable + bookmarkable + sidebar-reachable. Mounts
+              // the same AlertsListPage with `historyMode={true}`.
+              path: 'alerts/history',
+              handle: routeHandle(routeSummaries.alertsHistory),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
-                const { RulesPulseHistoryRoute } = await import('@/routes/rules.pulse-history')
+                const { AlertsHistoryRoute } = await import('@/routes/alerts.history')
 
-                return { Component: RulesPulseHistoryRoute }
+                return { Component: AlertsHistoryRoute }
               },
+            },
+            {
+              // Legacy alias: Alerts used to live under Rules at
+              // /rules/pulse. Redirect to the top-level /alerts route.
+              path: 'rules/pulse',
+              loader: alertsAliasLoader,
+            },
+            {
+              path: 'rules/pulse/history',
+              loader: alertsHistoryAliasLoader,
             },
             {
               path: 'rules/temporary',
