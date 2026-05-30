@@ -2,7 +2,7 @@ import { createDb, firmSchema, scoped } from '@duedatehq/db'
 import { eq } from 'drizzle-orm'
 import type { Env } from '../env'
 import { enqueueDashboardBriefRefresh } from './dashboard-brief/enqueue'
-import { runPulseIngest } from './pulse/ingest'
+import { enqueuePulseIngestScans } from './pulse/ingest'
 import { dispatchDeadlineReminders } from './reminders/dispatch'
 import { dispatchMorningDigests } from './notifications/morning-digest'
 import { enqueueDueRuleSourceScans, enqueueRuleRegistryCatalogSync } from './rules/reconcile'
@@ -113,7 +113,7 @@ export async function scheduled(
     enqueueRuleRegistryCatalogSync(env),
     enqueueDueRuleSourceScans(env, now),
     enqueueScheduledDashboardBriefs(env, now),
-    runPulseIngest(env),
+    enqueuePulseIngestScans(env, undefined, now),
     dispatchDeadlineReminders(env, now),
     dispatchMorningDigests(env, now),
     env.EMAIL_QUEUE.send({ type: 'email.flush' }),

@@ -6,6 +6,7 @@ import { consumeDashboardBriefRefresh } from './dashboard-brief/consumer'
 import { isDashboardBriefRefreshMessage } from './dashboard-brief/message'
 import { flushEmailOutbox } from './email/outbox'
 import { extractPulseSnapshot } from './pulse/extract'
+import { consumePulseIngestSource, isPulseIngestSourceMessage } from './pulse/ingest'
 import { recordPulseAlert } from './pulse/metrics'
 import {
   consumeRuleConcreteDraftGenerate,
@@ -39,6 +40,7 @@ function isDispatchableMessage(body: unknown): boolean {
   return (
     isAiInsightRefreshMessage(body) ||
     isDashboardBriefRefreshMessage(body) ||
+    isPulseIngestSourceMessage(body) ||
     isPulseExtractMessage(body) ||
     isRuleConcreteDraftGenerateMessage(body) ||
     isPulseRuleSourceScanMessage(body) ||
@@ -121,6 +123,9 @@ async function dispatchMessage(message: Message, env: Env): Promise<void> {
     }
     if (isDashboardBriefRefreshMessage(body)) {
       await consumeDashboardBriefRefresh(body, env)
+    }
+    if (isPulseIngestSourceMessage(body)) {
+      await consumePulseIngestSource(env, body)
     }
     if (isPulseExtractMessage(body)) {
       await extractPulseSnapshot(env, body.snapshotId)

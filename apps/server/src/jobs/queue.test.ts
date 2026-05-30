@@ -57,6 +57,25 @@ describe('queue consumer', () => {
     ).not.toThrow()
   })
 
+  it('allows Pulse per-source ingest scan messages', () => {
+    expect(() =>
+      assertQueueDispatchable(
+        batch([
+          {
+            body: {
+              type: 'pulse.ingest.source',
+              sourceId: 'fema.declarations',
+              reason: 'cadence_due',
+            },
+          },
+        ]),
+      ),
+    ).not.toThrow()
+    expect(
+      queueMessageType({ type: 'pulse.ingest.source', sourceId: 's', reason: 'cadence_due' }),
+    ).toBe('pulse.ingest.source')
+  })
+
   it('allows rule concrete draft generation messages', () => {
     expect(() =>
       assertQueueDispatchable(
