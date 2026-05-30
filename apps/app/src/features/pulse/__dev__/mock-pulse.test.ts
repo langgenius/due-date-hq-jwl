@@ -34,11 +34,19 @@ describe('seedPulseMock', () => {
     const alerts = queryClient.getQueryData<{ alerts: PulseAlertPublic[] }>(
       orpc.pulse.listAlerts.queryKey({ input: { limit: 50 } }),
     )
+    const history = queryClient.getQueryData<{ alerts: PulseAlertPublic[] }>(
+      orpc.pulse.listHistory.queryKey({ input: { limit: 50 } }),
+    )
+    const activeCount = queryClient.getQueryData<{ count: number }>(
+      orpc.pulse.activeCount.queryKey({ input: undefined }),
+    )
     const sourceHealth = queryClient.getQueryData<{ sources: PulseSourceHealth[] }>(
       orpc.pulse.listSourceHealth.queryKey({ input: undefined }),
     )
 
     expect(alerts?.alerts).toHaveLength(5)
+    expect(history?.alerts.map((alert) => alert.status)).toEqual(['applied', 'dismissed'])
+    expect(activeCount?.count).toBe(3)
     expect(sourceHealth?.sources.map((source) => source.sourceId)).toEqual([
       'irs.disaster',
       'ca.ftb.newsroom',

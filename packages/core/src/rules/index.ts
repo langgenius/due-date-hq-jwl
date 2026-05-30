@@ -169,6 +169,7 @@ export interface InboundEmailRuleSourceConfig {
   senderDomains: readonly string[]
   listIdPatterns: readonly string[]
   canonicalUrlHosts: readonly string[]
+  accountCodes?: readonly string[]
 }
 
 export interface RuleSource {
@@ -4816,6 +4817,33 @@ export const RULE_SOURCES = hydrateRuleSources([
     lastReviewedOn: VERIFIED_AT,
   },
   {
+    id: 'fed.irs_newswire',
+    jurisdiction: 'FED',
+    title: 'IRS Newswire',
+    url: 'https://www.irs.gov/newsroom/e-news-subscriptions',
+    sourceType: 'subscription',
+    acquisitionMethod: 'email_subscription',
+    adapterKind: 'email_inbound',
+    cadence: 'daily',
+    priority: 'high',
+    healthStatus: 'healthy',
+    isEarlyWarning: false,
+    notificationChannels: ['source_change', 'practice_rule_review'],
+    lastReviewedOn: VERIFIED_AT,
+    inboundEmail: {
+      localParts: ['pulse-ingest+fed-irs-newswire'],
+      senderDomains: ['service.govdelivery.com', 'public.govdelivery.com'],
+      listIdPatterns: ['usirs', 'irs newswire', 'internal revenue service'],
+      canonicalUrlHosts: [
+        'irs.gov',
+        'www.irs.gov',
+        'federalregister.gov',
+        'www.federalregister.gov',
+      ],
+      accountCodes: ['USIRS'],
+    },
+  },
+  {
     id: 'fed.fema_disaster_declarations',
     jurisdiction: 'FED',
     title: 'FEMA Disaster Declarations Summaries',
@@ -5230,6 +5258,8 @@ const SOURCE_EXCERPTS: Record<string, string> = {
   'fed.irs_i8868_2026': 'Form 8868 cannot be used to extend the due date of Form 990-N.',
   'fed.irs_disaster_relief':
     'IRS publishes notice-specific tax relief by date, listing affected localities and postponed acts.',
+  'fed.irs_newswire':
+    'IRS Newswire distributes IRS news releases and guidance notices through official e-mail subscription bulletins.',
   'fed.fema_disaster_declarations':
     'OpenFEMA disaster declarations dataset; early-warning signal for IRS / state relief follow-up.',
   'al.income_tax':

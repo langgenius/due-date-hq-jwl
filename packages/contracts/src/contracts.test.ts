@@ -119,11 +119,16 @@ import {
   PulseApplyInputSchema,
   PulseApplyOutputSchema,
   PulseDetailSchema,
+  PulseDismissInputSchema,
   PulseFirmAlertStatusSchema,
+  PulseHandledFirmAlertStatusSchema,
   PulseListAlertsInputSchema,
+  PulseListHistoryInputSchema,
+  PulseMarkReviewedInputSchema,
   PulseReviewDueDateOverlayDetailsInputSchema,
   PulseRequestReviewInputSchema,
   PulseRequestReviewOutputSchema,
+  PulseSnoozeInputSchema,
   pulseContract,
 } from './pulse'
 import {
@@ -1224,10 +1229,23 @@ describe('@duedatehq/contracts', () => {
       'reverted',
       'reviewed',
     ])
+    expect(PulseHandledFirmAlertStatusSchema.options).toEqual([
+      'dismissed',
+      'snoozed',
+      'partially_applied',
+      'applied',
+      'reverted',
+      'reviewed',
+    ])
     expect(ErrorCodes.PULSE_APPLY_CONFLICT).toBe('PULSE_APPLY_CONFLICT')
     expect(ErrorCodes.PULSE_NEEDS_DETAILS).toBe('PULSE_NEEDS_DETAILS')
     expect(PulseListAlertsInputSchema.parse({ limit: 50 })).toEqual({ limit: 50 })
     expect(PulseListAlertsInputSchema.safeParse({ limit: 51 }).success).toBe(false)
+    expect(PulseListHistoryInputSchema.safeParse({ status: 'matched' }).success).toBe(false)
+    expect(PulseListHistoryInputSchema.parse({ status: 'snoozed' })).toEqual({
+      limit: 20,
+      status: 'snoozed',
+    })
 
     const alert = PulseAlertPublicSchema.parse({
       id: '11111111-1111-4111-8111-111111111111',
@@ -1338,6 +1356,17 @@ describe('@duedatehq/contracts', () => {
       note: ' Please review LA County applicability. ',
     })
     expect(requestReviewInput.note).toBe('Please review LA County applicability.')
+
+    expect(PulseDismissInputSchema.parse({ alertId: alert.id })).toEqual({ alertId: alert.id })
+    expect(
+      PulseSnoozeInputSchema.parse({
+        alertId: alert.id,
+        until: '2026-04-16T18:00:00.000Z',
+      }),
+    ).toEqual({ alertId: alert.id, until: '2026-04-16T18:00:00.000Z' })
+    expect(PulseMarkReviewedInputSchema.parse({ alertId: alert.id })).toEqual({
+      alertId: alert.id,
+    })
 
     const requestReview = PulseRequestReviewOutputSchema.parse({
       notificationCount: 2,

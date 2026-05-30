@@ -41,7 +41,12 @@ describe('rules console model', () => {
 
   it('converts preview form values into contract input', () => {
     const values = previewFormValuesForClient({
-      client: { id: 'cli_real_acme', entityType: 'llc', state: 'CA' },
+      client: {
+        id: 'cli_real_acme',
+        entityType: 'llc',
+        taxClassification: 'partnership',
+        state: 'CA',
+      },
       taxTypes: ['federal_1065_or_1040', 'ca_llc_franchise_min_800', 'ca_llc_fee_gross_receipts'],
       calendarYear: 2026,
     })
@@ -50,6 +55,7 @@ describe('rules console model', () => {
       client: {
         id: 'cli_real_acme',
         entityType: 'llc',
+        taxClassification: 'partnership',
         state: 'CA',
         taxTypes: ['federal_1065_or_1040', 'ca_llc_franchise_min_800', 'ca_llc_fee_gross_receipts'],
         taxYearStart: '2026-01-01',

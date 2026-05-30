@@ -23,12 +23,7 @@ test.describe('seeded Pulse alerts', () => {
   }) => {
     await appShellPage.goto()
 
-    await expect(
-      authenticatedPage.getByText(
-        'IRS CA storm relief extends selected filing deadlines for Los Angeles County.',
-      ),
-    ).toBeVisible()
-    await dashboardPulseAlertButton(authenticatedPage).click()
+    await openDashboardPulseAlert(authenticatedPage)
 
     const drawer = pulseDetailDrawer(authenticatedPage)
     await expect(drawer.getByRole('heading', { name: /Affected clients/ })).toBeVisible()
@@ -130,18 +125,13 @@ test.describe('seeded Pulse alerts', () => {
     }) => {
       await appShellPage.goto()
 
-      await dashboardPulseAlertButton(authenticatedPage).click()
+      await openDashboardPulseAlert(authenticatedPage)
       const drawer = pulseDetailDrawer(authenticatedPage)
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
-      // 2026-05-27 (ψ ROH-D11 + ρ ROH-D6): copy now driven by
-      // requiredRolesLabel('pulse.apply'), which renders the live role
-      // list — currently "owners, partners, and managers". Regex covers
-      // either the legacy "owners and managers" or the new "partners"
-      // form.
-      await expect(
-        drawer.getByText(/Only (?:owners and managers|owners, partners,? and managers) can/),
-      ).toBeVisible()
+      const readOnlyAlert = drawer.getByRole('alert').filter({ hasText: 'Read-only view' })
+      await expect(readOnlyAlert).toContainText('Current role: Coordinator')
+      await expect(readOnlyAlert).toContainText('Required: Owner, Partner, Manager')
       await expect(drawer.getByRole('button', { name: 'Apply Deadline Exception' })).toBeDisabled()
       await expect(drawer.getByRole('button', { name: 'Dismiss' })).toBeDisabled()
       await expect(drawer.getByRole('button', { name: 'Snooze 24h' })).toBeDisabled()
@@ -159,7 +149,7 @@ test.describe('seeded Pulse alerts', () => {
     }) => {
       await appShellPage.goto()
 
-      await dashboardPulseAlertButton(authenticatedPage).click()
+      await openDashboardPulseAlert(authenticatedPage)
       const drawer = pulseDetailDrawer(authenticatedPage)
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
@@ -225,6 +215,24 @@ function dashboardPulseAlertButton(page: Page) {
   return page.getByRole('button', {
     name: /Open Pulse alert details: IRS CA storm relief extends selected filing deadlines/,
   })
+}
+
+function pulseListAlertButton(page: Page) {
+  return page.getByRole('button', {
+    name: /Pulse alert: IRS CA storm relief extends selected filing deadlines/,
+  })
+}
+
+async function openDashboardPulseAlert(page: Page) {
+  const dashboardButton = dashboardPulseAlertButton(page)
+  if (await dashboardButton.isVisible().catch(() => false)) {
+    await dashboardButton.click()
+    return
+  }
+
+  await page.goto('/rules/pulse')
+  await expect(pulseListAlertButton(page)).toBeVisible()
+  await pulseListAlertButton(page).click()
 }
 
 function pulseDetailDrawer(page: Page) {

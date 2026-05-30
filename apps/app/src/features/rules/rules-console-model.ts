@@ -12,6 +12,7 @@ import {
   type RuleGenerationState,
   type RuleSource,
 } from '@duedatehq/contracts'
+import { ClientTaxClassificationSchema } from '@duedatehq/contracts/shared/enums'
 
 type SourceDisplayHealth = 'healthy' | 'paused'
 export type SourceHealthFilter = 'all' | SourceDisplayHealth
@@ -100,6 +101,7 @@ export const DEFAULT_PREVIEW_CALENDAR_YEAR = 2026
 export const previewFormSchema = z.object({
   clientId: z.string().min(1),
   entityType: z.enum(PREVIEW_ENTITY_OPTIONS),
+  taxClassification: ClientTaxClassificationSchema,
   state: z.enum(RuleGenerationStateValues),
   taxYearStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   taxYearEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -132,7 +134,8 @@ export function previewCalendarYearFromObligations(
 }
 
 export function previewFormValuesForClient(input: {
-  client: Pick<ClientPublic, 'id' | 'entityType' | 'state'>
+  client: Pick<ClientPublic, 'id' | 'entityType' | 'state'> &
+    Partial<Pick<ClientPublic, 'taxClassification'>>
   taxTypes: readonly string[]
   calendarYear?: number
 }): PreviewFormValues {
@@ -140,6 +143,7 @@ export function previewFormValuesForClient(input: {
   return previewFormSchema.parse({
     clientId: input.client.id,
     entityType: input.client.entityType,
+    taxClassification: input.client.taxClassification ?? 'unknown',
     state: input.client.state,
     taxYearStart: dates.taxYearStart,
     taxYearEnd: dates.taxYearEnd,
@@ -169,10 +173,13 @@ export function previewCalendarYearFromFormDates(
 }
 
 export function previewFormToInput(values: PreviewFormValues): RuleGenerationPreviewInput {
+  const taxClassification =
+    values.taxClassification === 'unknown' ? undefined : values.taxClassification
   const input = {
     client: {
       id: values.clientId.trim(),
       entityType: values.entityType,
+      ...(taxClassification ? { taxClassification } : {}),
       state: values.state,
       taxYearStart: values.taxYearStart,
       taxYearEnd: values.taxYearEnd,

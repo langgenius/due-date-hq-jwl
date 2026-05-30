@@ -23,6 +23,16 @@ export const PulseFirmAlertStatusSchema = z.enum([
 ])
 export type PulseFirmAlertStatus = z.infer<typeof PulseFirmAlertStatusSchema>
 
+export const PulseHandledFirmAlertStatusSchema = z.enum([
+  'dismissed',
+  'snoozed',
+  'partially_applied',
+  'applied',
+  'reverted',
+  'reviewed',
+])
+export type PulseHandledFirmAlertStatus = z.infer<typeof PulseHandledFirmAlertStatusSchema>
+
 export const PulseChangeKindSchema = z.enum([
   'deadline_shift',
   'filing_requirement',
@@ -200,7 +210,7 @@ export type PulseListAlertsInput = z.infer<typeof PulseListAlertsInputSchema>
 export const PulseListHistoryInputSchema = z
   .object({
     limit: z.number().int().min(1).max(100).default(20).optional(),
-    status: PulseFirmAlertStatusSchema.optional(),
+    status: PulseHandledFirmAlertStatusSchema.optional(),
   })
   .optional()
 export type PulseListHistoryInput = z.infer<typeof PulseListHistoryInputSchema>
@@ -241,13 +251,13 @@ export type PulseApplyInput = z.infer<typeof PulseApplyInputSchema>
 export const PulseSnoozeInputSchema = z.object({
   alertId: EntityIdSchema,
   until: z.iso.datetime(),
-  reason: z.string().trim().min(1).max(500),
+  reason: z.string().trim().min(1).max(500).optional(),
 })
 export type PulseSnoozeInput = z.infer<typeof PulseSnoozeInputSchema>
 
 export const PulseDismissInputSchema = z.object({
   alertId: EntityIdSchema,
-  reason: z.string().trim().min(1).max(500),
+  reason: z.string().trim().min(1).max(500).optional(),
 })
 export type PulseDismissInput = z.infer<typeof PulseDismissInputSchema>
 

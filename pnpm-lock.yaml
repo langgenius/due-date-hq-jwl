@@ -159,6 +159,9 @@ catalogs:
     pdfjs-dist:
       specifier: 5.7.284
       version: 5.7.284
+    postal-mime:
+      specifier: 2.7.4
+      version: 2.7.4
     posthog-js:
       specifier: 1.376.0
       version: 1.376.0
@@ -505,6 +508,9 @@ importers:
       pdfjs-dist:
         specifier: 'catalog:'
         version: 5.7.284
+      postal-mime:
+        specifier: 'catalog:'
+        version: 2.7.4
       resend:
         specifier: 'catalog:'
         version: 6.12.3

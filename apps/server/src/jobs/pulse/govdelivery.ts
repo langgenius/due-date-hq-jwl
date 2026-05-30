@@ -1,7 +1,9 @@
 import { createDb, makePulseOpsRepo } from '@duedatehq/db'
 import { listRuleSources, type RuleSource } from '@duedatehq/core/rules'
 import { hashText } from '@duedatehq/ingest/http'
+import PostalMime from 'postal-mime'
 import type { Env } from '../../env'
+import { buildEmailArchiveArtifact, buildEmailCanonicalText } from './email-artifact'
 import { archivePulseRaw, type PulseExtractQueueMessage } from './ingest'
 import { recordPulseMetric } from './metrics'
 
@@ -171,12 +173,41 @@ function firstCanonicalSourceUrl(source: InboundEmailRuleSource, rawText: string
   return extractUrls(rawText).find((url) => urlMatchesSource(source, url)) ?? null
 }
 
+function govDeliveryAccountCodes(headers: Headers, text: string): string[] {
+  const values = [
+    ...headerValues(headers, ['x-accountcode', 'x-account-code', 'list-unsubscribe']),
+    text,
+  ]
+  const codes: string[] = []
+  for (const value of values) {
+    const headerCode = value.match(/\b[A-Z]{2,}[A-Z0-9_-]*\b/g) ?? []
+    const urlCodes = Array.from(
+      value.matchAll(/https?:\/\/(?:content|public)\.govdelivery\.com\/accounts\/([^/\s?"')]+)/gi),
+    ).map((match) => match[1] ?? '')
+    codes.push(...headerCode)
+    codes.push(...urlCodes)
+  }
+  return Array.from(new Set(codes.map((code) => code.toUpperCase()).filter(Boolean)))
+}
+
+function accountCodeMatchesSource(
+  source: InboundEmailRuleSource,
+  message: InboundEmailMessage,
+  rawText: string,
+): boolean {
+  const configured = source.inboundEmail.accountCodes
+  if (!configured || configured.length === 0) return false
+  const codes = new Set(govDeliveryAccountCodes(message.headers, rawText))
+  return configured.some((code) => codes.has(code.toUpperCase()))
+}
+
 function trustSignalMatchesSource(
   source: InboundEmailRuleSource,
   message: InboundEmailMessage,
   rawText: string,
 ): boolean {
   return (
+    accountCodeMatchesSource(source, message, rawText) ||
     senderMatchesSource(source, message) ||
     listIdMatchesSource(source, message.headers) ||
     firstCanonicalSourceUrl(source, rawText) !== null
@@ -195,6 +226,9 @@ function resolveInboundEmailSource(
 } {
   const sources = inboundEmailSources()
   const localParts = messageLocalParts(message)
+  const accountCodeMatches = sources.filter((source) =>
+    accountCodeMatchesSource(source, message, rawText),
+  )
   const directMatches = sources.filter((source) =>
     source.inboundEmail.localParts.some((part) => localParts.includes(part.toLowerCase())),
   )
@@ -214,11 +248,13 @@ function resolveInboundEmailSource(
           ? senderMatches[0]
           : null
   const matchedSource =
-    trustedDirectMatches.length === 1
-      ? trustedDirectMatches[0]
-      : directMatches.length === 0 || fallbackAddressed
-        ? fallbackSource
-        : null
+    accountCodeMatches.length === 1
+      ? accountCodeMatches[0]
+      : trustedDirectMatches.length === 1
+        ? trustedDirectMatches[0]
+        : directMatches.length === 0 || fallbackAddressed
+          ? fallbackSource
+          : null
 
   if (matchedSource) {
     return {
@@ -243,18 +279,29 @@ export async function ingestGovDeliveryEmail(
   env: Pick<Env, 'DB' | 'R2_PULSE' | 'PULSE_QUEUE'>,
   message: InboundEmailMessage,
 ): Promise<{ inserted: boolean; matched: boolean; queued: boolean; snapshotId: string }> {
-  const rawText = await new Response(message.raw).text()
+  const rawBuffer = await new Response(message.raw).arrayBuffer()
+  const rawText = new TextDecoder().decode(rawBuffer)
+  const parsedEmail = await PostalMime.parse(rawBuffer)
+  const fallbackSubject = extractSubject(message.headers)
+  const canonicalText = buildEmailCanonicalText({
+    parsed: parsedEmail,
+    rawText,
+    envelopeFrom: message.from,
+    envelopeTo: message.to,
+    fallbackSubject,
+  })
+  const archivedBody = buildEmailArchiveArtifact({ canonicalText, rawText })
   const now = new Date()
-  const subject = extractSubject(message.headers)
-  const contentHash = await hashText(rawText)
+  const subject = parsedEmail.subject?.trim() || fallbackSubject
+  const contentHash = await hashText(archivedBody)
   const externalId = extractExternalId(message.headers, `govdelivery:${contentHash.slice(0, 24)}`)
-  const resolution = resolveInboundEmailSource(message, rawText)
+  const resolution = resolveInboundEmailSource(message, canonicalText)
   const archived = await archivePulseRaw(env, {
     sourceId: resolution.sourceId,
     externalId,
     fetchedAt: now,
-    body: rawText,
-    contentType: 'message/rfc822',
+    body: archivedBody,
+    contentType: 'text/plain; charset=utf-8',
   })
   const repo = makePulseOpsRepo(createDb(env.DB))
   const result = await repo.createSourceSnapshot({

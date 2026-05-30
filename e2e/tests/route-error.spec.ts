@@ -25,7 +25,7 @@ test('AC: E2E-SMOKE-NOT-FOUND renders localized 404 copy', async ({ authenticate
 
   await expect(authenticatedPage.getByRole('heading', { name: '未找到页面' })).toBeVisible()
   await expect(authenticatedPage.getByText('/not-a-real-route')).toBeVisible()
-  await expect(authenticatedPage.getByRole('link', { name: 'Go to Today' })).toHaveAttribute(
+  await expect(authenticatedPage.getByRole('link', { name: '前往今天' })).toHaveAttribute(
     'href',
     '/',
   )

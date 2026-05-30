@@ -26,6 +26,7 @@ interface E2ESwitchRoleRequest {
 
 const COOKIE_NAME = 'duedatehq.session_token'
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7
+const E2E_MONITORING_START_DATE = '2026-01-01'
 const DEMO_FIRM_ID = 'mock_firm_brightline'
 export const DEMO_ACCOUNTS = [
   {
@@ -564,7 +565,7 @@ export const e2eRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>().po
       seatLimit: billingSeatLimit(firmPlan),
       timezone: 'America/New_York',
       internalDeadlineOffsetDays: 14,
-      monitoringStartDate: now.toISOString().slice(0, 10),
+      monitoringStartDate: E2E_MONITORING_START_DATE,
       ownerUserId,
       status: 'active',
       createdAt: now,
@@ -1033,6 +1034,7 @@ async function seedObligationQueue(db: ReturnType<typeof createDb>, firmId: stri
     state: 'CA',
     county: 'Los Angeles',
     entityType: 'llc' as const,
+    taxClassification: 'partnership' as const,
     assigneeName: 'M. Chen',
     importanceWeight: 3,
     equityOwnerCount: 2,

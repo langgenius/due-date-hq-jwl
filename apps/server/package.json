@@ -33,6 +33,7 @@
     "hono": "catalog:",
     "pdf-lib": "catalog:",
     "pdfjs-dist": "catalog:",
+    "postal-mime": "catalog:",
     "resend": "catalog:",
     "zod": "catalog:"
   },

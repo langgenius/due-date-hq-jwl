@@ -36,6 +36,7 @@ Use the plus-address for each configured source when subscribing to official gov
 | Source ID                    | Subscription address pattern                                  | Expected result                                                  |
 | ---------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------- |
 | `ny.email_services`          | `pulse-ingest+ny-email-services@<inbound-domain>`             | Snapshot source is `ny.email_services`; queues extraction        |
+| `fed.irs_newswire`           | `pulse-ingest+fed-irs-newswire@<inbound-domain>`              | Snapshot source is `fed.irs_newswire`; queues extraction         |
 | `oh.temporary_announcements` | `pulse-ingest+oh-tax-alerts@<inbound-domain>`                 | Snapshot source is `oh.temporary_announcements`; queues          |
 | `fl.tips`                    | `pulse-ingest+fl-tax-publications@<inbound-domain>`           | Snapshot source is `fl.tips`; queues extraction                  |
 | `wa.news`                    | `pulse-ingest+wa-dor-news@<inbound-domain>`                   | Snapshot source is `wa.news`; queues extraction                  |
@@ -119,5 +120,8 @@ For deployed staging/prod, verify in this order:
 - Snapshot exists but no CPA Alert appears: check `parse_status` and the `pulse.extract.result`
   metric. `ignored` means the extractor found no regulatory change; `failed` needs the failure
   reason; `duplicate` should refresh firm alerts when it points to an approved Pulse.
+- IRS Newswire / GovDelivery messages are routed by the `USIRS` account code when present, even if
+  they arrived through another plus-address. The stored R2 artifact keeps both decoded canonical
+  email text for extraction and the raw RFC822 message for evidence review.
 - Unmatched volume increases: inspect sender, `List-ID`, and body URLs, then add or tighten source
   registry metadata only after confirming the source is official.

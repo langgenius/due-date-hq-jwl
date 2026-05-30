@@ -2001,6 +2001,9 @@ const previewObligations = os.rules.previewObligations.handler(async ({ input, c
     state: input.client.state,
     taxTypes: input.client.taxTypes,
   }
+  if (input.client.taxClassification !== undefined) {
+    generationClient.taxClassification = input.client.taxClassification
+  }
   if (input.client.taxYearType !== undefined) {
     generationClient.taxYearType = input.client.taxYearType
   }

@@ -55,7 +55,6 @@ import { AffectedClientsTable } from './components/AffectedClientsTable'
 // `aiConfidenceTier` / `isLowAiConfidence` helpers imported above.
 // `PulseConfidencePill` kept — still rendered in the drawer header.
 import { PulseConfidencePill } from './components/PulseConfidencePill'
-import { PulseReasonDialog } from './components/PulseReasonDialog'
 import { PulseDecisionStatusNotice } from './components/PulseReadinessStatus'
 import { PulseSourceBadge } from './components/PulseSourceBadge'
 import { PulseSourceStatusBadge } from './components/PulseSourceStatusBadge'
@@ -250,10 +249,6 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
   const [resetKey, setResetKey] = useState<string | null>(null)
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
   const [reviewNote, setReviewNote] = useState('')
-  // Reason capture for destructive Pulse actions (dismiss / snooze).
-  // The PDF guide flags reason-on-override as a core audit requirement.
-  const [reasonAction, setReasonAction] = useState<'dismiss' | 'snooze' | 'reviewed' | null>(null)
-  const [reasonText, setReasonText] = useState('')
   // 2026-05-26 (F-041 — Pulse deadline-shift verification gate):
   // Apply on a `due_date_overlay` alert opens a confirmation dialog
   // that surfaces the AI-extracted dates, source excerpt, and a
@@ -417,8 +412,6 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
     orpc.pulse.dismiss.mutationOptions({
       onSuccess: () => {
         toast.success(t`Alert dismissed`)
-        setReasonAction(null)
-        setReasonText('')
         invalidate()
         onClose()
       },
@@ -433,9 +426,7 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
   const snoozeMutation = useMutation(
     orpc.pulse.snooze.mutationOptions({
       onSuccess: () => {
-        toast.success(t`Alert snoozed`)
-        setReasonAction(null)
-        setReasonText('')
+        toast.success(t`Alert snoozed for 24h`)
         invalidate()
         onClose()
       },
@@ -451,8 +442,6 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
     orpc.pulse.markReviewed.mutationOptions({
       onSuccess: () => {
         toast.success(t`Pulse marked reviewed`)
-        setReasonAction(null)
-        setReasonText('')
         invalidate()
         onClose()
       },
@@ -1069,19 +1058,15 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
             reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
             isMutating={isMutating}
             onApply={handleApply}
-            onMarkReviewed={() => {
-              setReasonAction('reviewed')
-              setReasonText('')
-            }}
+            onMarkReviewed={() => markReviewedMutation.mutate({ alertId: detail.alert.id })}
             onApplyReviewed={() => applyReviewedMutation.mutate({ alertId: detail.alert.id })}
-            onDismiss={() => {
-              setReasonAction('dismiss')
-              setReasonText('')
-            }}
-            onSnooze={() => {
-              setReasonAction('snooze')
-              setReasonText('')
-            }}
+            onDismiss={() => dismissMutation.mutate({ alertId: detail.alert.id })}
+            onSnooze={() =>
+              snoozeMutation.mutate({
+                alertId: detail.alert.id,
+                until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              })
+            }
             onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
             onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
             onRequestReview={() => setReviewDialogOpen(true)}
@@ -1105,38 +1090,6 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
           ...(reviewNote.trim() ? { note: reviewNote } : {}),
         })
       }
-    />
-  ) : null
-
-  const reasonDialog = detail ? (
-    <PulseReasonDialog
-      action={reasonAction}
-      reason={reasonText}
-      pending={
-        dismissMutation.isPending || snoozeMutation.isPending || markReviewedMutation.isPending
-      }
-      onChangeReason={setReasonText}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen) {
-          setReasonAction(null)
-          setReasonText('')
-        }
-      }}
-      onSubmit={() => {
-        const trimmed = reasonText.trim()
-        if (!trimmed || !reasonAction) return
-        if (reasonAction === 'dismiss') {
-          dismissMutation.mutate({ alertId: detail.alert.id, reason: trimmed })
-        } else if (reasonAction === 'snooze') {
-          snoozeMutation.mutate({
-            alertId: detail.alert.id,
-            until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            reason: trimmed,
-          })
-        } else {
-          markReviewedMutation.mutate({ alertId: detail.alert.id, reason: trimmed })
-        }
-      }}
     />
   ) : null
 
@@ -1213,7 +1166,6 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
           {body}
         </aside>
         {reviewRequestDialog}
-        {reasonDialog}
         {applyVerificationDialog}
       </>
     )
@@ -1239,13 +1191,12 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
         {body}
       </SheetContent>
       {reviewRequestDialog}
-      {reasonDialog}
       {applyVerificationDialog}
     </Sheet>
   )
 }
 
-function DrawerActions({
+export function DrawerActions({
   alertStatus,
   sourceStatus,
   selectionCount,

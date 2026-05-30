@@ -100,6 +100,7 @@ test.describe('seeded obligations', () => {
     await expect(deadlineDrawer.getByRole('tab', { name: 'Extension' })).toBeVisible()
     await expect(deadlineDrawer.getByRole('tab', { name: /^Evidence\b/ })).toBeVisible()
 
+    await deadlineDrawer.getByRole('tab', { name: /^Materials\b/ }).click()
     const checklistItems = deadlineDrawer.getByRole('checkbox', {
       name: /^Select document .* for batch action$/,
     })
@@ -170,7 +171,7 @@ test.describe('seeded obligations', () => {
       authenticatedPage.getByRole('cell', { name: 'Assigned to you (E2E Owner)' }),
     ).toBeVisible()
 
-    await bulkActions.getByRole('button', { name: 'Clear selection' }).click()
+    await bulkActions.getByRole('button', { name: 'Clear selection' }).click({ force: true })
     await expect(bulkActions).toBeHidden()
     await obligationQueuePage.selectRow('Arbor & Vale LLC').click()
     await obligationQueuePage.selectRow('Northstar Dental Group').click()
