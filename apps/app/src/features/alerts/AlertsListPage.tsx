@@ -5,12 +5,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 import { AlertCircleIcon, CheckIcon, HistoryIcon, type LucideIcon } from 'lucide-react'
 
-import type {
-  PulseAlertPublic,
-  PulseChangeKind,
-  PulseFirmAlertStatus,
-  PulseSourceHealth,
-} from '@duedatehq/contracts'
+import type { PulseAlertPublic, PulseChangeKind, PulseSourceHealth } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -47,40 +42,26 @@ import {
 import { AlertCard } from './components/AlertCard'
 import { ALERT_STATUS_ICON } from './components/AlertStatusBadge'
 import { PulsingDot } from './components/PulsingDot'
-import { summarizeAlertSources } from './lib/source-health-labels'
 import {
   isAlertImpactFilter,
   matchesAlertImpactFilter,
   ALERT_IMPACT_FILTER_OPTIONS,
   type AlertImpactFilter,
 } from './lib/impact-filter'
+import {
+  ACTIVE_STATUS_FILTER_OPTIONS,
+  CHANGE_KIND_FILTER_OPTIONS,
+  HISTORY_STATUS_FILTER_OPTIONS,
+  isChangeKindFilter,
+  isStatusFilter,
+  matchesStatusFilter,
+  sourceLabel,
+  type AlertChangeKindFilter,
+  type AlertStatusFilter,
+} from './lib/alert-filters'
 
 // Status filters are scoped by surface: the active queue exposes only
 // active-workflow states, while history exposes CPA-handled states.
-const ACTIVE_STATUS_FILTER_OPTIONS = ['all', 'active', 'partially_applied'] as const
-const HISTORY_STATUS_FILTER_OPTIONS = [
-  'all',
-  'snoozed',
-  'partially_applied',
-  'applied',
-  'reviewed',
-  'reverted',
-  'dismissed',
-] as const
-type AlertStatusFilter =
-  | (typeof ACTIVE_STATUS_FILTER_OPTIONS)[number]
-  | (typeof HISTORY_STATUS_FILTER_OPTIONS)[number]
-const CHANGE_KIND_FILTER_OPTIONS = [
-  'all',
-  'deadline_shift',
-  'filing_requirement',
-  'applicability_scope',
-  'form_instruction',
-  'source_status',
-  'new_obligation',
-  'other',
-] as const
-type AlertChangeKindFilter = (typeof CHANGE_KIND_FILTER_OPTIONS)[number]
 const EMPTY_ALERTS: readonly PulseAlertPublic[] = []
 const EMPTY_SOURCES: readonly PulseSourceHealth[] = []
 
@@ -753,9 +734,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
 // Loading shimmer that matches the heartbeat language: warning-tone pulsing
 // dot on the lead row, then two ghost rows with mono shimmer bars. No solid
 // gray blocks — the page should look like it's listening, not waiting.
-function sourceLabel(sources: readonly PulseSourceHealth[]): string {
-  return summarizeAlertSources(sources, { emptyLabel: 'configured alert sources' })
-}
 
 // 2026-05-25 (Yuqi /alerts fifth pass — map in dropdown):
 // state-filter popover. Trigger sits inline with the other
@@ -948,23 +926,6 @@ function FilteredEmptyState() {
       <Trans>No alerts match these filters.</Trans>
     </StatusBanner>
   )
-}
-
-function isStatusFilter(
-  value: string,
-  options: readonly AlertStatusFilter[],
-): value is AlertStatusFilter {
-  return options.some((option) => option === value)
-}
-
-function isChangeKindFilter(value: string): value is AlertChangeKindFilter {
-  return CHANGE_KIND_FILTER_OPTIONS.some((option) => option === value)
-}
-
-function matchesStatusFilter(status: PulseFirmAlertStatus, filter: AlertStatusFilter): boolean {
-  if (filter === 'all') return true
-  if (filter === 'active') return status === 'matched'
-  return status === filter
 }
 
 function impactFilterLabel(filter: AlertImpactFilter): React.ReactNode {
