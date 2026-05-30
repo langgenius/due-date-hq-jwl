@@ -750,7 +750,7 @@ export async function requestPulseReview(input: {
         member.userId !== userId &&
         (member.role === 'owner' || member.role === 'partner' || member.role === 'manager'),
     )
-    const href = `/rules?tab=pulse&alert=${encodeURIComponent(alert.id)}`
+    const href = `/alerts?alert=${encodeURIComponent(alert.id)}`
     const subject = `Review requested: ${alert.title}`
     await Promise.all(
       recipients.map((recipient) =>

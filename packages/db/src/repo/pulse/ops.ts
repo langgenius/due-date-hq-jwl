@@ -296,7 +296,7 @@ export function makePulseOpsRepo(db: Db) {
             entityId: alert.id,
             title,
             body,
-            href: `/rules?tab=pulse&alert=${encodeURIComponent(alert.id)}`,
+            href: `/alerts?alert=${encodeURIComponent(alert.id)}`,
             metadataJson: {
               pulseId: approvedPulse.id,
               source: approvedPulse.source,

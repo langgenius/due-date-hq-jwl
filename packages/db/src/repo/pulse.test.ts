@@ -1432,7 +1432,7 @@ describe('makePulseOpsRepo', () => {
           type: 'pulse_alert',
           userId: 'owner-1',
           entityId: 'alert-1',
-          href: '/rules?tab=pulse&alert=alert-1',
+          href: '/alerts?alert=alert-1',
         }),
       ),
     ).toBe(true)
