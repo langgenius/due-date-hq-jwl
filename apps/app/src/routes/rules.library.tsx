@@ -2887,22 +2887,11 @@ function GroupHeaderRow({
         // "don't like state header to be gray"). Anchors by
         // typography (bigger semibold name) alone.
         //
-        // 2026-05-28 (Yuqi /rules/library polish #6 — "当列表展开
-        // 的时候，现在有点难分清每个state"): added a 2px deep top
-        // border that paints over the previous row's faint
-        // `border-b divider-subtle`. The combined ~2.5px solid line
-        // gives a clear visual break between an expanded
-        // jurisdiction's rule rows and the NEXT jurisdiction header,
-        // so the eye can find the next state at a glance even after
-        // a long scroll-through of expanded rules. The first
-        // GroupHeaderRow in the table doesn't need the top border
-        // (no preceding content to separate from), but rendering it
-        // there is harmless — the sticky TableHeader sits above it
-        // anyway. `border-t-2 border-divider-deep` chosen so the
-        // line lands at deep-gray (#171717 / 0.14 alpha) rather than
-        // pulling the page tint; it has to win against the rule
-        // row's border-b without competing with row text.
-        'h-14 cursor-pointer border-t-2 border-divider-deep hover:bg-state-base-hover',
+        // 2026-05-30 (Yuqi browser comment): TableRow already owns a
+        // single bottom hairline. Do not add a top border here; adjacent
+        // rows would render bottom + top separators and make the state
+        // list look double-ruled.
+        'h-14 cursor-pointer hover:bg-state-base-hover',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onToggle(group.jurisdiction)}
