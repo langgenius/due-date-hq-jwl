@@ -6,6 +6,7 @@ import * as clientsSchema from './schema/clients'
 import * as dashboardSchema from './schema/dashboard'
 import * as firmSchema from './schema/firm'
 import * as migrationSchema from './schema/migration'
+import * as mutationLockSchema from './schema/mutation-lock'
 import * as notificationsSchema from './schema/notifications'
 import * as obligationsSchema from './schema/obligations'
 import * as opportunitiesSchema from './schema/opportunities'
@@ -23,6 +24,7 @@ const schema = {
   ...dashboardSchema,
   ...firmSchema,
   ...migrationSchema,
+  ...mutationLockSchema,
   ...notificationsSchema,
   ...obligationsSchema,
   ...opportunitiesSchema,
