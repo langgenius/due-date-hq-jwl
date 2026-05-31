@@ -4171,8 +4171,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'ak.temporary_announcements',
     jurisdiction: 'AK',
-    title: 'Alaska Department of Revenue Press Releases',
-    url: 'https://dor.alaska.gov/archived-press-releases',
+    title: 'Alaska Tax Division News',
+    url: 'https://tax.alaska.gov/programs/whatsnew.aspx',
   },
   {
     id: 'al.temporary_announcements',
@@ -4385,10 +4385,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'nh.temporary_announcements',
     jurisdiction: 'NH',
-    title: 'New Hampshire DRA Technical Information Releases',
-    url: 'https://www.revenue.nh.gov/tirs',
-    acquisitionMethod: 'pdf_watch',
-    adapterKind: 'pdf_index',
+    title: 'New Hampshire DRA News and Media',
+    url: 'https://www.revenue.nh.gov/news-and-media',
   },
   {
     id: 'nj.temporary_announcements',
@@ -4527,10 +4525,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'vt.temporary_announcements',
     jurisdiction: 'VT',
-    title: 'Vermont Department of Taxes Technical Bulletins',
-    url: 'https://tax.vermont.gov/tax-law-and-guidance/technical-bulletins',
-    acquisitionMethod: 'pdf_watch',
-    adapterKind: 'pdf_index',
+    title: 'Vermont Department of Taxes News',
+    url: 'https://tax.vermont.gov/news',
   },
   {
     id: 'wa.temporary_announcements',
@@ -4553,10 +4549,12 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'wy.temporary_announcements',
     jurisdiction: 'WY',
-    title: 'Wyoming DOR Rules and Regulations',
-    url: 'https://revenue.wyo.gov/rules-and-regulations',
+    title: 'Wyoming Excise Tax Division Taxing Issues',
+    url: 'https://excise-tax-div.wyo.gov/newsletter-taxing-issues',
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
+    sourceNotes:
+      'Sales, use, lodging, and excise tax update newsletter; not a disaster relief signal.',
   },
 ] as const
 

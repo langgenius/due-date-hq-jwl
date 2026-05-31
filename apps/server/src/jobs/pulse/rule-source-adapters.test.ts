@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { PDFDocument, StandardFonts } from 'pdf-lib'
 import {
   isParserBackedRuleSource,
   listHiddenPolicyWatchSources,
@@ -28,6 +29,22 @@ import {
 } from './rule-source-adapters'
 
 describe('rule source adapters', () => {
+  async function createPdfBytes(text: string): Promise<ArrayBuffer> {
+    const pdf = await PDFDocument.create()
+    const page = pdf.addPage([500, 160])
+    const font = await pdf.embedFont(StandardFonts.Helvetica)
+    page.drawText(text, {
+      x: 24,
+      y: 96,
+      size: 12,
+      font,
+    })
+    const bytes = await pdf.save()
+    const buffer = new ArrayBuffer(bytes.byteLength)
+    new Uint8Array(buffer).set(bytes)
+    return buffer
+  }
+
   it('adds adapters for parser-backed candidate-review rule sources without duplicating live adapters', () => {
     const liveIds = new Set(livePulseAdapters.map((adapter) => adapter.id))
     const candidateReviewSources = listRuleSources()
@@ -156,6 +173,10 @@ describe('rule source adapters', () => {
     )
     expect(signalItems).toEqual([])
 
+    const taxUpdatePdfBytes = await createPdfBytes(
+      'PA Tax Update changes quarterly filing guidance',
+    )
+    const fetchedPdfUrls: string[] = []
     const taxUpdateItems = await pdfAdapter.parse(
       {
         sourceId: pdfSource.id,
@@ -168,18 +189,27 @@ describe('rule source adapters', () => {
         body: '<main><a href="/content/dam/copapwp-pagov/en/revenue/documents/tax-update/2026/pa-tax-update-march-april-2026.pdf">PA Tax Update - March/April 2026</a></main>',
       },
       {
-        fetch: async () => new Response(''),
+        fetch: async (input) => {
+          fetchedPdfUrls.push(String(input))
+          return new Response(taxUpdatePdfBytes, {
+            headers: { 'content-type': 'application/pdf' },
+          })
+        },
         async archiveRaw() {
           return { r2Key: 'unused', contentHash: 'unused' }
         },
       },
     )
+    expect(fetchedPdfUrls).toEqual([
+      'https://www.pa.gov/content/dam/copapwp-pagov/en/revenue/documents/tax-update/2026/pa-tax-update-march-april-2026.pdf',
+    ])
     expect(taxUpdateItems[0]).toMatchObject({
       sourceId: 'policy-watch.pa.announcements',
       title: 'PA Tax Update - March/April 2026',
       officialSourceUrl:
         'https://www.pa.gov/content/dam/copapwp-pagov/en/revenue/documents/tax-update/2026/pa-tax-update-march-april-2026.pdf',
     })
+    expect(taxUpdateItems[0]?.rawText).toContain('quarterly filing guidance')
   })
 
   it('adds web-first temporary announcement adapters through the aggregate feed interface', async () => {
@@ -215,6 +245,33 @@ describe('rule source adapters', () => {
       adapterKind: 'rss_or_announcement_list',
       feedUrl: 'https://azdor.gov/news-center',
     })
+    expect(
+      sources.find((candidate) => candidate.id === 'ak.temporary_announcements'),
+    ).toMatchObject({
+      title: 'Alaska Tax Division News',
+      url: 'https://tax.alaska.gov/programs/whatsnew.aspx',
+    })
+    expect(
+      sources.find((candidate) => candidate.id === 'nh.temporary_announcements'),
+    ).toMatchObject({
+      title: 'New Hampshire DRA News and Media',
+      url: 'https://www.revenue.nh.gov/news-and-media',
+      acquisitionMethod: 'html_watch',
+    })
+    expect(
+      sources.find((candidate) => candidate.id === 'vt.temporary_announcements'),
+    ).toMatchObject({
+      title: 'Vermont Department of Taxes News',
+      url: 'https://tax.vermont.gov/news',
+      acquisitionMethod: 'html_watch',
+    })
+    expect(
+      sources.find((candidate) => candidate.id === 'wy.temporary_announcements'),
+    ).toMatchObject({
+      title: 'Wyoming Excise Tax Division Taxing Issues',
+      url: 'https://excise-tax-div.wyo.gov/newsletter-taxing-issues',
+      adapterKind: 'html_announcement_list',
+    })
     const items = await createTemporaryAnnouncementAdapter(source).parse(
       {
         sourceId: source.id,
@@ -240,6 +297,57 @@ describe('rule source adapters', () => {
       officialSourceUrl: 'https://azdor.gov/news/tpt-filer',
       jurisdiction: 'AZ',
     })
+  })
+
+  it('extracts Wyoming Taxing Issues PDF text through the temporary adapter', async () => {
+    const source = listRuleSources().find(
+      (candidate) => candidate.id === 'wy.temporary_announcements',
+    )!
+    const pdfBytes = await createPdfBytes('Wyoming sales tax due date guidance changed')
+    const fetchedUrls: string[] = []
+
+    const items = await createTemporaryAnnouncementAdapter(source).parse(
+      {
+        sourceId: source.id,
+        fetchedAt: new Date('2026-06-01T00:00:00.000Z'),
+        contentHash: 'hash',
+        r2Key: 'raw.html',
+        contentType: 'text/html',
+        etag: null,
+        lastModified: null,
+        body: [
+          '<a href="https://excise-tax-div.wyo.gov/salesuselodging-tax/salesuselodging-returns">Returns</a>',
+          '<a href="https://drive.google.com/file/d/1VrvUS6LeG1m3g3IeGJ9DW1zwlAtkfdqU/view?usp=drive_link">03-2026 Taxing Issues</a>',
+        ].join(''),
+      },
+      {
+        async fetch(input) {
+          fetchedUrls.push(String(input))
+          return new Response(pdfBytes, {
+            headers: {
+              'content-type': 'application/octet-stream',
+              'content-disposition': 'attachment; filename="03-2026Taxing Issues.pdf"',
+            },
+          })
+        },
+        async archiveRaw() {
+          return { r2Key: 'unused', contentHash: 'unused' }
+        },
+      },
+    )
+
+    expect(fetchedUrls).toEqual([
+      'https://drive.google.com/uc?export=download&id=1VrvUS6LeG1m3g3IeGJ9DW1zwlAtkfdqU',
+    ])
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      sourceId: 'wy.temporary_announcements',
+      title: '03-2026 Taxing Issues',
+      officialSourceUrl: 'https://drive.google.com/file/d/1VrvUS6LeG1m3g3IeGJ9DW1zwlAtkfdqU/view',
+      publishedAt: new Date('2026-03-01T00:00:00.000Z'),
+      jurisdiction: 'WY',
+    })
+    expect(items[0]?.rawText).toContain('Wyoming sales tax due date guidance')
   })
 
   it('promotes parser-backed manual-review and PDF sources as due-date candidate adapters', () => {

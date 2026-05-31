@@ -13,11 +13,11 @@ import {
   type RuleJurisdiction,
   type SourceAdapterKind,
 } from '@duedatehq/core/rules'
-import { announcementItemsFromSnapshot } from '@duedatehq/ingest'
+import { announcementItemsFromSnapshotWithPdfLinks } from '@duedatehq/ingest'
 import { fetchTextSnapshot, stableExternalId, textExcerpt } from '@duedatehq/ingest/http'
 import { livePulseAdapters } from '@duedatehq/ingest/adapters'
 import { stripHtml } from '@duedatehq/ingest/selectors'
-import type { ParsedItem, SourceAdapter } from '@duedatehq/ingest/types'
+import type { IngestCtx, ParsedItem, SourceAdapter } from '@duedatehq/ingest/types'
 
 const EXISTING_ADAPTER_IDS = new Set(livePulseAdapters.map((adapter) => adapter.id))
 const SOURCE_INDEX_IDS = new Set([
@@ -623,22 +623,24 @@ function parsedItemsForRuleSourceSnapshot(
   adapterKind: SourceAdapterKind | null,
   body: string,
   fetchedAt: Date,
-): ParsedItem[] {
+  ctx: Pick<IngestCtx, 'fetch' | 'binaryFetch'>,
+): Promise<ParsedItem[]> {
   const isAnnouncementIndex =
     adapterKind === 'rss_or_announcement_list' ||
     adapterKind === 'html_announcement_list' ||
     adapterKind === 'pdf_index'
   if (isAnnouncementIndex) {
-    return announcementItemsFromSnapshot(
+    return announcementItemsFromSnapshotWithPdfLinks(
       sourceConfigForRuleSource(source),
       { body, fetchedAt },
+      ctx,
       {
         fallbackToSourceSnapshot: false,
       },
     )
   }
 
-  return [parsedItemForSourceSnapshot(source, body, fetchedAt)]
+  return Promise.resolve([parsedItemForSourceSnapshot(source, body, fetchedAt)])
 }
 
 export function isRuleSourcePulsePromoted(source: RuleSource): boolean {
@@ -663,13 +665,14 @@ export function createRuleSourceAdapter(source: RuleSource): SourceAdapter {
     async fetch(ctx) {
       return [await fetchTextSnapshot(ctx, { sourceId: source.id, url: sourceFetchUrl(source) })]
     },
-    async parse(snapshot) {
+    async parse(snapshot, ctx) {
       if (snapshot.notModified) return []
       return parsedItemsForRuleSourceSnapshot(
         source,
         adapterKind,
         snapshot.body,
         snapshot.fetchedAt,
+        ctx,
       )
     },
   }
@@ -686,11 +689,16 @@ export function createTemporaryAnnouncementAdapter(source: RuleSource): SourceAd
     async fetch(ctx) {
       return [await fetchTextSnapshot(ctx, { sourceId: source.id, url: sourceFetchUrl(source) })]
     },
-    async parse(snapshot) {
+    async parse(snapshot, ctx) {
       if (snapshot.notModified) return []
-      return announcementItemsFromSnapshot({ ...source, url: sourceFetchUrl(source) }, snapshot, {
-        fallbackToSourceSnapshot: false,
-      })
+      return announcementItemsFromSnapshotWithPdfLinks(
+        { ...source, url: sourceFetchUrl(source) },
+        snapshot,
+        ctx,
+        {
+          fallbackToSourceSnapshot: false,
+        },
+      )
     },
   }
 }
@@ -717,9 +725,9 @@ export function createPolicyWatchAdapter(source: PolicyWatchSource): SourceAdapt
         }),
       ]
     },
-    async parse(snapshot) {
+    async parse(snapshot, ctx) {
       if (snapshot.notModified) return []
-      return announcementItemsFromSnapshot(
+      return announcementItemsFromSnapshotWithPdfLinks(
         {
           id: source.id,
           title: source.title,
@@ -727,6 +735,7 @@ export function createPolicyWatchAdapter(source: PolicyWatchSource): SourceAdapt
           jurisdiction: source.jurisdiction,
         },
         snapshot,
+        ctx,
         { fallbackToSourceSnapshot: !isAutomatedAlertSource && !isAnnouncementIndex },
       )
     },

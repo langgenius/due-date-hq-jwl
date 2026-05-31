@@ -10,6 +10,7 @@ export interface SourceStateHint {
 
 export interface IngestCtx {
   fetch(this: void, input: string | URL, init?: RequestInit): Promise<Response>
+  binaryFetch?(this: void, input: string | URL, init?: RequestInit): Promise<Response>
   browserlessFetch?(this: void, input: string | URL, init?: RequestInit): Promise<Response>
   govdeliveryFetch?(this: void, input: string | URL, init?: RequestInit): Promise<Response>
   getSourceState?(sourceId: string): Promise<SourceStateHint | null>

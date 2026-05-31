@@ -94,6 +94,10 @@ GovDelivery 属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` ca
   版面证据不足时启用。该 fallback 仍不能自动修改客户 deadline；如果识别出 due-date change，
   也必须先进入 CPA-facing Alert 并通过 `applyReadiness` gate。启用该 fallback 前，需要把原始
   PDF binary 一并归档到 R2，保留可审计 source artifact。
+- Announcement / PDF index page 不只把 PDF 链接文字送给 AI。Parser 会先筛选 tax-relevant
+  PDF candidate，下载候选 PDF，使用同一套 `pdfjs-dist` 文本抽取，再把正文作为
+  `pulse_source_snapshot.rawText` 进入 `pulse.extract`。Google Drive `file/d/<id>/view`
+  链接会规范化为 download URL 抓取，但 Alert 的 `officialSourceUrl` 保留人可打开的 view URL。
 
 ---
 

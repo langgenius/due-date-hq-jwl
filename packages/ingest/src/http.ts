@@ -35,8 +35,48 @@ export function textExcerpt(text: string, max = 6000): string {
   return text.replace(/\s+/g, ' ').trim().slice(0, max)
 }
 
-function isPdfSourceResponse(contentType: string, url: string): boolean {
-  return contentType.includes('application/pdf') || /\.pdf(?:[?#]|$)/i.test(url)
+function contentDispositionHasPdfFilename(contentDisposition: string | null): boolean {
+  return /filename\*?=(?:UTF-8''|")?[^";]+\.pdf(?:[";]|$)/i.test(contentDisposition ?? '')
+}
+
+export function isPdfSourceResponse(input: {
+  contentType: string
+  url: string
+  contentDisposition?: string | null
+}): boolean {
+  return (
+    input.contentType.includes('application/pdf') ||
+    /\.pdf(?:[?#]|$)/i.test(input.url) ||
+    contentDispositionHasPdfFilename(input.contentDisposition ?? null)
+  )
+}
+
+export async function readSourceResponseText(
+  response: Response,
+  input: { sourceId: string; url: string },
+): Promise<{ body: string; contentType: string | null; isPdf: boolean }> {
+  const contentType = response.headers.get('content-type') ?? ''
+  const isPdf = isPdfSourceResponse({
+    contentType,
+    url: input.url,
+    contentDisposition: response.headers.get('content-disposition'),
+  })
+  if (!isPdf) {
+    return {
+      body: await response.text(),
+      contentType: response.headers.get('content-type'),
+      isPdf: false,
+    }
+  }
+
+  const text = await response.arrayBuffer().then(extractPdfText)
+  if (!text) throw new Error(`Pulse source PDF text extraction failed for ${input.sourceId}`)
+
+  return {
+    body: text,
+    contentType: 'text/plain; charset=utf-8',
+    isPdf: true,
+  }
 }
 
 function pathDisallowedByRobots(robots: string, userAgent: string, path: string): boolean {
@@ -119,36 +159,22 @@ export async function fetchTextSnapshot(
     throw new Error(`Pulse source fetch failed for ${input.sourceId}: ${response.status}`)
   }
 
-  const contentType = response.headers.get('content-type') ?? ''
-  const body = isPdfSourceResponse(contentType, input.url)
-    ? await response
-        .arrayBuffer()
-        .then(extractPdfText)
-        .then((text) => {
-          if (!text)
-            throw new Error(`Pulse source PDF text extraction failed for ${input.sourceId}`)
-          return text
-        })
-    : await response.text()
+  const parsedBody = await readSourceResponseText(response, input)
   const archived = await ctx.archiveRaw({
     sourceId: input.sourceId,
     externalId,
     fetchedAt,
-    body,
-    contentType: isPdfSourceResponse(contentType, input.url)
-      ? 'text/plain; charset=utf-8'
-      : response.headers.get('content-type'),
+    body: parsedBody.body,
+    contentType: parsedBody.contentType,
   })
 
   return {
     sourceId: input.sourceId,
     fetchedAt,
-    body,
+    body: parsedBody.body,
     contentHash: archived.contentHash,
     r2Key: archived.r2Key,
-    contentType: isPdfSourceResponse(contentType, input.url)
-      ? 'text/plain; charset=utf-8'
-      : response.headers.get('content-type'),
+    contentType: parsedBody.contentType,
     etag: response.headers.get('etag'),
     lastModified: response.headers.get('last-modified'),
   }

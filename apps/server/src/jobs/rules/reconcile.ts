@@ -12,8 +12,9 @@ import {
   type ObligationRule,
   type RuleSource,
 } from '@duedatehq/core/rules'
-import { announcementItemsFromSnapshot } from '@duedatehq/ingest'
+import { announcementItemsFromSnapshotWithPdfLinks } from '@duedatehq/ingest'
 import { fetchTextSnapshot } from '@duedatehq/ingest/http'
+import type { IngestCtx } from '@duedatehq/ingest/types'
 import type { Env } from '../../env'
 import {
   cachedConcreteDraftKey,
@@ -241,19 +242,21 @@ export async function consumePulseRuleSourceScan(
   }
 
   try {
-    const fetched = await fetchTextSnapshot(
-      {
-        fetch,
-        getSourceState: async (sourceId) => {
-          const currentState = await pulseOps.getSourceState(sourceId)
-          return currentState
-            ? { etag: currentState.etag, lastModified: currentState.lastModified }
-            : null
-        },
-        archiveRaw: (input) => archivePulseRaw(env, input),
+    const ingestCtx: IngestCtx = {
+      fetch,
+      binaryFetch: fetch,
+      getSourceState: async (sourceId) => {
+        const currentState = await pulseOps.getSourceState(sourceId)
+        return currentState
+          ? { etag: currentState.etag, lastModified: currentState.lastModified }
+          : null
       },
-      { sourceId: source.id, url: sourceFetchUrl(source) },
-    )
+      archiveRaw: (input) => archivePulseRaw(env, input),
+    }
+    const fetched = await fetchTextSnapshot(ingestCtx, {
+      sourceId: source.id,
+      url: sourceFetchUrl(source),
+    })
     const checkedAt = fetched.fetchedAt
 
     if (fetched.notModified) {
@@ -272,7 +275,11 @@ export async function consumePulseRuleSourceScan(
     }
 
     const announcementItems = isTemporaryAnnouncementSource(source)
-      ? announcementItemsFromSnapshot({ ...source, url: sourceFetchUrl(source) }, fetched)
+      ? await announcementItemsFromSnapshotWithPdfLinks(
+          { ...source, url: sourceFetchUrl(source) },
+          fetched,
+          ingestCtx,
+        )
       : []
     const snapshotResults =
       announcementItems.length > 0

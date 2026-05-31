@@ -198,6 +198,30 @@ describe('@duedatehq/core/rules', () => {
         )
       }
     }
+
+    expect(sourcesById.get('ak.temporary_announcements')).toMatchObject({
+      title: 'Alaska Tax Division News',
+      url: 'https://tax.alaska.gov/programs/whatsnew.aspx',
+      acquisitionMethod: 'html_watch',
+    })
+    expect(sourcesById.get('nh.temporary_announcements')).toMatchObject({
+      title: 'New Hampshire DRA News and Media',
+      url: 'https://www.revenue.nh.gov/news-and-media',
+      acquisitionMethod: 'html_watch',
+    })
+    expect(sourcesById.get('vt.temporary_announcements')).toMatchObject({
+      title: 'Vermont Department of Taxes News',
+      url: 'https://tax.vermont.gov/news',
+      acquisitionMethod: 'html_watch',
+    })
+    expect(sourcesById.get('wy.temporary_announcements')).toMatchObject({
+      title: 'Wyoming Excise Tax Division Taxing Issues',
+      url: 'https://excise-tax-div.wyo.gov/newsletter-taxing-issues',
+      acquisitionMethod: 'html_watch',
+      adapterKind: 'html_announcement_list',
+      sourceNotes:
+        'Sales, use, lodging, and excise tax update newsletter; not a disaster relief signal.',
+    })
   })
 
   it('keeps national policy-watch coverage complete while hiding internal watch sources', () => {
@@ -323,13 +347,13 @@ describe('@duedatehq/core/rules', () => {
     })
     expect(rowsBySourceId.get('policy-watch.nh.announcements')).toMatchObject({
       quality: 'parser_ready',
-      url: 'https://www.revenue.nh.gov/tirs',
-      adapterKind: 'pdf_index',
+      url: 'https://www.revenue.nh.gov/news-and-media',
+      adapterKind: null,
     })
     expect(rowsBySourceId.get('policy-watch.vt.announcements')).toMatchObject({
       quality: 'parser_ready',
-      url: 'https://tax.vermont.gov/tax-law-and-guidance/technical-bulletins',
-      adapterKind: 'pdf_index',
+      url: 'https://tax.vermont.gov/news',
+      adapterKind: null,
     })
     expect(rowsBySourceId.get('policy-watch.pa.announcements')).toMatchObject({
       quality: 'parser_ready',
@@ -343,7 +367,7 @@ describe('@duedatehq/core/rules', () => {
     })
     expect(rowsBySourceId.get('policy-watch.wy.announcements')).toMatchObject({
       quality: 'parser_ready',
-      url: 'https://revenue.wyo.gov/rules-and-regulations',
+      url: 'https://excise-tax-div.wyo.gov/newsletter-taxing-issues',
       adapterKind: 'html_announcement_list',
     })
 

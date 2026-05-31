@@ -372,6 +372,7 @@ function createPulseIngestCtx(
   const browserlessSourceIds = parseSourceIdList(env.PULSE_BROWSERLESS_SOURCE_IDS)
   const ctx: IngestCtx = {
     fetch: createPoliteFetch(fetch),
+    binaryFetch: createPoliteFetch(fetch),
     ...(browserlessFetch ? { browserlessFetch } : {}),
     getSourceState: async (sourceId) => {
       const state = await repo.getSourceState(sourceId)

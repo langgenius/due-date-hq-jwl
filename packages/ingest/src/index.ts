@@ -26,13 +26,26 @@ export {
 } from './adapters'
 export { createSourceFetcherRegistry, type IngestFetch } from './fetcher'
 export {
+  announcementItemsFromSnapshotWithPdfLinks,
   announcementItemsFromHtml,
   announcementItemsFromSnapshot,
   linkLooksTaxAnnouncementRelevant,
+  pdfAnnouncementItemsFromLinks,
   sourceSnapshotAnnouncementItem,
+  type AnnouncementLink,
+  type AnnouncementParseOptions,
   type AnnouncementSourceConfig,
+  type PdfAnnouncementLinkParseOptions,
 } from './announcements'
-export { DEFAULT_HEADERS, RATE_LIMIT, fetchTextSnapshot, hashText, stableExternalId } from './http'
+export {
+  DEFAULT_HEADERS,
+  RATE_LIMIT,
+  fetchTextSnapshot,
+  hashText,
+  isPdfSourceResponse,
+  readSourceResponseText,
+  stableExternalId,
+} from './http'
 export { extractPdfText } from './pdf'
 export { runFixtureAdapter, snapshotFromFixture } from './fixtures'
 export { parseRssItems, parsedItemsFromRss, type RssFeedItem } from './rss'
