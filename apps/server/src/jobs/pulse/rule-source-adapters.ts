@@ -44,7 +44,7 @@ const TEMPORARY_ANNOUNCEMENT_ADAPTER_METHODS = new Set<RuleSource['acquisitionMe
 ])
 
 export type AlertSourceCoverageStatus = 'covered' | 'missing_source'
-export type AlertSourceParserStatus = 'web_primary' | 'fallback_only' | 'missing_source'
+export type AlertSourceParserStatus = 'web_primary' | 'email_signal_only' | 'missing_source'
 
 export interface AlertSourceAdapterMetadata {
   sourceId: string
@@ -53,7 +53,7 @@ export interface AlertSourceAdapterMetadata {
   purpose: AlertSourcePurpose
   tier: SourceAdapter['tier']
   primaryWeb: boolean
-  fallbackForSourceIds: readonly string[]
+  relatedSourceIds: readonly string[]
 }
 
 export interface AlertSourceCoverage {
@@ -62,7 +62,7 @@ export interface AlertSourceCoverage {
   parserStatus: AlertSourceParserStatus
   explicitLiveSourceIds: readonly string[]
   primaryWebSourceIds: readonly string[]
-  fallbackEmailSourceIds: readonly string[]
+  emailSignalSourceIds: readonly string[]
   ruleSourceWatchIds: readonly string[]
   hiddenPolicyWatchSourceIds: readonly string[]
   sourceIds: readonly string[]
@@ -93,9 +93,9 @@ const FEDERAL_EXPLICIT_LIVE_ADAPTER_IDS = new Set([
   'fema.declarations',
 ])
 
-const FALLBACK_EMAIL_SOURCE_IDS = new Set(
+const EMAIL_SIGNAL_SOURCE_IDS = new Set(
   listRuleSources()
-    .filter((source) => source.alertPurpose === 'email_fallback' || source.inboundEmail)
+    .filter((source) => source.alertPurpose === 'email_signal' || source.inboundEmail)
     .map((source) => source.id),
 )
 
@@ -333,7 +333,7 @@ export function isRuleSourceAdapterEligible(source: RuleSource): boolean {
 
 export function isTemporaryAnnouncementAdapterEligible(source: RuleSource): boolean {
   if (!isTemporaryAnnouncementSource(source)) return false
-  if (source.alertPurpose === 'email_fallback') return false
+  if (source.alertPurpose === 'email_signal') return false
   if (!isCoveredTemporaryAnnouncementSource(source)) return false
   if (!TEMPORARY_ANNOUNCEMENT_ADAPTER_METHODS.has(source.acquisitionMethod)) return false
   if (
@@ -379,7 +379,7 @@ function explicitLiveAdapterMetadata(adapter: SourceAdapter): AlertSourceAdapter
     purpose: 'explicit_live_adapter',
     tier: adapter.tier,
     primaryWeb: true,
-    fallbackForSourceIds: [],
+    relatedSourceIds: [],
   }
 }
 
@@ -395,7 +395,7 @@ function ruleSourceAdapterMetadata(
     purpose,
     tier: adapter.tier,
     primaryWeb: source ? sourceIsPrimaryWeb(source) : adapter.fetcher !== 'govdelivery',
-    fallbackForSourceIds: source?.inboundEmail ? [source.id] : [],
+    relatedSourceIds: source?.inboundEmail ? [source.id] : [],
   }
 }
 
@@ -408,7 +408,7 @@ function hiddenPolicyWatchAdapterMetadata(adapter: SourceAdapter): AlertSourceAd
     purpose: 'hidden_policy_watch',
     tier: adapter.tier,
     primaryWeb: source ? source.acquisitionMethod !== 'email_subscription' : true,
-    fallbackForSourceIds: source?.derivedFromSourceIds ?? [],
+    relatedSourceIds: source?.derivedFromSourceIds ?? [],
   }
 }
 
@@ -425,7 +425,7 @@ export const alertSourceAdapterMetadataById = new Map(
   alertSourceAdapterMetadata.map((metadata) => [metadata.sourceId, metadata]),
 )
 
-export const fallbackEmailAlertSourceIds = FALLBACK_EMAIL_SOURCE_IDS
+export const emailSignalAlertSourceIds = EMAIL_SIGNAL_SOURCE_IDS
 
 export const reviewOnlyPulseSourceIds = new Set([
   'fema.declarations',
@@ -491,8 +491,8 @@ export function listAlertSourceCoverage(
           source.purpose !== 'hidden_policy_watch',
       )
       .map((source) => source.sourceId)
-    const fallbackEmailIds = listRuleSources(currentJurisdiction)
-      .filter((source) => source.alertPurpose === 'email_fallback' || source.inboundEmail)
+    const emailSignalIds = listRuleSources(currentJurisdiction)
+      .filter((source) => source.alertPurpose === 'email_signal' || source.inboundEmail)
       .map((source) => source.id)
     const ruleSourceWatchIds = coverageSourceIdsForJurisdiction(
       currentJurisdiction,
@@ -505,7 +505,7 @@ export function listAlertSourceCoverage(
     const sourceIds = uniqueStrings([
       ...explicitLiveSourceIds,
       ...primaryWebSourceIds,
-      ...fallbackEmailIds,
+      ...emailSignalIds,
       ...ruleSourceWatchIds,
       ...hiddenPolicyWatchIds,
     ])
@@ -513,8 +513,8 @@ export function listAlertSourceCoverage(
     const parserStatus =
       primaryWebSourceIds.length > 0
         ? 'web_primary'
-        : fallbackEmailIds.length > 0
-          ? 'fallback_only'
+        : emailSignalIds.length > 0
+          ? 'email_signal_only'
           : 'missing_source'
     return {
       jurisdiction: currentJurisdiction,
@@ -522,14 +522,14 @@ export function listAlertSourceCoverage(
       parserStatus,
       explicitLiveSourceIds,
       primaryWebSourceIds: uniqueStrings(primaryWebSourceIds),
-      fallbackEmailSourceIds: fallbackEmailIds,
+      emailSignalSourceIds: emailSignalIds,
       ruleSourceWatchIds,
       hiddenPolicyWatchSourceIds: hiddenPolicyWatchIds,
       sourceIds,
       missingReason:
         status === 'covered'
           ? null
-          : 'No official Alert source, rule-source watch, or email fallback is registered.',
+          : 'No official Alert source, rule-source watch, or email signal is registered.',
     }
   })
 }

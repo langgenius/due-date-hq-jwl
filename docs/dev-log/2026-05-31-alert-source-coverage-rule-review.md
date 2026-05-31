@@ -7,14 +7,15 @@ adapter count as coverage.
 ## Changes
 
 - Added explicit source purposes: `explicit_live_adapter`, `temporary_announcements_or_news`,
-  `rule_source_watch`, `email_fallback`, and `hidden_policy_watch`.
+  `rule_source_watch`, `email_signal`, and `hidden_policy_watch`.
 - Expanded web-first announcement adapters beyond the old API/RSS-only set so 50 states + DC have
-  official temporary/news coverage in the Alert pipeline; GovDelivery metadata remains fallback.
+  official temporary/news coverage in the Alert pipeline; GovDelivery/email subscriptions remain
+  parallel email signals.
 - Added Ohio The Finder Sales Tax Rates and Changes as the primary Ohio web signal; Ohio Tax Alerts
-  GovDelivery remains an email fallback.
+  GovDelivery remains a parallel email signal.
 - Added IRS Tax Tips as a T2 federal live adapter; FED coverage now includes IRS disaster, newsroom,
-  guidance, tax tips, FEMA, and IRS Newswire fallback.
-- Added `pulse.listAlertSourceCoverage`, including primary web source IDs, fallback email source
+  guidance, tax tips, FEMA, and IRS Newswire email signal.
+- Added `pulse.listAlertSourceCoverage`, including primary web source IDs, email signal source
   IDs, rule-source watch IDs, hidden policy-watch IDs, and last source-health timestamps.
 - Forced non-`deadline_shift` extracts into `review_only` mode so source/rule status changes cannot
   apply due-date overlays.
@@ -26,7 +27,8 @@ adapter count as coverage.
 - `pnpm --filter @duedatehq/server test -- src/jobs/pulse/rule-source-adapters.test.ts src/jobs/pulse/extract.test.ts src/procedures/pulse/index.test.ts src/procedures/rules/concrete-draft.test.ts`
 - `pnpm --filter @duedatehq/contracts test -- src/contracts.test.ts`
 - Coverage probe: 52/52 jurisdictions covered, 52/52 web-primary, 69 Alert watch adapters, 266
-  rule-source watch adapters, 335 visible Alert source adapters.
+  rule-source watch adapters, 335 visible Alert source adapters, 7 rows with parallel email
+  signals.
 - `pnpm rules:check-sources` still exits 1 because `nh.temporary_announcements` returns HTTP 403.
   Notable skipped smoke rows include AZ/MI/RI 403 adapter fetches, KS/ND/OH The Finder timeouts,
   and NV no parsed announcement candidates.

@@ -176,7 +176,7 @@ export type AlertSourcePurpose =
   | 'explicit_live_adapter'
   | 'temporary_announcements_or_news'
   | 'rule_source_watch'
-  | 'email_fallback'
+  | 'email_signal'
   | 'hidden_policy_watch'
 
 export interface RuleSource {
@@ -4540,7 +4540,7 @@ const TEMPORARY_ANNOUNCEMENT_RULE_SOURCES = STATE_TEMPORARY_ANNOUNCEMENT_SOURCES
       authorityRole: 'watch',
       alertPurpose:
         source.acquisitionMethod === 'email_subscription'
-          ? 'email_fallback'
+          ? 'email_signal'
           : 'temporary_announcements_or_news',
       notificationChannels: ['source_change', 'practice_rule_review'],
       lastReviewedOn: VERIFIED_AT,
@@ -4620,7 +4620,7 @@ function defaultSourceAuthorityRole(source: RuleSourceSeedRecord): RuleEvidenceA
 function defaultSourceAlertPurpose(source: RuleSourceSeedRecord): AlertSourcePurpose {
   if (source.alertPurpose) return source.alertPurpose
   if (source.acquisitionMethod === 'email_subscription' || source.adapterKind === 'email_inbound') {
-    return 'email_fallback'
+    return 'email_signal'
   }
   const authorityRole = source.authorityRole ?? defaultSourceAuthorityRole(source)
   if (authorityRole === 'watch') return 'temporary_announcements_or_news'

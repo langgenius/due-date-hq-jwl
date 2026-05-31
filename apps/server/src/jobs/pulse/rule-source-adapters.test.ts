@@ -304,7 +304,7 @@ describe('rule source adapters', () => {
         'irs.tips',
         'fema.declarations',
       ]),
-      fallbackEmailSourceIds: expect.arrayContaining(['fed.irs_newswire']),
+      emailSignalSourceIds: expect.arrayContaining(['fed.irs_newswire']),
     })
     expect(byJurisdiction.get('CA')).toMatchObject({
       parserStatus: 'web_primary',
@@ -318,19 +318,19 @@ describe('rule source adapters', () => {
     expect(byJurisdiction.get('TX')).toMatchObject({
       parserStatus: 'web_primary',
       explicitLiveSourceIds: expect.arrayContaining(['tx.cpa.rss']),
-      fallbackEmailSourceIds: expect.arrayContaining(['tx.temporary_announcements']),
+      emailSignalSourceIds: expect.arrayContaining(['tx.temporary_announcements']),
       ruleSourceWatchIds: expect.arrayContaining(['tx.ui_wage_report_due_dates']),
     })
     expect(byJurisdiction.get('WA')).toMatchObject({
       parserStatus: 'web_primary',
       explicitLiveSourceIds: expect.arrayContaining(['wa.dor.news', 'wa.dor.whats_new']),
-      fallbackEmailSourceIds: expect.arrayContaining(['wa.news']),
+      emailSignalSourceIds: expect.arrayContaining(['wa.news']),
       ruleSourceWatchIds: expect.arrayContaining(['wa.esd_quarterly_tax_wage_reports']),
     })
     expect(byJurisdiction.get('OH')).toMatchObject({
       parserStatus: 'web_primary',
       primaryWebSourceIds: expect.arrayContaining(['oh.sales_tax_rate_changes']),
-      fallbackEmailSourceIds: expect.arrayContaining(['oh.temporary_announcements']),
+      emailSignalSourceIds: expect.arrayContaining(['oh.temporary_announcements']),
     })
   })
 

@@ -99,7 +99,7 @@ export const AlertSourcePurposeSchema = z.enum([
   'explicit_live_adapter',
   'temporary_announcements_or_news',
   'rule_source_watch',
-  'email_fallback',
+  'email_signal',
   'hidden_policy_watch',
 ])
 export type AlertSourcePurpose = z.infer<typeof AlertSourcePurposeSchema>

@@ -55,12 +55,13 @@ GovDelivery 属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` ca
   Pulse 抓取。
 - Rule source registry 现在带显式 `alertPurpose`：
   `explicit_live_adapter`、`temporary_announcements_or_news`、`rule_source_watch`、
-  `email_fallback`、`hidden_policy_watch`。Alert coverage 以 jurisdiction report 为准，
+  `email_signal`、`hidden_policy_watch`。Alert coverage 以 jurisdiction report 为准，
   不再用 raw adapter 总数表达生产覆盖。
 - FED explicit live coverage 包括 IRS Disaster、IRS Newsroom、IRS Guidance、IRS Tax Tips
-  和 FEMA Declarations；`fed.irs_newswire` 保留为 GovDelivery/email fallback signal。
+  和 FEMA Declarations；`fed.irs_newswire` 保留为 GovDelivery/email signal。
 - 50 州 + DC 的 official temporary/news announcement source 会作为 web-first Alert watch
-  进入 ingest；GovDelivery metadata 只作为 fallback/email 归因，不抢占 primary web source。
+  进入 ingest；GovDelivery/email subscription source 作为并行 email signal 进入 Alert review，
+  不抢占 primary web source，也不表示网页失败后才启用。
 - Rule Library source 继续进入 Alert pipeline，但非 `deadline_shift` 的 source/rule 变化会被
   强制为 `review_only`。只有 `deadline_shift` 才能保留 `due_date_overlay`，且仍必须经 CPA 在
   Alert 中 review/apply 后才影响 obligations。
@@ -111,7 +112,7 @@ GovDelivery 属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` ca
 
 - TX 无州所得税 → `irs.*` + `tx.cpa.rss`（Franchise / Sales）足够
 - CA 所得税（FTB）与销售税（CDTFA）是**两个独立源**，不可合并
-- 不再把 NY DTF 当作 RSS 金标；先按 press archive HTML + email 兜底实现，只有复核到官方 feed endpoint 后才启用 RSS adapter
+- 不再把 NY DTF 当作 RSS 金标；先按 press archive HTML + email signal 并行实现，只有复核到官方 feed endpoint 后才启用 RSS adapter
 - TX Comptroller source id 暂保留 `tx.cpa.rss` 以兼容已有 `pulse_source_state`；实际抓取官方
   News Releases HTML。官方 RSS 目录页列出的 GovDelivery topic feed 被
   `public.govdelivery.com/robots.txt` 禁止 crawler 抓取，只能作为邮件订阅 / inbound email 信号。
@@ -183,9 +184,9 @@ export const RATE_LIMIT = {
 | ------------------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `irs.disaster` / `irs.newsroom`             | 几乎不封，但偶发 WAF 503                                 | 403/503 时退避 15min；连续 3 次失败 → Sentry + owner/manager digest；灾害延期以 `irs.disaster` 为准                                                |
 | `ca.ftb.*` / `ca.cdtfa.news`                | 偶尔触发 Akamai Bot Manager                              | 走可配置 `browserless` fetcher；未配置时只用 Cloudflare fetch，并按 ingest metrics/source diagnostics 暴露失败                                     |
-| `ny.dtf.press`                              | HTML archive 结构可能调整                                | 不假设 RSS；HTML selector fallback + NY Email Services 兜底                                                                                        |
+| `ny.dtf.press`                              | HTML archive 结构可能调整                                | 不假设 RSS；HTML selector fallback + NY Email Services 并行信号                                                                                    |
 | `tx.cpa.rss`                                | 官方新闻页可抓；GovDelivery topic feed robots-disallowed | 抓 Comptroller 官方 News Releases HTML 列表链接；GovDelivery 仅用于人工订阅 / inbound email，不作为 crawler endpoint；按 tax relevance filter 过滤 |
-| `fl.dor.tips` / `wa.dor.*` / `ma.dor.press` | 中风险，页面结构年度改版或 WAF 挑战                      | 每条 selector 必须附 **selector fallback chain**（见 §6.2），失败 → Browserless / 官方邮件兜底 / 人工录入                                          |
+| `fl.dor.tips` / `wa.dor.*` / `ma.dor.press` | 中风险，页面结构年度改版或 WAF 挑战                      | 每条 selector 必须附 **selector fallback chain**（见 §6.2），并配置官方邮件并行信号；必要时再走 Browserless / 人工录入                             |
 | `fema.*` / `weather.*`                      | 官方 API，稳定                                           | 标准 REST + 指数退避                                                                                                                               |
 
 ### 4.3 Cloudflare Worker 出口 IP 的风险
@@ -258,9 +259,11 @@ pulse.ingest.confidence_avg_24h   (gauge,     label: source_id)
 - `outcome=selector_drift` 任何一次 → owner/manager digest + source review task
 - `confidence_avg_24h < 0.5` 连续 24h → 源 quarantine 自动触发
 
-### 5.3 GovDelivery 邮件兜底（反爬的终极降级）
+### 5.3 GovDelivery 邮件并行监控
 
-**场景：** 某州 DOR 页面持续反爬（如触发 Akamai 长期挑战），或页面 archive 没有稳定 feed。
+**场景：** 某州 DOR 同时通过网页 archive 和 GovDelivery/email subscription 发布 tax news、
+alerts、bulletins 或 announcement。Email channel 是并行信号，不是网页失败后的 fallback；
+它的价值是捕捉订阅渠道先发、邮件正文更完整、或网页 archive 延迟同步的公告。
 
 **方案：**
 
@@ -292,8 +295,10 @@ RFC822 `.eml`。
 handler；否则邮件会按该域现有 MX 投递，或在没有有效收件路由时退信，DueDateHQ Worker
 不会收到。配置和 smoke test 步骤见 `docs/ops/runbooks/pulse-email-inbound.md`。
 
-**优点：** 用户主动订阅、零反爬、低工程维护成本。
-**缺点：** 延迟高（取决于 DOR 发信间隔，通常 1-24h），做**最后一道兜底**而非主路径。
+**优点：** 用户主动订阅、零反爬、低工程维护成本；与网页源并行进入 Alert review，可提升
+覆盖密度。
+**缺点：** 延迟取决于 DOR 发信节奏，且 Evidence 仍必须回链到 `.gov` canonical page；邮件
+正文是补充证据，不替代官方网页证据链。
 
 ---
 
@@ -394,13 +399,13 @@ relevant Worker secret/routing is configured.
 
 ## 7. 分期路线（对齐 09 Demo Sprint Playbook）
 
-| 阶段                      | 源                                                                   | 工程量   | 成功标准                             |
-| ------------------------- | -------------------------------------------------------------------- | -------- | ------------------------------------ |
-| **Phase 0 · Demo Sprint** | `irs.disaster` + `tx.cpa.rss` + seeded `ny.dtf.press` fixture        | 已完成   | S3 场景能真实触发 + mock 兜底齐全    |
-| **Pilot hardening**       | `ca.ftb.*` + `ca.cdtfa.news` + real `ny.dtf.press` + FL/WA + FEMA T2 | 已落地   | Live catalog 可跑；FEMA review-only  |
-| **Phase 1**               | GovDelivery inbound fallback + Browserless fallback                  | 已落地   | 可配置降级；WAF 源优先走 browserless |
-| **Phase 2**               | + `ma.dor.press` + 更多州 DOR                                        | 2 人周   | 15+ 源；10 源 ≥ 99% SLA              |
-| **Phase 3（商单触发）**   | Checkpoint / Bloomberg Tax / Avalara 商业 API                        | 谈单驱动 | 客户合同签字后再采购                 |
+| 阶段                      | 源                                                                   | 工程量   | 成功标准                               |
+| ------------------------- | -------------------------------------------------------------------- | -------- | -------------------------------------- |
+| **Phase 0 · Demo Sprint** | `irs.disaster` + `tx.cpa.rss` + seeded `ny.dtf.press` fixture        | 已完成   | S3 场景能真实触发 + mock 兜底齐全      |
+| **Pilot hardening**       | `ca.ftb.*` + `ca.cdtfa.news` + real `ny.dtf.press` + FL/WA + FEMA T2 | 已落地   | Live catalog 可跑；FEMA review-only    |
+| **Phase 1**               | GovDelivery inbound email signal + Browserless fallback              | 已落地   | 邮件并行监控；WAF 源优先走 browserless |
+| **Phase 2**               | + `ma.dor.press` + 更多州 DOR                                        | 2 人周   | 15+ 源；10 源 ≥ 99% SLA                |
+| **Phase 3（商单触发）**   | Checkpoint / Bloomberg Tax / Avalara 商业 API                        | 谈单驱动 | 客户合同签字后再采购                   |
 
 ---
 
@@ -423,7 +428,7 @@ relevant Worker secret/routing is configured.
 
 | 风险                                            | 可能性 | 影响 | 缓解                                                                                  |
 | ----------------------------------------------- | ------ | ---- | ------------------------------------------------------------------------------------- |
-| 某州 DOR 整站改版导致 selector 全挂             | 中     | 中   | Selector Fallback Chain §6.2 + GovDelivery 兜底 §5.3                                  |
+| 某州 DOR 整站改版导致 selector 全挂             | 中     | 中   | Selector Fallback Chain §6.2 + GovDelivery 并行信号 §5.3                              |
 | Cloudflare egress IP 被某个州 WAF 整体挑战      | 低     | 高   | Browserless fetcher Phase 2 预留；先验证 Phase 0 两源无问题                           |
 | 未复核 RSS / feed endpoint 假设导致漏抓         | 中     | 中   | 以官方 HTML canonical page 为默认路径；只有源健康测试连续通过后才启用 feed adapter    |
 | FEMA API 字段变更（历史上 v1 → v2 改过一次）    | 低     | 中   | 锁版本 `v2`，单元测试守字段契约                                                       |
