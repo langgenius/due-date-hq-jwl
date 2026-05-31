@@ -46,6 +46,7 @@ const TEMPORARY_ANNOUNCEMENT_ADAPTER_METHODS = new Set<RuleSource['acquisitionMe
 export type AlertSourceCoverageStatus = 'covered' | 'missing_source'
 export type AlertSourceCoverageLevel = 'missing' | 'standard' | 'comprehensive'
 export type AlertSourceParserStatus = 'web_primary' | 'email_signal_only' | 'missing_source'
+export type AlertSourceCoverageRoleStatus = 'covered' | 'missing' | 'not_available_verified'
 export type AlertSourceCoverageRole =
   | 'primary_web_news'
   | 'guidance_notice'
@@ -54,6 +55,13 @@ export type AlertSourceCoverageRole =
   | 'tax_type_sources'
   | 'relief_or_disaster_signal'
   | 'multi_agency_sources'
+
+export interface AlertSourceCoverageRoleDetail {
+  role: AlertSourceCoverageRole
+  status: AlertSourceCoverageRoleStatus
+  sourceIds: readonly string[]
+  reason: string | null
+}
 
 export interface AlertSourceAdapterMetadata {
   sourceId: string
@@ -73,6 +81,7 @@ export interface AlertSourceCoverage {
   requiredRoles: readonly AlertSourceCoverageRole[]
   coveredRoles: readonly AlertSourceCoverageRole[]
   missingRoles: readonly AlertSourceCoverageRole[]
+  roleDetails: readonly AlertSourceCoverageRoleDetail[]
   explicitLiveSourceIds: readonly string[]
   primaryWebSourceIds: readonly string[]
   emailSignalSourceIds: readonly string[]
@@ -86,7 +95,31 @@ export interface AlertSourceCoverage {
   missingReason: string | null
 }
 
-const COMPREHENSIVE_ALERT_SOURCE_ROLES = [
+export interface AlertSourceCatalogEntry {
+  id: string
+  jurisdiction: RuleJurisdiction
+  roles: readonly AlertSourceCoverageRole[]
+  agency: string
+  title: string
+  url: string
+  sourceType: string
+  acquisitionMethod: string
+  adapterKind: string | null
+  verificationStatus: 'verified' | 'manual_verification_required' | 'not_available_verified'
+  verifiedOn: string
+  notes: string | null
+  inboundEmail: {
+    localParts: readonly string[]
+    senderDomains: readonly string[]
+    listIdPatterns: readonly string[]
+    canonicalUrlHosts: readonly string[]
+    accountCodes: readonly string[]
+    verificationStatus: 'verified_official' | 'routing_only'
+    subscriptionUrl: string | null
+  } | null
+}
+
+const BASE_COMPREHENSIVE_ALERT_SOURCE_ROLES = [
   'primary_web_news',
   'guidance_notice',
   'email_signal',
@@ -94,6 +127,15 @@ const COMPREHENSIVE_ALERT_SOURCE_ROLES = [
   'tax_type_sources',
   'relief_or_disaster_signal',
 ] as const satisfies readonly AlertSourceCoverageRole[]
+
+const MULTI_AGENCY_REQUIRED_JURISDICTIONS = new Set<RuleJurisdiction>([
+  'CA',
+  'TX',
+  'WA',
+  'NY',
+  'FL',
+  'MA',
+])
 
 const TAX_TYPE_COVERAGE_DOMAINS = new Set([
   'business_income_return',
@@ -143,11 +185,156 @@ const FEDERAL_EXPLICIT_LIVE_ADAPTER_IDS = new Set([
   'fema.declarations',
 ])
 
-const EMAIL_SIGNAL_SOURCE_IDS = new Set(
-  listRuleSources()
-    .filter((source) => source.alertPurpose === 'email_signal' || source.inboundEmail)
-    .map((source) => source.id),
-)
+const SOURCE_CATALOG_VERIFIED_ON = '2026-05-31'
+
+const EXPLICIT_LIVE_SOURCE_CATALOG: Record<
+  string,
+  Omit<
+    AlertSourceCatalogEntry,
+    'id' | 'verificationStatus' | 'verifiedOn' | 'notes' | 'inboundEmail'
+  >
+> = {
+  'irs.disaster': {
+    jurisdiction: 'FED',
+    roles: ['primary_web_news', 'relief_or_disaster_signal'],
+    agency: 'IRS',
+    title: 'IRS Disaster Relief',
+    url: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
+    sourceType: 'emergency_relief',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+  'irs.newsroom': {
+    jurisdiction: 'FED',
+    roles: ['primary_web_news'],
+    agency: 'IRS',
+    title: 'IRS Newsroom',
+    url: 'https://www.irs.gov/newsroom',
+    sourceType: 'news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+  'irs.guidance': {
+    jurisdiction: 'FED',
+    roles: ['guidance_notice'],
+    agency: 'IRS',
+    title: 'IRS Guidance',
+    url: 'https://www.irs.gov/newsroom/irs-guidance',
+    sourceType: 'publication',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+  'irs.tips': {
+    jurisdiction: 'FED',
+    roles: ['guidance_notice'],
+    agency: 'IRS',
+    title: 'IRS Tax Tips',
+    url: 'https://www.irs.gov/newsroom/irs-tax-tips',
+    sourceType: 'early_warning',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+  'fema.declarations': {
+    jurisdiction: 'FED',
+    roles: ['relief_or_disaster_signal'],
+    agency: 'FEMA',
+    title: 'FEMA Disaster Declarations',
+    url: 'https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries',
+    sourceType: 'early_warning',
+    acquisitionMethod: 'api_watch',
+    adapterKind: null,
+  },
+  'ca.ftb.newsroom': {
+    jurisdiction: 'CA',
+    roles: ['primary_web_news'],
+    agency: 'California Franchise Tax Board',
+    title: 'CA FTB Newsroom',
+    url: 'https://www.ftb.ca.gov/about-ftb/newsroom/index.html',
+    sourceType: 'news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+  'ca.ftb.tax_news': {
+    jurisdiction: 'CA',
+    roles: ['primary_web_news', 'guidance_notice'],
+    agency: 'California Franchise Tax Board',
+    title: 'CA FTB Tax News',
+    url: 'https://www.ftb.ca.gov/about-ftb/newsroom/tax-news/index.html',
+    sourceType: 'news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+  'ca.cdtfa.news': {
+    jurisdiction: 'CA',
+    roles: ['primary_web_news'],
+    agency: 'California Department of Tax and Fee Administration',
+    title: 'CA CDTFA News',
+    url: 'https://www.cdtfa.ca.gov/news/',
+    sourceType: 'news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+  'ny.dtf.press': {
+    jurisdiction: 'NY',
+    roles: ['primary_web_news'],
+    agency: 'New York Department of Taxation and Finance',
+    title: 'NY Tax Department Press Office',
+    url: 'https://www.tax.ny.gov/press/',
+    sourceType: 'news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+  'tx.cpa.rss': {
+    jurisdiction: 'TX',
+    roles: ['primary_web_news'],
+    agency: 'Texas Comptroller of Public Accounts',
+    title: 'TX Comptroller News',
+    url: 'https://comptroller.texas.gov/about/media-center/news/',
+    sourceType: 'news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+  'fl.dor.tips': {
+    jurisdiction: 'FL',
+    roles: ['primary_web_news', 'guidance_notice'],
+    agency: 'Florida Department of Revenue',
+    title: 'FL DOR Tax Information Publications',
+    url: 'https://floridarevenue.com/taxes/tips/Pages/default.aspx',
+    sourceType: 'news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+  'wa.dor.news': {
+    jurisdiction: 'WA',
+    roles: ['primary_web_news'],
+    agency: 'Washington Department of Revenue',
+    title: 'WA DOR News Releases',
+    url: 'https://dor.wa.gov/about/news-releases',
+    sourceType: 'news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+  'wa.dor.whats_new': {
+    jurisdiction: 'WA',
+    roles: ['primary_web_news', 'guidance_notice'],
+    agency: 'Washington Department of Revenue',
+    title: 'WA DOR What’s New',
+    url: 'https://dor.wa.gov/about/whats-new',
+    sourceType: 'news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+  'ma.dor.press': {
+    jurisdiction: 'MA',
+    roles: ['primary_web_news'],
+    agency: 'Massachusetts Department of Revenue',
+    title: 'MA DOR Press',
+    url: 'https://www.mass.gov/info-details/dor-press-releases-and-reports',
+    sourceType: 'news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+  },
+}
 
 function normalizeJurisdiction(jurisdiction: SourceAdapter['jurisdiction']): string {
   return jurisdiction === 'federal' ? 'FED' : jurisdiction
@@ -160,6 +347,20 @@ function sourceIsPrimaryWeb(source: Pick<RuleSource, 'acquisitionMethod'>): bool
     source.acquisitionMethod === 'api_watch'
   )
 }
+
+function sourceHasCoverageRole(source: RuleSource, role: AlertSourceCoverageRole): boolean {
+  return source.alertCoverageRoles?.includes(role) ?? false
+}
+
+function isVerifiedEmailSignalSource(source: RuleSource): boolean {
+  return source.inboundEmail?.verificationStatus === 'verified_official'
+}
+
+const EMAIL_SIGNAL_SOURCE_IDS = new Set(
+  listRuleSources()
+    .filter(isVerifiedEmailSignalSource)
+    .map((source) => source.id),
+)
 
 function uniqueStrings(values: readonly string[]): string[] {
   return Array.from(new Set(values))
@@ -177,7 +378,9 @@ function sourceHostRoot(source: Pick<RuleSource, 'url'>): string | null {
 function idsForGuidanceNoticeSources(sources: readonly RuleSource[]): string[] {
   return sources
     .filter(
-      (source) => source.authorityRole === 'basis' && GUIDANCE_SOURCE_TYPES.has(source.sourceType),
+      (source) =>
+        sourceHasCoverageRole(source, 'guidance_notice') ||
+        (source.authorityRole === 'basis' && GUIDANCE_SOURCE_TYPES.has(source.sourceType)),
     )
     .map((source) => source.id)
 }
@@ -187,6 +390,7 @@ function idsForTaxTypeSources(sources: readonly RuleSource[]): string[] {
     .filter(
       (source) =>
         source.authorityRole === 'basis' &&
+        source.acquisitionMethod !== 'email_subscription' &&
         source.domains.some((domain) => TAX_TYPE_COVERAGE_DOMAINS.has(domain)),
     )
     .map((source) => source.id)
@@ -194,13 +398,13 @@ function idsForTaxTypeSources(sources: readonly RuleSource[]): string[] {
 
 function idsForReliefOrDisasterSources(input: {
   sources: readonly RuleSource[]
-  primaryWebSourceIds: readonly string[]
   explicitLiveSourceIds: readonly string[]
 }): string[] {
   const explicitReliefSourceIds = input.sources
     .filter((source) => {
       const value = `${source.id} ${source.title} ${source.url} ${source.sourceType}`.toLowerCase()
       return (
+        sourceHasCoverageRole(source, 'relief_or_disaster_signal') ||
         source.sourceType === 'emergency_relief' ||
         value.includes('disaster') ||
         value.includes('emergency') ||
@@ -211,11 +415,7 @@ function idsForReliefOrDisasterSources(input: {
   const federalReliefIds = input.explicitLiveSourceIds.filter(
     (sourceId) => sourceId === 'irs.disaster' || sourceId === 'fema.declarations',
   )
-  return uniqueStrings([
-    ...explicitReliefSourceIds,
-    ...federalReliefIds,
-    ...input.primaryWebSourceIds,
-  ])
+  return uniqueStrings([...explicitReliefSourceIds, ...federalReliefIds])
 }
 
 function idsForMultiAgencySources(
@@ -252,6 +452,88 @@ function coveredComprehensiveRoles(input: {
   if (input.reliefOrDisasterSourceIds.length > 0) roles.push('relief_or_disaster_signal')
   if (input.multiAgencySourceIds.length > 0) roles.push('multi_agency_sources')
   return roles
+}
+
+function requiredRolesForJurisdiction(jurisdiction: RuleJurisdiction): AlertSourceCoverageRole[] {
+  const roles: AlertSourceCoverageRole[] = [...BASE_COMPREHENSIVE_ALERT_SOURCE_ROLES]
+  if (MULTI_AGENCY_REQUIRED_JURISDICTIONS.has(jurisdiction)) {
+    roles.push('multi_agency_sources')
+  }
+  return roles
+}
+
+function roleSourceIds(
+  role: AlertSourceCoverageRole,
+  input: {
+    primaryWebSourceIds: readonly string[]
+    emailSignalSourceIds: readonly string[]
+    ruleSourceWatchIds: readonly string[]
+    guidanceNoticeSourceIds: readonly string[]
+    taxTypeSourceIds: readonly string[]
+    reliefOrDisasterSourceIds: readonly string[]
+    multiAgencySourceIds: readonly string[]
+  },
+): readonly string[] {
+  switch (role) {
+    case 'primary_web_news':
+      return input.primaryWebSourceIds
+    case 'guidance_notice':
+      return input.guidanceNoticeSourceIds
+    case 'email_signal':
+      return input.emailSignalSourceIds
+    case 'rule_source_watch':
+      return input.ruleSourceWatchIds
+    case 'tax_type_sources':
+      return input.taxTypeSourceIds
+    case 'relief_or_disaster_signal':
+      return input.reliefOrDisasterSourceIds
+    case 'multi_agency_sources':
+      return input.multiAgencySourceIds
+  }
+  return []
+}
+
+function missingRoleReason(role: AlertSourceCoverageRole): string {
+  switch (role) {
+    case 'primary_web_news':
+      return 'No verified official DOR/tax-agency news or announcement web source is registered.'
+    case 'guidance_notice':
+      return 'No verified official guidance, notice, bulletin, ruling, technical-info, or forms-update source is registered.'
+    case 'email_signal':
+      return 'No verified official email subscription, GovDelivery list, list archive, or subscription page is registered.'
+    case 'rule_source_watch':
+      return 'No parser-backed Rule Library source watch is registered for future rule/source changes.'
+    case 'tax_type_sources':
+      return 'No official tax-type basis sources are registered for covered entity/tax domains.'
+    case 'relief_or_disaster_signal':
+      return 'No verified official tax relief, emergency relief, or disaster relief source is registered.'
+    case 'multi_agency_sources':
+      return 'Required multi-agency coverage is missing; CA/TX/WA/NY/FL/MA must have sources from different agency hosts.'
+  }
+  return 'Required Alert source role is missing.'
+}
+
+function roleDetailsForCoverage(
+  roles: readonly AlertSourceCoverageRole[],
+  input: {
+    primaryWebSourceIds: readonly string[]
+    emailSignalSourceIds: readonly string[]
+    ruleSourceWatchIds: readonly string[]
+    guidanceNoticeSourceIds: readonly string[]
+    taxTypeSourceIds: readonly string[]
+    reliefOrDisasterSourceIds: readonly string[]
+    multiAgencySourceIds: readonly string[]
+  },
+): AlertSourceCoverageRoleDetail[] {
+  return roles.map((role) => {
+    const sourceIds = roleSourceIds(role, input)
+    return {
+      role,
+      status: sourceIds.length > 0 ? 'covered' : 'missing',
+      sourceIds,
+      reason: sourceIds.length > 0 ? null : missingRoleReason(role),
+    }
+  })
 }
 
 function uniqueAdapters(adapters: readonly SourceAdapter[]): SourceAdapter[] {
@@ -612,6 +894,110 @@ function coverageSourceIdsForJurisdiction(
     .map((source) => source.sourceId)
 }
 
+function sourceRolesById(
+  coverageRows: readonly AlertSourceCoverage[],
+): Map<string, AlertSourceCoverageRole[]> {
+  const rolesById = new Map<string, AlertSourceCoverageRole[]>()
+  for (const row of coverageRows) {
+    for (const detail of row.roleDetails) {
+      for (const sourceId of detail.sourceIds) {
+        const roles = rolesById.get(sourceId) ?? []
+        if (!roles.includes(detail.role)) roles.push(detail.role)
+        rolesById.set(sourceId, roles)
+      }
+    }
+  }
+  for (const [sourceId, entry] of Object.entries(EXPLICIT_LIVE_SOURCE_CATALOG)) {
+    const roles = rolesById.get(sourceId) ?? []
+    for (const role of entry.roles) {
+      if (!roles.includes(role)) roles.push(role)
+    }
+    rolesById.set(sourceId, roles)
+  }
+  return rolesById
+}
+
+function agencyForSource(source: RuleSource): string {
+  if (source.sourceAgency) return source.sourceAgency
+  if (source.id.startsWith('ca.cdtfa')) return 'California Department of Tax and Fee Administration'
+  if (source.id.startsWith('ca.edd')) return 'California Employment Development Department'
+  if (source.id.startsWith('ca.')) return 'California Franchise Tax Board'
+  if (source.id.startsWith('tx.ui') || source.url.includes('twc.texas.gov')) {
+    return 'Texas Workforce Commission'
+  }
+  if (source.id.startsWith('tx.')) return 'Texas Comptroller of Public Accounts'
+  if (source.id.startsWith('wa.esd') || source.url.includes('esd.wa.gov')) {
+    return 'Washington Employment Security Department'
+  }
+  if (source.id.startsWith('wa.')) return 'Washington Department of Revenue'
+  if (source.id.startsWith('ny.')) return 'New York Department of Taxation and Finance'
+  if (source.id.startsWith('fl.')) return 'Florida Department of Revenue'
+  if (source.id.startsWith('ma.ui')) return 'Massachusetts Department of Unemployment Assistance'
+  if (source.id.startsWith('ma.')) return 'Massachusetts Department of Revenue'
+  if (source.jurisdiction === 'FED') return 'IRS'
+  return `${source.jurisdiction} tax agency`
+}
+
+function inboundEmailCatalog(source: RuleSource): AlertSourceCatalogEntry['inboundEmail'] {
+  if (!source.inboundEmail) return null
+  return {
+    localParts: [...source.inboundEmail.localParts],
+    senderDomains: [...source.inboundEmail.senderDomains],
+    listIdPatterns: [...source.inboundEmail.listIdPatterns],
+    canonicalUrlHosts: [...source.inboundEmail.canonicalUrlHosts],
+    accountCodes: [...(source.inboundEmail.accountCodes ?? [])],
+    verificationStatus: source.inboundEmail.verificationStatus ?? 'routing_only',
+    subscriptionUrl: source.inboundEmail.subscriptionUrl ?? null,
+  }
+}
+
+export function listAlertSourceCatalog(
+  jurisdiction?: RuleJurisdiction,
+): readonly AlertSourceCatalogEntry[] {
+  const coverageRows = listAlertSourceCoverage(jurisdiction)
+  const rolesById = sourceRolesById(coverageRows)
+  const jurisdictions = new Set(coverageRows.map((row) => row.jurisdiction))
+  const explicitEntries = Object.entries(EXPLICIT_LIVE_SOURCE_CATALOG)
+    .filter(([, entry]) => jurisdictions.has(entry.jurisdiction))
+    .map(
+      ([id, entry]): AlertSourceCatalogEntry => ({
+        id,
+        jurisdiction: entry.jurisdiction,
+        roles: entry.roles,
+        agency: entry.agency,
+        title: entry.title,
+        url: entry.url,
+        sourceType: entry.sourceType,
+        acquisitionMethod: entry.acquisitionMethod,
+        adapterKind: entry.adapterKind,
+        verificationStatus: 'verified',
+        verifiedOn: SOURCE_CATALOG_VERIFIED_ON,
+        notes: 'Official live Alert adapter source.',
+        inboundEmail: null,
+      }),
+    )
+  const ruleEntries = listRuleSources()
+    .filter((source) => jurisdictions.has(source.jurisdiction))
+    .map(
+      (source): AlertSourceCatalogEntry => ({
+        id: source.id,
+        jurisdiction: source.jurisdiction,
+        roles: rolesById.get(source.id) ?? [],
+        agency: agencyForSource(source),
+        title: source.title,
+        url: source.url,
+        sourceType: source.sourceType,
+        acquisitionMethod: source.acquisitionMethod,
+        adapterKind: source.adapterKind ?? null,
+        verificationStatus: source.verificationStatus ?? 'verified',
+        verifiedOn: source.verifiedOn ?? SOURCE_CATALOG_VERIFIED_ON,
+        notes: source.sourceNotes ?? source.inboundEmail?.verificationNotes ?? null,
+        inboundEmail: inboundEmailCatalog(source),
+      }),
+    )
+  return [...explicitEntries, ...ruleEntries].toSorted((a, b) => a.id.localeCompare(b.id))
+}
+
 export function listAlertSourceCoverage(
   jurisdiction?: RuleJurisdiction,
 ): readonly AlertSourceCoverage[] {
@@ -632,7 +1018,7 @@ export function listAlertSourceCoverage(
       )
       .map((source) => source.sourceId)
     const emailSignalIds = jurisdictionSources
-      .filter((source) => source.alertPurpose === 'email_signal' || source.inboundEmail)
+      .filter(isVerifiedEmailSignalSource)
       .map((source) => source.id)
     const ruleSourceWatchIds = coverageSourceIdsForJurisdiction(
       currentJurisdiction,
@@ -642,7 +1028,6 @@ export function listAlertSourceCoverage(
     const taxTypeSourceIds = idsForTaxTypeSources(jurisdictionSources)
     const reliefOrDisasterSourceIds = idsForReliefOrDisasterSources({
       sources: jurisdictionSources,
-      primaryWebSourceIds,
       explicitLiveSourceIds,
     })
     const multiAgencySourceIds = idsForMultiAgencySources(
@@ -665,7 +1050,7 @@ export function listAlertSourceCoverage(
       ...hiddenPolicyWatchIds,
     ])
     const status = sourceIds.length > 0 ? 'covered' : 'missing_source'
-    const requiredRoles = [...COMPREHENSIVE_ALERT_SOURCE_ROLES]
+    const requiredRoles = requiredRolesForJurisdiction(currentJurisdiction)
     const coveredRoles = coveredComprehensiveRoles({
       primaryWebSourceIds,
       emailSignalSourceIds: emailSignalIds,
@@ -676,6 +1061,15 @@ export function listAlertSourceCoverage(
       multiAgencySourceIds,
     })
     const missingRoles = requiredRoles.filter((role) => !coveredRoles.includes(role))
+    const roleDetails = roleDetailsForCoverage(requiredRoles, {
+      primaryWebSourceIds,
+      emailSignalSourceIds: emailSignalIds,
+      ruleSourceWatchIds,
+      guidanceNoticeSourceIds,
+      taxTypeSourceIds,
+      reliefOrDisasterSourceIds,
+      multiAgencySourceIds,
+    })
     const coverageLevel =
       status === 'missing_source'
         ? 'missing'
@@ -696,6 +1090,7 @@ export function listAlertSourceCoverage(
       requiredRoles,
       coveredRoles,
       missingRoles,
+      roleDetails,
       explicitLiveSourceIds,
       primaryWebSourceIds: uniqueStrings(primaryWebSourceIds),
       emailSignalSourceIds: emailSignalIds,

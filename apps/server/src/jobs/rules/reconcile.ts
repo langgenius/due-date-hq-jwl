@@ -100,6 +100,13 @@ function sourceIsDue(state: { enabled?: boolean; nextCheckAt?: Date | null }, no
   )
 }
 
+function sourceNeedsMonitoringBaseline(state: {
+  monitoringBaselineAt?: Date | null
+  baselineMode?: string
+}): boolean {
+  return state.monitoringBaselineAt === null && state.baselineMode !== 'backfill'
+}
+
 function sourceCanAutoScan(source: RuleSource): boolean {
   return (
     source.healthStatus !== 'paused' &&
@@ -214,13 +221,14 @@ export async function consumePulseRuleSourceScan(
   }
 
   const now = new Date()
-  await pulseOps.ensureSourceState({
+  const sourceState = await pulseOps.ensureSourceState({
     sourceId: source.id,
     tier: sourceTier(source),
     jurisdiction: source.jurisdiction,
     cadenceMs: sourceCadenceMs(source),
     now,
   })
+  const establishingBaseline = sourceNeedsMonitoringBaseline(sourceState)
 
   if (!sourceCanAutoScan(source)) {
     await pulseOps.recordSourceSuccess({
@@ -237,8 +245,10 @@ export async function consumePulseRuleSourceScan(
       {
         fetch,
         getSourceState: async (sourceId) => {
-          const state = await pulseOps.getSourceState(sourceId)
-          return state ? { etag: state.etag, lastModified: state.lastModified } : null
+          const currentState = await pulseOps.getSourceState(sourceId)
+          return currentState
+            ? { etag: currentState.etag, lastModified: currentState.lastModified }
+            : null
         },
         archiveRaw: (input) => archivePulseRaw(env, input),
       },
@@ -247,6 +257,9 @@ export async function consumePulseRuleSourceScan(
     const checkedAt = fetched.fetchedAt
 
     if (fetched.notModified) {
+      if (establishingBaseline) {
+        await pulseOps.establishSourceBaseline({ sourceId: source.id, baselineAt: checkedAt })
+      }
       await pulseOps.recordSourceSuccess({
         sourceId: source.id,
         checkedAt,
@@ -297,14 +310,27 @@ export async function consumePulseRuleSourceScan(
             }),
           ]
     const insertedSnapshots = snapshotResults.filter((result) => result.inserted)
+    if (establishingBaseline) {
+      await Promise.all(
+        insertedSnapshots.map((snapshot) =>
+          pulseOps.updateSourceSnapshotStatus(snapshot.snapshot.id, {
+            parseStatus: 'ignored',
+            failureReason: 'monitoring_baseline_established',
+          }),
+        ),
+      )
+      await pulseOps.establishSourceBaseline({ sourceId: source.id, baselineAt: checkedAt })
+    }
     await pulseOps.recordSourceSuccess({
       sourceId: source.id,
       checkedAt,
       nextCheckAt: nextCheckAt(checkedAt, source),
-      changed: insertedSnapshots.length > 0,
+      changed: !establishingBaseline && insertedSnapshots.length > 0,
       ...(fetched.etag !== undefined ? { etag: fetched.etag } : {}),
       ...(fetched.lastModified !== undefined ? { lastModified: fetched.lastModified } : {}),
     })
+
+    if (establishingBaseline) return
 
     await Promise.all(
       insertedSnapshots.map((snapshot) =>

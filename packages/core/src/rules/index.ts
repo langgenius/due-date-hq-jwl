@@ -125,6 +125,22 @@ export type RuleNotificationChannel =
   | 'practice_rule_preview'
   | 'user_deadline_reminder'
 
+export type AlertSourceCoverageRole =
+  | 'primary_web_news'
+  | 'guidance_notice'
+  | 'email_signal'
+  | 'rule_source_watch'
+  | 'tax_type_sources'
+  | 'relief_or_disaster_signal'
+  | 'multi_agency_sources'
+
+export type SourceVerificationStatus =
+  | 'verified'
+  | 'manual_verification_required'
+  | 'not_available_verified'
+
+export type InboundEmailVerificationStatus = 'verified_official' | 'routing_only'
+
 export type LocalJurisdictionLevel =
   | 'state_administered_local'
   | 'county'
@@ -170,6 +186,9 @@ export interface InboundEmailRuleSourceConfig {
   listIdPatterns: readonly string[]
   canonicalUrlHosts: readonly string[]
   accountCodes?: readonly string[]
+  verificationStatus?: InboundEmailVerificationStatus
+  subscriptionUrl?: string
+  verificationNotes?: string
 }
 
 export type AlertSourcePurpose =
@@ -196,11 +215,16 @@ export interface RuleSource {
   entityApplicability: readonly EntityApplicability[]
   authorityRole: RuleEvidenceAuthorityRole
   alertPurpose: AlertSourcePurpose
+  alertCoverageRoles?: readonly AlertSourceCoverageRole[]
   notificationChannels: readonly RuleNotificationChannel[]
   lastReviewedOn: string
   adapterKind?: SourceAdapterKind
   feedUrl?: string
   inboundEmail?: InboundEmailRuleSourceConfig
+  sourceAgency?: string
+  verificationStatus?: SourceVerificationStatus
+  verifiedOn?: string
+  sourceNotes?: string
 }
 
 export type EntityApplicability =
@@ -4140,6 +4164,9 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   adapterKind?: SourceAdapterKind
   feedUrl?: string
   inboundEmail?: InboundEmailRuleSourceConfig
+  alertCoverageRoles?: readonly AlertSourceCoverageRole[]
+  sourceAgency?: string
+  sourceNotes?: string
 }[] = [
   {
     id: 'ak.temporary_announcements',
@@ -4280,6 +4307,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
       ],
       listIdPatterns: ['mador', 'massachusetts department of revenue', 'massachusetts dor'],
       canonicalUrlHosts: ['content.govdelivery.com', 'mass.gov', 'www.mass.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://www.mass.gov/lists/2026-dor-press-releases',
+      verificationNotes:
+        'Official Massachusetts DOR GovDelivery/List-ID signal; monitored in parallel with the web page.',
     },
   },
   {
@@ -4402,6 +4433,9 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
       ],
       listIdPatterns: ['ohtax', 'ohio department of taxation', 'ohio tax'],
       canonicalUrlHosts: ['content.govdelivery.com', 'tax.ohio.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://public.govdelivery.com/accounts/OHTAX/subscriber/new',
+      verificationNotes: 'Official Ohio Department of Taxation GovDelivery subscription page.',
     },
   },
   {
@@ -4472,6 +4506,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
       ],
       listIdPatterns: ['txcompt', 'texas comptroller', 'comptroller of public accounts'],
       canonicalUrlHosts: ['content.govdelivery.com', 'comptroller.texas.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://comptroller.texas.gov/about/media-center/news/',
+      verificationNotes:
+        'Official Texas Comptroller GovDelivery/List-ID signal; monitored in parallel with the web page.',
     },
   },
   {
@@ -4563,6 +4601,9 @@ function defaultInboundEmailForTemporarySource(
     senderDomains: uniqueEmailConfigValues([...GOVDELIVERY_SENDER_DOMAINS, ...hosts]),
     listIdPatterns: uniqueEmailConfigValues([source.id, stateCode, normalizedTitle]),
     canonicalUrlHosts: uniqueEmailConfigValues(['content.govdelivery.com', ...hosts]),
+    verificationStatus: 'routing_only',
+    verificationNotes:
+      'Automatically generated routing metadata; not a verified official email subscription source.',
   }
 }
 
@@ -4592,6 +4633,9 @@ const TEMPORARY_ANNOUNCEMENT_RULE_SOURCES = STATE_TEMPORARY_ANNOUNCEMENT_SOURCES
     }
     if (source.adapterKind) record.adapterKind = source.adapterKind
     if (source.feedUrl) record.feedUrl = source.feedUrl
+    if (source.alertCoverageRoles) record.alertCoverageRoles = source.alertCoverageRoles
+    if (source.sourceAgency) record.sourceAgency = source.sourceAgency
+    if (source.sourceNotes) record.sourceNotes = source.sourceNotes
     record.inboundEmail = inboundEmail
     return record
   },
@@ -4932,6 +4976,9 @@ export const RULE_SOURCES = hydrateRuleSources([
         'www.federalregister.gov',
       ],
       accountCodes: ['USIRS'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://www.irs.gov/newsroom/e-news-subscriptions',
+      verificationNotes: 'Official IRS Newswire e-News subscription / USIRS GovDelivery channel.',
     },
   },
   {
@@ -5017,6 +5064,21 @@ export const RULE_SOURCES = hydrateRuleSources([
     isEarlyWarning: false,
     notificationChannels: ['source_change', 'practice_rule_review'],
     lastReviewedOn: VERIFIED_AT,
+    inboundEmail: {
+      localParts: ['pulse-ingest+ca-ftb-tax-news'],
+      senderDomains: [
+        'service.govdelivery.com',
+        'public.govdelivery.com',
+        'content.govdelivery.com',
+        'ftb.ca.gov',
+      ],
+      listIdPatterns: ['california franchise tax board', 'ftb tax news', 'ca ftb tax news'],
+      canonicalUrlHosts: ['content.govdelivery.com', 'ftb.ca.gov', 'www.ftb.ca.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://www.ftb.ca.gov/about-ftb/newsroom/tax-news/index.html',
+      verificationNotes:
+        'Official FTB Tax News channel; inbound messages must link back to FTB or GovDelivery content.',
+    },
   },
   {
     id: 'ny.tax_calendar.2026',
@@ -5092,6 +5154,9 @@ export const RULE_SOURCES = hydrateRuleSources([
       senderDomains: ['public.govdelivery.com', 'service.govdelivery.com', 'tax.ny.gov'],
       listIdPatterns: ['tax.ny.gov', 'new-york-tax-department', 'new york tax department'],
       canonicalUrlHosts: ['tax.ny.gov', 'www.tax.ny.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://www.tax.ny.gov/help/subscribe.htm',
+      verificationNotes: 'Official New York Tax Department Email Services subscription page.',
     },
   },
   {
@@ -5238,6 +5303,10 @@ export const RULE_SOURCES = hydrateRuleSources([
       senderDomains: ['floridarevenue.com', 'www.floridarevenue.com'],
       listIdPatterns: ['florida department of revenue', 'tax information publications'],
       canonicalUrlHosts: ['floridarevenue.com', 'www.floridarevenue.com'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://floridarevenue.com/taxes/tips/Pages/default.aspx',
+      verificationNotes:
+        'Official Florida DOR Tax Information Publications channel; inbound messages must link back to Florida DOR.',
     },
   },
   {
@@ -5291,6 +5360,10 @@ export const RULE_SOURCES = hydrateRuleSources([
       ],
       listIdPatterns: ['wador', 'washington department of revenue', 'wa department of revenue'],
       canonicalUrlHosts: ['content.govdelivery.com', 'dor.wa.gov', 'www.dor.wa.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://dor.wa.gov/about/news-releases',
+      verificationNotes:
+        'Official Washington DOR GovDelivery/List-ID signal; monitored in parallel with the web page.',
     },
   },
   {

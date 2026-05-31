@@ -17,6 +17,7 @@ import {
   isRuleSourceAdapterEligible,
   isRuleSourcePulsePromoted,
   isTemporaryAnnouncementAdapterEligible,
+  listAlertSourceCatalog,
   listAlertSourceCoverage,
   liveRegulatorySourceAdapters,
   requiresReviewOnlyPulseAlert,
@@ -288,15 +289,15 @@ describe('rule source adapters', () => {
     ).toBe(false)
   })
 
-  it('reports national Alert source coverage by jurisdiction instead of raw adapter totals', () => {
+  it('reports strict national Alert source coverage by jurisdiction instead of raw adapter totals', () => {
     const coverage = listAlertSourceCoverage()
     const byJurisdiction = new Map(coverage.map((row) => [row.jurisdiction, row]))
 
     expect(coverage).toHaveLength(52)
     expect(coverage.every((row) => row.status === 'covered')).toBe(true)
-    expect(coverage.every((row) => row.coverageLevel === 'comprehensive')).toBe(true)
-    expect(coverage.every((row) => row.missingRoles.length === 0)).toBe(true)
-    expect(coverage.every((row) => row.emailSignalSourceIds.length > 0)).toBe(true)
+    expect(coverage.every((row) => row.primaryWebSourceIds.length > 0)).toBe(true)
+    expect(coverage.every((row) => row.parserStatus === 'web_primary')).toBe(true)
+    expect(coverage.filter((row) => row.coverageLevel === 'comprehensive').length).toBeLessThan(52)
 
     expect(byJurisdiction.get('FED')).toMatchObject({
       coverageLevel: 'comprehensive',
@@ -328,29 +329,86 @@ describe('rule source adapters', () => {
         'ca.ftb.tax_news',
         'ca.cdtfa.news',
       ]),
-      emailSignalSourceIds: expect.arrayContaining(['ca.temporary_announcements']),
+      emailSignalSourceIds: expect.arrayContaining(['ca.ftb_tax_news']),
       ruleSourceWatchIds: expect.arrayContaining(['ca.cdtfa_sales_use_filing_dates']),
     })
     expect(byJurisdiction.get('TX')).toMatchObject({
-      coverageLevel: 'comprehensive',
+      coverageLevel: 'standard',
       parserStatus: 'web_primary',
       coveredRoles: expect.arrayContaining(['multi_agency_sources']),
+      missingRoles: expect.arrayContaining(['relief_or_disaster_signal']),
       explicitLiveSourceIds: expect.arrayContaining(['tx.cpa.rss']),
       emailSignalSourceIds: expect.arrayContaining(['tx.temporary_announcements']),
       ruleSourceWatchIds: expect.arrayContaining(['tx.ui_wage_report_due_dates']),
+      reliefOrDisasterSourceIds: [],
     })
     expect(byJurisdiction.get('WA')).toMatchObject({
-      coverageLevel: 'comprehensive',
+      coverageLevel: 'standard',
       parserStatus: 'web_primary',
       coveredRoles: expect.arrayContaining(['multi_agency_sources']),
+      missingRoles: expect.arrayContaining(['relief_or_disaster_signal']),
       explicitLiveSourceIds: expect.arrayContaining(['wa.dor.news', 'wa.dor.whats_new']),
       emailSignalSourceIds: expect.arrayContaining(['wa.news']),
       ruleSourceWatchIds: expect.arrayContaining(['wa.esd_quarterly_tax_wage_reports']),
+    })
+    expect(byJurisdiction.get('NY')).toMatchObject({
+      missingRoles: expect.arrayContaining(['relief_or_disaster_signal', 'multi_agency_sources']),
+      emailSignalSourceIds: expect.arrayContaining(['ny.email_services']),
+    })
+    expect(byJurisdiction.get('FL')).toMatchObject({
+      missingRoles: expect.arrayContaining(['relief_or_disaster_signal', 'multi_agency_sources']),
+      emailSignalSourceIds: expect.arrayContaining(['fl.tips']),
+    })
+    expect(byJurisdiction.get('MA')).toMatchObject({
+      missingRoles: expect.arrayContaining(['relief_or_disaster_signal', 'multi_agency_sources']),
+      emailSignalSourceIds: expect.arrayContaining(['ma.temporary_announcements']),
     })
     expect(byJurisdiction.get('OH')).toMatchObject({
       parserStatus: 'web_primary',
       primaryWebSourceIds: expect.arrayContaining(['oh.sales_tax_rate_changes']),
       emailSignalSourceIds: expect.arrayContaining(['oh.temporary_announcements']),
+    })
+    expect(byJurisdiction.get('AL')).toMatchObject({
+      primaryWebSourceIds: expect.arrayContaining(['al.temporary_announcements']),
+      emailSignalSourceIds: [],
+      reliefOrDisasterSourceIds: [],
+      missingRoles: expect.arrayContaining(['email_signal', 'relief_or_disaster_signal']),
+    })
+    expect(byJurisdiction.get('AL')?.requiredRoles).not.toContain('multi_agency_sources')
+    expect(byJurisdiction.get('NY')?.requiredRoles).toContain('multi_agency_sources')
+
+    const alAnnouncement = listRuleSources('AL').find(
+      (source) => source.id === 'al.temporary_announcements',
+    )
+    expect(alAnnouncement?.inboundEmail?.verificationStatus).toBe('routing_only')
+    expect(
+      byJurisdiction.get('AL')?.roleDetails.find((detail) => detail.role === 'email_signal'),
+    ).toMatchObject({ status: 'missing', sourceIds: [] })
+  })
+
+  it('publishes a structured source catalog with verified roles and inbound email semantics', () => {
+    const catalog = listAlertSourceCatalog()
+    const byId = new Map(catalog.map((source) => [source.id, source]))
+
+    expect(catalog.length).toBeGreaterThan(52)
+    expect(byId.get('al.temporary_announcements')).toMatchObject({
+      jurisdiction: 'AL',
+      roles: expect.arrayContaining(['primary_web_news']),
+      verificationStatus: 'verified',
+      inboundEmail: expect.objectContaining({
+        verificationStatus: 'routing_only',
+      }),
+    })
+    expect(byId.get('ca.ftb_tax_news')).toMatchObject({
+      agency: 'California Franchise Tax Board',
+      roles: expect.arrayContaining(['email_signal']),
+      inboundEmail: expect.objectContaining({
+        verificationStatus: 'verified_official',
+      }),
+    })
+    expect(byId.get('tx.ui_wage_report_due_dates')).toMatchObject({
+      agency: 'Texas Workforce Commission',
+      roles: expect.arrayContaining(['tax_type_sources', 'multi_agency_sources']),
     })
   })
 

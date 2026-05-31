@@ -9,6 +9,7 @@ import {
   type PulseChangeKind,
   type PulseFirmAlertStatus,
   type PulsePriorityReviewStatus,
+  type PulseSourceBaselineMode,
   type PulseSourceHealthStatus,
   type PulseSourceState,
   type PulseSourceSnapshot,
@@ -211,6 +212,8 @@ export interface PulseSourceStateRow {
   lastCheckedAt: Date | null
   lastSuccessAt: Date | null
   lastChangeDetectedAt: Date | null
+  monitoringBaselineAt: Date | null
+  baselineMode: PulseSourceBaselineMode
   nextCheckAt: Date | null
   consecutiveFailures: number
   lastError: string | null
@@ -665,6 +668,8 @@ export function toSourceState(row: PulseSourceState): PulseSourceStateRow {
     lastCheckedAt: row.lastCheckedAt,
     lastSuccessAt: row.lastSuccessAt,
     lastChangeDetectedAt: row.lastChangeDetectedAt,
+    monitoringBaselineAt: row.monitoringBaselineAt,
+    baselineMode: row.baselineMode,
     nextCheckAt: row.nextCheckAt,
     consecutiveFailures: row.consecutiveFailures,
     lastError: row.lastError,

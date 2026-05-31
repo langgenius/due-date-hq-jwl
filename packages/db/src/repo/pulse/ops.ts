@@ -545,6 +545,29 @@ export function makePulseOpsRepo(db: Db) {
       return rows.map(toSourceState)
     },
 
+    async establishSourceBaseline(input: {
+      sourceId: string
+      baselineAt?: Date
+      baselineMode?: 'establish_on_first_seen' | 'active' | 'backfill'
+    }): Promise<PulseSourceStateRow> {
+      const baselineAt = input.baselineAt ?? new Date()
+      await db
+        .update(pulseSourceState)
+        .set({
+          monitoringBaselineAt: baselineAt,
+          baselineMode: input.baselineMode ?? 'active',
+        })
+        .where(
+          and(
+            eq(pulseSourceState.sourceId, input.sourceId),
+            isNull(pulseSourceState.monitoringBaselineAt),
+          ),
+        )
+      const state = await getSourceStateRow(input.sourceId)
+      if (!state) throw new PulseRepoError('not_found')
+      return state
+    },
+
     async recordSourceSuccess(input: {
       sourceId: string
       checkedAt?: Date

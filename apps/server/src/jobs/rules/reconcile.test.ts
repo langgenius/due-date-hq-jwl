@@ -24,7 +24,9 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
   const pulseOpsRepo = {
     ensureSourceState: vi.fn(),
     getSourceState: vi.fn(),
+    establishSourceBaseline: vi.fn(),
     createSourceSnapshot: vi.fn(),
+    updateSourceSnapshotStatus: vi.fn(),
     recordSourceSuccess: vi.fn(),
     recordSourceFailure: vi.fn(),
   }
@@ -198,6 +200,8 @@ describe('rule source scan jobs', () => {
       inserted: true,
       snapshot: { id: 'snapshot-1' },
     })
+    dbMocks.pulseOpsRepo.establishSourceBaseline.mockResolvedValue(undefined)
+    dbMocks.pulseOpsRepo.updateSourceSnapshotStatus.mockResolvedValue(undefined)
     dbMocks.pulseOpsRepo.recordSourceSuccess.mockResolvedValue(undefined)
     dbMocks.pulseOpsRepo.recordSourceFailure.mockResolvedValue(undefined)
     pulseIngestMocks.archivePulseRaw.mockResolvedValue({
@@ -361,6 +365,49 @@ describe('rule source scan jobs', () => {
       }),
     )
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
+  })
+
+  it('baselines a newly monitored Rule Library source without Pulse extraction', async () => {
+    const queueSend = vi.fn()
+    dbMocks.pulseOpsRepo.ensureSourceState.mockResolvedValue({
+      enabled: true,
+      nextCheckAt: null,
+      monitoringBaselineAt: null,
+      baselineMode: 'establish_on_first_seen',
+    })
+    fetchMocks.fetchTextSnapshot.mockResolvedValue({
+      notModified: false,
+      fetchedAt: new Date('2026-05-25T09:00:00.000Z'),
+      contentHash: 'content-hash-1',
+      r2Key: 'raw/source.html',
+      etag: 'etag-2',
+      lastModified: null,
+    })
+
+    await consumePulseRuleSourceScan(
+      {
+        type: PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
+        sourceId: 'ca.ftb_business_due_dates',
+        reason: 'cadence_due',
+      },
+      env(queueSend) as Env,
+    )
+
+    expect(dbMocks.pulseOpsRepo.updateSourceSnapshotStatus).toHaveBeenCalledWith('snapshot-1', {
+      parseStatus: 'ignored',
+      failureReason: 'monitoring_baseline_established',
+    })
+    expect(dbMocks.pulseOpsRepo.establishSourceBaseline).toHaveBeenCalledWith({
+      sourceId: 'ca.ftb_business_due_dates',
+      baselineAt: expect.any(Date),
+    })
+    expect(dbMocks.pulseOpsRepo.recordSourceSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceId: 'ca.ftb_business_due_dates',
+        changed: false,
+      }),
+    )
+    expect(queueSend).not.toHaveBeenCalled()
   })
 
   it('splits changed temporary announcement pages into detail snapshots', async () => {

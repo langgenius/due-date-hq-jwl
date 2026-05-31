@@ -370,6 +370,12 @@ function toCoveragePublic(
     requiredRoles: [...row.requiredRoles],
     coveredRoles: [...row.coveredRoles],
     missingRoles: [...row.missingRoles],
+    roleDetails: row.roleDetails.map((detail) => ({
+      role: detail.role,
+      status: detail.status,
+      sourceIds: [...detail.sourceIds],
+      reason: detail.reason,
+    })),
     explicitLiveSourceIds: [...row.explicitLiveSourceIds],
     primaryWebSourceIds: [...row.primaryWebSourceIds],
     emailSignalSourceIds: [...row.emailSignalSourceIds],

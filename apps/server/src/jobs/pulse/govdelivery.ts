@@ -73,6 +73,28 @@ const STATE_CODES = new Set([
   'WY',
 ])
 
+function cadenceMs(source: Pick<RuleSource, 'cadence'>): number {
+  const day = 24 * 60 * 60 * 1000
+  if (source.cadence === 'daily') return day
+  if (source.cadence === 'weekly') return 7 * day
+  if (source.cadence === 'monthly') return 30 * day
+  if (source.cadence === 'quarterly') return 90 * day
+  return 14 * day
+}
+
+function tierForSource(source: Pick<RuleSource, 'priority'>): string {
+  if (source.priority === 'critical' || source.priority === 'high') return 'T1'
+  if (source.priority === 'medium') return 'T2'
+  return 'T3'
+}
+
+function sourceNeedsMonitoringBaseline(state: {
+  monitoringBaselineAt?: Date | null
+  baselineMode?: string
+}): boolean {
+  return state.monitoringBaselineAt === null && state.baselineMode !== 'backfill'
+}
+
 function extractSubject(headers: Headers): string {
   return headers.get('subject')?.trim() || 'GovDelivery regulatory signal'
 }
@@ -104,6 +126,12 @@ function inferJurisdiction(text: string): string {
 function inboundEmailSources(): InboundEmailRuleSource[] {
   return listRuleSources().filter(
     (source): source is InboundEmailRuleSource => source.inboundEmail !== undefined,
+  )
+}
+
+function verifiedInboundEmailSources(): InboundEmailRuleSource[] {
+  return inboundEmailSources().filter(
+    (source) => source.inboundEmail.verificationStatus === 'verified_official',
   )
 }
 
@@ -225,8 +253,9 @@ function resolveInboundEmailSource(
   matched: boolean
 } {
   const sources = inboundEmailSources()
+  const verifiedSources = verifiedInboundEmailSources()
   const localParts = messageLocalParts(message)
-  const accountCodeMatches = sources.filter((source) =>
+  const accountCodeMatches = verifiedSources.filter((source) =>
     accountCodeMatchesSource(source, message, rawText),
   )
   const directMatches = sources.filter((source) =>
@@ -236,9 +265,13 @@ function resolveInboundEmailSource(
     trustSignalMatchesSource(source, message, rawText),
   )
   const fallbackAddressed = localParts.some((part) => FALLBACK_LOCAL_PARTS.has(part))
-  const listIdMatches = sources.filter((source) => listIdMatchesSource(source, message.headers))
-  const urlMatches = sources.filter((source) => firstCanonicalSourceUrl(source, rawText) !== null)
-  const senderMatches = sources.filter((source) => senderMatchesSource(source, message))
+  const listIdMatches = verifiedSources.filter((source) =>
+    listIdMatchesSource(source, message.headers),
+  )
+  const urlMatches = verifiedSources.filter(
+    (source) => firstCanonicalSourceUrl(source, rawText) !== null,
+  )
+  const senderMatches = verifiedSources.filter((source) => senderMatchesSource(source, message))
   const fallbackSource =
     listIdMatches.length === 1
       ? listIdMatches[0]
@@ -304,6 +337,16 @@ export async function ingestGovDeliveryEmail(
     contentType: 'text/plain; charset=utf-8',
   })
   const repo = makePulseOpsRepo(createDb(env.DB))
+  const sourceState = resolution.source
+    ? await repo.ensureSourceState({
+        sourceId: resolution.source.id,
+        tier: tierForSource(resolution.source),
+        jurisdiction: resolution.source.jurisdiction,
+        cadenceMs: cadenceMs(resolution.source),
+        now,
+      })
+    : null
+  const establishingBaseline = sourceState ? sourceNeedsMonitoringBaseline(sourceState) : false
   const result = await repo.createSourceSnapshot({
     sourceId: resolution.sourceId,
     externalId,
@@ -314,12 +357,21 @@ export async function ingestGovDeliveryEmail(
     contentHash: archived.contentHash,
     rawR2Key: archived.r2Key,
   })
-  const queued = result.inserted && resolution.matched
+  const queued = result.inserted && resolution.matched && !establishingBaseline
   if (result.inserted && !resolution.matched) {
     await repo.updateSourceSnapshotStatus(result.snapshot.id, {
       parseStatus: 'ignored',
       failureReason: 'unmatched_inbound_email',
     })
+  }
+  if (result.inserted && establishingBaseline) {
+    await repo.updateSourceSnapshotStatus(result.snapshot.id, {
+      parseStatus: 'ignored',
+      failureReason: 'monitoring_baseline_established',
+    })
+  }
+  if (establishingBaseline && resolution.source) {
+    await repo.establishSourceBaseline({ sourceId: resolution.source.id, baselineAt: now })
   }
   if (queued) {
     await env.PULSE_QUEUE.send({

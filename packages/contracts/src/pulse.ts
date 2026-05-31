@@ -259,6 +259,25 @@ export const PulseAlertSourceCoverageRoleSchema = z.enum([
 ])
 export type PulseAlertSourceCoverageRole = z.infer<typeof PulseAlertSourceCoverageRoleSchema>
 
+export const PulseAlertSourceCoverageRoleStatusSchema = z.enum([
+  'covered',
+  'missing',
+  'not_available_verified',
+])
+export type PulseAlertSourceCoverageRoleStatus = z.infer<
+  typeof PulseAlertSourceCoverageRoleStatusSchema
+>
+
+export const PulseAlertSourceCoverageRoleDetailSchema = z.object({
+  role: PulseAlertSourceCoverageRoleSchema,
+  status: PulseAlertSourceCoverageRoleStatusSchema,
+  sourceIds: z.array(z.string().min(1)),
+  reason: z.string().nullable(),
+})
+export type PulseAlertSourceCoverageRoleDetail = z.infer<
+  typeof PulseAlertSourceCoverageRoleDetailSchema
+>
+
 export const PulseAlertSourceCoverageSchema = z.object({
   jurisdiction: z.string().min(1),
   status: z.enum(['covered', 'missing_source']),
@@ -267,6 +286,7 @@ export const PulseAlertSourceCoverageSchema = z.object({
   requiredRoles: z.array(PulseAlertSourceCoverageRoleSchema),
   coveredRoles: z.array(PulseAlertSourceCoverageRoleSchema),
   missingRoles: z.array(PulseAlertSourceCoverageRoleSchema),
+  roleDetails: z.array(PulseAlertSourceCoverageRoleDetailSchema),
   explicitLiveSourceIds: z.array(z.string().min(1)),
   primaryWebSourceIds: z.array(z.string().min(1)),
   emailSignalSourceIds: z.array(z.string().min(1)),

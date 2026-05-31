@@ -16,7 +16,9 @@ const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
   const repo = {
     ensureSourceState: vi.fn(),
     getSourceState: vi.fn(),
+    establishSourceBaseline: vi.fn(),
     createSourceSnapshot: vi.fn(),
+    updateSourceSnapshotStatus: vi.fn(),
     recordSourceSuccess: vi.fn(),
     recordSourceFailure: vi.fn(),
     listSourceStates: vi.fn(),
@@ -111,6 +113,12 @@ describe('runPulseIngest', () => {
       inserted: true,
       snapshot: { id: 'snapshot-1' },
     })
+    repoMocks.updateSourceSnapshotStatus.mockResolvedValue(undefined)
+    repoMocks.establishSourceBaseline.mockResolvedValue({
+      sourceId: 'fema.declarations',
+      monitoringBaselineAt: new Date('2026-04-30T00:00:00.000Z'),
+      baselineMode: 'active',
+    })
     repoMocks.listSourceStates.mockResolvedValue([])
     repoMocks.apply.mockRejectedValue(new Error('ingest must not apply deadline changes'))
     repoMocks.applyReviewed.mockRejectedValue(
@@ -139,6 +147,35 @@ describe('runPulseIngest', () => {
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
     expect(repoMocks.apply).not.toHaveBeenCalled()
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
+  })
+
+  it('establishes a new source baseline without queueing historical parsed items', async () => {
+    const queueSend = vi.fn()
+    repoMocks.ensureSourceState.mockResolvedValue({
+      enabled: true,
+      nextCheckAt: null,
+      monitoringBaselineAt: null,
+      baselineMode: 'establish_on_first_seen',
+    })
+
+    const result = await runPulseIngest(env(queueSend), [adapter()])
+
+    expect(result).toMatchObject({ snapshots: 1, queued: 0, failures: 0 })
+    expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith('snapshot-1', {
+      parseStatus: 'ignored',
+      failureReason: 'monitoring_baseline_established',
+    })
+    expect(repoMocks.establishSourceBaseline).toHaveBeenCalledWith({
+      sourceId: 'fema.declarations',
+      baselineAt: expect.any(Date),
+    })
+    expect(repoMocks.recordSourceSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceId: 'fema.declarations',
+        changed: false,
+      }),
+    )
+    expect(queueSend).not.toHaveBeenCalled()
   })
 
   it('classifies changed snapshots with no parsed items as selector drift', async () => {

@@ -61,10 +61,25 @@ GovDelivery 属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` ca
   和 FEMA Declarations；`fed.irs_newswire` 保留为 GovDelivery/email signal。
 - 50 州 + DC 的 official temporary/news announcement source 会作为 web-first Alert watch
   进入 ingest；GovDelivery/email subscription source 作为并行 email signal 进入 Alert review，
-  不抢占 primary web source，也不表示网页失败后才启用。
-- Coverage report 现在按 comprehensive roles 输出：`primary_web_news`、`guidance_notice`、
-  `email_signal`、`rule_source_watch`、`tax_type_sources`、`relief_or_disaster_signal`，并保留
-  `multi_agency_sources` 作为增强角色。当前 FED + 50 州 + DC 均为 `comprehensive`。
+  不抢占 primary web source，也不表示网页失败后才启用。自动生成的 inbound local part 只作为
+  routing config，不计入 `email_signal` coverage；只有明确标记 `verified_official` 的官方
+  subscription / GovDelivery / list signal 才计入覆盖。
+- Coverage report 现在按 strict comprehensive roles 输出：`primary_web_news`、
+  `guidance_notice`、`email_signal`、`rule_source_watch`、`tax_type_sources`、
+  `relief_or_disaster_signal`，并且只对 CA/TX/WA/NY/FL/MA 要求 `multi_agency_sources`。
+  `relief_or_disaster_signal` 必须是真实 tax relief / emergency relief / disaster relief
+  source；普通 newsroom 不再算 relief。找不到真实官方源时保留 `missingRoles`，不再把 52/52
+  jurisdiction 展示为全面 `comprehensive`。
+- Source catalog 由代码生成结构化 inventory：`id`、`jurisdiction`、roles、agency、title、
+  URL、source type、acquisition method、adapter kind、verification status、verified date、
+  notes、inbound email verification metadata。该 catalog 是 backend/dev-log/future internal
+  coverage UI 使用的事实层，UI 暂不展示。
+- 新增 source baseline 防刷屏：`pulse_source_state` 保存 `monitoringBaselineAt` 和
+  `baselineMode`。Pulse web ingest、Rule Library source scan、GovDelivery inbound email 首次
+  成功观察新 source 时只写 baseline snapshot/source state，并把 snapshot 标为
+  `ignored: monitoring_baseline_established`；baseline 之后的新 item/content diff/email signal
+  才进入 `pulse.extract` 和 CPA-facing Alert review。默认不做历史 Alert backfill；历史导入必须走
+  单独 admin/import job 并显式标记 `backfill=true`。
 - Rule Library source 继续进入 Alert pipeline，但非 `deadline_shift` 的 source/rule 变化会被
   强制为 `review_only`。只有 `deadline_shift` 才能保留 `due_date_overlay`，且仍必须经 CPA 在
   Alert 中 review/apply 后才影响 obligations。

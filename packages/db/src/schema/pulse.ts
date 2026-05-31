@@ -55,6 +55,13 @@ export type PulseSourceSnapshotStatus = (typeof PULSE_SOURCE_SNAPSHOT_STATUSES)[
 export const PULSE_SOURCE_HEALTH_STATUSES = ['healthy', 'degraded', 'failing', 'paused'] as const
 export type PulseSourceHealthStatus = (typeof PULSE_SOURCE_HEALTH_STATUSES)[number]
 
+export const PULSE_SOURCE_BASELINE_MODES = [
+  'establish_on_first_seen',
+  'active',
+  'backfill',
+] as const
+export type PulseSourceBaselineMode = (typeof PULSE_SOURCE_BASELINE_MODES)[number]
+
 /**
  * pulse — source-backed regulatory announcement routed to practice review.
  *
@@ -175,6 +182,10 @@ export const pulseSourceState = sqliteTable(
     lastCheckedAt: integer('last_checked_at', { mode: 'timestamp_ms' }),
     lastSuccessAt: integer('last_success_at', { mode: 'timestamp_ms' }),
     lastChangeDetectedAt: integer('last_change_detected_at', { mode: 'timestamp_ms' }),
+    monitoringBaselineAt: integer('monitoring_baseline_at', { mode: 'timestamp_ms' }),
+    baselineMode: text('baseline_mode', { enum: PULSE_SOURCE_BASELINE_MODES })
+      .notNull()
+      .default('establish_on_first_seen'),
     nextCheckAt: integer('next_check_at', { mode: 'timestamp_ms' }),
     consecutiveFailures: integer('consecutive_failures').notNull().default(0),
     lastError: text('last_error'),

@@ -50,7 +50,9 @@ type PulseIngestRepo = Pick<
   ReturnType<typeof makePulseOpsRepo>,
   | 'ensureSourceState'
   | 'getSourceState'
+  | 'establishSourceBaseline'
   | 'createSourceSnapshot'
+  | 'updateSourceSnapshotStatus'
   | 'recordSourceSuccess'
   | 'recordSourceFailure'
   | 'listSourceStates'
@@ -61,7 +63,10 @@ function makePulseIngestRepo(db: ReturnType<typeof createDb>): PulseIngestRepo {
   return {
     ensureSourceState: (input) => repo.ensureSourceState(input),
     getSourceState: (sourceId) => repo.getSourceState(sourceId),
+    establishSourceBaseline: (input) => repo.establishSourceBaseline(input),
     createSourceSnapshot: (input) => repo.createSourceSnapshot(input),
+    updateSourceSnapshotStatus: (snapshotId, patch) =>
+      repo.updateSourceSnapshotStatus(snapshotId, patch),
     recordSourceSuccess: (input) => repo.recordSourceSuccess(input),
     recordSourceFailure: (input) => repo.recordSourceFailure(input),
     listSourceStates: () => repo.listSourceStates(),
@@ -143,6 +148,13 @@ function sourceIsDue(state: { enabled?: boolean; nextCheckAt?: Date | null }, no
   )
 }
 
+function sourceNeedsMonitoringBaseline(state: {
+  monitoringBaselineAt?: Date | null
+  baselineMode?: string
+}): boolean {
+  return state.monitoringBaselineAt === null && state.baselineMode !== 'backfill'
+}
+
 function resolveFetcherForAdapter(
   adapter: SourceAdapter,
   ctx: Pick<IngestCtx, 'browserlessFetch' | 'govdeliveryFetch'>,
@@ -205,6 +217,7 @@ async function ingestAdapter(
   if (!state.enabled || (!opts.force && !sourceIsDue(state, checkedAt))) {
     return { snapshots: 0, queued: 0, duplicates: 0, failures: 0 }
   }
+  const establishingBaseline = sourceNeedsMonitoringBaseline(state)
 
   try {
     const startedAt = Date.now()
@@ -256,6 +269,18 @@ async function ingestAdapter(
         if (!result.inserted) {
           return { snapshots: 1, queued: 0, duplicates: 1, failures: 0 }
         }
+        if (establishingBaseline) {
+          await repo.updateSourceSnapshotStatus(result.snapshot.id, {
+            parseStatus: 'ignored',
+            failureReason: 'monitoring_baseline_established',
+          })
+          return {
+            snapshots: 1,
+            queued: 0,
+            duplicates: 0,
+            failures: 0,
+          }
+        }
         await queue.send({
           type: 'pulse.extract',
           snapshotId: result.snapshot.id,
@@ -270,12 +295,15 @@ async function ingestAdapter(
     )
 
     const counts = sumCounts(await Promise.all(writes))
+    if (establishingBaseline) {
+      await repo.establishSourceBaseline({ sourceId: adapter.id, baselineAt: checkedAt })
+    }
     const freshest = rawSnapshots.find((snapshot) => snapshot.etag || snapshot.lastModified)
     await repo.recordSourceSuccess({
       sourceId: adapter.id,
       checkedAt,
       nextCheckAt: nextCheckAt(checkedAt, adapter.cronIntervalMs),
-      changed: counts.queued > 0,
+      changed: !establishingBaseline && counts.queued > 0,
       ...(freshest?.etag !== undefined ? { etag: freshest.etag } : {}),
       ...(freshest?.lastModified !== undefined ? { lastModified: freshest.lastModified } : {}),
     })
