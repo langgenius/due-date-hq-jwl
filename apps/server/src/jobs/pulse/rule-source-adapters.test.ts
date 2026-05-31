@@ -294,9 +294,22 @@ describe('rule source adapters', () => {
 
     expect(coverage).toHaveLength(52)
     expect(coverage.every((row) => row.status === 'covered')).toBe(true)
+    expect(coverage.every((row) => row.coverageLevel === 'comprehensive')).toBe(true)
+    expect(coverage.every((row) => row.missingRoles.length === 0)).toBe(true)
+    expect(coverage.every((row) => row.emailSignalSourceIds.length > 0)).toBe(true)
 
     expect(byJurisdiction.get('FED')).toMatchObject({
+      coverageLevel: 'comprehensive',
       parserStatus: 'web_primary',
+      coveredRoles: expect.arrayContaining([
+        'primary_web_news',
+        'guidance_notice',
+        'email_signal',
+        'rule_source_watch',
+        'tax_type_sources',
+        'relief_or_disaster_signal',
+        'multi_agency_sources',
+      ]),
       explicitLiveSourceIds: expect.arrayContaining([
         'irs.disaster',
         'irs.newsroom',
@@ -307,22 +320,29 @@ describe('rule source adapters', () => {
       emailSignalSourceIds: expect.arrayContaining(['fed.irs_newswire']),
     })
     expect(byJurisdiction.get('CA')).toMatchObject({
+      coverageLevel: 'comprehensive',
       parserStatus: 'web_primary',
+      coveredRoles: expect.arrayContaining(['multi_agency_sources']),
       explicitLiveSourceIds: expect.arrayContaining([
         'ca.ftb.newsroom',
         'ca.ftb.tax_news',
         'ca.cdtfa.news',
       ]),
+      emailSignalSourceIds: expect.arrayContaining(['ca.temporary_announcements']),
       ruleSourceWatchIds: expect.arrayContaining(['ca.cdtfa_sales_use_filing_dates']),
     })
     expect(byJurisdiction.get('TX')).toMatchObject({
+      coverageLevel: 'comprehensive',
       parserStatus: 'web_primary',
+      coveredRoles: expect.arrayContaining(['multi_agency_sources']),
       explicitLiveSourceIds: expect.arrayContaining(['tx.cpa.rss']),
       emailSignalSourceIds: expect.arrayContaining(['tx.temporary_announcements']),
       ruleSourceWatchIds: expect.arrayContaining(['tx.ui_wage_report_due_dates']),
     })
     expect(byJurisdiction.get('WA')).toMatchObject({
+      coverageLevel: 'comprehensive',
       parserStatus: 'web_primary',
+      coveredRoles: expect.arrayContaining(['multi_agency_sources']),
       explicitLiveSourceIds: expect.arrayContaining(['wa.dor.news', 'wa.dor.whats_new']),
       emailSignalSourceIds: expect.arrayContaining(['wa.news']),
       ruleSourceWatchIds: expect.arrayContaining(['wa.esd_quarterly_tax_wage_reports']),

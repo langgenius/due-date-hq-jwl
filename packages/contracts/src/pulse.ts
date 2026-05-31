@@ -248,14 +248,33 @@ export const PulseSourceHealthSchema = z.object({
 })
 export type PulseSourceHealth = z.infer<typeof PulseSourceHealthSchema>
 
+export const PulseAlertSourceCoverageRoleSchema = z.enum([
+  'primary_web_news',
+  'guidance_notice',
+  'email_signal',
+  'rule_source_watch',
+  'tax_type_sources',
+  'relief_or_disaster_signal',
+  'multi_agency_sources',
+])
+export type PulseAlertSourceCoverageRole = z.infer<typeof PulseAlertSourceCoverageRoleSchema>
+
 export const PulseAlertSourceCoverageSchema = z.object({
   jurisdiction: z.string().min(1),
   status: z.enum(['covered', 'missing_source']),
+  coverageLevel: z.enum(['missing', 'standard', 'comprehensive']),
   parserStatus: z.enum(['web_primary', 'email_signal_only', 'missing_source']),
+  requiredRoles: z.array(PulseAlertSourceCoverageRoleSchema),
+  coveredRoles: z.array(PulseAlertSourceCoverageRoleSchema),
+  missingRoles: z.array(PulseAlertSourceCoverageRoleSchema),
   explicitLiveSourceIds: z.array(z.string().min(1)),
   primaryWebSourceIds: z.array(z.string().min(1)),
   emailSignalSourceIds: z.array(z.string().min(1)),
   ruleSourceWatchIds: z.array(z.string().min(1)),
+  guidanceNoticeSourceIds: z.array(z.string().min(1)),
+  taxTypeSourceIds: z.array(z.string().min(1)),
+  reliefOrDisasterSourceIds: z.array(z.string().min(1)),
+  multiAgencySourceIds: z.array(z.string().min(1)),
   sourceIds: z.array(z.string().min(1)),
   lastCheckedAt: z.iso.datetime().nullable(),
   lastSuccessAt: z.iso.datetime().nullable(),

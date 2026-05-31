@@ -17,6 +17,10 @@ adapter count as coverage.
   guidance, tax tips, FEMA, and IRS Newswire email signal.
 - Added `pulse.listAlertSourceCoverage`, including primary web source IDs, email signal source
   IDs, rule-source watch IDs, hidden policy-watch IDs, and last source-health timestamps.
+- Added comprehensive coverage roles and generated parallel inbound email metadata for every state
+  temporary/news announcement source.
+- Promoted rule-source watch sources with `source_change` into `practice_rule_review` so future
+  Rule Library source changes enter Alert review before becoming effective.
 - Forced non-`deadline_shift` extracts into `review_only` mode so source/rule status changes cannot
   apply due-date overlays.
 
@@ -26,9 +30,9 @@ adapter count as coverage.
 - `pnpm --filter @duedatehq/core test -- src/rules/index.test.ts`
 - `pnpm --filter @duedatehq/server test -- src/jobs/pulse/rule-source-adapters.test.ts src/jobs/pulse/extract.test.ts src/procedures/pulse/index.test.ts src/procedures/rules/concrete-draft.test.ts`
 - `pnpm --filter @duedatehq/contracts test -- src/contracts.test.ts`
-- Coverage probe: 52/52 jurisdictions covered, 52/52 web-primary, 69 Alert watch adapters, 266
-  rule-source watch adapters, 335 visible Alert source adapters, 7 rows with parallel email
-  signals.
+- Coverage probe: 52/52 jurisdictions covered, 52/52 comprehensive, 52/52 web-primary, 52/52 with
+  parallel email signals, 69 Alert watch adapters, 297 rule-source watch adapters, 366 visible
+  Alert source adapters.
 - `pnpm rules:check-sources` still exits 1 because `nh.temporary_announcements` returns HTTP 403.
   Notable skipped smoke rows include AZ/MI/RI 403 adapter fetches, KS/ND/OH The Finder timeouts,
   and NV no parsed announcement candidates.

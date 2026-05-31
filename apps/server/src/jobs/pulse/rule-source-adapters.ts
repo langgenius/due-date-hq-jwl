@@ -44,7 +44,16 @@ const TEMPORARY_ANNOUNCEMENT_ADAPTER_METHODS = new Set<RuleSource['acquisitionMe
 ])
 
 export type AlertSourceCoverageStatus = 'covered' | 'missing_source'
+export type AlertSourceCoverageLevel = 'missing' | 'standard' | 'comprehensive'
 export type AlertSourceParserStatus = 'web_primary' | 'email_signal_only' | 'missing_source'
+export type AlertSourceCoverageRole =
+  | 'primary_web_news'
+  | 'guidance_notice'
+  | 'email_signal'
+  | 'rule_source_watch'
+  | 'tax_type_sources'
+  | 'relief_or_disaster_signal'
+  | 'multi_agency_sources'
 
 export interface AlertSourceAdapterMetadata {
   sourceId: string
@@ -59,15 +68,56 @@ export interface AlertSourceAdapterMetadata {
 export interface AlertSourceCoverage {
   jurisdiction: RuleJurisdiction
   status: AlertSourceCoverageStatus
+  coverageLevel: AlertSourceCoverageLevel
   parserStatus: AlertSourceParserStatus
+  requiredRoles: readonly AlertSourceCoverageRole[]
+  coveredRoles: readonly AlertSourceCoverageRole[]
+  missingRoles: readonly AlertSourceCoverageRole[]
   explicitLiveSourceIds: readonly string[]
   primaryWebSourceIds: readonly string[]
   emailSignalSourceIds: readonly string[]
   ruleSourceWatchIds: readonly string[]
+  guidanceNoticeSourceIds: readonly string[]
+  taxTypeSourceIds: readonly string[]
+  reliefOrDisasterSourceIds: readonly string[]
+  multiAgencySourceIds: readonly string[]
   hiddenPolicyWatchSourceIds: readonly string[]
   sourceIds: readonly string[]
   missingReason: string | null
 }
+
+const COMPREHENSIVE_ALERT_SOURCE_ROLES = [
+  'primary_web_news',
+  'guidance_notice',
+  'email_signal',
+  'rule_source_watch',
+  'tax_type_sources',
+  'relief_or_disaster_signal',
+] as const satisfies readonly AlertSourceCoverageRole[]
+
+const TAX_TYPE_COVERAGE_DOMAINS = new Set([
+  'business_income_return',
+  'franchise_or_entity_tax',
+  'individual_income_return',
+  'pass_through_entity_return',
+  'sales_use_tax',
+  'ui_wage_report',
+  'withholding',
+])
+
+const GUIDANCE_SOURCE_TYPES = new Set<RuleSource['sourceType']>([
+  'calendar',
+  'due_dates',
+  'form',
+  'instructions',
+  'publication',
+])
+
+const FEDERAL_MULTI_AGENCY_SOURCE_IDS = new Set([
+  'fema.declarations',
+  'fed.fema_disaster_declarations',
+  'fed.fincen_fbar_due_date',
+])
 
 const EXPLICIT_LIVE_ADAPTER_LABELS: Record<string, string> = {
   'irs.disaster': 'IRS Disaster Relief',
@@ -113,6 +163,95 @@ function sourceIsPrimaryWeb(source: Pick<RuleSource, 'acquisitionMethod'>): bool
 
 function uniqueStrings(values: readonly string[]): string[] {
   return Array.from(new Set(values))
+}
+
+function sourceHostRoot(source: Pick<RuleSource, 'url'>): string | null {
+  try {
+    const host = new URL(source.url).host.toLowerCase()
+    return host.startsWith('www.') ? host.slice(4) : host
+  } catch {
+    return null
+  }
+}
+
+function idsForGuidanceNoticeSources(sources: readonly RuleSource[]): string[] {
+  return sources
+    .filter(
+      (source) => source.authorityRole === 'basis' && GUIDANCE_SOURCE_TYPES.has(source.sourceType),
+    )
+    .map((source) => source.id)
+}
+
+function idsForTaxTypeSources(sources: readonly RuleSource[]): string[] {
+  return sources
+    .filter(
+      (source) =>
+        source.authorityRole === 'basis' &&
+        source.domains.some((domain) => TAX_TYPE_COVERAGE_DOMAINS.has(domain)),
+    )
+    .map((source) => source.id)
+}
+
+function idsForReliefOrDisasterSources(input: {
+  sources: readonly RuleSource[]
+  primaryWebSourceIds: readonly string[]
+  explicitLiveSourceIds: readonly string[]
+}): string[] {
+  const explicitReliefSourceIds = input.sources
+    .filter((source) => {
+      const value = `${source.id} ${source.title} ${source.url} ${source.sourceType}`.toLowerCase()
+      return (
+        source.sourceType === 'emergency_relief' ||
+        value.includes('disaster') ||
+        value.includes('emergency') ||
+        value.includes('relief')
+      )
+    })
+    .map((source) => source.id)
+  const federalReliefIds = input.explicitLiveSourceIds.filter(
+    (sourceId) => sourceId === 'irs.disaster' || sourceId === 'fema.declarations',
+  )
+  return uniqueStrings([
+    ...explicitReliefSourceIds,
+    ...federalReliefIds,
+    ...input.primaryWebSourceIds,
+  ])
+}
+
+function idsForMultiAgencySources(
+  sources: readonly RuleSource[],
+  explicitLiveSourceIds: readonly string[],
+): string[] {
+  const sourcesByHost = new Map<string, string>()
+  for (const source of sources) {
+    const host = sourceHostRoot(source)
+    if (host) sourcesByHost.set(host, source.id)
+  }
+  const sourceIds = Array.from(sourcesByHost.values())
+  if (explicitLiveSourceIds.some((sourceId) => FEDERAL_MULTI_AGENCY_SOURCE_IDS.has(sourceId))) {
+    return uniqueStrings([...sourceIds, ...explicitLiveSourceIds])
+  }
+  return sourceIds.length > 1 ? sourceIds : []
+}
+
+function coveredComprehensiveRoles(input: {
+  primaryWebSourceIds: readonly string[]
+  emailSignalSourceIds: readonly string[]
+  ruleSourceWatchIds: readonly string[]
+  guidanceNoticeSourceIds: readonly string[]
+  taxTypeSourceIds: readonly string[]
+  reliefOrDisasterSourceIds: readonly string[]
+  multiAgencySourceIds: readonly string[]
+}): AlertSourceCoverageRole[] {
+  const roles: AlertSourceCoverageRole[] = []
+  if (input.primaryWebSourceIds.length > 0) roles.push('primary_web_news')
+  if (input.guidanceNoticeSourceIds.length > 0) roles.push('guidance_notice')
+  if (input.emailSignalSourceIds.length > 0) roles.push('email_signal')
+  if (input.ruleSourceWatchIds.length > 0) roles.push('rule_source_watch')
+  if (input.taxTypeSourceIds.length > 0) roles.push('tax_type_sources')
+  if (input.reliefOrDisasterSourceIds.length > 0) roles.push('relief_or_disaster_signal')
+  if (input.multiAgencySourceIds.length > 0) roles.push('multi_agency_sources')
+  return roles
 }
 
 function uniqueAdapters(adapters: readonly SourceAdapter[]): SourceAdapter[] {
@@ -478,6 +617,7 @@ export function listAlertSourceCoverage(
 ): readonly AlertSourceCoverage[] {
   const jurisdictions = jurisdiction ? [jurisdiction] : MVP_RULE_JURISDICTIONS
   return jurisdictions.map((currentJurisdiction) => {
+    const jurisdictionSources = listRuleSources(currentJurisdiction)
     const explicitLiveSourceIds =
       currentJurisdiction === 'FED'
         ? Array.from(FEDERAL_EXPLICIT_LIVE_ADAPTER_IDS)
@@ -491,12 +631,23 @@ export function listAlertSourceCoverage(
           source.purpose !== 'hidden_policy_watch',
       )
       .map((source) => source.sourceId)
-    const emailSignalIds = listRuleSources(currentJurisdiction)
+    const emailSignalIds = jurisdictionSources
       .filter((source) => source.alertPurpose === 'email_signal' || source.inboundEmail)
       .map((source) => source.id)
     const ruleSourceWatchIds = coverageSourceIdsForJurisdiction(
       currentJurisdiction,
       'rule_source_watch',
+    )
+    const guidanceNoticeSourceIds = idsForGuidanceNoticeSources(jurisdictionSources)
+    const taxTypeSourceIds = idsForTaxTypeSources(jurisdictionSources)
+    const reliefOrDisasterSourceIds = idsForReliefOrDisasterSources({
+      sources: jurisdictionSources,
+      primaryWebSourceIds,
+      explicitLiveSourceIds,
+    })
+    const multiAgencySourceIds = idsForMultiAgencySources(
+      jurisdictionSources,
+      explicitLiveSourceIds,
     )
     const hiddenPolicyWatchIds = coverageSourceIdsForJurisdiction(
       currentJurisdiction,
@@ -507,9 +658,30 @@ export function listAlertSourceCoverage(
       ...primaryWebSourceIds,
       ...emailSignalIds,
       ...ruleSourceWatchIds,
+      ...guidanceNoticeSourceIds,
+      ...taxTypeSourceIds,
+      ...reliefOrDisasterSourceIds,
+      ...multiAgencySourceIds,
       ...hiddenPolicyWatchIds,
     ])
     const status = sourceIds.length > 0 ? 'covered' : 'missing_source'
+    const requiredRoles = [...COMPREHENSIVE_ALERT_SOURCE_ROLES]
+    const coveredRoles = coveredComprehensiveRoles({
+      primaryWebSourceIds,
+      emailSignalSourceIds: emailSignalIds,
+      ruleSourceWatchIds,
+      guidanceNoticeSourceIds,
+      taxTypeSourceIds,
+      reliefOrDisasterSourceIds,
+      multiAgencySourceIds,
+    })
+    const missingRoles = requiredRoles.filter((role) => !coveredRoles.includes(role))
+    const coverageLevel =
+      status === 'missing_source'
+        ? 'missing'
+        : missingRoles.length === 0
+          ? 'comprehensive'
+          : 'standard'
     const parserStatus =
       primaryWebSourceIds.length > 0
         ? 'web_primary'
@@ -519,11 +691,19 @@ export function listAlertSourceCoverage(
     return {
       jurisdiction: currentJurisdiction,
       status,
+      coverageLevel,
       parserStatus,
+      requiredRoles,
+      coveredRoles,
+      missingRoles,
       explicitLiveSourceIds,
       primaryWebSourceIds: uniqueStrings(primaryWebSourceIds),
       emailSignalSourceIds: emailSignalIds,
       ruleSourceWatchIds,
+      guidanceNoticeSourceIds,
+      taxTypeSourceIds,
+      reliefOrDisasterSourceIds,
+      multiAgencySourceIds,
       hiddenPolicyWatchSourceIds: hiddenPolicyWatchIds,
       sourceIds,
       missingReason:

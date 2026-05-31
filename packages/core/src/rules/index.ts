@@ -4522,8 +4522,53 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   },
 ] as const
 
+const GOVDELIVERY_SENDER_DOMAINS = [
+  'content.govdelivery.com',
+  'public.govdelivery.com',
+  'service.govdelivery.com',
+] as const
+
+function uniqueEmailConfigValues(values: readonly string[]): string[] {
+  return Array.from(new Set(values.map((value) => value.toLowerCase()).filter(Boolean)))
+}
+
+function sourceEmailSlug(sourceId: string): string {
+  return sourceId
+    .replace(/[^a-z0-9]+/gi, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase()
+}
+
+function hostCandidatesForSourceUrl(url: string): string[] {
+  try {
+    const host = new URL(url).host.toLowerCase()
+    const bareHost = host.startsWith('www.') ? host.slice(4) : host
+    return host === bareHost ? [host] : [host, bareHost]
+  } catch {
+    return []
+  }
+}
+
+function defaultInboundEmailForTemporarySource(
+  source: (typeof STATE_TEMPORARY_ANNOUNCEMENT_SOURCES)[number],
+): InboundEmailRuleSourceConfig {
+  const hosts = hostCandidatesForSourceUrl(source.url)
+  const stateCode = source.jurisdiction.toLowerCase()
+  const normalizedTitle = source.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+  return {
+    localParts: [`pulse-ingest+${sourceEmailSlug(source.id)}`],
+    senderDomains: uniqueEmailConfigValues([...GOVDELIVERY_SENDER_DOMAINS, ...hosts]),
+    listIdPatterns: uniqueEmailConfigValues([source.id, stateCode, normalizedTitle]),
+    canonicalUrlHosts: uniqueEmailConfigValues(['content.govdelivery.com', ...hosts]),
+  }
+}
+
 const TEMPORARY_ANNOUNCEMENT_RULE_SOURCES = STATE_TEMPORARY_ANNOUNCEMENT_SOURCES.map(
   (source): RuleSourceSeedRecord => {
+    const inboundEmail = source.inboundEmail ?? defaultInboundEmailForTemporarySource(source)
     const record: RuleSourceSeedRecord = {
       id: source.id,
       jurisdiction: source.jurisdiction,
@@ -4547,7 +4592,7 @@ const TEMPORARY_ANNOUNCEMENT_RULE_SOURCES = STATE_TEMPORARY_ANNOUNCEMENT_SOURCES
     }
     if (source.adapterKind) record.adapterKind = source.adapterKind
     if (source.feedUrl) record.feedUrl = source.feedUrl
-    if (source.inboundEmail) record.inboundEmail = source.inboundEmail
+    record.inboundEmail = inboundEmail
     return record
   },
 )
@@ -4629,13 +4674,24 @@ function defaultSourceAlertPurpose(source: RuleSourceSeedRecord): AlertSourcePur
 }
 
 function hydrateRuleSources(sources: readonly RuleSourceSeedRecord[]): readonly RuleSource[] {
-  return sources.map((source) => ({
-    ...source,
-    domains: source.domains ?? defaultSourceDomains(source),
-    entityApplicability: source.entityApplicability ?? defaultSourceEntityApplicability(source),
-    authorityRole: source.authorityRole ?? defaultSourceAuthorityRole(source),
-    alertPurpose: defaultSourceAlertPurpose(source),
-  }))
+  return sources.map((source) => {
+    const authorityRole = source.authorityRole ?? defaultSourceAuthorityRole(source)
+    const alertPurpose = defaultSourceAlertPurpose({ ...source, authorityRole })
+    const notificationChannels: readonly RuleNotificationChannel[] =
+      alertPurpose === 'rule_source_watch' &&
+      source.notificationChannels.includes('source_change') &&
+      !source.notificationChannels.includes('practice_rule_review')
+        ? [...source.notificationChannels, 'practice_rule_review']
+        : source.notificationChannels
+    return {
+      ...source,
+      domains: source.domains ?? defaultSourceDomains(source),
+      entityApplicability: source.entityApplicability ?? defaultSourceEntityApplicability(source),
+      authorityRole,
+      alertPurpose,
+      notificationChannels,
+    }
+  })
 }
 
 export const RULE_SOURCES = hydrateRuleSources([
