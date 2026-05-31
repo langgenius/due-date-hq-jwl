@@ -673,12 +673,12 @@ VALUES
   ('44000000-0000-4000-8000-000000000001', '40000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000010', '10000000-0000-4000-8000-000000000008', 'mock_firm_brightline', 'mock_user_manager_miguel', CAST(unixepoch('2026-05-01 09:30:00') * 1000 AS INTEGER), NULL, NULL, CAST(unixepoch('2026-04-30 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-30 00:00:00') * 1000 AS INTEGER));
 
 INSERT INTO pulse_source_state
-  (source_id, tier, jurisdiction, enabled, cadence_ms, health_status, last_checked_at, last_success_at, last_change_detected_at, next_check_at, consecutive_failures, last_error, etag, last_modified, created_at, updated_at)
+  (source_id, tier, jurisdiction, enabled, cadence_ms, health_status, last_checked_at, last_success_at, last_change_detected_at, next_check_at, consecutive_failures, last_error, etag, last_modified, created_at, updated_at, monitoring_baseline_at, baseline_mode)
 VALUES
-  ('irs.disaster', 'T1', 'US', 1, 1800000, 'healthy', CAST(unixepoch('2026-05-01 09:45:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:45:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:35:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 10:15:00') * 1000 AS INTEGER), 0, NULL, 'mock-etag-irs-disaster', 'Fri, 01 May 2026 07:35:00 GMT', CAST(unixepoch('2026-05-01 07:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:45:00') * 1000 AS INTEGER)),
-  ('ca.ftb.newsroom', 'T1', 'CA', 1, 1800000, 'healthy', CAST(unixepoch('2026-05-01 09:40:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:40:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 15:10:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 10:10:00') * 1000 AS INTEGER), 0, NULL, 'mock-etag-ca-ftb', 'Thu, 30 Apr 2026 15:10:00 GMT', CAST(unixepoch('2026-05-01 07:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:40:00') * 1000 AS INTEGER)),
-  ('tx.cpa.rss', 'T1', 'TX', 1, 3600000, 'degraded', CAST(unixepoch('2026-05-01 09:20:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:20:00') * 1000 AS INTEGER), NULL, CAST(unixepoch('2026-05-01 10:20:00') * 1000 AS INTEGER), 1, 'RSS returned 304 after one retry.', NULL, NULL, CAST(unixepoch('2026-05-01 07:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:20:00') * 1000 AS INTEGER)),
-  ('wa.dor.news', 'T1', 'WA', 1, 3600000, 'healthy', CAST(unixepoch('2026-05-01 09:10:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:10:00') * 1000 AS INTEGER), NULL, CAST(unixepoch('2026-05-01 10:10:00') * 1000 AS INTEGER), 0, NULL, NULL, NULL, CAST(unixepoch('2026-05-01 07:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:10:00') * 1000 AS INTEGER))
+  ('irs.disaster', 'T1', 'US', 1, 1800000, 'healthy', CAST(unixepoch('2026-05-01 09:45:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:45:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:35:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 10:15:00') * 1000 AS INTEGER), 0, NULL, 'mock-etag-irs-disaster', 'Fri, 01 May 2026 07:35:00 GMT', CAST(unixepoch('2026-05-01 07:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:45:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:00:00') * 1000 AS INTEGER), 'active'),
+  ('ca.ftb.newsroom', 'T1', 'CA', 1, 1800000, 'healthy', CAST(unixepoch('2026-05-01 09:40:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:40:00') * 1000 AS INTEGER), CAST(unixepoch('2026-04-30 15:10:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 10:10:00') * 1000 AS INTEGER), 0, NULL, 'mock-etag-ca-ftb', 'Thu, 30 Apr 2026 15:10:00 GMT', CAST(unixepoch('2026-05-01 07:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:40:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:00:00') * 1000 AS INTEGER), 'active'),
+  ('tx.cpa.rss', 'T1', 'TX', 1, 3600000, 'degraded', CAST(unixepoch('2026-05-01 09:20:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:20:00') * 1000 AS INTEGER), NULL, CAST(unixepoch('2026-05-01 10:20:00') * 1000 AS INTEGER), 1, 'RSS returned 304 after one retry.', NULL, NULL, CAST(unixepoch('2026-05-01 07:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:20:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:00:00') * 1000 AS INTEGER), 'active'),
+  ('wa.dor.news', 'T1', 'WA', 1, 3600000, 'healthy', CAST(unixepoch('2026-05-01 09:10:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:10:00') * 1000 AS INTEGER), NULL, CAST(unixepoch('2026-05-01 10:10:00') * 1000 AS INTEGER), 0, NULL, NULL, NULL, CAST(unixepoch('2026-05-01 07:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:10:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 07:00:00') * 1000 AS INTEGER), 'active')
 ON CONFLICT(source_id) DO UPDATE SET
   tier = excluded.tier,
   jurisdiction = excluded.jurisdiction,
@@ -693,7 +693,9 @@ ON CONFLICT(source_id) DO UPDATE SET
   last_error = excluded.last_error,
   etag = excluded.etag,
   last_modified = excluded.last_modified,
-  updated_at = excluded.updated_at;
+  updated_at = excluded.updated_at,
+  monitoring_baseline_at = excluded.monitoring_baseline_at,
+  baseline_mode = excluded.baseline_mode;
 
 INSERT INTO pulse_source_snapshot
   (id, source_id, external_id, title, official_source_url, published_at, fetched_at, content_hash, raw_r2_key, parse_status, pulse_id, ai_output_id, failure_reason, created_at, updated_at)

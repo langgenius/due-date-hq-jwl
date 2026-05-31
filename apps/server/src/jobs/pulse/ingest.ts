@@ -243,7 +243,19 @@ async function ingestAdapter(
     )
     const changedSnapshots = rawSnapshots.filter((snapshot) => !snapshot.notModified).length
     const parsedItemCount = parsedGroups.reduce((count, group) => count + group.items.length, 0)
-    if (changedSnapshots > 0 && parsedItemCount === 0 && !adapter.allowEmptyParse) {
+    // Skip selector-drift detection while establishing a source's monitoring
+    // baseline. A brand-new source's first scan legitimately yields zero parsed
+    // items (cold start), and — more importantly — throwing here happens before
+    // the `establishSourceBaseline` call below, so a drift throw would strand the
+    // source in `establish_on_first_seen` forever: every queue retry re-fetches,
+    // re-parses zero, and re-throws, never recording a baseline. Real drift on an
+    // established source is still caught on the next (active) scan.
+    if (
+      changedSnapshots > 0 &&
+      parsedItemCount === 0 &&
+      !adapter.allowEmptyParse &&
+      !establishingBaseline
+    ) {
       throw new Error(`selector_drift: ${adapter.id} produced no parsed items`)
     }
 
