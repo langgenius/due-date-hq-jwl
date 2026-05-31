@@ -1205,6 +1205,7 @@ describe('@duedatehq/contracts', () => {
       'activeCount',
       'listHistory',
       'listSourceHealth',
+      'listAlertSourceCoverage',
       'retrySourceHealth',
       'getDetail',
       'getDetailsBatch',

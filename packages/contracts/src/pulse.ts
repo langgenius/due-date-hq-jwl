@@ -227,6 +227,17 @@ export const PulseSourceHealthSchema = z.object({
   label: z.string().min(1),
   tier: z.enum(['T1', 'T2', 'T3']),
   jurisdiction: z.string().min(1),
+  purpose: z
+    .enum([
+      'explicit_live_adapter',
+      'temporary_announcements_or_news',
+      'rule_source_watch',
+      'email_fallback',
+      'hidden_policy_watch',
+    ])
+    .optional(),
+  primaryWeb: z.boolean().optional(),
+  fallbackForSourceIds: z.array(z.string().min(1)).optional(),
   enabled: z.boolean(),
   healthStatus: PulseSourceHealthStatusSchema,
   lastCheckedAt: z.iso.datetime().nullable(),
@@ -236,6 +247,23 @@ export const PulseSourceHealthSchema = z.object({
   lastError: z.string().nullable(),
 })
 export type PulseSourceHealth = z.infer<typeof PulseSourceHealthSchema>
+
+export const PulseAlertSourceCoverageSchema = z.object({
+  jurisdiction: z.string().min(1),
+  status: z.enum(['covered', 'missing_source']),
+  parserStatus: z.enum(['web_primary', 'fallback_only', 'missing_source']),
+  explicitLiveSourceIds: z.array(z.string().min(1)),
+  primaryWebSourceIds: z.array(z.string().min(1)),
+  fallbackEmailSourceIds: z.array(z.string().min(1)),
+  ruleSourceWatchIds: z.array(z.string().min(1)),
+  sourceIds: z.array(z.string().min(1)),
+  lastCheckedAt: z.iso.datetime().nullable(),
+  lastSuccessAt: z.iso.datetime().nullable(),
+  lastFailureAt: z.iso.datetime().nullable(),
+  lastError: z.string().nullable(),
+  missingReason: z.string().nullable(),
+})
+export type PulseAlertSourceCoverage = z.infer<typeof PulseAlertSourceCoverageSchema>
 
 export const PulseAlertIdInputSchema = z.object({ alertId: EntityIdSchema })
 export const PulseSourceHealthInputSchema = z.object({ sourceId: z.string().min(1) })
@@ -352,6 +380,9 @@ export const pulseContract = oc.router({
   listSourceHealth: oc
     .input(z.undefined())
     .output(z.object({ sources: z.array(PulseSourceHealthSchema) })),
+  listAlertSourceCoverage: oc
+    .input(z.undefined())
+    .output(z.object({ coverage: z.array(PulseAlertSourceCoverageSchema) })),
   retrySourceHealth: oc
     .input(PulseSourceHealthInputSchema)
     .output(z.object({ sources: z.array(PulseSourceHealthSchema) })),

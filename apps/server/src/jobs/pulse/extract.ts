@@ -4,7 +4,7 @@ import { aiOutput, llmLog } from '@duedatehq/db/schema/ai'
 import type { Env } from '../../env'
 import { extractCanonicalEmailText } from './email-artifact'
 import { recordPulseAlert, recordPulseMetric } from './metrics'
-import { requiresReviewOnlyPulseAlert } from './rule-source-adapters'
+import { shouldForceReviewOnlyPulseAlert } from './rule-source-adapters'
 
 type PulseExtractRepo = Pick<
   ReturnType<typeof makePulseOpsRepo>,
@@ -225,7 +225,10 @@ async function runPulseExtractionAfterMark(
     return { pulseId: null, status: 'failed' }
   }
 
-  const actionMode = requiresReviewOnlyPulseAlert(snapshot.sourceId)
+  const actionMode = shouldForceReviewOnlyPulseAlert({
+    sourceId: snapshot.sourceId,
+    changeKind: result.result.changeKind,
+  })
     ? 'review_only'
     : result.result.actionMode
   const parsedJurisdiction = normalizeExtractJurisdiction(

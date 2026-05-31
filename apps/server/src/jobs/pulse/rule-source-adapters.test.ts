@@ -17,9 +17,11 @@ import {
   isRuleSourceAdapterEligible,
   isRuleSourcePulsePromoted,
   isTemporaryAnnouncementAdapterEligible,
+  listAlertSourceCoverage,
   liveRegulatorySourceAdapters,
   requiresReviewOnlyPulseAlert,
   ruleSourceAdapters,
+  shouldForceReviewOnlyPulseAlert,
   temporaryAnnouncementSourceAdapters,
   visibleRegulatorySourceAdapters,
 } from './rule-source-adapters'
@@ -179,21 +181,33 @@ describe('rule source adapters', () => {
     })
   })
 
-  it('adds API-backed temporary announcement adapters through the aggregate feed interface', async () => {
+  it('adds web-first temporary announcement adapters through the aggregate feed interface', async () => {
     const sources = listRuleSources().filter(isTemporaryAnnouncementAdapterEligible)
+    const jurisdictions = new Set(sources.map((source) => source.jurisdiction))
 
     expect(temporaryAnnouncementSourceAdapters.map((adapter) => adapter.id).toSorted()).toEqual(
       sources.map((source) => source.id).toSorted(),
     )
-    expect(sources.map((source) => source.id).toSorted()).toEqual([
-      'az.temporary_announcements',
-      'ks.temporary_announcements',
-      'mi.temporary_announcements',
-      'mo.temporary_announcements',
-      'nd.temporary_announcements',
-      'nv.temporary_announcements',
-      'ri.temporary_announcements',
-    ])
+    expect(sources.length).toBeGreaterThanOrEqual(50)
+    expect(jurisdictions.has('FED')).toBe(true)
+    expect(
+      new Set(
+        sources
+          .filter((source) => source.jurisdiction !== 'FED')
+          .map((source) => source.jurisdiction),
+      ).size,
+    ).toBe(51)
+    expect(sources.map((source) => source.id)).toEqual(
+      expect.arrayContaining([
+        'az.temporary_announcements',
+        'co.temporary_announcements',
+        'nh.temporary_announcements',
+        'oh.sales_tax_rate_changes',
+        'pa.temporary_announcements',
+        'wy.temporary_announcements',
+      ]),
+    )
+    expect(sources.map((source) => source.id)).not.toContain('oh.temporary_announcements')
 
     const source = sources.find((candidate) => candidate.id === 'az.temporary_announcements')!
     expect(source).toMatchObject({
@@ -260,6 +274,64 @@ describe('rule source adapters', () => {
     expect(requiresReviewOnlyPulseAlert('govdelivery.inbound')).toBe(true)
     expect(requiresReviewOnlyPulseAlert('govdelivery.inbound.unmatched')).toBe(true)
     expect(requiresReviewOnlyPulseAlert('ny.email_services')).toBe(false)
+    expect(
+      shouldForceReviewOnlyPulseAlert({
+        sourceId: 'ca.cdtfa_sales_use_filing_dates',
+        changeKind: 'source_status',
+      }),
+    ).toBe(true)
+    expect(
+      shouldForceReviewOnlyPulseAlert({
+        sourceId: 'ca.cdtfa_sales_use_filing_dates',
+        changeKind: 'deadline_shift',
+      }),
+    ).toBe(false)
+  })
+
+  it('reports national Alert source coverage by jurisdiction instead of raw adapter totals', () => {
+    const coverage = listAlertSourceCoverage()
+    const byJurisdiction = new Map(coverage.map((row) => [row.jurisdiction, row]))
+
+    expect(coverage).toHaveLength(52)
+    expect(coverage.every((row) => row.status === 'covered')).toBe(true)
+
+    expect(byJurisdiction.get('FED')).toMatchObject({
+      parserStatus: 'web_primary',
+      explicitLiveSourceIds: expect.arrayContaining([
+        'irs.disaster',
+        'irs.newsroom',
+        'irs.guidance',
+        'irs.tips',
+        'fema.declarations',
+      ]),
+      fallbackEmailSourceIds: expect.arrayContaining(['fed.irs_newswire']),
+    })
+    expect(byJurisdiction.get('CA')).toMatchObject({
+      parserStatus: 'web_primary',
+      explicitLiveSourceIds: expect.arrayContaining([
+        'ca.ftb.newsroom',
+        'ca.ftb.tax_news',
+        'ca.cdtfa.news',
+      ]),
+      ruleSourceWatchIds: expect.arrayContaining(['ca.cdtfa_sales_use_filing_dates']),
+    })
+    expect(byJurisdiction.get('TX')).toMatchObject({
+      parserStatus: 'web_primary',
+      explicitLiveSourceIds: expect.arrayContaining(['tx.cpa.rss']),
+      fallbackEmailSourceIds: expect.arrayContaining(['tx.temporary_announcements']),
+      ruleSourceWatchIds: expect.arrayContaining(['tx.ui_wage_report_due_dates']),
+    })
+    expect(byJurisdiction.get('WA')).toMatchObject({
+      parserStatus: 'web_primary',
+      explicitLiveSourceIds: expect.arrayContaining(['wa.dor.news', 'wa.dor.whats_new']),
+      fallbackEmailSourceIds: expect.arrayContaining(['wa.news']),
+      ruleSourceWatchIds: expect.arrayContaining(['wa.esd_quarterly_tax_wage_reports']),
+    })
+    expect(byJurisdiction.get('OH')).toMatchObject({
+      parserStatus: 'web_primary',
+      primaryWebSourceIds: expect.arrayContaining(['oh.sales_tax_rate_changes']),
+      fallbackEmailSourceIds: expect.arrayContaining(['oh.temporary_announcements']),
+    })
   })
 
   it('keeps concrete basis sources from the rules registry in the extract queue', () => {

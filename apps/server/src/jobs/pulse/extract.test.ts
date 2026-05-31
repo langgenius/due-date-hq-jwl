@@ -457,6 +457,70 @@ describe('extractPulseSnapshot', () => {
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
   })
 
+  it('forces source-status rule changes into review-only Alerts', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      id: 'snapshot-source-status',
+      sourceId: 'ca.cdtfa_sales_use_filing_dates',
+      title: 'CDTFA filing date page changed',
+      officialSourceUrl:
+        'https://www.cdtfa.ca.gov/taxes-and-fees/sales-use-tax-returns-filing-dates.htm',
+      publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+      rawR2Key: 'raw/source-status.txt',
+      pulseId: null,
+      parseStatus: 'pending_extract',
+    })
+    aiMocks.extractPulse.mockResolvedValue({
+      result: {
+        classification: 'regulatory_change',
+        changeKind: 'source_status',
+        actionMode: 'due_date_overlay',
+        summary: 'CDTFA filing date source changed and needs rule review.',
+        sourceExcerpt: 'The filing dates table was updated.',
+        jurisdiction: 'CA',
+        counties: [],
+        forms: [],
+        entityTypes: [],
+        originalDueDate: null,
+        newDueDate: null,
+        effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: ['ca.sales_use_tax.2026'],
+        structuredChange: { sourceStatus: 'changed' },
+        confidence: 0.8,
+      },
+      trace: {
+        promptVersion: 'pulse-extract@v2',
+        model: 'test-model',
+        inputHash: 'hash',
+        guardResult: 'pass',
+        latencyMs: 1,
+      },
+      model: 'test-model',
+      refusal: null,
+    })
+
+    const result = await extractPulseSnapshot(
+      env('The filing dates table was updated.'),
+      'snapshot-source-status',
+    )
+
+    expect(result).toEqual({ pulseId: 'pulse-created', status: 'created' })
+    expect(repoMocks.findDuplicatePulseForExtract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        changeKind: 'source_status',
+        actionMode: 'review_only',
+      }),
+    )
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        changeKind: 'source_status',
+        actionMode: 'review_only',
+      }),
+    )
+    expect(repoMocks.apply).not.toHaveBeenCalled()
+    expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
+  })
+
   it('resets the snapshot to failed and rethrows when extraction throws mid-flight', async () => {
     repoMocks.getSourceSnapshot.mockResolvedValue({
       id: 'snapshot-throw',

@@ -3,6 +3,7 @@ import {
   ErrorCodes,
   type PulseAffectedClient,
   type PulseAlertPublic,
+  type PulseAlertSourceCoverage,
   type PulseFirmAlertStatus,
   type PulsePriorityQueueItem,
   type PulsePriorityReason,
@@ -13,7 +14,11 @@ import {
 import { planHasFeature } from '@duedatehq/core/plan-entitlements'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
 import { runPulseIngest } from '../../jobs/pulse/ingest'
-import { visibleRegulatorySourceAdapters } from '../../jobs/pulse/rule-source-adapters'
+import {
+  alertSourceAdapterMetadataById,
+  listAlertSourceCoverage,
+  visibleRegulatorySourceAdapters,
+} from '../../jobs/pulse/rule-source-adapters'
 import { requireTenant, type RpcContext } from '../_context'
 import { requireCurrentFirmRole } from '../_permissions'
 import { requirePriorityPulseMatching, requireProductionPulse } from '../_plan-gates'
@@ -48,6 +53,7 @@ const SOURCE_LABELS: Record<string, string> = {
   'irs.disaster': 'IRS Disaster Relief',
   'irs.newsroom': 'IRS Newsroom',
   'irs.guidance': 'IRS Guidance',
+  'irs.tips': 'IRS Tax Tips',
   'ca.ftb.newsroom': 'CA FTB Newsroom',
   'ca.ftb.tax_news': 'CA FTB Tax News',
   'ca.cdtfa.news': 'CA CDTFA News',
@@ -328,6 +334,51 @@ function uniqueEmails(values: string[]): string[] {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)))
 }
 
+function newestDate(dates: readonly (Date | null | undefined)[]): Date | null {
+  return dates.reduce<Date | null>((latest, date) => {
+    if (!date) return latest
+    if (!latest || date.getTime() > latest.getTime()) return date
+    return latest
+  }, null)
+}
+
+function toCoveragePublic(
+  row: ReturnType<typeof listAlertSourceCoverage>[number],
+  states: Map<
+    string,
+    {
+      lastCheckedAt?: Date | null
+      lastSuccessAt?: Date | null
+      lastError?: string | null
+    }
+  >,
+): PulseAlertSourceCoverage {
+  const publicSourceIds = row.sourceIds.filter(
+    (sourceId) => !row.hiddenPolicyWatchSourceIds.includes(sourceId),
+  )
+  const sourceStates = publicSourceIds.map((sourceId) => states.get(sourceId)).filter(Boolean)
+  const lastCheckedAt = newestDate(sourceStates.map((state) => state?.lastCheckedAt))
+  const lastSuccessAt = newestDate(sourceStates.map((state) => state?.lastSuccessAt))
+  const failureRows = sourceStates.filter((state) => state?.lastError)
+  const lastFailureAt = newestDate(failureRows.map((state) => state?.lastCheckedAt))
+  const lastError = failureRows.find((state) => state?.lastError)?.lastError ?? null
+  return {
+    jurisdiction: row.jurisdiction,
+    status: row.status,
+    parserStatus: row.parserStatus,
+    explicitLiveSourceIds: [...row.explicitLiveSourceIds],
+    primaryWebSourceIds: [...row.primaryWebSourceIds],
+    fallbackEmailSourceIds: [...row.fallbackEmailSourceIds],
+    ruleSourceWatchIds: [...row.ruleSourceWatchIds],
+    sourceIds: publicSourceIds,
+    lastCheckedAt: toIsoOrNull(lastCheckedAt),
+    lastSuccessAt: toIsoOrNull(lastSuccessAt),
+    lastFailureAt: toIsoOrNull(lastFailureAt),
+    lastError,
+    missingReason: row.missingReason,
+  }
+}
+
 function pulseReviewEmailText(input: {
   alertTitle: string
   requesterName: string
@@ -372,13 +423,19 @@ async function listSourceHealthForScopedRepo(
   )
   const sources: PulseSourceHealth[] = visibleRegulatorySourceAdapters.map((adapter) => {
     const state = persisted.get(adapter.id)
+    const metadata = alertSourceAdapterMetadataById.get(adapter.id)
     const healthStatus =
-      state?.enabled === false || state?.healthStatus === 'paused' ? 'paused' : 'healthy'
+      state?.enabled === false || state?.healthStatus === 'paused'
+        ? 'paused'
+        : (state?.healthStatus ?? 'healthy')
     return {
       sourceId: adapter.id,
-      label: SOURCE_LABELS[adapter.id] ?? adapter.id,
+      label: metadata?.label ?? SOURCE_LABELS[adapter.id] ?? adapter.id,
       tier: adapter.tier,
       jurisdiction: adapter.jurisdiction,
+      purpose: metadata?.purpose ?? 'rule_source_watch',
+      primaryWeb: metadata?.primaryWeb ?? adapter.fetcher !== 'govdelivery',
+      fallbackForSourceIds: [...(metadata?.fallbackForSourceIds ?? [])],
       enabled: state?.enabled ?? true,
       healthStatus,
       lastCheckedAt: toIsoOrNull(state?.lastCheckedAt ?? null),
@@ -395,6 +452,18 @@ const listSourceHealth = os.pulse.listSourceHealth.handler(async ({ context }) =
   const { scoped } = requireTenant(context)
   return listSourceHealthForScopedRepo(scoped)
 })
+
+const listAlertSourceCoverageHandler = os.pulse.listAlertSourceCoverage.handler(
+  async ({ context }) => {
+    const { scoped } = requireTenant(context)
+    const persisted = new Map(
+      (await scoped.pulse.listSourceStates()).map((row) => [row.sourceId, row]),
+    )
+    return {
+      coverage: listAlertSourceCoverage().map((row) => toCoveragePublic(row, persisted)),
+    }
+  },
+)
 
 const retrySourceHealth = os.pulse.retrySourceHealth.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
@@ -843,6 +912,7 @@ export const pulseHandlers = {
   activeCount,
   listHistory,
   listSourceHealth,
+  listAlertSourceCoverage: listAlertSourceCoverageHandler,
   retrySourceHealth,
   getDetail,
   getDetailsBatch,

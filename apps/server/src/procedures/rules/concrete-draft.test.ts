@@ -142,6 +142,7 @@ function fakeSource() {
     domains: ['individual_income_return'],
     entityApplicability: ['individual'],
     authorityRole: 'basis',
+    alertPurpose: 'rule_source_watch',
     notificationChannels: ['practice_rule_review'],
     lastReviewedOn: '2026-05-25',
   } as const

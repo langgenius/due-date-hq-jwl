@@ -121,6 +121,7 @@ export const router = os.router({
     activeCount: pulseHandlers.activeCount,
     listHistory: pulseHandlers.listHistory,
     listSourceHealth: pulseHandlers.listSourceHealth,
+    listAlertSourceCoverage: pulseHandlers.listAlertSourceCoverage,
     retrySourceHealth: pulseHandlers.retrySourceHealth,
     getDetail: pulseHandlers.getDetail,
     getDetailsBatch: pulseHandlers.getDetailsBatch,

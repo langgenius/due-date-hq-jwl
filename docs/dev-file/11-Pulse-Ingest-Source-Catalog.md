@@ -41,7 +41,7 @@
 GovDelivery 属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` canonical page；邮件正文只作为
 快照证据。
 
-**当前实现状态（2026-05-28）：**
+**当前实现状态（2026-05-31）：**
 
 - 所有 parsed item 都写 `pulse_source_snapshot` 并投递
   `PULSE_QUEUE { type: 'pulse.extract', snapshotId }`，后续经 AI Extract 进入 CPA-facing Alerts。
@@ -53,6 +53,17 @@ GovDelivery 属于官方投递渠道，但 Evidence 仍必须回链到 `.gov` ca
 - Rules registry 已登记 50 州 + DC 的官方 tax-topic、filing FAQ、statute、due-date
   与 income-tax 具体页面；这些来源先服务 Rules evidence / practice review，不等于都进入自动
   Pulse 抓取。
+- Rule source registry 现在带显式 `alertPurpose`：
+  `explicit_live_adapter`、`temporary_announcements_or_news`、`rule_source_watch`、
+  `email_fallback`、`hidden_policy_watch`。Alert coverage 以 jurisdiction report 为准，
+  不再用 raw adapter 总数表达生产覆盖。
+- FED explicit live coverage 包括 IRS Disaster、IRS Newsroom、IRS Guidance、IRS Tax Tips
+  和 FEMA Declarations；`fed.irs_newswire` 保留为 GovDelivery/email fallback signal。
+- 50 州 + DC 的 official temporary/news announcement source 会作为 web-first Alert watch
+  进入 ingest；GovDelivery metadata 只作为 fallback/email 归因，不抢占 primary web source。
+- Rule Library source 继续进入 Alert pipeline，但非 `deadline_shift` 的 source/rule 变化会被
+  强制为 `review_only`。只有 `deadline_shift` 才能保留 `due_date_overlay`，且仍必须经 CPA 在
+  Alert 中 review/apply 后才影响 obligations。
 - `apps/server/src/jobs/pulse/rule-source-adapters.ts` 会把带 `practice_rule_review` 的
   parser-backed rule sources 接入 `pulse_source_state`。HTML、RSS/API、PDF 文档/索引都能
   产出 `pulse_source_snapshot` 并进入 `pulse.extract`；manual registry URL 会按 URL 形态降级

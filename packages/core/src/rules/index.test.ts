@@ -157,6 +157,9 @@ describe('@duedatehq/core/rules', () => {
       expect(source.authorityRole, `${source.id} has no authority role`).toMatch(
         /^(basis|cross_check|watch|early_warning)$/,
       )
+      expect(source.alertPurpose, `${source.id} has no Alert source purpose`).toMatch(
+        /^(explicit_live_adapter|temporary_announcements_or_news|rule_source_watch|email_fallback|hidden_policy_watch)$/,
+      )
     }
   })
 
@@ -190,6 +193,9 @@ describe('@duedatehq/core/rules', () => {
           expect(source.inboundEmail?.localParts.length, sourceId).toBeGreaterThan(0)
         }
         expect(['emergency_relief', 'news'], sourceId).toContain(source.sourceType)
+        expect(['temporary_announcements_or_news', 'email_fallback'], sourceId).toContain(
+          source.alertPurpose,
+        )
       }
     }
   })

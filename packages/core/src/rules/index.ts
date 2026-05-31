@@ -172,6 +172,13 @@ export interface InboundEmailRuleSourceConfig {
   accountCodes?: readonly string[]
 }
 
+export type AlertSourcePurpose =
+  | 'explicit_live_adapter'
+  | 'temporary_announcements_or_news'
+  | 'rule_source_watch'
+  | 'email_fallback'
+  | 'hidden_policy_watch'
+
 export interface RuleSource {
   id: string
   jurisdiction: RuleJurisdiction
@@ -188,6 +195,7 @@ export interface RuleSource {
   domains: readonly RuleSourceDomain[]
   entityApplicability: readonly EntityApplicability[]
   authorityRole: RuleEvidenceAuthorityRole
+  alertPurpose: AlertSourcePurpose
   notificationChannels: readonly RuleNotificationChannel[]
   lastReviewedOn: string
   adapterKind?: SourceAdapterKind
@@ -4080,6 +4088,7 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
         ? ['individual', 'sole_prop']
         : ['individual'],
       authorityRole: 'basis',
+      alertPurpose: 'rule_source_watch',
       notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
       lastReviewedOn: VERIFIED_AT,
     })
@@ -4105,6 +4114,7 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
       domains: source.domains,
       entityApplicability: source.entityApplicability,
       authorityRole: 'basis',
+      alertPurpose: 'rule_source_watch',
       notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
       lastReviewedOn: VERIFIED_AT,
     })
@@ -4113,8 +4123,11 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
   return sources
 })
 
-type RuleSourceSeedRecord = Omit<RuleSource, 'domains' | 'entityApplicability' | 'authorityRole'> &
-  Partial<Pick<RuleSource, 'domains' | 'entityApplicability' | 'authorityRole'>>
+type RuleSourceSeedRecord = Omit<
+  RuleSource,
+  'domains' | 'entityApplicability' | 'authorityRole' | 'alertPurpose'
+> &
+  Partial<Pick<RuleSource, 'domains' | 'entityApplicability' | 'authorityRole' | 'alertPurpose'>>
 
 const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   id: string
@@ -4392,6 +4405,12 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     },
   },
   {
+    id: 'oh.sales_tax_rate_changes',
+    jurisdiction: 'OH',
+    title: 'Ohio The Finder Sales Tax Rates and Changes',
+    url: 'https://thefinder.tax.ohio.gov/StreamlineSalesTaxWeb/default.aspx',
+  },
+  {
     id: 'ok.temporary_announcements',
     jurisdiction: 'OK',
     title: 'Oklahoma Tax Commission Newsroom',
@@ -4519,6 +4538,10 @@ const TEMPORARY_ANNOUNCEMENT_RULE_SOURCES = STATE_TEMPORARY_ANNOUNCEMENT_SOURCES
       domains: RULE_SOURCE_DOMAINS,
       entityApplicability: ['any_business'],
       authorityRole: 'watch',
+      alertPurpose:
+        source.acquisitionMethod === 'email_subscription'
+          ? 'email_fallback'
+          : 'temporary_announcements_or_news',
       notificationChannels: ['source_change', 'practice_rule_review'],
       lastReviewedOn: VERIFIED_AT,
     }
@@ -4594,12 +4617,24 @@ function defaultSourceAuthorityRole(source: RuleSourceSeedRecord): RuleEvidenceA
   return 'basis'
 }
 
+function defaultSourceAlertPurpose(source: RuleSourceSeedRecord): AlertSourcePurpose {
+  if (source.alertPurpose) return source.alertPurpose
+  if (source.acquisitionMethod === 'email_subscription' || source.adapterKind === 'email_inbound') {
+    return 'email_fallback'
+  }
+  const authorityRole = source.authorityRole ?? defaultSourceAuthorityRole(source)
+  if (authorityRole === 'watch') return 'temporary_announcements_or_news'
+  if (authorityRole === 'early_warning') return 'explicit_live_adapter'
+  return 'rule_source_watch'
+}
+
 function hydrateRuleSources(sources: readonly RuleSourceSeedRecord[]): readonly RuleSource[] {
   return sources.map((source) => ({
     ...source,
     domains: source.domains ?? defaultSourceDomains(source),
     entityApplicability: source.entityApplicability ?? defaultSourceEntityApplicability(source),
     authorityRole: source.authorityRole ?? defaultSourceAuthorityRole(source),
+    alertPurpose: defaultSourceAlertPurpose(source),
   }))
 }
 
@@ -9444,6 +9479,7 @@ export interface PolicyWatchSource {
   healthStatus: SourceHealthStatus
   families: readonly PolicyWatchFamily[]
   visibleInSourcesPage: boolean
+  alertPurpose: AlertSourcePurpose
   adapterKind?: SourceAdapterKind
   feedUrl?: string
   derivedFromSourceIds?: readonly string[]
@@ -9775,6 +9811,7 @@ function baselinePolicyWatchSource(source: RuleSource): PolicyWatchSource {
     healthStatus: source.healthStatus,
     families: ['baseline_rule'],
     visibleInSourcesPage: true,
+    alertPurpose: source.alertPurpose,
     ...(source.adapterKind ? { adapterKind: source.adapterKind } : {}),
     ...(source.feedUrl ? { feedUrl: source.feedUrl } : {}),
   }
@@ -9804,6 +9841,7 @@ function hiddenPolicyAnnouncementSource(jurisdiction: RuleJurisdiction): PolicyW
     healthStatus: preferred.healthStatus,
     families: ['tax_news', 'disaster_relief'],
     visibleInSourcesPage: false,
+    alertPurpose: 'hidden_policy_watch',
     derivedFromSourceIds: [preferred.id],
     ...(preferred.adapterKind ? { adapterKind: preferred.adapterKind } : {}),
     ...(preferred.feedUrl ? { feedUrl: preferred.feedUrl } : {}),
