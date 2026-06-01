@@ -61,17 +61,17 @@ describe('rule source adapters', () => {
         candidateReviewSources.length +
         temporaryAnnouncementSourceAdapters.length,
     )
-    // liveRegulatorySourceAdapters is deduped by id AND by resolved fetch URL, so
-    // it is a subset of (visible + hidden): redundant same-URL watchers (e.g. a
-    // state's temporary-announcement page also registered as a policy-watch
-    // source) collapse to one. It must never grow past the id-deduped union.
+    // liveRegulatorySourceAdapters is built from the visible layers only (hidden
+    // policy-watch is excluded — see below) and is then deduped by id AND by
+    // resolved fetch URL, so it is a subset of the visible layer: redundant
+    // same-URL watchers (e.g. an explicit live adapter and a temporary-
+    // announcement source pointing at the same page) collapse to one. It must
+    // never exceed the visible layer.
     expect(liveRegulatorySourceAdapters.length).toBeLessThanOrEqual(
-      visibleRegulatorySourceAdapters.length + hiddenPolicyWatchAdapters.length,
+      visibleRegulatorySourceAdapters.length,
     )
-    // URL dedup actually removed something — the layers do share URLs today.
-    expect(liveRegulatorySourceAdapters.length).toBeLessThan(
-      visibleRegulatorySourceAdapters.length + hiddenPolicyWatchAdapters.length,
-    )
+    // URL dedup actually removed something — the visible layers do share URLs.
+    expect(liveRegulatorySourceAdapters.length).toBeLessThan(visibleRegulatorySourceAdapters.length)
     // Ids are unique.
     expect(new Set(liveRegulatorySourceAdapters.map((adapter) => adapter.id)).size).toBe(
       liveRegulatorySourceAdapters.length,
@@ -80,6 +80,12 @@ describe('rule source adapters', () => {
     const liveIdSet = new Set(liveRegulatorySourceAdapters.map((adapter) => adapter.id))
     for (const adapter of livePulseAdapters) {
       expect(liveIdSet.has(adapter.id), adapter.id).toBe(true)
+    }
+    // No hidden policy-watch adapter is driven by cron — they are derived URL
+    // mirrors of temporary-announcement sources, covered as a coverage/audit
+    // concept only.
+    for (const adapter of hiddenPolicyWatchAdapters) {
+      expect(liveIdSet.has(adapter.id), adapter.id).toBe(false)
     }
   })
 
@@ -95,22 +101,13 @@ describe('rule source adapters', () => {
     )
 
     // Resolved fetch URL per id, mirroring fetchUrlForAdapterId in the module:
-    // registry/hidden sources fetch feedUrl ?? url with `{year}` resolved.
+    // registry sources fetch feedUrl ?? url with `{year}` resolved.
     const resolveYear = (url: string) =>
       url.includes('{year}') ? url.replaceAll('{year}', String(new Date().getUTCFullYear())) : url
     const urlBySourceId = new Map<string, string>()
     for (const source of listRuleSources()) {
       urlBySourceId.set(source.id, resolveYear(source.feedUrl ?? source.url))
     }
-    for (const source of hiddenSources) {
-      urlBySourceId.set(source.id, resolveYear(source.feedUrl ?? source.url))
-    }
-    // URLs already claimed by a higher-priority (visible) adapter.
-    const visibleUrls = new Set(
-      visibleRegulatorySourceAdapters
-        .map((adapter) => urlBySourceId.get(adapter.id))
-        .filter((url): url is string => Boolean(url)),
-    )
     const liveIds = new Set(liveRegulatorySourceAdapters.map((candidate) => candidate.id))
     const seenLiveUrls = new Set<string>()
     for (const adapter of liveRegulatorySourceAdapters) {
@@ -122,15 +119,10 @@ describe('rule source adapters', () => {
       expect(isHiddenPolicyWatchSourceId(adapter.id), adapter.id).toBe(true)
       expect(visibleAdapterIds.has(adapter.id), adapter.id).toBe(false)
       expect(publicSourceIds.has(adapter.id), adapter.id).toBe(false)
-      const url = urlBySourceId.get(adapter.id)
-      // A hidden policy-watch adapter is driven by cron only when no
-      // higher-priority watcher already fetches the same URL; otherwise it is
-      // intentionally deduped out (the visible watcher covers that page).
-      if (url && visibleUrls.has(url)) {
-        expect(liveIds.has(adapter.id), `${adapter.id} should be deduped out`).toBe(false)
-      } else {
-        expect(liveIds.has(adapter.id), `${adapter.id} should be live`).toBe(true)
-      }
+      // Hidden policy-watch adapters are never driven by cron — each is a
+      // derived URL mirror of a temporary-announcement source, kept only for
+      // coverage/audit metadata (alertSourceAdapterMetadata / coverage rows).
+      expect(liveIds.has(adapter.id), `${adapter.id} should not be a cron source`).toBe(false)
     }
     // No two live adapters fetch the same URL.
     expect(seenLiveUrls.size).toBe(

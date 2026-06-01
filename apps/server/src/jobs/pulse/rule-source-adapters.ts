@@ -934,14 +934,21 @@ export const visibleRegulatorySourceAdapters = uniqueAdapters([
   ...ruleSourceWatchAdapters,
 ])
 
-// The watcher set actually driven by cron. Deduped by id (uniqueAdapters) AND by
-// resolved fetch URL (uniqueByFetchUrl) so a page registered under several ids
-// is fetched once. Input order encodes keep-priority: explicit live adapters and
-// temporary-announcement watchers (via visibleRegulatorySourceAdapters) before
-// hidden policy-watch, so the precise hand-tuned watcher survives and the
-// redundant policy-watch / duplicate copies drop.
+// The watcher set actually driven by cron. Hidden policy-watch sources are
+// intentionally NOT included: each is a derived mirror of a state's
+// temporary-announcement source (hiddenPolicyAnnouncementSource in
+// @duedatehq/core picks one TA source per jurisdiction and re-ids it as
+// `policy-watch.<jur>.announcements` with the same fetch URL). They share the
+// TA URL by construction, so URL dedup already dropped every one of them to
+// zero live watchers — appending them here only built 51 adapter objects that
+// were discarded each module load. The hidden layer remains exported
+// (hiddenPolicyWatchAdapters) and still feeds alertSourceAdapterMetadata /
+// listAlertSourceCoverage as a coverage/audit concept; it is just not a cron
+// fetch source. Still deduped by id and by resolved fetch URL so same-URL
+// watchers within the visible layers (explicit > temporary-announcement >
+// rule-source) collapse to the most-precise one.
 export const liveRegulatorySourceAdapters = uniqueByFetchUrl(
-  uniqueAdapters([...visibleRegulatorySourceAdapters, ...hiddenPolicyWatchAdapters]),
+  uniqueAdapters([...visibleRegulatorySourceAdapters]),
 )
 
 function coverageSourceIdsForJurisdiction(
