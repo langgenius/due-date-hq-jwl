@@ -587,8 +587,7 @@ const reviewPriorityMatches = os.pulse.reviewPriorityMatches.handler(async ({ in
 const reviewDueDateOverlayDetails = os.pulse.reviewDueDateOverlayDetails.handler(
   async ({ input, context }) => {
     const { userId } = await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
-    const { scoped, tenant } = requireTenant(context)
-    requireProductionPulse(tenant.plan)
+    const { scoped } = requireTenant(context)
     try {
       const detail = await scoped.pulse.reviewDueDateOverlayDetails({
         alertId: input.alertId,
@@ -730,7 +729,6 @@ const snooze = os.pulse.snooze.handler(async ({ input, context }) => {
 const markReviewed = os.pulse.markReviewed.handler(async ({ input, context }) => {
   const { userId } = await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
   const { scoped, tenant } = requireTenant(context)
-  requireProductionPulse(tenant.plan)
   try {
     const result = await scoped.pulse.markReviewed({
       alertId: input.alertId,
@@ -801,7 +799,6 @@ export async function requestPulseReview(input: {
     'preparer',
   ])
   const { scoped } = requireTenant(input.context)
-  requireProductionPulse(tenant.plan)
   const { notifications } = scoped
   if (!notifications) {
     throw new Error('Notifications repo methods are not available.')

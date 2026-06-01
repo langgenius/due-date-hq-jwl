@@ -2,11 +2,12 @@
  * Focused procedure-context test doubles only implement fields the Pulse
  * request-review helper reads.
  */
+import { call } from '@orpc/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { MemberRow } from '@duedatehq/ports/tenants'
 import type { ContextVars, Env } from '../../env'
 import type { RpcContext } from '../_context'
-import { requestPulseReview } from './index'
+import { pulseHandlers, requestPulseReview } from './index'
 
 type Role = 'owner' | 'partner' | 'manager' | 'preparer' | 'coordinator'
 type Status = 'matched' | 'dismissed' | 'reverted'
@@ -20,6 +21,11 @@ type EnqueueEmailInput = {
     text: string
   }
 }
+
+const REVIEW_ALERT_ID = '11111111-1111-4111-8111-111111111111'
+const REVIEW_OBLIGATION_ID = '22222222-2222-4222-8222-222222222222'
+const REVIEW_PULSE_ID = '33333333-3333-4333-8333-333333333333'
+const REVIEW_AUDIT_ID = '44444444-4444-4444-8444-444444444444'
 
 function member(role: Role, overrides: Partial<MemberRow> = {}): MemberRow {
   return {
@@ -73,11 +79,61 @@ function pulseDetail(status: Status = 'matched', sourceStatus: SourceStatus = 'a
     originalDueDate: new Date('2026-03-15T00:00:00.000Z'),
     newDueDate: new Date('2026-10-15T00:00:00.000Z'),
     effectiveFrom: null,
+    effectiveUntil: null,
+    affectedRuleIds: [],
+    structuredChange: null,
     sourceExcerpt: 'Tax relief applies.',
     reviewedAt: null,
     applyReadiness: { status: 'ready', missing: [] },
     affectedClients: [],
   }
+}
+
+function pulseActionContext({
+  role,
+  plan,
+  detail = pulseDetail(),
+}: {
+  role: Role
+  plan: 'solo' | 'pro' | 'team' | 'firm'
+  detail?: ReturnType<typeof pulseDetail>
+}) {
+  const actor = member(role)
+  const actionDetail = {
+    ...detail,
+    alert: { ...detail.alert, id: REVIEW_ALERT_ID, pulseId: REVIEW_PULSE_ID },
+  }
+  const markReviewed = vi.fn(async () => ({ alert: actionDetail.alert, auditId: REVIEW_AUDIT_ID }))
+  const reviewDueDateOverlayDetails = vi.fn(async () => actionDetail)
+  const auditWrite = vi.fn(async () => ({ id: 'audit_denied' }))
+  const findMembership = vi.fn(async () => actor)
+  const context: RpcContext = {
+    env: {} as unknown as Env,
+    request: new Request('https://app.test/rpc/pulse/markReviewed'),
+    vars: {
+      requestId: 'req_1',
+      tenantContext: {
+        firmId: 'firm_1',
+        timezone: 'America/New_York',
+        plan,
+        seatLimit: 5,
+        status: 'active',
+        internalDeadlineOffsetDays: 14,
+        monitoringStartDate: '2026-05-29',
+        ownerUserId: 'user_owner',
+        coordinatorCanSeeDollars: false,
+      },
+      userId: actor.userId,
+      scoped: {
+        firmId: 'firm_1',
+        pulse: { markReviewed, reviewDueDateOverlayDetails },
+        audit: { write: auditWrite },
+      } as unknown as NonNullable<ContextVars['scoped']>,
+      members: { findMembership } as unknown as NonNullable<ContextVars['members']>,
+    },
+  }
+
+  return { context, markReviewed, reviewDueDateOverlayDetails, auditWrite }
 }
 
 function contextFor(
@@ -163,6 +219,68 @@ function contextFor(
     listMembers,
   }
 }
+
+describe('Pulse review action gates', () => {
+  it('lets Solo owners mark review-only alerts reviewed', async () => {
+    const { context, markReviewed } = pulseActionContext({ role: 'owner', plan: 'solo' })
+
+    await expect(
+      call(pulseHandlers.markReviewed, { alertId: REVIEW_ALERT_ID }, { context }),
+    ).resolves.toEqual({
+      alert: expect.objectContaining({ id: REVIEW_ALERT_ID, firmImpact: 'matched' }),
+      auditId: REVIEW_AUDIT_ID,
+    })
+    expect(markReviewed).toHaveBeenCalledWith({ alertId: REVIEW_ALERT_ID, userId: 'user_owner' })
+  })
+
+  it.each([
+    ['pro', 'manager'],
+    ['pro', 'partner'],
+    ['team', 'owner'],
+  ] as const)('lets %s %s confirm alert deadline details', async (plan, role) => {
+    const { context, reviewDueDateOverlayDetails } = pulseActionContext({ role, plan })
+
+    await expect(
+      call(
+        pulseHandlers.reviewDueDateOverlayDetails,
+        {
+          alertId: REVIEW_ALERT_ID,
+          newDueDate: '2026-10-15',
+          selectedObligationIds: [REVIEW_OBLIGATION_ID],
+        },
+        { context },
+      ),
+    ).resolves.toEqual(
+      expect.objectContaining({ alert: expect.objectContaining({ id: REVIEW_ALERT_ID }) }),
+    )
+    expect(reviewDueDateOverlayDetails).toHaveBeenCalledWith(
+      expect.objectContaining({
+        alertId: REVIEW_ALERT_ID,
+        newDueDate: new Date('2026-10-15T00:00:00.000Z'),
+        selectedObligationIds: [REVIEW_OBLIGATION_ID],
+        confirmedObligationIds: [],
+        excludedObligationIds: [],
+        note: null,
+        userId: `user_${role}`,
+      }),
+    )
+  })
+
+  it('keeps Pro preparers from confirming alert review', async () => {
+    const { context, markReviewed, auditWrite } = pulseActionContext({
+      role: 'preparer',
+      plan: 'pro',
+    })
+
+    await expect(
+      call(pulseHandlers.markReviewed, { alertId: REVIEW_ALERT_ID }, { context }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' })
+    expect(markReviewed).not.toHaveBeenCalled()
+    expect(auditWrite).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'auth.denied', reason: 'role' }),
+    )
+  })
+})
 
 describe('requestPulseReview', () => {
   it.each([
