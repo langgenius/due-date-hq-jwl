@@ -926,7 +926,7 @@ const STATE_INCOME_TAX_SOURCE_SEEDS = [
   {
     jurisdiction: 'IL',
     title: 'Illinois DOR Due Dates for Filing Returns',
-    url: 'https://tax.illinois.gov/individuals/filingrequirements/duedate.html',
+    url: 'https://tax.illinois.gov/individuals/filingrequirements/extension.html',
   },
   {
     jurisdiction: 'IN',
@@ -969,7 +969,7 @@ const STATE_INCOME_TAX_SOURCE_SEEDS = [
   {
     jurisdiction: 'MA',
     title: 'Massachusetts DOR Due Dates',
-    url: 'https://www.mass.gov/info-details/dor-due-dates',
+    url: 'https://www.mass.gov/info-details/massachusetts-dor-tax-due-dates-and-extensions',
   },
   {
     jurisdiction: 'MI',
@@ -1011,12 +1011,12 @@ const STATE_INCOME_TAX_SOURCE_SEEDS = [
   {
     jurisdiction: 'NH',
     title: 'New Hampshire DRA Interest and Dividends Tax FAQs',
-    url: 'https://www.revenue.nh.gov/resource-center/frequently-asked-questions/interest-dividends-tax-faqs',
+    url: 'https://www.revenue.nh.gov/resource-center/frequently-asked-questions/interest-dividends-tax-frequently-asked-questions',
   },
   {
     jurisdiction: 'NJ',
     title: 'New Jersey Division of Taxation Individual Income Tax',
-    url: 'https://www.nj.gov/treasury/taxation/njit1.shtml',
+    url: 'https://www.nj.gov/treasury/taxation/prntgit.shtml',
   },
   {
     jurisdiction: 'NM',
@@ -2851,7 +2851,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'DC',
     id: 'dc.tax_filing_deadlines',
     title: 'DC OTR Tax Filing Deadlines',
-    url: 'https://otr.cfo.dc.gov/page/tax-filing-deadlines',
+    url: 'https://otr.cfo.dc.gov/',
     sourceType: 'due_dates',
     acquisitionMethod: 'manual_review',
     domains: [
@@ -3840,7 +3840,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'RI',
     id: 'ri.sales_tax',
     title: 'Rhode Island Division of Taxation Sales and Use Tax',
-    url: 'https://tax.ri.gov/tax-sections/sales-use-tax',
+    url: 'https://tax.ri.gov/tax-sections/sales-excise-taxes/sales-use-tax',
     sourceType: 'instructions',
     acquisitionMethod: 'manual_review',
     domains: ['sales_use_tax'],
@@ -3924,7 +3924,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'VT',
     id: 'vt.corporate_income_tax',
     title: 'Vermont Corporate and Business Income Tax Return Instructions',
-    url: 'https://tax.vermont.gov/sites/tax/files/documents/CO-411-Instr.pdf',
+    url: 'https://tax.vermont.gov/business/corporate-income-tax',
     sourceType: 'instructions',
     acquisitionMethod: 'manual_review',
     domains: ['business_income_return', 'business_estimated_tax'],
@@ -3936,7 +3936,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'VT',
     id: 'vt.pass_through_entity_tax',
     title: 'Vermont Business Income Tax Return Instructions',
-    url: 'https://tax.vermont.gov/sites/tax/files/documents/BI-471-Instr-rev0216.pdf',
+    url: 'https://tax.vermont.gov/business/business-entity-income-tax',
     sourceType: 'instructions',
     acquisitionMethod: 'manual_review',
     domains: ['pass_through_entity_return'],
@@ -3948,7 +3948,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'VT',
     id: 'vt.sales_use_tax',
     title: 'Vermont Sales and Use Tax Business Registration Guidance',
-    url: 'https://tax.vermont.gov/sites/tax/files/documents/FS-1006.pdf',
+    url: 'https://tax.vermont.gov/business/sales-and-use-tax',
     sourceType: 'instructions',
     acquisitionMethod: 'manual_review',
     domains: ['sales_use_tax'],
@@ -3992,7 +3992,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'VT',
     id: 'vt.ui_wage_report',
     title: 'Vermont Department of Labor Quarterly Wage and Contribution Reports',
-    url: 'https://labor.vermont.gov/unemployment-insurance/ui-employers/quarterly-wage-contribution-reports',
+    url: 'https://labor.vermont.gov/unemployment-insurance/ui-employers/quarterly-reporting-taxable-wage-information',
     sourceType: 'instructions',
     acquisitionMethod: 'manual_review',
     domains: ['ui_wage_report'],

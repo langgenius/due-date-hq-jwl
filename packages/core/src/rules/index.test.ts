@@ -1484,7 +1484,7 @@ describe('@duedatehq/core/rules', () => {
       domains: ['individual_estimated_tax'],
     })
     expect(sourcesById.get('vt.corporate_income_tax')).toMatchObject({
-      url: 'https://tax.vermont.gov/sites/tax/files/documents/CO-411-Instr.pdf',
+      url: 'https://tax.vermont.gov/business/corporate-income-tax',
       domains: ['business_income_return', 'business_estimated_tax'],
       entityApplicability: ['llc', 'partnership', 's_corp', 'c_corp'],
     })
