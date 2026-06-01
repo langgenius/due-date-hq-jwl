@@ -420,3 +420,83 @@ describe('requestPulseReview', () => {
     expect(auditWrite).not.toHaveBeenCalled()
   })
 })
+
+describe('listAlerts output resilience', () => {
+  const GOOD_ALERT_ID = '11111111-1111-4111-8111-111111111111'
+  const GOOD_PULSE_ID = '22222222-2222-4222-8222-222222222222'
+  const BAD_ALERT_ID = '33333333-3333-4333-8333-333333333333'
+  const BAD_PULSE_ID = '44444444-4444-4444-8444-444444444444'
+
+  function alertRow(overrides: Record<string, unknown>) {
+    return {
+      id: GOOD_ALERT_ID,
+      pulseId: GOOD_PULSE_ID,
+      status: 'matched',
+      sourceStatus: 'approved',
+      changeKind: 'deadline_shift',
+      actionMode: 'due_date_overlay',
+      title: 'IRS storm relief',
+      source: 'irs.newsroom',
+      sourceUrl: 'https://www.irs.gov/newsroom/tax-relief',
+      summary: 'IRS extends selected filing deadlines.',
+      publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+      matchedCount: 1,
+      needsReviewCount: 0,
+      applyReadiness: { status: 'ready', missing: [] },
+      duplicateSourceSnapshotCount: 0,
+      confidence: 0.9,
+      isSample: false,
+      jurisdiction: 'CA',
+      ...overrides,
+    }
+  }
+
+  function listAlertsContext(rows: ReturnType<typeof alertRow>[]) {
+    const listAlerts = vi.fn(async () => rows)
+    const context: RpcContext = {
+      env: {} as unknown as Env,
+      request: new Request('https://app.test/rpc/pulse/listAlerts'),
+      vars: {
+        requestId: 'req_1',
+        tenantContext: {
+          firmId: 'firm_1',
+          timezone: 'America/New_York',
+          plan: 'team',
+          seatLimit: 5,
+          status: 'active',
+          internalDeadlineOffsetDays: 14,
+          monitoringStartDate: '2026-05-29',
+          ownerUserId: 'user_owner',
+          coordinatorCanSeeDollars: false,
+        },
+        userId: 'user_owner',
+        scoped: {
+          firmId: 'firm_1',
+          pulse: { listAlerts },
+        } as unknown as NonNullable<ContextVars['scoped']>,
+      },
+    }
+    return { context, listAlerts }
+  }
+
+  it('drops a row that fails output validation instead of 500ing the whole list', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    // A garbage `jurisdiction` ('f!') is exactly the production incident: it
+    // fails PulseJurisdictionSchema and, pre-fix, failed the whole `z.array`.
+    const { context, listAlerts } = listAlertsContext([
+      alertRow({ id: GOOD_ALERT_ID, pulseId: GOOD_PULSE_ID, jurisdiction: 'CA' }),
+      alertRow({ id: BAD_ALERT_ID, pulseId: BAD_PULSE_ID, jurisdiction: 'f!' }),
+    ])
+
+    const result = await call(pulseHandlers.listAlerts, {}, { context })
+
+    expect(listAlerts).toHaveBeenCalledTimes(1)
+    expect(result.alerts).toHaveLength(1)
+    expect(result.alerts[0]).toMatchObject({ pulseId: GOOD_PULSE_ID, jurisdiction: 'CA' })
+    expect(consoleError).toHaveBeenCalledWith(
+      'pulse.alert.dropped_invalid_output',
+      expect.objectContaining({ endpoint: 'listAlerts', pulseId: BAD_PULSE_ID }),
+    )
+    consoleError.mockRestore()
+  })
+})

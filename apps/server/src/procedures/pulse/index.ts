@@ -1,6 +1,7 @@
 import { ORPCError } from '@orpc/server'
 import {
   ErrorCodes,
+  PulseAlertPublicSchema,
   type PulseAffectedClient,
   type PulseAlertPublic,
   type PulseAlertSourceCoverage,
@@ -194,6 +195,37 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     // losing federal Pulse rows.
     jurisdiction: row.jurisdiction,
   }
+}
+
+/**
+ * Map repo alert rows to the public output shape, dropping (and loudly logging)
+ * any row that fails the output contract rather than letting a single malformed
+ * row fail the whole `z.array(...)` and 500 the entire endpoint for every firm.
+ * Pulse fields are AI-extracted, so one bad value (the production incident was a
+ * garbage `parsedJurisdiction` like `f!` on a federal IRS pulse) must degrade to
+ * "one missing alert", never "every alert down". The dropped row is logged for
+ * repair; the write-path normalization + a data backfill remove it at the source.
+ */
+function toPublicAlertsSafely(rows: PulseAlertRow[], endpoint: string): PulseAlertPublic[] {
+  const alerts: PulseAlertPublic[] = []
+  for (const row of rows) {
+    const parsed = PulseAlertPublicSchema.safeParse(toAlertPublic(row))
+    if (parsed.success) {
+      alerts.push(parsed.data)
+      continue
+    }
+    console.error('pulse.alert.dropped_invalid_output', {
+      endpoint,
+      pulseId: row.pulseId,
+      alertId: row.id,
+      source: row.source,
+      issues: parsed.error.issues.map((issue) => ({
+        path: issue.path.join('.'),
+        code: issue.code,
+      })),
+    })
+  }
+  return alerts
 }
 
 function toAffectedClientPublic(row: PulseAffectedClientRow): PulseAffectedClient {
@@ -411,7 +443,7 @@ const listAlerts = os.pulse.listAlerts.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
   const opts = input?.limit === undefined ? {} : { limit: input.limit }
   const alerts = await scoped.pulse.listAlerts(opts)
-  return { alerts: alerts.map(toAlertPublic) }
+  return { alerts: toPublicAlertsSafely(alerts, 'listAlerts') }
 })
 
 const activeCount = os.pulse.activeCount.handler(async ({ context }) => {
@@ -426,7 +458,7 @@ const listHistory = os.pulse.listHistory.handler(async ({ input, context }) => {
     ...(input?.limit === undefined ? {} : { limit: input.limit }),
     ...(input?.status === undefined ? {} : { status: input.status }),
   })
-  return { alerts: alerts.map(toAlertPublic) }
+  return { alerts: toPublicAlertsSafely(alerts, 'listHistory') }
 })
 
 async function listSourceHealthForScopedRepo(

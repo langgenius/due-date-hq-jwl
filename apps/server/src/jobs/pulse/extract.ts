@@ -50,10 +50,27 @@ function latestPolicyDate(values: ReadonlyArray<string | null>): Date | null {
   return times.length > 0 ? new Date(Math.max(...times)) : null
 }
 
-function normalizeExtractJurisdiction(sourceId: string, jurisdiction: string): string {
-  const normalized = jurisdiction.toUpperCase()
-  if (sourceId.startsWith('fed.') && normalized === 'US') return 'FED'
-  return normalized
+/**
+ * Coerce the AI-extracted jurisdiction into a value the output contract accepts
+ * (`FED` or a 2-letter state/DC code — PulseJurisdictionSchema). The model
+ * sometimes emits `US` (means federal here) or outright garbage (`f!`, `F4`),
+ * and an illegal stored value 500s every firm's alert list through the
+ * array-output validation (`listAlerts`). Recovery order:
+ *   1. `US`/`USA` -> `FED` (the model has no standalone "US" jurisdiction).
+ *   2. Already legal (`FED` or `^[A-Z]{2}$`) -> keep. Preserves a genuine state
+ *      on a federally-sourced but state-scoped item (IRS relief scoped to `CA`).
+ *   3. Garbage -> recover from the `<state|irs|fed>.<agency>` source-id
+ *      convention: a 2-letter prefix is the state (`ca.ftb.news` -> `CA`),
+ *      otherwise federal (`irs.*`, `fed.*`, unknown) -> `FED`.
+ * The result is always contract-legal, so no extraction can poison the list.
+ */
+export function normalizeExtractJurisdiction(sourceId: string, jurisdiction: string): string {
+  const value = jurisdiction.trim().toUpperCase()
+  if (value === 'US' || value === 'USA') return 'FED'
+  if (value === 'FED' || /^[A-Z]{2}$/.test(value)) return value
+  const prefix = sourceId.split('.')[0]?.toUpperCase() ?? ''
+  if (prefix !== 'US' && /^[A-Z]{2}$/.test(prefix)) return prefix
+  return 'FED'
 }
 
 type PulseExtractEnv = Pick<

@@ -9,7 +9,7 @@ import {
   RAW_EMAIL_ARTIFACT_BEGIN,
   RAW_EMAIL_ARTIFACT_END,
 } from './email-artifact'
-import { extractPulseSnapshot } from './extract'
+import { extractPulseSnapshot, normalizeExtractJurisdiction } from './extract'
 
 const { aiMocks, dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
   const repo = {
@@ -642,5 +642,29 @@ describe('extractPulseSnapshot', () => {
 
     expect(result).toEqual({ pulseId: 'pulse-created', status: 'created' })
     expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalled()
+  })
+})
+
+describe('normalizeExtractJurisdiction', () => {
+  it('maps US/USA to FED regardless of source', () => {
+    expect(normalizeExtractJurisdiction('irs.newsroom', 'US')).toBe('FED')
+    expect(normalizeExtractJurisdiction('fed.irs_newswire', 'usa')).toBe('FED')
+  })
+
+  it('keeps a legal FED or 2-letter code, including a state on a federal source', () => {
+    expect(normalizeExtractJurisdiction('irs.newsroom', 'FED')).toBe('FED')
+    expect(normalizeExtractJurisdiction('wa.dor.news', 'WA')).toBe('WA')
+    // IRS disaster relief is federally sourced but state-scoped — keep the state.
+    expect(normalizeExtractJurisdiction('irs.disaster', 'CA')).toBe('CA')
+  })
+
+  it('recovers garbage AI output via the source-id prefix, never returning an illegal value', () => {
+    // The production incident: irs.* sources stored 'f!', 'f4', 'f:' and 500ed
+    // the whole alerts list through the array-output validation.
+    expect(normalizeExtractJurisdiction('irs.newsroom', 'f!')).toBe('FED')
+    expect(normalizeExtractJurisdiction('irs.guidance', 'F4')).toBe('FED')
+    expect(normalizeExtractJurisdiction('fed.irs_newswire', ':(')).toBe('FED')
+    // A garbage value on a state source recovers to that state from the prefix.
+    expect(normalizeExtractJurisdiction('ca.ftb.tax_news', '??')).toBe('CA')
   })
 })
