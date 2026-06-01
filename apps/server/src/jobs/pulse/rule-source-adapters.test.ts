@@ -61,12 +61,26 @@ describe('rule source adapters', () => {
         candidateReviewSources.length +
         temporaryAnnouncementSourceAdapters.length,
     )
-    expect(liveRegulatorySourceAdapters).toHaveLength(
+    // liveRegulatorySourceAdapters is deduped by id AND by resolved fetch URL, so
+    // it is a subset of (visible + hidden): redundant same-URL watchers (e.g. a
+    // state's temporary-announcement page also registered as a policy-watch
+    // source) collapse to one. It must never grow past the id-deduped union.
+    expect(liveRegulatorySourceAdapters.length).toBeLessThanOrEqual(
       visibleRegulatorySourceAdapters.length + hiddenPolicyWatchAdapters.length,
     )
+    // URL dedup actually removed something — the layers do share URLs today.
+    expect(liveRegulatorySourceAdapters.length).toBeLessThan(
+      visibleRegulatorySourceAdapters.length + hiddenPolicyWatchAdapters.length,
+    )
+    // Ids are unique.
     expect(new Set(liveRegulatorySourceAdapters.map((adapter) => adapter.id)).size).toBe(
       liveRegulatorySourceAdapters.length,
     )
+    // Every explicit hand-tuned live adapter survives dedup (highest priority).
+    const liveIdSet = new Set(liveRegulatorySourceAdapters.map((adapter) => adapter.id))
+    for (const adapter of livePulseAdapters) {
+      expect(liveIdSet.has(adapter.id), adapter.id).toBe(true)
+    }
   })
 
   it('adds hidden national policy-watch adapters without exposing them as visible sources', async () => {
@@ -80,15 +94,48 @@ describe('rule source adapters', () => {
       eligibleHiddenSources.map((source) => source.id).toSorted(),
     )
 
+    // Resolved fetch URL per id, mirroring fetchUrlForAdapterId in the module:
+    // registry/hidden sources fetch feedUrl ?? url with `{year}` resolved.
+    const resolveYear = (url: string) =>
+      url.includes('{year}') ? url.replaceAll('{year}', String(new Date().getUTCFullYear())) : url
+    const urlBySourceId = new Map<string, string>()
+    for (const source of listRuleSources()) {
+      urlBySourceId.set(source.id, resolveYear(source.feedUrl ?? source.url))
+    }
+    for (const source of hiddenSources) {
+      urlBySourceId.set(source.id, resolveYear(source.feedUrl ?? source.url))
+    }
+    // URLs already claimed by a higher-priority (visible) adapter.
+    const visibleUrls = new Set(
+      visibleRegulatorySourceAdapters
+        .map((adapter) => urlBySourceId.get(adapter.id))
+        .filter((url): url is string => Boolean(url)),
+    )
+    const liveIds = new Set(liveRegulatorySourceAdapters.map((candidate) => candidate.id))
+    const seenLiveUrls = new Set<string>()
+    for (const adapter of liveRegulatorySourceAdapters) {
+      const url = urlBySourceId.get(adapter.id)
+      if (url) seenLiveUrls.add(url)
+    }
+
     for (const adapter of hiddenPolicyWatchAdapters) {
       expect(isHiddenPolicyWatchSourceId(adapter.id), adapter.id).toBe(true)
       expect(visibleAdapterIds.has(adapter.id), adapter.id).toBe(false)
       expect(publicSourceIds.has(adapter.id), adapter.id).toBe(false)
-      expect(
-        liveRegulatorySourceAdapters.map((candidate) => candidate.id),
-        adapter.id,
-      ).toContain(adapter.id)
+      const url = urlBySourceId.get(adapter.id)
+      // A hidden policy-watch adapter is driven by cron only when no
+      // higher-priority watcher already fetches the same URL; otherwise it is
+      // intentionally deduped out (the visible watcher covers that page).
+      if (url && visibleUrls.has(url)) {
+        expect(liveIds.has(adapter.id), `${adapter.id} should be deduped out`).toBe(false)
+      } else {
+        expect(liveIds.has(adapter.id), `${adapter.id} should be live`).toBe(true)
+      }
     }
+    // No two live adapters fetch the same URL.
+    expect(seenLiveUrls.size).toBe(
+      liveRegulatorySourceAdapters.filter((adapter) => urlBySourceId.get(adapter.id)).length,
+    )
 
     const source = hiddenSources.find((candidate) => candidate.jurisdiction === 'AZ')!
     expect(source.feedUrl).toBe('https://azdor.gov/news-center')

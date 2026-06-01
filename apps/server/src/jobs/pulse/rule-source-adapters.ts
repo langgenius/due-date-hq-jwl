@@ -545,6 +545,28 @@ function uniqueAdapters(adapters: readonly SourceAdapter[]): SourceAdapter[] {
   })
 }
 
+// Collapse adapters that fetch the SAME official URL down to a single watcher.
+// Many states register the same page under multiple ids — an explicit live
+// adapter, a `*.temporary_announcements` rule source, and a hidden
+// `policy-watch.*` source can all point at e.g. https://www.tax.ny.gov/press/.
+// `uniqueAdapters` only dedups by id, so those would each fetch, archive to R2,
+// and enqueue an AI extract for the identical page every cycle — wasted
+// sub-requests that also strain the 30s/host polite-fetch budget. Dedup by the
+// resolved fetch URL, keeping the FIRST adapter seen. Callers pass adapters in
+// priority order (explicit > temporary-announcement > rule-source >
+// policy-watch), so the most-precise hand-tuned watcher wins and the redundant
+// copies drop. Adapters whose URL can't be resolved are never dropped.
+function uniqueByFetchUrl(adapters: readonly SourceAdapter[]): SourceAdapter[] {
+  const seenUrl = new Set<string>()
+  return adapters.filter((adapter) => {
+    const url = fetchUrlForAdapterId(adapter.id)
+    if (!url) return true
+    if (seenUrl.has(url)) return false
+    seenUrl.add(url)
+    return true
+  })
+}
+
 // Some official announcement indexes are paginated by year with no stable
 // non-year page (e.g. WV Administrative Notices: …Notices2026.aspx). Such
 // sources register a `{year}` token in their URL; we resolve it to the current
@@ -810,6 +832,20 @@ const hiddenPolicyWatchSourcesById = new Map(
   listHiddenPolicyWatchSources().map((source) => [source.id, source]),
 )
 
+// Resolve the actual URL an adapter fetches, across all layers, for URL-level
+// dedup (uniqueByFetchUrl). Explicit live adapters get their URL from the
+// catalog; rule-source / temporary-announcement / hidden policy-watch adapters
+// derive it from the registry source (feedUrl ?? url) with the same `{year}`
+// resolution applied at fetch time. Returns null when the id maps to no known
+// source, in which case the adapter is treated as unique (never dropped).
+function fetchUrlForAdapterId(id: string): string | null {
+  const explicit = EXPLICIT_LIVE_SOURCE_CATALOG[id]
+  if (explicit) return resolveAnnouncementYearUrl(explicit.url)
+  const source = ruleSourcesById.get(id) ?? hiddenPolicyWatchSourcesById.get(id)
+  if (source) return resolveAnnouncementYearUrl(source.feedUrl ?? source.url)
+  return null
+}
+
 function explicitLiveAdapterMetadata(adapter: SourceAdapter): AlertSourceAdapterMetadata {
   return {
     sourceId: adapter.id,
@@ -898,10 +934,15 @@ export const visibleRegulatorySourceAdapters = uniqueAdapters([
   ...ruleSourceWatchAdapters,
 ])
 
-export const liveRegulatorySourceAdapters = uniqueAdapters([
-  ...visibleRegulatorySourceAdapters,
-  ...hiddenPolicyWatchAdapters,
-])
+// The watcher set actually driven by cron. Deduped by id (uniqueAdapters) AND by
+// resolved fetch URL (uniqueByFetchUrl) so a page registered under several ids
+// is fetched once. Input order encodes keep-priority: explicit live adapters and
+// temporary-announcement watchers (via visibleRegulatorySourceAdapters) before
+// hidden policy-watch, so the precise hand-tuned watcher survives and the
+// redundant policy-watch / duplicate copies drop.
+export const liveRegulatorySourceAdapters = uniqueByFetchUrl(
+  uniqueAdapters([...visibleRegulatorySourceAdapters, ...hiddenPolicyWatchAdapters]),
+)
 
 function coverageSourceIdsForJurisdiction(
   jurisdiction: RuleJurisdiction,
