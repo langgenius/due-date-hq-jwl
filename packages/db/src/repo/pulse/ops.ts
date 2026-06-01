@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, isNull, lte } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm'
 import type { BatchItem } from 'drizzle-orm/batch'
 import type { Db } from '../../client'
 import { auditEvent, type NewAuditEvent } from '../../schema/audit'
@@ -907,6 +907,55 @@ export function makePulseOpsRepo(db: Db) {
       const row = await getPulse(pulseId)
       if (!row || row.status !== 'approved') return 0
       return refreshFirmAlertsForPulse(pulseId)
+    },
+
+    /**
+     * Catch a newly-registered firm up to the *currently-actionable* regulatory
+     * landscape, so it does not silently miss policy changes published before it
+     * joined. The live fan-out only reaches firms that exist at approval time;
+     * this materializes the same firm-wide alerts for a firm that arrives later.
+     *
+     * Relevance = approved AND not expired (the deadline has not passed and the
+     * effective window has not ended). The extract-time pre-2026 date floor
+     * already strips the historical backlog, so this stays bounded to the live
+     * landscape. `matchedCount` starts at 0 — a brand-new firm has no obligations
+     * yet, and (exactly like the live fan-out) the count is point-in-time;
+     * firm-wide visibility surfaces the change regardless of count, and the count
+     * naturally respects `monitoringStartDate` via the obligations it later
+     * generates. `onConflictDoNothing` so an existing alert's real count is never
+     * clobbered, making the call idempotent.
+     */
+    async backfillFirmAlertsForActiveLandscape(
+      firmId: string,
+      now: Date = new Date(),
+    ): Promise<number> {
+      const candidates = await db
+        .select({ id: pulse.id })
+        .from(pulse)
+        .where(
+          and(
+            eq(pulse.status, 'approved'),
+            or(isNull(pulse.parsedNewDueDate), gte(pulse.parsedNewDueDate, now)),
+            or(isNull(pulse.parsedEffectiveUntil), gte(pulse.parsedEffectiveUntil, now)),
+          ),
+        )
+      if (candidates.length === 0) return 0
+      const rows: NewPulseFirmAlert[] = candidates.map((candidate) => ({
+        id: crypto.randomUUID(),
+        pulseId: candidate.id,
+        firmId,
+        status: 'matched',
+        matchedCount: 0,
+        needsReviewCount: 0,
+      }))
+      const inserts = chunkRows(rows, 16).map((chunk) =>
+        db
+          .insert(pulseFirmAlert)
+          .values(chunk)
+          .onConflictDoNothing({ target: [pulseFirmAlert.firmId, pulseFirmAlert.pulseId] }),
+      )
+      await db.batch(toNonEmptyBatch(inserts))
+      return candidates.length
     },
 
     async createPulseForFirmReviewFromExtract(

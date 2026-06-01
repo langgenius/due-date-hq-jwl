@@ -976,6 +976,44 @@ describe('makePulseOpsRepo', () => {
     ).toBe(true)
   })
 
+  it('catches a new firm up to the not-expired approved landscape', async () => {
+    const { db, batchStatements } = fakeDb([
+      [{ id: 'pulse-current' }, { id: 'pulse-also-current' }],
+    ])
+
+    const count = await makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(
+      'firm-new',
+      new Date('2026-06-01T00:00:00.000Z'),
+    )
+
+    expect(count).toBe(2)
+    const inserted = (
+      batchStatements.filter((s) => isKind(s, 'insert')) as Array<{ value: unknown }>
+    )
+      .flatMap((s) => (Array.isArray(s.value) ? s.value : [s.value]))
+      .map((row) => row as Record<string, unknown>)
+    expect(inserted).toHaveLength(2)
+    expect(inserted).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ pulseId: 'pulse-current', firmId: 'firm-new', matchedCount: 0 }),
+        expect.objectContaining({
+          pulseId: 'pulse-also-current',
+          firmId: 'firm-new',
+          matchedCount: 0,
+        }),
+      ]),
+    )
+  })
+
+  it('writes no alerts when the active landscape is empty', async () => {
+    const { db, batchStatements } = fakeDb([[]])
+
+    const count = await makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape('firm-new')
+
+    expect(count).toBe(0)
+    expect(batchStatements).toHaveLength(0)
+  })
+
   it('records source failures without changing CPA-facing health', async () => {
     const sourceState = {
       sourceId: 'irs.disaster',
