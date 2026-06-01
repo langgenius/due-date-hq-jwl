@@ -16,6 +16,7 @@ export const EMAIL_OUTBOX_TYPES = [
   'client_deadline_reminder',
   'audit_evidence_package_ready',
   'readiness_request',
+  'signature_reminder',
 ] as const
 export type EmailOutboxType = (typeof EMAIL_OUTBOX_TYPES)[number]
 

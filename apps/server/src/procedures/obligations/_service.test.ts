@@ -4,10 +4,13 @@ import type { ObligationInstanceRow } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { deriveObligationReadiness } from '@duedatehq/core/obligation-workflow'
 import {
+  bulkRemindObligationSignature,
   bulkUpdateObligationStatus,
   decideObligationExtension,
   markObligationFiledRejected,
+  remindObligationSignature,
   toObligationPublic,
+  updateObligationEfileState,
   updateObligationPrepStage,
   updateObligationReviewStage,
   updateObligationStatus,
@@ -142,6 +145,11 @@ function buildScoped(firmId: string, rows: Row[]) {
       const row = map.get(id)
       if (!row) throw new Error('not found')
       map.set(id, { ...row, reviewStage, updatedAt: new Date() })
+    },
+    async setEfileState(id: string, efileState: Row['efileState']) {
+      const row = map.get(id)
+      if (!row) throw new Error('not found')
+      map.set(id, { ...row, efileState, updatedAt: new Date() })
     },
     async unblockChildrenOf() {
       return []
@@ -1218,5 +1226,76 @@ describe('updateObligationReviewStage', () => {
         reviewStage: 'approved',
       }),
     ).rejects.toMatchObject({ code: 'NOT_FOUND' })
+  })
+})
+
+describe('updateObligationEfileState', () => {
+  it('advances authorization_requested → authorization_signed, writes an audit, leaves status untouched', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [
+      makeRow({ status: 'done', efileState: 'authorization_requested' }),
+    ])
+    const result = await updateObligationEfileState(repo, 'user_1', {
+      id: ROW_ID,
+      efileState: 'authorization_signed',
+    })
+    expect(result.obligation.efileState).toBe('authorization_signed')
+    expect(result.obligation.status).toBe('done')
+    expect(map.get(ROW_ID)?.efileState).toBe('authorization_signed')
+    expect(audits.some((a) => a.action === 'obligation.efile.state.updated')).toBe(true)
+  })
+
+  it('rejects an illegal e-file transition (authorization_requested → accepted)', async () => {
+    const { repo } = buildScoped(FIRM, [
+      makeRow({ status: 'done', efileState: 'authorization_requested' }),
+    ])
+    await expect(
+      updateObligationEfileState(repo, 'user_1', { id: ROW_ID, efileState: 'accepted' }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' })
+  })
+
+  it('throws NOT_FOUND for an unknown obligation', async () => {
+    const { repo } = buildScoped(FIRM, [])
+    await expect(
+      updateObligationEfileState(repo, 'user_1', {
+        id: ROW_ID,
+        efileState: 'authorization_signed',
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' })
+  })
+})
+
+describe('remindObligationSignature', () => {
+  it('rejects a row that is not awaiting a signature', async () => {
+    const { repo } = buildScoped(FIRM, [makeRow({ status: 'pending' })])
+    await expect(remindObligationSignature(repo, 'user_1', { id: ROW_ID })).rejects.toMatchObject({
+      code: 'BAD_REQUEST',
+    })
+  })
+
+  it('no-ops (emailQueued=false, no audit) when the client has no email on file', async () => {
+    // buildScoped's clients.findById returns undefined → no email on file.
+    const { repo, audits } = buildScoped(FIRM, [
+      makeRow({ status: 'done', efileState: 'authorization_requested' }),
+    ])
+    const result = await remindObligationSignature(repo, 'user_1', { id: ROW_ID })
+    expect(result.emailQueued).toBe(false)
+    expect(result.auditId).toBeNull()
+    expect(audits.some((a) => a.action === 'obligation.signature.reminded')).toBe(false)
+  })
+})
+
+describe('bulkRemindObligationSignature', () => {
+  it('skips non-awaiting rows and counts awaiting rows with no client email', async () => {
+    const OTHER_ID = '33333333-3333-4333-8333-333333333333'
+    const { repo } = buildScoped(FIRM, [
+      makeRow({ id: ROW_ID, status: 'done', efileState: 'authorization_requested' }),
+      makeRow({ id: OTHER_ID, status: 'pending' }),
+    ])
+    const result = await bulkRemindObligationSignature(repo, 'user_1', {
+      ids: [ROW_ID, OTHER_ID],
+    })
+    // Awaiting row → no client email (harness default) → noEmail; pending
+    // row → not awaiting signature → skipped.
+    expect(result).toEqual({ remindedCount: 0, skippedCount: 1, noEmailCount: 1 })
   })
 })

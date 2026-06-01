@@ -311,6 +311,57 @@ export const ObligationRequestInputOutputSchema = z.object({
 })
 export type ObligationRequestInputOutput = z.infer<typeof ObligationRequestInputOutputSchema>
 
+// E-file sub-state advance (the "signature loop"). P0 wires only the
+// authorization_requested → authorization_signed step ("Mark 8879
+// signed"), but the RPC is generic over the e-file pipeline so later
+// slices (submitted / accepted / …) reuse it. Server validates the
+// transition (isLegalEfileTransition), writes the column, and appends an
+// `obligation.efile.state.updated` audit row mirroring the status shape.
+export const ObligationUpdateEfileStateInputSchema = z.object({
+  id: EntityIdSchema,
+  efileState: ObligationEfileStateSchema,
+  reason: z.string().trim().max(280).optional(),
+})
+export type ObligationUpdateEfileStateInput = z.infer<typeof ObligationUpdateEfileStateInputSchema>
+
+// Signature reminder — emails the client a nudge to sign Form 8879.
+// Record-and-send: queues a transactional email AND writes an audit row
+// (so "last reminded N days ago" is derivable). There is no in-app e-sign
+// portal; the firm collects the signature via its own channel, so the
+// email carries no signing link. `auditId` is null + `emailQueued` false
+// when the client has no email on file.
+export const ObligationRemindSignatureInputSchema = z.object({
+  id: EntityIdSchema,
+  reason: z.string().trim().max(280).optional(),
+})
+export type ObligationRemindSignatureInput = z.infer<typeof ObligationRemindSignatureInputSchema>
+
+export const ObligationRemindSignatureOutputSchema = z.object({
+  auditId: EntityIdSchema.nullable(),
+  emailQueued: z.boolean(),
+})
+export type ObligationRemindSignatureOutput = z.infer<typeof ObligationRemindSignatureOutputSchema>
+
+export const ObligationBulkRemindSignatureInputSchema = z.object({
+  ids: z.array(EntityIdSchema).min(1).max(100),
+})
+export type ObligationBulkRemindSignatureInput = z.infer<
+  typeof ObligationBulkRemindSignatureInputSchema
+>
+
+export const ObligationBulkRemindSignatureOutputSchema = z.object({
+  // Rows that actually got a reminder email queued.
+  remindedCount: z.number().int().min(0),
+  // Rows not in the awaiting-signature state (status≠done or efileState≠
+  // authorization_requested) — silently skipped.
+  skippedCount: z.number().int().min(0),
+  // Awaiting-signature rows whose client has no email on file.
+  noEmailCount: z.number().int().min(0),
+})
+export type ObligationBulkRemindSignatureOutput = z.infer<
+  typeof ObligationBulkRemindSignatureOutputSchema
+>
+
 export const DeadlineTipInputSchema = z.object({ obligationId: EntityIdSchema })
 export type DeadlineTipInput = z.infer<typeof DeadlineTipInputSchema>
 
@@ -447,6 +498,15 @@ export const obligationsContract = oc.router({
   requestInput: oc
     .input(ObligationRequestInputInputSchema)
     .output(ObligationRequestInputOutputSchema),
+  updateEfileState: oc
+    .input(ObligationUpdateEfileStateInputSchema)
+    .output(ObligationStatusUpdateOutputSchema),
+  remindSignature: oc
+    .input(ObligationRemindSignatureInputSchema)
+    .output(ObligationRemindSignatureOutputSchema),
+  bulkRemindSignature: oc
+    .input(ObligationBulkRemindSignatureInputSchema)
+    .output(ObligationBulkRemindSignatureOutputSchema),
   listByClient: oc
     .input(z.object({ clientId: EntityIdSchema }))
     .output(z.array(ObligationInstancePublicSchema)),

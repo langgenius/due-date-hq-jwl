@@ -580,6 +580,18 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },
 
+    // E-file pipeline advance (the "signature loop" + later e-file
+    // sub-states). Sets the efile_state column only — never touches
+    // `status`. Transition legality is enforced in the service layer via
+    // isLegalEfileTransition; this repo write is unguarded like the
+    // prep/review setters above.
+    async setEfileState(id: string, efileState: ObligationEfileState): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({ efileState })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
     async updateExtensionDecision(
       id: string,
       patch: {

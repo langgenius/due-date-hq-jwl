@@ -210,6 +210,57 @@ export function allowedObligationTargets(from: ObligationStatus): readonly Oblig
   return OBLIGATION_TRANSITIONS[from]
 }
 
+// E-file sub-state pipeline (the `efileState` column). Mirrors the enum in
+// packages/db/src/schema/obligations.ts + ObligationEfileStateSchema —
+// duplicated locally here the same way OBLIGATION_STATUSES is, to keep the
+// core workflow package dependency-free. The string literals must stay in
+// lockstep across the three definitions.
+export const OBLIGATION_EFILE_STATES = [
+  'not_applicable',
+  'authorization_requested',
+  'authorization_signed',
+  'ready_to_submit',
+  'submitted',
+  'accepted',
+  'rejected',
+  'corrected_resubmitted',
+  'paper_filed',
+  'final_package_delivered',
+] as const
+export type ObligationEfileState = (typeof OBLIGATION_EFILE_STATES)[number]
+
+// Forward-only pipeline with the documented branches (reject → correct →
+// resubmit; e-file vs paper). P0 only exercises
+// `authorization_requested → authorization_signed` ("Mark 8879 signed");
+// the rest of the map is defined so later slices that wire submitted /
+// accepted / delivered reuse the same guard. `markFiledRejected` keeps its
+// own status-level unwind path and does not flow through here.
+const EFILE_TRANSITIONS: Record<ObligationEfileState, readonly ObligationEfileState[]> = {
+  not_applicable: ['authorization_requested', 'ready_to_submit', 'paper_filed'],
+  authorization_requested: [
+    'authorization_signed',
+    'ready_to_submit',
+    'paper_filed',
+    'not_applicable',
+  ],
+  authorization_signed: ['ready_to_submit', 'submitted', 'paper_filed', 'authorization_requested'],
+  ready_to_submit: ['submitted', 'paper_filed', 'authorization_signed'],
+  submitted: ['accepted', 'rejected'],
+  accepted: ['final_package_delivered'],
+  rejected: ['corrected_resubmitted', 'authorization_requested', 'ready_to_submit', 'paper_filed'],
+  corrected_resubmitted: ['submitted', 'accepted', 'rejected'],
+  paper_filed: ['final_package_delivered', 'accepted'],
+  final_package_delivered: [],
+}
+
+export function isLegalEfileTransition(
+  from: ObligationEfileState,
+  to: ObligationEfileState,
+): boolean {
+  if (from === to) return true // no-op transitions are always legal
+  return EFILE_TRANSITIONS[from].includes(to)
+}
+
 export function deriveObligationReadiness(input: {
   status: ObligationStatus
   requestStatus?: 'sent' | 'opened' | 'responded' | 'revoked' | 'expired' | null

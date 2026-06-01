@@ -1,18 +1,26 @@
 import { ORPCError } from '@orpc/server'
 import type {
+  ObligationBulkRemindSignatureInput,
+  ObligationBulkRemindSignatureOutput,
   ObligationBulkStatusUpdateInput,
   ObligationBulkStatusUpdateOutput,
   ObligationExtensionDecisionInput,
   ObligationExtensionDecisionOutput,
   ObligationInstancePublic,
   ObligationMarkFiledRejectedInput,
+  ObligationRemindSignatureInput,
+  ObligationRemindSignatureOutput,
   ObligationStatusUpdateInput,
   ObligationStatusUpdateOutput,
   ObligationUpdateBlockedByInput,
+  ObligationUpdateEfileStateInput,
   ObligationUpdatePrepStageInput,
   ObligationUpdateReviewStageInput,
 } from '@duedatehq/contracts'
-import { isLegalObligationTransition } from '@duedatehq/core/obligation-workflow'
+import {
+  isLegalEfileTransition,
+  isLegalObligationTransition,
+} from '@duedatehq/core/obligation-workflow'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { calculateAccruedPenalty } from '../_accrued-penalty'
 
@@ -919,4 +927,186 @@ export async function decideObligationExtension(
     auditId,
     evidenceId: evidence.id,
   }
+}
+
+/**
+ * Advance the e-file sub-state pipeline (the `efileState` column). P0 wires
+ * only `authorization_requested → authorization_signed` ("Mark 8879
+ * signed"), but the procedure is generic so later slices reuse it. Never
+ * touches `status`; the transition is validated by `isLegalEfileTransition`.
+ */
+export async function updateObligationEfileState(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationUpdateEfileStateInput,
+): Promise<ObligationStatusUpdateOutput> {
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.id} not found in current firm.`,
+    })
+  }
+
+  const beforeEfileState = before.efileState ?? 'not_applicable'
+  if (beforeEfileState === input.efileState) {
+    return {
+      obligation: await toObligationPublicFromScoped(scoped, before),
+      auditId: '00000000-0000-0000-0000-000000000000',
+    }
+  }
+  if (!isLegalEfileTransition(beforeEfileState, input.efileState)) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Illegal e-file transition: ${beforeEfileState} → ${input.efileState}.`,
+    })
+  }
+
+  await scoped.obligations.setEfileState(input.id, input.efileState)
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated deadline could not be re-read.',
+    })
+  }
+
+  const auditPayload: {
+    actorId: string
+    entityType: string
+    entityId: string
+    action: string
+    before: { efileState: string }
+    after: { efileState: string }
+    reason?: string
+  } = {
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.id,
+    action: 'obligation.efile.state.updated',
+    before: { efileState: beforeEfileState },
+    after: { efileState: after.efileState ?? 'not_applicable' },
+  }
+  if (input.reason !== undefined) auditPayload.reason = input.reason
+  const { id: auditId } = await scoped.audit.write(auditPayload)
+
+  return { obligation: await toObligationPublicFromScoped(scoped, after), auditId }
+}
+
+// Built-in Form 8879 signature-reminder email. Unlike the readiness
+// request, there is no firm-configured template and no signing link — the
+// firm collects the signature via its own channel (DocuSign / SafeSend /
+// wet signature); this email is a plain nudge so "who hasn't signed" stops
+// slipping through the cracks near a deadline.
+function signatureReminderEmail(input: {
+  clientName: string
+  taxType: string
+  formName: string | null
+  taxYear: number | null
+}): { subject: string; text: string } {
+  const form = input.formName?.trim() || input.taxType
+  const yearLabel = input.taxYear ? `${input.taxYear} ` : ''
+  const subject = `Reminder: please sign Form 8879 for your ${yearLabel}${form} return`
+  const text = [
+    `Hi ${input.clientName},`,
+    '',
+    `This is a friendly reminder to sign Form 8879 (the e-file authorization) for your ${yearLabel}${form} return. We can't electronically file your return until we have your signed authorization.`,
+    '',
+    `If you've already signed, thank you — no further action is needed. Otherwise, please sign at your earliest convenience so we can file on time.`,
+    '',
+    `Thank you.`,
+  ].join('\n')
+  return { subject, text }
+}
+
+// True when a row is actually waiting on the client's 8879 signature:
+// marked filed (`done`) but the e-file pipeline is still parked at
+// `authorization_requested`. Mirrors the queue "Awaiting signature" lens.
+function isAwaitingSignature(row: ObligationRow): boolean {
+  return row.status === 'done' && (row.efileState ?? 'not_applicable') === 'authorization_requested'
+}
+
+// Queue one signature-reminder email for an already-loaded awaiting-
+// signature row and record the nudge in the audit log (so the drawer can
+// surface "last reminded N days ago"). Returns emailQueued=false (and skips
+// the audit) when the client has no email on file or notifications are
+// unavailable. Does NOT trigger the EMAIL_QUEUE flush — the procedure
+// handler does that once it has `context.env`.
+async function enqueueSignatureReminder(
+  scoped: ScopedRepo,
+  userId: string,
+  row: ObligationRow,
+): Promise<ObligationRemindSignatureOutput> {
+  const clientRow = await scoped.clients.findById(row.clientId)
+  const email = clientRow?.email?.trim() || clientRow?.primaryContactEmail?.trim() || null
+  if (!clientRow || !email || !scoped.notifications) {
+    return { auditId: null, emailQueued: false }
+  }
+
+  const rendered = signatureReminderEmail({
+    clientName: clientRow.name,
+    taxType: row.taxType,
+    formName: row.formName ?? null,
+    taxYear: row.taxYear,
+  })
+  const queued = await scoped.notifications.enqueueEmail({
+    externalId: `signature-reminder:${row.id}:${crypto.randomUUID()}`,
+    type: 'signature_reminder',
+    payloadJson: { recipients: [email], subject: rendered.subject, text: rendered.text },
+  })
+  const { id: auditId } = await scoped.audit.write({
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: row.id,
+    action: 'obligation.signature.reminded',
+    after: { recipientEmail: 'present', emailQueued: queued.created },
+  })
+  return { auditId, emailQueued: queued.created }
+}
+
+/**
+ * Email the client a nudge to sign Form 8879 for a single awaiting-signature
+ * deadline. Rejects rows that aren't actually awaiting signature.
+ */
+export async function remindObligationSignature(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationRemindSignatureInput,
+): Promise<ObligationRemindSignatureOutput> {
+  const row = await scoped.obligations.findById(input.id)
+  if (!row) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.id} not found in current firm.`,
+    })
+  }
+  if (!isAwaitingSignature(row)) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: 'This deadline is not awaiting a Form 8879 signature.',
+    })
+  }
+  return enqueueSignatureReminder(scoped, userId, row)
+}
+
+/**
+ * Bulk variant for the queue floating action bar. Silently skips rows that
+ * aren't awaiting signature (`skippedCount`) and rows whose client has no
+ * email on file (`noEmailCount`); `remindedCount` is the number actually
+ * emailed. The handler triggers a single EMAIL_QUEUE flush afterward.
+ */
+export async function bulkRemindObligationSignature(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationBulkRemindSignatureInput,
+): Promise<ObligationBulkRemindSignatureOutput> {
+  let remindedCount = 0
+  let skippedCount = 0
+  let noEmailCount = 0
+  for (const id of input.ids) {
+    const row = await scoped.obligations.findById(id)
+    if (!row || !isAwaitingSignature(row)) {
+      skippedCount += 1
+      continue
+    }
+    const result = await enqueueSignatureReminder(scoped, userId, row)
+    if (result.emailQueued) remindedCount += 1
+    else noEmailCount += 1
+  }
+  return { remindedCount, skippedCount, noEmailCount }
 }

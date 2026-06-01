@@ -25,6 +25,10 @@ export interface ObligationQueueListInput {
   minDaysUntilDue?: number
   maxDaysUntilDue?: number
   needsEvidence?: boolean
+  // "Awaiting signature" lens — filed returns (status='done') still parked
+  // at efileState='authorization_requested'. Combined predicate applied in
+  // the repo's list() where-clause.
+  awaitingSignature?: boolean
   asOfDate?: string
   sort?: ObligationQueueSort
   cursor?: string | null

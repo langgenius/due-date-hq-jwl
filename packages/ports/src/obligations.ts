@@ -251,6 +251,13 @@ export interface ObligationsRepo {
   setPrepStage(id: string, prepStage: ObligationPrepStage): Promise<void>
   setReviewStage(id: string, reviewStage: ObligationReviewStage): Promise<void>
   /**
+   * E-file pipeline advance (the P0 "signature loop" + later e-file
+   * sub-states). Sets `efile_state` only — never touches `status`. Like
+   * the prep/review setters, transition legality is enforced in the
+   * service layer (isLegalEfileTransition), not here.
+   */
+  setEfileState(id: string, efileState: ObligationEfileState): Promise<void>
+  /**
    * Lifecycle v2: when the obligation identified by
    * `parentObligationInstanceId` reaches `completed`, every child row
    * that was `blocked_by` it AND in `blocked` state flips back to

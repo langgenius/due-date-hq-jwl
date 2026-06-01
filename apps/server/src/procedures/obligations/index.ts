@@ -24,11 +24,14 @@ import { dateInTimezone, toAiInsightPublic } from '../_ai-insights'
 import { enqueueAiInsightRefresh } from '../../jobs/ai-insights/enqueue'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
 import {
+  bulkRemindObligationSignature,
   bulkUpdateObligationStatus,
   decideObligationExtension,
   markObligationFiledRejected,
+  remindObligationSignature,
   toObligationPublic,
   updateObligationBlockedBy,
+  updateObligationEfileState,
   updateObligationPrepStage,
   updateObligationReviewStage,
   updateObligationStatus,
@@ -776,6 +779,42 @@ const decideExtension = os.obligations.decideExtension.handler(async ({ input, c
   return result
 })
 
+// E-file sub-state advance (P0: "Mark 8879 signed"). Sibling of the
+// prep/review sub-status mutations — same write permission, no dashboard
+// brief refresh (status is unchanged; only the e-file column moves).
+const updateEfileState = os.obligations.updateEfileState.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  return updateObligationEfileState(scoped, userId, input)
+})
+
+// Email a single client a Form 8879 signature reminder. The service
+// enqueues the email; we trigger the EMAIL_QUEUE flush here (where
+// context.env is available), mirroring readiness.sendRequest.
+const remindSignature = os.obligations.remindSignature.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  const result = await remindObligationSignature(scoped, userId, input)
+  if (result.emailQueued) {
+    await context.env.EMAIL_QUEUE.send({ type: 'email.flush' }).catch(() => undefined)
+  }
+  return result
+})
+
+// Bulk signature reminders from the queue floating action bar. One flush
+// for the whole batch if anything was actually queued.
+const bulkRemindSignature = os.obligations.bulkRemindSignature.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped, userId } = requireTenant(context)
+    const result = await bulkRemindObligationSignature(scoped, userId, input)
+    if (result.remindedCount > 0) {
+      await context.env.EMAIL_QUEUE.send({ type: 'email.flush' }).catch(() => undefined)
+    }
+    return result
+  },
+)
+
 const requestInput = os.obligations.requestInput.handler(async ({ input, context }) => {
   const { members, tenant, userId } = await requireCurrentFirmRole(context, ['preparer'])
   const { scoped } = requireTenant(context)
@@ -1093,6 +1132,9 @@ export const obligationsHandlers = {
   updateReviewStage,
   bulkUpdateStatus,
   decideExtension,
+  updateEfileState,
+  remindSignature,
+  bulkRemindSignature,
   requestInput,
   getDeadlineTip,
   requestDeadlineTipRefresh,

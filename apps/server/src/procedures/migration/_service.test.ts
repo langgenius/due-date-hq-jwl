@@ -279,6 +279,7 @@ function buildScopedRepo(
     async setBlockedBy() {},
     async setPrepStage() {},
     async setReviewStage() {},
+    async setEfileState() {},
     async unblockChildrenOf() {
       return []
     },
