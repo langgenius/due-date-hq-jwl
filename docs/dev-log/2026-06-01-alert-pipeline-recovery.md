@@ -2,6 +2,8 @@
 title: '2026-06-01 · Alert pipeline recovery (cron → browserless → fetch → PDF → WAF)'
 date: 2026-06-01
 author: 'Claude'
+updates:
+  - note: 'Same-day follow-up: the recovery flooded firms with prior-year (pre-2026) alerts as dead sources came back and re-parsed their whole history. Added a date floor at extract time and purged the 138 historical alerts (a8ac2e21). See the closing section.'
 ---
 
 # Alert pipeline recovery
@@ -216,3 +218,39 @@ the remaining news pages.
 - `d8bf55db` `packages/ingest/src/http.ts` — `Sec-Fetch-*` headers.
 - D1 data cleanups (not in git): 102 agency orphans deleted; `next_check_at` resets to
   recover parked sources after each systemic fix.
+- `a8ac2e21` `apps/server/src/jobs/pulse/extract.ts` (+ test) — pre-2026 alert date floor.
+
+## Follow-up (same day): the pre-2026 alert flood
+
+A direct consequence of the recovery. Each long-dead source that came back online ran
+its first successful scan against a page listing **years** of history (e.g. the FL DOR
+TIPs index, agency news archives), so every historical link became a snapshot and the AI
+faithfully extracted each old policy. Firms were flooded with **~138 prior-year alerts**
+— 2023 winter-storm relief, 2024/2025 form updates, etc. (260 firm-facing rows).
+
+`published_at` is fetch-time (always 2026), so it is not the signal. The real policy date
+is the AI-parsed `{originalDueDate, newDueDate, effectiveFrom, effectiveUntil}`.
+
+Fix (`a8ac2e21`): in `extractPulseSnapshot`, after confirming a regulatory change, take
+the **latest** of those four dates and suppress the alert (mark the snapshot `ignored`,
+`failureReason: 'historical_pre_2026'`, create no pulse) when it is before
+`PULSE_ALERT_MIN_RELEVANT_AT` (`2026-01-01`). Items with no parsed date are kept (no
+evidence they are historical; only 5 exist). The constant is a single dial to raise the
+floor in future years.
+
+Cleanup of the existing backlog (D1, not in git; `pulse_application` had 0 applied
+overlays so nothing was blocked or reverted): deleted 260 `pulse_firm_alert` + the
+138 `pulse` rows whose latest parsed date was pre-2026, and null'd the 165 snapshots'
+`pulse_id`. After: `pulse` = 91 (2026+) + 5 undated, 0 pre-2026.
+
+Note this is complementary to, not a replacement for, the `monitoring_baseline` cold-start
+suppression — the baseline guards "first-seen" content, the date floor guards "old policy
+date". The flood slipped through because the affected sources were `baseline_mode='active'`
+(migration 0060) yet had never actually produced a snapshot, so their first _success_
+looked like live change rather than backlog.
+
+### Still open after this follow-up
+
+- **WAF source stabilization deferred** (user choice): the 4 intermittent WAF news sources
+  (`ca.cdtfa.news`, `ca.ftb.tax_news`, `wa.dor.news`, `wa.dor.whats_new`) remain
+  self-recovering-but-flickery. Same-host-spacing or GovDelivery still tracked above.
