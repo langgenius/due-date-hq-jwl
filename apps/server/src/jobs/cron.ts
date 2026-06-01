@@ -103,19 +103,54 @@ async function enqueueScheduledDashboardBriefs(env: Env, now: Date): Promise<voi
 
 // Cron Trigger entry — fan out by cron expression in Phase 0.
 // Current schedule: */30 * * * * (see wrangler.toml). Drives Pulse ingest + reminders.
+//
+// Each branch is isolated with Promise.allSettled so one throwing branch can no
+// longer abort its siblings (a single unhandled rejection in Promise.all would
+// reject the whole tick and silently drop every other fan-out). Rejections are
+// logged per-branch as `cron.branch_failed` console.error lines (visible in
+// `wrangler tail` / Workers Observability) so a stalled sub-pipeline is
+// diagnosable instead of invisible.
 export async function scheduled(
   controller: ScheduledController,
   env: Env,
   _ctx: ExecutionContext,
 ): Promise<void> {
   const now = new Date(controller.scheduledTime)
-  await Promise.all([
-    enqueueRuleRegistryCatalogSync(env),
-    enqueueDueRuleSourceScans(env, now),
-    enqueueScheduledDashboardBriefs(env, now),
-    enqueuePulseIngestScans(env, undefined, now),
-    dispatchDeadlineReminders(env, now),
-    dispatchMorningDigests(env, now),
-    env.EMAIL_QUEUE.send({ type: 'email.flush' }),
-  ])
+  const branches: Array<readonly [string, Promise<unknown>]> = [
+    ['rule_registry_catalog_sync', enqueueRuleRegistryCatalogSync(env)],
+    ['rule_source_scans', enqueueDueRuleSourceScans(env, now)],
+    ['scheduled_dashboard_briefs', enqueueScheduledDashboardBriefs(env, now)],
+    ['pulse_ingest_scans', enqueuePulseIngestScans(env, undefined, now)],
+    ['deadline_reminders', dispatchDeadlineReminders(env, now)],
+    ['morning_digests', dispatchMorningDigests(env, now)],
+    ['email_flush', env.EMAIL_QUEUE.send({ type: 'email.flush' })],
+  ]
+
+  const results = await Promise.allSettled(branches.map(([, promise]) => promise))
+
+  const failures = results.flatMap((result, index) =>
+    result.status === 'rejected' ? [{ branch: branches[index]![0], reason: result.reason }] : [],
+  )
+  for (const { branch, reason } of failures) {
+    console.error(
+      JSON.stringify({
+        type: 'cron.branch_failed',
+        at: new Date().toISOString(),
+        branch,
+        scheduledTime: now.toISOString(),
+        error: reason instanceof Error ? reason.message : String(reason),
+        stack: reason instanceof Error ? reason.stack : undefined,
+      }),
+    )
+  }
+  console.info(
+    JSON.stringify({
+      type: 'cron.tick',
+      at: new Date().toISOString(),
+      scheduledTime: now.toISOString(),
+      branches: branches.length,
+      failed: failures.length,
+      failedBranches: failures.map(({ branch }) => branch),
+    }),
+  )
 }
