@@ -18,6 +18,14 @@ export const DEFAULT_HEADERS = {
     'text/html,application/xhtml+xml,application/xml,application/rss+xml,application/json,*/*;q=0.8',
   'Accept-Language': 'en-US,en;q=0.9',
   'Cache-Control': 'no-cache',
+  // Present as a top-level browser navigation. Some .gov WAFs return 400/403 to a
+  // Chrome User-Agent that arrives without the Sec-Fetch-*/Upgrade-Insecure-Requests
+  // headers a real Chrome always sends (UA-vs-header fingerprint mismatch = bot).
+  'Sec-Fetch-Dest': 'document',
+  'Sec-Fetch-Mode': 'navigate',
+  'Sec-Fetch-Site': 'none',
+  'Sec-Fetch-User': '?1',
+  'Upgrade-Insecure-Requests': '1',
 } as const
 
 export const RATE_LIMIT = {
