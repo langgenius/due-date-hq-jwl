@@ -215,6 +215,57 @@ describe('extractPulseSnapshot', () => {
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
   })
 
+  it('suppresses alerts whose parsed policy dates are all before 2026', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      id: 'snapshot-ca-2023',
+      sourceId: 'policy-watch.ca.announcements',
+      title: 'California 2022-23 winter storm relief',
+      officialSourceUrl: 'https://ftb.ca.gov/news/storm-relief',
+      publishedAt: new Date('2026-06-01T00:00:00.000Z'),
+      rawR2Key: 'raw/ca.txt',
+      pulseId: null,
+      parseStatus: 'pending_extract',
+    })
+    aiMocks.extractPulse.mockResolvedValue({
+      result: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
+        summary: 'California extended filing deadlines to November 2023 for storm victims.',
+        sourceExcerpt: 'extended to November 16, 2023',
+        jurisdiction: 'CA',
+        counties: [],
+        forms: ['state_income_tax'],
+        entityTypes: ['individual'],
+        originalDueDate: '2023-04-18',
+        newDueDate: '2023-11-16',
+        effectiveFrom: '2023-01-01',
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
+        confidence: 0.9,
+      },
+      trace: {
+        promptVersion: 'pulse-extract@v2',
+        model: 'test-model',
+        inputHash: 'hash',
+        guardResult: 'pass',
+        latencyMs: 1,
+      },
+      model: 'test-model',
+      refusal: null,
+    })
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-ca-2023')
+
+    expect(result).toEqual({ pulseId: null, status: 'skipped' })
+    expect(repoMocks.createPulseForFirmReviewFromExtract).not.toHaveBeenCalled()
+    expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith(
+      'snapshot-ca-2023',
+      expect.objectContaining({ parseStatus: 'ignored', failureReason: 'historical_pre_2026' }),
+    )
+  })
+
   it('keeps official email subscription sources eligible for Apply-readiness candidates', async () => {
     repoMocks.getSourceSnapshot.mockResolvedValue({
       id: 'snapshot-ny-email',

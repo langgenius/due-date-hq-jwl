@@ -35,6 +35,21 @@ function nullableDateFromIsoDate(value: string | null): Date | null {
   return value ? dateFromIsoDate(value) : null
 }
 
+// Only surface alerts for current/upcoming policy changes. When a newly-recovered
+// source first succeeds it re-parses the page's whole history, and the AI extracts
+// each old policy (2023 winter-storm relief, 2024/2025 forms, ...). Suppress an
+// alert when every parsed policy date is before this floor. Items with no parsed
+// date are kept (no evidence they are historical). Bump the year to raise the floor.
+const PULSE_ALERT_MIN_RELEVANT_AT = new Date('2026-01-01T00:00:00.000Z')
+
+function latestPolicyDate(values: ReadonlyArray<string | null>): Date | null {
+  const times = values
+    .map(nullableDateFromIsoDate)
+    .filter((date): date is Date => date !== null)
+    .map((date) => date.getTime())
+  return times.length > 0 ? new Date(Math.max(...times)) : null
+}
+
 function normalizeExtractJurisdiction(sourceId: string, jurisdiction: string): string {
   const normalized = jurisdiction.toUpperCase()
   if (sourceId.startsWith('fed.') && normalized === 'US') return 'FED'
@@ -223,6 +238,28 @@ async function runPulseExtractionAfterMark(
       failureReason: 'Pulse extract returned a regulatory change without kind or action mode.',
     })
     return { pulseId: null, status: 'failed' }
+  }
+
+  const latestRelevant = latestPolicyDate([
+    result.result.originalDueDate,
+    result.result.newDueDate,
+    result.result.effectiveFrom,
+    result.result.effectiveUntil,
+  ])
+  if (latestRelevant && latestRelevant.getTime() < PULSE_ALERT_MIN_RELEVANT_AT.getTime()) {
+    await repo.updateSourceSnapshotStatus(snapshotId, {
+      parseStatus: 'ignored',
+      aiOutputId,
+      failureReason: 'historical_pre_2026',
+    })
+    recordPulseMetric('pulse.extract.result', {
+      snapshotId,
+      sourceId: snapshot.sourceId,
+      result: 'ignored',
+      refusalCode: null,
+      confidence: result.result.confidence,
+    })
+    return { pulseId: null, status: 'skipped' }
   }
 
   const actionMode = shouldForceReviewOnlyPulseAlert({
