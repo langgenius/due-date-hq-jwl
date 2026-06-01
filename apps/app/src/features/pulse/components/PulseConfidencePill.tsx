@@ -1,14 +1,15 @@
 import { Trans } from '@lingui/react/macro'
 import { Astroid } from 'lucide-react'
 
+import { Badge } from '@duedatehq/ui/components/ui/badge'
+
 /**
  * Shared confidence-level pill rendered next to Pulse alerts to qualify
- * the AI's confidence in the surfaced suggestion. Three tones, three
- * sizes-fixed-at-h-6:
+ * the AI's confidence in the surfaced suggestion. Three tones:
  *
- *   low    — amber tint (warning-hover bg, warning text), "don't trust this"
- *   medium — neutral gray tint (section bg, secondary text)
- *   high   — info blue (info-hover bg, accent text)
+ *   low    — amber warning chip ("don't trust this")
+ *   medium — neutral outline chip
+ *   high   — info-blue accent chip
  *
  * 2026-05-26 (Layer C — interactive primitive coverage): extracted from
  * two byte-identical inline JSX blocks across `PulseDetailDrawer` and
@@ -16,28 +17,35 @@ import { Astroid } from 'lucide-react'
  * drawer historically only renders Medium and High (callers gate Low
  * out), so this component is *purely* a presentation primitive — every
  * caller still makes its own decision about when to render Low.
+ *
+ * 2026-06-01: collapsed three hand-rolled `<span>` rounded-full chips
+ * into the canonical Badge primitive (warning / outline / info
+ * variants on the default pill shape). Dropped the bespoke
+ * uppercase/tracking-wide chrome — Badge's default register matches
+ * the rest of the surface chip vocabulary now (info / warning chips
+ * across PageHeader use the same default treatment).
  */
 export function PulseConfidencePill({ confidence }: { confidence: 'low' | 'medium' | 'high' }) {
   if (confidence === 'low') {
     return (
-      <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-state-warning-hover px-2 text-xs font-medium uppercase tracking-wide text-text-warning">
-        <Astroid className="size-3" aria-hidden />
+      <Badge variant="warning">
+        <Astroid aria-hidden />
         <Trans>Low</Trans>
-      </span>
+      </Badge>
     )
   }
   if (confidence === 'medium') {
     return (
-      <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full border border-divider-subtle bg-background-section px-2 text-xs font-medium uppercase tracking-wide text-text-secondary">
-        <Astroid className="size-3" aria-hidden />
+      <Badge variant="outline">
+        <Astroid aria-hidden />
         <Trans>Medium</Trans>
-      </span>
+      </Badge>
     )
   }
   return (
-    <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full bg-state-info-hover px-2 text-xs font-medium uppercase tracking-wide text-text-accent">
-      <Astroid className="size-3" aria-hidden />
+    <Badge variant="info">
+      <Astroid aria-hidden />
       <Trans>High</Trans>
-    </span>
+    </Badge>
   )
 }

@@ -252,8 +252,11 @@ export function HealthBadge({ health }: { health: RuleSource['healthStatus'] }) 
     paused: t`Paused`,
   }
   const tone = tones[normalized]
+  // 2026-06-01: dropped h-[22px] arbitrary height + rounded-full + text-xs
+  // overrides — Badge's default size (h-5, pill-rounded, text-xs) covers
+  // the intended geometry directly.
   return (
-    <Badge variant="outline" className="h-[22px] rounded-full px-2 text-xs">
+    <Badge variant="outline">
       <BadgeStatusDot tone={tone} className="size-1.5" />
       {labels[normalized]}
     </Badge>

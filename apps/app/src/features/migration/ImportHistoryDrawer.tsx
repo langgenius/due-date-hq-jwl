@@ -30,6 +30,7 @@ import { useSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
+import { EmptyState } from '@/components/patterns/empty-state'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { PermissionInlineNotice, useFirmPermission } from '@/features/permissions/permission-gate'
 import { orpc } from '@/lib/rpc'
@@ -175,11 +176,15 @@ export function ImportHistoryDrawer({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
+        {/* 2026-06-01: Sheet `flush` variant owns the canonical sectioned-drawer
+            recipe (gap-0 overflow-hidden p-0). Width overrides stay because
+            this drawer's 820–880px size is route-specific, not a default. */}
         <SheetContent
           side="right"
-          className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] gap-0 overflow-hidden p-0 sm:data-[side=right]:w-[calc(100vw-2rem)] sm:data-[side=right]:max-w-[calc(100vw-2rem)] md:data-[side=right]:w-[min(820px,calc(100vw-2rem))] md:data-[side=right]:max-w-[min(820px,calc(100vw-2rem))] xl:data-[side=right]:w-[min(880px,calc(100vw-2rem))] xl:data-[side=right]:max-w-[min(880px,calc(100vw-2rem))]"
+          flush
+          className="data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[calc(100vw-2rem)] sm:data-[side=right]:max-w-[calc(100vw-2rem)] md:data-[side=right]:w-[min(820px,calc(100vw-2rem))] md:data-[side=right]:max-w-[min(820px,calc(100vw-2rem))] xl:data-[side=right]:w-[min(880px,calc(100vw-2rem))] xl:data-[side=right]:max-w-[min(880px,calc(100vw-2rem))]"
         >
-          <SheetHeader className="border-b border-divider-subtle px-5 py-4">
+          <SheetHeader className="border-b border-divider-subtle">
             <SheetTitle className="text-base">
               <Trans>Import history</Trans>
             </SheetTitle>
@@ -212,16 +217,16 @@ export function ImportHistoryDrawer({
             ) : null}
 
             {!batchesQuery.isLoading && batches.length === 0 ? (
-              <div className="grid min-h-[260px] place-items-center rounded-md border border-dashed border-divider-regular p-6 text-center">
-                <div className="grid max-w-sm gap-2">
-                  <p className="text-sm font-medium text-text-primary">
-                    <Trans>No import batches yet</Trans>
-                  </p>
-                  <p className="text-sm text-text-tertiary">
-                    <Trans>New client imports will appear here when you need batch recovery.</Trans>
-                  </p>
-                </div>
-              </div>
+              // 2026-06-01: swap the hand-rolled dashed-border empty box for the
+              // canonical EmptyState pattern at compact density (no section frame,
+              // since this already lives inside the drawer body).
+              <EmptyState
+                density="compact"
+                title={<Trans>No import batches yet</Trans>}
+                description={
+                  <Trans>New client imports will appear here when you need batch recovery.</Trans>
+                }
+              />
             ) : null}
 
             {!batchesQuery.isLoading && batches.length > 0 ? (
@@ -517,33 +522,40 @@ function BatchClients({
   const clients = clientsQuery.data?.clients ?? []
   if (clientsQuery.isLoading) return <Skeleton className="h-16 w-full" />
   if (clients.length === 0) return null
+  // 2026-06-01: Card size="xs" tone="muted" radius="md" replaces the
+  // hand-rolled rounded-md + divider-subtle + p-3 container. Card xs
+  // already sets py-3; CardContent supplies px-3. gap-2 stays for the
+  // dense row rhythm (Card xs default gap is gap-2, applied via the
+  // card flex column).
   return (
-    <div className="grid gap-2 rounded-md border border-divider-subtle p-3">
-      {clients.slice(0, 8).map((client) => (
-        <div key={client.id} className="flex items-center justify-between gap-3 text-sm">
-          <span className="min-w-0 truncate">{client.name}</span>
-          <div className="flex shrink-0 items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              aria-label={t`View ${client.name}`}
-              onClick={() => onViewClient(client.id)}
-            >
-              <EyeIcon data-icon="inline-start" />
-              <Trans>View</Trans>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onUndo(client)}
-              disabled={!canUndo || recoveryPending}
-            >
-              <Trash2Icon data-icon="inline-start" />
-              <Trans>Undo</Trans>
-            </Button>
+    <Card size="xs" tone="muted" radius="md">
+      <CardContent className="grid gap-2">
+        {clients.slice(0, 8).map((client) => (
+          <div key={client.id} className="flex items-center justify-between gap-3 text-sm">
+            <span className="min-w-0 truncate">{client.name}</span>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label={t`View ${client.name}`}
+                onClick={() => onViewClient(client.id)}
+              >
+                <EyeIcon data-icon="inline-start" />
+                <Trans>View</Trans>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onUndo(client)}
+                disabled={!canUndo || recoveryPending}
+              >
+                <Trash2Icon data-icon="inline-start" />
+                <Trans>Undo</Trans>
+              </Button>
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </CardContent>
+    </Card>
   )
 }

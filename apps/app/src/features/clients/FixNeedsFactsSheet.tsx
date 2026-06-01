@@ -90,8 +90,11 @@ export function FixNeedsFactsSheet({
         onOpenChange(next)
       }}
     >
-      <SheetContent className="w-full max-w-[640px] sm:max-w-[640px]">
-        <SheetHeader className="border-b border-divider-subtle px-6 py-4">
+      {/* 2026-06-01: SheetContent flush variant absorbs the
+          gap-0/overflow-hidden/p-0 recipe so the header + counter strip
+          + list can each own their own padding + dividers. */}
+      <SheetContent flush className="w-full max-w-[640px] sm:max-w-[640px]">
+        <SheetHeader className="border-b border-divider-subtle">
           <SheetTitle>
             <Trans>Fix missing facts</Trans>
           </SheetTitle>
@@ -110,10 +113,13 @@ export function FixNeedsFactsSheet({
             </Trans>
           </span>
           {visibleClients.length === 0 && totalCount > 0 ? (
-            <span className="inline-flex items-center gap-1 text-text-success">
-              <CheckCircle2Icon className="size-3.5" aria-hidden />
+            // 2026-06-01: hand-rolled inline-flex success tag swapped for
+            // the canonical success Badge so the chip inherits the same
+            // height/icon-sizing as the rest of the app's success pills.
+            <Badge variant="success">
+              <CheckCircle2Icon aria-hidden />
               <Trans>All caught up</Trans>
-            </span>
+            </Badge>
           ) : null}
         </div>
 

@@ -44,8 +44,9 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
+import { Field, FieldDescription, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
-import { Label } from '@duedatehq/ui/components/ui/label'
+import { Progress } from '@duedatehq/ui/components/ui/progress'
 import {
   Select,
   SelectContent,
@@ -55,6 +56,7 @@ import {
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import {
   Table,
   TableBody,
@@ -67,6 +69,8 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { PageHeader } from '@/components/patterns/page-header'
+import { StatTile } from '@/components/patterns/stat-tile'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { formatShortcutForDisplay } from '@/components/patterns/keyboard-shell/display'
 import {
   useAppHotkey,
@@ -75,7 +79,6 @@ import {
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
 import { RelativeTime } from '@/components/primitives/relative-time'
-import { initialsFromName } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import {
@@ -305,25 +308,49 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
         }
       />
 
-      <section className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
-        <div className="grid divide-y divide-divider-subtle md:grid-cols-4 md:divide-x md:divide-y-0">
-          <SeatStat data={data} />
-          <KpiStat
-            label={t`Active members`}
-            value={activeMembers.length}
-            detail={t`${ownerCount} owner · ${managedCount} managed`}
-          />
-          <KpiStat
-            label={t`Pending invites`}
-            value={pendingCount}
-            detail={t`${expiredCount} expired needs resend`}
-          />
-          <KpiStat
-            label={t`Suspended`}
-            value={suspendedMembers.length}
-            detail={t`access revoked, history kept`}
-          />
-        </div>
+      {/* 2026-06-01: stat strip migrated to canonical StatTile per
+          design-system sweep. The four hand-rolled tiles (SeatStat +
+          KpiStat ×3) collapse onto the shared primitive; the SeatStat
+          composes a hairline Progress underneath for the used-seats
+          bar. Outer divider-grid chrome drops because each StatTile
+          owns its own bordered card. The detail string each tile used
+          to carry is now stacked under the canonical label so the data
+          stays in view without re-creating chrome. */}
+      <section className="grid gap-3 md:grid-cols-4" aria-label={t`Members summary`}>
+        <SeatStat data={data} />
+        <StatTile
+          value={activeMembers.length}
+          label={
+            <span className="flex flex-col gap-0.5">
+              <Trans>Active members</Trans>
+              <span className="text-xs text-text-muted">
+                <Trans>{ownerCount} owner · {managedCount} managed</Trans>
+              </span>
+            </span>
+          }
+        />
+        <StatTile
+          value={pendingCount}
+          label={
+            <span className="flex flex-col gap-0.5">
+              <Trans>Pending invites</Trans>
+              <span className="text-xs text-text-muted">
+                <Trans>{expiredCount} expired needs resend</Trans>
+              </span>
+            </span>
+          }
+        />
+        <StatTile
+          value={suspendedMembers.length}
+          label={
+            <span className="flex flex-col gap-0.5">
+              <Trans>Suspended</Trans>
+              <span className="text-xs text-text-muted">
+                <Trans>access revoked, history kept</Trans>
+              </span>
+            </span>
+          }
+        />
       </section>
 
       {mutationError ? (
@@ -639,40 +666,38 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
   )
 }
 
+// 2026-06-01: SeatStat now composes the canonical StatTile + Progress
+// primitives. The "used / limit" magnitude lives in StatTile's value
+// slot (rendered through the canonical text-xl tone); the available-
+// seats hint stacks under the label, and a hairline Progress sits
+// beneath the tile for the used-seats fill. KpiStat helper dropped —
+// the three sibling tiles now use StatTile directly inline.
 function SeatStat({ data }: { data: MembersListOutput }) {
-  const usedRatio = data.seatLimit > 0 ? Math.min(data.usedSeats / data.seatLimit, 1) : 0
+  const usedPct = data.seatLimit > 0 ? Math.min((data.usedSeats / data.seatLimit) * 100, 100) : 0
   return (
-    <div className="flex min-h-24 flex-col px-5 py-4">
-      <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
-        <Trans>Seats used</Trans>
-      </p>
-      <div className="mt-1 flex items-baseline gap-1.5">
-        <span className="text-2xl leading-tight font-bold text-text-primary tabular-nums">
-          {data.usedSeats}
-        </span>
-        <span className="text-sm font-medium text-text-muted">/ {data.seatLimit}</span>
-      </div>
-      <p className="mt-auto text-xs leading-5 text-text-muted">
-        <Trans>{data.availableSeats} available seats</Trans>
-      </p>
-      <div className="mt-2 h-0.5 rounded-full bg-divider-subtle">
-        <div
-          className="h-full rounded-full bg-state-accent-solid"
-          style={{ width: `${Math.round(usedRatio * 100)}%` }}
-        />
-      </div>
-    </div>
-  )
-}
-
-function KpiStat({ label, value, detail }: { label: string; value: number; detail: string }) {
-  return (
-    <div className="flex min-h-24 flex-col px-5 py-4">
-      <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">{label}</p>
-      <span className="mt-1 text-2xl leading-tight font-bold text-text-primary tabular-nums">
-        {value}
-      </span>
-      <p className="mt-auto text-xs leading-5 text-text-muted">{detail}</p>
+    <div className="flex flex-col gap-2">
+      <StatTile
+        value={
+          <span className="flex items-baseline gap-1.5">
+            <span>{data.usedSeats}</span>
+            <span className="text-sm font-medium text-text-muted">/ {data.seatLimit}</span>
+          </span>
+        }
+        label={
+          <span className="flex flex-col gap-0.5">
+            <Trans>Seats used</Trans>
+            <span className="text-xs text-text-muted">
+              <Trans>{data.availableSeats} available seats</Trans>
+            </span>
+          </span>
+        }
+      />
+      <Progress
+        value={usedPct}
+        size="hairline"
+        aria-label="Seats used"
+        className="px-1"
+      />
     </div>
   )
 }
@@ -722,9 +747,13 @@ function MembersSectionHeader({
     // sub-section title in sentence case.
     <div className="flex min-h-7 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-tertiary">
       <h2 className="text-sm font-medium text-text-secondary">{title}</h2>
-      <span className="inline-flex h-[18px] min-w-[19px] items-center justify-center rounded-sm border border-divider-subtle bg-background-subtle px-1.5 font-medium tabular-nums">
+      {/* 2026-06-01: count chip migrated from hand-rolled h-[18px]
+          micro-pill to the canonical Badge primitive (`variant='outline'`,
+          `shape='square'`, `size='sm'`). Matches the new tab-count /
+          provenance chip recipe. */}
+      <Badge variant="outline" shape="square" size="sm" className="tabular-nums">
         {count}
-      </span>
+      </Badge>
       <span>{note}</span>
       {action ? <span className="ml-auto hidden md:inline">{action}</span> : null}
     </div>
@@ -890,23 +919,29 @@ function PendingInvitationsTable({
                 </span>
               </TableCell>
               <TableCell className="py-2">
+                {/* 2026-06-01: Resend / Cancel migrated from raw
+                    `<button>` text links to canonical TextLink
+                    primitives. Resend = accent variant (the affirmative
+                    re-action), Cancel = muted secondary (the quiet
+                    backup affordance). Both keep the disabled-while-busy
+                    semantics through the underlying Base UI primitive. */}
                 <div className="flex flex-col items-start gap-0.5">
-                  <button
-                    type="button"
+                  <TextLink
+                    variant="accent"
                     disabled={busy}
                     onClick={() => onResend(invitation)}
-                    className="text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:text-text-disabled"
+                    className="disabled:text-text-disabled"
                   >
                     <Trans>Resend</Trans>
-                  </button>
-                  <button
-                    type="button"
+                  </TextLink>
+                  <TextLink
+                    variant="secondary"
                     disabled={busy}
                     onClick={() => onCancel(invitation)}
-                    className="text-xs font-medium text-text-secondary outline-none hover:text-text-primary hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:text-text-disabled"
+                    className="disabled:text-text-disabled"
                   >
                     <Trans>Cancel</Trans>
-                  </button>
+                  </TextLink>
                 </div>
               </TableCell>
             </TableRow>
@@ -920,30 +955,20 @@ function PendingInvitationsTable({
 function MemberIdentity({ member }: { member: MemberPublic }) {
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      {/* 2026-05-24 (critique P2 — audit): the member's full name
-          renders in the sibling block, so the avatar is decorative
-          for screen readers — `aria-hidden` on the wrapper makes
-          that explicit and stops the single-letter initial from
-          being announced as a separate sentence ("S, Sarah
-          Martinez"). Empty alt on the image variant stays correct
-          for the same reason. */}
-      <span
-        aria-hidden
-        className="grid size-6 shrink-0 place-items-center overflow-hidden rounded-full bg-background-subtle font-semibold text-text-secondary"
-      >
-        {member.image ? (
-          <img src={member.image} alt="" className="size-full object-cover" />
-        ) : (
-          // 2026-05-27 (σ cross-route audit D1): the row used to ship
-          // `member.name.slice(0,1).toUpperCase()` — one initial only.
-          // Every other owner-avatar surface in the app derives initials
-          // via `initialsFromName` (up to 2 letters), so "Sarah Martinez"
-          // read as "S" here and "SM" in queue/clients. Route through
-          // the shared helper so the same person reads identically
-          // everywhere.
-          <span className="text-xs">{initialsFromName(member.name)}</span>
-        )}
-      </span>
+      {/* 2026-06-01: migrated from a hand-rolled `<span>` avatar wrapper
+          to the consolidated AssigneeAvatar primitive. Same size-6
+          ('sm') footprint, same image-or-initials behavior, and the
+          shared initialsFromName helper is wired through the primitive
+          so the "S vs SM" drift documented in the prior comment can't
+          come back. `title` carries the name for the tooltip; aria
+          metadata lives on the avatar so the sibling text-name reads
+          naturally and the avatar stays decorative. */}
+      <AssigneeAvatar
+        name={member.name}
+        image={member.image}
+        size="sm"
+        title={member.name}
+      />
       <span
         className={cn(
           'truncate text-xs font-medium',
@@ -1051,15 +1076,21 @@ function MemberActionsMenu({
 }) {
   return (
     <DropdownMenu>
+      {/* 2026-06-01: RowActionsMenu doesn't yet support nested submenu
+          items (the "Change role" sub-trigger), so the canonical ellipsis
+          chrome stays inline — but the hand-rolled `size-7 rounded-md
+          ...hover:bg-state-base-hover` recipe migrates onto the shared
+          Button primitive at `variant='ghost' size='icon-xs'`. */}
       <DropdownMenuTrigger
-        disabled={disabled}
-        className="inline-flex size-7 items-center justify-center rounded-md text-text-muted outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:text-text-disabled"
-      >
-        <EllipsisIcon className="size-4" aria-hidden />
-        <span className="sr-only">
-          <Trans>Open member actions</Trans>
-        </span>
-      </DropdownMenuTrigger>
+        render={
+          <Button variant="ghost" size="icon-xs" disabled={disabled}>
+            <EllipsisIcon className="size-4" aria-hidden />
+            <span className="sr-only">
+              <Trans>Open member actions</Trans>
+            </span>
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end" className="w-[220px]">
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
@@ -1147,10 +1178,15 @@ function InviteMemberDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4">
-          <div className="grid gap-1.5">
-            <Label htmlFor="invite-email">
+          {/* 2026-06-01: hand-rolled `<div grid gap-1.5>` + bare
+              `<Label>` form rows migrated to the canonical Field +
+              FieldLabel primitive. The role row also picks up
+              FieldDescription so the "Owner stays read-only…" helper
+              text formally associates with the role select. */}
+          <Field>
+            <FieldLabel htmlFor="invite-email">
               <Trans>Work email</Trans>
-            </Label>
+            </FieldLabel>
             <Input
               id="invite-email"
               type="email"
@@ -1161,11 +1197,11 @@ function InviteMemberDialog({
               disabled={seatsFull || inviteMutation.isPending}
               required
             />
-          </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor="invite-role">
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="invite-role">
               <Trans>Role</Trans>
-            </Label>
+            </FieldLabel>
             <Select
               value={role}
               disabled={seatsFull || inviteMutation.isPending}
@@ -1198,10 +1234,10 @@ function InviteMemberDialog({
                 </SelectGroup>
               </SelectContent>
             </Select>
-            <p className="text-xs leading-5 text-text-tertiary">
+            <FieldDescription>
               <Trans>Owner stays read-only and can't be invited from here.</Trans>
-            </p>
-          </div>
+            </FieldDescription>
+          </Field>
           {inviteMutation.isError ? (
             // 2026-05-26 (step-6 ux-flow audit F6.4): converted
             // raw <p role=alert> to canonical Alert primitive +
@@ -1219,9 +1255,21 @@ function InviteMemberDialog({
             </Alert>
           ) : null}
           {seatsFull ? (
-            <p id="members-seat-limit-note" role="alert" className="text-sm text-text-warning">
-              <Trans>No seats are available. Upgrade or suspend a member before inviting.</Trans>
-            </p>
+            // 2026-06-01: hand-rolled `<p role=alert>` warning text
+            // migrated to the canonical Alert primitive at `variant=
+            // 'warning'`. Same role + id targeting (the Invite trigger
+            // still aria-describedby's this node), but the visual lands
+            // in the same chrome as the sibling invite-error Alert just
+            // above so the dialog now reads as one consistent surface.
+            <Alert
+              id="members-seat-limit-note"
+              variant="warning"
+              className="text-sm"
+            >
+              <AlertDescription>
+                <Trans>No seats are available. Upgrade or suspend a member before inviting.</Trans>
+              </AlertDescription>
+            </Alert>
           ) : null}
           <DialogFooter>
             {/* 2026-05-26 (step-6 ux-flow audit F6.2/F6.3): cancel

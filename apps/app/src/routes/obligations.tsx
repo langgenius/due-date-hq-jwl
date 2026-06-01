@@ -115,6 +115,12 @@ import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from '@duedatehq/ui/components/ui/field'
+import {
   SearchableCombobox,
   type SearchableComboboxOption,
 } from '@duedatehq/ui/components/ui/combobox'
@@ -177,8 +183,10 @@ import {
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
+import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
+import { KbdHint } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
@@ -2138,7 +2146,7 @@ export function ObligationQueueRoute() {
         // "no state" would be more confusing than less.
         cell: (info) => {
           const state = info.getValue<string | null>()
-          if (!state) return <span className="text-text-tertiary">—</span>
+          if (!state) return <EmptyCellMark />
           // 2026-05-29 (Yuqi /clients round 1 — "remove the state icon
           // everywhere"): swept to a bordered Badge for cross-route
           // consistency with /clients. The SVG flag glyph is gone;
@@ -4130,29 +4138,18 @@ export function ObligationQueueRoute() {
                         aria-hidden
                         className="hidden h-3 border-l border-divider-subtle md:inline-block"
                       />
-                      <span className="hidden items-center gap-1.5 md:inline-flex">
-                        <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-caption-xs tabular-nums text-text-tertiary">
-                          J
-                        </kbd>
-                        <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-caption-xs tabular-nums text-text-tertiary">
-                          K
-                        </kbd>
-                        <span>
-                          <Trans>navigate</Trans>
-                        </span>
-                        <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-caption-xs tabular-nums text-text-tertiary">
-                          Enter
-                        </kbd>
-                        <span>
-                          <Trans>open</Trans>
-                        </span>
-                        <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-caption-xs tabular-nums text-text-tertiary">
-                          ?
-                        </kbd>
-                        <span>
-                          <Trans>all</Trans>
-                        </span>
-                      </span>
+                      {/* 2026-06-01: hand-rolled <kbd> strip swapped for
+                          canonical KbdHint — same J/K/Enter/? recipe,
+                          but the `·` separator now comes from the
+                          primitive instead of stray mx-1 padding. */}
+                      <KbdHint
+                        className="hidden md:inline-flex"
+                        items={[
+                          { keys: ['J', 'K'], label: t`navigate` },
+                          { keys: ['Enter'], label: t`open` },
+                          { keys: ['?'], label: t`all` },
+                        ]}
+                      />
                     </>
                   ) : null}
                 </div>
@@ -4511,18 +4508,20 @@ export function ObligationQueueRoute() {
             </DialogDescription>
           </DialogHeader>
           {/* 2026-05-26 (step-6 ux-flow audit Q4.5): visible label
-              for SR users (placeholder alone disappears on type). */}
-          <div className="grid gap-2">
-            <label htmlFor="extended-memo-textarea" className="text-sm font-medium">
+              for SR users (placeholder alone disappears on type).
+              2026-06-01: switched to Field + FieldLabel so label/textarea
+              density matches the rest of the dialog forms. */}
+          <Field>
+            <FieldLabel htmlFor="extended-memo-textarea">
               <Trans>Memo</Trans>
-            </label>
+            </FieldLabel>
             <Textarea
               id="extended-memo-textarea"
               placeholder={t`e.g. Filed Form 7004 — client confirmed by phone`}
               value={extendedMemo}
               onChange={(event) => setExtendedMemo(event.target.value)}
             />
-          </div>
+          </Field>
           <DialogFooter>
             {/* 2026-05-27 (σ cross-route audit D9): final outline →
                 ghost straggler in obligations.tsx. Step 6 cont X1
@@ -4884,7 +4883,9 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
     // quiet em-dash so the column still reserves its baseline without
     // claiming a filing event that didn't happen.
     if (status === 'not_applicable' || days === 0) {
-      return <span className="text-sm text-text-tertiary tabular-nums">—</span>
+      // 2026-06-01: canonical EmptyCellMark replaces hand-rolled em-dash —
+      // shares the same accessible "No data" label as other empty cells.
+      return <EmptyCellMark />
     }
     return (
       // 2026-05-26 (Yuqi fifty-fourth pass — terminal pill larger):
@@ -7925,18 +7926,16 @@ function DeadlineInputRequestDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 px-6 py-5">
-          <div className="grid gap-2">
-            {/* 2026-05-26 (step-6 ux-flow audit Q6.1): converted the
-                span "Recipient" tag to a real <label id> so the
-                DropdownMenuTrigger button can claim it via
-                aria-labelledby — SR users now hear "Recipient: Joe
-                Smith" instead of just the truncated trigger text. */}
-            <label
-              id="deadline-input-request-recipient-label"
-              className="text-sm font-medium text-text-primary"
-            >
+          {/* 2026-05-26 (step-6 ux-flow audit Q6.1): the recipient label
+              is exposed via id so DropdownTriggerButton's aria-labelledby
+              still binds it for SR users.
+              2026-06-01: rows now ride Field + FieldLabel; the seat-warning
+              "Add an active owner…" uses FieldDescription tone="warning"
+              instead of a hand-rolled <p role=alert>. */}
+          <Field>
+            <FieldLabel id="deadline-input-request-recipient-label">
               <Trans>Recipient</Trans>
-            </label>
+            </FieldLabel>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
@@ -7978,15 +7977,15 @@ function DeadlineInputRequestDialog({
               </DropdownMenuContent>
             </DropdownMenu>
             {!loadingRecipients && recipients.length === 0 ? (
-              <p role="alert" className="text-sm text-text-warning">
+              <FieldDescription tone="warning">
                 <Trans>Add an active owner or partner before sending an input request.</Trans>
-              </p>
+              </FieldDescription>
             ) : null}
-          </div>
-          <div className="grid gap-2">
-            <label htmlFor="deadline-input-request-message" className="text-sm font-medium">
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="deadline-input-request-message">
               <Trans>Message</Trans>
-            </label>
+            </FieldLabel>
             <Textarea
               id="deadline-input-request-message"
               value={message}
@@ -7995,7 +7994,7 @@ function DeadlineInputRequestDialog({
               placeholder={t`Add the decision or context you need.`}
               onChange={(event) => onMessageChange(event.currentTarget.value)}
             />
-          </div>
+          </Field>
         </div>
         <DialogFooter className="border-t border-divider-subtle px-6 py-4">
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
@@ -8069,22 +8068,26 @@ function AuthorityRejectionDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid min-h-0 gap-4 overflow-y-auto px-6 py-5">
+          {/* 2026-06-01: 4 fields migrated to Field + FieldLabel. Reason's
+              char counter rides FieldLabel as a trailing span — FieldLabel
+              already gap-2's children so no extra flex row needed; the
+              w-full + justify-between recipe keeps counter right-aligned. */}
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="grid gap-2">
-              <label htmlFor="authority-rejected-date" className="text-sm font-medium">
+            <Field>
+              <FieldLabel htmlFor="authority-rejected-date">
                 <Trans>Rejected date</Trans>
-              </label>
+              </FieldLabel>
               <Input
                 id="authority-rejected-date"
                 type="date"
                 value={draft.rejectedAt}
                 onChange={(event) => onDraftChange({ rejectedAt: event.currentTarget.value })}
               />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="authority-rejected-authority" className="text-sm font-medium">
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="authority-rejected-authority">
                 <Trans>Authority</Trans>
-              </label>
+              </FieldLabel>
               <Input
                 id="authority-rejected-authority"
                 value={draft.authority}
@@ -8092,12 +8095,12 @@ function AuthorityRejectionDialog({
                 placeholder={t`IRS / CA FTB`}
                 onChange={(event) => onDraftChange({ authority: event.currentTarget.value })}
               />
-            </div>
+            </Field>
           </div>
-          <div className="grid gap-2">
-            <label htmlFor="authority-rejected-reference" className="text-sm font-medium">
+          <Field>
+            <FieldLabel htmlFor="authority-rejected-reference">
               <Trans>Reject code / notice reference</Trans>
-            </label>
+            </FieldLabel>
             <Input
               id="authority-rejected-reference"
               value={draft.reference}
@@ -8105,16 +8108,14 @@ function AuthorityRejectionDialog({
               placeholder={t`Optional`}
               onChange={(event) => onDraftChange({ reference: event.currentTarget.value })}
             />
-          </div>
-          <div className="grid gap-2">
-            <div className="flex items-center justify-between gap-3">
-              <label htmlFor="authority-rejected-reason" className="text-sm font-medium">
-                <Trans>Reason</Trans>
-              </label>
-              <span className="text-caption-xs tabular-nums text-text-tertiary">
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="authority-rejected-reason" className="w-full justify-between">
+              <Trans>Reason</Trans>
+              <span className="text-caption-xs tabular-nums font-normal text-text-tertiary">
                 {draft.reason.length}/280
               </span>
-            </div>
+            </FieldLabel>
             <Textarea
               id="authority-rejected-reason"
               value={draft.reason}
@@ -8126,15 +8127,11 @@ function AuthorityRejectionDialog({
               onChange={(event) => onDraftChange({ reason: event.currentTarget.value })}
             />
             {reasonError ? (
-              <p
-                id="authority-rejected-reason-error"
-                role="alert"
-                className="text-sm text-text-danger"
-              >
+              <FieldError id="authority-rejected-reason-error">
                 <Trans>Reason is required.</Trans>
-              </p>
+              </FieldError>
             ) : null}
-          </div>
+          </Field>
           <div className="grid gap-2">
             <span className="text-sm font-medium">
               <Trans>Next step</Trans>
@@ -11578,10 +11575,10 @@ function PenaltyInputDialog({
             <label> elements (placeholder alone disappears on type)
             and inline helper text describing accepted formats. */}
         <div className="grid gap-3">
-          <div className="grid gap-1.5">
-            <label htmlFor="penalty-tax-due" className="text-sm font-medium">
+          <Field>
+            <FieldLabel htmlFor="penalty-tax-due">
               <Trans>Estimated tax due</Trans>
-            </label>
+            </FieldLabel>
             <Input
               id="penalty-tax-due"
               inputMode="decimal"
@@ -11591,14 +11588,14 @@ function PenaltyInputDialog({
                 setDraft((current) => ({ ...current, taxDue: event.target.value }))
               }
             />
-            <p className="text-xs text-text-tertiary">
+            <FieldDescription>
               <Trans>Dollars and cents.</Trans>
-            </p>
-          </div>
-          <div className="grid gap-1.5">
-            <label htmlFor="penalty-owner-count" className="text-sm font-medium">
+            </FieldDescription>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="penalty-owner-count">
               <Trans>Owner count</Trans>
-            </label>
+            </FieldLabel>
             <Input
               id="penalty-owner-count"
               inputMode="numeric"
@@ -11608,10 +11605,10 @@ function PenaltyInputDialog({
                 setDraft((current) => ({ ...current, ownerCount: event.target.value }))
               }
             />
-            <p className="text-xs text-text-tertiary">
+            <FieldDescription>
               <Trans>Positive whole number.</Trans>
-            </p>
-          </div>
+            </FieldDescription>
+          </Field>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>

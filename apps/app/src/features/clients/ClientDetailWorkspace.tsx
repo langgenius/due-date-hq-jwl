@@ -64,13 +64,12 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { InfoBanner } from '@/components/patterns/info-banner'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
 import { PageHeader } from '@/components/patterns/page-header'
-import { getAssigneeTint } from '@/lib/assignee-tint'
 import { formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { initialsFromName } from '@/lib/auth'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { useCurrentUserName } from '@/lib/use-current-user-name'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
@@ -979,16 +978,19 @@ export function ClientDetailWorkspace({
                       readiness chip (warning, not destructive) per
                       §3.7 canonical color reservation. */}
                   {readiness && readiness.missingRequiredFacts.length > 0 ? (
-                    <span
-                      className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-state-warning-border bg-state-warning-hover px-1.5 text-[10px] font-medium leading-none tabular-nums text-text-warning"
-                      // 2026-05-27 (audit P2-2): the bare "1" badge was
-                      // unlabeled. Title gives a CPA hovering it the
-                      // actual meaning ("# required fact(s) missing").
+                    // 2026-06-01: hand-rolled h-4 min-w-4 count bubble
+                    // swapped for Badge size='sm' warning. Audit P2-2's
+                    // accessible-name (title + aria-label) stays so AT
+                    // users still hear "# required fact(s) missing".
+                    <Badge
+                      variant="warning"
+                      size="sm"
+                      className="ml-1.5 tabular-nums"
                       title={t`${readiness.missingRequiredFacts.length} required fact(s) missing`}
                       aria-label={t`${readiness.missingRequiredFacts.length} required fact(s) missing`}
                     >
                       {readiness.missingRequiredFacts.length}
-                    </span>
+                    </Badge>
                   ) : null}
                 </ClientDetailTabTrigger>
                 <ClientDetailTabTrigger
@@ -1757,7 +1759,6 @@ function ClientOwnerHeaderPill({
     name !== null &&
     currentUserName !== null &&
     name.trim().toLowerCase() === currentUserName.toLowerCase()
-  const tint = name === null ? null : getAssigneeTint(name)
   const triggerLabel =
     name === null
       ? t`Change owner — currently unassigned`
@@ -1812,23 +1813,23 @@ function ClientOwnerHeaderPill({
               name === null ? 'text-text-secondary' : 'text-text-primary',
             )}
           >
+            {/* 2026-06-01: hand-rolled size-5 avatar circles
+                consolidated onto the shared AssigneeAvatar primitive
+                (size='xs'). Same null-name → Unassigned glyph branch +
+                isMine accent tint live inside the primitive now. */}
             {name === null ? (
               <>
-                <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
-                  <UserRoundIcon className="size-3.5" aria-hidden />
-                </span>
+                <AssigneeAvatar name={null} size="xs" title={triggerLabel} />
                 <Trans>Unassigned</Trans>
               </>
             ) : (
               <>
-                <span
-                  className={cn(
-                    'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-                    isMine ? 'bg-state-accent-hover-alt text-text-accent' : tint,
-                  )}
-                >
-                  {initialsFromName(name)}
-                </span>
+                <AssigneeAvatar
+                  name={name}
+                  isMine={isMine}
+                  size="xs"
+                  title={triggerLabel}
+                />
                 <span className="truncate">{name}</span>
               </>
             )}
@@ -1846,14 +1847,11 @@ function ClientOwnerHeaderPill({
           }}
         >
           <DropdownMenuRadioItem value="__unassigned__">
-            {/* Avatar slot — kept at the same size-5 the member rows
-                use so all rows share a single visual rhythm. Previously
-                the Unassigned circle was size-4 while members were
-                size-5, which made the first row sit visually lower
-                than the rest. */}
-            <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
-              <UserRoundIcon className="size-3" aria-hidden />
-            </span>
+            {/* Avatar slot — size='xs' (size-5) so the Unassigned row
+                shares one visual rhythm with the member rows below.
+                2026-06-01: hand-rolled circle swapped for AssigneeAvatar
+                primitive (null name = Unassigned glyph). */}
+            <AssigneeAvatar name={null} size="xs" title={t`Unassigned`} />
             <span>
               <Trans>Unassigned</Trans>
             </span>
@@ -1870,14 +1868,15 @@ function ClientOwnerHeaderPill({
               disabled
               title={t`This member is no longer on the team`}
             >
-              <span
-                className={cn(
-                  'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-                  tint ?? 'bg-background-subtle text-text-tertiary',
-                )}
-              >
-                {name ? initialsFromName(name) : '?'}
-              </span>
+              {/* 2026-06-01: stale-assignee chip swapped to AssigneeAvatar
+                  (size='xs'). The primitive picks the same per-name tint
+                  via getAssigneeTint and falls back to the unassigned
+                  glyph when name is null. */}
+              <AssigneeAvatar
+                name={name}
+                size="xs"
+                title={name ?? t`Former teammate`}
+              />
               <span className="truncate text-text-tertiary">
                 {name ?? <Trans>Former teammate</Trans>}
                 <span className="ml-1 text-xs italic">
@@ -1893,20 +1892,20 @@ function ClientOwnerHeaderPill({
               Separator + empty-state Item now live OUTSIDE the
               RadioGroup. Member RadioItems stay inside. */}
           {assignableMembers.map((member) => {
-            const memberTint = getAssigneeTint(member.name)
             const isCurrentUser =
               currentUserName !== null &&
               member.name.trim().toLowerCase() === currentUserName.toLowerCase()
             return (
               <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
-                <span
-                  className={cn(
-                    'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-                    isCurrentUser ? 'bg-state-accent-hover-alt text-text-accent' : memberTint,
-                  )}
-                >
-                  {initialsFromName(member.name)}
-                </span>
+                {/* 2026-06-01: member avatars consolidated onto
+                    AssigneeAvatar (size='xs', isMine for current user
+                    accent tint). */}
+                <AssigneeAvatar
+                  name={member.name}
+                  isMine={isCurrentUser}
+                  size="xs"
+                  title={member.name}
+                />
                 <span className="truncate">{member.name}</span>
               </DropdownMenuRadioItem>
             )
@@ -1982,12 +1981,19 @@ function ClientContactMetaRow({
           pills read as one coherent meta row. Gap tightened
           gap-x-3 → gap-x-2 since the pills are now visually
           related siblings rather than two ill-matched chips. */}
-      <span
-        className="inline-flex h-7 items-center rounded-full border border-divider-regular bg-background-default px-3 text-xs text-text-secondary"
+      {/* 2026-06-01: entity-kind chip routed through Badge outline lg.
+          h-7 override stays as className because the entity pill needs
+          to match the adjacent owner pill's 28px height exactly (lg's
+          baseline is h-6). */}
+      <Badge
+        variant="outline"
+        shape="pill"
+        size="lg"
+        className="h-7"
         aria-label={`Entity type: ${entityLabel}`}
       >
         {entityLabel}
-      </span>
+      </Badge>
       {ownerSlot}
       <ClientFilingStateChips client={client} />
       {items.map((item) => (

@@ -31,7 +31,6 @@ import {
   LinkIcon,
   SearchIcon,
   SparklesIcon,
-  UserRoundIcon,
   UsersRoundIcon,
 } from 'lucide-react'
 
@@ -1008,12 +1007,24 @@ export function ClientFactsWorkspace({
             <Trans>Assignee</Trans>
           </span>
         ),
-        cell: ({ row }) => (
-          <ClientAssigneeAvatar
-            name={row.original.assigneeName}
-            currentUserName={currentUserName}
-          />
-        ),
+        cell: ({ row }) => {
+          // 2026-06-01: ClientAssigneeAvatar shim removed — its only
+          // remaining job was the isMine accent + title construction,
+          // which is short enough to inline here. The unassigned branch
+          // now lives inside the AssigneeAvatar primitive (null name).
+          const name = row.original.assigneeName
+          const isMine =
+            currentUserName !== null &&
+            name !== null &&
+            name.trim().toLowerCase() === currentUserName.toLowerCase()
+          const title =
+            name === null
+              ? t`Unassigned`
+              : isMine
+                ? t`Assigned to you (${name})`
+                : name
+          return <AssigneeAvatar name={name} isMine={isMine} title={title} />
+        },
         meta: {
           headerClassName: CLIENTS_COL_WIDTH.assignee,
           cellClassName: CLIENTS_COL_WIDTH.assignee,
@@ -1862,30 +1873,9 @@ function ClientTableEmptyRow({ colSpan }: { colSpan: number }) {
  * /clients shows a muted person icon while /deadlines opens an inline
  * picker (different IA per surface).
  */
-function ClientAssigneeAvatar({
-  name,
-  currentUserName,
-}: {
-  name: string | null
-  currentUserName: string | null
-}) {
-  const { t } = useLingui()
-  if (!name) {
-    return (
-      <span
-        aria-label={t`Unassigned`}
-        title={t`Unassigned`}
-        className="inline-flex size-8 items-center justify-center rounded-full bg-background-subtle text-text-tertiary"
-      >
-        <UserRoundIcon className="size-3.5" aria-hidden />
-      </span>
-    )
-  }
-  const isMine =
-    currentUserName !== null && name.trim().toLowerCase() === currentUserName.toLowerCase()
-  const title = isMine ? t`Assigned to you (${name})` : name
-  return <AssigneeAvatar name={name} isMine={isMine} title={title} />
-}
+// 2026-06-01: ClientAssigneeAvatar shim removed — the unassigned
+// branch is now handled inside the shared AssigneeAvatar primitive
+// (passing `name={null}` renders the muted person silhouette).
 // 2026-05-26 (Yuqi cross-table drift #10 — "Owner/Assignee avatar
 // size + initials hash consistency"): the ASSIGNEE_TINTS palette + FNV
 // hash that used to live inline here moved to `@/lib/assignee-tint` so

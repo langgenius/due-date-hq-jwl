@@ -39,9 +39,19 @@ const badgeVariants = cva(
       // count pills (lg h-6). Five+ call-sites hand-roll the h-6 +
       // px-2 py-1.5 + tabular-nums pill next to a title; this lets them
       // write <Badge variant="secondary" size="lg">{n}</Badge>.
+      //
+      // 2026-06-01: `sm` and `circle` sizes added to absorb 7+ override
+      // sites that hand-rolled h-4/h-[18px]/size-6 micro-chips and
+      // single-digit count circles. `sm` is the micro-chip used by
+      // tab-count bubbles, ext./paid-late chips, and AI-assisted
+      // provenance chips. `circle` is the equal-axis count circle
+      // used by SourceCountBadge coverage indicators, single-digit
+      // tab counts, and the rules legend 'S' glyph.
       size: {
         default: 'h-5 px-2 py-0.5 text-xs',
+        sm: 'h-4 min-w-4 px-1.5 text-[10px] leading-none',
         lg: 'h-6 px-2 py-1.5 text-xs',
+        circle: 'size-6 px-0 justify-center tabular-nums',
       },
       // 2026-06-01: `shape` axis adds the square-corner uppercase
       // "eyebrow" treatment used for AI provenance chips, jurisdiction

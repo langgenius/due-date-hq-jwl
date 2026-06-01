@@ -11,7 +11,6 @@ import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
-import { cn } from '@duedatehq/ui/lib/utils'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
 import { SearchInput } from '@/components/primitives/search-input'
@@ -211,75 +210,80 @@ export function NotificationsPage() {
           ) : null}
 
           {filteredNotifications.map((item) => (
-            <article
+            // 2026-06-01 (DS migration): hand-rolled `<article>` with
+            // conditional left-accent border → Card size="sm"
+            // radius="md" emphasis. The Card primitive ships the
+            // unread left-rail via data-emphasis so this row stops
+            // hand-rolling border recipes. role="article" preserves
+            // the document landmark for SR users (Card renders a
+            // <div> only).
+            <Card
               key={item.id}
-              // 2026-05-26 (step-6 ux-flow audit F1.2/F1.6): unread
-              // items get a left-accent bar so they're scannable
-              // from across the row. aria-label exposes read/unread
-              // state to SR users.
+              role="article"
+              size="sm"
+              radius="md"
+              emphasis={item.readAt ? 'default' : 'unread'}
               aria-label={item.readAt ? t`Read: ${item.title}` : t`Unread: ${item.title}`}
-              className={cn(
-                'grid gap-2 rounded-lg border bg-background-default p-4',
-                item.readAt
-                  ? 'border-divider-subtle'
-                  : 'border-l-[3px] border-l-accent-default border-divider-subtle',
-              )}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h2 className="truncate text-sm font-semibold text-text-primary">{item.title}</h2>
-                  <p className="text-sm text-text-secondary">{item.body}</p>
+              <CardContent className="grid gap-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="truncate text-sm font-semibold text-text-primary">
+                      {item.title}
+                    </h2>
+                    <p className="text-sm text-text-secondary">{item.body}</p>
+                  </div>
+                  {/* 2026-05-24 (critique P2 — clarify): scannable
+                      relative time ("2d ago") so the CPA can sweep the
+                      list without parsing ISO. Absolute timestamp
+                      `2026-05-01 02:50:00 PDT` lives on the tooltip. */}
+                  <RelativeTime
+                    value={item.createdAt}
+                    timeZone={practiceTimezone}
+                    className="shrink-0 text-xs text-text-tertiary"
+                  />
                 </div>
-                {/* 2026-05-24 (critique P2 — clarify): scannable
-                    relative time ("2d ago") so the CPA can sweep the
-                    list without parsing ISO. Absolute timestamp
-                    `2026-05-01 02:50:00 PDT` lives on the tooltip. */}
-                <RelativeTime
-                  value={item.createdAt}
-                  timeZone={practiceTimezone}
-                  className="shrink-0 text-xs text-text-tertiary"
-                />
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                {/* 2026-05-24 (critique P2 — typeset): notification
-                    type label ("Deadline reminder", "Overdue",
-                    "Audit package") is readable English copy, not a
-                    code token. Drop `font-mono`. */}
-                <span className="text-xs text-text-tertiary">
-                  {notificationTypeLabel(item.type)}
-                </span>
-                <span className="flex items-center gap-1">
-                  {item.href ? (
-                    <Button
-                      render={
-                        <Link
-                          to={item.href}
-                          onClick={() => {
-                            if (!item.readAt) markRead.mutate({ id: item.id })
-                          }}
-                        />
-                      }
-                      variant="ghost"
-                      size="sm"
-                    >
-                      <Trans>Open</Trans>
-                      <ArrowRightIcon data-icon="inline-end" />
-                    </Button>
-                  ) : null}
-                  {!item.readAt ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => markRead.mutate({ id: item.id })}
-                      disabled={markRead.isPending}
-                    >
-                      <CheckIcon data-icon="inline-start" />
-                      <Trans>Mark read</Trans>
-                    </Button>
-                  ) : null}
-                </span>
-              </div>
-            </article>
+                <div className="flex items-center justify-between gap-2">
+                  {/* 2026-05-24 (critique P2 — typeset): notification
+                      type label ("Deadline reminder", "Overdue",
+                      "Audit package") is readable English copy, not a
+                      code token. Drop `font-mono`. */}
+                  <span className="text-xs text-text-tertiary">
+                    {notificationTypeLabel(item.type)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    {item.href ? (
+                      <Button
+                        render={
+                          <Link
+                            to={item.href}
+                            onClick={() => {
+                              if (!item.readAt) markRead.mutate({ id: item.id })
+                            }}
+                          />
+                        }
+                        variant="ghost"
+                        size="sm"
+                      >
+                        <Trans>Open</Trans>
+                        <ArrowRightIcon data-icon="inline-end" />
+                      </Button>
+                    ) : null}
+                    {!item.readAt ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => markRead.mutate({ id: item.id })}
+                        disabled={markRead.isPending}
+                      >
+                        <CheckIcon data-icon="inline-start" />
+                        <Trans>Mark read</Trans>
+                      </Button>
+                    ) : null}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </CardContent>
       </Card>

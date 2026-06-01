@@ -23,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@duedatehq/ui/components/ui/alert-dialog'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
@@ -35,6 +36,7 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
+import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { formatDate } from '@/lib/utils'
@@ -504,40 +506,38 @@ function FilingPlanBulkBar({
   onClear: () => void
 }) {
   const { t } = useLingui()
+  // 2026-06-01: swapped the hand-rolled fixed/centered bulk bar for the
+  // shared FloatingActionBar primitive so the Filing-plan bulk surface
+  // matches the canonical shadow/blur/z-index recipe used by the
+  // obligations queue and rules library bulk bars.
   return (
-    <div
-      role="region"
-      aria-label={t`Bulk actions`}
-      className="pointer-events-none fixed inset-x-0 bottom-10 z-30 flex justify-center px-4"
-    >
-      <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-divider-regular bg-background-default px-3 py-1.5 shadow-lg">
-        <span className="text-xs font-medium tabular-nums text-text-primary">
-          <Plural value={count} one="# selected" other="# selected" />
-        </span>
-        <span className="h-4 w-px bg-divider-regular" aria-hidden />
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="ghost" size="sm" disabled={isPending}>
-                <Trans>Move to status</Trans>
-                <ChevronDownIcon className="size-3.5" aria-hidden />
-              </Button>
-            }
-          />
-          <DropdownMenuContent align="center" className="min-w-[200px]">
-            {statuses.map((status) => (
-              <DropdownMenuItem key={status} onClick={() => onApplyStatus(status)}>
-                {statusLabels[status]}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <span className="h-4 w-px bg-divider-regular" aria-hidden />
-        <Button variant="ghost" size="sm" onClick={onClear}>
-          <Trans>Clear</Trans>
-        </Button>
-      </div>
-    </div>
+    <FloatingActionBar ariaLabel={t`Bulk actions`}>
+      <span className="text-xs font-medium tabular-nums text-text-primary">
+        <Plural value={count} one="# selected" other="# selected" />
+      </span>
+      <span className="h-4 w-px bg-divider-regular" aria-hidden />
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="ghost" size="sm" disabled={isPending}>
+              <Trans>Move to status</Trans>
+              <ChevronDownIcon className="size-3.5" aria-hidden />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="center" className="min-w-[200px]">
+          {statuses.map((status) => (
+            <DropdownMenuItem key={status} onClick={() => onApplyStatus(status)}>
+              {statusLabels[status]}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <span className="h-4 w-px bg-divider-regular" aria-hidden />
+      <Button variant="ghost" size="sm" onClick={onClear}>
+        <Trans>Clear</Trans>
+      </Button>
+    </FloatingActionBar>
   )
 }
 
@@ -637,30 +637,26 @@ function FilingPlanYearSection({
           </span>
         ) : null}
         {group.openCount > 0 ? (
-          // 2026-05-24 (design-system audit): the current-year pill used
-          // a raw `bg-[var(--color-util-colors-blue-100,#dbeafe)]` arbitrary
-          // value with a hex fallback — bypassing the design tokens. The
-          // `components-badge-bg-blue-soft` + `text-text-accent` pair is
-          // the same color treatment the Badge `info` variant uses;
-          // routing through it means a theme-level blue change updates
-          // here too. Square-corner shape preserved (Badge defaults to
-          // fully rounded, this stays a soft-corner tag for visual
-          // distinction from the filing-plan row pills above).
-          <span
-            className={cn(
-              'inline-flex items-center rounded px-2 py-0.5 text-xs leading-4',
-              group.isCurrent
-                ? 'bg-components-badge-bg-blue-soft text-text-accent'
-                : 'bg-background-default text-text-tertiary',
-            )}
+          // 2026-06-01: hand-rolled inline-flex pill replaced by Badge
+          // size='sm' shape='square' — info variant for the current
+          // year, outline for prior years. Soft-corner square shape
+          // preserved to visually distinguish from the fully-rounded
+          // row status pills below.
+          <Badge
+            variant={group.isCurrent ? 'info' : 'outline'}
+            size="sm"
+            shape="square"
           >
             <Plural value={group.openCount} one="# open filing" other="# open filings" />
-          </span>
+          </Badge>
         ) : null}
         {group.extendedCount > 0 ? (
-          <span className="text-xs leading-4 text-text-tertiary">
+          // 2026-06-01: inline "{n} extended" marker upgraded to a
+          // Badge outline sm pill so it stops drifting from the open-
+          // count chip next to it.
+          <Badge variant="outline" size="sm" shape="square">
             <Trans>{group.extendedCount} extended</Trans>
-          </span>
+          </Badge>
         ) : null}
       </div>
       {/* Real <table> for the filing plan body (audit L3). Earlier shape
@@ -779,12 +775,18 @@ function FilingPlanYearSection({
                       {formatDate(obligation.currentDueDate)}
                       {obligation.extensionState === 'filed' ||
                       obligation.extensionState === 'accepted' ? (
-                        <span
+                        // 2026-06-01: ext. chip swapped to Badge size=sm
+                        // shape=square info variant — same token-driven
+                        // blue treatment, but inherits the canonical
+                        // micro-chip sizing used everywhere else.
+                        <Badge
+                          variant="info"
+                          size="sm"
+                          shape="square"
                           title={t`This row's deadline has been extended. The Official Deadline column shows the original statutory date; the Internal Deadline reflects the new post-extension target.`}
-                          className="rounded-sm bg-components-badge-bg-blue-soft px-1 py-0 text-caption-xs font-medium leading-4 text-text-accent"
                         >
                           ext.
-                        </span>
+                        </Badge>
                       ) : null}
                     </span>
                   </td>
@@ -805,12 +807,18 @@ function FilingPlanYearSection({
                         const overdueDays = paymentOverdueDays(obligation, Date.now())
                         if (overdueDays === null) return null
                         return (
-                          <span
+                          // 2026-06-01: Payment-late chip swapped to
+                          // Badge destructive sm square so it inherits
+                          // the same micro-chip rhythm as the ext. chip
+                          // on the Internal Deadline column.
+                          <Badge
+                            variant="destructive"
+                            size="sm"
+                            shape="square"
                             title={t`The filing was submitted, but the authority payment due ${formatDate(obligation.paymentDueDate ?? '')} hasn't been confirmed yet. Penalty interest accrues until the wire lands.`}
-                            className="rounded-sm bg-state-destructive-hover px-1 py-0 text-caption-xs font-medium leading-4 text-text-destructive"
                           >
                             <Trans>Payment {overdueDays}d late</Trans>
-                          </span>
+                          </Badge>
                         )
                       })()}
                     </span>

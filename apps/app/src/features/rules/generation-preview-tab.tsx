@@ -48,6 +48,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 
 import {
@@ -742,7 +743,9 @@ function AnnualRolloverResults({ result }: { result: AnnualRolloverOutput }) {
                       <Trans>Open</Trans>
                     </Button>
                   ) : (
-                    <span className="text-text-disabled">—</span>
+                    // 2026-06-01: hand-rolled em-dash → EmptyCellMark for the
+                    // canonical text-text-tertiary tone + screen-reader label.
+                    <EmptyCellMark />
                   )}
                 </span>
               </div>

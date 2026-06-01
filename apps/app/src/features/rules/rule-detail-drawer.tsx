@@ -12,8 +12,10 @@ import type {
   RuleEvidenceAuthorityRole,
   RuleSource,
 } from '@duedatehq/contracts'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Card } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -490,21 +492,13 @@ function CandidateReviewForm({
     reviewDisabled || acceptDisabledReason !== null || (sourceDefined && !draft)
 
   const entitySummary = formatEntityApplicability(rule.entityApplicability)
-  return (
-    <section
-      className={cn(
-        'flex flex-col gap-3',
-        // 2026-05-27 (Yuqi — "Practice review最高决定review,在最下面
-        // 不对"): when rendered as a sticky dialog footer (`chrome=
-        // 'flat'`), drop the card border + background — the footer
-        // wrapper already paints a `border-t` + tinted bg, so a
-        // rounded card on top would be a card-inside-a-card. Default
-        // `'card'` keeps the existing review-task card chrome for
-        // other callers.
-        chrome === 'card' &&
-          'rounded-md border border-state-accent-active-alt bg-background-default px-3 py-3',
-      )}
-    >
+  // 2026-06-01: `chrome === 'card'` now renders the wrapper as the
+  // Card primitive (sm size, accent-active tone, md radius) instead
+  // of a hand-rolled <section> with the same recipe. `chrome ===
+  // 'flat'` keeps the bare <section> so the sticky dialog footer
+  // doesn't double-wrap with its own border-t + tinted bg.
+  const body = (
+    <>
       {/* Section header used to include a right-aligned "Needs review"
           chip that duplicated the rule-status pill in the audit meta
           line above. Dropped per /critique — one canonical "needs
@@ -561,8 +555,16 @@ function CandidateReviewForm({
           <Trans>Accept rule</Trans>
         </Button>
       </div>
-    </section>
+    </>
   )
+  if (chrome === 'card') {
+    return (
+      <Card size="sm" tone="accent-active" radius="md">
+        {body}
+      </Card>
+    )
+  }
+  return <section className="flex flex-col gap-3">{body}</section>
 }
 
 function AiDraftReviewPanel({
@@ -583,11 +585,12 @@ function AiDraftReviewPanel({
    */
   onGenerateDraft?: () => void
 }) {
+  // 2026-06-01: hand-rolled tinted panel → Card primitive (sm size,
+  // muted tone, md radius) matches the previous recipe one-for-one
+  // (divider-subtle border, background-section bg) without the
+  // local border+bg+rounded class soup.
   return (
-    <div
-      className="flex flex-col gap-2 rounded-md border border-divider-regular bg-background-subtle px-3 py-2.5"
-      aria-busy={generating && !draft ? true : undefined}
-    >
+    <Card size="sm" tone="muted" radius="md" aria-busy={generating && !draft ? true : undefined}>
       <p className="text-xs font-medium text-text-secondary">
         <Trans>AI concrete draft</Trans>
       </p>
@@ -667,7 +670,7 @@ function AiDraftReviewPanel({
           <p className="text-xs text-text-tertiary">{draft.reasoning}</p>
         </div>
       ) : null}
-    </div>
+    </Card>
   )
 }
 
@@ -902,40 +905,35 @@ function ReviewReasonsSection({ rule }: { rule: ObligationRule }) {
   // RuleDetailInline pushes this section to the top of the body
   // when the rule still needs review, so the prompt isn't buried
   // below Applicability / Due date.
+  // 2026-06-01: hand-rolled callouts → Alert primitive. `info` for
+  // review-needed (accent tint) and `warning` for applicability
+  // review (severity-medium tint) match the previous tone mapping.
   if (rule.status === 'candidate' || rule.status === 'pending_review') {
     return (
-      <section
-        role="region"
-        aria-label="Review required"
-        className="rounded-md border border-state-accent-active-alt bg-accent-tint px-3 py-2"
-      >
-        <p className="flex items-center gap-1.5 text-sm font-medium text-status-review">
-          <AlertTriangleIcon className="size-3.5 shrink-0" aria-hidden />
+      <Alert variant="info" aria-label="Review required">
+        <AlertTriangleIcon />
+        <AlertTitle>
           <Trans>Needs CPA review</Trans>
-        </p>
-        <p className="mt-1 text-xs text-text-secondary">{rule.defaultTip}</p>
+        </AlertTitle>
+        <AlertDescription>{rule.defaultTip}</AlertDescription>
         {/* 2026-05-27 (Yuqi follow-up — sticky-footer move): old copy
             promised "Accept / Skip buttons below" but there's no Skip
             button in this dialog (Skip lives only in the coverage-tab
             workspace queue). Since the action bar is now pinned at
             the bottom and always visible, an explicit pointer is
             redundant. Dropped. */}
-      </section>
+      </Alert>
     )
   }
 
   return (
-    <section
-      role="region"
-      aria-label="Applicability review required"
-      className="rounded-md border border-divider-regular bg-severity-medium-tint px-3 py-2"
-    >
-      <p className="flex items-center gap-1.5 text-sm font-medium text-severity-medium">
-        <AlertTriangleIcon className="size-3.5 shrink-0" aria-hidden />
+    <Alert variant="warning" aria-label="Applicability review required">
+      <AlertTriangleIcon />
+      <AlertTitle>
         <Trans>Needs CPA confirmation each year</Trans>
-      </p>
-      <p className="mt-1 text-xs text-text-secondary">{rule.defaultTip}</p>
-    </section>
+      </AlertTitle>
+      <AlertDescription>{rule.defaultTip}</AlertDescription>
+    </Alert>
   )
 }
 
@@ -976,16 +974,11 @@ function RuleEvidenceCard({
   evidence: RuleEvidence
   source: RuleSource | undefined
 }) {
-  // Block-level card: render directly as <a> when source.url exists, plain
-  // <div> otherwise. Avoids inheriting `inline-flex items-center` from the
-  // shared SourceExternalLink (which is intended for inline link usage and
-  // would force every column child to horizontally center, plus break the
-  // truncate chain when the source title is long).
-  const sharedClassName =
-    'flex flex-col items-stretch gap-1.5 rounded-md border border-divider-regular bg-background-default px-3 py-2.5 text-left no-underline outline-none'
-  const interactiveClassName =
-    'hover:border-state-accent-active-alt hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt'
-
+  // 2026-06-01: hand-rolled chrome (border + bg + rounded + hover/focus
+  // recipe) → Card primitive. Link variant uses `interactive` so the
+  // pointer + accent-border hover + focus-visible ring come from the
+  // primitive, with an overlay <a> carrying href / target / onClick /
+  // aria-label so behavior + a11y are unchanged.
   const inner = (
     <>
       <div className="flex w-full min-w-0 items-start justify-between gap-2">
@@ -1007,21 +1000,30 @@ function RuleEvidenceCard({
   )
 
   if (source?.url) {
+    const url = source.url
+    // Link variant keeps the host <a> so href / target / rel / aria-label
+    // / onClick remain on the focusable, semantic anchor. Visual recipe
+    // mirrors Card size='sm' radius='md' interactive — couldn't render
+    // Card directly as <a> (Card has no polymorphic render slot yet).
     return (
       <a
-        href={source.url}
+        href={url}
         target="_blank"
         rel="noopener noreferrer"
         aria-label={`Open official source: ${source.title}`}
-        onClick={(event) => openEvidenceSource(event, source.url)}
-        className={cn(sharedClassName, interactiveClassName)}
+        onClick={(event) => openEvidenceSource(event, url)}
+        className="group/card flex flex-col items-stretch gap-1.5 rounded-md border border-components-card-border bg-components-card-bg px-3 py-2.5 text-left text-sm text-text-primary no-underline shadow-xs outline-none transition-colors hover:border-state-accent-active-alt hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       >
         {inner}
       </a>
     )
   }
 
-  return <div className={sharedClassName}>{inner}</div>
+  return (
+    <Card size="sm" radius="md" className="gap-1.5 px-3 py-2.5">
+      {inner}
+    </Card>
+  )
 }
 
 function openEvidenceSource(event: React.MouseEvent<HTMLAnchorElement>, url: string) {

@@ -182,10 +182,16 @@ export function AffectedClientsTable({
                         {row.clientName}
                       </span>
                       <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                        {/* 2026-06-01: state code now uses canonical
+                            Badge primitive (variant=outline, shape=square,
+                            size=sm) so it matches the bordered-pill state
+                            chip rolled out across /clients in the
+                            2026-05-29 sweep — no more hand-rolled
+                            uppercase span. */}
                         {row.state ? (
-                          <span className="font-semibold uppercase tracking-wide text-text-tertiary">
+                          <Badge variant="outline" shape="square" size="sm">
                             {row.state}
-                          </span>
+                          </Badge>
                         ) : null}
                         {row.county ? (
                           <span className="text-text-tertiary">{row.county}</span>
@@ -240,33 +246,42 @@ export function AffectedClientsTable({
                           row that the AI flagged as needing human
                           review — the previous underlined text
                           treatment was too easy to miss. */}
+                      {/* 2026-06-01: Confirm / Unconfirm row buttons
+                          moved to canonical Button primitive
+                          (accent + secondary, size=xs). Hand-rolled
+                          h-7 chip frames replaced — accent variant
+                          maps onto the previous state-accent-solid
+                          frame and secondary maps onto the outline
+                          revert affordance. */}
                       {row.matchStatus === 'needs_review' ? (
                         reviewConfirmed ? (
-                          <button
+                          <Button
                             type="button"
+                            variant="secondary"
+                            size="xs"
                             disabled={readOnly || excluded}
                             onClick={(event) => {
                               event.stopPropagation()
                               onToggleNeedsReviewConfirmation(row.obligationId, false)
                             }}
-                            className="inline-flex h-7 items-center rounded-sm border border-divider-subtle bg-background-default px-2 text-xs font-medium text-text-tertiary outline-none transition-colors hover:border-divider-regular hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
                             aria-label={t`Unconfirm ${row.clientName}`}
                           >
                             <Trans>Unconfirm</Trans>
-                          </button>
+                          </Button>
                         ) : (
-                          <button
+                          <Button
                             type="button"
+                            variant="accent"
+                            size="xs"
                             disabled={readOnly || excluded}
                             onClick={(event) => {
                               event.stopPropagation()
                               setConfirmTarget(row)
                             }}
-                            className="inline-flex h-7 items-center rounded-sm border border-state-accent-solid bg-state-accent-hover px-2 text-xs font-semibold text-text-accent outline-none transition-colors hover:bg-state-accent-hover-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
                             aria-label={t`Confirm ${row.clientName} applies to this relief`}
                           >
                             <Trans>Confirm applies…</Trans>
-                          </button>
+                          </Button>
                         )
                       ) : null}
                       {onToggleExcluded &&

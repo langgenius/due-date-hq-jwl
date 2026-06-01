@@ -7,6 +7,7 @@ import { Field, FieldDescription, FieldError, FieldLabel } from '@duedatehq/ui/c
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
+import { Kbd } from '@/components/patterns/kbd'
 import { displayNameFromEmail, sendEmailSignInCode, signInWithEmailCode } from '@/lib/auth'
 
 type PendingAction = 'send' | 'resend' | 'verify'
@@ -245,12 +246,11 @@ export function EmailOtpSignInForm({
           gets a tiny "or press Enter" prompt that turns the
           submit button into a discoverable shortcut. Pure JSX
           add-on; submit semantics are already correct. */}
+      {/* 2026-06-01: swap hand-rolled <kbd> for the canonical Kbd
+          primitive now exported from patterns/kbd.tsx. */}
       <p className="text-center text-xs leading-relaxed text-text-muted">
         <Trans>
-          or press{' '}
-          <kbd className="rounded-sm border border-divider-subtle bg-background-subtle px-1 py-px font-mono text-[10px] text-text-secondary">
-            Enter
-          </kbd>
+          or press <Kbd>Enter</Kbd>
         </Trans>
       </p>
     </form>

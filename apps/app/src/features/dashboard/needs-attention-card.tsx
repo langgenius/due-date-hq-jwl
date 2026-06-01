@@ -9,10 +9,12 @@ import { Card, CardContent, CardHeader } from '@duedatehq/ui/components/ui/card'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
+import { RelativeTime } from '@/components/primitives/relative-time'
+import { useCurrentFirm } from '@/features/billing/use-billing-data'
+import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 import { usePulseDetailQueryOptions } from '@/features/pulse/api'
 import { pulseAlertTone, pulseAlertToneLabel } from '@/features/pulse/pulse-alert-tone'
-import { formatRelativeTime } from '@/lib/utils'
 
 // Dashboard variant of the Pulse alert card. Tuned for the dashboard's
 // "scan-and-act" mode:
@@ -71,10 +73,14 @@ function NeedsAttentionCard({
   // green outside and red inside.
   const tone = pulseAlertTone(alert)
   const lowConfidence = isLowAiConfidence(alert.confidence)
-  // 2026-05-31 (Yuqi Pencil Sq0EX): source eyebrow timestamp.
-  // `formatRelativeTime` returns "just now" / "Xm ago" / "Xh ago"
-  // / etc., or an empty string when the input isn't parseable.
-  const syncedAgo = alert.publishedAt ? formatRelativeTime(alert.publishedAt) : ''
+  // 2026-06-01 (DS primitives sweep): source eyebrow timestamp now
+  // routes through `<RelativeTime>` so the rendered "Xm ago" gets a
+  // `<time dateTime title>` wrapper — same a11y + tooltip-precision
+  // contract every other recency surface uses (member roster,
+  // reminders, notifications). Firm timezone is resolved locally
+  // via `useCurrentFirm()` so callers don't have to plumb it.
+  const { currentFirm } = useCurrentFirm()
+  const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
   const { names, hasMore, isLoading: clientsLoading } = useUniqueAffectedClientNames(alert.id)
 
   // 2026-05-25 (Yuqi #47): clicking this card opens the Pulse drawer
@@ -131,14 +137,20 @@ function NeedsAttentionCard({
             <span className="truncate text-sm font-medium text-text-secondary">
               {alert.source}
             </span>
-            {syncedAgo ? (
+            {alert.publishedAt ? (
               <>
                 <span aria-hidden className="text-text-tertiary">
                   ·
                 </span>
-                <span className="shrink-0 text-xs text-text-tertiary tabular-nums">
-                  {syncedAgo}
-                </span>
+                {/* 2026-06-01 (DS primitives sweep): canonical
+                    `<RelativeTime>` — renders `<time dateTime title>`
+                    with the relative label and full `YYYY-MM-DD
+                    HH:MM:SS TZ` tooltip. */}
+                <RelativeTime
+                  value={alert.publishedAt}
+                  timeZone={firmTimezone}
+                  className="shrink-0 text-xs text-text-tertiary tabular-nums"
+                />
               </>
             ) : null}
           </div>

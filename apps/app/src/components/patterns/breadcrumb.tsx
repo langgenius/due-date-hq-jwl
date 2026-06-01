@@ -2,6 +2,7 @@ import { Fragment, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
@@ -56,14 +57,14 @@ export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; clas
     if (!item || !item.to) return null
     return (
       <nav aria-label="Breadcrumb" className={cn('flex items-center', className)}>
-        <Link
-          to={item.to}
-          title={`Go back · ${shortcutHint}`}
-          className="inline-flex items-center gap-1 rounded-sm text-xs font-normal text-text-secondary outline-none transition-colors hover:text-text-primary focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
+        {/* 2026-06-01: back-link collapsed onto TextLink variant='muted'.
+            The primitive carries the muted-tone hover-to-tertiary
+            chrome + the focus-visible ring; we just plug in the
+            ChevronLeft + label as children. */}
+        <TextLink variant="muted" render={<Link to={item.to} title={`Go back · ${shortcutHint}`} />}>
           <ChevronLeftIcon aria-hidden className="size-3.5 shrink-0" />
           {item.label}
-        </Link>
+        </TextLink>
       </nav>
     )
   }

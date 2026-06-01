@@ -153,7 +153,7 @@ import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeLabel, TaxCodeBadge } from '@/components/primitives/tax-code-label'
 
 import { StatTile } from '@/components/patterns/stat-tile'
-import { KbdHint } from '@/components/patterns/kbd'
+import { Kbd, KbdHint } from '@/components/patterns/kbd'
 import { InfoBanner } from '@/components/patterns/info-banner'
 import { PageHeader } from '@/components/patterns/page-header'
 import { Breadcrumb } from '@/components/patterns/breadcrumb'
@@ -221,16 +221,8 @@ import type {
   USFirmTimezone,
 } from '@duedatehq/contracts'
 
-// `Kbd` itself isn't exported from the kbd module — only `KbdHint`. For the
-// gallery's inline shortcut illustrations we use a tiny local styled <kbd>
-// that mirrors the design-system look without depending on the private one.
-function GalleryKbd({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded border border-divider-regular bg-background-default px-1 font-mono text-[11px] font-medium text-text-secondary">
-      {children}
-    </kbd>
-  )
-}
+// 2026-06-01: `Kbd` is now exported from patterns/kbd — gallery uses the
+// canonical primitive directly instead of a local lookalike.
 
 /**
  * `/preview` — a developer-facing component gallery for browsing the
@@ -1200,8 +1192,8 @@ export function PreviewRoute() {
                   render={<Button variant="outline">Hover me for shortcut</Button>}
                 />
                 <TooltipContent>
-                  Press <GalleryKbd>⌘</GalleryKbd>
-                  <GalleryKbd>K</GalleryKbd> for command palette
+                  Press <Kbd>⌘</Kbd>
+                  <Kbd>K</Kbd> for command palette
                 </TooltipContent>
               </Tooltip>
             </Row>
@@ -1629,8 +1621,8 @@ export function PreviewRoute() {
                 ]}
               />
               <span className="text-sm text-text-secondary">
-                Inline-styled local example: press <GalleryKbd>⌘</GalleryKbd>
-                <GalleryKbd>S</GalleryKbd> to save
+                Inline example: press <Kbd>⌘</Kbd>
+                <Kbd>S</Kbd> to save
               </span>
             </Row>
             <Row label="EmptyState" mono="patterns/empty-state">

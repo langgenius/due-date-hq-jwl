@@ -24,6 +24,7 @@ import type {
   RuleSource,
   RuleSourceCoverageStatus,
 } from '@duedatehq/contracts'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Sheet,
@@ -2457,24 +2458,27 @@ function RulePanel({
  * still has source gaps.
  */
 function SourceCountBadge({ count, attention }: { count: number; attention?: boolean }) {
+  // 2026-06-01: hand-rolled size-6 circular pills → Badge size='circle'.
+  // `secondary` tone for zero (muted gray), `warning` for jurisdictions
+  // with source gaps, `success` for healthy coverage.
   if (count === 0) {
     return (
-      <span className="inline-flex size-6 items-center justify-center rounded-full bg-background-subtle text-xs font-semibold tabular-nums text-text-tertiary">
+      <Badge variant="secondary" size="circle">
         0
-      </span>
+      </Badge>
     )
   }
   if (attention) {
     return (
-      <span className="inline-flex size-6 items-center justify-center rounded-full bg-severity-medium/15 text-xs font-semibold tabular-nums text-severity-medium">
+      <Badge variant="warning" size="circle">
         {count}
-      </span>
+      </Badge>
     )
   }
   return (
-    <span className="inline-flex size-6 items-center justify-center rounded-full bg-status-done/15 text-xs font-semibold tabular-nums text-status-done">
+    <Badge variant="success" size="circle">
       {count}
-    </span>
+    </Badge>
   )
 }
 

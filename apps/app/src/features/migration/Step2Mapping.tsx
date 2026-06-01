@@ -40,6 +40,8 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
+
 import {
   formatMigrationErrorMessage,
   getAlphabetizedMappingTargets,
@@ -284,6 +286,7 @@ function MappingBannerRow({
   targetLabels: MappingTargetLabels
   onChange: (next: MappingTarget) => void
 }) {
+  const { t } = useLingui()
   const [expanded, setExpanded] = useState(false)
   const tier = confidenceTier(row.confidence, row.targetField)
   const needsAttention = tier === 'low' || row.targetField === 'IGNORE'
@@ -376,7 +379,7 @@ function MappingBannerRow({
                   <Trans>Data type</Trans>
                 </span>
                 <span className="text-xs text-text-secondary">
-                  {destinationDataTypeLabel(row.targetField)}
+                  {destinationDataTypeLabel(row.targetField, t)}
                 </span>
                 {row.userOverridden ? (
                   <span className="text-xs text-text-accent">
@@ -546,8 +549,12 @@ function dedupeSamples(samples: readonly string[]): string[] {
  * banner body. No icons. The goal is to confirm the user's mental
  * model ("I'm mapping a name field, this expects text").
  */
-function destinationDataTypeLabel(target: MappingTarget): ReactNode {
-  if (target === 'IGNORE') return <Trans>—</Trans>
+function destinationDataTypeLabel(target: MappingTarget, t: ReturnType<typeof useLingui>['t']): ReactNode {
+  // 2026-06-01: route the IGNORE em-dash through the canonical
+  // EmptyCellMark primitive so screen readers announce "Ignored column"
+  // instead of "dash".
+  if (target === 'IGNORE') return <EmptyCellMark label={t`Ignored column`} />
+
   if (target === 'client.ein') return <Trans>EIN · ##-#######</Trans>
   if (target === 'client.state') return <Trans>US state code · 2 letters</Trans>
   if (target === 'client.filing_states') return <Trans>List of US state codes</Trans>

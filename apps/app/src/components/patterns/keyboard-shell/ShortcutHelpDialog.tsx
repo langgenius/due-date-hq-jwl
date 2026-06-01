@@ -6,10 +6,13 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogHeader,
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
+
+import { Kbd } from '@/components/patterns/kbd'
 
 import {
   RESERVED_SHORTCUTS,
@@ -139,16 +142,22 @@ export function ShortcutHelpDialog({ open, onOpenChange }: ShortcutHelpDialogPro
             global — the section header carries that signal). The
             `Reserved` chip stays as it marks per-row state, not the
             section. */}
+        {/* 2026-06-01: outer chrome (border-b, bg, padding) stays
+            as a wrapper since DialogHeader is a plain flex stack and
+            the dialog uses the gallery-style top-bar look. The title
+            + description cluster now sits inside <DialogHeader> for
+            the canonical gap-2 stack so consumers find the title via
+            the semantic slot. */}
         <header className="flex shrink-0 flex-col gap-3 border-b border-divider-regular bg-background-default px-5 py-4 pr-14">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="grid gap-1">
+            <DialogHeader className="gap-1">
               <DialogTitle>
                 <Trans>Keyboard shortcuts</Trans>
               </DialogTitle>
               <DialogDescription>
                 <Trans>Currently available shortcuts and reserved keyboard slots.</Trans>
               </DialogDescription>
-            </div>
+            </DialogHeader>
             <div className="flex shrink-0 flex-wrap gap-2">
               <Badge variant="secondary" className="font-mono tabular-nums">
                 <Trans>{availableCount} available</Trans>
@@ -223,6 +232,10 @@ function ShortcutRow({ item }: { item: ShortcutHelpItem }) {
       )}
     >
       <div className="flex flex-wrap items-center gap-1">
+        {/* 2026-06-01: inline <kbd> elements routed through the
+            Kbd primitive (now exported from patterns/kbd.tsx) so
+            the help dialog shares the canonical keycap chrome with
+            the inline KbdHint strips. */}
         {shortcutSegments(item.keys).map((segment) => (
           <span key={`${item.id}-${segment.id}`} className="contents">
             {!segment.first ? (
@@ -230,12 +243,7 @@ function ShortcutRow({ item }: { item: ShortcutHelpItem }) {
                 <Trans>then</Trans>
               </span>
             ) : null}
-            <kbd
-              className="inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-divider-regular bg-components-panel-bg px-1.5 font-mono text-xs font-medium tabular-nums text-text-primary"
-              translate="no"
-            >
-              {segment.key}
-            </kbd>
+            <Kbd>{segment.key}</Kbd>
           </span>
         ))}
       </div>

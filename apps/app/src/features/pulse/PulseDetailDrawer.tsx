@@ -1221,14 +1221,21 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
           // body's scroll surface.
           className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-subtle"
         >
-          <button
+          {/* 2026-06-01: drawer close button migrated from a hand-
+              rolled size-7 ghost-button frame to the canonical
+              Button primitive (variant=ghost, size=icon-xs). Same
+              28px footprint, same hover+focus chrome, and
+              aria-label is preserved verbatim. */}
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             onClick={onClose}
             aria-label={t`Close alert detail`}
-            className="absolute right-3 top-3 z-10 inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="absolute right-3 top-3 z-10"
           >
-            <XIcon className="size-4" aria-hidden />
-          </button>
+            <XIcon aria-hidden />
+          </Button>
           {body}
         </aside>
         {reviewRequestDialog}

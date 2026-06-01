@@ -13,6 +13,12 @@ import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@duedatehq/ui/components/ui/card'
 import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldLabel,
+} from '@duedatehq/ui/components/ui/field'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -145,13 +151,20 @@ export function NotificationPreferencesPage() {
                     ['unassignedRemindersEnabled', t`Unassigned work`],
                   ] as const
                 ).map(([key, label]) => (
-                  <label key={key} className="flex items-center justify-between gap-3 text-sm">
-                    <span>{label}</span>
+                  // 2026-06-01 (DS migration): hand-rolled
+                  // `<label> flex items-center justify-between` row →
+                  // Field horizontal + FieldLabel + Switch. FieldLabel
+                  // is rendered by Radix Label so click-through to
+                  // Switch (htmlFor) is preserved via the wrapping
+                  // FieldLabel <label> element.
+                  <Field key={key} orientation="horizontal">
+                    <FieldLabel htmlFor={`pref-${key}`}>{label}</FieldLabel>
                     <Switch
+                      id={`pref-${key}`}
                       checked={preferences[key]}
                       onCheckedChange={(checked) => updatePreferences.mutate({ [key]: checked })}
                     />
-                  </label>
+                  </Field>
                 ))
               : null}
           </CardContent>
@@ -197,29 +210,40 @@ function MorningDigestCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <label className="flex items-center justify-between gap-3 text-sm">
-          <span className="grid gap-1">
-            <span className="font-medium text-text-primary">
+        {/* 2026-06-01 (DS migration): `<label>` with nested `<span>`
+            title+helper stack → Field horizontal + FieldContent
+            (FieldLabel + FieldDescription) + Switch. Matches the
+            canonical toggle-row recipe documented on the Field
+            primitive. */}
+        <Field orientation="horizontal">
+          <FieldContent>
+            <FieldLabel htmlFor="morning-digest-enabled">
               <Trans>Send a morning digest</Trans>
-            </span>
-            <span className="text-xs text-text-tertiary">
+            </FieldLabel>
+            <FieldDescription>
               <Trans>
                 Only sends when deadlines, Pulse alerts, or delivery failures need attention.
               </Trans>
-            </span>
-          </span>
+            </FieldDescription>
+          </FieldContent>
           <Switch
+            id="morning-digest-enabled"
             checked={preferences.morningDigestEnabled}
             onCheckedChange={(checked) => onUpdate({ morningDigestEnabled: checked })}
           />
-        </label>
+        </Field>
 
         {preferences.morningDigestEnabled ? (
           <div className="grid gap-4">
-            <div className="grid gap-2 text-sm">
-              <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
+            {/* 2026-06-01 (DS migration): hand-rolled
+                `<span uppercase text-text-tertiary>` section labels →
+                Field + FieldLabel (default text-sm font-medium).
+                Drops the bespoke uppercase chrome for the canonical
+                form-row label scale. */}
+            <Field>
+              <FieldLabel htmlFor="morning-digest-hour">
                 <Trans>Send hour</Trans>
-              </span>
+              </FieldLabel>
               <Select
                 value={String(preferences.morningDigestHour)}
                 onValueChange={(value) => {
@@ -227,7 +251,7 @@ function MorningDigestCard({
                   onUpdate({ morningDigestHour: Number(value) })
                 }}
               >
-                <SelectTrigger className="min-w-34">
+                <SelectTrigger id="morning-digest-hour" className="min-w-34">
                   <SelectValue>{formatHour(preferences.morningDigestHour)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -238,12 +262,12 @@ function MorningDigestCard({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </Field>
 
-            <div className="grid gap-2 text-sm">
-              <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
+            <Field>
+              <FieldLabel>
                 <Trans>Days</Trans>
-              </span>
+              </FieldLabel>
               <div className="flex gap-1">
                 {DIGEST_DAYS.map((day) => {
                   const active = preferences.morningDigestDays.includes(day.key)
@@ -269,7 +293,7 @@ function MorningDigestCard({
                   )
                 })}
               </div>
-            </div>
+            </Field>
           </div>
         ) : null}
 

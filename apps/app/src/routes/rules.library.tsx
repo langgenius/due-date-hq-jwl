@@ -1988,9 +1988,9 @@ function RuleReviewProgressBar(
   // firms see translated catalog progress.
   const { t } = useLingui()
   if (props.loading) {
-    return (
-      <div className="h-7 w-full animate-pulse rounded-md border border-divider-subtle bg-background-subtle" />
-    )
+    // 2026-06-01: collapse hand-rolled animate-pulse placeholder onto the
+    // canonical Skeleton primitive — same visual recipe, shared tokens.
+    return <Skeleton className="h-7 w-full rounded-md" />
   }
   const { statusCounts } = props
   // Order matches the catalog's lifecycle reading: green (done) →

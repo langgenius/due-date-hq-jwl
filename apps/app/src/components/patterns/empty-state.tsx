@@ -28,17 +28,30 @@ export function EmptyState({
   description,
   cta,
   className,
+  density = 'default',
 }: {
   icon?: LucideIcon
   title: ReactNode
   description?: ReactNode
   cta?: ReactNode
   className?: string
+  density?: 'default' | 'compact'
 }) {
+  // 2026-06-01: `density="compact"` drops the section-frame chrome
+  // (dashed border, lg radius, default padding) so the empty state
+  // can be embedded inside a TableCell colSpan or a drawer slot.
+  // Used by sources-tab/temporary-rules-tab empty rows and
+  // ImportHistoryDrawer. Keeps icon + title + optional description so
+  // the message hierarchy stays the same.
+  const isCompact = density === 'compact'
   return (
     <div
+      data-density={density}
       className={cn(
-        'flex flex-col items-center gap-3 rounded-lg border border-dashed border-divider-regular bg-background-default px-6 py-10 text-center',
+        'flex flex-col items-center gap-3 text-center',
+        isCompact
+          ? 'px-4 py-10'
+          : 'rounded-lg border border-dashed border-divider-regular bg-background-default px-6 py-10',
         className,
       )}
     >

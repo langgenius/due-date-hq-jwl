@@ -23,6 +23,7 @@ import {
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { useAppHotkey, isEditableEventTarget } from '@/components/patterns/keyboard-shell'
+import { KbdHint } from '@/components/patterns/kbd'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 
 import { Stepper } from './Stepper'
@@ -47,7 +48,7 @@ interface WizardFrameProps {
   onRequestClose: () => void
   showCloseControl?: boolean | undefined
   closeLabel?: ReactNode | undefined
-  closeShortcutLabel?: ReactNode | undefined
+  closeShortcutLabel?: string | undefined
   hotkeysEnabled?: boolean | undefined
   backDisabled?: boolean | undefined
   children: ReactNode
@@ -182,14 +183,18 @@ function WizardFrame({
         </h2>
         {showCloseControl ? (
           <div className="flex items-center gap-2">
-            <span className="hidden items-center gap-1 font-mono text-xs text-text-tertiary sm:inline-flex">
-              <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-components-panel-bg px-1.5 text-xs text-text-primary">
-                Esc
-              </kbd>
-              <span className="text-text-tertiary">
-                {busy ? <Trans>Working…</Trans> : (closeShortcutLabel ?? <Trans>Close</Trans>)}
-              </span>
-            </span>
+            {/* 2026-06-01: route hand-rolled `<kbd>` + label span through the
+                canonical KbdHint pattern. The sm:inline-flex breakpoint
+                continues to gate the hint on wider viewports. */}
+            <KbdHint
+              className="hidden sm:inline-flex"
+              items={[
+                {
+                  keys: ['Esc'],
+                  label: busy ? t`Working…` : (closeShortcutLabel ?? t`Close`),
+                },
+              ]}
+            />
             <Button
               variant="ghost"
               size={closeLabel ? 'sm' : 'icon-sm'}

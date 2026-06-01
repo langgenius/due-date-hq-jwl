@@ -13,8 +13,13 @@ import {
   type RuleGenerationState,
 } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
-import { Label } from '@duedatehq/ui/components/ui/label'
 import { StateRuleActivationSelector } from '@/features/onboarding/state-rule-activation-selector'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { type AuthUser } from '@/lib/auth'
@@ -164,16 +169,13 @@ export function OnboardingRoute() {
             pill moved down (#2) and the secondary paragraph removed
             (#1), mt-7 keeps proportional breathing room from H1 →
             input without feeling marketing-loose. */}
-        <div className="mt-7 flex flex-col gap-1.5">
-          {/* 2026-05-27 (Step 7 onboarding audit F5-03 / F7-01):
-              dropped the uppercase-tracking-eyebrow treatment in
-              favor of the canonical <Label> primitive used in
-              /practice settings. Same field name reads in two
-              different visual languages between first-run and
-              edit; canonicalizing here unifies the family. */}
-          <Label htmlFor="practice-name">
+        {/* 2026-06-01: practice-name now uses Field + FieldLabel +
+            FieldError/FieldDescription so the helper/error toggle and
+            describedby wiring come from the primitive. */}
+        <Field className="mt-7">
+          <FieldLabel htmlFor="practice-name">
             <Trans>Practice name</Trans>
-          </Label>
+          </FieldLabel>
           <Input
             id="practice-name"
             name="name"
@@ -188,13 +190,7 @@ export function OnboardingRoute() {
             aria-describedby={error ? 'practice-name-error' : 'practice-name-helper'}
           />
           {error ? (
-            <p
-              id="practice-name-error"
-              role="alert"
-              className="text-sm leading-relaxed text-destructive"
-            >
-              {error}
-            </p>
+            <FieldError id="practice-name-error">{error}</FieldError>
           ) : (
             // 2026-05-29 (R4 onboarding polish #3): added "You can
             // change it later" to absorb the "change it now or anytime
@@ -202,21 +198,21 @@ export function OnboardingRoute() {
             // sub-headline. Helper text is the right home for
             // reversibility reassurance — it sits next to the field
             // the user is deciding about.
-            <p id="practice-name-helper" className="text-sm leading-relaxed text-text-muted">
+            <FieldDescription id="practice-name-helper">
               <Trans>This is what your team and clients will see. You can change it later.</Trans>
-            </p>
+            </FieldDescription>
           )}
-        </div>
+        </Field>
 
         <StateRuleActivationSelector
           selected={selectedRuleStates}
           onChange={setSelectedRuleStates}
         />
 
-        <div className="mt-5 flex flex-col gap-1.5">
-          <Label htmlFor="monitoring-start-date">
+        <Field className="mt-5">
+          <FieldLabel htmlFor="monitoring-start-date">
             <Trans>Monitoring start date</Trans>
-          </Label>
+          </FieldLabel>
           <IsoDatePicker
             id="monitoring-start-date"
             value={monitoringStartDate}
@@ -226,19 +222,19 @@ export function OnboardingRoute() {
             onValueChange={setMonitoringStartDate}
           />
           {monitoringStartDateInvalid ? (
-            <p role="alert" className="text-sm leading-relaxed text-destructive">
+            <FieldError>
               <Trans>Monitoring start date cannot be in the future.</Trans>
-            </p>
+            </FieldError>
           ) : null}
-          <p className="text-sm leading-relaxed text-text-muted">
+          <FieldDescription>
             <Trans>
               DueDateHQ will create filing plans from the first applicable deadline on or after this
               date. Earlier statutory deadlines will not be added to your active overdue queue.
             </Trans>
-          </p>
-        </div>
+          </FieldDescription>
+        </Field>
 
-        <div className="mt-5 flex flex-col gap-1.5">
+        <Field className="mt-5">
           {/* 2026-05-26 (Step 7 onboarding audit F5-04 + F5-05 +
               F5-01 + F7-02): the field had three independent
               issues. (1) label "Internal deadline" is jargon for
@@ -253,12 +249,9 @@ export function OnboardingRoute() {
               consequence that the /practice page already
               mentions. The field still reads as one number, but
               now the user knows what they're choosing. */}
-          {/* 2026-05-27 (Step 7 onboarding audit F5-03 / F7-01):
-              canonical <Label> matches /practice "Internal
-              deadline" field. */}
-          <Label htmlFor="internal-deadline-offset">
+          <FieldLabel htmlFor="internal-deadline-offset">
             <Trans>Internal deadline lead time</Trans>
-          </Label>
+          </FieldLabel>
           <Input
             id="internal-deadline-offset"
             name="internalDeadlineOffsetDays"
@@ -272,16 +265,13 @@ export function OnboardingRoute() {
             }
             aria-describedby="internal-deadline-offset-helper"
           />
-          <p
-            id="internal-deadline-offset-helper"
-            className="text-sm leading-relaxed text-text-muted"
-          >
+          <FieldDescription id="internal-deadline-offset-helper">
             <Trans>
               Days before each statutory deadline that work shows as due. Most practices use 5–14
               days. Changing this later recalculates current deadlines.
             </Trans>
-          </p>
-        </div>
+          </FieldDescription>
+        </Field>
 
         <Button
           type="submit"

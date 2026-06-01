@@ -15,8 +15,14 @@ import { useKeyboardShell } from './keyboard-shell'
  *
  * Wrap each key in its own `<Kbd>`. For multi-key hints render an
  * inline list rather than a single Kbd with a slash.
+ *
+ * 2026-06-01: exported alongside `KbdHint` + `ShortcutHintChip` so the
+ * three single-key inline-glyph call sites (email-otp-sign-in-form,
+ * WizardShell esc hint, preview's GalleryKbd) stop hand-rolling the
+ * same `<kbd>` recipe. Comment in preview.tsx already called out
+ * that Kbd wasn't exported.
  */
-function Kbd({ children, className }: { children: ReactNode; className?: string }) {
+export function Kbd({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <kbd
       translate="no"

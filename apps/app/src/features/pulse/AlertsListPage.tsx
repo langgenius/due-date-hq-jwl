@@ -30,6 +30,7 @@ import {
   CommandList,
 } from '@duedatehq/ui/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1210,21 +1211,26 @@ function SkeletonRow({
       {label ? (
         <span className="text-base text-text-tertiary">{label}</span>
       ) : (
+        // 2026-06-01: hand-rolled animate-pulse spans replaced with the
+        // canonical Skeleton primitive (same bg-state-base-hover-alt
+        // pulse). Pill rounding + motion-reduce override added via
+        // className to preserve previous behavior; aria-hidden is
+        // covered by the parent role=status / aria-live region.
         <>
-          <span
+          <Skeleton
             aria-hidden
-            className="h-2 w-24 animate-pulse rounded-full bg-state-base-hover-alt motion-reduce:animate-none"
+            className="h-2 w-24 rounded-full motion-reduce:animate-none"
           />
           <span aria-hidden className="text-text-tertiary">
             ·
           </span>
-          <span
+          <Skeleton
             aria-hidden
-            className="h-2 max-w-[280px] flex-1 animate-pulse rounded-full bg-state-base-hover-alt motion-reduce:animate-none"
+            className="h-2 max-w-[280px] flex-1 rounded-full motion-reduce:animate-none"
           />
-          <span
+          <Skeleton
             aria-hidden
-            className="ml-auto h-2 w-12 animate-pulse rounded-full bg-state-base-hover-alt motion-reduce:animate-none"
+            className="ml-auto h-2 w-12 rounded-full motion-reduce:animate-none"
           />
         </>
       )}
