@@ -10,6 +10,8 @@ import type {
   ObligationMarkFiledRejectedInput,
   ObligationRemindSignatureInput,
   ObligationRemindSignatureOutput,
+  ObligationSignatureReminderPreviewInput,
+  ObligationSignatureReminderPreviewOutput,
   ObligationStatusUpdateInput,
   ObligationStatusUpdateOutput,
   ObligationUpdateBlockedByInput,
@@ -21,6 +23,7 @@ import {
   isLegalEfileTransition,
   isLegalObligationTransition,
 } from '@duedatehq/core/obligation-workflow'
+import { formatTaxCode } from '@duedatehq/core/tax-codes'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { calculateAccruedPenalty } from '../_accrued-penalty'
 
@@ -1001,7 +1004,10 @@ function signatureReminderEmail(input: {
   formName: string | null
   taxYear: number | null
 }): { subject: string; text: string } {
-  const form = input.formName?.trim() || input.taxType
+  // Prefer the obligation's own form name; fall back to the friendly
+  // label for the raw tax code (e.g. federal_1120s -> "Form 1120-S")
+  // rather than leaking the snake_case code into a client-facing email.
+  const form = input.formName?.trim() || formatTaxCode(input.taxType) || input.taxType
   const yearLabel = input.taxYear ? `${input.taxYear} ` : ''
   const subject = `Reminder: please sign Form 8879 for your ${yearLabel}${form} return`
   const text = [
@@ -1033,6 +1039,7 @@ async function enqueueSignatureReminder(
   scoped: ScopedRepo,
   userId: string,
   row: ObligationRow,
+  override?: { subject?: string | undefined; body?: string | undefined },
 ): Promise<ObligationRemindSignatureOutput> {
   const clientRow = await scoped.clients.findById(row.clientId)
   const email = clientRow?.email?.trim() || clientRow?.primaryContactEmail?.trim() || null
@@ -1040,12 +1047,18 @@ async function enqueueSignatureReminder(
     return { auditId: null, emailQueued: false }
   }
 
-  const rendered = signatureReminderEmail({
+  // CPA-edited subject/body win over the default template (the drawer's
+  // preview dialog lets them tweak the copy before sending).
+  const fallback = signatureReminderEmail({
     clientName: clientRow.name,
     taxType: row.taxType,
     formName: row.formName ?? null,
     taxYear: row.taxYear,
   })
+  const rendered = {
+    subject: override?.subject?.trim() || fallback.subject,
+    text: override?.body?.trim() || fallback.text,
+  }
   const queued = await scoped.notifications.enqueueEmail({
     externalId: `signature-reminder:${row.id}:${crypto.randomUUID()}`,
     type: 'signature_reminder',
@@ -1081,7 +1094,36 @@ export async function remindObligationSignature(
       message: 'This deadline is not awaiting a Form 8879 signature.',
     })
   }
-  return enqueueSignatureReminder(scoped, userId, row)
+  return enqueueSignatureReminder(scoped, userId, row, {
+    subject: input.subject,
+    body: input.body,
+  })
+}
+
+/**
+ * Render the default signature-reminder email for an awaiting-signature
+ * deadline so the drawer can show an editable preview before sending.
+ * Read-only — queues nothing.
+ */
+export async function previewObligationSignatureReminder(
+  scoped: ScopedRepo,
+  input: ObligationSignatureReminderPreviewInput,
+): Promise<ObligationSignatureReminderPreviewOutput> {
+  const row = await scoped.obligations.findById(input.id)
+  if (!row) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.id} not found in current firm.`,
+    })
+  }
+  const clientRow = await scoped.clients.findById(row.clientId)
+  const email = clientRow?.email?.trim() || clientRow?.primaryContactEmail?.trim() || null
+  const rendered = signatureReminderEmail({
+    clientName: clientRow?.name ?? 'there',
+    taxType: row.taxType,
+    formName: row.formName ?? null,
+    taxYear: row.taxYear,
+  })
+  return { subject: rendered.subject, body: rendered.text, recipientEmail: email }
 }
 
 /**

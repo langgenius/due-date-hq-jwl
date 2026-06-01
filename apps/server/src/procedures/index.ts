@@ -96,6 +96,7 @@ export const router = os.router({
     decideExtension: obligationsHandlers.decideExtension,
     updateEfileState: obligationsHandlers.updateEfileState,
     remindSignature: obligationsHandlers.remindSignature,
+    signatureReminderPreview: obligationsHandlers.signatureReminderPreview,
     bulkRemindSignature: obligationsHandlers.bulkRemindSignature,
     requestInput: obligationsHandlers.requestInput,
     listByClient: obligationsHandlers.listByClient,

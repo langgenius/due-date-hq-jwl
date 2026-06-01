@@ -5090,6 +5090,117 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
 // generic numeric-range column filter again, restore from git
 // history (commit before 2026-05-26-deadlines-pass-65).
 
+// P0: editable email preview for the drawer's "Remind client to sign"
+// action. Pre-fills subject/body from the server-rendered default
+// (signatureReminderPreview) so the CPA reviews/tweaks the copy, then
+// Cancel or Send. Send routes the edited subject/body to remindSignature.
+function SignatureReminderDialog({
+  open,
+  onOpenChange,
+  obligationId,
+  sending,
+  onSend,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  obligationId: string | null
+  sending: boolean
+  onSend: (input: { subject: string; body: string }) => void
+}) {
+  const previewQuery = useQuery({
+    ...orpc.obligations.signatureReminderPreview.queryOptions({
+      input: { id: obligationId ?? '' },
+    }),
+    enabled: open && Boolean(obligationId),
+  })
+  const [subject, setSubject] = useState('')
+  const [body, setBody] = useState('')
+  const [edited, setEdited] = useState(false)
+  // Seed the editable fields from the server default once it arrives
+  // (unless the CPA already started editing this open session).
+  useEffect(() => {
+    if (open && previewQuery.data && !edited) {
+      setSubject(previewQuery.data.subject)
+      setBody(previewQuery.data.body)
+    }
+  }, [open, previewQuery.data, edited])
+  // Reset on close so the next open re-seeds from a fresh preview.
+  useEffect(() => {
+    if (!open) {
+      setSubject('')
+      setBody('')
+      setEdited(false)
+    }
+  }, [open])
+  const recipientEmail = previewQuery.data?.recipientEmail ?? null
+  const canSend =
+    Boolean(recipientEmail) && subject.trim().length > 0 && body.trim().length > 0 && !sending
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>
+            <Trans>Remind client to sign Form 8879</Trans>
+          </DialogTitle>
+          <DialogDescription>
+            {recipientEmail ? (
+              <Trans>Review and edit the email, then send it to {recipientEmail}.</Trans>
+            ) : (
+              <Trans>No email address on file for this client — add one to send a reminder.</Trans>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+        {previewQuery.isLoading ? (
+          <p className="text-sm text-text-tertiary">
+            <Trans>Loading preview…</Trans>
+          </p>
+        ) : (
+          <div className="grid gap-3">
+            <div className="grid gap-1.5">
+              <label htmlFor="signature-reminder-subject" className="text-sm font-medium">
+                <Trans>Subject</Trans>
+              </label>
+              <Input
+                id="signature-reminder-subject"
+                value={subject}
+                onChange={(event) => {
+                  setSubject(event.target.value)
+                  setEdited(true)
+                }}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <label htmlFor="signature-reminder-body" className="text-sm font-medium">
+                <Trans>Message</Trans>
+              </label>
+              <Textarea
+                id="signature-reminder-body"
+                rows={10}
+                value={body}
+                onChange={(event) => {
+                  setBody(event.target.value)
+                  setEdited(true)
+                }}
+              />
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button
+            disabled={!canSend}
+            onClick={() => onSend({ subject: subject.trim(), body: body.trim() })}
+          >
+            <Trans>Send reminder</Trans>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export function ObligationQueueDetailDrawer({
   obligationId,
   activeTab,
@@ -5180,6 +5291,9 @@ export function ObligationQueueDetailDrawer({
     message: '',
   })
   const [authorityRejectionDialogOpen, setAuthorityRejectionDialogOpen] = useState(false)
+  // P0: editable signature-reminder email preview dialog (opened from the
+  // drawer's "Remind client to sign" action).
+  const [remindDialogOpen, setRemindDialogOpen] = useState(false)
   const [authorityRejectionDraft, setAuthorityRejectionDraft] = useState<AuthorityRejectionDraft>({
     rejectedAt: todayIsoDate(),
     authority: 'IRS',
@@ -6873,7 +6987,29 @@ export function ObligationQueueDetailDrawer({
                         },
                       )
                     }}
-                    onRemindSignature={() => remindSignatureMutation.mutate({ id: row.id })}
+                    onRemindSignature={() => setRemindDialogOpen(true)}
+                    onSubmitEfile={() => {
+                      // Signed → e-filed. Undo reverts to
+                      // authorization_signed (where submit fires from).
+                      updateEfileStateMutation.mutate(
+                        { id: row.id, efileState: 'submitted' },
+                        {
+                          onSuccess: (result) => {
+                            toast.success(t`Marked e-filed`, {
+                              description: t`Audit ${result.auditId.slice(0, 8)}`,
+                              action: {
+                                label: t`Undo`,
+                                onClick: () =>
+                                  updateEfileStateMutation.mutate({
+                                    id: row.id,
+                                    efileState: 'authorization_signed',
+                                  }),
+                              },
+                            })
+                          },
+                        },
+                      )
+                    }}
                   />
                 </div>
               </motion.div>
@@ -7899,6 +8035,19 @@ export function ObligationQueueDetailDrawer({
           }
         }}
         onSubmit={submitAuthorityRejection}
+      />
+      <SignatureReminderDialog
+        open={remindDialogOpen}
+        onOpenChange={setRemindDialogOpen}
+        obligationId={row?.id ?? null}
+        sending={remindSignatureMutation.isPending}
+        onSend={({ subject, body }) => {
+          if (!row) return
+          remindSignatureMutation.mutate(
+            { id: row.id, subject, body },
+            { onSuccess: () => setRemindDialogOpen(false) },
+          )
+        }}
       />
       <MaterialsRequestPreviewDialog
         open={materialsRequestPreview.open}
@@ -10383,6 +10532,7 @@ function ActiveStageDetailCard({
   onChangeReviewStage,
   onMarkSigned,
   onRemindSignature,
+  onSubmitEfile,
 }: {
   row: ObligationQueueRow
   auditEvents: readonly AuditEventPublic[]
@@ -10397,6 +10547,8 @@ function ActiveStageDetailCard({
   onMarkSigned: () => void
   // P0: email the client a Form 8879 signature reminder.
   onRemindSignature: () => void
+  // P0: e-file the signed return (efileState → submitted).
+  onSubmitEfile: () => void
 }) {
   const { t } = useLingui()
   // For the `blocked` stage's "Open blocking obligation" action.
@@ -10801,28 +10953,19 @@ function ActiveStageDetailCard({
                 label: t`Remind client to sign the 8879`,
                 flavor: 'mutation',
               },
-              // Even pre-submission rows benefit from a direct route
-              // to the Evidence tab — that's where the 8879 packet
-              // lives.
-              {
-                id: 'request-auth',
-                label: t`Open the Evidence tab`,
-                flavor: 'routing',
-                hint: t`The Evidence tab is where the 8879 packet lives`,
-              },
             ]
           case 'authorization_signed':
           case 'ready_to_submit':
+            // Client signed → the next move is to e-file with the
+            // authority. Primary, wired action (efileState →
+            // `submitted`); the Authority response panel then handles
+            // acceptance / rejection.
             return [
               {
                 id: 'submit',
                 label: t`E-file the return with the tax authority`,
-                flavor: 'manual',
-              },
-              {
-                id: 'request-auth',
-                label: t`Open the Evidence tab`,
-                flavor: 'routing',
+                flavor: 'mutation',
+                primary: true,
               },
             ]
           case 'submitted':
@@ -11029,6 +11172,9 @@ function ActiveStageDetailCard({
       // P0: email the client a Form 8879 signature reminder.
       case 'remind-8879':
         return onRemindSignature()
+      // P0: signed → e-file with the authority (efileState → submitted).
+      case 'submit':
+        return onSubmitEfile()
       // Status → done (mark filed)
       case 'file':
         return onChangeStatus('done')

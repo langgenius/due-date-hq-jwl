@@ -28,6 +28,7 @@ import {
   bulkUpdateObligationStatus,
   decideObligationExtension,
   markObligationFiledRejected,
+  previewObligationSignatureReminder,
   remindObligationSignature,
   toObligationPublic,
   updateObligationBlockedBy,
@@ -801,6 +802,15 @@ const remindSignature = os.obligations.remindSignature.handler(async ({ input, c
   return result
 })
 
+// Read-only preview that pre-fills the drawer's "Remind to sign" editor.
+const signatureReminderPreview = os.obligations.signatureReminderPreview.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped } = requireTenant(context)
+    return previewObligationSignatureReminder(scoped, input)
+  },
+)
+
 // Bulk signature reminders from the queue floating action bar. One flush
 // for the whole batch if anything was actually queued.
 const bulkRemindSignature = os.obligations.bulkRemindSignature.handler(
@@ -1134,6 +1144,7 @@ export const obligationsHandlers = {
   decideExtension,
   updateEfileState,
   remindSignature,
+  signatureReminderPreview,
   bulkRemindSignature,
   requestInput,
   getDeadlineTip,
