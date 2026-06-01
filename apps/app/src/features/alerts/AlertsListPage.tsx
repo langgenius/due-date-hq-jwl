@@ -5,7 +5,12 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 import { AlertCircleIcon, CheckIcon, HistoryIcon, type LucideIcon } from 'lucide-react'
 
-import type { PulseAlertPublic, PulseChangeKind, PulseSourceHealth } from '@duedatehq/contracts'
+import type {
+  PulseAffectedClient,
+  PulseAlertPublic,
+  PulseChangeKind,
+  PulseSourceHealth,
+} from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -38,6 +43,7 @@ import {
   useAlertsListQueryOptions,
   useAlertsHistoryQueryOptions,
   useAlertSourceHealthQueryOptions,
+  useAlertsAffectedClients,
 } from './api'
 import { AlertCard } from './components/AlertCard'
 import { ALERT_STATUS_ICON } from './components/AlertStatusBadge'
@@ -64,6 +70,7 @@ import {
 // active-workflow states, while history exposes CPA-handled states.
 const EMPTY_ALERTS: readonly PulseAlertPublic[] = []
 const EMPTY_SOURCES: readonly PulseSourceHealth[] = []
+const EMPTY_AFFECTED: PulseAffectedClient[] = []
 
 interface AlertsListPageProps {
   embedded?: boolean
@@ -119,6 +126,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
+  // Batch the affected-client rows for every alert in ONE request and hand each
+  // card its slice, instead of every AlertCard firing its own `getDetail`.
+  // Keyed off the full (stable) `alerts` set — not `filteredAlerts` — so
+  // client-side filter changes don't refetch; cards just look up their id.
+  const alertIds = useMemo(() => alerts.map((alert) => alert.id), [alerts])
+  const affectedByAlert = useAlertsAffectedClients(alertIds)
   const statusFilterOptions = historyMode
     ? HISTORY_STATUS_FILTER_OPTIONS
     : ACTIVE_STATUS_FILTER_OPTIONS
@@ -603,6 +616,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     <AlertCard
                       key={alert.id}
                       alert={alert}
+                      affectedClients={affectedByAlert.get(alert.id) ?? EMPTY_AFFECTED}
                       active={alert.id === openAlertId}
                       compactClients={panelOpen}
                       showReadiness={!historyMode}

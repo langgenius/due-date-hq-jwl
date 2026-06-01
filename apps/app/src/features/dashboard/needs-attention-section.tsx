@@ -8,7 +8,11 @@ import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
-import { useAlertsListQueryOptions, useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
+import {
+  useAlertsAffectedClients,
+  useAlertsListQueryOptions,
+  useAlertSourceHealthQueryOptions,
+} from '@/features/alerts/api'
 import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 import { StatusBanner } from '@/components/patterns/status-banner'
 
@@ -43,6 +47,10 @@ function NeedsAttentionSection() {
   const sources = sourceHealthQuery.data?.sources ?? []
   const visibleAlerts = alerts.slice(0, VISIBLE_ALERTS)
   const overflowCount = Math.max(alerts.length - VISIBLE_ALERTS, 0)
+  // One batched detail request for the visible cards instead of one
+  // `getDetail` per card — the cards only need affected-client names. The hook
+  // hashes the id set, so a same-valued array won't refetch on re-render.
+  const affectedByAlert = useAlertsAffectedClients(visibleAlerts.map((alert) => alert.id))
   const totalAlertCount = alerts.length
   // 2026-05-28 (national policy watch): this chip describes
   // jurisdiction coverage, not raw source/adapter count. Hidden
@@ -199,7 +207,11 @@ function NeedsAttentionSection() {
         >
           {visibleAlerts.map((alert) => (
             <div key={alert.id} className="h-full min-w-0">
-              <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
+              <NeedsAttentionCard
+                alert={alert}
+                affectedClients={affectedByAlert.get(alert.id) ?? []}
+                onReview={() => openAlert(alert.id)}
+              />
             </div>
           ))}
           {overflowCount > 0 ? (

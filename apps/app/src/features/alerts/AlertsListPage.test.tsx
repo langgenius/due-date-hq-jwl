@@ -16,6 +16,7 @@ const rpcMocks = vi.hoisted(() => ({
   listAlertsQueryFn: vi.fn(),
   listHistoryQueryFn: vi.fn(),
   listSourceHealthQueryFn: vi.fn(),
+  getDetailsBatchQueryFn: vi.fn(),
 }))
 
 vi.mock('@/lib/rpc', () => ({
@@ -41,6 +42,12 @@ vi.mock('@/lib/rpc', () => ({
         queryOptions: () => ({
           queryKey: ['pulse', 'listSourceHealth'],
           queryFn: rpcMocks.listSourceHealthQueryFn,
+        }),
+      },
+      getDetailsBatch: {
+        queryOptions: (args: { input: unknown }) => ({
+          queryKey: ['pulse', 'getDetailsBatch', args.input],
+          queryFn: rpcMocks.getDetailsBatchQueryFn,
         }),
       },
     },
@@ -110,9 +117,11 @@ beforeEach(() => {
   rpcMocks.listAlertsQueryFn.mockReset()
   rpcMocks.listHistoryQueryFn.mockReset()
   rpcMocks.listSourceHealthQueryFn.mockReset()
+  rpcMocks.getDetailsBatchQueryFn.mockReset()
   rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [] })
   rpcMocks.listHistoryQueryFn.mockResolvedValue({ alerts: [] })
   rpcMocks.listSourceHealthQueryFn.mockResolvedValue({ sources: [] })
+  rpcMocks.getDetailsBatchQueryFn.mockResolvedValue({ details: [] })
 })
 
 afterEach(() => {

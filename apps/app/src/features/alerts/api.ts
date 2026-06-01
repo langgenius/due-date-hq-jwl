@@ -1,7 +1,11 @@
-import { useQueryClient } from '@tanstack/react-query'
-import { useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useMemo } from 'react'
+
+import type { PulseAffectedClient } from '@duedatehq/contracts'
 
 import { orpc } from '@/lib/rpc'
+
+const EMPTY_AFFECTED_CLIENTS: PulseAffectedClient[] = []
 
 const ALERT_ACTIVE_ALERTS_REFETCH_INTERVAL_MS = 60_000
 const ALERT_SOURCE_HEALTH_REFETCH_INTERVAL_MS = 60_000
@@ -69,4 +73,26 @@ export function useAlertDetailQueryOptions(alertId: string | null) {
     input: { alertId: alertId ?? '' },
     enabled: alertId !== null,
   })
+}
+
+// Batch-load affected clients for a set of alerts in ONE `getDetailsBatch`
+// round-trip instead of one `getDetail` per card. Returns a Map keyed by
+// alertId; callers look up `map.get(alert.id) ?? []` per card. The alerts list
+// and the dashboard "needs attention" cards used to mount a card per alert,
+// each firing its own `pulse.getDetail` — N parallel detail requests on every
+// render just to show the affected-client name chips. This collapses that to a
+// single request. `enabled` is gated on a non-empty id set so an empty list
+// never round-trips.
+export function useAlertsAffectedClients(alertIds: string[]): Map<string, PulseAffectedClient[]> {
+  const batchQuery = useQuery({
+    ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds } }),
+    enabled: alertIds.length > 0,
+  })
+  return useMemo(() => {
+    const byAlert = new Map<string, PulseAffectedClient[]>()
+    for (const detail of batchQuery.data?.details ?? []) {
+      byAlert.set(detail.alert.id, detail.affectedClients ?? EMPTY_AFFECTED_CLIENTS)
+    }
+    return byAlert
+  }, [batchQuery.data])
 }

@@ -1,14 +1,12 @@
-import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircle, Astroid, BriefcaseIcon, Building2, UserRound } from 'lucide-react'
 
-import type { PulseAlertPublic } from '@duedatehq/contracts'
+import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
-import { useAlertDetailQueryOptions } from '../api'
 import { AlertConfidencePill } from './AlertConfidencePill'
 import { AlertSourceBadge } from './AlertSourceBadge'
 import { AlertSourceStatusBadge } from './AlertSourceStatusBadge'
@@ -20,6 +18,13 @@ const VISIBLE_CLIENT_NAMES = 3
 interface AlertCardProps {
   alert: PulseAlertPublic
   onReview: () => void
+  /**
+   * Affected-client rows for THIS alert, batch-loaded by the parent
+   * (AlertsListPage) in a single `getDetailsBatch` request and passed down
+   * instead of each card fetching its own `pulse.getDetail`. Defaults to empty
+   * so the card renders fine before the batch resolves (or in isolation).
+   */
+  affectedClients?: PulseAffectedClient[]
   /** Inline actions are hidden when the card is rendered as a folded "more" entry. */
   compact?: boolean
   /**
@@ -74,6 +79,7 @@ interface AlertCardProps {
 export function AlertCard({
   alert,
   onReview,
+  affectedClients = [],
   compact = false,
   active = false,
   compactClients = false,
@@ -82,17 +88,14 @@ export function AlertCard({
   const { t } = useLingui()
   const impacted = alert.matchedCount + alert.needsReviewCount
 
-  // 2026-05-25 (Yuqi /alerts fourth pass #2): pull the actual
-  // affected-client names from the detail query so the card can
-  // LIST them instead of just showing a "5 clients may be affected"
-  // summary. The list page mounts a card per alert; the detail
-  // query is cached per-alert so this is essentially free after
-  // the first render. Same hook the dashboard NeedsAttentionCard
-  // uses — kept inline here so the two card variants don't share
-  // a single hook with diverging needs (drawer renders names
-  // separately).
-  const affectedClientsQuery = useQuery(useAlertDetailQueryOptions(alert.id))
-  const allAffectedNames = affectedClientsQuery.data?.affectedClients ?? []
+  // 2026-05-25 (Yuqi /alerts fourth pass #2): LIST the actual
+  // affected-client names on the card instead of a bare "5 clients
+  // may be affected" summary.
+  // 2026-06-01: the rows are now batch-loaded by the parent
+  // (AlertsListPage) via a single `getDetailsBatch` call and passed in
+  // as a prop. Previously each card fired its own `getDetail`, so a
+  // 50-alert list opened 50 parallel detail requests on render.
+  const allAffectedNames = affectedClients
   // 2026-05-26 (Yuqi seventeenth pass #1): collect each unique
   // client's name AND whether the alert flags them for review.
   // Needs-review clients sort to the FRONT of the visible list so

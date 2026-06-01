@@ -1,14 +1,12 @@
-import { useQuery } from '@tanstack/react-query'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ChevronRightIcon, Plus, SquareArrowRight } from 'lucide-react'
 
-import type { PulseAlertPublic } from '@duedatehq/contracts'
+import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
-import { useAlertDetailQueryOptions } from '@/features/alerts/api'
 import { alertTone, alertToneLabel } from '@/features/alerts/alert-tone'
 
 // Dashboard variant of the Alert card. Tuned for the dashboard's
@@ -29,13 +27,14 @@ import { alertTone, alertToneLabel } from '@/features/alerts/alert-tone'
 // pick up the same 0.5 floor.
 const VISIBLE_CLIENT_NAMES = 2
 
-function useUniqueAffectedClientNames(alertId: string): {
+// Pure derivation of the deduped, capped affected-client name preview.
+// Affected rows are batch-loaded by the parent section (one `getDetailsBatch`
+// for all visible cards) and passed in, instead of each card fetching its own
+// `pulse.getDetail`.
+function uniqueAffectedClientNames(affected: PulseAffectedClient[]): {
   names: string[]
   hasMore: number
-  isLoading: boolean
 } {
-  const detailQuery = useQuery(useAlertDetailQueryOptions(alertId))
-  const affected = detailQuery.data?.affectedClients ?? []
   const seen = new Set<string>()
   const ordered: string[] = []
   for (const row of affected) {
@@ -47,15 +46,16 @@ function useUniqueAffectedClientNames(alertId: string): {
   return {
     names: ordered.slice(0, VISIBLE_CLIENT_NAMES),
     hasMore: Math.max(ordered.length - VISIBLE_CLIENT_NAMES, 0),
-    isLoading: detailQuery.isLoading,
   }
 }
 
 function NeedsAttentionCard({
   alert,
+  affectedClients = [],
   onReview,
 }: {
   alert: PulseAlertPublic
+  affectedClients?: PulseAffectedClient[]
   onReview: () => void
 }) {
   const { t } = useLingui()
@@ -68,7 +68,7 @@ function NeedsAttentionCard({
   // green outside and red inside.
   const tone = alertTone(alert)
   const lowConfidence = isLowAiConfidence(alert.confidence)
-  const { names, hasMore, isLoading: clientsLoading } = useUniqueAffectedClientNames(alert.id)
+  const { names, hasMore } = uniqueAffectedClientNames(affectedClients)
 
   // 2026-05-25 (Yuqi #47): clicking this card opens the alert drawer
   // in-place on the dashboard (via `useAlertDrawer().openDrawer`) —
@@ -187,7 +187,7 @@ function NeedsAttentionCard({
               other="# clients may be affected"
             />
           </p>
-          {!clientsLoading && names.length > 0 ? (
+          {names.length > 0 ? (
             <ul className="flex flex-wrap items-center gap-1.5">
               {names.map((name) => (
                 <li
