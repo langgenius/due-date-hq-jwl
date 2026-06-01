@@ -8,6 +8,7 @@ import {
   bulkUpdateObligationStatus,
   decideObligationExtension,
   markObligationFiledRejected,
+  previewObligationSignatureReminder,
   remindObligationSignature,
   toObligationPublic,
   updateObligationEfileState,
@@ -1297,5 +1298,33 @@ describe('bulkRemindObligationSignature', () => {
     // Awaiting row → no client email (harness default) → noEmail; pending
     // row → not awaiting signature → skipped.
     expect(result).toEqual({ remindedCount: 0, skippedCount: 1, noEmailCount: 1 })
+  })
+})
+
+describe('previewObligationSignatureReminder', () => {
+  it('renders the default subject/body and reports no recipient when the client has no email', async () => {
+    const { repo } = buildScoped(FIRM, [
+      // formName empty so the subject exercises the taxType → friendly-label
+      // fallback (federal_1120s -> "Form 1120-S") rather than the form name.
+      makeRow({
+        status: 'done',
+        efileState: 'authorization_requested',
+        taxType: 'federal_1120s',
+        formName: null,
+      }),
+    ])
+    const preview = await previewObligationSignatureReminder(repo, { id: ROW_ID })
+    expect(preview.subject).toContain('Form 8879')
+    // Friendly form label from the tax code, not the raw snake_case.
+    expect(preview.subject).toContain('1120-S')
+    expect(preview.body.length).toBeGreaterThan(0)
+    expect(preview.recipientEmail).toBeNull()
+  })
+
+  it('throws NOT_FOUND for an unknown obligation', async () => {
+    const { repo } = buildScoped(FIRM, [])
+    await expect(previewObligationSignatureReminder(repo, { id: ROW_ID })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    })
   })
 })

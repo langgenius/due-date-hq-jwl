@@ -330,8 +330,13 @@ export type ObligationUpdateEfileStateInput = z.infer<typeof ObligationUpdateEfi
 // portal; the firm collects the signature via its own channel, so the
 // email carries no signing link. `auditId` is null + `emailQueued` false
 // when the client has no email on file.
+//
+// `subject`/`body` are optional CPA edits from the drawer's preview dialog;
+// when omitted the server renders the default template.
 export const ObligationRemindSignatureInputSchema = z.object({
   id: EntityIdSchema,
+  subject: z.string().trim().min(1).max(200).optional(),
+  body: z.string().trim().min(1).max(5000).optional(),
   reason: z.string().trim().max(280).optional(),
 })
 export type ObligationRemindSignatureInput = z.infer<typeof ObligationRemindSignatureInputSchema>
@@ -341,6 +346,23 @@ export const ObligationRemindSignatureOutputSchema = z.object({
   emailQueued: z.boolean(),
 })
 export type ObligationRemindSignatureOutput = z.infer<typeof ObligationRemindSignatureOutputSchema>
+
+// Editable-preview source for the drawer's "Remind client to sign" dialog:
+// the default rendered subject/body + the recipient on file (null when the
+// client has no email, so the dialog can warn before sending).
+export const ObligationSignatureReminderPreviewInputSchema = z.object({ id: EntityIdSchema })
+export type ObligationSignatureReminderPreviewInput = z.infer<
+  typeof ObligationSignatureReminderPreviewInputSchema
+>
+
+export const ObligationSignatureReminderPreviewOutputSchema = z.object({
+  subject: z.string(),
+  body: z.string(),
+  recipientEmail: z.string().nullable(),
+})
+export type ObligationSignatureReminderPreviewOutput = z.infer<
+  typeof ObligationSignatureReminderPreviewOutputSchema
+>
 
 export const ObligationBulkRemindSignatureInputSchema = z.object({
   ids: z.array(EntityIdSchema).min(1).max(100),
@@ -504,6 +526,9 @@ export const obligationsContract = oc.router({
   remindSignature: oc
     .input(ObligationRemindSignatureInputSchema)
     .output(ObligationRemindSignatureOutputSchema),
+  signatureReminderPreview: oc
+    .input(ObligationSignatureReminderPreviewInputSchema)
+    .output(ObligationSignatureReminderPreviewOutputSchema),
   bulkRemindSignature: oc
     .input(ObligationBulkRemindSignatureInputSchema)
     .output(ObligationBulkRemindSignatureOutputSchema),
