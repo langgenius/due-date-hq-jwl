@@ -157,11 +157,34 @@ function sourceNeedsMonitoringBaseline(state: {
   return state.monitoringBaselineAt === null && state.baselineMode !== 'backfill'
 }
 
+// Experiment (2026-06-01): a representative sample of state HTML sources is
+// force-routed to direct `cloudflare` fetch instead of browserless, to measure
+// whether state .gov sites block plain-fetch (403/406) or serve a 200. Most
+// html_* sources default to browserless (fetcherForParserKind), which is
+// overloaded (429 quota) AND hits a workerd "Illegal invocation" on 200s — so
+// alerts are effectively down for ~350 sources. If these succeed via direct
+// fetch, the browserless default is wrong for static pages and we migrate the
+// rest. Spans due-date pages + announcement lists across 9 states + DC.
+// Revert by emptying this set.
+const DIRECT_FETCH_EXPERIMENT_IDS: ReadonlySet<string> = new Set([
+  'al.income_tax',
+  'co.income_tax',
+  'ga.income_tax',
+  'il.income_tax',
+  'mi.income_tax',
+  'nc.income_tax',
+  'pa.income_tax',
+  'va.income_tax',
+  'az.temporary_announcements',
+  'ct.temporary_announcements',
+])
+
 function resolveFetcherForAdapter(
   adapter: SourceAdapter,
   ctx: Pick<IngestCtx, 'browserlessFetch' | 'govdeliveryFetch'>,
   browserlessSourceIds: ReadonlySet<string> | undefined,
 ): NonNullable<SourceAdapter['fetcher']> {
+  if (DIRECT_FETCH_EXPERIMENT_IDS.has(adapter.id)) return 'cloudflare'
   if (browserlessSourceIds?.has(adapter.id) && ctx.browserlessFetch) return 'browserless'
   if (adapter.fetcher === 'browserless') return ctx.browserlessFetch ? 'browserless' : 'cloudflare'
   if (adapter.fetcher === 'govdelivery') return ctx.govdeliveryFetch ? 'govdelivery' : 'cloudflare'
