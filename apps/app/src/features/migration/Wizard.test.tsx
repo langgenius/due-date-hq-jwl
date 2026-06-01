@@ -475,6 +475,7 @@ function dryRunSummary(): DryRunSummary {
     clientsToCreate: 1,
     obligationsToCreate: 1,
     historicalDeadlinesSkipped: 0,
+    rolledForwardDeadlines: 0,
     skippedRows: 0,
     errors: [],
     ruleReviewWarnings: [],

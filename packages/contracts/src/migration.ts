@@ -224,6 +224,7 @@ export const DryRunSummarySchema = z.object({
   clientsToCreate: z.number().int().min(0),
   obligationsToCreate: z.number().int().min(0),
   historicalDeadlinesSkipped: z.number().int().min(0).default(0),
+  rolledForwardDeadlines: z.number().int().min(0).default(0),
   skippedRows: z.number().int().min(0),
   errors: z.array(MigrationErrorSchema),
   ruleReviewWarnings: z.array(MigrationRuleReviewWarningSchema),

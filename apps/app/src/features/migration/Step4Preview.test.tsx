@@ -55,6 +55,7 @@ describe('Step4Preview rule review warnings', () => {
       clientsToCreate: 1,
       obligationsToCreate: 1,
       historicalDeadlinesSkipped: 0,
+      rolledForwardDeadlines: 0,
       skippedRows: 0,
       errors: [],
       ruleReviewWarnings: [
@@ -87,19 +88,21 @@ describe('Step4Preview rule review warnings', () => {
     expect(link).toBeNull()
   })
 
-  it('explains historical deadlines skipped by the monitoring start date', () => {
+  it('explains past deadlines rolled forward into monitoring', () => {
     renderPreview({
       batchId: '550e8400-e29b-41d4-a716-446655440001',
       clientsToCreate: 1,
       obligationsToCreate: 1,
-      historicalDeadlinesSkipped: 2,
+      historicalDeadlinesSkipped: 0,
+      rolledForwardDeadlines: 2,
       skippedRows: 0,
       errors: [],
       ruleReviewWarnings: [],
     })
 
     expect(document.body.textContent).toContain(
-      '2 historical deadlines before monitoring start will be skipped',
+      '2 past deadlines will be created as next monitoring deadlines',
     )
+    expect(document.body.textContent).not.toContain('historical deadlines could not be created')
   })
 })

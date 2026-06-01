@@ -1,6 +1,5 @@
 import {
   listRuleSources,
-  previewObligationsFromRules,
   STATE_RULE_JURISDICTIONS,
   type ObligationGenerationPreview,
   type ObligationRule,
@@ -13,7 +12,10 @@ import type { ClientRow } from '@duedatehq/ports/clients'
 import type { ClientFilingProfileRow } from '@duedatehq/ports/client-filing-profiles'
 import type { ObligationCreateInput } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
-import { isOnOrAfterDateOnly } from '../../lib/date-only'
+import {
+  MONITORED_PREVIEW_ROLL_FORWARD_YEARS,
+  resolveMonitoredRulePreviews,
+} from './_monitored-rule-previews'
 
 interface GenerateForAcceptedRulesInput {
   scoped: ScopedRepo
@@ -30,6 +32,7 @@ interface GenerateForAcceptedRulesSummary {
   createdCount: number
   duplicateCount: number
   historicalSkippedCount: number
+  rolledForwardDeadlineCount: number
   clientCount: number
 }
 
@@ -225,6 +228,7 @@ export async function generateObligationsForAcceptedRules(
       createdCount: 0,
       duplicateCount: 0,
       historicalSkippedCount: 0,
+      rolledForwardDeadlineCount: 0,
       clientCount: 0,
     }
   }
@@ -236,6 +240,7 @@ export async function generateObligationsForAcceptedRules(
       createdCount: 0,
       duplicateCount: 0,
       historicalSkippedCount: 0,
+      rolledForwardDeadlineCount: 0,
       clientCount: 0,
     }
   }
@@ -243,7 +248,16 @@ export async function generateObligationsForAcceptedRules(
   const profilesByClient = await input.scoped.filingProfiles.listByClients(
     clients.map((client) => client.id),
   )
-  const taxYears = [...new Set(rules.map((rule) => rule.taxYear))]
+  const taxYears = [
+    ...new Set(
+      rules.flatMap((rule) =>
+        Array.from(
+          { length: MONITORED_PREVIEW_ROLL_FORWARD_YEARS + 1 },
+          (_, index) => rule.taxYear + index,
+        ),
+      ),
+    ),
+  ]
   const duplicateRows = await input.scoped.obligations.listGeneratedByClientAndTaxYears({
     clientIds: clients.map((client) => client.id),
     taxYears,
@@ -261,7 +275,6 @@ export async function generateObligationsForAcceptedRules(
         }),
       ),
   )
-  const ruleById = new Map(rules.map((rule) => [rule.id, rule]))
   const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
   const createInputs: Array<ObligationCreateInput & { preview: ObligationGenerationPreview }> = []
   const readinessInputs: Array<{
@@ -272,6 +285,7 @@ export async function generateObligationsForAcceptedRules(
   let candidateCount = 0
   let duplicateCount = 0
   let historicalSkippedCount = 0
+  let rolledForwardDeadlineCount = 0
 
   for (const client of clients) {
     const profiles = profilesByClient.get(client.id) ?? []
@@ -284,31 +298,29 @@ export async function generateObligationsForAcceptedRules(
         state: profile.state,
         taxTypes: profile.taxTypes,
         taxPeriodSource: 'client_default' as const,
+        taxYearType: client.taxYearType,
+        fiscalYearEndMonth: client.fiscalYearEndMonth,
+        fiscalYearEndDay: client.fiscalYearEndDay,
         ...(client.taxClassification ? { taxClassification: client.taxClassification } : {}),
       } as const
-      const previews = previewObligationsFromRules({
+      const monitored = resolveMonitoredRulePreviews({
         client: clientFacts,
         rules,
+        ...(input.monitoringStartDate ? { monitoringStartDate: input.monitoringStartDate } : {}),
       })
-
-      for (const preview of previews) {
-        const rule = ruleById.get(preview.ruleId)
-        if (!rule || !preview.dueDate) continue
-        candidateCount += 1
+      candidateCount += monitored.previews.length + monitored.historicalSkippedCount
+      historicalSkippedCount += monitored.historicalSkippedCount
+      if (monitored.previews.length > 0 || monitored.historicalSkippedCount > 0) {
         clientIdsWithCandidates.add(client.id)
-        if (
-          input.monitoringStartDate &&
-          !isOnOrAfterDateOnly(preview.dueDate, input.monitoringStartDate)
-        ) {
-          historicalSkippedCount += 1
-          continue
-        }
+      }
 
+      for (const monitoredPreview of monitored.previews) {
+        const { preview, rule, effectiveTaxYear } = monitoredPreview
         const key = keyForGenerated({
           clientId: client.id,
           jurisdiction: preview.jurisdiction,
           ruleId: rule.id,
-          taxYear: rule.taxYear,
+          taxYear: effectiveTaxYear,
           rulePeriod: preview.period,
         })
         if (seenGeneratedKeys.has(key)) {
@@ -317,6 +329,7 @@ export async function generateObligationsForAcceptedRules(
         }
 
         seenGeneratedKeys.add(key)
+        if (monitoredPreview.rolledForwardYears > 0) rolledForwardDeadlineCount += 1
         const createInput = buildRuleBackedCreateInput({
           client,
           profile,
@@ -337,6 +350,7 @@ export async function generateObligationsForAcceptedRules(
       createdCount: 0,
       duplicateCount,
       historicalSkippedCount,
+      rolledForwardDeadlineCount,
       clientCount: clientIdsWithCandidates.size,
     }
   }
@@ -381,6 +395,7 @@ export async function generateObligationsForAcceptedRules(
       createdCount: ids.length,
       duplicateCount,
       historicalSkippedCount,
+      rolledForwardDeadlineCount,
       clientCount: clientIdsWithCandidates.size,
       createdObligationIds: ids,
     },
@@ -392,6 +407,7 @@ export async function generateObligationsForAcceptedRules(
     createdCount: ids.length,
     duplicateCount,
     historicalSkippedCount,
+    rolledForwardDeadlineCount,
     clientCount: clientIdsWithCandidates.size,
   }
 }

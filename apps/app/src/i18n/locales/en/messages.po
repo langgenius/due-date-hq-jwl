@@ -635,8 +635,8 @@ msgid "{hiddenRuleCount} more selected rules"
 msgstr "{hiddenRuleCount} more selected rules"
 
 #: src/features/migration/Step4Preview.tsx
-msgid "{historicalDeadlinesSkipped, plural, one {# historical deadline before monitoring start will be skipped} other {# historical deadlines before monitoring start will be skipped}}"
-msgstr "{historicalDeadlinesSkipped, plural, one {# historical deadline before monitoring start will be skipped} other {# historical deadlines before monitoring start will be skipped}}"
+msgid "{historicalDeadlinesSkipped, plural, one {# historical deadline could not be created} other {# historical deadlines could not be created}}"
+msgstr "{historicalDeadlinesSkipped, plural, one {# historical deadline could not be created} other {# historical deadlines could not be created}}"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "{ignored, plural, =0 {0 ignored} one {# ignored} other {# ignored}}"
@@ -789,6 +789,10 @@ msgstr "{role} · {plan} · {0} seats"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "{role} at {0}"
 msgstr "{role} at {0}"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "{rolledForwardDeadlines, plural, one {# past deadline will be created as the next monitoring deadline} other {# past deadlines will be created as next monitoring deadlines}}"
+msgstr "{rolledForwardDeadlines, plural, one {# past deadline will be created as the next monitoring deadline} other {# past deadlines will be created as next monitoring deadlines}}"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "{rowCount, plural, one {# client ready to import} other {# clients ready to import}}"

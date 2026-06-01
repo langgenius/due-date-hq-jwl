@@ -701,7 +701,8 @@ clients`。低置信、未识别、safe fallback 才进入 exception summary。D
 │  You're about to create                                              │
 │    • 30 clients                                                      │   ← 数值走 {typography.numeric}
 │    • 118 obligations monitored from May 29, 2026                     │
-│    • 34 historical deadlines skipped before monitoring start         │   ← 仅 skipped > 0 时显示
+│    • 9 past deadlines will be created as next monitoring deadlines   │   ← 仅 rolled > 0 时显示
+│    • 3 historical deadlines could not be created                     │   ← 仅 true skipped > 0 时显示
 │    • Est. $19,200 total exposure this quarter                        │   ← $ 金额 {typography.numeric} + {colors.text-primary}
 │                                                                      │
 │  Top risk (this week)                                                │   ← {typography.label}
@@ -784,7 +785,8 @@ clients`。低置信、未识别、safe fallback 才进入 exception summary。D
 | Title                 | `Ready to import`                                                                                                                | `准备就绪，开始导入`                                                                                | `<Trans>`                  |
 | Summary line 1        | `You're about to create`                                                                                                         | `你即将创建`                                                                                        | `<Trans>`                  |
 | Summary counts        | `{clients} clients · {obligations} obligations monitored from {monitoringStartDate} · Est. {amount} total exposure this quarter` | `{clients} 个客户 · 从 {monitoringStartDate} 起监控 {obligations} 条义务 · 本季度预计敞口 {amount}` | `<Plural>` × 2 + `<Trans>` |
-| Historical skipped    | `{count} historical deadlines skipped before monitoring start`                                                                   | `已跳过 {count} 条早于监控起点的历史截止日`                                                         | `<Plural>`                 |
+| Rolled forward        | `{count} past deadlines will be created as next monitoring deadlines`                                                            | `{count} 条已过截止日会创建为下一期可监控截止日`                                                    | `<Plural>`                 |
+| Historical skipped    | `{count} historical deadlines could not be created`                                                                              | `{count} 条历史截止日无法自动创建`                                                                  | `<Plural>`                 |
 | Top-risk section      | `Top risk (this week)`                                                                                                           | `本周最高风险`                                                                                      | `<Trans>`                  |
 | See-all CTA           | `See all {count} →`                                                                                                              | `查看全部 {count} 条 →`                                                                             | `<Plural>`                 |
 | Safety header         | `Safety`                                                                                                                         | `安全保障`                                                                                          | `<Trans>`                  |

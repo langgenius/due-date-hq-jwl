@@ -1,12 +1,9 @@
 import { ORPCError } from '@orpc/server'
 import { inferTaxTypes, type EntityType } from '@duedatehq/core/default-matrix'
 import {
-  findRuleById,
   listObligationRules,
   listRuleSources,
-  previewObligationsFromRules,
   STATE_RULE_JURISDICTIONS,
-  type ObligationGenerationPreview,
   type ObligationRule,
   type RuleGenerationState,
 } from '@duedatehq/core/rules'
@@ -19,7 +16,10 @@ import {
 import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
 import type { MappingRow, MappingTarget, NormalizationRow } from '@duedatehq/contracts'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
-import { isOnOrAfterDateOnly } from '../../lib/date-only'
+import {
+  resolveMonitoredRulePreviews,
+  type MonitoredRulePreview,
+} from '../rules/_monitored-rule-previews'
 import { validateRows } from './_deterministic'
 import type { MappingJsonPayload, MatrixApplicationEntry } from './_types'
 import { matrixApplicationModeForTaxTypes, normalizeTaxTypesFromRows } from './_tax-type-matrix'
@@ -43,6 +43,7 @@ interface BuildCommitPlanInput {
 
 type CommitPlan = CommitImportInput & {
   historicalDeadlineSkippedCount: number
+  rolledForwardDeadlineCount: number
 }
 
 interface FilingProfileImportFacts {
@@ -82,8 +83,8 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitPlan {
   const evidence: CommitEvidence[] = []
   const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
   const runtimeRules = input.rules ?? listObligationRules({ includeCandidates: true })
-  const ruleById = new Map(runtimeRules.map((rule) => [rule.id, rule]))
   let historicalDeadlineSkippedCount = 0
+  let rolledForwardDeadlineCount = 0
 
   const skippedRows = new Set<number>()
   const rowErrors = validateRows(
@@ -202,9 +203,10 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitPlan {
     }
 
     const seenPreviewKeys = new Set<string>()
+    const seenSkippedPreviewKeys = new Set<string>()
     for (const profile of profileRows) {
       if (profile.taxTypes.length === 0) continue
-      const previews = previewObligationsFromRules({
+      const monitored = resolveMonitoredRulePreviews({
         client: {
           id: clientId,
           entityType: facts.entityType,
@@ -222,18 +224,21 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitPlan {
             : {}),
         },
         rules: runtimeRules,
+        ...(input.monitoringStartDate ? { monitoringStartDate: input.monitoringStartDate } : {}),
       })
-      for (const preview of uniqueConcretePreviews(previews)) {
-        const previewKey = concretePreviewKey(preview)
+      for (const skipped of uniqueConcretePreviews(monitored.historicalSkippedPreviews)) {
+        const previewKey = concretePreviewKey(skipped)
+        if (seenSkippedPreviewKeys.has(previewKey)) continue
+        seenSkippedPreviewKeys.add(previewKey)
+        historicalDeadlineSkippedCount += 1
+      }
+
+      for (const monitoredPreview of uniqueConcretePreviews(monitored.previews)) {
+        const { preview, effectiveTaxYear } = monitoredPreview
+        const previewKey = concretePreviewKey(monitoredPreview)
         if (seenPreviewKeys.has(previewKey)) continue
         seenPreviewKeys.add(previewKey)
-        if (
-          input.monitoringStartDate &&
-          !isOnOrAfterDateOnly(preview.dueDate ?? '', input.monitoringStartDate)
-        ) {
-          historicalDeadlineSkippedCount += 1
-          continue
-        }
+        if (monitoredPreview.rolledForwardYears > 0) rolledForwardDeadlineCount += 1
 
         const obligationId = crypto.randomUUID()
         const dueDate = new Date(`${preview.dueDate}T00:00:00.000Z`)
@@ -256,8 +261,7 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitPlan {
             preview.jurisdiction === 'FED' ? null : (profileIdByState.get(profile.state) ?? null),
           jurisdiction: preview.jurisdiction,
           taxType: preview.taxType,
-          taxYear:
-            ruleById.get(preview.ruleId)?.taxYear ?? findRuleById(preview.ruleId)?.taxYear ?? 2026,
+          taxYear: effectiveTaxYear,
           taxYearType: preview.taxPeriodKind === 'fiscal' ? 'fiscal' : 'calendar',
           fiscalYearEndMonth:
             preview.taxPeriodKind === 'fiscal' && preview.taxPeriodEnd
@@ -327,6 +331,7 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitPlan {
         clientCount: clients.length,
         obligationCount: obligations.length,
         historicalDeadlineSkippedCount,
+        rolledForwardDeadlineCount,
         skippedCount: skippedRows.size,
       },
       reason: null,
@@ -373,6 +378,7 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitPlan {
     appliedAt,
     revertExpiresAt,
     historicalDeadlineSkippedCount,
+    rolledForwardDeadlineCount,
   }
 }
 
@@ -844,13 +850,11 @@ function isRuleGenerationState(value: string | null): value is RuleGenerationSta
   )
 }
 
-function uniqueConcretePreviews(
-  previews: readonly ObligationGenerationPreview[],
-): ObligationGenerationPreview[] {
-  const out: ObligationGenerationPreview[] = []
+function uniqueConcretePreviews(previews: readonly MonitoredRulePreview[]): MonitoredRulePreview[] {
+  const out: MonitoredRulePreview[] = []
   const seen = new Set<string>()
   for (const preview of previews) {
-    if (!preview.dueDate) continue
+    if (!preview.preview.dueDate) continue
     const key = concretePreviewKey(preview)
     if (seen.has(key)) continue
     seen.add(key)
@@ -859,11 +863,13 @@ function uniqueConcretePreviews(
   return out
 }
 
-function concretePreviewKey(preview: ObligationGenerationPreview): string {
+function concretePreviewKey(item: MonitoredRulePreview): string {
+  const { preview } = item
   const jurisdiction = preview.jurisdiction === 'FED' ? 'FED' : preview.jurisdiction
   return [
     jurisdiction,
     preview.ruleId,
+    item.effectiveTaxYear,
     preview.period,
     preview.dueDate ?? '',
     preview.taxType,

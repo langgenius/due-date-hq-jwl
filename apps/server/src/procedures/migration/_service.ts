@@ -952,6 +952,7 @@ export class MigrationService {
       clientsToCreate: stats.clientsToCreate,
       obligationsToCreate: exactPlan ? exactPlan.obligations.length : stats.obligationsToCreate,
       historicalDeadlinesSkipped: exactPlan ? exactPlan.historicalDeadlineSkippedCount : 0,
+      rolledForwardDeadlines: exactPlan ? exactPlan.rolledForwardDeadlineCount : 0,
       skippedRows: stats.skippedRows,
       errors: stats.errors,
       ruleReviewWarnings: computeRuleReviewWarnings(payload, rules),

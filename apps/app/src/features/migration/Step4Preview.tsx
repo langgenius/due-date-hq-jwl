@@ -22,6 +22,7 @@ export function Step4Preview({ summary }: Step4Props) {
   const clientCount = summary?.clientsToCreate ?? 0
   const obligationCount = summary?.obligationsToCreate ?? 0
   const historicalDeadlinesSkipped = summary?.historicalDeadlinesSkipped ?? 0
+  const rolledForwardDeadlines = summary?.rolledForwardDeadlines ?? 0
   const skipped = summary?.skippedRows ?? 0
   const ruleReviewWarnings = summary?.ruleReviewWarnings ?? []
   const ruleReviewStateSummaries = buildRuleReviewStateSummaries(ruleReviewWarnings)
@@ -86,8 +87,18 @@ export function Step4Preview({ summary }: Step4Props) {
             <PlayIcon className="size-3" aria-hidden />
             <Plural
               value={historicalDeadlinesSkipped}
-              one="# historical deadline before monitoring start will be skipped"
-              other="# historical deadlines before monitoring start will be skipped"
+              one="# historical deadline could not be created"
+              other="# historical deadlines could not be created"
+            />
+          </li>
+        ) : null}
+        {rolledForwardDeadlines > 0 ? (
+          <li className="flex items-center gap-2 text-text-tertiary">
+            <PlayIcon className="size-3" aria-hidden />
+            <Plural
+              value={rolledForwardDeadlines}
+              one="# past deadline will be created as the next monitoring deadline"
+              other="# past deadlines will be created as next monitoring deadlines"
             />
           </li>
         ) : null}

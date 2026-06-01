@@ -190,6 +190,7 @@ function buildScopedRepo(
     clientFilingProfileId: string | null | undefined
     jurisdiction: string | null | undefined
     taxType: string | undefined
+    taxYear: number | null | undefined
     baseDueDate: Date | undefined
     taxPeriodStart: Date | null | undefined
     taxPeriodEnd: Date | null | undefined
@@ -420,6 +421,7 @@ function buildScopedRepo(
           clientFilingProfileId: item.clientFilingProfileId,
           jurisdiction: item.jurisdiction,
           taxType: item.taxType,
+          taxYear: item.taxYear,
           baseDueDate: item.baseDueDate,
           taxPeriodStart: item.taxPeriodStart,
           taxPeriodEnd: item.taxPeriodEnd,
@@ -2583,7 +2585,7 @@ Fiscal S Corp,CA,S-Corp,federal_1120s,Fiscal,6/30`,
     })
   })
 
-  it('skips imported historical deadlines before the monitoring start date', async () => {
+  it('rolls imported annual deadlines before monitoring start into the next tax year', async () => {
     const { repo, state } = buildScopedRepo(FIRM)
     const ai = buildAi()
     const service = new MigrationService({
@@ -2628,10 +2630,24 @@ Fiscal S Corp,CA,S-Corp,federal_1120s,Fiscal,6/30`,
       (obligation) => obligation.clientId === fiscalClient?.id,
     )
 
-    expect(summary.historicalDeadlinesSkipped).toBe(2)
-    expect(summary.obligationsToCreate).toBe(2)
-    expect(result.obligationCount).toBe(2)
-    expect(calendarObligations).toEqual([])
+    expect(summary.historicalDeadlinesSkipped).toBe(0)
+    expect(summary.rolledForwardDeadlines).toBe(2)
+    expect(summary.obligationsToCreate).toBe(4)
+    expect(result.obligationCount).toBe(4)
+    expect(calendarObligations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          taxType: 'federal_1120s',
+          taxYear: 2026,
+          baseDueDate: new Date('2027-03-15T00:00:00.000Z'),
+        }),
+        expect.objectContaining({
+          taxType: 'ca_100s',
+          taxYear: 2026,
+          baseDueDate: new Date('2027-03-15T00:00:00.000Z'),
+        }),
+      ]),
+    )
     expect(fiscalObligations).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -2644,6 +2660,105 @@ Fiscal S Corp,CA,S-Corp,federal_1120s,Fiscal,6/30`,
         }),
       ]),
     )
+  })
+
+  it('rolls imported fixed-date individual deadlines to the next monitoring year', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({
+      scoped: repo,
+      ai,
+      userId: USER,
+      monitoringStartDate: '2026-06-01',
+    })
+
+    const batch = await service.createBatch({ source: 'paste' })
+    await service.uploadRaw({
+      batchId: batch.id,
+      kind: 'paste',
+      text: `Client Name,State,Entity Type,Tax Types
+Fixed Individual,CA,Individual,federal_1040`,
+    })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Tax Types': 'client.tax_types',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+    await service.applyDefaultMatrix(batch.id, [
+      { entityType: 'individual', state: 'CA', enabled: false },
+    ])
+
+    const summary = await service.dryRun(batch.id)
+    await service.apply(batch.id)
+
+    expect(summary.historicalDeadlinesSkipped).toBe(0)
+    expect(summary.rolledForwardDeadlines).toBe(1)
+    expect(summary.obligationsToCreate).toBe(1)
+    expect(state.importedObligations).toEqual([
+      expect.objectContaining({
+        taxType: 'federal_1040',
+        taxYear: 2026,
+        baseDueDate: new Date('2027-04-15T00:00:00.000Z'),
+      }),
+    ])
+  })
+
+  it('keeps future period-table deadlines and skips only past periods during import', async () => {
+    const { repo, state } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({
+      scoped: repo,
+      ai,
+      userId: USER,
+      monitoringStartDate: '2026-09-15',
+    })
+
+    const batch = await service.createBatch({ source: 'paste' })
+    await service.uploadRaw({
+      batchId: batch.id,
+      kind: 'paste',
+      text: `Client Name,State,Entity Type,Tax Types
+Estimated Tax Client,CA,Individual,federal_1040_estimated_tax`,
+    })
+    const mapper = await service.runMapper(batch.id)
+    await service.confirmMapping(
+      batch.id,
+      overrideFixtureMappings(mapper.mappings, {
+        'Client Name': 'client.name',
+        State: 'client.state',
+        'Entity Type': 'client.entity_type',
+        'Tax Types': 'client.tax_types',
+      }),
+    )
+    const normalizer = await service.runNormalizer(batch.id)
+    await service.confirmNormalization(batch.id, normalizer.normalizations)
+    await service.applyDefaultMatrix(batch.id, [
+      { entityType: 'individual', state: 'CA', enabled: false },
+    ])
+
+    const summary = await service.dryRun(batch.id)
+    await service.apply(batch.id)
+
+    expect(summary.historicalDeadlinesSkipped).toBe(2)
+    expect(summary.rolledForwardDeadlines).toBe(0)
+    expect(summary.obligationsToCreate).toBe(2)
+    expect(state.importedObligations).toEqual([
+      expect.objectContaining({
+        taxType: 'federal_1040_estimated_tax',
+        baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
+      }),
+      expect.objectContaining({
+        taxType: 'federal_1040_estimated_tax',
+        baseDueDate: new Date('2027-01-15T00:00:00.000Z'),
+      }),
+    ])
   })
 
   it('creates the fiscal client but skips deadline creation when fiscal year end is missing', async () => {

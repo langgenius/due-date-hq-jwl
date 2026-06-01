@@ -643,8 +643,8 @@ msgid "{hiddenRuleCount} more selected rules"
 msgstr "另有 {hiddenRuleCount} 条已选规则"
 
 #: src/features/migration/Step4Preview.tsx
-msgid "{historicalDeadlinesSkipped, plural, one {# historical deadline before monitoring start will be skipped} other {# historical deadlines before monitoring start will be skipped}}"
-msgstr "{historicalDeadlinesSkipped, plural, other {将跳过 # 条早于监控起点的历史截止日}}"
+msgid "{historicalDeadlinesSkipped, plural, one {# historical deadline could not be created} other {# historical deadlines could not be created}}"
+msgstr "{historicalDeadlinesSkipped, plural, one {# 条历史截止日无法自动创建} other {# 条历史截止日无法自动创建}}"
 
 #: src/features/migration/Step2Mapping.tsx
 #, fuzzy
@@ -802,6 +802,10 @@ msgstr "{role} · {plan} · {0} seats"
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "{role} at {0}"
 msgstr "{0} 的 {role}"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "{rolledForwardDeadlines, plural, one {# past deadline will be created as the next monitoring deadline} other {# past deadlines will be created as next monitoring deadlines}}"
+msgstr "{rolledForwardDeadlines, plural, one {# 条已过截止日会创建为下一期可监控截止日} other {# 条已过截止日会创建为下一期可监控截止日}}"
 
 #: src/features/migration/Step1Intake.tsx
 #, fuzzy
