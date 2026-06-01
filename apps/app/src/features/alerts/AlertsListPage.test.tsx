@@ -4,7 +4,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { MemoryRouter } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { PulseSourceHealth } from '@duedatehq/contracts'
+import type { PulseAlertPublic, PulseDetail, PulseSourceHealth } from '@duedatehq/contracts'
 
 import { bootstrapI18n } from '@/i18n/bootstrap'
 import { activateLocale } from '@/i18n/i18n'
@@ -50,6 +50,9 @@ vi.mock('@/lib/rpc', () => ({
           queryFn: rpcMocks.getDetailsBatchQueryFn,
         }),
       },
+      getDetail: {
+        queryKey: (args: { input: unknown }) => ['pulse', 'getDetail', args.input],
+      },
     },
   },
 }))
@@ -84,6 +87,67 @@ function source(overrides: Partial<PulseSourceHealth> = {}): PulseSourceHealth {
   }
 }
 
+const SEED_ALERT_ID = '12121212-1212-4121-8121-121212121212'
+
+function listAlert(): PulseAlertPublic {
+  return {
+    id: SEED_ALERT_ID,
+    pulseId: '34343434-3434-4343-8343-343434343434',
+    status: 'matched',
+    sourceStatus: 'approved',
+    changeKind: 'deadline_shift',
+    actionMode: 'due_date_overlay',
+    firmImpact: 'matched',
+    title: 'Seeded CA relief',
+    source: 'CA FTB',
+    sourceUrl: 'https://example.com/source',
+    summary: 'California posted deadline relief.',
+    publishedAt: '2026-05-01T00:00:00.000Z',
+    matchedCount: 1,
+    needsReviewCount: 0,
+    applyReadiness: { status: 'ready', missing: [] },
+    duplicateSourceSnapshotCount: 0,
+    confidence: 0.9,
+    isSample: false,
+    jurisdiction: 'CA',
+  }
+}
+
+function alertDetail(): PulseDetail {
+  return {
+    alert: listAlert(),
+    jurisdiction: 'CA',
+    counties: [],
+    forms: ['1065'],
+    entityTypes: ['llc'],
+    originalDueDate: '2026-03-15',
+    newDueDate: '2026-10-15',
+    effectiveFrom: null,
+    effectiveUntil: null,
+    affectedRuleIds: [],
+    structuredChange: null,
+    sourceExcerpt: 'Excerpt.',
+    reviewedAt: null,
+    applyReadiness: { status: 'ready', missing: [] },
+    affectedClients: [
+      {
+        obligationId: '99999999-9999-4999-8999-999999999999',
+        clientId: '88888888-8888-4888-8888-888888888888',
+        clientName: 'Seeded Client Co',
+        state: 'CA',
+        county: null,
+        entityType: 'llc',
+        taxType: '1065',
+        currentDueDate: '2026-03-15',
+        newDueDate: '2026-10-15',
+        status: 'pending',
+        matchStatus: 'eligible',
+        reason: null,
+      },
+    ],
+  }
+}
+
 async function render(children: ReactNode, initialEntry = '/alerts') {
   container = document.createElement('div')
   document.body.append(container)
@@ -99,6 +163,8 @@ async function render(children: ReactNode, initialEntry = '/alerts') {
       </MemoryRouter>,
     )
   })
+
+  return client
 }
 
 async function waitForText(text: string, attempts = 100): Promise<void> {
@@ -173,5 +239,24 @@ describe('AlertsListPage source health display', () => {
     expect(document.body.textContent).not.toContain('Review sources')
     expect(document.body.textContent).not.toContain('Pulse source checks degraded')
     expect(document.body.textContent).not.toContain('FEMA Declarations')
+  })
+})
+
+describe('AlertsListPage affected-client batching', () => {
+  it('renders names from one batch and seeds each getDetail cache for instant drawer open', async () => {
+    const detail = alertDetail()
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [detail.alert] })
+    rpcMocks.getDetailsBatchQueryFn.mockResolvedValue({ details: [detail] })
+
+    const client = await render(<AlertsListPage embedded />)
+
+    // The card shows the affected-client name pulled from the BATCH (no
+    // per-card getDetail), and the batch fired exactly once.
+    await waitForText('Seeded Client Co')
+    expect(rpcMocks.getDetailsBatchQueryFn).toHaveBeenCalledTimes(1)
+
+    // The drawer's per-alert getDetail cache is pre-seeded from the batch, so
+    // opening the drawer is a cache hit instead of a re-fetch.
+    expect(client.getQueryData(['pulse', 'getDetail', { alertId: SEED_ALERT_ID }])).toEqual(detail)
   })
 })

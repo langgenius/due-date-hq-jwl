@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 
 import type { PulseAffectedClient } from '@duedatehq/contracts'
 
@@ -84,10 +84,27 @@ export function useAlertDetailQueryOptions(alertId: string | null) {
 // single request. `enabled` is gated on a non-empty id set so an empty list
 // never round-trips.
 export function useAlertsAffectedClients(alertIds: string[]): Map<string, PulseAffectedClient[]> {
+  const queryClient = useQueryClient()
   const batchQuery = useQuery({
     ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds } }),
     enabled: alertIds.length > 0,
   })
+
+  // The batch already pulled the FULL PulseDetail for every visible alert, so
+  // seed each alert's `getDetail` cache from it. Opening the drawer then reads a
+  // cache hit (instant) instead of re-fetching — this restores the pre-batch
+  // "the card's own fetch warmed the drawer" behaviour without the per-card
+  // fan-out. The shape is identical (`getDetailsBatch` returns the same
+  // PulseDetail rows `getDetail` does), so the drawer's query is satisfied.
+  useEffect(() => {
+    for (const detail of batchQuery.data?.details ?? []) {
+      queryClient.setQueryData(
+        orpc.pulse.getDetail.queryKey({ input: { alertId: detail.alert.id } }),
+        detail,
+      )
+    }
+  }, [batchQuery.data, queryClient])
+
   return useMemo(() => {
     const byAlert = new Map<string, PulseAffectedClient[]>()
     for (const detail of batchQuery.data?.details ?? []) {
