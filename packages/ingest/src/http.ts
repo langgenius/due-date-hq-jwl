@@ -1,8 +1,17 @@
 import { extractPdfText } from './pdf'
 import type { IngestCtx, RawSnapshot } from './types'
 
+// Several state .gov sites 403-block an honest bot User-Agent. Browserless
+// already evaded this by presenting a Chrome UA; now that direct fetch is the
+// default for HTML sources (browserless was overloaded + buggy), direct fetch
+// must present the same browser UA or those sites reject it. robots.txt is
+// still honored under our bot identity (assertRobotsAllowed matches the
+// DueDateHQ-PulseBot agent string independently of this request header).
+export const PULSE_BROWSER_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+
 export const DEFAULT_HEADERS = {
-  'User-Agent': 'DueDateHQ-PulseBot/1.0 (+https://duedatehq.com/bot; support@duedatehq.com)',
+  'User-Agent': PULSE_BROWSER_USER_AGENT,
   Accept: 'text/html,application/xhtml+xml,application/xml,application/rss+xml,application/json',
   'Accept-Language': 'en-US,en;q=0.9',
   'Cache-Control': 'no-cache',

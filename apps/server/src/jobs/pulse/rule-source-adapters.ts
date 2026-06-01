@@ -630,7 +630,12 @@ function parsedItemForSourceSnapshot(
 }
 
 function fetcherForParserKind(kind: SourceAdapterKind | null): SourceAdapter['fetcher'] {
-  if (kind === 'html_due_date_page' || kind === 'html_announcement_list') return 'browserless'
+  // HTML sources default to direct (`cloudflare`) fetch. Routing them through
+  // browserless was overloading it (429 quota) and tripping a workerd
+  // "Illegal invocation" on 200-responses, while direct fetch with a browser
+  // UA serves most state .gov pages a clean 200 (measured 2026-06-01). Sources
+  // that genuinely need a headless browser opt in explicitly via the
+  // PULSE_BROWSERLESS_SOURCE_IDS allowlist (resolveFetcherForAdapter).
   if (kind === 'email_inbound') return 'govdelivery'
   return undefined
 }
@@ -716,7 +721,6 @@ export function createTemporaryAnnouncementAdapter(source: RuleSource): SourceAd
     cronIntervalMs: intervalForCadence(source.cadence),
     jurisdiction: source.jurisdiction,
     allowEmptyParse: true,
-    fetcher: 'browserless',
     async fetch(ctx) {
       return [await fetchTextSnapshot(ctx, { sourceId: source.id, url: sourceFetchUrl(source) })]
     },
@@ -747,7 +751,6 @@ export function createPolicyWatchAdapter(source: PolicyWatchSource): SourceAdapt
     cronIntervalMs: intervalForCadence(source.cadence),
     jurisdiction: source.jurisdiction,
     allowEmptyParse: true,
-    fetcher: 'browserless',
     async fetch(ctx) {
       return [
         await fetchTextSnapshot(ctx, {
