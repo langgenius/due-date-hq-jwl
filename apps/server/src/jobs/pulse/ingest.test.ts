@@ -472,12 +472,21 @@ describe('createBrowserlessFetch', () => {
     expect(typeof init?.body).toBe('string')
     const requestBody = init?.body
     if (typeof requestBody !== 'string') throw new Error('Browserless request body must be JSON')
-    const body = JSON.parse(requestBody) as {
-      headers: Record<string, string>
-    }
-    expect(body.headers['user-agent']).toContain('Chrome/')
-    expect(body.headers['cache-control']).toBeUndefined()
-    expect(body.headers.accept).toContain('text/html')
+    const body = JSON.parse(requestBody) as Record<string, unknown>
+    // Must match the browserless /content schema (additionalProperties:false):
+    // only url / userAgent / setExtraHTTPHeaders — never method/headers/body,
+    // which previously triggered HTTP 400.
+    expect(Object.keys(body).toSorted()).toEqual(['setExtraHTTPHeaders', 'url', 'userAgent'])
+    expect(body).not.toHaveProperty('method')
+    expect(body).not.toHaveProperty('headers')
+    expect(body).not.toHaveProperty('body')
+    // Caller-provided User-Agent is hoisted to the top-level `userAgent` field.
+    expect(body.userAgent).toBe('DueDateHQ-PulseBot/1.0')
+    const extraHeaders = body.setExtraHTTPHeaders as Record<string, string>
+    // Cache-Control and User-Agent are stripped from extra headers; Accept is kept.
+    expect(extraHeaders['cache-control']).toBeUndefined()
+    expect(extraHeaders['user-agent']).toBeUndefined()
+    expect(extraHeaders.accept).toContain('text/html')
   })
 
   it('maps target response codes reported by Browserless', async () => {
