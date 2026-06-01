@@ -98,11 +98,29 @@ function ensurePdfJsDOMMatrix(): void {
   Reflect.set(globalThis, 'DOMMatrix', MinimalPdfJsDOMMatrix)
 }
 
+// workerd (Cloudflare Workers) has no Web Workers and cannot fetch
+// GlobalWorkerOptions.workerSrc, so PDF.js's default attempt to spawn a real
+// Worker throws `No "GlobalWorkerOptions.workerSrc" specified.` — which silently
+// killed every PDF source (tax instruction booklets, due-date calendars, etc.).
+// PDF.js only auto-disables the worker when `isNodeJS` is true; workerd is not
+// Node. Registering the worker's message handler on globalThis.pdfjsWorker makes
+// PDF.js run it on the main thread (its built-in "fake worker"): no real Worker,
+// no workerSrc needed. Text extraction (getTextContent) needs no rendering APIs
+// beyond the DOMMatrix polyfill already installed above.
+async function ensurePdfJsWorker(): Promise<void> {
+  const globalScope = globalThis as typeof globalThis & {
+    pdfjsWorker?: { WorkerMessageHandler?: unknown }
+  }
+  if (globalScope.pdfjsWorker?.WorkerMessageHandler) return
+  const workerModule = await import('pdfjs-dist/legacy/build/pdf.worker.mjs')
+  globalScope.pdfjsWorker = { WorkerMessageHandler: workerModule.WorkerMessageHandler }
+}
+
 function loadPdfJsGetDocument(): Promise<PdfJsGetDocument> {
   ensurePdfJsDOMMatrix()
-  pdfJsGetDocumentPromise ??= import('pdfjs-dist/legacy/build/pdf.mjs').then(
-    ({ getDocument }) => getDocument,
-  )
+  pdfJsGetDocumentPromise ??= ensurePdfJsWorker()
+    .then(() => import('pdfjs-dist/legacy/build/pdf.mjs'))
+    .then(({ getDocument }) => getDocument)
   return pdfJsGetDocumentPromise
 }
 
