@@ -545,6 +545,98 @@ export function makePulseOpsRepo(db: Db) {
       return rows.map(toSourceState)
     },
 
+    /**
+     * Batched counterpart to `ensureSourceState` for the cron fan-out.
+     *
+     * The scheduled() handler calls ensureSourceState once per source across
+     * hundreds of sources; each call is 2 D1 round-trips (upsert + read-back),
+     * so a tick did ~1500 serial round-trips and blew the 15-minute Worker
+     * wall-clock limit (`exceededCpu`), killing ingest before any fetch ran.
+     *
+     * This collapses that to: one bulk read of all existing rows, one batched
+     * insert (onConflictDoNothing) of only the *new* sources, and an in-memory
+     * merge. tier/jurisdiction/cadenceMs are derived from the static source
+     * registry and only change on deploy, so they are not re-written per tick.
+     * The one mutable config field, `enabled` (a source can be paused), IS
+     * reconciled: rows whose desired enabled differs from the DB are
+     * batch-updated — normally zero rows. Returns every requested source's
+     * current state.
+     */
+    async ensureSourceStates(
+      inputs: readonly PulseSourceStateInput[],
+      now: Date = new Date(),
+    ): Promise<Map<string, PulseSourceStateRow>> {
+      if (inputs.length === 0) return new Map()
+
+      const byId = new Map<string, PulseSourceStateRow>(
+        (await db.select().from(pulseSourceState)).map((row) => [row.sourceId, toSourceState(row)]),
+      )
+
+      const newRows: NewPulseSourceState[] = inputs
+        .filter((input) => !byId.has(input.sourceId))
+        .map((input) => ({
+          sourceId: input.sourceId,
+          tier: input.tier,
+          jurisdiction: input.jurisdiction,
+          enabled: input.enabled ?? true,
+          cadenceMs: input.cadenceMs,
+          healthStatus: 'healthy' as const,
+          nextCheckAt: now,
+        }))
+
+      if (newRows.length > 0) {
+        // 7 columns per row; stay well under D1's bound-parameter ceiling.
+        const inserts = chunkRows(newRows, 12).map((chunk) =>
+          db.insert(pulseSourceState).values(chunk).onConflictDoNothing({
+            target: pulseSourceState.sourceId,
+          }),
+        )
+        await db.batch(toNonEmptyBatch(inserts))
+        // Re-read only the freshly inserted ids to return their canonical rows.
+        const insertedIds = newRows.map((row) => row.sourceId)
+        for (const chunk of chunkRows(insertedIds, 90)) {
+          const rows = await db
+            .select()
+            .from(pulseSourceState)
+            .where(inArray(pulseSourceState.sourceId, chunk))
+          for (const row of rows) byId.set(row.sourceId, toSourceState(row))
+        }
+      }
+
+      // Reconcile the only mutable config field — `enabled` — for existing rows
+      // whose desired value drifted (e.g. a source was paused in the registry).
+      // Normally a no-op; pause/resume is rare and cheap to batch when it happens.
+      const enableUpdates = inputs.flatMap((input) => {
+        if (input.enabled === undefined) return []
+        const state = byId.get(input.sourceId)
+        if (!state || state.enabled === input.enabled) return []
+        return [{ sourceId: input.sourceId, enabled: input.enabled }]
+      })
+      if (enableUpdates.length > 0) {
+        await db.batch(
+          toNonEmptyBatch(
+            enableUpdates.map((update) =>
+              db
+                .update(pulseSourceState)
+                .set({ enabled: update.enabled })
+                .where(eq(pulseSourceState.sourceId, update.sourceId)),
+            ),
+          ),
+        )
+        for (const update of enableUpdates) {
+          const state = byId.get(update.sourceId)
+          if (state) byId.set(update.sourceId, { ...state, enabled: update.enabled })
+        }
+      }
+
+      return new Map(
+        inputs.flatMap((input) => {
+          const state = byId.get(input.sourceId)
+          return state ? [[input.sourceId, state] as const] : []
+        }),
+      )
+    },
+
     async establishSourceBaseline(input: {
       sourceId: string
       baselineAt?: Date

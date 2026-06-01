@@ -15,6 +15,7 @@ import {
 const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
   const repo = {
     ensureSourceState: vi.fn(),
+    ensureSourceStates: vi.fn(),
     getSourceState: vi.fn(),
     establishSourceBaseline: vi.fn(),
     createSourceSnapshot: vi.fn(),
@@ -304,6 +305,19 @@ describe('enqueuePulseIngestScans', () => {
     Object.values(metricsMocks).forEach((mock) => mock.mockClear())
     Object.values(repoMocks).forEach((mock) => mock.mockReset())
     repoMocks.listSourceStates.mockResolvedValue([])
+    // Batched ensureSourceStates delegates to the per-source ensureSourceState
+    // mock so each test's ensureSourceState setup keeps driving behavior.
+    repoMocks.ensureSourceStates.mockImplementation(
+      async (inputs: ReadonlyArray<{ sourceId: string }>, now?: Date) => {
+        const entries = await Promise.all(
+          inputs.map(async (input) => {
+            const state = await repoMocks.ensureSourceState({ ...input, now })
+            return [input.sourceId, state] as const
+          }),
+        )
+        return new Map(entries)
+      },
+    )
   })
 
   it('enqueues one message per due source and never fetches', async () => {

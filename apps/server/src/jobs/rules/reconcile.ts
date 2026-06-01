@@ -177,25 +177,30 @@ export async function enqueueDueRuleSourceScans(
   const sources = listRuleSources()
   const weeklyGovernance = shouldRunWeeklyRuleSourceGovernance(now)
   const pulseOps = makePulseOpsRepo(createDb(env.DB))
-  const queueItems = (
-    await Promise.all(
-      sources.map(async (source) => {
-        const state = await pulseOps.ensureSourceState({
-          sourceId: source.id,
-          tier: sourceTier(source),
-          jurisdiction: source.jurisdiction,
-          cadenceMs: sourceCadenceMs(source),
-          now,
-          enabled: source.healthStatus !== 'paused',
-        })
-        if (!state.enabled) return null
-        if (sourceCanAutoScan(source)) {
-          return sourceIsDue(state, now) ? { source, reason: 'cadence_due' as const } : null
-        }
-        return weeklyGovernance ? { source, reason: 'weekly_governance' as const } : null
-      }),
-    )
-  ).filter((item): item is NonNullable<typeof item> => item !== null)
+  // One batched read+upsert for all rule sources instead of N serial
+  // round-trips — the per-source loop here (plus the pulse-ingest one) blew the
+  // cron's 15-minute wall-clock budget (exceededCpu), killing every fan-out.
+  const states = await pulseOps.ensureSourceStates(
+    sources.map((source) => ({
+      sourceId: source.id,
+      tier: sourceTier(source),
+      jurisdiction: source.jurisdiction,
+      cadenceMs: sourceCadenceMs(source),
+      now,
+      enabled: source.healthStatus !== 'paused',
+    })),
+    now,
+  )
+  const queueItems = sources.flatMap(
+    (source): Array<{ source: RuleSource; reason: PulseRuleSourceScanMessage['reason'] }> => {
+      const state = states.get(source.id)
+      if (!state || !state.enabled) return []
+      if (sourceCanAutoScan(source)) {
+        return sourceIsDue(state, now) ? [{ source, reason: 'cadence_due' }] : []
+      }
+      return weeklyGovernance ? [{ source, reason: 'weekly_governance' }] : []
+    },
+  )
 
   await Promise.all(
     queueItems.map(({ source, reason }) =>

@@ -49,6 +49,7 @@ interface IngestCounts {
 type PulseIngestRepo = Pick<
   ReturnType<typeof makePulseOpsRepo>,
   | 'ensureSourceState'
+  | 'ensureSourceStates'
   | 'getSourceState'
   | 'establishSourceBaseline'
   | 'createSourceSnapshot'
@@ -62,6 +63,7 @@ function makePulseIngestRepo(db: ReturnType<typeof createDb>): PulseIngestRepo {
   const repo = makePulseOpsRepo(db)
   return {
     ensureSourceState: (input) => repo.ensureSourceState(input),
+    ensureSourceStates: (inputs, now) => repo.ensureSourceStates(inputs, now),
     getSourceState: (sourceId) => repo.getSourceState(sourceId),
     establishSourceBaseline: (input) => repo.establishSourceBaseline(input),
     createSourceSnapshot: (input) => repo.createSourceSnapshot(input),
@@ -423,20 +425,24 @@ export async function enqueuePulseIngestScans(
 ): Promise<{ queued: number }> {
   const db = createDb(env.DB)
   const repo = makePulseIngestRepo(db)
-  const dueSourceIds = (
-    await Promise.all(
-      adapters.map(async (adapter) => {
-        const state = await repo.ensureSourceState({
-          sourceId: adapter.id,
-          tier: adapter.tier,
-          jurisdiction: adapter.jurisdiction,
-          cadenceMs: adapter.cronIntervalMs,
-          now,
-        })
-        return sourceIsDue(state, now) ? adapter.id : null
-      }),
-    )
-  ).filter((sourceId): sourceId is string => sourceId !== null)
+  // One batched read+upsert for all sources instead of N serial round-trips —
+  // the per-source loop was blowing the cron's wall-clock budget (exceededCpu).
+  const states = await repo.ensureSourceStates(
+    adapters.map((adapter) => ({
+      sourceId: adapter.id,
+      tier: adapter.tier,
+      jurisdiction: adapter.jurisdiction,
+      cadenceMs: adapter.cronIntervalMs,
+      now,
+    })),
+    now,
+  )
+  const dueSourceIds = adapters
+    .filter((adapter) => {
+      const state = states.get(adapter.id)
+      return state ? sourceIsDue(state, now) : false
+    })
+    .map((adapter) => adapter.id)
 
   await Promise.all(
     dueSourceIds.map((sourceId) =>

@@ -23,6 +23,7 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
   const rulesRepo = { upsertGlobalTemplates: vi.fn() }
   const pulseOpsRepo = {
     ensureSourceState: vi.fn(),
+    ensureSourceStates: vi.fn(),
     getSourceState: vi.fn(),
     establishSourceBaseline: vi.fn(),
     createSourceSnapshot: vi.fn(),
@@ -195,6 +196,20 @@ describe('rule source scan jobs', () => {
       enabled: true,
       nextCheckAt: new Date('2026-05-25T09:00:00.000Z'),
     })
+    // The batched ensureSourceStates delegates to the per-source ensureSourceState
+    // mock so existing per-test mockResolvedValue/mockResolvedValueOnce setups
+    // keep driving behavior; it returns a Map keyed by sourceId.
+    dbMocks.pulseOpsRepo.ensureSourceStates.mockImplementation(
+      async (inputs: ReadonlyArray<{ sourceId: string }>, now?: Date) => {
+        const entries = await Promise.all(
+          inputs.map(async (input) => {
+            const state = await dbMocks.pulseOpsRepo.ensureSourceState({ ...input, now })
+            return [input.sourceId, state] as const
+          }),
+        )
+        return new Map(entries)
+      },
+    )
     dbMocks.pulseOpsRepo.getSourceState.mockResolvedValue(null)
     dbMocks.pulseOpsRepo.createSourceSnapshot.mockResolvedValue({
       inserted: true,
