@@ -7,10 +7,29 @@ import {
   deriveObligationReadiness,
   defaultReadinessForStatus,
   isClosedObligationStatus,
+  isLegalEfileTransition,
   isLegalObligationTransition,
   isOpenObligationStatus,
   type ObligationStatus,
 } from './index'
+
+describe('isLegalEfileTransition (P0 signature loop)', () => {
+  it('allows the signature-loop step authorization_requested → authorization_signed', () => {
+    expect(isLegalEfileTransition('authorization_requested', 'authorization_signed')).toBe(true)
+  })
+
+  it('treats a same-state transition as legal (no-op)', () => {
+    expect(isLegalEfileTransition('authorization_requested', 'authorization_requested')).toBe(true)
+  })
+
+  it('rejects skipping ahead from authorization_requested straight to accepted', () => {
+    expect(isLegalEfileTransition('authorization_requested', 'accepted')).toBe(false)
+  })
+
+  it('treats final_package_delivered as terminal', () => {
+    expect(isLegalEfileTransition('final_package_delivered', 'submitted')).toBe(false)
+  })
+})
 
 describe('obligation workflow state model', () => {
   it('classifies open and closed statuses', () => {

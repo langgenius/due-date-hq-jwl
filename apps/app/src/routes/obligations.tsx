@@ -68,6 +68,7 @@ import {
 } from 'lucide-react'
 import {
   parseAsArrayOf,
+  parseAsBoolean,
   parseAsInteger,
   parseAsString,
   parseAsStringLiteral,
@@ -766,6 +767,10 @@ const obligationQueueSearchParamsParsers = {
   due: parseAsStringLiteral(DUE_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
   dueWithin: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
   evidence: parseAsStringLiteral(EVIDENCE_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
+  // "Awaiting signature" triage lens — filed returns still waiting on the
+  // client's 8879. Absent when off (no default); ?awaitingSignature=true
+  // when on.
+  awaitingSignature: parseAsBoolean.withOptions(REPLACE_HISTORY_OPTIONS),
   drawer: parseAsStringLiteral(DETAIL_DRAWERS).withOptions(REPLACE_HISTORY_OPTIONS),
   id: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
   tab: parseAsStringLiteral(DETAIL_TABS)
@@ -1160,6 +1165,7 @@ export function ObligationQueueRoute() {
       due,
       dueWithin,
       evidence,
+      awaitingSignature,
       drawer,
       id: detailId,
       tab: detailTab,
@@ -1219,6 +1225,8 @@ export function ObligationQueueRoute() {
   const lastSelectedIdRef = useRef<string | null>(null)
   const [openHeaderFilter, setOpenHeaderFilter] = useState<string | null>(null)
   const [extendedMemoOpen, setExtendedMemoOpen] = useState(false)
+  // P0: confirm gate for the bulk "Remind to sign" floating-bar action.
+  const [remindToSignConfirmOpen, setRemindToSignConfirmOpen] = useState(false)
   const [extendedMemo, setExtendedMemo] = useState('')
   const [exportModalOpen, setExportModalOpen] = useState(false)
   const [exportScope, setExportScope] = useState<ObligationExportDialogScope>('filtered')
@@ -1401,6 +1409,7 @@ export function ObligationQueueRoute() {
       ...(minDaysUntilDue !== undefined ? { minDaysUntilDue } : {}),
       ...(maxDaysUntilDue !== undefined ? { maxDaysUntilDue } : {}),
       ...(evidence === 'needs' ? { needsEvidence: true } : {}),
+      ...(awaitingSignature ? { awaitingSignature: true } : {}),
       ...(asOf ? { asOfDate: asOf } : {}),
       sort,
       limit: PAGE_SIZE,
@@ -1422,6 +1431,7 @@ export function ObligationQueueRoute() {
       minDaysUntilDue,
       maxDaysUntilDue,
       evidence,
+      awaitingSignature,
       asOf,
       sort,
     ],
@@ -1505,6 +1515,31 @@ export function ObligationQueueRoute() {
       },
       onError: (err) => {
         toast.error(t`Couldn't update selected rows`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  // P0: bulk Form 8879 signature reminders from the floating action bar.
+  // The server emails only the rows actually awaiting signature and
+  // returns counts so the toast can report what was sent vs skipped.
+  const bulkRemindSignatureMutation = useMutation(
+    orpc.obligations.bulkRemindSignature.mutationOptions({
+      onSuccess: (result) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+        setRowSelection({})
+        const description =
+          result.skippedCount > 0 || result.noEmailCount > 0
+            ? t`${result.remindedCount} emailed · ${result.skippedCount} not awaiting signature · ${result.noEmailCount} without an email on file`
+            : t`${result.remindedCount} emailed`
+        toast.success(t`Signature reminders sent`, { description })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't send reminders`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -2383,6 +2418,32 @@ export function ObligationQueueRoute() {
                 compact={panelOpenIntent}
                 readOnly={!canUpdateObligationStatus}
               />
+              {/* Awaiting-signature signal. A row marked Filed but still
+                  parked at efileState=authorization_requested isn't truly
+                  done — it's waiting on the client's 8879. Quiet outline
+                  chip so the green Filed pill stops reading as "complete."
+                  Mirrors the queue "Awaiting signature" filter lens. */}
+              {obligationQueueRow.status === 'done' &&
+              obligationQueueRow.efileState === 'authorization_requested' ? (
+                panelOpenIntent ? (
+                  <span
+                    title={t`Filed, but the client hasn't signed Form 8879 yet — e-filing is blocked until they sign.`}
+                    aria-label={t`Awaiting signature`}
+                    className="inline-flex size-4 shrink-0 items-center justify-center text-text-tertiary"
+                  >
+                    <Hourglass className="size-3.5" aria-hidden />
+                  </span>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="h-5 gap-1 px-1.5 text-caption-xs"
+                    title={t`Filed, but the client hasn't signed Form 8879 yet — e-filing is blocked until they sign.`}
+                  >
+                    <Hourglass className="size-3" aria-hidden />
+                    <Trans>Awaiting signature</Trans>
+                  </Badge>
+                )
+              ) : null}
               {obligationQueueRow.efileAcceptedAt && obligationQueueRow.status !== 'completed' ? (
                 <span
                   className="inline-flex items-center gap-1 rounded-full bg-state-success-solid px-2 py-0.5 text-caption-xs font-medium text-text-inverted"
@@ -3283,6 +3344,16 @@ export function ObligationQueueRoute() {
               >
                 <Trans>Needs evidence</Trans>
               </ObligationQueueActionChip>
+              <ObligationQueueActionChip
+                active={awaitingSignature === true}
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    awaitingSignature: awaitingSignature ? null : true,
+                  })
+                }
+              >
+                <Trans>Awaiting signature</Trans>
+              </ObligationQueueActionChip>
               {/* "Penalty input needed" chip retired 2026-05-22 with
                 hanxujiang's projected-exposure refactor (30f29dc).
                 The `exposure` query param and its filter pipeline are
@@ -3595,6 +3666,23 @@ export function ObligationQueueRoute() {
               <Button variant="ghost" size="sm" onClick={() => openExportDialog('selected')}>
                 <ArrowUpRightIcon data-icon="inline-start" />
                 <Trans>Export</Trans>
+              </Button>
+              {/* P0: bulk Form 8879 signature reminder. Outward-facing,
+                  fan-out email — confirm before sending. Rows not awaiting
+                  signature are skipped server-side. */}
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!canUpdateObligationStatus || bulkRemindSignatureMutation.isPending}
+                title={
+                  canUpdateObligationStatus
+                    ? t`Email selected clients a Form 8879 signature reminder`
+                    : t`Requires status-update access`
+                }
+                onClick={() => setRemindToSignConfirmOpen(true)}
+              >
+                <SendIcon data-icon="inline-start" />
+                <Trans>Remind to sign</Trans>
               </Button>
               <Separator orientation="vertical" className="mx-0.5 h-4" />
               <Button
@@ -4540,6 +4628,36 @@ export function ObligationQueueRoute() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* P0: confirm before the outward-facing bulk signature-reminder
+          email fan-out. Count is shown on the floating bar itself. */}
+      <AlertDialog open={remindToSignConfirmOpen} onOpenChange={setRemindToSignConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Email signature reminders?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <Trans>
+                We'll email a Form 8879 signature reminder to the clients on the selected deadlines.
+                Deadlines that aren't awaiting a signature are skipped automatically.
+              </Trans>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                bulkRemindSignatureMutation.mutate({ ids: selectedIds })
+                setRemindToSignConfirmOpen(false)
+              }}
+            >
+              <Trans>Send reminders</Trans>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
@@ -5558,6 +5676,50 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't mark e-file rejected`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  // P0 signature loop: advance the e-file pipeline from
+  // authorization_requested → authorization_signed when the client returns
+  // their signed 8879. Sub-status only — status stays `done` ("Filed").
+  // Base mutation handles invalidate + error toast; the success toast
+  // (with Undo) fires from the per-call onSuccess at the call site, same
+  // split as `changeStatus` below.
+  const updateEfileStateMutation = useMutation(
+    orpc.obligations.updateEfileState.mutationOptions({
+      onSuccess: () => {
+        invalidateDetail()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't update e-file state`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  // P0: email the client a Form 8879 signature reminder. Record-and-send —
+  // the server queues the email AND writes an audit row (so the stage card
+  // can surface "last reminded N days ago"). No Undo — you can't unsend.
+  const remindSignatureMutation = useMutation(
+    orpc.obligations.remindSignature.mutationOptions({
+      onSuccess: (result) => {
+        invalidateDetail()
+        if (result.emailQueued) {
+          toast.success(t`Signature reminder emailed`)
+        } else {
+          toast.warning(t`No client email on file`, {
+            description: t`Add an email address for this client to send signature reminders.`,
+          })
+        }
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't send reminder`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -6687,6 +6849,31 @@ export function ObligationQueueDetailDrawer({
                         reviewStage: nextReviewStage,
                       })
                     }}
+                    onMarkSigned={() => {
+                      // Advance the e-file pipeline; success toast offers an
+                      // Undo that reverts to authorization_requested (the
+                      // only state mark-signed fires from). Same per-call
+                      // onSuccess + Undo split as `changeStatus`.
+                      updateEfileStateMutation.mutate(
+                        { id: row.id, efileState: 'authorization_signed' },
+                        {
+                          onSuccess: (result) => {
+                            toast.success(t`Marked 8879 signed`, {
+                              description: t`Audit ${result.auditId.slice(0, 8)}`,
+                              action: {
+                                label: t`Undo`,
+                                onClick: () =>
+                                  updateEfileStateMutation.mutate({
+                                    id: row.id,
+                                    efileState: 'authorization_requested',
+                                  }),
+                              },
+                            })
+                          },
+                        },
+                      )
+                    }}
+                    onRemindSignature={() => remindSignatureMutation.mutate({ id: row.id })}
                   />
                 </div>
               </motion.div>
@@ -10194,6 +10381,8 @@ function ActiveStageDetailCard({
   onRecordRejection,
   onChangePrepStage,
   onChangeReviewStage,
+  onMarkSigned,
+  onRemindSignature,
 }: {
   row: ObligationQueueRow
   auditEvents: readonly AuditEventPublic[]
@@ -10204,6 +10393,10 @@ function ActiveStageDetailCard({
   onRecordRejection: () => void
   onChangePrepStage: (prepStage: ObligationPrepStage) => void
   onChangeReviewStage: (reviewStage: ObligationReviewStage) => void
+  // P0 signature loop: advance efileState → authorization_signed.
+  onMarkSigned: () => void
+  // P0: email the client a Form 8879 signature reminder.
+  onRemindSignature: () => void
 }) {
   const { t } = useLingui()
   // For the `blocked` stage's "Open blocking obligation" action.
@@ -10341,6 +10534,17 @@ function ActiveStageDetailCard({
     })
     return [...filtered].toSorted((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4)
   }, [auditEvents, stageStatusSet])
+  // P0: most-recent Form 8879 signature-reminder timestamp, for the "last
+  // reminded N days ago" line on the awaiting-signature stage card.
+  // Derived from the audit log — no dedicated column.
+  const lastSignatureReminderAt = useMemo(() => {
+    let latest: string | null = null
+    for (const event of auditEvents) {
+      if (event.action !== 'obligation.signature.reminded') continue
+      if (!latest || event.createdAt > latest) latest = event.createdAt
+    }
+    return latest
+  }, [auditEvents])
   const reviewCurrent = reviewPipelineCurrent(row)
   const notesOpen = row.reviewStage === 'notes_open'
   const tasks: StageTask[] = useMemo(() => {
@@ -10584,15 +10788,18 @@ function ActiveStageDetailCard({
         switch (row.efileState) {
           case 'authorization_requested':
             return [
+              // P0: both wired now. Primary = advance the pipeline once
+              // the client signs; secondary = chase them until they do.
+              {
+                id: 'mark-signed',
+                label: t`Mark 8879 signed`,
+                flavor: 'mutation',
+                primary: true,
+              },
               {
                 id: 'remind-8879',
                 label: t`Remind client to sign the 8879`,
-                flavor: 'manual',
-              },
-              {
-                id: 'mark-signed',
-                label: t`Mark 8879 signed when client returns it`,
-                flavor: 'manual',
+                flavor: 'mutation',
               },
               // Even pre-submission rows benefit from a direct route
               // to the Evidence tab — that's where the 8879 packet
@@ -10815,6 +11022,13 @@ function ActiveStageDetailCard({
         return onChangeReviewStage('notes_open')
       case 'mark-notes-addressed':
         return onChangeReviewStage('in_review')
+      // P0 signature loop (efileState authorization_requested →
+      // authorization_signed when the client returns their signed 8879).
+      case 'mark-signed':
+        return onMarkSigned()
+      // P0: email the client a Form 8879 signature reminder.
+      case 'remind-8879':
+        return onRemindSignature()
       // Status → done (mark filed)
       case 'file':
         return onChangeStatus('done')
@@ -10968,6 +11182,21 @@ function ActiveStageDetailCard({
           ) : null}
         </div>
       </header>
+      {/* P0: chase visibility on the awaiting-signature card — how long
+          since we last nudged the client to sign their 8879. */}
+      {row.status === 'done' &&
+      row.efileState === 'authorization_requested' &&
+      lastSignatureReminderAt ? (
+        <p className="text-xs text-text-tertiary">
+          {(() => {
+            const today = new Date().toISOString().slice(0, 10)
+            const days = daysBetween(lastSignatureReminderAt.slice(0, 10), today)
+            if (days <= 0) return t`Last reminded today`
+            if (days === 1) return t`Last reminded · 1 day ago`
+            return t`Last reminded · ${days} days ago`
+          })()}
+        </p>
+      ) : null}
 
       {/* 2026-05-26 (Yuqi sixty-seventh pass — overdue context):
           the milestone strip's red "Past deadline" word answers "is

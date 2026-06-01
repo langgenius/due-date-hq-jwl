@@ -331,6 +331,7 @@ function makeContext(input: {
     setBlockedBy: null!,
     setPrepStage: null!,
     setReviewStage: null!,
+    setEfileState: null!,
     unblockChildrenOf: null!,
     deleteByBatch: null!,
   }

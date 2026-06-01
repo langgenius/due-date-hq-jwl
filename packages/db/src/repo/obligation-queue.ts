@@ -64,6 +64,7 @@ export interface ObligationQueueListInput {
   minDaysUntilDue?: number
   maxDaysUntilDue?: number
   needsEvidence?: boolean
+  awaitingSignature?: boolean
   asOfDate?: string
   sort?: ObligationQueueSort
   cursor?: string | null
@@ -612,6 +613,20 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
 
       if (input.status && input.status.length > 0) {
         filters.push(inArray(obligationInstance.status, input.status))
+      }
+
+      // "Awaiting signature" lens — filed returns whose client hasn't
+      // signed Form 8879 yet. Combined predicate on purpose: efileState
+      // alone is unreliable (new filing obligations are seeded with
+      // 'authorization_requested' at creation while still 'pending'), so
+      // we also require status='done'.
+      if (input.awaitingSignature) {
+        filters.push(
+          and(
+            eq(obligationInstance.status, 'done'),
+            eq(obligationInstance.efileState, 'authorization_requested'),
+          )!,
+        )
       }
 
       const obligationIds = uniqueNonEmpty(input.obligationIds)
