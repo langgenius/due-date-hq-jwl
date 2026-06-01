@@ -18,7 +18,10 @@ import { Link, useNavigate } from 'react-router'
 import type { InAppNotificationPublic, NotificationType } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
-import { SidebarMenuBadge, SidebarMenuButton } from '@duedatehq/ui/components/ui/sidebar'
+import {
+  SidebarMenuBadge,
+  SidebarMenuButton,
+} from '@duedatehq/ui/components/ui/sidebar'
 import { Tabs, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -35,7 +38,7 @@ import { formatDatePretty } from '@/lib/utils'
 // Three surfaces, three roles:
 //   - Bell + popover = the Inbox (compact form)
 //   - /notifications (via the expand icon) = the Inbox (full-page form)
-//   - Dashboard "Alerts" section = daily source-alert scan
+//   - Dashboard "Pulse alerts" section = daily Pulse scan
 //   - ⌘K palette "What's new" = power-user shortcut to the same place
 //
 // Originally translated from the BellDropdown pattern in

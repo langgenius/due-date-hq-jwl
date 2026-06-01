@@ -689,7 +689,11 @@ function TemplateDialog({
                 <Trans>Template active</Trans>
               </span>
             </FieldLabel>
-            <Switch id="reminder-template-active" checked={active} onCheckedChange={setActive} />
+            <Switch
+              id="reminder-template-active"
+              checked={active}
+              onCheckedChange={setActive}
+            />
           </Field>
           <DialogFooter>
             {/* 2026-05-26 (step-6 ux-flow audit F5.1/F5.3): cancel
