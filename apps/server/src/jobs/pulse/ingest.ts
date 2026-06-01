@@ -332,6 +332,16 @@ async function ingestAdapter(
     })
     return counts
   } catch (error) {
+    // Source failures are caught here and only the message reaches `last_error`
+    // in D1, which hides the call site of runtime faults (e.g. workerd "Illegal
+    // invocation"). Log the full stack + resolved fetcher to observability so a
+    // failing source can be traced to an exact line via `wrangler tail`.
+    console.error('pulse.ingest.source_failed', {
+      sourceId: adapter.id,
+      fetcher: resolveFetcherForAdapter(adapter, ctx, opts.browserlessSourceIds),
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     await repo.recordSourceFailure({
       sourceId: adapter.id,
       checkedAt,
