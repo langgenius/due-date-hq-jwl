@@ -356,7 +356,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
           between major page columns (list vs panel) and gap-6 is
           the canonical for major-section separation. */}
       <div className="flex min-h-0 flex-1 gap-6">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-y-auto [scrollbar-gutter:stable]">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto [scrollbar-gutter:stable]">
           {alertsQuery.isLoading ? (
             <SkeletonList sources={sourceHealth} />
           ) : isEmpty ? (
@@ -431,19 +431,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   the row reflow naturally; the source filter is
                   the narrowest one now (#4) so 3-4 chips usually
                   fit on a single line at 520px+ panel widths. */}
-              {/* 2026-05-26 (Yuqi twentieth pass #2): when panel is
-                  open the filter row stays on ONE line — `flex-nowrap`
-                  + each filter trigger hugs its content (drop the
-                  fixed `w-[130px]` widths, fall back to natural
-                  width). When panel is closed, return to `flex-wrap`
-                  so the row can reflow on narrow viewports. */}
-              <div
-                className={
-                  panelOpen
-                    ? 'flex flex-nowrap items-center gap-2'
-                    : 'flex flex-wrap items-center gap-2'
-                }
-              >
+              {/* 2026-06-01: keep the filter row wrapping in both
+                  split-view and list-only mode. The alert list column
+                  owns vertical scrolling, and letting a nowrap row set
+                  min-content width can turn that same column into a
+                  horizontal scroller when the detail panel is open. */}
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 {/* 2026-05-26 (Yuqi seventy-fourth pass follow-up
                     — finish E): three Base UI Selects converted to
                     DropdownMenu + FilterTrigger. Yuqi's standing

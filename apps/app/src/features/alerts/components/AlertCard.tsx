@@ -185,7 +185,7 @@ export function AlertCard({
         // scale: "standard card padding = p-4", "card internal
         // block gap = gap-3". Was a one-off spacing here that read
         // looser than every other card surface on Today / Deadlines.
-        'group/alert-card relative flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-[opacity,background-color,border-color]',
+        'group/alert-card relative flex w-full min-w-0 cursor-pointer items-start gap-3 rounded-md border p-4 transition-[opacity,background-color,border-color]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         active
           ? // 2026-05-26 (Yuqi forty-fifth pass — active state stronger):
@@ -270,7 +270,7 @@ export function AlertCard({
               cards. Chip stays prominent (filled accent bg) and
               still sits inside the title row, just trailing the
               headline rather than introducing it. */}
-          <header className="flex items-center gap-2">
+          <header className="flex min-w-0 items-center gap-2">
             {/* 2026-05-26 (Yuqi forty-fourth pass — alert card
                 title is a "card emphasis title", not a row title):
                 title bumped back to text-base font-medium per Yuqi's
@@ -285,7 +285,7 @@ export function AlertCard({
                 stay at text-sm font-medium since they're row
                 titles in dense lists, not card headlines. */}
             <h3
-              className="min-w-0 truncate text-base font-medium leading-tight text-text-primary"
+              className="min-w-0 flex-1 truncate text-base font-medium leading-tight text-text-primary"
               title={alert.title}
             >
               {alert.title}
@@ -508,7 +508,7 @@ export function AlertCard({
               status-class signals (workflow / source identity /
               source health) live together at the bottom of the
               card, instead of split between the header and footer. */}
-          <div className="mt-1 flex items-center gap-2 border-t border-divider-subtle pt-2 text-sm">
+          <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2 border-t border-divider-subtle pt-2 text-sm">
             <AlertSourceBadge source={alert.source} sourceUrl={alert.sourceUrl} />
             <AlertSourceStatusBadge status={alert.sourceStatus} />
             <AlertStatusBadge status={alert.status} />
