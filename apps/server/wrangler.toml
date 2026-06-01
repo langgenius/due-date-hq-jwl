@@ -99,11 +99,18 @@ max_batch_timeout = 5
 max_retries = 5
 dead_letter_queue = "due-date-hq-email-dlq-staging"
 
+# max_concurrency caps how many consumer invocations Cloudflare runs in parallel.
+# Without it, Queues autoscales aggressively: a cron fan-out of ~300 messages spins up
+# dozens of concurrent invocations, each firing up to max_batch_size fetches at once →
+# 300+ near-simultaneous requests that overwhelm browserless (429) and state .gov sites
+# (403/406). Pinning to 2 serializes the burst so createPoliteFetch's per-invocation
+# 30s/host limiter and upstream rate limits can actually drain. Raise cautiously.
 [[queues.consumers]]
 queue = "due-date-hq-pulse-staging"
 max_batch_size = 10
 max_batch_timeout = 5
 max_retries = 5
+max_concurrency = 2
 dead_letter_queue = "due-date-hq-pulse-dlq-staging"
 
 # Drains the Pulse dead-letter queue: snapshots that exhausted max_retries above.
