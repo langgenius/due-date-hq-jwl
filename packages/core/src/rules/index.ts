@@ -4439,8 +4439,12 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'oh.sales_tax_rate_changes',
     jurisdiction: 'OH',
-    title: 'Ohio The Finder Sales Tax Rates and Changes',
-    url: 'https://thefinder.tax.ohio.gov/StreamlineSalesTaxWeb/default.aspx',
+    title: 'Ohio Department of Taxation Tax Alerts',
+    url: 'https://tax.ohio.gov/taxalerts',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+    sourceNotes:
+      'Official Ohio Department of Taxation Tax Alerts feed (dated tax-change notices). Replaces The Finder rate-lookup tool, which is an interactive query form, not an announcement stream.',
   },
   {
     id: 'ok.temporary_announcements',
@@ -4466,10 +4470,14 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ri.temporary_announcements',
     jurisdiction: 'RI',
     title: 'Rhode Island DOR Press Releases',
+    // RI publishes press releases as an HTML listing (dor.ri.gov/press-releases
+    // with /press-releases/<slug> items), not an RSS/Atom feed. Previously this
+    // was mislabeled api_watch + rss_or_announcement_list with feedUrl pointing
+    // at the same HTML page; corrected to html_watch so the metadata matches the
+    // actual acquisition path.
     url: 'https://dor.ri.gov/press-releases',
-    acquisitionMethod: 'api_watch',
-    adapterKind: 'rss_or_announcement_list',
-    feedUrl: 'https://dor.ri.gov/press-releases',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
   },
   {
     id: 'sc.temporary_announcements',
@@ -4513,8 +4521,12 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'ut.temporary_announcements',
     jurisdiction: 'UT',
-    title: 'Utah Tax Commission Public Notices and Recent Information',
-    url: 'https://tax.utah.gov/public-info/',
+    title: 'Utah State Tax Commission News Releases',
+    url: 'https://tax.utah.gov/commission-office/news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+    sourceNotes:
+      'Official Utah State Tax Commission dated news releases. Replaces the public-info landing page, which is a static hub with no dated announcement list.',
   },
   {
     id: 'va.temporary_announcements',
@@ -4544,7 +4556,16 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'wv.temporary_announcements',
     jurisdiction: 'WV',
     title: 'West Virginia Tax Division Administrative Notices',
-    url: 'https://tax.wv.gov/TaxProfessionals/AdministrativeNotices/Pages/AdministrativeNotices2026.aspx',
+    // The WV notices index is paginated by year (…AdministrativeNotices2026.aspx,
+    // …2025.aspx, …); there is no non-year index page. The `{year}` token is
+    // resolved to the current calendar year at fetch time (see
+    // resolveAnnouncementYearUrl in rule-source-adapters.ts) so the watcher
+    // follows the live year instead of silently stalling on a past year.
+    url: 'https://tax.wv.gov/TaxProfessionals/AdministrativeNotices/Pages/AdministrativeNotices{year}.aspx',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+    sourceNotes:
+      'Year-paginated administrative notices index; URL year is resolved dynamically to the current year at fetch time.',
   },
   {
     id: 'wy.temporary_announcements',
