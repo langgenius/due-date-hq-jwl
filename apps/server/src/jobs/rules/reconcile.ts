@@ -20,7 +20,7 @@ import {
   cachedConcreteDraftKey,
   RULE_CONCRETE_DRAFT_PROMPT,
 } from '../../procedures/rules/concrete-draft'
-import { archivePulseRaw } from '../pulse/ingest'
+import { archivePulseRaw, createPoliteFetch } from '../pulse/ingest'
 import { recordPulseMetric } from '../pulse/metrics'
 import {
   RULE_CONCRETE_DRAFT_GENERATE_MESSAGE_TYPE,
@@ -247,9 +247,16 @@ export async function consumePulseRuleSourceScan(
   }
 
   try {
+    // Wrap the global fetch: assigning the bare `fetch` to a context property
+    // and calling it as `ctx.fetch(...)` runs it with `this === ctx`, which
+    // workerd rejects with "Illegal invocation". createPoliteFetch calls fetch
+    // as a free function (correct `this`) and adds the 30s/host rate limiting
+    // this scan path otherwise lacks. A single instance is shared so text and
+    // PDF (binary) fetches to the same host coordinate.
+    const politeFetch = createPoliteFetch(fetch)
     const ingestCtx: IngestCtx = {
-      fetch,
-      binaryFetch: fetch,
+      fetch: politeFetch,
+      binaryFetch: politeFetch,
       getSourceState: async (sourceId) => {
         const currentState = await pulseOps.getSourceState(sourceId)
         return currentState

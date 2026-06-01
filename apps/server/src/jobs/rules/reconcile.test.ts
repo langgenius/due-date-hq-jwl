@@ -92,6 +92,9 @@ vi.mock('@duedatehq/ingest/http', () => ({
 
 vi.mock('../pulse/ingest', () => ({
   archivePulseRaw: pulseIngestMocks.archivePulseRaw,
+  // fetchTextSnapshot is mocked separately, so ctx.fetch is never invoked here;
+  // the wrapper just needs to return a function (pass the fetch through).
+  createPoliteFetch: (fn: typeof fetch) => fn,
 }))
 
 vi.mock('../pulse/metrics', () => ({
