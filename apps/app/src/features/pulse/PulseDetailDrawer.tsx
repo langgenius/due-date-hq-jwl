@@ -18,6 +18,7 @@ import { planHasFeature } from '@duedatehq/core/plan-entitlements'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
   Dialog,
@@ -707,14 +708,21 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                         bordered pill + code + jurisdiction name
                         carries the identity on its own; the SVG was
                         adding visual weight without adding signal. */}
-                    <span className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-sm border border-divider-regular bg-background-default px-2 py-0.5">
-                      <span className="text-xs font-semibold uppercase tracking-wide text-text-primary">
+                    {/* 2026-06-01: jurisdiction kicker swapped to the
+                        canonical Badge primitive (shape="square"
+                        variant="outline"). Nested typography stays —
+                        the outer hand-rolled bordered pill is now
+                        Badge's square+outline recipe. Same call as
+                        PulseStructuredFields:151 so the two surfaces
+                        share one primitive. */}
+                    <Badge shape="square" variant="outline" className="mb-2 gap-1.5">
+                      <span className="font-semibold uppercase tracking-wide text-text-primary">
                         {detail.jurisdiction}
                       </span>
-                      <span className="text-xs text-text-secondary">
+                      <span className="text-text-secondary">
                         {getJurisdictionName(detail.jurisdiction)}
                       </span>
-                    </span>
+                    </Badge>
                     <h2 className="text-2xl font-semibold leading-tight text-text-primary">
                       {detail.alert.title}
                     </h2>
@@ -744,9 +752,15 @@ export function PulseDetailDrawer({ alertId, onClose, mode = 'sheet' }: PulseDet
                         Same accent-tinted framed pill as the card
                         (`bg-state-accent-hover text-text-accent`) so
                         the two surfaces speak the same vocabulary. */}
-                    <span className="inline-flex h-6 shrink-0 items-center rounded-sm bg-state-accent-hover px-1.5 text-xs font-semibold uppercase tracking-wide text-text-accent">
+                    {/* 2026-06-01: change-kind chip swapped to the
+                        canonical Badge primitive (shape="square"
+                        variant="info" size="lg"). Same call as
+                        PulseAlertCard:318 — the two surfaces share
+                        one primitive instead of hand-rolling the
+                        accent-tinted rounded-sm uppercase recipe. */}
+                    <Badge shape="square" variant="info" size="lg">
                       {drawerChangeKindLabel(detail.alert.changeKind)}
-                    </span>
+                    </Badge>
                     <PulseSourceBadge
                       source={detail.alert.source}
                       sourceUrl={detail.alert.sourceUrl}
@@ -1492,26 +1506,35 @@ function DeadlineDetailsPanel({
   const canSave = canManage && !pending && Boolean(newDueDate) && stats.selectedCount > 0
 
   return (
-    <section className="flex flex-col gap-3 rounded-md border border-warning/40 bg-warning/5 p-4">
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-text-primary">
-          <Trans>Confirm deadline change</Trans>
-        </h3>
-        <p className="text-sm text-text-secondary">
-          <Trans>
-            Confirm the new due date and choose the existing deadlines that should receive it.
-          </Trans>
-        </p>
-        <div className="flex flex-wrap gap-1.5 pt-1">
-          {detail.applyReadiness.missing.map((field) => (
-            <Badge key={field} variant="outline" className="bg-background-default">
-              <MissingDetailBadgeLabel field={field} />
-            </Badge>
-          ))}
+    // 2026-06-01: hand-rolled warning panel swapped to the canonical
+    // Card primitive (size="sm" tone="warning" radius="md"). The
+    // amber border + bg tint, rounded-md chrome, and dense py-4
+    // density are now carried by Card's tone + radius axes — no
+    // per-call border/bg overrides. Content wrapped in CardContent
+    // for the matching px-4 inset. (Card is a `<div>` primitive,
+    // so the element changes from <section> to <div>; the existing
+    // CardContent + h3 + form scopes the landmark equivalently.)
+    <Card size="sm" tone="warning" radius="md">
+      <CardContent className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h3 className="text-sm font-semibold text-text-primary">
+            <Trans>Confirm deadline change</Trans>
+          </h3>
+          <p className="text-sm text-text-secondary">
+            <Trans>
+              Confirm the new due date and choose the existing deadlines that should receive it.
+            </Trans>
+          </p>
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {detail.applyReadiness.missing.map((field) => (
+              <Badge key={field} variant="outline" className="bg-background-default">
+                <MissingDetailBadgeLabel field={field} />
+              </Badge>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <form
+        <form
         className="grid gap-3"
         onSubmit={(event) => {
           event.preventDefault()
@@ -1594,7 +1617,8 @@ function DeadlineDetailsPanel({
           </Button>
         </div>
       </form>
-    </section>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -1618,50 +1642,57 @@ function ManagerReviewPanel({
   onSave: () => void
 }) {
   return (
-    <section className="grid gap-3 rounded-md border border-divider-subtle bg-background-section p-3">
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <h3 className="text-base font-semibold text-text-primary">
-            <Trans>Manager review</Trans>
-          </h3>
-          {reviewStatus ? (
-            <Badge variant={reviewStatus === 'reviewed' ? 'success' : 'secondary'}>
-              {reviewStatus === 'reviewed' ? <Trans>Reviewed</Trans> : <Trans>Open</Trans>}
-            </Badge>
-          ) : null}
-        </div>
-        <span className="text-xs tabular-nums text-text-tertiary">
+    // 2026-06-01: muted Manager-review panel swapped to the canonical
+    // Card primitive (size="xs" tone="muted" radius="md"). The
+    // bg-background-section + border-divider-subtle + rounded-md
+    // chrome is now Card's tone="muted" + radius="md"; xs density
+    // matches the original p-3.
+    <Card size="xs" tone="muted" radius="md">
+      <CardContent className="grid gap-3">
+        <header className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-semibold text-text-primary">
+              <Trans>Manager review</Trans>
+            </h3>
+            {reviewStatus ? (
+              <Badge variant={reviewStatus === 'reviewed' ? 'success' : 'secondary'}>
+                {reviewStatus === 'reviewed' ? <Trans>Reviewed</Trans> : <Trans>Open</Trans>}
+              </Badge>
+            ) : null}
+          </div>
+          <span className="text-xs tabular-nums text-text-tertiary">
+            <Trans>
+              {selectedCount} selected · {excludedCount} excluded
+            </Trans>
+          </span>
+        </header>
+        <p className="text-sm text-text-secondary">
           <Trans>
-            {selectedCount} selected · {excludedCount} excluded
+            Save the reviewed client set before applying when a Pulse has low confidence, review
+            flags, or a preparer escalation.
           </Trans>
-        </span>
-      </header>
-      <p className="text-sm text-text-secondary">
-        <Trans>
-          Save the reviewed client set before applying when a Pulse has low confidence, review
-          flags, or a preparer escalation.
-        </Trans>
-      </p>
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!canManage || isMutating || needsReviewCount === 0}
-          onClick={onConfirmAll}
-        >
-          <Trans>Confirm all review-needed</Trans>
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          disabled={!canManage || isMutating || selectedCount === 0}
-          onClick={onSave}
-        >
-          <Trans>Save manager review</Trans>
-        </Button>
-      </div>
-    </section>
+        </p>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!canManage || isMutating || needsReviewCount === 0}
+            onClick={onConfirmAll}
+          >
+            <Trans>Confirm all review-needed</Trans>
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            disabled={!canManage || isMutating || selectedCount === 0}
+            onClick={onSave}
+          >
+            <Trans>Save manager review</Trans>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -1812,47 +1843,57 @@ function PulseApplyVerificationDialog({
           {/* Deadline shift — the consequential fact, displayed
               with the same warning-amber tone as PulseStructuredFields
               so the eye recognizes the same pattern across surfaces. */}
-          <section className="grid gap-3 rounded-md border border-divider-subtle bg-background-section p-4">
-            <div className="flex flex-col gap-1">
-              <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
-                <Trans>Deadline shift</Trans>
-              </span>
-              <div className="flex flex-wrap items-baseline gap-3">
-                <span className="font-mono text-base tabular-nums text-text-tertiary line-through decoration-text-tertiary/40">
-                  {originalDate}
-                </span>
-                <ArrowRightIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
-                <span className="font-mono text-base font-semibold tabular-nums text-text-warning">
-                  {newDate}
-                </span>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {/* 2026-06-01: deadline-shift summary panel swapped to the
+              canonical Card primitive (size="sm" tone="muted"
+              radius="md"). Same muted-section recipe as the manager
+              review panel at sm density (p-4 instead of p-3) — the
+              bg-background-section + border-divider-subtle chrome is
+              now Card's tone="muted" axis. */}
+          <Card size="sm" tone="muted" radius="md">
+            <CardContent className="grid gap-3">
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
-                  <Trans>Authority</Trans>
+                  <Trans>Deadline shift</Trans>
                 </span>
-                <Button
-                  nativeButton={false}
-                  variant="link"
-                  size="sm"
-                  className="h-auto justify-start px-0 text-sm"
-                  render={
-                    <a href={detail.alert.sourceUrl} target="_blank" rel="noopener noreferrer" />
-                  }
-                >
-                  {detail.alert.source}
-                  <ExternalLinkIcon data-icon="inline-end" />
-                </Button>
+                <div className="flex flex-wrap items-baseline gap-3">
+                  <span className="font-mono text-base tabular-nums text-text-tertiary line-through decoration-text-tertiary/40">
+                    {originalDate}
+                  </span>
+                  <ArrowRightIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
+                  <span className="font-mono text-base font-semibold tabular-nums text-text-warning">
+                    {newDate}
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
-                  <Trans>Issued</Trans>
-                </span>
-                <span className="font-mono text-sm tabular-nums text-text-primary">{issued}</span>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+                    <Trans>Authority</Trans>
+                  </span>
+                  <Button
+                    nativeButton={false}
+                    variant="link"
+                    size="sm"
+                    className="h-auto justify-start px-0 text-sm"
+                    render={
+                      <a href={detail.alert.sourceUrl} target="_blank" rel="noopener noreferrer" />
+                    }
+                  >
+                    {detail.alert.source}
+                    <ExternalLinkIcon data-icon="inline-end" />
+                  </Button>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+                    <Trans>Issued</Trans>
+                  </span>
+                  <span className="font-mono text-sm tabular-nums text-text-primary">
+                    {issued}
+                  </span>
+                </div>
               </div>
-            </div>
-          </section>
+            </CardContent>
+          </Card>
 
           {/* Verbatim source excerpt — same blockquote treatment as
               PulseStructuredFields so the CPA recognizes "this is the

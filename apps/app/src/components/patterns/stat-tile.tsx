@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
+import { MinusIcon, TrendingDownIcon, TrendingUpIcon } from 'lucide-react'
 
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -49,6 +51,32 @@ import { cn } from '@duedatehq/ui/lib/utils'
  */
 export type StatTileTone = 'neutral' | 'critical' | 'muted'
 
+/**
+ * Week-over-week (or any-period-over-prior-period) trend shown as a
+ * small pill underneath the label. Optional — only render when the
+ * caller has a real delta. The tone follows the sign by default:
+ *   - delta > 0 → warning  (orange pill, trending-up icon)
+ *   - delta < 0 → success  (green pill, trending-down icon)
+ *   - delta === 0 → muted  (gray pill, minus icon)
+ * Callers can override the tone for metrics where "up" is good
+ * (revenue, completed) by passing `toneOverride`.
+ *
+ * 2026-05-31 (Yuqi Pencil /today AvFsh round): trend slot added per
+ * design — the dashboard summary tiles ("In review", "Blocked",
+ * "Waiting on client") gain a week-over-week pill to keep momentum
+ * visible without leaving the section.
+ */
+export interface StatTileTrend {
+  /** Signed delta vs the prior period. */
+  delta: number
+  /** Override the default tone-from-sign logic. */
+  toneOverride?: 'success' | 'warning' | 'muted'
+  /** Override the default copy (default: "+N vs last wk" / "−N vs last wk" / "Flat"). */
+  label?: ReactNode
+  /** Optional aria-label for screen readers. */
+  ariaLabel?: string
+}
+
 export function StatTile({
   value,
   label,
@@ -57,6 +85,7 @@ export function StatTile({
   onClick,
   ariaLabel,
   className,
+  trend,
 }: {
   /** Tile magnitude. `undefined` renders a skeleton until the query resolves. */
   value: ReactNode | undefined
@@ -72,6 +101,8 @@ export function StatTile({
   ariaLabel?: string
   /** Optional extra classes appended to the tile shell (rare; prefer no-op). */
   className?: string
+  /** Optional week-over-week trend pill rendered beneath the label. */
+  trend?: StatTileTrend | undefined
 }) {
   // 2026-05-26 (audit cross-surface P0 #1): value scale aligned with
   // DESIGN.md §3.2 "Tile value" canonical row — text-xl / font-semibold
@@ -103,6 +134,44 @@ export function StatTile({
     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-state-accent-active-alt',
   )
 
+  // Resolve the trend pill's tone + icon + copy. Default mapping
+  // (delta sign → tone) is the common case; callers can override
+  // when "up" is good for that metric.
+  //
+  // 2026-05-31 (Yuqi DS-first revision): pill now uses the
+  // canonical `<Badge>` primitive instead of a hand-rolled
+  // rounded-full + bg/text-tone span. Tone → Badge variant map:
+  // success/warning are direct; "muted" maps to `secondary` (the
+  // design system's gray-soft fill). Skipping `tabular-nums` →
+  // Badge handles font sizing; we add it via className for the
+  // delta number specifically.
+  let trendPill: ReactNode = null
+  if (trend) {
+    const sign = trend.delta > 0 ? 'up' : trend.delta < 0 ? 'down' : 'flat'
+    const resolvedTone =
+      trend.toneOverride ??
+      (sign === 'up' ? 'warning' : sign === 'down' ? 'success' : 'muted')
+    const TrendIcon =
+      sign === 'up' ? TrendingUpIcon : sign === 'down' ? TrendingDownIcon : MinusIcon
+    const trendCopy =
+      trend.label ??
+      (sign === 'flat'
+        ? 'Flat'
+        : `${sign === 'up' ? '+' : '−'}${Math.abs(trend.delta)} vs last wk`)
+    const badgeVariant =
+      resolvedTone === 'success'
+        ? 'success'
+        : resolvedTone === 'warning'
+          ? 'warning'
+          : 'secondary'
+    trendPill = (
+      <Badge variant={badgeVariant} aria-label={trend.ariaLabel} className="mt-0.5 tabular-nums">
+        <TrendIcon aria-hidden />
+        {trendCopy}
+      </Badge>
+    )
+  }
+
   const body = (
     <>
       {value === undefined ? (
@@ -111,6 +180,7 @@ export function StatTile({
         <span className={valueClass}>{value}</span>
       )}
       <span className="text-sm text-text-secondary">{label}</span>
+      {trendPill}
     </>
   )
 

@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 
 import type { ClientCreateInput, ClientPublic, ObligationStatus } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -351,11 +352,14 @@ export function ClientsRoute() {
                 Previously the chip kept the unfiltered total even
                 when 8 of 47 rows were visible, which made the chip
                 lie about the visible list. */}
-            <span className="rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium text-text-secondary tabular-nums">
+            {/* 2026-06-01: swapped hand-rolled count pill for
+                Badge primitive (variant="secondary" size="lg")
+                — canonical PageHeader-title count chip. */}
+            <Badge variant="secondary" size="lg" className="tabular-nums">
               {filteredClients.length === clients.length
                 ? clients.length
                 : t`${filteredClients.length} of ${clients.length}`}
-            </span>
+            </Badge>
           </span>
         }
         actions={

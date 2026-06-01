@@ -5,6 +5,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { ChevronDownIcon } from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -74,15 +75,22 @@ export function ClientTitleSwitcher({ client }: { client: Pick<ClientPublic, 'id
     <span className="inline-flex min-w-0 items-center gap-1">
       <span className="truncate">{client.name}</span>
       <Popover open={open} onOpenChange={setOpen}>
+        {/* 2026-06-01: swapped hand-rolled size-7 button for the
+            Button primitive (ghost / icon-xs gives the same size-7
+            footprint with shared hover + focus-ring tokens). The
+            ChevronDownIcon keeps an explicit `size-5` so the chevron
+            stays the larger H1-scale glyph rather than the icon-xs
+            default of size-3. */}
         <PopoverTrigger
           render={
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-xs"
               aria-label={t`Switch to another client`}
-              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:bg-state-base-hover focus-visible:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
             >
               <ChevronDownIcon className="size-5" aria-hidden />
-            </button>
+            </Button>
           }
         />
         <PopoverContent

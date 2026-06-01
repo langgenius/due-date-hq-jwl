@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "app-5173",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-F", "@duedatehq/app", "dev", "--", "--port", "5173", "--strictPort"],
+      "port": 5173
+    },
+    {
       "name": "app-5177",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["-F", "@duedatehq/app", "dev", "--", "--port", "5177", "--strictPort"],

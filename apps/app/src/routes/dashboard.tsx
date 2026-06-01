@@ -1,9 +1,12 @@
-import { AlertCircleIcon, UploadIcon } from 'lucide-react'
+import { AlertCircleIcon, RotateCwIcon, UploadIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
+
+import { useCurrentUserName } from '@/lib/use-current-user-name'
+import { formatRelativeTime } from '@/lib/utils'
 
 import type {
   DashboardDueBucket,
@@ -141,6 +144,17 @@ export function DashboardRoute() {
   const hasClients = (clientsProbeQuery.data?.length ?? 0) > 0
   const data = dashboardQuery.data
 
+  // 2026-05-31 (Yuqi Pencil TV9xe — eyebrow + title polish): pull
+  // the current viewer's name for the personalized greeting, and
+  // the dashboard query's `dataUpdatedAt` timestamp for the sync
+  // indicator. Both are read-only signals — no extra requests.
+  const userName = useCurrentUserName()
+  const firstName = firstNameFromDisplay(userName)
+  const greetingKey = todayGreetingPrefix()
+  const syncedAtIso =
+    dashboardQuery.dataUpdatedAt > 0 ? new Date(dashboardQuery.dataUpdatedAt).toISOString() : null
+  const syncedLabel = syncedAtIso ? formatRelativeTime(syncedAtIso) : null
+
   const triageTabs = data?.triageTabs ?? []
   const facets = data?.facets
 
@@ -197,21 +211,65 @@ export function DashboardRoute() {
           `actions` prop. Future polish to the PageHeader
           primitive propagates here automatically. */}
       <PageHeader
+        // 2026-05-31 (Yuqi Pencil TV9xe — eyebrow row): personalized
+        // greeting + sync indicator above the H1. The eyebrow slot's
+        // default chrome is `uppercase tracking-eyebrow text-text-tertiary`
+        // (for breadcrumb-style eyebrows on other pages); on Today we
+        // override to a normal-case, body-weight sentence with the
+        // sync state painted in `text-text-success`. Tokens used
+        // throughout — `text-text-secondary`, `text-text-tertiary`,
+        // `text-text-success` — so a token tweak in
+        // `semantic-light.css` propagates here automatically.
+        eyebrow={
+          <div className="flex flex-wrap items-center gap-1.5 text-sm font-medium tracking-normal text-text-secondary normal-case">
+            {firstName ? (
+              greetingKey === 'morning' ? (
+                <Trans>Good morning, {firstName}</Trans>
+              ) : greetingKey === 'afternoon' ? (
+                <Trans>Good afternoon, {firstName}</Trans>
+              ) : (
+                <Trans>Good evening, {firstName}</Trans>
+              )
+            ) : greetingKey === 'morning' ? (
+              <Trans>Good morning</Trans>
+            ) : greetingKey === 'afternoon' ? (
+              <Trans>Good afternoon</Trans>
+            ) : (
+              <Trans>Good evening</Trans>
+            )}
+            {syncedLabel ? (
+              <>
+                <span aria-hidden className="text-text-tertiary">
+                  ·
+                </span>
+                <span className="inline-flex items-center gap-1 text-text-success">
+                  <RotateCwIcon className="size-3" aria-hidden />
+                  {syncedLabel === 'just now' ? (
+                    <Trans>Synced just now</Trans>
+                  ) : (
+                    <Trans>Synced {syncedLabel}</Trans>
+                  )}
+                </span>
+              </>
+            ) : null}
+          </div>
+        }
         title={
-          // 2026-05-27 (Yuqi feedback: "should be like this but May 27
-          // in gray"): the date renders inline at the same heading
-          // type-style as "Today", just in text-text-tertiary. Drops
-          // the rounded-pill chrome — the date is part of the title,
-          // not a count-chip beside it.
-          <span className="inline-flex items-baseline gap-2">
+          // 2026-05-31 (Yuqi Pencil TV9xe — title row): "Today" stays
+          // at the canonical PageHeader heading scale; the date sits
+          // beside it at `text-xl text-text-secondary` so it reads as
+          // companion context, not a quiet caption (was `text-text-tertiary`
+          // at inherited size). Weekday-led format ("Friday, May 29")
+          // anchors the user's day-of-week awareness.
+          <span className="inline-flex items-baseline gap-3">
             <Trans>Today</Trans>
             {dashboardQuery.isLoading ? (
-              <span className="font-normal text-text-tertiary italic">
+              <span className="text-xl font-normal text-text-tertiary italic">
                 <Trans>loading…</Trans>
               </span>
             ) : data?.asOfDate ? (
-              <span className="font-normal tabular-nums text-text-tertiary">
-                {formatTodayHeader(data.asOfDate)}
+              <span className="text-xl font-normal tabular-nums text-text-secondary">
+                {formatTodayHeaderWithWeekday(data.asOfDate)}
               </span>
             ) : null}
           </span>
@@ -349,4 +407,41 @@ function formatTodayHeader(asOfDate: string): string {
     month: 'long',
     day: 'numeric',
   }).format(date)
+}
+
+/**
+ * Title-row date format — "Friday, May 29". Per Pencil node TV9xe,
+ * the date sits next to "Today" in `text-text-secondary`, weekday-led
+ * so the heading anchors the user's day-of-week awareness, not just
+ * the month/day.
+ */
+function formatTodayHeaderWithWeekday(asOfDate: string): string {
+  const date = new Date(`${asOfDate.slice(0, 10)}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return asOfDate
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }).format(date)
+}
+
+/**
+ * Time-of-day-aware greeting prefix. Uses the local viewer's clock so
+ * "Good morning" reflects the user's wall time, not the firm's
+ * timezone. Returns the bare prefix ("Good morning") so the call site
+ * can append the user's first name and remain inside a `<Trans>`
+ * macro for translation.
+ */
+function todayGreetingPrefix(now: Date = new Date()): 'morning' | 'afternoon' | 'evening' {
+  const hour = now.getHours()
+  if (hour < 12) return 'morning'
+  if (hour < 18) return 'afternoon'
+  return 'evening'
+}
+
+/** First word of a display name; falls back to the trimmed full name. */
+function firstNameFromDisplay(name: string | null): string {
+  if (!name) return ''
+  const [first] = name.trim().split(/\s+/)
+  return first ?? ''
 }

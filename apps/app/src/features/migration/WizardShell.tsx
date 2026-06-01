@@ -13,6 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@duedatehq/ui/components/ui/alert-dialog'
+import { Card } from '@duedatehq/ui/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -429,10 +430,20 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
   return (
     <div className="absolute inset-0 overflow-y-auto bg-components-panel-bg/85">
       <div className="grid min-h-full place-items-center px-6 py-6">
-        <section
+        {/* 2026-05-31: processing-overlay modal swapped from hand-rolled
+            `section` with accent border + bg to Card size="sm" tone="accent".
+            Card's gap-4 replaces the explicit mt-4 spacing between
+            header/progress/steps; px-4 supplies horizontal padding (size=sm
+            only provides py-4). role="status" + aria-live="polite" remain
+            on the Card div so the live-region announcement is preserved;
+            max-w-[520px] + shadow-overlay stay as overlay-context overrides
+            per the migration brief. */}
+        <Card
           role="status"
           aria-live="polite"
-          className="w-full max-w-[520px] rounded-lg border border-state-accent-active bg-background-body p-4 shadow-overlay"
+          size="sm"
+          tone="accent"
+          className="w-full max-w-[520px] px-4 shadow-overlay"
         >
           <div className="flex items-start gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-state-accent-hover-alt text-text-accent">
@@ -445,7 +456,7 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
           </div>
 
           <div
-            className="mt-4 h-1 overflow-hidden rounded-full bg-state-accent-hover-alt"
+            className="h-1 overflow-hidden rounded-full bg-state-accent-hover-alt"
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={100}
@@ -457,7 +468,7 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
             />
           </div>
 
-          <ol className="mt-4 grid gap-2">
+          <ol className="grid gap-2">
             {copy.steps.map((step, index) => {
               const complete = index < activeIndex
               const active = index === activeIndex
@@ -506,7 +517,7 @@ function ProcessingOverlay({ transition }: { transition: WizardTransitionState }
               )
             })}
           </ol>
-        </section>
+        </Card>
       </div>
     </div>
   )

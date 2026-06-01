@@ -5,7 +5,10 @@ import { Link, useNavigate } from 'react-router'
 
 import type { PulseSourceHealth } from '@duedatehq/contracts'
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
+
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 
 import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
 import {
@@ -15,12 +18,21 @@ import {
 import { PulsingDot } from '@/features/pulse/components/PulsingDot'
 import { StatusBanner } from '@/components/patterns/status-banner'
 
-import { NeedsAttentionCard, NeedsAttentionOverflowCard } from './needs-attention-card'
+// 2026-05-31 (Yuqi Pencil Sq0EX): NeedsAttentionOverflowCard is no
+// longer used in this section — the "View all" section link below
+// the grid replaces the per-card overflow tile. The export is
+// retained from the card module for any future callers.
+import { NeedsAttentionCard } from './needs-attention-card'
 
 // Dashboard "Needs attention" section — top surface that promotes
 // Pulse alerts from a first-class card row.
 
-const VISIBLE_ALERTS = 2
+// 2026-05-31 (Yuqi Pencil Sq0EX): grid widened from 2 to 3 cards
+// in the wide-viewport row so the Today alerts surface mirrors the
+// 3-card composition in the design. Overflow continues to expose
+// the View all link below the grid; the per-card overflow column
+// is dropped (the Pencil design uses a section-level link).
+const VISIBLE_ALERTS = 3
 const NATIONAL_MONITORING_JURISDICTION_COUNT = 52
 
 // 2026-05-24 (critique P0): aligned with the sidebar's
@@ -113,31 +125,28 @@ function NeedsAttentionSection() {
       // while also unifying with the canonical StatusBanner shape.
       // 2026-05-28 (Yuqi /today polish): always set `gap-4` so the
       // section heading + body have the same rhythm as Actions this
-      // week. Previously empty state had 0 gap (heading sat flush
-      // against the dashed StatusBanner), while alerts-present had
-      // gap-2.5. Now both states match the dashboard's section gap.
-      // 2026-05-29 (Yuqi /today follow-up): inter-section gap tightened
-      // gap-4 → gap-3 to match Actions this week's new internal
-      // rhythm. Universal "gap smaller — apply to everywhere" pass.
-      className={cn(
-        'flex flex-col gap-3 rounded-xl',
-        totalAlertCount > 0 && 'bg-state-destructive-hover p-3',
-      )}
+      // 2026-05-31 (Yuqi DS-first revision): destructive-toned
+      // panel wash dropped. The previous `bg-state-destructive-hover
+      // p-3 rounded-xl` painted the entire section red whenever
+      // any alert was present — even for low-severity informational
+      // alerts. That's a section-level urgency signal that the
+      // design system doesn't have a pattern for (Card primitive
+      // is per-block, not per-section), and it inconsistent with
+      // the un-washed Actions-this-week section below.
+      //
+      // Per-alert urgency now lives where it belongs — on the
+      // individual `<NeedsAttentionCard>` chrome (the
+      // LowConfidenceBadge, the source-link icon, the card's
+      // hover state) — and the section reads as a regular
+      // gap-rhythm section like every other one on /today.
+      className="flex flex-col gap-3"
     >
-      {/* 2026-05-27 (Yuqi feedback: "去掉view all alerts. 点击+2 more
-          就是去viewall"): the trailing "View all alerts" link was
-          dropped because the `+ N more` overflow tile already
-          navigates to the same /rules/pulse destination. With one
-          remaining child, the flex justify-between scaffolding is
-          unnecessary — the h2 sits alone on its row.
-
-          2026-05-29 (Yuqi /today follow-up — "follow the gap"): added
-          `px-3` on empty-state Alerts so the h2 left edge aligns with
-          Actions this week's h2 (which already had px-3). In the
-          alerts-present case the outer `p-3` on the section already
-          provides the same indent, so we only apply the inset
-          padding here when there's no outer panel padding. */}
-      <div className={cn('flex items-center gap-3', totalAlertCount === 0 && 'px-3')}>
+      {/* 2026-05-31 (Yuqi DS-first revision): `px-3` now applied
+          unconditionally — the outer destructive-toned wash was
+          dropped, so the conditional padding compensation for the
+          alerts-present case is no longer needed. The h2 left
+          edge aligns with Actions-this-week's h2 in both states. */}
+      <div className="flex items-center gap-3 px-3">
         {/* 2026-05-25 (Yuqi Today #1 — second pass): h2 stepped
             down text-xl → text-lg, matching the parallel change
             on Actions-this-week's h2. The page was reading as
@@ -154,23 +163,29 @@ function NeedsAttentionSection() {
             signals are meaningful: monitoring (always when sources
             exist) + alert count (when > 0, destructive-toned). */}
         <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-text-primary">
-          {/* 2026-05-27 (Yuqi feedback: "the numbers are part of the
-              title. write 4 Alerts"): count + noun read as one phrase
-              at the heading type-style. Number prefix matches the
-              "10 Actions this week" pattern. When no alerts exist,
-              the heading collapses to the bare noun. */}
+          {/* 2026-05-31 (Yuqi Pencil Sq0EX): count peeled off the
+              heading and into a separate `<Badge variant="destructive">`.
+              Sticking to the canonical Badge primitive so tone
+              tweaks in `badge.tsx` (or its underlying tokens)
+              propagate here automatically — no hand-rolled pill
+              styling. */}
+          <Trans>Alerts</Trans>
           {totalAlertCount > 0 ? (
-            <Trans>
-              <Plural value={totalAlertCount} one="# Alert" other="# Alerts" />
-            </Trans>
-          ) : (
-            <Trans>Alerts</Trans>
-          )}
+            <Badge variant="destructive" className="tabular-nums">
+              {totalAlertCount}
+            </Badge>
+          ) : null}
+          {/* 2026-05-31 (Yuqi Pencil Sq0EX): monitoring chip uses
+              the canonical `<Badge variant="outline">` primitive
+              (border-divider-regular + text-text-secondary +
+              rounded-full) with `<PulsingDot tone="success" />`
+              for the live signal. Stays inside the design system
+              — no bespoke "white-bg pill" styling. */}
           {hasNationalMonitoringCoverage ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
+            <Badge variant="outline">
               <PulsingDot tone="success" active />
               <Trans>Monitoring Federal + 50 states + DC</Trans>
-            </span>
+            </Badge>
           ) : null}
         </h2>
       </div>
@@ -185,26 +200,50 @@ function NeedsAttentionSection() {
         // 2026-05-28 (cherry-pick conflict resolve): kept Yuqi's
         // deterministic grid over the earlier flex-wrap try — the
         // grid + 160px overflow column is the authored intent.
-        <div
-          className={cn(
-            'grid items-stretch gap-3',
-            alerts.length === 1 && 'grid-cols-1',
-            alerts.length === 2 && 'grid-cols-2',
-            overflowCount > 0 && 'grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px]',
-          )}
-        >
-          {visibleAlerts.map((alert) => (
-            <div key={alert.id} className="h-full min-w-0">
-              <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
-            </div>
-          ))}
+        // 2026-05-31 (Yuqi Pencil Sq0EX): grid bumped to support
+        // 3 cards side by side. The overflow column previously
+        // sat as a 160px sibling column; now overflow surfaces via
+        // a section-level "View all" link below the grid (see
+        // below) so all three card slots stay equal-width. The
+        // fragment groups the grid + view-all link as siblings
+        // under the same ternary branch.
+        // 2026-05-31 (Yuqi DS-first revision): both the cards grid
+        // and the view-all link now carry `px-3` since the outer
+        // panel wash + its compensating padding were removed. Same
+        // gutter rhythm as Actions-this-week below — sections look
+        // consistent across the page.
+        <>
+          <div
+            className={cn(
+              'grid items-stretch gap-3 px-3',
+              alerts.length === 1 && 'grid-cols-1',
+              alerts.length === 2 && 'grid-cols-2',
+              alerts.length >= 3 && 'grid-cols-3',
+            )}
+          >
+            {visibleAlerts.map((alert) => (
+              <div key={alert.id} className="h-full min-w-0">
+                <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
+              </div>
+            ))}
+          </div>
           {overflowCount > 0 ? (
-            <NeedsAttentionOverflowCard
-              count={overflowCount}
-              onOpen={() => void navigate('/rules/pulse')}
-            />
+            <div className="flex justify-end px-3">
+              {/* 2026-05-31 (Yuqi DS-first revision): now uses the
+                  canonical `<TextLink>` primitive instead of a
+                  hand-rolled `<button>` with text-muted/hover/focus
+                  classes. Same canonical muted-inline-link shape
+                  used by the "All deadlines" link on the Actions
+                  section header. */}
+              <TextLink
+                onClick={() => void navigate('/rules/pulse')}
+                aria-label={t`View all ${alerts.length} alerts`}
+              >
+                <Trans>View all</Trans>
+              </TextLink>
+            </div>
           ) : null}
-        </div>
+        </>
       ) : (
         // 2026-05-26 (Yuqi Today #2 + #3): empty-state body. Two
         // signals stacked:
@@ -265,12 +304,18 @@ function AlertsEmptyState({
       <span aria-hidden className="text-text-tertiary">
         ·
       </span>
-      <Link
-        to="/rules/sources"
-        className="underline-offset-2 hover:text-text-secondary hover:underline"
+      {/* 2026-05-31 (Yuqi DS-first revision): hand-rolled inline
+          link replaced with the canonical `<TextLink>` primitive.
+          The parent span is `text-xs`, so the default size (text-xs)
+          matches the surrounding text density. */}
+      <TextLink
+        variant="muted"
+        size="default"
+        className="underline-offset-2 hover:underline"
+        render={<Link to="/rules/sources" />}
       >
         <Trans>View sources</Trans>
-      </Link>
+      </TextLink>
     </>
   ) : null
 

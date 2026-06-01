@@ -3001,9 +3001,12 @@ export function ObligationQueueRoute() {
           <span className="inline-flex items-center gap-2">
             <Trans>Deadlines</Trans>
             {scopeTotal > 0 ? (
-              <span className="rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
+              // 2026-06-01: swapped hand-rolled count pill for Badge
+              // (variant="secondary" size="lg") — canonical
+              // PageHeader-title count chip.
+              <Badge variant="secondary" size="lg" className="tabular-nums">
                 {scopeTotal}
-              </span>
+              </Badge>
             ) : null}
           </span>
         }
@@ -9845,10 +9848,13 @@ function AuthorityResponsePanel({
               {rejectedAt ? <> · {formatDatePretty(rejectedAt.slice(0, 10))}</> : null}
             </p>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full border border-state-destructive-border bg-state-destructive-hover px-2 py-1 text-caption-xs font-medium text-text-destructive">
+          {/* 2026-06-01: swapped hand-rolled destructive pill for
+              Badge variant="destructive". Soft red bg carries the
+              destructive tone; the explicit border is dropped. */}
+          <Badge variant="destructive">
             <AlertTriangleIcon className="size-3" aria-hidden />
             <Trans>Rejected</Trans>
-          </span>
+          </Badge>
         </div>
         {rejection?.reason || rejection?.authority || rejection?.reference ? (
           <dl className="grid gap-2 text-sm md:grid-cols-3">
@@ -9907,10 +9913,13 @@ function AuthorityResponsePanel({
             <Trans>Awaiting authority acceptance</Trans>
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-state-warning-hover px-2 py-1 text-caption-xs font-medium text-text-warning">
+        {/* 2026-06-01: swapped hand-rolled warning pill for
+            Badge variant="warning". Same soft amber background and
+            text token, with built-in icon sizing. */}
+        <Badge variant="warning">
           <Clock className="size-3" aria-hidden />
           <Trans>Pending</Trans>
-        </span>
+        </Badge>
       </div>
       <p className="text-sm text-text-secondary">
         <Trans>

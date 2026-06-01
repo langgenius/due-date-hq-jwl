@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -315,9 +316,15 @@ export function PulseAlertCard({
             >
               {alert.title}
             </h3>
-            <span className="inline-flex h-6 shrink-0 items-center rounded-sm bg-state-accent-hover px-1.5 text-xs font-semibold uppercase tracking-wide text-text-accent">
+            {/* 2026-06-01: change-kind chip swapped to the canonical
+                Badge primitive (shape="square" variant="info"). The
+                hand-rolled rounded-sm + uppercase + accent-tint
+                recipe is now carried by Badge's `square` shape and
+                `info` variant — same call as PulseDetailDrawer:747
+                so the two surfaces stay in sync. */}
+            <Badge shape="square" variant="info" size="lg">
               {changeKindLabel(alert.changeKind)}
-            </span>
+            </Badge>
             {/* 2026-05-26 (Yuqi fourteenth pass #3): NEW chip lifted
                 out of the header row and rendered as an
                 absolute-positioned pill at the article's top-right

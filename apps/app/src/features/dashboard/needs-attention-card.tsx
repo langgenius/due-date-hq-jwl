@@ -1,15 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { Astroid, ChevronRightIcon, Plus } from 'lucide-react'
+import { ChevronRightIcon, Plus, SquareArrowOutUpRightIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { Card, CardContent, CardHeader } from '@duedatehq/ui/components/ui/card'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 import { usePulseDetailQueryOptions } from '@/features/pulse/api'
 import { pulseAlertTone, pulseAlertToneLabel } from '@/features/pulse/pulse-alert-tone'
+import { formatRelativeTime } from '@/lib/utils'
 
 // Dashboard variant of the Pulse alert card. Tuned for the dashboard's
 // "scan-and-act" mode:
@@ -68,6 +71,10 @@ function NeedsAttentionCard({
   // green outside and red inside.
   const tone = pulseAlertTone(alert)
   const lowConfidence = isLowAiConfidence(alert.confidence)
+  // 2026-05-31 (Yuqi Pencil Sq0EX): source eyebrow timestamp.
+  // `formatRelativeTime` returns "just now" / "Xm ago" / "Xh ago"
+  // / etc., or an empty string when the input isn't parseable.
+  const syncedAgo = alert.publishedAt ? formatRelativeTime(alert.publishedAt) : ''
   const { names, hasMore, isLoading: clientsLoading } = useUniqueAffectedClientNames(alert.id)
 
   // 2026-05-25 (Yuqi #47): clicking this card opens the Pulse drawer
@@ -90,57 +97,59 @@ function NeedsAttentionCard({
     // flagged that hovering the card "didn't feel like anything was
     // happening." The fill change makes the click affordance read
     // immediately. Border still escalates as a secondary cue.
+    // 2026-05-31 (Yuqi DS-first revision): card chrome now goes
+    // through the shared `<Card size="xs">` primitive — a new size
+    // variant added to packages/ui/src/components/ui/card.tsx for
+    // dense dashboard surfaces (gap-2, py-3, px-3, text-sm). The
+    // outer `<button>` claims the click target + keyboard semantics;
+    // the inner `<Card>` provides the design-system chrome. Only
+    // overrides applied are the surface bg (subtle vs the card's
+    // default white) and the hover bg, which propagate via the
+    // outer group's hover state.
     <button
       type="button"
       onClick={onReview}
       aria-label={t`Open Pulse alert details: ${alert.title}`}
-      // 2026-05-25 (GitHub-density pass): card padding p-3.5 → p-3,
-      // inner gap-2.5 → gap-2. Card content stays scannable but the
-      // tile collapses to a more efficient footprint, matching the
-      // section's tighter outer padding.
-      className="group flex h-full w-full min-w-0 cursor-pointer flex-col gap-2 rounded-md bg-background-default p-3 text-left transition-colors hover:bg-background-default-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className="group block h-full w-full min-w-0 cursor-pointer rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
       data-tone={tone}
     >
-      <header className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
-          {/* 2026-05-25 (Yuqi Today follow-up): the Pulse identity
-              mark on the dashboard card was an Atom icon in
-              accent-blue. The Atom read as "Pulse / AI signal" but
-              was the ONLY surface using it — every other AI surface
-              uses Astroid.
-              2026-05-26 (Step 9 AI Visibility Audit F-001):
-              swapped Atom → Astroid so the dashboard's Pulse
-              identity mark matches the canonical AI provenance icon
-              used by `PulseAlertCard`, `PulseDetailDrawer`, and
-              `LowConfidenceBadge`. Three icons for "AI" → one. */}
-          {/* 2026-05-25 (Yuqi Today #3 — second pass): source label
-              text-base → text-sm. The source eyebrow is meta info,
-              not body — at 16px it competed with the title below
-              for first-read attention. */}
-          <Astroid
-            className="size-4 text-state-accent-solid"
-            aria-label={pulseAlertToneLabel(tone)}
-          />
-          <span className="text-sm text-text-tertiary">{alert.source}</span>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {/* 2026-05-25 (Yuqi Today #2): promoted to a shared
-              <LowConfidenceBadge> primitive in
-              components/primitives/low-confidence-badge.tsx so the
-              same visual can replace other ad-hoc low-confidence
-              treatments across the product (Pulse drawer,
-              wizard normalisation rows, etc). Same shape, same
-              tone — single source of truth. */}
-          {lowConfidence ? <LowConfidenceBadge /> : null}
-          {/* Chevron telegraphs "click opens" — translates further on
-              hover (1px → 4px) so the click affordance feels real
-              instead of static chrome. */}
-          <ChevronRightIcon
-            className="size-4 text-text-tertiary transition-transform duration-200 group-hover:translate-x-1 group-hover:text-text-primary"
-            aria-hidden
-          />
-        </div>
-      </header>
+      <Card
+        size="xs"
+        className="bg-background-subtle transition-colors group-hover:bg-background-default"
+      >
+        <CardHeader className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2">
+            {/* Icon tone is `text-text-tertiary` — meta indicator
+                ("this card is anchored on an external source"), not
+                an urgency signal. The card's outer alerts-panel
+                wash and the LowConfidenceBadge (when applicable)
+                carry the urgency. */}
+            <SquareArrowOutUpRightIcon
+              className="size-3.5 shrink-0 text-text-tertiary"
+              aria-label={pulseAlertToneLabel(tone)}
+            />
+            <span className="truncate text-sm font-medium text-text-secondary">
+              {alert.source}
+            </span>
+            {syncedAgo ? (
+              <>
+                <span aria-hidden className="text-text-tertiary">
+                  ·
+                </span>
+                <span className="shrink-0 text-xs text-text-tertiary tabular-nums">
+                  {syncedAgo}
+                </span>
+              </>
+            ) : null}
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {lowConfidence ? <LowConfidenceBadge /> : null}
+            <ChevronRightIcon
+              className="size-4 text-text-tertiary transition-transform duration-200 group-hover:translate-x-1 group-hover:text-text-primary"
+              aria-hidden
+            />
+          </div>
+        </CardHeader>
 
       {/* Title block has a fixed 2-line min-height so card heights
           stay uniform across the row even when one title is short.
@@ -159,50 +168,53 @@ function NeedsAttentionCard({
           aliasing shift on the bg change made the text look
           slightly heavier. Locking the weight explicitly so it
           stays at 400 in both rest and hover states. */}
-      <p className="line-clamp-2 min-h-8 text-sm font-medium leading-snug text-text-primary">
-        {alert.title}
-      </p>
-
-      {/* 2026-05-25 (Yuqi Today #3 — second pass): body text scale
-          dropped across the card body — "client may be affected"
-          stays text-xs, client-name chips text-base → text-xs,
-          overflow +N text-base → text-xs, empty-state line
-          text-base → text-sm. The whole card collapses to a
-          tighter "title + meta + chips" rhythm matching the cards
-          on /clients and /rules/library. */}
-      {impacted > 0 ? (
-        <div className="flex min-w-0 flex-col gap-2">
-          <p className="text-xs text-text-tertiary">
-            <Plural
-              value={impacted}
-              one="# client may be affected"
-              other="# clients may be affected"
-            />
+        <CardContent>
+          <p className="line-clamp-2 min-h-8 text-sm font-medium leading-snug text-text-primary">
+            {alert.title}
           </p>
-          {!clientsLoading && names.length > 0 ? (
-            <ul className="flex flex-wrap items-center gap-1.5">
-              {names.map((name) => (
-                <li
-                  key={name}
-                  className={cn(
-                    'inline-flex rounded-sm border border-divider-subtle bg-background-subtle px-2 py-0.5 text-xs text-text-secondary',
-                  )}
-                  title={name}
-                >
-                  {name}
-                </li>
-              ))}
-              {hasMore > 0 ? (
-                <li className="inline-flex text-xs text-text-tertiary">+{hasMore}</li>
+        </CardContent>
+
+        <CardContent>
+          {impacted > 0 ? (
+            <div className="flex min-w-0 flex-col gap-2">
+              <p className="text-xs text-text-tertiary">
+                <Plural
+                  value={impacted}
+                  one="# client may be affected"
+                  other="# clients may be affected"
+                />
+              </p>
+              {!clientsLoading && names.length > 0 ? (
+                // Per-name pills use the canonical Badge primitive
+                // so shape + border + hover come from the shared
+                // chip vocabulary, not a one-off <li> with
+                // hand-rolled rounded-sm + border classes.
+                <ul className="flex flex-wrap items-center gap-1.5">
+                  {names.map((name) => (
+                    <li key={name}>
+                      <Badge variant="outline" title={name}>
+                        {name}
+                      </Badge>
+                    </li>
+                  ))}
+                  {hasMore > 0 ? (
+                    <li className="inline-flex text-xs text-text-tertiary">+{hasMore}</li>
+                  ) : null}
+                </ul>
               ) : null}
-            </ul>
-          ) : null}
-        </div>
-      ) : (
-        <p className="text-sm text-text-tertiary">
-          <Trans>No matching clients in this practice.</Trans>
-        </p>
-      )}
+            </div>
+          ) : (
+            <p className="text-sm text-text-tertiary">
+              {/* Empty-state copy reframes the absence of matches as
+                  ongoing monitoring ("we'll flag any new matches")
+                  instead of a flat "nothing to see here." */}
+              <Trans>
+                No matching clients in this practice — we'll flag any new matches.
+              </Trans>
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </button>
   )
 }

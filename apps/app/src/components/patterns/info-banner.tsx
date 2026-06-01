@@ -1,6 +1,7 @@
 import { useCallback, useState, type ComponentType, type SVGProps } from 'react'
 import { XIcon } from 'lucide-react'
 
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
@@ -124,13 +125,19 @@ export function InfoBanner({
       <Icon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
       <p className="min-w-0 flex-1 truncate text-sm text-text-secondary">{message}</p>
       {cta ? (
-        <button
-          type="button"
+        // 2026-06-01: migrated hand-rolled accent CTA button to the
+        // canonical `<TextLink variant="accent" size="sm">` primitive
+        // per docs/Design/design-system-migration-2026-05-31.md. Same
+        // visual contract (accent tone + hover-underline) with shared
+        // focus-ring treatment.
+        <TextLink
+          variant="accent"
+          size="sm"
           onClick={cta.onClick}
-          className="shrink-0 rounded-sm text-sm font-medium text-text-accent outline-none hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          className="shrink-0"
         >
           {cta.label}
-        </button>
+        </TextLink>
       ) : null}
       {showDismiss ? (
         <button

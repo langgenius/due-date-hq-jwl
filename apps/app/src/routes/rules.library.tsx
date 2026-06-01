@@ -36,6 +36,7 @@ import type {
 // `RuleTier` isn't re-exported from the contracts package today —
 // infer it from the same union literal the schema uses.
 type RuleTier = ObligationRule['ruleTier']
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
@@ -1657,9 +1658,12 @@ export function RulesLibraryRoute() {
           <span className="inline-flex items-center gap-2">
             <Trans>Rule library</Trans>
             {!rulesQuery.isLoading ? (
-              <span className="rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
+              // 2026-06-01: swapped hand-rolled count pill for Badge
+              // (variant="secondary" size="lg") — canonical
+              // PageHeader-title count chip.
+              <Badge variant="secondary" size="lg" className="tabular-nums">
                 <Plural value={totalRules} one="# rule" other="# rules" />
-              </span>
+              </Badge>
             ) : null}
             {!statsLoading && totalPendingReview > 0 ? (
               <button

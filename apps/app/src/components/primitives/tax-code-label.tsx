@@ -1,3 +1,4 @@
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 
@@ -64,6 +65,17 @@ function TaxCodeLabel({
 /**
  * Bordered chip variant — use in dense rows where the tax-code is the
  * primary read for the column (rules console preview, generation row).
+ *
+ * 2026-05-31 (Yuqi DS-first revision): now wraps the canonical
+ * `<Badge variant="outline" />` primitive instead of a hand-rolled
+ * Tooltip+span chrome. The badge's `rounded-full` + h-5 + px-2 +
+ * `border-divider-regular text-text-secondary` shape replaces the
+ * previous `rounded-sm`/`px-1.5`/`bg-background-subtle` one-off so
+ * tax-code chips now read with the same shape as every other badge
+ * in the app. Behavior parity: still renders a tooltip with the
+ * raw code + jurisdiction + description; the Badge's `render` prop
+ * threads the `<TooltipTrigger>` into the badge element so the
+ * hover affordance survives the wrap.
  */
 function TaxCodeBadge({
   code,
@@ -77,13 +89,12 @@ function TaxCodeBadge({
   return (
     <Tooltip>
       <TooltipTrigger
-        className={cn(
-          'inline-flex h-5 cursor-help items-center rounded-sm border border-divider-regular bg-background-subtle px-1.5 text-caption font-medium text-text-secondary',
-          className,
+        render={(props) => (
+          <Badge variant="outline" className={cn('cursor-help', className)} {...props}>
+            {meta.label}
+          </Badge>
         )}
-      >
-        {meta.label}
-      </TooltipTrigger>
+      />
       <TooltipContent>
         <TaxCodeTooltipBody
           code={meta.code}

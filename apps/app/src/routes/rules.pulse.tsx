@@ -3,6 +3,7 @@ import { Trans } from '@lingui/react/macro'
 import { HistoryIcon, RadioTowerIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -75,22 +76,27 @@ export function RulesPulseRoute() {
     <span className="inline-flex items-center gap-2">
       <Trans>Alerts</Trans>
       {hasNationalMonitoringCoverage ? (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
+        // 2026-06-01: swapped hand-rolled monitoring pill for
+        // Badge (variant="secondary" size="lg") — same canonical
+        // PageHeader chip shape, with PulsingDot as a leading child.
+        <Badge variant="secondary" size="lg">
           {/* 2026-05-29 (PR #38): dropped the `size-1.5` override on
               PulsingDot so this monitoring chip's dot matches every
               other PulsingDot use in the app (Today header chip,
               source-health states, etc.). */}
           <PulsingDot tone="success" active />
           <Trans>Monitoring Federal + 50 states + DC</Trans>
-        </span>
+        </Badge>
       ) : null}
       {alertCount > 0 ? (
-        <span className="inline-flex items-center gap-1 rounded-full bg-state-destructive-hover px-2 py-1.5 text-xs font-medium text-text-destructive">
+        // 2026-06-01: swapped hand-rolled destructive count pill
+        // for Badge (variant="destructive" size="lg").
+        <Badge variant="destructive" size="lg">
           <span className="tabular-nums">{alertCount}</span>
           <span>
             <Trans>active</Trans>
           </span>
-        </span>
+        </Badge>
       ) : null}
     </span>
   )

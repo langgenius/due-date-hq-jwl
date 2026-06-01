@@ -4,11 +4,13 @@ import { ArrowRightIcon, ArrowUpRightIcon, CalendarIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow, ObligationStatus } from '@duedatehq/contracts'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { TaxCodeBadge, TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
 import { StatTile } from '@/components/patterns/stat-tile'
 import { ConceptHelp } from '@/features/concepts/concept-help'
@@ -16,6 +18,18 @@ import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { formatDatePretty } from '@/lib/utils'
 import { ObligationStatusReadBadge, STATUS_ICON_COLOR } from '@/features/obligations/status-control'
 import { isPaymentOverdue, paymentOverdueDays } from '@/features/obligations/payment-overdue'
+// 2026-05-31 (Yuqi Pencil FpHtM — owner-avatar slot): Pencil also
+// shows a per-row owner-initials avatar on the right cluster.
+// `DashboardTopRow` (packages/contracts/src/dashboard.ts) does not
+// expose an `assigneeName` field today — the obligation queue
+// schema does (`obligation-queue.ts`), but the dashboard top-rows
+// projection drops it. To render the avatar without a stale
+// placeholder, the contract + server projection need a small
+// extension (one field + one SELECT). Imports kept commented so
+// the wire-up is one uncomment away once the contract change
+// lands.
+// import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+// import { useCurrentUserName } from '@/lib/use-current-user-name'
 
 function topPriorityFactors(row: DashboardTopRow): string[] {
   const factors = [...(row.smartPriority.factors ?? [])]
@@ -213,7 +227,21 @@ function ActionRow({
           onHoverChange(false)
         }
       }}
-      className="flex flex-col"
+      // 2026-05-31 (Yuqi Pencil FpHtM — expanded row card lift):
+      // when expanded, the row + dl panel together read as a
+      // lifted card with a soft outer shadow and a slightly larger
+      // corner radius, distinguishing the active row from the
+      // quieter collapsed rows above and below it. Collapsed rows
+      // stay flat (no shadow, no card chrome) so the surface only
+      // gains visual weight at the moment the user is interacting
+      // with it. Uses canonical Tailwind `shadow-sm` + design-system
+      // border tokens so the lift can be tuned globally.
+      className={cn(
+        'flex flex-col transition-all duration-200 ease-out motion-reduce:transition-none',
+        expanded
+          ? 'rounded-xl border border-divider-subtle bg-background-default shadow-sm'
+          : 'rounded-md',
+      )}
     >
       <div
         // The whole row is clickable: opens the obligation panel via
@@ -313,6 +341,37 @@ function ActionRow({
         <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
           {prompt}
         </span>
+        {/* 2026-05-31 (Yuqi DS-first revision): use the chip-shaped
+            `<TaxCodeBadge>` primitive on the row right edge, not
+            the plain-text `<TaxCodeLabel asChild>` which renders
+            inline text. TaxCodeBadge is the canonical chip
+            (border + bg-subtle + caption text) and shares its
+            tooltip body with TaxCodeLabel, so the form-code
+            vocabulary stays consistent across surfaces. */}
+        <TaxCodeBadge code={row.taxType} className="shrink-0" />
+        {/* 2026-05-31 (Yuqi DS-first revision): "Open in queue"
+            now uses the canonical `<Badge variant="default" />`
+            rendered as a `<Link>` via the Badge's `render` prop.
+            Same accent-tinted soft fill the design system uses
+            for "this is a tappable inline navigation chip" —
+            tokens come from `bg-state-accent-active-alt` +
+            `text-text-accent` in the Badge variant. The hover-on-
+            anchor rule is baked into the variant so we don't have
+            to hand-roll one. */}
+        {expanded ? (
+          <Badge
+            variant="default"
+            render={
+              <Link
+                to={`/deadlines#row-${row.obligationId}`}
+                onClick={(event) => event.stopPropagation()}
+              />
+            }
+          >
+            <Trans>Open in queue</Trans>
+            <ArrowUpRightIcon data-icon="inline-end" />
+          </Badge>
+        ) : null}
         {/* 2026-05-25 (Yuqi Today follow-up): the Review button used
           to render unconditionally with `opacity-0` when collapsed —
           which kept the button taking ~100px of flex space, squeezing
@@ -552,6 +611,9 @@ function DashboardActionsList({
   needDecisionCount,
   blockedCount,
   waitingOnClientCount,
+  needDecisionDelta,
+  blockedDelta,
+  waitingOnClientDelta,
   hasClients,
 }: {
   rows: DashboardTopRow[]
@@ -577,6 +639,13 @@ function DashboardActionsList({
   needDecisionCount: number
   blockedCount: number
   waitingOnClientCount: number
+  // 2026-05-31 (Yuqi Pencil /today AvFsh round): optional
+  // week-over-week deltas for the summary tiles. Pass `undefined`
+  // (the current default) to suppress the trend pill; pass a real
+  // number once the route loader has prior-period counts wired in.
+  needDecisionDelta?: number | undefined
+  blockedDelta?: number | undefined
+  waitingOnClientDelta?: number | undefined
 }) {
   const { t } = useLingui()
   const VISIBLE_CAP = 10
@@ -594,11 +663,22 @@ function DashboardActionsList({
 
   // Build summary segments — drop zero-count entries. Only `blocked`
   // uses destructive — it's the one genuinely-stuck signal.
+  //
+  // 2026-05-31 (Yuqi Pencil /today AvFsh round): each tile now also
+  // carries an optional week-over-week trend (`trend.delta`). Until
+  // the backend ships prior-period counts, the deltas come in as
+  // `undefined` from the caller — StatTile renders no pill in that
+  // case, so this stays visually backwards-compatible.
   const summaryTiles: Array<{
     value: string
     label: string
     href: string
     tone: 'neutral' | 'critical'
+    delta?: number | undefined
+    // For "In review", "down" is good (items moved out). For
+    // "Blocked", "up" is bad. For "Waiting", the direction is
+    // neutral — defer to the sign-default tone unless overridden.
+    trendToneOverride?: 'success' | 'warning' | 'muted' | undefined
   }> = []
   if (needDecisionCount > 0) {
     summaryTiles.push({
@@ -606,6 +686,7 @@ function DashboardActionsList({
       label: t`In review`,
       href: '/deadlines?status=review',
       tone: 'neutral',
+      delta: needDecisionDelta,
     })
   }
   if (blockedCount > 0) {
@@ -614,6 +695,7 @@ function DashboardActionsList({
       label: t`Blocked`,
       href: '/deadlines?status=blocked',
       tone: 'critical',
+      delta: blockedDelta,
     })
   }
   if (waitingOnClientCount > 0) {
@@ -622,6 +704,7 @@ function DashboardActionsList({
       label: t`Waiting on client`,
       href: '/deadlines?status=waiting_on_client',
       tone: 'neutral',
+      delta: waitingOnClientDelta,
     })
   }
   // 2026-05-27 (Step 6 UX audit #37): when every exposure count is
@@ -640,6 +723,13 @@ function DashboardActionsList({
             label={tile.label}
             href={tile.href}
             tone={tile.tone}
+            trend={
+              tile.delta !== undefined
+                ? tile.trendToneOverride !== undefined
+                  ? { delta: tile.delta, toneOverride: tile.trendToneOverride }
+                  : { delta: tile.delta }
+                : undefined
+            }
           />
         ))}
       </div>
@@ -860,16 +950,23 @@ function ActionsListHeader({ count, onOpenAll }: { count: number | null; onOpenA
           (same change as the "View all alerts" link above) and
           text scale stepped down to text-xs text-text-muted so
           both nav-hint links read at exactly the same weight. */}
-      <Link
-        to="/deadlines"
-        onClick={(event) => {
-          event.preventDefault()
-          onOpenAll()
-        }}
-        className="inline-flex items-center gap-1 rounded-sm text-xs text-text-muted outline-none hover:text-text-tertiary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      {/* 2026-05-31 (Yuqi DS-first revision): now uses the
+          canonical `<TextLink>` primitive instead of a hand-rolled
+          Link with text-muted/hover/focus classes. Rendered as a
+          React Router Link via the render prop. */}
+      <TextLink
+        render={
+          <Link
+            to="/deadlines"
+            onClick={(event) => {
+              event.preventDefault()
+              onOpenAll()
+            }}
+          />
+        }
       >
         <Trans>All deadlines</Trans>
-      </Link>
+      </TextLink>
     </div>
   )
 }

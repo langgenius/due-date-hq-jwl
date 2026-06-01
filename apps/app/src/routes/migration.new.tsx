@@ -7,6 +7,7 @@ import type { FirmPublic } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { Wizard } from '@/features/migration/Wizard'
 import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
@@ -152,14 +153,15 @@ function MigrationActivationIntro({
             eyebrow so it reads as page-level navigation, not as a
             second eyebrow. */}
         {onBack ? (
-          <button
-            type="button"
-            onClick={onBack}
-            className="mb-2 inline-flex items-center gap-1.5 rounded-sm text-caption text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
+          // 2026-06-01: swapped hand-rolled back-link button for
+          // TextLink primitive (variant="muted"). Accepts the slightly
+          // quieter rest tone (text-text-muted vs the original
+          // text-text-tertiary) to consolidate on the canonical
+          // muted-link treatment.
+          <TextLink onClick={onBack} className="mb-2">
             <ArrowLeftIcon className="size-3.5" aria-hidden />
             <Trans>Back</Trans>
-          </button>
+          </TextLink>
         ) : null}
         <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent-tint px-2.5 py-1 font-mono text-caption tracking-[0.16em] text-accent-text">
           <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-accent-default" />

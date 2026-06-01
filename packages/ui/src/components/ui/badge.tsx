@@ -6,7 +6,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 const badgeVariants = cva(
   cn(
-    'group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent px-2 py-0.5 text-badge font-medium whitespace-nowrap transition-colors text-xs',
+    'group/badge inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden border border-transparent text-badge font-medium whitespace-nowrap transition-colors',
     'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
     'has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5',
     'aria-invalid:border-state-destructive-border aria-invalid:ring-2 aria-invalid:ring-state-destructive-active',
@@ -34,9 +34,29 @@ const badgeVariants = cva(
         ghost: 'text-text-secondary hover:bg-state-base-hover',
         link: 'text-text-accent underline-offset-4 hover:underline',
       },
+      // 2026-06-01: `size` axis added so the same Badge primitive covers
+      // both inline-text usage (default h-5) and PageHeader title-row
+      // count pills (lg h-6). Five+ call-sites hand-roll the h-6 +
+      // px-2 py-1.5 + tabular-nums pill next to a title; this lets them
+      // write <Badge variant="secondary" size="lg">{n}</Badge>.
+      size: {
+        default: 'h-5 px-2 py-0.5 text-xs',
+        lg: 'h-6 px-2 py-1.5 text-xs',
+      },
+      // 2026-06-01: `shape` axis adds the square-corner uppercase
+      // "eyebrow" treatment used for AI provenance chips, jurisdiction
+      // kickers, and timeline phase labels. Default keeps the existing
+      // full-pill rounding; `square` swaps to rounded-sm + uppercase +
+      // tracking-wide so callers pair it with any color variant.
+      shape: {
+        pill: 'rounded-full',
+        square: 'rounded-sm font-semibold uppercase tracking-wide',
+      },
     },
     defaultVariants: {
       variant: 'default',
+      size: 'default',
+      shape: 'pill',
     },
   },
 )
@@ -87,6 +107,8 @@ function BadgeStatusDot({
 function Badge({
   className,
   variant = 'default',
+  size = 'default',
+  shape = 'pill',
   render,
   ...props
 }: useRender.ComponentProps<'span'> & VariantProps<typeof badgeVariants>) {
@@ -94,7 +116,7 @@ function Badge({
     defaultTagName: 'span',
     props: mergeProps<'span'>(
       {
-        className: cn(badgeVariants({ variant }), className),
+        className: cn(badgeVariants({ variant, size, shape }), className),
       },
       props,
     ),
@@ -102,6 +124,8 @@ function Badge({
     state: {
       slot: 'badge',
       variant,
+      size,
+      shape,
     },
   })
 }

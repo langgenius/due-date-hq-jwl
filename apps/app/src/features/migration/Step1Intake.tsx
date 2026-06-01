@@ -17,7 +17,9 @@ import type { MigrationSourceManifest } from '@duedatehq/contracts'
 import { parseTabular, TabularParseError } from '@duedatehq/core/csv-parser'
 import { detectSsnColumns } from '@duedatehq/core/pii'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -547,13 +549,20 @@ export function Step1Intake({
                     )}
                   />
                 </div>
-                <button
-                  type="button"
+                {/* 2026-05-31: swapped hand-rolled muted-link button for
+                    TextLink variant="muted" size="sm". Muted variant's
+                    text-text-muted/tertiary hover pair is the canonical
+                    quieter-than-accent inline-link treatment; tone shift
+                    from text-tertiary→text-accent at this site is
+                    acceptable in favor of consolidation. */}
+                <TextLink
+                  variant="muted"
+                  size="sm"
                   onClick={() => setPasteMode(false)}
-                  className="self-start text-sm text-text-tertiary underline-offset-2 hover:text-text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt rounded-sm"
+                  className="self-start"
                 >
                   <Trans>← Upload a file instead</Trans>
-                </button>
+                </TextLink>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3">
@@ -759,13 +768,18 @@ export function Step1Intake({
                 {selectedPresetLabel}.
               </Trans>
             </span>
-            <button
-              type="button"
-              className="h-8 shrink-0 rounded-sm border border-divider-regular bg-background-body px-2.5 text-sm font-medium text-text-primary outline-none transition hover:bg-background-subtle focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            {/* 2026-05-31: swapped the bespoke h-8 outlined chip for
+                Button variant="secondary" size="sm". The hand-rolled
+                border + bg + text-sm/font-medium recipe is exactly what
+                secondary+sm produces, so the override classes can go. */}
+            <Button
+              variant="secondary"
+              size="sm"
+              className="shrink-0"
               onClick={switchToDetectedPreset}
             >
               <Trans>Switch preset</Trans>
-            </button>
+            </Button>
           </AlertDescription>
         </Alert>
       ) : null}

@@ -809,15 +809,23 @@ function RolloverHelpPopover({ label, description }: { label: string; descriptio
   const { t } = useLingui()
   return (
     <Popover>
+      {/* 2026-06-01 design-system migration: swapped the bespoke
+          24px help trigger to the Button primitive (ghost / icon-xs).
+          icon-xs is size-7 by default; this rollover trigger needs to
+          tuck into a dense column header, so we override the size
+          class to size-6 inline — the only site in the app that
+          needs the strict 24px control. */}
       <PopoverTrigger
         openOnHover
         delay={150}
         closeDelay={80}
         render={
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             aria-label={t`Explain ${label}`}
-            className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="size-6 shrink-0"
           />
         }
       >

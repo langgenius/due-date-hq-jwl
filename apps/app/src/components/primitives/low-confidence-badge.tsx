@@ -1,6 +1,7 @@
 import { Trans } from '@lingui/react/macro'
 import { Astroid } from 'lucide-react'
 
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
@@ -52,15 +53,16 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *    card on Today when alert.confidence < 0.5
  */
 export function LowConfidenceBadge({ className }: { className?: string }) {
+  // 2026-05-31 (Yuqi DS-first revision): now wraps the canonical
+  // `<Badge variant="warning" />` primitive instead of a hand-rolled
+  // `<span>`. The amber tone, padding, and base classes live in
+  // `badge.tsx`; only the uppercase tracking treatment is added
+  // here as the "this is a low-confidence flag, not a generic
+  // warning chip" specialization.
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-sm bg-state-warning-hover px-1.5 py-0.5 text-xs uppercase tracking-wide text-text-warning',
-        className,
-      )}
-    >
-      <Astroid className="size-3" aria-hidden />
+    <Badge variant="warning" className={cn('uppercase tracking-wide', className)}>
+      <Astroid aria-hidden />
       <Trans>Low confidence</Trans>
-    </span>
+    </Badge>
   )
 }

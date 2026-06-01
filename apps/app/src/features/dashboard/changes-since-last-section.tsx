@@ -34,6 +34,7 @@ import { Link } from 'react-router'
 import type { AuditEventPublic } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
@@ -315,16 +316,24 @@ function ChangesSinceLastSection() {
               showing everything. */}
           {auditQuery.data && (auditQuery.data.events.length ?? 0) > MAX_VISIBLE_EVENTS ? (
             <li className="pt-2">
-              <Link
-                to="/audit"
-                className="text-xs text-text-muted underline-offset-2 hover:text-text-tertiary hover:underline"
+              {/* 2026-05-31 (Yuqi DS-first revision): hand-rolled
+                  muted-underline link replaced with the canonical
+                  `<TextLink>` primitive. `hover:underline` is kept
+                  as a className addition because the muted variant
+                  intentionally has no underline-on-hover — same
+                  affordance the original site carried. */}
+              <TextLink
+                variant="muted"
+                size="default"
+                className="underline-offset-2 hover:underline"
+                render={<Link to="/audit" />}
               >
                 <Plural
                   value={(auditQuery.data.events.length ?? 0) - MAX_VISIBLE_EVENTS}
                   one="# more in the audit log"
                   other="# more in the audit log"
                 />
-              </Link>
+              </TextLink>
             </li>
           ) : null}
         </ul>

@@ -19,6 +19,7 @@ import type {
   PulseSourceHealth,
 } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Command,
@@ -337,13 +338,17 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
             <span className="inline-flex items-center gap-2">
               <Trans>Alerts</Trans>
               {!alertsQuery.isLoading ? (
-                <span className="rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
+                // 2026-06-01: hand-rolled count pill swapped for the
+                // canonical Badge primitive (variant="secondary",
+                // size="lg") — same h-6 PageHeader-title chip used
+                // across the app, no per-call className overrides.
+                <Badge variant="secondary" size="lg" className="tabular-nums">
                   {alerts.length === 0 ? (
                     <Trans>0 ongoing</Trans>
                   ) : (
                     <Plural value={alerts.length} one="# ongoing" other="# ongoing" />
                   )}
-                </span>
+                </Badge>
               ) : null}
               <PulsingDot
                 tone={isEmpty ? 'success' : 'warning'}

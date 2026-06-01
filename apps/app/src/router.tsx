@@ -357,6 +357,16 @@ export function createAppRouter() {
             },
           ],
         },
+        // Public component-library gallery — designer-facing preview of the
+        // shared UI primitives with real tokens, no auth, no shell chrome.
+        // See `apps/app/src/routes/preview.tsx`.
+        {
+          path: '/preview',
+          lazy: async () => {
+            const { PreviewRoute } = await import('@/routes/preview')
+            return { Component: PreviewRoute }
+          },
+        },
         {
           id: PROTECTED_ROUTE_ID,
           path: '/',
