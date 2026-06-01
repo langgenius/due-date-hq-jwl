@@ -230,7 +230,6 @@ export const caFtbNewsroomAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 60 * 60 * 1000,
   jurisdiction: 'CA',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: CA_FTB_NEWSROOM_URL })]
   },
@@ -252,7 +251,6 @@ export const caFtbTaxNewsAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 60 * 60 * 1000,
   jurisdiction: 'CA',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: CA_FTB_TAX_NEWS_URL })]
   },
@@ -274,7 +272,6 @@ export const caCdtfaNewsAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 120 * 60 * 1000,
   jurisdiction: 'CA',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: CA_CDTFA_NEWS_URL })]
   },
@@ -317,7 +314,6 @@ export const flDorTipsAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 120 * 60 * 1000,
   jurisdiction: 'FL',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: FL_DOR_TIPS_URL })]
   },
@@ -339,7 +335,6 @@ export const waDorNewsAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 120 * 60 * 1000,
   jurisdiction: 'WA',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: WA_DOR_NEWS_URL })]
   },
@@ -361,7 +356,6 @@ export const waDorWhatsNewAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 120 * 60 * 1000,
   jurisdiction: 'WA',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: WA_DOR_WHATS_NEW_URL })]
   },
@@ -383,7 +377,6 @@ export const maDorPressAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 120 * 60 * 1000,
   jurisdiction: 'MA',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: MA_DOR_PRESS_URL })]
   },

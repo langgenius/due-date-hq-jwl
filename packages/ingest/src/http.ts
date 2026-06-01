@@ -12,7 +12,10 @@ export const PULSE_BROWSER_USER_AGENT =
 
 export const DEFAULT_HEADERS = {
   'User-Agent': PULSE_BROWSER_USER_AGENT,
-  Accept: 'text/html,application/xhtml+xml,application/xml,application/rss+xml,application/json',
+  // Trailing */* (as real browsers send) so servers that strictly content-negotiate
+  // don't 406 us when the target is a PDF or other type not in the explicit list.
+  Accept:
+    'text/html,application/xhtml+xml,application/xml,application/rss+xml,application/json,*/*;q=0.8',
   'Accept-Language': 'en-US,en;q=0.9',
   'Cache-Control': 'no-cache',
 } as const

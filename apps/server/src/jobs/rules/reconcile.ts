@@ -119,7 +119,13 @@ function sourceCanAutoScan(source: RuleSource): boolean {
 }
 
 function sourceFetchUrl(source: RuleSource): string {
-  return source.feedUrl ?? source.url
+  const url = source.feedUrl ?? source.url
+  // Resolve the {year} token (e.g. WV AdministrativeNotices{year}.aspx) like the
+  // adapter path does, so the scan fetches the current-year page instead of a
+  // literal "{year}" URL that 404s.
+  return url.includes('{year}')
+    ? url.replaceAll('{year}', String(new Date().getUTCFullYear()))
+    : url
 }
 
 function sourceTemplateInput(source: RuleSource) {

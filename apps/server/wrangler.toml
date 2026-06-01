@@ -159,7 +159,10 @@ AI_GATEWAY_MODEL_FAST_JSON_PAID = "google/gemini-3.1-flash-lite-preview"
 AI_GATEWAY_MODEL_QUALITY_JSON = "google/gemini-3-flash-preview"
 AI_GATEWAY_MODEL_REASONING = "openai/gpt-5-mini"
 PULSE_BROWSERLESS_URL = "https://production-sfo.browserless.io/content"
-PULSE_BROWSERLESS_SOURCE_IDS = "fl.dor.tips,wa.dor.news,wa.dor.whats_new"
+# Emptied: browserless was 400-failing these news pages. They now fetch direct
+# (with the browser UA), matching the rest of the fleet. Re-add IDs here only for
+# sources that genuinely need a headless browser.
+PULSE_BROWSERLESS_SOURCE_IDS = ""
 
 # Current stage uses a single top-level Worker configuration.
 # Add named environments only when each env has its own complete bindings

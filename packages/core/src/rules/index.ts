@@ -2492,10 +2492,10 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
   {
     jurisdiction: 'UT',
     id: 'ut.individual_estimated_tax',
-    title: 'Utah Individual Income Tax Extensions and Prepayments',
-    url: 'https://incometax.utah.gov/general-instructions/#when',
+    title: 'Utah Individual Income Tax Prepayment Coupon (TC-546)',
+    url: 'https://tax.utah.gov/forms/current/tc-546.pdf',
     sourceType: 'instructions',
-    acquisitionMethod: 'html_watch',
+    acquisitionMethod: 'pdf_watch',
     domains: ['individual_estimated_tax'],
     entityApplicability: ['individual', 'sole_prop'],
     priority: 'high',

@@ -598,9 +598,11 @@ describe('@duedatehq/ingest', () => {
   it('routes browserless adapters through the configured fetch implementation', async () => {
     const selectFetch = createSourceFetcherRegistry(cloudflareFetch, { browserlessFetch })
 
-    await expect(selectFetch(caFtbNewsroomAdapter)('/').then((res) => res.text())).resolves.toBe(
-      'browserless',
-    )
+    await expect(
+      selectFetch({ ...caFtbNewsroomAdapter, fetcher: 'browserless' })('/').then((res) =>
+        res.text(),
+      ),
+    ).resolves.toBe('browserless')
     await expect(
       selectFetch({ ...nyDtfPressFixtureAdapter, fetcher: 'browserless' })('/'),
     ).resolves.toHaveProperty('ok', true)
