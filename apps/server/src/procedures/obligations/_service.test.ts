@@ -75,6 +75,10 @@ function buildScoped(firmId: string, rows: Row[]) {
     async confirmByIds() {
       return { confirmedIds: [] }
     },
+    async listReprojectionCandidates() {
+      return []
+    },
+    async updateProjectedDueDates() {},
     async createBatch() {
       throw new Error('not used')
     },

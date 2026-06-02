@@ -43,6 +43,7 @@ import {
   updateObligationStatus,
 } from './_service'
 import { runAnnualRollover } from './_annual-rollover'
+import { runReprojection } from './_reprojection'
 import { resolveUpdatedTaxYearProfilePlan } from './_tax-year-profile'
 import { toCoreRule } from '../rules/runtime'
 import {
@@ -672,6 +673,39 @@ const confirmObligations = os.obligations.confirmObligations.handler(
   },
 )
 
+const previewReprojection = os.obligations.previewReprojection.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped, tenant, userId } = requireTenant(context)
+    return runReprojection({
+      scoped,
+      userId,
+      mode: 'preview',
+      params: input,
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+    })
+  },
+)
+
+const applyReprojection = os.obligations.applyReprojection.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const result = await runReprojection({
+    scoped,
+    userId,
+    mode: 'apply',
+    params: input,
+    internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+  })
+  if (result.summary.updatedCount > 0) {
+    await enqueueDashboardBriefRefresh(context.env, {
+      firmId: tenant.firmId,
+      reason: 'due_date_update',
+    }).catch(() => false)
+  }
+  return result
+})
+
 const updateDueDate = os.obligations.updateDueDate.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, tenant, userId } = requireTenant(context)
@@ -1214,6 +1248,8 @@ export const obligationsHandlers = {
   previewAnnualRollover,
   createAnnualRollover,
   confirmObligations,
+  previewReprojection,
+  applyReprojection,
   updateDueDate,
   updateTaxYearProfile,
   listByClient,

@@ -240,6 +240,15 @@ export interface ObligationsRepo {
    * actually transitioned so the caller can audit + report a count.
    */
   confirmByIds(ids: string[]): Promise<{ confirmedIds: string[] }>
+  /** Rule-backed, still-open obligations whose statutory date may have drifted. */
+  listReprojectionCandidates(input: {
+    taxYears?: number[]
+    obligationIds?: string[]
+  }): Promise<ObligationInstanceRow[]>
+  /** Apply re-projected dates to still-projected obligations (confirmed rows are skipped). */
+  updateProjectedDueDates(
+    updates: ReadonlyArray<{ id: string; baseDueDate: Date; currentDueDate: Date }>,
+  ): Promise<void>
   /**
    * Filed → e-file rejected unwind (PDF anti-pattern #3: Filed ≠ Done).
    * Stamps `efile_rejected_at`, clears any acceptance timestamp, and

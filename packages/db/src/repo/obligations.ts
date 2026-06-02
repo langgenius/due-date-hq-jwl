@@ -426,6 +426,36 @@ export function makeObligationsRepo(db: Db, firmId: string) {
       return hydrateObligationRows(rows)
     },
 
+    async listReprojectionCandidates(input: {
+      taxYears?: number[]
+      obligationIds?: string[]
+    }): Promise<Array<ObligationInstance & { readiness: ObligationReadiness }>> {
+      // Rule-backed, still-open obligations whose statutory date could have drifted
+      // (rule re-verified, or a weekend/holiday adjustment not applied at creation).
+      // Mirrors OPEN_OBLIGATION_STATUSES — done/paid/completed are never re-projected.
+      const filters = [
+        eq(obligationInstance.firmId, firmId),
+        isNotNull(obligationInstance.ruleId),
+        inArray(obligationInstance.status, [
+          'pending',
+          'in_progress',
+          'waiting_on_client',
+          'review',
+          'blocked',
+        ]),
+      ]
+      const taxYears = [...new Set(input.taxYears ?? [])]
+      if (taxYears.length > 0) filters.push(inArray(obligationInstance.taxYear, taxYears))
+      const obligationIds = [...new Set(input.obligationIds ?? [])]
+      if (obligationIds.length > 0) filters.push(inArray(obligationInstance.id, obligationIds))
+      const rows = await db
+        .select()
+        .from(obligationInstance)
+        .where(and(...filters))
+        .orderBy(asc(obligationInstance.clientId), asc(obligationInstance.taxType))
+      return hydrateObligationRows(rows)
+    },
+
     async listGeneratedByClientAndTaxYears(input: {
       clientIds: string[]
       taxYears: number[]
@@ -740,6 +770,31 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         confirmedIds.push(...projectedIds)
       }
       return { confirmedIds }
+    },
+
+    /**
+     * Apply re-projected due dates to still-projected obligations. Per-row (each
+     * carries a distinct date). The confirmed=false guard is defense-in-depth so a
+     * confirmed deadline's baseDueDate is never rewritten — those shift via overlays.
+     */
+    async updateProjectedDueDates(
+      updates: ReadonlyArray<{ id: string; baseDueDate: Date; currentDueDate: Date }>,
+    ): Promise<void> {
+      if (updates.length === 0) return
+      await Promise.all(
+        updates.map((update) =>
+          db
+            .update(obligationInstance)
+            .set({ baseDueDate: update.baseDueDate, currentDueDate: update.currentDueDate })
+            .where(
+              and(
+                eq(obligationInstance.firmId, firmId),
+                eq(obligationInstance.id, update.id),
+                eq(obligationInstance.confirmed, false),
+              ),
+            ),
+        ),
+      )
     },
 
     /**

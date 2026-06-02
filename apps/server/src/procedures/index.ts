@@ -86,6 +86,8 @@ export const router = os.router({
     previewAnnualRollover: obligationsHandlers.previewAnnualRollover,
     createAnnualRollover: obligationsHandlers.createAnnualRollover,
     confirmObligations: obligationsHandlers.confirmObligations,
+    previewReprojection: obligationsHandlers.previewReprojection,
+    applyReprojection: obligationsHandlers.applyReprojection,
     updateDueDate: obligationsHandlers.updateDueDate,
     updateTaxYearProfile: obligationsHandlers.updateTaxYearProfile,
     updateStatus: obligationsHandlers.updateStatus,

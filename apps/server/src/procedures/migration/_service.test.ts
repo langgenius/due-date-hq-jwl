@@ -251,6 +251,10 @@ function buildScopedRepo(
     async confirmByIds() {
       return { confirmedIds: [] }
     },
+    async listReprojectionCandidates() {
+      return []
+    },
+    async updateProjectedDueDates() {},
     async createBatch() {
       return unexpectedRepoCall('obligations.createBatch')
     },

@@ -609,6 +609,58 @@ export const ConfirmObligationsOutputSchema = z.object({
   auditId: EntityIdSchema.nullable(),
 })
 export type ConfirmObligationsOutput = z.infer<typeof ConfirmObligationsOutputSchema>
+
+/**
+ * Re-projection. When a verified rule's computed date changes — a re-verified
+ * statutory date, or a weekend/holiday adjustment that was not applied at
+ * generation — already-generated deadlines carry a stale baseDueDate. Re-projection
+ * recomputes the expected date from the current verified rule's due-date logic
+ * (re-using the obligation's own tax period) + federal holidays, and surfaces drift.
+ *
+ * Projected (confirmed=false) deadlines are updated in place. Confirmed deadlines
+ * are report-only ('requires_review'): their baseDueDate is immutable and any shift
+ * flows through the pulse / exception-overlay path so client-facing dates stay
+ * auditable.
+ */
+export const ReprojectionInputSchema = z.object({
+  targetFilingYear: z.number().int().min(1900).max(2100).optional(),
+  obligationIds: z.array(EntityIdSchema).min(1).max(500).optional(),
+})
+export type ReprojectionInput = z.infer<typeof ReprojectionInputSchema>
+
+export const ReprojectionDispositionSchema = z.enum([
+  'will_update',
+  'requires_review',
+  'no_verified_rule',
+])
+export type ReprojectionDisposition = z.infer<typeof ReprojectionDispositionSchema>
+
+export const ReprojectionRowSchema = z.object({
+  obligationId: EntityIdSchema,
+  clientId: EntityIdSchema,
+  clientName: z.string().min(1),
+  taxType: z.string().min(1),
+  taxYear: z.number().int().nullable(),
+  confirmed: z.boolean(),
+  oldBaseDueDate: z.string(),
+  newBaseDueDate: z.string().nullable(),
+  disposition: ReprojectionDispositionSchema,
+  updated: z.boolean(),
+})
+export type ReprojectionRow = z.infer<typeof ReprojectionRowSchema>
+
+export const ReprojectionOutputSchema = z.object({
+  summary: z.object({
+    candidateCount: z.number().int().min(0),
+    changedCount: z.number().int().min(0),
+    willUpdateCount: z.number().int().min(0),
+    requiresReviewCount: z.number().int().min(0),
+    updatedCount: z.number().int().min(0),
+  }),
+  rows: z.array(ReprojectionRowSchema),
+  auditId: EntityIdSchema.nullable(),
+})
+export type ReprojectionOutput = z.infer<typeof ReprojectionOutputSchema>
 export type AnnualRolloverOutput = z.infer<typeof AnnualRolloverOutputSchema>
 
 export const obligationsContract = oc.router({
@@ -634,6 +686,8 @@ export const obligationsContract = oc.router({
   confirmObligations: oc
     .input(ConfirmObligationsInputSchema)
     .output(ConfirmObligationsOutputSchema),
+  previewReprojection: oc.input(ReprojectionInputSchema).output(ReprojectionOutputSchema),
+  applyReprojection: oc.input(ReprojectionInputSchema).output(ReprojectionOutputSchema),
   updateDueDate: oc.input(DueDateUpdateInputSchema).output(ObligationInstancePublicSchema),
   updateTaxYearProfile: oc
     .input(ObligationTaxYearProfileUpdateInputSchema)

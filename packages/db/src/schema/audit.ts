@@ -288,6 +288,7 @@ export const OBLIGATION_AUDIT_ACTIONS = [
   'obligation.batch_created',
   'obligation.annual_rollover.created',
   'obligation.confirmed',
+  'obligation.reprojected',
   'obligation.status.updated',
   'obligation.status.auto_unblocked',
   'obligation.due_date.updated',
