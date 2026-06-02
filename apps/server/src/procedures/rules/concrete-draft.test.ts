@@ -7,6 +7,8 @@ import type { RuleConcreteDraftRepo } from '@duedatehq/ports/rule-concrete-draft
 import type { Env } from '../../env'
 import { PDFDocument, StandardFonts } from 'pdf-lib'
 import {
+  classifyExcerptMatch,
+  dueDateLogicDateCodes,
   extractPdfSourceText,
   generateConcreteDraft,
   isUsableConcreteDraftOfficialSourceText,
@@ -14,6 +16,7 @@ import {
   sourceTextContainsExcerpt,
   ruleConcreteDraftContextRef,
   RuleConcreteDraftAiOutputSchema,
+  validateConcreteRuleDraft,
 } from './concrete-draft'
 
 const aiMocks = vi.hoisted(() => ({
@@ -757,5 +760,173 @@ describe('rule concrete draft normalization', () => {
         'The office opened on a different date at a different address',
       ),
     ).toBe(false)
+  })
+})
+
+describe('classifyExcerptMatch / dueDateLogicDateCodes (guard foundation)', () => {
+  it('returns "exact" for a verbatim (whitespace/case-normalized) substring', () => {
+    expect(
+      classifyExcerptMatch(
+        'Individual returns are filed by April 15, 2026 per the instructions.',
+        'returns are filed by APRIL 15, 2026',
+      ),
+    ).toBe('exact')
+  })
+
+  it('returns "fuzzy" when only the date matches via differing wording (April 15 vs 4/15)', () => {
+    expect(
+      classifyExcerptMatch(
+        'Your estimated tax payment is due on 4/15/26 for the first quarter.',
+        'Payment is due on April 15',
+      ),
+    ).toBe('fuzzy')
+  })
+
+  it('returns "none" for an unrelated excerpt', () => {
+    expect(
+      classifyExcerptMatch(
+        'Individual returns are filed by April 15.',
+        'The office opened on a different date at a different address',
+      ),
+    ).toBe('none')
+  })
+
+  it('keeps sourceTextContainsExcerpt as a backward-compatible (!== "none") wrapper', () => {
+    const source = 'Your estimated tax payment is due on 4/15/26 for the first quarter.'
+    const fuzzy = 'Payment is due on April 15'
+    const unrelated = 'the source says this'
+    expect(classifyExcerptMatch(source, fuzzy)).toBe('fuzzy')
+    expect(sourceTextContainsExcerpt(source, fuzzy)).toBe(true)
+    expect(classifyExcerptMatch(source, unrelated)).toBe('none')
+    expect(sourceTextContainsExcerpt(source, unrelated)).toBe(false)
+  })
+
+  it('extracts the MM-DD code from absolute fixed_date logic', () => {
+    expect(
+      dueDateLogicDateCodes({
+        kind: 'fixed_date',
+        date: '2026-04-15',
+        holidayRollover: 'next_business_day',
+      }),
+    ).toEqual(['04-15'])
+  })
+
+  it('extracts every period MM-DD from period_table logic', () => {
+    expect(
+      dueDateLogicDateCodes({
+        kind: 'period_table',
+        frequency: 'quarterly',
+        periods: [
+          { period: 'Q1', dueDate: '2026-04-30' },
+          { period: 'Q2', dueDate: '2026-07-31' },
+        ],
+        holidayRollover: 'source_adjusted',
+      }),
+    ).toEqual(['04-30', '07-31'])
+  })
+
+  it('returns no codes for relative or source-defined logic (exempt from the date check)', () => {
+    expect(
+      dueDateLogicDateCodes({
+        kind: 'nth_day_after_tax_year_end',
+        monthOffset: 4,
+        day: 15,
+        holidayRollover: 'next_business_day',
+      }),
+    ).toEqual([])
+    expect(
+      dueDateLogicDateCodes({
+        kind: 'source_defined_calendar',
+        description: 'see source',
+        holidayRollover: 'source_adjusted',
+      }),
+    ).toEqual([])
+  })
+})
+
+describe('validateConcreteRuleDraft — due date must be supported by the cited excerpt (gap #1)', () => {
+  const base = {
+    rule: { taxYear: 2025 },
+    coverageStatus: 'full' as const,
+    requiresApplicabilityReview: false,
+  }
+
+  it('rejects a draft whose concrete date contradicts the date it cited', () => {
+    const error = validateConcreteRuleDraft({
+      ...base,
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: '2026-03-15',
+        holidayRollover: 'next_business_day',
+      },
+      sourceText: 'Individual income tax returns are due April 15, 2026.',
+      sourceExcerpt: 'Individual income tax returns are due April 15, 2026.',
+    })
+    expect(error).toMatch(/not supported by any date in the cited source excerpt/i)
+  })
+
+  it('accepts a draft whose concrete date matches the cited excerpt', () => {
+    expect(
+      validateConcreteRuleDraft({
+        ...base,
+        dueDateLogic: {
+          kind: 'fixed_date',
+          date: '2026-04-15',
+          holidayRollover: 'next_business_day',
+        },
+        sourceText: 'Individual income tax returns are due April 15, 2026.',
+        sourceExcerpt: 'Individual income tax returns are due April 15, 2026.',
+      }),
+    ).toBeNull()
+  })
+
+  it('abstains when the cited excerpt carries no machine-readable date (word-form phrasing)', () => {
+    expect(
+      validateConcreteRuleDraft({
+        ...base,
+        dueDateLogic: {
+          kind: 'fixed_date',
+          date: '2026-04-15',
+          holidayRollover: 'next_business_day',
+        },
+        sourceText:
+          'The return is due on the fifteenth day of the fourth month following year end.',
+        sourceExcerpt: 'due on the fifteenth day of the fourth month',
+      }),
+    ).toBeNull()
+  })
+
+  it('accepts a partial period_table excerpt that supports only one of its rows', () => {
+    expect(
+      validateConcreteRuleDraft({
+        ...base,
+        dueDateLogic: {
+          kind: 'period_table',
+          frequency: 'quarterly',
+          periods: [
+            { period: 'Q1', dueDate: '2026-04-30' },
+            { period: 'Q2', dueDate: '2026-07-31' },
+          ],
+          holidayRollover: 'source_adjusted',
+        },
+        sourceText: 'Form 941 for the first quarter (Q1) is due April 30, 2026.',
+        sourceExcerpt: 'first quarter (Q1) is due April 30, 2026',
+      }),
+    ).toBeNull()
+  })
+
+  it('rejects a period_table draft whose cited dates are entirely disjoint from its rows', () => {
+    const error = validateConcreteRuleDraft({
+      ...base,
+      dueDateLogic: {
+        kind: 'period_table',
+        frequency: 'quarterly',
+        periods: [{ period: 'Q1', dueDate: '2026-04-30' }],
+        holidayRollover: 'source_adjusted',
+      },
+      sourceText: 'An unrelated estimated payment is due September 15, 2026.',
+      sourceExcerpt: 'estimated payment is due September 15, 2026',
+    })
+    expect(error).toMatch(/not supported by any date/i)
   })
 })
