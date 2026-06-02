@@ -5613,7 +5613,14 @@ function BulkExtensionDialog({
   // The picker normally prevents this, but guard if the cap shrank after a
   // re-query while a later date was already chosen.
   const dateInvalid = internalTargetDate !== '' && earliest !== '' && internalTargetDate > earliest
-  const canSend = eligibleCount > 0 && memo.trim().length > 0 && !dateInvalid && !sending
+  // Internal target date is required (mirrors the single extension's
+  // canSaveInternalExtensionPlan), alongside a memo.
+  const canSend =
+    eligibleCount > 0 &&
+    memo.trim().length > 0 &&
+    internalTargetDate !== '' &&
+    !dateInvalid &&
+    !sending
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -5665,7 +5672,7 @@ function BulkExtensionDialog({
             </div>
             <div className="grid gap-1.5">
               <label className="text-sm font-medium">
-                <Trans>Internal target date (optional)</Trans>
+                <Trans>Internal target date</Trans>
               </label>
               <IsoDatePicker
                 value={internalTargetDate}

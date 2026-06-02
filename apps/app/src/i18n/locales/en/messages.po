@@ -5923,8 +5923,8 @@ msgid "Internal target"
 msgstr "Internal target"
 
 #: src/routes/obligations.tsx
-msgid "Internal target date (optional)"
-msgstr "Internal target date (optional)"
+msgid "Internal target date"
+msgstr "Internal target date"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Invalid rule"
