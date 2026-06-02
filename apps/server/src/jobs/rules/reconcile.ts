@@ -26,6 +26,7 @@ import {
   RULE_CONCRETE_DRAFT_GENERATE_MESSAGE_TYPE,
   type RuleConcreteDraftGenerateMessage,
 } from './concrete-draft'
+import { findRuleDateReconciliationIssues } from '../../procedures/rules/rule-date-reconciliation'
 
 export const PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE = 'pulse.rule_source.scan'
 export const RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE = 'rule.registry.catalog.sync'
@@ -64,6 +65,23 @@ export function isRuleRegistryCatalogSyncMessage(
   return (
     isRecord(value) &&
     value.type === RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE &&
+    (value.reason === 'scheduled' || value.reason === 'manual')
+  )
+}
+
+export const RULE_DATE_RECONCILIATION_MESSAGE_TYPE = 'rule.date.reconciliation'
+
+export interface RuleDateReconciliationMessage {
+  type: typeof RULE_DATE_RECONCILIATION_MESSAGE_TYPE
+  reason: 'scheduled' | 'manual'
+}
+
+export function isRuleDateReconciliationMessage(
+  value: unknown,
+): value is RuleDateReconciliationMessage {
+  return (
+    isRecord(value) &&
+    value.type === RULE_DATE_RECONCILIATION_MESSAGE_TYPE &&
     (value.reason === 'scheduled' || value.reason === 'manual')
   )
 }
@@ -174,6 +192,27 @@ export async function enqueueRuleRegistryCatalogSync(
     type: RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE,
     reason,
   } satisfies RuleRegistryCatalogSyncMessage)
+}
+
+/**
+ * Enqueue the catalog-level rule-date reconciliation (gap #5). Scheduled runs are gated to the
+ * weekly governance window — the findings (stale filing year / literal-vs-excerpt mismatch) only
+ * change on a catalog edit or a year rollover, and the alert is deduped on the durable drift state,
+ * so weekly is plenty. `manual` always enqueues for on-demand runs.
+ */
+export async function enqueueRuleDateReconciliation(
+  env: Pick<Env, 'PULSE_QUEUE'>,
+  now: Date,
+  reason: RuleDateReconciliationMessage['reason'] = 'scheduled',
+): Promise<{ queued: boolean }> {
+  if (reason === 'scheduled' && !shouldRunWeeklyRuleSourceGovernance(now)) {
+    return { queued: false }
+  }
+  await env.PULSE_QUEUE.send({
+    type: RULE_DATE_RECONCILIATION_MESSAGE_TYPE,
+    reason,
+  } satisfies RuleDateReconciliationMessage)
+  return { queued: true }
 }
 
 export async function enqueueDueRuleSourceScans(
@@ -487,4 +526,138 @@ export async function consumeRuleRegistryCatalogSync(
     deprecatedRules,
     draftMessages: draftTargets.length,
   }
+}
+
+export interface RuleDateAlertPlan {
+  ruleId: string
+  sourceId: string
+  jurisdiction: string
+  sourceUrl: string
+  aiSummary: string
+  verbatimQuote: string
+}
+
+function basisSourceIdForRule(rule: Pick<ObligationRule, 'sourceIds' | 'evidence'>): string | null {
+  const basis = rule.evidence.find(
+    (evidence) => evidence.authorityRole === 'basis' && evidence.sourceExcerpt.length > 0,
+  )
+  return basis?.sourceId ?? rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? null
+}
+
+/**
+ * Turn rule-date reconciliation findings into rule_source_drift alert plans, one per stale rule:
+ * group the issues by rule, drop any rule that already carries an uncleared drift signal (so a
+ * re-run never re-alerts), resolve the rule's basis source + url, and compose the alert copy. Pure
+ * — the consumer supplies the catalog, the sources, and the uncleared-rule set.
+ */
+export function buildRuleDateAlertPlans(input: {
+  rules: readonly ObligationRule[]
+  sources: readonly RuleSource[]
+  currentYear: number
+  unclearedRuleIds: ReadonlySet<string>
+}): RuleDateAlertPlan[] {
+  const issues = findRuleDateReconciliationIssues({
+    rules: input.rules,
+    currentYear: input.currentYear,
+  })
+  if (issues.length === 0) return []
+
+  const detailsByRule = new Map<string, string[]>()
+  for (const issue of issues) {
+    const details = detailsByRule.get(issue.ruleId) ?? []
+    details.push(issue.detail)
+    detailsByRule.set(issue.ruleId, details)
+  }
+  const ruleById = new Map(input.rules.map((rule) => [rule.id, rule]))
+  const sourceUrlById = new Map(input.sources.map((source) => [source.id, source.url]))
+
+  const plans: RuleDateAlertPlan[] = []
+  for (const [ruleId, details] of detailsByRule) {
+    if (input.unclearedRuleIds.has(ruleId)) continue
+    const rule = ruleById.get(ruleId)
+    if (!rule) continue
+    const sourceId = basisSourceIdForRule(rule)
+    if (!sourceId) continue
+    const sourceUrl = sourceUrlById.get(sourceId)
+    if (!sourceUrl) continue
+    const basisExcerpt = rule.evidence.find(
+      (evidence) => evidence.authorityRole === 'basis' && evidence.sourceExcerpt.length > 0,
+    )?.sourceExcerpt
+    plans.push({
+      ruleId,
+      sourceId,
+      jurisdiction: rule.jurisdiction,
+      sourceUrl,
+      aiSummary: `Catalog date check flagged verified rule ${ruleId} for re-verification — ${details.join(' ')} Confirm the due date against the official source.`,
+      verbatimQuote: basisExcerpt ?? details.join(' '),
+    })
+  }
+  return plans
+}
+
+/**
+ * Catalog-level rule-date reconciliation (gap #5): raise a rule_source_drift Alert for any verified
+ * rule whose literal due date is stale (filing year already past) or contradicts its own cited basis
+ * excerpt, and record the durable drift state so the rule cannot be (bulk-)adopted until re-verified.
+ * Deduped on the uncleared drift state, so re-running never double-alerts.
+ */
+export async function consumeRuleDateReconciliation(
+  _message: RuleDateReconciliationMessage,
+  env: Env,
+): Promise<{ staleRules: number; alertsCreated: number }> {
+  const rules = listObligationRules({ includeCandidates: true })
+  const currentYear = new Date().getUTCFullYear()
+  const staleRuleIds = Array.from(
+    new Set(findRuleDateReconciliationIssues({ rules, currentYear }).map((issue) => issue.ruleId)),
+  )
+  if (staleRuleIds.length === 0) {
+    recordPulseMetric('rule.date_reconciliation', { staleRules: 0, alertsCreated: 0 })
+    return { staleRules: 0, alertsCreated: 0 }
+  }
+
+  const pulseOps = makePulseOpsRepo(createDb(env.DB))
+  const unclearedRuleIds = new Set(await pulseOps.listUnclearedDriftRuleIds(staleRuleIds))
+  const plans = buildRuleDateAlertPlans({
+    rules,
+    sources: listRuleSources(),
+    currentYear,
+    unclearedRuleIds,
+  })
+
+  const detectedAt = new Date()
+  // Serialized rather than Promise.all: each alert fans out to every active firm, so we avoid
+  // spiking D1 when several rules go stale at once (e.g. a year rollover).
+  const created = []
+  for (const plan of plans) {
+    const { pulseId } = await pulseOps.createRuleSourceDriftPulse({
+      sourceId: plan.sourceId,
+      sourceUrl: plan.sourceUrl,
+      parsedJurisdiction: plan.jurisdiction,
+      reverifyRuleIds: [plan.ruleId],
+      aiSummary: plan.aiSummary,
+      verbatimQuote: plan.verbatimQuote,
+      publishedAt: detectedAt,
+      structuredChange: {
+        kind: 'rule_source_drift',
+        origin: 'date_reconciliation',
+        sourceId: plan.sourceId,
+        ruleIds: [plan.ruleId],
+      },
+    })
+    await pulseOps.upsertRuleSourceDriftState({
+      ruleId: plan.ruleId,
+      sourceId: plan.sourceId,
+      pulseId,
+      contentHash: `reconcile:${plan.ruleId}`,
+      excerptMatched: false,
+      detectedAt,
+    })
+    created.push(pulseId)
+  }
+
+  recordPulseMetric('rule.date_reconciliation', {
+    staleRules: staleRuleIds.length,
+    alertsCreated: created.length,
+  })
+  return { staleRules: staleRuleIds.length, alertsCreated: created.length }
 }

@@ -13,9 +13,11 @@ import {
   isRuleConcreteDraftGenerateMessage,
 } from './rules/concrete-draft'
 import {
+  consumeRuleDateReconciliation,
   consumeRuleRegistryCatalogSync,
   consumePulseRuleSourceScan,
   isPulseRuleSourceScanMessage,
+  isRuleDateReconciliationMessage,
   isRuleRegistryCatalogSyncMessage,
 } from './rules/reconcile'
 
@@ -45,6 +47,7 @@ function isDispatchableMessage(body: unknown): boolean {
     isRuleConcreteDraftGenerateMessage(body) ||
     isPulseRuleSourceScanMessage(body) ||
     isRuleRegistryCatalogSyncMessage(body) ||
+    isRuleDateReconciliationMessage(body) ||
     isEmailFlushMessage(body) ||
     isAuditPackageGenerateMessage(body)
   )
@@ -138,6 +141,9 @@ async function dispatchMessage(message: Message, env: Env): Promise<void> {
     }
     if (isRuleRegistryCatalogSyncMessage(body)) {
       await consumeRuleRegistryCatalogSync(body, env)
+    }
+    if (isRuleDateReconciliationMessage(body)) {
+      await consumeRuleDateReconciliation(body, env)
     }
     if (isEmailFlushMessage(body)) {
       await flushEmailOutbox(env)

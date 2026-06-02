@@ -4,13 +4,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Env } from '../../env'
 import {
+  buildRuleDateAlertPlans,
   consumePulseRuleSourceScan,
+  consumeRuleDateReconciliation,
   consumeRuleRegistryCatalogSync,
   enqueueDueRuleSourceScans,
   PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE,
+  RULE_DATE_RECONCILIATION_MESSAGE_TYPE,
   RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE,
   shouldRunWeeklyRuleSourceGovernance,
 } from './reconcile'
+import type { ObligationRule, RuleSource } from '@duedatehq/core/rules'
 
 const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.hoisted(() => {
   const sources: unknown[] = []
@@ -30,6 +34,9 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
     updateSourceSnapshotStatus: vi.fn(),
     recordSourceSuccess: vi.fn(),
     recordSourceFailure: vi.fn(),
+    listUnclearedDriftRuleIds: vi.fn(async (): Promise<string[]> => []),
+    createRuleSourceDriftPulse: vi.fn(async () => ({ pulseId: 'pulse-test', alertCount: 1 })),
+    upsertRuleSourceDriftState: vi.fn(async () => undefined),
   }
   const aiRepo = {
     findSuccessfulGlobalRunsByContextRefs: vi.fn(),
@@ -575,5 +582,194 @@ describe('rule source scan jobs', () => {
       changedRules: [],
     })
     expect(result.deprecatedRules).toBe(1)
+  })
+})
+
+describe('buildRuleDateAlertPlans (gap #5)', () => {
+  const SOURCES = [{ id: 'fed.src', url: 'https://www.irs.gov/file' }] as unknown as RuleSource[]
+  function rule(overrides: Record<string, unknown> = {}): ObligationRule {
+    return {
+      id: 'fed.1040.return.2026',
+      jurisdiction: 'FED',
+      status: 'verified',
+      applicableYear: 2026,
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: '2026-04-15',
+        holidayRollover: 'next_business_day',
+      },
+      sourceIds: ['fed.src'],
+      evidence: [
+        {
+          sourceId: 'fed.src',
+          authorityRole: 'basis',
+          sourceExcerpt: 'Returns are due April 15, 2026.',
+        },
+      ],
+      ...overrides,
+    } as unknown as ObligationRule
+  }
+
+  it('plans one alert per stale rule with basis source + jurisdiction resolved', () => {
+    const plans = buildRuleDateAlertPlans({
+      rules: [rule({ id: 'fed.1040.return.2024', applicableYear: 2025 })],
+      sources: SOURCES,
+      currentYear: 2026,
+      unclearedRuleIds: new Set<string>(),
+    })
+    expect(plans).toHaveLength(1)
+    expect(plans[0]).toMatchObject({
+      ruleId: 'fed.1040.return.2024',
+      sourceId: 'fed.src',
+      jurisdiction: 'FED',
+      sourceUrl: 'https://www.irs.gov/file',
+    })
+    expect(plans[0]?.aiSummary).toContain('fed.1040.return.2024')
+    expect(plans[0]?.verbatimQuote).toContain('April 15')
+  })
+
+  it('skips a rule that already carries an uncleared drift signal (dedup)', () => {
+    const plans = buildRuleDateAlertPlans({
+      rules: [rule({ id: 'fed.1040.return.2024', applicableYear: 2025 })],
+      sources: SOURCES,
+      currentYear: 2026,
+      unclearedRuleIds: new Set(['fed.1040.return.2024']),
+    })
+    expect(plans).toEqual([])
+  })
+
+  it('plans an alert for a date-vs-excerpt mismatch', () => {
+    const plans = buildRuleDateAlertPlans({
+      rules: [
+        rule({
+          dueDateLogic: {
+            kind: 'fixed_date',
+            date: '2026-03-15',
+            holidayRollover: 'next_business_day',
+          },
+        }),
+      ],
+      sources: SOURCES,
+      currentYear: 2026,
+      unclearedRuleIds: new Set<string>(),
+    })
+    expect(plans).toHaveLength(1)
+    expect(plans[0]?.aiSummary).toMatch(/not within|not supported/i)
+  })
+
+  it('plans nothing when the catalog is consistent', () => {
+    expect(
+      buildRuleDateAlertPlans({
+        rules: [rule()],
+        sources: SOURCES,
+        currentYear: 2026,
+        unclearedRuleIds: new Set<string>(),
+      }),
+    ).toEqual([])
+  })
+
+  it('skips a stale rule whose basis source has no known url', () => {
+    expect(
+      buildRuleDateAlertPlans({
+        rules: [rule({ id: 'fed.1040.return.2024', applicableYear: 2025 })],
+        sources: [],
+        currentYear: 2026,
+        unclearedRuleIds: new Set<string>(),
+      }),
+    ).toEqual([])
+  })
+})
+
+describe('consumeRuleDateReconciliation (gap #5)', () => {
+  const driftSource = { id: 'fed.src', url: 'https://www.irs.gov/file' }
+  function staleRule(overrides: Record<string, unknown> = {}) {
+    return {
+      id: 'fed.1040.return.2024',
+      jurisdiction: 'FED',
+      status: 'verified',
+      applicableYear: 2025,
+      dueDateLogic: {
+        kind: 'fixed_date',
+        date: '2025-04-15',
+        holidayRollover: 'next_business_day',
+      },
+      sourceIds: ['fed.src'],
+      evidence: [
+        {
+          sourceId: 'fed.src',
+          authorityRole: 'basis',
+          sourceExcerpt: 'Returns are due April 15, 2025.',
+        },
+      ],
+      nextReviewOn: '2026-05-01',
+      ...overrides,
+    }
+  }
+
+  beforeEach(() => {
+    coreMocks.sources.splice(0, coreMocks.sources.length)
+    coreMocks.rules.splice(0, coreMocks.rules.length)
+    dbMocks.pulseOpsRepo.createRuleSourceDriftPulse.mockClear()
+    dbMocks.pulseOpsRepo.upsertRuleSourceDriftState.mockClear()
+    dbMocks.pulseOpsRepo.listUnclearedDriftRuleIds.mockClear()
+    dbMocks.pulseOpsRepo.listUnclearedDriftRuleIds.mockResolvedValue([])
+    metricsMocks.recordPulseMetric.mockClear()
+  })
+
+  it('raises a drift alert + records drift state for a newly stale rule', async () => {
+    coreMocks.rules.push(staleRule())
+    coreMocks.sources.push(driftSource)
+    const result = await consumeRuleDateReconciliation(
+      { type: RULE_DATE_RECONCILIATION_MESSAGE_TYPE, reason: 'manual' },
+      env() as Env,
+    )
+    expect(result).toEqual({ staleRules: 1, alertsCreated: 1 })
+    expect(dbMocks.pulseOpsRepo.createRuleSourceDriftPulse).toHaveBeenCalledTimes(1)
+    expect(dbMocks.pulseOpsRepo.createRuleSourceDriftPulse).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceId: 'fed.src', reverifyRuleIds: ['fed.1040.return.2024'] }),
+    )
+    expect(dbMocks.pulseOpsRepo.upsertRuleSourceDriftState).toHaveBeenCalledWith(
+      expect.objectContaining({ ruleId: 'fed.1040.return.2024', sourceId: 'fed.src' }),
+    )
+  })
+
+  it('does not re-alert a rule whose drift is already uncleared (dedup)', async () => {
+    coreMocks.rules.push(staleRule())
+    coreMocks.sources.push(driftSource)
+    dbMocks.pulseOpsRepo.listUnclearedDriftRuleIds.mockResolvedValue(['fed.1040.return.2024'])
+    const result = await consumeRuleDateReconciliation(
+      { type: RULE_DATE_RECONCILIATION_MESSAGE_TYPE, reason: 'manual' },
+      env() as Env,
+    )
+    expect(result).toEqual({ staleRules: 1, alertsCreated: 0 })
+    expect(dbMocks.pulseOpsRepo.createRuleSourceDriftPulse).not.toHaveBeenCalled()
+  })
+
+  it('creates nothing when the catalog has no stale rules', async () => {
+    coreMocks.rules.push(
+      staleRule({
+        applicableYear: 2999,
+        dueDateLogic: {
+          kind: 'fixed_date',
+          date: '2999-04-15',
+          holidayRollover: 'next_business_day',
+        },
+        evidence: [
+          {
+            sourceId: 'fed.src',
+            authorityRole: 'basis',
+            sourceExcerpt: 'Returns are due April 15, 2999.',
+          },
+        ],
+      }),
+    )
+    coreMocks.sources.push(driftSource)
+    const result = await consumeRuleDateReconciliation(
+      { type: RULE_DATE_RECONCILIATION_MESSAGE_TYPE, reason: 'manual' },
+      env() as Env,
+    )
+    expect(result).toEqual({ staleRules: 0, alertsCreated: 0 })
+    expect(dbMocks.pulseOpsRepo.createRuleSourceDriftPulse).not.toHaveBeenCalled()
+    expect(dbMocks.pulseOpsRepo.listUnclearedDriftRuleIds).not.toHaveBeenCalled()
   })
 })

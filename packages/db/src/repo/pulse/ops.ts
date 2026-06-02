@@ -180,6 +180,27 @@ export function makePulseOpsRepo(db: Db) {
     return alertCount
   }
 
+  // Shared tail for both pulse-creation paths: load the inserted row, fan out per-active-firm
+  // alerts, and queue the review/digest emails.
+  async function finalizePulseFanOut(
+    pulseId: string,
+  ): Promise<{ pulseId: string; alertCount: number }> {
+    const inserted = await getPulse(pulseId)
+    if (!inserted) throw new PulseRepoError('not_found')
+    const alertCount = await refreshFirmAlertsForPulse(pulseId)
+    const alerts = await db
+      .select({
+        id: pulseFirmAlert.id,
+        firmId: pulseFirmAlert.firmId,
+        matchedCount: pulseFirmAlert.matchedCount,
+        needsReviewCount: pulseFirmAlert.needsReviewCount,
+      })
+      .from(pulseFirmAlert)
+      .where(eq(pulseFirmAlert.pulseId, pulseId))
+    await queueFirmPulseReviewMessages(inserted, alerts, new Date())
+    return { pulseId, alertCount }
+  }
+
   async function getSourceStateRow(sourceId: string): Promise<PulseSourceStateRow | undefined> {
     const rows = await db
       .select()
@@ -1004,20 +1025,56 @@ export function makePulseOpsRepo(db: Db) {
           })
           .where(eq(pulseSourceSnapshot.id, input.snapshotId)),
       ])
-      const inserted = await getPulse(pulseId)
-      if (!inserted) throw new PulseRepoError('not_found')
-      const alertCount = await refreshFirmAlertsForPulse(pulseId)
-      const alerts = await db
-        .select({
-          id: pulseFirmAlert.id,
-          firmId: pulseFirmAlert.firmId,
-          matchedCount: pulseFirmAlert.matchedCount,
-          needsReviewCount: pulseFirmAlert.needsReviewCount,
-        })
-        .from(pulseFirmAlert)
-        .where(eq(pulseFirmAlert.pulseId, pulseId))
-      await queueFirmPulseReviewMessages(inserted, alerts, new Date())
-      return { pulseId, alertCount }
+      return finalizePulseFanOut(pulseId)
+    },
+
+    /**
+     * Create a rule_source_drift Alert that is NOT tied to a freshly-fetched source snapshot — used
+     * by the catalog-level rule-date reconciliation (gap #5) to surface a verified rule whose literal
+     * due date is stale or contradicts its cited excerpt. Same per-active-firm fan-out + review
+     * messaging as the snapshot-driven path; it just skips the snapshot bookkeeping.
+     */
+    async createRuleSourceDriftPulse(input: {
+      sourceId: string
+      sourceUrl: string
+      parsedJurisdiction: string
+      reverifyRuleIds: string[]
+      aiSummary: string
+      verbatimQuote: string
+      publishedAt: Date
+      structuredChange?: unknown
+    }): Promise<{ pulseId: string; alertCount: number }> {
+      const pulseId = crypto.randomUUID()
+      const pulseRow: NewPulse = {
+        id: pulseId,
+        source: input.sourceId,
+        sourceUrl: input.sourceUrl,
+        rawR2Key: null,
+        publishedAt: input.publishedAt,
+        changeKind: 'rule_source_drift',
+        actionMode: 'review_only',
+        aiSummary: input.aiSummary,
+        verbatimQuote: input.verbatimQuote,
+        parsedJurisdiction: input.parsedJurisdiction,
+        parsedCounties: [],
+        parsedForms: [],
+        parsedEntityTypes: [],
+        parsedOriginalDueDate: null,
+        parsedNewDueDate: null,
+        parsedEffectiveFrom: null,
+        parsedEffectiveUntil: null,
+        affectedRuleIdsJson: [],
+        reverifyRuleIdsJson: input.reverifyRuleIds,
+        structuredChangeJson: input.structuredChange ?? null,
+        confidence: 1,
+        status: 'approved',
+        reviewedBy: null,
+        reviewedAt: null,
+        requiresHumanReview: true,
+        isSample: false,
+      }
+      await db.insert(pulse).values(pulseRow)
+      return finalizePulseFanOut(pulseId)
     },
 
     /**

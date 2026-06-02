@@ -5,7 +5,11 @@ import { enqueueDashboardBriefRefresh } from './dashboard-brief/enqueue'
 import { enqueuePulseIngestScans } from './pulse/ingest'
 import { dispatchDeadlineReminders } from './reminders/dispatch'
 import { dispatchMorningDigests } from './notifications/morning-digest'
-import { enqueueDueRuleSourceScans, enqueueRuleRegistryCatalogSync } from './rules/reconcile'
+import {
+  enqueueDueRuleSourceScans,
+  enqueueRuleDateReconciliation,
+  enqueueRuleRegistryCatalogSync,
+} from './rules/reconcile'
 
 function localTimeParts(
   timezone: string,
@@ -119,6 +123,7 @@ export async function scheduled(
   const branches: Array<readonly [string, Promise<unknown>]> = [
     ['rule_registry_catalog_sync', enqueueRuleRegistryCatalogSync(env)],
     ['rule_source_scans', enqueueDueRuleSourceScans(env, now)],
+    ['rule_date_reconciliation', enqueueRuleDateReconciliation(env, now)],
     ['scheduled_dashboard_briefs', enqueueScheduledDashboardBriefs(env, now)],
     ['pulse_ingest_scans', enqueuePulseIngestScans(env, undefined, now)],
     ['deadline_reminders', dispatchDeadlineReminders(env, now)],
