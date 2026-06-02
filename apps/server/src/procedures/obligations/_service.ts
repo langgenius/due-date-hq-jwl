@@ -8,6 +8,11 @@ import type {
   ObligationBulkStatusUpdateOutput,
   ObligationExtensionDecisionInput,
   ObligationExtensionDecisionOutput,
+  ObligationBulkExtensionDecisionInput,
+  ObligationBulkExtensionDecisionOutput,
+  ObligationBulkExtensionDecisionPreviewInput,
+  ObligationBulkExtensionDecisionPreviewOutput,
+  ObligationBackfillSignatureLoopOutput,
   ObligationInstancePublic,
   ObligationMarkFiledRejectedInput,
   ObligationRemindSignatureInput,
@@ -33,6 +38,7 @@ import {
   signatureReminderVars,
   SIGNATURE_REMINDER_BODY_TEMPLATE,
   SIGNATURE_REMINDER_SUBJECT_TEMPLATE,
+  SIGNATURE_REMINDER_THROTTLE_DAYS,
   SIGNATURE_REMINDER_TOKENS,
 } from '@duedatehq/core/email-template'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
@@ -913,57 +919,48 @@ export async function bulkUpdateObligationStatus(
   }
 }
 
-export async function decideObligationExtension(
+// Apply an extension decision to ONE already-fetched row: validate the
+// internal target date against the filing deadline, then write the decision +
+// evidence + audit. Shared by the single (decideObligationExtension) and bulk
+// (bulkDecideObligationExtension) paths so they can't drift. The audit `after`
+// is built from the values just written (updateExtensionDecision sets
+// status='extended' + decision='applied' deterministically) — no re-read.
+async function applyExtensionDecision(
   scoped: ScopedRepo,
   userId: string,
-  input: ObligationExtensionDecisionInput,
-): Promise<ObligationExtensionDecisionOutput> {
-  const before = await scoped.obligations.findById(input.id)
-  if (!before) {
-    throw new ORPCError('NOT_FOUND', {
-      message: `Deadline ${input.id} not found in current firm.`,
-    })
-  }
-
+  row: ObligationRow,
+  input: { memo?: string; source?: string; internalTargetDate?: string },
+): Promise<{ auditId: string; evidenceId: string }> {
   const decidedAt = new Date()
   const memo = input.memo?.trim() || null
   const source = input.source?.trim() || null
-  const filingDeadline = before.filingDueDate ?? before.baseDueDate
-  const filingDeadlineIso = toIsoDate(filingDeadline)
+  const filingDeadlineIso = toIsoDate(row.filingDueDate ?? row.baseDueDate)
   if (input.internalTargetDate && input.internalTargetDate > filingDeadlineIso) {
     throw new ORPCError('BAD_REQUEST', {
       message: `Internal extension target date must be on or before filing deadline ${filingDeadlineIso}.`,
     })
   }
-
   const internalTargetDate = input.internalTargetDate
     ? new Date(`${input.internalTargetDate}T00:00:00.000Z`)
     : null
-  const nextStatus = 'extended'
 
-  await scoped.obligations.updateExtensionDecision(input.id, {
+  await scoped.obligations.updateExtensionDecision(row.id, {
     decision: 'applied',
     memo,
     source,
     internalTargetDate,
     decidedAt,
     decidedByUserId: userId,
-    status: nextStatus,
+    status: 'extended',
   })
-  const after = await scoped.obligations.findById(input.id)
-  if (!after) {
-    throw new ORPCError('INTERNAL_SERVER_ERROR', {
-      message: 'Updated deadline could not be re-read.',
-    })
-  }
 
   const evidence = await scoped.evidence.write({
-    obligationInstanceId: input.id,
+    obligationInstanceId: row.id,
     sourceType: 'extension_decision',
     rawValue: JSON.stringify({
-      decision: before.extensionDecision,
-      memo: before.extensionMemo,
-      source: before.extensionSource,
+      decision: row.extensionDecision,
+      memo: row.extensionMemo,
+      source: row.extensionSource,
     }),
     normalizedValue: JSON.stringify({
       decision: 'applied',
@@ -978,33 +975,131 @@ export async function decideObligationExtension(
   const { id: auditId } = await scoped.audit.write({
     actorId: userId,
     entityType: 'obligation_instance',
-    entityId: input.id,
+    entityId: row.id,
     action: 'obligation.extension.decided',
     before: {
-      status: before.status,
-      extensionDecision: before.extensionDecision,
-      extensionMemo: before.extensionMemo,
-      extensionSource: before.extensionSource,
-      extensionInternalTargetDate:
-        before.extensionExpectedDueDate?.toISOString().slice(0, 10) ?? null,
+      status: row.status,
+      extensionDecision: row.extensionDecision,
+      extensionMemo: row.extensionMemo,
+      extensionSource: row.extensionSource,
+      extensionInternalTargetDate: row.extensionExpectedDueDate?.toISOString().slice(0, 10) ?? null,
     },
     after: {
-      status: after.status,
-      extensionDecision: after.extensionDecision,
-      extensionMemo: after.extensionMemo,
-      extensionSource: after.extensionSource,
-      extensionInternalTargetDate:
-        after.extensionExpectedDueDate?.toISOString().slice(0, 10) ?? null,
+      status: 'extended',
+      extensionDecision: 'applied',
+      extensionMemo: memo,
+      extensionSource: source,
+      extensionInternalTargetDate: input.internalTargetDate ?? null,
       paymentStillDue: true,
     },
     ...(memo ? { reason: memo } : {}),
   })
 
+  return { auditId, evidenceId: evidence.id }
+}
+
+export async function decideObligationExtension(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationExtensionDecisionInput,
+): Promise<ObligationExtensionDecisionOutput> {
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.id} not found in current firm.`,
+    })
+  }
+  const { auditId, evidenceId } = await applyExtensionDecision(scoped, userId, before, {
+    ...(input.memo !== undefined ? { memo: input.memo } : {}),
+    ...(input.source !== undefined ? { source: input.source } : {}),
+    ...(input.internalTargetDate !== undefined
+      ? { internalTargetDate: input.internalTargetDate }
+      : {}),
+  })
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated deadline could not be re-read.',
+    })
+  }
   return {
     obligation: await toObligationPublicFromScoped(scoped, after),
     auditId,
-    evidenceId: evidence.id,
+    evidenceId,
   }
+}
+
+/**
+ * Bulk "Decide extension" for the queue floating action bar. Applies one
+ * shared extension plan (memo / source / internal target date) to every
+ * selected row. Silently skips rows that are not found, already extension-
+ * applied (idempotency), or — when a shared target date is given — whose
+ * filing deadline is earlier than that date (the dialog's capped picker
+ * normally prevents this; defense in depth). Reuses applyExtensionDecision so
+ * single + bulk share one write path.
+ */
+export async function bulkDecideObligationExtension(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationBulkExtensionDecisionInput,
+): Promise<ObligationBulkExtensionDecisionOutput> {
+  let skippedCount = 0
+  const auditIds: string[] = []
+  for (const id of new Set(input.ids)) {
+    const row = await scoped.obligations.findById(id)
+    if (!row || row.extensionDecision === 'applied') {
+      skippedCount += 1
+      continue
+    }
+    if (input.internalTargetDate) {
+      const filingDeadlineIso = toIsoDate(row.filingDueDate ?? row.baseDueDate)
+      if (input.internalTargetDate > filingDeadlineIso) {
+        skippedCount += 1
+        continue
+      }
+    }
+    const { auditId } = await applyExtensionDecision(scoped, userId, row, {
+      ...(input.memo !== undefined ? { memo: input.memo } : {}),
+      ...(input.source !== undefined ? { source: input.source } : {}),
+      ...(input.internalTargetDate !== undefined
+        ? { internalTargetDate: input.internalTargetDate }
+        : {}),
+    })
+    auditIds.push(auditId)
+  }
+  return { decidedCount: auditIds.length, skippedCount, auditIds }
+}
+
+/**
+ * Read-only eligibility breakdown for the bulk "Decide extension" dialog.
+ * Classifies rows into eligible (found, not already applied) / already-extended
+ * / not-found, and returns the earliest filing deadline across eligible rows so
+ * the dialog can cap the date picker (guaranteeing every eligible row passes
+ * the target-date check). Writes nothing.
+ */
+export async function bulkPreviewObligationExtensionDecision(
+  scoped: ScopedRepo,
+  input: ObligationBulkExtensionDecisionPreviewInput,
+): Promise<ObligationBulkExtensionDecisionPreviewOutput> {
+  let eligibleCount = 0
+  let alreadyExtendedCount = 0
+  let skippedCount = 0
+  let earliest: string | null = null
+  for (const id of new Set(input.ids)) {
+    const row = await scoped.obligations.findById(id)
+    if (!row) {
+      skippedCount += 1
+      continue
+    }
+    if (row.extensionDecision === 'applied') {
+      alreadyExtendedCount += 1
+      continue
+    }
+    eligibleCount += 1
+    const filingDeadlineIso = toIsoDate(row.filingDueDate ?? row.baseDueDate)
+    if (earliest === null || filingDeadlineIso < earliest) earliest = filingDeadlineIso
+  }
+  return { eligibleCount, alreadyExtendedCount, skippedCount, earliestFilingDeadline: earliest }
 }
 
 /**
@@ -1174,6 +1269,17 @@ export async function remindObligationSignature(
  * deadline so the drawer can show an editable preview before sending.
  * Read-only — queues nothing.
  */
+// Audit action recorded on each signature nudge; the previews query it to
+// surface "last reminded" (single) / "recently reminded" (bulk).
+const SIGNATURE_REMINDER_ACTION = 'obligation.signature.reminded'
+
+// True when a reminder timestamp falls inside the repeat-nudge throttle window.
+function isRecentReminder(at: Date | undefined): boolean {
+  return (
+    at !== undefined && Date.now() - at.getTime() < SIGNATURE_REMINDER_THROTTLE_DAYS * 86_400_000
+  )
+}
+
 export async function previewObligationSignatureReminder(
   scoped: ScopedRepo,
   input: ObligationSignatureReminderPreviewInput,
@@ -1191,12 +1297,14 @@ export async function previewObligationSignatureReminder(
     form: resolveForm(row.taxType, row.formName ?? null),
     taxYear: row.taxYear,
   })
+  const lastReminded = await scoped.audit.latestByEntityIds(SIGNATURE_REMINDER_ACTION, [input.id])
   return {
     subjectTemplate: SIGNATURE_REMINDER_SUBJECT_TEMPLATE,
     bodyTemplate: SIGNATURE_REMINDER_BODY_TEMPLATE,
     tokens: [...SIGNATURE_REMINDER_TOKENS],
     recipientEmail: resolveClientEmail(clientRow),
     sample: { clientName, vars },
+    lastRemindedAt: lastReminded.get(input.id)?.toISOString() ?? null,
   }
 }
 
@@ -1246,6 +1354,9 @@ export async function bulkPreviewObligationSignatureReminder(
   // page through every client that will actually be emailed (each mirrors a
   // real send). eligibleCount is derived from this to keep them in lockstep.
   const samples: SignatureReminderSample[] = []
+  // Eligible obligation ids in the same order as `samples`, used for the
+  // repeat-nudge "recently reminded" check below.
+  const eligibleIds: string[] = []
   for (const id of input.ids) {
     const row = await scoped.obligations.findById(id)
     if (!row || !isAwaitingSignature(row)) {
@@ -1257,6 +1368,7 @@ export async function bulkPreviewObligationSignatureReminder(
       noEmailCount += 1
       continue
     }
+    eligibleIds.push(row.id)
     samples.push({
       clientName: clientRow.name,
       vars: signatureReminderVars({
@@ -1266,6 +1378,10 @@ export async function bulkPreviewObligationSignatureReminder(
       }),
     })
   }
+  // One bounded audit query for the whole eligible set, then flag rows nudged
+  // within the throttle window so the dialog can offer to skip them.
+  const lastReminded = await scoped.audit.latestByEntityIds(SIGNATURE_REMINDER_ACTION, eligibleIds)
+  const recentlyRemindedIds = eligibleIds.filter((id) => isRecentReminder(lastReminded.get(id)))
   return {
     subjectTemplate: SIGNATURE_REMINDER_SUBJECT_TEMPLATE,
     bodyTemplate: SIGNATURE_REMINDER_BODY_TEMPLATE,
@@ -1274,5 +1390,38 @@ export async function bulkPreviewObligationSignatureReminder(
     skippedCount,
     noEmailCount,
     samples,
+    recentlyRemindedCount: recentlyRemindedIds.length,
+    recentlyRemindedIds,
   }
+}
+
+/**
+ * One-time, idempotent backfill of legacy filed returns into the awaiting-
+ * signature loop. Sweeps the firm's `done` + `not_applicable` rows and, for
+ * the tax types that carry an 8879 loop (obligationUsesEfileAuthorization),
+ * moves them to `authorization_requested` with an audit entry — mirroring the
+ * forward-entry logic in updateObligationStatus, applied to existing rows
+ * (migration-sourced ones never triggered it). Re-running finds nothing.
+ */
+export async function backfillObligationSignatureLoop(
+  scoped: ScopedRepo,
+  userId: string,
+): Promise<ObligationBackfillSignatureLoopOutput> {
+  const candidates = await scoped.obligations.listSignatureLoopBackfillCandidates()
+  let enteredCount = 0
+  for (const row of candidates) {
+    if (!obligationUsesEfileAuthorization(row.taxType)) continue
+    await scoped.obligations.setEfileState(row.id, 'authorization_requested')
+    await scoped.audit.write({
+      actorId: userId,
+      entityType: 'obligation_instance',
+      entityId: row.id,
+      action: 'obligation.efile.state.updated',
+      before: { efileState: 'not_applicable' },
+      after: { efileState: 'authorization_requested' },
+      reason: 'signature-loop backfill',
+    })
+    enteredCount += 1
+  }
+  return { scannedCount: candidates.length, enteredCount }
 }

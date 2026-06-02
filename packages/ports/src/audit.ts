@@ -119,6 +119,13 @@ export interface AuditRepo {
   writeBatch(events: Array<Omit<AuditEventInput, 'firmId'>>): Promise<{ ids: string[] }>
   listByFirm(opts?: { action?: string; actorId?: string; limit?: number }): Promise<AuditEventRow[]>
   list(input?: AuditListInput): Promise<AuditListResult>
+  /**
+   * Latest timestamp of `action` per entity for the given entity ids (one
+   * bounded GROUP BY query). Entities with no matching event are absent from
+   * the map. Powers the signature-reminder "last reminded" / "recently
+   * reminded" checks without scanning the full audit table per list row.
+   */
+  latestByEntityIds(action: string, entityIds: string[]): Promise<Map<string, Date>>
   createEvidencePackage?(input: AuditEvidencePackageCreateInput): Promise<{ id: string }>
   getEvidencePackage?(id: string): Promise<AuditEvidencePackageRow | undefined>
   listEvidencePackages?(opts?: { limit?: number }): Promise<AuditEvidencePackageRow[]>

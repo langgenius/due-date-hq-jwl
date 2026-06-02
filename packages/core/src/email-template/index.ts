@@ -34,6 +34,14 @@ export function renderTemplate(template: string, vars: Record<string, string>): 
 export const SIGNATURE_REMINDER_TOKENS = ['client_name', 'form', 'tax_year'] as const
 export type SignatureReminderToken = (typeof SIGNATURE_REMINDER_TOKENS)[number]
 
+/**
+ * Repeat-nudge guard: when a row was reminded within this many days, the UI
+ * warns before re-sending (single dialog) and surfaces a recently-reminded
+ * count + skip option (bulk dialog). Informational only — never hard-blocks an
+ * explicit send.
+ */
+export const SIGNATURE_REMINDER_THROTTLE_DAYS = 3
+
 export const SIGNATURE_REMINDER_SUBJECT_TEMPLATE =
   'Reminder: please sign Form 8879 for your {{tax_year}} {{form}} return'
 

@@ -101,7 +101,7 @@ import {
   type ReadinessDocumentChecklistItemPublic,
   type ReadinessPreviewRequestEmailOutput,
 } from '@duedatehq/contracts'
-import { renderTemplate } from '@duedatehq/core/email-template'
+import { renderTemplate, SIGNATURE_REMINDER_THROTTLE_DAYS } from '@duedatehq/core/email-template'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import {
   AlertDialog,
@@ -1380,6 +1380,8 @@ export function ObligationQueueRoute() {
   const [extendedMemoOpen, setExtendedMemoOpen] = useState(false)
   // P0: confirm gate for the bulk "Remind to sign" floating-bar action.
   const [remindToSignConfirmOpen, setRemindToSignConfirmOpen] = useState(false)
+  // P1: bulk "Decide extension" floating-bar action.
+  const [bulkExtensionOpen, setBulkExtensionOpen] = useState(false)
   const [extendedMemo, setExtendedMemo] = useState('')
   const [exportModalOpen, setExportModalOpen] = useState(false)
   const [exportScope, setExportScope] = useState<ObligationExportDialogScope>('filtered')
@@ -1693,6 +1695,35 @@ export function ObligationQueueRoute() {
       },
       onError: (err) => {
         toast.error(t`Couldn't send reminders`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  // P1: bulk "Decide extension" from the floating action bar. Applies one
+  // extension plan to every eligible selected deadline; the server skips rows
+  // already extended (or past the shared target date) and returns counts.
+  const bulkDecideExtensionMutation = useMutation(
+    orpc.obligations.bulkDecideExtension.mutationOptions({
+      onSuccess: (result) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+        setRowSelection({})
+        toast.success(t`Extension plans saved`, {
+          description:
+            result.skippedCount > 0
+              ? t`${result.decidedCount} deadlines extended · ${result.skippedCount} skipped (already extended or past deadline)`
+              : t`${result.decidedCount} deadlines extended`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't decide extensions`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -3837,6 +3868,23 @@ export function ObligationQueueRoute() {
                 <SendIcon data-icon="inline-start" />
                 <Trans>Remind to sign</Trans>
               </Button>
+              {/* P1: bulk "Decide extension" — applies one extension plan to
+                  every eligible selected deadline. Rows already extended (or
+                  past the shared target date) are skipped server-side. */}
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!canUpdateObligationStatus || bulkDecideExtensionMutation.isPending}
+                title={
+                  canUpdateObligationStatus
+                    ? t`Apply an internal extension plan to the selected deadlines`
+                    : t`Requires status-update access`
+                }
+                onClick={() => setBulkExtensionOpen(true)}
+              >
+                <CalendarClockIcon data-icon="inline-start" />
+                <Trans>Decide extension</Trans>
+              </Button>
               <Separator orientation="vertical" className="mx-0.5 h-4" />
               <Button
                 variant="ghost"
@@ -4790,10 +4838,33 @@ export function ObligationQueueRoute() {
         onOpenChange={setRemindToSignConfirmOpen}
         target={{ mode: 'bulk', ids: selectedIds }}
         sending={bulkRemindSignatureMutation.isPending}
-        onSend={({ subject, body }) => {
+        onSend={({ subject, body, excludeIds }) => {
+          // "Skip recently reminded" drops those ids before sending.
+          const ids = excludeIds?.length
+            ? selectedIds.filter((id) => !excludeIds.includes(id))
+            : selectedIds
+          if (ids.length === 0) {
+            setRemindToSignConfirmOpen(false)
+            return
+          }
           bulkRemindSignatureMutation.mutate(
-            { ids: selectedIds, subject, body },
+            { ids, subject, body },
             { onSuccess: () => setRemindToSignConfirmOpen(false) },
+          )
+        }}
+      />
+      {/* P1: bulk "Decide extension" dialog — caps the target date at the
+          earliest filing deadline in the selection so every eligible row
+          passes validation. */}
+      <BulkExtensionDialog
+        open={bulkExtensionOpen}
+        onOpenChange={setBulkExtensionOpen}
+        ids={selectedIds}
+        sending={bulkDecideExtensionMutation.isPending}
+        onSend={(payload) => {
+          bulkDecideExtensionMutation.mutate(
+            { ids: selectedIds, ...payload },
+            { onSuccess: () => setBulkExtensionOpen(false) },
           )
         }}
       />
@@ -5249,7 +5320,7 @@ function SignatureReminderDialog({
   onOpenChange: (open: boolean) => void
   target: SignatureReminderTarget
   sending: boolean
-  onSend: (input: { subject: string; body: string }) => void
+  onSend: (input: { subject: string; body: string; excludeIds?: string[] }) => void
 }) {
   const { t } = useLingui()
   const isBulk = target.mode === 'bulk'
@@ -5273,6 +5344,10 @@ function SignatureReminderDialog({
   const [edited, setEdited] = useState(false)
   // Which eligible recipient the bulk preview is paged to (single mode ignores).
   const [previewIndex, setPreviewIndex] = useState(0)
+  // P1 throttle: bulk "skip recently reminded" toggle + single two-click
+  // "send anyway" confirm when the client was nudged within the window.
+  const [skipRecent, setSkipRecent] = useState(false)
+  const [confirmResend, setConfirmResend] = useState(false)
   // Seed the editable fields from the server template once it arrives
   // (unless the CPA already started editing this open session).
   useEffect(() => {
@@ -5288,6 +5363,8 @@ function SignatureReminderDialog({
       setBody('')
       setEdited(false)
       setPreviewIndex(0)
+      setSkipRecent(false)
+      setConfirmResend(false)
     }
   }, [open])
 
@@ -5307,6 +5384,18 @@ function SignatureReminderDialog({
   const eligibleCount = bulkQuery.data?.eligibleCount ?? 0
   const hasRecipient = isBulk ? eligibleCount > 0 : Boolean(recipientEmail)
   const canSend = hasRecipient && subject.trim().length > 0 && body.trim().length > 0 && !sending
+
+  // P1 repeat-nudge throttle. Single: warn + require a "send anyway" confirm
+  // when this client was reminded within the window. Bulk: count + optionally
+  // skip the eligible rows reminded recently. Never hard-blocks the send.
+  const throttleMs = SIGNATURE_REMINDER_THROTTLE_DAYS * 86_400_000
+  const lastRemindedAt = singleQuery.data?.lastRemindedAt ?? null
+  const msSinceReminded = lastRemindedAt ? Date.now() - new Date(lastRemindedAt).getTime() : null
+  const recentlyReminded = !isBulk && msSinceReminded !== null && msSinceReminded < throttleMs
+  const daysSinceReminded = msSinceReminded !== null ? Math.floor(msSinceReminded / 86_400_000) : 0
+  const recentlyRemindedCount = bulkQuery.data?.recentlyRemindedCount ?? 0
+  const recentlyRemindedIds = bulkQuery.data?.recentlyRemindedIds ?? []
+  const needsResendConfirm = recentlyReminded && !confirmResend
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -5343,6 +5432,30 @@ function SignatureReminderDialog({
                 <Trans>
                   Sending to {eligibleCount} clients · {bulkQuery.data?.skippedCount ?? 0} not
                   awaiting signature · {bulkQuery.data?.noEmailCount ?? 0} without an email
+                </Trans>
+              </p>
+            ) : null}
+            {/* P1 throttle: bulk skip toggle for recently-reminded clients. */}
+            {isBulk && recentlyRemindedCount > 0 ? (
+              <label className="flex items-center gap-2 text-sm text-text-secondary">
+                <Checkbox
+                  checked={skipRecent}
+                  onCheckedChange={(checked) => setSkipRecent(checked)}
+                />
+                <Plural
+                  value={recentlyRemindedCount}
+                  one="Skip # client reminded in the last few days"
+                  other="Skip # clients reminded in the last few days"
+                />
+              </label>
+            ) : null}
+            {/* P1 throttle: single "you just reminded them" warning. */}
+            {recentlyReminded ? (
+              <p className="rounded-md bg-background-subtle px-3 py-2 text-sm text-text-secondary">
+                <Trans>
+                  You reminded this client{' '}
+                  <Plural value={daysSinceReminded} _0="today" one="# day ago" other="# days ago" />
+                  . Send another?
                 </Trans>
               </p>
             ) : null}
@@ -5433,9 +5546,158 @@ function SignatureReminderDialog({
           </Button>
           <Button
             disabled={!canSend}
-            onClick={() => onSend({ subject: subject.trim(), body: body.trim() })}
+            onClick={() => {
+              // Single: first click on a recently-reminded client just confirms.
+              if (needsResendConfirm) {
+                setConfirmResend(true)
+                return
+              }
+              onSend({
+                subject: subject.trim(),
+                body: body.trim(),
+                ...(isBulk && skipRecent ? { excludeIds: recentlyRemindedIds } : {}),
+              })
+            }}
           >
-            {isBulk ? <Trans>Send reminders</Trans> : <Trans>Send reminder</Trans>}
+            {needsResendConfirm ? (
+              <Trans>Send anyway</Trans>
+            ) : isBulk ? (
+              <Trans>Send reminders</Trans>
+            ) : (
+              <Trans>Send reminder</Trans>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// P1: bulk "Decide extension" dialog. Collects one shared extension plan (memo
+// + optional source + optional internal target date) and applies it to every
+// eligible selected deadline. The date picker is capped at the earliest filing
+// deadline in the selection (from the preview) so any picked date passes the
+// server's per-row "target ≤ filing deadline" check for every row.
+function BulkExtensionDialog({
+  open,
+  onOpenChange,
+  ids,
+  sending,
+  onSend,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  ids: string[]
+  sending: boolean
+  onSend: (input: { memo: string; source?: string; internalTargetDate?: string }) => void
+}) {
+  const { t } = useLingui()
+  const query = useQuery({
+    ...orpc.obligations.bulkExtensionDecisionPreview.queryOptions({ input: { ids } }),
+    enabled: open && ids.length > 0,
+  })
+  const [memo, setMemo] = useState('')
+  const [source, setSource] = useState('')
+  const [internalTargetDate, setInternalTargetDate] = useState('')
+  // Reset on close so the next open starts clean.
+  useEffect(() => {
+    if (!open) {
+      setMemo('')
+      setSource('')
+      setInternalTargetDate('')
+    }
+  }, [open])
+
+  const eligibleCount = query.data?.eligibleCount ?? 0
+  const earliest = query.data?.earliestFilingDeadline ?? ''
+  // The picker normally prevents this, but guard if the cap shrank after a
+  // re-query while a later date was already chosen.
+  const dateInvalid = internalTargetDate !== '' && earliest !== '' && internalTargetDate > earliest
+  const canSend = eligibleCount > 0 && memo.trim().length > 0 && !dateInvalid && !sending
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
+            <Trans>Decide extension for selected deadlines</Trans>
+          </DialogTitle>
+          <DialogDescription>
+            <Trans>
+              Apply an internal extension plan to every eligible selected deadline. The target date
+              is capped at the earliest filing deadline in the selection; deadlines already extended
+              are skipped.
+            </Trans>
+          </DialogDescription>
+        </DialogHeader>
+        {query.isLoading ? (
+          <p className="text-sm text-text-tertiary">
+            <Trans>Loading preview…</Trans>
+          </p>
+        ) : (
+          <div className="grid gap-3">
+            <p className="text-sm text-text-secondary">
+              <Trans>
+                Extending {eligibleCount} deadlines · {query.data?.alreadyExtendedCount ?? 0}{' '}
+                already extended · {query.data?.skippedCount ?? 0} not found
+              </Trans>
+            </p>
+            <div className="grid gap-1.5">
+              <label htmlFor="bulk-extension-memo" className="text-sm font-medium">
+                <Trans>Decision memo</Trans>
+              </label>
+              <Textarea
+                id="bulk-extension-memo"
+                rows={4}
+                value={memo}
+                onChange={(event) => setMemo(event.target.value)}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <label htmlFor="bulk-extension-source" className="text-sm font-medium">
+                <Trans>Source (optional)</Trans>
+              </label>
+              <Input
+                id="bulk-extension-source"
+                value={source}
+                onChange={(event) => setSource(event.target.value)}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <label className="text-sm font-medium">
+                <Trans>Internal target date (optional)</Trans>
+              </label>
+              <IsoDatePicker
+                value={internalTargetDate}
+                invalid={dateInvalid}
+                {...(earliest ? { maxIsoDate: earliest } : {})}
+                ariaLabel={t`Internal extension target date`}
+                placeholder={t`Internal extension target date`}
+                onValueChange={setInternalTargetDate}
+              />
+              {earliest ? (
+                <p className="text-xs text-text-tertiary">
+                  <Trans>Capped at the earliest filing deadline: {earliest}</Trans>
+                </p>
+              ) : null}
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button
+            disabled={!canSend}
+            onClick={() =>
+              onSend({
+                memo: memo.trim(),
+                ...(source.trim() ? { source: source.trim() } : {}),
+                ...(internalTargetDate ? { internalTargetDate } : {}),
+              })
+            }
+          >
+            <Trans>Decide extensions</Trans>
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -4,6 +4,9 @@ import type { ObligationInstanceRow } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { deriveObligationReadiness } from '@duedatehq/core/obligation-workflow'
 import {
+  backfillObligationSignatureLoop,
+  bulkDecideObligationExtension,
+  bulkPreviewObligationExtensionDecision,
   bulkPreviewObligationSignatureReminder,
   bulkRemindObligationSignature,
   bulkUpdateObligationStatus,
@@ -85,6 +88,11 @@ function buildScoped(firmId: string, rows: Row[]) {
     },
     async listAnnualRolloverSeeds() {
       return []
+    },
+    async listSignatureLoopBackfillCandidates() {
+      return [...map.values()].filter(
+        (r) => r.status === 'done' && (r.efileState ?? 'not_applicable') === 'not_applicable',
+      )
     },
     async listGeneratedByClientAndTaxYears() {
       return []
@@ -216,6 +224,18 @@ function buildScoped(firmId: string, rows: Row[]) {
     },
     async list() {
       return { rows: [], nextCursor: null }
+    },
+    // Derive "last reminded" from captured audits: any entity with a matching
+    // action gets a fresh (recent) timestamp, which is enough to exercise the
+    // single "lastRemindedAt" + bulk "recentlyReminded" paths.
+    async latestByEntityIds(action, ids) {
+      const latest = new Map<string, Date>()
+      for (const a of audits) {
+        if (a.action === action && a.entityId && ids.includes(a.entityId)) {
+          latest.set(a.entityId, new Date())
+        }
+      }
+      return latest
     },
   }
 
@@ -809,6 +829,96 @@ describe('decideObligationExtension', () => {
 
     expect(result.obligation.extensionDecision).toBe('applied')
     expect(result.obligation.extensionInternalTargetDate).toBe('2026-04-15')
+  })
+})
+
+describe('bulkDecideObligationExtension', () => {
+  const ROW_A = ROW_ID
+  const ROW_B = '55555555-5555-4555-8555-555555555555'
+  const ROW_C = '66666666-6666-4666-8666-666666666666'
+
+  it('decides every eligible row and skips already-extended ones', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [
+      makeRow({ id: ROW_A, filingDueDate: new Date('2026-04-15T00:00:00.000Z') }),
+      makeRow({ id: ROW_B, filingDueDate: new Date('2026-05-15T00:00:00.000Z') }),
+      makeRow({ id: ROW_C, extensionDecision: 'applied' }),
+    ])
+
+    const result = await bulkDecideObligationExtension(repo, 'user_1', {
+      ids: [ROW_A, ROW_B, ROW_C],
+      memo: 'Busy season backlog.',
+    })
+
+    expect(result.decidedCount).toBe(2)
+    expect(result.skippedCount).toBe(1)
+    expect(result.auditIds).toHaveLength(2)
+    expect(map.get(ROW_A)).toMatchObject({ status: 'extended', extensionDecision: 'applied' })
+    expect(map.get(ROW_B)).toMatchObject({ status: 'extended', extensionDecision: 'applied' })
+    // The already-extended row is untouched (no status flip to 'extended' here).
+    expect(map.get(ROW_C)?.status).toBe('pending')
+    expect(audits.filter((a) => a.action === 'obligation.extension.decided')).toHaveLength(2)
+  })
+
+  it('skips rows whose filing deadline is earlier than the shared target date', async () => {
+    const { repo, map } = buildScoped(FIRM, [
+      makeRow({ id: ROW_A, filingDueDate: new Date('2026-03-15T00:00:00.000Z') }),
+      makeRow({ id: ROW_B, filingDueDate: new Date('2026-05-15T00:00:00.000Z') }),
+    ])
+
+    const result = await bulkDecideObligationExtension(repo, 'user_1', {
+      ids: [ROW_A, ROW_B],
+      internalTargetDate: '2026-04-01',
+    })
+
+    expect(result.decidedCount).toBe(1) // only ROW_B (deadline 2026-05-15 >= target)
+    expect(result.skippedCount).toBe(1) // ROW_A deadline 2026-03-15 < 2026-04-01
+    expect(map.get(ROW_A)?.extensionDecision).toBe('not_considered')
+    expect(map.get(ROW_B)).toMatchObject({ status: 'extended', extensionDecision: 'applied' })
+  })
+
+  it('counts a missing id as skipped', async () => {
+    const { repo } = buildScoped(FIRM, [makeRow({ id: ROW_A })])
+    const result = await bulkDecideObligationExtension(repo, 'user_1', {
+      ids: [ROW_A, ROW_B],
+      memo: 'note',
+    })
+    expect(result.decidedCount).toBe(1)
+    expect(result.skippedCount).toBe(1)
+  })
+})
+
+describe('bulkPreviewObligationExtensionDecision', () => {
+  const ROW_A = ROW_ID
+  const ROW_B = '55555555-5555-4555-8555-555555555555'
+  const ROW_C = '66666666-6666-4666-8666-666666666666'
+  const MISSING = '77777777-7777-4777-8777-777777777777'
+
+  it('counts eligible / already-extended / not-found and reports earliest deadline', async () => {
+    const { repo } = buildScoped(FIRM, [
+      makeRow({ id: ROW_A, filingDueDate: new Date('2026-04-15T00:00:00.000Z') }),
+      makeRow({ id: ROW_B, filingDueDate: new Date('2026-03-15T00:00:00.000Z') }),
+      makeRow({ id: ROW_C, extensionDecision: 'applied' }),
+    ])
+
+    const preview = await bulkPreviewObligationExtensionDecision(repo, {
+      ids: [ROW_A, ROW_B, ROW_C, MISSING],
+    })
+
+    expect(preview.eligibleCount).toBe(2)
+    expect(preview.alreadyExtendedCount).toBe(1)
+    expect(preview.skippedCount).toBe(1)
+    expect(preview.earliestFilingDeadline).toBe('2026-03-15')
+  })
+
+  it('returns a null earliest deadline when nothing is eligible', async () => {
+    const { repo } = buildScoped(FIRM, [makeRow({ id: ROW_A, extensionDecision: 'applied' })])
+    const preview = await bulkPreviewObligationExtensionDecision(repo, { ids: [ROW_A] })
+    expect(preview).toMatchObject({
+      eligibleCount: 0,
+      alreadyExtendedCount: 1,
+      skippedCount: 0,
+      earliestFilingDeadline: null,
+    })
   })
 })
 
@@ -1491,6 +1601,29 @@ describe('previewObligationSignatureReminder', () => {
     // (federal_1120s → "Form 1120-S"), not the raw snake_case.
     expect(preview.sample.vars.form).toBe('Form 1120-S')
     expect(preview.recipientEmail).toBeNull()
+    // Never reminded → no throttle warning.
+    expect(preview.lastRemindedAt).toBeNull()
+  })
+
+  it('reports lastRemindedAt once a reminder has been sent', async () => {
+    const base = buildScoped(FIRM, [
+      makeRow({
+        id: ROW_ID,
+        clientId: SIGNATURE_CLIENT_ID,
+        status: 'done',
+        efileState: 'authorization_requested',
+      }),
+    ]).repo
+    const { scoped } = withEmailClients(base, {
+      [SIGNATURE_CLIENT_ID]: { name: 'Acme', email: 'a@x.example' },
+    })
+    expect(
+      (await previewObligationSignatureReminder(scoped, { id: ROW_ID })).lastRemindedAt,
+    ).toBeNull()
+    await remindObligationSignature(scoped, 'user_1', { id: ROW_ID })
+    expect(
+      (await previewObligationSignatureReminder(scoped, { id: ROW_ID })).lastRemindedAt,
+    ).not.toBeNull()
   })
 
   it('throws NOT_FOUND for an unknown obligation', async () => {
@@ -1585,5 +1718,83 @@ describe('bulkPreviewObligationSignatureReminder', () => {
       noEmailCount: 0,
       samples: [],
     })
+  })
+
+  it('flags eligible rows reminded within the throttle window', async () => {
+    const ROW_B = '55555555-5555-4555-8555-555555555555'
+    const CLIENT_B = 'client-birch'
+    const base = buildScoped(FIRM, [
+      makeRow({
+        id: ROW_ID,
+        clientId: SIGNATURE_CLIENT_ID,
+        status: 'done',
+        efileState: 'authorization_requested',
+      }),
+      makeRow({
+        id: ROW_B,
+        clientId: CLIENT_B,
+        status: 'done',
+        efileState: 'authorization_requested',
+      }),
+    ]).repo
+    const { scoped } = withEmailClients(base, {
+      [SIGNATURE_CLIENT_ID]: { name: 'Acme', email: 'a@x.example' },
+      [CLIENT_B]: { name: 'Birch', email: 'b@x.example' },
+    })
+    // Remind only ROW_ID, then preview both.
+    await remindObligationSignature(scoped, 'user_1', { id: ROW_ID })
+    const preview = await bulkPreviewObligationSignatureReminder(scoped, { ids: [ROW_ID, ROW_B] })
+    expect(preview.eligibleCount).toBe(2)
+    expect(preview.recentlyRemindedCount).toBe(1)
+    expect(preview.recentlyRemindedIds).toEqual([ROW_ID])
+  })
+})
+
+describe('backfillObligationSignatureLoop', () => {
+  it('enters only eligible filed rows and is idempotent', async () => {
+    const ROW_FED = ROW_ID
+    const ROW_PAYROLL = '55555555-5555-4555-8555-555555555555'
+    const ROW_INLOOP = '66666666-6666-4666-8666-666666666666'
+    const ROW_PENDING = '77777777-7777-4777-8777-777777777777'
+    const { repo, audits, map } = buildScoped(FIRM, [
+      makeRow({
+        id: ROW_FED,
+        status: 'done',
+        efileState: 'not_applicable',
+        taxType: 'federal_1120s',
+      }),
+      makeRow({
+        id: ROW_PAYROLL,
+        status: 'done',
+        efileState: 'not_applicable',
+        taxType: 'federal_941',
+      }),
+      makeRow({
+        id: ROW_INLOOP,
+        status: 'done',
+        efileState: 'authorization_requested',
+        taxType: 'federal_1120s',
+      }),
+      makeRow({
+        id: ROW_PENDING,
+        status: 'pending',
+        efileState: 'not_applicable',
+        taxType: 'federal_1120s',
+      }),
+    ])
+
+    const result = await backfillObligationSignatureLoop(repo, 'user_1')
+    // Scans only done + not_applicable rows (FED + PAYROLL); enters only the
+    // tax type that carries an 8879 loop (1120s, not payroll 941).
+    expect(result).toEqual({ scannedCount: 2, enteredCount: 1 })
+    expect(map.get(ROW_FED)?.efileState).toBe('authorization_requested')
+    expect(map.get(ROW_PAYROLL)?.efileState).toBe('not_applicable')
+    expect(map.get(ROW_INLOOP)?.efileState).toBe('authorization_requested')
+    expect(audits.filter((a) => a.action === 'obligation.efile.state.updated')).toHaveLength(1)
+
+    // Idempotent: re-running enters nothing (FED already advanced; payroll
+    // remains scanned-but-ineligible).
+    const again = await backfillObligationSignatureLoop(repo, 'user_1')
+    expect(again).toEqual({ scannedCount: 1, enteredCount: 0 })
   })
 })

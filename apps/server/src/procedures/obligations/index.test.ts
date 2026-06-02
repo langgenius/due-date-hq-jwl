@@ -322,6 +322,7 @@ function makeContext(input: {
     listByClient: vi.fn(async () => rows),
     listByBatch: null!,
     listAnnualRolloverSeeds: null!,
+    listSignatureLoopBackfillCandidates: null!,
     listGeneratedByClientAndTaxYears: vi.fn(async () => input.duplicates ?? []),
     updateDueDate: null!,
     updateTaxYearProfile: null!,
@@ -349,6 +350,7 @@ function makeContext(input: {
     writeBatch: null!,
     listByFirm: null!,
     list: null!,
+    latestByEntityIds: null!,
   }
   const readiness: ScopedRepo['readiness'] = {
     firmId: FIRM_ID,

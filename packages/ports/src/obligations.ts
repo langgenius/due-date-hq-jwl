@@ -161,6 +161,8 @@ export interface ObligationsRepo {
   findManyByIds(ids: string[]): Promise<ObligationInstanceRow[]>
   listByClient(clientId: string): Promise<ObligationInstanceRow[]>
   listByBatch(batchId: string): Promise<ObligationInstanceRow[]>
+  /** Filed (`done`) rows still at `efileState='not_applicable'` — signature-loop backfill candidates. */
+  listSignatureLoopBackfillCandidates(): Promise<ObligationInstanceRow[]>
   listAnnualRolloverSeeds(input: {
     sourceFilingYear: number
     clientIds?: string[]

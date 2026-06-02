@@ -274,6 +274,27 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     }),
   )
 
+  // P1: one-time, owner-only backfill — enter legacy filed returns (marked
+  // filed before e-signature tracking existed) into the 8879 signature loop.
+  const canBackfillSignatureLoop = firm.role === 'owner'
+  const backfillSignatureLoopMutation = useMutation(
+    orpc.obligations.backfillSignatureLoop.mutationOptions({
+      onSuccess: (result) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        toast.success(t`Entered ${result.enteredCount} returns into the signature loop`, {
+          description: t`Scanned ${result.scannedCount} filed returns.`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't run the backfill`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+
   function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()
     const trimmed = name.trim()
@@ -738,6 +759,35 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
               {priorityPreview ? <PriorityPreviewTable preview={priorityPreview} /> : null}
             </div>
           </PermissionObscuredContent>
+        </CardContent>
+      </Card>
+
+      {/* P1: one-time owner-only backfill for legacy filed returns. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <Trans>Enter filed returns into the signature loop</Trans>
+          </CardTitle>
+          <CardDescription>
+            <Trans>
+              A one-time pass for returns marked filed before e-signature tracking existed. It moves
+              eligible filed returns (those needing a Form 8879 signature) into “Awaiting signature”
+              so you can track and remind. Safe to run more than once.
+            </Trans>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => backfillSignatureLoopMutation.mutate({})}
+            disabled={!canBackfillSignatureLoop || backfillSignatureLoopMutation.isPending}
+            title={
+              canBackfillSignatureLoop ? undefined : t`Running the backfill requires owner access.`
+            }
+          >
+            <Trans>Run backfill</Trans>
+          </Button>
         </CardContent>
       </Card>
 

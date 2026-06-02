@@ -16,6 +16,7 @@ import { requireTenant } from '../_context'
 import {
   MIGRATION_RUN_ROLES,
   OBLIGATION_STATUS_WRITE_ROLES,
+  requireCurrentFirmOwner,
   requireCurrentFirmRole,
 } from '../_permissions'
 import { requirePracticeAiWorkflow } from '../_plan-gates'
@@ -24,7 +25,10 @@ import { dateInTimezone, toAiInsightPublic } from '../_ai-insights'
 import { enqueueAiInsightRefresh } from '../../jobs/ai-insights/enqueue'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
 import {
+  bulkDecideObligationExtension,
+  bulkPreviewObligationExtensionDecision,
   bulkPreviewObligationSignatureReminder,
+  backfillObligationSignatureLoop,
   bulkRemindObligationSignature,
   bulkUpdateObligationStatus,
   decideObligationExtension,
@@ -781,6 +785,34 @@ const decideExtension = os.obligations.decideExtension.handler(async ({ input, c
   return result
 })
 
+// Bulk "Decide extension" from the queue floating action bar. Same write
+// permission as the single decideExtension; one dashboard-brief refresh when
+// anything changed (no per-subject AI refresh — that's per-row and would fan
+// out to up to 100 enqueues, matching how bulkUpdateStatus omits it).
+const bulkDecideExtension = os.obligations.bulkDecideExtension.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped, tenant, userId } = requireTenant(context)
+    const result = await bulkDecideObligationExtension(scoped, userId, input)
+    if (result.decidedCount > 0) {
+      await enqueueDashboardBriefRefresh(context.env, {
+        firmId: tenant.firmId,
+        reason: 'status_change',
+      }).catch(() => false)
+    }
+    return result
+  },
+)
+
+// Read-only eligibility breakdown for the bulk "Decide extension" dialog.
+const bulkExtensionDecisionPreview = os.obligations.bulkExtensionDecisionPreview.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped } = requireTenant(context)
+    return bulkPreviewObligationExtensionDecision(scoped, input)
+  },
+)
+
 // E-file sub-state advance (P0: "Mark 8879 signed"). Sibling of the
 // prep/review sub-status mutations — same write permission, no dashboard
 // brief refresh (status is unchanged; only the e-file column moves).
@@ -835,6 +867,14 @@ const bulkRemindSignature = os.obligations.bulkRemindSignature.handler(
     return result
   },
 )
+
+// One-time, owner-only backfill of legacy filed returns into the 8879 loop.
+// Firm-wide data correction → owner role (broader write roles are too loose).
+const backfillSignatureLoop = os.obligations.backfillSignatureLoop.handler(async ({ context }) => {
+  await requireCurrentFirmOwner(context)
+  const { scoped, userId } = requireTenant(context)
+  return backfillObligationSignatureLoop(scoped, userId)
+})
 
 const requestInput = os.obligations.requestInput.handler(async ({ input, context }) => {
   const { members, tenant, userId } = await requireCurrentFirmRole(context, ['preparer'])
@@ -1153,11 +1193,14 @@ export const obligationsHandlers = {
   updateReviewStage,
   bulkUpdateStatus,
   decideExtension,
+  bulkDecideExtension,
+  bulkExtensionDecisionPreview,
   updateEfileState,
   remindSignature,
   signatureReminderPreview,
   bulkRemindSignature,
   bulkSignatureReminderPreview,
+  backfillSignatureLoop,
   requestInput,
   getDeadlineTip,
   requestDeadlineTipRefresh,

@@ -314,6 +314,17 @@ msgstr "{0} deadlines changed · {skipped} skipped (already closed)"
 msgid "{0} deadlines created."
 msgstr "{0} deadlines created."
 
+#. placeholder {0}: result.decidedCount
+#: src/routes/obligations.tsx
+msgid "{0} deadlines extended"
+msgstr "{0} deadlines extended"
+
+#. placeholder {0}: result.decidedCount
+#. placeholder {1}: result.skippedCount
+#: src/routes/obligations.tsx
+msgid "{0} deadlines extended · {1} skipped (already extended or past deadline)"
+msgstr "{0} deadlines extended · {1} skipped (already extended or past deadline)"
+
 #. placeholder {0}: result.updatedCount
 #. placeholder {1}: v2StatusLabels[vars.status]
 #: src/features/clients/ClientWorkPlanPanel.tsx
@@ -793,6 +804,10 @@ msgstr "{receivedCount} of {checklistCount} items recorded as received before fi
 msgid "{receivedCount} of {checklistCount} received"
 msgstr "{receivedCount} of {checklistCount} received"
 
+#: src/routes/obligations.tsx
+msgid "{recentlyRemindedCount, plural, one {Skip # client reminded in the last few days} other {Skip # clients reminded in the last few days}}"
+msgstr "{recentlyRemindedCount, plural, one {Skip # client reminded in the last few days} other {Skip # clients reminded in the last few days}}"
+
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{reservedCount} reserved"
 msgstr "{reservedCount} reserved"
@@ -1055,6 +1070,10 @@ msgstr "A materials link will be created only."
 #: src/features/concepts/concept-help.tsx
 msgid "A model confidence signal for extracted or matched information. Low confidence means the source should be reviewed before applying changes."
 msgstr "A model confidence signal for extracted or matched information. Low confidence means the source should be reviewed before applying changes."
+
+#: src/routes/practice.tsx
+msgid "A one-time pass for returns marked filed before e-signature tracking existed. It moves eligible filed returns (those needing a Form 8879 signature) into “Awaiting signature” so you can track and remind. Safe to run more than once."
+msgstr "A one-time pass for returns marked filed before e-signature tracking existed. It moves eligible filed returns (those needing a Form 8879 signature) into “Awaiting signature” so you can track and remind. Safe to run more than once."
 
 #: src/features/calendar/calendar-page.tsx
 msgid "A personal feed for deadlines assigned to you."
@@ -1913,6 +1932,14 @@ msgstr "Applied to {0} clients"
 msgid "Applies to {0} in <0/>"
 msgstr "Applies to {0} in <0/>"
 
+#: src/routes/obligations.tsx
+msgid "Apply an internal extension plan to every eligible selected deadline. The target date is capped at the earliest filing deadline in the selection; deadlines already extended are skipped."
+msgstr "Apply an internal extension plan to every eligible selected deadline. The target date is capped at the earliest filing deadline in the selection; deadlines already extended are skipped."
+
+#: src/routes/obligations.tsx
+msgid "Apply an internal extension plan to the selected deadlines"
+msgstr "Apply an internal extension plan to the selected deadlines"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Apply Deadline Exception"
 msgstr "Apply Deadline Exception"
@@ -2492,6 +2519,10 @@ msgstr "candidate"
 #: src/features/workload/workload-page.tsx
 msgid "Capacity pressure"
 msgstr "Capacity pressure"
+
+#: src/routes/obligations.tsx
+msgid "Capped at the earliest filing deadline: {earliest}"
+msgstr "Capped at the earliest filing deadline: {earliest}"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Capture context (preferred call window, sensitivities, history) so the next preparer doesn't start from scratch."
@@ -3361,6 +3392,10 @@ msgstr "Couldn't create rule"
 msgid "Couldn't create your practice"
 msgstr "Couldn't create your practice"
 
+#: src/routes/obligations.tsx
+msgid "Couldn't decide extensions"
+msgstr "Couldn't decide extensions"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Couldn't delete client"
 msgstr "Couldn't delete client"
@@ -3578,6 +3613,10 @@ msgstr "Couldn't run annual rollover preview"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Couldn't run deadline preview"
 msgstr "Couldn't run deadline preview"
+
+#: src/routes/practice.tsx
+msgid "Couldn't run the backfill"
+msgstr "Couldn't run the backfill"
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Couldn't save"
@@ -4097,6 +4136,18 @@ msgid "Deadlines exported"
 msgstr "Deadlines exported"
 
 #: src/routes/obligations.tsx
+msgid "Decide extension"
+msgstr "Decide extension"
+
+#: src/routes/obligations.tsx
+msgid "Decide extension for selected deadlines"
+msgstr "Decide extension for selected deadlines"
+
+#: src/routes/obligations.tsx
+msgid "Decide extensions"
+msgstr "Decide extensions"
+
+#: src/routes/obligations.tsx
 msgid "Decision memo"
 msgstr "Decision memo"
 
@@ -4597,6 +4648,10 @@ msgstr "Enter a valid email address"
 msgid "Enter execute · Esc close · {commandShortcut} toggle"
 msgstr "Enter execute · Esc close · {commandShortcut} toggle"
 
+#: src/routes/practice.tsx
+msgid "Enter filed returns into the signature loop"
+msgstr "Enter filed returns into the signature loop"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Enter the 6-digit code."
 msgstr "Enter the 6-digit code."
@@ -4609,6 +4664,11 @@ msgstr "Enter the code from your authenticator app."
 #: src/routes/obligations.tsx
 msgid "Entered {0}"
 msgstr "Entered {0}"
+
+#. placeholder {0}: result.enteredCount
+#: src/routes/practice.tsx
+msgid "Entered {0} returns into the signature loop"
+msgstr "Entered {0} returns into the signature loop"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/billing.checkout.tsx
@@ -4922,6 +4982,12 @@ msgstr "Exports deadlines due within the selected date window."
 msgid "Extended"
 msgstr "Extended"
 
+#. placeholder {0}: query.data?.alreadyExtendedCount ?? 0
+#. placeholder {1}: query.data?.skippedCount ?? 0
+#: src/routes/obligations.tsx
+msgid "Extending {eligibleCount} deadlines · {0} already extended · {1} not found"
+msgstr "Extending {eligibleCount} deadlines · {0} already extended · {1} not found"
+
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
 msgid "Extension"
@@ -4950,6 +5016,10 @@ msgstr "Extension memo"
 #: src/routes/obligations.tsx
 msgid "Extension plan saved"
 msgstr "Extension plan saved"
+
+#: src/routes/obligations.tsx
+msgid "Extension plans saved"
+msgstr "Extension plans saved"
 
 #: src/routes/obligations.tsx
 msgid "Extension policy"
@@ -5851,6 +5921,10 @@ msgstr "Internal review"
 #: src/routes/obligations.tsx
 msgid "Internal target"
 msgstr "Internal target"
+
+#: src/routes/obligations.tsx
+msgid "Internal target date (optional)"
+msgstr "Internal target date (optional)"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Invalid rule"
@@ -9973,6 +10047,10 @@ msgstr "Rules accepted"
 msgid "Rules accepted in bulk"
 msgstr "Rules accepted in bulk"
 
+#: src/routes/practice.tsx
+msgid "Run backfill"
+msgstr "Run backfill"
+
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "Run migration or generate rules before this client has due-date work."
 msgstr "Run migration or generate rules before this client has due-date work."
@@ -9984,6 +10062,10 @@ msgstr "Run preview"
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Run the AI summary to surface penalty exposure, recent activity, and tax-attribute flags in one paragraph."
 msgstr "Run the AI summary to surface penalty exposure, recent activity, and tax-attribute flags in one paragraph."
+
+#: src/routes/practice.tsx
+msgid "Running the backfill requires owner access."
+msgstr "Running the backfill requires owner access."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Running…"
@@ -10153,6 +10235,11 @@ msgstr "Saving…"
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Scan the QR code"
 msgstr "Scan the QR code"
+
+#. placeholder {0}: result.scannedCount
+#: src/routes/practice.tsx
+msgid "Scanned {0} filed returns."
+msgstr "Scanned {0} filed returns."
 
 #: src/routes/obligations.tsx
 msgid "Schedule the payment with the authority"
@@ -10441,6 +10528,10 @@ msgstr "Send a morning digest"
 #: src/routes/obligations.tsx
 msgid "Send an internal request to an owner or partner for this deadline."
 msgstr "Send an internal request to an owner or partner for this deadline."
+
+#: src/routes/obligations.tsx
+msgid "Send anyway"
+msgstr "Send anyway"
 
 #: src/routes/obligations.tsx
 msgid "Send correction request"
@@ -10887,6 +10978,10 @@ msgstr "source"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Source"
 msgstr "Source"
+
+#: src/routes/obligations.tsx
+msgid "Source (optional)"
+msgstr "Source (optional)"
 
 #. placeholder {0}: item.sourceId
 #. placeholder {1}: item.retrievedAt
@@ -12667,6 +12762,10 @@ msgstr "You don't have permission to use this practice feature."
 #: src/lib/i18n-error.ts
 msgid "You need to sign in to continue."
 msgstr "You need to sign in to continue."
+
+#: src/routes/obligations.tsx
+msgid "You reminded this client {daysSinceReminded, plural, =0 {today} one {# day ago} other {# days ago}}. Send another?"
+msgstr "You reminded this client {daysSinceReminded, plural, =0 {today} one {# day ago} other {# days ago}}. Send another?"
 
 #: src/routes/billing.checkout.tsx
 msgid "You'll be redirected to Stripe to enter payment details."

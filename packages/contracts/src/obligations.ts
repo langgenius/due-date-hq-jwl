@@ -282,6 +282,58 @@ export const ObligationExtensionDecisionOutputSchema = z.object({
   evidenceId: EntityIdSchema.nullable(),
 })
 
+// Bulk "Decide extension" — applies one internal extension plan to many
+// selected deadlines. A single shared internalTargetDate is applied to every
+// eligible row, so the dialog caps the date picker at the earliest filing
+// deadline (from the preview) and the server skips any row whose deadline is
+// earlier (defense in depth) plus rows already extension-applied.
+export const ObligationBulkExtensionDecisionInputSchema = z.object({
+  ids: z.array(EntityIdSchema).min(1).max(100),
+  memo: z.string().trim().max(1000).optional(),
+  source: z.string().trim().max(240).optional(),
+  internalTargetDate: z.iso.date().optional(),
+})
+export type ObligationBulkExtensionDecisionInput = z.infer<
+  typeof ObligationBulkExtensionDecisionInputSchema
+>
+
+export const ObligationBulkExtensionDecisionOutputSchema = z.object({
+  // Rows that actually had the extension decision applied.
+  decidedCount: z.number().int().min(0),
+  // Rows skipped: not found, already extension-applied, or (when a date is
+  // given) the row's filing deadline is earlier than the shared target date.
+  skippedCount: z.number().int().min(0),
+  auditIds: z.array(EntityIdSchema),
+})
+export type ObligationBulkExtensionDecisionOutput = z.infer<
+  typeof ObligationBulkExtensionDecisionOutputSchema
+>
+
+// Read-only eligibility breakdown for the bulk "Decide extension" dialog.
+// earliestFilingDeadline = min(filingDueDate ?? baseDueDate) across ELIGIBLE
+// rows, used as the date-picker max so any picked date passes validation for
+// every eligible row; null when none are eligible.
+export const ObligationBulkExtensionDecisionPreviewInputSchema = z.object({
+  ids: z.array(EntityIdSchema).min(1).max(100),
+})
+export type ObligationBulkExtensionDecisionPreviewInput = z.infer<
+  typeof ObligationBulkExtensionDecisionPreviewInputSchema
+>
+
+export const ObligationBulkExtensionDecisionPreviewOutputSchema = z.object({
+  // Rows that can receive the decision (found AND not already applied).
+  eligibleCount: z.number().int().min(0),
+  // Rows already extensionDecision='applied' — skipped for idempotency.
+  alreadyExtendedCount: z.number().int().min(0),
+  // Rows not found in the current firm — skipped.
+  skippedCount: z.number().int().min(0),
+  // Min filing deadline across eligible rows; the dialog caps the picker here.
+  earliestFilingDeadline: z.iso.date().nullable(),
+})
+export type ObligationBulkExtensionDecisionPreviewOutput = z.infer<
+  typeof ObligationBulkExtensionDecisionPreviewOutputSchema
+>
+
 export const ObligationBulkStatusUpdateInputSchema = z.object({
   ids: z.array(EntityIdSchema).min(1).max(100),
   status: ObligationStatusSchema,
@@ -376,6 +428,9 @@ export const ObligationSignatureReminderPreviewOutputSchema = z.object({
   tokens: z.array(z.string()),
   recipientEmail: z.string().nullable(),
   sample: SignatureReminderSampleSchema,
+  // When this row was last reminded (from the audit log); null if never. The
+  // dialog warns before re-sending within SIGNATURE_REMINDER_THROTTLE_DAYS.
+  lastRemindedAt: z.iso.datetime().nullable(),
 })
 export type ObligationSignatureReminderPreviewOutput = z.infer<
   typeof ObligationSignatureReminderPreviewOutputSchema
@@ -428,9 +483,28 @@ export const ObligationBulkSignatureReminderPreviewOutputSchema = z.object({
   // Every eligible recipient, in selection order, for the paged live preview;
   // empty when none are eligible. Length always equals eligibleCount.
   samples: z.array(SignatureReminderSampleSchema),
+  // Eligible rows reminded within SIGNATURE_REMINDER_THROTTLE_DAYS — purely
+  // informational so the CPA can choose to skip re-nudging. Never blocks send.
+  recentlyRemindedCount: z.number().int().min(0),
+  // The eligible obligation ids reminded within that window, so the client can
+  // filter them out before sending when "skip recently reminded" is on.
+  recentlyRemindedIds: z.array(EntityIdSchema),
 })
 export type ObligationBulkSignatureReminderPreviewOutput = z.infer<
   typeof ObligationBulkSignatureReminderPreviewOutputSchema
+>
+
+// One-time, owner-run backfill: enter already-filed returns that never got an
+// 8879 loop (status='done', efileState='not_applicable') into awaiting-
+// signature. Input is empty — the firm comes from context. Idempotent.
+export const ObligationBackfillSignatureLoopOutputSchema = z.object({
+  // Filed rows scanned (status='done' AND efileState='not_applicable').
+  scannedCount: z.number().int().min(0),
+  // Of those, the ones whose tax type carries an 8879 loop — now entered.
+  enteredCount: z.number().int().min(0),
+})
+export type ObligationBackfillSignatureLoopOutput = z.infer<
+  typeof ObligationBackfillSignatureLoopOutputSchema
 >
 
 export const DeadlineTipInputSchema = z.object({ obligationId: EntityIdSchema })
@@ -566,6 +640,12 @@ export const obligationsContract = oc.router({
   decideExtension: oc
     .input(ObligationExtensionDecisionInputSchema)
     .output(ObligationExtensionDecisionOutputSchema),
+  bulkDecideExtension: oc
+    .input(ObligationBulkExtensionDecisionInputSchema)
+    .output(ObligationBulkExtensionDecisionOutputSchema),
+  bulkExtensionDecisionPreview: oc
+    .input(ObligationBulkExtensionDecisionPreviewInputSchema)
+    .output(ObligationBulkExtensionDecisionPreviewOutputSchema),
   requestInput: oc
     .input(ObligationRequestInputInputSchema)
     .output(ObligationRequestInputOutputSchema),
@@ -584,6 +664,7 @@ export const obligationsContract = oc.router({
   bulkSignatureReminderPreview: oc
     .input(ObligationBulkSignatureReminderPreviewInputSchema)
     .output(ObligationBulkSignatureReminderPreviewOutputSchema),
+  backfillSignatureLoop: oc.input(z.object({})).output(ObligationBackfillSignatureLoopOutputSchema),
   listByClient: oc
     .input(z.object({ clientId: EntityIdSchema }))
     .output(z.array(ObligationInstancePublicSchema)),

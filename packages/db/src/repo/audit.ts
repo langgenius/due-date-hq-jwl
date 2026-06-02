@@ -151,6 +151,31 @@ export function makeAuditRepo(db: Db, firmId: string) {
       return result.rows
     },
 
+    async latestByEntityIds(action: string, entityIds: string[]): Promise<Map<string, Date>> {
+      const map = new Map<string, Date>()
+      if (entityIds.length === 0) return map
+      const rows = await db
+        .select({
+          entityId: auditEvent.entityId,
+          last: sql<number>`max(${auditEvent.createdAt})`,
+        })
+        .from(auditEvent)
+        .where(
+          and(
+            eq(auditEvent.firmId, firmId),
+            eq(auditEvent.action, action),
+            inArray(auditEvent.entityId, entityIds),
+          ),
+        )
+        .groupBy(auditEvent.entityId)
+      for (const row of rows) {
+        if (row.entityId != null && row.last != null) {
+          map.set(row.entityId, new Date(row.last))
+        }
+      }
+      return map
+    },
+
     async list(input: AuditListInput = {}): Promise<AuditListResult> {
       const limit = Math.min(Math.max(input.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT)
       const filters: SQL[] = [eq(auditEvent.firmId, firmId)]

@@ -266,6 +266,9 @@ function buildScopedRepo(
     async listAnnualRolloverSeeds() {
       return []
     },
+    async listSignatureLoopBackfillCandidates() {
+      return []
+    },
     async listGeneratedByClientAndTaxYears() {
       return []
     },
@@ -557,6 +560,9 @@ function buildScopedRepo(
     },
     async list() {
       return { rows: [], nextCursor: null }
+    },
+    async latestByEntityIds() {
+      return new Map()
     },
   }
 

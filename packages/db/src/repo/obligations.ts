@@ -379,6 +379,28 @@ export function makeObligationsRepo(db: Db, firmId: string) {
       return hydrateObligationRows(await applyOverlayDueDates(rows))
     },
 
+    /**
+     * Backfill candidates for the signature loop: already-filed (`done`) rows
+     * still parked at `efileState='not_applicable'` — migration-sourced returns
+     * that never entered the 8879 loop. The service filters these by tax type
+     * via obligationUsesEfileAuthorization. Tiny slice; no batching needed.
+     */
+    async listSignatureLoopBackfillCandidates(): Promise<
+      Array<ObligationInstance & { readiness: ObligationReadiness }>
+    > {
+      const rows = await db
+        .select()
+        .from(obligationInstance)
+        .where(
+          and(
+            eq(obligationInstance.firmId, firmId),
+            eq(obligationInstance.status, 'done'),
+            eq(obligationInstance.efileState, 'not_applicable'),
+          ),
+        )
+      return hydrateObligationRows(await applyOverlayDueDates(rows))
+    },
+
     async listAnnualRolloverSeeds(input: {
       sourceFilingYear: number
       clientIds?: string[]
