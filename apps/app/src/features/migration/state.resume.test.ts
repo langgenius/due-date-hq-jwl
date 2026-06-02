@@ -51,8 +51,18 @@ describe('hydrateStateFromBatch', () => {
           truncated: false,
         },
         confirmedMappings: [
-          { sourceHeader: 'Name', targetField: 'client.name', confidence: 0.99, userOverridden: false },
-          { sourceHeader: 'EIN', targetField: 'client.ein', confidence: 0.98, userOverridden: false },
+          {
+            sourceHeader: 'Name',
+            targetField: 'client.name',
+            confidence: 0.99,
+            userOverridden: false,
+          },
+          {
+            sourceHeader: 'EIN',
+            targetField: 'client.ein',
+            confidence: 0.98,
+            userOverridden: false,
+          },
         ],
         confirmedNormalizations: [],
         matrixSelections: [{ entityType: 'llc', state: 'CA', enabled: true }],

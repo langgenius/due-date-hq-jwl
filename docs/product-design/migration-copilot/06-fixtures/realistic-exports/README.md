@@ -29,7 +29,7 @@ identifiers use the `99-*` test range.
 | Fixture                              | Purpose                                              | Expected behavior                                                                            |
 | ------------------------------------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `quickbooks-desktop-customers.iif`   | QuickBooks Desktop customer-list IIF parser coverage | Accepted as `quickbooks_desktop` / `quickbooks_iif_customers`, suggested preset `quickbooks` |
-| `ultratax-client-listing-report.dif` | Minimal UltraTax DIF stub (rejected by extension)   | Rejected with `ultratax_dif` guidance: re-save the Client Listing Report as CSV/XLSX         |
+| `ultratax-client-listing-report.dif` | Minimal UltraTax DIF stub (rejected by extension)    | Rejected with `ultratax_dif` guidance: re-save the Client Listing Report as CSV/XLSX         |
 | `file-in-time-backup.fbk`            | File In Time backup marker                           | Rejected with `file_in_time_backup` guidance: export Client Information or Task View instead |
 
 > `.dif` and `.fbk` are intentionally minimal byte stubs — they exist only to exercise the

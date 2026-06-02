@@ -331,19 +331,8 @@ const sourceRows = [
 ]
 
 const clients = sourceRows.map((row, index) => {
-  const [
-    name,
-    entity,
-    returnType,
-    state,
-    city,
-    zip,
-    county,
-    firstName,
-    lastName,
-    staffCode,
-    note,
-  ] = row
+  const [name, entity, returnType, state, city, zip, county, firstName, lastName, staffCode, note] =
+    row
   const id = index + 1
   const email = `test+realistic${String(id).padStart(3, '0')}@example.com`
   return {

@@ -163,9 +163,7 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitPlan {
     // client is a conflict. With duplicateHandling='skip' (default) we record
     // it and create nothing; with 'import_as_new' we record it and proceed.
     const normalizedEin = facts.ein ? facts.ein.replace(/\D/g, '') : ''
-    const existingMatch = normalizedEin
-      ? input.existingClientsByEin?.get(normalizedEin)
-      : undefined
+    const existingMatch = normalizedEin ? input.existingClientsByEin?.get(normalizedEin) : undefined
     if (existingMatch) {
       clientConflicts.push({
         ein: facts.ein ?? '',
