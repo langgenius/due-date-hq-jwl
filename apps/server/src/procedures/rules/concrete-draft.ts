@@ -476,7 +476,7 @@ function isSourceWatchTemplateExcerpt(value: string | null | undefined): boolean
   return typeof value === 'string' && SOURCE_WATCH_PLACEHOLDER_RE.test(value)
 }
 
-function extractComparableDateCodes(value: string): string[] {
+export function extractComparableDateCodes(value: string): string[] {
   const normalized = normalizeExcerptText(value)
   const codes = new Set<string>()
 
