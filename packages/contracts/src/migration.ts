@@ -219,6 +219,19 @@ export const MigrationRuleReviewWarningSchema = z.object({
   reason: z.enum(['rules_pending_review', 'no_matching_rule']),
 })
 
+// Per-client preview of what Import will create. Surfaced in the Step 4
+// dry-run so the user confirms by outcome (the actual clients) rather than
+// by column mapping. Capped to a sample; clientsToCreate is the full total.
+export const DryRunClientPreviewSchema = z.object({
+  name: z.string(),
+  ein: z.string().nullable(),
+  entityType: z.string().nullable(),
+  state: z.string().nullable(),
+  taxTypes: z.array(z.string()),
+  obligationCount: z.number().int().min(0),
+})
+export type DryRunClientPreview = z.infer<typeof DryRunClientPreviewSchema>
+
 export const DryRunSummarySchema = z.object({
   batchId: EntityIdSchema,
   clientsToCreate: z.number().int().min(0),
@@ -228,6 +241,9 @@ export const DryRunSummarySchema = z.object({
   skippedRows: z.number().int().min(0),
   errors: z.array(MigrationErrorSchema),
   ruleReviewWarnings: z.array(MigrationRuleReviewWarningSchema),
+  // Capped sample of clients to be created (full count = clientsToCreate).
+  // Optional so older payloads and existing test fixtures still parse.
+  clientsPreview: z.array(DryRunClientPreviewSchema).optional(),
 })
 
 export const MatrixSelectionSchema = z.object({

@@ -105,4 +105,45 @@ describe('Step4Preview rule review warnings', () => {
     )
     expect(document.body.textContent).not.toContain('historical deadlines could not be created')
   })
+
+  it('previews the clients that will be created with deadline counts', () => {
+    renderPreview({
+      batchId: '550e8400-e29b-41d4-a716-446655440001',
+      clientsToCreate: 5,
+      obligationsToCreate: 9,
+      historicalDeadlinesSkipped: 0,
+      rolledForwardDeadlines: 0,
+      skippedRows: 0,
+      errors: [],
+      ruleReviewWarnings: [],
+      clientsPreview: [
+        {
+          name: 'Marin Harbor Analytics LLC',
+          ein: '99-1000001',
+          entityType: 'llc',
+          state: 'CA',
+          taxTypes: ['federal_1065', 'ca_franchise_tax'],
+          obligationCount: 3,
+        },
+        {
+          name: 'Austin Foundry Inc',
+          ein: '99-1000003',
+          entityType: 'c_corp',
+          state: 'TX',
+          taxTypes: ['federal_1120'],
+          obligationCount: 1,
+        },
+      ],
+    })
+
+    expect(document.body.textContent).toContain('Clients to create')
+    expect(document.body.textContent).toContain('Marin Harbor Analytics LLC')
+    expect(document.body.textContent).toContain('LLC')
+    expect(document.body.textContent).toContain('3 deadlines')
+    expect(document.body.textContent).toContain('Austin Foundry Inc')
+    expect(document.body.textContent).toContain('C corp')
+    expect(document.body.textContent).toContain('1 deadline')
+    // clientsToCreate (5) exceeds the 2 preview rows → "+ 3 more clients".
+    expect(document.body.textContent).toContain('3 more clients')
+  })
 })

@@ -29,8 +29,11 @@ identifiers use the `99-*` test range.
 | Fixture                              | Purpose                                              | Expected behavior                                                                            |
 | ------------------------------------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `quickbooks-desktop-customers.iif`   | QuickBooks Desktop customer-list IIF parser coverage | Accepted as `quickbooks_desktop` / `quickbooks_iif_customers`, suggested preset `quickbooks` |
-| `ultratax-client-listing-report.dif` | Realistic UltraTax DIF-style report export           | Rejected with `ultratax_dif` guidance: re-save the Client Listing Report as CSV/XLSX         |
+| `ultratax-client-listing-report.dif` | Minimal UltraTax DIF stub (rejected by extension)   | Rejected with `ultratax_dif` guidance: re-save the Client Listing Report as CSV/XLSX         |
 | `file-in-time-backup.fbk`            | File In Time backup marker                           | Rejected with `file_in_time_backup` guidance: export Client Information or Task View instead |
+
+> `.dif` and `.fbk` are intentionally minimal byte stubs — they exist only to exercise the
+> "reject by extension + show export guidance" path, not to be parseable exports.
 
 ## Data Shape
 
@@ -43,9 +46,15 @@ identifiers use the `99-*` test range.
   - QuickBooks customer type, terms, open balance, and Desktop IIF address fields.
   - CCH staff, partner, manager, preparer, office, and business unit fields.
   - Lacerte selectable client export fields.
-  - ProSeries HomeBase status and EF status.
+  - ProSeries HomeBase client status and e-file ACK status.
   - UltraTax preparer, status, federal product, and state product fields.
   - ProConnect tax year, reporting status, signing officer, and taxes owed fields.
+- Status vs. notes: each status column uses realistic per-product values — Drake/ProSeries
+  `EF Status` carries e-file ACK statuses (`Accepted` / `Pending` / `Rejected` / ...), and
+  workflow columns use values like `In Progress` / `Ready for Review` / `On Extension`. Free-text
+  practice notes live only in `Notes` columns (never duplicated into status/EF columns).
+- File In Time due dates are extended deadlines per return type: 1065 / 1120-S = 09/15,
+  1040 / 1120 / Schedule C = 10/15, 1041 trust = 09/30, 990 = 11/16 (weekend-adjusted).
 
 ## Source Research Links
 

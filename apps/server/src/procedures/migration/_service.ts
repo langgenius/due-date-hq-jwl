@@ -27,6 +27,7 @@ import {
   MappingRowSchema,
   NormalizationRowSchema,
   ObligationRuleSchema,
+  type DryRunClientPreview,
   type DryRunSummary,
   type MapperFallback,
   type MapperRunOutput,
@@ -956,6 +957,7 @@ export class MigrationService {
       skippedRows: stats.skippedRows,
       errors: stats.errors,
       ruleReviewWarnings: computeRuleReviewWarnings(payload, rules),
+      ...(exactPlan ? { clientsPreview: buildClientsPreview(exactPlan) } : {}),
     }
     return DryRunSummarySchema.parse(summary)
   }
@@ -1317,6 +1319,41 @@ function computeDryRunStats(batchId: string, payload: MappingJsonPayload): DryRu
       createdAt: now,
     })),
   }
+}
+
+const CLIENTS_PREVIEW_CAP = 50
+
+/**
+ * Per-client dry-run preview rows. Lets Step 4 show "here's what we'll
+ * create" (confirm by outcome) instead of only aggregate counts. Capped to a
+ * sample; clientsToCreate on the summary carries the full total. Tax types and
+ * obligation counts are joined from the exact commit plan by clientId.
+ */
+function buildClientsPreview(plan: ReturnType<typeof buildCommitPlan>): DryRunClientPreview[] {
+  const obligationCountByClient = new Map<string, number>()
+  for (const obligation of plan.obligations) {
+    obligationCountByClient.set(
+      obligation.clientId,
+      (obligationCountByClient.get(obligation.clientId) ?? 0) + 1,
+    )
+  }
+  const taxTypesByClient = new Map<string, Set<string>>()
+  for (const profile of plan.filingProfiles) {
+    let taxTypes = taxTypesByClient.get(profile.clientId)
+    if (!taxTypes) {
+      taxTypes = new Set<string>()
+      taxTypesByClient.set(profile.clientId, taxTypes)
+    }
+    for (const taxType of profile.taxTypesJson) taxTypes.add(taxType)
+  }
+  return plan.clients.slice(0, CLIENTS_PREVIEW_CAP).map((client) => ({
+    name: client.name,
+    ein: client.ein ?? null,
+    entityType: client.entityType ?? null,
+    state: client.state ?? null,
+    taxTypes: [...(taxTypesByClient.get(client.id) ?? [])],
+    obligationCount: obligationCountByClient.get(client.id) ?? 0,
+  }))
 }
 
 function derivePostNormalizeErrors(

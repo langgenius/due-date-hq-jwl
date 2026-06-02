@@ -30,6 +30,8 @@ export function Step4Preview({ summary }: Step4Props) {
     (sum, stateSummary) => sum + stateSummary.affectedClientCount,
     0,
   )
+  const clientsPreview = summary?.clientsPreview ?? []
+  const previewMoreCount = Math.max(0, clientCount - clientsPreview.length)
 
   return (
     <div className="flex flex-col gap-4 py-5">
@@ -103,6 +105,57 @@ export function Step4Preview({ summary }: Step4Props) {
           </li>
         ) : null}
       </ul>
+
+      {/* Per-client preview — "confirm by outcome, not by schema". Shows the
+          actual clients the import will create with their deadline counts, so
+          a CPA verifies their client list rather than DueDateHQ's field map.
+          Flows in the wizard-body scroll (no inner scrollbar, per the
+          errors-list rationale below). */}
+      {clientsPreview.length > 0 ? (
+        <section
+          aria-label={t`Clients to create`}
+          className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-section p-3"
+        >
+          <h3 className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
+            <Trans>Clients to create</Trans>
+          </h3>
+          <ul className="flex flex-col divide-y divide-divider-subtle text-sm">
+            {clientsPreview.map((client) => (
+              <li
+                key={client.ein ?? client.name}
+                className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 py-1.5"
+              >
+                <span className="font-medium text-text-primary">{client.name}</span>
+                <span className="flex flex-wrap items-center gap-x-1.5 text-text-tertiary tabular-nums">
+                  {client.entityType ? (
+                    <span>{formatEntityTypeLabel(client.entityType)}</span>
+                  ) : null}
+                  {client.state ? (
+                    <>
+                      <span aria-hidden>·</span>
+                      <span>{client.state}</span>
+                    </>
+                  ) : null}
+                  {client.ein ? (
+                    <>
+                      <span aria-hidden>·</span>
+                      <span className="font-mono">{client.ein}</span>
+                    </>
+                  ) : null}
+                </span>
+                <span className="ml-auto shrink-0 text-text-secondary tabular-nums">
+                  <Plural value={client.obligationCount} one="# deadline" other="# deadlines" />
+                </span>
+              </li>
+            ))}
+          </ul>
+          {previewMoreCount > 0 ? (
+            <p className="text-xs text-text-tertiary tabular-nums">
+              <Plural value={previewMoreCount} one="+ # more client" other="+ # more clients" />
+            </p>
+          ) : null}
+        </section>
+      ) : null}
 
       {/* 2026-05-26 (Step 7 onboarding audit F6-20): heading was
           "Safety" — so abstract it read as throat-clearing.

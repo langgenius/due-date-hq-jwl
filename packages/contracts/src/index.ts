@@ -872,6 +872,7 @@ export {
 
 export type {
   ApplyResult,
+  DryRunClientPreview,
   DryRunSummary,
   MapperFallback,
   MapperRunOutput,
@@ -895,6 +896,7 @@ export type {
 } from './migration'
 export {
   ApplyResultSchema,
+  DryRunClientPreviewSchema,
   DryRunSummarySchema,
   MapperFallbackSchema,
   MapperRunOutputSchema,

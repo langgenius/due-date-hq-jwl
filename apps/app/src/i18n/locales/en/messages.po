@@ -108,9 +108,10 @@ msgstr "{0, plural, one {# deadline generated} other {# deadlines generated}}"
 msgid "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 msgstr "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 
+#. placeholder {0}: client.obligationCount
 #. placeholder {0}: groupHeader.count
 #. placeholder {0}: pendingRevert.obligationCount
-#. placeholder {0}: result.obligationCount
+#: src/features/migration/Step4Preview.tsx
 #: src/features/migration/Wizard.tsx
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# deadline} other {# deadlines}}"
@@ -767,6 +768,10 @@ msgstr "{pendingCount} pending · {expiredCount} expired · magic link, 7-day ex
 #: src/features/opportunities/opportunities-page.tsx
 msgid "{pickedSnoozeDays, plural, one {Snoozed for # day} other {Snoozed for # days}}"
 msgstr "{pickedSnoozeDays, plural, one {Snoozed for # day} other {Snoozed for # days}}"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "{previewMoreCount, plural, one {+ # more client} other {+ # more clients}}"
+msgstr "{previewMoreCount, plural, one {+ # more client} other {+ # more clients}}"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "{productLabel} export"
@@ -2957,6 +2962,10 @@ msgstr "Clients"
 #: src/features/audit/audit-log-labels.ts
 msgid "Clients affected"
 msgstr "Clients affected"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "Clients to create"
+msgstr "Clients to create"
 
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/FixNeedsFactsSheet.tsx
@@ -11740,12 +11749,12 @@ msgid "This is your current session — revoking it will sign you out and send y
 msgstr "This is your current session — revoking it will sign you out and send you to the login screen."
 
 #: src/features/migration/intake-files.ts
-msgid "This looks like a CCH Axcess return backup. Export Client Manager or Return Manager grid data as CSV/XLSX instead."
-msgstr "This looks like a CCH Axcess return backup. Export Client Manager or Return Manager grid data as CSV/XLSX instead."
-
-#: src/features/migration/intake-files.ts
 msgid "This looks like a CCH ProSystem fx client backup. Use Create client list for Portal and save as CSV/XLSX instead."
 msgstr "This looks like a CCH ProSystem fx client backup. Use Create client list for Portal and save as CSV/XLSX instead."
+
+#: src/features/migration/intake-files.ts
+msgid "This looks like a CCH return file we can't read. Export your client list from CCH Axcess (Client Manager or Return Manager grid → CSV/XLSX), or from ProSystem fx (Create client list for Portal)."
+msgstr "This looks like a CCH return file we can't read. Export your client list from CCH Axcess (Client Manager or Return Manager grid → CSV/XLSX), or from ProSystem fx (Create client list for Portal)."
 
 #: src/features/migration/intake-files.ts
 msgid "This looks like a File In Time backup. Export Client Information from Tools > Export Client Information, or export Task View to Excel."

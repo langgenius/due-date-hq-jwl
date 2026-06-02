@@ -1,25 +1,25 @@
 Client ID,Name,EIN,Entity,State,Return Type,EF Status,Staff,Email,Phone,Address,City,ZIP,Notes
-D5001,Marin Harbor Analytics LLC (TEST),99-1000001,LLC,CA,Form 1065,In Progress,JDOE,test+realistic001@example.com,555-0101,1001 Ledger Lane,Los Angeles,90012,In Progress
-D5002,Hudson Ledger Partners LP (TEST),99-1000002,Partnership,NY,Form 1065,Waiting on client,RCHEN,test+realistic002@example.com,555-0102,1002 Ledger Lane,New York,10018,Waiting on client
-D5003,Austin Foundry Inc (TEST),99-1000003,C-Corp,TX,Form 1120,Ready for review,MLEE,test+realistic003@example.com,555-0103,1003 Ledger Lane,Austin,78701,Ready for review
-D5004,Bayview Stone Household (TEST),99-1000004,Individual,FL,Form 1040,Organizer sent,TKIM,test+realistic004@example.com,555-0104,1004 Ledger Lane,Miami,33131,Organizer sent
-D5005,Cascade Orchard LLC (TEST),99-1000005,LLC,WA,Form 1065,Accepted extension,PVU,test+realistic005@example.com,555-0105,1005 Ledger Lane,Seattle,98101,Open items
-D5006,Prairie Oak Trust (TEST),99-1000006,Trust,IL,Form 1041,Extension filed,SRIVERA,test+realistic006@example.com,555-0106,1006 Ledger Lane,Chicago,60603,Extension filed
-D5007,Golden Gate Studio (TEST),99-1000007,Sole Proprietor,CA,Schedule C,Needs bookkeeping,ANGUYEN,test+realistic007@example.com,555-0107,1007 Ledger Lane,San Francisco,94105,Needs bookkeeping
-D5008,Brooklyn Outreach Foundation (TEST),99-1000008,Nonprofit,NY,Form 990,Board review,CBROOKS,test+realistic008@example.com,555-0108,1008 Ledger Lane,Brooklyn,11201,Board review
-D5009,Hill Country Advisors LLC (TEST),99-1000009,LLC,TX,Form 1065,In progress,JPATEL,test+realistic009@example.com,555-0109,1009 Ledger Lane,San Antonio,78205,In progress
-D5010,Palm River Dental PC (TEST),99-1000010,S-Corp,FL,Form 1120-S,Accepted extension,ASTONE,test+realistic010@example.com,555-0110,1010 Ledger Lane,Tampa,33602,Ready for e-file
-D5011,Puget Sound Robotics Inc (TEST),99-1000011,C-Corp,WA,Form 1120,R&D credit review,DMORRIS,test+realistic011@example.com,555-0111,1011 Ledger Lane,Bellevue,98004,R&D credit review
-D5012,Lincoln Park Household (TEST),99-1000012,Individual,IL,Form 1040,Missing K-1,QREED,test+realistic012@example.com,555-0112,1012 Ledger Lane,Evanston,60201,Missing K-1
-D5013,Silicon Coast Ventures LP (TEST),99-1000013,Partnership,CA,Form 1065,Partner capital review,HFLORES,test+realistic013@example.com,555-0113,1013 Ledger Lane,Palo Alto,94301,Partner capital review
-D5014,Rochester Maple Trust (TEST),99-1000014,Trust,NY,Form 1041,Beneficiary update,RFOSTER,test+realistic014@example.com,555-0114,1014 Ledger Lane,Rochester,14604,Beneficiary update
-D5015,Dallas Market Studio (TEST),99-1000015,Sole Proprietor,TX,Schedule C,Accepted extension,EGRAY,test+realistic015@example.com,555-0115,1015 Ledger Lane,Dallas,75201,Mileage log pending
-D5016,Orlando Harbor LLC (TEST),99-1000016,LLC,FL,Form 1065,Multi-member LLC,HMILES,test+realistic016@example.com,555-0116,1016 Ledger Lane,Orlando,32801,Multi-member LLC
-D5017,Spokane Design Group Inc (TEST),99-1000017,S-Corp,WA,Form 1120-S,Payroll tie-out,FCOOPER,test+realistic017@example.com,555-0117,1017 Ledger Lane,Spokane,99201,Payroll tie-out
-D5018,River North Supply Inc (TEST),99-1000018,C-Corp,IL,Form 1120,Inventory review,RBENNETT,test+realistic018@example.com,555-0118,1018 Ledger Lane,Naperville,60540,Inventory review
-D5019,North Star Clinic LLC (TEST),99-1000019,LLC,,Form 1065,Review: missing filing state,SCARTER,test+realistic019@example.com,555-0119,1019 Ledger Lane,Remote,00000,Review: missing filing state
-D5020,Pacific Crest Therapy Inc (TEST),99-1000020,S-Corp,C.A.,Form 1120-S,Accepted extension,DPRICE,test+realistic020@example.com,555-0120,1020 Ledger Lane,Irvine,92614,Review: state exported as C.A.
-D5021,Queensboro Catering LP (TEST),99-1000021,Partnership,NY,Form 1065,Owner basis review,SWARD,test+realistic021@example.com,555-0121,1021 Ledger Lane,Queens,11101,Owner basis review
-D5022,Fort Worth Household (TEST),99-1000022,Individual,TX,Form 1040,Schedule E rental,BYOUNG,test+realistic022@example.com,555-0122,1022 Ledger Lane,Fort Worth,76102,Schedule E rental
-D5023,Sarasota Family Trust (TEST),99-1000023,Trust,FL,Form 1041,Estimated tax review,KBELL,test+realistic023@example.com,555-0123,1023 Ledger Lane,Sarasota,34236,Estimated tax review
-D5024,Tacoma Arts Alliance (TEST),99-1000024,Nonprofit,WA,Form 990,Grant schedule review,LDIAZ,test+realistic024@example.com,555-0124,1024 Ledger Lane,Tacoma,98402,Grant schedule review
+D5001,Marin Harbor Analytics LLC (TEST),99-1000001,LLC,CA,Form 1065,Accepted,JDOE,test+realistic001@example.com,555-0101,1001 Ledger Lane,Los Angeles,90012,In Progress
+D5002,Hudson Ledger Partners LP (TEST),99-1000002,Partnership,NY,Form 1065,Pending,RCHEN,test+realistic002@example.com,555-0102,1002 Ledger Lane,New York,10018,Waiting on client
+D5003,Austin Foundry Inc (TEST),99-1000003,C-Corp,TX,Form 1120,Rejected,MLEE,test+realistic003@example.com,555-0103,1003 Ledger Lane,Austin,78701,Ready for review
+D5004,Bayview Stone Household (TEST),99-1000004,Individual,FL,Form 1040,Not transmitted,TKIM,test+realistic004@example.com,555-0104,1004 Ledger Lane,Miami,33131,Organizer sent
+D5005,Cascade Orchard LLC (TEST),99-1000005,LLC,WA,Form 1065,Accepted,PVU,test+realistic005@example.com,555-0105,1005 Ledger Lane,Seattle,98101,Open items
+D5006,Prairie Oak Trust (TEST),99-1000006,Trust,IL,Form 1041,Accepted,SRIVERA,test+realistic006@example.com,555-0106,1006 Ledger Lane,Chicago,60603,Extension filed
+D5007,Golden Gate Studio (TEST),99-1000007,Sole Proprietor,CA,Schedule C,Pending,ANGUYEN,test+realistic007@example.com,555-0107,1007 Ledger Lane,San Francisco,94105,Needs bookkeeping
+D5008,Brooklyn Outreach Foundation (TEST),99-1000008,Nonprofit,NY,Form 990,Rejected,CBROOKS,test+realistic008@example.com,555-0108,1008 Ledger Lane,Brooklyn,11201,Board review
+D5009,Hill Country Advisors LLC (TEST),99-1000009,LLC,TX,Form 1065,Not transmitted,JPATEL,test+realistic009@example.com,555-0109,1009 Ledger Lane,San Antonio,78205,In progress
+D5010,Palm River Dental PC (TEST),99-1000010,S-Corp,FL,Form 1120-S,Accepted,ASTONE,test+realistic010@example.com,555-0110,1010 Ledger Lane,Tampa,33602,Ready for e-file
+D5011,Puget Sound Robotics Inc (TEST),99-1000011,C-Corp,WA,Form 1120,Accepted,DMORRIS,test+realistic011@example.com,555-0111,1011 Ledger Lane,Bellevue,98004,R&D credit review
+D5012,Lincoln Park Household (TEST),99-1000012,Individual,IL,Form 1040,Pending,QREED,test+realistic012@example.com,555-0112,1012 Ledger Lane,Evanston,60201,Missing K-1
+D5013,Silicon Coast Ventures LP (TEST),99-1000013,Partnership,CA,Form 1065,Rejected,HFLORES,test+realistic013@example.com,555-0113,1013 Ledger Lane,Palo Alto,94301,Partner capital review
+D5014,Rochester Maple Trust (TEST),99-1000014,Trust,NY,Form 1041,Not transmitted,RFOSTER,test+realistic014@example.com,555-0114,1014 Ledger Lane,Rochester,14604,Beneficiary update
+D5015,Dallas Market Studio (TEST),99-1000015,Sole Proprietor,TX,Schedule C,Accepted,EGRAY,test+realistic015@example.com,555-0115,1015 Ledger Lane,Dallas,75201,Mileage log pending
+D5016,Orlando Harbor LLC (TEST),99-1000016,LLC,FL,Form 1065,Accepted,HMILES,test+realistic016@example.com,555-0116,1016 Ledger Lane,Orlando,32801,Multi-member LLC
+D5017,Spokane Design Group Inc (TEST),99-1000017,S-Corp,WA,Form 1120-S,Pending,FCOOPER,test+realistic017@example.com,555-0117,1017 Ledger Lane,Spokane,99201,Payroll tie-out
+D5018,River North Supply Inc (TEST),99-1000018,C-Corp,IL,Form 1120,Rejected,RBENNETT,test+realistic018@example.com,555-0118,1018 Ledger Lane,Naperville,60540,Inventory review
+D5019,North Star Clinic LLC (TEST),99-1000019,LLC,,Form 1065,Not transmitted,SCARTER,test+realistic019@example.com,555-0119,1019 Ledger Lane,Remote,00000,Review: missing filing state
+D5020,Pacific Crest Therapy Inc (TEST),99-1000020,S-Corp,C.A.,Form 1120-S,Accepted,DPRICE,test+realistic020@example.com,555-0120,1020 Ledger Lane,Irvine,92614,Review: state exported as C.A.
+D5021,Queensboro Catering LP (TEST),99-1000021,Partnership,NY,Form 1065,Accepted,SWARD,test+realistic021@example.com,555-0121,1021 Ledger Lane,Queens,11101,Owner basis review
+D5022,Fort Worth Household (TEST),99-1000022,Individual,TX,Form 1040,Pending,BYOUNG,test+realistic022@example.com,555-0122,1022 Ledger Lane,Fort Worth,76102,Schedule E rental
+D5023,Sarasota Family Trust (TEST),99-1000023,Trust,FL,Form 1041,Rejected,KBELL,test+realistic023@example.com,555-0123,1023 Ledger Lane,Sarasota,34236,Estimated tax review
+D5024,Tacoma Arts Alliance (TEST),99-1000024,Nonprofit,WA,Form 990,Not transmitted,LDIAZ,test+realistic024@example.com,555-0124,1024 Ledger Lane,Tacoma,98402,Grant schedule review
