@@ -907,6 +907,31 @@ VALUES
   ('23000000-0000-4000-8000-000000000007', 'mock_firm_plan_team', '13000000-0000-4000-8000-000000000005', 'federal_1041', 2026, CAST(unixepoch('2026-05-09 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-09 00:00:00') * 1000 AS INTEGER), 'done', 'not_considered', NULL, 2600000, 0, 'ready', '[{"key":"closed","label":"Completed before exposure accrued","amountCents":0,"formula":"Marked done"}]', 'penalty-v1', CAST(unixepoch('2026-05-01 09:57:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:53:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:57:00') * 1000 AS INTEGER)),
   ('23000000-0000-4000-8000-000000000008', 'mock_firm_plan_team', '13000000-0000-4000-8000-000000000004', 'federal_1065', 2026, CAST(unixepoch('2026-05-30 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-30 00:00:00') * 1000 AS INTEGER), 'pending', 'not_considered', NULL, NULL, 110000, 'ready', '[{"key":"late_filing","label":"Longer horizon partnership exposure","amountCents":110000,"formula":"Demo estimate"}]', 'penalty-v1', CAST(unixepoch('2026-05-01 09:58:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:54:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 09:58:00') * 1000 AS INTEGER));
 
+-- Point demo obligations at their matched rule so the Extension drawer can
+-- resolve the statutory extension length (extensionPolicy.durationMonths) and
+-- auto-compute the extended filing deadline. Without a rule_id, findRuleById
+-- finds nothing and every row falls back to manual extended-date entry. Only
+-- tax_types whose return rule carries an extension are mapped; payroll / sales
+-- / minimum-tax rows stay NULL (no statutory filing extension). The forms line
+-- up with each tax_type (e.g. ca_568 → Form 568, fl_corp_income → Form F-1120),
+-- so matchedRule also reads correctly in the drawer's Rule reference section.
+UPDATE obligation_instance
+SET rule_id = CASE tax_type
+  WHEN 'federal_1040' THEN 'fed.1040.return.2025'
+  WHEN 'federal_1041' THEN 'fed.1041.return.2025'
+  WHEN 'federal_1065' THEN 'fed.1065.return.2025'
+  WHEN 'federal_1120' THEN 'fed.1120.return.2025'
+  WHEN 'federal_1120s' THEN 'fed.1120s.return.2025'
+  WHEN 'ca_568' THEN 'ca.llc.568.return.2025'
+  WHEN 'ny_ct3s' THEN 'ny.ct3s.return.2025'
+  WHEN 'ny_it204' THEN 'ny.it204.return.2025'
+  WHEN 'fl_corp_income' THEN 'fl.f1120.return.2025'
+  WHEN 'tx_franchise_report' THEN 'tx.franchise.annual_report.2026'
+  ELSE rule_id
+END
+WHERE rule_id IS NULL
+  AND firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
+
 INSERT INTO pulse_firm_alert
   (id, pulse_id, firm_id, status, matched_count, needs_review_count, dismissed_by, dismissed_at, snoozed_until, created_at, updated_at)
 VALUES
