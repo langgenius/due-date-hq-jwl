@@ -311,6 +311,8 @@ function makeContext(input: {
     listTemporaryRules: null!,
     getDecision: null!,
     upsertDecision: null!,
+    listUnclearedDriftRuleIds: null!,
+    clearRuleSourceDrift: null!,
   }
   const obligations: ScopedRepo['obligations'] = {
     firmId: FIRM_ID,

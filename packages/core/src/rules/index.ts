@@ -10260,6 +10260,36 @@ export function findRuleById(id: string): ObligationRule | undefined {
   return OBLIGATION_RULES.find((rule) => rule.id === id)
 }
 
+// Reverse index for drift detection: which rules cite a given official source.
+// Defaults to verified rules only — candidates already carry their own
+// source_defined_calendar concrete-draft regeneration path.
+export function rulesBySourceId(
+  sourceId: string,
+  options: { status?: RuleStatus } = {},
+): readonly ObligationRule[] {
+  const status = options.status ?? 'verified'
+  return OBLIGATION_RULES.filter(
+    (rule) => rule.status === status && rule.sourceIds.includes(sourceId),
+  )
+}
+
+// When a rule names a source as its `basis` authority, return the excerpt the
+// rule was verified against — used to detect "our cited basis text no longer
+// appears in the changed source". Returns null when the source is not a basis
+// for the rule (or carries no excerpt).
+export function ruleCitesSourceAsBasis(
+  rule: Pick<ObligationRule, 'evidence'>,
+  sourceId: string,
+): string | null {
+  for (const evidence of rule.evidence) {
+    if (evidence.sourceId !== sourceId) continue
+    if (evidence.authorityRole !== 'basis') continue
+    if (evidence.sourceExcerpt.length === 0) continue
+    return evidence.sourceExcerpt
+  }
+  return null
+}
+
 export function isTaxYearDrivenRule(rule: Pick<ObligationRule, 'dueDateLogic'>): boolean {
   return (
     rule.dueDateLogic.kind === 'nth_day_after_tax_year_end' ||

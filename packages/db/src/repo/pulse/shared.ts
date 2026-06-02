@@ -106,6 +106,7 @@ export interface PulseDetailRow {
   effectiveFrom: Date | null
   effectiveUntil: Date | null
   affectedRuleIds: string[]
+  reverifyRuleIds: string[]
   structuredChange: unknown
   sourceExcerpt: string
   reviewedAt: Date | null
@@ -303,6 +304,7 @@ export interface PulseExtractInput {
   changeKind?: PulseChangeKind
   actionMode?: PulseActionMode
   affectedRuleIds?: string[]
+  reverifyRuleIds?: string[]
   structuredChange?: unknown
   confidence: number
   requiresHumanReview?: boolean
@@ -358,6 +360,7 @@ export interface AlertJoinedRow {
   parsedEffectiveFrom: Date | null
   parsedEffectiveUntil: Date | null
   affectedRuleIds: string[]
+  reverifyRuleIds: string[]
   structuredChange: unknown
   confidence: number
   pulseStatus: PulseStatus

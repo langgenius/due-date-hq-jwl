@@ -58,6 +58,7 @@ import { AlertSourceBadge } from './components/AlertSourceBadge'
 import { AlertSourceStatusBadge } from './components/AlertSourceStatusBadge'
 import { AlertStatusBadge } from './components/AlertStatusBadge'
 import { AlertStructuredFields } from './components/AlertStructuredFields'
+import { ReverifyRulesSection } from './components/ReverifyRulesSection'
 import {
   useAlertsInvalidation,
   useAlertDetailQueryOptions,
@@ -832,6 +833,15 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
             ) : null}
 
             <AlertStructuredFields detail={detail} />
+
+            {detail.reverifyRuleIds.length > 0 ? (
+              <ReverifyRulesSection
+                reverifyRuleIds={detail.reverifyRuleIds}
+                onReverified={() => {
+                  void queryClient.invalidateQueries({ queryKey: orpc.pulse.key() })
+                }}
+              />
+            ) : null}
 
             {detail.alert.firmImpact !== 'no_current_match' && !canApply ? (
               // ρ ROH-D6: canonical PermissionInlineNotice derives the
@@ -1786,6 +1796,8 @@ function drawerChangeKindLabel(kind: PulseDetail['alert']['changeKind']) {
       return <Trans>Form Updated</Trans>
     case 'source_status':
       return <Trans>Source Status</Trans>
+    case 'rule_source_drift':
+      return <Trans>Source Changed</Trans>
     case 'new_obligation':
       return <Trans>New Rule Added</Trans>
     case 'other':

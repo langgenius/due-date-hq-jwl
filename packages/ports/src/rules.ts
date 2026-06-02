@@ -159,6 +159,12 @@ export interface RulesRepo {
   listTemporaryRules(): Promise<TemporaryRuleRow[]>
   getDecision(ruleId: string): Promise<RuleReviewDecisionRow | null>
   upsertDecision(input: RuleReviewDecisionInput): Promise<RuleReviewDecisionRow>
+  // Rules (from the given set) that carry an uncleared source-drift signal —
+  // the accept/verify gate blocks these until re-verified. Global, not
+  // firm-scoped: the drift is a property of the (rule, source) pair.
+  listUnclearedDriftRuleIds(ruleIds: string[]): Promise<string[]>
+  // Clear every uncleared drift row for a rule when a human re-verifies it.
+  clearRuleSourceDrift(input: { ruleId: string; clearedBy?: string | null }): Promise<void>
 }
 
 export interface RulesOpsRepo {

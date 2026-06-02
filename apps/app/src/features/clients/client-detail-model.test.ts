@@ -192,6 +192,7 @@ function alertDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
     effectiveFrom: null,
     effectiveUntil: null,
     affectedRuleIds: [],
+    reverifyRuleIds: [],
     structuredChange: null,
     sourceExcerpt: 'Official extension.',
     reviewedAt: null,

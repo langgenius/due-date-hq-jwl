@@ -81,6 +81,7 @@ function pulseDetail(status: Status = 'matched', sourceStatus: SourceStatus = 'a
     effectiveFrom: null,
     effectiveUntil: null,
     affectedRuleIds: [],
+    reverifyRuleIds: [],
     structuredChange: null,
     sourceExcerpt: 'Tax relief applies.',
     reviewedAt: null,

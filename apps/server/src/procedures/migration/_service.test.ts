@@ -820,6 +820,10 @@ function buildScopedRepo(
       async upsertDecision() {
         return unexpectedRepoCall('rules.upsertDecision')
       },
+      async listUnclearedDriftRuleIds() {
+        return []
+      },
+      async clearRuleSourceDrift() {},
     },
     migration,
     evidence,

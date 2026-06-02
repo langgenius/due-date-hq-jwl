@@ -574,6 +574,10 @@ function buildScoped(firmId: string, rows: Row[]) {
       async upsertDecision() {
         return unused('rules.upsertDecision')
       },
+      async listUnclearedDriftRuleIds() {
+        return []
+      },
+      async clearRuleSourceDrift() {},
     },
     migration,
     evidence,

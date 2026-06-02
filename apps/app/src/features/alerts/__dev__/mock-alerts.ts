@@ -177,6 +177,7 @@ const MATCHED_DETAIL: PulseDetail = {
   effectiveFrom: isoDate(-3),
   effectiveUntil: null,
   affectedRuleIds: [],
+  reverifyRuleIds: [],
   structuredChange: null,
   sourceExcerpt:
     'Affected taxpayers in the disaster area now have until May 25, 2026 to file most tax returns, including individual income tax returns, partnership returns, S-corporation returns, and fiduciary returns originally due on or after April 25, 2026.',
@@ -252,6 +253,7 @@ const NEEDS_DETAILS_DETAIL: PulseDetail = {
   effectiveFrom: null,
   effectiveUntil: null,
   affectedRuleIds: [],
+  reverifyRuleIds: [],
   structuredChange: {
     note: 'Due-date candidate. CPA must confirm the new date and selected deadlines.',
   },
@@ -332,6 +334,7 @@ const APPLIED_DETAIL: PulseDetail = {
   effectiveFrom: isoDate(-1),
   effectiveUntil: null,
   affectedRuleIds: [],
+  reverifyRuleIds: [],
   structuredChange: null,
   sourceExcerpt:
     'The Franchise Tax Board extends the franchise-tax payment due date for the 2025 taxable year by 30 days for entities with a principal place of business in the affected counties.',
@@ -376,6 +379,7 @@ const DISMISSED_DETAIL: PulseDetail = {
   effectiveFrom: null,
   effectiveUntil: null,
   affectedRuleIds: [],
+  reverifyRuleIds: [],
   structuredChange: {
     note: 'PTET election reminder only.',
   },
@@ -422,6 +426,7 @@ const VERY_LOW_DETAIL: PulseDetail = {
   effectiveFrom: null,
   effectiveUntil: null,
   affectedRuleIds: [],
+  reverifyRuleIds: [],
   structuredChange: {
     note: 'Applicability depends on fiscal year and extension election.',
   },

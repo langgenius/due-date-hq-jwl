@@ -62,6 +62,7 @@ function reviewOnlyDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
     effectiveFrom: null,
     effectiveUntil: null,
     affectedRuleIds: [],
+    reverifyRuleIds: [],
     structuredChange: {
       note: 'PTET election reminder only.',
     },

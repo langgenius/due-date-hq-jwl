@@ -18,10 +18,12 @@ import {
   pulseFirmAlert,
   pulseSourceState,
   pulseSourceSnapshot,
+  ruleSourceDriftState,
   type NewPulse,
   type NewPulseFirmAlert,
   type NewPulseSourceState,
   type NewPulseSourceSnapshot,
+  type NewRuleSourceDriftState,
   type Pulse,
   type PulseSourceSnapshotStatus,
 } from '../../schema/pulse'
@@ -981,6 +983,7 @@ export function makePulseOpsRepo(db: Db) {
         parsedEffectiveFrom: input.parsedEffectiveFrom ?? null,
         parsedEffectiveUntil: input.parsedEffectiveUntil ?? null,
         affectedRuleIdsJson: input.affectedRuleIds ?? [],
+        reverifyRuleIdsJson: input.reverifyRuleIds ?? [],
         structuredChangeJson: input.structuredChange ?? null,
         confidence: input.confidence,
         status: 'approved',
@@ -1015,6 +1018,103 @@ export function makePulseOpsRepo(db: Db) {
         .where(eq(pulseFirmAlert.pulseId, pulseId))
       await queueFirmPulseReviewMessages(inserted, alerts, new Date())
       return { pulseId, alertCount }
+    },
+
+    /**
+     * Union new reverify rule ids into an existing pulse — used when a source
+     * change dedupes onto a prior regulatory alert but still implicates rules
+     * that should be re-verified.
+     */
+    async mergeReverifyRuleIdsIntoPulse(pulseId: string, ruleIds: string[]): Promise<void> {
+      if (ruleIds.length === 0) return
+      const row = await getPulse(pulseId)
+      if (!row) return
+      const merged = Array.from(new Set([...(row.reverifyRuleIdsJson ?? []), ...ruleIds]))
+      if (merged.length === (row.reverifyRuleIdsJson ?? []).length) return
+      await db.update(pulse).set({ reverifyRuleIdsJson: merged }).where(eq(pulse.id, pulseId))
+    },
+
+    /**
+     * Record (or re-open) the durable "this rule's source drifted since it was
+     * last verified" signal. Keyed by (ruleId, sourceId); a fresh change resets
+     * clearedAt so the rule accept/verify gate blocks again.
+     */
+    async upsertRuleSourceDriftState(input: {
+      ruleId: string
+      sourceId: string
+      snapshotId?: string | null
+      pulseId?: string | null
+      contentHash: string
+      excerptMatched: boolean
+      detectedAt: Date
+    }): Promise<void> {
+      const row: NewRuleSourceDriftState = {
+        id: crypto.randomUUID(),
+        ruleId: input.ruleId,
+        sourceId: input.sourceId,
+        snapshotId: input.snapshotId ?? null,
+        pulseId: input.pulseId ?? null,
+        contentHash: input.contentHash,
+        excerptMatched: input.excerptMatched,
+        detectedAt: input.detectedAt,
+      }
+      await db
+        .insert(ruleSourceDriftState)
+        .values(row)
+        .onConflictDoUpdate({
+          target: [ruleSourceDriftState.ruleId, ruleSourceDriftState.sourceId],
+          set: {
+            snapshotId: row.snapshotId,
+            pulseId: row.pulseId,
+            contentHash: row.contentHash,
+            excerptMatched: row.excerptMatched,
+            detectedAt: row.detectedAt,
+            clearedAt: null,
+            clearedBy: null,
+          },
+        })
+    },
+
+    /**
+     * Rules (from the given candidate set) that currently carry an uncleared
+     * source-drift signal. The rule accept/verify gate calls this so a firm
+     * adopting the rule later is still blocked until the drift is reviewed.
+     */
+    async listUnclearedDriftRuleIds(ruleIds: string[]): Promise<string[]> {
+      if (ruleIds.length === 0) return []
+      const rows = await db
+        .selectDistinct({ ruleId: ruleSourceDriftState.ruleId })
+        .from(ruleSourceDriftState)
+        .where(
+          and(
+            inArray(ruleSourceDriftState.ruleId, ruleIds),
+            isNull(ruleSourceDriftState.clearedAt),
+          ),
+        )
+      return rows.map((r) => r.ruleId)
+    },
+
+    /**
+     * Clear every uncleared drift row for a rule — called when a human
+     * re-verifies / re-accepts the rule (the source has been looked at).
+     */
+    async clearRuleSourceDriftForRule(input: {
+      ruleId: string
+      clearedBy?: string | null
+      clearedAt?: Date
+    }): Promise<void> {
+      await db
+        .update(ruleSourceDriftState)
+        .set({
+          clearedAt: input.clearedAt ?? new Date(),
+          clearedBy: (await existingUserId(input.clearedBy)) ?? null,
+        })
+        .where(
+          and(
+            eq(ruleSourceDriftState.ruleId, input.ruleId),
+            isNull(ruleSourceDriftState.clearedAt),
+          ),
+        )
     },
 
     async listPendingPulses(opts: { limit?: number } = {}): Promise<PulseReviewRow[]> {

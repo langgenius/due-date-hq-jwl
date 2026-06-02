@@ -2239,6 +2239,7 @@ function BulkPreviewSummary({ preview }: { preview: RuleBulkImpactPreview | null
     archived: t`Archived`,
     invalid_template: t`Invalid rule`,
     source_changed_requires_review: t`Source changed requires single-rule review`,
+    source_drifted_requires_review: t`Source updated — re-verify before adopting`,
     source_defined_requires_ai_review: t`AI draft review required`,
   }
 
