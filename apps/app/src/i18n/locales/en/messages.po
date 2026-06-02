@@ -252,6 +252,11 @@ msgstr "{0} — click to {1} detail"
 msgid "{0} · Shift+click to select all of this client's rows"
 msgstr "{0} · Shift+click to select all of this client's rows"
 
+#. placeholder {0}: safePreviewIndex + 1
+#: src/routes/obligations.tsx
+msgid "{0} / {previewTotal}"
+msgstr "{0} / {previewTotal}"
+
 #. placeholder {0}: safePageIndex + 1
 #: src/routes/obligations.tsx
 msgid "{0} / {totalLoadedPages}"
@@ -6958,6 +6963,7 @@ msgid "Next active rule (j)"
 msgstr "Next active rule (j)"
 
 #: src/features/clients/ClientCycleArrows.tsx
+#: src/routes/obligations.tsx
 msgid "Next client"
 msgstr "Next client"
 
@@ -8788,14 +8794,13 @@ msgstr "Preview closed source-year deadlines, then create next-year deadlines fr
 msgid "Preview for {0}"
 msgstr "Preview for {0}"
 
-#. placeholder {0}: sample.clientName
-#: src/routes/obligations.tsx
-msgid "Preview for {0} (one of {eligibleCount})"
-msgstr "Preview for {0} (one of {eligibleCount})"
-
 #: src/routes/obligations.tsx
 msgid "Preview materials request"
 msgstr "Preview materials request"
+
+#: src/routes/obligations.tsx
+msgid "Preview pagination"
+msgstr "Preview pagination"
 
 #: src/routes/practice.tsx
 msgid "Preview recalculates open deadlines without saving changes."
@@ -8826,6 +8831,7 @@ msgid "Previous and next client in the filtered list"
 msgstr "Previous and next client in the filtered list"
 
 #: src/features/clients/ClientCycleArrows.tsx
+#: src/routes/obligations.tsx
 msgid "Previous client"
 msgstr "Previous client"
 

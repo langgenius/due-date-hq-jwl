@@ -1240,10 +1240,12 @@ export async function bulkPreviewObligationSignatureReminder(
   scoped: ScopedRepo,
   input: ObligationBulkSignatureReminderPreviewInput,
 ): Promise<ObligationBulkSignatureReminderPreviewOutput> {
-  let eligibleCount = 0
   let skippedCount = 0
   let noEmailCount = 0
-  let sample: SignatureReminderSample | null = null
+  // One preview entry per eligible row, in selection order, so the dialog can
+  // page through every client that will actually be emailed (each mirrors a
+  // real send). eligibleCount is derived from this to keep them in lockstep.
+  const samples: SignatureReminderSample[] = []
   for (const id of input.ids) {
     const row = await scoped.obligations.findById(id)
     if (!row || !isAwaitingSignature(row)) {
@@ -1255,26 +1257,22 @@ export async function bulkPreviewObligationSignatureReminder(
       noEmailCount += 1
       continue
     }
-    eligibleCount += 1
-    // First eligible row seeds the live preview (mirrors a real send).
-    if (!sample) {
-      sample = {
+    samples.push({
+      clientName: clientRow.name,
+      vars: signatureReminderVars({
         clientName: clientRow.name,
-        vars: signatureReminderVars({
-          clientName: clientRow.name,
-          form: resolveForm(row.taxType, row.formName ?? null),
-          taxYear: row.taxYear,
-        }),
-      }
-    }
+        form: resolveForm(row.taxType, row.formName ?? null),
+        taxYear: row.taxYear,
+      }),
+    })
   }
   return {
     subjectTemplate: SIGNATURE_REMINDER_SUBJECT_TEMPLATE,
     bodyTemplate: SIGNATURE_REMINDER_BODY_TEMPLATE,
     tokens: [...SIGNATURE_REMINDER_TOKENS],
-    eligibleCount,
+    eligibleCount: samples.length,
     skippedCount,
     noEmailCount,
-    sample,
+    samples,
   }
 }

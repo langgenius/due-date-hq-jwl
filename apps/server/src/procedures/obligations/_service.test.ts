@@ -1528,19 +1528,58 @@ describe('bulkPreviewObligationSignatureReminder', () => {
     expect(preview.eligibleCount).toBe(1)
     expect(preview.noEmailCount).toBe(1)
     expect(preview.skippedCount).toBe(1)
-    expect(preview.sample?.clientName).toBe('Acme S-Corp')
-    expect(preview.sample?.vars.form).toBe('Form 1120-S')
+    expect(preview.samples).toHaveLength(1)
+    expect(preview.samples[0]?.clientName).toBe('Acme S-Corp')
+    expect(preview.samples[0]?.vars.form).toBe('Form 1120-S')
     expect(preview.subjectTemplate).toContain('{{form}}')
   })
 
-  it('returns a null sample when nothing is eligible', async () => {
+  it('returns one sample per eligible client, in selection order', async () => {
+    const ROW_B = '55555555-5555-4555-8555-555555555555'
+    const CLIENT_B = 'client-birch'
+    const base = buildScoped(FIRM, [
+      makeRow({
+        id: ROW_ID,
+        clientId: SIGNATURE_CLIENT_ID,
+        status: 'done',
+        efileState: 'authorization_requested',
+        taxType: 'federal_1120s',
+        formName: null,
+      }),
+      makeRow({
+        id: ROW_B,
+        clientId: CLIENT_B,
+        status: 'done',
+        efileState: 'authorization_requested',
+        taxType: 'federal_1065',
+        formName: null,
+      }),
+    ]).repo
+    const { scoped } = withEmailClients(base, {
+      [SIGNATURE_CLIENT_ID]: { name: 'Acme S-Corp', email: 'a@x.example' },
+      [CLIENT_B]: { name: 'Birch Partners', email: 'b@x.example' },
+    })
+    const preview = await bulkPreviewObligationSignatureReminder(scoped, {
+      ids: [ROW_ID, ROW_B],
+    })
+    expect(preview.eligibleCount).toBe(2)
+    // Selection order preserved so the dialog's paging is stable.
+    expect(preview.samples.map((sample) => sample.clientName)).toEqual([
+      'Acme S-Corp',
+      'Birch Partners',
+    ])
+    expect(preview.samples[0]?.vars.form).toBe('Form 1120-S')
+    expect(preview.samples[1]?.vars.form).toBeTruthy()
+  })
+
+  it('returns no samples when nothing is eligible', async () => {
     const { repo } = buildScoped(FIRM, [makeRow({ status: 'pending' })])
     const preview = await bulkPreviewObligationSignatureReminder(repo, { ids: [ROW_ID] })
     expect(preview).toMatchObject({
       eligibleCount: 0,
       skippedCount: 1,
       noEmailCount: 0,
-      sample: null,
+      samples: [],
     })
   })
 })

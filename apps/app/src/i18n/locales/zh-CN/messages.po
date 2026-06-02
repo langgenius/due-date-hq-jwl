@@ -255,6 +255,11 @@ msgstr "{0} — 点击查看 {1} 详情"
 msgid "{0} · Shift+click to select all of this client's rows"
 msgstr "{0} · 按住 Shift 点击可选中该客户的所有行"
 
+#. placeholder {0}: safePreviewIndex + 1
+#: src/routes/obligations.tsx
+msgid "{0} / {previewTotal}"
+msgstr "{0} / {previewTotal}"
+
 #. placeholder {0}: safePageIndex + 1
 #: src/routes/obligations.tsx
 msgid "{0} / {totalLoadedPages}"
@@ -7023,6 +7028,7 @@ msgid "Next active rule (j)"
 msgstr "下一条已生效规则 (j)"
 
 #: src/features/clients/ClientCycleArrows.tsx
+#: src/routes/obligations.tsx
 msgid "Next client"
 msgstr "下一个客户"
 
@@ -8879,14 +8885,13 @@ msgstr "预览已关闭的来源年度截止事项，然后根据生效的事务
 msgid "Preview for {0}"
 msgstr "{0} 的预览"
 
-#. placeholder {0}: sample.clientName
-#: src/routes/obligations.tsx
-msgid "Preview for {0} (one of {eligibleCount})"
-msgstr "{0} 的预览（共 {eligibleCount} 个之一）"
-
 #: src/routes/obligations.tsx
 msgid "Preview materials request"
 msgstr "预览材料请求"
+
+#: src/routes/obligations.tsx
+msgid "Preview pagination"
+msgstr "预览翻页"
 
 #: src/routes/practice.tsx
 msgid "Preview recalculates open deadlines without saving changes."
@@ -8917,6 +8922,7 @@ msgid "Previous and next client in the filtered list"
 msgstr "已筛选列表中的上一个和下一个客户"
 
 #: src/features/clients/ClientCycleArrows.tsx
+#: src/routes/obligations.tsx
 msgid "Previous client"
 msgstr "上一个客户"
 

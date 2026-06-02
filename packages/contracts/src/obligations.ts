@@ -425,8 +425,9 @@ export const ObligationBulkSignatureReminderPreviewOutputSchema = z.object({
   skippedCount: z.number().int().min(0),
   // Awaiting-signature rows whose client has no email on file — skipped.
   noEmailCount: z.number().int().min(0),
-  // One eligible recipient for the live preview; null when none are eligible.
-  sample: SignatureReminderSampleSchema.nullable(),
+  // Every eligible recipient, in selection order, for the paged live preview;
+  // empty when none are eligible. Length always equals eligibleCount.
+  samples: z.array(SignatureReminderSampleSchema),
 })
 export type ObligationBulkSignatureReminderPreviewOutput = z.infer<
   typeof ObligationBulkSignatureReminderPreviewOutputSchema

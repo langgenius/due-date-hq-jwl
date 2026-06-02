@@ -5251,6 +5251,7 @@ function SignatureReminderDialog({
   sending: boolean
   onSend: (input: { subject: string; body: string }) => void
 }) {
+  const { t } = useLingui()
   const isBulk = target.mode === 'bulk'
   const singleQuery = useQuery({
     ...orpc.obligations.signatureReminderPreview.queryOptions({
@@ -5270,6 +5271,8 @@ function SignatureReminderDialog({
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
   const [edited, setEdited] = useState(false)
+  // Which eligible recipient the bulk preview is paged to (single mode ignores).
+  const [previewIndex, setPreviewIndex] = useState(0)
   // Seed the editable fields from the server template once it arrives
   // (unless the CPA already started editing this open session).
   useEffect(() => {
@@ -5284,12 +5287,19 @@ function SignatureReminderDialog({
       setSubject('')
       setBody('')
       setEdited(false)
+      setPreviewIndex(0)
     }
   }, [open])
 
   const tokens = data?.tokens ?? []
-  // Live-render the preview against one sample recipient as the CPA edits.
-  const sample = data?.sample ?? null
+  // Single returns one recipient; bulk returns every eligible recipient so the
+  // CPA can page through them. Clamp the index in case the data shrank.
+  const singleSample = singleQuery.data?.sample ?? null
+  const bulkSamples = bulkQuery.data?.samples ?? []
+  const previewTotal = bulkSamples.length
+  const safePreviewIndex = previewTotal > 0 ? Math.min(previewIndex, previewTotal - 1) : 0
+  // Live-render the preview against the active sample recipient as the CPA edits.
+  const sample = isBulk ? (bulkSamples[safePreviewIndex] ?? null) : singleSample
   const previewSubject = sample ? renderTemplate(subject, sample.vars) : ''
   const previewBody = sample ? renderTemplate(body, sample.vars) : ''
 
@@ -5371,15 +5381,46 @@ function SignatureReminderDialog({
             ) : null}
             {sample ? (
               <div className="grid gap-1 rounded-md bg-background-subtle p-3">
-                <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
-                  {isBulk ? (
-                    <Trans>
-                      Preview for {sample.clientName} (one of {eligibleCount})
-                    </Trans>
-                  ) : (
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
                     <Trans>Preview for {sample.clientName}</Trans>
-                  )}
-                </p>
+                  </p>
+                  {isBulk && previewTotal > 1 ? (
+                    <div
+                      className="inline-flex items-center gap-0.5 text-xs text-text-secondary"
+                      role="group"
+                      aria-label={t`Preview pagination`}
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="h-6 w-6"
+                        aria-label={t`Previous client`}
+                        disabled={safePreviewIndex === 0}
+                        onClick={() => setPreviewIndex((index) => Math.max(0, index - 1))}
+                      >
+                        <ChevronLeftIcon className="size-3.5" aria-hidden />
+                      </Button>
+                      <span className="min-w-10 px-1 text-center tabular-nums">
+                        <Trans>
+                          {safePreviewIndex + 1} / {previewTotal}
+                        </Trans>
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="h-6 w-6"
+                        aria-label={t`Next client`}
+                        disabled={safePreviewIndex + 1 >= previewTotal}
+                        onClick={() =>
+                          setPreviewIndex((index) => Math.min(previewTotal - 1, index + 1))
+                        }
+                      >
+                        <ChevronRightIcon className="size-3.5" aria-hidden />
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
                 <p className="text-sm font-medium text-text-primary">{previewSubject}</p>
                 <p className="text-sm whitespace-pre-wrap text-text-secondary">{previewBody}</p>
               </div>
