@@ -1959,19 +1959,6 @@ msgstr "批准已更正的申报文件"
 msgid "Approve return"
 msgstr "批准申报文件"
 
-#. placeholder {0}: client.name
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Archive {0}?"
-msgstr "归档 {0}？"
-
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Archive {clientName}"
-msgstr "归档 {clientName}"
-
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Archive client"
-msgstr "归档客户"
-
 #: src/routes/rules.library.tsx
 #, fuzzy
 msgid "archived"
@@ -2832,10 +2819,6 @@ msgstr "客户"
 msgid "Client action"
 msgstr "客户动作"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Client archived"
-msgstr "客户已归档"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Client assignee changed"
 msgstr "客户经办人已更改"
@@ -2863,6 +2846,7 @@ msgid "Client created"
 msgstr "客户已创建"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Client deleted"
 msgstr "客户已删除"
 
@@ -3355,10 +3339,6 @@ msgstr "无法应用已审核集合"
 msgid "Couldn't apply tax type suggestions"
 msgstr "无法应用税种建议"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Couldn't archive client"
-msgstr "无法归档客户"
-
 #: src/routes/practice.tsx
 msgid "Couldn't calculate preview"
 msgstr "无法计算预览"
@@ -3406,6 +3386,10 @@ msgstr "无法创建规则"
 #: src/routes/onboarding.tsx
 msgid "Couldn't create your practice"
 msgstr "无法创建你的事务所"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Couldn't delete client"
+msgstr "无法删除客户"
 
 #: src/routes/practice.tsx
 msgid "Couldn't delete practice"
@@ -4152,6 +4136,19 @@ msgstr "决策备注（必填）"
 #: src/routes/obligations.tsx
 msgid "Decision memo is required."
 msgstr "必须填写决策备注。"
+
+#. placeholder {0}: client.name
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Delete {0}?"
+msgstr "删除 {0}？"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Delete {clientName}"
+msgstr "删除 {clientName}"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Delete client"
+msgstr "删除客户"
 
 #: src/routes/practice.tsx
 msgid "Delete practice"
@@ -11544,10 +11541,6 @@ msgstr "客户导入流程会映射列、整理字段值、预览截止日，并
 msgid "The client whose closed source-year deadline is being considered for next-year generation."
 msgstr "其已关闭来源年度截止事项正被考虑用于生成下一年度的客户。"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "The client will be hidden from the active list and dashboards. All audit history, filings, and deadlines stay retained. You can restore from the archived view if you change your mind."
-msgstr "该客户将从活跃列表和仪表板中隐藏。所有审计历史、申报和截止事项均保留。如改变主意，可从归档视图恢复。"
-
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "The code expires in 5 minutes."
 msgstr "验证码将在 5 分钟后过期。"
@@ -11891,6 +11884,10 @@ msgstr "这会将当前事务所从你的账户中移除。审计历史会为合
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "This removes the client and deadlines created by this import. Use Clients to edit facts instead."
 msgstr "这会移除此导入创建的客户和截止日。请改用“客户”来编辑资料。"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "This removes the client and its deadlines from active lists, Deadlines, and dashboard views. Audit history stays retained for compliance records."
+msgstr "这会将该客户及其截止日从活跃列表、截止日和仪表盘视图中移除。审计历史会继续保留用于合规记录。"
 
 #: src/features/migration/Wizard.tsx
 msgid "This removes the clients and deadlines created by this import. Other practice data will not be changed."

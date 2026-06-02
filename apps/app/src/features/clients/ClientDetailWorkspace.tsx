@@ -7,7 +7,6 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
   AlertTriangleIcon,
-  ArchiveIcon,
   CheckCircle2Icon,
   ChevronDownIcon,
   ChevronRightIcon,
@@ -24,6 +23,7 @@ import {
   ScrollTextIcon,
   SettingsIcon,
   SparklesIcon,
+  Trash2Icon,
   UserRoundIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -642,14 +642,11 @@ export function ClientDetailWorkspace({
     [changeStatusMutation],
   )
 
-  // Archive (a.k.a. soft-delete) state + mutation. CPA compliance
-  // requires soft-delete — `clients.delete` actually flips `deletedAt`
-  // server-side, audit log retains everything. The UI surfaces the
-  // action as "Archive" (the action verb a CPA would use) instead of
-  // "Delete" (which implies irreversible). See critique L-10 for the
-  // rationale on Archive vs Delete vocabulary.
-  const [archiveOpen, setArchiveOpen] = useState(false)
-  const archiveMutation = useMutation(
+  // Delete state + mutation. The server still performs the compliance-safe
+  // `deletedAt` write; active deadline/dashboard queries filter the client out
+  // while audit history remains available.
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const deleteMutation = useMutation(
     orpc.clients.delete.mutationOptions({
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
@@ -657,12 +654,12 @@ export function ClientDetailWorkspace({
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
-        toast.success(t`Client archived`, { description: client.name })
-        setArchiveOpen(false)
+        toast.success(t`Client deleted`, { description: client.name })
+        setDeleteOpen(false)
         void navigate('/clients')
       },
       onError: (err) => {
-        toast.error(t`Couldn't archive client`, {
+        toast.error(t`Couldn't delete client`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -804,7 +801,7 @@ export function ClientDetailWorkspace({
                   clientId={client.id}
                   clientName={client.name}
                   canReadAudit={canReadAudit}
-                  onArchive={() => setArchiveOpen(true)}
+                  onDelete={() => setDeleteOpen(true)}
                 />
                 <CreateObligationDialog
                   defaultClientId={client.id}
@@ -1346,36 +1343,30 @@ export function ClientDetailWorkspace({
         </aside>
       </div>
 
-      {/* Archive confirmation. `clients.delete` is a soft-delete server-
-          side (sets `deletedAt` + writes an audit row) — see commit
-          b925449. We surface it as "Archive" because that's the CPA's
-          mental model: hide from daily views, retain for audit /
-          historical record. Critique L-10. */}
-      <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              <Trans>Archive {client.name}?</Trans>
+            <AlertDialogTitle className="text-text-destructive">
+              <Trans>Delete {client.name}?</Trans>
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-text-destructive-secondary">
               <Trans>
-                The client will be hidden from the active list and dashboards. All audit history,
-                filings, and deadlines stay retained. You can restore from the archived view if you
-                change your mind.
+                This removes the client and its deadlines from active lists, Deadlines, and
+                dashboard views. Audit history stays retained for compliance records.
               </Trans>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={archiveMutation.isPending}>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
               <Trans>Cancel</Trans>
             </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive-primary"
-              disabled={archiveMutation.isPending}
-              onClick={() => archiveMutation.mutate({ id: client.id })}
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteMutation.mutate({ id: client.id })}
             >
-              <ArchiveIcon data-icon="inline-start" />
-              <Trans>Archive client</Trans>
+              <Trash2Icon data-icon="inline-start" />
+              <Trans>Delete client</Trans>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1596,21 +1587,17 @@ function ClientHeaderOverflowMenu({
   clientId,
   clientName,
   canReadAudit,
-  onArchive,
+  onDelete,
 }: {
   clientId: string
   clientName: string
   canReadAudit: boolean
-  onArchive: () => void
+  onDelete: () => void
 }) {
   const { t } = useLingui()
   const navigate = useNavigate()
-  // 2026-05-26 (Yuqi macro→micro audit, Fix #4 / §2.3): Archive moved
-  // INSIDE the ⋯ overflow per canonical (≤2 outline buttons + no
-  // destructive in the visible cluster). The menu used to gate on
-  // `canReadAudit` and disappear entirely when the user lacked audit
-  // — now Archive is always available so the menu renders, with the
-  // audit-log entry conditionally shown.
+  // 2026-06-02 (browser comment): destructive client removal stays in the
+  // overflow, but now uses the direct "Delete" verb and red menu variant.
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -1633,12 +1620,12 @@ function ClientHeaderOverflowMenu({
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuItem
-          onClick={onArchive}
-          aria-label={t`Archive ${clientName}`}
-          className="text-state-warning-text"
+          onClick={onDelete}
+          aria-label={t`Delete ${clientName}`}
+          variant="destructive"
         >
-          <ArchiveIcon className="size-4" aria-hidden />
-          <Trans>Archive client</Trans>
+          <Trash2Icon className="size-4" aria-hidden />
+          <Trans>Delete client</Trans>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

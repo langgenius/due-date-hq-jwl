@@ -1931,19 +1931,6 @@ msgstr "Approve corrected return"
 msgid "Approve return"
 msgstr "Approve return"
 
-#. placeholder {0}: client.name
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Archive {0}?"
-msgstr "Archive {0}?"
-
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Archive {clientName}"
-msgstr "Archive {clientName}"
-
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Archive client"
-msgstr "Archive client"
-
 #: src/routes/rules.library.tsx
 msgid "archived"
 msgstr "archived"
@@ -2798,10 +2785,6 @@ msgstr "CLIENT"
 msgid "Client action"
 msgstr "Client action"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Client archived"
-msgstr "Client archived"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Client assignee changed"
 msgstr "Client assignee changed"
@@ -2829,6 +2812,7 @@ msgid "Client created"
 msgstr "Client created"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Client deleted"
 msgstr "Client deleted"
 
@@ -3316,10 +3300,6 @@ msgstr "Couldn't apply reviewed set"
 msgid "Couldn't apply tax type suggestions"
 msgstr "Couldn't apply tax type suggestions"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Couldn't archive client"
-msgstr "Couldn't archive client"
-
 #: src/routes/practice.tsx
 msgid "Couldn't calculate preview"
 msgstr "Couldn't calculate preview"
@@ -3366,6 +3346,10 @@ msgstr "Couldn't create rule"
 #: src/routes/onboarding.tsx
 msgid "Couldn't create your practice"
 msgstr "Couldn't create your practice"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Couldn't delete client"
+msgstr "Couldn't delete client"
 
 #: src/routes/practice.tsx
 msgid "Couldn't delete practice"
@@ -4109,6 +4093,19 @@ msgstr "Decision memo (required)"
 #: src/routes/obligations.tsx
 msgid "Decision memo is required."
 msgstr "Decision memo is required."
+
+#. placeholder {0}: client.name
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Delete {0}?"
+msgstr "Delete {0}?"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Delete {clientName}"
+msgstr "Delete {clientName}"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Delete client"
+msgstr "Delete client"
 
 #: src/routes/practice.tsx
 msgid "Delete practice"
@@ -11432,10 +11429,6 @@ msgstr "The client import flow that maps columns, normalizes values, previews de
 msgid "The client whose closed source-year deadline is being considered for next-year generation."
 msgstr "The client whose closed source-year deadline is being considered for next-year generation."
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "The client will be hidden from the active list and dashboards. All audit history, filings, and deadlines stay retained. You can restore from the archived view if you change your mind."
-msgstr "The client will be hidden from the active list and dashboards. All audit history, filings, and deadlines stay retained. You can restore from the archived view if you change your mind."
-
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "The code expires in 5 minutes."
 msgstr "The code expires in 5 minutes."
@@ -11779,6 +11772,10 @@ msgstr "This removes the active practice from your account. Audit history stays 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "This removes the client and deadlines created by this import. Use Clients to edit facts instead."
 msgstr "This removes the client and deadlines created by this import. Use Clients to edit facts instead."
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "This removes the client and its deadlines from active lists, Deadlines, and dashboard views. Audit history stays retained for compliance records."
+msgstr "This removes the client and its deadlines from active lists, Deadlines, and dashboard views. Audit history stays retained for compliance records."
 
 #: src/features/migration/Wizard.tsx
 msgid "This removes the clients and deadlines created by this import. Other practice data will not be changed."

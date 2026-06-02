@@ -801,6 +801,104 @@ const obligationQueueSearchParamsParsers = {
 } as const
 
 type ObligationQueueSearchParams = inferParserType<typeof obligationQueueSearchParamsParsers>
+type DeadlineDetailQueueSearchState = Pick<
+  ObligationQueueSearchParams,
+  | 'q'
+  | 'status'
+  | 'obligation'
+  | 'client'
+  | 'rule'
+  | 'state'
+  | 'county'
+  | 'taxType'
+  | 'assignee'
+  | 'assignees'
+  | 'owner'
+  | 'due'
+  | 'dueWithin'
+  | 'evidence'
+  | 'awaitingSignature'
+  | 'daysMin'
+  | 'daysMax'
+  | 'asOf'
+  | 'sort'
+  | 'density'
+  | 'group'
+  | 'hide'
+>
+
+function searchParamArrayEquals(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((value, index) => value === b[index])
+}
+
+function setOptionalSearchParam(
+  params: URLSearchParams,
+  key: string,
+  value: string | number | null,
+): void {
+  if (value === null || value === '') {
+    params.delete(key)
+    return
+  }
+  params.set(key, String(value))
+}
+
+function setArraySearchParam(
+  params: URLSearchParams,
+  key: string,
+  values: readonly string[],
+): void {
+  if (values.length === 0) {
+    params.delete(key)
+    return
+  }
+  params.set(key, values.join(','))
+}
+
+export function deadlineDetailSearchFromQueueState(
+  search: string,
+  state: DeadlineDetailQueueSearchState,
+): string {
+  const baseSearch = cleanDeadlineDetailSearch(search)
+  const params = new URLSearchParams(baseSearch.startsWith('?') ? baseSearch.slice(1) : baseSearch)
+
+  setOptionalSearchParam(params, 'q', state.q)
+  setArraySearchParam(params, 'status', state.status)
+  setOptionalSearchParam(params, 'obligation', state.obligation)
+  setArraySearchParam(params, 'client', state.client)
+  setArraySearchParam(params, 'rule', state.rule)
+  setArraySearchParam(params, 'state', state.state)
+  setArraySearchParam(params, 'county', state.county)
+  setArraySearchParam(params, 'taxType', state.taxType)
+  setOptionalSearchParam(params, 'assignee', state.assignee)
+  setArraySearchParam(params, 'assignees', state.assignees)
+  setOptionalSearchParam(params, 'owner', state.owner)
+  setOptionalSearchParam(params, 'due', state.due)
+  setOptionalSearchParam(params, 'dueWithin', state.dueWithin)
+  setOptionalSearchParam(params, 'evidence', state.evidence)
+  if (state.awaitingSignature === true) params.set('awaitingSignature', 'true')
+  else params.delete('awaitingSignature')
+  setOptionalSearchParam(params, 'daysMin', state.daysMin)
+  setOptionalSearchParam(params, 'daysMax', state.daysMax)
+  setOptionalSearchParam(params, 'asOf', state.asOf)
+  setOptionalSearchParam(params, 'sort', state.sort === DEFAULT_SORT ? null : state.sort)
+  setOptionalSearchParam(
+    params,
+    'density',
+    state.density === DEFAULT_DENSITY ? null : state.density,
+  )
+  setOptionalSearchParam(params, 'group', state.group === DEFAULT_GROUP ? null : state.group)
+  if (state.hide.length === 0) {
+    params.set('hide', '')
+  } else if (searchParamArrayEquals(state.hide, DEFAULT_HIDDEN_COLUMN_IDS)) {
+    params.delete('hide')
+  } else {
+    params.set('hide', state.hide.join(','))
+  }
+
+  const nextSearch = params.toString()
+  return nextSearch ? `?${nextSearch}` : ''
+}
 
 export function isThisWeekFilterActive(daysMin: number | null, daysMax: number | null): boolean {
   return daysMin === null && daysMax === THIS_WEEK_MAX_DAYS
@@ -1180,6 +1278,60 @@ export function ObligationQueueRoute() {
     },
     setObligationQueueQuery,
   ] = useQueryStates(obligationQueueSearchParamsParsers)
+  const liveLocationSearch =
+    typeof window === 'undefined' ? location.search : window.location.search
+  const deadlineDetailSearch = useMemo(
+    () =>
+      deadlineDetailSearchFromQueueState(liveLocationSearch, {
+        q: searchInput,
+        status: statusFilter,
+        obligation,
+        client: clientFilter,
+        rule: ruleFilter,
+        state: stateFilter,
+        county: countyFilter,
+        taxType: taxTypeFilter,
+        assignee,
+        assignees: assigneeFilter,
+        owner,
+        due,
+        dueWithin,
+        evidence,
+        awaitingSignature,
+        daysMin,
+        daysMax,
+        asOf,
+        sort: urlSort,
+        density,
+        group,
+        hide: hiddenColumns,
+      }),
+    [
+      liveLocationSearch,
+      searchInput,
+      statusFilter,
+      obligation,
+      clientFilter,
+      ruleFilter,
+      stateFilter,
+      countyFilter,
+      taxTypeFilter,
+      assignee,
+      assigneeFilter,
+      owner,
+      due,
+      dueWithin,
+      evidence,
+      awaitingSignature,
+      daysMin,
+      daysMax,
+      asOf,
+      urlSort,
+      density,
+      group,
+      hiddenColumns,
+    ],
+  )
   // Slice D: when ?lifecycle=v2 is active AND the URL has no explicit
   // ?sort= param, default the queue to internal deadline ascending instead of
   // Smart Priority. Smart Priority remains in the sort dropdown — it's
@@ -1787,19 +1939,19 @@ export function ObligationQueueRoute() {
         : null
   const openQueueDetail = useCallback(
     (obligationId: string, tab: ObligationQueueDetailTab = activeDetailTab) => {
-      void navigate(deadlineDetailHref({ obligationId, tab, search: location.search }), {
+      void navigate(deadlineDetailHref({ obligationId, tab, search: deadlineDetailSearch }), {
         state: { obligationId },
       })
     },
-    [activeDetailTab, location.search, navigate],
+    [activeDetailTab, deadlineDetailSearch, navigate],
   )
   const closeQueueDetail = useCallback(() => {
     if (routeObligationRef) {
-      void navigate(`/deadlines${cleanDeadlineDetailSearch(location.search)}`)
+      void navigate(`/deadlines${deadlineDetailSearch}`)
       return
     }
     void setObligationQueueQuery({ drawer: null, id: null, row: null })
-  }, [location.search, navigate, routeObligationRef, setObligationQueueQuery])
+  }, [deadlineDetailSearch, navigate, routeObligationRef, setObligationQueueQuery])
   const onRowSelectionChange = useCallback(
     (updater: Updater<RowSelectionState>) => {
       const nextSelection = functionalUpdate(updater, rowSelection)
