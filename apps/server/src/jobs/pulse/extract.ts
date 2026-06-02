@@ -6,7 +6,7 @@ import type { Env } from '../../env'
 import { sourceTextContainsExcerpt } from '../../procedures/rules/concrete-draft'
 import { extractCanonicalEmailText } from './email-artifact'
 import { recordPulseAlert, recordPulseMetric } from './metrics'
-import { shouldForceReviewOnlyPulseAlert } from './rule-source-adapters'
+import { isThresholdAdvisorySource, shouldForceReviewOnlyPulseAlert } from './rule-source-adapters'
 
 type PulseExtractRepo = Pick<
   ReturnType<typeof makePulseOpsRepo>,
@@ -159,6 +159,53 @@ async function runPulseExtractionAfterMark(
   snapshot: PulseExtractSnapshot,
   snapshotId: string,
 ): Promise<PulseExtractResult> {
+  // IRS annual inflation Revenue Procedure: emit a deterministic review_only
+  // "pointer" advisory and skip AI entirely. We never let the model read a
+  // Rev. Proc. and assert dollar figures (cf. "AI never invents dollar
+  // amounts"); the Alert points the CPA at the official source. Idempotency
+  // comes from snapshot contentHash dedup at ingest — one new Rev. Proc.
+  // publication yields one new snapshot, hence one advisory.
+  if (isThresholdAdvisorySource(snapshot.sourceId)) {
+    const created = await repo.createPulseForFirmReviewFromExtract({
+      snapshotId,
+      source: snapshot.sourceId,
+      sourceUrl: snapshot.officialSourceUrl,
+      rawR2Key: snapshot.rawR2Key,
+      publishedAt: snapshot.publishedAt,
+      changeKind: 'threshold_advisory',
+      actionMode: 'review_only',
+      aiSummary:
+        'IRS published an annual inflation-adjustment Revenue Procedure. Review thresholds that may affect your clients (gift/estate exclusions, estimated-tax safe harbor, …) — open the official source for the adjusted figures.',
+      verbatimQuote: 'See the official IRS Revenue Procedure for the adjusted figures.',
+      parsedJurisdiction: 'FED',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+      parsedEffectiveFrom: null,
+      parsedEffectiveUntil: null,
+      affectedRuleIds: [],
+      reverifyRuleIds: [],
+      structuredChange: {
+        kind: 'threshold_advisory',
+        sourceId: snapshot.sourceId,
+        sourceUrl: snapshot.officialSourceUrl,
+      },
+      confidence: 1,
+      requiresHumanReview: true,
+      isSample: false,
+    })
+    recordPulseMetric('pulse.extract.result', {
+      snapshotId,
+      sourceId: snapshot.sourceId,
+      result: 'created',
+      refusalCode: null,
+      confidence: 1,
+    })
+    return { pulseId: created.pulseId, status: 'created' }
+  }
+
   const raw = await env.R2_PULSE.get(snapshot.rawR2Key)
   if (!raw) {
     await repo.updateSourceSnapshotStatus(snapshotId, {

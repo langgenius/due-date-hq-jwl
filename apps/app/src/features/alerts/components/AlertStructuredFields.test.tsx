@@ -101,6 +101,22 @@ describe('AlertStructuredFields', () => {
     expect(document.body.textContent).not.toContain('PTET election reminder only')
   })
 
+  it('shows a Revenue-Procedure pointer caveat (not the AI-extraction caveat) for threshold advisories', () => {
+    render(
+      <AlertStructuredFields
+        detail={reviewOnlyDetail({
+          alert: { ...reviewOnlyDetail().alert, changeKind: 'threshold_advisory' },
+        })}
+      />,
+    )
+
+    expect(document.body.textContent).toContain('official IRS Revenue Procedure')
+    expect(document.body.textContent).toContain('asserts no specific')
+    // The AI-extraction caveat must NOT appear — these advisories are
+    // deterministic and assert no figures.
+    expect(document.body.textContent).not.toContain('AI extraction of the source bulletin')
+  })
+
   it('shows duplicate source updates as an aggregated count only', () => {
     render(
       <AlertStructuredFields

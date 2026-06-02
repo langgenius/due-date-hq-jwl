@@ -27,6 +27,7 @@ export const CHANGE_KIND_FILTER_OPTIONS = [
   'source_status',
   'rule_source_drift',
   'new_obligation',
+  'threshold_advisory',
   'other',
 ] as const
 export type AlertChangeKindFilter = (typeof CHANGE_KIND_FILTER_OPTIONS)[number]

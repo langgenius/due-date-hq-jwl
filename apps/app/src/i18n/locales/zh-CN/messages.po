@@ -13177,3 +13177,16 @@ msgstr "邮编"
 #: src/features/migration/Step1Intake.tsx
 msgid "ZIP or CSV"
 msgstr "ZIP 或 CSV"
+
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "This advisory points to an official IRS Revenue Procedure and asserts no specific dollar figures. Open the official source to read the adjusted thresholds and decide which clients are affected."
+msgstr "本提示指向一份官方 IRS Revenue Procedure，本身不声明任何具体金额。请打开官方来源查看调整后的门槛，并判断哪些客户受影响。"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Threshold advisories"
+msgstr "门槛调整提示"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/components/AlertCard.tsx
+msgid "Threshold Advisory"
+msgstr "门槛调整提示"

@@ -923,6 +923,19 @@ export function shouldForceReviewOnlyPulseAlert(input: {
   return input.changeKind !== 'deadline_shift'
 }
 
+// IRS annual inflation Revenue Procedure "pointer" advisory sources. Watched
+// like any html_watch source, but their snapshots bypass AI extraction
+// entirely: the pulse extract job emits a deterministic review_only
+// `threshold_advisory` Alert with no asserted dollar amounts (the product
+// never lets AI invent dollar figures — cf. client.estimatedTaxLiabilityCents).
+// The CPA opens the official Rev. Proc. to read the figures. Year-stamped in
+// RULE_SOURCES (…_2026, …_2027) and matched by prefix so each season's
+// refreshed entry is covered without editing this gate.
+const THRESHOLD_ADVISORY_SOURCE_ID_PREFIX = 'fed.irs_inflation_adjustments'
+export function isThresholdAdvisorySource(sourceId: string): boolean {
+  return sourceId.startsWith(THRESHOLD_ADVISORY_SOURCE_ID_PREFIX)
+}
+
 export const explicitLiveRegulatorySourceAdapters = livePulseAdapters
 
 export const alertWatchSourceAdapters = uniqueAdapters([

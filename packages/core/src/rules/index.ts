@@ -4789,6 +4789,31 @@ export const RULE_SOURCES = hydrateRuleSources([
     lastReviewedOn: VERIFIED_AT,
   },
   {
+    // Annual IRS inflation-adjustment Revenue Procedure, watched as a
+    // deterministic "pointer" advisory. When a new tax year's Rev. Proc.
+    // publishes (this page changes), the pulse extract job short-circuits
+    // BEFORE the AI step and emits a review_only `threshold_advisory` Alert
+    // that asserts NO dollar figures — it points the CPA at the official
+    // source to read the adjusted thresholds (gift/estate exclusions,
+    // estimated-tax safe harbor, ...) themselves. The product never lets AI
+    // invent dollar amounts (cf. client.estimatedTaxLiabilityCents). See
+    // isThresholdAdvisorySource() and the branch in jobs/pulse/extract.ts.
+    // Year-stamped like the other fed.irs_* sources; add next season's entry
+    // and the prefix gate covers it automatically.
+    id: 'fed.irs_inflation_adjustments_2026',
+    jurisdiction: 'FED',
+    title: 'IRS Annual Inflation Adjustments — Tax Year 2026 (Rev. Proc.)',
+    url: 'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026',
+    sourceType: 'publication',
+    acquisitionMethod: 'html_watch',
+    cadence: 'pre_season',
+    priority: 'high',
+    healthStatus: 'healthy',
+    isEarlyWarning: false,
+    notificationChannels: ['source_change'],
+    lastReviewedOn: VERIFIED_AT,
+  },
+  {
     id: 'fed.irs_i7004_2025',
     jurisdiction: 'FED',
     title: 'IRS Instructions for Form 7004 (12/2025)',

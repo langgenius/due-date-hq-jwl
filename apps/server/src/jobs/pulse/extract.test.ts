@@ -667,6 +667,41 @@ describe('extractPulseSnapshot', () => {
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
   })
 
+  it('emits a deterministic review_only threshold_advisory and never calls AI for IRS inflation Rev. Proc. sources', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue({
+      id: 'snapshot-inflation',
+      sourceId: 'fed.irs_inflation_adjustments_2026',
+      title: 'IRS Annual Inflation Adjustments — Tax Year 2026',
+      officialSourceUrl:
+        'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026',
+      publishedAt: new Date('2026-10-21T13:00:00.000Z'),
+      fetchedAt: new Date('2026-10-21T13:00:00.000Z'),
+      contentHash: 'hash-inflation',
+      rawR2Key: 'raw/inflation.txt',
+      pulseId: null,
+      parseStatus: 'pending_extract',
+    })
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-inflation')
+
+    expect(result).toEqual({ pulseId: 'pulse-created', status: 'created' })
+    // The defining invariant: the model never reads a Revenue Procedure and so
+    // never asserts dollar figures — the advisory is a deterministic pointer.
+    expect(aiMocks.extractPulse).not.toHaveBeenCalled()
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        changeKind: 'threshold_advisory',
+        actionMode: 'review_only',
+        confidence: 1,
+        parsedJurisdiction: 'FED',
+        parsedForms: [],
+        parsedNewDueDate: null,
+      }),
+    )
+    expect(repoMocks.apply).not.toHaveBeenCalled()
+    expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
+  })
+
   it('resets the snapshot to failed and rethrows when extraction throws mid-flight', async () => {
     repoMocks.getSourceSnapshot.mockResolvedValue({
       id: 'snapshot-throw',

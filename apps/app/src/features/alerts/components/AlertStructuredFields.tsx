@@ -254,15 +254,32 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
           provenance explicitly + points at the source link for
           verification. Quiet (info tone, not destructive) so it
           reads as orientation, not error. */}
-      <div className="flex items-start gap-2 rounded-md border border-divider-subtle bg-background-soft px-3 py-2 text-xs text-text-secondary">
-        <Astroid className="mt-0.5 size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-        <span>
-          <Trans>
-            The fields below are an AI extraction of the source bulletin. Open the official source
-            to verify before applying changes to clients.
-          </Trans>
-        </span>
-      </div>
+      {detail.alert.changeKind === 'threshold_advisory' ? (
+        // Threshold advisories are emitted deterministically (NOT AI-extracted)
+        // and deliberately assert no dollar figures — so the AI-extraction
+        // caveat would be both inaccurate and misleading here. Point the CPA at
+        // the official Revenue Procedure to read the adjusted thresholds.
+        <div className="flex items-start gap-2 rounded-md border border-divider-subtle bg-background-soft px-3 py-2 text-xs text-text-secondary">
+          <Astroid className="mt-0.5 size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+          <span>
+            <Trans>
+              This advisory points to an official IRS Revenue Procedure and asserts no specific
+              dollar figures. Open the official source to read the adjusted thresholds and decide
+              which clients are affected.
+            </Trans>
+          </span>
+        </div>
+      ) : (
+        <div className="flex items-start gap-2 rounded-md border border-divider-subtle bg-background-soft px-3 py-2 text-xs text-text-secondary">
+          <Astroid className="mt-0.5 size-3.5 shrink-0 text-text-tertiary" aria-hidden />
+          <span>
+            <Trans>
+              The fields below are an AI extraction of the source bulletin. Open the official source
+              to verify before applying changes to clients.
+            </Trans>
+          </span>
+        </div>
+      )}
       {detail.alert.duplicateSourceSnapshotCount > 0 ? (
         <div className="rounded-md border border-divider-subtle bg-background-soft px-3 py-2 text-xs text-text-secondary">
           <Plural

@@ -6,8 +6,9 @@
 //
 // What gets seeded:
 //   - `firms.listMine`     → one firm with role `owner` (so apply/dismiss CTAs unlock).
-//   - `pulse.listAlerts`   → 5 alerts covering matched / needs-details / applied / dismissed
-//                            states and success / info / warning / sub-50% confidence examples.
+//   - `pulse.listAlerts`   → 6 alerts covering matched / needs-details / applied / dismissed /
+//                            threshold-advisory states and success / info / warning / sub-50%
+//                            confidence examples.
 //   - `pulse.getDetail`    → matching detail per alert with affected clients.
 //
 // What is NOT mocked: the actual mutations (apply / dismiss / revert) still hit
@@ -33,6 +34,7 @@ const ALERT_IDS = {
   applied: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
   dismissed: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
   veryLow: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+  threshold: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
 } as const
 
 const PULSE_IDS = {
@@ -41,6 +43,7 @@ const PULSE_IDS = {
   applied: '22222222-2222-4222-8222-222222222222',
   dismissed: '33333333-3333-4333-8333-333333333333',
   veryLow: '44444444-4444-4444-8444-444444444444',
+  threshold: '66666666-6666-4666-8666-666666666666',
 } as const
 
 function obligationId(prefix: string, n: number): string {
@@ -437,6 +440,56 @@ const VERY_LOW_DETAIL: PulseDetail = {
   affectedClients: [],
 }
 
+// --- Alert 6: threshold advisory (review_only pointer, asserts no figures) --
+
+const THRESHOLD_ALERT: PulseAlertPublic = {
+  id: ALERT_IDS.threshold,
+  pulseId: PULSE_IDS.threshold,
+  status: 'matched',
+  sourceStatus: 'approved',
+  title: 'IRS releases tax-year 2026 inflation adjustments (Rev. Proc.)',
+  source: 'IRS',
+  sourceUrl:
+    'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026',
+  changeKind: 'threshold_advisory',
+  actionMode: 'review_only',
+  firmImpact: 'review_only',
+  summary:
+    'IRS published an annual inflation-adjustment Revenue Procedure. Review thresholds that may affect your clients (gift/estate exclusions, estimated-tax safe harbor, …) — open the official source for the adjusted figures.',
+  publishedAt: new Date(NOW.getTime() - 1000 * 60 * 60 * 24).toISOString(),
+  matchedCount: 0,
+  needsReviewCount: 0,
+  applyReadiness: { status: 'not_applicable', missing: [] },
+  duplicateSourceSnapshotCount: 0,
+  confidence: 1,
+  isSample: true,
+  jurisdiction: 'FED',
+}
+
+const THRESHOLD_DETAIL: PulseDetail = {
+  alert: THRESHOLD_ALERT,
+  jurisdiction: 'FED',
+  counties: [],
+  forms: [],
+  entityTypes: [],
+  originalDueDate: null,
+  newDueDate: null,
+  effectiveFrom: null,
+  effectiveUntil: null,
+  affectedRuleIds: [],
+  reverifyRuleIds: [],
+  structuredChange: {
+    kind: 'threshold_advisory',
+    sourceId: 'fed.irs_inflation_adjustments_2026',
+    sourceUrl:
+      'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026',
+  },
+  sourceExcerpt: 'See the official IRS Revenue Procedure for the adjusted figures.',
+  reviewedAt: null,
+  applyReadiness: { status: 'not_applicable', missing: [] },
+  affectedClients: [],
+}
+
 // --- Index ----------------------------------------------------------------
 
 const ALERTS: PulseAlertPublic[] = [
@@ -445,6 +498,7 @@ const ALERTS: PulseAlertPublic[] = [
   APPLIED_ALERT,
   DISMISSED_ALERT,
   VERY_LOW_ALERT,
+  THRESHOLD_ALERT,
 ]
 
 const DETAILS: PulseDetail[] = [
@@ -453,6 +507,7 @@ const DETAILS: PulseDetail[] = [
   APPLIED_DETAIL,
   DISMISSED_DETAIL,
   VERY_LOW_DETAIL,
+  THRESHOLD_DETAIL,
 ]
 
 const SOURCE_HEALTH: PulseSourceHealth[] = [

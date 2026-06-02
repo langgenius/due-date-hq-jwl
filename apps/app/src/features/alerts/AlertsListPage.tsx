@@ -995,6 +995,7 @@ function changeKindLabel(kind: PulseChangeKind): React.ReactNode {
   if (kind === 'source_status') return <Trans>Source status</Trans>
   if (kind === 'rule_source_drift') return <Trans>Source changed — re-verify</Trans>
   if (kind === 'new_obligation') return <Trans>New deadlines</Trans>
+  if (kind === 'threshold_advisory') return <Trans>Threshold advisories</Trans>
   return <Trans>Other changes</Trans>
 }
 

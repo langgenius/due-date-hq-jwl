@@ -44,9 +44,9 @@ describe('seedAlertMock', () => {
       orpc.pulse.listSourceHealth.queryKey({ input: undefined }),
     )
 
-    expect(alerts?.alerts).toHaveLength(5)
+    expect(alerts?.alerts).toHaveLength(6)
     expect(history?.alerts.map((alert) => alert.status)).toEqual(['applied', 'dismissed'])
-    expect(activeCount?.count).toBe(3)
+    expect(activeCount?.count).toBe(4)
     expect(sourceHealth?.sources.map((source) => source.sourceId)).toEqual([
       'irs.disaster',
       'ca.ftb.newsroom',

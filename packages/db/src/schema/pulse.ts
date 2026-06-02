@@ -33,6 +33,11 @@ export const PULSE_CHANGE_KINDS = [
   'source_status',
   'rule_source_drift',
   'new_obligation',
+  // Deterministic-only (no AI): annual IRS inflation Revenue Procedure
+  // "pointer" advisory — review_only, asserts no dollar figures. Never
+  // produced by AI extraction; packages/ai/src/pulse.ts deliberately
+  // omits this kind so the model can't emit it (cf. 'rule_source_drift').
+  'threshold_advisory',
   'other',
 ] as const
 export type PulseChangeKind = (typeof PULSE_CHANGE_KINDS)[number]

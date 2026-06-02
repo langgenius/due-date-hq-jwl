@@ -20,6 +20,7 @@ export interface PulseAlertRow {
     | 'source_status'
     | 'rule_source_drift'
     | 'new_obligation'
+    | 'threshold_advisory'
     | 'other'
   actionMode: 'due_date_overlay' | 'review_only'
   title: string
@@ -193,6 +194,7 @@ export interface PulseSeedInput {
     | 'source_status'
     | 'rule_source_drift'
     | 'new_obligation'
+    | 'threshold_advisory'
     | 'other'
   actionMode?: 'due_date_overlay' | 'review_only'
   affectedRuleIds?: string[]

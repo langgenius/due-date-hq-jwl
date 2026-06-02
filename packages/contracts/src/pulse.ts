@@ -41,6 +41,10 @@ export const PulseChangeKindSchema = z.enum([
   'source_status',
   'rule_source_drift',
   'new_obligation',
+  // Deterministic-only (no AI) — annual IRS inflation Rev. Proc. pointer
+  // advisory (review_only, no asserted dollar amounts). Mirrors the DB
+  // enum in @duedatehq/db PULSE_CHANGE_KINDS.
+  'threshold_advisory',
   'other',
 ])
 export type PulseChangeKind = z.infer<typeof PulseChangeKindSchema>
