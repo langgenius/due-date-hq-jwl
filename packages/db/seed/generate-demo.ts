@@ -959,6 +959,15 @@ out.push('-- blocked-by dependency, penalties, and due dates across overdue /')
 out.push('-- today / this-week / this-month / future. "Today" = 2026-06-02.')
 out.push('-- ====================================================================')
 
+// The preserved firm_profile insert predates the monitoring_start_date column,
+// so it leaves it NULL. firms.listMine's output schema requires a date, and
+// demo-login only backfills the 4 plan firms (not Archive Solo) — so set it for
+// every mock firm here to keep firms.listMine valid.
+out.push(
+  "\nUPDATE firm_profile SET monitoring_start_date = '2026-01-01'\n" +
+    "WHERE id LIKE 'mock_firm_%' AND monitoring_start_date IS NULL;",
+)
+
 // migration_batch (one applied batch per firm — powers the Migration demo +
 // "imported" provenance on a couple of clients).
 out.push('\nINSERT INTO migration_batch')
@@ -1357,7 +1366,7 @@ for (const f of FIRMS) {
       s('Extension filed.'),
       s('iphash_demo'),
       s('uahash_demo'),
-      ts('2026-04-20 10:00:00'),
+      ts('2026-06-02 09:15:00'),
     ),
     row(
       s(sid('60', i, 2)),
@@ -1371,7 +1380,7 @@ for (const f of FIRMS) {
       'NULL',
       s('iphash_demo'),
       s('uahash_demo'),
-      ts('2026-05-20 11:00:00'),
+      ts('2026-06-01 14:00:00'),
     ),
     row(
       s(sid('60', i, 3)),
@@ -1385,7 +1394,7 @@ for (const f of FIRMS) {
       'NULL',
       s('iphash_demo'),
       s('uahash_demo'),
-      ts('2026-05-18 09:20:00'),
+      ts('2026-06-01 11:00:00'),
     ),
   )
 
@@ -1603,7 +1612,7 @@ for (const f of FIRMS) {
       s(f.id),
       s(`bounced@${f.short.toLowerCase().replace(/\s+/g, '')}.test`),
       s(`suppress-${f.id}`),
-      s('bounced'),
+      s('bounce'),
       ts(SEED_TS),
     ),
   )
