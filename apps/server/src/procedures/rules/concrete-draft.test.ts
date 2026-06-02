@@ -10,6 +10,7 @@ import {
   classifyExcerptMatch,
   CONCRETE_DRAFT_MIN_BULK_CONFIDENCE,
   concreteDraftBulkTrustIssue,
+  concreteDraftSourceIsStale,
   dueDateLogicDateCodes,
   extractPdfSourceText,
   generateConcreteDraft,
@@ -993,5 +994,46 @@ describe('concreteDraftBulkTrustIssue (bulk trust gate, gaps #2/#3)', () => {
         citations: null,
       }),
     ).toBeNull()
+  })
+})
+
+describe('concreteDraftSourceIsStale (gap #4 snapshot freshness)', () => {
+  it('is stale when the draft snapshot differs from the latest', () => {
+    expect(
+      concreteDraftSourceIsStale({
+        citations: { sourceSnapshotId: 'snap_old' },
+        latestSnapshotId: 'snap_new',
+      }),
+    ).toBe(true)
+  })
+
+  it('is fresh when the draft snapshot equals the latest', () => {
+    expect(
+      concreteDraftSourceIsStale({
+        citations: { sourceSnapshotId: 'snap_1' },
+        latestSnapshotId: 'snap_1',
+      }),
+    ).toBe(false)
+  })
+
+  it('cannot prove staleness when the draft recorded no snapshot id (legacy rows)', () => {
+    expect(
+      concreteDraftSourceIsStale({
+        citations: { sourceSnapshotId: null },
+        latestSnapshotId: 'snap_new',
+      }),
+    ).toBe(false)
+    expect(concreteDraftSourceIsStale({ citations: null, latestSnapshotId: 'snap_new' })).toBe(
+      false,
+    )
+  })
+
+  it('cannot prove staleness when the source has no current snapshot', () => {
+    expect(
+      concreteDraftSourceIsStale({
+        citations: { sourceSnapshotId: 'snap_1' },
+        latestSnapshotId: null,
+      }),
+    ).toBe(false)
   })
 })

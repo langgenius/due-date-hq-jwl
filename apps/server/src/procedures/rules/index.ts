@@ -45,6 +45,7 @@ import { generateObligationsForAcceptedRules } from './_obligation-generation'
 import {
   cachedConcreteDraftKey,
   concreteDraftBulkTrustIssue,
+  concreteDraftSourceIsStale,
   generateConcreteDraft,
   parseCachedConcreteDraft,
   RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL,
@@ -1538,6 +1539,13 @@ function missingAcceptedConcreteDraftError(): never {
   })
 }
 
+function staleConcreteDraftError(): never {
+  throw new ORPCError('BAD_REQUEST', {
+    message:
+      'The official source has changed since this AI draft was generated. Regenerate the draft, then verify the fresh version.',
+  })
+}
+
 function toConcreteDraftRule(input: {
   base: CoreObligationRule
   source: ReturnType<typeof listRuleSources>[number]
@@ -1678,6 +1686,18 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     aiOutputId: input.aiOutputId,
   })
 
+  // Gap #4: refuse a draft built against an outdated source snapshot — its dueDateLogic may no
+  // longer reflect the live source. The reviewer must regenerate before verifying.
+  const latestSourceSnapshot = await loadLatestSourceSnapshot({ context, sourceId: source.id })
+  if (
+    concreteDraftSourceIsStale({
+      citations: cachedRun.citations,
+      latestSnapshotId: latestSourceSnapshot?.id ?? null,
+    })
+  ) {
+    staleConcreteDraftError()
+  }
+
   const reviewedAt = new Date()
   const reviewerName = await currentReviewerName(context, userId)
   const editedRule = toConcreteDraftRule({
@@ -1745,6 +1765,14 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
   const cachedRunByContextAndId = new Map(
     allRuns.map((run) => [`${run.inputContextRef ?? ''}:${run.id}`, run]),
   )
+  // Gap #4: latest snapshot id per source, to reject drafts built against stale source content.
+  const latestSnapshotIdBySource = new Map<string, string | null>()
+  await Promise.all(
+    [...new Set(input.rules.map((selection) => selection.sourceId))].map(async (sourceId) => {
+      const snapshot = await scoped.pulse.getLatestSourceSnapshotBySourceId(sourceId)
+      latestSnapshotIdBySource.set(sourceId, snapshot?.id ?? null)
+    }),
+  )
   const reviewedAt = new Date()
   const reviewerName = await currentReviewerName(context, userId)
   const driftRuleIds = new Set(
@@ -1806,6 +1834,16 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
         })
       ) {
         return skipConcreteDraftSelection(selection, 'low_trust_requires_review')
+      }
+
+      // Gap #4: reject a draft built against an outdated source snapshot — regenerate first.
+      if (
+        concreteDraftSourceIsStale({
+          citations: cachedRun.citations,
+          latestSnapshotId: latestSnapshotIdBySource.get(selection.sourceId) ?? null,
+        })
+      ) {
+        return skipConcreteDraftSelection(selection, 'draft_stale_source')
       }
 
       let sourceContext: Awaited<ReturnType<typeof loadCandidateSourceContext>>

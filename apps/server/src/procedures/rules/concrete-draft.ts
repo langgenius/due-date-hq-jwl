@@ -512,6 +512,29 @@ export function concreteDraftBulkTrustIssue(input: {
   return null
 }
 
+/**
+ * Whether a cached draft was built against an older source snapshot than the latest one — i.e. the
+ * monitored source content has changed since the draft was generated, so the draft is stale and must
+ * be regenerated rather than verified/accepted. Returns false when staleness cannot be proven: the
+ * draft recorded no snapshot id (legacy rows) or the source has no current snapshot to compare with.
+ *
+ * Sound because snapshots dedup on (sourceId, externalId, contentHash) — a new latest snapshot id
+ * appears only when the page content actually changed. Complements the version-driven
+ * 'source_changed' review task, catching content changes that never bumped the template version.
+ */
+export function concreteDraftSourceIsStale(input: {
+  citations: unknown
+  latestSnapshotId: string | null
+}): boolean {
+  if (!input.latestSnapshotId) return false
+  const draftSnapshotId =
+    isRecord(input.citations) && typeof input.citations.sourceSnapshotId === 'string'
+      ? input.citations.sourceSnapshotId
+      : null
+  if (!draftSnapshotId) return false
+  return draftSnapshotId !== input.latestSnapshotId
+}
+
 function isSourceWatchTemplateExcerpt(value: string | null | undefined): boolean {
   return typeof value === 'string' && SOURCE_WATCH_PLACEHOLDER_RE.test(value)
 }
