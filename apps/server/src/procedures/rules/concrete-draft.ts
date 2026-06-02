@@ -577,7 +577,7 @@ export function extractComparableDateCodes(value: string): string[] {
  * (nth_day_after_tax_year_*) and source_defined_calendar return [] and are exempt from the check.
  * Output is zero-padded MM-DD, matching extractComparableDateCodes.
  */
-export function dueDateLogicDateCodes(dueDateLogic: ObligationRule['dueDateLogic']): string[] {
+export function dueDateLogicDateCodes(dueDateLogic: CoreObligationRule['dueDateLogic']): string[] {
   const codes = new Set<string>()
   if (dueDateLogic.kind === 'fixed_date') {
     codes.add(dueDateLogic.date.slice(5))
