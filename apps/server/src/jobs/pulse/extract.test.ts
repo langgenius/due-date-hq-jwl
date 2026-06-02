@@ -11,13 +11,15 @@ import {
 } from './email-artifact'
 import { extractPulseSnapshot, normalizeExtractJurisdiction } from './extract'
 
-const { aiMocks, dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
+const { aiMocks, coreMocks, dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
   const repo = {
     getSourceSnapshot: vi.fn(),
     updateSourceSnapshotStatus: vi.fn(),
     findDuplicatePulseForExtract: vi.fn(),
     refreshFirmAlertsForApprovedPulse: vi.fn(),
     createPulseForFirmReviewFromExtract: vi.fn(),
+    mergeReverifyRuleIdsIntoPulse: vi.fn(),
+    upsertRuleSourceDriftState: vi.fn(),
     apply: vi.fn(),
     applyReviewed: vi.fn(),
   }
@@ -38,6 +40,11 @@ const { aiMocks, dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
       recordPulseAlert: vi.fn(),
       recordPulseMetric: vi.fn(),
     },
+    coreMocks: {
+      rulesBySourceId: vi.fn(),
+      ruleCitesSourceAsBasis: vi.fn(),
+      sourceTextContainsExcerpt: vi.fn(),
+    },
     repoMocks: repo,
   }
 })
@@ -54,6 +61,16 @@ vi.mock('@duedatehq/db', () => ({
 vi.mock('./metrics', () => ({
   recordPulseAlert: metricsMocks.recordPulseAlert,
   recordPulseMetric: metricsMocks.recordPulseMetric,
+}))
+
+vi.mock('@duedatehq/core/rules', async (importActual) => ({
+  ...(await importActual<typeof import('@duedatehq/core/rules')>()),
+  rulesBySourceId: coreMocks.rulesBySourceId,
+  ruleCitesSourceAsBasis: coreMocks.ruleCitesSourceAsBasis,
+}))
+
+vi.mock('../../procedures/rules/concrete-draft', () => ({
+  sourceTextContainsExcerpt: coreMocks.sourceTextContainsExcerpt,
 }))
 
 function env(
@@ -102,6 +119,84 @@ describe('extractPulseSnapshot', () => {
     repoMocks.apply.mockRejectedValue(new Error('extract must not apply deadline changes'))
     repoMocks.applyReviewed.mockRejectedValue(
       new Error('extract must not apply reviewed deadline changes'),
+    )
+    Object.values(coreMocks).forEach((mock) => mock.mockReset())
+    // Default: the source backs no verified rule — drift is a no-op.
+    coreMocks.rulesBySourceId.mockReturnValue([])
+    coreMocks.ruleCitesSourceAsBasis.mockReturnValue(null)
+    coreMocks.sourceTextContainsExcerpt.mockReturnValue(true)
+  })
+
+  const driftSnapshot = (id: string) => ({
+    id,
+    sourceId: 'fed.irs_pub_509_2026',
+    title: 'IRS Publication 509',
+    officialSourceUrl: 'https://www.irs.gov/pub509',
+    publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+    fetchedAt: new Date('2026-04-15T17:00:00.000Z'),
+    contentHash: 'hash-new',
+    rawR2Key: 'raw/pub509.txt',
+    pulseId: null,
+    parseStatus: 'pending_extract' as const,
+  })
+
+  const noRegulatoryChange = {
+    result: { classification: 'no_regulatory_change' as const, confidence: 0.2 },
+    trace: {
+      promptVersion: 'pulse-extract@v2',
+      model: 'm',
+      inputHash: 'h',
+      guardResult: 'pass',
+      latencyMs: 1,
+    },
+    model: 'm',
+    refusal: null,
+  }
+
+  it('raises a review_only rule_source_drift alert when a cited basis excerpt disappears', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue(driftSnapshot('snapshot-drift'))
+    aiMocks.extractPulse.mockResolvedValue(noRegulatoryChange)
+    coreMocks.rulesBySourceId.mockReturnValue([{ id: 'fed.1040.return.2025', jurisdiction: 'FED' }])
+    coreMocks.ruleCitesSourceAsBasis.mockReturnValue('Individual returns are due April 15.')
+    coreMocks.sourceTextContainsExcerpt.mockReturnValue(false) // cited text no longer present
+
+    const result = await extractPulseSnapshot(env('A totally different page.'), 'snapshot-drift')
+
+    expect(result.status).toBe('created')
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        changeKind: 'rule_source_drift',
+        actionMode: 'review_only',
+        reverifyRuleIds: ['fed.1040.return.2025'],
+        parsedJurisdiction: 'FED',
+        parsedNewDueDate: null,
+      }),
+    )
+    expect(repoMocks.upsertRuleSourceDriftState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ruleId: 'fed.1040.return.2025',
+        sourceId: 'fed.irs_pub_509_2026',
+        excerptMatched: false,
+      }),
+    )
+    expect(repoMocks.apply).not.toHaveBeenCalled()
+  })
+
+  it('ignores a no_regulatory_change snapshot when cited basis excerpts still match', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue(driftSnapshot('snapshot-ok'))
+    aiMocks.extractPulse.mockResolvedValue(noRegulatoryChange)
+    coreMocks.rulesBySourceId.mockReturnValue([{ id: 'fed.1040.return.2025', jurisdiction: 'FED' }])
+    coreMocks.ruleCitesSourceAsBasis.mockReturnValue('Individual returns are due April 15.')
+    coreMocks.sourceTextContainsExcerpt.mockReturnValue(true) // excerpt still present
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-ok')
+
+    expect(result.status).toBe('skipped')
+    expect(repoMocks.createPulseForFirmReviewFromExtract).not.toHaveBeenCalled()
+    expect(repoMocks.upsertRuleSourceDriftState).not.toHaveBeenCalled()
+    expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith(
+      'snapshot-ok',
+      expect.objectContaining({ parseStatus: 'ignored' }),
     )
   })
 

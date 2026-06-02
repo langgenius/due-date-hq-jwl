@@ -611,6 +611,7 @@ export const RuleBulkAcceptSkipSchema = z.object({
     'archived',
     'invalid_template',
     'source_changed_requires_review',
+    'source_drifted_requires_review',
     'source_defined_requires_ai_review',
   ]),
 })
@@ -780,6 +781,7 @@ export const RuleBulkVerifyCandidateSkipSchema = z.object({
     'rejected',
     'archived',
     'source_changed_requires_review',
+    'source_drifted_requires_review',
     'no_open_task',
     'validation_failed',
   ]),

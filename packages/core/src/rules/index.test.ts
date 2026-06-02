@@ -23,6 +23,8 @@ import {
   OBLIGATION_RULES,
   previewObligationsFromRules,
   RULE_SOURCES,
+  ruleCitesSourceAsBasis,
+  rulesBySourceId,
   sourceCoversRuleDomain,
   STATE_RULE_JURISDICTIONS,
 } from './index'
@@ -2388,5 +2390,42 @@ describe('@duedatehq/core/rules', () => {
       sourceId: 'fl.cit_due_dates_2026',
       sourceExcerpt: expect.stringContaining('12/31/26 06/01/26 06/30/26 09/30/26 12/31/26'),
     })
+  })
+})
+
+describe('rulesBySourceId / ruleCitesSourceAsBasis', () => {
+  it('returns verified rules that cite the source', () => {
+    const sample = listObligationRules().find(
+      (rule) => rule.status === 'verified' && rule.sourceIds.length > 0,
+    )
+    expect(sample).toBeDefined()
+    const sourceId = sample!.sourceIds[0]!
+    const hits = rulesBySourceId(sourceId)
+    expect(hits.some((rule) => rule.id === sample!.id)).toBe(true)
+    for (const rule of hits) {
+      expect(rule.status).toBe('verified')
+      expect(rule.sourceIds).toContain(sourceId)
+    }
+  })
+
+  it('excludes candidate rules by default and unknown sources return nothing', () => {
+    expect(rulesBySourceId('__no_such_source__')).toHaveLength(0)
+    for (const rule of rulesBySourceId('fed.irs_pub_509_2026')) {
+      expect(rule.status).not.toBe('candidate')
+    }
+  })
+
+  it('returns the basis excerpt the rule was verified against, else null', () => {
+    const ruleWithBasis = listObligationRules().find(
+      (rule) =>
+        rule.status === 'verified' &&
+        rule.evidence.some((e) => e.authorityRole === 'basis' && e.sourceExcerpt.length > 0),
+    )
+    expect(ruleWithBasis).toBeDefined()
+    const basis = ruleWithBasis!.evidence.find(
+      (e) => e.authorityRole === 'basis' && e.sourceExcerpt.length > 0,
+    )!
+    expect(ruleCitesSourceAsBasis(ruleWithBasis!, basis.sourceId)).toBe(basis.sourceExcerpt)
+    expect(ruleCitesSourceAsBasis(ruleWithBasis!, '__not_a_source__')).toBeNull()
   })
 })

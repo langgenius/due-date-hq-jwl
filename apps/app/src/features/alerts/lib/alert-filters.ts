@@ -25,6 +25,7 @@ export const CHANGE_KIND_FILTER_OPTIONS = [
   'applicability_scope',
   'form_instruction',
   'source_status',
+  'rule_source_drift',
   'new_obligation',
   'other',
 ] as const

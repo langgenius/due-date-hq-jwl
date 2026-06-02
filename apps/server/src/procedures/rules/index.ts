@@ -795,6 +795,9 @@ async function previewBulkImpactForSelections(
       task,
     ]),
   )
+  const driftRuleIds = new Set(
+    await scoped.rules.listUnclearedDriftRuleIds(selections.map((selection) => selection.ruleId)),
+  )
   const ready: CoreObligationRule[] = []
   const skipped: RuleBulkAcceptSkip[] = []
 
@@ -830,6 +833,14 @@ async function previewBulkImpactForSelections(
         ruleId: selection.ruleId,
         expectedVersion: selection.expectedVersion,
         reason: 'source_changed_requires_review',
+      })
+      continue
+    }
+    if (driftRuleIds.has(selection.ruleId)) {
+      skipped.push({
+        ruleId: selection.ruleId,
+        expectedVersion: selection.expectedVersion,
+        reason: 'source_drifted_requires_review',
       })
       continue
     }
@@ -1079,7 +1090,7 @@ const listTemporaryRules = os.rules.listTemporaryRules.handler(async ({ context 
 })
 
 const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }) => {
-  const { userId } = requireTenant(context)
+  const { scoped, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
   const reviewerName = await currentReviewerName(context, userId)
   const rule = templateRuleById(input.ruleId)
@@ -1087,7 +1098,7 @@ const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }
   if (rule.version !== input.expectedVersion) {
     throw new ORPCError('CONFLICT', { message: 'Rule template version has changed.' })
   }
-  return acceptTemplateRule({
+  const accepted = await acceptTemplateRule({
     context,
     rule,
     reviewNote: input.reviewNote,
@@ -1095,6 +1106,10 @@ const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }
     reviewedByName: reviewerName,
     reviewedAt: new Date(),
   })
+  // Accepting a single rule (the alert's rule modal flow) is the "I reviewed the
+  // changed source" action — clear its drift so the adoption gate reopens.
+  await scoped.rules.clearRuleSourceDrift({ ruleId: rule.id, clearedBy: userId })
+  return accepted
 })
 
 const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input, context }) => {
@@ -1110,6 +1125,9 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
       `${task.ruleId}:${task.templateVersion}`,
       task,
     ]),
+  )
+  const driftRuleIds = new Set(
+    await scoped.rules.listUnclearedDriftRuleIds(input.rules.map((selection) => selection.ruleId)),
   )
   const acceptInputs: CoreObligationRule[] = []
   const skipped: RuleBulkAcceptSkip[] = []
@@ -1147,6 +1165,14 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
         ruleId: selection.ruleId,
         expectedVersion: selection.expectedVersion,
         reason: 'source_changed_requires_review',
+      })
+      continue
+    }
+    if (driftRuleIds.has(selection.ruleId)) {
+      skipped.push({
+        ruleId: selection.ruleId,
+        expectedVersion: selection.expectedVersion,
+        reason: 'source_drifted_requires_review',
       })
       continue
     }
@@ -1681,6 +1707,9 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     reviewedBy: userId,
     reviewedAt,
   })
+  // Verifying a candidate from the alert's rule modal is the review action —
+  // clear its source drift so the adoption gate reopens for every firm.
+  await scoped.rules.clearRuleSourceDrift({ ruleId: base.id, clearedBy: userId })
   void task
   return toReviewDecision(row)
 })
@@ -1717,6 +1746,9 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
   )
   const reviewedAt = new Date()
   const reviewerName = await currentReviewerName(context, userId)
+  const driftRuleIds = new Set(
+    await scoped.rules.listUnclearedDriftRuleIds(input.rules.map((selection) => selection.ruleId)),
+  )
   const verified: RuleReviewDecision[] = []
   const skipped: RuleBulkVerifyCandidateSkip[] = []
   const acceptedRules: CoreObligationRule[] = []
@@ -1743,6 +1775,9 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
       if (!task) return skipConcreteDraftSelection(selection, 'no_open_task')
       if (task.reason === 'source_changed') {
         return skipConcreteDraftSelection(selection, 'source_changed_requires_review')
+      }
+      if (driftRuleIds.has(selection.ruleId)) {
+        return skipConcreteDraftSelection(selection, 'source_drifted_requires_review')
       }
 
       const contextRef = cachedConcreteDraftKey({

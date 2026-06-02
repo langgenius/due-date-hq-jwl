@@ -993,6 +993,7 @@ function changeKindLabel(kind: PulseChangeKind): React.ReactNode {
   if (kind === 'applicability_scope') return <Trans>Applicability scope</Trans>
   if (kind === 'form_instruction') return <Trans>Forms and instructions</Trans>
   if (kind === 'source_status') return <Trans>Source status</Trans>
+  if (kind === 'rule_source_drift') return <Trans>Source changed — re-verify</Trans>
   if (kind === 'new_obligation') return <Trans>New deadlines</Trans>
   return <Trans>Other changes</Trans>
 }

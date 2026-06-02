@@ -1304,6 +1304,7 @@ describe('@duedatehq/contracts', () => {
       effectiveFrom: null,
       effectiveUntil: null,
       affectedRuleIds: [],
+      reverifyRuleIds: [],
       structuredChange: null,
       sourceExcerpt: 'some deadlines were extended',
       reviewedAt: null,

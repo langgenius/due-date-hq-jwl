@@ -125,6 +125,7 @@ function alertDetail(): PulseDetail {
     effectiveFrom: null,
     effectiveUntil: null,
     affectedRuleIds: [],
+    reverifyRuleIds: [],
     structuredChange: null,
     sourceExcerpt: 'Excerpt.',
     reviewedAt: null,

@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, lt } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, lt } from 'drizzle-orm'
 import type { BatchItem } from 'drizzle-orm/batch'
 import type {
   PracticeRuleInput,
@@ -13,7 +13,7 @@ import { firmProfile } from '../schema/firm'
 import { client } from '../schema/clients'
 import { obligationInstance } from '../schema/obligations'
 import { exceptionRule, obligationExceptionApplication } from '../schema/overlay'
-import { pulse, pulseFirmAlert } from '../schema/pulse'
+import { pulse, pulseFirmAlert, ruleSourceDriftState } from '../schema/pulse'
 import {
   practiceRule,
   practiceRuleReviewTask,
@@ -495,6 +495,37 @@ export function makeRulesRepo(db: Db, firmId: string) {
       const row = await this.getDecision(input.ruleId)
       if (!row) throw new Error(`Rule review decision was not persisted for ${input.ruleId}`)
       return row
+    },
+
+    // Drift state is global (a property of the rule↔source pair), so these two
+    // intentionally do not filter by firmId.
+    async listUnclearedDriftRuleIds(ruleIds: string[]): Promise<string[]> {
+      if (ruleIds.length === 0) return []
+      const rows = await db
+        .selectDistinct({ ruleId: ruleSourceDriftState.ruleId })
+        .from(ruleSourceDriftState)
+        .where(
+          and(
+            inArray(ruleSourceDriftState.ruleId, ruleIds),
+            isNull(ruleSourceDriftState.clearedAt),
+          ),
+        )
+      return rows.map((row) => row.ruleId)
+    },
+
+    async clearRuleSourceDrift(input: {
+      ruleId: string
+      clearedBy?: string | null
+    }): Promise<void> {
+      await db
+        .update(ruleSourceDriftState)
+        .set({ clearedAt: new Date(), clearedBy: input.clearedBy ?? null })
+        .where(
+          and(
+            eq(ruleSourceDriftState.ruleId, input.ruleId),
+            isNull(ruleSourceDriftState.clearedAt),
+          ),
+        )
     },
   }
 }

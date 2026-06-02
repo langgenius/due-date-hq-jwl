@@ -1,7 +1,9 @@
 import { createAI } from '@duedatehq/ai'
+import { ruleCitesSourceAsBasis, rulesBySourceId } from '@duedatehq/core/rules'
 import { createDb, makePulseOpsRepo } from '@duedatehq/db'
 import { aiOutput, llmLog } from '@duedatehq/db/schema/ai'
 import type { Env } from '../../env'
+import { sourceTextContainsExcerpt } from '../../procedures/rules/concrete-draft'
 import { extractCanonicalEmailText } from './email-artifact'
 import { recordPulseAlert, recordPulseMetric } from './metrics'
 import { shouldForceReviewOnlyPulseAlert } from './rule-source-adapters'
@@ -13,6 +15,8 @@ type PulseExtractRepo = Pick<
   | 'findDuplicatePulseForExtract'
   | 'refreshFirmAlertsForApprovedPulse'
   | 'createPulseForFirmReviewFromExtract'
+  | 'mergeReverifyRuleIdsIntoPulse'
+  | 'upsertRuleSourceDriftState'
 >
 
 function makePulseExtractRepo(db: ReturnType<typeof createDb>): PulseExtractRepo {
@@ -24,6 +28,9 @@ function makePulseExtractRepo(db: ReturnType<typeof createDb>): PulseExtractRepo
     findDuplicatePulseForExtract: (input) => repo.findDuplicatePulseForExtract(input),
     refreshFirmAlertsForApprovedPulse: (pulseId) => repo.refreshFirmAlertsForApprovedPulse(pulseId),
     createPulseForFirmReviewFromExtract: (input) => repo.createPulseForFirmReviewFromExtract(input),
+    mergeReverifyRuleIdsIntoPulse: (pulseId, ruleIds) =>
+      repo.mergeReverifyRuleIdsIntoPulse(pulseId, ruleIds),
+    upsertRuleSourceDriftState: (input) => repo.upsertRuleSourceDriftState(input),
   }
 }
 
@@ -232,7 +239,82 @@ async function runPulseExtractionAfterMark(
     return { pulseId: null, status: 'failed' }
   }
 
+  // Drift detection — verified rules that cite this source, and which of their
+  // cited basis excerpts no longer appear in the changed page. `reverifyRuleIds`
+  // surfaces on the alert for awareness; `driftRules` (broken citations) drive
+  // the durable rule_source_drift_state gate that blocks any firm — including
+  // a firm that adopts the rule later — from accepting it until it is re-verified.
+  const reverifyRules = rulesBySourceId(snapshot.sourceId)
+  const reverifyRuleIds = reverifyRules.map((rule) => rule.id)
+  const driftRules = reverifyRules.filter((rule) => {
+    const excerpt = ruleCitesSourceAsBasis(rule, snapshot.sourceId)
+    return excerpt !== null && !sourceTextContainsExcerpt(rawText, excerpt)
+  })
+  const recordRuleSourceDrift = async (pulseId: string): Promise<void> => {
+    const detectedAt = new Date()
+    await Promise.all(
+      driftRules.map((rule) =>
+        repo.upsertRuleSourceDriftState({
+          ruleId: rule.id,
+          sourceId: snapshot.sourceId,
+          snapshotId,
+          pulseId,
+          contentHash: snapshot.contentHash,
+          excerptMatched: false,
+          detectedAt,
+        }),
+      ),
+    )
+  }
+
   if (result.result.classification === 'no_regulatory_change') {
+    // The AI saw no regulatory change, but if the page text backing a verified
+    // rule's basis citation has disappeared, still raise a review_only drift
+    // alert so the rule gets re-verified. Otherwise ignore as before.
+    if (driftRules.length > 0) {
+      const driftExcerpt =
+        ruleCitesSourceAsBasis(driftRules[0]!, snapshot.sourceId) ??
+        `${driftRules.length} verified rule(s) cite text no longer present in this source.`
+      const created = await repo.createPulseForFirmReviewFromExtract({
+        snapshotId,
+        aiOutputId,
+        source: snapshot.sourceId,
+        sourceUrl: snapshot.officialSourceUrl,
+        rawR2Key: snapshot.rawR2Key,
+        publishedAt: snapshot.publishedAt,
+        changeKind: 'rule_source_drift',
+        actionMode: 'review_only',
+        aiSummary: `Official source changed and ${driftRules.length} verified rule(s) cite text that no longer appears. Re-verify before relying on these rules.`,
+        verbatimQuote: driftExcerpt,
+        parsedJurisdiction: driftRules[0]!.jurisdiction,
+        parsedCounties: [],
+        parsedForms: [],
+        parsedEntityTypes: [],
+        parsedOriginalDueDate: null,
+        parsedNewDueDate: null,
+        parsedEffectiveFrom: null,
+        parsedEffectiveUntil: null,
+        affectedRuleIds: [],
+        reverifyRuleIds: driftRules.map((rule) => rule.id),
+        structuredChange: {
+          kind: 'rule_source_drift',
+          sourceId: snapshot.sourceId,
+          ruleIds: driftRules.map((rule) => rule.id),
+        },
+        confidence: 1,
+        requiresHumanReview: true,
+        isSample: false,
+      })
+      await recordRuleSourceDrift(created.pulseId)
+      recordPulseMetric('pulse.extract.result', {
+        snapshotId,
+        sourceId: snapshot.sourceId,
+        result: 'rule_drift',
+        refusalCode: null,
+        confidence: result.result.confidence,
+      })
+      return { pulseId: created.pulseId, status: 'created' }
+    }
     await repo.updateSourceSnapshotStatus(snapshotId, {
       parseStatus: 'ignored',
       aiOutputId,
@@ -304,6 +386,8 @@ async function runPulseExtractionAfterMark(
   })
   if (duplicatePulseId) {
     const alertCount = await repo.refreshFirmAlertsForApprovedPulse(duplicatePulseId)
+    await repo.mergeReverifyRuleIdsIntoPulse(duplicatePulseId, reverifyRuleIds)
+    await recordRuleSourceDrift(duplicatePulseId)
     await repo.updateSourceSnapshotStatus(snapshotId, {
       parseStatus: 'duplicate',
       pulseId: duplicatePulseId,
@@ -341,11 +425,13 @@ async function runPulseExtractionAfterMark(
     parsedEffectiveFrom: nullableDateFromIsoDate(result.result.effectiveFrom),
     parsedEffectiveUntil: nullableDateFromIsoDate(result.result.effectiveUntil),
     affectedRuleIds: result.result.affectedRuleIds,
+    reverifyRuleIds,
     structuredChange: result.result.structuredChange,
     confidence: result.result.confidence,
     requiresHumanReview: true,
     isSample: false,
   })
+  await recordRuleSourceDrift(created.pulseId)
 
   recordPulseMetric('pulse.extract.result', {
     snapshotId,

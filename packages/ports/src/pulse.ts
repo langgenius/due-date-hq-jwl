@@ -18,6 +18,7 @@ export interface PulseAlertRow {
     | 'applicability_scope'
     | 'form_instruction'
     | 'source_status'
+    | 'rule_source_drift'
     | 'new_obligation'
     | 'other'
   actionMode: 'due_date_overlay' | 'review_only'
@@ -71,6 +72,7 @@ export interface PulseDetailRow {
   effectiveFrom: Date | null
   effectiveUntil: Date | null
   affectedRuleIds: string[]
+  reverifyRuleIds: string[]
   structuredChange: unknown
   sourceExcerpt: string
   reviewedAt: Date | null
@@ -189,6 +191,7 @@ export interface PulseSeedInput {
     | 'applicability_scope'
     | 'form_instruction'
     | 'source_status'
+    | 'rule_source_drift'
     | 'new_obligation'
     | 'other'
   actionMode?: 'due_date_overlay' | 'review_only'

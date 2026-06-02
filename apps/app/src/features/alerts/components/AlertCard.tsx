@@ -606,6 +606,8 @@ function changeKindLabel(kind: PulseAlertPublic['changeKind']) {
       return <Trans>Form Updated</Trans>
     case 'source_status':
       return <Trans>Source Status</Trans>
+    case 'rule_source_drift':
+      return <Trans>Source Changed</Trans>
     case 'new_obligation':
       return <Trans>New Rule Added</Trans>
     case 'other':

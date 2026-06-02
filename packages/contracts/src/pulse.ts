@@ -39,6 +39,7 @@ export const PulseChangeKindSchema = z.enum([
   'applicability_scope',
   'form_instruction',
   'source_status',
+  'rule_source_drift',
   'new_obligation',
   'other',
 ])
@@ -166,6 +167,9 @@ export const PulseDetailSchema = z.object({
   effectiveFrom: z.iso.date().nullable(),
   effectiveUntil: z.iso.date().nullable(),
   affectedRuleIds: z.array(z.string()),
+  // Deterministic source-cite join: rules whose cited source changed and that
+  // the CPA should re-verify from this alert. Empty for ordinary alerts.
+  reverifyRuleIds: z.array(z.string()),
   structuredChange: z.unknown().nullable(),
   sourceExcerpt: z.string().min(1),
   reviewedAt: z.iso.datetime().nullable(),
