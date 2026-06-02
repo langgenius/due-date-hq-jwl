@@ -318,6 +318,18 @@ msgstr "已创建 {0} 个截止事项。"
 msgid "{0} deadlines moved to {1}"
 msgstr "{0} 个截止日期已移至 {1}"
 
+#. placeholder {0}: result.remindedCount
+#: src/routes/obligations.tsx
+msgid "{0} emailed"
+msgstr "已催签 {0} 个"
+
+#. placeholder {0}: result.remindedCount
+#. placeholder {1}: result.skippedCount
+#. placeholder {2}: result.noEmailCount
+#: src/routes/obligations.tsx
+msgid "{0} emailed · {1} not awaiting signature · {2} without an email on file"
+msgstr "已催签 {0} 个 · {1} 个不在等待签字 · {2} 个无邮箱"
+
 #. placeholder {0}: group.extendedCount
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "{0} extended"
@@ -1301,6 +1313,10 @@ msgid "Add an active owner or partner before sending an input request."
 msgstr "发送输入请求前，请先添加一位活跃的 owner 或 partner。"
 
 #: src/routes/obligations.tsx
+msgid "Add an email address for this client to send signature reminders."
+msgstr "请为该客户添加邮箱地址，以便发送催签提醒。"
+
+#: src/routes/obligations.tsx
 msgid "Add an optional memo to record why on the audit trail."
 msgstr "添加可选备注以在审计跟踪中记录原因。"
 
@@ -2200,6 +2216,10 @@ msgstr "等待客户批准预估金额"
 #: src/routes/obligations.tsx
 msgid "Awaiting client response"
 msgstr "等待客户回复"
+
+#: src/routes/obligations.tsx
+msgid "Awaiting signature"
+msgstr "等待签字"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Awaiting sources"
@@ -3653,6 +3673,14 @@ msgstr "邀请发送失败"
 msgid "Couldn't send materials request"
 msgstr "无法发送材料请求"
 
+#: src/routes/obligations.tsx
+msgid "Couldn't send reminder"
+msgstr "无法发送提醒"
+
+#: src/routes/obligations.tsx
+msgid "Couldn't send reminders"
+msgstr "无法发送提醒"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Couldn't send the code"
 msgstr "无法发送验证码"
@@ -3706,6 +3734,10 @@ msgstr "无法更新日历订阅"
 #: src/routes/obligations.tsx
 msgid "Couldn't update document item"
 msgstr "无法更新文件项"
+
+#: src/routes/obligations.tsx
+msgid "Couldn't update e-file state"
+msgstr "无法更新电子申报状态"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Couldn't update owner"
@@ -4432,6 +4464,10 @@ msgstr "重复"
 msgid "Duplicates"
 msgstr "重复项"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "E-file status changed"
+msgstr "电子申报状态已变更"
+
 #: src/routes/obligations.tsx
 msgid "E-file the return with the tax authority"
 msgstr "向税务机关电子提交申报"
@@ -4534,6 +4570,14 @@ msgstr "邮件正文"
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Email me a code"
 msgstr "发送验证码"
+
+#: src/routes/obligations.tsx
+msgid "Email selected clients a Form 8879 signature reminder"
+msgstr "向所选客户发送 8879 签字提醒邮件"
+
+#: src/routes/obligations.tsx
+msgid "Email signature reminders?"
+msgstr "发送签字提醒邮件？"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Email updates"
@@ -5038,6 +5082,10 @@ msgstr "Filed 表示报税已提交给 Authority。在 Authority 接受或拒绝
 #: src/routes/obligations.tsx
 msgid "Filed on {0}"
 msgstr "已于 {0} 申报"
+
+#: src/routes/obligations.tsx
+msgid "Filed, but the client hasn't signed Form 8879 yet — e-filing is blocked until they sign."
+msgstr "已申报，但客户尚未签署 8879 表——在客户签字前无法电子提交。"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "files"
@@ -6006,6 +6054,18 @@ msgid "Last decided {0}"
 msgstr "上次决策 {0}"
 
 #: src/routes/obligations.tsx
+msgid "Last reminded · {days} days ago"
+msgstr "上次催签 · {days} 天前"
+
+#: src/routes/obligations.tsx
+msgid "Last reminded · 1 day ago"
+msgstr "上次催签 · 1 天前"
+
+#: src/routes/obligations.tsx
+msgid "Last reminded today"
+msgstr "今天已催签"
+
+#: src/routes/obligations.tsx
 msgid "Last touched"
 msgstr "最近操作"
 
@@ -6144,6 +6204,10 @@ msgstr "正在加载收件箱"
 #: src/routes/accept-invite.tsx
 msgid "Loading invitation"
 msgstr "正在加载邀请"
+
+#: src/routes/obligations.tsx
+msgid "Loading preview…"
+msgstr "正在加载预览…"
 
 #: src/routes/readiness.tsx
 msgid "Loading readiness check…"
@@ -6296,8 +6360,8 @@ msgid "Mapping"
 msgstr "字段映射"
 
 #: src/routes/obligations.tsx
-msgid "Mark 8879 signed when client returns it"
-msgstr "客户交回签字后标记 8879 已签"
+msgid "Mark 8879 signed"
+msgstr "标记 8879 已签"
 
 #: src/components/patterns/alerts-notifications-bell.tsx
 #: src/features/notifications/notifications-page.tsx
@@ -6392,12 +6456,20 @@ msgid "Marked 1 item received"
 msgstr "已标记收到 1 项"
 
 #: src/routes/obligations.tsx
+msgid "Marked 8879 signed"
+msgstr "已标记 8879 已签"
+
+#: src/routes/obligations.tsx
 msgid "Marked accepted"
 msgstr "已标记为接受"
 
 #: src/routes/obligations.tsx
 msgid "Marked e-file rejected"
 msgstr "已标记电子申报被拒"
+
+#: src/routes/obligations.tsx
+msgid "Marked e-filed"
+msgstr "已标记电子申报"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
@@ -7080,6 +7152,10 @@ msgstr "没有可批量规则"
 msgid "No client email"
 msgstr "没有客户邮箱"
 
+#: src/routes/obligations.tsx
+msgid "No client email on file"
+msgstr "无客户邮箱"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "No client emails are suppressed."
 msgstr "没有被抑制的客户邮箱。"
@@ -7156,6 +7232,10 @@ msgstr "尚未向客户索取任何文件"
 #: src/features/alerts/lib/error-mapping.ts
 msgid "No eligible deadlines are selected."
 msgstr "未选择任何符合条件的截止事项。"
+
+#: src/routes/obligations.tsx
+msgid "No email address on file for this client — add one to send a reminder."
+msgstr "该客户暂无邮箱地址——请添加后再发送提醒。"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "No emails will be sent automatically"
@@ -7940,10 +8020,6 @@ msgstr "打开正在阻塞当前行的截止日期：{label}。"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
 msgstr "打开截止日期抽屉以保存笔记；当前创建接口尚不接受笔记。"
-
-#: src/routes/obligations.tsx
-msgid "Open the Evidence tab"
-msgstr "打开 Evidence 标签页"
 
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Open the linked deadline that's blocking this row."
@@ -9268,8 +9344,16 @@ msgid "Relief notice"
 msgstr "救灾公告"
 
 #: src/routes/obligations.tsx
+msgid "Remind client to sign Form 8879"
+msgstr "提醒客户签署 8879 表"
+
+#: src/routes/obligations.tsx
 msgid "Remind client to sign the 8879"
 msgstr "提醒客户签字 8879"
+
+#: src/routes/obligations.tsx
+msgid "Remind to sign"
+msgstr "催签"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Reminder"
@@ -9408,6 +9492,10 @@ msgstr "需要复核"
 msgid "REQUIRES REVIEW — {0} items for CPA confirmation, never auto-reminded"
 msgstr "需要复核 — {0} 项待 CPA 确认，不会自动提醒"
 
+#: src/routes/obligations.tsx
+msgid "Requires status-update access"
+msgstr "需要状态更新权限"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/features/members/members-page.tsx
 msgid "Resend"
@@ -9544,6 +9632,10 @@ msgstr "在截止日期抽屉中查看 {0}"
 #: src/routes/rules.library.tsx
 msgid "Review {count}"
 msgstr "审核 {count} 项"
+
+#: src/routes/obligations.tsx
+msgid "Review and edit the email, then send it to {recipientEmail}."
+msgstr "查看并编辑邮件，然后发送给 {recipientEmail}。"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review applied alert exceptions changing due dates."
@@ -10438,6 +10530,14 @@ msgstr "发送邀请"
 msgid "Send preview now"
 msgstr "立即发送预览"
 
+#: src/routes/obligations.tsx
+msgid "Send reminder"
+msgstr "发送提醒"
+
+#: src/routes/obligations.tsx
+msgid "Send reminders"
+msgstr "发送提醒"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Send request"
@@ -10654,6 +10754,18 @@ msgstr "登录成功"
 #: src/routes/account.security.tsx
 msgid "Sign-in will only require your password until you re-enable MFA. Owners need MFA before sensitive production actions — disabling now blocks those flows."
 msgstr "在重新启用 MFA 之前，登录只需要密码。所有者执行敏感生产操作前需要 MFA；现在停用会阻止这些流程。"
+
+#: src/routes/obligations.tsx
+msgid "Signature reminder emailed"
+msgstr "签字提醒已发送"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Signature reminder sent"
+msgstr "签字提醒已发送"
+
+#: src/routes/obligations.tsx
+msgid "Signature reminders sent"
+msgstr "签字提醒已发送"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Signed in"
@@ -11461,10 +11573,6 @@ msgstr "该截止日期的生命周期状态。点击任一行的状态标签即
 #: src/routes/obligations.tsx
 msgid "The events themselves — nothing scheduled is removed"
 msgstr "事件本身不会被删除，已安排内容会保留"
-
-#: src/routes/obligations.tsx
-msgid "The Evidence tab is where the 8879 packet lives"
-msgstr "Evidence 标签页存放 8879 文件包"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
@@ -12474,6 +12582,10 @@ msgstr "我们已根据您的账户预填了名称。"
 #: src/routes/billing.tsx
 msgid "We store the plan and seat limit needed for app permissions."
 msgstr "我们会保存应用权限所需的计划和席位上限。"
+
+#: src/routes/obligations.tsx
+msgid "We'll email a Form 8879 signature reminder to the clients on the selected deadlines. Deadlines that aren't awaiting a signature are skipped automatically."
+msgstr "我们将就所选截止事项向相应客户发送 8879 签字提醒邮件。不在等待签字状态的截止事项会被自动跳过。"
 
 #: src/routes/obligations.tsx
 msgid "We'll let you attach PDFs and exports here as soon as ingest lands."

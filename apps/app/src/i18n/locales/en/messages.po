@@ -314,6 +314,18 @@ msgstr "{0} deadlines created."
 msgid "{0} deadlines moved to {1}"
 msgstr "{0} deadlines moved to {1}"
 
+#. placeholder {0}: result.remindedCount
+#: src/routes/obligations.tsx
+msgid "{0} emailed"
+msgstr "{0} emailed"
+
+#. placeholder {0}: result.remindedCount
+#. placeholder {1}: result.skippedCount
+#. placeholder {2}: result.noEmailCount
+#: src/routes/obligations.tsx
+msgid "{0} emailed · {1} not awaiting signature · {2} without an email on file"
+msgstr "{0} emailed · {1} not awaiting signature · {2} without an email on file"
+
 #. placeholder {0}: group.extendedCount
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "{0} extended"
@@ -1275,6 +1287,10 @@ msgid "Add an active owner or partner before sending an input request."
 msgstr "Add an active owner or partner before sending an input request."
 
 #: src/routes/obligations.tsx
+msgid "Add an email address for this client to send signature reminders."
+msgstr "Add an email address for this client to send signature reminders."
+
+#: src/routes/obligations.tsx
 msgid "Add an optional memo to record why on the audit trail."
 msgstr "Add an optional memo to record why on the audit trail."
 
@@ -2171,6 +2187,10 @@ msgstr "Awaiting client approval of estimate"
 #: src/routes/obligations.tsx
 msgid "Awaiting client response"
 msgstr "Awaiting client response"
+
+#: src/routes/obligations.tsx
+msgid "Awaiting signature"
+msgstr "Awaiting signature"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Awaiting sources"
@@ -3613,6 +3633,14 @@ msgstr "Couldn't send invite"
 msgid "Couldn't send materials request"
 msgstr "Couldn't send materials request"
 
+#: src/routes/obligations.tsx
+msgid "Couldn't send reminder"
+msgstr "Couldn't send reminder"
+
+#: src/routes/obligations.tsx
+msgid "Couldn't send reminders"
+msgstr "Couldn't send reminders"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Couldn't send the code"
 msgstr "Couldn't send the code"
@@ -3665,6 +3693,10 @@ msgstr "Couldn't update calendar subscription"
 #: src/routes/obligations.tsx
 msgid "Couldn't update document item"
 msgstr "Couldn't update document item"
+
+#: src/routes/obligations.tsx
+msgid "Couldn't update e-file state"
+msgstr "Couldn't update e-file state"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Couldn't update owner"
@@ -4387,6 +4419,10 @@ msgstr "Duplicate"
 msgid "Duplicates"
 msgstr "Duplicates"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "E-file status changed"
+msgstr "E-file status changed"
+
 #: src/routes/obligations.tsx
 msgid "E-file the return with the tax authority"
 msgstr "E-file the return with the tax authority"
@@ -4489,6 +4525,14 @@ msgstr "Email body"
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Email me a code"
 msgstr "Email me a code"
+
+#: src/routes/obligations.tsx
+msgid "Email selected clients a Form 8879 signature reminder"
+msgstr "Email selected clients a Form 8879 signature reminder"
+
+#: src/routes/obligations.tsx
+msgid "Email signature reminders?"
+msgstr "Email signature reminders?"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Email updates"
@@ -4991,6 +5035,10 @@ msgstr "Filed means the return was submitted to the authority. Keep it open unti
 #: src/routes/obligations.tsx
 msgid "Filed on {0}"
 msgstr "Filed on {0}"
+
+#: src/routes/obligations.tsx
+msgid "Filed, but the client hasn't signed Form 8879 yet — e-filing is blocked until they sign."
+msgstr "Filed, but the client hasn't signed Form 8879 yet — e-filing is blocked until they sign."
 
 #: src/features/audit/audit-log-labels.ts
 msgid "files"
@@ -5951,6 +5999,18 @@ msgid "Last decided {0}"
 msgstr "Last decided {0}"
 
 #: src/routes/obligations.tsx
+msgid "Last reminded · {days} days ago"
+msgstr "Last reminded · {days} days ago"
+
+#: src/routes/obligations.tsx
+msgid "Last reminded · 1 day ago"
+msgstr "Last reminded · 1 day ago"
+
+#: src/routes/obligations.tsx
+msgid "Last reminded today"
+msgstr "Last reminded today"
+
+#: src/routes/obligations.tsx
 msgid "Last touched"
 msgstr "Last touched"
 
@@ -6086,6 +6146,10 @@ msgstr "Loading inbox"
 #: src/routes/accept-invite.tsx
 msgid "Loading invitation"
 msgstr "Loading invitation"
+
+#: src/routes/obligations.tsx
+msgid "Loading preview…"
+msgstr "Loading preview…"
 
 #: src/routes/readiness.tsx
 msgid "Loading readiness check…"
@@ -6236,8 +6300,8 @@ msgid "Mapping"
 msgstr "Mapping"
 
 #: src/routes/obligations.tsx
-msgid "Mark 8879 signed when client returns it"
-msgstr "Mark 8879 signed when client returns it"
+msgid "Mark 8879 signed"
+msgstr "Mark 8879 signed"
 
 #: src/components/patterns/alerts-notifications-bell.tsx
 #: src/features/notifications/notifications-page.tsx
@@ -6332,12 +6396,20 @@ msgid "Marked 1 item received"
 msgstr "Marked 1 item received"
 
 #: src/routes/obligations.tsx
+msgid "Marked 8879 signed"
+msgstr "Marked 8879 signed"
+
+#: src/routes/obligations.tsx
 msgid "Marked accepted"
 msgstr "Marked accepted"
 
 #: src/routes/obligations.tsx
 msgid "Marked e-file rejected"
 msgstr "Marked e-file rejected"
+
+#: src/routes/obligations.tsx
+msgid "Marked e-filed"
+msgstr "Marked e-filed"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
@@ -7015,6 +7087,10 @@ msgstr "No batch-ready rules"
 msgid "No client email"
 msgstr "No client email"
 
+#: src/routes/obligations.tsx
+msgid "No client email on file"
+msgstr "No client email on file"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "No client emails are suppressed."
 msgstr "No client emails are suppressed."
@@ -7091,6 +7167,10 @@ msgstr "No documents requested yet"
 #: src/features/alerts/lib/error-mapping.ts
 msgid "No eligible deadlines are selected."
 msgstr "No eligible deadlines are selected."
+
+#: src/routes/obligations.tsx
+msgid "No email address on file for this client — add one to send a reminder."
+msgstr "No email address on file for this client — add one to send a reminder."
 
 #: src/features/migration/Step4Preview.tsx
 msgid "No emails will be sent automatically"
@@ -7864,10 +7944,6 @@ msgstr "Open the deadline blocking this row: {label}."
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
 msgstr "Open the deadline drawer to save your notes; the create endpoint doesn't accept notes yet."
-
-#: src/routes/obligations.tsx
-msgid "Open the Evidence tab"
-msgstr "Open the Evidence tab"
 
 #: src/features/obligations/blocked-by-chip.tsx
 msgid "Open the linked deadline that's blocking this row."
@@ -9175,8 +9251,16 @@ msgid "Relief notice"
 msgstr "Relief notice"
 
 #: src/routes/obligations.tsx
+msgid "Remind client to sign Form 8879"
+msgstr "Remind client to sign Form 8879"
+
+#: src/routes/obligations.tsx
 msgid "Remind client to sign the 8879"
 msgstr "Remind client to sign the 8879"
+
+#: src/routes/obligations.tsx
+msgid "Remind to sign"
+msgstr "Remind to sign"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Reminder"
@@ -9314,6 +9398,10 @@ msgstr "Requires review"
 msgid "REQUIRES REVIEW — {0} items for CPA confirmation, never auto-reminded"
 msgstr "REQUIRES REVIEW — {0} items for CPA confirmation, never auto-reminded"
 
+#: src/routes/obligations.tsx
+msgid "Requires status-update access"
+msgstr "Requires status-update access"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/features/members/members-page.tsx
 msgid "Resend"
@@ -9449,6 +9537,10 @@ msgstr "Review {0} in deadline drawer"
 #: src/routes/rules.library.tsx
 msgid "Review {count}"
 msgstr "Review {count}"
+
+#: src/routes/obligations.tsx
+msgid "Review and edit the email, then send it to {recipientEmail}."
+msgstr "Review and edit the email, then send it to {recipientEmail}."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Review applied alert exceptions changing due dates."
@@ -10336,6 +10428,14 @@ msgstr "Send invite"
 msgid "Send preview now"
 msgstr "Send preview now"
 
+#: src/routes/obligations.tsx
+msgid "Send reminder"
+msgstr "Send reminder"
+
+#: src/routes/obligations.tsx
+msgid "Send reminders"
+msgstr "Send reminders"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Send request"
@@ -10550,6 +10650,18 @@ msgstr "Sign-in succeeded"
 #: src/routes/account.security.tsx
 msgid "Sign-in will only require your password until you re-enable MFA. Owners need MFA before sensitive production actions — disabling now blocks those flows."
 msgstr "Sign-in will only require your password until you re-enable MFA. Owners need MFA before sensitive production actions — disabling now blocks those flows."
+
+#: src/routes/obligations.tsx
+msgid "Signature reminder emailed"
+msgstr "Signature reminder emailed"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Signature reminder sent"
+msgstr "Signature reminder sent"
+
+#: src/routes/obligations.tsx
+msgid "Signature reminders sent"
+msgstr "Signature reminders sent"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Signed in"
@@ -11349,10 +11461,6 @@ msgstr "The deadline's lifecycle state. Click any row's pill to change its statu
 #: src/routes/obligations.tsx
 msgid "The events themselves — nothing scheduled is removed"
 msgstr "The events themselves — nothing scheduled is removed"
-
-#: src/routes/obligations.tsx
-msgid "The Evidence tab is where the 8879 packet lives"
-msgstr "The Evidence tab is where the 8879 packet lives"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
@@ -12358,6 +12466,10 @@ msgstr "We pre-filled a name from your account."
 #: src/routes/billing.tsx
 msgid "We store the plan and seat limit needed for app permissions."
 msgstr "We store the plan and seat limit needed for app permissions."
+
+#: src/routes/obligations.tsx
+msgid "We'll email a Form 8879 signature reminder to the clients on the selected deadlines. Deadlines that aren't awaiting a signature are skipped automatically."
+msgstr "We'll email a Form 8879 signature reminder to the clients on the selected deadlines. Deadlines that aren't awaiting a signature are skipped automatically."
 
 #: src/routes/obligations.tsx
 msgid "We'll let you attach PDFs and exports here as soon as ingest lands."
