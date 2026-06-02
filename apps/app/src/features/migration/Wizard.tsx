@@ -1,5 +1,13 @@
-import { useCallback, useMemo, useReducer, useState, type ReactNode } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useNavigate } from 'react-router'
@@ -14,6 +22,7 @@ import {
   type MatrixApplicationMode,
 } from '@duedatehq/core/default-matrix'
 import type {
+  DuplicateHandling,
   MapperRunOutput,
   MappingRow,
   MatrixSelection,
@@ -58,6 +67,8 @@ interface WizardProps {
   onClose: () => void
   variant?: 'dialog' | 'route'
   intro?: ReactNode | ((actions: { onSkip: () => void }) => ReactNode)
+  /** When set, the wizard fetches this in-progress batch and resumes into it. */
+  resumeBatchId?: string
 }
 
 type ObligationQueueCursor = NonNullable<ObligationQueueListInput['cursor']> | null
@@ -72,7 +83,7 @@ const OBLIGATION_QUEUE_PREFETCH_LIMIT = 50
  * The wizard auto-resets when `open` flips to false so the next entry starts
  * from a clean Step 1 instead of resuming a half-finished draft.
  */
-export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps) {
+export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId }: WizardProps) {
   const { i18n, t } = useLingui()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -86,6 +97,10 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     clientCount: number
     obligationCount: number
   } | null>(null)
+  // Step 4 re-import dedup choice; default 'skip' matches the server default.
+  const [duplicateHandling, setDuplicateHandling] = useState<DuplicateHandling>('skip')
+  // Guards one-time HYDRATE per resumed batch so user edits aren't clobbered.
+  const hydratedBatchIdRef = useRef<string | null>(null)
 
   const invalidateMigration = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: orpc.migration.key() })
@@ -189,10 +204,37 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     }),
   )
 
+  const dryRunMutation = useMutation(
+    orpc.migration.dryRun.mutationOptions({
+      onSuccess: invalidateMigration,
+    }),
+  )
+
+  // Resume: fetch the in-progress batch when the wizard opens with a resumeBatchId.
+  const resumeQuery = useQuery(
+    orpc.migration.getBatch.queryOptions({
+      input: { batchId: resumeBatchId ?? '' },
+      enabled: Boolean(resumeBatchId) && open,
+    }),
+  )
+
   const resetAndClose = useCallback(() => {
     dispatch({ type: 'RESET' })
+    setDuplicateHandling('skip')
+    hydratedBatchIdRef.current = null
     onClose()
   }, [onClose])
+
+  // Hydrate the wizard from a resumed batch exactly once (ref-guarded so later
+  // edits in the resumed session aren't overwritten by a refetch).
+  useEffect(() => {
+    if (!open || !resumeBatchId) return
+    const batch = resumeQuery.data
+    if (batch && hydratedBatchIdRef.current !== batch.id) {
+      hydratedBatchIdRef.current = batch.id
+      dispatch({ type: 'HYDRATE', batch })
+    }
+  }, [open, resumeBatchId, resumeQuery.data])
 
   const handleStep1Continue = useCallback(() => {
     const intake = state.intake
@@ -378,6 +420,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
             {
               onError: handleError,
               onSuccess: (summary) => {
+                setDuplicateHandling('skip')
                 dispatch({ type: 'DRY_RUN_RESULT', summary })
                 dispatch({ type: 'GO_TO_STEP', step: 4 })
                 listErrorsMutation.mutate({ batchId, stage: 'all' })
@@ -403,7 +446,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
     if (!batchId) return
 
     applyMutation.mutate(
-      { batchId },
+      { batchId, duplicateHandling },
       {
         onError: (err) => {
           toast.error(t`Couldn't import clients`, {
@@ -464,7 +507,31 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
         },
       },
     )
-  }, [applyMutation, i18n, navigate, resetAndClose, state.batchId, t])
+  }, [applyMutation, duplicateHandling, i18n, navigate, resetAndClose, state.batchId, t])
+
+  const handleDuplicateHandlingChange = useCallback(
+    (next: DuplicateHandling) => {
+      setDuplicateHandling(next)
+      const batchId = state.batchId
+      if (!batchId) return
+      dryRunMutation.mutate(
+        { batchId, duplicateHandling: next },
+        {
+          onError: (err) => {
+            toast.error(t`Couldn't update the import preview`, {
+              description:
+                rpcErrorMessage(err) ??
+                t`Check your network and try again. If this keeps happening, contact support.`,
+            })
+          },
+          onSuccess: (summary) => {
+            dispatch({ type: 'DRY_RUN_RESULT', summary })
+          },
+        },
+      )
+    },
+    [dryRunMutation, state.batchId, t],
+  )
 
   const sampleByHeader = useMemo(() => {
     if (!state.intake.rawText) return {}
@@ -627,7 +694,14 @@ export function Wizard({ open, onClose, variant = 'dialog', intro }: WizardProps
           />
         ) : null}
 
-        {state.step === 4 ? <Step4Preview summary={state.dryRun.summary} /> : null}
+        {state.step === 4 ? (
+          <Step4Preview
+            summary={state.dryRun.summary}
+            duplicateHandling={duplicateHandling}
+            onDuplicateHandlingChange={handleDuplicateHandlingChange}
+            isUpdatingPreview={dryRunMutation.isPending}
+          />
+        ) : null}
       </>
     ),
   }

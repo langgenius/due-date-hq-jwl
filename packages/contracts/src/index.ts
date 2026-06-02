@@ -882,8 +882,10 @@ export {
 
 export type {
   ApplyResult,
+  DryRunClientConflict,
   DryRunClientPreview,
   DryRunSummary,
+  DuplicateHandling,
   MapperFallback,
   MapperRunOutput,
   MappingRow,
@@ -906,8 +908,10 @@ export type {
 } from './migration'
 export {
   ApplyResultSchema,
+  DryRunClientConflictSchema,
   DryRunClientPreviewSchema,
   DryRunSummarySchema,
+  DuplicateHandlingSchema,
   MapperFallbackSchema,
   MapperRunOutputSchema,
   MappingRowSchema,

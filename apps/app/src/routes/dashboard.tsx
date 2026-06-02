@@ -241,7 +241,7 @@ export function DashboardRoute() {
             <Button
               variant="outline"
               size="sm"
-              onClick={openWizard}
+              onClick={() => openWizard()}
               disabled={!canRunMigration}
               // ROH-D11 — was "owner or manager"; migration.run is
               // owner/partner/manager/preparer. Helper-driven so the

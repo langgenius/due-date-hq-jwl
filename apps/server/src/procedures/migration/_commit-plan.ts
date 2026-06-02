@@ -14,7 +14,13 @@ import {
   type PenaltyFacts,
 } from '@duedatehq/core/penalty'
 import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
-import type { MappingRow, MappingTarget, NormalizationRow } from '@duedatehq/contracts'
+import type {
+  DryRunClientConflict,
+  DuplicateHandling,
+  MappingRow,
+  MappingTarget,
+  NormalizationRow,
+} from '@duedatehq/contracts'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import {
   resolveMonitoredRulePreviews,
@@ -39,11 +45,17 @@ interface BuildCommitPlanInput {
   internalDeadlineOffsetDays: number
   monitoringStartDate?: string
   rules?: readonly ObligationRule[]
+  /** Existing firm clients keyed by digit-normalized EIN — for re-import dedup. */
+  existingClientsByEin?: ReadonlyMap<string, { id: string; name: string }>
+  /** How to handle imported rows that match an existing client by EIN. */
+  duplicateHandling?: DuplicateHandling
 }
 
 type CommitPlan = CommitImportInput & {
   historicalDeadlineSkippedCount: number
   rolledForwardDeadlineCount: number
+  clientConflicts: DryRunClientConflict[]
+  skippedDuplicateCount: number
 }
 
 interface FilingProfileImportFacts {
@@ -85,6 +97,8 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitPlan {
   const runtimeRules = input.rules ?? listObligationRules({ includeCandidates: true })
   let historicalDeadlineSkippedCount = 0
   let rolledForwardDeadlineCount = 0
+  const clientConflicts: DryRunClientConflict[] = []
+  let skippedDuplicateCount = 0
 
   const skippedRows = new Set<number>()
   const rowErrors = validateRows(
@@ -145,6 +159,25 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitPlan {
 
   for (const group of groups.values()) {
     const facts = group.facts
+    // Re-import dedup: an imported row whose EIN matches an existing firm
+    // client is a conflict. With duplicateHandling='skip' (default) we record
+    // it and create nothing; with 'import_as_new' we record it and proceed.
+    const normalizedEin = facts.ein ? facts.ein.replace(/\D/g, '') : ''
+    const existingMatch = normalizedEin
+      ? input.existingClientsByEin?.get(normalizedEin)
+      : undefined
+    if (existingMatch) {
+      clientConflicts.push({
+        ein: facts.ein ?? '',
+        incomingName: facts.name ?? group.key,
+        existingClientId: existingMatch.id,
+        existingClientName: existingMatch.name,
+      })
+      if (input.duplicateHandling === 'skip') {
+        skippedDuplicateCount += 1
+        continue
+      }
+    }
     const clientId = crypto.randomUUID()
     const profileRows = [...group.profilesByState.values()].toSorted((a, b) =>
       a.state.localeCompare(b.state),
@@ -333,6 +366,7 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitPlan {
         historicalDeadlineSkippedCount,
         rolledForwardDeadlineCount,
         skippedCount: skippedRows.size,
+        skippedDuplicateCount,
       },
       reason: null,
       ipHash: null,
@@ -379,6 +413,8 @@ function buildCommitPlan(input: BuildCommitPlanInput): CommitPlan {
     revertExpiresAt,
     historicalDeadlineSkippedCount,
     rolledForwardDeadlineCount,
+    clientConflicts,
+    skippedDuplicateCount,
   }
 }
 

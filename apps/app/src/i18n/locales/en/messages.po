@@ -117,6 +117,11 @@ msgstr "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 msgid "{0, plural, one {# deadline} other {# deadlines}}"
 msgstr "{0, plural, one {# deadline} other {# deadlines}}"
 
+#. placeholder {0}: conflicts.length
+#: src/features/migration/Step4Preview.tsx
+msgid "{0, plural, one {# imported client matches an existing client by EIN.} other {# imported clients match existing clients by EIN.}}"
+msgstr "{0, plural, one {# imported client matches an existing client by EIN.} other {# imported clients match existing clients by EIN.}}"
+
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# jurisdiction} other {# jurisdictions}}"
@@ -1818,6 +1823,10 @@ msgstr "Already active"
 msgid "Already applied"
 msgstr "Already applied"
 
+#: src/features/migration/Step4Preview.tsx
+msgid "Already in your client list"
+msgstr "Already in your client list"
+
 #: src/features/opportunities/opportunities-page.tsx
 msgid "Already restored"
 msgstr "Already restored"
@@ -2995,6 +3004,10 @@ msgid "Clients affected"
 msgstr "Clients affected"
 
 #: src/features/migration/Step4Preview.tsx
+msgid "Clients already in your list"
+msgstr "Clients already in your list"
+
+#: src/features/migration/Step4Preview.tsx
 msgid "Clients to create"
 msgstr "Clients to create"
 
@@ -3768,6 +3781,10 @@ msgstr "Couldn't update status"
 msgid "Couldn't update step"
 msgstr "Couldn't update step"
 
+#: src/features/migration/Wizard.tsx
+msgid "Couldn't update the import preview"
+msgstr "Couldn't update the import preview"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/routes/account.security.tsx
 #: src/routes/two-factor.tsx
@@ -4259,6 +4276,10 @@ msgid "Disabling…"
 msgstr "Disabling…"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Discard"
+msgstr "Discard"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Discard draft"
 msgstr "Discard draft"
 
@@ -4480,6 +4501,14 @@ msgstr "Duplicate"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Duplicates"
 msgstr "Duplicates"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "Duplicates will be created as new clients."
+msgstr "Duplicates will be created as new clients."
+
+#: src/features/migration/Step4Preview.tsx
+msgid "Duplicates won't be imported."
+msgstr "Duplicates won't be imported."
 
 #: src/features/audit/audit-log-labels.ts
 msgid "E-file status changed"
@@ -5644,6 +5673,10 @@ msgstr "Import & Generate creates the clients, deadlines, evidence, and audit re
 msgid "Import a CSV or create the first manual client record."
 msgstr "Import a CSV or create the first manual client record."
 
+#: src/features/migration/Step4Preview.tsx
+msgid "Import as new"
+msgstr "Import as new"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Import batch"
 msgstr "Import batch"
@@ -6248,6 +6281,7 @@ msgstr "Loading rule sources…"
 msgid "Loading rules coverage…"
 msgstr "Loading rules coverage…"
 
+#: src/features/alerts/components/ReverifyRulesSection.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Loading rules…"
 msgstr "Loading rules…"
@@ -6512,6 +6546,11 @@ msgstr "Matched an imported column to DueDateHQ."
 #: src/features/audit/audit-log-labels.ts
 msgid "Matched clients"
 msgstr "Matched clients"
+
+#. placeholder {0}: conflict.existingClientName
+#: src/features/migration/Step4Preview.tsx
+msgid "matches {0}"
+msgstr "matches {0}"
 
 #: src/routes/obligations.tsx
 msgid "Matches the filters and sort currently on this page."
@@ -9069,9 +9108,17 @@ msgstr "Re-run failed."
 msgid "Re-submit the corrected return to the authority"
 msgstr "Re-submit the corrected return to the authority"
 
+#: src/features/alerts/components/ReverifyRulesSection.tsx
+msgid "Re-verify"
+msgstr "Re-verify"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "Re-verify the source still applies to this return"
 msgstr "Re-verify the source still applies to this return"
+
+#: src/features/alerts/components/ReverifyRulesSection.tsx
+msgid "Re-verify this rule against its official source."
+msgstr "Re-verify this rule against its official source."
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Reactivate / Re-apply"
@@ -9542,6 +9589,10 @@ msgstr "Restore brings the row back to the queue"
 #: src/routes/obligations.tsx
 msgid "Resulting materials state"
 msgstr "Resulting materials state"
+
+#: src/features/migration/ImportHistoryDrawer.tsx
+msgid "Resume"
+msgstr "Resume"
 
 #: src/routes/obligations.tsx
 msgid "Resume drafting the return"
@@ -10046,6 +10097,10 @@ msgstr "Rules accepted"
 #: src/features/audit/audit-log-labels.ts
 msgid "Rules accepted in bulk"
 msgstr "Rules accepted in bulk"
+
+#: src/features/alerts/components/ReverifyRulesSection.tsx
+msgid "Rules to re-verify"
+msgstr "Rules to re-verify"
 
 #: src/routes/practice.tsx
 msgid "Run backfill"
@@ -10820,6 +10875,10 @@ msgstr "Skip · j"
 msgid "Skip ahead to drafting (docs already in hand)"
 msgstr "Skip ahead to drafting (docs already in hand)"
 
+#: src/features/migration/Step4Preview.tsx
+msgid "Skip duplicates"
+msgstr "Skip duplicates"
+
 #: src/routes/migration.new.tsx
 msgid "Skip for now"
 msgstr "Skip for now"
@@ -10989,6 +11048,15 @@ msgstr "Source (optional)"
 msgid "Source #{0} · retrieved {1}"
 msgstr "Source #{0} · retrieved {1}"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/components/AlertCard.tsx
+msgid "Source Changed"
+msgstr "Source Changed"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Source changed — re-verify"
+msgstr "Source changed — re-verify"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Source changed requires single-rule review"
 msgstr "Source changed requires single-rule review"
@@ -11041,6 +11109,10 @@ msgstr "Source status"
 #: src/features/alerts/components/AlertCard.tsx
 msgid "Source Status"
 msgstr "Source Status"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "Source updated — re-verify before adopting"
+msgstr "Source updated — re-verify before adopting"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -11882,6 +11954,10 @@ msgstr "This looks like an UltraTax CS client data file. Export a Client Listing
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "This member is no longer on the team"
 msgstr "This member is no longer on the team"
+
+#: src/features/alerts/components/ReverifyRulesSection.tsx
+msgid "This official source changed. Re-verify each rule against the source, then mark this alert reviewed."
+msgstr "This official source changed. Re-verify each rule against the source, then mark this alert reviewed."
 
 #: src/routes/billing.success.tsx
 msgid "This page will keep checking. You can also return to Billing and refresh later."

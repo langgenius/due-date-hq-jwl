@@ -1,13 +1,17 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AlertTriangleIcon, CheckCircle2Icon, PlayIcon, ShieldCheckIcon } from 'lucide-react'
 
-import type { DryRunSummary } from '@duedatehq/contracts'
+import type { DryRunSummary, DuplicateHandling } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { formatMigrationErrorMessage, useMappingTargetLabels } from './mapping-target-labels'
 
 interface Step4Props {
   summary: DryRunSummary | null
+  duplicateHandling: DuplicateHandling
+  onDuplicateHandlingChange: (next: DuplicateHandling) => void
+  isUpdatingPreview?: boolean
 }
 
 /**
@@ -16,7 +20,12 @@ interface Step4Props {
  * The Import CTA is rendered in the WizardShell footer; this body owns the
  * counts, skipped-row visibility, and safety checks before `migration.apply`.
  */
-export function Step4Preview({ summary }: Step4Props) {
+export function Step4Preview({
+  summary,
+  duplicateHandling,
+  onDuplicateHandlingChange,
+  isUpdatingPreview = false,
+}: Step4Props) {
   const { t } = useLingui()
   const targetLabels = useMappingTargetLabels()
   const clientCount = summary?.clientsToCreate ?? 0
@@ -32,6 +41,7 @@ export function Step4Preview({ summary }: Step4Props) {
   )
   const clientsPreview = summary?.clientsPreview ?? []
   const previewMoreCount = Math.max(0, clientCount - clientsPreview.length)
+  const conflicts = summary?.clientConflicts ?? []
 
   return (
     <div className="flex flex-col gap-4 py-5">
@@ -154,6 +164,68 @@ export function Step4Preview({ summary }: Step4Props) {
               <Plural value={previewMoreCount} one="+ # more client" other="+ # more clients" />
             </p>
           ) : null}
+        </section>
+      ) : null}
+
+      {/* Re-import dedup: imported rows whose EIN matches an existing client.
+          Default is Skip (no duplicates created); the user can switch to
+          "Import as new", which re-runs the dry-run with the new counts. */}
+      {conflicts.length > 0 ? (
+        <section
+          aria-label={t`Clients already in your list`}
+          className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-section p-3"
+        >
+          <h3 className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
+            <Trans>Already in your client list</Trans>
+          </h3>
+          <p className="text-sm text-text-secondary">
+            <Plural
+              value={conflicts.length}
+              one="# imported client matches an existing client by EIN."
+              other="# imported clients match existing clients by EIN."
+            />
+          </p>
+          <ul className="flex flex-col divide-y divide-divider-subtle text-sm">
+            {conflicts.map((conflict) => (
+              <li
+                key={conflict.ein || conflict.incomingName}
+                className="flex flex-wrap items-baseline gap-x-2 py-1.5"
+              >
+                <span className="font-medium text-text-primary">{conflict.incomingName}</span>
+                {conflict.ein ? (
+                  <span className="font-mono text-text-tertiary tabular-nums">{conflict.ein}</span>
+                ) : null}
+                <span className="text-text-tertiary">
+                  <Trans>matches {conflict.existingClientName}</Trans>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Button
+              size="sm"
+              variant={duplicateHandling === 'skip' ? undefined : 'outline'}
+              disabled={isUpdatingPreview}
+              onClick={() => onDuplicateHandlingChange('skip')}
+            >
+              <Trans>Skip duplicates</Trans>
+            </Button>
+            <Button
+              size="sm"
+              variant={duplicateHandling === 'import_as_new' ? undefined : 'outline'}
+              disabled={isUpdatingPreview}
+              onClick={() => onDuplicateHandlingChange('import_as_new')}
+            >
+              <Trans>Import as new</Trans>
+            </Button>
+            <span className="text-xs text-text-tertiary">
+              {duplicateHandling === 'skip' ? (
+                <Trans>Duplicates won&apos;t be imported.</Trans>
+              ) : (
+                <Trans>Duplicates will be created as new clients.</Trans>
+              )}
+            </span>
+          </div>
         </section>
       ) : null}
 

@@ -159,6 +159,7 @@ export const router = os.router({
     revert: migrationHandlers.revert,
     singleUndo: migrationHandlers.singleUndo,
     getBatch: migrationHandlers.getBatch,
+    getResumableImport: migrationHandlers.getResumableImport,
     listErrors: migrationHandlers.listErrors,
     listBatches: migrationHandlers.listBatches,
     listBatchClients: migrationHandlers.listBatchClients,

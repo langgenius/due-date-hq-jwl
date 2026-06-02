@@ -1,6 +1,7 @@
 import type {
   MapperFallback,
   MappingRow,
+  MatrixSelection,
   MigrationBatch,
   MigrationError,
   NormalizationRow,
@@ -202,6 +203,7 @@ type WizardAction =
   | { type: 'NORMALIZE_ERROR'; message: string }
   | { type: 'DRY_RUN_RESULT'; summary: DryRunSummary }
   | { type: 'ERRORS_SET'; errors: MigrationError[] }
+  | { type: 'HYDRATE'; batch: MigrationBatch }
   | { type: 'RESET' }
 
 export function wizardReducer(state: WizardState, action: WizardAction): WizardState {
@@ -315,6 +317,8 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       return { ...state, dryRun: { summary: action.summary } }
     case 'ERRORS_SET':
       return { ...state, errors: action.errors }
+    case 'HYDRATE':
+      return hydrateStateFromBatch(action.batch)
     case 'RESET':
       return INITIAL_STATE
     default:
@@ -351,4 +355,104 @@ export const PRESET_TO_SOURCE: Record<PresetId, MigrationSource> = {
   proseries: 'preset_proseries',
   ultratax_cs: 'preset_ultratax_cs',
   proconnect_tax: 'preset_proconnect_tax',
+}
+
+const SOURCE_TO_PRESET: Partial<Record<MigrationSource, PresetId>> = {
+  preset_taxdome: 'taxdome',
+  preset_drake: 'drake',
+  preset_karbon: 'karbon',
+  preset_quickbooks: 'quickbooks',
+  preset_file_in_time: 'file_in_time',
+  preset_cch_axcess: 'cch_axcess',
+  preset_cch_prosystem_fx: 'cch_prosystem_fx',
+  preset_lacerte: 'lacerte',
+  preset_proseries: 'proseries',
+  preset_ultratax_cs: 'ultratax_cs',
+  preset_proconnect_tax: 'proconnect_tax',
+}
+
+// Subset of migration_batch.mapping_json the wizard needs to rebuild its state
+// when resuming an in-progress import. mappingJson is `unknown` on the wire.
+interface ResumePayload {
+  rawInput?: {
+    kind?: 'csv' | 'tsv' | 'paste' | 'xlsx'
+    headers?: string[]
+    rows?: string[][]
+    rowCount?: number
+    truncated?: boolean
+  }
+  sourceManifest?: MigrationSourceManifest
+  ssnBlockedColumns?: number[]
+  aiMappings?: MappingRow[]
+  confirmedMappings?: MappingRow[]
+  aiNormalizations?: NormalizationRow[]
+  confirmedNormalizations?: NormalizationRow[]
+  matrixSelections?: MatrixSelection[]
+  mapperFallback?: MapperFallback
+}
+
+/** Resume step from batch status: draft→1, mapping→2, reviewing→3 (re-confirm to re-run dry-run). */
+export function statusToResumeStep(status: MigrationBatch['status']): StepIndex {
+  if (status === 'mapping') return 2
+  if (status === 'reviewing') return 3
+  return 1
+}
+
+/**
+ * Rebuild the wizard state from a persisted in-progress batch so the user can
+ * resume where they left off. `dryRun.summary` is intentionally left null —
+ * Step 4 recomputes it (with fresh conflict detection) on the next Continue.
+ */
+export function hydrateStateFromBatch(batch: MigrationBatch): WizardState {
+  const payload = (batch.mappingJson ?? {}) as ResumePayload
+  const rawInput = payload.rawInput
+  const headers = rawInput?.headers ?? []
+  const rows = rawInput?.rows ?? []
+  const rawText =
+    headers.length > 0 ? [headers, ...rows].map((cells) => cells.join('\t')).join('\n') : ''
+  const mappingRows = payload.confirmedMappings ?? payload.aiMappings ?? []
+  const normalizeRows = payload.confirmedNormalizations ?? payload.aiNormalizations ?? []
+  const applyToAll: Record<string, boolean> = {}
+  for (const sel of payload.matrixSelections ?? []) {
+    applyToAll[`${sel.entityType}::${sel.state}`] = sel.enabled
+  }
+  const kind = rawInput?.kind
+  const fileKind = kind === 'csv' || kind === 'tsv' || kind === 'xlsx' ? kind : 'paste'
+  const preset = SOURCE_TO_PRESET[batch.source] ?? null
+
+  return {
+    ...INITIAL_STATE,
+    step: statusToResumeStep(batch.status),
+    batchId: batch.id,
+    batch,
+    intake: {
+      ...INITIAL_STATE.intake,
+      rawText,
+      fileName: batch.rawInputFileName ?? null,
+      fileKind,
+      contentType: batch.rawInputContentType ?? null,
+      sizeBytes: batch.rawInputSizeBytes ?? 0,
+      sourceManifest: payload.sourceManifest ?? null,
+      preset,
+      presetSource: preset ? 'detected' : null,
+      ssnBlockedColumnIndexes: payload.ssnBlockedColumns ?? [],
+      rowCount: rawInput?.rowCount ?? rows.length,
+      truncated: rawInput?.truncated ?? false,
+    },
+    mapping: {
+      status: payload.mapperFallback ? 'fallback' : mappingRows.length > 0 ? 'success' : 'idle',
+      rows: mappingRows,
+      fallback: payload.mapperFallback ?? null,
+      errorBanner: null,
+    },
+    normalize: {
+      status: normalizeRows.length > 0 ? 'success' : 'idle',
+      rows: normalizeRows,
+      applyToAll,
+      errorBanner: null,
+    },
+    dryRun: { summary: null },
+    errors: [],
+    isBusy: false,
+  }
 }

@@ -41,7 +41,11 @@ function renderPreview(summary: DryRunSummary) {
     root?.render(
       <MemoryRouter>
         <I18nProvider i18n={i18n}>
-          <Step4Preview summary={summary} />
+          <Step4Preview
+            summary={summary}
+            duplicateHandling="skip"
+            onDuplicateHandlingChange={() => {}}
+          />
         </I18nProvider>
       </MemoryRouter>,
     )
@@ -145,5 +149,31 @@ describe('Step4Preview rule review warnings', () => {
     expect(document.body.textContent).toContain('1 deadline')
     // clientsToCreate (5) exceeds the 2 preview rows → "+ 3 more clients".
     expect(document.body.textContent).toContain('3 more clients')
+  })
+
+  it('lists existing-client conflicts with skip / import-as-new controls', () => {
+    renderPreview({
+      batchId: '550e8400-e29b-41d4-a716-446655440001',
+      clientsToCreate: 2,
+      obligationsToCreate: 4,
+      historicalDeadlinesSkipped: 0,
+      rolledForwardDeadlines: 0,
+      skippedRows: 0,
+      errors: [],
+      ruleReviewWarnings: [],
+      clientConflicts: [
+        {
+          ein: '99-1000001',
+          incomingName: 'Acme LLC',
+          existingClientId: '550e8400-e29b-41d4-a716-446655440099',
+          existingClientName: 'Acme LLC (existing)',
+        },
+      ],
+    })
+
+    expect(document.body.textContent).toContain('Already in your client list')
+    expect(document.body.textContent).toContain('Acme LLC (existing)')
+    expect(document.body.textContent).toContain('Skip duplicates')
+    expect(document.body.textContent).toContain('Import as new')
   })
 })

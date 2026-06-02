@@ -29,6 +29,7 @@ import {
   ObligationRuleSchema,
   type DryRunClientPreview,
   type DryRunSummary,
+  type DuplicateHandling,
   type MapperFallback,
   type MapperRunOutput,
   type MappingRow,
@@ -265,11 +266,11 @@ export class MigrationService {
     presetUsed?: string | null
     rowCount?: number
   }): Promise<MigrationBatch> {
-    const existing = await this.deps.scoped.migration.getActiveDraftBatch()
+    const existing = await this.findResumableBatchRow()
     if (existing) {
       throw new ORPCError('CONFLICT', {
         message:
-          'Another import is currently in progress. Open Clients › Import history and discard the draft before starting a new one.',
+          'Another import is already in progress. Resume it from Clients › Import history, or discard it before starting a new one.',
       })
     }
 
@@ -697,14 +698,20 @@ export class MigrationService {
   // Step 4 — Dry-Run preview and apply
   // ---------------------------------------------------------------------
 
-  async dryRun(batchId: string): Promise<DryRunSummary> {
+  async dryRun(
+    batchId: string,
+    duplicateHandling: DuplicateHandling = 'skip',
+  ): Promise<DryRunSummary> {
     const batch = await this.requireBatch(batchId)
     const payload = (batch.mappingJson ?? {}) as MappingJsonPayload
     const rules = await runtimeRulesForFirm(this.deps.scoped)
-    return this.composeDryRun(batchId, payload, rules)
+    return this.composeDryRun(batchId, payload, rules, duplicateHandling)
   }
 
-  async apply(batchId: string): Promise<{
+  async apply(
+    batchId: string,
+    duplicateHandling: DuplicateHandling = 'skip',
+  ): Promise<{
     batchId: string
     clientCount: number
     obligationCount: number
@@ -726,6 +733,7 @@ export class MigrationService {
 
     const payload = (batch.mappingJson ?? {}) as MappingJsonPayload
     const rules = await runtimeRulesForFirm(this.deps.scoped)
+    const existingClientsByEin = await this.loadExistingClientsByEin()
     const plan = buildCommitPlan({
       batchId,
       firmId: this.deps.scoped.firmId,
@@ -737,6 +745,8 @@ export class MigrationService {
         ? { monitoringStartDate: this.deps.monitoringStartDate }
         : {}),
       rules,
+      existingClientsByEin,
+      duplicateHandling,
     })
 
     if (plan.clients.length === 0) {
@@ -758,9 +768,9 @@ export class MigrationService {
 
   async discardDraft(batchId: string): Promise<{ discardedAt: string }> {
     const batch = await this.requireBatch(batchId)
-    if (batch.status !== 'draft') {
+    if (batch.status !== 'draft' && batch.status !== 'mapping' && batch.status !== 'reviewing') {
       throw new ORPCError('BAD_REQUEST', {
-        message: 'Only draft imports can be discarded.',
+        message: 'Only in-progress imports can be discarded.',
       })
     }
 
@@ -812,6 +822,24 @@ export class MigrationService {
   async getBatch(batchId: string): Promise<MigrationBatch | null> {
     const row = await this.deps.scoped.migration.getBatch(batchId)
     return row ? toMigrationBatch(row) : null
+  }
+
+  /** The firm's resumable in-progress import (draft/mapping/reviewing), if any. */
+  async getResumableImport(): Promise<MigrationBatch | null> {
+    const row = await this.findResumableBatchRow()
+    return row ? toMigrationBatch(row) : null
+  }
+
+  /**
+   * The firm's single in-progress import row (draft/mapping/reviewing), if any.
+   * Read via listByFirm (most-recent first) so we don't widen the repo port —
+   * in-progress batches are rare and recent, so scanning the latest is enough.
+   */
+  private async findResumableBatchRow() {
+    const rows = await this.deps.scoped.migration.listByFirm({ limit: 50 })
+    return rows.find(
+      (row) => row.status === 'draft' || row.status === 'mapping' || row.status === 'reviewing',
+    )
   }
 
   async listBatches(input: { limit?: number; status?: MigrationBatch['status'] } = {}): Promise<{
@@ -927,12 +955,28 @@ export class MigrationService {
     )
   }
 
-  private composeDryRun(
+  /** Existing firm clients keyed by digit-normalized EIN — for re-import dedup. */
+  private async loadExistingClientsByEin(): Promise<Map<string, { id: string; name: string }>> {
+    const clients = await this.deps.scoped.clients.listByFirm()
+    const byEin = new Map<string, { id: string; name: string }>()
+    for (const row of clients) {
+      if (!row.ein) continue
+      const normalized = row.ein.replace(/\D/g, '')
+      if (normalized && !byEin.has(normalized)) {
+        byEin.set(normalized, { id: row.id, name: row.name })
+      }
+    }
+    return byEin
+  }
+
+  private async composeDryRun(
     batchId: string,
     payload: MappingJsonPayload,
     rules: readonly CoreObligationRule[] = [],
-  ): DryRunSummary {
+    duplicateHandling: DuplicateHandling = 'skip',
+  ): Promise<DryRunSummary> {
     const stats = computeDryRunStats(batchId, payload)
+    const existingClientsByEin = await this.loadExistingClientsByEin()
     const exactPlan =
       payload.rawInput && payload.confirmedMappings && payload.confirmedNormalizations
         ? buildCommitPlan({
@@ -946,11 +990,13 @@ export class MigrationService {
               ? { monitoringStartDate: this.deps.monitoringStartDate }
               : {}),
             rules,
+            existingClientsByEin,
+            duplicateHandling,
           })
         : null
     const summary: DryRunSummary = {
       batchId,
-      clientsToCreate: stats.clientsToCreate,
+      clientsToCreate: exactPlan ? exactPlan.clients.length : stats.clientsToCreate,
       obligationsToCreate: exactPlan ? exactPlan.obligations.length : stats.obligationsToCreate,
       historicalDeadlinesSkipped: exactPlan ? exactPlan.historicalDeadlineSkippedCount : 0,
       rolledForwardDeadlines: exactPlan ? exactPlan.rolledForwardDeadlineCount : 0,
@@ -958,6 +1004,7 @@ export class MigrationService {
       errors: stats.errors,
       ruleReviewWarnings: computeRuleReviewWarnings(payload, rules),
       ...(exactPlan ? { clientsPreview: buildClientsPreview(exactPlan) } : {}),
+      ...(exactPlan ? { clientConflicts: exactPlan.clientConflicts } : {}),
     }
     return DryRunSummarySchema.parse(summary)
   }
