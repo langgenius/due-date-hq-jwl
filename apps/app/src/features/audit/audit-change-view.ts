@@ -1,5 +1,6 @@
-import type { AuditEventPublic } from '@duedatehq/contracts'
+import type { AuditEventPublic, DueDateLogic } from '@duedatehq/contracts'
 import { formatCents, formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
+import { humanizeDueDateLogic } from '@/features/rules/rules-console-model'
 
 import {
   AUDIT_ACTION_LABEL_KEYS,
@@ -207,12 +208,12 @@ export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresen
   'rule.updated': genericPresenter,
   'rule.verified': genericPresenter,
   'rules.candidate.created': genericPresenter,
-  'rules.accepted': genericPresenter,
+  'rules.accepted': ruleDiffPresenter,
   'rules.bulk_accepted': genericPresenter,
   'rules.onboarding_activated': genericPresenter,
   'rules.rejected': genericPresenter,
-  'rules.created': genericPresenter,
-  'rules.updated': genericPresenter,
+  'rules.created': ruleDiffPresenter,
+  'rules.updated': ruleDiffPresenter,
   'rules.archived': genericPresenter,
   'rules.published': genericPresenter,
   'rules.review.rejected': genericPresenter,
@@ -321,7 +322,12 @@ function formatValue(key: string, value: unknown, context: AuditChangeContext): 
     if (labels.enumValues[value]) return labels.enumValues[value]
     if (ISO_DATE_PATTERN.test(value)) return formatDate(value)
     if (ISO_DATETIME_PATTERN.test(value)) return formatDateTimeWithTimezone(value, timeZone)
-    if (key.toLowerCase().includes('status') || key === 'role' || key === 'kind') {
+    if (
+      key.toLowerCase().includes('status') ||
+      key === 'role' ||
+      key === 'kind' ||
+      key === 'templateKey'
+    ) {
       return humanizeValue(value, labels)
     }
     return value
@@ -421,6 +427,89 @@ function headlineFromRows(context: AuditChangeContext, rows: AuditChangeRow[]): 
 function genericPresenter(context: AuditChangeContext): AuditChangeView {
   const rows = genericRows(context)
   return view(headlineFromRows(context, rows), rows, appendGenericNotes(context, rows))
+}
+
+// Rule-change diff (rules.created/updated/accepted). The audit payload stores
+// the rule body under `rule`; the generic presenter collapses that nested
+// object to "Details updated", which tells a CPA nothing. This presenter
+// humanizes the aspects a CPA actually reviews — when it's due, extension
+// policy, jurisdiction, form, filing year — plus version/status at the top.
+const RULE_BODY_ASPECTS = [
+  'dueDateLogic',
+  'extensionPolicy',
+  'jurisdiction',
+  'formName',
+  'applicableYear',
+] as const
+
+function humanizeRuleDueDate(value: unknown): string | null {
+  const record = readRecord(value)
+  if (!record || typeof record.kind !== 'string') return null
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- audit JSON; humanizer is total over DueDateLogic kinds, and we fall back to null on throw.
+    return humanizeDueDateLogic(record as unknown as DueDateLogic)
+  } catch {
+    return null
+  }
+}
+
+function humanizeRuleExtension(value: unknown, labels: AuditChangeLabels): string | null {
+  const record = readRecord(value)
+  if (!record || typeof record.available !== 'boolean') return null
+  if (!record.available) return labels.enumValues.not_allowed ?? 'Not allowed'
+  const parts: string[] = []
+  if (typeof record.formName === 'string' && record.formName) parts.push(record.formName)
+  if (typeof record.durationMonths === 'number') parts.push(`${record.durationMonths}mo`)
+  parts.push(record.paymentExtended === true ? 'payment included' : 'filing only')
+  return `${labels.enumValues.allowed ?? 'Allowed'} · ${parts.join(' · ')}`
+}
+
+function ruleAspectValue(key: string, value: unknown, context: AuditChangeContext): string {
+  if (value === undefined) return context.labels.values.notSet
+  if (key === 'dueDateLogic') {
+    return humanizeRuleDueDate(value) ?? context.labels.values.detailsUpdated
+  }
+  if (key === 'extensionPolicy') {
+    return humanizeRuleExtension(value, context.labels) ?? context.labels.values.detailsUpdated
+  }
+  return formatValue(key, value, context)
+}
+
+function ruleDiffPresenter(context: AuditChangeContext): AuditChangeView {
+  const beforeRule = readRecord(context.before?.rule)
+  const afterRule = readRecord(context.after?.rule)
+  const rows: AuditChangeRow[] = []
+
+  // Top-level status / version sit alongside `rule`, not inside it.
+  for (const key of ['status', 'version'] as const) {
+    if (valuesDiffer(context.before?.[key], context.after?.[key])) {
+      rows.push(makeRow(context, key, context.before?.[key], context.after?.[key]))
+    }
+  }
+  if (beforeRule || afterRule) {
+    for (const key of RULE_BODY_ASPECTS) {
+      if (!valuesDiffer(beforeRule?.[key], afterRule?.[key])) continue
+      rows.push({
+        field: fieldLabel(key, context.labels),
+        previous: ruleAspectValue(key, beforeRule?.[key], context),
+        next: ruleAspectValue(key, afterRule?.[key], context),
+      })
+    }
+  }
+
+  const limited = rows.slice(0, 6)
+  const notes =
+    rows.length > limited.length
+      ? [context.labels.notes.additionalChanges(rows.length - limited.length)]
+      : []
+  if (limited.length === 0) {
+    return view(
+      context.labels.headlines.actionRecorded(context.actionLabel),
+      [],
+      !context.before && !context.after ? [context.labels.notes.noDetailedSnapshot] : [],
+    )
+  }
+  return view(headlineFromRows(context, limited), limited, notes)
 }
 
 function countPresenter(

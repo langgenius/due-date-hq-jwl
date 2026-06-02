@@ -324,6 +324,61 @@ describe('audit-log-model', () => {
     expect(rendered).not.toContain('object')
   })
 
+  it('humanizes rule-change diffs instead of dumping raw rule JSON', () => {
+    const view = buildAuditChangeView(
+      {
+        action: 'rules.updated',
+        beforeJson: {
+          status: 'active',
+          version: 1,
+          rule: {
+            dueDateLogic: {
+              kind: 'nth_day_after_tax_year_end',
+              day: 15,
+              monthOffset: 3,
+              holidayRollover: 'next_business_day',
+            },
+            extensionPolicy: { available: false, paymentExtended: false },
+            jurisdiction: 'CA',
+          },
+        },
+        afterJson: {
+          status: 'active',
+          version: 2,
+          rule: {
+            dueDateLogic: {
+              kind: 'nth_day_after_tax_year_end',
+              day: 15,
+              monthOffset: 4,
+              holidayRollover: 'next_business_day',
+            },
+            extensionPolicy: { available: true, formName: 'Form 7004', paymentExtended: true },
+            jurisdiction: 'NY',
+          },
+        },
+      },
+      makeChangeLabels({ rulesUpdated: 'Practice rule updated' }),
+    )
+
+    const rendered = [
+      view.headline,
+      ...view.changes.flatMap((row) => [row.field, row.previous, row.next]),
+    ].join(' ')
+    // Due-date logic is humanized, not collapsed to "Details updated".
+    expect(rendered).toContain('3rd month after tax year end')
+    expect(rendered).toContain('4th month after tax year end')
+    // Extension policy reads in plain English.
+    expect(rendered).toContain('Allowed')
+    expect(rendered).toContain('Form 7004')
+    // Scalar aspects show the actual change.
+    expect(rendered).toContain('CA')
+    expect(rendered).toContain('NY')
+    // No raw rule JSON / nested keys leak to the CPA.
+    expect(rendered).not.toContain('dueDateLogic')
+    expect(rendered).not.toContain('nth_day_after_tax_year_end')
+    expect(rendered).not.toContain('paymentExtended')
+  })
+
   it('formats audit entity type labels for user-facing surfaces', () => {
     const labels = {
       auth: 'Authentication',
