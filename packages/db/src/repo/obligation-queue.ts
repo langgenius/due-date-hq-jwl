@@ -102,6 +102,7 @@ export interface ObligationQueueListRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
+  confirmed: boolean
   blockedByObligationInstanceId: string | null
   readiness: ObligationQueueReadiness
   extensionDecision: 'not_considered' | 'applied' | 'rejected'
@@ -243,6 +244,7 @@ interface ObligationQueueRawJoinedRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
+  confirmed: boolean
   blockedByObligationInstanceId: string | null
   extensionDecision: 'not_considered' | 'applied' | 'rejected'
   extensionMemo: string | null
@@ -715,6 +717,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
           baseDueDate: obligationInstance.baseDueDate,
           currentDueDate: obligationInstance.currentDueDate,
           status: obligationInstance.status,
+          confirmed: obligationInstance.confirmed,
           blockedByObligationInstanceId: obligationInstance.blockedByObligationInstanceId,
           extensionDecision: obligationInstance.extensionDecision,
           extensionMemo: obligationInstance.extensionMemo,
@@ -841,6 +844,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
               baseDueDate: obligationInstance.baseDueDate,
               currentDueDate: obligationInstance.currentDueDate,
               status: obligationInstance.status,
+              confirmed: obligationInstance.confirmed,
               blockedByObligationInstanceId: obligationInstance.blockedByObligationInstanceId,
               extensionDecision: obligationInstance.extensionDecision,
               extensionMemo: obligationInstance.extensionMemo,

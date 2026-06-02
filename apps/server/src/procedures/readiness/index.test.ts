@@ -77,6 +77,7 @@ function makeReadinessContext(input: {
   const obligation: ObligationInstanceRow = {
     id: '22222222-2222-4222-8222-222222222222',
     firmId: 'firm_1',
+    confirmed: true,
     clientId: '33333333-3333-4333-8333-333333333333',
     clientFilingProfileId: null,
     taxType: 'Form 1065',

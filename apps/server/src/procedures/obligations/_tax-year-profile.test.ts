@@ -62,6 +62,7 @@ function makeRow(overrides: Partial<ObligationInstanceRow> = {}): ObligationInst
   return {
     id: ROW_ID,
     firmId: FIRM_ID,
+    confirmed: true,
     clientId: CLIENT_ID,
     clientFilingProfileId: null,
     taxType: 'federal_1120s',

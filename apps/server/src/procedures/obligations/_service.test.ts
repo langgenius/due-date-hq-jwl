@@ -72,6 +72,9 @@ function buildScoped(firmId: string, rows: Row[]) {
 
   const obligations: ScopedRepo['obligations'] = {
     firmId,
+    async confirmByIds() {
+      return { confirmedIds: [] }
+    },
     async createBatch() {
       throw new Error('not used')
     },
@@ -619,6 +622,7 @@ function makeRow(over: Partial<Row> = {}): Row {
   return {
     id: ROW_ID,
     firmId: FIRM,
+    confirmed: true,
     clientId: '22222222-2222-4222-8222-222222222222',
     clientFilingProfileId: null,
     taxType: '1040',

@@ -138,6 +138,7 @@ function rowFromInput(input: ObligationCreateInput, id: string): ObligationInsta
   return {
     id,
     firmId: FIRM_ID,
+    confirmed: input.confirmed ?? true,
     clientId: input.clientId,
     clientFilingProfileId: input.clientFilingProfileId ?? null,
     taxType: input.taxType,
@@ -316,6 +317,7 @@ function makeContext(input: {
   }
   const obligations: ScopedRepo['obligations'] = {
     firmId: FIRM_ID,
+    confirmByIds: null!,
     createBatch,
     findById: vi.fn(async () => input.obligation ?? undefined),
     findManyByIds: null!,

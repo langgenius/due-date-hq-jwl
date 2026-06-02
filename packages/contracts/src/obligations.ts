@@ -592,6 +592,23 @@ export const AnnualRolloverOutputSchema = z.object({
   rows: z.array(AnnualRolloverRowSchema),
   auditId: EntityIdSchema.nullable(),
 })
+
+/**
+ * Promote projected (annual-rollover / auto-generated) deadlines to confirmed.
+ * Confirmed deadlines re-enter the reminder pipeline; until then they are
+ * planning-only. Already-confirmed ids are no-ops.
+ */
+export const ConfirmObligationsInputSchema = z.object({
+  obligationIds: z.array(EntityIdSchema).min(1).max(500),
+})
+export type ConfirmObligationsInput = z.infer<typeof ConfirmObligationsInputSchema>
+
+export const ConfirmObligationsOutputSchema = z.object({
+  confirmedCount: z.number().int().min(0),
+  confirmedObligationIds: z.array(EntityIdSchema),
+  auditId: EntityIdSchema.nullable(),
+})
+export type ConfirmObligationsOutput = z.infer<typeof ConfirmObligationsOutputSchema>
 export type AnnualRolloverOutput = z.infer<typeof AnnualRolloverOutputSchema>
 
 export const obligationsContract = oc.router({
@@ -614,6 +631,9 @@ export const obligationsContract = oc.router({
     .output(ObligationCreateFromRuleOutputSchema),
   previewAnnualRollover: oc.input(AnnualRolloverInputSchema).output(AnnualRolloverOutputSchema),
   createAnnualRollover: oc.input(AnnualRolloverInputSchema).output(AnnualRolloverOutputSchema),
+  confirmObligations: oc
+    .input(ConfirmObligationsInputSchema)
+    .output(ConfirmObligationsOutputSchema),
   updateDueDate: oc.input(DueDateUpdateInputSchema).output(ObligationInstancePublicSchema),
   updateTaxYearProfile: oc
     .input(ObligationTaxYearProfileUpdateInputSchema)

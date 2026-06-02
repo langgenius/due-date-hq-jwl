@@ -20,7 +20,7 @@ import {
 import { listActiveOverlayInternalDeadlines } from './overlay'
 import { loadDerivedReadinessByObligation } from './readiness-derived'
 
-const COLS_PER_OI_ROW = 53
+const COLS_PER_OI_ROW = 54
 const OI_BATCH_SIZE = Math.max(1, Math.floor(100 / COLS_PER_OI_ROW)) // D1 allows 100 bound params.
 const CLIENT_ASSERT_BATCH_SIZE = 90
 const OI_LOOKUP_IDS_PER_BATCH = 90
@@ -56,6 +56,7 @@ export interface ObligationCreateInput {
   baseDueDate: Date
   currentDueDate?: Date
   status?: ObligationStatus
+  confirmed?: boolean
   prepStage?: ObligationPrepStage
   reviewStage?: ObligationReviewStage
   extensionState?: ObligationExtensionState
@@ -281,6 +282,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
           baseDueDate: i.baseDueDate,
           currentDueDate: i.currentDueDate ?? i.baseDueDate,
           status: i.status ?? ('pending' as const),
+          confirmed: i.confirmed ?? true,
           prepStage: i.prepStage ?? 'not_started',
           reviewStage: i.reviewStage ?? 'not_required',
           extensionState: i.extensionState ?? 'not_started',
@@ -703,6 +705,41 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         )
       }
       await Promise.all(writes)
+    },
+
+    /**
+     * Promote projected obligations (annual rollover / auto-projection) to
+     * confirmed, scoped to the current firm. Reads which of the requested ids are
+     * still projected, then confirms exactly those — already-confirmed ids are
+     * no-ops. Returns the ids actually transitioned so the caller can audit them.
+     */
+    async confirmByIds(ids: string[]): Promise<{ confirmedIds: string[] }> {
+      if (ids.length === 0) return { confirmedIds: [] }
+      const uniqueIds = [...new Set(ids)]
+      const confirmedIds: string[] = []
+      for (let i = 0; i < uniqueIds.length; i += OI_UPDATE_IDS_PER_BATCH) {
+        const chunk = uniqueIds.slice(i, i + OI_UPDATE_IDS_PER_BATCH)
+        const projected = await db
+          .select({ id: obligationInstance.id })
+          .from(obligationInstance)
+          .where(
+            and(
+              eq(obligationInstance.firmId, firmId),
+              inArray(obligationInstance.id, chunk),
+              eq(obligationInstance.confirmed, false),
+            ),
+          )
+        const projectedIds = projected.map((row) => row.id)
+        if (projectedIds.length === 0) continue
+        await db
+          .update(obligationInstance)
+          .set({ confirmed: true })
+          .where(
+            and(eq(obligationInstance.firmId, firmId), inArray(obligationInstance.id, projectedIds)),
+          )
+        confirmedIds.push(...projectedIds)
+      }
+      return { confirmedIds }
     },
 
     /**

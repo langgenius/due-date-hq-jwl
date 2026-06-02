@@ -248,6 +248,9 @@ function buildScopedRepo(
 
   const obligations: ScopedRepo['obligations'] = {
     firmId,
+    async confirmByIds() {
+      return { confirmedIds: [] }
+    },
     async createBatch() {
       return unexpectedRepoCall('obligations.createBatch')
     },

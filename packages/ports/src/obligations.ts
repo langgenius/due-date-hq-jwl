@@ -64,6 +64,7 @@ export interface ObligationInstanceRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
+  confirmed: boolean
   blockedByObligationInstanceId: string | null
   readiness: ObligationReadiness
   extensionDecision: ObligationExtensionDecision
@@ -133,6 +134,8 @@ export interface ObligationCreateInput {
   baseDueDate: Date
   currentDueDate?: Date
   status?: ObligationStatus
+  /** Annual-rollover lifecycle gate; defaults to true (confirmed) when omitted. */
+  confirmed?: boolean
   prepStage?: ObligationPrepStage
   reviewStage?: ObligationReviewStage
   extensionState?: ObligationExtensionState
@@ -231,6 +234,12 @@ export interface ObligationsRepo {
     },
   ): Promise<void>
   updateStatusMany(ids: string[], status: ObligationStatus): Promise<void>
+  /**
+   * Flip projected (annual-rollover / auto-generated) obligations to confirmed,
+   * scoped to the current firm. Already-confirmed ids are no-ops. Returns the ids
+   * actually transitioned so the caller can audit + report a count.
+   */
+  confirmByIds(ids: string[]): Promise<{ confirmedIds: string[] }>
   /**
    * Filed → e-file rejected unwind (PDF anti-pattern #3: Filed ≠ Done).
    * Stamps `efile_rejected_at`, clears any acceptance timestamp, and
