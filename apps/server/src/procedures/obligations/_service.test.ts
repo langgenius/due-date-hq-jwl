@@ -1076,6 +1076,75 @@ describe('updateObligationStatus', () => {
 
     expect(audits[0]).not.toHaveProperty('reason')
   })
+
+  it('enters the 8879 signature loop when an e-file return is marked Filed', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [
+      makeRow({ status: 'review', taxType: 'federal_1120s', efileState: 'not_applicable' }),
+    ])
+
+    const result = await updateObligationStatus(repo, 'user_1', {
+      id: ROW_ID,
+      status: 'done',
+    })
+
+    expect(result.obligation.status).toBe('done')
+    expect(result.obligation.efileState).toBe('authorization_requested')
+    expect(map.get(ROW_ID)?.efileState).toBe('authorization_requested')
+    // Status audit + a companion efile-state audit explaining the jump.
+    expect(audits).toHaveLength(2)
+    expect(audits[1]).toMatchObject({
+      action: 'obligation.efile.state.updated',
+      entityId: ROW_ID,
+      before: { efileState: 'not_applicable' },
+      after: { efileState: 'authorization_requested' },
+      reason: 'Awaiting Form 8879 signature after filing.',
+    })
+  })
+
+  it('does not enter the signature loop for a non-8879 filing (e.g. payroll)', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [
+      makeRow({ status: 'review', taxType: 'federal_941', efileState: 'not_applicable' }),
+    ])
+
+    await updateObligationStatus(repo, 'user_1', { id: ROW_ID, status: 'done' })
+
+    expect(map.get(ROW_ID)?.efileState).toBe('not_applicable')
+    expect(audits).toHaveLength(1)
+    expect(audits.some((a) => a.action === 'obligation.efile.state.updated')).toBe(false)
+  })
+
+  it('never clobbers a return already walking the e-file pipeline', async () => {
+    const { repo, audits, map } = buildScoped(FIRM, [
+      makeRow({ status: 'review', taxType: 'federal_1120s', efileState: 'submitted' }),
+    ])
+
+    await updateObligationStatus(repo, 'user_1', { id: ROW_ID, status: 'done' })
+
+    expect(map.get(ROW_ID)?.efileState).toBe('submitted')
+    expect(audits).toHaveLength(1)
+  })
+
+  it('bulk Mark filed enters the signature loop only for e-file returns', async () => {
+    const rowReturn = makeRow({ id: ROW_ID, status: 'review', taxType: 'federal_1120s' })
+    const rowPayroll = makeRow({
+      id: '33333333-3333-4333-8333-333333333333',
+      status: 'review',
+      taxType: 'federal_941',
+    })
+    const { repo, audits, map } = buildScoped(FIRM, [rowReturn, rowPayroll])
+
+    const result = await bulkUpdateObligationStatus(repo, 'user_1', {
+      ids: [rowReturn.id, rowPayroll.id],
+      status: 'done',
+    })
+
+    expect(result.updatedCount).toBe(2)
+    expect(map.get(rowReturn.id)?.efileState).toBe('authorization_requested')
+    expect(map.get(rowPayroll.id)?.efileState).toBe('not_applicable')
+    // Exactly one efile companion audit (the return), alongside the two
+    // status-update audits.
+    expect(audits.filter((a) => a.action === 'obligation.efile.state.updated')).toHaveLength(1)
+  })
 })
 
 describe('updateObligationPrepStage', () => {

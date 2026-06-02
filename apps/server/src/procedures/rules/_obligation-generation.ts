@@ -8,6 +8,7 @@ import {
 import { generateReadinessDocumentChecklist } from '@duedatehq/core/readiness-documents'
 import { buildPenaltyFactsFromLegacy, PENALTY_FACTS_VERSION } from '@duedatehq/core/penalty'
 import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
+import { obligationUsesEfileAuthorization } from '@duedatehq/core/obligation-workflow'
 import type { ClientRow } from '@duedatehq/ports/clients'
 import type { ClientFilingProfileRow } from '@duedatehq/ports/client-filing-profiles'
 import type { ObligationCreateInput } from '@duedatehq/ports/obligations'
@@ -183,7 +184,15 @@ export function buildRuleBackedCreateInput(input: {
           : 'not_applicable',
     extensionFormName: input.rule.extensionPolicy.formName ?? null,
     paymentState: paymentDueDate ? 'estimate_needed' : 'not_applicable',
-    efileState: input.preview.isFiling ? 'authorization_requested' : 'not_applicable',
+    // Only income-tax returns that are e-filed under a signed 8879 (or a
+    // state e-file authorization) enter the signature loop at birth. The
+    // prior `isFiling` test was too broad — it also seeded sales/use,
+    // payroll, and UI-wage filings, none of which carry an 8879. See
+    // obligationUsesEfileAuthorization for the exact set.
+    efileState:
+      input.preview.isFiling && obligationUsesEfileAuthorization(input.preview.taxType)
+        ? 'authorization_requested'
+        : 'not_applicable',
     migrationBatchId: input.client.migrationBatchId,
     estimatedTaxDueCents: input.client.estimatedTaxLiabilityCents,
     penaltyFactsJson: penaltyFacts,

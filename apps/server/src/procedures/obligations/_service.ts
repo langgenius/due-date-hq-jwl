@@ -22,6 +22,7 @@ import type {
 import {
   isLegalEfileTransition,
   isLegalObligationTransition,
+  obligationUsesEfileAuthorization,
 } from '@duedatehq/core/obligation-workflow'
 import { formatTaxCode } from '@duedatehq/core/tax-codes'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
@@ -344,6 +345,23 @@ export async function updateObligationStatus(
   if (enteringReview) {
     await resetReviewSubSteps(scoped, input.id)
   }
+
+  // P0 signature-loop entry. Marking an e-file income return Filed
+  // (status → `done`) is the deterministic way INTO "awaiting 8879
+  // signature": generation seeds `authorization_requested` for
+  // rule-created returns, but migration-imported and hand-added returns
+  // land at `not_applicable` and could otherwise never enter the loop.
+  // Forward-only — never clobber a row already walking the e-file
+  // pipeline (e.g. already `submitted`).
+  const efileLoopEntered =
+    before.status !== 'done' &&
+    input.status === 'done' &&
+    (before.efileState ?? 'not_applicable') === 'not_applicable' &&
+    obligationUsesEfileAuthorization(before.taxType)
+  if (efileLoopEntered) {
+    await scoped.obligations.setEfileState(input.id, 'authorization_requested')
+  }
+
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
@@ -370,6 +388,21 @@ export async function updateObligationStatus(
   if (input.reason !== undefined) auditPayload.reason = input.reason
 
   const { id: auditId } = await scoped.audit.write(auditPayload)
+
+  // Companion audit for the auto-entered signature loop (above), so the
+  // timeline explains *why* the row is suddenly awaiting a signature
+  // rather than leaving an unexplained efileState jump.
+  if (efileLoopEntered) {
+    await scoped.audit.write({
+      actorId: userId,
+      entityType: 'obligation_instance',
+      entityId: input.id,
+      action: 'obligation.efile.state.updated',
+      before: { efileState: before.efileState ?? 'not_applicable' },
+      after: { efileState: 'authorization_requested' },
+      reason: 'Awaiting Form 8879 signature after filing.',
+    })
+  }
 
   // Companion audit event for the materials-received milestone.
   // When a row transitions from `waiting_on_client → review` the
@@ -789,6 +822,38 @@ export async function bulkUpdateObligationStatus(
       return event
     }),
   )
+
+  // P0 signature-loop entry for the bulk path — mirror of the single-row
+  // logic in updateObligationStatus. Bulk "Set status → Filed" on e-file
+  // income returns drops them into "awaiting 8879 signature". Forward-only:
+  // skip rows already walking the e-file pipeline. The companion audit ids
+  // are intentionally not folded into the returned `auditIds` (those stay
+  // one-per-status-change).
+  if (input.status === 'done') {
+    const efileLoopRows = changedRows.filter(
+      (row) =>
+        (row.efileState ?? 'not_applicable') === 'not_applicable' &&
+        obligationUsesEfileAuthorization(row.taxType),
+    )
+    if (efileLoopRows.length > 0) {
+      await Promise.all(
+        efileLoopRows.map((row) =>
+          scoped.obligations.setEfileState(row.id, 'authorization_requested'),
+        ),
+      )
+      await scoped.audit.writeBatch(
+        efileLoopRows.map((row) => ({
+          actorId: userId,
+          entityType: 'obligation_instance',
+          entityId: row.id,
+          action: 'obligation.efile.state.updated',
+          before: { efileState: row.efileState ?? 'not_applicable' },
+          after: { efileState: 'authorization_requested' },
+          reason: 'Awaiting Form 8879 signature after filing.',
+        })),
+      )
+    }
+  }
 
   // Lifecycle v2 (slice 2d.4): cascade parent→child unblock for each
   // row in the bulk that landed at `completed`. Mirrors the single-
