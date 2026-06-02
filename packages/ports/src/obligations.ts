@@ -245,6 +245,8 @@ export interface ObligationsRepo {
     taxYears?: number[]
     obligationIds?: string[]
   }): Promise<ObligationInstanceRow[]>
+  /** Unconfirmed, still-open deadlines awaiting CPA confirmation (the review queue). */
+  listProjected(input: { taxYears?: number[] }): Promise<ObligationInstanceRow[]>
   /** Apply re-projected dates to still-projected obligations (confirmed rows are skipped). */
   updateProjectedDueDates(
     updates: ReadonlyArray<{ id: string; baseDueDate: Date; currentDueDate: Date }>,

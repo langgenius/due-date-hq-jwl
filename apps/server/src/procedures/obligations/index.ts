@@ -706,6 +706,30 @@ const applyReprojection = os.obligations.applyReprojection.handler(async ({ inpu
   return result
 })
 
+const listProjectedDeadlines = os.obligations.listProjectedDeadlines.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped } = requireTenant(context)
+    const rows = await scoped.obligations.listProjected(
+      input.targetFilingYear !== undefined ? { taxYears: [input.targetFilingYear] } : {},
+    )
+    const clients = await scoped.clients.findManyByIds([...new Set(rows.map((row) => row.clientId))])
+    const nameById = new Map(clients.map((client) => [client.id, client.name]))
+    const deadlines = rows.map((row) => ({
+      obligationId: row.id,
+      clientId: row.clientId,
+      clientName: nameById.get(row.clientId) ?? row.clientId,
+      taxType: row.taxType,
+      taxYear: row.taxYear,
+      jurisdiction: row.jurisdiction,
+      baseDueDate: row.baseDueDate.toISOString().slice(0, 10),
+      currentDueDate: row.currentDueDate.toISOString().slice(0, 10),
+      generationSource: row.generationSource,
+    }))
+    return { deadlines, count: deadlines.length }
+  },
+)
+
 const updateDueDate = os.obligations.updateDueDate.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, tenant, userId } = requireTenant(context)
@@ -1250,6 +1274,7 @@ export const obligationsHandlers = {
   confirmObligations,
   previewReprojection,
   applyReprojection,
+  listProjectedDeadlines,
   updateDueDate,
   updateTaxYearProfile,
   listByClient,

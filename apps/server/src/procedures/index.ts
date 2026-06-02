@@ -88,6 +88,7 @@ export const router = os.router({
     confirmObligations: obligationsHandlers.confirmObligations,
     previewReprojection: obligationsHandlers.previewReprojection,
     applyReprojection: obligationsHandlers.applyReprojection,
+    listProjectedDeadlines: obligationsHandlers.listProjectedDeadlines,
     updateDueDate: obligationsHandlers.updateDueDate,
     updateTaxYearProfile: obligationsHandlers.updateTaxYearProfile,
     updateStatus: obligationsHandlers.updateStatus,

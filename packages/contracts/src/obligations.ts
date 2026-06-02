@@ -661,6 +661,35 @@ export const ReprojectionOutputSchema = z.object({
   auditId: EntityIdSchema.nullable(),
 })
 export type ReprojectionOutput = z.infer<typeof ReprojectionOutputSchema>
+
+/**
+ * The projected-deadlines review queue: unconfirmed deadlines (annual rollover,
+ * auto-projection, pulse) awaiting CPA confirmation before they re-enter the
+ * reminder pipeline.
+ */
+export const ListProjectedDeadlinesInputSchema = z.object({
+  targetFilingYear: z.number().int().min(1900).max(2100).optional(),
+})
+export type ListProjectedDeadlinesInput = z.infer<typeof ListProjectedDeadlinesInputSchema>
+
+export const ProjectedDeadlineSchema = z.object({
+  obligationId: EntityIdSchema,
+  clientId: EntityIdSchema,
+  clientName: z.string().min(1),
+  taxType: z.string().min(1),
+  taxYear: z.number().int().nullable(),
+  jurisdiction: z.string().nullable(),
+  baseDueDate: z.string(),
+  currentDueDate: z.string(),
+  generationSource: z.enum(['migration', 'manual', 'annual_rollover', 'pulse']).nullable(),
+})
+export type ProjectedDeadline = z.infer<typeof ProjectedDeadlineSchema>
+
+export const ListProjectedDeadlinesOutputSchema = z.object({
+  deadlines: z.array(ProjectedDeadlineSchema),
+  count: z.number().int().min(0),
+})
+export type ListProjectedDeadlinesOutput = z.infer<typeof ListProjectedDeadlinesOutputSchema>
 export type AnnualRolloverOutput = z.infer<typeof AnnualRolloverOutputSchema>
 
 export const obligationsContract = oc.router({
@@ -688,6 +717,9 @@ export const obligationsContract = oc.router({
     .output(ConfirmObligationsOutputSchema),
   previewReprojection: oc.input(ReprojectionInputSchema).output(ReprojectionOutputSchema),
   applyReprojection: oc.input(ReprojectionInputSchema).output(ReprojectionOutputSchema),
+  listProjectedDeadlines: oc
+    .input(ListProjectedDeadlinesInputSchema)
+    .output(ListProjectedDeadlinesOutputSchema),
   updateDueDate: oc.input(DueDateUpdateInputSchema).output(ObligationInstancePublicSchema),
   updateTaxYearProfile: oc
     .input(ObligationTaxYearProfileUpdateInputSchema)

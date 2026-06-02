@@ -456,6 +456,31 @@ export function makeObligationsRepo(db: Db, firmId: string) {
       return hydrateObligationRows(rows)
     },
 
+    async listProjected(input: {
+      taxYears?: number[]
+    }): Promise<Array<ObligationInstance & { readiness: ObligationReadiness }>> {
+      // Unconfirmed, still-open deadlines awaiting CPA confirmation (the review queue).
+      const filters = [
+        eq(obligationInstance.firmId, firmId),
+        eq(obligationInstance.confirmed, false),
+        inArray(obligationInstance.status, [
+          'pending',
+          'in_progress',
+          'waiting_on_client',
+          'review',
+          'blocked',
+        ]),
+      ]
+      const taxYears = [...new Set(input.taxYears ?? [])]
+      if (taxYears.length > 0) filters.push(inArray(obligationInstance.taxYear, taxYears))
+      const rows = await db
+        .select()
+        .from(obligationInstance)
+        .where(and(...filters))
+        .orderBy(asc(obligationInstance.currentDueDate))
+      return hydrateObligationRows(rows)
+    },
+
     async listGeneratedByClientAndTaxYears(input: {
       clientIds: string[]
       taxYears: number[]

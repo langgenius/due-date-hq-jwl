@@ -255,6 +255,9 @@ function buildScopedRepo(
       return []
     },
     async updateProjectedDueDates() {},
+    async listProjected() {
+      return []
+    },
     async createBatch() {
       return unexpectedRepoCall('obligations.createBatch')
     },

@@ -79,6 +79,9 @@ function buildScoped(firmId: string, rows: Row[]) {
       return []
     },
     async updateProjectedDueDates() {},
+    async listProjected() {
+      return []
+    },
     async createBatch() {
       throw new Error('not used')
     },

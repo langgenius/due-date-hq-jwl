@@ -5,6 +5,7 @@ import { enqueueDashboardBriefRefresh } from './dashboard-brief/enqueue'
 import { enqueuePulseIngestScans } from './pulse/ingest'
 import { dispatchDeadlineReminders } from './reminders/dispatch'
 import { dispatchMorningDigests } from './notifications/morning-digest'
+import { dispatchAutoRollover } from './rollover/auto'
 import {
   enqueueDueRuleSourceScans,
   enqueueRuleDateReconciliation,
@@ -128,6 +129,7 @@ export async function scheduled(
     ['pulse_ingest_scans', enqueuePulseIngestScans(env, undefined, now)],
     ['deadline_reminders', dispatchDeadlineReminders(env, now)],
     ['morning_digests', dispatchMorningDigests(env, now)],
+    ['annual_rollover_auto', dispatchAutoRollover(env, now)],
     ['email_flush', env.EMAIL_QUEUE.send({ type: 'email.flush' })],
   ]
 

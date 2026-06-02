@@ -320,6 +320,7 @@ function makeContext(input: {
     confirmByIds: null!,
     listReprojectionCandidates: null!,
     updateProjectedDueDates: null!,
+    listProjected: null!,
     createBatch,
     findById: vi.fn(async () => input.obligation ?? undefined),
     findManyByIds: null!,
