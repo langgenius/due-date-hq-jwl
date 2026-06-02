@@ -191,6 +191,9 @@ export const reminder = sqliteTable(
     uniqueIndex('uq_reminder_dedupe').on(table.dedupeKey),
     index('idx_reminder_firm_status_time').on(table.firmId, table.status, table.scheduledFor),
     index('idx_reminder_obligation').on(table.obligationInstanceId),
+    // Resend webhook + outbox flush correlate a delivery event back to its
+    // reminder by email_outbox_id (to recover client/deadline + set clickedAt).
+    index('idx_reminder_outbox').on(table.emailOutboxId),
   ],
 )
 

@@ -4,14 +4,16 @@ import { eq } from 'drizzle-orm'
 import { createDb } from '@duedatehq/db'
 import { emailOutbox } from '@duedatehq/db/schema/notifications'
 import type { Env, ContextVars } from '../env'
+import { markRemindersOpened } from '@duedatehq/db/reminder-linkage'
 
 type ResendWebhookEnv = Pick<Env, 'DB' | 'RESEND_API_KEY' | 'RESEND_WEBHOOK_SECRET'>
 
-type OutboxWebhookUpdate = {
-  outboxId: string
-  status: 'sent' | 'failed'
-  failureReason: string | null
-}
+type OutboxWebhookUpdate =
+  | { kind: 'status'; outboxId: string; status: 'sent' | 'failed'; failureReason: string | null }
+  // `opened` does not change the send status — it records first-open on the
+  // linked reminder(s). Resend fires this per device / proxy prefetch, so the
+  // linkage helper dedups to first-open.
+  | { kind: 'opened'; outboxId: string }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -49,7 +51,7 @@ function parseWebhookUpdate(payload: string): OutboxWebhookUpdate | null {
   if (!type || !outboxId) return null
 
   if (type === 'email.sent' || type === 'email.delivered') {
-    return { outboxId, status: 'sent', failureReason: null }
+    return { kind: 'status', outboxId, status: 'sent', failureReason: null }
   }
   if (
     type === 'email.failed' ||
@@ -58,10 +60,14 @@ function parseWebhookUpdate(payload: string): OutboxWebhookUpdate | null {
     type === 'email.suppressed'
   ) {
     return {
+      kind: 'status',
       outboxId,
       status: 'failed',
       failureReason: failureReasonFor(type, parsed.data),
     }
+  }
+  if (type === 'email.opened' || type === 'email.clicked') {
+    return { kind: 'opened', outboxId }
   }
   return null
 }
@@ -71,6 +77,11 @@ async function updateOutboxFromWebhook(env: ResendWebhookEnv, payload: string): 
   if (!update) return false
 
   const db = createDb(env.DB)
+  if (update.kind === 'opened') {
+    // Stamp first-open on the linked reminder(s); leave the send status alone.
+    await markRemindersOpened(db, update.outboxId, new Date())
+    return true
+  }
   await db
     .update(emailOutbox)
     .set({
