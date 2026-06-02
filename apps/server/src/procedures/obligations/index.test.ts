@@ -646,7 +646,7 @@ describe('obligations.createFromRule', () => {
         createdByUserId: USER_ID,
         template: expect.arrayContaining([
           expect.objectContaining({
-            templateKey: '1120s.s_corporation_return.s_election',
+            templateKey: '1120s.s_corporation_return.s_election', // gitleaks:allow (tax-form template key, not a secret)
           }),
         ]),
       }),
