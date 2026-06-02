@@ -771,7 +771,12 @@ const bulkUpdateStatus = os.obligations.bulkUpdateStatus.handler(async ({ input,
 const decideExtension = os.obligations.decideExtension.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, tenant, userId } = requireTenant(context)
-  const result = await decideObligationExtension(scoped, userId, input)
+  const result = await decideObligationExtension(
+    scoped,
+    userId,
+    input,
+    tenant.internalDeadlineOffsetDays,
+  )
   await enqueueDashboardBriefRefresh(context.env, {
     firmId: tenant.firmId,
     reason: 'status_change',
@@ -793,7 +798,12 @@ const bulkDecideExtension = os.obligations.bulkDecideExtension.handler(
   async ({ input, context }) => {
     await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
     const { scoped, tenant, userId } = requireTenant(context)
-    const result = await bulkDecideObligationExtension(scoped, userId, input)
+    const result = await bulkDecideObligationExtension(
+      scoped,
+      userId,
+      input,
+      tenant.internalDeadlineOffsetDays,
+    )
     if (result.decidedCount > 0) {
       await enqueueDashboardBriefRefresh(context.env, {
         firmId: tenant.firmId,

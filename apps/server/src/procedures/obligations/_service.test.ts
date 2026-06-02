@@ -3,6 +3,7 @@ import { ObligationInstancePublicSchema } from '@duedatehq/contracts'
 import type { ObligationInstanceRow } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { deriveObligationReadiness } from '@duedatehq/core/obligation-workflow'
+import { statutoryPenaltyDueDate } from '@duedatehq/core/deadlines'
 import {
   backfillObligationSignatureLoop,
   bulkDecideObligationExtension,
@@ -178,6 +179,9 @@ function buildScoped(firmId: string, rows: Row[]) {
         extensionDecidedByUserId: patch.decidedByUserId,
         extensionState: patch.decision === 'applied' ? 'filed' : 'rejected',
         status,
+        ...(patch.filingDueDate !== undefined ? { filingDueDate: patch.filingDueDate } : {}),
+        ...(patch.currentDueDate !== undefined ? { currentDueDate: patch.currentDueDate } : {}),
+        ...(patch.paymentDueDate !== undefined ? { paymentDueDate: patch.paymentDueDate } : {}),
         readiness: deriveObligationReadiness({ status }),
         updatedAt: new Date(),
       })
@@ -747,66 +751,120 @@ describe('toObligationPublic', () => {
 })
 
 describe('decideObligationExtension', () => {
-  it('saves an internal extension plan as applied without accepting a caller decision', async () => {
+  // fed.1040.return.2025 carries extensionPolicy.durationMonths = 6 (Form 4868),
+  // so an extension from April 15 pushes the filing deadline to Oct 15.
+  const RULE_1040 = 'fed.1040.return.2025'
+  const OFFSET = 14
+
+  it('applies the decision AND moves the filing deadline to the extended date', async () => {
     const { repo, audits, evidences, map } = buildScoped(FIRM, [
-      makeRow({ filingDueDate: new Date('2026-04-15T00:00:00.000Z') }),
+      makeRow({
+        ruleId: RULE_1040,
+        baseDueDate: new Date('2026-04-15T00:00:00.000Z'),
+        filingDueDate: new Date('2026-04-15T00:00:00.000Z'),
+      }),
     ])
 
-    const result = await decideObligationExtension(repo, 'user_1', {
-      id: ROW_ID,
-      internalTargetDate: '2026-04-15',
-      source: 'Partner approval',
-      memo: 'Client materials are late.',
-    })
+    const result = await decideObligationExtension(
+      repo,
+      'user_1',
+      {
+        id: ROW_ID,
+        internalTargetDate: '2026-08-01',
+        source: 'Partner approval',
+        memo: 'Client materials are late.',
+      },
+      OFFSET,
+    )
 
     expect(result.auditId).toBe('audit-1')
     expect(result.evidenceId).toBe('evidence-1')
     expect(result.obligation.status).toBe('extended')
     expect(result.obligation.extensionDecision).toBe('applied')
-    expect(result.obligation.extensionInternalTargetDate).toBe('2026-04-15')
-    expect(map.get(ROW_ID)).toMatchObject({
+    expect(result.obligation.extensionInternalTargetDate).toBe('2026-08-01')
+    // Filing deadline pushed to Oct 15; the internal target becomes the working
+    // (current) deadline; payment + base stay on the original date.
+    expect(result.obligation.filingDueDate).toBe('2026-10-15')
+    expect(result.obligation.currentDueDate).toBe('2026-08-01')
+    expect(result.obligation.paymentDueDate).toBe('2026-04-15')
+    expect(result.obligation.baseDueDate).toBe('2026-04-15')
+
+    const stored = map.get(ROW_ID)
+    expect(stored?.filingDueDate?.toISOString().slice(0, 10)).toBe('2026-10-15')
+    expect(stored?.currentDueDate?.toISOString().slice(0, 10)).toBe('2026-08-01')
+    expect(stored?.paymentDueDate?.toISOString().slice(0, 10)).toBe('2026-04-15')
+    expect(stored).toMatchObject({
       status: 'extended',
       extensionDecision: 'applied',
       extensionMemo: 'Client materials are late.',
       extensionSource: 'Partner approval',
       extensionState: 'filed',
     })
-    expect(map.get(ROW_ID)?.extensionExpectedDueDate?.toISOString().slice(0, 10)).toBe('2026-04-15')
-    expect(evidences).toHaveLength(1)
+
     const [evidence] = evidences
     if (!evidence) throw new Error('Expected extension evidence')
     expect(JSON.parse(evidence.normalizedValue ?? '{}')).toMatchObject({
       decision: 'applied',
-      internalTargetDate: '2026-04-15',
+      internalTargetDate: '2026-08-01',
+      originalFilingDeadline: '2026-04-15',
+      extendedFilingDeadline: '2026-10-15',
+      durationMonths: 6,
+      paymentDeadline: '2026-04-15',
       paymentStillDue: true,
     })
     expect(audits[0]).toMatchObject({
       action: 'obligation.extension.decided',
-      before: {
-        status: 'pending',
-        extensionDecision: 'not_considered',
-        extensionInternalTargetDate: null,
-      },
       after: {
         status: 'extended',
         extensionDecision: 'applied',
-        extensionInternalTargetDate: '2026-04-15',
+        filingDeadline: '2026-10-15',
+        originalFilingDeadline: '2026-04-15',
+        paymentDeadline: '2026-04-15',
         paymentStillDue: true,
       },
       reason: 'Client materials are late.',
     })
   })
 
-  it('rejects an internal target date after the filing deadline', async () => {
+  it('allows an internal target AFTER the original deadline (up to the extended date)', async () => {
+    const { repo } = buildScoped(FIRM, [
+      makeRow({
+        ruleId: RULE_1040,
+        baseDueDate: new Date('2026-04-15T00:00:00.000Z'),
+        filingDueDate: new Date('2026-04-15T00:00:00.000Z'),
+      }),
+    ])
+
+    // 2026-09-30 is after the original April 15 deadline but before Oct 15 —
+    // exactly the realistic post-extension target the old capped flow rejected.
+    const result = await decideObligationExtension(
+      repo,
+      'user_1',
+      { id: ROW_ID, internalTargetDate: '2026-09-30' },
+      OFFSET,
+    )
+
+    expect(result.obligation.extensionDecision).toBe('applied')
+    expect(result.obligation.extensionInternalTargetDate).toBe('2026-09-30')
+    expect(result.obligation.filingDueDate).toBe('2026-10-15')
+  })
+
+  it('rejects an internal target date after the EXTENDED filing deadline', async () => {
     const { repo, audits, evidences, map } = buildScoped(FIRM, [
-      makeRow({ filingDueDate: new Date('2026-04-15T00:00:00.000Z') }),
+      makeRow({
+        ruleId: RULE_1040,
+        baseDueDate: new Date('2026-04-15T00:00:00.000Z'),
+        filingDueDate: new Date('2026-04-15T00:00:00.000Z'),
+      }),
     ])
 
     await expect(
-      decideObligationExtension(repo, 'user_1', {
-        id: ROW_ID,
-        internalTargetDate: '2026-04-16',
-      }),
+      decideObligationExtension(
+        repo,
+        'user_1',
+        { id: ROW_ID, internalTargetDate: '2026-10-16' },
+        OFFSET,
+      ),
     ).rejects.toMatchObject({ code: 'BAD_REQUEST' })
 
     expect(map.get(ROW_ID)?.extensionDecision).toBe('not_considered')
@@ -814,90 +872,180 @@ describe('decideObligationExtension', () => {
     expect(evidences).toHaveLength(0)
   })
 
-  it('uses base due date as the filing deadline fallback', async () => {
-    const { repo } = buildScoped(FIRM, [
+  it('keeps the penalty anchored on the original payment date after extending', async () => {
+    const { repo, map } = buildScoped(FIRM, [
       makeRow({
-        filingDueDate: null,
+        ruleId: RULE_1040,
         baseDueDate: new Date('2026-04-15T00:00:00.000Z'),
+        filingDueDate: new Date('2026-04-15T00:00:00.000Z'),
+        paymentDueDate: null,
       }),
     ])
 
-    const result = await decideObligationExtension(repo, 'user_1', {
-      id: ROW_ID,
-      internalTargetDate: '2026-04-15',
-    })
+    await decideObligationExtension(
+      repo,
+      'user_1',
+      { id: ROW_ID, internalTargetDate: '2026-08-01' },
+      OFFSET,
+    )
+
+    const stored = map.get(ROW_ID)
+    if (!stored) throw new Error('row missing')
+    // Filing moved to Oct 15, but the statutory penalty date stays April 15
+    // because paymentDueDate was pinned to the original date.
+    expect(statutoryPenaltyDueDate(stored).toISOString().slice(0, 10)).toBe('2026-04-15')
+  })
+
+  it('requires a manual extended date when the rule has no statutory duration', async () => {
+    const { repo, map } = buildScoped(FIRM, [
+      makeRow({ ruleId: null, baseDueDate: new Date('2026-04-15T00:00:00.000Z') }),
+    ])
+
+    await expect(
+      decideObligationExtension(
+        repo,
+        'user_1',
+        { id: ROW_ID, internalTargetDate: '2026-09-01' },
+        OFFSET,
+      ),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' })
+    expect(map.get(ROW_ID)?.extensionDecision).toBe('not_considered')
+  })
+
+  it('uses a manually-entered extended date for rules without a duration', async () => {
+    const { repo, map } = buildScoped(FIRM, [
+      makeRow({ ruleId: null, baseDueDate: new Date('2026-04-15T00:00:00.000Z') }),
+    ])
+
+    const result = await decideObligationExtension(
+      repo,
+      'user_1',
+      { id: ROW_ID, internalTargetDate: '2026-10-01', extendedFilingDate: '2026-11-15' },
+      OFFSET,
+    )
 
     expect(result.obligation.extensionDecision).toBe('applied')
-    expect(result.obligation.extensionInternalTargetDate).toBe('2026-04-15')
+    expect(result.obligation.filingDueDate).toBe('2026-11-15')
+    expect(result.obligation.currentDueDate).toBe('2026-10-01')
+    expect(map.get(ROW_ID)?.filingDueDate?.toISOString().slice(0, 10)).toBe('2026-11-15')
   })
 })
 
 describe('bulkDecideObligationExtension', () => {
+  const RULE_1040 = 'fed.1040.return.2025'
+  const OFFSET = 14
   const ROW_A = ROW_ID
   const ROW_B = '55555555-5555-4555-8555-555555555555'
   const ROW_C = '66666666-6666-4666-8666-666666666666'
 
-  it('decides every eligible row and skips already-extended ones', async () => {
+  function row1040(id: string, baseIso: string, over: Partial<Row> = {}): Row {
+    return makeRow({
+      id,
+      ruleId: RULE_1040,
+      baseDueDate: new Date(`${baseIso}T00:00:00.000Z`),
+      filingDueDate: new Date(`${baseIso}T00:00:00.000Z`),
+      ...over,
+    })
+  }
+
+  it('decides every eligible row, moving each filing deadline, and skips already-extended', async () => {
     const { repo, audits, map } = buildScoped(FIRM, [
-      makeRow({ id: ROW_A, filingDueDate: new Date('2026-04-15T00:00:00.000Z') }),
-      makeRow({ id: ROW_B, filingDueDate: new Date('2026-05-15T00:00:00.000Z') }),
-      makeRow({ id: ROW_C, extensionDecision: 'applied' }),
+      row1040(ROW_A, '2026-04-15'), // → extended 2026-10-15
+      row1040(ROW_B, '2026-03-15'), // → extended 2026-09-15
+      makeRow({ id: ROW_C, ruleId: RULE_1040, extensionDecision: 'applied' }),
     ])
 
-    const result = await bulkDecideObligationExtension(repo, 'user_1', {
-      ids: [ROW_A, ROW_B, ROW_C],
-      memo: 'Busy season backlog.',
-    })
+    const result = await bulkDecideObligationExtension(
+      repo,
+      'user_1',
+      { ids: [ROW_A, ROW_B, ROW_C], memo: 'Busy season backlog.' },
+      OFFSET,
+    )
 
     expect(result.decidedCount).toBe(2)
     expect(result.skippedCount).toBe(1)
     expect(result.auditIds).toHaveLength(2)
+    expect(map.get(ROW_A)?.filingDueDate?.toISOString().slice(0, 10)).toBe('2026-10-15')
+    expect(map.get(ROW_B)?.filingDueDate?.toISOString().slice(0, 10)).toBe('2026-09-15')
     expect(map.get(ROW_A)).toMatchObject({ status: 'extended', extensionDecision: 'applied' })
-    expect(map.get(ROW_B)).toMatchObject({ status: 'extended', extensionDecision: 'applied' })
     // The already-extended row is untouched (no status flip to 'extended' here).
     expect(map.get(ROW_C)?.status).toBe('pending')
     expect(audits.filter((a) => a.action === 'obligation.extension.decided')).toHaveLength(2)
   })
 
-  it('skips rows whose filing deadline is earlier than the shared target date', async () => {
+  it('skips rows whose extended deadline is earlier than the shared target date', async () => {
     const { repo, map } = buildScoped(FIRM, [
-      makeRow({ id: ROW_A, filingDueDate: new Date('2026-03-15T00:00:00.000Z') }),
-      makeRow({ id: ROW_B, filingDueDate: new Date('2026-05-15T00:00:00.000Z') }),
+      row1040(ROW_A, '2026-04-15'), // extended 2026-10-15
+      row1040(ROW_B, '2026-09-15'), // extended 2027-03-15
     ])
 
-    const result = await bulkDecideObligationExtension(repo, 'user_1', {
-      ids: [ROW_A, ROW_B],
-      internalTargetDate: '2026-04-01',
-    })
+    const result = await bulkDecideObligationExtension(
+      repo,
+      'user_1',
+      { ids: [ROW_A, ROW_B], internalTargetDate: '2026-12-01' },
+      OFFSET,
+    )
 
-    expect(result.decidedCount).toBe(1) // only ROW_B (deadline 2026-05-15 >= target)
-    expect(result.skippedCount).toBe(1) // ROW_A deadline 2026-03-15 < 2026-04-01
+    expect(result.decidedCount).toBe(1) // only ROW_B (extended 2027-03-15 >= target)
+    expect(result.skippedCount).toBe(1) // ROW_A extended 2026-10-15 < 2026-12-01
     expect(map.get(ROW_A)?.extensionDecision).toBe('not_considered')
     expect(map.get(ROW_B)).toMatchObject({ status: 'extended', extensionDecision: 'applied' })
   })
 
+  it('skips rows whose rule has no statutory duration (need a manual date)', async () => {
+    const { repo, map } = buildScoped(FIRM, [
+      makeRow({ id: ROW_A, ruleId: null, baseDueDate: new Date('2026-04-15T00:00:00.000Z') }),
+      row1040(ROW_B, '2026-04-15'),
+    ])
+
+    const result = await bulkDecideObligationExtension(
+      repo,
+      'user_1',
+      { ids: [ROW_A, ROW_B], memo: 'note' },
+      OFFSET,
+    )
+
+    expect(result.decidedCount).toBe(1)
+    expect(result.skippedCount).toBe(1)
+    expect(map.get(ROW_A)?.extensionDecision).toBe('not_considered')
+    expect(map.get(ROW_B)?.extensionDecision).toBe('applied')
+  })
+
   it('counts a missing id as skipped', async () => {
-    const { repo } = buildScoped(FIRM, [makeRow({ id: ROW_A })])
-    const result = await bulkDecideObligationExtension(repo, 'user_1', {
-      ids: [ROW_A, ROW_B],
-      memo: 'note',
-    })
+    const { repo } = buildScoped(FIRM, [row1040(ROW_A, '2026-04-15')])
+    const result = await bulkDecideObligationExtension(
+      repo,
+      'user_1',
+      { ids: [ROW_A, ROW_B], memo: 'note' },
+      OFFSET,
+    )
     expect(result.decidedCount).toBe(1)
     expect(result.skippedCount).toBe(1)
   })
 })
 
 describe('bulkPreviewObligationExtensionDecision', () => {
+  const RULE_1040 = 'fed.1040.return.2025'
   const ROW_A = ROW_ID
   const ROW_B = '55555555-5555-4555-8555-555555555555'
   const ROW_C = '66666666-6666-4666-8666-666666666666'
   const MISSING = '77777777-7777-4777-8777-777777777777'
 
-  it('counts eligible / already-extended / not-found and reports earliest deadline', async () => {
+  function row1040(id: string, baseIso: string, over: Partial<Row> = {}): Row {
+    return makeRow({
+      id,
+      ruleId: RULE_1040,
+      baseDueDate: new Date(`${baseIso}T00:00:00.000Z`),
+      filingDueDate: new Date(`${baseIso}T00:00:00.000Z`),
+      ...over,
+    })
+  }
+
+  it('reports counts plus the earliest original and extended deadlines', async () => {
     const { repo } = buildScoped(FIRM, [
-      makeRow({ id: ROW_A, filingDueDate: new Date('2026-04-15T00:00:00.000Z') }),
-      makeRow({ id: ROW_B, filingDueDate: new Date('2026-03-15T00:00:00.000Z') }),
-      makeRow({ id: ROW_C, extensionDecision: 'applied' }),
+      row1040(ROW_A, '2026-04-15'), // extended 2026-10-15
+      row1040(ROW_B, '2026-03-15'), // extended 2026-09-15
+      makeRow({ id: ROW_C, ruleId: RULE_1040, extensionDecision: 'applied' }),
     ])
 
     const preview = await bulkPreviewObligationExtensionDecision(repo, {
@@ -908,9 +1056,30 @@ describe('bulkPreviewObligationExtensionDecision', () => {
     expect(preview.alreadyExtendedCount).toBe(1)
     expect(preview.skippedCount).toBe(1)
     expect(preview.earliestFilingDeadline).toBe('2026-03-15')
+    expect(preview.earliestExtendedFilingDeadline).toBe('2026-09-15')
+    expect(preview.needsManualDeadlineCount).toBe(0)
   })
 
-  it('returns a null earliest deadline when nothing is eligible', async () => {
+  it('counts eligible rows without a duration as needing a manual deadline', async () => {
+    const { repo } = buildScoped(FIRM, [
+      makeRow({
+        id: ROW_A,
+        ruleId: null,
+        baseDueDate: new Date('2026-04-15T00:00:00.000Z'),
+        filingDueDate: new Date('2026-04-15T00:00:00.000Z'),
+      }),
+      row1040(ROW_B, '2026-04-15'),
+    ])
+
+    const preview = await bulkPreviewObligationExtensionDecision(repo, { ids: [ROW_A, ROW_B] })
+
+    expect(preview.eligibleCount).toBe(2)
+    expect(preview.needsManualDeadlineCount).toBe(1)
+    expect(preview.earliestExtendedFilingDeadline).toBe('2026-10-15')
+    expect(preview.earliestFilingDeadline).toBe('2026-04-15')
+  })
+
+  it('returns null earliest deadlines when nothing is eligible', async () => {
     const { repo } = buildScoped(FIRM, [makeRow({ id: ROW_A, extensionDecision: 'applied' })])
     const preview = await bulkPreviewObligationExtensionDecision(repo, { ids: [ROW_A] })
     expect(preview).toMatchObject({
@@ -918,6 +1087,8 @@ describe('bulkPreviewObligationExtensionDecision', () => {
       alreadyExtendedCount: 1,
       skippedCount: 0,
       earliestFilingDeadline: null,
+      earliestExtendedFilingDeadline: null,
+      needsManualDeadlineCount: 0,
     })
   })
 })

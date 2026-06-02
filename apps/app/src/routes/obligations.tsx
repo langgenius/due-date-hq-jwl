@@ -102,6 +102,7 @@ import {
   type ReadinessPreviewRequestEmailOutput,
 } from '@duedatehq/contracts'
 import { renderTemplate, SIGNATURE_REMINDER_THROTTLE_DAYS } from '@duedatehq/core/email-template'
+import { computeExtendedFilingDeadline } from '@duedatehq/core/date-logic'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import {
   AlertDialog,
@@ -516,6 +517,9 @@ type ExtensionPlanDraft = {
   memo: string
   source: string
   internalTargetDate: string
+  // Manually-entered extended filing deadline — only used for rules with no
+  // statutory durationMonths (the server computes it otherwise).
+  extendedFilingDate: string
 }
 
 export function emptyExtensionPlanDraft(obligationId = ''): ExtensionPlanDraft {
@@ -524,6 +528,7 @@ export function emptyExtensionPlanDraft(obligationId = ''): ExtensionPlanDraft {
     memo: '',
     source: '',
     internalTargetDate: '',
+    extendedFilingDate: '',
   }
 }
 
@@ -538,6 +543,7 @@ export function extensionPlanDraftFromRow(
     memo: row.extensionMemo ?? '',
     source: row.extensionSource ?? '',
     internalTargetDate: row.extensionInternalTargetDate ?? '',
+    extendedFilingDate: '',
   }
 }
 
@@ -5609,14 +5615,21 @@ function BulkExtensionDialog({
   }, [open])
 
   const eligibleCount = query.data?.eligibleCount ?? 0
-  const earliest = query.data?.earliestFilingDeadline ?? ''
+  const needsManualCount = query.data?.needsManualDeadlineCount ?? 0
+  // Rows that can actually be bulk-decided: eligible AND have a computable
+  // extended date. Rows lacking a statutory duration are skipped in bulk
+  // (they need an individually-entered extended date).
+  const applicableCount = Math.max(0, eligibleCount - needsManualCount)
+  // Cap the picker at the earliest EXTENDED deadline so any picked date is
+  // valid for every applicable row.
+  const cap = query.data?.earliestExtendedFilingDeadline ?? ''
   // The picker normally prevents this, but guard if the cap shrank after a
   // re-query while a later date was already chosen.
-  const dateInvalid = internalTargetDate !== '' && earliest !== '' && internalTargetDate > earliest
+  const dateInvalid = internalTargetDate !== '' && cap !== '' && internalTargetDate > cap
   // Internal target date is required (mirrors the single extension's
   // canSaveInternalExtensionPlan), alongside a memo.
   const canSend =
-    eligibleCount > 0 &&
+    applicableCount > 0 &&
     memo.trim().length > 0 &&
     internalTargetDate !== '' &&
     !dateInvalid &&
@@ -5631,9 +5644,10 @@ function BulkExtensionDialog({
           </DialogTitle>
           <DialogDescription>
             <Trans>
-              Apply an internal extension plan to every eligible selected deadline. The target date
-              is capped at the earliest filing deadline in the selection; deadlines already extended
-              are skipped.
+              Apply an internal extension plan to every eligible selected deadline. Each filing
+              deadline moves to its statutory extended date; payment stays due on the original date.
+              The target date is capped at the earliest extended deadline; deadlines already
+              extended are skipped.
             </Trans>
           </DialogDescription>
         </DialogHeader>
@@ -5645,10 +5659,19 @@ function BulkExtensionDialog({
           <div className="grid gap-3">
             <p className="text-sm text-text-secondary">
               <Trans>
-                Extending {eligibleCount} deadlines · {query.data?.alreadyExtendedCount ?? 0}{' '}
+                Extending {applicableCount} deadlines · {query.data?.alreadyExtendedCount ?? 0}{' '}
                 already extended · {query.data?.skippedCount ?? 0} not found
               </Trans>
             </p>
+            {needsManualCount > 0 ? (
+              <p className="text-xs text-text-tertiary">
+                <Plural
+                  value={needsManualCount}
+                  one="# selected deadline has no fixed extension length — decide it individually."
+                  other="# selected deadlines have no fixed extension length — decide them individually."
+                />
+              </p>
+            ) : null}
             <div className="grid gap-1.5">
               <label htmlFor="bulk-extension-memo" className="text-sm font-medium">
                 <Trans>Decision memo</Trans>
@@ -5677,16 +5700,19 @@ function BulkExtensionDialog({
               <IsoDatePicker
                 value={internalTargetDate}
                 invalid={dateInvalid}
-                {...(earliest ? { maxIsoDate: earliest } : {})}
+                {...(cap ? { maxIsoDate: cap } : {})}
                 ariaLabel={t`Internal extension target date`}
                 placeholder={t`Internal extension target date`}
                 onValueChange={setInternalTargetDate}
               />
-              {earliest ? (
+              {cap ? (
                 <p className="text-xs text-text-tertiary">
-                  <Trans>Capped at the earliest filing deadline: {earliest}</Trans>
+                  <Trans>Capped at the earliest extended filing deadline: {cap}</Trans>
                 </p>
               ) : null}
+              <p className="text-xs text-text-tertiary">
+                <Trans>Payment stays due on each deadline&apos;s original date.</Trans>
+              </p>
             </div>
           </div>
         )}
@@ -5964,12 +5990,36 @@ export function ObligationQueueDetailDrawer({
   void deadlineTipPreparing
   const latestRequest = detail?.readinessRequests[0] ?? null
   const storedChecklist = detail?.readinessChecklist ?? EMPTY_DOCUMENT_CHECKLIST
-  const extensionFilingDeadline = row?.filingDueDate ?? row?.baseDueDate ?? ''
+  // Extension policy from the matched rule (drives the extended-deadline math).
+  const extensionPolicy = detail?.matchedRule?.extensionPolicy ?? null
+  const extensionDurationMonths = extensionPolicy?.durationMonths ?? null
+  const extensionOriginalDeadline = row?.baseDueDate ?? ''
+  // The statutory extended filing deadline, computed from the immutable base
+  // date so it matches the server (and stays stable across re-saves). Rules
+  // with no durationMonths (Form 8809 / TX franchise) need a manual date.
+  const extensionComputedDeadline =
+    row && extensionDurationMonths !== null && isValidIsoDate(row.baseDueDate)
+      ? computeExtendedFilingDeadline(
+          new Date(`${row.baseDueDate}T00:00:00.000Z`),
+          extensionDurationMonths,
+        )
+          .toISOString()
+          .slice(0, 10)
+      : ''
+  const extensionNeedsManualDeadline = Boolean(row) && extensionDurationMonths === null
+  // The cap for the internal target picker = the extended filing deadline
+  // (manual date when the rule has no duration). The internal target can now
+  // sit anywhere up to the extended deadline — the whole point of an extension.
+  const extensionDeadlineCap = extensionNeedsManualDeadline
+    ? extensionDraft.extendedFilingDate
+    : extensionComputedDeadline
+  const extensionManualDeadlineInvalid =
+    extensionNeedsManualDeadline &&
+    extensionDraft.extendedFilingDate !== '' &&
+    isValidIsoDate(extensionOriginalDeadline) &&
+    extensionDraft.extendedFilingDate <= extensionOriginalDeadline
   const internalTargetDateInvalid = row
-    ? !isInternalExtensionTargetDateValid(
-        extensionDraft.internalTargetDate,
-        extensionFilingDeadline,
-      )
+    ? !isInternalExtensionTargetDateValid(extensionDraft.internalTargetDate, extensionDeadlineCap)
     : false
   const fiscalYearEnd = fiscalYearEndParts(taxYearDraft.fiscalYearEndDate)
   const taxYearFiscalMissing =
@@ -6260,9 +6310,11 @@ export function ObligationQueueDetailDrawer({
   )
   const saveExtensionPlanDisabled =
     !row ||
+    (extensionNeedsManualDeadline &&
+      (extensionDraft.extendedFilingDate === '' || extensionManualDeadlineInvalid)) ||
     !canSaveInternalExtensionPlan({
       draftTargetDate: extensionDraft.internalTargetDate,
-      filingDeadline: extensionFilingDeadline,
+      filingDeadline: extensionDeadlineCap,
       isPending: decideExtensionMutation.isPending,
       memo: extensionDraft.memo,
     })
@@ -6654,6 +6706,14 @@ export function ObligationQueueDetailDrawer({
 
   function saveExtensionDecision() {
     if (!row) return
+    if (extensionNeedsManualDeadline && !extensionDraft.extendedFilingDate) {
+      toast.error(t`Enter the extended filing deadline.`)
+      return
+    }
+    if (extensionManualDeadlineInvalid) {
+      toast.error(t`Extended filing deadline must be after the original deadline.`)
+      return
+    }
     if (!extensionDraft.internalTargetDate) {
       toast.error(t`Internal extension target date is required.`)
       return
@@ -6663,7 +6723,9 @@ export function ObligationQueueDetailDrawer({
       return
     }
     if (internalTargetDateInvalid) {
-      toast.error(t`Internal extension target date must be on or before the filing deadline.`)
+      toast.error(
+        t`Internal extension target date must be on or before the extended filing deadline.`,
+      )
       return
     }
 
@@ -6672,6 +6734,9 @@ export function ObligationQueueDetailDrawer({
       memo: extensionDraft.memo.trim(),
       ...(extensionDraft.source.trim() ? { source: extensionDraft.source.trim() } : {}),
       internalTargetDate: extensionDraft.internalTargetDate,
+      ...(extensionNeedsManualDeadline && extensionDraft.extendedFilingDate
+        ? { extendedFilingDate: extensionDraft.extendedFilingDate }
+        : {}),
     })
   }
 
@@ -8264,15 +8329,56 @@ export function ObligationQueueDetailDrawer({
                         value={detail.matchedRule?.extensionPolicy.formName ?? t`Not specified`}
                       />
                       <DetailRow
+                        label={<Trans>Extension length</Trans>}
+                        value={
+                          extensionDurationMonths !== null
+                            ? t`${extensionDurationMonths} months`
+                            : t`Not specified`
+                        }
+                      />
+                      <DetailRow
+                        label={<Trans>Original filing deadline</Trans>}
+                        value={formatDate(extensionOriginalDeadline)}
+                      />
+                      <DetailRow
+                        label={<Trans>Extended filing deadline</Trans>}
+                        value={
+                          extensionDeadlineCap ? formatDate(extensionDeadlineCap) : t`Enter below`
+                        }
+                      />
+                      <DetailRow
+                        label={<Trans>Payment still due</Trans>}
+                        value={formatDate(row.paymentDueDate ?? row.baseDueDate)}
+                      />
+                      <DetailRow
                         label={<Trans>Rule notes</Trans>}
                         value={detail.matchedRule?.extensionPolicy.notes ?? t`No matched rule`}
                       />
                     </div>
                   </section>
+                  {extensionNeedsManualDeadline ? (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-caption-xs text-text-tertiary">
+                        <Trans>
+                          This obligation type has no fixed extension length — enter the extended
+                          filing deadline.
+                        </Trans>
+                      </span>
+                      <IsoDatePicker
+                        value={extensionDraft.extendedFilingDate}
+                        invalid={extensionManualDeadlineInvalid}
+                        ariaLabel={t`Extended filing deadline`}
+                        placeholder={t`Extended filing deadline`}
+                        onValueChange={(extendedFilingDate) =>
+                          setExtensionDraft((current) => ({ ...current, extendedFilingDate }))
+                        }
+                      />
+                    </div>
+                  ) : null}
                   <IsoDatePicker
                     value={extensionDraft.internalTargetDate}
                     invalid={internalTargetDateInvalid}
-                    maxIsoDate={extensionFilingDeadline}
+                    maxIsoDate={extensionDeadlineCap}
                     ariaLabel={t`Internal extension target date`}
                     placeholder={t`Internal extension target date`}
                     onValueChange={(internalTargetDate) =>

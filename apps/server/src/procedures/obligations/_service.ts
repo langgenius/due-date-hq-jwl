@@ -32,6 +32,9 @@ import {
   isLegalObligationTransition,
   obligationUsesEfileAuthorization,
 } from '@duedatehq/core/obligation-workflow'
+import { computeExtendedFilingDeadline } from '@duedatehq/core/date-logic'
+import { internalDeadlineFromBaseDueDate } from '@duedatehq/core/deadlines'
+import { findRuleById } from '@duedatehq/core/rules'
 import { formatTaxCode } from '@duedatehq/core/tax-codes'
 import {
   renderTemplate,
@@ -919,30 +922,76 @@ export async function bulkUpdateObligationStatus(
   }
 }
 
-// Apply an extension decision to ONE already-fetched row: validate the
-// internal target date against the filing deadline, then write the decision +
-// evidence + audit. Shared by the single (decideObligationExtension) and bulk
-// (bulkDecideObligationExtension) paths so they can't drift. The audit `after`
-// is built from the values just written (updateExtensionDecision sets
-// status='extended' + decision='applied' deterministically) — no re-read.
+// Apply an extension decision to ONE already-fetched row, MOVING the deadline:
+// the filing deadline shifts to the statutory extended date (original filing +
+// the rule's extensionPolicy.durationMonths), the internal/current deadline
+// follows the CPA's internal target (else extended − firm buffer), and the
+// payment deadline is pinned to the original date (every extension rule is
+// paymentExtended:false, so payment is still due on the original deadline and
+// penalty keeps accruing from it). Then write the decision + evidence + audit.
+// Shared by the single (decideObligationExtension) and bulk
+// (bulkDecideObligationExtension) paths so they can't drift.
+//
+// The math anchors on `baseDueDate` (never mutated by an extension), so a
+// second save is idempotent — the extended date doesn't drift forward. Rules
+// without a statutory durationMonths (Form 8809, TX franchise) require the
+// caller to pass a manually-entered `extendedFilingDate`.
 async function applyExtensionDecision(
   scoped: ScopedRepo,
   userId: string,
   row: ObligationRow,
-  input: { memo?: string; source?: string; internalTargetDate?: string },
+  input: {
+    memo?: string
+    source?: string
+    internalTargetDate?: string
+    extendedFilingDate?: string
+  },
+  offsetDays: number,
 ): Promise<{ auditId: string; evidenceId: string }> {
   const decidedAt = new Date()
   const memo = input.memo?.trim() || null
   const source = input.source?.trim() || null
-  const filingDeadlineIso = toIsoDate(row.filingDueDate ?? row.baseDueDate)
-  if (input.internalTargetDate && input.internalTargetDate > filingDeadlineIso) {
+
+  // Anchor on the immutable statutory base, not the (possibly already-pushed)
+  // filing column — keeps re-apply idempotent.
+  const originalFiling = row.baseDueDate
+  const originalFilingIso = toIsoDate(originalFiling)
+  const durationMonths = row.ruleId
+    ? findRuleById(row.ruleId)?.extensionPolicy.durationMonths
+    : undefined
+
+  let extended: Date
+  if (durationMonths !== undefined) {
+    extended = computeExtendedFilingDeadline(originalFiling, durationMonths)
+  } else if (input.extendedFilingDate) {
+    extended = parseIsoDateAsUtc(input.extendedFilingDate)
+    if (extended <= originalFiling) {
+      throw new ORPCError('BAD_REQUEST', {
+        message: `Extended filing deadline must be after the original deadline ${originalFilingIso}.`,
+      })
+    }
+  } else {
     throw new ORPCError('BAD_REQUEST', {
-      message: `Internal extension target date must be on or before filing deadline ${filingDeadlineIso}.`,
+      message:
+        'This obligation type has no statutory extension length; provide an extended filing deadline.',
+    })
+  }
+
+  const extendedIso = toIsoDate(extended)
+  if (input.internalTargetDate && input.internalTargetDate > extendedIso) {
+    throw new ORPCError('BAD_REQUEST', {
+      message: `Internal extension target date must be on or before the extended filing deadline ${extendedIso}.`,
     })
   }
   const internalTargetDate = input.internalTargetDate
     ? new Date(`${input.internalTargetDate}T00:00:00.000Z`)
     : null
+
+  // The internal target the CPA picks IS the working deadline (queue sort /
+  // reminders / overdue); fall back to extended − firm buffer when absent.
+  const currentDueDate = internalTargetDate ?? internalDeadlineFromBaseDueDate(extended, offsetDays)
+  // Payment stays on the original date (paymentExtended:false everywhere).
+  const paymentDueDate = row.paymentDueDate ?? row.baseDueDate
 
   await scoped.obligations.updateExtensionDecision(row.id, {
     decision: 'applied',
@@ -952,6 +1001,9 @@ async function applyExtensionDecision(
     decidedAt,
     decidedByUserId: userId,
     status: 'extended',
+    filingDueDate: extended,
+    currentDueDate,
+    paymentDueDate,
   })
 
   const evidence = await scoped.evidence.write({
@@ -967,6 +1019,10 @@ async function applyExtensionDecision(
       memo,
       source,
       internalTargetDate: input.internalTargetDate ?? null,
+      originalFilingDeadline: originalFilingIso,
+      extendedFilingDeadline: extendedIso,
+      durationMonths: durationMonths ?? null,
+      paymentDeadline: toIsoDate(paymentDueDate),
       paymentStillDue: true,
     }),
     appliedBy: userId,
@@ -983,6 +1039,7 @@ async function applyExtensionDecision(
       extensionMemo: row.extensionMemo,
       extensionSource: row.extensionSource,
       extensionInternalTargetDate: row.extensionExpectedDueDate?.toISOString().slice(0, 10) ?? null,
+      filingDeadline: toIsoDate(row.filingDueDate ?? row.baseDueDate),
     },
     after: {
       status: 'extended',
@@ -990,6 +1047,10 @@ async function applyExtensionDecision(
       extensionMemo: memo,
       extensionSource: source,
       extensionInternalTargetDate: input.internalTargetDate ?? null,
+      originalFilingDeadline: originalFilingIso,
+      filingDeadline: extendedIso,
+      durationMonths: durationMonths ?? null,
+      paymentDeadline: toIsoDate(paymentDueDate),
       paymentStillDue: true,
     },
     ...(memo ? { reason: memo } : {}),
@@ -1002,6 +1063,7 @@ export async function decideObligationExtension(
   scoped: ScopedRepo,
   userId: string,
   input: ObligationExtensionDecisionInput,
+  offsetDays: number,
 ): Promise<ObligationExtensionDecisionOutput> {
   const before = await scoped.obligations.findById(input.id)
   if (!before) {
@@ -1009,13 +1071,22 @@ export async function decideObligationExtension(
       message: `Deadline ${input.id} not found in current firm.`,
     })
   }
-  const { auditId, evidenceId } = await applyExtensionDecision(scoped, userId, before, {
-    ...(input.memo !== undefined ? { memo: input.memo } : {}),
-    ...(input.source !== undefined ? { source: input.source } : {}),
-    ...(input.internalTargetDate !== undefined
-      ? { internalTargetDate: input.internalTargetDate }
-      : {}),
-  })
+  const { auditId, evidenceId } = await applyExtensionDecision(
+    scoped,
+    userId,
+    before,
+    {
+      ...(input.memo !== undefined ? { memo: input.memo } : {}),
+      ...(input.source !== undefined ? { source: input.source } : {}),
+      ...(input.internalTargetDate !== undefined
+        ? { internalTargetDate: input.internalTargetDate }
+        : {}),
+      ...(input.extendedFilingDate !== undefined
+        ? { extendedFilingDate: input.extendedFilingDate }
+        : {}),
+    },
+    offsetDays,
+  )
   const after = await scoped.obligations.findById(input.id)
   if (!after) {
     throw new ORPCError('INTERNAL_SERVER_ERROR', {
@@ -1032,16 +1103,19 @@ export async function decideObligationExtension(
 /**
  * Bulk "Decide extension" for the queue floating action bar. Applies one
  * shared extension plan (memo / source / internal target date) to every
- * selected row. Silently skips rows that are not found, already extension-
- * applied (idempotency), or — when a shared target date is given — whose
- * filing deadline is earlier than that date (the dialog's capped picker
- * normally prevents this; defense in depth). Reuses applyExtensionDecision so
- * single + bulk share one write path.
+ * selected row, MOVING each row's filing deadline to its own statutory
+ * extended date. Silently skips rows that are: not found, already extension-
+ * applied (idempotency), carry no statutory durationMonths (need an
+ * individually-entered extended date — can't be done in bulk), or — when a
+ * shared target date is given — whose EXTENDED deadline is earlier than that
+ * date (the dialog's capped picker normally prevents this; defense in depth).
+ * Reuses applyExtensionDecision so single + bulk share one write path.
  */
 export async function bulkDecideObligationExtension(
   scoped: ScopedRepo,
   userId: string,
   input: ObligationBulkExtensionDecisionInput,
+  offsetDays: number,
 ): Promise<ObligationBulkExtensionDecisionOutput> {
   let skippedCount = 0
   const auditIds: string[] = []
@@ -1051,20 +1125,35 @@ export async function bulkDecideObligationExtension(
       skippedCount += 1
       continue
     }
+    const durationMonths = row.ruleId
+      ? findRuleById(row.ruleId)?.extensionPolicy.durationMonths
+      : undefined
+    if (durationMonths === undefined) {
+      // No statutory duration → needs a manually-entered extended date, which
+      // a single shared bulk plan can't supply. Skip (surfaced in the preview).
+      skippedCount += 1
+      continue
+    }
     if (input.internalTargetDate) {
-      const filingDeadlineIso = toIsoDate(row.filingDueDate ?? row.baseDueDate)
-      if (input.internalTargetDate > filingDeadlineIso) {
+      const extendedIso = toIsoDate(computeExtendedFilingDeadline(row.baseDueDate, durationMonths))
+      if (input.internalTargetDate > extendedIso) {
         skippedCount += 1
         continue
       }
     }
-    const { auditId } = await applyExtensionDecision(scoped, userId, row, {
-      ...(input.memo !== undefined ? { memo: input.memo } : {}),
-      ...(input.source !== undefined ? { source: input.source } : {}),
-      ...(input.internalTargetDate !== undefined
-        ? { internalTargetDate: input.internalTargetDate }
-        : {}),
-    })
+    const { auditId } = await applyExtensionDecision(
+      scoped,
+      userId,
+      row,
+      {
+        ...(input.memo !== undefined ? { memo: input.memo } : {}),
+        ...(input.source !== undefined ? { source: input.source } : {}),
+        ...(input.internalTargetDate !== undefined
+          ? { internalTargetDate: input.internalTargetDate }
+          : {}),
+      },
+      offsetDays,
+    )
     auditIds.push(auditId)
   }
   return { decidedCount: auditIds.length, skippedCount, auditIds }
@@ -1073,9 +1162,12 @@ export async function bulkDecideObligationExtension(
 /**
  * Read-only eligibility breakdown for the bulk "Decide extension" dialog.
  * Classifies rows into eligible (found, not already applied) / already-extended
- * / not-found, and returns the earliest filing deadline across eligible rows so
- * the dialog can cap the date picker (guaranteeing every eligible row passes
- * the target-date check). Writes nothing.
+ * / not-found. Returns the earliest ORIGINAL deadline (for the "payment still
+ * due …" copy) and the earliest EXTENDED deadline across eligible rows with a
+ * computable duration (caps the internal-target picker so any picked date
+ * passes for every such row), plus the count of eligible rows lacking a
+ * statutory duration (these need an individually-entered date and are skipped
+ * by the bulk apply). Writes nothing.
  */
 export async function bulkPreviewObligationExtensionDecision(
   scoped: ScopedRepo,
@@ -1085,6 +1177,8 @@ export async function bulkPreviewObligationExtensionDecision(
   let alreadyExtendedCount = 0
   let skippedCount = 0
   let earliest: string | null = null
+  let earliestExtended: string | null = null
+  let needsManualDeadlineCount = 0
   for (const id of new Set(input.ids)) {
     const row = await scoped.obligations.findById(id)
     if (!row) {
@@ -1098,8 +1192,24 @@ export async function bulkPreviewObligationExtensionDecision(
     eligibleCount += 1
     const filingDeadlineIso = toIsoDate(row.filingDueDate ?? row.baseDueDate)
     if (earliest === null || filingDeadlineIso < earliest) earliest = filingDeadlineIso
+    const durationMonths = row.ruleId
+      ? findRuleById(row.ruleId)?.extensionPolicy.durationMonths
+      : undefined
+    if (durationMonths === undefined) {
+      needsManualDeadlineCount += 1
+      continue
+    }
+    const extendedIso = toIsoDate(computeExtendedFilingDeadline(row.baseDueDate, durationMonths))
+    if (earliestExtended === null || extendedIso < earliestExtended) earliestExtended = extendedIso
   }
-  return { eligibleCount, alreadyExtendedCount, skippedCount, earliestFilingDeadline: earliest }
+  return {
+    eligibleCount,
+    alreadyExtendedCount,
+    skippedCount,
+    earliestFilingDeadline: earliest,
+    earliestExtendedFilingDeadline: earliestExtended,
+    needsManualDeadlineCount,
+  }
 }
 
 /**

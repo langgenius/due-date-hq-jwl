@@ -276,12 +276,6 @@ msgstr "{0} / {totalLoadedPages}"
 msgid "{0} / {totalLoadedPages}+"
 msgstr "{0} / {totalLoadedPages}+"
 
-#. placeholder {0}: templateResult.accepted.length + concreteDraftResult.verified.length
-#. placeholder {1}: templateResult.skipped.length + concreteDraftResult.skipped.length
-#: src/features/rules/coverage-tab.tsx
-msgid "{0} accepted · {1} skipped."
-msgstr "{0} 已接受 · {1} 已跳过。"
-
 #. placeholder {0}: counts.active
 #: src/routes/rules.library.tsx
 #, fuzzy
@@ -497,6 +491,14 @@ msgstr "{0}/500 个字符"
 msgid "{0}% confidence"
 msgstr "{0}% 置信度"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "{acceptedCount} accepted · {skippedCount} skipped ({lowTrustCount} need single review)."
+msgstr "已接受 {acceptedCount} 个 · 跳过 {skippedCount} 个（{lowTrustCount} 个需单独审核）。"
+
+#: src/features/rules/coverage-tab.tsx
+msgid "{acceptedCount} accepted · {skippedCount} skipped."
+msgstr "已接受 {acceptedCount} 个 · 跳过 {skippedCount} 个。"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "{action} recorded"
 msgstr "已记录 {action}"
@@ -656,6 +658,10 @@ msgstr "{evidenceCount} 份底稿"
 msgid "{expiredCount} expired needs resend"
 msgstr "{expiredCount} 个已过期，需要重发"
 
+#: src/routes/obligations.tsx
+msgid "{extensionDurationMonths} months"
+msgstr "{extensionDurationMonths} 个月"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "{field} changed from {previous} to {next}"
 msgstr "{field} 从 {previous} 变更为 {next}"
@@ -713,6 +719,10 @@ msgstr "{missingSourceCount} 个来源缺口"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
 msgstr "{needsFactsCount, plural, other {# 个客户缺少州或实体类型 — 规则库已跳过这些客户。}}"
+
+#: src/routes/obligations.tsx
+msgid "{needsManualCount, plural, one {# selected deadline has no fixed extension length — decide it individually.} other {# selected deadlines have no fixed extension length — decide them individually.}}"
+msgstr "{needsManualCount, plural, other {# 个所选截止事项没有固定延期时长 — 请单独处理。}}"
 
 #: src/features/migration/Step2Mapping.tsx
 #, fuzzy
@@ -1970,8 +1980,8 @@ msgid "Applies to {0} in <0/>"
 msgstr "适用于 <0/> 中的 {0}"
 
 #: src/routes/obligations.tsx
-msgid "Apply an internal extension plan to every eligible selected deadline. The target date is capped at the earliest filing deadline in the selection; deadlines already extended are skipped."
-msgstr "对所选中每个符合条件的截止事项应用一份内部延期方案。目标日期会被限制在所选范围内最早的申报截止日；已延期的截止事项会被跳过。"
+msgid "Apply an internal extension plan to every eligible selected deadline. Each filing deadline moves to its statutory extended date; payment stays due on the original date. The target date is capped at the earliest extended deadline; deadlines already extended are skipped."
+msgstr "为每个符合条件的所选截止事项应用内部延期方案。每个申报截止日将移至其法定延期后日期；付款仍按原始日期。目标日期封顶为最早的延期后截止日；已延期的事项将被跳过。"
 
 #: src/routes/obligations.tsx
 msgid "Apply an internal extension plan to the selected deadlines"
@@ -2561,8 +2571,8 @@ msgid "Capacity pressure"
 msgstr "产能压力"
 
 #: src/routes/obligations.tsx
-msgid "Capped at the earliest filing deadline: {earliest}"
-msgstr "已限制在最早的申报截止日：{earliest}"
+msgid "Capped at the earliest extended filing deadline: {cap}"
+msgstr "封顶为最早的延期后申报截止日：{cap}"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Capture context (preferred call window, sensitivities, history) so the next preparer doesn't start from scratch."
@@ -4718,6 +4728,10 @@ msgstr "结束日期必须不早于开始日期。"
 msgid "Enter a valid email address"
 msgstr "请输入有效的邮箱地址"
 
+#: src/routes/obligations.tsx
+msgid "Enter below"
+msgstr "在下方填写"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Enter execute · Esc close · {commandShortcut} toggle"
 msgstr "Enter 执行 · Esc 关闭 · {commandShortcut} 切换"
@@ -4733,6 +4747,10 @@ msgstr "请输入 6 位验证码。"
 #: src/routes/two-factor.tsx
 msgid "Enter the code from your authenticator app."
 msgstr "输入身份验证器应用中的代码。"
+
+#: src/routes/obligations.tsx
+msgid "Enter the extended filing deadline."
+msgstr "请填写延期后申报截止日。"
 
 #. placeholder {0}: formatDatePretty(stageEnteredAt.slice(0, 10))
 #: src/routes/obligations.tsx
@@ -5058,11 +5076,19 @@ msgstr "导出在所选日期范围内到期的截止事项。"
 msgid "Extended"
 msgstr "已延期"
 
+#: src/routes/obligations.tsx
+msgid "Extended filing deadline"
+msgstr "延期后申报截止日"
+
+#: src/routes/obligations.tsx
+msgid "Extended filing deadline must be after the original deadline."
+msgstr "延期后申报截止日必须晚于原始截止日。"
+
 #. placeholder {0}: query.data?.alreadyExtendedCount ?? 0
 #. placeholder {1}: query.data?.skippedCount ?? 0
 #: src/routes/obligations.tsx
-msgid "Extending {eligibleCount} deadlines · {0} already extended · {1} not found"
-msgstr "将延期 {eligibleCount} 个截止事项 · {0} 个已延期 · {1} 个未找到"
+msgid "Extending {applicableCount} deadlines · {0} already extended · {1} not found"
+msgstr "将延期 {applicableCount} 个截止事项 · 已延期 {0} 个 · 未找到 {1} 个"
 
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
@@ -5082,6 +5108,10 @@ msgstr "延期决定"
 #: src/routes/obligations.tsx
 msgid "Extension filed — new due date in effect"
 msgstr "已申请延期 — 新到期日生效"
+
+#: src/routes/obligations.tsx
+msgid "Extension length"
+msgstr "延期时长"
 
 #: src/features/evidence/extension-decision-evidence.tsx
 msgid "Extension memo"
@@ -5987,8 +6017,8 @@ msgid "Internal extension target date is required."
 msgstr "必须填写内部延期目标日期。"
 
 #: src/routes/obligations.tsx
-msgid "Internal extension target date must be on or before the filing deadline."
-msgstr "内部延期目标日期必须早于或等于申报截止日。"
+msgid "Internal extension target date must be on or before the extended filing deadline."
+msgstr "内部延期目标日期必须不晚于延期后申报截止日。"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Internal notes"
@@ -8259,6 +8289,10 @@ msgstr "原截止日"
 msgid "Original entry"
 msgstr "原始条目"
 
+#: src/routes/obligations.tsx
+msgid "Original filing deadline"
+msgstr "原始申报截止日"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
 #: src/routes/rules.library.tsx
@@ -8565,6 +8599,14 @@ msgstr "支付模型"
 #: src/routes/obligations.tsx
 msgid "Payment scheduled with authority"
 msgstr "已向税务机关安排付款"
+
+#: src/routes/obligations.tsx
+msgid "Payment stays due on each deadline's original date."
+msgstr "付款仍按各截止事项的原始日期到期。"
+
+#: src/routes/obligations.tsx
+msgid "Payment still due"
+msgstr "付款仍须（原始日）"
 
 #: src/features/evidence/extension-decision-evidence.tsx
 msgid "Payment still due by original deadline"
@@ -12066,6 +12108,10 @@ msgstr "这看起来像 UltraTax CS 客户数据文件。请导出 Client Listin
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "This member is no longer on the team"
 msgstr "此成员已不在团队中"
+
+#: src/routes/obligations.tsx
+msgid "This obligation type has no fixed extension length — enter the extended filing deadline."
+msgstr "该事项类型没有固定的延期时长 — 请填写延期后申报截止日。"
 
 #: src/features/alerts/components/ReverifyRulesSection.tsx
 msgid "This official source changed. Re-verify each rule against the source, then mark this alert reviewed."

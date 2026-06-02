@@ -273,12 +273,6 @@ msgstr "{0} / {totalLoadedPages}"
 msgid "{0} / {totalLoadedPages}+"
 msgstr "{0} / {totalLoadedPages}+"
 
-#. placeholder {0}: templateResult.accepted.length + concreteDraftResult.verified.length
-#. placeholder {1}: templateResult.skipped.length + concreteDraftResult.skipped.length
-#: src/features/rules/coverage-tab.tsx
-msgid "{0} accepted · {1} skipped."
-msgstr "{0} accepted · {1} skipped."
-
 #. placeholder {0}: counts.active
 #: src/routes/rules.library.tsx
 msgid "{0} active"
@@ -490,6 +484,14 @@ msgstr "{0}/500 characters"
 msgid "{0}% confidence"
 msgstr "{0}% confidence"
 
+#: src/features/rules/coverage-tab.tsx
+msgid "{acceptedCount} accepted · {skippedCount} skipped ({lowTrustCount} need single review)."
+msgstr "{acceptedCount} accepted · {skippedCount} skipped ({lowTrustCount} need single review)."
+
+#: src/features/rules/coverage-tab.tsx
+msgid "{acceptedCount} accepted · {skippedCount} skipped."
+msgstr "{acceptedCount} accepted · {skippedCount} skipped."
+
 #: src/features/audit/audit-log-labels.ts
 msgid "{action} recorded"
 msgstr "{action} recorded"
@@ -648,6 +650,10 @@ msgstr "{evidenceCount} workpapers"
 msgid "{expiredCount} expired needs resend"
 msgstr "{expiredCount} expired needs resend"
 
+#: src/routes/obligations.tsx
+msgid "{extensionDurationMonths} months"
+msgstr "{extensionDurationMonths} months"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "{field} changed from {previous} to {next}"
 msgstr "{field} changed from {previous} to {next}"
@@ -703,6 +709,10 @@ msgstr "{missingSourceCount} source gaps"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
 msgstr "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
+
+#: src/routes/obligations.tsx
+msgid "{needsManualCount, plural, one {# selected deadline has no fixed extension length — decide it individually.} other {# selected deadlines have no fixed extension length — decide them individually.}}"
+msgstr "{needsManualCount, plural, one {# selected deadline has no fixed extension length — decide it individually.} other {# selected deadlines have no fixed extension length — decide them individually.}}"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "{needsReview, plural, =0 {0 need review} one {# needs review} other {# need review}}"
@@ -1942,8 +1952,8 @@ msgid "Applies to {0} in <0/>"
 msgstr "Applies to {0} in <0/>"
 
 #: src/routes/obligations.tsx
-msgid "Apply an internal extension plan to every eligible selected deadline. The target date is capped at the earliest filing deadline in the selection; deadlines already extended are skipped."
-msgstr "Apply an internal extension plan to every eligible selected deadline. The target date is capped at the earliest filing deadline in the selection; deadlines already extended are skipped."
+msgid "Apply an internal extension plan to every eligible selected deadline. Each filing deadline moves to its statutory extended date; payment stays due on the original date. The target date is capped at the earliest extended deadline; deadlines already extended are skipped."
+msgstr "Apply an internal extension plan to every eligible selected deadline. Each filing deadline moves to its statutory extended date; payment stays due on the original date. The target date is capped at the earliest extended deadline; deadlines already extended are skipped."
 
 #: src/routes/obligations.tsx
 msgid "Apply an internal extension plan to the selected deadlines"
@@ -2530,8 +2540,8 @@ msgid "Capacity pressure"
 msgstr "Capacity pressure"
 
 #: src/routes/obligations.tsx
-msgid "Capped at the earliest filing deadline: {earliest}"
-msgstr "Capped at the earliest filing deadline: {earliest}"
+msgid "Capped at the earliest extended filing deadline: {cap}"
+msgstr "Capped at the earliest extended filing deadline: {cap}"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Capture context (preferred call window, sensitivities, history) so the next preparer doesn't start from scratch."
@@ -4673,6 +4683,10 @@ msgstr "End date must be on or after the start date."
 msgid "Enter a valid email address"
 msgstr "Enter a valid email address"
 
+#: src/routes/obligations.tsx
+msgid "Enter below"
+msgstr "Enter below"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Enter execute · Esc close · {commandShortcut} toggle"
 msgstr "Enter execute · Esc close · {commandShortcut} toggle"
@@ -4688,6 +4702,10 @@ msgstr "Enter the 6-digit code."
 #: src/routes/two-factor.tsx
 msgid "Enter the code from your authenticator app."
 msgstr "Enter the code from your authenticator app."
+
+#: src/routes/obligations.tsx
+msgid "Enter the extended filing deadline."
+msgstr "Enter the extended filing deadline."
 
 #. placeholder {0}: formatDatePretty(stageEnteredAt.slice(0, 10))
 #: src/routes/obligations.tsx
@@ -5011,11 +5029,19 @@ msgstr "Exports deadlines due within the selected date window."
 msgid "Extended"
 msgstr "Extended"
 
+#: src/routes/obligations.tsx
+msgid "Extended filing deadline"
+msgstr "Extended filing deadline"
+
+#: src/routes/obligations.tsx
+msgid "Extended filing deadline must be after the original deadline."
+msgstr "Extended filing deadline must be after the original deadline."
+
 #. placeholder {0}: query.data?.alreadyExtendedCount ?? 0
 #. placeholder {1}: query.data?.skippedCount ?? 0
 #: src/routes/obligations.tsx
-msgid "Extending {eligibleCount} deadlines · {0} already extended · {1} not found"
-msgstr "Extending {eligibleCount} deadlines · {0} already extended · {1} not found"
+msgid "Extending {applicableCount} deadlines · {0} already extended · {1} not found"
+msgstr "Extending {applicableCount} deadlines · {0} already extended · {1} not found"
 
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
@@ -5035,6 +5061,10 @@ msgstr "Extension decision"
 #: src/routes/obligations.tsx
 msgid "Extension filed — new due date in effect"
 msgstr "Extension filed — new due date in effect"
+
+#: src/routes/obligations.tsx
+msgid "Extension length"
+msgstr "Extension length"
 
 #: src/features/evidence/extension-decision-evidence.tsx
 msgid "Extension memo"
@@ -5932,8 +5962,8 @@ msgid "Internal extension target date is required."
 msgstr "Internal extension target date is required."
 
 #: src/routes/obligations.tsx
-msgid "Internal extension target date must be on or before the filing deadline."
-msgstr "Internal extension target date must be on or before the filing deadline."
+msgid "Internal extension target date must be on or before the extended filing deadline."
+msgstr "Internal extension target date must be on or before the extended filing deadline."
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Internal notes"
@@ -8183,6 +8213,10 @@ msgstr "Original due date"
 msgid "Original entry"
 msgstr "Original entry"
 
+#: src/routes/obligations.tsx
+msgid "Original filing deadline"
+msgstr "Original filing deadline"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
 #: src/routes/rules.library.tsx
@@ -8483,6 +8517,14 @@ msgstr "Payment overdue on 1 filing"
 #: src/routes/obligations.tsx
 msgid "Payment scheduled with authority"
 msgstr "Payment scheduled with authority"
+
+#: src/routes/obligations.tsx
+msgid "Payment stays due on each deadline's original date."
+msgstr "Payment stays due on each deadline's original date."
+
+#: src/routes/obligations.tsx
+msgid "Payment still due"
+msgstr "Payment still due"
 
 #: src/features/evidence/extension-decision-evidence.tsx
 msgid "Payment still due by original deadline"
@@ -11954,6 +11996,10 @@ msgstr "This looks like an UltraTax CS client data file. Export a Client Listing
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "This member is no longer on the team"
 msgstr "This member is no longer on the team"
+
+#: src/routes/obligations.tsx
+msgid "This obligation type has no fixed extension length — enter the extended filing deadline."
+msgstr "This obligation type has no fixed extension length — enter the extended filing deadline."
 
 #: src/features/alerts/components/ReverifyRulesSection.tsx
 msgid "This official source changed. Re-verify each rule against the source, then mark this alert reviewed."

@@ -624,6 +624,14 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         decidedAt: Date
         decidedByUserId: string
         status?: ObligationStatus
+        // Applying an extension moves the deadline: the filing deadline shifts
+        // to the statutory extended date, the internal (current) deadline
+        // follows, and the payment deadline is pinned to the original date.
+        // Optional so prep/review/other callers of this write path are
+        // unaffected (only the extension service sets them).
+        filingDueDate?: Date
+        currentDueDate?: Date
+        paymentDueDate?: Date | null
       },
     ): Promise<void> {
       await db
@@ -637,6 +645,9 @@ export function makeObligationsRepo(db: Db, firmId: string) {
           extensionDecidedByUserId: patch.decidedByUserId,
           extensionState: patch.decision === 'applied' ? 'filed' : 'rejected',
           ...(patch.status !== undefined ? { status: patch.status } : {}),
+          ...(patch.filingDueDate !== undefined ? { filingDueDate: patch.filingDueDate } : {}),
+          ...(patch.currentDueDate !== undefined ? { currentDueDate: patch.currentDueDate } : {}),
+          ...(patch.paymentDueDate !== undefined ? { paymentDueDate: patch.paymentDueDate } : {}),
         })
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },

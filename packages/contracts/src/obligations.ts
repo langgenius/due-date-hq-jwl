@@ -274,6 +274,11 @@ export const ObligationExtensionDecisionInputSchema = z.object({
   memo: z.string().trim().max(1000).optional(),
   source: z.string().trim().max(240).optional(),
   internalTargetDate: z.iso.date().optional(),
+  // Manually-entered extended filing deadline. REQUIRED only for the few
+  // extension rules that carry no statutory durationMonths (Form 8809 /
+  // 1099-NEC, the TX franchise trio); ignored when the rule has a duration
+  // (the server computes the extended deadline from baseDueDate + duration).
+  extendedFilingDate: z.iso.date().optional(),
 })
 
 export const ObligationExtensionDecisionOutputSchema = z.object({
@@ -327,8 +332,16 @@ export const ObligationBulkExtensionDecisionPreviewOutputSchema = z.object({
   alreadyExtendedCount: z.number().int().min(0),
   // Rows not found in the current firm — skipped.
   skippedCount: z.number().int().min(0),
-  // Min filing deadline across eligible rows; the dialog caps the picker here.
+  // Min ORIGINAL filing deadline across eligible rows (kept for the
+  // "payment still due …" copy); null when none are eligible.
   earliestFilingDeadline: z.iso.date().nullable(),
+  // Min EXTENDED filing deadline across eligible rows that have a computable
+  // duration; the dialog caps the internal-target picker here. null when no
+  // eligible row has a duration.
+  earliestExtendedFilingDeadline: z.iso.date().nullable(),
+  // Eligible rows whose rule carries no statutory durationMonths — these need
+  // an individually-entered extended date and are skipped by the bulk apply.
+  needsManualDeadlineCount: z.number().int().min(0),
 })
 export type ObligationBulkExtensionDecisionPreviewOutput = z.infer<
   typeof ObligationBulkExtensionDecisionPreviewOutputSchema

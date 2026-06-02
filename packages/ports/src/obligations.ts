@@ -222,6 +222,12 @@ export interface ObligationsRepo {
       decidedAt: Date
       decidedByUserId: string
       status?: ObligationStatus
+      // Applying an extension moves the deadline (filing → statutory extended
+      // date, current follows, payment pinned to the original date). Optional
+      // so non-extension callers of this write path are unaffected.
+      filingDueDate?: Date
+      currentDueDate?: Date
+      paymentDueDate?: Date | null
     },
   ): Promise<void>
   updateStatusMany(ids: string[], status: ObligationStatus): Promise<void>

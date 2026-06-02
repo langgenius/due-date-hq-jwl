@@ -185,6 +185,14 @@ describe('internal extension target date validation', () => {
   it('rejects dates after the filing deadline', () => {
     expect(isInternalExtensionTargetDateValid('2026-04-16', '2026-04-15')).toBe(false)
   })
+
+  it('allows a target after the original deadline but within the extended window', () => {
+    // The cap fed in is now the EXTENDED filing deadline, so a realistic
+    // post-extension target (after the original April 15) is valid up to Oct 15.
+    expect(isInternalExtensionTargetDateValid('2026-08-01', '2026-10-15')).toBe(true)
+    expect(isInternalExtensionTargetDateValid('2026-10-15', '2026-10-15')).toBe(true)
+    expect(isInternalExtensionTargetDateValid('2026-10-16', '2026-10-15')).toBe(false)
+  })
 })
 
 describe('internal extension plan save state', () => {
@@ -262,12 +270,14 @@ describe('internal extension plan save state', () => {
       internalTargetDate: '2026-04-15',
       memo: 'Client materials are late.',
       source: 'Partner approval',
+      extendedFilingDate: '',
     })
     expect(emptyExtensionPlanDraft(currentDraft.obligationId)).toEqual({
       obligationId: 'deadline_1',
       internalTargetDate: '',
       memo: '',
       source: '',
+      extendedFilingDate: '',
     })
   })
 })
