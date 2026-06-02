@@ -1286,6 +1286,7 @@ msgstr "Active stage detail"
 msgid "Active templates"
 msgstr "Active templates"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Activity"
 msgstr "Activity"
@@ -1493,10 +1494,6 @@ msgstr "AI draft ready"
 msgid "AI draft review required"
 msgstr "AI draft review required"
 
-#: src/features/audit/audit-log-labels.ts
-msgid "AI guard failed"
-msgstr "AI guard failed"
-
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "AI import cleanup"
 msgstr "AI import cleanup"
@@ -1537,10 +1534,6 @@ msgstr "AI prepared your columns"
 #: src/features/audit/audit-log-table.tsx
 msgid "AI produced the value; the user applied it."
 msgstr "AI produced the value; the user applied it."
-
-#: src/features/audit/audit-log-labels.ts
-msgid "AI refused request"
-msgstr "AI refused request"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "AI standardized your values"
@@ -1631,12 +1624,12 @@ msgid "Alert review requested"
 msgstr "Alert review requested"
 
 #: src/features/audit/audit-log-labels.ts
-msgid "Alert snoozed"
-msgstr "Alert snoozed"
+msgid "Alert reviewed"
+msgstr "Alert reviewed"
 
 #: src/features/audit/audit-log-labels.ts
-msgid "Alert source ingested"
-msgstr "Alert source ingested"
+msgid "Alert snoozed"
+msgstr "Alert snoozed"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Alert source revoked"
@@ -1645,10 +1638,6 @@ msgstr "Alert source revoked"
 #: src/features/audit/audit-log-labels.ts
 msgid "Alert status"
 msgstr "Alert status"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Alert update extracted"
-msgstr "Alert update extracted"
 
 #. placeholder {0}: alert.title
 #: src/features/alerts/components/AlertCard.tsx
@@ -1820,6 +1809,7 @@ msgstr "All systems operational"
 msgid "All time"
 msgstr "All time"
 
+#: src/features/audit/audit-log-labels.ts
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Allowed"
 msgstr "Allowed"
@@ -2006,10 +1996,6 @@ msgstr "As of {0} · next {windowDays} days"
 msgid "Ask an owner or manager to review and apply this alert. This does not change any deadlines."
 msgstr "Ask an owner or manager to review and apply this alert. This does not change any deadlines."
 
-#: src/features/audit/audit-log-labels.ts
-msgid "Ask query run"
-msgstr "Ask query run"
-
 #: src/routes/accept-invite.tsx
 msgid "Ask the practice owner to send a new invitation."
 msgstr "Ask the practice owner to send a new invitation."
@@ -2069,6 +2055,7 @@ msgstr "Audit {0}"
 msgid "Audit + evidence written. Undo within 24h."
 msgstr "Audit + evidence written. Undo within 24h."
 
+#: src/features/audit/entity-audit-activity-panel.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Audit access is role-gated"
 msgstr "Audit access is role-gated"
@@ -2445,6 +2432,7 @@ msgstr "Calculating the tax estimate"
 msgid "Calculating…"
 msgstr "Calculating…"
 
+#: src/features/audit/audit-log-page.tsx
 #: src/features/rules/sources-tab.tsx
 msgid "Calendar"
 msgstr "Calendar"
@@ -2452,6 +2440,22 @@ msgstr "Calendar"
 #: src/routes/obligations.tsx
 msgid "Calendar events dated to each internal deadline."
 msgstr "Calendar events dated to each internal deadline."
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Calendar feed"
+msgstr "Calendar feed"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Calendar feed created"
+msgstr "Calendar feed created"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Calendar feed link rotated"
+msgstr "Calendar feed link rotated"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Calendar feed revoked"
+msgstr "Calendar feed revoked"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Calendar subscription disabled"
@@ -2942,6 +2946,10 @@ msgstr "Client not found"
 msgid "Client note"
 msgstr "Client note"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Client opened materials link"
+msgstr "Client opened materials link"
+
 #: src/features/obligations/ChecklistItemRow.tsx
 msgid "Client ready"
 msgstr "Client ready"
@@ -2983,6 +2991,10 @@ msgstr "Client returned signed 8879 — ready to e-file"
 msgid "Client since"
 msgstr "Client since"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Client submitted materials"
+msgstr "Client submitted materials"
+
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "Client summary"
 msgstr "Client summary"
@@ -2994,6 +3006,10 @@ msgstr "Client summary (AI)"
 #: src/features/reminders/reminders-page.tsx
 msgid "Client suppressions"
 msgstr "Client suppressions"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Client unsubscribed"
+msgstr "Client unsubscribed"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "clients"
@@ -4036,8 +4052,16 @@ msgid "Deadline added"
 msgstr "Deadline added"
 
 #: src/features/audit/audit-log-labels.ts
+msgid "Deadline auto-unblocked"
+msgstr "Deadline auto-unblocked"
+
+#: src/features/audit/audit-log-labels.ts
 msgid "Deadline batch"
 msgstr "Deadline batch"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Deadline blocked"
+msgstr "Deadline blocked"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Deadline category"
@@ -4117,6 +4141,10 @@ msgstr "Deadline Tip"
 #: src/routes/obligations.tsx
 msgid "Deadline tip refresh started"
 msgstr "Deadline tip refresh started"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Deadline unblocked"
+msgstr "Deadline unblocked"
 
 #: src/routes/practice.tsx
 msgid "Deadline urgency"
@@ -4521,6 +4549,10 @@ msgid "Duplicates won't be imported."
 msgstr "Duplicates won't be imported."
 
 #: src/features/audit/audit-log-labels.ts
+msgid "E-file rejected"
+msgstr "E-file rejected"
+
+#: src/features/audit/audit-log-labels.ts
 msgid "E-file status changed"
 msgstr "E-file status changed"
 
@@ -4589,6 +4621,10 @@ msgstr "Edit the practice-managed 30-day countdown, 7-day countdown, and checkli
 msgid "Edit this item to confirm the value. The AI marker will drop."
 msgstr "Edit this item to confirm the value. The AI marker will drop."
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Edits, version bumps, and review decisions for this rule will appear here."
+msgstr "Edits, version bumps, and review decisions for this rule will appear here."
+
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Effective"
 msgstr "Effective"
@@ -4634,6 +4670,10 @@ msgstr "Email me a code"
 #: src/routes/obligations.tsx
 msgid "Email selected clients a Form 8879 signature reminder"
 msgstr "Email selected clients a Form 8879 signature reminder"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Email unsubscribe"
+msgstr "Email unsubscribe"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Email updates"
@@ -5043,6 +5083,7 @@ msgstr "Extended filing deadline must be after the original deadline."
 msgid "Extending {applicableCount} deadlines · {0} already extended · {1} not found"
 msgstr "Extending {applicableCount} deadlines · {0} already extended · {1} not found"
 
+#: src/features/audit/audit-log-labels.ts
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
 msgid "Extension"
@@ -5262,6 +5303,10 @@ msgstr "Filing was due {0} — {daysPastDeadline, plural, one {# day} other {# d
 msgid "Filing was due {0} · {1} days past deadline."
 msgstr "Filing was due {0} · {1} days past deadline."
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Filing year"
+msgstr "Filing year"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Filing year end"
 msgstr "Filing year end"
@@ -5465,6 +5510,7 @@ msgid "For US CPA practices"
 msgstr "For US CPA practices"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
+#: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/rules/rule-detail-drawer.tsx
@@ -6053,11 +6099,16 @@ msgstr "Issued"
 msgid "Issues"
 msgstr "Issues"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Items"
+msgstr "Items"
+
 #: src/features/rules/sources-tab.tsx
 msgid "JUR"
 msgstr "JUR"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
+#: src/features/audit/audit-log-labels.ts
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/routes/rules.library.tsx
@@ -6600,6 +6651,10 @@ msgid "Materials checklist"
 msgstr "Materials checklist"
 
 #: src/features/audit/audit-log-labels.ts
+msgid "Materials checklist rebuilt"
+msgstr "Materials checklist rebuilt"
+
+#: src/features/audit/audit-log-labels.ts
 msgid "Materials item added"
 msgstr "Materials item added"
 
@@ -6619,10 +6674,16 @@ msgstr "Materials link created"
 msgid "Materials pressure"
 msgstr "Materials pressure"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Materials received"
+msgstr "Materials received"
+
+#: src/features/audit/audit-log-labels.ts
 #: src/routes/obligations.tsx
 msgid "Materials request revoked"
 msgstr "Materials request revoked"
 
+#: src/features/audit/audit-log-labels.ts
 #: src/routes/obligations.tsx
 msgid "Materials request sent"
 msgstr "Materials request sent"
@@ -6736,6 +6797,10 @@ msgstr "Mentions, assignment changes, and important deadline alerts will show up
 #: src/routes/obligations.tsx
 msgid "Message"
 msgstr "Message"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Message body changed"
+msgstr "Message body changed"
 
 #: src/routes/obligations.tsx
 msgid "Message is required."
@@ -7230,9 +7295,17 @@ msgstr "No audit events recorded for this deadline."
 msgid "No audit events yet."
 msgstr "No audit events yet."
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "No audited activity yet"
+msgstr "No audited activity yet"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "No audited client changes yet"
 msgstr "No audited client changes yet"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "No audited rule changes yet"
+msgstr "No audited rule changes yet"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "No batch-ready rules"
@@ -7636,6 +7709,10 @@ msgstr "None attached"
 msgid "Normalize"
 msgstr "Normalize"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Not allowed"
+msgstr "Not allowed"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Not allowed."
 msgstr "Not allowed."
@@ -7789,56 +7866,12 @@ msgid "Official sources — pending rules"
 msgstr "Official sources — pending rules"
 
 #: src/features/audit/audit-log-labels.ts
-msgid "Onboarding alternate path used"
-msgstr "Onboarding alternate path used"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding dry run previewed"
-msgstr "Onboarding dry run previewed"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding handoff chosen"
-msgstr "Onboarding handoff chosen"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding handoff offered"
-msgstr "Onboarding handoff offered"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding import committed"
-msgstr "Onboarding import committed"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding intake submitted"
-msgstr "Onboarding intake submitted"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding matrix preloaded"
-msgstr "Onboarding matrix preloaded"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding normalization confirmed"
-msgstr "Onboarding normalization confirmed"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding preview opened"
-msgstr "Onboarding preview opened"
-
-#: src/features/audit/audit-log-labels.ts
 msgid "Onboarding rules activated"
 msgstr "Onboarding rules activated"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Onboarding state"
 msgstr "Onboarding state"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding state advanced"
-msgstr "Onboarding state advanced"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding turn opened"
-msgstr "Onboarding turn opened"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "One unfinished draft import"
@@ -8362,6 +8395,10 @@ msgstr "Owners need MFA before sensitive production actions."
 msgid "Owners updated"
 msgstr "Owners updated"
 
+#: src/features/audit/entity-audit-activity-panel.tsx
+msgid "Owners, partners, managers, and preparers can inspect activity."
+msgstr "Owners, partners, managers, and preparers can inspect activity."
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Owners, partners, managers, and preparers can inspect client activity."
 msgstr "Owners, partners, managers, and preparers can inspect client activity."
@@ -8641,10 +8678,6 @@ msgstr "Period end"
 msgid "Period start"
 msgstr "Period start"
 
-#: src/features/audit/audit-log-labels.ts
-msgid "Permission checked"
-msgstr "Permission checked"
-
 #: src/features/permissions/permission-gate.tsx
 msgid "Permission required"
 msgstr "Permission required"
@@ -8885,6 +8918,10 @@ msgstr "Practices"
 msgid "Preferences"
 msgstr "Preferences"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Prep stage changed"
+msgstr "Prep stage changed"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Prepared a materials checklist."
 msgstr "Prepared a materials checklist."
@@ -9063,6 +9100,7 @@ msgstr "Priority alert matching and review confirmation require Team or above."
 msgid "Priority onboarding and audit exports"
 msgstr "Priority onboarding and audit exports"
 
+#: src/features/audit/audit-log-labels.ts
 #: src/features/calendar/calendar-page.tsx
 msgid "Privacy"
 msgstr "Privacy"
@@ -9459,6 +9497,18 @@ msgstr "Remind to sign"
 msgid "Reminder"
 msgstr "Reminder"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Reminder bounced"
+msgstr "Reminder bounced"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Reminder couldn't be sent"
+msgstr "Reminder couldn't be sent"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Reminder opened"
+msgstr "Reminder opened"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "reminder ready"
 msgstr "reminder ready"
@@ -9467,6 +9517,18 @@ msgstr "reminder ready"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "REMINDER READY — {0} deadline, will fire 30 / 7-day reminders"
 msgstr "REMINDER READY — {0} deadline, will fire 30 / 7-day reminders"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Reminder sent"
+msgstr "Reminder sent"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Reminder template"
+msgstr "Reminder template"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Reminder template edited"
+msgstr "Reminder template edited"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Reminder template updated"
@@ -9481,6 +9543,7 @@ msgid "Reminder-ready"
 msgstr "Reminder-ready"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
@@ -9611,6 +9674,10 @@ msgstr "Reset"
 #: src/routes/practice.tsx
 msgid "Reset to default"
 msgstr "Reset to default"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Responses"
+msgstr "Responses"
 
 #: src/routes/billing.cancel.tsx
 msgid "Restart checkout"
@@ -9820,6 +9887,10 @@ msgstr "Review signed-in browsers and revoke stale access."
 msgid "Review SSN-like columns before upload; DueDateHQ blocks those columns from AI mapping."
 msgstr "Review SSN-like columns before upload; DueDateHQ blocks those columns from AI mapping."
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Review stage changed"
+msgstr "Review stage changed"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Review suggested"
 msgstr "Review suggested"
@@ -9867,6 +9938,10 @@ msgstr "Review-only rule"
 #: src/features/alerts/components/AlertCard.tsx
 msgid "Review-only source change. No due-date overlay will be applied."
 msgstr "Review-only source change. No due-date overlay will be applied."
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Review, dismiss, snooze, and reactivate events for this alert appear here."
+msgstr "Review, dismiss, snooze, and reactivate events for this alert appear here."
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertsListPage.tsx
@@ -10124,6 +10199,10 @@ msgstr "Rule update undone"
 #: src/features/audit/audit-log-labels.ts
 msgid "Rule updated"
 msgstr "Rule updated"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Rule version"
+msgstr "Rule version"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -12193,6 +12272,10 @@ msgstr "Two-factor verification"
 msgid "Two-factor verification complete"
 msgstr "Two-factor verification complete"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Two-factor verified"
+msgstr "Two-factor verified"
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "TX current-year franchise tax"
 msgstr "TX current-year franchise tax"
@@ -12558,6 +12641,10 @@ msgstr "Verifying…"
 msgid "Version conflict"
 msgstr "Version conflict"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Version history"
+msgstr "Version history"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "View"
 msgstr "View"
@@ -12752,6 +12839,7 @@ msgstr "What this evidence says"
 msgid "When is it due?"
 msgstr "When is it due?"
 
+#: src/features/audit/audit-log-labels.ts
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "When it's due"
 msgstr "When it's due"
@@ -12763,6 +12851,10 @@ msgstr "Whoever is signed in on this browser will lose access immediately. They'
 #: src/features/migration/Step2Mapping.tsx
 msgid "Whole number"
 msgstr "Whole number"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Why it failed"
+msgstr "Why it failed"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "Why now"

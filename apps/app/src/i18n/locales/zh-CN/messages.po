@@ -1310,6 +1310,7 @@ msgstr "当前阶段详情"
 msgid "Active templates"
 msgstr "启用模板"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Activity"
 msgstr "活动"
@@ -1520,10 +1521,6 @@ msgstr "AI 草案已就绪"
 msgid "AI draft review required"
 msgstr "需要审核 AI 草案"
 
-#: src/features/audit/audit-log-labels.ts
-msgid "AI guard failed"
-msgstr "AI 防护检查失败"
-
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "AI import cleanup"
 msgstr "AI 导入清理"
@@ -1564,10 +1561,6 @@ msgstr "AI 已准备列映射"
 #: src/features/audit/audit-log-table.tsx
 msgid "AI produced the value; the user applied it."
 msgstr "AI produced the value; the user applied it."
-
-#: src/features/audit/audit-log-labels.ts
-msgid "AI refused request"
-msgstr "AI 已拒绝请求"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "AI standardized your values"
@@ -1658,12 +1651,12 @@ msgid "Alert review requested"
 msgstr "已请求提醒复核"
 
 #: src/features/audit/audit-log-labels.ts
-msgid "Alert snoozed"
-msgstr "提醒已暂缓"
+msgid "Alert reviewed"
+msgstr "提醒已复核"
 
 #: src/features/audit/audit-log-labels.ts
-msgid "Alert source ingested"
-msgstr "提醒来源已采集"
+msgid "Alert snoozed"
+msgstr "提醒已暂缓"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Alert source revoked"
@@ -1672,10 +1665,6 @@ msgstr "提醒来源已撤销"
 #: src/features/audit/audit-log-labels.ts
 msgid "Alert status"
 msgstr "提醒状态"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Alert update extracted"
-msgstr "提醒更新已提取"
 
 #. placeholder {0}: alert.title
 #: src/features/alerts/components/AlertCard.tsx
@@ -1848,6 +1837,7 @@ msgstr "所有系统运行正常"
 msgid "All time"
 msgstr "全部时间"
 
+#: src/features/audit/audit-log-labels.ts
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Allowed"
 msgstr "允许"
@@ -2035,10 +2025,6 @@ msgstr "截至 {0} · 未来 {windowDays} 天"
 msgid "Ask an owner or manager to review and apply this alert. This does not change any deadlines."
 msgstr "请求 Owner 或 Manager 审核并应用此提醒。这不会更改任何截止日。"
 
-#: src/features/audit/audit-log-labels.ts
-msgid "Ask query run"
-msgstr "Ask 查询已运行"
-
 #: src/routes/accept-invite.tsx
 msgid "Ask the practice owner to send a new invitation."
 msgstr "请事务所 Owner 重新发送邀请。"
@@ -2098,6 +2084,7 @@ msgstr "审计 {0}"
 msgid "Audit + evidence written. Undo within 24h."
 msgstr "审计与证据已记录，24 小时内可撤销。"
 
+#: src/features/audit/entity-audit-activity-panel.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Audit access is role-gated"
 msgstr "审计访问受角色限制"
@@ -2475,6 +2462,7 @@ msgstr "计算税款预估中"
 msgid "Calculating…"
 msgstr "正在计算…"
 
+#: src/features/audit/audit-log-page.tsx
 #: src/features/rules/sources-tab.tsx
 msgid "Calendar"
 msgstr "日历"
@@ -2482,6 +2470,22 @@ msgstr "日历"
 #: src/routes/obligations.tsx
 msgid "Calendar events dated to each internal deadline."
 msgstr "日历事件按每个内部截止日期排定。"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Calendar feed"
+msgstr "日历订阅"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Calendar feed created"
+msgstr "日历订阅已创建"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Calendar feed link rotated"
+msgstr "日历订阅链接已轮换"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Calendar feed revoked"
+msgstr "日历订阅已吊销"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Calendar subscription disabled"
@@ -2977,6 +2981,10 @@ msgstr "未找到客户"
 msgid "Client note"
 msgstr "客户备注"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Client opened materials link"
+msgstr "客户已打开材料链接"
+
 #: src/features/obligations/ChecklistItemRow.tsx
 msgid "Client ready"
 msgstr "客户已就绪"
@@ -3018,6 +3026,10 @@ msgstr "客户已交回签字的 8879 — 可以电子申报"
 msgid "Client since"
 msgstr "客户起始时间"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Client submitted materials"
+msgstr "客户已提交材料"
+
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "Client summary"
 msgstr "客户摘要"
@@ -3029,6 +3041,10 @@ msgstr "客户摘要（AI）"
 #: src/features/reminders/reminders-page.tsx
 msgid "Client suppressions"
 msgstr "客户抑制列表"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Client unsubscribed"
+msgstr "客户已退订"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "clients"
@@ -4079,8 +4095,16 @@ msgid "Deadline added"
 msgstr "截止日已添加"
 
 #: src/features/audit/audit-log-labels.ts
+msgid "Deadline auto-unblocked"
+msgstr "截止日期已自动解除受阻"
+
+#: src/features/audit/audit-log-labels.ts
 msgid "Deadline batch"
 msgstr "截止日期批次"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Deadline blocked"
+msgstr "截止日期已受阻"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Deadline category"
@@ -4160,6 +4184,10 @@ msgstr "截止日提示"
 #: src/routes/obligations.tsx
 msgid "Deadline tip refresh started"
 msgstr "已开始刷新截止日提示"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Deadline unblocked"
+msgstr "截止日期已解除受阻"
 
 #: src/routes/practice.tsx
 msgid "Deadline urgency"
@@ -4566,6 +4594,10 @@ msgid "Duplicates won't be imported."
 msgstr "重复客户不会被导入。"
 
 #: src/features/audit/audit-log-labels.ts
+msgid "E-file rejected"
+msgstr "电子申报被拒"
+
+#: src/features/audit/audit-log-labels.ts
 msgid "E-file status changed"
 msgstr "电子申报状态已变更"
 
@@ -4634,6 +4666,10 @@ msgstr "编辑事务所统一管理的 30 天倒计时、7 天倒计时和 check
 msgid "Edit this item to confirm the value. The AI marker will drop."
 msgstr "Edit this item to confirm the value. The AI marker will drop."
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Edits, version bumps, and review decisions for this rule will appear here."
+msgstr "对此规则的编辑、版本更新和复核决定将显示在此处。"
+
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Effective"
 msgstr "生效"
@@ -4679,6 +4715,10 @@ msgstr "发送验证码"
 #: src/routes/obligations.tsx
 msgid "Email selected clients a Form 8879 signature reminder"
 msgstr "向所选客户发送 8879 签字提醒邮件"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Email unsubscribe"
+msgstr "邮件退订"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Email updates"
@@ -5090,6 +5130,7 @@ msgstr "延期后申报截止日必须晚于原始截止日。"
 msgid "Extending {applicableCount} deadlines · {0} already extended · {1} not found"
 msgstr "将延期 {applicableCount} 个截止事项 · 已延期 {0} 个 · 未找到 {1} 个"
 
+#: src/features/audit/audit-log-labels.ts
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
 msgid "Extension"
@@ -5309,6 +5350,10 @@ msgstr "申报应于 {0} 完成 — 已逾期 {daysPastDeadline, plural, other {
 msgid "Filing was due {0} · {1} days past deadline."
 msgstr "申报应于 {0} 完成 · 逾期 {1} 天。"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Filing year"
+msgstr "申报年度"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Filing year end"
 msgstr "申报税年结束"
@@ -5516,6 +5561,7 @@ msgid "For US CPA practices"
 msgstr "面向美国注册会计师事务所"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
+#: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/rules/rule-detail-drawer.tsx
@@ -6108,11 +6154,16 @@ msgstr "发布"
 msgid "Issues"
 msgstr "问题"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Items"
+msgstr "条目数"
+
 #: src/features/rules/sources-tab.tsx
 msgid "JUR"
 msgstr "辖区"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
+#: src/features/audit/audit-log-labels.ts
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/routes/rules.library.tsx
@@ -6661,6 +6712,10 @@ msgid "Materials checklist"
 msgstr "材料清单"
 
 #: src/features/audit/audit-log-labels.ts
+msgid "Materials checklist rebuilt"
+msgstr "材料清单已重建"
+
+#: src/features/audit/audit-log-labels.ts
 #, fuzzy
 msgid "Materials item added"
 msgstr "材料状态已变更"
@@ -6683,10 +6738,16 @@ msgstr "材料链接已生成"
 msgid "Materials pressure"
 msgstr "材料紧迫度"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Materials received"
+msgstr "已收到材料"
+
+#: src/features/audit/audit-log-labels.ts
 #: src/routes/obligations.tsx
 msgid "Materials request revoked"
 msgstr "材料请求已撤销"
 
+#: src/features/audit/audit-log-labels.ts
 #: src/routes/obligations.tsx
 msgid "Materials request sent"
 msgstr "材料请求已发送"
@@ -6800,6 +6861,10 @@ msgstr "提及、分配变更和重要的截止日期提醒将显示在此处。
 #: src/routes/obligations.tsx
 msgid "Message"
 msgstr "消息"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Message body changed"
+msgstr "邮件正文已更改"
 
 #: src/routes/obligations.tsx
 msgid "Message is required."
@@ -7295,9 +7360,17 @@ msgstr "此截止事项未记录审计事件。"
 msgid "No audit events yet."
 msgstr "暂无审计事件。"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "No audited activity yet"
+msgstr "暂无已审计的活动"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "No audited client changes yet"
 msgstr "暂无已审计的客户变更"
+
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "No audited rule changes yet"
+msgstr "暂无已审计的规则变更"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "No batch-ready rules"
@@ -7706,6 +7779,10 @@ msgstr "未关联"
 msgid "Normalize"
 msgstr "规范化"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Not allowed"
+msgstr "不允许"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Not allowed."
 msgstr "不允许。"
@@ -7862,56 +7939,12 @@ msgid "Official sources — pending rules"
 msgstr "官方来源 — 待处理规则"
 
 #: src/features/audit/audit-log-labels.ts
-msgid "Onboarding alternate path used"
-msgstr "已使用引导备用路径"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding dry run previewed"
-msgstr "引导试运行已预览"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding handoff chosen"
-msgstr "引导交接已选择"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding handoff offered"
-msgstr "引导交接已提供"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding import committed"
-msgstr "引导导入已提交"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding intake submitted"
-msgstr "引导信息已提交"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding matrix preloaded"
-msgstr "引导矩阵已预加载"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding normalization confirmed"
-msgstr "引导规范化已确认"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding preview opened"
-msgstr "引导预览已打开"
-
-#: src/features/audit/audit-log-labels.ts
 msgid "Onboarding rules activated"
 msgstr "引导规则已激活"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Onboarding state"
 msgstr "入驻状态"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding state advanced"
-msgstr "引导状态已推进"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Onboarding turn opened"
-msgstr "引导对话轮次已打开"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "One unfinished draft import"
@@ -8439,6 +8472,10 @@ msgstr "Owner 在执行敏感生产操作前需要启用 MFA。"
 msgid "Owners updated"
 msgstr "负责人已更新"
 
+#: src/features/audit/entity-audit-activity-panel.tsx
+msgid "Owners, partners, managers, and preparers can inspect activity."
+msgstr "所有者、合伙人、经理和准备人均可查看活动记录。"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 #, fuzzy
 msgid "Owners, partners, managers, and preparers can inspect client activity."
@@ -8725,10 +8762,6 @@ msgstr "期间结束"
 msgid "Period start"
 msgstr "期间开始"
 
-#: src/features/audit/audit-log-labels.ts
-msgid "Permission checked"
-msgstr "权限已检查"
-
 #: src/features/permissions/permission-gate.tsx
 msgid "Permission required"
 msgstr "需要权限"
@@ -8975,6 +9008,10 @@ msgstr "事务所"
 msgid "Preferences"
 msgstr "偏好设置"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Prep stage changed"
+msgstr "编制阶段已变更"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Prepared a materials checklist."
 msgstr "已准备材料清单。"
@@ -9154,6 +9191,7 @@ msgstr "优先提醒匹配与复核确认需要 Team 及以上套餐。"
 msgid "Priority onboarding and audit exports"
 msgstr "优先 onboarding 与审计导出"
 
+#: src/features/audit/audit-log-labels.ts
 #: src/features/calendar/calendar-page.tsx
 msgid "Privacy"
 msgstr "隐私"
@@ -9552,6 +9590,18 @@ msgstr "催签"
 msgid "Reminder"
 msgstr "提醒"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Reminder bounced"
+msgstr "提醒已退信"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Reminder couldn't be sent"
+msgstr "提醒发送失败"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Reminder opened"
+msgstr "提醒已打开"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "reminder ready"
 msgstr "提醒就绪"
@@ -9560,6 +9610,18 @@ msgstr "提醒就绪"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "REMINDER READY — {0} deadline, will fire 30 / 7-day reminders"
 msgstr "提醒就绪 — {0} 个截止事项，将触发 30 / 7 天提醒"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Reminder sent"
+msgstr "提醒已发送"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Reminder template"
+msgstr "提醒模板"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Reminder template edited"
+msgstr "提醒模板已编辑"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Reminder template updated"
@@ -9574,6 +9636,7 @@ msgid "Reminder-ready"
 msgstr "提醒就绪"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
@@ -9705,6 +9768,10 @@ msgstr "重置"
 #: src/routes/practice.tsx
 msgid "Reset to default"
 msgstr "恢复默认"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Responses"
+msgstr "回复数"
 
 #: src/routes/billing.cancel.tsx
 msgid "Restart checkout"
@@ -9916,6 +9983,10 @@ msgstr "查看已登录的浏览器，并撤销过期访问。"
 msgid "Review SSN-like columns before upload; DueDateHQ blocks those columns from AI mapping."
 msgstr "上传前检查类似 SSN 的列；DueDateHQ 会阻止这些列进入 AI 映射。"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Review stage changed"
+msgstr "复核阶段已变更"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Review suggested"
 msgstr "建议复核"
@@ -9964,6 +10035,10 @@ msgstr "仅供复核的规则"
 #: src/features/alerts/components/AlertCard.tsx
 msgid "Review-only source change. No due-date overlay will be applied."
 msgstr "仅供审核的来源变更。不会应用截止日覆盖。"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Review, dismiss, snooze, and reactivate events for this alert appear here."
+msgstr "针对此提醒的复核、忽略、暂停和重新激活事件将显示在此处。"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertsListPage.tsx
@@ -10221,6 +10296,10 @@ msgstr "规则更新已撤销"
 #: src/features/audit/audit-log-labels.ts
 msgid "Rule updated"
 msgstr "规则已更新"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Rule version"
+msgstr "规则版本"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -12306,6 +12385,10 @@ msgstr "两步验证"
 msgid "Two-factor verification complete"
 msgstr "两步验证已完成"
 
+#: src/features/audit/audit-log-labels.ts
+msgid "Two-factor verified"
+msgstr "两步验证已通过"
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "TX current-year franchise tax"
 msgstr "TX 当年 franchise tax"
@@ -12674,6 +12757,10 @@ msgstr "正在验证…"
 msgid "Version conflict"
 msgstr "版本冲突"
 
+#: src/features/rules/rule-detail-drawer.tsx
+msgid "Version history"
+msgstr "版本历史"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "View"
 msgstr "查看"
@@ -12869,6 +12956,7 @@ msgstr "此证据说明了什么"
 msgid "When is it due?"
 msgstr "何时到期?"
 
+#: src/features/audit/audit-log-labels.ts
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "When it's due"
 msgstr "到期时间"
@@ -12881,6 +12969,10 @@ msgstr "当前浏览器中登录的用户会立即失去访问权限。下次需
 #, fuzzy
 msgid "Whole number"
 msgstr "正整数。"
+
+#: src/features/audit/audit-log-labels.ts
+msgid "Why it failed"
+msgstr "失败原因"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "Why now"
