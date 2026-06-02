@@ -379,6 +379,38 @@ describe('audit-log-model', () => {
     expect(rendered).not.toContain('paymentExtended')
   })
 
+  it('renders client reminder lifecycle events as plain CPA-readable lines', () => {
+    const labels = makeChangeLabels({
+      reminderSent: 'Reminder sent',
+      reminderBounced: 'Reminder bounced',
+    })
+
+    const sent = buildAuditChangeView(
+      {
+        action: 'reminder.sent',
+        beforeJson: null,
+        afterJson: { clientId: 'client_1', channel: 'email', offsetDays: 7 },
+      },
+      labels,
+    )
+    expect(sent.headline).toBe('Reminder sent')
+    expect(sent.changes).toEqual([])
+    // The technical clientId never leaks into the user-facing view.
+    expect([sent.headline, ...sent.notes].join(' ')).not.toContain('client_1')
+
+    const bounced = buildAuditChangeView(
+      {
+        action: 'reminder.bounced',
+        beforeJson: null,
+        afterJson: { clientId: 'client_1', reason: 'Mailbox unavailable' },
+      },
+      labels,
+    )
+    expect(bounced.headline).toBe('Reminder bounced')
+    // The why-it-bounced reason surfaces as a plain note.
+    expect(bounced.notes).toContain('Mailbox unavailable')
+  })
+
   it('formats audit entity type labels for user-facing surfaces', () => {
     const labels = {
       auth: 'Authentication',
@@ -386,6 +418,7 @@ describe('audit-log-model', () => {
       calendarSubscription: 'Calendar feed',
       client: 'Client',
       clientBatch: 'Client import batch',
+      clientEmailSuppression: 'Email unsubscribe',
       firm: 'Practice',
       member: 'Team member',
       memberInvitation: 'Member invitation',

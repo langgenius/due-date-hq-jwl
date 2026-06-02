@@ -203,7 +203,12 @@ export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresen
   'pulse.reviewed': alertPresenter,
   'pulse.snooze': alertPresenter,
   'pulse.source_revoked': alertOpsPresenter,
+  'reminder.bounced': reminderEventPresenter,
+  'reminder.failed': reminderEventPresenter,
+  'reminder.opened': reminderEventPresenter,
+  'reminder.sent': reminderEventPresenter,
   'reminder.template.updated': genericPresenter,
+  'reminder.unsubscribed': reminderEventPresenter,
   'rule.report_issue': genericPresenter,
   'rule.updated': genericPresenter,
   'rule.verified': genericPresenter,
@@ -427,6 +432,16 @@ function headlineFromRows(context: AuditChangeContext, rows: AuditChangeRow[]): 
 function genericPresenter(context: AuditChangeContext): AuditChangeView {
   const rows = genericRows(context)
   return view(headlineFromRows(context, rows), rows, appendGenericNotes(context, rows))
+}
+
+// Client reminder lifecycle (sent / failed / bounced / opened / unsubscribed).
+// These are "an event happened" audits, not before→after field diffs, so the
+// action label is the headline. The client + deadline live on the event's
+// entity; the one useful detail is why a send failed or bounced, shown as a
+// note. (clientId in the payload is a technical field and stays hidden.)
+function reminderEventPresenter(context: AuditChangeContext): AuditChangeView {
+  const reason = readString(context.after, 'failureReason') ?? readString(context.after, 'reason')
+  return view(context.actionLabel, [], reason ? [reason] : [])
 }
 
 // Rule-change diff (rules.created/updated/accepted). The audit payload stores

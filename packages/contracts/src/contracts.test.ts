@@ -171,6 +171,8 @@ describe('@duedatehq/contracts', () => {
       'pulse',
       'opportunity',
       'export',
+      'calendar',
+      'reminder',
       'ai',
       'system',
     ])

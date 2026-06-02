@@ -157,7 +157,12 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'pulse.reviewed': 'pulseReviewed',
   'pulse.snooze': 'pulseSnooze',
   'pulse.source_revoked': 'pulseSourceRevoked',
+  'reminder.bounced': 'reminderBounced',
+  'reminder.failed': 'reminderFailed',
+  'reminder.opened': 'reminderOpened',
+  'reminder.sent': 'reminderSent',
   'reminder.template.updated': 'reminderTemplateUpdated',
+  'reminder.unsubscribed': 'reminderUnsubscribed',
   'rule.report_issue': 'ruleReportIssue',
   'rule.updated': 'ruleUpdated',
   'rule.verified': 'ruleVerified',
@@ -219,6 +224,7 @@ export type AuditEntityTypeLabels = {
   calendarSubscription: string
   client: string
   clientBatch: string
+  clientEmailSuppression: string
   firm: string
   member: string
   memberInvitation: string
@@ -242,6 +248,7 @@ const AUDIT_ENTITY_TYPE_LABEL_KEYS = {
   reminder_template: 'reminderTemplate',
   client: 'client',
   client_batch: 'clientBatch',
+  client_email_suppression: 'clientEmailSuppression',
   firm: 'firm',
   member: 'member',
   member_invitation: 'memberInvitation',

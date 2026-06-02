@@ -1,8 +1,10 @@
 import { and, asc, eq, lte } from 'drizzle-orm'
 import { Resend } from 'resend'
 import { createDb } from '@duedatehq/db'
+import { auditEvent } from '@duedatehq/db/schema/audit'
 import { emailOutbox, notificationDigestRun, reminder } from '@duedatehq/db/schema/notifications'
 import type { EmailOutbox } from '@duedatehq/db/schema/notifications'
+import { reminderLinkageByOutboxId } from '@duedatehq/db/reminder-linkage'
 import type { Env } from '../../env'
 import { recordPulseMetric } from '../pulse/metrics'
 
@@ -79,6 +81,38 @@ function pulseDigestText(payload: unknown): string {
   return [summary, '', ...lines].join('\n')
 }
 
+// Audit the send outcome of a CLIENT-facing reminder against its deadline, so
+// a CPA sees "reminder sent / couldn't be sent to this client" in the log.
+// Internal member reminders + digests/pulse/audit emails (no client reminder
+// linked) are skipped. System actor — no human pressed send.
+async function auditClientReminderOutcome(
+  db: ReturnType<typeof createDb>,
+  outboxId: string,
+  outcome: 'sent' | 'failed',
+  failureReason: string | null,
+): Promise<void> {
+  const links = await reminderLinkageByOutboxId(db, outboxId)
+  for (const link of links) {
+    if (link.recipientKind !== 'client') continue
+    await db.insert(auditEvent).values({
+      id: crypto.randomUUID(),
+      firmId: link.firmId,
+      actorId: null,
+      actorType: 'system',
+      entityType: 'obligation_instance',
+      entityId: link.obligationInstanceId,
+      action: outcome === 'sent' ? 'reminder.sent' : 'reminder.failed',
+      afterJson: {
+        clientId: link.clientId,
+        channel: link.channel,
+        offsetDays: link.offsetDays,
+        ...(link.recipientEmail ? { recipientEmail: link.recipientEmail } : {}),
+        ...(failureReason ? { failureReason } : {}),
+      },
+    })
+  }
+}
+
 async function processOutboxRow(
   db: ReturnType<typeof createDb>,
   resend: Resend | null,
@@ -109,6 +143,7 @@ async function processOutboxRow(
         .set({ status: 'failed', failureReason })
         .where(eq(notificationDigestRun.id, digestRunId))
     }
+    await auditClientReminderOutcome(db, row.id, 'failed', failureReason)
     return 'failed'
   }
 
@@ -150,6 +185,7 @@ async function processOutboxRow(
         .set({ status: 'sent', sentAt: new Date(), failureReason: null })
         .where(eq(notificationDigestRun.id, digestRunId))
     }
+    await auditClientReminderOutcome(db, row.id, 'sent', null)
     return 'sent'
   } catch (error) {
     const failureReason = error instanceof Error ? error.message : 'Resend send failed.'
@@ -172,6 +208,7 @@ async function processOutboxRow(
         .set({ status: 'failed', failureReason })
         .where(eq(notificationDigestRun.id, digestRunId))
     }
+    await auditClientReminderOutcome(db, row.id, 'failed', failureReason)
     return 'failed'
   }
 }

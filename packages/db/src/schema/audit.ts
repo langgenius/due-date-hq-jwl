@@ -355,7 +355,14 @@ export const CALENDAR_AUDIT_ACTIONS = [
 ] as const
 export type CalendarAuditAction = (typeof CALENDAR_AUDIT_ACTIONS)[number]
 
-export const REMINDER_AUDIT_ACTIONS = ['reminder.template.updated'] as const
+export const REMINDER_AUDIT_ACTIONS = [
+  'reminder.template.updated',
+  'reminder.sent',
+  'reminder.failed',
+  'reminder.bounced',
+  'reminder.opened',
+  'reminder.unsubscribed',
+] as const
 export type ReminderAuditAction = (typeof REMINDER_AUDIT_ACTIONS)[number]
 
 export const CLIENT_AUDIT_ACTIONS = [

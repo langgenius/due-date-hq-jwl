@@ -26,7 +26,9 @@ const { verifyMock, dbMocks } = vi.hoisted(() => {
     },
   ])
   const select = vi.fn(() => ({ from: vi.fn(() => ({ where: selectWhere })) }))
-  const createDb = vi.fn(() => ({ update, select }))
+  const insertValues = vi.fn(async () => undefined)
+  const insert = vi.fn(() => ({ values: insertValues }))
+  const createDb = vi.fn(() => ({ update, select, insert }))
   return {
     verifyMock: vi.fn(),
     dbMocks: {
@@ -36,6 +38,8 @@ const { verifyMock, dbMocks } = vi.hoisted(() => {
       where,
       select,
       selectWhere,
+      insert,
+      insertValues,
     },
   }
 })
@@ -104,6 +108,8 @@ describe('resendWebhook', () => {
     dbMocks.where.mockClear()
     dbMocks.select.mockClear()
     dbMocks.selectWhere.mockClear()
+    dbMocks.insert.mockClear()
+    dbMocks.insertValues.mockClear()
   })
 
   it('rejects requests when the webhook secret is missing', async () => {
@@ -186,6 +192,15 @@ describe('resendWebhook', () => {
         failureReason: 'Mailbox unavailable',
       }),
     )
+    // …and the bounce is audited against the client's deadline.
+    expect(dbMocks.insertValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'reminder.bounced',
+        actorType: 'system',
+        entityType: 'obligation_instance',
+        entityId: 'oi_1',
+      }),
+    )
   })
 
   it('records first-open from an opened event without flipping send status', async () => {
@@ -208,5 +223,13 @@ describe('resendWebhook', () => {
     )
     // …but an open must NOT be recorded as a send-status change.
     expect(dbMocks.set).not.toHaveBeenCalledWith(expect.objectContaining({ status: 'sent' }))
+    // …and first-open is audited against the client's deadline.
+    expect(dbMocks.insertValues).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'reminder.opened',
+        actorType: 'system',
+        entityId: 'oi_1',
+      }),
+    )
   })
 })

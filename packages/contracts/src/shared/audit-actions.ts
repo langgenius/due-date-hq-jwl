@@ -130,8 +130,18 @@ export const CalendarAuditActions = [
   'calendar.subscription.disabled',
 ] as const
 
-// Client-facing reminder configuration.
-export const ReminderAuditActions = ['reminder.template.updated'] as const
+// Client-facing reminder configuration + send lifecycle. `sent`/`failed` are
+// written when the email is actually dispatched; `bounced`/`opened` come from
+// the Resend delivery webhook (opened is first-open-only); `unsubscribed` from
+// the public unsubscribe link.
+export const ReminderAuditActions = [
+  'reminder.template.updated',
+  'reminder.sent',
+  'reminder.failed',
+  'reminder.bounced',
+  'reminder.opened',
+  'reminder.unsubscribed',
+] as const
 
 export const AuthAuditActions = [
   'auth.denied',

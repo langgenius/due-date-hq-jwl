@@ -2,9 +2,14 @@ import { Hono } from 'hono'
 import { Resend } from 'resend'
 import { eq } from 'drizzle-orm'
 import { createDb } from '@duedatehq/db'
+import { auditEvent } from '@duedatehq/db/schema/audit'
 import { emailOutbox } from '@duedatehq/db/schema/notifications'
 import type { Env, ContextVars } from '../env'
-import { markRemindersOpened } from '@duedatehq/db/reminder-linkage'
+import {
+  markRemindersOpened,
+  reminderLinkageByOutboxId,
+  type ReminderLinkage,
+} from '@duedatehq/db/reminder-linkage'
 
 type ResendWebhookEnv = Pick<Env, 'DB' | 'RESEND_API_KEY' | 'RESEND_WEBHOOK_SECRET'>
 
@@ -72,6 +77,30 @@ function parseWebhookUpdate(payload: string): OutboxWebhookUpdate | null {
   return null
 }
 
+// Audit a delivery-feedback event against the client reminder's deadline. The
+// "sent" side is already audited at dispatch (outbox.ts → reminder.sent), so
+// the webhook only records bounces and first-opens. System actor.
+async function auditReminderDeliveryEvent(
+  db: ReturnType<typeof createDb>,
+  links: ReminderLinkage[],
+  action: 'reminder.bounced' | 'reminder.opened',
+  reason: string | null,
+): Promise<void> {
+  for (const link of links) {
+    if (link.recipientKind !== 'client') continue
+    await db.insert(auditEvent).values({
+      id: crypto.randomUUID(),
+      firmId: link.firmId,
+      actorId: null,
+      actorType: 'system',
+      entityType: 'obligation_instance',
+      entityId: link.obligationInstanceId,
+      action,
+      afterJson: { clientId: link.clientId, ...(reason ? { reason } : {}) },
+    })
+  }
+}
+
 async function updateOutboxFromWebhook(env: ResendWebhookEnv, payload: string): Promise<boolean> {
   const update = parseWebhookUpdate(payload)
   if (!update) return false
@@ -79,7 +108,9 @@ async function updateOutboxFromWebhook(env: ResendWebhookEnv, payload: string): 
   const db = createDb(env.DB)
   if (update.kind === 'opened') {
     // Stamp first-open on the linked reminder(s); leave the send status alone.
-    await markRemindersOpened(db, update.outboxId, new Date())
+    // markRemindersOpened returns only the freshly-opened rows (first-open dedup).
+    const opened = await markRemindersOpened(db, update.outboxId, new Date())
+    await auditReminderDeliveryEvent(db, opened, 'reminder.opened', null)
     return true
   }
   await db
@@ -91,6 +122,10 @@ async function updateOutboxFromWebhook(env: ResendWebhookEnv, payload: string): 
         : { failedAt: new Date(), failureReason: update.failureReason }),
     })
     .where(eq(emailOutbox.id, update.outboxId))
+  if (update.status === 'failed') {
+    const links = await reminderLinkageByOutboxId(db, update.outboxId)
+    await auditReminderDeliveryEvent(db, links, 'reminder.bounced', update.failureReason)
+  }
   return true
 }
 
