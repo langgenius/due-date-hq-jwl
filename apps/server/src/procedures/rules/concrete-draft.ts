@@ -472,6 +472,46 @@ export function sourceTextContainsExcerpt(sourceText: string, excerpt: string): 
   return classifyExcerptMatch(sourceText, excerpt) !== 'none'
 }
 
+/**
+ * Minimum model confidence for a concrete draft to be eligible for one-click bulk verification.
+ * Chosen from scripts/audit-concrete-draft-trust.ts against real data: confidence clusters in
+ * [0.50, 0.70) (~84%), so 0.5 flags only the genuinely low-confidence tail (~2%) rather than the
+ * bulk of normal drafts. Lower-confidence drafts are routed to single human review, not rejected.
+ */
+export const CONCRETE_DRAFT_MIN_BULK_CONFIDENCE = 0.5
+
+export type ConcreteDraftTrustIssue = 'low_confidence' | 'fuzzy_excerpt'
+
+/**
+ * Why a cached concrete draft is too low-trust to be bulk-verified (one-click stamped) and should
+ * instead be routed to single human review — or null if it is safe to bulk-verify:
+ *   - 'low_confidence' — the model's own confidence is below the bulk threshold
+ *   - 'fuzzy_excerpt'  — the cited excerpt is not a verbatim ('exact') match in the source it was
+ *     drafted from, recomputed from the run's stored citations.sourceText
+ * When no source text was stored with the run (legacy rows), only the confidence signal applies —
+ * we do not block on an excerpt we cannot re-check. This never rejects a draft; it only gates the
+ * unattended bulk path, leaving single verify as the review escape valve.
+ */
+export function concreteDraftBulkTrustIssue(input: {
+  confidence: number
+  sourceExcerpt: string
+  citations: unknown
+}): ConcreteDraftTrustIssue | null {
+  if (input.confidence < CONCRETE_DRAFT_MIN_BULK_CONFIDENCE) return 'low_confidence'
+  const sourceText =
+    isRecord(input.citations) && typeof input.citations.sourceText === 'string'
+      ? input.citations.sourceText
+      : null
+  if (
+    sourceText &&
+    input.sourceExcerpt &&
+    classifyExcerptMatch(sourceText, input.sourceExcerpt) !== 'exact'
+  ) {
+    return 'fuzzy_excerpt'
+  }
+  return null
+}
+
 function isSourceWatchTemplateExcerpt(value: string | null | undefined): boolean {
   return typeof value === 'string' && SOURCE_WATCH_PLACEHOLDER_RE.test(value)
 }

@@ -8,6 +8,8 @@ import type { Env } from '../../env'
 import { PDFDocument, StandardFonts } from 'pdf-lib'
 import {
   classifyExcerptMatch,
+  CONCRETE_DRAFT_MIN_BULK_CONFIDENCE,
+  concreteDraftBulkTrustIssue,
   dueDateLogicDateCodes,
   extractPdfSourceText,
   generateConcreteDraft,
@@ -928,5 +930,68 @@ describe('validateConcreteRuleDraft — due date must be supported by the cited 
       sourceExcerpt: 'estimated payment is due September 15, 2026',
     })
     expect(error).toMatch(/not supported by any date/i)
+  })
+})
+
+describe('concreteDraftBulkTrustIssue (bulk trust gate, gaps #2/#3)', () => {
+  const SOURCE = 'California personal income tax returns are due April 15, 2026.'
+  const EXACT_EXCERPT = 'returns are due April 15, 2026'
+  const FUZZY_EXCERPT = 'Payment is due on April 15' // same date, not a verbatim substring
+
+  it('flags low confidence even when the excerpt is a verbatim match', () => {
+    expect(
+      concreteDraftBulkTrustIssue({
+        confidence: 0.4,
+        sourceExcerpt: EXACT_EXCERPT,
+        citations: { sourceText: SOURCE },
+      }),
+    ).toBe('low_confidence')
+  })
+
+  it('passes a high-confidence draft with a verbatim excerpt', () => {
+    expect(
+      concreteDraftBulkTrustIssue({
+        confidence: 0.9,
+        sourceExcerpt: EXACT_EXCERPT,
+        citations: { sourceText: SOURCE },
+      }),
+    ).toBeNull()
+  })
+
+  it('treats the confidence threshold as inclusive (exactly 0.5 passes)', () => {
+    expect(
+      concreteDraftBulkTrustIssue({
+        confidence: CONCRETE_DRAFT_MIN_BULK_CONFIDENCE,
+        sourceExcerpt: EXACT_EXCERPT,
+        citations: { sourceText: SOURCE },
+      }),
+    ).toBeNull()
+  })
+
+  it('flags a non-verbatim (fuzzy) excerpt when source text is available', () => {
+    expect(
+      concreteDraftBulkTrustIssue({
+        confidence: 0.9,
+        sourceExcerpt: FUZZY_EXCERPT,
+        citations: { sourceText: SOURCE },
+      }),
+    ).toBe('fuzzy_excerpt')
+  })
+
+  it('falls back to confidence only when no source text was stored (legacy rows)', () => {
+    expect(
+      concreteDraftBulkTrustIssue({
+        confidence: 0.9,
+        sourceExcerpt: FUZZY_EXCERPT,
+        citations: { sourceText: null },
+      }),
+    ).toBeNull()
+    expect(
+      concreteDraftBulkTrustIssue({
+        confidence: 0.9,
+        sourceExcerpt: FUZZY_EXCERPT,
+        citations: null,
+      }),
+    ).toBeNull()
   })
 })

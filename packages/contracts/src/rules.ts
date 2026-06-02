@@ -782,6 +782,7 @@ export const RuleBulkVerifyCandidateSkipSchema = z.object({
     'archived',
     'source_changed_requires_review',
     'source_drifted_requires_review',
+    'low_trust_requires_review',
     'no_open_task',
     'validation_failed',
   ]),

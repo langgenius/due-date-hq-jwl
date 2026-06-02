@@ -722,8 +722,16 @@ export function CoverageTab({
       invalidateAcceptedRuleOutputs()
       clearBulkSelection()
       setReviewNote('')
+      const acceptedCount = templateResult.accepted.length + concreteDraftResult.verified.length
+      const skippedCount = templateResult.skipped.length + concreteDraftResult.skipped.length
+      const lowTrustCount = concreteDraftResult.skipped.filter(
+        (row) => row.reason === 'low_trust_requires_review',
+      ).length
       toast.success(t`Rules accepted`, {
-        description: t`${templateResult.accepted.length + concreteDraftResult.verified.length} accepted · ${templateResult.skipped.length + concreteDraftResult.skipped.length} skipped.`,
+        description:
+          lowTrustCount > 0
+            ? t`${acceptedCount} accepted · ${skippedCount} skipped (${lowTrustCount} need single review).`
+            : t`${acceptedCount} accepted · ${skippedCount} skipped.`,
       })
     } catch (error) {
       toast.error(t`Couldn't accept selected rules`, {

@@ -44,6 +44,7 @@ import { isOnOrAfterDateOnly } from '../../lib/date-only'
 import { generateObligationsForAcceptedRules } from './_obligation-generation'
 import {
   cachedConcreteDraftKey,
+  concreteDraftBulkTrustIssue,
   generateConcreteDraft,
   parseCachedConcreteDraft,
   RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL,
@@ -1792,6 +1793,19 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
       }
       if (cachedRun.id !== selection.aiOutputId) {
         return skipConcreteDraftSelection(selection, 'draft_mismatch')
+      }
+
+      // Gap #2/#3 trust gate: a low-confidence draft, or one whose cited excerpt is not a verbatim
+      // match in its source, is not eligible for one-click bulk verify. Route it to single human
+      // review instead — never auto-stamp it. (Single verify stays open as the review escape valve.)
+      if (
+        concreteDraftBulkTrustIssue({
+          confidence: draft.confidence,
+          sourceExcerpt: draft.sourceExcerpt,
+          citations: cachedRun.citations,
+        })
+      ) {
+        return skipConcreteDraftSelection(selection, 'low_trust_requires_review')
       }
 
       let sourceContext: Awaited<ReturnType<typeof loadCandidateSourceContext>>
