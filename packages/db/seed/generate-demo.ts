@@ -513,7 +513,7 @@ const CLIENTS: ClientSpec[] = [
   {
     seq: 7,
     name: 'Harbor Lights Nonprofit',
-    entity: 'nonprofit',
+    entity: 'other',
     state: 'NY',
     county: 'Kings',
     taxTypes: ['federal_990', 'ny_it204'],
