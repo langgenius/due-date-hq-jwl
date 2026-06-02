@@ -18,6 +18,7 @@
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",
+    "demo:generate": "node --experimental-strip-types seed/generate-demo.ts",
     "seed:demo": "node --experimental-strip-types seed/demo.ts",
     "test": "vp test"
   },
