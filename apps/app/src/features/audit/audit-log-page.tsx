@@ -112,6 +112,8 @@ function useAuditCategoryLabels(): Record<AuditCategoryOption, string> {
     pulse: t`Alerts`,
     opportunity: t`Opportunity`,
     export: t`Export`,
+    calendar: t`Calendar`,
+    reminder: t`Reminders`,
     ai: t`AI`,
     system: t`System`,
   }

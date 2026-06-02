@@ -19,6 +19,8 @@ export const AUDIT_CATEGORY_OPTIONS = [
   'pulse',
   'opportunity',
   'export',
+  'calendar',
+  'reminder',
   'ai',
   'system',
 ] as const
@@ -68,16 +70,17 @@ export function shortenAuditId(id: string): string {
 }
 
 export const AUDIT_ACTION_LABEL_KEYS = {
-  'ai.guard_failed': 'aiGuardFailed',
-  'ai.refusal': 'aiRefusal',
-  'ask.query_run': 'askQueryRun',
   'auth.denied': 'authDenied',
   'auth.login.failed': 'authLoginFailed',
   'auth.login.success': 'authLoginSuccess',
+  'auth.mfa.challenge.verified': 'authMfaChallengeVerified',
   'auth.mfa.disabled': 'authMfaDisabled',
   'auth.mfa.enabled': 'authMfaEnabled',
   'auth.mfa.setup.started': 'authMfaSetupStarted',
   'auth.session.revoked': 'authSessionRevoked',
+  'calendar.subscription.created': 'calendarSubscriptionCreated',
+  'calendar.subscription.regenerated': 'calendarSubscriptionRegenerated',
+  'calendar.subscription.disabled': 'calendarSubscriptionDisabled',
   'client.assignee.updated': 'clientAssigneeUpdated',
   'client.batch_created': 'clientBatchCreated',
   'client.created': 'clientCreated',
@@ -111,33 +114,34 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'migration.raw_uploaded': 'migrationRawUploaded',
   'migration.reverted': 'migrationReverted',
   'migration.single_undo': 'migrationSingleUndo',
+  'readiness.request.sent': 'readinessRequestSent',
+  'readiness.request.revoked': 'readinessRequestRevoked',
+  'readiness.checklist.regenerated': 'readinessChecklistRegenerated',
   'readiness.checklist_item.created': 'readinessChecklistItemCreated',
   'readiness.checklist_item.updated': 'readinessChecklistItemUpdated',
   'readiness.checklist_item.deleted': 'readinessChecklistItemDeleted',
   // η pass — F-023: emitted when a user value-edit replaced an AI-sourced
   // checklist item value. Distinct action so audit-log filters can target it.
   'readiness.checklist_item.ai_overridden': 'readinessChecklistItemAiOverridden',
+  'readiness.materials_received': 'readinessMaterialsReceived',
+  'readiness.portal.opened': 'readinessPortalOpened',
+  'readiness.client_response': 'readinessClientResponse',
   'obligation.batch_created': 'obligationBatchCreated',
   'obligation.annual_rollover.created': 'obligationAnnualRolloverCreated',
+  'obligation.status.updated': 'obligationStatusUpdated',
+  'obligation.status.auto_unblocked': 'obligationStatusAutoUnblocked',
   'obligation.due_date.updated': 'obligationDueDateUpdated',
+  'obligation.tax_year_profile.updated': 'obligationTaxYearProfileUpdated',
+  'obligation.blocked_by.set': 'obligationBlockedBySet',
+  'obligation.blocked_by.cleared': 'obligationBlockedByCleared',
+  'obligation.prep_stage.updated': 'obligationPrepStageUpdated',
+  'obligation.review_stage.updated': 'obligationReviewStageUpdated',
   'obligation.efile.state.updated': 'obligationEfileStateUpdated',
+  'obligation.efile.rejected': 'obligationEfileRejected',
   'obligation.extension.decided': 'obligationExtensionDecided',
   'obligation.input_requested': 'obligationInputRequested',
   'obligation.readiness.updated': 'obligationReadinessUpdated',
   'obligation.signature.reminded': 'obligationSignatureReminded',
-  'obligation.status.updated': 'obligationStatusUpdated',
-  'obligation.tax_year_profile.updated': 'obligationTaxYearProfileUpdated',
-  'onboarding.agent.dry_run.previewed': 'onboardingAgentDryRunPreviewed',
-  'onboarding.agent.fallback.triggered': 'onboardingAgentFallbackTriggered',
-  'onboarding.agent.handoff.chosen': 'onboardingAgentHandoffChosen',
-  'onboarding.agent.handoff.offered': 'onboardingAgentHandoffOffered',
-  'onboarding.agent.import.committed': 'onboardingAgentImportCommitted',
-  'onboarding.agent.intake.submitted': 'onboardingAgentIntakeSubmitted',
-  'onboarding.agent.matrix.preloaded': 'onboardingAgentMatrixPreloaded',
-  'onboarding.agent.normalize.confirmed': 'onboardingAgentNormalizeConfirmed',
-  'onboarding.agent.preview_card.clicked': 'onboardingAgentPreviewCardClicked',
-  'onboarding.agent.state.advanced': 'onboardingAgentStateAdvanced',
-  'onboarding.agent.turn.opened': 'onboardingAgentTurnOpened',
   'opportunity.dismissed': 'opportunityDismissed',
   'opportunity.restored': 'opportunityRestored',
   'opportunity.snoozed': 'opportunitySnoozed',
@@ -145,16 +149,15 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'pulse.apply': 'pulseApply',
   'pulse.approve': 'pulseApprove',
   'pulse.dismiss': 'pulseDismiss',
-  'pulse.extract': 'pulseExtract',
-  'pulse.ingest': 'pulseIngest',
   'pulse.quarantine': 'pulseQuarantine',
   'pulse.reactivate': 'pulseReactivate',
   'pulse.reject': 'pulseReject',
   'pulse.revert': 'pulseRevert',
   'pulse.review_requested': 'pulseReviewRequested',
+  'pulse.reviewed': 'pulseReviewed',
   'pulse.snooze': 'pulseSnooze',
   'pulse.source_revoked': 'pulseSourceRevoked',
-  'role.check': 'roleCheck',
+  'reminder.template.updated': 'reminderTemplateUpdated',
   'rule.report_issue': 'ruleReportIssue',
   'rule.updated': 'ruleUpdated',
   'rule.verified': 'ruleVerified',
@@ -213,6 +216,7 @@ export function formatAuditActionLabel(action: string, labels: AuditActionLabels
 export type AuditEntityTypeLabels = {
   auth: string
   auditEvidencePackage: string
+  calendarSubscription: string
   client: string
   clientBatch: string
   firm: string
@@ -223,6 +227,7 @@ export type AuditEntityTypeLabels = {
   obligationInstance: string
   pulseApplication: string
   pulseAlert: string
+  reminderTemplate: string
   rule: string
   ruleSource: string
   obligationQueueExport: string
@@ -233,6 +238,8 @@ export type AuditEntityTypeLabels = {
 const AUDIT_ENTITY_TYPE_LABEL_KEYS = {
   auth: 'auth',
   audit_evidence_package: 'auditEvidencePackage',
+  calendar_subscription: 'calendarSubscription',
+  reminder_template: 'reminderTemplate',
   client: 'client',
   client_batch: 'clientBatch',
   firm: 'firm',

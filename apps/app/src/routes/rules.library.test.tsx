@@ -55,7 +55,26 @@ const toastMocks = vi.hoisted(() => ({
 
 vi.mock('@/lib/rpc', () => ({
   orpc: {
-    audit: { key: () => ['audit'] },
+    // RuleDetailInline now embeds the per-rule audit "Version history" panel,
+    // which reads firms.listMine (permission gate) + audit.list. Stub both with
+    // empty results so the rule-detail tests render without the panel throwing.
+    audit: {
+      key: () => ['audit'],
+      list: {
+        queryOptions: () => ({
+          queryKey: ['audit', 'list'],
+          queryFn: async () => ({ events: [], nextCursor: null }),
+        }),
+      },
+    },
+    firms: {
+      listMine: {
+        queryOptions: () => ({
+          queryKey: ['firms', 'listMine'],
+          queryFn: async () => [],
+        }),
+      },
+    },
     dashboard: { load: { key: () => ['dashboard', 'load'] } },
     obligations: {
       key: () => ['obligations'],

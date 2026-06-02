@@ -103,6 +103,9 @@ export const readinessRoute = new Hono<{
       const ipHash = await requestIpHash(c.env.AUTH_SECRET, c.req.header('cf-connecting-ip'))
       await repo.audit.write({
         actorId: null,
+        // Anonymous client-portal visitor authenticated by a signed token,
+        // not a firm user — record as a system actor, not a `user`.
+        actorType: 'system',
         entityType: 'obligation_instance',
         entityId: portal.request.obligationInstanceId,
         action: 'readiness.portal.opened',
@@ -168,6 +171,8 @@ export const readinessRoute = new Hono<{
     const ipHash = await requestIpHash(c.env.AUTH_SECRET, c.req.header('cf-connecting-ip'))
     await repo.audit.write({
       actorId: null,
+      // Anonymous client-portal submission (signed token), not a firm user.
+      actorType: 'system',
       entityType: 'obligation_instance',
       entityId: portal.request.obligationInstanceId,
       action: 'readiness.client_response',

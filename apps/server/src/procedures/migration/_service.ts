@@ -528,6 +528,9 @@ export class MigrationService {
 
     await this.deps.scoped.audit.write({
       actorId: this.deps.userId,
+      // Human pressed confirm, but the column mapping came from the AI mapper.
+      actorType: 'ai_assisted',
+      previousActorType: 'ai',
       entityType: 'migration_batch',
       entityId: batchId,
       action: 'migration.mapper.confirmed',
@@ -647,6 +650,9 @@ export class MigrationService {
 
     await this.deps.scoped.audit.write({
       actorId: this.deps.userId,
+      // Human pressed confirm, but the normalized values came from the AI normalizer.
+      actorType: 'ai_assisted',
+      previousActorType: 'ai',
       entityType: 'migration_batch',
       entityId: batchId,
       action: 'migration.normalizer.confirmed',

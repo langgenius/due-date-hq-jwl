@@ -252,8 +252,8 @@ export const MIGRATION_AUDIT_ACTIONS = [
 export type MigrationAuditAction = (typeof MIGRATION_AUDIT_ACTIONS)[number]
 
 export const PULSE_AUDIT_ACTIONS = [
-  'pulse.ingest',
-  'pulse.extract',
+  // `pulse.ingest` / `pulse.extract` removed — operational telemetry, not
+  // firm-facing audit (see packages/contracts/src/shared/audit-actions.ts).
   'pulse.approve',
   'pulse.reject',
   'pulse.dismiss',
@@ -281,9 +281,82 @@ export const RULES_AUDIT_ACTIONS = [
   'rules.archived',
   'rules.published',
   'rules.review.rejected',
-  'obligation.annual_rollover.created',
 ] as const
 export type RulesAuditAction = (typeof RULES_AUDIT_ACTIONS)[number]
+
+export const OBLIGATION_AUDIT_ACTIONS = [
+  'obligation.batch_created',
+  'obligation.annual_rollover.created',
+  'obligation.status.updated',
+  'obligation.status.auto_unblocked',
+  'obligation.due_date.updated',
+  'obligation.tax_year_profile.updated',
+  'obligation.blocked_by.set',
+  'obligation.blocked_by.cleared',
+  'obligation.prep_stage.updated',
+  'obligation.review_stage.updated',
+  'obligation.efile.state.updated',
+  'obligation.efile.rejected',
+  'obligation.extension.decided',
+  'obligation.input_requested',
+  'obligation.signature.reminded',
+  'obligations.saved_view.created',
+  'obligations.saved_view.updated',
+  'obligations.saved_view.deleted',
+  'obligations.exported',
+] as const
+export type ObligationAuditAction = (typeof OBLIGATION_AUDIT_ACTIONS)[number]
+
+export const READINESS_AUDIT_ACTIONS = [
+  'readiness.request.sent',
+  'readiness.request.revoked',
+  'readiness.checklist.regenerated',
+  'readiness.checklist_item.created',
+  'readiness.checklist_item.updated',
+  'readiness.checklist_item.deleted',
+  'readiness.checklist_item.ai_overridden',
+  'readiness.materials_received',
+  'readiness.portal.opened',
+  'readiness.client_response',
+] as const
+export type ReadinessAuditAction = (typeof READINESS_AUDIT_ACTIONS)[number]
+
+export const MEMBER_AUDIT_ACTIONS = [
+  'member.invited',
+  'member.invitation.canceled',
+  'member.invitation.resent',
+  'member.accepted',
+  'member.role.updated',
+  'member.suspended',
+  'member.reactivated',
+  'member.removed',
+] as const
+export type MemberAuditAction = (typeof MEMBER_AUDIT_ACTIONS)[number]
+
+export const FIRM_AUDIT_ACTIONS = [
+  'firm.created',
+  'firm.updated',
+  'firm.switched',
+  'firm.deleted',
+] as const
+export type FirmAuditAction = (typeof FIRM_AUDIT_ACTIONS)[number]
+
+export const OPPORTUNITY_AUDIT_ACTIONS = [
+  'opportunity.dismissed',
+  'opportunity.snoozed',
+  'opportunity.restored',
+] as const
+export type OpportunityAuditAction = (typeof OPPORTUNITY_AUDIT_ACTIONS)[number]
+
+export const CALENDAR_AUDIT_ACTIONS = [
+  'calendar.subscription.created',
+  'calendar.subscription.regenerated',
+  'calendar.subscription.disabled',
+] as const
+export type CalendarAuditAction = (typeof CALENDAR_AUDIT_ACTIONS)[number]
+
+export const REMINDER_AUDIT_ACTIONS = ['reminder.template.updated'] as const
+export type ReminderAuditAction = (typeof REMINDER_AUDIT_ACTIONS)[number]
 
 export const CLIENT_AUDIT_ACTIONS = [
   'client.assignee.updated',
@@ -304,6 +377,7 @@ export const AUTH_AUDIT_ACTIONS = [
   'auth.login.failed',
   'auth.mfa.setup.started',
   'auth.mfa.enabled',
+  'auth.mfa.challenge.verified',
   'auth.mfa.disabled',
   'auth.session.revoked',
 ] as const
@@ -322,7 +396,14 @@ export const AUDIT_ACTIONS = [
   ...PULSE_AUDIT_ACTIONS,
   ...PENALTY_AUDIT_ACTIONS,
   ...RULES_AUDIT_ACTIONS,
+  ...OBLIGATION_AUDIT_ACTIONS,
+  ...READINESS_AUDIT_ACTIONS,
   ...CLIENT_AUDIT_ACTIONS,
+  ...MEMBER_AUDIT_ACTIONS,
+  ...FIRM_AUDIT_ACTIONS,
+  ...OPPORTUNITY_AUDIT_ACTIONS,
+  ...CALENDAR_AUDIT_ACTIONS,
+  ...REMINDER_AUDIT_ACTIONS,
   ...AUTH_AUDIT_ACTIONS,
   ...EXPORT_AUDIT_ACTIONS,
 ] as const

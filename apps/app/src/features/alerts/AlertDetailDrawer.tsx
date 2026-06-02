@@ -44,6 +44,7 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
+import { EntityAuditActivityPanel } from '@/features/audit/entity-audit-activity-panel'
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { getJurisdictionName } from '@/components/primitives/state-badge'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
@@ -889,6 +890,8 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
             {detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady ? (
               <ApplySafetyChecklist />
             ) : null}
+
+            <AlertActivitySection alertId={detail.alert.id} />
           </>
         ) : null}
       </div>
@@ -1252,6 +1255,29 @@ function openNativeDatePicker(event: MouseEvent<HTMLInputElement>) {
   } catch {
     // Some browsers throw if the picker is unavailable; focus still keeps the field usable.
   }
+}
+
+function AlertActivitySection({ alertId }: { alertId: string }) {
+  // Per-alert audit timeline — review-requested / reviewed / dismissed /
+  // snoozed / reactivated events (entityType 'pulse_firm_alert'). Closes the
+  // "Pulse alert drawer → Activity" surface gap. (Per-obligation apply/revert
+  // rows are keyed to pulse_application and surface in the affected-clients
+  // flow, not here.)
+  return (
+    <section className="flex flex-col gap-3">
+      <h3 className="text-sm font-semibold text-text-primary">
+        <Trans>Activity</Trans>
+      </h3>
+      <EntityAuditActivityPanel
+        entityType="pulse_firm_alert"
+        entityId={alertId}
+        emptyTitle={<Trans>No audited activity yet</Trans>}
+        emptyDescription={
+          <Trans>Review, dismiss, snooze, and reactivate events for this alert appear here.</Trans>
+        }
+      />
+    </section>
+  )
 }
 
 function DeadlineDetailsPanel({

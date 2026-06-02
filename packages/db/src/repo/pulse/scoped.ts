@@ -1502,6 +1502,10 @@ export function makePulseRepo(db: Db, firmId: string) {
         id: crypto.randomUUID(),
         firmId,
         actorId: input.userId,
+        // Human pressed apply, but the regulatory change + new due date came
+        // from the AI-classified Pulse alert → ai_assisted provenance.
+        actorType: 'ai_assisted',
+        previousActorType: 'ai',
         entityType: 'pulse_application',
         entityId: applications[index]!.id,
         action: 'pulse.apply',

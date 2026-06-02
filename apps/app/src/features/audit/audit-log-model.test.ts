@@ -328,6 +328,7 @@ describe('audit-log-model', () => {
     const labels = {
       auth: 'Authentication',
       auditEvidencePackage: 'Audit export package',
+      calendarSubscription: 'Calendar feed',
       client: 'Client',
       clientBatch: 'Client import batch',
       firm: 'Practice',
@@ -338,6 +339,7 @@ describe('audit-log-model', () => {
       obligationInstance: 'Deadline',
       pulseApplication: 'Alert application',
       pulseAlert: 'Alert',
+      reminderTemplate: 'Reminder template',
       rule: 'Rule',
       ruleSource: 'Rule source',
       obligationQueueExport: 'Deadlines export',

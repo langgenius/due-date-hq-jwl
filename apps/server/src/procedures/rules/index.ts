@@ -932,6 +932,9 @@ export async function acceptTemplateRule(input: {
   editedRule?: ObligationRule
   catalogSeeded?: boolean
   generateObligations?: boolean
+  // When the accepted rule was drafted by AI (the verify-candidate flow), the
+  // human pressed accept but the value came from the model → ai_assisted.
+  aiAssisted?: boolean
 }): Promise<RuleReviewTask> {
   const { scoped, tenant } = requireTenant(input.context)
   if (!input.editedRule && isSourceDefinedRule(input.rule)) throw sourceDefinedAcceptError()
@@ -964,11 +967,18 @@ export async function acceptTemplateRule(input: {
   })
   await scoped.audit.write({
     actorId: input.reviewedBy,
+    ...(input.aiAssisted
+      ? { actorType: 'ai_assisted' as const, previousActorType: 'ai' as const }
+      : {}),
     entityType: 'rule',
     entityId: input.rule.id,
     action: 'rules.accepted',
-    before: { status: 'pending_review', version: input.rule.version },
-    after: { status: 'active', version: activeRule.version },
+    before: {
+      status: 'pending_review',
+      version: input.rule.version,
+      rule: ruleBodyForAudit(input.rule),
+    },
+    after: { status: 'active', version: activeRule.version, rule: ruleBodyForAudit(activeRule) },
     reason: input.reviewNote,
   })
   const task = await acceptedTaskForRule({
@@ -1277,6 +1287,23 @@ const rejectTemplate = os.rules.rejectTemplate.handler(async ({ input, context }
   })
 })
 
+// Strip volatile review metadata so a rule audit diff surfaces the parts a
+// reviewer cares about — due-date logic, extension/payment rules, evidence
+// requirements, jurisdiction, effective date — instead of only {status,
+// version} (which never told you WHAT changed in the rule). See gap P0-4.
+function ruleBodyForAudit(ruleJson: unknown): Record<string, unknown> | null {
+  if (!ruleJson || typeof ruleJson !== 'object') return null
+  const {
+    status: _status,
+    verifiedBy: _verifiedBy,
+    verifiedAt: _verifiedAt,
+    reviewedByName: _reviewedByName,
+    reviewedAt: _reviewedAt,
+    ...body
+  } = ruleJson as Record<string, unknown>
+  return body
+}
+
 const createCustomRule = os.rules.createCustomRule.handler(async ({ input, context }) => {
   const { scoped, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
@@ -1305,7 +1332,7 @@ const createCustomRule = os.rules.createCustomRule.handler(async ({ input, conte
     entityType: 'rule',
     entityId: rule.id,
     action: 'rules.created',
-    after: { status: 'active', version: rule.version, custom: true },
+    after: { status: 'active', version: rule.version, custom: true, rule: ruleBodyForAudit(rule) },
     reason: input.reviewNote,
   })
   return acceptedTaskForRule({
@@ -1349,8 +1376,12 @@ const updatePracticeRule = os.rules.updatePracticeRule.handler(async ({ input, c
     entityType: 'rule',
     entityId: rule.id,
     action: 'rules.updated',
-    before: { status: existing.status, version: existing.templateVersion },
-    after: { status: 'active', version: rule.version },
+    before: {
+      status: existing.status,
+      version: existing.templateVersion,
+      rule: ruleBodyForAudit(existing.ruleJson),
+    },
+    after: { status: 'active', version: rule.version, rule: ruleBodyForAudit(rule) },
     reason: input.reviewNote,
   })
   return acceptedTaskForRule({
@@ -1718,6 +1749,7 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     reviewedByName: reviewerName,
     reviewedAt,
     editedRule,
+    aiAssisted: true,
   })
   const row = await scoped.rules.upsertDecision({
     ruleId: base.id,
@@ -1876,6 +1908,7 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
         editedRule,
         catalogSeeded: true,
         generateObligations: false,
+        aiAssisted: true,
       })
       const row = await scoped.rules.upsertDecision({
         ruleId: base.id,

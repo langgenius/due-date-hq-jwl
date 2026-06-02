@@ -17,6 +17,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EntityAuditActivityPanel } from '@/features/audit/entity-audit-activity-panel'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -103,7 +104,29 @@ export function RuleDetailInline({ rule }: { rule: ObligationRule }) {
       {!needsReview ? <ReviewReasonsSection rule={rule} /> : null}
       <EvidenceSection rule={rule} sourceLookup={sourceLookup} />
       <VerificationSection rule={rule} />
+      <RuleVersionHistorySection rule={rule} />
     </div>
+  )
+}
+
+function RuleVersionHistorySection({ rule }: { rule: ObligationRule }) {
+  // Per-rule audit timeline — created / updated (with body diff) / accepted /
+  // archived events, keyed by entityType 'rule' + the rule id. Closes the
+  // "Rule library row → version history" surface gap.
+  return (
+    <section className="flex flex-col gap-3 border-t border-divider-subtle pt-4">
+      <RuleSectionHeading>
+        <Trans>Version history</Trans>
+      </RuleSectionHeading>
+      <EntityAuditActivityPanel
+        entityType="rule"
+        entityId={rule.id}
+        emptyTitle={<Trans>No audited rule changes yet</Trans>}
+        emptyDescription={
+          <Trans>Edits, version bumps, and review decisions for this rule will appear here.</Trans>
+        }
+      />
+    </section>
   )
 }
 
