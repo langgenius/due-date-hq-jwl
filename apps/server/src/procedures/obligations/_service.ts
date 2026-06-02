@@ -2,6 +2,8 @@ import { ORPCError } from '@orpc/server'
 import type {
   ObligationBulkRemindSignatureInput,
   ObligationBulkRemindSignatureOutput,
+  ObligationBulkSignatureReminderPreviewInput,
+  ObligationBulkSignatureReminderPreviewOutput,
   ObligationBulkStatusUpdateInput,
   ObligationBulkStatusUpdateOutput,
   ObligationExtensionDecisionInput,
@@ -12,6 +14,7 @@ import type {
   ObligationRemindSignatureOutput,
   ObligationSignatureReminderPreviewInput,
   ObligationSignatureReminderPreviewOutput,
+  SignatureReminderSample,
   ObligationStatusUpdateInput,
   ObligationStatusUpdateOutput,
   ObligationUpdateBlockedByInput,
@@ -25,6 +28,13 @@ import {
   obligationUsesEfileAuthorization,
 } from '@duedatehq/core/obligation-workflow'
 import { formatTaxCode } from '@duedatehq/core/tax-codes'
+import {
+  renderTemplate,
+  signatureReminderVars,
+  SIGNATURE_REMINDER_BODY_TEMPLATE,
+  SIGNATURE_REMINDER_SUBJECT_TEMPLATE,
+  SIGNATURE_REMINDER_TOKENS,
+} from '@duedatehq/core/email-template'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { calculateAccruedPenalty } from '../_accrued-penalty'
 
@@ -1058,33 +1068,28 @@ export async function updateObligationEfileState(
   return { obligation: await toObligationPublicFromScoped(scoped, after), auditId }
 }
 
-// Built-in Form 8879 signature-reminder email. Unlike the readiness
-// request, there is no firm-configured template and no signing link — the
-// firm collects the signature via its own channel (DocuSign / SafeSend /
-// wet signature); this email is a plain nudge so "who hasn't signed" stops
-// slipping through the cracks near a deadline.
-function signatureReminderEmail(input: {
-  clientName: string
-  taxType: string
-  formName: string | null
-  taxYear: number | null
-}): { subject: string; text: string } {
-  // Prefer the obligation's own form name; fall back to the friendly
-  // label for the raw tax code (e.g. federal_1120s -> "Form 1120-S")
-  // rather than leaking the snake_case code into a client-facing email.
-  const form = input.formName?.trim() || formatTaxCode(input.taxType) || input.taxType
-  const yearLabel = input.taxYear ? `${input.taxYear} ` : ''
-  const subject = `Reminder: please sign Form 8879 for your ${yearLabel}${form} return`
-  const text = [
-    `Hi ${input.clientName},`,
-    '',
-    `This is a friendly reminder to sign Form 8879 (the e-file authorization) for your ${yearLabel}${form} return. We can't electronically file your return until we have your signed authorization.`,
-    '',
-    `If you've already signed, thank you — no further action is needed. Otherwise, please sign at your earliest convenience so we can file on time.`,
-    '',
-    `Thank you.`,
-  ].join('\n')
-  return { subject, text }
+// Built-in Form 8879 signature-reminder email. Unlike the readiness request
+// there is no firm-configured template and no signing link — the firm collects
+// the signature via its own channel (DocuSign / SafeSend / wet signature);
+// this email is a plain nudge so "who hasn't signed" stops slipping through.
+//
+// The copy is a token template (see @duedatehq/core/email-template). Default
+// AND CPA-edited overrides both run through `renderTemplate` against each
+// recipient's vars, so a single edited template personalizes per client.
+
+// Resolve the friendly form label for a client-facing email: prefer the
+// obligation's own form name, fall back to the tax-code label
+// (federal_1120s -> "Form 1120-S"), never leak the snake_case code.
+function resolveForm(taxType: string, formName: string | null): string {
+  return formName?.trim() || formatTaxCode(taxType) || taxType
+}
+
+// The single place "which address do we email" is decided — shared by the
+// send path and the eligibility preview so the two can't drift.
+function resolveClientEmail(
+  clientRow: { email?: string | null; primaryContactEmail?: string | null } | null | undefined,
+): string | null {
+  return clientRow?.email?.trim() || clientRow?.primaryContactEmail?.trim() || null
 }
 
 // True when a row is actually waiting on the client's 8879 signature:
@@ -1107,22 +1112,21 @@ async function enqueueSignatureReminder(
   override?: { subject?: string | undefined; body?: string | undefined },
 ): Promise<ObligationRemindSignatureOutput> {
   const clientRow = await scoped.clients.findById(row.clientId)
-  const email = clientRow?.email?.trim() || clientRow?.primaryContactEmail?.trim() || null
+  const email = resolveClientEmail(clientRow)
   if (!clientRow || !email || !scoped.notifications) {
     return { auditId: null, emailQueued: false }
   }
 
-  // CPA-edited subject/body win over the default template (the drawer's
-  // preview dialog lets them tweak the copy before sending).
-  const fallback = signatureReminderEmail({
+  // Default and CPA-edited overrides are BOTH templates — substitute this
+  // recipient's tokens so one edited template still personalizes per client.
+  const vars = signatureReminderVars({
     clientName: clientRow.name,
-    taxType: row.taxType,
-    formName: row.formName ?? null,
+    form: resolveForm(row.taxType, row.formName ?? null),
     taxYear: row.taxYear,
   })
   const rendered = {
-    subject: override?.subject?.trim() || fallback.subject,
-    text: override?.body?.trim() || fallback.text,
+    subject: renderTemplate(override?.subject?.trim() || SIGNATURE_REMINDER_SUBJECT_TEMPLATE, vars),
+    text: renderTemplate(override?.body?.trim() || SIGNATURE_REMINDER_BODY_TEMPLATE, vars),
   }
   const queued = await scoped.notifications.enqueueEmail({
     externalId: `signature-reminder:${row.id}:${crypto.randomUUID()}`,
@@ -1181,14 +1185,19 @@ export async function previewObligationSignatureReminder(
     })
   }
   const clientRow = await scoped.clients.findById(row.clientId)
-  const email = clientRow?.email?.trim() || clientRow?.primaryContactEmail?.trim() || null
-  const rendered = signatureReminderEmail({
-    clientName: clientRow?.name ?? 'there',
-    taxType: row.taxType,
-    formName: row.formName ?? null,
+  const clientName = clientRow?.name ?? 'there'
+  const vars = signatureReminderVars({
+    clientName,
+    form: resolveForm(row.taxType, row.formName ?? null),
     taxYear: row.taxYear,
   })
-  return { subject: rendered.subject, body: rendered.text, recipientEmail: email }
+  return {
+    subjectTemplate: SIGNATURE_REMINDER_SUBJECT_TEMPLATE,
+    bodyTemplate: SIGNATURE_REMINDER_BODY_TEMPLATE,
+    tokens: [...SIGNATURE_REMINDER_TOKENS],
+    recipientEmail: resolveClientEmail(clientRow),
+    sample: { clientName, vars },
+  }
 }
 
 /**
@@ -1211,9 +1220,61 @@ export async function bulkRemindObligationSignature(
       skippedCount += 1
       continue
     }
-    const result = await enqueueSignatureReminder(scoped, userId, row)
+    const result = await enqueueSignatureReminder(scoped, userId, row, {
+      subject: input.subject,
+      body: input.body,
+    })
     if (result.emailQueued) remindedCount += 1
     else noEmailCount += 1
   }
   return { remindedCount, skippedCount, noEmailCount }
+}
+
+/**
+ * Read-only eligibility + default-template source for the bulk "Remind to
+ * sign" dialog. Returns the same counts the send path produces (eligible /
+ * not-awaiting / no-email) plus one eligible recipient for the live preview,
+ * so the CPA sees exactly who will be emailed before sending. Queues nothing.
+ */
+export async function bulkPreviewObligationSignatureReminder(
+  scoped: ScopedRepo,
+  input: ObligationBulkSignatureReminderPreviewInput,
+): Promise<ObligationBulkSignatureReminderPreviewOutput> {
+  let eligibleCount = 0
+  let skippedCount = 0
+  let noEmailCount = 0
+  let sample: SignatureReminderSample | null = null
+  for (const id of input.ids) {
+    const row = await scoped.obligations.findById(id)
+    if (!row || !isAwaitingSignature(row)) {
+      skippedCount += 1
+      continue
+    }
+    const clientRow = await scoped.clients.findById(row.clientId)
+    if (!clientRow || !resolveClientEmail(clientRow)) {
+      noEmailCount += 1
+      continue
+    }
+    eligibleCount += 1
+    // First eligible row seeds the live preview (mirrors a real send).
+    if (!sample) {
+      sample = {
+        clientName: clientRow.name,
+        vars: signatureReminderVars({
+          clientName: clientRow.name,
+          form: resolveForm(row.taxType, row.formName ?? null),
+          taxYear: row.taxYear,
+        }),
+      }
+    }
+  }
+  return {
+    subjectTemplate: SIGNATURE_REMINDER_SUBJECT_TEMPLATE,
+    bodyTemplate: SIGNATURE_REMINDER_BODY_TEMPLATE,
+    tokens: [...SIGNATURE_REMINDER_TOKENS],
+    eligibleCount,
+    skippedCount,
+    noEmailCount,
+    sample,
+  }
 }

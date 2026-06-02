@@ -4518,6 +4518,10 @@ msgstr "编辑"
 msgid "Edit template in Reminders"
 msgstr "在 Reminders 中编辑模板"
 
+#: src/routes/obligations.tsx
+msgid "Edit the email, then send it to the selected clients. Each client gets their own details filled in; deadlines not awaiting a signature are skipped."
+msgstr "编辑邮件后发送给所选客户。每个客户会自动填入各自的信息；不在等待签字状态的截止事项会被跳过。"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Edit the practice-managed 30-day countdown, 7-day countdown, and checklist collection emails."
 msgstr "编辑事务所统一管理的 30 天倒计时、7 天倒计时和 checklist 收集邮件。"
@@ -4571,10 +4575,6 @@ msgstr "发送验证码"
 #: src/routes/obligations.tsx
 msgid "Email selected clients a Form 8879 signature reminder"
 msgstr "向所选客户发送 8879 签字提醒邮件"
-
-#: src/routes/obligations.tsx
-msgid "Email signature reminders?"
-msgstr "发送签字提醒邮件？"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Email updates"
@@ -8612,6 +8612,10 @@ msgstr "选择州"
 msgid "Pinned"
 msgstr "已置顶"
 
+#: src/routes/obligations.tsx
+msgid "Placeholders filled in per client:"
+msgstr "按客户自动填充的占位符："
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Plan"
 msgstr "计划"
@@ -8869,6 +8873,16 @@ msgstr "预览基于 {0}"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Preview closed source-year deadlines, then create next-year deadlines from active practice rules."
 msgstr "预览已关闭的来源年度截止事项，然后根据生效的事务所规则创建下一年度的截止事项。"
+
+#. placeholder {0}: sample.clientName
+#: src/routes/obligations.tsx
+msgid "Preview for {0}"
+msgstr "{0} 的预览"
+
+#. placeholder {0}: sample.clientName
+#: src/routes/obligations.tsx
+msgid "Preview for {0} (one of {eligibleCount})"
+msgstr "{0} 的预览（共 {eligibleCount} 个之一）"
 
 #: src/routes/obligations.tsx
 msgid "Preview materials request"
@@ -9347,6 +9361,10 @@ msgstr "提醒客户签署 8879 表"
 #: src/routes/obligations.tsx
 msgid "Remind client to sign the 8879"
 msgstr "提醒客户签字 8879"
+
+#: src/routes/obligations.tsx
+msgid "Remind clients to sign Form 8879"
+msgstr "提醒客户签署 8879 表"
 
 #: src/routes/obligations.tsx
 msgid "Remind to sign"
@@ -10555,6 +10573,12 @@ msgstr "发送给客户"
 #: src/routes/obligations.tsx
 msgid "Send to review"
 msgstr "送交复核"
+
+#. placeholder {0}: bulkQuery.data?.skippedCount ?? 0
+#. placeholder {1}: bulkQuery.data?.noEmailCount ?? 0
+#: src/routes/obligations.tsx
+msgid "Sending to {eligibleCount} clients · {0} not awaiting signature · {1} without an email"
+msgstr "将发送给 {eligibleCount} 个客户 · {0} 个不在等待签字 · {1} 个无邮箱"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/members/members-page.tsx
@@ -12579,10 +12603,6 @@ msgstr "我们已根据您的账户预填了名称。"
 #: src/routes/billing.tsx
 msgid "We store the plan and seat limit needed for app permissions."
 msgstr "我们会保存应用权限所需的计划和席位上限。"
-
-#: src/routes/obligations.tsx
-msgid "We'll email a Form 8879 signature reminder to the clients on the selected deadlines. Deadlines that aren't awaiting a signature are skipped automatically."
-msgstr "我们将就所选截止事项向相应客户发送 8879 签字提醒邮件。不在等待签字状态的截止事项会被自动跳过。"
 
 #: src/routes/obligations.tsx
 msgid "We'll let you attach PDFs and exports here as soon as ingest lands."

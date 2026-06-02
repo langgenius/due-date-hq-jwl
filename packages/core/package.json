@@ -25,6 +25,7 @@
     "./permissions": "./src/permissions/index.ts",
     "./tax-periods": "./src/tax-periods/index.ts",
     "./tax-codes": "./src/tax-codes/index.ts",
+    "./email-template": "./src/email-template/index.ts",
     "./practice-name": "./src/practice-name.ts"
   },
   "scripts": {

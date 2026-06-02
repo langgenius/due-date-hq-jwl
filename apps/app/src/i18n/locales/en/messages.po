@@ -4473,6 +4473,10 @@ msgstr "Edit"
 msgid "Edit template in Reminders"
 msgstr "Edit template in Reminders"
 
+#: src/routes/obligations.tsx
+msgid "Edit the email, then send it to the selected clients. Each client gets their own details filled in; deadlines not awaiting a signature are skipped."
+msgstr "Edit the email, then send it to the selected clients. Each client gets their own details filled in; deadlines not awaiting a signature are skipped."
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Edit the practice-managed 30-day countdown, 7-day countdown, and checklist collection emails."
 msgstr "Edit the practice-managed 30-day countdown, 7-day countdown, and checklist collection emails."
@@ -4526,10 +4530,6 @@ msgstr "Email me a code"
 #: src/routes/obligations.tsx
 msgid "Email selected clients a Form 8879 signature reminder"
 msgstr "Email selected clients a Form 8879 signature reminder"
-
-#: src/routes/obligations.tsx
-msgid "Email signature reminders?"
-msgstr "Email signature reminders?"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Email updates"
@@ -8524,6 +8524,10 @@ msgstr "Pick state"
 msgid "Pinned"
 msgstr "Pinned"
 
+#: src/routes/obligations.tsx
+msgid "Placeholders filled in per client:"
+msgstr "Placeholders filled in per client:"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Plan"
 msgstr "Plan"
@@ -8778,6 +8782,16 @@ msgstr "Preview as of {0}"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Preview closed source-year deadlines, then create next-year deadlines from active practice rules."
 msgstr "Preview closed source-year deadlines, then create next-year deadlines from active practice rules."
+
+#. placeholder {0}: sample.clientName
+#: src/routes/obligations.tsx
+msgid "Preview for {0}"
+msgstr "Preview for {0}"
+
+#. placeholder {0}: sample.clientName
+#: src/routes/obligations.tsx
+msgid "Preview for {0} (one of {eligibleCount})"
+msgstr "Preview for {0} (one of {eligibleCount})"
 
 #: src/routes/obligations.tsx
 msgid "Preview materials request"
@@ -9254,6 +9268,10 @@ msgstr "Remind client to sign Form 8879"
 #: src/routes/obligations.tsx
 msgid "Remind client to sign the 8879"
 msgstr "Remind client to sign the 8879"
+
+#: src/routes/obligations.tsx
+msgid "Remind clients to sign Form 8879"
+msgstr "Remind clients to sign Form 8879"
 
 #: src/routes/obligations.tsx
 msgid "Remind to sign"
@@ -10453,6 +10471,12 @@ msgstr "Send to client"
 #: src/routes/obligations.tsx
 msgid "Send to review"
 msgstr "Send to review"
+
+#. placeholder {0}: bulkQuery.data?.skippedCount ?? 0
+#. placeholder {1}: bulkQuery.data?.noEmailCount ?? 0
+#: src/routes/obligations.tsx
+msgid "Sending to {eligibleCount} clients · {0} not awaiting signature · {1} without an email"
+msgstr "Sending to {eligibleCount} clients · {0} not awaiting signature · {1} without an email"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/members/members-page.tsx
@@ -12463,10 +12487,6 @@ msgstr "We pre-filled a name from your account."
 #: src/routes/billing.tsx
 msgid "We store the plan and seat limit needed for app permissions."
 msgstr "We store the plan and seat limit needed for app permissions."
-
-#: src/routes/obligations.tsx
-msgid "We'll email a Form 8879 signature reminder to the clients on the selected deadlines. Deadlines that aren't awaiting a signature are skipped automatically."
-msgstr "We'll email a Form 8879 signature reminder to the clients on the selected deadlines. Deadlines that aren't awaiting a signature are skipped automatically."
 
 #: src/routes/obligations.tsx
 msgid "We'll let you attach PDFs and exports here as soon as ingest lands."

@@ -98,6 +98,7 @@ export const router = os.router({
     remindSignature: obligationsHandlers.remindSignature,
     signatureReminderPreview: obligationsHandlers.signatureReminderPreview,
     bulkRemindSignature: obligationsHandlers.bulkRemindSignature,
+    bulkSignatureReminderPreview: obligationsHandlers.bulkSignatureReminderPreview,
     requestInput: obligationsHandlers.requestInput,
     listByClient: obligationsHandlers.listByClient,
     getDeadlineTip: obligationsHandlers.getDeadlineTip,

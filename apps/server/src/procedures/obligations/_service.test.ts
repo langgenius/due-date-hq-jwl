@@ -4,6 +4,7 @@ import type { ObligationInstanceRow } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { deriveObligationReadiness } from '@duedatehq/core/obligation-workflow'
 import {
+  bulkPreviewObligationSignatureReminder,
   bulkRemindObligationSignature,
   bulkUpdateObligationStatus,
   decideObligationExtension,
@@ -1334,6 +1335,41 @@ describe('updateObligationEfileState', () => {
   })
 })
 
+const SIGNATURE_CLIENT_ID = '22222222-2222-4222-8222-222222222222'
+
+// The default harness has no client email and no notifications repo, so the
+// email-substitution path never runs. This wraps a scoped repo with a client
+// lookup (by id) + a capturing notifications stub. `notifications` is readonly
+// on ScopedRepo, so we spread a fresh object rather than mutate.
+function withEmailClients(
+  base: ScopedRepo,
+  clientsById: Record<string, { name: string; email: string | null }>,
+): {
+  scoped: ScopedRepo
+  emails: Array<{ recipients: string[]; subject: string; text: string }>
+} {
+  const emails: Array<{ recipients: string[]; subject: string; text: string }> = []
+  const scoped = {
+    ...base,
+    clients: {
+      ...base.clients,
+      async findById(id: string) {
+        const c = clientsById[id]
+        return c ? { id, name: c.name, email: c.email, primaryContactEmail: null } : undefined
+      },
+    },
+    notifications: {
+      firmId: base.firmId,
+      async enqueueEmail(input: { payloadJson: unknown }) {
+        emails.push(input.payloadJson as { recipients: string[]; subject: string; text: string })
+        return { id: `email-${emails.length}`, created: true }
+      },
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test stub
+  } as unknown as ScopedRepo
+  return { scoped, emails }
+}
+
 describe('remindObligationSignature', () => {
   it('rejects a row that is not awaiting a signature', async () => {
     const { repo } = buildScoped(FIRM, [makeRow({ status: 'pending' })])
@@ -1352,6 +1388,29 @@ describe('remindObligationSignature', () => {
     expect(result.auditId).toBeNull()
     expect(audits.some((a) => a.action === 'obligation.signature.reminded')).toBe(false)
   })
+
+  it('substitutes the CPA-edited template against the recipient (not verbatim)', async () => {
+    const base = buildScoped(FIRM, [
+      makeRow({
+        status: 'done',
+        efileState: 'authorization_requested',
+        taxType: 'federal_1120s',
+        formName: null,
+      }),
+    ]).repo
+    const { scoped, emails } = withEmailClients(base, {
+      [SIGNATURE_CLIENT_ID]: { name: 'Bright Studio S-Corp', email: 'cfo@bright.example' },
+    })
+    const result = await remindObligationSignature(scoped, 'user_1', {
+      id: ROW_ID,
+      body: 'Hi {{client_name}}, please sign your {{form}}.',
+    })
+    expect(result.emailQueued).toBe(true)
+    expect(emails).toHaveLength(1)
+    expect(emails[0]?.recipients).toEqual(['cfo@bright.example'])
+    // The edited template is RENDERED per recipient, not sent literally.
+    expect(emails[0]?.text).toBe('Hi Bright Studio S-Corp, please sign your Form 1120-S.')
+  })
 })
 
 describe('bulkRemindObligationSignature', () => {
@@ -1368,6 +1427,43 @@ describe('bulkRemindObligationSignature', () => {
     // row → not awaiting signature → skipped.
     expect(result).toEqual({ remindedCount: 0, skippedCount: 1, noEmailCount: 1 })
   })
+
+  it('renders one edited template per client with each row’s own values', async () => {
+    const CLIENT_B = '33333333-3333-4333-8333-333333333333'
+    const ROW_B = '44444444-4444-4444-8444-444444444444'
+    const base = buildScoped(FIRM, [
+      makeRow({
+        id: ROW_ID,
+        clientId: SIGNATURE_CLIENT_ID,
+        status: 'done',
+        efileState: 'authorization_requested',
+        taxType: 'federal_1120s',
+        formName: null,
+      }),
+      makeRow({
+        id: ROW_B,
+        clientId: CLIENT_B,
+        status: 'done',
+        efileState: 'authorization_requested',
+        taxType: 'federal_1065',
+        formName: null,
+      }),
+    ]).repo
+    const { scoped, emails } = withEmailClients(base, {
+      [SIGNATURE_CLIENT_ID]: { name: 'Acme S-Corp', email: 'a@x.example' },
+      [CLIENT_B]: { name: 'Belle Partners', email: 'b@y.example' },
+    })
+    const result = await bulkRemindObligationSignature(scoped, 'user_1', {
+      ids: [ROW_ID, ROW_B],
+      subject: 'Sign {{form}} now, {{client_name}}',
+    })
+    expect(result.remindedCount).toBe(2)
+    // One template → each client's OWN name + form (ids processed in order).
+    expect(emails.map((e) => e.subject)).toEqual([
+      'Sign Form 1120-S now, Acme S-Corp',
+      'Sign Form 1065 now, Belle Partners',
+    ])
+  })
 })
 
 describe('previewObligationSignatureReminder', () => {
@@ -1383,10 +1479,13 @@ describe('previewObligationSignatureReminder', () => {
       }),
     ])
     const preview = await previewObligationSignatureReminder(repo, { id: ROW_ID })
-    expect(preview.subject).toContain('Form 8879')
-    // Friendly form label from the tax code, not the raw snake_case.
-    expect(preview.subject).toContain('1120-S')
-    expect(preview.body.length).toBeGreaterThan(0)
+    // The editable field now holds the TOKEN template…
+    expect(preview.subjectTemplate).toContain('{{form}}')
+    expect(preview.bodyTemplate).toContain('{{client_name}}')
+    expect(preview.tokens).toContain('form')
+    // …while the live-preview sample resolves the friendly form label
+    // (federal_1120s → "Form 1120-S"), not the raw snake_case.
+    expect(preview.sample.vars.form).toBe('Form 1120-S')
     expect(preview.recipientEmail).toBeNull()
   })
 
@@ -1394,6 +1493,54 @@ describe('previewObligationSignatureReminder', () => {
     const { repo } = buildScoped(FIRM, [])
     await expect(previewObligationSignatureReminder(repo, { id: ROW_ID })).rejects.toMatchObject({
       code: 'NOT_FOUND',
+    })
+  })
+})
+
+describe('bulkPreviewObligationSignatureReminder', () => {
+  it('counts eligible / not-awaiting / no-email and samples an eligible client', async () => {
+    const ROW_NO_EMAIL = '33333333-3333-4333-8333-333333333333'
+    const ROW_PENDING = '44444444-4444-4444-8444-444444444444'
+    const base = buildScoped(FIRM, [
+      makeRow({
+        id: ROW_ID,
+        clientId: SIGNATURE_CLIENT_ID,
+        status: 'done',
+        efileState: 'authorization_requested',
+        taxType: 'federal_1120s',
+        formName: null,
+      }),
+      makeRow({
+        id: ROW_NO_EMAIL,
+        clientId: 'client-without-email',
+        status: 'done',
+        efileState: 'authorization_requested',
+      }),
+      makeRow({ id: ROW_PENDING, status: 'pending' }),
+    ]).repo
+    // Only the first client is in the map → the second resolves to no email.
+    const { scoped } = withEmailClients(base, {
+      [SIGNATURE_CLIENT_ID]: { name: 'Acme S-Corp', email: 'a@x.example' },
+    })
+    const preview = await bulkPreviewObligationSignatureReminder(scoped, {
+      ids: [ROW_ID, ROW_NO_EMAIL, ROW_PENDING],
+    })
+    expect(preview.eligibleCount).toBe(1)
+    expect(preview.noEmailCount).toBe(1)
+    expect(preview.skippedCount).toBe(1)
+    expect(preview.sample?.clientName).toBe('Acme S-Corp')
+    expect(preview.sample?.vars.form).toBe('Form 1120-S')
+    expect(preview.subjectTemplate).toContain('{{form}}')
+  })
+
+  it('returns a null sample when nothing is eligible', async () => {
+    const { repo } = buildScoped(FIRM, [makeRow({ status: 'pending' })])
+    const preview = await bulkPreviewObligationSignatureReminder(repo, { ids: [ROW_ID] })
+    expect(preview).toMatchObject({
+      eligibleCount: 0,
+      skippedCount: 1,
+      noEmailCount: 0,
+      sample: null,
     })
   })
 })

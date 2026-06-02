@@ -101,6 +101,7 @@ import {
   type ReadinessDocumentChecklistItemPublic,
   type ReadinessPreviewRequestEmailOutput,
 } from '@duedatehq/contracts'
+import { renderTemplate } from '@duedatehq/core/email-template'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import {
   AlertDialog,
@@ -4780,36 +4781,22 @@ export function ObligationQueueRoute() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* P0: confirm before the outward-facing bulk signature-reminder
-          email fan-out. Count is shown on the floating bar itself. */}
-      <AlertDialog open={remindToSignConfirmOpen} onOpenChange={setRemindToSignConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              <Trans>Email signature reminders?</Trans>
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              <Trans>
-                We'll email a Form 8879 signature reminder to the clients on the selected deadlines.
-                Deadlines that aren't awaiting a signature are skipped automatically.
-              </Trans>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              <Trans>Cancel</Trans>
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                bulkRemindSignatureMutation.mutate({ ids: selectedIds })
-                setRemindToSignConfirmOpen(false)
-              }}
-            >
-              <Trans>Send reminders</Trans>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* P0: editable bulk signature-reminder dialog — same editor as the
+          single drawer flow. The Send button is the deliberate fan-out
+          action; the dialog shows how many clients will actually be emailed
+          and a live preview of how the template resolves per client. */}
+      <SignatureReminderDialog
+        open={remindToSignConfirmOpen}
+        onOpenChange={setRemindToSignConfirmOpen}
+        target={{ mode: 'bulk', ids: selectedIds }}
+        sending={bulkRemindSignatureMutation.isPending}
+        onSend={({ subject, body }) => {
+          bulkRemindSignatureMutation.mutate(
+            { ids: selectedIds, subject, body },
+            { onSuccess: () => setRemindToSignConfirmOpen(false) },
+          )
+        }}
+      />
     </div>
   )
 }
@@ -5242,41 +5229,56 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
 // generic numeric-range column filter again, restore from git
 // history (commit before 2026-05-26-deadlines-pass-65).
 
-// P0: editable email preview for the drawer's "Remind client to sign"
-// action. Pre-fills subject/body from the server-rendered default
-// (signatureReminderPreview) so the CPA reviews/tweaks the copy, then
-// Cancel or Send. Send routes the edited subject/body to remindSignature.
+// P0: editable email preview shared by the single ("Remind client to sign")
+// and bulk ("Remind to sign") flows. The CPA edits a TOKEN template
+// ({{client_name}} / {{form}} / {{tax_year}}); the server substitutes it per
+// recipient on send, so one edited template still personalizes each email. A
+// live preview shows how the current template resolves for one sample client.
+type SignatureReminderTarget =
+  | { mode: 'single'; obligationId: string | null }
+  | { mode: 'bulk'; ids: string[] }
+
 function SignatureReminderDialog({
   open,
   onOpenChange,
-  obligationId,
+  target,
   sending,
   onSend,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  obligationId: string | null
+  target: SignatureReminderTarget
   sending: boolean
   onSend: (input: { subject: string; body: string }) => void
 }) {
-  const previewQuery = useQuery({
+  const isBulk = target.mode === 'bulk'
+  const singleQuery = useQuery({
     ...orpc.obligations.signatureReminderPreview.queryOptions({
-      input: { id: obligationId ?? '' },
+      input: { id: target.mode === 'single' ? (target.obligationId ?? '') : '' },
     }),
-    enabled: open && Boolean(obligationId),
+    enabled: open && target.mode === 'single' && Boolean(target.obligationId),
   })
+  const bulkQuery = useQuery({
+    ...orpc.obligations.bulkSignatureReminderPreview.queryOptions({
+      input: { ids: target.mode === 'bulk' ? target.ids : [] },
+    }),
+    enabled: open && target.mode === 'bulk' && target.ids.length > 0,
+  })
+  const isLoading = isBulk ? bulkQuery.isLoading : singleQuery.isLoading
+  const data = isBulk ? bulkQuery.data : singleQuery.data
+
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
   const [edited, setEdited] = useState(false)
-  // Seed the editable fields from the server default once it arrives
+  // Seed the editable fields from the server template once it arrives
   // (unless the CPA already started editing this open session).
   useEffect(() => {
-    if (open && previewQuery.data && !edited) {
-      setSubject(previewQuery.data.subject)
-      setBody(previewQuery.data.body)
+    if (open && data && !edited) {
+      setSubject(data.subjectTemplate)
+      setBody(data.bodyTemplate)
     }
-  }, [open, previewQuery.data, edited])
-  // Reset on close so the next open re-seeds from a fresh preview.
+  }, [open, data, edited])
+  // Reset on close so the next open re-seeds from a fresh template.
   useEffect(() => {
     if (!open) {
       setSubject('')
@@ -5284,30 +5286,56 @@ function SignatureReminderDialog({
       setEdited(false)
     }
   }, [open])
-  const recipientEmail = previewQuery.data?.recipientEmail ?? null
-  const canSend =
-    Boolean(recipientEmail) && subject.trim().length > 0 && body.trim().length > 0 && !sending
+
+  const tokens = data?.tokens ?? []
+  // Live-render the preview against one sample recipient as the CPA edits.
+  const sample = data?.sample ?? null
+  const previewSubject = sample ? renderTemplate(subject, sample.vars) : ''
+  const previewBody = sample ? renderTemplate(body, sample.vars) : ''
+
+  const recipientEmail = singleQuery.data?.recipientEmail ?? null
+  const eligibleCount = bulkQuery.data?.eligibleCount ?? 0
+  const hasRecipient = isBulk ? eligibleCount > 0 : Boolean(recipientEmail)
+  const canSend = hasRecipient && subject.trim().length > 0 && body.trim().length > 0 && !sending
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>
-            <Trans>Remind client to sign Form 8879</Trans>
+            {isBulk ? (
+              <Trans>Remind clients to sign Form 8879</Trans>
+            ) : (
+              <Trans>Remind client to sign Form 8879</Trans>
+            )}
           </DialogTitle>
           <DialogDescription>
-            {recipientEmail ? (
+            {isBulk ? (
+              <Trans>
+                Edit the email, then send it to the selected clients. Each client gets their own
+                details filled in; deadlines not awaiting a signature are skipped.
+              </Trans>
+            ) : recipientEmail ? (
               <Trans>Review and edit the email, then send it to {recipientEmail}.</Trans>
             ) : (
               <Trans>No email address on file for this client — add one to send a reminder.</Trans>
             )}
           </DialogDescription>
         </DialogHeader>
-        {previewQuery.isLoading ? (
+        {isLoading ? (
           <p className="text-sm text-text-tertiary">
             <Trans>Loading preview…</Trans>
           </p>
         ) : (
           <div className="grid gap-3">
+            {isBulk ? (
+              <p className="text-sm text-text-secondary">
+                <Trans>
+                  Sending to {eligibleCount} clients · {bulkQuery.data?.skippedCount ?? 0} not
+                  awaiting signature · {bulkQuery.data?.noEmailCount ?? 0} without an email
+                </Trans>
+              </p>
+            ) : null}
             <div className="grid gap-1.5">
               <label htmlFor="signature-reminder-subject" className="text-sm font-medium">
                 <Trans>Subject</Trans>
@@ -5327,7 +5355,7 @@ function SignatureReminderDialog({
               </label>
               <Textarea
                 id="signature-reminder-body"
-                rows={10}
+                rows={9}
                 value={body}
                 onChange={(event) => {
                   setBody(event.target.value)
@@ -5335,6 +5363,27 @@ function SignatureReminderDialog({
                 }}
               />
             </div>
+            {tokens.length > 0 ? (
+              <p className="text-xs text-text-tertiary">
+                <Trans>Placeholders filled in per client:</Trans>{' '}
+                {tokens.map((token) => `{{${token}}}`).join(' · ')}
+              </p>
+            ) : null}
+            {sample ? (
+              <div className="grid gap-1 rounded-md bg-background-subtle p-3">
+                <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
+                  {isBulk ? (
+                    <Trans>
+                      Preview for {sample.clientName} (one of {eligibleCount})
+                    </Trans>
+                  ) : (
+                    <Trans>Preview for {sample.clientName}</Trans>
+                  )}
+                </p>
+                <p className="text-sm font-medium text-text-primary">{previewSubject}</p>
+                <p className="text-sm whitespace-pre-wrap text-text-secondary">{previewBody}</p>
+              </div>
+            ) : null}
           </div>
         )}
         <DialogFooter>
@@ -5345,7 +5394,7 @@ function SignatureReminderDialog({
             disabled={!canSend}
             onClick={() => onSend({ subject: subject.trim(), body: body.trim() })}
           >
-            <Trans>Send reminder</Trans>
+            {isBulk ? <Trans>Send reminders</Trans> : <Trans>Send reminder</Trans>}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -8191,7 +8240,7 @@ export function ObligationQueueDetailDrawer({
       <SignatureReminderDialog
         open={remindDialogOpen}
         onOpenChange={setRemindDialogOpen}
-        obligationId={row?.id ?? null}
+        target={{ mode: 'single', obligationId: row?.id ?? null }}
         sending={remindSignatureMutation.isPending}
         onSend={({ subject, body }) => {
           if (!row) return

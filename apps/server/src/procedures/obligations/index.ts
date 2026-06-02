@@ -24,6 +24,7 @@ import { dateInTimezone, toAiInsightPublic } from '../_ai-insights'
 import { enqueueAiInsightRefresh } from '../../jobs/ai-insights/enqueue'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
 import {
+  bulkPreviewObligationSignatureReminder,
   bulkRemindObligationSignature,
   bulkUpdateObligationStatus,
   decideObligationExtension,
@@ -811,6 +812,16 @@ const signatureReminderPreview = os.obligations.signatureReminderPreview.handler
   },
 )
 
+// Read-only eligibility + default-template source for the bulk "Remind to
+// sign" editor (counts who will actually be emailed across the selection).
+const bulkSignatureReminderPreview = os.obligations.bulkSignatureReminderPreview.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped } = requireTenant(context)
+    return bulkPreviewObligationSignatureReminder(scoped, input)
+  },
+)
+
 // Bulk signature reminders from the queue floating action bar. One flush
 // for the whole batch if anything was actually queued.
 const bulkRemindSignature = os.obligations.bulkRemindSignature.handler(
@@ -1146,6 +1157,7 @@ export const obligationsHandlers = {
   remindSignature,
   signatureReminderPreview,
   bulkRemindSignature,
+  bulkSignatureReminderPreview,
   requestInput,
   getDeadlineTip,
   requestDeadlineTipRefresh,

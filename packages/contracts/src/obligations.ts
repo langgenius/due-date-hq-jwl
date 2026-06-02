@@ -355,10 +355,27 @@ export type ObligationSignatureReminderPreviewInput = z.infer<
   typeof ObligationSignatureReminderPreviewInputSchema
 >
 
+// One resolved recipient used for the dialog's live preview. `vars` are the
+// substitution values (form already resolved to its friendly label) so the
+// frontend can re-render the preview from the current edited template without
+// re-deriving anything.
+export const SignatureReminderSampleSchema = z.object({
+  clientName: z.string(),
+  vars: z.object({
+    client_name: z.string(),
+    form: z.string(),
+    tax_year: z.string(),
+  }),
+})
+export type SignatureReminderSample = z.infer<typeof SignatureReminderSampleSchema>
+
 export const ObligationSignatureReminderPreviewOutputSchema = z.object({
-  subject: z.string(),
-  body: z.string(),
+  // The editable template (with {{tokens}}), not the resolved copy.
+  subjectTemplate: z.string(),
+  bodyTemplate: z.string(),
+  tokens: z.array(z.string()),
   recipientEmail: z.string().nullable(),
+  sample: SignatureReminderSampleSchema,
 })
 export type ObligationSignatureReminderPreviewOutput = z.infer<
   typeof ObligationSignatureReminderPreviewOutputSchema
@@ -366,6 +383,10 @@ export type ObligationSignatureReminderPreviewOutput = z.infer<
 
 export const ObligationBulkRemindSignatureInputSchema = z.object({
   ids: z.array(EntityIdSchema).min(1).max(100),
+  // Optional CPA-edited template (with {{tokens}}) applied to every selected
+  // recipient; each row falls back to the built-in default when omitted.
+  subject: z.string().trim().min(1).max(200).optional(),
+  body: z.string().trim().min(1).max(5000).optional(),
 })
 export type ObligationBulkRemindSignatureInput = z.infer<
   typeof ObligationBulkRemindSignatureInputSchema
@@ -382,6 +403,33 @@ export const ObligationBulkRemindSignatureOutputSchema = z.object({
 })
 export type ObligationBulkRemindSignatureOutput = z.infer<
   typeof ObligationBulkRemindSignatureOutputSchema
+>
+
+// Editable-preview source for the bulk "Remind to sign" dialog: the default
+// template + the eligibility breakdown across the selection so the CPA sees
+// who will actually be emailed before sending.
+export const ObligationBulkSignatureReminderPreviewInputSchema = z.object({
+  ids: z.array(EntityIdSchema).min(1).max(100),
+})
+export type ObligationBulkSignatureReminderPreviewInput = z.infer<
+  typeof ObligationBulkSignatureReminderPreviewInputSchema
+>
+
+export const ObligationBulkSignatureReminderPreviewOutputSchema = z.object({
+  subjectTemplate: z.string(),
+  bodyTemplate: z.string(),
+  tokens: z.array(z.string()),
+  // Awaiting-signature rows WITH an email on file — these will be emailed.
+  eligibleCount: z.number().int().min(0),
+  // Rows not in the awaiting-signature state — skipped.
+  skippedCount: z.number().int().min(0),
+  // Awaiting-signature rows whose client has no email on file — skipped.
+  noEmailCount: z.number().int().min(0),
+  // One eligible recipient for the live preview; null when none are eligible.
+  sample: SignatureReminderSampleSchema.nullable(),
+})
+export type ObligationBulkSignatureReminderPreviewOutput = z.infer<
+  typeof ObligationBulkSignatureReminderPreviewOutputSchema
 >
 
 export const DeadlineTipInputSchema = z.object({ obligationId: EntityIdSchema })
@@ -532,6 +580,9 @@ export const obligationsContract = oc.router({
   bulkRemindSignature: oc
     .input(ObligationBulkRemindSignatureInputSchema)
     .output(ObligationBulkRemindSignatureOutputSchema),
+  bulkSignatureReminderPreview: oc
+    .input(ObligationBulkSignatureReminderPreviewInputSchema)
+    .output(ObligationBulkSignatureReminderPreviewOutputSchema),
   listByClient: oc
     .input(z.object({ clientId: EntityIdSchema }))
     .output(z.array(ObligationInstancePublicSchema)),
