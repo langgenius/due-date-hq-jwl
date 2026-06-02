@@ -6826,7 +6826,7 @@ export function ObligationQueueDetailDrawer({
   // (e.g. "Form 1040") with the client name as a kicker label above
   // — see header comment below for the rationale.
   const titleText = row?.clientName ?? null
-  const body = (
+  const drawerBody = (
     <>
       {/* Header — flipped 2026-05-23. The drawer is a per-obligation
           surface, so the obligation identity (Form 1040, Form 1120-S)
@@ -8802,13 +8802,13 @@ export function ObligationQueueDetailDrawer({
         // row they're on.
         className="relative flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-subtle"
       >
-        {body}
+        {drawerBody}
       </aside>
     )
   }
   // Sheet mode: Radix provides backdrop, focus trap, scroll lock, Esc.
   // A visually-hidden SheetTitle satisfies Radix Dialog's a11y
-  // requirement; the visible heading is the <h2> inside `body`.
+  // requirement; the visible heading is the <h2> inside `drawerBody`.
   return (
     <Sheet open={obligationId !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <SheetContent className="flex flex-col data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none overflow-y-auto">
@@ -8816,7 +8816,7 @@ export function ObligationQueueDetailDrawer({
         <SheetDescription className="sr-only">
           <Trans>Deadline workflow detail panel.</Trans>
         </SheetDescription>
-        {body}
+        {drawerBody}
       </SheetContent>
     </Sheet>
   )

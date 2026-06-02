@@ -616,12 +616,14 @@ export function makePulseOpsRepo(db: Db) {
         )
         await db.batch(toNonEmptyBatch(inserts))
         // Re-read only the freshly inserted ids to return their canonical rows.
+        // Chunks are independent point reads, so fan them out in parallel.
         const insertedIds = newRows.map((row) => row.sourceId)
-        for (const chunk of chunkRows(insertedIds, 90)) {
-          const rows = await db
-            .select()
-            .from(pulseSourceState)
-            .where(inArray(pulseSourceState.sourceId, chunk))
+        const rereadChunks = await Promise.all(
+          chunkRows(insertedIds, 90).map((chunk) =>
+            db.select().from(pulseSourceState).where(inArray(pulseSourceState.sourceId, chunk)),
+          ),
+        )
+        for (const rows of rereadChunks) {
           for (const row of rows) byId.set(row.sourceId, toSourceState(row))
         }
       }
