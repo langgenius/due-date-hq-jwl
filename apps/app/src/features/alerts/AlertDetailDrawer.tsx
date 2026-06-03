@@ -775,6 +775,32 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
               </section>
             ) : null}
 
+            {/* Rule-change / source-drift alerts (review_only) don't apply a date
+                overlay, so the overlay section above is skipped. Surface the same
+                impact question read-only: which clients have open obligations backed
+                by the changed rule (so the CPA sees the blast radius before re-verifying). */}
+            {detail.alert.actionMode === 'review_only' && detail.affectedClients.length > 0 ? (
+              <section className="flex flex-col gap-3">
+                <header className="flex items-baseline justify-between">
+                  <h3 className="text-sm font-semibold text-text-primary">
+                    <Trans>Affected clients</Trans>
+                    <span className="ml-1.5 text-text-tertiary">
+                      ({detail.affectedClients.length})
+                    </span>
+                  </h3>
+                </header>
+                <AffectedClientsTable
+                  rows={detail.affectedClients}
+                  selection={selection}
+                  confirmedReviewIds={confirmedReviewIds}
+                  excludedIds={excludedIds}
+                  onChangeSelection={setSelection}
+                  onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
+                  readOnly
+                />
+              </section>
+            ) : null}
+
             {/* 2026-05-26 (Yuqi sixteenth pass #6): SuggestedActionsPanel
                 removed — its Apply / Mark-reviewed buttons duplicated
                 the sticky SheetFooter (DrawerActions) at the bottom
