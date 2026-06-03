@@ -2,6 +2,7 @@ import { ORPCError } from '@orpc/server'
 import {
   ErrorCodes,
   PulseAlertPublicSchema,
+  PulseRuleMatchSchema,
   type PulseAffectedClient,
   type PulseAlertPublic,
   type PulseAlertSourceCoverage,
@@ -9,6 +10,7 @@ import {
   type PulsePriorityQueueItem,
   type PulsePriorityReason,
   type PulsePriorityReview,
+  type PulseRuleMatch,
   type PulseSourceHealth,
   type PulseStatus,
 } from '@duedatehq/contracts'
@@ -563,8 +565,13 @@ const listAlertsForRule = os.pulse.listAlertsForRule.handler(async ({ input, con
     taxType: input.taxType,
     ...(input.formName === undefined ? {} : { formName: input.formName }),
   })
-  return {
-    matches: matches.map((match) => ({
+  // Safe-parse + drop, same resilience contract as `toPublicAlertsSafely`:
+  // pulse fields are AI-extracted, so one garbage value (e.g. a non-UUID id or a
+  // bad jurisdiction) must degrade to "one missing match", never 500 the whole
+  // block for the firm. Dropped matches are logged for repair.
+  const safe: PulseRuleMatch[] = []
+  for (const match of matches) {
+    const parsed = PulseRuleMatchSchema.safeParse({
       alert: toAlertPublic(match.alert),
       originalDueDate: match.originalDueDate ? toDateOnly(match.originalDueDate) : null,
       newDueDate: match.newDueDate ? toDateOnly(match.newDueDate) : null,
@@ -572,8 +579,17 @@ const listAlertsForRule = os.pulse.listAlertsForRule.handler(async ({ input, con
       effectiveUntil: match.effectiveUntil ? toDateOnly(match.effectiveUntil) : null,
       sourceExcerpt: match.sourceExcerpt,
       matchReason: match.matchReason,
-    })),
+    })
+    if (parsed.success) {
+      safe.push(parsed.data)
+    } else {
+      console.error('[pulse.listAlertsForRule] dropped malformed match', {
+        pulseId: match.alert.pulseId,
+        issues: parsed.error.issues,
+      })
+    }
   }
+  return { matches: safe }
 })
 
 // Batch counterpart — fans out N `scoped.pulse.getDetail(id)` calls
