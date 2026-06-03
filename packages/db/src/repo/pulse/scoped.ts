@@ -103,6 +103,7 @@ import type {
   PulsePriorityQueueItemRow,
   PulsePriorityReviewRow,
   PulseRevertResult,
+  PulseRuleMatchRow,
   PulseSeedInput,
   PulseSourceSnapshotRow,
   PulseSourceStateRow,
@@ -998,6 +999,106 @@ export function makePulseRepo(db: Db, firmId: string) {
         .limit(limit)
 
       return rows.map((row) => toAlert(row))
+    },
+
+    /**
+     * Recompute matchedCount/needsReviewCount for this firm's active
+     * due-date-overlay alerts whose jurisdiction matches a set of
+     * just-created obligations. Called after a rule is accepted and its
+     * deadlines are generated: a firm that activated a state AFTER a pulse
+     * was approved had matchedCount stuck at the point-in-time (0) value,
+     * because nothing recomputes on obligation creation. This re-runs the
+     * same firm-scoped match used on the alert detail view so the alert
+     * correctly reflects the new deadlines. It does NOT apply any overlay —
+     * applying stays the manual, human-in-the-loop action.
+     */
+    async refreshMatchedCountsForObligations(obligationIds: string[]): Promise<void> {
+      if (obligationIds.length === 0) return
+      const obligations = await db
+        .select({ jurisdiction: obligationInstance.jurisdiction })
+        .from(obligationInstance)
+        .where(
+          and(eq(obligationInstance.firmId, firmId), inArray(obligationInstance.id, obligationIds)),
+        )
+      const jurisdictions = [...new Set(obligations.map((row) => row.jurisdiction))].filter(
+        (value): value is string => value !== null,
+      )
+      if (jurisdictions.length === 0) return
+      const now = new Date()
+      const alertIdRows = await db
+        .select({ id: pulseFirmAlert.id })
+        .from(pulseFirmAlert)
+        .innerJoin(pulse, eq(pulseFirmAlert.pulseId, pulse.id))
+        .where(
+          and(
+            eq(pulseFirmAlert.firmId, firmId),
+            eq(pulse.status, 'approved'),
+            eq(pulse.actionMode, 'due_date_overlay'),
+            inArray(pulse.parsedJurisdiction, jurisdictions),
+            or(
+              inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
+              and(eq(pulseFirmAlert.status, 'snoozed'), lte(pulseFirmAlert.snoozedUntil, now)),
+            ),
+          ),
+        )
+      await Promise.all(
+        alertIdRows.map(async ({ id }) => {
+          const alert = await getAlert(id)
+          await refreshAlertCounts(id, alert)
+        }),
+      )
+    },
+
+    async listAlertsForRule(input: {
+      ruleId: string
+      jurisdiction: string
+      taxType: string
+      formName?: string | null
+    }): Promise<PulseRuleMatchRow[]> {
+      const now = new Date()
+      const alertIdRows = await db
+        .select({ id: pulseFirmAlert.id })
+        .from(pulseFirmAlert)
+        .innerJoin(pulse, eq(pulseFirmAlert.pulseId, pulse.id))
+        .where(
+          and(
+            eq(pulseFirmAlert.firmId, firmId),
+            eq(pulse.status, 'approved'),
+            eq(pulse.parsedJurisdiction, input.jurisdiction),
+            or(
+              inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
+              and(eq(pulseFirmAlert.status, 'snoozed'), lte(pulseFirmAlert.snoozedUntil, now)),
+            ),
+          ),
+        )
+        .orderBy(desc(pulse.publishedAt))
+
+      const rows = await Promise.all(alertIdRows.map(({ id }) => getAlert(id)))
+      const matches: PulseRuleMatchRow[] = []
+      for (const row of rows) {
+        const affected = row.affectedRuleIds ?? []
+        const reverify = row.reverifyRuleIds ?? []
+        const forms = row.parsedForms ?? []
+        const matchReason: PulseRuleMatchRow['matchReason'] | null = affected.includes(input.ruleId)
+          ? 'affected_rule'
+          : reverify.includes(input.ruleId)
+            ? 'reverify_rule'
+            : forms.includes(input.taxType) ||
+                (input.formName != null && forms.includes(input.formName))
+              ? 'scope'
+              : null
+        if (!matchReason) continue
+        matches.push({
+          alert: toAlert(row),
+          originalDueDate: row.parsedOriginalDueDate,
+          newDueDate: row.parsedNewDueDate,
+          effectiveFrom: row.parsedEffectiveFrom,
+          effectiveUntil: row.parsedEffectiveUntil,
+          sourceExcerpt: row.verbatimQuote,
+          matchReason,
+        })
+      }
+      return matches
     },
 
     /**

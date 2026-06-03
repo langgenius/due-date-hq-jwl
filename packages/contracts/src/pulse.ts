@@ -407,7 +407,46 @@ export const PulseRequestReviewOutputSchema = z.object({
 })
 export type PulseRequestReviewOutput = z.infer<typeof PulseRequestReviewOutputSchema>
 
+// Why a pulse matched a specific rule, surfaced in the rule-review dialog:
+//  - affected_rule: the rule is named in the pulse's AI-guessed affectedRuleIds
+//  - reverify_rule: the rule cites the changed source (deterministic join)
+//  - scope: the rule falls in the pulse's jurisdiction + form scope
+export const PulseRuleMatchReasonSchema = z.enum(['affected_rule', 'reverify_rule', 'scope'])
+export type PulseRuleMatchReason = z.infer<typeof PulseRuleMatchReasonSchema>
+
+// One approved pulse that affects the rule open in the review dialog. Carries
+// the alert's public metadata plus the detail-level date diff + excerpt so the
+// dialog can render an additive "proposed change" block (it never replaces the
+// catalog evidence/date) with a deep-link to /alerts?alert=<alert.id>.
+export const PulseRuleMatchSchema = z.object({
+  alert: PulseAlertPublicSchema,
+  originalDueDate: z.iso.date().nullable(),
+  newDueDate: z.iso.date().nullable(),
+  effectiveFrom: z.iso.date().nullable(),
+  effectiveUntil: z.iso.date().nullable(),
+  sourceExcerpt: z.string().nullable(),
+  matchReason: PulseRuleMatchReasonSchema,
+})
+export type PulseRuleMatch = z.infer<typeof PulseRuleMatchSchema>
+
+export const PulseListAlertsForRuleInputSchema = z.object({
+  ruleId: z.string().min(1),
+  // Plain string (not PulseJurisdictionSchema): it is only a match key against
+  // pulse.parsedJurisdiction, and the caller passes the rule's own jurisdiction
+  // (RuleJurisdiction is a broader enum than PulseJurisdiction).
+  jurisdiction: z.string().min(1),
+  taxType: z.string().min(1),
+  formName: z.string().min(1).nullable().optional(),
+})
+export type PulseListAlertsForRuleInput = z.infer<typeof PulseListAlertsForRuleInputSchema>
+
 export const pulseContract = oc.router({
+  // Pulses (approved, still-active) that affect a specific rule. Backs the
+  // rule-review dialog's "proposed change" block. Lazy, per-rule (the dialog
+  // opens one rule at a time) — mirrors the existing previewRuleImpact query.
+  listAlertsForRule: oc
+    .input(PulseListAlertsForRuleInputSchema)
+    .output(z.object({ matches: z.array(PulseRuleMatchSchema) })),
   listAlerts: oc
     .input(PulseListAlertsInputSchema)
     .output(z.object({ alerts: z.array(PulseAlertPublicSchema) })),

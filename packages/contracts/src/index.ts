@@ -635,8 +635,14 @@ export type {
   PulseSnoozeInput,
   PulseSnoozeOutput,
   PulseStatus,
+  PulseRuleMatch,
+  PulseRuleMatchReason,
+  PulseListAlertsForRuleInput,
 } from './pulse'
 export {
+  PulseRuleMatchSchema,
+  PulseRuleMatchReasonSchema,
+  PulseListAlertsForRuleInputSchema,
   PulseAffectedClientSchema,
   PulseAffectedClientStatusSchema,
   PulseActionModeSchema,

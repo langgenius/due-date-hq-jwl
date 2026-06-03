@@ -195,6 +195,64 @@ describe('makePulseRepo', () => {
     expect(detail.affectedClients[1]!.reason).toContain('county is missing')
   })
 
+  it('listAlertsForRule matches a rule by jurisdiction + form scope', async () => {
+    const { db } = fakeDb([[{ id: 'alert-1' }], [ALERT]])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const matches = await repo.listAlertsForRule({
+      ruleId: 'ca.some_rule.candidate.2026',
+      jurisdiction: 'CA',
+      taxType: 'federal_1065', // present in ALERT.parsedForms
+    })
+
+    expect(matches).toHaveLength(1)
+    expect(matches[0]).toMatchObject({
+      matchReason: 'scope',
+      newDueDate: ALERT.parsedNewDueDate,
+      originalDueDate: ALERT.parsedOriginalDueDate,
+      sourceExcerpt: ALERT.verbatimQuote,
+    })
+    expect(matches[0]!.alert.id).toBe('alert-1')
+  })
+
+  it('listAlertsForRule prefers an explicit affected/reverify rule over scope', async () => {
+    const { db } = fakeDb([
+      [{ id: 'alert-1' }],
+      [{ ...ALERT, affectedRuleIds: ['target.rule'], reverifyRuleIds: ['target.rule'] }],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const matches = await repo.listAlertsForRule({
+      ruleId: 'target.rule',
+      jurisdiction: 'CA',
+      taxType: 'federal_1065',
+    })
+
+    expect(matches[0]!.matchReason).toBe('affected_rule')
+  })
+
+  it('listAlertsForRule excludes alerts that do not touch the rule', async () => {
+    const { db } = fakeDb([[{ id: 'alert-1' }], [ALERT]])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const matches = await repo.listAlertsForRule({
+      ruleId: 'unrelated.rule',
+      jurisdiction: 'CA',
+      taxType: 'state_individual_income_tax', // not in ALERT.parsedForms
+    })
+
+    expect(matches).toEqual([])
+  })
+
+  it('refreshMatchedCountsForObligations is a no-op for empty input', async () => {
+    const { db, directStatements } = fakeDb([])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await repo.refreshMatchedCountsForObligations([])
+
+    expect(directStatements).toHaveLength(0)
+  })
+
   it('marks base-date matches with active overlays as already applied', async () => {
     const { db } = fakeDb([
       [ALERT],

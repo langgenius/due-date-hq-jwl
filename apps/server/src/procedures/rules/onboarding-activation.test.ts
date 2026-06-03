@@ -131,6 +131,7 @@ describe('onboarding rule activation', () => {
       historicalSkippedCount: 0,
       rolledForwardDeadlineCount: 0,
       clientCount: 0,
+      createdObligationIds: [],
     }))
     const ensureCatalog = vi.fn(async () => undefined)
 
@@ -225,6 +226,7 @@ describe('onboarding rule activation', () => {
       historicalSkippedCount: 0,
       rolledForwardDeadlineCount: 0,
       clientCount: 0,
+      createdObligationIds: [],
     }))
 
     const result = await activateOnboardingJurisdictionRules({

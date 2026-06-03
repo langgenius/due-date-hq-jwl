@@ -403,6 +403,12 @@ function buildScoped(firmId: string, rows: Row[]) {
     async countActiveAlerts() {
       return unused('pulse.countActiveAlerts')
     },
+    async refreshMatchedCountsForObligations() {
+      return unused('pulse.refreshMatchedCountsForObligations')
+    },
+    async listAlertsForRule() {
+      return unused('pulse.listAlertsForRule')
+    },
     async listHistory() {
       return unused('pulse.listHistory')
     },

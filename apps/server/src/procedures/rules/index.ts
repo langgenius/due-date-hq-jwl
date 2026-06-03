@@ -990,7 +990,7 @@ export async function acceptTemplateRule(input: {
     reviewedAt: input.reviewedAt,
   })
   if (input.generateObligations ?? true) {
-    await generateObligationsForAcceptedRules({
+    const generated = await generateObligationsForAcceptedRules({
       scoped,
       userId: input.reviewedBy,
       rules: [toCoreRule(activeRule)],
@@ -999,6 +999,23 @@ export async function acceptTemplateRule(input: {
       now: input.reviewedAt,
       reason: input.reviewNote,
     })
+    if (generated.createdObligationIds.length > 0) {
+      // A firm that activated this state AFTER an approved pulse changed its
+      // deadline had the pulse's matchedCount stuck at its point-in-time (0)
+      // value — nothing recomputes on obligation creation. Recompute now so
+      // the alert reflects these new deadlines and the CPA gets prompted to
+      // apply. Best-effort: applying the overlay stays a manual action, and a
+      // recompute failure must never fail the accept.
+      try {
+        await scoped.pulse.refreshMatchedCountsForObligations(generated.createdObligationIds)
+      } catch (err) {
+        console.error('[rules.accept] pulse matchedCount recompute failed', {
+          firmId: scoped.pulse.firmId,
+          ruleId: input.rule.id,
+          error: err instanceof Error ? err.message : String(err),
+        })
+      }
+    }
   }
   return task
 }

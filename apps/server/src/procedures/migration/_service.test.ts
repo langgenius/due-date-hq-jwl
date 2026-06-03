@@ -627,6 +627,12 @@ function buildScopedRepo(
     async countActiveAlerts() {
       return unexpectedRepoCall('pulse.countActiveAlerts')
     },
+    async refreshMatchedCountsForObligations() {
+      return unexpectedRepoCall('pulse.refreshMatchedCountsForObligations')
+    },
+    async listAlertsForRule() {
+      return unexpectedRepoCall('pulse.listAlertsForRule')
+    },
     async listHistory() {
       return unexpectedRepoCall('pulse.listHistory')
     },

@@ -263,16 +263,47 @@ export interface PulseRevertResult {
   evidenceIds: string[]
 }
 
+// One approved, still-active pulse that affects a given rule. Dates stay as
+// Date objects here; the server handler serializes to date-only strings.
+export interface PulseRuleMatchRow {
+  alert: PulseAlertRow
+  originalDueDate: Date | null
+  newDueDate: Date | null
+  effectiveFrom: Date | null
+  effectiveUntil: Date | null
+  sourceExcerpt: string | null
+  matchReason: 'affected_rule' | 'reverify_rule' | 'scope'
+}
+
 export interface PulseRepo {
   readonly firmId: string
   createSeedAlert(input: PulseSeedInput): Promise<{ pulseId: string; alertId: string }>
   listAlerts(opts?: { limit?: number }): Promise<PulseAlertRow[]>
+  /**
+   * Approved, still-active pulses that affect a specific rule. Backs the
+   * rule-review dialog's "proposed change" block. Matches by the pulse's
+   * affected/reverify rule lists or jurisdiction+form scope.
+   */
+  listAlertsForRule(input: {
+    ruleId: string
+    jurisdiction: string
+    taxType: string
+    formName?: string | null
+  }): Promise<PulseRuleMatchRow[]>
   /**
    * Count-only variant of `listAlerts` — same WHERE clause, no row
    * fetch. Backs the sidebar nav badge so it can show the true count
    * (not a 50-row-cap slice).
    */
   countActiveAlerts(): Promise<number>
+  /**
+   * Recompute matchedCount/needsReviewCount for the firm's active
+   * due-date-overlay alerts whose jurisdiction matches the given
+   * just-created obligations. Called after rule acceptance generates
+   * deadlines, so a firm that activated a state after a pulse was approved
+   * no longer keeps a stale matchedCount=0. Does not apply any overlay.
+   */
+  refreshMatchedCountsForObligations(obligationIds: string[]): Promise<void>
   listHistory(opts?: { limit?: number; status?: PulseAlertRow['status'] }): Promise<PulseAlertRow[]>
   listSourceStates(): Promise<PulseSourceStateRow[]>
   getLatestSourceSnapshotBySourceId(sourceId: string): Promise<PulseSourceSnapshotRow | null>

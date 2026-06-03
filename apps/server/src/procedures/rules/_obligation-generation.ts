@@ -35,6 +35,10 @@ interface GenerateForAcceptedRulesSummary {
   historicalSkippedCount: number
   rolledForwardDeadlineCount: number
   clientCount: number
+  // Ids of the obligations created this run, in createInputs order. Used by the
+  // accept flow to recompute matching pulse alerts' matchedCount against the
+  // freshly-generated deadlines (see acceptTemplateRule).
+  createdObligationIds: string[]
 }
 
 interface CreatedRuleObligationReadinessInput {
@@ -239,6 +243,7 @@ export async function generateObligationsForAcceptedRules(
       historicalSkippedCount: 0,
       rolledForwardDeadlineCount: 0,
       clientCount: 0,
+      createdObligationIds: [],
     }
   }
 
@@ -251,6 +256,7 @@ export async function generateObligationsForAcceptedRules(
       historicalSkippedCount: 0,
       rolledForwardDeadlineCount: 0,
       clientCount: 0,
+      createdObligationIds: [],
     }
   }
 
@@ -361,6 +367,7 @@ export async function generateObligationsForAcceptedRules(
       historicalSkippedCount,
       rolledForwardDeadlineCount,
       clientCount: clientIdsWithCandidates.size,
+      createdObligationIds: [],
     }
   }
 
@@ -418,5 +425,6 @@ export async function generateObligationsForAcceptedRules(
     historicalSkippedCount,
     rolledForwardDeadlineCount,
     clientCount: clientIdsWithCandidates.size,
+    createdObligationIds: ids,
   }
 }

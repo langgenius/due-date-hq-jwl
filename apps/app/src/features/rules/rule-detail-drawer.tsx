@@ -32,6 +32,7 @@ import {
   RULE_AUTHORITY_ROLE_LABEL,
 } from './rules-console-model'
 import { JurisdictionCode } from './rules-console-primitives'
+import { MatchedPulseBlock } from './matched-pulse-block'
 import { useSourceLookup } from './use-source-lookup'
 
 const ACCEPT_RULE_LOADING_TOAST_STYLE: CSSProperties = {
@@ -95,8 +96,26 @@ export function RuleDetailInline({ rule }: { rule: ObligationRule }) {
   // component so the Accept action is always visible without
   // scrolling past every reference section first.
   const needsReview = rule.status === 'candidate' || rule.status === 'pending_review'
+  // Approved, still-active pulses that affect this rule — surfaced as an
+  // additive "proposed change" block above the rule substance so a CPA sees a
+  // pending regulatory change before accepting. Lazy per-rule (mirrors the
+  // previewRuleImpact query in CandidateReviewSection); errors fall back to no
+  // block (the rule detail stays fully usable).
+  const matchedPulsesQuery = useQuery({
+    ...orpc.pulse.listAlertsForRule.queryOptions({
+      input: {
+        ruleId: rule.id,
+        jurisdiction: rule.jurisdiction,
+        taxType: rule.taxType,
+        formName: rule.formName,
+      },
+    }),
+    staleTime: 60_000,
+  })
+  const matchedPulses = matchedPulsesQuery.data?.matches ?? []
   return (
     <div className="flex flex-col gap-4">
+      <MatchedPulseBlock matches={matchedPulses} />
       {needsReview ? <ReviewReasonsSection rule={rule} /> : null}
       <ApplicabilitySection rule={rule} />
       <EvidenceSection rule={rule} sourceLookup={sourceLookup} />
@@ -368,6 +387,10 @@ function CandidateReviewForm({
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+    // Accepting may have recomputed matched pulse alerts' matchedCount against
+    // the freshly-generated deadlines — refetch so the "proposed change" block
+    // and the alerts surfaces reflect the new counts.
+    void queryClient.invalidateQueries({ queryKey: orpc.pulse.key() })
   }
 
   function acceptToastOptions(options: Omit<ExternalToast, 'id'> = {}): ExternalToast {

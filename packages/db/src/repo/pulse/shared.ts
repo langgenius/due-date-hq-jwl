@@ -114,6 +114,18 @@ export interface PulseDetailRow {
   affectedClients: PulseAffectedClientRow[]
 }
 
+// Mirrors @duedatehq/ports PulseRuleMatchRow. One approved, still-active pulse
+// that affects a given rule, surfaced in the rule-review dialog.
+export interface PulseRuleMatchRow {
+  alert: PulseAlertRow
+  originalDueDate: Date | null
+  newDueDate: Date | null
+  effectiveFrom: Date | null
+  effectiveUntil: Date | null
+  sourceExcerpt: string | null
+  matchReason: 'affected_rule' | 'reverify_rule' | 'scope'
+}
+
 export interface PulseApplyResult {
   alert: PulseAlertRow
   appliedCount: number

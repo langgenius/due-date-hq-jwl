@@ -552,6 +552,30 @@ const getDetail = os.pulse.getDetail.handler(async ({ input, context }) => {
   }
 })
 
+// Approved, still-active pulses affecting one rule — backs the rule-review
+// dialog's "proposed change" block. Lazy per-rule (the dialog opens one rule
+// at a time). Dates serialize date-only, same as getDetail.
+const listAlertsForRule = os.pulse.listAlertsForRule.handler(async ({ input, context }) => {
+  const { scoped } = requireTenant(context)
+  const matches = await scoped.pulse.listAlertsForRule({
+    ruleId: input.ruleId,
+    jurisdiction: input.jurisdiction,
+    taxType: input.taxType,
+    ...(input.formName === undefined ? {} : { formName: input.formName }),
+  })
+  return {
+    matches: matches.map((match) => ({
+      alert: toAlertPublic(match.alert),
+      originalDueDate: match.originalDueDate ? toDateOnly(match.originalDueDate) : null,
+      newDueDate: match.newDueDate ? toDateOnly(match.newDueDate) : null,
+      effectiveFrom: match.effectiveFrom ? toDateOnly(match.effectiveFrom) : null,
+      effectiveUntil: match.effectiveUntil ? toDateOnly(match.effectiveUntil) : null,
+      sourceExcerpt: match.sourceExcerpt,
+      matchReason: match.matchReason,
+    })),
+  }
+})
+
 // Batch counterpart — fans out N `scoped.pulse.getDetail(id)` calls
 // in parallel inside the same worker invocation. Missing alerts are
 // silently dropped from the result (the repo throws for not-found;
@@ -961,6 +985,7 @@ export const pulseHandlers = {
   listAlertSourceCoverage: listAlertSourceCoverageHandler,
   retrySourceHealth,
   getDetail,
+  listAlertsForRule,
   getDetailsBatch,
   listPriorityQueue,
   reviewPriorityMatches,
