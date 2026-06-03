@@ -121,6 +121,10 @@ export interface ClientsRepo {
       sourceStatus?: string | null
     },
   ): Promise<void>
+  // 2026-06-01 (Yuqi /clients/[id] critique — IA): dedicated notes
+  // write. Mirrors the contract-level `updateNotes` mutation that
+  // powers the slide-in Notes panel.
+  updateNotes(id: string, notes: string | null): Promise<void>
   updateTaxYearProfile(
     id: string,
     input: {
