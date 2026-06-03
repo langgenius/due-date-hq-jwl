@@ -633,7 +633,7 @@ function FilingPlanYearSection({
         </span>
         {group.isCurrent ? (
           <span className="text-xs leading-4 text-text-tertiary">
-            <Trans>· current year</Trans>
+            <Trans>· current tax year</Trans>
           </span>
         ) : null}
         {group.openCount > 0 ? (

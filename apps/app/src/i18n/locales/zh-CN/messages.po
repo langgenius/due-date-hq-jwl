@@ -18,8 +18,8 @@ msgid "—"
 msgstr "—"
 
 #: src/features/clients/ClientWorkPlanPanel.tsx
-msgid "· current year"
-msgstr "· 本年度"
+msgid "· current tax year"
+msgstr "· 当前税年"
 
 #: src/routes/obligations.tsx
 msgid "· firm-set deadline for this materials request"
@@ -492,7 +492,9 @@ msgid "{0}/500 characters"
 msgstr "{0}/500 个字符"
 
 #. placeholder {0}: Math.round(draft.confidence * 100)
+#. placeholder {0}: Math.round(match.alert.confidence * 100)
 #: src/features/rules/coverage-tab.tsx
+#: src/features/rules/matched-pulse-block.tsx
 msgid "{0}% confidence"
 msgstr "{0}% 置信度"
 
@@ -971,8 +973,8 @@ msgid "{visibleSelectableCount} batch-ready · {visibleSingleReviewCount} need s
 msgstr "{visibleSelectableCount} 条可批量 · {visibleSingleReviewCount} 条需单条审核"
 
 #: src/features/obligations/CreateObligationDialog.tsx
-msgid "{year} (current year)"
-msgstr "{year}（当前年度）"
+msgid "{year} (current tax year)"
+msgstr "{year}（当前税年）"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -1003,6 +1005,10 @@ msgstr "还有 {0} 项"
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
 msgstr "+{0} 项"
+
+#: src/features/rules/matched-pulse-block.tsx
+msgid "+{hiddenCount} more in Alerts"
+msgstr "Alerts 中还有 {hiddenCount} 条"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · <2>{needsReview}</2> need review ({affectedClients, plural, one {# client} other {# clients}} affected)"
@@ -1867,6 +1873,10 @@ msgstr "备选路径：在 Return Manager 中将 Quick Search 过滤器设为 Al
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "An active practice rule supports this deadline."
 msgstr "一个已生效事务所规则支撑此截止日。"
+
+#: src/features/rules/matched-pulse-block.tsx
+msgid "An approved alert affects this rule. Accepting generates deadlines from the rule's date below — review the change and apply it from the alert if it should take effect."
+msgstr "有一条已批准的提醒影响此规则。接受后会依据下方规则日期生成截止日——请先复核该变更，如需生效请从提醒处应用。"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "An extension can be filed for this deadline."
@@ -3160,6 +3170,7 @@ msgstr "合规状态"
 msgid "Confidence"
 msgstr "置信度"
 
+#: src/features/alerts/components/AffectedClientsTable.tsx
 #: src/routes/obligations.tsx
 msgid "Confirm"
 msgstr "确认"
@@ -3188,10 +3199,6 @@ msgstr "确认所有需复核项"
 #: src/features/alerts/components/AffectedClientsTable.tsx
 msgid "Confirm applies"
 msgstr "确认适用"
-
-#: src/features/alerts/components/AffectedClientsTable.tsx
-msgid "Confirm applies…"
-msgstr "确认应用…"
 
 #: src/routes/obligations.tsx
 msgid "Confirm authority accepted"
@@ -3940,8 +3947,8 @@ msgid "Created deadlines"
 msgstr "已创建截止日"
 
 #: src/routes/obligations.tsx
-msgid "Creates {willCreate} projected deadlines for {clientCount} clients from completed {sourceFilingYear} filings. Projected deadlines stay hidden from client reminders until you confirm them with the Projected filter."
-msgstr "将根据 {sourceFilingYear} 已完成的申报，为 {clientCount} 个客户生成 {willCreate} 条预测截止日。预测截止日在你通过预测筛选确认之前不会向客户发送提醒。"
+msgid "Creates {willCreate} projected Tax Year {targetTaxYear} deadlines for {clientCount} clients from their completed Tax Year {sourceTaxYear} returns. Projected deadlines stay hidden from client reminders until you confirm them with the Projected filter."
+msgstr "从 {clientCount} 个客户已完成的 {sourceTaxYear} 税年申报，为 {targetTaxYear} 税年生成 {willCreate} 条预计截止日。预计截止日在你通过 Projected 筛选确认前不会出现在客户提醒中。"
 
 #: src/routes/obligations.tsx
 msgid "Creates the file in this browser."
@@ -4110,6 +4117,10 @@ msgstr "截止日期已受阻"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Deadline category"
 msgstr "截止日类别"
+
+#: src/features/rules/matched-pulse-block.tsx
+msgid "Deadline change"
+msgstr "截止日变更"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Deadline change confirmed"
@@ -5653,6 +5664,14 @@ msgstr "生成文件清单"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Generate draft"
 msgstr "生成草稿"
+
+#: src/routes/obligations.tsx
+msgid "Generate Tax Year {targetTaxYear} deadlines"
+msgstr "生成 {targetTaxYear} 税年截止日"
+
+#: src/routes/obligations.tsx
+msgid "Generate Tax Year {targetTaxYear} deadlines?"
+msgstr "生成 {targetTaxYear} 税年截止日？"
 
 #: src/components/primitives/ai-provenance-badge.tsx
 #, fuzzy
@@ -8685,6 +8704,10 @@ msgstr "待处理邀请"
 msgid "Pending invites"
 msgstr "待处理邀请"
 
+#: src/features/rules/matched-pulse-block.tsx
+msgid "Pending regulatory change for this rule"
+msgstr "此规则有待处理的法规变更"
+
 #: src/features/rules/coverage-tab.tsx
 #, fuzzy
 msgid "Pending review for this entity"
@@ -9227,8 +9250,16 @@ msgid "Re-submit the corrected return to the authority"
 msgstr "向税务机关重新提交修正后的申报"
 
 #: src/features/alerts/components/ReverifyRulesSection.tsx
+msgid "Re-verified"
+msgstr "已重新核验"
+
+#: src/features/alerts/components/ReverifyRulesSection.tsx
 msgid "Re-verify"
 msgstr "重新验证"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Re-verify all rules below before marking this alert reviewed."
+msgstr "将此提醒标记为已复核前，请先重新核验下方所有规则。"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "Re-verify the source still applies to this return"
@@ -9830,6 +9861,7 @@ msgstr "预览"
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/rules/coverage-tab.tsx
+#: src/features/rules/matched-pulse-block.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Review"
 msgstr "查看"
@@ -10094,16 +10126,8 @@ msgid "Role"
 msgstr "角色"
 
 #: src/routes/obligations.tsx
-msgid "Roll deadlines forward to FY{targetFilingYear}?"
-msgstr "滚动生成 FY{targetFilingYear} 的截止日？"
-
-#: src/routes/obligations.tsx
 msgid "Roll forward"
 msgstr "滚动生成"
-
-#: src/routes/obligations.tsx
-msgid "Roll forward to FY{targetFilingYear}"
-msgstr "滚动生成 FY{targetFilingYear}"
 
 #: src/routes/obligations.tsx
 msgid "Rolling deadlines forward requires owner, partner, manager, or preparer access."
@@ -12437,6 +12461,7 @@ msgstr "路由出现意外错误"
 #: src/features/alerts/components/AffectedClientsTable.tsx
 #: src/features/alerts/components/AlertStructuredFields.tsx
 #: src/features/permissions/permission-gate.tsx
+#: src/features/rules/matched-pulse-block.tsx
 msgid "Unknown"
 msgstr "未知"
 
@@ -12680,6 +12705,10 @@ msgstr "查看 {0}"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "View {count} open deadlines for this client"
 msgstr "查看该客户的 {count} 个未完成截止日期"
+
+#: src/features/rules/matched-pulse-block.tsx
+msgid "View alert"
+msgstr "查看提醒"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "View all deadlines"

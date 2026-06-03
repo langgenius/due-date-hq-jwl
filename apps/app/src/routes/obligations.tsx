@@ -12906,6 +12906,11 @@ function RollForwardAction({ canRun }: { canRun: boolean }) {
   const [open, setOpen] = useState(false)
   const targetFilingYear = new Date().getFullYear() + 1
   const sourceFilingYear = targetFilingYear - 1
+  // Copy speaks Tax Year (the canonical identifier): a return filed in FY{n} is
+  // for tax year {n-1}. The engine stays filing-year driven (source/target
+  // FilingYear above feed the rollover); only the user-facing labels change.
+  const targetTaxYear = targetFilingYear - 1
+  const sourceTaxYear = sourceFilingYear - 1
   const previewQuery = useQuery({
     ...orpc.obligations.previewAnnualRollover.queryOptions({
       input: { sourceFilingYear, targetFilingYear },
@@ -12947,22 +12952,23 @@ function RollForwardAction({ canRun }: { canRun: boolean }) {
         }
         onClick={() => setOpen(true)}
       >
-        <Trans>Roll forward to FY{targetFilingYear}</Trans>
+        <Trans>Generate Tax Year {targetTaxYear} deadlines</Trans>
       </Button>
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              <Trans>Roll deadlines forward to FY{targetFilingYear}?</Trans>
+              <Trans>Generate Tax Year {targetTaxYear} deadlines?</Trans>
             </AlertDialogTitle>
             <AlertDialogDescription>
               {previewQuery.isLoading ? (
                 <Trans>Calculating what will be created…</Trans>
               ) : (
                 <Trans>
-                  Creates {willCreate} projected deadlines for {clientCount} clients from completed{' '}
-                  {sourceFilingYear} filings. Projected deadlines stay hidden from client reminders
-                  until you confirm them with the Projected filter.
+                  Creates {willCreate} projected Tax Year {targetTaxYear} deadlines for{' '}
+                  {clientCount} clients from their completed Tax Year {sourceTaxYear} returns.
+                  Projected deadlines stay hidden from client reminders until you confirm them with
+                  the Projected filter.
                 </Trans>
               )}
             </AlertDialogDescription>
