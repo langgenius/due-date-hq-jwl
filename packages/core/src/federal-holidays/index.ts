@@ -33,12 +33,7 @@ function observedFixedHoliday(year: number, monthZeroBased: number, day: number)
 }
 
 /** The nth (1-based) occurrence of `weekday` (0=Sun … 6=Sat) in a month. */
-function nthWeekdayOfMonth(
-  year: number,
-  monthZeroBased: number,
-  weekday: number,
-  n: number,
-): Date {
+function nthWeekdayOfMonth(year: number, monthZeroBased: number, weekday: number, n: number): Date {
   const first = new Date(Date.UTC(year, monthZeroBased, 1))
   const offset = (weekday - first.getUTCDay() + 7) % 7
   return new Date(Date.UTC(year, monthZeroBased, 1 + offset + (n - 1) * 7))
@@ -78,10 +73,10 @@ export function federalHolidaysForYear(year: number): string[] {
   const nextNewYear = observedFixedHoliday(year + 1, 0, 1)
   if (nextNewYear.getUTCFullYear() === year) holidays.push(isoUtc(nextNewYear))
 
-  return [...new Set(holidays)].sort()
+  return [...new Set(holidays)].toSorted()
 }
 
 /** Observed US federal holidays across several years, merged + de-duplicated. */
 export function federalHolidaysForYears(years: readonly number[]): string[] {
-  return [...new Set(years.flatMap((year) => federalHolidaysForYear(year)))].sort()
+  return [...new Set(years.flatMap((year) => federalHolidaysForYear(year)))].toSorted()
 }

@@ -93,12 +93,7 @@ export async function dispatchAutoRollover(env: Env, now = new Date()): Promise<
   await Promise.all(
     firms.map(async (firm) => {
       const { hour, minute, weekday } = localTimeParts(firm.timezone, now)
-      const target = autoRolloverTarget(
-        dateInTimezone(firm.timezone, now),
-        hour,
-        minute,
-        weekday,
-      )
+      const target = autoRolloverTarget(dateInTimezone(firm.timezone, now), hour, minute, weekday)
       if (!target) return
 
       const result = await runAnnualRollover({

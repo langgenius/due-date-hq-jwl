@@ -10,6 +10,10 @@ const EMPTY_AFFECTED_CLIENTS: PulseAffectedClient[] = []
 const ALERT_ACTIVE_ALERTS_REFETCH_INTERVAL_MS = 60_000
 const ALERT_SOURCE_HEALTH_REFETCH_INTERVAL_MS = 60_000
 const ALERT_LIST_ALERTS_MAX_LIMIT = 50
+// Keep a batch-seeded alert detail fresh for one list-poll cycle so opening
+// the drawer stays a cache hit instead of a background refetch (see
+// useAlertDetailQueryOptions).
+const ALERT_DETAIL_STALE_TIME_MS = 60_000
 
 function normalizeAlertsListLimit(limit: number | undefined): number | undefined {
   if (limit === undefined || !Number.isFinite(limit)) return undefined
@@ -69,10 +73,20 @@ export function useAlertSourceHealthQueryOptions() {
 }
 
 export function useAlertDetailQueryOptions(alertId: string | null) {
-  return orpc.pulse.getDetail.queryOptions({
-    input: { alertId: alertId ?? '' },
-    enabled: alertId !== null,
-  })
+  return {
+    ...orpc.pulse.getDetail.queryOptions({
+      input: { alertId: alertId ?? '' },
+      enabled: alertId !== null,
+    }),
+    // The list seeds this query's cache via `getDetailsBatch` (see
+    // useAlertsAffectedClients), so opening the drawer is already a cache hit.
+    // Without a staleTime the default (0) marks that seed instantly stale and
+    // `refetchOnMount` fires a redundant background `getDetail` on every open.
+    // Hold the seed fresh for one list-poll cycle so rapid open/switch/reopen
+    // stays network-free; mutations still `invalidate()` (which overrides
+    // staleTime) and the drawer's explicit `refetch()` paths are unaffected.
+    staleTime: ALERT_DETAIL_STALE_TIME_MS,
+  }
 }
 
 // Batch-load affected clients for a set of alerts in ONE `getDetailsBatch`

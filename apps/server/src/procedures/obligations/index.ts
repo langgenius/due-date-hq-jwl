@@ -653,25 +653,23 @@ const createAnnualRollover = os.obligations.createAnnualRollover.handler(
   },
 )
 
-const confirmObligations = os.obligations.confirmObligations.handler(
-  async ({ input, context }) => {
-    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
-    const { scoped, userId } = requireTenant(context)
-    const { confirmedIds } = await scoped.obligations.confirmByIds(input.obligationIds)
-    let auditId: string | null = null
-    if (confirmedIds.length > 0) {
-      const audit = await scoped.audit.write({
-        actorId: userId,
-        entityType: 'obligation_batch',
-        entityId: confirmedIds[0] ?? 'empty',
-        action: 'obligation.confirmed',
-        after: { confirmedCount: confirmedIds.length, confirmedObligationIds: confirmedIds },
-      })
-      auditId = audit.id
-    }
-    return { confirmedCount: confirmedIds.length, confirmedObligationIds: confirmedIds, auditId }
-  },
-)
+const confirmObligations = os.obligations.confirmObligations.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  const { confirmedIds } = await scoped.obligations.confirmByIds(input.obligationIds)
+  let auditId: string | null = null
+  if (confirmedIds.length > 0) {
+    const audit = await scoped.audit.write({
+      actorId: userId,
+      entityType: 'obligation_batch',
+      entityId: confirmedIds[0] ?? 'empty',
+      action: 'obligation.confirmed',
+      after: { confirmedCount: confirmedIds.length, confirmedObligationIds: confirmedIds },
+    })
+    auditId = audit.id
+  }
+  return { confirmedCount: confirmedIds.length, confirmedObligationIds: confirmedIds, auditId }
+})
 
 const previewReprojection = os.obligations.previewReprojection.handler(
   async ({ input, context }) => {
@@ -713,7 +711,9 @@ const listProjectedDeadlines = os.obligations.listProjectedDeadlines.handler(
     const rows = await scoped.obligations.listProjected(
       input.targetFilingYear !== undefined ? { taxYears: [input.targetFilingYear] } : {},
     )
-    const clients = await scoped.clients.findManyByIds([...new Set(rows.map((row) => row.clientId))])
+    const clients = await scoped.clients.findManyByIds([
+      ...new Set(rows.map((row) => row.clientId)),
+    ])
     const nameById = new Map(clients.map((client) => [client.id, client.name]))
     const deadlines = rows.map((row) => ({
       obligationId: row.id,

@@ -372,12 +372,16 @@ export function createAppRouter() {
           id: PROTECTED_ROUTE_ID,
           path: '/',
           loader: protectedLoader,
-          // Re-fetching the session on every intra-shell navigation is wasteful — the
-          // Worker auth endpoint is cookie-scoped and we already revalidate after
-          // form actions via the default behaviour.
-          shouldRevalidate: ({ currentUrl, nextUrl, formMethod, defaultShouldRevalidate }) => {
+          // Re-fetching the session on every navigation is wasteful — the Worker
+          // auth endpoint is cookie-scoped, so the session never depends on the
+          // path or query string. Only a non-GET form action (login, 2FA verify,
+          // org switch) can change it, and that path returns true below. Every GET
+          // navigation skips revalidation — including same-path `?alert=` / filter
+          // / tab deep-links, which previously fell through to
+          // `defaultShouldRevalidate` (true on any search change) and re-pulled the
+          // session on every alert click.
+          shouldRevalidate: ({ formMethod }) => {
             if (formMethod && formMethod !== 'GET') return true
-            if (currentUrl.pathname === nextUrl.pathname) return defaultShouldRevalidate
             return false
           },
           Component: RootLayout,
