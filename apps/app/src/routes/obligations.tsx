@@ -7025,7 +7025,7 @@ export function ObligationQueueDetailDrawer({
             // the row's true primary identity (form is the secondary
             // identifier). Bigger text gives the client the visual
             // anchor it deserves.
-            className="group/clientlink inline-flex w-fit items-center gap-1 rounded-sm pr-8 text-left text-sm text-text-secondary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="group/clientlink inline-flex w-fit cursor-pointer items-center gap-1 rounded-sm pr-8 text-left text-sm text-text-secondary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <span className="font-semibold">{titleText}</span>
             <ArrowUpRightIcon
