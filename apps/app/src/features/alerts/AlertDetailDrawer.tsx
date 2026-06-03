@@ -824,6 +824,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
                   onChangeSelection={setSelection}
                   onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
                   readOnly
+                  variant="review"
                 />
               </section>
             ) : null}

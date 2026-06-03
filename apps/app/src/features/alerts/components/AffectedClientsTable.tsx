@@ -41,6 +41,15 @@ interface AffectedClientsTableProps {
   onToggleExcluded?: ((obligationId: string, excluded: boolean) => void) | undefined
   /** When true, all controls are read-only (e.g. RBAC denies apply). */
   readOnly?: boolean
+  /**
+   * 'apply' (default) renders the full date-overlay workflow — the select
+   * checkbox, the "Due date change" (old → new) column, and the "Match"
+   * status + Confirm/Exclude controls. 'review' is the rule-change /
+   * source-drift variant: those columns don't apply (no new date is
+   * computed, and there's nothing to apply), so it renders a clean
+   * informational list of Client + Form, each row linking to the deadline.
+   */
+  variant?: 'apply' | 'review'
 }
 
 // Affected clients table inside the Drawer body. One row per obligation; only
@@ -55,8 +64,10 @@ export function AffectedClientsTable({
   onToggleNeedsReviewConfirmation,
   onToggleExcluded,
   readOnly = false,
+  variant = 'apply',
 }: AffectedClientsTableProps) {
   const { t } = useLingui()
+  const isReview = variant === 'review'
   const selectableCount = rows.filter((row) => isSelectable(row, confirmedReviewIds)).length
   const selectedCount = countSelected(rows, selection, confirmedReviewIds)
   const allSelectableChecked = selectableCount > 0 && selectedCount === selectableCount
@@ -107,18 +118,24 @@ export function AffectedClientsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-8 text-left">
-                <Checkbox
-                  aria-label={t`Select all eligible deadlines`}
-                  checked={allSelectableChecked}
-                  disabled={readOnly || selectableCount === 0}
-                  onCheckedChange={(checked) => handleToggleAll(checked)}
-                />
-              </TableHead>
+              {isReview ? null : (
+                <TableHead className="w-8 text-left">
+                  <Checkbox
+                    aria-label={t`Select all eligible deadlines`}
+                    checked={allSelectableChecked}
+                    disabled={readOnly || selectableCount === 0}
+                    onCheckedChange={(checked) => handleToggleAll(checked)}
+                  />
+                </TableHead>
+              )}
               <TableHead className="h-10 text-left text-sm">{t`Client`}</TableHead>
               <TableHead className="h-10 text-left text-sm">{t`Form`}</TableHead>
-              <TableHead className="h-10 text-left text-sm">{t`Due date change`}</TableHead>
-              <TableHead className="h-10 text-left text-sm">{t`Match`}</TableHead>
+              {isReview ? null : (
+                <>
+                  <TableHead className="h-10 text-left text-sm">{t`Due date change`}</TableHead>
+                  <TableHead className="h-10 text-left text-sm">{t`Match`}</TableHead>
+                </>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody className="[&_td]:py-2 [&_td]:text-sm">
@@ -137,26 +154,37 @@ export function AffectedClientsTable({
                   // action: select clients to apply). Navigation to
                   // the deadline detail happens via the hover-revealed
                   // arrow button on the right edge of the row.
-                  onClick={() => handleToggleRow(row)}
+                  // 2026-06-03: the 'review' variant has no select/apply
+                  // columns, so a row click navigates straight to the
+                  // deadline detail instead of toggling selection.
+                  onClick={() =>
+                    isReview
+                      ? void navigate(deadlineDetailHref({ obligationId: row.obligationId }))
+                      : handleToggleRow(row)
+                  }
                   className={cn(
                     'group/affected-row',
-                    selectable && !excluded ? 'cursor-pointer' : 'cursor-default opacity-80',
+                    isReview || (selectable && !excluded)
+                      ? 'cursor-pointer'
+                      : 'cursor-default opacity-80',
                   )}
                 >
-                  <TableCell>
-                    <Checkbox
-                      aria-label={t`Select ${row.clientName}`}
-                      checked={checked}
-                      disabled={!selectable || excluded}
-                      // No onCheckedChange here — the row click owns
-                      // the toggle now. Checkbox is presentational +
-                      // accessible (still announces state via the
-                      // checked attr; the row's onClick is the
-                      // toggle handler).
-                      onCheckedChange={() => handleToggleRow(row)}
-                      onClick={(event) => event.stopPropagation()}
-                    />
-                  </TableCell>
+                  {isReview ? null : (
+                    <TableCell>
+                      <Checkbox
+                        aria-label={t`Select ${row.clientName}`}
+                        checked={checked}
+                        disabled={!selectable || excluded}
+                        // No onCheckedChange here — the row click owns
+                        // the toggle now. Checkbox is presentational +
+                        // accessible (still announces state via the
+                        // checked attr; the row's onClick is the
+                        // toggle handler).
+                        onCheckedChange={() => handleToggleRow(row)}
+                        onClick={(event) => event.stopPropagation()}
+                      />
+                    </TableCell>
+                  )}
                   {/* 2026-05-26 (Yuqi /alerts third pass #8):
                       jurisdiction cell collapsed to the bare
                       2-letter code — no SVG state badge, no full
@@ -202,92 +230,96 @@ export function AffectedClientsTable({
                       so each line is short and the cell stays
                       narrow — no horizontal sprawl with the arrow
                       glyph in the middle. */}
-                  <TableCell>
-                    <div className="flex flex-col gap-0.5 text-xs tabular-nums leading-tight text-text-primary">
-                      <span className="text-text-tertiary line-through">
-                        {formatDate(row.currentDueDate)}
-                      </span>
-                      <span>
-                        {row.newDueDate ? formatDate(row.newDueDate) : <Trans>Unknown</Trans>}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="relative">
-                    {/* 2026-05-26 (Yuqi thirty-first pass #7): the
+                  {isReview ? null : (
+                    <TableCell>
+                      <div className="flex flex-col gap-0.5 text-xs tabular-nums leading-tight text-text-primary">
+                        <span className="text-text-tertiary line-through">
+                          {formatDate(row.currentDueDate)}
+                        </span>
+                        <span>
+                          {row.newDueDate ? formatDate(row.newDueDate) : <Trans>Unknown</Trans>}
+                        </span>
+                      </div>
+                    </TableCell>
+                  )}
+                  {isReview ? null : (
+                    <TableCell className="relative">
+                      {/* 2026-05-26 (Yuqi thirty-first pass #7): the
                         hover-arrow is now an actual button — click
                         navigates to the deadline detail. Pre-row
                         click toggles the checkbox (dominant
                         action); the arrow handles the secondary
                         "open deadline detail" path. Surfaces on row
                         hover via group/affected-row. */}
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        void navigate(deadlineDetailHref({ obligationId: row.obligationId }))
-                      }}
-                      aria-label={t`Open ${row.clientName} in deadlines`}
-                      className="absolute right-3 top-1/2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-sm text-text-tertiary opacity-0 outline-none transition-opacity hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-hover/affected-row:opacity-100"
-                    >
-                      <ArrowUpRightIcon className="size-3.5" aria-hidden />
-                    </button>
-                    <div className="flex flex-col items-start gap-1.5">
-                      <MatchStatusBadge row={row} />
-                      {/* 2026-05-26 (Yuqi thirty-first pass #2):
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          void navigate(deadlineDetailHref({ obligationId: row.obligationId }))
+                        }}
+                        aria-label={t`Open ${row.clientName} in deadlines`}
+                        className="absolute right-3 top-1/2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-sm text-text-tertiary opacity-0 outline-none transition-opacity hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-hover/affected-row:opacity-100"
+                      >
+                        <ArrowUpRightIcon className="size-3.5" aria-hidden />
+                      </button>
+                      <div className="flex flex-col items-start gap-1.5">
+                        <MatchStatusBadge row={row} />
+                        {/* 2026-05-26 (Yuqi thirty-first pass #2):
                           Confirm-applies button promoted from text
                           link → real outline button with explicit
                           frame. Reads as a decisive action on a
                           row that the AI flagged as needing human
                           review — the previous underlined text
                           treatment was too easy to miss. */}
-                      {row.matchStatus === 'needs_review' ? (
-                        reviewConfirmed ? (
-                          <button
-                            type="button"
-                            disabled={readOnly || excluded}
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              onToggleNeedsReviewConfirmation(row.obligationId, false)
-                            }}
-                            className="inline-flex h-7 items-center rounded-sm border border-divider-subtle bg-background-default px-2 text-xs font-medium text-text-tertiary outline-none transition-colors hover:border-divider-regular hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
-                            aria-label={t`Unconfirm ${row.clientName}`}
+                        {row.matchStatus === 'needs_review' ? (
+                          reviewConfirmed ? (
+                            <button
+                              type="button"
+                              disabled={readOnly || excluded}
+                              onClick={(event) => {
+                                event.stopPropagation()
+                                onToggleNeedsReviewConfirmation(row.obligationId, false)
+                              }}
+                              className="inline-flex h-7 items-center rounded-sm border border-divider-subtle bg-background-default px-2 text-xs font-medium text-text-tertiary outline-none transition-colors hover:border-divider-regular hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
+                              aria-label={t`Unconfirm ${row.clientName}`}
+                            >
+                              <Trans>Unconfirm</Trans>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={readOnly || excluded}
+                              onClick={(event) => {
+                                event.stopPropagation()
+                                setConfirmTarget(row)
+                              }}
+                              className="inline-flex h-7 items-center rounded-sm border border-state-accent-solid bg-state-accent-hover px-2 text-xs font-semibold text-text-accent outline-none transition-colors hover:bg-state-accent-hover-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
+                              aria-label={t`Confirm ${row.clientName} applies to this relief`}
+                            >
+                              <Trans>Confirm</Trans>
+                            </button>
+                          )
+                        ) : null}
+                        {onToggleExcluded &&
+                        (row.matchStatus === 'eligible' || row.matchStatus === 'needs_review') ? (
+                          <label
+                            onClick={(event) => event.stopPropagation()}
+                            className="inline-flex items-center gap-2 text-xs text-text-secondary"
                           >
-                            <Trans>Unconfirm</Trans>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={readOnly || excluded}
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              setConfirmTarget(row)
-                            }}
-                            className="inline-flex h-7 items-center rounded-sm border border-state-accent-solid bg-state-accent-hover px-2 text-xs font-semibold text-text-accent outline-none transition-colors hover:bg-state-accent-hover-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
-                            aria-label={t`Confirm ${row.clientName} applies to this relief`}
-                          >
-                            <Trans>Confirm</Trans>
-                          </button>
-                        )
-                      ) : null}
-                      {onToggleExcluded &&
-                      (row.matchStatus === 'eligible' || row.matchStatus === 'needs_review') ? (
-                        <label
-                          onClick={(event) => event.stopPropagation()}
-                          className="inline-flex items-center gap-2 text-xs text-text-secondary"
-                        >
-                          <Checkbox
-                            aria-label={t`Exclude ${row.clientName} from manager review`}
-                            checked={excluded}
-                            disabled={readOnly}
-                            onCheckedChange={(value) => onToggleExcluded(row.obligationId, value)}
-                          />
-                          <span>
-                            <Trans>Exclude</Trans>
-                          </span>
-                        </label>
-                      ) : null}
-                    </div>
-                  </TableCell>
+                            <Checkbox
+                              aria-label={t`Exclude ${row.clientName} from manager review`}
+                              checked={excluded}
+                              disabled={readOnly}
+                              onCheckedChange={(value) => onToggleExcluded(row.obligationId, value)}
+                            />
+                            <span>
+                              <Trans>Exclude</Trans>
+                            </span>
+                          </label>
+                        ) : null}
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               )
             })}
