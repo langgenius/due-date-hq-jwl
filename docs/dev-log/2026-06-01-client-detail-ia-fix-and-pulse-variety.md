@@ -30,7 +30,7 @@ Yuqi approved the higher-effort fix path: **rename + relocate Notes**.
 A second round of critique on the Notes shape itself surfaced that I had
 optimized for the wrong case. Three of four personas (Sarah, Avery, partner)
 hit Notes **read-first**; only Jules (coordinator) is write-first. The
-slide-in I built first forced a click to _read_ — backwards. The correct
+slide-in I built first forced a click to *read* — backwards. The correct
 shape is **inline preview + slide-in editor**: notes are persistent client
 context (like the EIN or owner), always visible when present, with editing
 one click away.
@@ -48,28 +48,25 @@ only `matched` and `applied` appeared.
 
 ### IA — tab labels (URL keys stable; visible labels changed)
 
-| URL key (stable)     | Old label       | New label         |
-| -------------------- | --------------- | ----------------- |
-| `?tab=work`          | Work            | **Filing plan**   |
-| `?tab=info`          | Client info     | **Setup**         |
+| URL key (stable) | Old label          | New label         |
+| ---------------- | ------------------ | ----------------- |
+| `?tab=work`      | Work               | **Filing plan**   |
+| `?tab=info`      | Client info        | **Setup**         |
 | `?tab=opportunities` | Suggested forms | **Opportunities** |
-| `?tab=activity`      | Activity        | **History**       |
+| `?tab=activity`  | Activity           | **History**       |
 
 ### Notes — new write path + inline preview pattern
 
 **Contract** (`packages/contracts/src/clients.ts`)
-
 - `ClientNotesUpdateSchema` + `ClientNotesUpdateOutputSchema`
 - `clientsContract.updateNotes` procedure
 - Re-exports from `packages/contracts/src/index.ts`
 
 **DB / ports** (`packages/db/src/repo/clients.ts`, `packages/ports/src/clients.ts`)
-
 - New `updateNotes(id, notes)` repo method
 - Mirrored in the `ClientsRepo` port interface
 
 **Server** (`apps/server/src/procedures/clients/index.ts`)
-
 - New `updateNotes` handler — single-purpose, audited as
   `client.notes.updated`, short-circuits on no-diff, whitespace-trim → null
   normalization
@@ -85,13 +82,12 @@ in `docs/Design/DueDateHQ-DESIGN.md` v2.2:
   affordances can trigger it.
 - **`<ClientNotesStrip>`** (`apps/app/src/features/clients/ClientNotesStrip.tsx`)
   — inline preview shown above the alerts band. `Card tone="muted"
-radius="md" size="xs"` (from the design-system sweep). Auto-suppresses
+  radius="md" size="xs"` (from the design-system sweep). Auto-suppresses
   when notes are empty. Click anywhere on the strip → opens the slide-in.
   Edit affordance is a quiet ghost Button. Read-only viewers see the strip
   but no edit button.
 
 **Workspace** (`apps/app/src/features/clients/ClientDetailWorkspace.tsx`)
-
 - Tab labels renamed (preserving URL keys + comments documenting the rename)
 - `notesOpen` state lifted to the workspace; `hasClientNotes` flag derived
 - `<ClientNotesStrip>` mounted between the optional needs-facts InfoBanner and
@@ -112,14 +108,14 @@ radius="md" size="xs"` (from the design-system sweep). Auto-suppresses
 Six new pulse rows + six new firm_alert rows attached to `mock_firm_brightline`
 (Miguel's firm):
 
-| Source                    | Change kind           | Confidence | Firm status       |
-| ------------------------- | --------------------- | ---------- | ----------------- |
-| IRS Bulletin              | `filing_requirement`  | 0.92       | matched           |
-| NY DTF Newsroom           | `applicability_scope` | 0.88       | partially_applied |
-| IRS Newsroom (1120-S K-3) | `form_instruction`    | 0.74       | reviewed          |
-| TX Comptroller            | `source_status`       | 0.95       | snoozed           |
-| WA Department of Revenue  | `new_obligation`      | 0.91       | matched           |
-| IRS Newsroom (1041)       | `deadline_shift`      | 0.96       | matched           |
+| Source                    | Change kind            | Confidence | Firm status        |
+| ------------------------- | ---------------------- | ---------- | ------------------ |
+| IRS Bulletin              | `filing_requirement`   | 0.92       | matched            |
+| NY DTF Newsroom           | `applicability_scope`  | 0.88       | partially_applied  |
+| IRS Newsroom (1120-S K-3) | `form_instruction`     | 0.74       | reviewed           |
+| TX Comptroller            | `source_status`        | 0.95       | snoozed            |
+| WA Department of Revenue  | `new_obligation`       | 0.91       | matched            |
+| IRS Newsroom (1041)       | `deadline_shift`       | 0.96       | matched            |
 
 Brightline now has **all 6 change kinds** + **5 of 7 firm-alert statuses**
 exercised (`matched · applied · partially_applied · reviewed · snoozed`),
