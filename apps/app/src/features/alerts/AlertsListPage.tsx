@@ -632,84 +632,21 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
             panel mode. Splits the page when an alert is open;
             closing the panel collapses the wrapper back to a
             single column. */}
-        {/* 2026-05-26 (Yuqi thirty-fourth pass): panel column wrapped
-            in `AnimatePresence` + `motion.div` from the `motion`
-            library (already a project dep, no new install). On
-            click, the panel slides in from the right (translate-x
-            + opacity + width) at 220ms ease-out. On close, it
-            slides back out. List column auto-flexes since this
-            is a flex sibling. */}
-        {/* 2026-05-26 (Yuqi thirty-fifth pass): motion redesigned
-            as "paper printing from the bottom." Two layered motion
-            divs:
-              • Outer: animates the flex slot's width (0 → 60%)
-                fast (180ms) so the column reflows quickly and
-                the empty slot is ready for the paper.
-                `overflow-hidden` clips anything translated
-                outside the slot, so the inner panel is invisible
-                while it sits below.
-              • Inner: starts at `y: '100%'` (fully below the
-                slot, clipped by parent overflow) and translates
-                up to `y: 0`. The full panel height of travel
-                makes it read as paper being extruded from below
-                the desk, not a small UI nudge. No opacity fade
-                — paper is opaque from the first frame, only its
-                position moves. 480ms with `[0.22, 1, 0.36, 1]`
-                (easeOutExpo-soft) so the paper decelerates as
-                it settles into the slot. 80ms delay so the slot
-                visibly opens before the paper arrives.
-            Net effect: list shrinks → empty slot opens → paper
-            rises into the slot from below. The CPA-paper-on-desk
-            aesthetic, executed literally. */}
-        {/* 2026-05-26 (Yuqi thirty-eighth pass — reverse-exit
-            choreography + softer easing): the enter/exit
-            choreography is now properly reversed.
-              ENTER (paper rises into open slot):
-                t=0       outer width opens (slot reveals empty)
-                t=140ms   inner paper starts rising from y:100%
-                t=300ms   slot fully open at 60%
-                t=780ms   paper settles at y:0
-              EXIT (paper falls back, then slot closes):
-                t=0       inner paper starts falling to y:100%
-                t=550ms   paper fully below the desk (clipped)
-                t=520ms   outer width starts closing (small overlap)
-                t=820ms   slot fully closed
-            Per-property transitions on `animate` vs `exit` make
-            this possible — motion's default `transition` prop
-            uses one curve for both, which is why exit looked
-            wrong before (width was racing the inner instead
-            of waiting for it).
-            Curve: cubic-bezier(0.32, 0.72, 0, 1) — Apple's
-            "swiftOut" — heavy deceleration so the paper
-            decelerates as it settles, never feels mechanical.
-            Durations bumped (slot 180→300ms, paper 480→640ms)
-            so the whole motion feels deliberate rather than
-            snappy. */}
-        {/* 2026-05-26 (Yuqi forty-fifth pass — close as dissolve,
-            not slide-down):
-              OPEN: paper rises from below into the open slot
-              (~780ms, the "feels deliberate" arrival).
-              CLOSE: paper just FADES (opacity 1→0, no y-translation)
-              while the slot closes underneath. Quick and quiet —
-              reads as the panel "dissolving" rather than mirroring
-              the slide-up reverse.
-              Close timeline:
-                t=0     paper fades out (220ms) AND slot closes
-                        (280ms) simultaneously
-                t=280ms slot fully closed, alert rows reflow to
-                        full width
-              No delay, no choreography — both motions run together
-              and finish in ~280ms. The user-perceived event is
-              "panel disappears, rows go back to normal." */}
+        {/* 2026-06-03 (Yuqi /alerts detail skeleton width): mount
+            the right-column slot at its final 60% width immediately.
+            The previous width animation (0 → 60%) let the header
+            skeleton render in a narrow column before the loaded
+            detail settled at full width, producing a visible
+            narrow-to-wide jump. The inner paper still rises in from
+            below; only the slot-width animation is removed on enter.
+            Exit keeps the quick width collapse so the list can
+            reclaim the space when the panel closes. */}
         <AnimatePresence initial={false}>
           {panelOpen ? (
             <motion.div
               key="pulse-detail-panel"
-              initial={{ width: 0 }}
-              animate={{
-                width: '60%',
-                transition: { duration: 0.3, ease: [0.32, 0.72, 0, 1] },
-              }}
+              initial={{ width: '60%' }}
+              animate={{ width: '60%' }}
               exit={{
                 width: 0,
                 transition: { duration: 0.28, ease: [0.32, 0.72, 0, 1] },
