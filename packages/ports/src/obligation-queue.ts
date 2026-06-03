@@ -29,6 +29,10 @@ export interface ObligationQueueListInput {
   // at efileState='authorization_requested'. Combined predicate applied in
   // the repo's list() where-clause.
   awaitingSignature?: boolean
+  // Projected/confirmed lens. `false` returns only projected (annual-rollover /
+  // auto-projection) deadlines awaiting CPA confirmation; `true` only confirmed.
+  // Applied as an equality predicate in the repo's list() where-clause.
+  confirmed?: boolean
   asOfDate?: string
   sort?: ObligationQueueSort
   cursor?: string | null

@@ -538,6 +538,7 @@ function toRepoListInput(
   if (input.maxDaysUntilDue !== undefined) repoInput.maxDaysUntilDue = input.maxDaysUntilDue
   if (input.needsEvidence !== undefined) repoInput.needsEvidence = input.needsEvidence
   if (input.awaitingSignature !== undefined) repoInput.awaitingSignature = input.awaitingSignature
+  if (input.confirmed !== undefined) repoInput.confirmed = input.confirmed
   if (input.asOfDate !== undefined) repoInput.asOfDate = input.asOfDate
   if (input.sort !== undefined) repoInput.sort = input.sort
   if (input.cursor !== undefined) repoInput.cursor = input.cursor
