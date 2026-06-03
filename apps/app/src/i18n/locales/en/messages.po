@@ -796,8 +796,8 @@ msgid "{owners} owners ({equity} equity)"
 msgstr "{owners} owners ({equity} equity)"
 
 #: src/features/dashboard/needs-attention-section.tsx
-msgid "{pausedCount, plural, one {# paused} other {# paused}}"
-msgstr "{pausedCount, plural, one {# paused} other {# paused}}"
+msgid "{pausedCount, plural, one {# source paused} other {# sources paused}}"
+msgstr "{pausedCount, plural, one {# source paused} other {# sources paused}}"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "{paymentLateDays, plural, one {Payment # day late} other {Payment # days late}}"
@@ -2677,8 +2677,8 @@ msgid "Checking {label}…"
 msgstr "Checking {label}…"
 
 #: src/features/dashboard/needs-attention-section.tsx
-msgid "Checking monitored sources…"
-msgstr "Checking monitored sources…"
+msgid "checking sources…"
+msgstr "checking sources…"
 
 #: src/routes/readiness.tsx
 msgid "Checklist"
@@ -3939,6 +3939,10 @@ msgstr "Creating clients, deadlines, evidence links, and audit records."
 #: src/routes/rules.library.tsx
 msgid "Creating…"
 msgstr "Creating…"
+
+#: src/features/dashboard/actions-list.tsx
+msgid "Critical"
+msgstr "Critical"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/migration/Step1Intake.tsx
@@ -5701,6 +5705,10 @@ msgstr "High"
 msgid "High confidence"
 msgstr "High confidence"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "High priority"
+msgstr "High priority"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "HomeBase contacts CSV"
 msgstr "HomeBase contacts CSV"
@@ -7007,6 +7015,10 @@ msgstr "need review"
 msgid "Needs action"
 msgstr "Needs action"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "Needs action now"
+msgstr "Needs action now"
+
 #. placeholder {0}: needsClientFacts.length
 #: src/features/rules/generation-preview-tab.tsx
 msgid "NEEDS CLIENT FACTS — {0} items require client detail updates before deadlines can be created"
@@ -7217,10 +7229,6 @@ msgstr "Next years"
 #: src/features/audit/audit-log-labels.ts
 msgid "No"
 msgstr "No"
-
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "No active alerts — nothing needs your review right now."
-msgstr "No active alerts — nothing needs your review right now."
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No active alerts right now"
@@ -7590,10 +7598,6 @@ msgstr "No seats are available. Upgrade or suspend a member before inviting."
 msgid "No source"
 msgstr "No source"
 
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "No sources are currently being monitored."
-msgstr "No sources are currently being monitored."
-
 #: src/features/rules/coverage-tab.tsx
 msgid "No sources for this jurisdiction yet."
 msgstr "No sources for this jurisdiction yet."
@@ -7605,6 +7609,10 @@ msgstr "No sources match these filters. Clear filters above to see all watched s
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No sources match your search."
 msgstr "No sources match your search."
+
+#: src/features/dashboard/needs-attention-section.tsx
+msgid "no sources monitored"
+msgstr "no sources monitored"
 
 #: src/features/rules/sources-tab.tsx
 msgid "No sources registered yet. Source watchers feed the rule catalog — once configured, they appear here with watch status and cadence."
@@ -7784,6 +7792,10 @@ msgstr "Nothing due this week."
 msgid "Nothing here."
 msgstr "Nothing here."
 
+#: src/features/dashboard/needs-attention-section.tsx
+msgid "nothing needs your review"
+msgstr "nothing needs your review"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Nothing to fix"
 msgstr "Nothing to fix"
@@ -7845,6 +7857,10 @@ msgstr "Official source registered; rule still needs review"
 #: src/features/rules/coverage-tab.tsx
 msgid "Official sources — pending rules"
 msgstr "Official sources — pending rules"
+
+#: src/features/dashboard/actions-list.tsx
+msgid "On deck this week"
+msgstr "On deck this week"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding rules activated"
@@ -8710,6 +8726,10 @@ msgstr "Plan"
 #: src/routes/billing.tsx
 msgid "Plan activation appears after the provider confirms the subscription."
 msgstr "Plan activation appears after the provider confirms the subscription."
+
+#: src/features/dashboard/actions-list.tsx
+msgid "Plan ahead"
+msgstr "Plan ahead"
 
 #: src/routes/billing.tsx
 msgid "Plan options"
@@ -11234,10 +11254,6 @@ msgstr "Source-defined rules are skipped from bulk accept. Generate and review t
 msgid "Sources"
 msgstr "Sources"
 
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "sources paused"
-msgstr "sources paused"
-
 #: src/routes/obligations.tsx
 msgid "Specific client"
 msgstr "Specific client"
@@ -12376,6 +12392,7 @@ msgstr "Unmapped"
 msgid "Unread: {0}"
 msgstr "Unread: {0}"
 
+#: src/features/dashboard/actions-list.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Upcoming"
 msgstr "Upcoming"
@@ -12586,6 +12603,7 @@ msgstr "Version conflict"
 msgid "Version history"
 msgstr "Version history"
 
+#: src/features/dashboard/needs-attention-section.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "View"
 msgstr "View"
@@ -12651,10 +12669,6 @@ msgstr "View in Deadlines"
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "View open filings for this client"
 msgstr "View open filings for this client"
-
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "View sources"
-msgstr "View sources"
 
 #. placeholder {0}: queuePosition.index + 1
 #. placeholder {1}: queuePosition.total
