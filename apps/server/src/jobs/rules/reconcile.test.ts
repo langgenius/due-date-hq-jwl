@@ -673,6 +673,8 @@ describe('buildRuleDateAlertPlans (gap #5)', () => {
     return {
       id: 'fed.1040.return.2026',
       jurisdiction: 'FED',
+      taxType: 'federal_1040',
+      entityApplicability: ['individual'],
       status: 'verified',
       applicableYear: 2026,
       dueDateLogic: {
@@ -768,6 +770,8 @@ describe('consumeRuleDateReconciliation (gap #5)', () => {
     return {
       id: 'fed.1040.return.2024',
       jurisdiction: 'FED',
+      taxType: 'federal_1040',
+      entityApplicability: ['individual'],
       status: 'verified',
       applicableYear: 2025,
       dueDateLogic: {
