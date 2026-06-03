@@ -308,10 +308,10 @@ msgstr "{0} deadlines changed"
 msgid "{0} deadlines changed · {skipped} skipped (already closed)"
 msgstr "{0} deadlines changed · {skipped} skipped (already closed)"
 
-#. placeholder {0}: result.summary.createdCount
-#: src/features/rules/generation-preview-tab.tsx
-msgid "{0} deadlines created."
-msgstr "{0} deadlines created."
+#. placeholder {0}: result.confirmedCount
+#: src/routes/obligations.tsx
+msgid "{0} deadlines confirmed"
+msgstr "{0} deadlines confirmed"
 
 #. placeholder {0}: result.decidedCount
 #: src/routes/obligations.tsx
@@ -409,6 +409,11 @@ msgstr "{0} open deadlines"
 #: src/routes/rules.library.tsx
 msgid "{0} other"
 msgstr "{0} other"
+
+#. placeholder {0}: result.summary.createdCount
+#: src/routes/obligations.tsx
+msgid "{0} projected deadlines created"
+msgstr "{0} projected deadlines created"
 
 #. placeholder {0}: preview.acceptReadyCount
 #. placeholder {1}: preview.estimatedObligationCount
@@ -1739,10 +1744,6 @@ msgstr "All change types"
 msgid "All clear. New matches will appear here."
 msgstr "All clear. New matches will appear here."
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "All clients"
-msgstr "All clients"
-
 #: src/features/clients/ClientPeekHoverCard.tsx
 #: src/features/dashboard/actions-list.tsx
 msgid "All deadlines"
@@ -1859,17 +1860,9 @@ msgstr "Annual report no-tax-due flag"
 msgid "Annual rolling"
 msgstr "Annual rolling"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Annual rollover"
-msgstr "Annual rollover"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Annual rollover created"
 msgstr "Annual rollover created"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Annual rollover generated"
-msgstr "Annual rollover generated"
 
 #: src/routes/readiness.tsx
 msgid "Answer each item so your CPA can confirm filing readiness."
@@ -2271,10 +2264,6 @@ msgstr "BATCH REVIEW NOTE"
 msgid "Batch review note is required."
 msgstr "Batch review note is required."
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Before monitoring"
-msgstr "Before monitoring"
-
 #: src/features/migration/Step4Preview.tsx
 msgid "Before you import"
 msgstr "Before you import"
@@ -2427,6 +2416,10 @@ msgstr "Calculating tax estimate"
 #: src/routes/obligations.tsx
 msgid "Calculating the tax estimate"
 msgstr "Calculating the tax estimate"
+
+#: src/routes/obligations.tsx
+msgid "Calculating what will be created…"
+msgstr "Calculating what will be created…"
 
 #: src/routes/practice.tsx
 msgid "Calculating…"
@@ -2836,7 +2829,6 @@ msgstr "client"
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/reminders/reminders-page.tsx
-#: src/features/rules/generation-preview-tab.tsx
 #: src/routes/obligations.tsx
 msgid "Client"
 msgstr "Client"
@@ -2899,10 +2891,6 @@ msgstr "Client email draft copied"
 #: src/features/reminders/reminders-page.tsx
 msgid "Client email opt-outs"
 msgstr "Client email opt-outs"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "CLIENT FILTER"
-msgstr "CLIENT FILTER"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Client import batch"
@@ -3019,7 +3007,6 @@ msgstr "clients"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientDetailWorkspace.tsx
-#: src/features/rules/generation-preview-tab.tsx
 #: src/routes/clients.tsx
 #: src/routes/route-summary.ts
 msgid "Clients"
@@ -3075,10 +3062,6 @@ msgstr "Close wizard"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Closed"
 msgstr "Closed"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Closed source-year deadlines eligible for rollover. Only done, paid, and extended rows count as source deadlines."
-msgstr "Closed source-year deadlines eligible for rollover. Only done, paid, and extended rows count as source deadlines."
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Code sent to"
@@ -3140,6 +3123,10 @@ msgstr "Compliance posture"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Confidence"
 msgstr "Confidence"
+
+#: src/routes/obligations.tsx
+msgid "Confirm"
+msgstr "Confirm"
 
 #. placeholder {0}: row.clientName
 #: src/features/alerts/components/AffectedClientsTable.tsx
@@ -3204,6 +3191,10 @@ msgstr "Confirm ETA with the third party"
 msgid "Confirm filing or payment status — due today"
 msgstr "Confirm filing or payment status — due today"
 
+#: src/routes/obligations.tsx
+msgid "Confirm projected deadlines so they enter the reminder pipeline"
+msgstr "Confirm projected deadlines so they enter the reminder pipeline"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Confirm the new date and deadlines before applying"
 msgstr "Confirm the new date and deadlines before applying"
@@ -3227,6 +3218,14 @@ msgstr "Confirm this client is in scope?"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Confirmed"
 msgstr "Confirmed"
+
+#: src/routes/obligations.tsx
+msgid "Confirmed deadlines now send client reminders on schedule."
+msgstr "Confirmed deadlines now send client reminders on schedule."
+
+#: src/routes/obligations.tsx
+msgid "Confirming requires owner, partner, manager, or preparer access."
+msgstr "Confirming requires owner, partner, manager, or preparer access."
 
 #: src/routes/billing.success.tsx
 msgid "Confirming subscription"
@@ -3393,6 +3392,10 @@ msgstr "Couldn't calculate preview"
 msgid "Couldn't change status"
 msgstr "Couldn't change status"
 
+#: src/routes/obligations.tsx
+msgid "Couldn't confirm deadlines"
+msgstr "Couldn't confirm deadlines"
+
 #: src/features/calendar/calendar-page.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't copy calendar URL"
@@ -3466,10 +3469,6 @@ msgstr "Couldn't enable calendar subscription"
 #: src/routes/obligations.tsx
 msgid "Couldn't export selected rows"
 msgstr "Couldn't export selected rows"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Couldn't generate annual rollover"
-msgstr "Couldn't generate annual rollover"
 
 #: src/routes/obligations.tsx
 msgid "Couldn't generate document list"
@@ -3645,9 +3644,9 @@ msgstr "Couldn't revoke request"
 msgid "Couldn't revoke session"
 msgstr "Couldn't revoke session"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Couldn't run annual rollover preview"
-msgstr "Couldn't run annual rollover preview"
+#: src/routes/obligations.tsx
+msgid "Couldn't roll deadlines forward"
+msgstr "Couldn't roll deadlines forward"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Couldn't run deadline preview"
@@ -3891,7 +3890,6 @@ msgstr "Create rule"
 
 #: src/features/calendar/calendar-page.tsx
 #: src/features/reminders/reminders-page.tsx
-#: src/features/rules/generation-preview-tab.tsx
 #: src/routes/obligations.tsx
 msgid "Created"
 msgstr "Created"
@@ -3899,6 +3897,10 @@ msgstr "Created"
 #: src/features/audit/audit-log-labels.ts
 msgid "Created deadlines"
 msgstr "Created deadlines"
+
+#: src/routes/obligations.tsx
+msgid "Creates {willCreate} projected deadlines for {clientCount} clients from completed {sourceFilingYear} filings. Projected deadlines stay hidden from client reminders until you confirm them with the Projected filter."
+msgstr "Creates {willCreate} projected deadlines for {clientCount} clients from completed {sourceFilingYear} filings. Projected deadlines stay hidden from client reminders until you confirm them with the Projected filter."
 
 #: src/routes/obligations.tsx
 msgid "Creates the file in this browser."
@@ -4162,16 +4164,11 @@ msgstr "deadlines"
 #: src/features/audit/audit-log-labels.ts
 #: src/features/concepts/concept-help.tsx
 #: src/features/dashboard/actions-list.tsx
-#: src/features/rules/generation-preview-tab.tsx
 #: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
 msgid "Deadlines"
 msgstr "Deadlines"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Deadlines actually created after Generate runs. Preview results show zero here until generation succeeds."
-msgstr "Deadlines actually created after Generate runs. Preview results show zero here until generation succeeds."
 
 #: src/routes/obligations.tsx
 msgid "Deadlines bulk owner change"
@@ -4471,7 +4468,6 @@ msgstr "Due"
 msgid "Due {0}"
 msgstr "Due {0}"
 
-#: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
 msgid "Due date"
@@ -4530,14 +4526,6 @@ msgstr "DueDateHQ will create filing plans from the first applicable deadline on
 #: src/features/concepts/concept-help.tsx
 msgid "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and materials pressure."
 msgstr "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and materials pressure."
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Duplicate"
-msgstr "Duplicate"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Duplicates"
-msgstr "Duplicates"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "Duplicates will be created as new clients."
@@ -4955,7 +4943,6 @@ msgid "Expires {0}"
 msgstr "Expires {0}"
 
 #: src/features/concepts/concept-help.tsx
-#: src/features/rules/generation-preview-tab.tsx
 msgid "Explain {label}"
 msgstr "Explain {label}"
 
@@ -5596,10 +5583,6 @@ msgstr "Future edits to facts, risk profile, or deletion will appear here."
 msgid "General"
 msgstr "General"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Generate"
-msgstr "Generate"
-
 #: src/routes/obligations.tsx
 msgid "Generate a list below or add items manually to start collecting."
 msgstr "Generate a list below or add items manually to start collecting."
@@ -5628,7 +5611,6 @@ msgstr "Generated by AI"
 msgid "Generating deadlines…"
 msgstr "Generating deadlines…"
 
-#: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Generating…"
 msgstr "Generating…"
@@ -6300,10 +6282,6 @@ msgstr "Load more"
 msgid "Loading alerts…"
 msgstr "Loading alerts…"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Loading annual rollover preview…"
-msgstr "Loading annual rollover preview…"
-
 #: src/features/obligations/BlockerContextCard.tsx
 msgid "Loading blocker details"
 msgstr "Loading blocker details"
@@ -6841,17 +6819,9 @@ msgstr "missing"
 msgid "Missing"
 msgstr "Missing"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Missing due date"
-msgstr "Missing due date"
-
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Missing from this client"
 msgstr "Missing from this client"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Missing rule"
-msgstr "Missing rule"
 
 #: src/routes/rules.library.tsx
 msgid "Missing rules"
@@ -7346,10 +7316,6 @@ msgstr "No clients matched this alert's scope. You can dismiss it or wait — if
 msgid "No clients yet"
 msgstr "No clients yet"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "No closed source-year deadlines matched this rollover preview."
-msgstr "No closed source-year deadlines matched this rollover preview."
-
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "No commands found."
 msgstr "No commands found."
@@ -7410,10 +7376,6 @@ msgstr "No evidence linked yet"
 #: src/features/audit/audit-log-page.tsx
 msgid "No export packages yet."
 msgstr "No export packages yet."
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "No filing state"
-msgstr "No filing state"
 
 #: src/routes/obligations.tsx
 msgid "No forms"
@@ -7922,7 +7884,6 @@ msgstr "open"
 #: src/features/alerts/components/AlertStatusBadge.tsx
 #: src/features/migration/Step2Mapping.tsx
 #: src/features/notifications/notifications-page.tsx
-#: src/features/rules/generation-preview-tab.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Open"
 msgstr "Open"
@@ -8045,10 +8006,6 @@ msgstr "Open evidence for {0}"
 msgid "Open filing"
 msgstr "Open filing"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Open first created deadline"
-msgstr "Open first created deadline"
-
 #: src/components/patterns/alerts-notifications-bell.tsx
 msgid "Open full Inbox"
 msgstr "Open full Inbox"
@@ -8159,10 +8116,6 @@ msgstr "Opening checkout…"
 #: src/routes/billing.tsx
 msgid "Opening…"
 msgstr "Opening…"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Opens the existing duplicate deadline or the newly created deadline after Generate succeeds."
-msgstr "Opens the existing duplicate deadline or the newly created deadline after Generate succeeds."
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/route-summary.ts
@@ -8964,7 +8917,6 @@ msgid "prev"
 msgstr "prev"
 
 #: src/features/rules/coverage-tab.tsx
-#: src/features/rules/generation-preview-tab.tsx
 msgid "Preview"
 msgstr "Preview"
 
@@ -8980,10 +8932,6 @@ msgstr "Preview & approve"
 #: src/routes/practice.tsx
 msgid "Preview as of {0}"
 msgstr "Preview as of {0}"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Preview closed source-year deadlines, then create next-year deadlines from active practice rules."
-msgstr "Preview closed source-year deadlines, then create next-year deadlines from active practice rules."
 
 #. placeholder {0}: sample.clientName
 #: src/routes/obligations.tsx
@@ -9009,10 +8957,6 @@ msgstr "Preview selected rules before accepting them into production."
 #: src/routes/billing.tsx
 msgid "Preview-only AI assistance"
 msgstr "Preview-only AI assistance"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Previewing…"
-msgstr "Previewing…"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -9116,6 +9060,14 @@ msgstr "Pro"
 #: src/features/alerts/lib/error-mapping.ts
 msgid "Production alert actions require Pro or above."
 msgstr "Production alert actions require Pro or above."
+
+#: src/routes/obligations.tsx
+msgid "Projected"
+msgstr "Projected"
+
+#: src/routes/obligations.tsx
+msgid "Projected — won't send client reminders until a CPA confirms it."
+msgstr "Projected — won't send client reminders until a CPA confirms it."
 
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Prompt version"
@@ -9783,7 +9735,6 @@ msgstr "review"
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/rules/coverage-tab.tsx
-#: src/features/rules/generation-preview-tab.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Review"
 msgstr "Review"
@@ -9796,6 +9747,10 @@ msgstr "Review {0} in deadline drawer"
 #: src/routes/rules.library.tsx
 msgid "Review {count}"
 msgstr "Review {count}"
+
+#: src/routes/obligations.tsx
+msgid "Review and confirm them with the Projected filter."
+msgstr "Review and confirm them with the Projected filter."
 
 #: src/routes/obligations.tsx
 msgid "Review and edit the email, then send it to {recipientEmail}."
@@ -10041,6 +9996,26 @@ msgstr "Risk view"
 msgid "Role"
 msgstr "Role"
 
+#: src/routes/obligations.tsx
+msgid "Roll deadlines forward to FY{targetFilingYear}?"
+msgstr "Roll deadlines forward to FY{targetFilingYear}?"
+
+#: src/routes/obligations.tsx
+msgid "Roll forward"
+msgstr "Roll forward"
+
+#: src/routes/obligations.tsx
+msgid "Roll forward to FY{targetFilingYear}"
+msgstr "Roll forward to FY{targetFilingYear}"
+
+#: src/routes/obligations.tsx
+msgid "Rolling deadlines forward requires owner, partner, manager, or preparer access."
+msgstr "Rolling deadlines forward requires owner, partner, manager, or preparer access."
+
+#: src/routes/obligations.tsx
+msgid "Rolling forward…"
+msgstr "Rolling forward…"
+
 #: src/routes/error.tsx
 msgid "Route failed"
 msgstr "Route failed"
@@ -10075,31 +10050,11 @@ msgstr "Rows"
 msgid "Rows needing attention"
 msgstr "Rows needing attention"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Rows skipped because the target client, rule, tax year, and period already have a deadline."
-msgstr "Rows skipped because the target client, rule, tax year, and period already have a deadline."
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Rows that cannot be created, usually because the target year lacks an active practice rule or concrete due date."
-msgstr "Rows that cannot be created, usually because the target year lacks an active practice rule or concrete due date."
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Rows that will create pending deadlines because an active target-year practice rule produced a concrete due date."
-msgstr "Rows that will create pending deadlines because an active target-year practice rule produced a concrete due date."
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Rows that will create review deadlines because the active practice rule requires CPA confirmation."
-msgstr "Rows that will create review deadlines because the active practice rule requires CPA confirmation."
-
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/routes/rules.library.tsx
 msgid "Rule"
 msgstr "Rule"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Rule / reason"
-msgstr "Rule / reason"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/rules/rule-detail-drawer.tsx
@@ -11013,7 +10968,6 @@ msgstr "Skip to drafting"
 
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/coverage-tab.tsx
-#: src/features/rules/generation-preview-tab.tsx
 msgid "Skipped"
 msgstr "Skipped"
 
@@ -11177,10 +11131,6 @@ msgstr "Source changed — re-verify"
 msgid "Source changed requires single-rule review"
 msgstr "Source changed requires single-rule review"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Source deadlines"
-msgstr "Source deadlines"
-
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Source excerpt"
@@ -11193,10 +11143,6 @@ msgstr "Source excerpt copied"
 #: src/features/audit/audit-log-labels.ts
 msgid "Source filing year"
 msgstr "Source filing year"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "SOURCE FILING YEAR"
-msgstr "SOURCE FILING YEAR"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Source only"
@@ -11329,7 +11275,6 @@ msgstr "States"
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/reminders/reminders-page.tsx
-#: src/features/rules/generation-preview-tab.tsx
 #: src/routes/obligations.tsx
 msgid "Status"
 msgstr "Status"
@@ -11540,32 +11485,15 @@ msgstr "System (cron / queue)"
 msgid "System notification"
 msgstr "System notification"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Target"
-msgstr "Target"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Target filing year"
 msgstr "Target filing year"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "TARGET FILING YEAR"
-msgstr "TARGET FILING YEAR"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Target filing year must be exactly one year after the source filing year."
-msgstr "Target filing year must be exactly one year after the source filing year."
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Target filing year must be the next year after source filing year."
-msgstr "Target filing year must be the next year after source filing year."
 
 #: src/routes/obligations.tsx
 msgid "Tax period"
 msgstr "Tax period"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
-#: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
@@ -11747,17 +11675,9 @@ msgstr "The client can still receive the link manually after it is created."
 msgid "The client import flow that maps columns, normalizes values, previews deadlines, and creates the initial deadline list."
 msgstr "The client import flow that maps columns, normalizes values, previews deadlines, and creates the initial deadline list."
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "The client whose closed source-year deadline is being considered for next-year generation."
-msgstr "The client whose closed source-year deadline is being considered for next-year generation."
-
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "The code expires in 5 minutes."
 msgstr "The code expires in 5 minutes."
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "The concrete due date calculated from the active target-year practice rule. A dash means nothing will be created."
-msgstr "The concrete due date calculated from the active target-year practice rule. A dash means nothing will be created."
 
 #: src/features/calendar/calendar-page.tsx
 #: src/routes/obligations.tsx
@@ -11815,10 +11735,6 @@ msgstr "The late-filing count where history reaches its maximum Smart Priority c
 msgid "The magic link sent to {0} will stop working. You can re-invite them later, but the original link can't be revived."
 msgstr "The magic link sent to {0} will stop working. You can re-invite them later, but the original link can't be revived."
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "The matched active practice rule and period, or the reason this row is duplicate or skipped."
-msgstr "The matched active practice rule and period, or the reason this row is duplicate or skipped."
-
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "The model extracted these fields with low confidence. Compare against the source excerpt below and the structured scope before marking it reviewed."
 msgstr "The model extracted these fields with low confidence. Compare against the source excerpt below and the structured scope before marking it reviewed."
@@ -11875,10 +11791,6 @@ msgstr "The request was invalid. Please review your input and try again."
 msgid "The reviewed client set is ready to apply."
 msgstr "The reviewed client set is ready to apply."
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "The rollover disposition for this row: create, review, duplicate, missing rule, or missing due date."
-msgstr "The rollover disposition for this row: create, review, duplicate, missing rule, or missing due date."
-
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "The rule library skips clients without a filing state or entity type. Fill them in here so generated deadlines start landing."
 msgstr "The rule library skips clients without a filing state or entity type. Fill them in here so generated deadlines start landing."
@@ -11899,10 +11811,6 @@ msgstr "The secure checkout has redirected back to DueDateHQ. We are confirming 
 msgid "The selected plan is still available from Billing."
 msgstr "The selected plan is still available from Billing."
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "The status assigned if this row is generated: pending for reminder-ready rows or review for CPA-confirmation rows."
-msgstr "The status assigned if this row is generated: pending for reminder-ready rows or review for CPA-confirmation rows."
-
 #: src/features/concepts/concept-help.tsx
 msgid "The stored deadline risk view, mainly based on due date pressure, materials state, client history, and evidence status."
 msgstr "The stored deadline risk view, mainly based on due date pressure, materials state, client history, and evidence status."
@@ -11914,10 +11822,6 @@ msgstr "The system found a possible deadline, but a CPA, owner, or manager must 
 #: src/features/concepts/concept-help.tsx
 msgid "The tax facts used when the app needs to calculate penalty context for overdue work."
 msgstr "The tax facts used when the app needs to calculate penalty context for overdue work."
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "The tax form or deadline type carried forward from the source-year seed deadline."
-msgstr "The tax form or deadline type carried forward from the source-year seed deadline."
 
 #: src/routes/obligations.tsx
 msgid "The template is paused in Reminders, so no email will be queued."
@@ -12239,13 +12143,13 @@ msgstr "Try a different filter combination, or clear all filters to see the full
 msgid "Try again"
 msgstr "Try again"
 
+#: src/routes/obligations.tsx
+msgid "Try again in a moment."
+msgstr "Try again in a moment."
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Try again, or skip this rule for now."
 msgstr "Try again, or skip this rule for now."
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Try previewing again before generating."
-msgstr "Try previewing again before generating."
 
 #: src/features/audit/audit-log-labels.ts
 msgid "TSV"
@@ -12414,15 +12318,10 @@ msgstr "Undoing this import will commit these changes"
 msgid "Unexpected route error"
 msgstr "Unexpected route error"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Unique clients represented by the source-year deadlines in this preview."
-msgstr "Unique clients represented by the source-year deadlines in this preview."
-
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AffectedClientsTable.tsx
 #: src/features/alerts/components/AlertStructuredFields.tsx
 #: src/features/permissions/permission-gate.tsx
-#: src/features/rules/generation-preview-tab.tsx
 msgid "Unknown"
 msgstr "Unknown"
 
@@ -12867,10 +12766,6 @@ msgstr "Why it failed"
 #: src/features/dashboard/actions-list.tsx
 msgid "Why now"
 msgstr "Why now"
-
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Will create"
-msgstr "Will create"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Window"

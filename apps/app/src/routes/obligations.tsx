@@ -778,6 +778,9 @@ const obligationQueueSearchParamsParsers = {
   // client's 8879. Absent when off (no default); ?awaitingSignature=true
   // when on.
   awaitingSignature: parseAsBoolean.withOptions(REPLACE_HISTORY_OPTIONS),
+  // Projected lens — projected (annual-rollover / auto-projection) deadlines
+  // awaiting CPA confirmation. Absent when off; ?projected=true when on.
+  projected: parseAsBoolean.withOptions(REPLACE_HISTORY_OPTIONS),
   drawer: parseAsStringLiteral(DETAIL_DRAWERS).withOptions(REPLACE_HISTORY_OPTIONS),
   id: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
   tab: parseAsStringLiteral(DETAIL_TABS)
@@ -825,6 +828,7 @@ type DeadlineDetailQueueSearchState = Pick<
   | 'dueWithin'
   | 'evidence'
   | 'awaitingSignature'
+  | 'projected'
   | 'daysMin'
   | 'daysMax'
   | 'asOf'
@@ -885,6 +889,8 @@ export function deadlineDetailSearchFromQueueState(
   setOptionalSearchParam(params, 'evidence', state.evidence)
   if (state.awaitingSignature === true) params.set('awaitingSignature', 'true')
   else params.delete('awaitingSignature')
+  if (state.projected === true) params.set('projected', 'true')
+  else params.delete('projected')
   setOptionalSearchParam(params, 'daysMin', state.daysMin)
   setOptionalSearchParam(params, 'daysMax', state.daysMax)
   setOptionalSearchParam(params, 'asOf', state.asOf)
@@ -1271,6 +1277,7 @@ export function ObligationQueueRoute() {
       dueWithin,
       evidence,
       awaitingSignature,
+      projected,
       drawer,
       id: detailId,
       tab: detailTab,
@@ -1305,6 +1312,7 @@ export function ObligationQueueRoute() {
         dueWithin,
         evidence,
         awaitingSignature,
+        projected,
         daysMin,
         daysMax,
         asOf,
@@ -1330,6 +1338,7 @@ export function ObligationQueueRoute() {
       dueWithin,
       evidence,
       awaitingSignature,
+      projected,
       daysMin,
       daysMax,
       asOf,
@@ -1571,6 +1580,7 @@ export function ObligationQueueRoute() {
       ...(maxDaysUntilDue !== undefined ? { maxDaysUntilDue } : {}),
       ...(evidence === 'needs' ? { needsEvidence: true } : {}),
       ...(awaitingSignature ? { awaitingSignature: true } : {}),
+      ...(projected ? { confirmed: false } : {}),
       ...(asOf ? { asOfDate: asOf } : {}),
       sort,
       limit: PAGE_SIZE,
@@ -1593,6 +1603,7 @@ export function ObligationQueueRoute() {
       maxDaysUntilDue,
       evidence,
       awaitingSignature,
+      projected,
       asOf,
       sort,
     ],
@@ -1676,6 +1687,28 @@ export function ObligationQueueRoute() {
       },
       onError: (err) => {
         toast.error(t`Couldn't update selected rows`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  const confirmObligationsMutation = useMutation(
+    orpc.obligations.confirmObligations.mutationOptions({
+      onSuccess: (result) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+        setRowSelection({})
+        toast.success(t`${result.confirmedCount} deadlines confirmed`, {
+          description: t`Confirmed deadlines now send client reminders on schedule.`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't confirm deadlines`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -2608,6 +2641,17 @@ export function ObligationQueueRoute() {
                 compact={panelOpenIntent}
                 readOnly={!canUpdateObligationStatus}
               />
+              {/* Projected (rolled-forward / auto-generated) deadline awaiting CPA
+                  confirmation — withheld from the reminder pipeline until confirmed. */}
+              {!obligationQueueRow.confirmed ? (
+                <Badge
+                  variant="secondary"
+                  className="h-5 px-1.5 text-caption-xs"
+                  title={t`Projected — won't send client reminders until a CPA confirms it.`}
+                >
+                  <Trans>Projected</Trans>
+                </Badge>
+              ) : null}
               {/* Awaiting-signature signal. A row marked Filed but still
                   parked at efileState=authorization_requested isn't truly
                   done — it's waiting on the client's 8879. Quiet outline
@@ -3110,6 +3154,11 @@ export function ObligationQueueRoute() {
     })
   }
 
+  function confirmSelectedProjected() {
+    if (selectedIds.length === 0) return
+    confirmObligationsMutation.mutate({ obligationIds: selectedIds })
+  }
+
   function changeSelectedAssignee(assigneeId: string | null, assigneeName?: string) {
     if (selectedClientIds.length === 0) return
     bulkAssigneeMutation.mutate(
@@ -3544,6 +3593,16 @@ export function ObligationQueueRoute() {
               >
                 <Trans>Awaiting signature</Trans>
               </ObligationQueueActionChip>
+              <ObligationQueueActionChip
+                active={projected === true}
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    projected: projected ? null : true,
+                  })
+                }
+              >
+                <Trans>Projected</Trans>
+              </ObligationQueueActionChip>
               {/* "Penalty input needed" chip retired 2026-05-22 with
                 hanxujiang's projected-exposure refactor (30f29dc).
                 The `exposure` query param and its filter pipeline are
@@ -3551,6 +3610,7 @@ export function ObligationQueueRoute() {
                 inside the obligation drawer. */}
             </div>
             <div className="flex flex-wrap items-center gap-3">
+              <RollForwardAction canRun={canRunMigration} />
               {/* "Applied · <chip> · Clear filters" strip removed
                 2026-05-21 — the row chips above are already the
                 authoritative active-filter display, and each carries
@@ -3834,6 +3894,22 @@ export function ObligationQueueRoute() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
+              {/* Confirm projected (rolled-forward / auto-generated) deadlines so
+                  they leave the Projected lens and re-enter the reminder pipeline.
+                  Already-confirmed rows are no-ops server-side. */}
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!canUpdateObligationStatus || confirmObligationsMutation.isPending}
+                title={
+                  canUpdateObligationStatus
+                    ? t`Confirm projected deadlines so they enter the reminder pipeline`
+                    : t`Confirming requires owner, partner, manager, or preparer access.`
+                }
+                onClick={confirmSelectedProjected}
+              >
+                <Trans>Confirm</Trans>
+              </Button>
               {/* 2026-05-26 (Yuqi /deadlines redesign): Snooze
                   surfaced as a peer of Assign / Set status / Export.
                   Backend mutation (bulk reschedule internal due
@@ -12817,6 +12893,99 @@ function ObligationQueueActionChip({
       <span>{children}</span>
       {active ? <XIcon aria-hidden className="size-3.5" /> : null}
     </button>
+  )
+}
+
+// Annual rollover, simplified to one button + a confirm dialog. Rolls the firm's
+// book forward to next filing year — generating *projected* (confirmed=false)
+// deadlines that stay out of the reminder pipeline until a CPA confirms them via
+// the Projected lens. Gated on migration.run (matches the server handler).
+function RollForwardAction({ canRun }: { canRun: boolean }) {
+  const { t } = useLingui()
+  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false)
+  const targetFilingYear = new Date().getFullYear() + 1
+  const sourceFilingYear = targetFilingYear - 1
+  const previewQuery = useQuery({
+    ...orpc.obligations.previewAnnualRollover.queryOptions({
+      input: { sourceFilingYear, targetFilingYear },
+    }),
+    enabled: open,
+  })
+  const createMutation = useMutation(
+    orpc.obligations.createAnnualRollover.mutationOptions({
+      onSuccess: (result) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+        setOpen(false)
+        toast.success(t`${result.summary.createdCount} projected deadlines created`, {
+          description: t`Review and confirm them with the Projected filter.`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't roll deadlines forward`, {
+          description: rpcErrorMessage(err) ?? t`Try again in a moment.`,
+        })
+      },
+    }),
+  )
+  const summary = previewQuery.data?.summary
+  const willCreate = summary ? summary.willCreateCount + summary.reviewCount : 0
+  const clientCount = summary?.clientCount ?? 0
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={!canRun}
+        title={
+          canRun
+            ? undefined
+            : t`Rolling deadlines forward requires owner, partner, manager, or preparer access.`
+        }
+        onClick={() => setOpen(true)}
+      >
+        <Trans>Roll forward to FY{targetFilingYear}</Trans>
+      </Button>
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Roll deadlines forward to FY{targetFilingYear}?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {previewQuery.isLoading ? (
+                <Trans>Calculating what will be created…</Trans>
+              ) : (
+                <Trans>
+                  Creates {willCreate} projected deadlines for {clientCount} clients from completed{' '}
+                  {sourceFilingYear} filings. Projected deadlines stay hidden from client reminders
+                  until you confirm them with the Projected filter.
+                </Trans>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <Button
+              variant="accent"
+              disabled={createMutation.isPending || previewQuery.isLoading || willCreate === 0}
+              onClick={() => createMutation.mutate({ sourceFilingYear, targetFilingYear })}
+            >
+              {createMutation.isPending ? (
+                <Trans>Rolling forward…</Trans>
+              ) : (
+                <Trans>Roll forward</Trans>
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 

@@ -63,6 +63,7 @@ interface RawRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationQueueRow['status']
+  confirmed: ObligationQueueRow['confirmed']
   blockedByObligationInstanceId: string | null
   readiness: ObligationQueueRow['readiness']
   extensionDecision: ObligationQueueRow['extensionDecision']
@@ -194,6 +195,7 @@ function toRow(
     baseDueDate: toIsoDate(row.baseDueDate),
     currentDueDate: toIsoDate(row.currentDueDate),
     status: row.status,
+    confirmed: row.confirmed,
     blockedByObligationInstanceId: row.blockedByObligationInstanceId,
     readiness: row.readiness,
     extensionDecision: row.extensionDecision,

@@ -459,6 +459,7 @@ describe('client detail model', () => {
   it('summarizes the firm obligations queue into next-due and open-count per client', () => {
     const queueRow = (overrides: Partial<ObligationQueueRow>): ObligationQueueRow => ({
       ...obligation(),
+      confirmed: true,
       clientName: 'Client',
       clientState: 'CA',
       clientCounty: null,

@@ -65,6 +65,7 @@ export interface ObligationQueueListInput {
   maxDaysUntilDue?: number
   needsEvidence?: boolean
   awaitingSignature?: boolean
+  confirmed?: boolean
   asOfDate?: string
   sort?: ObligationQueueSort
   cursor?: string | null
@@ -629,6 +630,10 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
             eq(obligationInstance.efileState, 'authorization_requested'),
           )!,
         )
+      }
+
+      if (input.confirmed !== undefined) {
+        filters.push(eq(obligationInstance.confirmed, input.confirmed))
       }
 
       const obligationIds = uniqueNonEmpty(input.obligationIds)

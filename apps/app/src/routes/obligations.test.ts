@@ -39,6 +39,7 @@ describe('obligations quick filters', () => {
     dueWithin: null,
     evidence: null,
     awaitingSignature: null,
+    projected: null,
     daysMin: null,
     daysMax: null,
     asOf: null,
