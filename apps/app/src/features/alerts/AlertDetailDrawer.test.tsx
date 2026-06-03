@@ -2,6 +2,8 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { PulseFirmAlertStatus } from '@duedatehq/contracts'
+
 import { bootstrapI18n } from '@/i18n/bootstrap'
 import { activateLocale } from '@/i18n/i18n'
 import { AppI18nProvider } from '@/i18n/provider'
@@ -48,7 +50,13 @@ function clickButton(label: string) {
   })
 }
 
-function renderDrawerActions({ onMarkReviewed = vi.fn() }: { onMarkReviewed?: () => void }) {
+function renderDrawerActions({
+  onMarkReviewed = vi.fn(),
+  alertStatus = 'matched',
+}: {
+  onMarkReviewed?: () => void
+  alertStatus?: PulseFirmAlertStatus
+}) {
   container = document.createElement('div')
   document.body.append(container)
   root = createRoot(container)
@@ -57,7 +65,7 @@ function renderDrawerActions({ onMarkReviewed = vi.fn() }: { onMarkReviewed?: ()
     root?.render(
       <AppI18nProvider>
         <DrawerActions
-          alertStatus="matched"
+          alertStatus={alertStatus}
           sourceStatus="approved"
           selectionCount={0}
           actionMode="due_date_overlay"
@@ -99,6 +107,17 @@ describe('DrawerActions direct footer actions', () => {
     expect(buttonLabels).not.toContain('Snooze 24h')
     expect(document.querySelector('#pulse-reason-text')).toBeNull()
     expect(document.body.textContent).not.toContain('Reason')
+  })
+
+  it('shows a disabled "Reviewed" state (not an actionable "Mark reviewed") for an already-reviewed alert', () => {
+    renderDrawerActions({ alertStatus: 'reviewed' })
+
+    const buttons = Array.from(document.querySelectorAll('button'))
+    const reviewed = buttons.find((button) => button.textContent?.trim() === 'Reviewed')
+    expect(reviewed).toBeTruthy()
+    expect(reviewed?.disabled).toBe(true)
+    // The actionable "Mark reviewed" CTA must be gone in history.
+    expect(buttons.some((button) => button.textContent?.trim() === 'Mark reviewed')).toBe(false)
   })
 })
 

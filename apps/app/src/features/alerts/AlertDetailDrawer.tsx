@@ -1183,7 +1183,12 @@ export function DrawerActions({
   const showReactivate = alertStatus === 'reverted'
   const isDismissed = alertStatus === 'dismissed'
   const sourceRevoked = sourceStatus === 'source_revoked'
-  const isClosed = alertStatus === 'reverted' || isDismissed || sourceRevoked
+  // `reviewed` is terminal for a review_only alert — once marked reviewed it
+  // sits in history with no further action, so the primary button must not
+  // re-fire markReviewed. (due_date_overlay alerts can never reach
+  // 'reviewed' — the server rejects markReviewed for them.)
+  const isReviewed = alertStatus === 'reviewed'
+  const isClosed = alertStatus === 'reverted' || isReviewed || isDismissed || sourceRevoked
   const noActionReview = actionMode === 'review_only' || firmImpact === 'no_current_match'
   const needsDeadlineDetails =
     actionMode === 'due_date_overlay' &&
@@ -1261,7 +1266,11 @@ export function DrawerActions({
           aria-busy={isMutating || undefined}
         >
           {noActionReview ? (
-            <Trans>Mark reviewed</Trans>
+            isReviewed ? (
+              <Trans>Reviewed</Trans>
+            ) : (
+              <Trans>Mark reviewed</Trans>
+            )
           ) : needsDeadlineDetails ? (
             <Trans>Confirm date and deadlines</Trans>
           ) : selectionCount === 0 ? (
