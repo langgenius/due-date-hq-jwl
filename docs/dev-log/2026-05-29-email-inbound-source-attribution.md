@@ -34,3 +34,12 @@
 - Tightened fallback attribution so generic GovDelivery sender domains do not override source-specific
   `List-ID` or canonical URL signals.
 - Added smoke fixtures for `fl`, `wa`, `ma`, and `tx`.
+
+## IRS Newswire and MIME canonical text
+
+- Added `fed.irs_newswire` as a federal inbound email source keyed by the `USIRS` GovDelivery
+  account code and `pulse-ingest+fed-irs-newswire`.
+- Added a narrow `USIRS` priority route so IRS Newswire can be attributed correctly even when a
+  subscription confirmation delivered it through another plus-address.
+- Changed inbound email archives to store decoded canonical text before the raw RFC822 payload in a
+  single R2 artifact, so `pulse.extract` no longer fails guard checks on quoted-printable MIME text.

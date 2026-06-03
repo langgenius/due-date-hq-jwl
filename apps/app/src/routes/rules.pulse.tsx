@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans } from '@lingui/react/macro'
-import { HistoryIcon, RadioTowerIcon } from 'lucide-react'
+import { HistoryIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -166,26 +166,7 @@ export function RulesPulseRoute() {
         // The earlier "quieter than the title" rationale still
         // applies, but outline already satisfies it without
         // collapsing into pure text.
-        // 2026-05-27 (Yuqi IA pass — Sources affordance): the
-        // monitoring chip in the title declares "we're watching N
-        // sources" but there was no way to navigate to the source
-        // catalog from this page. Added a Sources button alongside
-        // Alert history so the CPA can jump straight to
-        // /rules/sources (manage, pause, add a source) from the
-        // alert surface. Both buttons are outline variants — sibling
-        // navigations of equal weight. Sources sits first since
-        // "what we're watching" is the upstream of "what we
-        // surfaced."
         <>
-          <Button
-            nativeButton={false}
-            variant="outline"
-            size="sm"
-            render={<Link to="/rules/sources" />}
-          >
-            <RadioTowerIcon data-icon="inline-start" />
-            <Trans>Sources</Trans>
-          </Button>
           <Button
             nativeButton={false}
             variant="outline"

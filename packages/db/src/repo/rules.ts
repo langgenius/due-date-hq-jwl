@@ -1,4 +1,5 @@
 import { and, desc, eq, inArray, lt } from 'drizzle-orm'
+import type { BatchItem } from 'drizzle-orm/batch'
 import type {
   PracticeRuleInput,
   PracticeRuleReviewTaskDecisionInput,
@@ -24,6 +25,28 @@ import {
   type RuleReviewDecision,
   type RuleReviewDecisionStatus,
 } from '../schema/rules'
+
+const D1_BATCH_CHUNK_SIZE = 50
+
+function toNonEmptyBatch<T>(items: T[]): [T, ...T[]] {
+  const [first, ...rest] = items
+  if (first === undefined) {
+    throw new Error('Expected at least one D1 batch statement')
+  }
+  return [first, ...rest]
+}
+
+async function runBatchChunks(db: Db, queries: BatchItem<'sqlite'>[]): Promise<void> {
+  const chunks: BatchItem<'sqlite'>[][] = []
+  for (let index = 0; index < queries.length; index += D1_BATCH_CHUNK_SIZE) {
+    chunks.push(queries.slice(index, index + D1_BATCH_CHUNK_SIZE))
+  }
+  await chunks.reduce<Promise<void>>(
+    (previous, chunk) =>
+      previous.then(() => db.batch(toNonEmptyBatch(chunk)).then(() => undefined)),
+    Promise.resolve(),
+  )
+}
 
 export interface RuleReviewDecisionInput {
   ruleId: string
@@ -55,7 +78,7 @@ export function makeRulesRepo(db: Db, firmId: string) {
       rules: RuleTemplateInput[]
     }): Promise<void> {
       const now = new Date()
-      await Promise.all([
+      const queries: BatchItem<'sqlite'>[] = [
         ...input.sources.map((source) =>
           db
             .insert(ruleSourceTemplate)
@@ -120,7 +143,11 @@ export function makeRulesRepo(db: Db, firmId: string) {
               },
             }),
         ),
-      ])
+      ]
+
+      if (queries.length > 0) {
+        await runBatchChunks(db, queries)
+      }
     },
 
     async listPracticeRules(status?: PracticeRule['status']): Promise<PracticeRule[]> {
@@ -195,26 +222,26 @@ export function makeRulesRepo(db: Db, firmId: string) {
       )
       if (uniqueInputs.length === 0) return []
 
-      await Promise.all(
-        uniqueInputs.map((input) =>
-          db
-            .insert(practiceRuleReviewTask)
-            .values({
-              id: crypto.randomUUID(),
-              firmId,
-              ruleId: input.ruleId,
-              templateVersion: input.templateVersion,
-              reason: input.reason,
-            })
-            .onConflictDoNothing({
-              target: [
-                practiceRuleReviewTask.firmId,
-                practiceRuleReviewTask.ruleId,
-                practiceRuleReviewTask.templateVersion,
-              ],
-            }),
-        ),
+      const queries: BatchItem<'sqlite'>[] = uniqueInputs.map((input) =>
+        db
+          .insert(practiceRuleReviewTask)
+          .values({
+            id: crypto.randomUUID(),
+            firmId,
+            ruleId: input.ruleId,
+            templateVersion: input.templateVersion,
+            reason: input.reason,
+          })
+          .onConflictDoNothing({
+            target: [
+              practiceRuleReviewTask.firmId,
+              practiceRuleReviewTask.ruleId,
+              practiceRuleReviewTask.templateVersion,
+            ],
+          }),
       )
+
+      await runBatchChunks(db, queries)
 
       const keys = new Set(uniqueInputs.map((input) => `${input.ruleId}:${input.templateVersion}`))
       return (await this.listReviewTasks()).filter((task) =>

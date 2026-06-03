@@ -536,7 +536,10 @@ export function seedPulseMock(queryClient: QueryClient): void {
     alerts: ALERTS,
   })
   queryClient.setQueryData(orpc.pulse.listHistory.queryKey({ input: { limit: 50 } }), {
-    alerts: ALERTS,
+    alerts: ALERTS.filter((alert) => alert.status !== 'matched'),
+  })
+  queryClient.setQueryData(orpc.pulse.activeCount.queryKey({ input: undefined }), {
+    count: ALERTS.filter((alert) => alert.status === 'matched').length,
   })
   queryClient.setQueryData(orpc.pulse.listSourceHealth.queryKey({ input: undefined }), {
     sources: SOURCE_HEALTH,

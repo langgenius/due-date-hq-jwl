@@ -228,12 +228,12 @@ export interface PulseAlertActionInput {
 }
 
 export interface PulseDismissReasonInput extends PulseAlertActionInput {
-  reason: string
+  reason?: string
 }
 
 export interface PulseSnoozeInput extends PulseAlertActionInput {
   until: Date
-  reason: string
+  reason?: string
 }
 
 export interface PulseApplyResult {

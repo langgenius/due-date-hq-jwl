@@ -536,7 +536,7 @@ export function Step1Intake({
                 <div className="rounded-lg border border-divider-regular bg-components-panel-bg p-1 shadow-subtle">
                   <Textarea
                     id={pasteId}
-                    aria-label={t`Paste client data`}
+                    aria-label={t`Paste client rows`}
                     aria-describedby="paste-hint"
                     autoFocus
                     value={intake.rawText}

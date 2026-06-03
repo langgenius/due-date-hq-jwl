@@ -72,9 +72,21 @@ const EMAIL_BATCH_SIZE = 1
 const NOTIFICATION_BATCH_SIZE = Math.floor(100 / 10)
 const REVERT_WINDOW_MS = 24 * 60 * 60 * 1000
 const PULSE_DUPLICATE_WINDOW_MS = 45 * 24 * 60 * 60 * 1000
+const PULSE_DISMISS_DEFAULT_AUDIT_REASON = 'Dismissed from Pulse detail.'
+const PULSE_SNOOZE_DEFAULT_AUDIT_REASON = 'Snoozed for 24 hours from Pulse detail.'
+const PULSE_MARK_REVIEWED_DEFAULT_AUDIT_REASON = 'Marked reviewed from Pulse detail.'
+const PULSE_HANDLED_ALERT_STATUSES = [
+  'dismissed',
+  'snoozed',
+  'partially_applied',
+  'applied',
+  'reverted',
+  'reviewed',
+] as const satisfies ReadonlyArray<PulseFirmAlertStatus>
 
 export type PulseAffectedClientStatus = 'eligible' | 'needs_review' | 'already_applied' | 'reverted'
 export type PulseReviewOnlyChangeKind = Exclude<PulseChangeKind, 'deadline_shift'>
+type PulseHandledFirmAlertStatus = (typeof PULSE_HANDLED_ALERT_STATUSES)[number]
 export type PulseApplyReadinessStatus = 'ready' | 'needs_details' | 'not_applicable'
 export type PulseApplyReadinessMissing =
   | 'original_due_date'
@@ -635,6 +647,12 @@ function duplicateSourceSnapshotCountForPulse() {
     where ${pulseSourceSnapshot.parseStatus} = 'duplicate'
       and ${pulseSourceSnapshot.pulseId} = ${pulse.id}
   )`
+}
+
+function isHandledFirmAlertStatus(
+  status: PulseFirmAlertStatus,
+): status is PulseHandledFirmAlertStatus {
+  return PULSE_HANDLED_ALERT_STATUSES.some((handledStatus) => handledStatus === status)
 }
 
 function toAlert(row: AlertJoinedRow): PulseAlertRow {
@@ -1840,10 +1858,12 @@ export function makePulseRepo(db: Db, firmId: string) {
     },
 
     async listHistory(
-      opts: { limit?: number; status?: PulseFirmAlertStatus } = {},
+      opts: { limit?: number; status?: PulseHandledFirmAlertStatus } = {},
     ): Promise<PulseAlertRow[]> {
       const limit = Math.min(Math.max(opts.limit ?? 20, 1), 100)
-      const statusFilter = opts.status ? eq(pulseFirmAlert.status, opts.status) : undefined
+      const statusFilter = opts.status
+        ? eq(pulseFirmAlert.status, opts.status)
+        : inArray(pulseFirmAlert.status, PULSE_HANDLED_ALERT_STATUSES)
       const rows = await db
         .select({
           alertId: pulseFirmAlert.id,
@@ -1881,13 +1901,15 @@ export function makePulseRepo(db: Db, firmId: string) {
           and(
             eq(pulseFirmAlert.firmId, firmId),
             inArray(pulse.status, ['approved', 'source_revoked']),
-            ...(statusFilter ? [statusFilter] : []),
+            statusFilter,
           ),
         )
         .orderBy(desc(pulse.publishedAt), desc(pulseFirmAlert.updatedAt))
         .limit(limit)
 
-      return rows.map((row) => toAlert(row))
+      return rows
+        .filter((row) => isHandledFirmAlertStatus(row.alertStatus))
+        .map((row) => toAlert(row))
     },
 
     async listSourceStates(): Promise<PulseSourceStateRow[]> {
@@ -2494,7 +2516,7 @@ export function makePulseRepo(db: Db, firmId: string) {
     async dismiss(input: {
       alertId: string
       userId: string
-      reason: string
+      reason?: string
       now?: Date
     }): Promise<PulseDismissResult> {
       const alert = await getAlert(input.alertId)
@@ -2518,7 +2540,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           action: 'pulse.dismiss',
           beforeJson: { status: alert.alertStatus },
           afterJson: { status: 'dismissed', pulseId: alert.pulseId },
-          reason: input.reason,
+          reason: input.reason ?? PULSE_DISMISS_DEFAULT_AUDIT_REASON,
           ipHash: null,
           userAgentHash: null,
         }),
@@ -2531,7 +2553,7 @@ export function makePulseRepo(db: Db, firmId: string) {
       alertId: string
       userId: string
       until: Date
-      reason: string
+      reason?: string
       now?: Date
     }): Promise<PulseDismissResult> {
       const alert = await getAlert(input.alertId)
@@ -2559,7 +2581,7 @@ export function makePulseRepo(db: Db, firmId: string) {
             pulseId: alert.pulseId,
             snoozedUntil: input.until.toISOString(),
           },
-          reason: input.reason,
+          reason: input.reason ?? PULSE_SNOOZE_DEFAULT_AUDIT_REASON,
           ipHash: null,
           userAgentHash: null,
         }),
@@ -2571,7 +2593,7 @@ export function makePulseRepo(db: Db, firmId: string) {
     async markReviewed(input: {
       alertId: string
       userId: string
-      reason: string
+      reason?: string
       now?: Date
     }): Promise<PulseDismissResult> {
       const alert = await getAlert(input.alertId)
@@ -2596,7 +2618,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           action: 'pulse.reviewed',
           beforeJson: { status: alert.alertStatus },
           afterJson: { status: 'reviewed', pulseId: alert.pulseId },
-          reason: input.reason,
+          reason: input.reason ?? PULSE_MARK_REVIEWED_DEFAULT_AUDIT_REASON,
           ipHash: null,
           userAgentHash: null,
         }),
