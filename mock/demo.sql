@@ -336,6 +336,23 @@ SELECT
 FROM rule_review_decision
 WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 
+-- 2026-06-03: Demo fixture for the "activate a source-defined rule" scenario (Q1).
+-- When a firm activates a state whose rule is source-defined, onboarding writes a
+-- pending_review practice_rule PLUS an OPEN new_template review task. That task is
+-- the CPA's first-adoption review at the CURRENT template version (v1) — it is NOT a
+-- source_changed alert, and it carries no pre-activation change history. Seeded onto
+-- Sarah Martinez's Brightline firm so the new_template task is visible in the rule
+-- library. rule_id is a real catalog rule: ca.individual_income_return.candidate.2026.
+INSERT INTO practice_rule
+  (id, firm_id, rule_id, template_id, template_version, status, rule_json, review_note, reviewed_by, reviewed_at, created_at, updated_at)
+VALUES
+  ('69011111-0000-4000-8000-0000000000ca', 'mock_firm_brightline', 'ca.individual_income_return.candidate.2026', NULL, 1, 'pending_review', '{"id":"ca.individual_income_return.candidate.2026","title":"California individual income tax return applicability","jurisdiction":"CA","entityApplicability":["individual"],"taxType":"ca_state_individual_income_tax","formName":"State individual income tax return","eventType":"filing","isFiling":true,"isPayment":false,"taxYear":2025,"applicableYear":2026,"ruleTier":"applicability_review","status":"pending_review","coverageStatus":"manual","riskLevel":"med","requiresApplicabilityReview":true,"dueDateLogic":{"kind":"source_defined_calendar","description":"California individual income tax return applicability requires official-source review before a concrete deadline can be accepted.","holidayRollover":"source_adjusted"},"extensionPolicy":{"available":false,"paymentExtended":false,"notes":"Pending official-source review; do not assume filing or payment extension behavior."},"sourceIds":["ca.income_tax"],"evidence":[{"sourceId":"ca.income_tax","authorityRole":"watch","locator":{"kind":"html","heading":"State individual income tax return"},"summary":"Confirm state personal income tax filing requirement, due date, extension, and no-tax status where applicable.","sourceExcerpt":"California official source registered for individual income tax return applicability; templates require practice owner or manager acceptance before customer reminders.","retrievedAt":"2026-04-27","sourceUpdatedOn":"2026-04-27"}],"defaultTip":"Confirm state personal income tax filing requirement, due date, extension, and no-tax status where applicable.","quality":{"filingPaymentDistinguished":false,"extensionHandled":false,"calendarFiscalSpecified":false,"holidayRolloverHandled":false,"crossVerified":false,"exceptionChannel":true},"verifiedBy":"practice.owner_or_manager_required","verifiedAt":"2026-04-27","nextReviewOn":"2026-11-15","version":1}', NULL, NULL, NULL, CAST(unixepoch('2026-06-02 09:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-06-02 09:00:00') * 1000 AS INTEGER));
+
+INSERT INTO practice_rule_review_task
+  (id, firm_id, rule_id, template_version, status, reason, review_note, reviewed_by, reviewed_at, created_at, updated_at)
+VALUES
+  ('69021111-0000-4000-8000-0000000000ca', 'mock_firm_brightline', 'ca.individual_income_return.candidate.2026', 1, 'open', 'new_template', NULL, NULL, NULL, CAST(unixepoch('2026-06-02 09:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-06-02 09:00:00') * 1000 AS INTEGER));
+
 INSERT INTO user (id, name, email, email_verified, image, created_at, updated_at)
 VALUES
   ('mock_user_plan_pro_preparer', 'Nora Pro', 'nora.pro@duedatehq.test', 1, NULL, CAST(unixepoch('2026-05-01 08:18:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-01 08:18:00') * 1000 AS INTEGER)),
