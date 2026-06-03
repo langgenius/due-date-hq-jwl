@@ -265,7 +265,7 @@ export function AffectedClientsTable({
                             className="inline-flex h-7 items-center rounded-sm border border-state-accent-solid bg-state-accent-hover px-2 text-xs font-semibold text-text-accent outline-none transition-colors hover:bg-state-accent-hover-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50"
                             aria-label={t`Confirm ${row.clientName} applies to this relief`}
                           >
-                            <Trans>Confirm applies…</Trans>
+                            <Trans>Confirm</Trans>
                           </button>
                         )
                       ) : null}
