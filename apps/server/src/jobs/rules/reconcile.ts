@@ -499,6 +499,8 @@ export async function consumeRuleRegistryCatalogSync(
           sourceId,
           sourceUrl,
           parsedJurisdiction: rule.jurisdiction,
+          parsedForms: [rule.taxType],
+          parsedEntityTypes: [...rule.entityApplicability],
           reverifyRuleIds: [changed.ruleId],
           aiSummary: `Rule ${changed.ruleId} was updated in the library (v${changed.templateVersion}). Re-verify the rule before relying on it.`,
           verbatimQuote:
@@ -592,6 +594,8 @@ export interface RuleDateAlertPlan {
   ruleId: string
   sourceId: string
   jurisdiction: string
+  forms: string[]
+  entityTypes: string[]
   sourceUrl: string
   aiSummary: string
   verbatimQuote: string
@@ -647,6 +651,8 @@ export function buildRuleDateAlertPlans(input: {
       ruleId,
       sourceId,
       jurisdiction: rule.jurisdiction,
+      forms: [rule.taxType],
+      entityTypes: [...rule.entityApplicability],
       sourceUrl,
       aiSummary: `Catalog date check flagged verified rule ${ruleId} for re-verification — ${details.join(' ')} Confirm the due date against the official source.`,
       verbatimQuote: basisExcerpt ?? details.join(' '),
@@ -693,6 +699,8 @@ export async function consumeRuleDateReconciliation(
       sourceId: plan.sourceId,
       sourceUrl: plan.sourceUrl,
       parsedJurisdiction: plan.jurisdiction,
+      parsedForms: plan.forms,
+      parsedEntityTypes: plan.entityTypes,
       reverifyRuleIds: [plan.ruleId],
       aiSummary: plan.aiSummary,
       verbatimQuote: plan.verbatimQuote,

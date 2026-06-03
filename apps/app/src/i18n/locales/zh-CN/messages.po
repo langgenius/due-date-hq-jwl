@@ -5351,10 +5351,6 @@ msgstr "申报应于 {0} 完成 · 逾期 {1} 天。"
 msgid "Filing year"
 msgstr "申报年度"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Filing year end"
-msgstr "申报税年结束"
-
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Filter by alert status"
 msgstr "按提醒状态筛选"
@@ -8616,10 +8612,6 @@ msgstr "付款仍须（原始日）"
 msgid "Payment still due by original deadline"
 msgstr "付款仍需在原始截止日前完成"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Payment year start"
-msgstr "缴款税年开始"
-
 #: src/features/migration/mapping-target-labels.ts
 msgid "Payments and credits"
 msgstr "付款和抵免"
@@ -11683,6 +11675,10 @@ msgstr "税务年度"
 msgid "Tax Year {0}"
 msgstr "{0} 纳税年度"
 
+#: src/features/rules/generation-preview-tab.tsx
+msgid "Tax year end"
+msgstr "税年结束"
+
 #: src/routes/obligations.tsx
 msgid "Tax year profile"
 msgstr "税务年度资料"
@@ -11694,6 +11690,10 @@ msgstr "税务年度资料已保存"
 #: src/features/audit/audit-log-labels.ts
 msgid "Tax year settings updated"
 msgstr "税务年度设置已更新"
+
+#: src/features/rules/generation-preview-tab.tsx
+msgid "Tax year start"
+msgstr "税年开始"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Tax year type"

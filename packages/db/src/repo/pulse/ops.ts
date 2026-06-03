@@ -1077,6 +1077,12 @@ export function makePulseOpsRepo(db: Db) {
         sourceId: string
         sourceUrl: string
         parsedJurisdiction: string
+        // Scope of the changed rule(s) — tax-code identifiers (e.g.
+        // 'federal_1065') and entity types (e.g. 'partnership'). Surfaced in
+        // the alert's Scope module so CPAs see which forms / entities the
+        // re-verify touches. Default empty for callers that don't scope.
+        parsedForms?: string[]
+        parsedEntityTypes?: string[]
         reverifyRuleIds: string[]
         aiSummary: string
         verbatimQuote: string
@@ -1098,8 +1104,8 @@ export function makePulseOpsRepo(db: Db) {
         verbatimQuote: input.verbatimQuote,
         parsedJurisdiction: input.parsedJurisdiction,
         parsedCounties: [],
-        parsedForms: [],
-        parsedEntityTypes: [],
+        parsedForms: input.parsedForms ?? [],
+        parsedEntityTypes: input.parsedEntityTypes ?? [],
         parsedOriginalDueDate: null,
         parsedNewDueDate: null,
         parsedEffectiveFrom: null,

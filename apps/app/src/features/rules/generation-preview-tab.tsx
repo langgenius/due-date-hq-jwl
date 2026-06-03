@@ -21,11 +21,7 @@ import type {
 import { inferTaxTypes } from '@duedatehq/core/default-matrix'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Input } from '@duedatehq/ui/components/ui/input'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@duedatehq/ui/components/ui/popover'
+import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -44,9 +40,9 @@ import {
   groupPreviewRows,
   isPreviewGenerationState,
   PREVIEW_ENTITY_OPTIONS,
-  previewCalendarYearFromObligations,
-  previewCalendarYearFromFormDates,
-  previewCalendarYearToFormDates,
+  previewTaxYearFromObligations,
+  previewTaxYearFromFormDates,
+  previewTaxYearToFormDates,
   previewFormValuesForClient,
   previewFormSchema,
   previewFormToInput,
@@ -158,7 +154,7 @@ function GenerationPreviewClientWorkbench({
   const defaultValues = previewFormValuesForClient({
     client: activeClient,
     taxTypes,
-    calendarYear: previewCalendarYearFromObligations(obligations),
+    taxYear: previewTaxYearFromObligations(obligations),
   })
 
   return (
@@ -227,7 +223,7 @@ function GenerationPreviewForm({
     [taxTypesValue],
   )
 
-  const previewCalendarYear = previewCalendarYearFromFormDates({
+  const previewTaxYear = previewTaxYearFromFormDates({
     taxYearStart,
     taxYearEnd,
   })
@@ -329,12 +325,12 @@ function GenerationPreviewForm({
             <PreviewField label={t`TAX YEAR`} htmlFor="preview-tax-year">
               <TaxYearCalendarSelect
                 id="preview-tax-year"
-                value={previewCalendarYear}
+                value={previewTaxYear}
                 taxYearStart={taxYearStart}
                 taxYearEnd={taxYearEnd}
                 invalid={taxYearInvalid}
                 onValueChange={(year) => {
-                  const dates = previewCalendarYearToFormDates(year)
+                  const dates = previewTaxYearToFormDates(year)
                   form.setFieldValue('taxYearStart', dates.taxYearStart)
                   form.setFieldValue('taxYearEnd', dates.taxYearEnd)
                 }}
@@ -514,8 +510,8 @@ function TaxYearCalendarSelect({
         </div>
 
         <div className="grid grid-cols-2 gap-2 border-t border-divider-subtle pt-3">
-          <TaxYearDateSummary label={t`Filing year end`} value={taxYearEnd} />
-          <TaxYearDateSummary label={t`Payment year start`} value={taxYearStart} />
+          <TaxYearDateSummary label={t`Tax year start`} value={taxYearStart} />
+          <TaxYearDateSummary label={t`Tax year end`} value={taxYearEnd} />
         </div>
       </PopoverContent>
     </Popover>

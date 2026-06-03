@@ -5304,10 +5304,6 @@ msgstr "Filing was due {0} · {1} days past deadline."
 msgid "Filing year"
 msgstr "Filing year"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Filing year end"
-msgstr "Filing year end"
-
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Filter by alert status"
 msgstr "Filter by alert status"
@@ -8534,10 +8530,6 @@ msgstr "Payment still due"
 msgid "Payment still due by original deadline"
 msgstr "Payment still due by original deadline"
 
-#: src/features/rules/generation-preview-tab.tsx
-msgid "Payment year start"
-msgstr "Payment year start"
-
 #: src/features/migration/mapping-target-labels.ts
 msgid "Payments and credits"
 msgstr "Payments and credits"
@@ -11571,6 +11563,10 @@ msgstr "TAX YEAR"
 msgid "Tax Year {0}"
 msgstr "Tax Year {0}"
 
+#: src/features/rules/generation-preview-tab.tsx
+msgid "Tax year end"
+msgstr "Tax year end"
+
 #: src/routes/obligations.tsx
 msgid "Tax year profile"
 msgstr "Tax year profile"
@@ -11582,6 +11578,10 @@ msgstr "Tax year profile saved"
 #: src/features/audit/audit-log-labels.ts
 msgid "Tax year settings updated"
 msgstr "Tax year settings updated"
+
+#: src/features/rules/generation-preview-tab.tsx
+msgid "Tax year start"
+msgstr "Tax year start"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Tax year type"

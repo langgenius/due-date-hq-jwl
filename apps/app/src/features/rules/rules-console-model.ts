@@ -96,7 +96,7 @@ export const PREVIEW_ENTITY_OPTIONS = [
   'individual',
   'other',
 ] as const satisfies readonly ClientPublic['entityType'][]
-export const DEFAULT_PREVIEW_CALENDAR_YEAR = 2026
+export const DEFAULT_PREVIEW_TAX_YEAR = 2025
 
 export const previewFormSchema = z.object({
   clientId: z.string().min(1),
@@ -124,22 +124,22 @@ export function previewTaxTypesFromObligations(
   return Array.from(new Set(obligations.map((obligation) => obligation.taxType).filter(Boolean)))
 }
 
-export function previewCalendarYearFromObligations(
+export function previewTaxYearFromObligations(
   obligations: readonly Pick<ObligationInstancePublic, 'taxYear'>[],
 ): number {
   const years = obligations
     .map((obligation) => obligation.taxYear)
     .filter((year): year is number => typeof year === 'number')
-  return years.length > 0 ? Math.max(...years) : DEFAULT_PREVIEW_CALENDAR_YEAR
+  return years.length > 0 ? Math.max(...years) : DEFAULT_PREVIEW_TAX_YEAR
 }
 
 export function previewFormValuesForClient(input: {
   client: Pick<ClientPublic, 'id' | 'entityType' | 'state'> &
     Partial<Pick<ClientPublic, 'taxClassification'>>
   taxTypes: readonly string[]
-  calendarYear?: number
+  taxYear?: number
 }): PreviewFormValues {
-  const dates = previewCalendarYearToFormDates(input.calendarYear ?? DEFAULT_PREVIEW_CALENDAR_YEAR)
+  const dates = previewTaxYearToFormDates(input.taxYear ?? DEFAULT_PREVIEW_TAX_YEAR)
   return previewFormSchema.parse({
     clientId: input.client.id,
     entityType: input.client.entityType,
@@ -151,25 +151,31 @@ export function previewFormValuesForClient(input: {
   })
 }
 
-export function previewCalendarYearToFormDates(
-  year: number,
+// The preview identifies returns by their real Tax Year (the same convention
+// the queue, Add Deadline picker, and rollover CTA use), so the start/end pair
+// is the actual span of that tax year. For the calendar filers this preview
+// models, Tax Year N runs Jan 1 – Dec 31 of year N; rules keyed off tax-year
+// end (e.g. income returns) still resolve to N+1 filing dates, and rules keyed
+// off tax-year begin (e.g. CA LLC annual tax) resolve within year N.
+export function previewTaxYearToFormDates(
+  taxYear: number,
 ): Pick<PreviewFormValues, 'taxYearStart' | 'taxYearEnd'> {
   return {
-    taxYearStart: `${year}-01-01`,
-    taxYearEnd: `${year - 1}-12-31`,
+    taxYearStart: `${taxYear}-01-01`,
+    taxYearEnd: `${taxYear}-12-31`,
   }
 }
 
-export function previewCalendarYearFromFormDates(
+export function previewTaxYearFromFormDates(
   values: Pick<PreviewFormValues, 'taxYearStart' | 'taxYearEnd'>,
 ): number {
   const startYear = parseIsoYear(values.taxYearStart)
   if (startYear !== null) return startYear
 
   const endYear = parseIsoYear(values.taxYearEnd)
-  if (endYear !== null) return endYear + 1
+  if (endYear !== null) return endYear
 
-  return DEFAULT_PREVIEW_CALENDAR_YEAR
+  return DEFAULT_PREVIEW_TAX_YEAR
 }
 
 export function previewFormToInput(values: PreviewFormValues): RuleGenerationPreviewInput {
