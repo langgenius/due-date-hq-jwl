@@ -245,6 +245,10 @@ export interface ObligationsRepo {
     taxYears?: number[]
     obligationIds?: string[]
   }): Promise<ObligationInstanceRow[]>
+  /** Distinct clients with an OPEN obligation backed by each rule — the "who is affected" set for a rule-change/drift alert. */
+  listAffectedClientsByRules(
+    ruleIds: string[],
+  ): Promise<Map<string, Array<{ clientId: string; clientName: string }>>>
   /** Unconfirmed, still-open deadlines awaiting CPA confirmation (the review queue). */
   listProjected(input: { taxYears?: number[] }): Promise<ObligationInstanceRow[]>
   /** Apply re-projected dates to still-projected obligations (confirmed rows are skipped). */

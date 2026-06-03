@@ -22,6 +22,7 @@ const { coreMocks, dbMocks, fetchMocks, metricsMocks, pulseIngestMocks } = vi.ho
   const opsRepo = {
     listGlobalRuleTemplates: vi.fn(),
     deprecateGlobalRuleTemplates: vi.fn(),
+    firmIdsWithReviewedRule: vi.fn(),
     fanoutReviewTasks: vi.fn(),
   }
   const rulesRepo = { upsertGlobalTemplates: vi.fn() }
@@ -201,6 +202,13 @@ describe('rule source scan jobs', () => {
       changedTaskTargets: 0,
       supersededTasks: 0,
     })
+    dbMocks.opsRepo.firmIdsWithReviewedRule.mockResolvedValue([])
+    dbMocks.pulseOpsRepo.listUnclearedDriftRuleIds.mockResolvedValue([])
+    dbMocks.pulseOpsRepo.createRuleSourceDriftPulse.mockResolvedValue({
+      pulseId: 'pulse-test',
+      alertCount: 1,
+    })
+    dbMocks.pulseOpsRepo.upsertRuleSourceDriftState.mockResolvedValue(undefined)
     dbMocks.rulesRepo.upsertGlobalTemplates.mockResolvedValue(undefined)
     dbMocks.pulseOpsRepo.ensureSourceState.mockResolvedValue({
       enabled: true,
@@ -582,6 +590,80 @@ describe('rule source scan jobs', () => {
       changedRules: [],
     })
     expect(result.deprecatedRules).toBe(1)
+  })
+
+  it('raises a targeted rule_source_drift alert for a changed rule firms have adopted', async () => {
+    const changedRule = sourceDefinedRule({
+      id: 'ca.changed.rule',
+      version: 2,
+      sourceIds: ['ca.ftb_business_due_dates'],
+      evidence: [{ sourceId: 'ca.ftb_business_due_dates' }],
+    })
+    coreMocks.rules.splice(0, coreMocks.rules.length, changedRule)
+    dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([
+      { id: 'ca.changed.rule', version: 1, status: 'available', ruleJson: {}, sourceIds: [] },
+    ])
+    dbMocks.opsRepo.firmIdsWithReviewedRule.mockResolvedValue(['firm-a', 'firm-b'])
+
+    await consumeRuleRegistryCatalogSync(
+      { type: RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE, reason: 'scheduled' },
+      env() as Env,
+    )
+
+    expect(dbMocks.opsRepo.firmIdsWithReviewedRule).toHaveBeenCalledWith('ca.changed.rule')
+    expect(dbMocks.pulseOpsRepo.createRuleSourceDriftPulse).toHaveBeenCalledTimes(1)
+    expect(dbMocks.pulseOpsRepo.createRuleSourceDriftPulse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reverifyRuleIds: ['ca.changed.rule'],
+        parsedJurisdiction: 'CA',
+        sourceId: 'ca.ftb_business_due_dates',
+      }),
+      { firmIds: ['firm-a', 'firm-b'] },
+    )
+    expect(dbMocks.pulseOpsRepo.upsertRuleSourceDriftState).toHaveBeenCalledWith(
+      expect.objectContaining({ ruleId: 'ca.changed.rule', pulseId: 'pulse-test' }),
+    )
+  })
+
+  it('does not raise a rule-change alert when no firm has adopted the changed rule', async () => {
+    const changedRule = sourceDefinedRule({
+      id: 'ca.changed.rule',
+      version: 2,
+      sourceIds: ['ca.ftb_business_due_dates'],
+    })
+    coreMocks.rules.splice(0, coreMocks.rules.length, changedRule)
+    dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([
+      { id: 'ca.changed.rule', version: 1, status: 'available', ruleJson: {}, sourceIds: [] },
+    ])
+    dbMocks.opsRepo.firmIdsWithReviewedRule.mockResolvedValue([])
+
+    await consumeRuleRegistryCatalogSync(
+      { type: RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE, reason: 'scheduled' },
+      env() as Env,
+    )
+
+    expect(dbMocks.pulseOpsRepo.createRuleSourceDriftPulse).not.toHaveBeenCalled()
+  })
+
+  it('skips a changed rule whose drift is already uncleared (dedup)', async () => {
+    const changedRule = sourceDefinedRule({
+      id: 'ca.changed.rule',
+      version: 2,
+      sourceIds: ['ca.ftb_business_due_dates'],
+    })
+    coreMocks.rules.splice(0, coreMocks.rules.length, changedRule)
+    dbMocks.opsRepo.listGlobalRuleTemplates.mockResolvedValue([
+      { id: 'ca.changed.rule', version: 1, status: 'available', ruleJson: {}, sourceIds: [] },
+    ])
+    dbMocks.opsRepo.firmIdsWithReviewedRule.mockResolvedValue(['firm-a'])
+    dbMocks.pulseOpsRepo.listUnclearedDriftRuleIds.mockResolvedValue(['ca.changed.rule'])
+
+    await consumeRuleRegistryCatalogSync(
+      { type: RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE, reason: 'scheduled' },
+      env() as Env,
+    )
+
+    expect(dbMocks.pulseOpsRepo.createRuleSourceDriftPulse).not.toHaveBeenCalled()
   })
 })
 

@@ -456,6 +456,49 @@ export function makeObligationsRepo(db: Db, firmId: string) {
       return hydrateObligationRows(rows)
     },
 
+    async listAffectedClientsByRules(
+      ruleIds: string[],
+    ): Promise<Map<string, Array<{ clientId: string; clientName: string }>>> {
+      const uniqueRuleIds = [...new Set(ruleIds)].filter((id) => id.length > 0)
+      const byRule = new Map<string, Array<{ clientId: string; clientName: string }>>()
+      for (const id of uniqueRuleIds) byRule.set(id, [])
+      if (uniqueRuleIds.length === 0) return byRule
+
+      // Distinct clients with an OPEN obligation backed by each rule — the "who is
+      // affected" set for a rule-change/drift alert. Cheap: (firmId, ruleId) is
+      // indexed and selectDistinct collapses per-client duplicates server-side.
+      // Mirrors OPEN_OBLIGATION_STATUSES — done/paid/completed are excluded.
+      const rows = await db
+        .selectDistinct({
+          ruleId: obligationInstance.ruleId,
+          clientId: client.id,
+          clientName: client.name,
+        })
+        .from(obligationInstance)
+        .innerJoin(client, eq(obligationInstance.clientId, client.id))
+        .where(
+          and(
+            eq(obligationInstance.firmId, firmId),
+            eq(client.firmId, firmId),
+            inArray(obligationInstance.ruleId, uniqueRuleIds),
+            inArray(obligationInstance.status, [
+              'pending',
+              'in_progress',
+              'waiting_on_client',
+              'review',
+              'blocked',
+            ]),
+          ),
+        )
+        .orderBy(asc(client.name))
+
+      for (const row of rows) {
+        if (row.ruleId === null) continue
+        byRule.get(row.ruleId)?.push({ clientId: row.clientId, clientName: row.clientName })
+      }
+      return byRule
+    },
+
     async listProjected(input: {
       taxYears?: number[]
     }): Promise<Array<ObligationInstance & { readiness: ObligationReadiness }>> {
@@ -790,7 +833,10 @@ export function makeObligationsRepo(db: Db, firmId: string) {
           .update(obligationInstance)
           .set({ confirmed: true })
           .where(
-            and(eq(obligationInstance.firmId, firmId), inArray(obligationInstance.id, projectedIds)),
+            and(
+              eq(obligationInstance.firmId, firmId),
+              inArray(obligationInstance.id, projectedIds),
+            ),
           )
         confirmedIds.push(...projectedIds)
       }

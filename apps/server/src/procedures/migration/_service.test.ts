@@ -254,6 +254,9 @@ function buildScopedRepo(
     async listReprojectionCandidates() {
       return []
     },
+    async listAffectedClientsByRules() {
+      return new Map()
+    },
     async updateProjectedDueDates() {},
     async listProjected() {
       return []

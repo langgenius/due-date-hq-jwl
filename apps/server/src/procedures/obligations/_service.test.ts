@@ -78,6 +78,9 @@ function buildScoped(firmId: string, rows: Row[]) {
     async listReprojectionCandidates() {
       return []
     },
+    async listAffectedClientsByRules() {
+      return new Map()
+    },
     async updateProjectedDueDates() {},
     async listProjected() {
       return []

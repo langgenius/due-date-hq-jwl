@@ -319,6 +319,7 @@ function makeContext(input: {
     firmId: FIRM_ID,
     confirmByIds: null!,
     listReprojectionCandidates: null!,
+    listAffectedClientsByRules: null!,
     updateProjectedDueDates: null!,
     listProjected: null!,
     createBatch,

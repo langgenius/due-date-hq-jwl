@@ -618,6 +618,11 @@ export function makeRulesOpsRepo(db: Db) {
       return uniqueIds.length
     },
 
+    /** Firm IDs that have adopted (practice-reviewed) the given rule — the targeting set for a rule-change alert. */
+    firmIdsWithReviewedRule(ruleId: string): Promise<string[]> {
+      return firmIdsWithReviewedRule(ruleId)
+    },
+
     async fanoutReviewTasks(input: {
       newRules: Array<{ ruleId: string; templateVersion: number }>
       changedRules: Array<{ ruleId: string; templateVersion: number }>

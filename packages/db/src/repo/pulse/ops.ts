@@ -73,14 +73,23 @@ export function makePulseOpsRepo(db: Db) {
     return rows[0]?.id ?? null
   }
 
-  async function refreshFirmAlertsForPulse(pulseId: string): Promise<number> {
+  async function refreshFirmAlertsForPulse(
+    pulseId: string,
+    opts?: { firmIds?: string[] },
+  ): Promise<number> {
     const row = await getPulse(pulseId)
     if (!row || row.status !== 'approved') throw new PulseRepoError('not_found')
 
-    const firms = await db
+    const activeFirms = await db
       .select({ id: firmProfile.id })
       .from(firmProfile)
       .where(eq(firmProfile.status, 'active'))
+    // Optional targeting: scope the fan-out to a specific firm set (e.g. only firms
+    // that adopted a changed rule). Filtered in-memory to dodge D1 bound-param limits.
+    const firmIdFilter = opts?.firmIds && opts.firmIds.length > 0 ? new Set(opts.firmIds) : null
+    const firms = firmIdFilter
+      ? activeFirms.filter((firm) => firmIdFilter.has(firm.id))
+      : activeFirms
     const counts = new Map(firms.map((firm) => [firm.id, { matchedCount: 0, needsReviewCount: 0 }]))
 
     const forms = row.parsedForms
@@ -149,6 +158,32 @@ export function makePulseOpsRepo(db: Db) {
       }
     }
 
+    // Rule-change / source-drift alerts (review_only): per-firm impact = distinct clients
+    // with an OPEN obligation backed by one of the reverify rules. Param-safe — the reverify
+    // rule set is tiny, and we bucket the cross-firm result onto the in-scope firms in memory.
+    const reverifyRuleIds = row.reverifyRuleIdsJson ?? []
+    if (row.actionMode !== 'due_date_overlay' && reverifyRuleIds.length > 0 && firms.length > 0) {
+      const distinctRows = await db
+        .selectDistinct({
+          firmId: obligationInstance.firmId,
+          clientId: obligationInstance.clientId,
+        })
+        .from(obligationInstance)
+        .where(
+          and(
+            inArray(obligationInstance.ruleId, reverifyRuleIds),
+            inArray(obligationInstance.status, OPEN_STATUSES),
+          ),
+        )
+      const perFirm = new Map<string, number>()
+      for (const distinct of distinctRows) {
+        perFirm.set(distinct.firmId, (perFirm.get(distinct.firmId) ?? 0) + 1)
+      }
+      for (const firm of firms) {
+        counts.set(firm.id, { matchedCount: 0, needsReviewCount: perFirm.get(firm.id) ?? 0 })
+      }
+    }
+
     let alertCount = 0
     const alertWrites = []
     for (const firm of firms) {
@@ -184,10 +219,11 @@ export function makePulseOpsRepo(db: Db) {
   // alerts, and queue the review/digest emails.
   async function finalizePulseFanOut(
     pulseId: string,
+    opts?: { firmIds?: string[] },
   ): Promise<{ pulseId: string; alertCount: number }> {
     const inserted = await getPulse(pulseId)
     if (!inserted) throw new PulseRepoError('not_found')
-    const alertCount = await refreshFirmAlertsForPulse(pulseId)
+    const alertCount = await refreshFirmAlertsForPulse(pulseId, opts)
     const alerts = await db
       .select({
         id: pulseFirmAlert.id,
@@ -1036,16 +1072,19 @@ export function makePulseOpsRepo(db: Db) {
      * due date is stale or contradicts its cited excerpt. Same per-active-firm fan-out + review
      * messaging as the snapshot-driven path; it just skips the snapshot bookkeeping.
      */
-    async createRuleSourceDriftPulse(input: {
-      sourceId: string
-      sourceUrl: string
-      parsedJurisdiction: string
-      reverifyRuleIds: string[]
-      aiSummary: string
-      verbatimQuote: string
-      publishedAt: Date
-      structuredChange?: unknown
-    }): Promise<{ pulseId: string; alertCount: number }> {
+    async createRuleSourceDriftPulse(
+      input: {
+        sourceId: string
+        sourceUrl: string
+        parsedJurisdiction: string
+        reverifyRuleIds: string[]
+        aiSummary: string
+        verbatimQuote: string
+        publishedAt: Date
+        structuredChange?: unknown
+      },
+      opts?: { firmIds?: string[] },
+    ): Promise<{ pulseId: string; alertCount: number }> {
       const pulseId = crypto.randomUUID()
       const pulseRow: NewPulse = {
         id: pulseId,
@@ -1076,7 +1115,7 @@ export function makePulseOpsRepo(db: Db) {
         isSample: false,
       }
       await db.insert(pulse).values(pulseRow)
-      return finalizePulseFanOut(pulseId)
+      return finalizePulseFanOut(pulseId, opts)
     },
 
     /**

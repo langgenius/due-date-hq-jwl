@@ -466,6 +466,66 @@ export async function consumeRuleRegistryCatalogSync(
 
   await ops.fanoutReviewTasks({ newRules, changedRules })
 
+  // Library version bump → unified Alert: for each changed rule that firms have adopted,
+  // raise a targeted rule_source_drift Alert (only to the adopting firms) so CPAs handle it
+  // in the alerts surface and re-verify inline. Mirrors consumeRuleDateReconciliation; deduped
+  // on uncleared drift state (and on the persisted template version, since changedRules only
+  // fires when old.version < current) so re-running catalog sync never double-alerts.
+  if (changedRules.length > 0) {
+    const pulseOps = makePulseOpsRepo(db)
+    const unclearedRuleIds = new Set(
+      await pulseOps.listUnclearedDriftRuleIds(changedRules.map((rule) => rule.ruleId)),
+    )
+    const ruleById = new Map(rules.map((rule) => [rule.id, rule]))
+    const sourceUrlById = new Map(sources.map((source) => [source.id, source.url]))
+    const detectedAt = new Date()
+    // Serialized: each alert fans out to its adopting firms — avoid spiking D1 when many
+    // rules change at once (e.g. a year-start catalog refresh).
+    for (const changed of changedRules) {
+      if (unclearedRuleIds.has(changed.ruleId)) continue
+      const rule = ruleById.get(changed.ruleId)
+      if (!rule) continue
+      const sourceId = basisSourceIdForRule(rule)
+      if (!sourceId) continue
+      const sourceUrl = sourceUrlById.get(sourceId)
+      if (!sourceUrl) continue
+      const firmIds = await ops.firmIdsWithReviewedRule(changed.ruleId)
+      if (firmIds.length === 0) continue
+      const basisExcerpt = rule.evidence.find(
+        (evidence) => evidence.authorityRole === 'basis' && evidence.sourceExcerpt.length > 0,
+      )?.sourceExcerpt
+      const { pulseId } = await pulseOps.createRuleSourceDriftPulse(
+        {
+          sourceId,
+          sourceUrl,
+          parsedJurisdiction: rule.jurisdiction,
+          reverifyRuleIds: [changed.ruleId],
+          aiSummary: `Rule ${changed.ruleId} was updated in the library (v${changed.templateVersion}). Re-verify the rule before relying on it.`,
+          verbatimQuote:
+            basisExcerpt ??
+            `Library rule ${changed.ruleId} changed to v${changed.templateVersion}.`,
+          publishedAt: detectedAt,
+          structuredChange: {
+            kind: 'rule_source_drift',
+            origin: 'catalog_version_bump',
+            sourceId,
+            ruleIds: [changed.ruleId],
+            templateVersion: changed.templateVersion,
+          },
+        },
+        { firmIds },
+      )
+      await pulseOps.upsertRuleSourceDriftState({
+        ruleId: changed.ruleId,
+        sourceId,
+        pulseId,
+        contentHash: `catalog:${changed.ruleId}:v${changed.templateVersion}`,
+        excerptMatched: false,
+        detectedAt,
+      })
+    }
+  }
+
   const changedOrNewIds = new Set([...newRules, ...changedRules].map((rule) => rule.ruleId))
   const sourceDefinedRules = rules.filter(
     (rule) => rule.status !== 'deprecated' && isSourceDefinedRule(rule),

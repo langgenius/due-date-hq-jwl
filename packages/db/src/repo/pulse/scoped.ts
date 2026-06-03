@@ -292,6 +292,60 @@ export function makePulseRepo(db: Db, firmId: string) {
       .filter((row): row is PulseAffectedClientRow => row !== null)
   }
 
+  // Rule-change / source-drift alerts: the "affected clients" are those with an OPEN
+  // obligation backed by one of the reverify rules. Flagged needs_review (re-verify the
+  // rule), not a date overlay — review_only alerts never shift dates.
+  async function listReverifyRuleAffectedRows(
+    alert: AlertJoinedRow,
+  ): Promise<PulseAffectedClientRow[]> {
+    const ruleIds = alert.reverifyRuleIds
+    if (ruleIds.length === 0) return []
+
+    const rows = await db
+      .select({
+        obligationId: obligationInstance.id,
+        clientId: client.id,
+        clientName: client.name,
+        state: obligationInstance.jurisdiction,
+        county: client.county,
+        counties: clientFilingProfile.countiesJson,
+        entityType: client.entityType,
+        taxType: obligationInstance.taxType,
+        currentDueDate: obligationInstance.currentDueDate,
+        status: obligationInstance.status,
+      })
+      .from(obligationInstance)
+      .innerJoin(client, eq(obligationInstance.clientId, client.id))
+      .leftJoin(
+        clientFilingProfile,
+        eq(obligationInstance.clientFilingProfileId, clientFilingProfile.id),
+      )
+      .where(
+        and(
+          eq(obligationInstance.firmId, firmId),
+          eq(client.firmId, firmId),
+          inArray(obligationInstance.ruleId, ruleIds),
+          inArray(obligationInstance.status, OPEN_STATUSES),
+        ),
+      )
+      .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
+
+    return (rows as CandidateRow[]).map((row) => ({
+      obligationId: row.obligationId,
+      clientId: row.clientId,
+      clientName: row.clientName,
+      state: row.state,
+      county: displayCounty(row),
+      entityType: row.entityType,
+      taxType: row.taxType,
+      currentDueDate: row.currentDueDate,
+      status: row.status,
+      newDueDate: null,
+      matchStatus: 'needs_review',
+      reason: 'This rule changed in the library — re-verify before relying on it.',
+    }))
+  }
+
   async function listDeadlineSelectionCandidateRows(
     alert: AlertJoinedRow,
   ): Promise<PulseAffectedClientRow[]> {
@@ -611,6 +665,13 @@ export function makePulseRepo(db: Db, firmId: string) {
     for (const row of await listApplicationRows(alert.pulseId)) {
       if (alert.alertStatus === 'reverted' || row.matchStatus !== 'reverted') {
         affected.set(row.obligationId, row)
+      }
+    }
+    // Review-only rule-change / source-drift alerts: surface the clients whose open
+    // obligations are backed by the changed rule(s). Structured/application rows win.
+    if (!isDueDateOverlayAlert(alert) && alert.reverifyRuleIds.length > 0) {
+      for (const row of await listReverifyRuleAffectedRows(alert)) {
+        if (!affected.has(row.obligationId)) affected.set(row.obligationId, row)
       }
     }
     const affectedClients = Array.from(affected.values()).toSorted(compareAffected)
