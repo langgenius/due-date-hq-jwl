@@ -68,6 +68,7 @@ function renderDrawerActions({ onMarkReviewed = vi.fn() }: { onMarkReviewed?: ()
           canRequestReview={false}
           canApplyReviewed={false}
           reviewedSetReady={false}
+          reverifyIncomplete={false}
           isMutating={false}
           onApply={() => {}}
           onMarkReviewed={onMarkReviewed}

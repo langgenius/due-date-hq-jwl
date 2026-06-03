@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Trans } from '@lingui/react/macro'
-import { ShieldAlertIcon } from 'lucide-react'
+import { CheckIcon, ShieldAlertIcon } from 'lucide-react'
 
 import type { ObligationRule } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -15,6 +15,10 @@ import {
 
 import { orpc } from '@/lib/rpc'
 import { RuleDetailCompact } from '@/features/rules/rule-detail-drawer'
+
+function ruleNeedsReview(rule: ObligationRule): boolean {
+  return rule.status === 'candidate' || rule.status === 'pending_review'
+}
 
 /**
  * "Rules to re-verify" — rendered inside an alert drawer when a source change
@@ -36,9 +40,18 @@ export function ReverifyRulesSection({
 
   if (reverifyRuleIds.length === 0) return null
 
-  const ruleById = new Map<string, ObligationRule>(
-    (rulesQuery.data ?? []).map((rule) => [rule.id, rule]),
-  )
+  // A version bump emits BOTH an active row and a pending_review row for
+  // the same rule id (see listPracticeRules). Prefer the row that still
+  // needs review so "Re-verify" opens the NEW version — the one whose
+  // detail carries an Accept action. Once accepted, only the active row
+  // remains and the rule renders as "Re-verified".
+  const ruleById = new Map<string, ObligationRule>()
+  for (const rule of rulesQuery.data ?? []) {
+    const existing = ruleById.get(rule.id)
+    if (!existing || (ruleNeedsReview(rule) && !ruleNeedsReview(existing))) {
+      ruleById.set(rule.id, rule)
+    }
+  }
   const rules = reverifyRuleIds
     .map((id) => ruleById.get(id))
     .filter((rule): rule is ObligationRule => Boolean(rule))
@@ -65,14 +78,21 @@ export function ReverifyRulesSection({
             className="flex items-center justify-between gap-3 rounded-md border border-divider-regular bg-background-default px-3 py-2"
           >
             <span className="min-w-0 truncate text-sm">{rule.title}</span>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => setOpenRuleId(rule.id)}
-            >
-              <Trans>Re-verify</Trans>
-            </Button>
+            {ruleNeedsReview(rule) ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setOpenRuleId(rule.id)}
+              >
+                <Trans>Re-verify</Trans>
+              </Button>
+            ) : (
+              <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-text-success">
+                <CheckIcon className="size-3.5" aria-hidden />
+                <Trans>Re-verified</Trans>
+              </span>
+            )}
           </li>
         ))}
       </ul>

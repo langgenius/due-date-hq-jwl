@@ -143,6 +143,33 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
     null
   const invalidate = useAlertsInvalidation()
 
+  // 2026-06-03 (rule-change alert — "disable Mark reviewed until all
+  // reverify rules are re-verified"): a review_only drift / rule-change
+  // alert lists rules to re-verify (`detail.reverifyRuleIds`). The CPA
+  // must re-verify (accept) each one — which bumps the firm's adopted
+  // version + clears the rule's source-drift gate — BEFORE the alert can
+  // be marked reviewed. Otherwise "reviewed" would close the alert while
+  // the underlying rule is still stale. A reverify rule still needs work
+  // iff listRules surfaces a candidate / pending_review row for it (the
+  // same row that renders the "Re-verify" action below). The query only
+  // runs when the alert actually carries reverify rules; its key matches
+  // ReverifyRulesSection so the two share one cache entry.
+  const reverifyRuleIds = detail?.reverifyRuleIds
+  const reverifyRulesQuery = useQuery({
+    ...orpc.rules.listRules.queryOptions({ input: { includeCandidates: true } }),
+    enabled: open && (reverifyRuleIds?.length ?? 0) > 0,
+  })
+  const reverifyIncomplete = useMemo(() => {
+    if (!reverifyRuleIds || reverifyRuleIds.length === 0) return false
+    const rules = reverifyRulesQuery.data ?? []
+    return reverifyRuleIds.some((ruleId) =>
+      rules.some(
+        (rule) =>
+          rule.id === ruleId && (rule.status === 'candidate' || rule.status === 'pending_review'),
+      ),
+    )
+  }, [reverifyRuleIds, reverifyRulesQuery.data])
+
   const [selection, setSelection] = useState<Set<string>>(() => new Set())
   const [confirmedReviewIds, setConfirmedReviewIds] = useState<Set<string>>(() => new Set())
   const [excludedIds, setExcludedIds] = useState<Set<string>>(() => new Set())
@@ -966,6 +993,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
             })}
             canApplyReviewed={permissions.canManagePriorityReview}
             reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
+            reverifyIncomplete={reverifyIncomplete}
             isMutating={isMutating}
             onApply={handleApply}
             onMarkReviewed={() => markReviewedMutation.mutate({ alertId: detail.alert.id })}
@@ -1111,6 +1139,7 @@ export function DrawerActions({
   canRequestReview,
   canApplyReviewed,
   reviewedSetReady,
+  reverifyIncomplete,
   isMutating,
   onApply,
   onMarkReviewed,
@@ -1134,6 +1163,11 @@ export function DrawerActions({
   canRequestReview: boolean
   canApplyReviewed: boolean
   reviewedSetReady: boolean
+  // 2026-06-03 — true when this review_only alert still has rules that
+  // need re-verifying (a candidate / pending_review row in listRules).
+  // Gates the "Mark reviewed" button so the alert can't be closed before
+  // the underlying rule changes are accepted.
+  reverifyIncomplete: boolean
   isMutating: boolean
   onApply: () => void
   onMarkReviewed: () => void
@@ -1143,6 +1177,7 @@ export function DrawerActions({
   onRequestReview: () => void
   onCopyDraft: () => void
 }) {
+  const { t } = useLingui()
   const showRevert = REVERTABLE_STATUSES.has(alertStatus)
   const showReactivate = alertStatus === 'reverted'
   const isDismissed = alertStatus === 'dismissed'
@@ -1211,7 +1246,15 @@ export function DrawerActions({
             !canApply ||
             isMutating ||
             isClosed ||
+            // review_only: block "Mark reviewed" until every rule the
+            // changed source implicated has been re-verified (accepted).
+            (noActionReview && reverifyIncomplete) ||
             (!noActionReview && (needsDeadlineDetails || selectionCount === 0))
+          }
+          title={
+            noActionReview && reverifyIncomplete
+              ? t`Re-verify all rules below before marking this alert reviewed.`
+              : undefined
           }
           onClick={noActionReview ? onMarkReviewed : onApply}
           aria-busy={isMutating || undefined}
