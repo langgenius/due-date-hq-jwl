@@ -25,6 +25,10 @@ msgstr "· current tax year"
 msgid "· firm-set deadline for this materials request"
 msgstr "· firm-set deadline for this materials request"
 
+#: src/features/clients/ClientWorkPlanPanel.tsx
+msgid "· projected"
+msgstr "· projected"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "· sorted by priority"
 msgstr "· sorted by priority"
@@ -174,6 +178,11 @@ msgstr "{0, plural, one {# ongoing} other {# ongoing}}"
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "{0, plural, one {# open filing} other {# open filings}}"
 msgstr "{0, plural, one {# open filing} other {# open filings}}"
+
+#. placeholder {0}: group.openCount
+#: src/features/clients/ClientWorkPlanPanel.tsx
+msgid "{0, plural, one {# projected filing} other {# projected filings}}"
+msgstr "{0, plural, one {# projected filing} other {# projected filings}}"
 
 #. placeholder {0}: errors.length
 #: src/features/migration/Step2Mapping.tsx

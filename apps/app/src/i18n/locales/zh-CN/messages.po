@@ -25,6 +25,10 @@ msgstr "· 当前税年"
 msgid "· firm-set deadline for this materials request"
 msgstr "· 事务所为此材料请求设定的截止日期"
 
+#: src/features/clients/ClientWorkPlanPanel.tsx
+msgid "· projected"
+msgstr "· 预计税年"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "· sorted by priority"
 msgstr "· 按优先级排序"
@@ -177,6 +181,11 @@ msgstr "{0, plural, other {# 项进行中}}"
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "{0, plural, one {# open filing} other {# open filings}}"
 msgstr "{0, plural, one {# 项进行中} other {# 项进行中}}"
+
+#. placeholder {0}: group.openCount
+#: src/features/clients/ClientWorkPlanPanel.tsx
+msgid "{0, plural, one {# projected filing} other {# projected filings}}"
+msgstr "{0, plural, one {# 项预计} other {# 项预计}}"
 
 #. placeholder {0}: errors.length
 #: src/features/migration/Step2Mapping.tsx
