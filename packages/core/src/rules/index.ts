@@ -8225,6 +8225,69 @@ export const OBLIGATION_RULES: readonly ObligationRule[] = [
     version: 1,
   },
   {
+    // Tax-year-2026 partnership return. Seeded at version 2 — it models a
+    // 2026 return that has already had one library revision, so a firm that
+    // adopted v1 trails the catalog and surfaces a `source_changed`
+    // re-verify task. This is what drives the rule-change Alert → Re-verify
+    // → Accept flow (the Accept action is template-driven; an adopted rule
+    // with no backing template, or one not behind its template, has nothing
+    // to accept).
+    id: 'fed.1065.return.2026',
+    title: 'Federal Form 1065 return for partnerships',
+    jurisdiction: 'FED',
+    entityApplicability: ['partnership', 'llc'],
+    taxType: 'federal_1065',
+    formName: 'Form 1065',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: false,
+    taxYear: 2026,
+    applicableYear: 2027,
+    ruleTier: 'applicability_review',
+    status: 'verified',
+    coverageStatus: 'manual',
+    riskLevel: 'med',
+    requiresApplicabilityReview: true,
+    dueDateLogic: {
+      kind: 'nth_day_after_tax_year_end',
+      monthOffset: 3,
+      day: 15,
+      holidayRollover: 'next_business_day',
+    },
+    extensionPolicy: {
+      available: true,
+      formName: 'Form 7004',
+      durationMonths: 6,
+      paymentExtended: false,
+      notes: 'Form 7004 extends filing time only; payment obligations must be reviewed separately.',
+    },
+    sourceIds: ['fed.irs_pub_509_2026', 'fed.irs_i1065_2025', 'fed.irs_i7004_2025'],
+    evidence: [
+      sourceEvidence(
+        'fed.irs_i1065_2025',
+        'When To File',
+        'Form 1065 instructions provide the form-specific partnership filing deadline.',
+      ),
+      sourceEvidence(
+        'fed.irs_pub_509_2026',
+        'Partnerships / Form 1065',
+        'Due on the 15th day of the 3rd month after tax year end.',
+      ),
+      sourceEvidence(
+        'fed.irs_i7004_2025',
+        'Purpose and When To File',
+        'Form 7004 must be filed by the applicable return due date.',
+      ),
+    ],
+    defaultTip:
+      'Calendar-year partnership returns for tax year 2026 are due the 15th day of the 3rd month after year end (mid-March 2027).',
+    quality: VERIFIED_QUALITY,
+    verifiedBy: 'practice.template_seed',
+    verifiedAt: VERIFIED_AT,
+    nextReviewOn: NEXT_PRE_SEASON_REVIEW,
+    version: 2,
+  },
+  {
     id: 'fed.1120s.return.2025',
     title: 'Federal Form 1120-S return for S corporations',
     jurisdiction: 'FED',
