@@ -88,7 +88,7 @@ export function RuleDetailInline({ rule }: { rule: ObligationRule }) {
   // (RuleDetailKicker), so the body just renders the structured
   // sections. ReviewReasonsSection is conditionally pushed to the top
   // when present so the "you need to act" prompt isn't buried below
-  // Applicability / Due date when the rule still needs review.
+  // the rule substance when the rule still needs review.
   // 2026-05-27 (Yuqi — "Practice review在最下面而且需要滑动才能看到"):
   // `CandidateReviewSection` no longer renders inside the scrollable
   // body. The dialog renders it as a sticky footer below this
@@ -99,10 +99,10 @@ export function RuleDetailInline({ rule }: { rule: ObligationRule }) {
     <div className="flex flex-col gap-4">
       {needsReview ? <ReviewReasonsSection rule={rule} /> : null}
       <ApplicabilitySection rule={rule} />
+      <EvidenceSection rule={rule} sourceLookup={sourceLookup} />
       <DueDateLogicSection rule={rule} />
       <ExtensionSection rule={rule} />
       {!needsReview ? <ReviewReasonsSection rule={rule} /> : null}
-      <EvidenceSection rule={rule} sourceLookup={sourceLookup} />
       <VerificationSection rule={rule} />
       <RuleVersionHistorySection rule={rule} />
     </div>
@@ -651,18 +651,7 @@ function AiDraftReviewPanel({
       {draft ? (
         <div className="flex flex-col gap-2 text-sm">
           <p className="text-text-primary">{humanizeDueDateLogic(draft.dueDateLogic)}</p>
-          <div className="grid grid-cols-[96px_1fr] gap-x-2 gap-y-1 text-xs">
-            <span className="text-text-tertiary">
-              <Trans>Coverage</Trans>
-            </span>
-            <span className="text-text-secondary">
-              {formatEnumLabel(draft.coverageStatus)}
-              {draft.requiresApplicabilityReview ? (
-                <span className="ml-1 text-severity-medium">
-                  <Trans>needs applicability review</Trans>
-                </span>
-              ) : null}
-            </span>
+          <div className="flex items-baseline gap-2 text-xs">
             <span className="text-text-tertiary">
               <Trans>Confidence</Trans>
             </span>

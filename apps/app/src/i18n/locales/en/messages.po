@@ -3840,7 +3840,6 @@ msgstr "County"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/concepts/concept-help.tsx
-#: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/route-summary.ts
 msgid "Coverage"
 msgstr "Coverage"
@@ -7013,10 +7012,6 @@ msgstr "need review"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Needs action"
 msgstr "Needs action"
-
-#: src/features/rules/rule-detail-drawer.tsx
-msgid "needs applicability review"
-msgstr "needs applicability review"
 
 #. placeholder {0}: needsClientFacts.length
 #: src/features/rules/generation-preview-tab.tsx
@@ -11960,6 +11955,10 @@ msgstr "This action conflicts with the current state. Refresh and try again."
 msgid "This action isn't wired up yet."
 msgstr "This action isn't wired up yet."
 
+#: src/features/alerts/components/AlertStructuredFields.tsx
+msgid "This advisory points to an official IRS Revenue Procedure and asserts no specific dollar figures. Open the official source to read the adjusted thresholds and decide which clients are affected."
+msgstr "This advisory points to an official IRS Revenue Procedure and asserts no specific dollar figures. Open the official source to read the adjusted thresholds and decide which clients are affected."
+
 #: src/features/clients/ClientFactPanels.tsx
 msgid "This AI insight was generated before the client's facts changed. Refresh to get an up-to-date summary."
 msgstr "This AI insight was generated before the client's facts changed. Refresh to get an up-to-date summary."
@@ -12158,6 +12157,15 @@ msgstr "This stage was skipped — no date applies."
 #: src/features/reminders/reminders-page.tsx
 msgid "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
 msgstr "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Threshold advisories"
+msgstr "Threshold advisories"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/components/AlertCard.tsx
+msgid "Threshold Advisory"
+msgstr "Threshold Advisory"
 
 #: src/features/audit/audit-log-table.tsx
 msgid "Time"
@@ -13058,16 +13066,3 @@ msgstr "ZIP / postal code"
 #: src/features/migration/Step1Intake.tsx
 msgid "ZIP or CSV"
 msgstr "ZIP or CSV"
-
-#: src/features/alerts/components/AlertStructuredFields.tsx
-msgid "This advisory points to an official IRS Revenue Procedure and asserts no specific dollar figures. Open the official source to read the adjusted thresholds and decide which clients are affected."
-msgstr "This advisory points to an official IRS Revenue Procedure and asserts no specific dollar figures. Open the official source to read the adjusted thresholds and decide which clients are affected."
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Threshold advisories"
-msgstr "Threshold advisories"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-#: src/features/alerts/components/AlertCard.tsx
-msgid "Threshold Advisory"
-msgstr "Threshold Advisory"
