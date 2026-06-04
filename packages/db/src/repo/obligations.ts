@@ -17,7 +17,7 @@ import {
   type TaxPeriodSource,
   type ObligationType,
 } from '../schema/obligations'
-import { listActiveOverlayInternalDeadlines } from './overlay'
+import { listActiveOverlayDueDateSet } from './overlay'
 import { loadDerivedReadinessByObligation } from './readiness-derived'
 
 const COLS_PER_OI_ROW = 54
@@ -125,18 +125,25 @@ export function makeObligationsRepo(db: Db, firmId: string) {
     }))
   }
 
-  async function applyOverlayDueDates<T extends { id: string; currentDueDate: Date }>(
-    rows: T[],
-  ): Promise<T[]> {
-    const overlayDueDates = await listActiveOverlayInternalDeadlines(
+  async function applyOverlayDueDates<T extends ObligationInstance>(rows: T[]): Promise<T[]> {
+    const { statutory, internal } = await listActiveOverlayDueDateSet(
       db,
       firmId,
       rows.map((row) => row.id),
     )
-    return rows.map((row) => ({
-      ...row,
-      currentDueDate: overlayDueDates.get(row.id) ?? row.currentDueDate,
-    }))
+    return rows.map((row) => {
+      // A pulse postponement moves the statutory filing + payment deadlines to
+      // the override date; current_due_date (internal target) is that minus the
+      // firm offset. When there's no overlay, leave filing/payment as-is (incl.
+      // null) — the public serializer already falls back to baseDueDate.
+      const overlayStatutoryDate = statutory.get(row.id)
+      return {
+        ...row,
+        currentDueDate: internal.get(row.id) ?? row.currentDueDate,
+        filingDueDate: overlayStatutoryDate ?? row.filingDueDate,
+        paymentDueDate: overlayStatutoryDate ?? row.paymentDueDate,
+      }
+    })
   }
 
   async function loadClientsInFirm(

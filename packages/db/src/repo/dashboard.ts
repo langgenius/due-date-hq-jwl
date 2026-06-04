@@ -27,7 +27,7 @@ import { client } from '../schema/clients'
 import { dashboardBrief } from '../schema/dashboard'
 import { firmProfile } from '../schema/firm'
 import { obligationInstance, type ObligationStatus } from '../schema/obligations'
-import { listActiveOverlayInternalDeadlines } from './overlay'
+import { listActiveOverlayDueDateSet } from './overlay'
 import { toSmartPriorityProfile } from './priority-profile'
 
 const OPEN_STATUSES = [...OPEN_OBLIGATION_STATUSES] satisfies ObligationStatus[]
@@ -643,16 +643,23 @@ export function makeDashboardRepo(db: Db, firmId: string) {
         .limit(1000)
 
       const obligationIds = rows.map((row) => row.obligationId)
-      const [evidenceRows, overlayDueDates, smartPriorityProfile] = await Promise.all([
+      const [evidenceRows, overlayDueDateSet, smartPriorityProfile] = await Promise.all([
         listEvidenceByObligations(obligationIds),
-        listActiveOverlayInternalDeadlines(db, firmId, obligationIds),
+        listActiveOverlayDueDateSet(db, firmId, obligationIds),
         loadSmartPriorityProfile(),
       ])
-      const overlayRows = rows.map((row) =>
-        Object.assign({}, row, {
-          currentDueDate: overlayDueDates.get(row.obligationId) ?? row.currentDueDate,
-        }),
-      )
+      const { statutory: overlayStatutory, internal: overlayInternal } = overlayDueDateSet
+      const overlayRows = rows.map((row) => {
+        // Pulse postponement moves the statutory filing + payment deadlines to
+        // the override date; current_due_date (internal target) is that minus
+        // the firm offset. statutoryPenaltyDueDate then defers accrual too.
+        const overlayStatutoryDate = overlayStatutory.get(row.obligationId)
+        return Object.assign({}, row, {
+          currentDueDate: overlayInternal.get(row.obligationId) ?? row.currentDueDate,
+          filingDueDate: overlayStatutoryDate ?? row.filingDueDate,
+          paymentDueDate: overlayStatutoryDate ?? row.paymentDueDate,
+        })
+      })
       const result = composeDashboardLoad(overlayRows, evidenceRows, input, smartPriorityProfile)
       return {
         ...result,
