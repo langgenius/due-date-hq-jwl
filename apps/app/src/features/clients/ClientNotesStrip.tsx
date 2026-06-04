@@ -97,10 +97,7 @@ export function ClientNotesStrip({
       {/* Leading icon — same ScrollText glyph the slide-in trigger
           and Activity-tab empty state use, so the affordance reads
           as the same family across surfaces. */}
-      <ScrollTextIcon
-        aria-hidden
-        className="mt-0.5 size-4 shrink-0 text-text-tertiary"
-      />
+      <ScrollTextIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-text-tertiary" />
 
       {/* Body — first 2 lines visible, truncation after.
           `line-clamp-2` is a Tailwind plugin utility (already

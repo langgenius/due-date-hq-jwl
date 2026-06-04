@@ -176,9 +176,7 @@ export function ClientNotesPanel({
           )}
           {canWrite ? (
             <p className="mt-2 text-xs text-text-tertiary tabular-nums">
-              <Trans>
-                {draft.length} / 5,000 characters
-              </Trans>
+              <Trans>{draft.length} / 5,000 characters</Trans>
             </p>
           ) : null}
         </div>
