@@ -13416,3 +13416,27 @@ msgstr "ZIP / postal code"
 #: src/features/migration/Step1Intake.tsx
 msgid "ZIP or CSV"
 msgstr "ZIP or CSV"
+
+#: src/routes/obligations.tsx
+msgid "Filing"
+msgstr "Filing"
+
+#: src/routes/obligations.tsx
+msgid "Official due date"
+msgstr "Official due date"
+
+#: src/routes/obligations.tsx
+msgid "Urgency"
+msgstr "Urgency"
+
+#: src/routes/obligations.tsx
+msgid "Expand {bandLabel}"
+msgstr "Expand {bandLabel}"
+
+#: src/routes/obligations.tsx
+msgid "Collapse {bandLabel}"
+msgstr "Collapse {bandLabel}"
+
+#: src/routes/obligations.tsx
+msgid "≈12d avg · ≈$11,840 penalty exposure"
+msgstr "≈12d avg · ≈$11,840 penalty exposure"

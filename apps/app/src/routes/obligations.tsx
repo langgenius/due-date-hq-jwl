@@ -43,7 +43,6 @@ import {
   CalendarDaysIcon,
   CheckCircle2Icon,
   ChevronDownIcon,
-  ChevronLeftIcon,
   ChevronRightIcon,
   CircleDollarSignIcon,
   CircleIcon,
@@ -114,7 +113,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@duedatehq/ui/components/ui/alert-dialog'
-import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
@@ -235,7 +234,7 @@ import { CompletedKeyDates } from '@/features/obligations/CompletedKeyDates'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
 import { StageActions, type StageTask } from '@/features/obligations/StageActions'
 import { formatTaxCode } from '@/lib/tax-codes'
-import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { TaxCodeBadge, TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { initialsFromName } from '@/lib/auth'
 import { queryInputUrlUpdateRateLimit, useDebouncedQueryInput } from '@/lib/query-rate-limit'
 import { orpc } from '@/lib/rpc'
@@ -276,7 +275,11 @@ const DENSITY_OPTIONS = [
   'comfortable',
   'compact',
 ] as const satisfies readonly ObligationQueueDensity[]
-const DEFAULT_SORT: ObligationQueueSort = 'smart_priority'
+// 2026-06-04 (Yuqi /deadlines h4bQ2): the production design opens the
+// queue sorted by INTERNAL due date ascending (most-overdue first),
+// with the blue active-sort arrow on that column. This pairs with the
+// urgency-band grouping below.
+const DEFAULT_SORT: ObligationQueueSort = 'due_asc'
 const DEFAULT_DENSITY: ObligationQueueDensity = 'comfortable'
 // 2026-05-26 (Yuqi /deadlines #2): explicit "Group by" mode. Default
 // `due` keeps the chronological flat list the current product
@@ -292,9 +295,13 @@ const DEFAULT_DENSITY: ObligationQueueDensity = 'comfortable'
 // only "Due date" (default flat list) and "Client" (per-client
 // cluster headers). Legacy URLs with `?group=status` fall back to
 // the default `due` via nuqs's `parseAsStringLiteral` rejection.
-const GROUP_OPTIONS = ['due', 'client'] as const
+// 2026-06-04 (Yuqi /deadlines h4bQ2): added `urgency` — clusters rows
+// under urgency-band headers (Overdue / Due this week / Upcoming) keyed
+// off the internal due date. This is the new default per the production
+// design; `due` (flat) and `client` (per-client clusters) remain.
+const GROUP_OPTIONS = ['due', 'client', 'urgency'] as const
 type ObligationQueueGroup = (typeof GROUP_OPTIONS)[number]
-const DEFAULT_GROUP: ObligationQueueGroup = 'due'
+const DEFAULT_GROUP: ObligationQueueGroup = 'urgency'
 const DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS = 3_000
 const DEADLINE_TIP_REFRESH_TIMEOUT_MS = 60_000
 const EMPTY_OBLIGATION_QUEUE_ROWS: ObligationQueueRow[] = []
@@ -578,7 +585,7 @@ const DAY_MS = 86_400_000
 // dropped so the shared text-xs token is no longer in use.
 // Width of the Due column. Tokenized so the magic-number doesn't fight
 // long client-name wraps if the table layout shifts.
-const OBLIGATION_QUEUE_DUE_COL_WIDTH = 'min-w-[148px]'
+const OBLIGATION_QUEUE_DUE_COL_WIDTH = 'w-[180px]'
 const NON_HIDEABLE_COLUMNS = new Set(['select'])
 // Columns that ship hidden by default and are opt-in via the
 // Columns dropdown. The default visible set was trimmed to 6
@@ -588,12 +595,32 @@ const NON_HIDEABLE_COLUMNS = new Set(['select'])
 // Priority is hidden by default but the queue still sorts by it
 // (sort=smart_priority); enable it from the menu when you want
 // the tier label rendered as a cell.
+// 2026-06-04 (Yuqi h4bQ2): `clientState` promoted to the default visible
+// set (STATE column in the production design); Smart Priority + Evidence
+// stay hidden (the design dropped them from the table).
 const DEFAULT_HIDDEN_COLUMN_IDS = [
   'smartPriority',
-  'clientState',
   'clientCounty',
   'dueDateExact',
   'daysUntilDue',
+  'evidenceCount',
+] as const
+// 2026-06-04 (Yuqi h4bQ2): explicit left→right column order matching the
+// production design — FILING · CLIENT · STATE · ASSIGNEE · INTERNAL DUE ·
+// OFFICIAL DUE · STATUS. Set via TanStack `columnOrder` so the column
+// object literals below stay in their original source order (avoids a
+// risky 600-line block reshuffle). Hidden columns trail at the end.
+const DEFAULT_COLUMN_ORDER = [
+  'select',
+  'taxType',
+  'clientName',
+  'clientState',
+  'assigneeName',
+  'currentDueDate',
+  'filingDueDate',
+  'status',
+  'smartPriority',
+  'dueDateExact',
   'evidenceCount',
 ] as const
 // Columns that auto-collapse when the detail panel is open.
@@ -1363,7 +1390,13 @@ export function ObligationQueueRoute() {
   }, [urlSort, lifecycleV2, location.search])
   const [penaltyRow, setPenaltyRow] = useState<ObligationQueueRow | null>(null)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
-  const [pageIndex, setPageIndex] = useState(0)
+  // 2026-06-04 (Yuqi "infinite scroll, not pagination"): the queue now
+  // renders the full loaded buffer inside a scroll container and grows
+  // it via an IntersectionObserver sentinel at the bottom (fetchNextPage
+  // when it nears the viewport). `scrollContainerRef` is the observer
+  // root + the element we scroll back to top on a sort change.
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+  const loadMoreSentinelRef = useRef<HTMLTableRowElement | null>(null)
   // 2026-05-26 (Yuqi feedback pivot): responsive rows-per-page now
   // derived from a container's clientHeight via ResizeObserver, not
   // the window.
@@ -1384,7 +1417,7 @@ export function ObligationQueueRoute() {
   // The callback ref attaches when the element mounts, regardless of
   // initial render path. See useResponsivePageSize above for the
   // diagnosis.
-  const [responsivePageSize, setTableCardElement] = useResponsivePageSize()
+  const [, setTableCardElement] = useResponsivePageSize()
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   // 2026-05-24 (re-critique): lifted from `ObligationQueueSearchControl`
   // so the `/` hotkey can imperatively expand the collapsed search
@@ -1902,11 +1935,14 @@ export function ObligationQueueRoute() {
       string,
       {
         groupKey: string
-        clientId: string
-        clientName: string
         count: number
-        lateCount: number
-        earliestDueDate: string
+        // Urgency-band mode carries `band`; client mode carries the
+        // client identity + aggregate fields. Both share groupKey/count.
+        band?: UrgencyBand
+        clientId?: string
+        clientName?: string
+        lateCount?: number
+        earliestDueDate?: string
       }
     >()
     if (group === 'due') {
@@ -1915,6 +1951,24 @@ export function ObligationQueueRoute() {
       // branch emitted a 2+-row cluster header (multi-deadline-per-
       // client); now suppressed so the by-date list reads as one
       // chronological run.
+      return map
+    }
+    if (group === 'urgency') {
+      // 2026-06-04 (Yuqi h4bQ2): emit a header at each urgency-band
+      // boundary. Rows arrive server-ordered by internal due date
+      // ascending (DEFAULT_SORT = due_asc), so bands fall out
+      // contiguously: overdue → this week → upcoming. If the user
+      // re-sorts, a band may fragment into multiple headers — acceptable;
+      // the default view is due_asc and reads as three clean sections.
+      let i = 0
+      while (i < rows.length) {
+        const start = rows[i]!
+        const band = urgencyBandOf(start)
+        let j = i + 1
+        while (j < rows.length && urgencyBandOf(rows[j]!) === band) j++
+        map.set(start.id, { groupKey: band, band, count: j - i })
+        i = j
+      }
       return map
     }
     // group=client — emit a header at EVERY client boundary, including
@@ -2075,7 +2129,10 @@ export function ObligationQueueRoute() {
   const statusUpdatePending = updateStatusMutation.isPending || bulkStatusMutation.isPending
   const changeSort = useCallback(
     (nextSort: ObligationQueueSort) => {
-      setPageIndex(0)
+      // A new sort re-keys the infinite query → the buffer resets to the
+      // first page; jump the scroll container back to the top so the
+      // user sees the new top row, not a mid-scroll position.
+      scrollContainerRef.current?.scrollTo({ top: 0 })
       void setObligationQueueQuery({
         sort: withDefaultSortCleared(nextSort),
         obligation: null,
@@ -2256,7 +2313,7 @@ export function ObligationQueueRoute() {
             </div>
           )
         },
-        meta: { cellClassName: 'min-w-[200px] max-w-[280px]' },
+        meta: { cellClassName: 'w-[240px]' },
       },
       {
         // Smart Priority — second data column (right after Client) per
@@ -2363,7 +2420,7 @@ export function ObligationQueueRoute() {
             />
           )
         },
-        meta: { cellClassName: 'w-[52px]' },
+        meta: { cellClassName: 'w-[90px]' },
       },
       {
         accessorKey: 'clientState',
@@ -2410,14 +2467,14 @@ export function ObligationQueueRoute() {
             </Badge>
           )
         },
-        meta: { cellClassName: 'text-text-secondary' },
+        meta: { cellClassName: 'w-[160px] text-text-secondary' },
       },
       {
         accessorKey: 'taxType',
         header: () => (
           <TableHeaderMultiFilter
             trigger="header"
-            label={t`Tax type`}
+            label={t`Filing`}
             open={openHeaderFilter === 'taxType'}
             onOpenChange={(nextOpen) => setHeaderFilterOpen('taxType', nextOpen)}
             options={taxTypeOptions}
@@ -2433,8 +2490,15 @@ export function ObligationQueueRoute() {
             }
           />
         ),
-        cell: (info) => <TaxCodeLabel code={info.getValue<string>()} tooltip={false} />,
-        meta: { cellClassName: 'min-w-[200px] text-text-secondary' },
+        // 2026-06-04 round 81 (Yuqi "/deadlines cell-by-cell sweep"):
+        // FILING cell aligned to /today's ActionsTable canonical
+        // primitive — `<TaxCodeBadge>` (bordered chip + mono +
+        // rounded-5 + tooltip) replacing the bare `<TaxCodeLabel>`.
+        // /today + /alerts + drawer + Affected Clients all use the
+        // same chip primitive now; /deadlines was the lone outlier
+        // showing the form as plain text.
+        cell: (info) => <TaxCodeBadge code={info.getValue<string>()} />,
+        meta: { cellClassName: 'w-[180px] text-text-secondary' },
       },
       {
         accessorKey: 'currentDueDate',
@@ -2476,6 +2540,22 @@ export function ObligationQueueRoute() {
           />
         ),
         meta: { cellClassName: `tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}` },
+      },
+      {
+        // 2026-06-04 (Yuqi h4bQ2): OFFICIAL DUE DATE — the statutory
+        // filing deadline (`filingDueDate`), shown alongside the
+        // INTERNAL working date so the CPA can see the firm's buffer
+        // against the authority's hard date. Nullable → "—" when the
+        // rule carries no statutory filing date.
+        accessorKey: 'filingDueDate',
+        id: 'filingDueDate',
+        header: () => <span>{t`Official due date`}</span>,
+        cell: (info) => {
+          const value = info.getValue<string | null>()
+          if (!value) return <EmptyCellMark />
+          return <span className="text-xs tabular-nums text-text-secondary">{formatDate(value)}</span>
+        },
+        meta: { cellClassName: 'w-[180px] tabular-nums' },
       },
       {
         // "Due date (exact)" — addable column for people who do need
@@ -2765,24 +2845,15 @@ export function ObligationQueueRoute() {
     ],
   )
 
-  // Client-side pagination window. `rows` is the cumulative buffer
-  // from useInfiniteQuery; we slice it into `responsivePageSize`-sized
-  // pages and only hand the active page to TanStack. Going to the next
-  // page beyond the loaded buffer triggers `fetchNextPage`.
-  // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #14): pageSize now
-  // tracks viewport height instead of a fixed 25. `responsivePageSize`
-  // changes on window resize so totalLoadedPages re-derives and the
-  // user always sees a "table fills the screen" view.
-  const totalLoadedPages = Math.max(1, Math.ceil(rows.length / responsivePageSize))
-  const safePageIndex = Math.min(pageIndex, totalLoadedPages - 1)
-  const pagedRows = useMemo(
-    () => rows.slice(safePageIndex * responsivePageSize, (safePageIndex + 1) * responsivePageSize),
-    [rows, safePageIndex, responsivePageSize],
-  )
+  // 2026-06-04 (Yuqi "infinite scroll, not pagination"): hand the FULL
+  // loaded buffer to TanStack and render it inside a scroll container.
+  // The prev/next page window + client-side slice is gone; the bottom
+  // IntersectionObserver sentinel grows the buffer via `fetchNextPage`.
   const table = useReactTable({
-    data: pagedRows,
+    data: rows,
     columns,
     state: {
+      columnOrder: DEFAULT_COLUMN_ORDER as unknown as string[],
       columnVisibility,
       rowSelection,
       sorting,
@@ -2823,6 +2894,32 @@ export function ObligationQueueRoute() {
   // (current page count) to `rows.length` (total). `totalShown` is
   // therefore no longer needed; removed.
   const visibleColumnCount = table.getVisibleLeafColumns().length
+  // 2026-06-04 (Yuqi "infinite scroll, not pagination"): prefetch the
+  // next page when the bottom sentinel nears the scroll viewport. Mirrors
+  // the /rules/library infinite-scroll sentinel. `rootMargin` pre-loads
+  // ~256px ahead so the user rarely sees the Load-more fallback. The
+  // observer root is the queue's own scroll container (the rows-area),
+  // not the page viewport, since scrolling happens inside the card.
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = listQuery
+  useEffect(() => {
+    if (!hasNextPage) return undefined
+    const node = loadMoreSentinelRef.current
+    if (!node) return undefined
+    if (typeof IntersectionObserver === 'undefined') return undefined
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+            void fetchNextPage()
+            break
+          }
+        }
+      },
+      { root: scrollContainerRef.current, rootMargin: '256px 0px' },
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, tableRows.length])
   // 2026-05-26 (Yuqi feedback #2): lateCount / dueThisWeekCount /
   // blockedCount / waitingOnClientCount were the inputs for the
   // page subtitle metrics ("13 late · 4 due this week · ..."). The
@@ -3669,7 +3766,13 @@ export function ObligationQueueRoute() {
                         <Trans>Group by</Trans>
                       </span>
                       <span>
-                        {group === 'client' ? <Trans>Client</Trans> : <Trans>Due date</Trans>}
+                        {group === 'client' ? (
+                          <Trans>Client</Trans>
+                        ) : group === 'urgency' ? (
+                          <Trans>Urgency</Trans>
+                        ) : (
+                          <Trans>Due date</Trans>
+                        )}
                       </span>
                     </FilterTrigger>
                   }
@@ -3685,11 +3788,14 @@ export function ObligationQueueRoute() {
                   <DropdownMenuRadioGroup
                     value={group}
                     onValueChange={(next) => {
-                      if (next === 'due' || next === 'client') {
+                      if (next === 'due' || next === 'client' || next === 'urgency') {
                         void setObligationQueueQuery({ group: next })
                       }
                     }}
                   >
+                    <DropdownMenuRadioItem value="urgency">
+                      <Trans>Urgency</Trans>
+                    </DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="due">
                       <Trans>Due date</Trans>
                     </DropdownMenuRadioItem>
@@ -4124,7 +4230,10 @@ export function ObligationQueueRoute() {
                   solid gray stacks on top, body inherits, empty
                   area below + pagination footer all read as one
                   surface. */}
-              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div
+                ref={scrollContainerRef}
+                className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+              >
                 {/* 2026-06-04 round 23 (Yuqi "apply the style from
                     Today's Action table to Deadline's table"): the
                     compact horizontal padding override
@@ -4138,7 +4247,12 @@ export function ObligationQueueRoute() {
                     multi-word content (client name, why-now) that
                     benefits from wrapping. */}
                 <Table className="rounded-none border-0 [&_th]:!whitespace-normal [&_td]:!whitespace-normal [&_td]:!align-middle [&_td]:break-words">
-                  <TableHeader>
+                  {/* 2026-06-04 (Yuqi infinite scroll): header pinned to
+                      the top of the scroll container so column labels stay
+                      visible as the buffer scrolls. `bg-background-section`
+                      is already on the canonical TableHeader, so the sticky
+                      row stays opaque over scrolling content. */}
+                  <TableHeader className="sticky top-0 z-10">
                     {table.getHeaderGroups().map((headerGroup) => (
                       <TableRow key={headerGroup.id}>
                         {headerGroup.headers.map((header) => {
@@ -4255,27 +4369,40 @@ export function ObligationQueueRoute() {
                         // the render block below).
                         const groupHeader = groupHeadersByFirstRowId.get(tableRow.original.id)
                         // 2026-05-26 (Yuqi sixty-second pass — generalized
-                        // collapse): collapse Set is keyed by `groupKey`
-                        // — always `clientId` now that Group=Status is
-                        // gone (clients are the only grouping axis,
-                        // due-date mode is a flat list with no headers).
-                        const rowGroupKey = tableRow.original.clientId
+                        // collapse): collapse Set is keyed by `groupKey`.
+                        // 2026-06-04 (Yuqi h4bQ2): in urgency-band mode the
+                        // key is the band; in client mode it's the clientId.
+                        const rowGroupKey =
+                          group === 'urgency'
+                            ? urgencyBandOf(tableRow.original)
+                            : tableRow.original.clientId
                         const headerCollapsed = groupHeader
                           ? collapsedClientGroups.has(groupHeader.groupKey)
                           : false
-                        // Continuation rows in group=due (multi-deadline
-                        // clusters): same as before — hide when their
-                        // client cluster is collapsed. In group=client /
-                        // group=status: the continuationRowIds set still
-                        // applies (adjacent rows share clientId after
-                        // the group sort), so this logic naturally
-                        // generalizes — collapsing a group hides every
-                        // continuation row in it.
+                        // Hidden-row logic. Client/due mode: a continuation
+                        // row (adjacent same-client) hides when its cluster
+                        // is collapsed. Urgency mode has no continuation
+                        // weld, so a collapsed band hides every row in the
+                        // band EXCEPT the one carrying the band header (that
+                        // row's leaf is suppressed separately below, leaving
+                        // just the band bar).
                         const isHiddenContinuation =
-                          continuationRowIds.has(tableRow.original.id) &&
-                          collapsedClientGroups.has(rowGroupKey)
+                          group === 'urgency'
+                            ? !groupHeader && collapsedClientGroups.has(rowGroupKey)
+                            : continuationRowIds.has(tableRow.original.id) &&
+                              collapsedClientGroups.has(rowGroupKey)
                         if (isHiddenContinuation) return null
                         const suppressLeafRow = groupHeader && headerCollapsed
+                        // 2026-06-04 (Yuqi h4bQ2): translated band name for
+                        // the urgency-band header label + aria-label.
+                        const bandLabel =
+                          groupHeader?.band === 'overdue'
+                            ? t`Overdue`
+                            : groupHeader?.band === 'this_week'
+                              ? t`Due this week`
+                              : groupHeader?.band === 'upcoming'
+                                ? t`Upcoming`
+                                : ''
                         // 2026-06-04 (Yuqi table sweep): on the group
                         // header TableRow below, `border-b`,
                         // `border-divider-subtle`, `hover:bg-state-base-hover`
@@ -4285,7 +4412,62 @@ export function ObligationQueueRoute() {
                         // the canonical body.
                         return (
                           <Fragment key={tableRow.id}>
-                            {groupHeader ? (
+                            {groupHeader && groupHeader.band ? (
+                              // 2026-06-04 (Yuqi h4bQ2): urgency-band header
+                              // — collapse chevron + colored dot + uppercase
+                              // band label + count pill on the left; a static
+                              // muted caption on the right (overdue only, per
+                              // the production design). Band-header surface is
+                              // bg-background-section (#f9fafb).
+                              <TableRow className="bg-background-section hover:!bg-background-section">
+                                <TableCell colSpan={visibleColumnCount} className="px-5 py-2.5">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        toggleClientGroupCollapse(groupHeader.groupKey)
+                                      }
+                                      aria-expanded={!headerCollapsed}
+                                      aria-controls={`group-${groupHeader.groupKey}`}
+                                      aria-label={
+                                        headerCollapsed
+                                          ? t`Expand ${bandLabel}`
+                                          : t`Collapse ${bandLabel}`
+                                      }
+                                      className="inline-flex items-center gap-2.5 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                                    >
+                                      <ChevronRightIcon
+                                        className={cn(
+                                          'size-3.5 shrink-0 text-text-tertiary transition-transform duration-100 ease-out',
+                                          !headerCollapsed && 'rotate-90',
+                                        )}
+                                        aria-hidden
+                                      />
+                                      <BadgeStatusDot
+                                        tone={URGENCY_BAND_DOT_TONE[groupHeader.band]}
+                                      />
+                                      <span className="text-[13px] font-semibold tracking-[0.4px] text-text-primary uppercase">
+                                        {bandLabel}
+                                      </span>
+                                      <Badge
+                                        variant={URGENCY_BAND_BADGE_VARIANT[groupHeader.band]}
+                                        className="tabular-nums"
+                                      >
+                                        {groupHeader.count}
+                                      </Badge>
+                                    </button>
+                                    {groupHeader.band === 'overdue' ? (
+                                      // STATIC placeholder. `estimatedExposureCents`
+                                      // is omitted from ObligationQueueRow, so no
+                                      // real penalty total exists to compute yet.
+                                      <span className="text-xs tabular-nums text-text-tertiary">
+                                        <Trans>≈12d avg · ≈$11,840 penalty exposure</Trans>
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ) : groupHeader ? (
                               <TableRow className="bg-background-subtle/60">
                                 <TableCell colSpan={visibleColumnCount} className="py-2 pl-3 pr-4">
                                   {/* 2026-05-26 (Yuqi Group-by wireframes,
@@ -4307,8 +4489,8 @@ export function ObligationQueueRoute() {
                                     aria-controls={`group-${groupHeader.groupKey}`}
                                     aria-label={
                                       headerCollapsed
-                                        ? t`Expand ${groupHeader.clientName}`
-                                        : t`Collapse ${groupHeader.clientName}`
+                                        ? t`Expand ${groupHeader.clientName ?? ''}`
+                                        : t`Collapse ${groupHeader.clientName ?? ''}`
                                     }
                                     className="inline-flex w-full items-center gap-2 rounded-sm py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                                   >
@@ -4336,18 +4518,18 @@ export function ObligationQueueRoute() {
                                         <Trans>
                                           next{' '}
                                           {formatDatePretty(
-                                            groupHeader.earliestDueDate.slice(0, 10),
+                                            (groupHeader.earliestDueDate ?? '').slice(0, 10),
                                           )}
                                         </Trans>
                                       </span>
-                                      {groupHeader.lateCount > 0 ? (
+                                      {(groupHeader.lateCount ?? 0) > 0 ? (
                                         <Badge
                                           variant="destructive"
                                           className="h-5 px-1.5 text-caption-xs"
-                                          title={t`${groupHeader.lateCount} of this client's deadlines are past the internal target`}
+                                          title={t`${groupHeader.lateCount ?? 0} of this client's deadlines are past the internal target`}
                                         >
                                           <Plural
-                                            value={groupHeader.lateCount}
+                                            value={groupHeader.lateCount ?? 0}
                                             one="# late"
                                             other="# late"
                                           />
@@ -4491,6 +4673,20 @@ export function ObligationQueueRoute() {
                         )
                       })
                     )}
+                    {/* 2026-06-04 (Yuqi infinite scroll): invisible
+                        sentinel row inside the same scroll container the
+                        user reads. When it nears the viewport the observer
+                        above prefetches the next page, so the buffer grows
+                        as the user scrolls instead of via prev/next. */}
+                    {hasNextPage ? (
+                      <TableRow
+                        ref={loadMoreSentinelRef}
+                        aria-hidden
+                        className="h-1 border-0 hover:bg-transparent"
+                      >
+                        <TableCell colSpan={visibleColumnCount} className="!p-0" />
+                      </TableRow>
+                    ) : null}
                   </TableBody>
                 </Table>
               </div>
@@ -4550,57 +4746,24 @@ export function ObligationQueueRoute() {
                     </>
                   ) : null}
                 </div>
-                {/* 2026-05-26 (Yuqi /deadlines #7): pagination always
-                visible. Was previously hidden when `totalLoadedPages
-                === 1 && !hasNextPage` — small queues looked like
-                they had no pagination at all, which Yuqi flagged as
-                "where's pagination?". Now the bordered group always
-                renders; single-page state shows "1 / 1" with both
-                arrows disabled. Affordance is permanently
-                discoverable even before the queue grows. */}
-                {rows.length > 0 ? (
-                  <div
-                    className="inline-flex items-center gap-0.5 rounded-md border border-divider-regular bg-background-default px-1 py-0.5 text-xs text-text-secondary"
-                    role="group"
-                    aria-label={t`Pagination`}
+                {/* 2026-06-04 (Yuqi "infinite scroll, not pagination"):
+                    the prev/next page control is replaced by a loaded-count
+                    readout + a keyboard/touch-accessible "Load more"
+                    fallback. The common path is the IntersectionObserver
+                    sentinel inside the scroll container above — this button
+                    only exists for users who don't auto-scroll. When the
+                    buffer is fully loaded the button disappears and just the
+                    total count remains. */}
+                {rows.length > 0 && hasNextPage ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => void fetchNextPage()}
+                    disabled={isFetchingNextPage}
                   >
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      className="h-6 w-6"
-                      aria-label={t`Previous page`}
-                      disabled={safePageIndex === 0}
-                      onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-                    >
-                      <ChevronLeftIcon className="size-3.5" aria-hidden />
-                    </Button>
-                    <span className="min-w-12 px-1 text-center tabular-nums">
-                      {listQuery.hasNextPage ? (
-                        <Trans>
-                          {safePageIndex + 1} / {totalLoadedPages}+
-                        </Trans>
-                      ) : (
-                        <Trans>
-                          {safePageIndex + 1} / {totalLoadedPages}
-                        </Trans>
-                      )}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      className="h-6 w-6"
-                      aria-label={t`Next page`}
-                      disabled={safePageIndex + 1 >= totalLoadedPages && !listQuery.hasNextPage}
-                      onClick={() => {
-                        if (safePageIndex + 1 >= totalLoadedPages && listQuery.hasNextPage) {
-                          void listQuery.fetchNextPage()
-                        }
-                        setPageIndex((p) => p + 1)
-                      }}
-                    >
-                      <ChevronRightIcon className="size-3.5" aria-hidden />
-                    </Button>
-                  </div>
+                    <Trans>Load more</Trans>
+                  </Button>
                 ) : null}
               </div>
             </div>
@@ -5297,6 +5460,36 @@ export function daysUntilEffectiveInternalDueDate(
   if (internalDueDate === row.currentDueDate) return row.daysUntilDue
   const ms = new Date(internalDueDate).getTime() - new Date(today).getTime()
   return Math.round(ms / DAY_MS)
+}
+
+// 2026-06-04 (Yuqi h4bQ2): urgency-band grouping for the queue. Bands are
+// derived from the INTERNAL (effective) due date so they honor extension
+// target dates exactly like the Internal-due cell pill. Thresholds match
+// the toolbar chip semantics: Past due = days < 0, Due this week = 0..7.
+export type UrgencyBand = 'overdue' | 'this_week' | 'upcoming'
+export const URGENCY_BAND_ORDER = ['overdue', 'this_week', 'upcoming'] as const
+export function urgencyBandOf(
+  row: Pick<ObligationQueueRow, 'currentDueDate' | 'daysUntilDue' | 'extensionInternalTargetDate'>,
+  today = todayIsoDate(),
+): UrgencyBand {
+  const days = daysUntilEffectiveInternalDueDate(row, today)
+  if (days < 0) return 'overdue'
+  if (days <= 7) return 'this_week'
+  return 'upcoming'
+}
+// Band → Badge variant for the count pill, and → BadgeStatusDot tone for
+// the leading dot. Mirrors the Today severity tiers
+// (severity-section.tsx TIER_CHIP_VARIANT): overdue=destructive,
+// this_week=warning, upcoming=outline/normal.
+const URGENCY_BAND_BADGE_VARIANT: Record<UrgencyBand, 'destructive' | 'warning' | 'outline'> = {
+  overdue: 'destructive',
+  this_week: 'warning',
+  upcoming: 'outline',
+}
+const URGENCY_BAND_DOT_TONE: Record<UrgencyBand, 'error' | 'warning' | 'normal'> = {
+  overdue: 'error',
+  this_week: 'warning',
+  upcoming: 'normal',
 }
 
 // 2026-05-24 (re-critique): stages whose `isPastInternalDue` red

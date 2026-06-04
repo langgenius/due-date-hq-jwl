@@ -6257,9 +6257,8 @@ msgid "Internal deadline offset must be between 0 and 365 days."
 msgstr "内部截止日提前天数必须在 0 到 365 天之间。"
 
 #: src/routes/obligations.tsx
-#, fuzzy
 msgid "Internal due date"
-msgstr "内部备注已起草"
+msgstr "内部到期日"
 
 #: src/features/evidence/extension-decision-evidence.tsx
 #: src/routes/obligations.tsx
@@ -13534,3 +13533,27 @@ msgstr "邮编"
 #: src/features/migration/Step1Intake.tsx
 msgid "ZIP or CSV"
 msgstr "ZIP 或 CSV"
+
+#: src/routes/obligations.tsx
+msgid "Filing"
+msgstr "申报"
+
+#: src/routes/obligations.tsx
+msgid "Official due date"
+msgstr "法定到期日"
+
+#: src/routes/obligations.tsx
+msgid "Urgency"
+msgstr "紧急程度"
+
+#: src/routes/obligations.tsx
+msgid "Expand {bandLabel}"
+msgstr "展开{bandLabel}"
+
+#: src/routes/obligations.tsx
+msgid "Collapse {bandLabel}"
+msgstr "折叠{bandLabel}"
+
+#: src/routes/obligations.tsx
+msgid "≈12d avg · ≈$11,840 penalty exposure"
+msgstr "≈平均逾期 12 天 · ≈$11,840 罚款敞口"
