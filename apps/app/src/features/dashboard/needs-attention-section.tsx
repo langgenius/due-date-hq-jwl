@@ -5,7 +5,8 @@ import { Link, useNavigate } from 'react-router'
 
 import type { PulseSourceHealth } from '@duedatehq/contracts'
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
-import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
@@ -139,6 +140,9 @@ function NeedsAttentionSection() {
       // LowConfidenceBadge, the source-link icon, the card's
       // hover state) — and the section reads as a regular
       // gap-rhythm section like every other one on /today.
+      // 2026-06-04 round 4 (Yuqi feedback "Today's page should not
+      // be more than a screen long"): section internal gap-4 →
+      // gap-3 to keep the alerts row + cards above the fold.
       className="flex flex-col gap-3"
     >
       {/* 2026-05-31 (Yuqi DS-first revision): `px-3` now applied
@@ -146,48 +150,97 @@ function NeedsAttentionSection() {
           dropped, so the conditional padding compensation for the
           alerts-present case is no longer needed. The h2 left
           edge aligns with Actions-this-week's h2 in both states. */}
-      <div className="flex items-center gap-3 px-3">
-        {/* 2026-05-25 (Yuqi Today #1 — second pass): h2 stepped
-            down text-xl → text-lg, matching the parallel change
-            on Actions-this-week's h2. The page was reading as
-            "too much bold and medium text" again — keeping
-            `font-semibold` (anchor) but stepping a scale tier
-            quieter so the section heading doesn't shout against
-            the lighter row body. Count chip also drops from
-            text-base → text-sm so the size hierarchy stays
-            proportional.
-            2026-05-27 (Yuqi header unification pass): chips now
-            use the canonical pill (rounded-full bg + font-medium)
-            instead of bare tertiary text, matching /clients,
-            /deadlines, /today, /rules/pulse. Two chips when both
-            signals are meaningful: monitoring (always when sources
-            exist) + alert count (when > 0, destructive-toned). */}
-        <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-text-primary">
-          {/* 2026-05-31 (Yuqi Pencil Sq0EX): count peeled off the
-              heading and into a separate `<Badge variant="destructive">`.
-              Sticking to the canonical Badge primitive so tone
-              tweaks in `badge.tsx` (or its underlying tokens)
-              propagate here automatically — no hand-rolled pill
-              styling. */}
+      {/* 2026-06-03 (Yuqi Pencil VmcdD — alerts header): split into
+          a `justify-between` row carrying the h2 + chips cluster on
+          the left and a quiet "View all" TextLink on the right.
+          The count chip switches from a bare number to "{N} active"
+          with a leading `<BadgeStatusDot tone="error" />` so the
+          live-state read matches the monitoring chip's dot+text
+          shape. */}
+      {/* 2026-06-03 (Yuqi /critique pass — Reviewer panel
+          P3 microcopy): count chip "{N} active" → "{N} urgent".
+          "Active" was vague (active vs inactive? active in what
+          sense?); "urgent" matches the alert's semantic load
+          ("you need to act on these") and parallels the Due-this-
+          week section's "{N} due" chip below — both sections now
+          signal urgency with a single specific word in the chip
+          slot. */}
+      {/* 2026-06-04 round 6 (Yuqi "alerts, actions this week title
+          should be 大标题Today的下一级"): h2 stepped down from
+          text-2xl (matching Today h1) → text-xl (one tier below).
+          The section h2's are second-tier titles under the page
+          h1, NOT same-tier; this resets the hierarchy. */}
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-text-primary">
           <Trans>Alerts</Trans>
           {totalAlertCount > 0 ? (
             <Badge variant="destructive" className="tabular-nums">
-              {totalAlertCount}
+              <BadgeStatusDot tone="error" />
+              <Trans>{totalAlertCount} urgent</Trans>
             </Badge>
           ) : null}
-          {/* 2026-05-31 (Yuqi Pencil Sq0EX): monitoring chip uses
-              the canonical `<Badge variant="outline">` primitive
-              (border-divider-regular + text-text-secondary +
-              rounded-full) with `<PulsingDot tone="success" />`
-              for the live signal. Stays inside the design system
-              — no bespoke "white-bg pill" styling. */}
           {hasNationalMonitoringCoverage ? (
-            <Badge variant="outline">
-              <PulsingDot tone="success" active />
-              <Trans>Monitoring Federal + 50 states + DC</Trans>
-            </Badge>
+            // 2026-06-04 round 14 (Yuqi page-feedback "hover on
+            // can show tooltip or expanded information?"): wrapped
+            // the Monitoring chip in a Tooltip that expands what
+            // "monitoring" actually does — naming the cadence and
+            // the change types we're watching for, so the CPA knows
+            // what counts as a Pulse-worthy event. `cursor-help`
+            // signals the interactivity to mouse users; keyboard
+            // users can tab to the trigger and get the same expansion.
+            <Tooltip>
+              <TooltipTrigger
+                render={(props) => (
+                  <Badge
+                    variant="secondary"
+                    size="lg"
+                    className="cursor-help text-text-secondary"
+                    {...props}
+                  >
+                    <PulsingDot tone="success" active />
+                    {/* 2026-06-04 round 18 (Yuqi page-feedback
+                        "Monitoring: Federal · 50 States · DC"):
+                        copy refined — colon after Monitoring,
+                        middot separators instead of `+`, capital
+                        S on States. The middot reads as a list
+                        separator (matches the rest of the app's
+                        meta-row separator vocab); the colon
+                        scopes "Monitoring" as the verb-anchor of
+                        the chip. */}
+                    <Trans>Monitoring: Federal · 50 States · DC</Trans>
+                  </Badge>
+                )}
+              />
+              <TooltipContent>
+                <div className="flex max-w-[280px] flex-col gap-1 text-left">
+                  <span className="font-semibold">
+                    <Trans>National policy watch</Trans>
+                  </span>
+                  <span>
+                    <Trans>
+                      Daily sweep of IRS + 50 states + DC tax authority sources for new rules,
+                      extended deadlines, rate changes, and form revisions. Matches against your
+                      clients' obligations and surfaces what actually affects you.
+                    </Trans>
+                  </span>
+                </div>
+              </TooltipContent>
+            </Tooltip>
           ) : null}
         </h2>
+        {totalAlertCount > 0 ? (
+          // 2026-06-04 round 16 (Yuqi page-feedback "remove arrow"):
+          // trailing ChevronRightIcon dropped. The "View all" copy
+          // alone carries the affordance; the chevron was reading
+          // as a redundant directional cue next to underlined link
+          // chrome.
+          <TextLink
+            onClick={() => void navigate('/rules/pulse')}
+            aria-label={t`View all ${totalAlertCount} alerts`}
+          >
+            <Trans>View all</Trans>
+          </TextLink>
+        ) : null}
       </div>
 
       {totalAlertCount > 0 ? (
@@ -215,7 +268,11 @@ function NeedsAttentionSection() {
         <>
           <div
             className={cn(
-              'grid items-stretch gap-3 px-3',
+              // 2026-06-04 (Yuqi alignment fix): dropped `px-3` on
+              // the cards grid so card left edges align with the
+              // section header above, the page H1, and the
+              // ActionsTable wrapper below.
+              'grid items-stretch gap-3',
               alerts.length === 1 && 'grid-cols-1',
               alerts.length === 2 && 'grid-cols-2',
               alerts.length >= 3 && 'grid-cols-3',
@@ -227,22 +284,10 @@ function NeedsAttentionSection() {
               </div>
             ))}
           </div>
-          {overflowCount > 0 ? (
-            <div className="flex justify-end px-3">
-              {/* 2026-05-31 (Yuqi DS-first revision): now uses the
-                  canonical `<TextLink>` primitive instead of a
-                  hand-rolled `<button>` with text-muted/hover/focus
-                  classes. Same canonical muted-inline-link shape
-                  used by the "All deadlines" link on the Actions
-                  section header. */}
-              <TextLink
-                onClick={() => void navigate('/rules/pulse')}
-                aria-label={t`View all ${alerts.length} alerts`}
-              >
-                <Trans>View all</Trans>
-              </TextLink>
-            </div>
-          ) : null}
+          {/* 2026-06-03 (Yuqi Pencil VmcdD): bottom "View all" link
+              moved up into the section header (see top of the
+              <section>). Removing the duplicate here so there's a
+              single right-aligned affordance per section. */}
         </>
       ) : (
         // 2026-05-26 (Yuqi Today #2 + #3): empty-state body. Two
@@ -335,7 +380,11 @@ function AlertsEmptyState({
     <StatusBanner indicator={<CircleCheckIcon className="size-4 text-text-success" aria-hidden />}>
       <span className="flex flex-col gap-1">
         <span className="text-sm text-text-secondary">
-          <Trans>No active alerts — nothing needs your review right now.</Trans>
+          {/* 2026-06-03 (audit P2): "No active alerts" drifted from the
+              "{N} urgent" count chip above. Drop the qualifier — the
+              empty state already implies absence, no need to qualify
+              "active". */}
+          <Trans>No alerts — nothing needs your review right now.</Trans>
         </span>
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
           {supportingLine}

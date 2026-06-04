@@ -1,4 +1,4 @@
-import { ChevronDownIcon, PlusIcon } from 'lucide-react'
+import { ChevronDownIcon } from 'lucide-react'
 import { forwardRef, type ComponentType, type ReactNode, type SVGProps } from 'react'
 
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -7,44 +7,42 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * `FilterTrigger` — canonical button chrome for a dropdown / popover that
  * narrows the list under it.
  *
- * Pulls /deadlines' Sort-by dropdown, /alerts' three Select triggers, and
- * /alerts' two Popover triggers into one shape so "filter applied" reads
- * identically on every list page in the product.
+ * 2026-06-04 round 33 (Yuqi Pencil T3GhR — "update the filters and dropdown
+ * (the functionalities and style). has to be 100% the same and recreated"):
+ * trigger rebuilt to match T3GhR's `JlMSs`/`VSThR`/`iOxIZ`/`XVOni`/`vRYoE`
+ * pill specs exactly.
  *
- * Visual contract (2026-05-26 — Stripe S4 restyle):
- *   - 32px tall (`h-8`), inline-flex row
- *   - At rest: ghost pill — `border-dashed border-divider-subtle
- *     bg-transparent`, with a leading `PlusIcon` size-3.5 that reads
- *     "click to ADD a filter to your view" instead of "this is a
- *     permanent filter chip." Replaces the earlier solid
- *     `border-divider-strong bg-background-default` chrome.
- *   - Hover: `bg-state-base-hover` (unchanged)
- *   - Active (filter actually applied): `border-state-accent-solid
- *     bg-state-accent-hover text-text-accent` (unchanged — same accent
- *     state every list page uses to communicate "this column has a
- *     filter"). The leading `+` is suppressed when active so the
- *     caller-provided count badge becomes the natural prefix.
- *   - data-state="open": same bg-state-base-hover as hover so the popup +
- *     trigger read as one connected surface
- *   - Trailing `ChevronDownIcon size-3.5` so the affordance reads
- *     unambiguously as "click for menu"
+ * Visual contract:
+ *   - h-10 (40px), padding [10, 16] (`px-4`)
+ *   - rounded-xl (12px corner radius)
+ *   - 1px border `divider-regular` (#10182814 = 8% alpha) — same color on
+ *     active + inactive; the state-differential is bg, not border.
+ *   - Font 13/500 `text-text-secondary` (#354052)
+ *   - gap-1.5 between leading icon / label / value-counter / chevron
  *
- * Usage:
- *   <DropdownMenuTrigger render={<FilterTrigger active={hasFilter}>Sort by…</FilterTrigger>} />
- *   <PopoverTrigger render={<FilterTrigger active={hasStateFilter}>State…</FilterTrigger>} />
+ * State map:
+ *   - **active**: bg `state-accent-hover` (#eff4ff). Pencil uses this for
+ *     the "currently applied" filter (e.g. "Last 24 hours" with a leading
+ *     blue clock icon).
+ *   - **inactive**: bg transparent. Pencil disables the fill on `VSThR`/
+ *     `iOxIZ`/`XVOni`, so the resting pill shows just the border on the
+ *     page wash.
+ *   - **savedView** (`variant="saved"`): bg `background-section` (#f9fafb,
+ *     gray-50). Matches `vRYoE` "My morning sweep" — a distinct quiet
+ *     tint that says "this is a saved configuration".
+ *   - hover: deepens to `state-base-hover` (consistent across all states).
  *
- * The `render` prop on the underlying Base UI trigger forwards the
- * `data-state` attribute + the ref + the click handler into this button.
- *
- * `active` is the only state input. The component does NOT manage open
- * state — that belongs to the parent DropdownMenu / Popover.
- *
- * 2026-05-26 (Yuqi seventy-fourth pass): single filter-trigger primitive
- * across the product, retiring three previously-divergent shapes.
- * 2026-05-26 (Stripe S4 restyle): quieter ghost-pill rest state + leading
- * `+` icon so the trigger reads as "add a filter" rather than "this is a
- * filter chip". Active treatment unchanged.
+ * New API:
+ *   - `valueLabel` — optional Geist Mono 11/600 secondary text rendered
+ *     after the main label, matching Pencil's "all"/"any" counters
+ *     (`tk7tC`/`MHfb5` etc.).
+ *   - `variant` — `'filter' | 'saved'`. Defaults to `'filter'`.
+ *   - `leadingIconColor` — Tailwind text-color class for the leading
+ *     icon. Pencil uses `text-text-accent` (#155aef blue) on active
+ *     filters + saved views.
  */
+type FilterTriggerVariant = 'filter' | 'saved'
+
 type FilterTriggerProps = {
   active?: boolean
   className?: string
@@ -52,60 +50,90 @@ type FilterTriggerProps = {
   /** Hide the trailing chevron — useful for icon-only triggers in narrow rows. */
   hideChevron?: boolean
   /**
-   * Override the default leading `+` icon. Use for triggers that aren't
-   * "add a filter" — e.g. /deadlines Group-by uses `ArrowDownUp` so the
-   * trigger reads as a sort/group control, not a filter chip. Pass any
-   * lucide icon component. The icon renders at `size-3.5 opacity-70`
-   * regardless of which icon is passed. When `active` is true, the
-   * icon is suppressed (same rule as the default `+`).
+   * Optional secondary mono-text rendered after the label (Pencil's
+   * `tk7tC`/`MHfb5` counter pattern). Renders in 11/600 Geist Mono
+   * `text-text-muted` (#98a2b2). Typical values: "all", "any", or a
+   * concrete count like "3".
+   */
+  valueLabel?: ReactNode
+  /**
+   * Leading icon. Pass any lucide component. The icon renders at size-3.5.
+   * Use `leadingIconColor` to set its tint — default is `text-text-tertiary`,
+   * but active filters / saved views use `text-text-accent` per Pencil.
    */
   leadingIcon?: ComponentType<SVGProps<SVGSVGElement>>
+  /** Tailwind text-color class for the leading icon. */
+  leadingIconColor?: string
   /**
-   * 2026-05-27 (Yuqi feedback): explicit opt-out for the leading
-   * icon. Setting `noLeadingIcon` suppresses both the default
-   * `PlusIcon` and any custom `leadingIcon`. Use when the label
-   * itself names the action (e.g. "Group by Due date") and an icon
-   * would just add noise.
+   * Chrome variant.
+   *   `filter` — default, bg toggles between transparent (inactive) and
+   *     accent-hover (active).
+   *   `saved`  — bg-background-section (gray-50) tint regardless of active.
+   */
+  variant?: FilterTriggerVariant
+  /**
+   * Legacy — explicit opt-out for the leading icon. Defers to `leadingIcon`
+   * being undefined now, but kept to avoid breaking existing callers.
    */
   noLeadingIcon?: boolean
 } & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'>
 
 export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
   function FilterTrigger(
-    { active, className, children, hideChevron, leadingIcon, noLeadingIcon, ...rest },
+    {
+      active,
+      className,
+      children,
+      hideChevron,
+      leadingIcon,
+      leadingIconColor,
+      noLeadingIcon,
+      valueLabel,
+      variant = 'filter',
+      ...rest
+    },
     ref,
   ) {
-    const LeadingIcon = leadingIcon ?? PlusIcon
-    const showLeadingIcon = !active && !noLeadingIcon
+    const LeadingIcon = leadingIcon
+    const showLeadingIcon = !!LeadingIcon && !noLeadingIcon
+    const iconTone = leadingIconColor ?? (active ? 'text-text-accent' : 'text-text-tertiary')
+
+    const variantBg =
+      variant === 'saved'
+        ? 'bg-background-section hover:bg-state-base-hover'
+        : active
+          ? 'bg-state-accent-hover hover:bg-state-accent-hover-alt data-[state=open]:bg-state-accent-hover-alt'
+          : 'bg-transparent hover:bg-state-base-hover data-[state=open]:bg-state-base-hover'
+
     return (
       <button
         ref={ref}
         type="button"
         data-active={active ? 'true' : 'false'}
         className={cn(
-          'inline-flex h-8 items-center gap-1 rounded-md border px-2 text-sm whitespace-nowrap outline-none transition-colors',
+          // Pencil T3GhR: cornerRadius 12, padding [10,16], gap 6, stroke
+          // divider-regular 1px. h-10 (40px) keeps the click target +
+          // matches Pencil's rendered 37px frame (height incl border).
+          'inline-flex h-10 items-center gap-1.5 rounded-xl border border-divider-regular px-4 text-[13px] font-medium whitespace-nowrap text-text-secondary outline-none transition-colors',
           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-          active
-            ? 'border-state-accent-solid bg-state-accent-hover text-text-accent hover:bg-state-accent-hover-alt data-[state=open]:bg-state-accent-hover-alt'
-            : // 2026-05-26 (Yuqi follow-up — "why is the filter no
-              // background?"): retired the Stripe S4 dashed-border +
-              // transparent-bg ghost shape. Filter triggers now sit on
-              // the canonical solid background-default with a regular
-              // (not dashed) divider border so the chip reads as a
-              // real, present control at rest. Hover/active states
-              // preserved.
-              'border-divider-regular bg-background-default text-text-secondary hover:bg-state-base-hover hover:text-text-primary data-[state=open]:bg-state-base-hover data-[state=open]:text-text-primary',
+          variantBg,
           'disabled:cursor-not-allowed disabled:opacity-50',
           className,
         )}
         {...rest}
       >
         {showLeadingIcon ? (
-          <LeadingIcon className="size-3.5 shrink-0 opacity-70" aria-hidden />
+          <LeadingIcon className={cn('size-3.5 shrink-0', iconTone)} aria-hidden />
         ) : null}
         {children}
+        {valueLabel != null ? (
+          <span className="font-mono text-[11px] font-semibold text-text-muted">{valueLabel}</span>
+        ) : null}
         {hideChevron ? null : (
-          <ChevronDownIcon className="size-3.5 shrink-0 opacity-70" aria-hidden />
+          <ChevronDownIcon
+            className="size-3.5 shrink-0 text-text-tertiary opacity-70"
+            aria-hidden
+          />
         )}
       </button>
     )

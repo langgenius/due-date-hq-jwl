@@ -620,6 +620,20 @@ export const e2eRoute = new Hono<{ Bindings: Env; Variables: ContextVars }>().po
   },
 )
 
+// 2026-06-01 (Yuqi /onboarding QA): pre-firm demo identity used to
+// preview the firm-level onboarding flow. The standard demo accounts
+// are all attached to an existing firm via `mock_member_*` rows, so
+// `protectedLoader` never redirects them to `/onboarding`. This
+// identity has a `user` row but no `member` row and no firm — the
+// `account=onboarding` branch in `/demo-login` creates a session
+// with `activeOrganizationId: null` so the loader redirects to
+// `/onboarding` on first hit.
+const DEMO_ONBOARDING_IDENTITY = {
+  userId: 'mock_user_onboarding_olivia',
+  name: 'Olivia Onboarding',
+  email: 'olivia.onboarding@duedatehq.test',
+} as const
+
 e2eRoute.get('/demo-login', async (c) => {
   if (!hasE2ESeedAccess(c)) {
     return c.notFound()
@@ -627,6 +641,97 @@ e2eRoute.get('/demo-login', async (c) => {
 
   const requestUrl = new URL(c.req.url)
   const accountParam = requestUrl.searchParams.get('account')
+
+  // 2026-06-01 (Yuqi /onboarding QA): pre-firm demo path. Bypasses
+  // the standard demo-account lookup (which requires a firm + member
+  // row) so the onboarding flow can be previewed by anyone with the
+  // E2E seed token. Default redirectTo is /onboarding, but the
+  // caller can override with `redirectTo=/some/path`.
+  if (accountParam === 'onboarding') {
+    const db = createDb(c.env.DB)
+    const now = new Date()
+    await db
+      .insert(authSchema.user)
+      .values({
+        id: DEMO_ONBOARDING_IDENTITY.userId,
+        name: DEMO_ONBOARDING_IDENTITY.name,
+        email: DEMO_ONBOARDING_IDENTITY.email,
+        emailVerified: true,
+        twoFactorEnabled: false,
+        image: null,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: authSchema.user.id,
+        set: {
+          name: DEMO_ONBOARDING_IDENTITY.name,
+          email: DEMO_ONBOARDING_IDENTITY.email,
+          emailVerified: true,
+          twoFactorEnabled: false,
+          image: null,
+          updatedAt: now,
+        },
+      })
+
+    const expiresAt = new Date(now.getTime() + SESSION_MAX_AGE_SECONDS * 1000)
+    const sessionId = `mock_demo_session_${crypto.randomUUID().replaceAll('-', '')}`
+    const token = `mock_demo_token_${crypto.randomUUID().replaceAll('-', '')}`
+    await db.insert(authSchema.session).values({
+      id: sessionId,
+      token,
+      userId: DEMO_ONBOARDING_IDENTITY.userId,
+      // The whole point: no active firm. `protectedLoader` reads
+      // this and redirects to `/onboarding`.
+      activeOrganizationId: null,
+      twoFactorVerified: true,
+      expiresAt,
+      createdAt: now,
+      updatedAt: now,
+      ipAddress: '127.0.0.1',
+      userAgent: 'DueDateHQ live demo (onboarding)',
+    })
+
+    const signedToken = `${token}.${await makeSignature(token, c.env.AUTH_SECRET)}`
+    c.header(
+      'Set-Cookie',
+      serializeCookie({
+        name: COOKIE_NAME,
+        value: signedToken,
+        path: '/',
+        httpOnly: true,
+        secure: requestUrl.protocol === 'https:',
+        sameSite: 'Lax',
+        expires: Math.floor(expiresAt.getTime() / 1000),
+      }),
+    )
+    c.header('Cache-Control', 'no-store')
+
+    // Default lands on /onboarding; honor an explicit redirectTo
+    // override in case a caller wants to test deep-linking past
+    // the loader gate (won't typically work, but we don't lock it).
+    const onboardingRedirect = resolveDemoLoginRedirect(
+      requestUrl,
+      c.env.APP_URL,
+      requestUrl.searchParams.get('redirectTo') ?? '/onboarding',
+    )
+    if (!shouldRenderDemoLoginHtml(c.req.raw)) {
+      return c.json({
+        ok: true,
+        account: 'onboarding',
+        user: {
+          id: DEMO_ONBOARDING_IDENTITY.userId,
+          name: DEMO_ONBOARDING_IDENTITY.name,
+          email: DEMO_ONBOARDING_IDENTITY.email,
+        },
+        firmId: null,
+        role: null,
+        redirectTo: onboardingRedirect,
+      })
+    }
+    return c.html(renderDemoLoginHandoffHtml(onboardingRedirect), 200)
+  }
+
   const accountId = readDemoAccountParam(accountParam)
   if (accountParam !== null && !accountId) return c.json({ error: 'Invalid demo account.' }, 400)
 

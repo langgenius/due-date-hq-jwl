@@ -104,11 +104,7 @@ export function AssigneeAvatar({
 
   if (image && !imageFailed) {
     return (
-      <span
-        aria-label={title}
-        title={title}
-        className={cn(baseClasses, 'overflow-hidden')}
-      >
+      <span aria-label={title} title={title} className={cn(baseClasses, 'overflow-hidden')}>
         <img
           src={image}
           alt=""

@@ -2645,24 +2645,16 @@ function GroupedRulesTable({
             see-through and showed row text bleeding through. Falling back to
             the primitive's solid `bg-background-subtle` (#f2f4f7) gives the
             same visual gray tone WITHOUT alpha. */}
+          {/* 2026-06-04 (Yuqi table sweep): TableHeader sticky needs
+              a solid bg to keep body rows from bleeding through on
+              scroll. Per the new canonical, the solid color IS
+              `bg-background-section`, so the sticky header inherits
+              it from the primitive — no override needed. */}
           <TableHeader className="sticky top-0 z-10">
             <TableRow>
-              {/* 2026-05-28 (Yuqi /rules/library polish #7 —
-                  "responsive 应该首选缩短 progress + width of entity
-                  + Form，最后才是 Rule 长文字"): column widths now
-                  express a shrink PRIORITY ladder.
-                    • Rule:   `min-w-[260px]` — protected baseline so
-                              the title (the most important column —
-                              see #11) wraps last when the viewport
-                              narrows.
-                    • Form:   stays at `w-[140px]` — fixed.
-                    • Entity (7×): each `w-12` (48px) — already
-                              minimal; if the viewport falls below
-                              what fits, the entire row falls back to
-                              the existing `break-words` strategy.
-                    • Type:   `w-[120px]` — fixed cap so Type +
-                              progress bar share a stable rightmost
-                              column. */}
+              {/* 2026-05-28 column shrink ladder: Rule min-w-[260px]
+                  (protected baseline); Form/Type w-[140px]; entity
+                  columns w-12 (48px minimal). */}
               <TableHead className="min-w-[260px]">
                 <Trans>Rule</Trans>
               </TableHead>
@@ -2673,7 +2665,7 @@ function GroupedRulesTable({
                 <TableHead
                   key={entity}
                   title={ENTITY_FULL_LABELS[entity]}
-                  className="w-12 text-center text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-tertiary"
+                  className="w-12 text-center"
                 >
                   {ENTITY_COLUMN_LABELS[entity]}
                 </TableHead>
@@ -2701,7 +2693,15 @@ function GroupedRulesTable({
               </TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          {/* 2026-06-04 (Yuqi table sweep): zebra striping
+              (`even:bg-background-section/40` on canonical
+              TableRow) opted OUT here. The library interleaves
+              state group-header rows with rule data rows; zebra
+              based on DOM position would tint state headers and
+              rules inconsistently against their semantic role.
+              Tier-tinted rows (needsReview, focused, isOpen)
+              already supply per-row distinction. */}
+          <TableBody className="[&_tr]:even:bg-transparent">
             {groups.map((group) => {
               const isExpanded = expanded.has(group.jurisdiction)
               return (
@@ -2906,7 +2906,11 @@ function GroupHeaderRow({
         // line lands at deep-gray (#171717 / 0.14 alpha) rather than
         // pulling the page tint; it has to win against the rule
         // row's border-b without competing with row text.
-        'h-14 cursor-pointer border-t-2 border-divider-deep hover:bg-state-base-hover',
+        // 2026-06-04 (Yuqi table sweep): `hover:bg-state-base-hover`
+        // dropped — canonical row default. `h-14 cursor-pointer
+        // border-t-2 border-divider-deep` kept — the deep top
+        // border is the state-boundary cue.
+        'h-14 cursor-pointer border-t-2 border-divider-deep',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onToggle(group.jurisdiction)}
@@ -3124,7 +3128,9 @@ function RuleTableRow({
         // state. Replaces the bare `group` so the named group token
         // matches /clients list rows + /clients/[id] filing-plan
         // rows for cross-surface consistency.
-        'group/row h-14 cursor-pointer hover:bg-state-base-hover',
+        // 2026-06-04 (Yuqi table sweep): `hover:bg-state-base-hover`
+        // dropped — canonical row default.
+        'group/row h-14 cursor-pointer',
         // 2026-05-28 (Yuqi /rules/library polish #2 — same orange
         // shift as the top callout pill): needs-review row tint
         // moved from yellow-50 to orange-50 for the warm-brown read.

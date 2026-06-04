@@ -176,9 +176,16 @@ export function SourcesTab() {
           active-count badge + chevron; SOURCE auto-fills the remaining space
           and shrinks first on narrower viewports.
         */}
+        {/* 2026-06-04 (Yuqi table sweep): `bg-background-subtle` on
+            TableHeader + `hover:bg-transparent` on the header row
+            REMOVED — canonical primitive ships `bg-background-section`
+            (slightly lighter than the old subtle tone, but the
+            family-correct header inset) + transparent header-row
+            hover. /rules/sources now reads as the same family as
+            /today, /deadlines, /clients. */}
         <Table className="table-fixed">
-          <TableHeader className="bg-background-subtle">
-            <TableRow className="hover:bg-transparent">
+          <TableHeader>
+            <TableRow>
               <TableHead className="px-4">SOURCE</TableHead>
               <TableHead className="w-[76px] px-2">
                 <TableHeaderMultiFilter
@@ -363,7 +370,10 @@ function SourceRow({
       tabIndex={-1}
       onClick={openSource}
       onKeyDown={handleKeyDown}
-      className="h-10 cursor-pointer hover:bg-state-base-hover"
+      // 2026-06-04 (Yuqi table sweep): `hover:bg-state-base-hover`
+      // dropped — canonical row default. `h-10 cursor-pointer`
+      // kept (compact source row + interactivity).
+      className="h-10 cursor-pointer"
     >
       <TableCell className="px-4 py-1.5">
         <a

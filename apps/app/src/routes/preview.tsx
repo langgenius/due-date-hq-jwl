@@ -592,9 +592,7 @@ export function PreviewRoute() {
   const [affectedSelection, setAffectedSelection] = useState<Set<string>>(
     () => new Set(['obl_mock_acme_q3', 'obl_mock_brightline_q3']),
   )
-  const [confirmedReviewIds, setConfirmedReviewIds] = useState<Set<string>>(
-    () => new Set(),
-  )
+  const [confirmedReviewIds, setConfirmedReviewIds] = useState<Set<string>>(() => new Set())
 
   // Static demo data
   const comboOptions = [
@@ -651,9 +649,8 @@ export function PreviewRoute() {
                 DueDateHQ component library
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-text-secondary">
-                Live preview of <code className="font-mono text-xs">@duedatehq/ui</code>{' '}
-                primitives and{' '}
-                <code className="font-mono text-xs">apps/app/src/components/</code> composed
+                Live preview of <code className="font-mono text-xs">@duedatehq/ui</code> primitives
+                and <code className="font-mono text-xs">apps/app/src/components/</code> composed
                 building blocks. All renders use the real semantic tokens — change a value in{' '}
                 <code className="font-mono text-xs">
                   packages/ui/src/styles/tokens/semantic-light.css
@@ -968,10 +965,7 @@ export function PreviewRoute() {
             subtitle="Single-value dropdown with grouped options. For multi-select or async search, use SearchableCombobox."
           >
             <Row label="Default" mono="<Select />">
-              <Select
-                value={selectValue}
-                onValueChange={(value) => setSelectValue(value ?? 'all')}
-              >
+              <Select value={selectValue} onValueChange={(value) => setSelectValue(value ?? 'all')}>
                 <SelectTrigger className="w-64">
                   <SelectValue placeholder="Filter by owner" />
                 </SelectTrigger>
@@ -1188,9 +1182,7 @@ export function PreviewRoute() {
                 <TooltipContent>This client has no obligations yet</TooltipContent>
               </Tooltip>
               <Tooltip>
-                <TooltipTrigger
-                  render={<Button variant="outline">Hover me for shortcut</Button>}
-                />
+                <TooltipTrigger render={<Button variant="outline">Hover me for shortcut</Button>} />
                 <TooltipContent>
                   Press <Kbd>⌘</Kbd>
                   <Kbd>K</Kbd> for command palette
@@ -1274,9 +1266,7 @@ export function PreviewRoute() {
 
             <Row label="AlertDialog" mono="<AlertDialog />">
               <AlertDialog>
-                <AlertDialogTrigger
-                  render={<Button variant="destructive">Delete client</Button>}
-                />
+                <AlertDialogTrigger render={<Button variant="destructive">Delete client</Button>} />
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete Acme LLC?</AlertDialogTitle>
@@ -1310,8 +1300,8 @@ export function PreviewRoute() {
                       wide.
                     </p>
                     <p>
-                      Internal scroll, sticky header + footer. The chrome here is the same
-                      primitive every panel reuses.
+                      Internal scroll, sticky header + footer. The chrome here is the same primitive
+                      every panel reuses.
                     </p>
                   </div>
                   <SheetFooter>
@@ -1578,12 +1568,7 @@ export function PreviewRoute() {
             <Row label="StatTile (with week-over-week trend)" mono="patterns/stat-tile">
               <div className="grid w-full max-w-2xl grid-cols-3 gap-3">
                 <StatTile label="In review" value="3" trend={{ delta: -1 }} />
-                <StatTile
-                  label="Blocked"
-                  value="2"
-                  tone="critical"
-                  trend={{ delta: 1 }}
-                />
+                <StatTile label="Blocked" value="2" tone="critical" trend={{ delta: 1 }} />
                 <StatTile label="Waiting on client" value="1" trend={{ delta: 0 }} />
               </div>
             </Row>
@@ -1640,8 +1625,8 @@ export function PreviewRoute() {
             </Row>
             <Row label="EmptyCellMark" mono="patterns/empty-cell-mark">
               <span className="text-sm">
-                Owner: <EmptyCellMark label="Unassigned" /> · Due:{' '}
-                <EmptyCellMark /> · Tags: <EmptyCellMark />
+                Owner: <EmptyCellMark label="Unassigned" /> · Due: <EmptyCellMark /> · Tags:{' '}
+                <EmptyCellMark />
               </span>
             </Row>
           </Section>
@@ -1656,10 +1641,7 @@ export function PreviewRoute() {
               <div className="w-full max-w-3xl rounded-lg border border-divider-regular bg-background-default p-6">
                 <PageHeader
                   eyebrow="Client"
-                  breadcrumbs={[
-                    { label: 'Clients', to: '#' },
-                    { label: 'Acme LLC' },
-                  ]}
+                  breadcrumbs={[{ label: 'Clients', to: '#' }, { label: 'Acme LLC' }]}
                   title="Acme LLC"
                   metaRow={
                     <>
@@ -1914,11 +1896,8 @@ export function PreviewRoute() {
                   onSelect={(code) => setActiveState((s) => (s === code ? null : code))}
                 />
                 <p className="text-xs text-text-tertiary">
-                  Active:{' '}
-                  <code className="font-mono">
-                    {activeState ?? 'null (no filter)'}
-                  </code>{' '}
-                  · Click a state to toggle.
+                  Active: <code className="font-mono">{activeState ?? 'null (no filter)'}</code> ·
+                  Click a state to toggle.
                 </p>
               </div>
             </Row>
@@ -1934,16 +1913,8 @@ export function PreviewRoute() {
               <AssigneeAvatar name="Sarah Chen" isMine={false} title="Assigned: Sarah Chen" />
               <AssigneeAvatar name="Avery Patel" isMine={true} title="Assigned to you" />
               <AssigneeAvatar name="Jules Rivera" isMine={false} title="Assigned: Jules Rivera" />
-              <AssigneeAvatar
-                name="Priya Pro"
-                isMine={false}
-                title="Assigned: Priya Pro"
-              />
-              <AssigneeAvatar
-                name="Taylor Team"
-                isMine={false}
-                title="Assigned: Taylor Team"
-              />
+              <AssigneeAvatar name="Priya Pro" isMine={false} title="Assigned: Priya Pro" />
+              <AssigneeAvatar name="Taylor Team" isMine={false} title="Assigned: Taylor Team" />
             </Row>
             <Row label="BlockedByChip" mono="features/obligations/blocked-by-chip">
               <BlockedByChip
@@ -1972,7 +1943,10 @@ export function PreviewRoute() {
             title="Surface · Billing · Concepts"
             subtitle="Surface-strip summary primitive, the upgrade CTA used across plan gates, and the inline concept-help affordance."
           >
-            <Row label="SurfaceSummaryStrip" mono="features/_surface-vocabulary/SurfaceSummaryStrip">
+            <Row
+              label="SurfaceSummaryStrip"
+              mono="features/_surface-vocabulary/SurfaceSummaryStrip"
+            >
               <SurfaceSummaryStrip
                 label="Deadlines"
                 items={[
@@ -2023,12 +1997,7 @@ export function PreviewRoute() {
               />
             </Row>
             <Row label="PulseAlertCard (active row)">
-              <PulseAlertCard
-                alert={MOCK_PULSE_ALERT}
-                onReview={() => {}}
-                active
-                showReadiness
-              />
+              <PulseAlertCard alert={MOCK_PULSE_ALERT} onReview={() => {}} active showReadiness />
             </Row>
             <Row label="PulseAlertCard (low confidence)">
               <PulseAlertCard
@@ -2120,8 +2089,8 @@ export function PreviewRoute() {
                 <BlockerContextCard blockerId="" onOpen={() => {}} />
                 <p className="text-xs text-text-tertiary">
                   Renders its skeleton state because the blockerId is empty (no live RPC). The
-                  populated chrome appears at <code className="font-mono">/deadlines</code> when
-                  an obligation has a blocking parent.
+                  populated chrome appears at <code className="font-mono">/deadlines</code> when an
+                  obligation has a blocking parent.
                 </p>
               </div>
             </Row>
@@ -2292,17 +2261,17 @@ export function PreviewRoute() {
           <p className="pb-12 pt-6 text-xs text-text-tertiary">
             Routes: <code className="font-mono">apps/app/src/routes/preview.tsx</code> · Tokens:{' '}
             <code className="font-mono">packages/ui/src/styles/tokens/semantic-light.css</code> ·
-            Primitives: <code className="font-mono">packages/ui/src/components/ui/</code> ·
-            Feature components:{' '}
-            <code className="font-mono">apps/app/src/features/</code>
+            Primitives: <code className="font-mono">packages/ui/src/components/ui/</code> · Feature
+            components: <code className="font-mono">apps/app/src/features/</code>
           </p>
           <p className="pb-12 text-xs text-text-tertiary">
             <strong className="text-text-secondary">Still not previewed</strong> — these are
-            page-level shells, workspaces, or multi-step wizards that need router params,
-            drawer providers, or full RPC data graphs to render meaningfully. To see them, sign
-            in via the demo-login URL (top of this thread) and navigate to their host route:
+            page-level shells, workspaces, or multi-step wizards that need router params, drawer
+            providers, or full RPC data graphs to render meaningfully. To see them, sign in via the
+            demo-login URL (top of this thread) and navigate to their host route:
             <br />
-            <code className="font-mono">AlertsListPage</code> → <code className="font-mono">/rules/pulse</code> ·{' '}
+            <code className="font-mono">AlertsListPage</code> →{' '}
+            <code className="font-mono">/rules/pulse</code> ·{' '}
             <code className="font-mono">PulseDetailDrawer</code> → opens from the same route ·{' '}
             <code className="font-mono">ClientDetailWorkspace</code> ·{' '}
             <code className="font-mono">ClientFactsWorkspace</code> ·{' '}

@@ -13,12 +13,7 @@ import {
   type RuleGenerationState,
 } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from '@duedatehq/ui/components/ui/field'
+import { Field, FieldDescription, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { StateRuleActivationSelector } from '@/features/onboarding/state-rule-activation-selector'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'

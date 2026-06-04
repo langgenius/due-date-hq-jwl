@@ -28,6 +28,7 @@ const dashboardRow: DashboardTopRow = {
   clientName: 'Summit Events LLC',
   clientEmail: null,
   taxType: 'ca_llc_annual_tax',
+  obligationType: 'filing',
   currentDueDate: '2026-05-23',
   paymentDueDate: null,
   status: 'review',

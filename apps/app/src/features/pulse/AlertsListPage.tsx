@@ -3,7 +3,17 @@ import { Link } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
-import { AlertCircleIcon, CheckIcon, HistoryIcon, type LucideIcon } from 'lucide-react'
+import {
+  AlertCircleIcon,
+  CheckIcon,
+  Clock3Icon,
+  HistoryIcon,
+  ListIcon,
+  MapIcon,
+  SatelliteDishIcon,
+  SearchIcon,
+  type LucideIcon,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import type {
@@ -41,6 +51,8 @@ import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { StatusBanner } from '@/components/patterns/status-banner'
 
 import { usePulseDrawer } from './DrawerProvider'
+import { useMorningSweep } from './MorningSweepContext'
+import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { PulseDetailDrawer } from './PulseDetailDrawer'
 import { StateTilegram } from './components/StateTilegram'
 import {
@@ -50,6 +62,9 @@ import {
   usePulseSourceHealthQueryOptions,
 } from './api'
 import { PulseAlertCard } from './components/PulseAlertCard'
+import { PulseFormRevisedCard } from './components/PulseFormRevisedCard'
+import { PulseAlertsMap } from './components/PulseAlertsMap'
+import { cn } from '@duedatehq/ui/lib/utils'
 import { PULSE_STATUS_ICON } from './components/PulseStatusBadge'
 import { PulseReasonDialog, type PulseReasonAction } from './components/PulseReasonDialog'
 import { PulsingDot } from './components/PulsingDot'
@@ -131,6 +146,46 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
   const [impactFilter, setImpactFilter] = useState<PulseImpactFilter>('all')
   const [changeKindFilter, setChangeKindFilter] = useState<PulseChangeKindFilter>('all')
   const [sourceFilter, setSourceFilter] = useState('all')
+  // 2026-06-04 round 34 (Yuqi Pencil T3GhR "implement the function and
+  // also the visual"): time-range filter ("Last 24 hours" / "Last
+  // 7 days" / "All time"). Default: all_time so existing behavior
+  // doesn't change for unaware callers. When set to last_24h /
+  // last_7d, alerts older than the window are filtered out by
+  // `filteredAlerts` below.
+  const [timeRangeFilter, setTimeRangeFilter] = useState<'all_time' | 'last_24h' | 'last_7d'>(
+    'all_time',
+  )
+  // 2026-06-04 round 42 (Yuqi punch list #4 — "yes please" to
+  // wiring real Sort logic): three sort orders.
+  //   • 'newest'         — publishedAt DESC (default; matches the
+  //                        most recent edit-style scan)
+  //   • 'oldest'         — publishedAt ASC  (work-through-backlog
+  //                        scan)
+  //   • 'highest_impact' — confidence tier DESC then publishedAt
+  //                        DESC. HIGH IMPACT (low confidence) first
+  //                        so the riskiest items rise.
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'highest_impact'>('newest')
+  // 2026-06-04 round 35 (Yuqi "also missing the search bar"): inline
+  // search field per Pencil T3GhR `JsUoN` — fills remaining width
+  // in the filter row, free-text matches against alert.title +
+  // alert.source case-insensitively.
+  const [searchQuery, setSearchQuery] = useState('')
+  // 2026-06-04 round 34 (Yuqi Pencil T3GhR "My morning sweep" saved
+  // view): preset filter combination — Last 24 hours + Needs Action
+  // status.
+  //
+  // 2026-06-04 round 38 (Yuqi item 10 — "My morning sweep can be beside
+  // Sources, Alert history button"): the toggle moved from this page's
+  // filter row to the route shell's actions cluster (`rules.pulse.tsx`).
+  // The on/off state lives in MorningSweepContext (Provider mounted in
+  // `rules.pulse.tsx`). Here we consume it to OVERRIDE the local filter
+  // state when the preset is active — the user-facing filter pills
+  // reflect what's actually being applied. When the context isn't
+  // mounted (e.g. rules.pulse-history) the hook returns null and we
+  // fall back to local state untouched.
+  const morningSweep = useMorningSweep()
+  const effectiveTimeRangeFilter = morningSweep?.active ? 'last_24h' : timeRangeFilter
+  const effectiveStatusFilter: PulseStatusFilter = morningSweep?.active ? 'active' : statusFilter
   // 2026-05-25 (Yuqi Alerts #9): state filter. v1 ships as a chip
   // strip (one chip per state with active alerts, count badge,
   // click-to-filter). The full SVG US map is a follow-on polish
@@ -138,6 +193,11 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
   // function with much less surface area. `null` = no filter
   // active.
   const [jurisdictionFilter, setJurisdictionFilter] = useState<string | null>(null)
+  // 2026-06-04 round 3 (Yuqi feedback "tackle map view"): view
+  // toggle between the canonical list view and Pencil RMS9y's
+  // state-heatmap. Map mode shows `<PulseAlertsMap>` above the
+  // list; clicking a state tile sets the jurisdiction filter.
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
   const invalidatePulse = usePulseInvalidation()
   // 2026-05-24 (re-critique): the dismiss / snooze row-actions used
   // to grab the reason via `window.prompt()` — system-styled, no
@@ -239,18 +299,74 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
       return aCode.localeCompare(bCode)
     })
   }, [alerts])
-  const filteredAlerts = useMemo(
-    () =>
-      alerts.filter(
-        (alert) =>
-          matchesPulseImpactFilter(alert, impactFilter) &&
-          matchesStatusFilter(alert.status, statusFilter) &&
-          (changeKindFilter === 'all' || alert.changeKind === changeKindFilter) &&
-          (sourceFilter === 'all' || alert.source === sourceFilter) &&
-          (jurisdictionFilter === null || alert.jurisdiction === jurisdictionFilter),
-      ),
-    [alerts, changeKindFilter, impactFilter, jurisdictionFilter, sourceFilter, statusFilter],
-  )
+  const filteredAlerts = useMemo(() => {
+    const now = Date.now()
+    // Use `effectiveTimeRangeFilter` / `effectiveStatusFilter` so the
+    // MorningSweepContext preset can override local filter state when
+    // the header button is active. When the context is null (no
+    // provider mounted, e.g. history route), `effective*` collapses
+    // back to local state — no change in behavior.
+    const cutoffMs =
+      effectiveTimeRangeFilter === 'last_24h'
+        ? now - 24 * 60 * 60 * 1000
+        : effectiveTimeRangeFilter === 'last_7d'
+          ? now - 7 * 24 * 60 * 60 * 1000
+          : null
+    const trimmedQuery = searchQuery.trim().toLowerCase()
+    return alerts.filter(
+      (alert) =>
+        matchesPulseImpactFilter(alert, impactFilter) &&
+        matchesStatusFilter(alert.status, effectiveStatusFilter) &&
+        (changeKindFilter === 'all' || alert.changeKind === changeKindFilter) &&
+        (sourceFilter === 'all' || alert.source === sourceFilter) &&
+        (jurisdictionFilter === null || alert.jurisdiction === jurisdictionFilter) &&
+        (cutoffMs === null || new Date(alert.publishedAt).getTime() >= cutoffMs) &&
+        (trimmedQuery === '' ||
+          alert.title.toLowerCase().includes(trimmedQuery) ||
+          alert.source.toLowerCase().includes(trimmedQuery)),
+    )
+  }, [
+    alerts,
+    changeKindFilter,
+    effectiveStatusFilter,
+    effectiveTimeRangeFilter,
+    impactFilter,
+    jurisdictionFilter,
+    searchQuery,
+    sourceFilter,
+  ])
+  // 2026-06-04 round 42 (Yuqi punch list #4): real sort logic.
+  // The list renderer reads `sortedAlerts` instead of
+  // `filteredAlerts` so the Sort by dropdown actually reorders
+  // the cards.
+  const sortedAlerts = useMemo(() => {
+    const tierRank = (a: PulseAlertPublic) => {
+      const tier = aiConfidenceTier(a.confidence)
+      // Lower confidence = HIGH IMPACT → rank 3 (sorts first when
+      // we DESC by rank). Higher confidence = LOW IMPACT → rank 1.
+      if (tier === 'low') return 3
+      if (tier === 'medium') return 2
+      return 1
+    }
+    const next = [...filteredAlerts]
+    if (sortOrder === 'oldest') {
+      next.sort(
+        (a, b) => new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime(),
+      )
+    } else if (sortOrder === 'highest_impact') {
+      next.sort((a, b) => {
+        const diff = tierRank(b) - tierRank(a)
+        if (diff !== 0) return diff
+        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+      })
+    } else {
+      // 'newest' (default) — publishedAt DESC.
+      next.sort(
+        (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+      )
+    }
+    return next
+  }, [filteredAlerts, sortOrder])
   const isEmpty = !alertsQuery.isLoading && alerts.length === 0
   const isFilteredEmpty = !alertsQuery.isLoading && alerts.length > 0 && filteredAlerts.length === 0
   const filtersActive =
@@ -258,7 +374,9 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
     statusFilter !== 'all' ||
     changeKindFilter !== 'all' ||
     sourceFilter !== 'all' ||
-    jurisdictionFilter !== null
+    jurisdictionFilter !== null ||
+    timeRangeFilter !== 'all_time' ||
+    searchQuery.trim() !== ''
 
   // 2026-05-25 (Yuqi /rules/pulse #9 — drawer → page panel): when
   // an alert is open, the page splits into a left column (header,
@@ -328,11 +446,13 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
             <span className="inline-flex items-center gap-2">
               <Trans>Alerts</Trans>
               {!alertsQuery.isLoading ? (
-                // 2026-06-01: hand-rolled count pill swapped for the
-                // canonical Badge primitive (variant="secondary",
-                // size="lg") — same h-6 PageHeader-title chip used
-                // across the app, no per-call className overrides.
-                <Badge variant="secondary" size="lg" className="tabular-nums">
+                // 2026-06-04 (Yuqi feedback #2 "red does not make
+                // sense here"): variant `secondary` → `outline` so
+                // the count chip reads as a neutral total — not as
+                // an urgency signal. PulsingDot below carries the
+                // alert-state semantics; this chip is just the
+                // alert count.
+                <Badge variant="outline" size="lg" className="tabular-nums">
                   {alerts.length === 0 ? (
                     <Trans>0 ongoing</Trans>
                   ) : (
@@ -357,6 +477,58 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                   J/K row nav (per AlertsListPage hotkeys) but `?` was
                   undiscoverable. */}
               <ShortcutHintChip className="hidden md:inline-flex" />
+              {/* 2026-06-04 round 3 (Yuqi feedback "tackle map
+                  view"): two-button group toggling between List
+                  and Map. Map shows `<PulseAlertsMap>` above the
+                  list (Pencil RMS9y body split). */}
+              <div
+                role="group"
+                aria-label={t`View mode`}
+                className="inline-flex rounded-xl border border-divider-subtle bg-background-default p-0.5"
+              >
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  aria-pressed={viewMode === 'list'}
+                  className={cn(
+                    'inline-flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-medium outline-none transition-colors',
+                    'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                    viewMode === 'list'
+                      ? 'bg-state-accent-hover text-text-accent'
+                      : 'text-text-secondary hover:text-text-primary',
+                  )}
+                >
+                  <ListIcon className="size-3" aria-hidden />
+                  <Trans>List</Trans>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('map')}
+                  aria-pressed={viewMode === 'map'}
+                  className={cn(
+                    'inline-flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-medium outline-none transition-colors',
+                    'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                    viewMode === 'map'
+                      ? 'bg-state-accent-hover text-text-accent'
+                      : 'text-text-secondary hover:text-text-primary',
+                  )}
+                >
+                  <MapIcon className="size-3" aria-hidden />
+                  <Trans>Map</Trans>
+                </button>
+              </div>
+              {/* 2026-06-04 (Yuqi feedback #4 "missing Sources
+                  button"): Sources management entry-point added to
+                  the actions cluster. */}
+              <Button
+                variant="outline"
+                size="sm"
+                render={<Link to="/rules/sources" />}
+                aria-label={t`Manage Pulse sources`}
+              >
+                <SatelliteDishIcon data-icon="inline-start" />
+                <Trans>Sources</Trans>
+              </Button>
               {!historyMode ? (
                 <Button
                   variant="outline"
@@ -444,7 +616,13 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
           between major page columns (list vs panel) and gap-6 is
           the canonical for major-section separation. */}
       <div className="flex min-h-0 flex-1 gap-6">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-y-auto [scrollbar-gutter:stable]">
+        {/* List column vertical rhythm — 2026-06-04 round 40 (Yuqi
+            "更紧一点" / "tighter"): gap between filter row → status
+            chips → cards list reduced `gap-3` (12px) → `gap-2`
+            (8px). The 12px gap was creating three visually
+            separate "sections" inside the list panel; 8px reads
+            as a tighter stack of related controls + content. */}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto [scrollbar-gutter:stable]">
           {alertsQuery.isLoading ? (
             <SkeletonList sources={sourceHealth} />
           ) : isEmpty ? (
@@ -532,26 +710,95 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                     : 'flex flex-wrap items-center gap-2'
                 }
               >
-                {/* 2026-05-26 (Yuqi seventy-fourth pass follow-up
-                    — finish E): three Base UI Selects converted to
-                    DropdownMenu + FilterTrigger. Yuqi's standing
-                    "incorrect dropdown interaction" feedback on
-                    Base UI Selects applies here too — the rest of
-                    the product uses DropdownMenu + RadioGroup. The
-                    panelOpen ? 'w-auto' : 'w-[180px]' sizing is
-                    preserved per the previous twentieth-pass
-                    rationale (one-line filter row when the right
-                    panel is open). */}
+                {/* 2026-06-04 round 39 (Yuqi 3-item filter-row feedback):
+                    filter row restructured into a single dense strip.
+                    Order LEFT → RIGHT:
+                      1. Search (fixed `w-[260px]`, no longer flex-1).
+                         Item 3 — "at the front, the first item,
+                         shorter width". Search anchors the row.
+                      2. Last 24 hours
+                      3. Severity
+                      4. Change types
+                      5. State
+                      6. flex-1 spacer
+                      7. Sort by  ← Item 2 — relocated INTO this row
+                         from the chip+sort row below.
+                      8. Reset (ghost)
+                    The previous chip+sort wrapper row (with
+                    `justify-between`) was removed — Item 1 "remove
+                    this". The status chips (Needs Action / Needs
+                    Review / Closed) now sit alone on their own
+                    row, no Sort-by sibling, no justify-between
+                    wrapper. */}
+
+                {/* Search alerts — Item 3: first item, shorter width */}
+                <label className="inline-flex h-10 w-[260px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt">
+                  <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder={t`Search alerts`}
+                    className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-text-primary outline-none placeholder:text-text-muted"
+                    aria-label={t`Search alerts`}
+                  />
+                </label>
+
+                {/* Last 24 hours — time-range filter */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <FilterTrigger
+                        active={timeRangeFilter !== 'all_time'}
+                        leadingIcon={Clock3Icon}
+                        aria-label={t`Filter by time range`}
+                      >
+                        <span>
+                          {timeRangeFilter === 'last_24h'
+                            ? t`Last 24 hours`
+                            : timeRangeFilter === 'last_7d'
+                              ? t`Last 7 days`
+                              : t`All time`}
+                        </span>
+                      </FilterTrigger>
+                    }
+                  />
+                  <DropdownMenuContent align="start" className="min-w-[180px]">
+                    <DropdownMenuRadioGroup
+                      value={timeRangeFilter}
+                      onValueChange={(value) => {
+                        if (value === 'all_time' || value === 'last_24h' || value === 'last_7d') {
+                          setTimeRangeFilter(value)
+                        }
+                      }}
+                    >
+                      <DropdownMenuRadioItem value="all_time">
+                        <Trans>All time</Trans>
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="last_24h">
+                        <Trans>Last 24 hours</Trans>
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="last_7d">
+                        <Trans>Last 7 days</Trans>
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Severity — was "All impact" / per-tier label; now
+                    uses static label "Severity" + valueLabel counter
+                    so the chip reads "Severity / any" or "Severity /
+                    high" exactly per Pencil T3GhR iOxIZ. */}
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     render={
                       <FilterTrigger
                         active={impactFilter !== 'all'}
-                        aria-label={t`Filter by impact`}
-                        className={panelOpen ? 'w-auto' : 'w-[180px]'}
+                        valueLabel={impactFilter === 'all' ? t`any` : impactFilter}
+                        aria-label={t`Filter by severity`}
                       >
-                        <span className="min-w-0 flex-1 truncate text-left">
-                          {impactFilterLabel(impactFilter)}
+                        <span>
+                          <Trans>Severity</Trans>
                         </span>
                       </FilterTrigger>
                     }
@@ -573,16 +820,17 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                   </DropdownMenuContent>
                 </DropdownMenu>
 
+                {/* Change types — label/value pattern. */}
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     render={
                       <FilterTrigger
                         active={changeKindFilter !== 'all'}
+                        valueLabel={changeKindFilter === 'all' ? t`all` : changeKindFilter}
                         aria-label={t`Filter by change type`}
-                        className={panelOpen ? 'w-auto' : 'w-[180px]'}
                       >
-                        <span className="min-w-0 flex-1 truncate text-left">
-                          {changeKindFilterLabel(changeKindFilter)}
+                        <span>
+                          <Trans>Change types</Trans>
                         </span>
                       </FilterTrigger>
                     }
@@ -604,44 +852,75 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <FilterTrigger
-                        active={statusFilter !== 'all'}
-                        aria-label={t`Filter by alert status`}
-                        className={panelOpen ? 'w-auto' : 'w-[180px]'}
-                      >
-                        <span className="min-w-0 flex-1 truncate text-left">
-                          {statusFilterLabel(statusFilter, historyMode)}
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
-                  <DropdownMenuContent align="start" className="min-w-[180px]">
-                    <DropdownMenuRadioGroup
-                      value={statusFilter}
-                      onValueChange={(value) => {
-                        if (typeof value === 'string' && isStatusFilter(value, statusFilterOptions))
-                          setStatusFilter(value)
-                      }}
-                    >
-                      {statusFilterOptions.map((option) => (
-                        <DropdownMenuRadioItem key={option} value={option}>
-                          {statusFilterLabel(option, historyMode)}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {/* 2026-06-04 round 38, item 10: "My morning sweep"
+                    button RELOCATED from this filter row to the
+                    page-header actions cluster (beside Sources +
+                    Alert history) in rules.pulse.tsx. Saved views
+                    aren't filter facets — they're page-level
+                    preset jumps. State + toggle live in
+                    MorningSweepContext; this page consumes
+                    `morningSweep.active` to override
+                    `timeRangeFilter` + `statusFilter` with the
+                    preset combo. */}
 
-                {/* 2026-05-26 (Yuqi /rules/pulse follow-up): source
-                    filter converted from a flat Select to a searchable
-                    Popover + Command combobox. Practices with 30+
-                    sources (IRS, NY DTF, CA FTB, TX Comptroller, FL DOR,
-                    …) made the plain Select scroll list slow to navigate.
-                    CommandInput pattern lets the CPA type "ny" and
-                    narrow to NY-prefixed sources instantly. */}
+                {/* Round 39: search bar relocated to the FRONT of
+                    this row (see top of filter row). The old
+                    `flex-1` inline pill that sat between the
+                    morning-sweep slot and the Status placeholder is
+                    gone — search is now a fixed-width anchor at
+                    the row's leading edge. */}
+
+                {/* Status dropdown — 2026-06-04 round 42 (Yuqi
+                    punch list #6 — "fix all" for the filter state
+                    that lost its UI surface): the dropdown now
+                    renders in BOTH non-history and history mode.
+                    Round 41 removed the standalone chip strip
+                    ("可以去掉"); this round brings the Status
+                    affordance back as a filter pill instead. The
+                    valueLabel counter shows the active filter or
+                    "all" so it matches the rest of the row's
+                    pattern. */}
+                <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <FilterTrigger
+                          active={statusFilter !== 'all'}
+                          valueLabel={statusFilter === 'all' ? t`all` : statusFilter}
+                          aria-label={t`Filter by alert status`}
+                        >
+                          <span>
+                            <Trans>Status</Trans>
+                          </span>
+                        </FilterTrigger>
+                      }
+                    />
+                    <DropdownMenuContent align="start" className="min-w-[180px]">
+                      <DropdownMenuRadioGroup
+                        value={statusFilter}
+                        onValueChange={(value) => {
+                          if (
+                            typeof value === 'string' &&
+                            isStatusFilter(value, statusFilterOptions)
+                          )
+                            setStatusFilter(value)
+                        }}
+                      >
+                        {statusFilterOptions.map((option) => (
+                          <DropdownMenuRadioItem key={option} value={option}>
+                            {statusFilterLabel(option, historyMode)}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                {/* Source dropdown — 2026-06-04 round 42 (Yuqi punch
+                    list #5 — "fix all"): SourceFilterPopover restored
+                    to the filter row. Round 37 removed it because
+                    Pencil T3GhR didn't include it, but the underlying
+                    state was retained for Reset; this round reinstates
+                    the visible affordance so the CPA can narrow alerts
+                    by publisher (e.g. "FL DOR Bulletin" only). */}
                 <SourceFilterPopover
                   sourceOptions={sourceOptions}
                   sourceCounts={sourceCounts}
@@ -668,33 +947,174 @@ export function PulseChangesTab({ embedded = false, historyMode = false }: Pulse
                   />
                 ) : null}
 
-                {/* 2026-05-25 (Yuqi /rules/pulse fourth pass #7):
-                FilterX icon dropped from the Reset button — was
-                reading as redundant chrome next to the word
-                "Reset" itself. Bare ghost button keeps the
-                tertiary-action affordance without the visual
-                noise of the icon. */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={!filtersActive}
-                  onClick={() => {
-                    setImpactFilter('all')
-                    setStatusFilter('all')
-                    setChangeKindFilter('all')
-                    setSourceFilter('all')
-                    setJurisdictionFilter(null)
-                  }}
-                >
-                  <Trans>Reset</Trans>
-                </Button>
+                {/* Reset — 2026-06-04 round 42 (Yuqi list-2 #1 —
+                    "reset is close to Any state dropdown, not
+                    besides sort by. if nothing is selected, reset
+                    not shown"). Two changes:
+                      • Position: relocated from the row's trailing
+                        edge (just left of Sort by) to immediately
+                        after StateFilterPopover. Reads as the
+                        terminator of the filter cluster, not as a
+                        peer of Sort by (which is a different action
+                        family — sort, not filter).
+                      • Conditional render: only mounts when
+                        `filtersActive`. Previously it stayed in the
+                        layout as a `disabled` ghost button —
+                        present-but-grayed, which still claimed
+                        visual weight. Hiding it entirely keeps the
+                        resting state clean. */}
+                {filtersActive ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setImpactFilter('all')
+                      setStatusFilter('all')
+                      setChangeKindFilter('all')
+                      setSourceFilter('all')
+                      setJurisdictionFilter(null)
+                      setTimeRangeFilter('all_time')
+                      setSearchQuery('')
+                    }}
+                  >
+                    <Trans>Reset</Trans>
+                  </Button>
+                ) : null}
+
+                {/* Round 39: flex-1 spacer pushes Sort by to the
+                    row's trailing edge while keeping the filter
+                    pills left-anchored. */}
+                <span className="flex-1" aria-hidden />
+
+                {/* Sort by — Item 2: relocated from the chip+sort
+                    row INTO this filter row. Same canonical
+                    FilterTrigger pattern from /deadlines
+                    (obligations.tsx:740): `noLeadingIcon` + muted
+                    "Sort by" prefix + primary value. */}
+                {/* Sort by — 2026-06-04 round 42 (Yuqi #4 — wire
+                    real sort logic). Three options matching the
+                    sortOrder enum. Current value is shown inline
+                    on the trigger so the dropdown reads "Sort by
+                    Newest first" / "Sort by Oldest first" / "Sort
+                    by Highest impact" without opening. */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <FilterTrigger noLeadingIcon aria-label={t`Sort alerts`}>
+                        <span className="text-text-tertiary">
+                          <Trans>Sort by</Trans>
+                        </span>
+                        <span>
+                          {sortOrder === 'oldest' ? (
+                            <Trans>Oldest first</Trans>
+                          ) : sortOrder === 'highest_impact' ? (
+                            <Trans>Highest impact</Trans>
+                          ) : (
+                            <Trans>Newest first</Trans>
+                          )}
+                        </span>
+                      </FilterTrigger>
+                    }
+                  />
+                  <DropdownMenuContent align="end" className="min-w-[200px]">
+                    <DropdownMenuRadioGroup
+                      value={sortOrder}
+                      onValueChange={(value) => {
+                        if (
+                          value === 'newest' ||
+                          value === 'oldest' ||
+                          value === 'highest_impact'
+                        ) {
+                          setSortOrder(value)
+                        }
+                      }}
+                    >
+                      <DropdownMenuRadioItem value="newest">
+                        <Trans>Newest first</Trans>
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="oldest">
+                        <Trans>Oldest first</Trans>
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="highest_impact">
+                        <Trans>Highest impact</Trans>
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Round 42: Reset relocated UP next to
+                    StateFilterPopover (see above). No longer sits
+                    here. */}
               </div>
+
+              {/* Status chip strip — 2026-06-04 round 41 (Yuqi
+                  "可以去掉" / "can be removed"): the entire Needs
+                  Action / Needs Review / Closed chip strip is
+                  removed. Status filtering is no longer surfaced
+                  as a default visible control on /rules/pulse —
+                  the page now shows ALL statuses inline and the
+                  CPA can narrow via action-pill scanning on the
+                  cards themselves. History mode (`/rules/pulse/
+                  history`) still exposes the Status dropdown for
+                  closed-state filtering, so no functionality is
+                  lost at the destination that needs it most.
+                  `statusFilter` state remains in place so Reset
+                  still works and the chip strip can be reinstated
+                  if the UX changes. */}
+
+              {/* 2026-06-04 round 3 (Yuqi feedback "tackle map view"):
+                  when viewMode === 'map', render the state heatmap
+                  above the alert list. Map tile clicks set the
+                  jurisdictionFilter so the list below narrows to
+                  the selected state. Per Pencil RMS9y the map
+                  body sits at the top of the content area; the
+                  alert detail panel (this list) follows below. */}
+              {viewMode === 'map' ? (
+                <div className="rounded-2xl border border-divider-subtle bg-background-default p-4">
+                  <PulseAlertsMap
+                    alerts={alerts}
+                    selectedJurisdiction={jurisdictionFilter}
+                    onSelect={(j) => setJurisdictionFilter(j)}
+                  />
+                </div>
+              ) : null}
 
               {isFilteredEmpty ? (
                 <FilteredEmptyState />
               ) : (
+                // 2026-06-04 round 25 (Yuqi Pencil h7WAEF "Frame 122"):
+                // alert-card list gap bumped `gap-2` (8px) → `gap-4`
+                // (16px) per Pencil's `t5tJfq` Frame 122 gap 16. The
+                // extra space lets each card read as a distinct
+                // surface, not a cramped stack.
+                /* 2026-06-04 round 42 (Yuqi consistency audit
+                   follow-up #2 — "the gap between alert card should
+                   be smaller. each alert is closer to the next
+                   one"): inter-card gap `gap-4` (16px) → `gap-2`
+                   (8px). With the cards now using clean white
+                   chrome + subtle hover ring, tighter stacking
+                   reads as a denser list — same pattern as
+                   /deadlines rows. */
                 <div className="flex flex-col gap-2">
-                  {filteredAlerts.map((alert) => {
+                  {sortedAlerts.map((alert) => {
+                    // 2026-06-04 round 26 (Yuqi Pencil ZkXFr — "Form
+                    // Revised" card variant exact recreation):
+                    // alerts whose change-kind is `form_instruction`
+                    // render through PulseFormRevisedCard, which
+                    // surfaces the form-version diff + transition
+                    // window + schema-diff link as a structured
+                    // facts panel that the generic PulseAlertCard
+                    // can't carry. All other change-kinds keep
+                    // using the canonical PulseAlertCard.
+                    if (alert.changeKind === 'form_instruction') {
+                      return (
+                        <PulseFormRevisedCard
+                          key={alert.id}
+                          alert={alert}
+                          onReview={() => openDrawerAndCollapseSidebar(alert.id)}
+                        />
+                      )
+                    }
                     // Dismiss only on `matched` (still-open) alerts. Other statuses
                     // are terminal or already-actioned (dismissed / applied /
                     // partially_applied / reverted / snoozed) — growing a Dismiss
@@ -1201,10 +1621,7 @@ function SkeletonRow({
         // className to preserve previous behavior; aria-hidden is
         // covered by the parent role=status / aria-live region.
         <>
-          <Skeleton
-            aria-hidden
-            className="h-2 w-24 rounded-full motion-reduce:animate-none"
-          />
+          <Skeleton aria-hidden className="h-2 w-24 rounded-full motion-reduce:animate-none" />
           <span aria-hidden className="text-text-tertiary">
             ·
           </span>

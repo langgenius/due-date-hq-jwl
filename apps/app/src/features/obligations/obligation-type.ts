@@ -68,7 +68,15 @@ function useObligationTypeLabels(): ObligationTypeLabels {
   const { t } = useLingui()
   return useMemo(
     () => ({
-      filing: t`Filing`,
+      // 2026-06-03 (Yuqi /critique pass — Reviewer panel finding P0
+      // "three-fil collision"): user-facing label for the canonical
+      // type renamed `Filing` → `Return`. DB enum value stays
+      // `'filing'` (canonical per PDF §3.1 — same pattern as DB
+      // `obligation` vs UI `Deadline`). CPAs say "this is a 1065
+      // return" not "this is a filing"; renaming the label also
+      // removes the head-on collision with the `Filed` status pill
+      // and (when wired) a `Form` column showing "1120-S".
+      filing: t`Return`,
       payment: t`Payment`,
       deposit: t`Deposit`,
       information: t`Information return`,

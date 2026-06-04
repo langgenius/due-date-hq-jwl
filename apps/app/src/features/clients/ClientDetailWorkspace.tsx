@@ -1921,12 +1921,7 @@ function ClientOwnerHeaderPill({
               </>
             ) : (
               <>
-                <AssigneeAvatar
-                  name={name}
-                  isMine={isMine}
-                  size="xs"
-                  title={triggerLabel}
-                />
+                <AssigneeAvatar name={name} isMine={isMine} size="xs" title={triggerLabel} />
                 <span className="truncate">{name}</span>
               </>
             )}
@@ -1969,11 +1964,7 @@ function ClientOwnerHeaderPill({
                   (size='xs'). The primitive picks the same per-name tint
                   via getAssigneeTint and falls back to the unassigned
                   glyph when name is null. */}
-              <AssigneeAvatar
-                name={name}
-                size="xs"
-                title={name ?? t`Former teammate`}
-              />
+              <AssigneeAvatar name={name} size="xs" title={name ?? t`Former teammate`} />
               <span className="truncate text-text-tertiary">
                 {name ?? <Trans>Former teammate</Trans>}
                 <span className="ml-1 text-xs italic">

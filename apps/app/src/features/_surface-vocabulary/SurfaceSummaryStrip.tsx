@@ -88,7 +88,12 @@ export function SurfaceSummaryStrip({
         // Link for the canonical TextLink primitive (accent variant, default
         // text-xs size). `shrink-0` is preserved as a layout-context override
         // since the primitive lives inside a flex row that can collapse.
-        <TextLink variant="accent" size="default" className="shrink-0" render={<Link to={detailHref} />}>
+        <TextLink
+          variant="accent"
+          size="default"
+          className="shrink-0"
+          render={<Link to={detailHref} />}
+        >
           {detailLabel}
           <ChevronRightIcon className="size-3.5" aria-hidden />
         </TextLink>

@@ -58,8 +58,17 @@ const badgeVariants = cva(
       // kickers, and timeline phase labels. Default keeps the existing
       // full-pill rounding; `square` swaps to rounded-sm + uppercase +
       // tracking-wide so callers pair it with any color variant.
+      // 2026-06-04 (Yuqi Pencil qSR9p — "client name frame does
+      // not need to be always full rounded corners"): added a
+      // `rounded` shape variant (rounded-lg = 8px corner radius,
+      // matching Pencil's qSR9p frame cornerRadius). Sits between
+      // `pill` (full-radius, info-density chips) and `square`
+      // (sharp-radius, eyebrow micro-chips). Use for content
+      // chips like client-name affordances where the pill read
+      // is too aggressive for a multi-word identifier.
       shape: {
         pill: 'rounded-full',
+        rounded: 'rounded-lg',
         square: 'rounded-sm font-semibold uppercase tracking-wide',
       },
     },

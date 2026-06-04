@@ -1493,88 +1493,88 @@ function DeadlineDetailsPanel({
         </div>
 
         <form
-        className="grid gap-3"
-        onSubmit={(event) => {
-          event.preventDefault()
-          if (!canSave) return
-          onSubmit({
-            newDueDate,
-            selectedObligationIds,
-            confirmedObligationIds: Array.from(confirmedReviewIds).filter((obligationId) =>
-              selection.has(obligationId),
-            ),
-            excludedObligationIds: Array.from(excludedIds),
-            ...(note.trim() ? { note: note.trim() } : {}),
-          })
-        }}
-      >
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="pulse-new-due-date">
-            <Trans>New due date</Trans>
-          </Label>
-          <Input
-            id="pulse-new-due-date"
-            type="date"
-            className="cursor-pointer"
-            value={newDueDate}
-            disabled={!canManage || pending}
-            onClick={openNativeDatePicker}
-            onChange={(event) => setNewDueDate(event.target.value)}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-baseline justify-between gap-3">
-            <Label>
-              <Trans>Choose deadlines to apply this date to</Trans>
+          className="grid gap-3"
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (!canSave) return
+            onSubmit({
+              newDueDate,
+              selectedObligationIds,
+              confirmedObligationIds: Array.from(confirmedReviewIds).filter((obligationId) =>
+                selection.has(obligationId),
+              ),
+              excludedObligationIds: Array.from(excludedIds),
+              ...(note.trim() ? { note: note.trim() } : {}),
+            })
+          }}
+        >
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="pulse-new-due-date">
+              <Trans>New due date</Trans>
             </Label>
-            <span className="text-xs text-text-tertiary">
-              <Trans>{stats.selectedCount} selected</Trans>
-            </span>
-          </div>
-          {deadlineRows.length > 0 ? (
-            <AffectedClientsTable
-              rows={deadlineRows}
-              selection={selection}
-              confirmedReviewIds={confirmedReviewIds}
-              excludedIds={excludedIds}
-              onChangeSelection={onChangeSelection}
-              onToggleNeedsReviewConfirmation={onToggleNeedsReviewConfirmation}
-              onToggleExcluded={onToggleExcluded}
-              readOnly={!canManage || pending}
+            <Input
+              id="pulse-new-due-date"
+              type="date"
+              className="cursor-pointer"
+              value={newDueDate}
+              disabled={!canManage || pending}
+              onClick={openNativeDatePicker}
+              onChange={(event) => setNewDueDate(event.target.value)}
             />
-          ) : (
-            <p className="rounded-md border border-divider-subtle bg-background-default px-4 py-3 text-sm text-text-secondary">
-              <Trans>
-                No open deadlines are available for this alert's jurisdiction. Add or reopen a
-                deadline before applying this change.
-              </Trans>
-            </p>
-          )}
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="pulse-detail-note">
-            <Trans>Review note</Trans>
-          </Label>
-          <Textarea
-            id="pulse-detail-note"
-            value={note}
-            disabled={!canManage || pending}
-            onChange={(event) => setNote(event.target.value)}
-          />
-        </div>
-        <div className="flex items-center justify-between gap-3">
-          {!canManage ? (
-            <p className="text-sm text-text-secondary">
-              <Trans>Only authorized reviewers can confirm deadline changes.</Trans>
-            </p>
-          ) : (
-            <span />
-          )}
-          <Button type="submit" disabled={!canSave}>
-            {pending ? <Trans>Saving…</Trans> : <Trans>Save deadline selection</Trans>}
-          </Button>
-        </div>
-      </form>
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between gap-3">
+              <Label>
+                <Trans>Choose deadlines to apply this date to</Trans>
+              </Label>
+              <span className="text-xs text-text-tertiary">
+                <Trans>{stats.selectedCount} selected</Trans>
+              </span>
+            </div>
+            {deadlineRows.length > 0 ? (
+              <AffectedClientsTable
+                rows={deadlineRows}
+                selection={selection}
+                confirmedReviewIds={confirmedReviewIds}
+                excludedIds={excludedIds}
+                onChangeSelection={onChangeSelection}
+                onToggleNeedsReviewConfirmation={onToggleNeedsReviewConfirmation}
+                onToggleExcluded={onToggleExcluded}
+                readOnly={!canManage || pending}
+              />
+            ) : (
+              <p className="rounded-md border border-divider-subtle bg-background-default px-4 py-3 text-sm text-text-secondary">
+                <Trans>
+                  No open deadlines are available for this alert's jurisdiction. Add or reopen a
+                  deadline before applying this change.
+                </Trans>
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="pulse-detail-note">
+              <Trans>Review note</Trans>
+            </Label>
+            <Textarea
+              id="pulse-detail-note"
+              value={note}
+              disabled={!canManage || pending}
+              onChange={(event) => setNote(event.target.value)}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            {!canManage ? (
+              <p className="text-sm text-text-secondary">
+                <Trans>Only authorized reviewers can confirm deadline changes.</Trans>
+              </p>
+            ) : (
+              <span />
+            )}
+            <Button type="submit" disabled={!canSave}>
+              {pending ? <Trans>Saving…</Trans> : <Trans>Save deadline selection</Trans>}
+            </Button>
+          </div>
+        </form>
       </CardContent>
     </Card>
   )
@@ -1845,9 +1845,7 @@ function PulseApplyVerificationDialog({
                   <span className="text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
                     <Trans>Issued</Trans>
                   </span>
-                  <span className="font-mono text-sm tabular-nums text-text-primary">
-                    {issued}
-                  </span>
+                  <span className="font-mono text-sm tabular-nums text-text-primary">{issued}</span>
                 </div>
               </div>
             </CardContent>

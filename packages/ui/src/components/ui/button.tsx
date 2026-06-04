@@ -107,21 +107,22 @@ const buttonVariants = cva(
         ),
       },
       size: {
-        // 2026-05-31 corner-radius bump (per /preview review). Scale
-        // chosen to land each size at iOS-Human-Interface-Guidelines
-        // proportions: h-7 → 8px, h-8 → 10px, h-9 → 12px, h-10 → 14px.
-        // The button-group children keep the same radius as the
-        // standalone control so grouped buttons read consistent.
+        // 2026-06-04 round 3 (Yuqi feedback #8 "all buttons have
+        // bigger rounded corners"): radius scale bumped one tier
+        // across every size — xs 8→10, sm 10→12, default 12→16,
+        // lg 14→18. Same iOS-HIG continuous-corner shape via
+        // `[corner-shape:squircle]` on the base class; the bump
+        // just makes the rounding more present at every scale.
         default:
-          'h-9 gap-1.5 rounded-xl px-2.5 text-sm in-data-[slot=button-group]:rounded-xl has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
-        xs: "h-7 gap-1 rounded-lg px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: 'h-8 gap-1.5 rounded-[10px] px-2.5 text-sm in-data-[slot=button-group]:rounded-[10px] has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
-        lg: 'h-10 gap-1.5 rounded-[14px] px-3 text-base font-semibold has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5',
-        icon: 'size-9 rounded-xl in-data-[slot=button-group]:rounded-xl',
+          'h-9 gap-1.5 rounded-2xl px-2.5 text-sm in-data-[slot=button-group]:rounded-2xl has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        xs: "h-7 gap-1 rounded-[10px] px-2 text-xs in-data-[slot=button-group]:rounded-[10px] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: 'h-8 gap-1.5 rounded-xl px-2.5 text-sm in-data-[slot=button-group]:rounded-xl has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        lg: 'h-10 gap-1.5 rounded-[18px] px-3 text-base font-semibold has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5',
+        icon: 'size-9 rounded-2xl in-data-[slot=button-group]:rounded-2xl',
         'icon-xs':
-          "size-7 rounded-lg in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
-        'icon-sm': 'size-8 rounded-[10px] in-data-[slot=button-group]:rounded-[10px]',
-        'icon-lg': 'size-10 rounded-[14px] in-data-[slot=button-group]:rounded-[14px]',
+          "size-7 rounded-[10px] in-data-[slot=button-group]:rounded-[10px] [&_svg:not([class*='size-'])]:size-3",
+        'icon-sm': 'size-8 rounded-xl in-data-[slot=button-group]:rounded-xl',
+        'icon-lg': 'size-10 rounded-[18px] in-data-[slot=button-group]:rounded-[18px]',
       },
     },
     defaultVariants: {
