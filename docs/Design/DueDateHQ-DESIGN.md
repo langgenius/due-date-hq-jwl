@@ -1,12 +1,42 @@
 # DueDateHQ · DESIGN.md
 
 > 文档类型：视觉设计系统（Single Source of Truth for UI）
-> 版本：**v2.1**
-> 日期：2026-05-26（v2.0 → v2.1 修订：§2.5 同步到 primitives.css 实施现状）
+> 版本：**v2.2**
+> 日期：2026-06-01（v2.1 → v2.2 修订：双向 design-system sweep — 6 primitive 扩展 + 34 call-site 迁移）
 > 方向：**Ramp × Linear · Light Workbench**（浅色主导，暗色为镜像，不做方向 B 的 Bloomberg 终端风）
 > 对齐：PRD v2.0 §1.3 设计原则 + §5 核心页面规格 + §10 UI/UX 规范
 > 阅读对象：Designer / Frontend Engineer / AI coding agents（Cursor / v0 / Lovable）
 > 语言：中文说明 + 英文 token，所有代码注释为英文
+
+## v2.2 changelog (2026-06-01) — bidirectional design-system sweep
+
+Yuqi-driven sweep that established the rule **"design and design system synchronize
+both ways"**: every hand-rolled chip/card/link in the app moves to a primitive, AND
+primitives gain the variants designs actually need. 34 call sites migrated across 25
+files; 6 primitive extensions landed in `packages/ui/src/components/ui/`. Full write-up
+in `docs/dev-log/2026-06-01-design-system-bidirectional-sweep.md`.
+
+**Primitive evolutions (new axes):**
+
+- `<Badge>` — `shape="pill" | "square"` (default pill); `size="default" | "lg"` for
+  drawer-header chips
+- `<Card>` — `size="xs"` for dashboard-density tiles; `tone="default" | "warning" | "accent" | "muted"`
+  for in-drawer tinted panels; `radius="xl" | "md"` for dense in-page surfaces
+- `<TextLink>` (new primitive in `packages/ui/src/components/ui/text-link.tsx`) —
+  `variant="muted" | "secondary" | "accent"`, `size="default" | "sm"`, render-prop
+  polymorphic. Captures the ~58 hand-rolled `text-muted hover:tertiary` inline
+  navigation links across the app.
+
+**Operating rule going forward (for future Pencil node imports + design tasks):**
+
+1. Pencil's exact colors/sizes/spacings are **inspiration**, not specs. Pencil styles
+   are not bound to the design system.
+2. Every chip/card/button on a new design must trace to a primitive in
+   `packages/ui/src/components/ui/` (Layer 1) OR `apps/app/src/components/{primitives,patterns}/`
+   (Layer 2). If no primitive covers the shape, **extend the primitive** before adding
+   the call site.
+3. No half-step spacing values (`p-3.5`, `gap-2.5`, `text-[10px]`, `rounded-[14px]`).
+4. No raw hex values in component code. Use semantic tokens.
 
 ## v2.0 changelog (2026-05-26)
 

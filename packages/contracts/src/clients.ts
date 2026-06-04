@@ -255,6 +255,25 @@ export const ClientSourceDetailsUpdateOutputSchema = z.object({
 })
 export type ClientSourceDetailsUpdateOutput = z.infer<typeof ClientSourceDetailsUpdateOutputSchema>
 
+// 2026-06-01 (Yuqi /clients/[id] critique — IA): dedicated `updateNotes`
+// mutation. Notes used to be a read-only display inside the Activity
+// tab (no write surface). After moving Notes out to a slide-in panel
+// next to the page title, the editor needs a write path. Single field,
+// single endpoint, single audit action (`client.notes.updated`) — keeps
+// the audit log honest about what actually changed.
+export const ClientNotesUpdateSchema = z.object({
+  id: EntityIdSchema,
+  notes: z.string().max(5000).nullable(),
+  reason: z.string().max(280).optional(),
+})
+export type ClientNotesUpdateInput = z.infer<typeof ClientNotesUpdateSchema>
+
+export const ClientNotesUpdateOutputSchema = z.object({
+  client: ClientPublicSchema,
+  auditId: EntityIdSchema,
+})
+export type ClientNotesUpdateOutput = z.infer<typeof ClientNotesUpdateOutputSchema>
+
 export const ClientRiskSummaryInputSchema = z.object({ clientId: EntityIdSchema })
 export type ClientRiskSummaryInput = z.infer<typeof ClientRiskSummaryInputSchema>
 
@@ -316,6 +335,7 @@ export const clientsContract = oc.router({
   updateSourceDetails: oc
     .input(ClientSourceDetailsUpdateSchema)
     .output(ClientSourceDetailsUpdateOutputSchema),
+  updateNotes: oc.input(ClientNotesUpdateSchema).output(ClientNotesUpdateOutputSchema),
   getRiskSummary: oc.input(ClientRiskSummaryInputSchema).output(AiInsightPublicSchema),
   requestRiskSummaryRefresh: oc
     .input(ClientRiskSummaryRefreshInputSchema)

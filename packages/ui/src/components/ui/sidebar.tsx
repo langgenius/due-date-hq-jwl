@@ -486,10 +486,19 @@ export function SidebarContent({ className, ...props }: React.ComponentProps<'di
 }
 
 export function SidebarFooter({ className, ...props }: React.ComponentProps<'div'>) {
+  // 2026-06-01: bake the canonical footer chrome (top divider, 8px
+  // padding, collapsed-mode centering) into the primitive so consumers
+  // stop hand-rolling the same div + border-t + px-2 py-2 recipe in
+  // app-shell. Semantic recovery — call sites can now use
+  // <SidebarFooter> instead of an ad-hoc <div>.
   return (
     <div
       data-slot="sidebar-footer"
-      className={cn('flex shrink-0 flex-col', className)}
+      className={cn(
+        'flex shrink-0 flex-col border-t border-divider-regular px-2 py-2',
+        'group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0',
+        className,
+      )}
       {...props}
     />
   )

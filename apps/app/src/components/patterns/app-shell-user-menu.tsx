@@ -34,8 +34,9 @@ import { isThemePreference, type ThemePreference } from '@duedatehq/ui/theme'
 import { LOCALE_LABELS, SUPPORTED_LOCALES, type Locale } from '@duedatehq/i18n'
 import type { FirmPublic } from '@duedatehq/contracts'
 import { useLocaleSwitch } from '@/i18n/provider'
-import { initialsFromName, signOut, type AuthUser } from '@/lib/auth'
+import { signOut, type AuthUser } from '@/lib/auth'
 import { cn } from '@duedatehq/ui/lib/utils'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { roleLabel } from './app-shell-nav'
 
 type DemoRole = 'owner' | 'partner' | 'manager' | 'preparer' | 'coordinator'
@@ -351,26 +352,20 @@ function DemoAccountMenuItems({
 }
 
 function UserAvatar({ user }: { user: AuthUser }) {
-  const initials = initialsFromName(user.name || user.email)
-
-  if (user.image) {
-    return (
-      <img
-        src={user.image}
-        alt=""
-        aria-hidden
-        referrerPolicy="no-referrer"
-        className="size-7 rounded-full object-cover"
-      />
-    )
-  }
+  // 2026-06-01: image-vs-initials fallback routed through
+  // AssigneeAvatar (type='human', size='sm' = 28px). `isMine` paints
+  // the canonical accent-tint bg that the previous hand-rolled
+  // <span> baked in directly. The primitive owns the <img>-on-load-
+  // error → initials fallback path now.
   return (
-    <span
-      aria-hidden
-      className="grid size-7 place-items-center rounded-full bg-state-accent-hover-alt text-xs font-semibold text-text-accent"
-    >
-      {initials}
-    </span>
+    <AssigneeAvatar
+      name={user.name || user.email}
+      title={user.name || user.email}
+      size="sm"
+      type="human"
+      image={user.image ?? null}
+      isMine
+    />
   )
 }
 

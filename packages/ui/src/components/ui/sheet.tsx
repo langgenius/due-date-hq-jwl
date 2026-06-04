@@ -37,19 +37,28 @@ function SheetContent({
   children,
   side = 'right',
   showCloseButton = true,
+  flush = false,
   ...props
 }: SheetPrimitive.Popup.Props & {
   side?: 'top' | 'right' | 'bottom' | 'left'
   showCloseButton?: boolean
+  flush?: boolean
 }) {
+  // 2026-06-01: `flush` variant codifies the canonical "sectioned drawer"
+  // shape (gap-0 overflow-hidden p-0). FixNeedsFactsSheet,
+  // ImportHistoryDrawer, and EvidenceDrawerProvider all override
+  // SheetContent with the same recipe; this drops the override and
+  // lets the header/body/footer own their own padding + dividers.
   return (
     <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Popup
         data-slot="sheet-content"
         data-side={side}
+        data-flush={flush ? 'true' : undefined}
         className={cn(
           'fixed z-50 flex flex-col gap-4 border-components-panel-border bg-components-panel-bg bg-clip-padding text-sm text-text-primary shadow-xl transition duration-200 ease-in-out',
+          flush && 'gap-0 overflow-hidden p-0',
           // Entry/exit animation: opacity-only fade. The previous
           // `translate-x-[2.5rem]` + `opacity-0` starting/ending state
           // was getting stuck (Base UI didn't always clear

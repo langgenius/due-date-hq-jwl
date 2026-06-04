@@ -16,7 +16,11 @@ import {
 import { Link, useNavigate } from 'react-router'
 
 import type { InAppNotificationPublic, NotificationType } from '@duedatehq/contracts'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
+import { SidebarMenuBadge, SidebarMenuButton } from '@duedatehq/ui/components/ui/sidebar'
+import { Tabs, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
@@ -103,58 +107,34 @@ function AlertsNotificationsBell() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
+      {/* 2026-06-01: hand-rolled bell trigger collapsed onto
+          SidebarMenuButton — same chrome/hover/focus/collapsed-tile
+          behavior as the other footer destinations (Audit log,
+          Settings). Unread count routes through SidebarMenuBadge
+          tone='urgent' which already handles the expanded-pill ↔
+          collapsed-dot variant per sidebar mode. */}
       <PopoverTrigger
         render={
-          <button
-            type="button"
-            aria-label={unreadCount > 0 ? t`Inbox, ${unreadCount} unread` : t`Inbox`}
-            // 2026-05-28 (Yuqi /today polish — bell moves back IN):
-            // bell lives in the sidebar footer alongside Audit log
-            // and Settings (see app-shell-nav.tsx). Mirrors the
-            // SidebarMenuButton chrome — full-width row in expanded
-            // mode with icon + "Inbox" label + count badge; collapses
-            // to a 32×32 centered icon in collapsed mode with a
-            // small destructive dot when unread > 0. Same hover /
-            // focus / disabled treatment as the other footer items
-            // so it reads as part of the navigation chrome instead
-            // of as a floating utility chip.
-            className={cn(
-              'group/menu-button relative flex h-8 w-full cursor-pointer touch-manipulation items-center gap-2.5 overflow-hidden rounded-md px-3 text-left text-base font-normal text-text-secondary outline-none transition-colors',
-              'hover:bg-background-default-hover hover:text-text-primary',
-              'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-              // Collapsed sidebar: shrink to 32×32 tile, center the
-              // icon, hide the label. Matches SidebarMenuButton's
-              // collapsed treatment so the bell sits in family with
-              // siblings.
-              'group-data-[collapsed=true]/sidebar:size-8 group-data-[collapsed=true]/sidebar:w-8 group-data-[collapsed=true]/sidebar:mx-auto group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:gap-0 group-data-[collapsed=true]/sidebar:px-0 group-data-[collapsed=true]/sidebar:overflow-visible',
-            )}
+          <SidebarMenuButton
+            render={
+              <button
+                type="button"
+                aria-label={unreadCount > 0 ? t`Inbox, ${unreadCount} unread` : t`Inbox`}
+              />
+            }
+            data-has-badge={unreadCount > 0 ? 'true' : 'false'}
+            data-badge-tone={unreadCount > 0 ? 'urgent' : undefined}
           >
-            <BellIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
-            <span
-              data-slot="sidebar-menu-label"
-              className="flex-1 truncate transition-[opacity,max-width] duration-240 ease-apple group-data-[collapsed=true]/sidebar:max-w-0 group-data-[collapsed=true]/sidebar:opacity-0 group-data-[collapsed=true]/sidebar:pointer-events-none group-data-[collapsed=true]/sidebar:overflow-hidden"
-            >
+            <BellIcon aria-hidden />
+            <span data-slot="sidebar-menu-label">
               <Trans>Inbox</Trans>
             </span>
             {unreadCount > 0 ? (
-              <>
-                {/* Expanded: count badge inline on the right. */}
-                <span
-                  aria-hidden
-                  className="ml-auto inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-state-destructive-solid px-1 text-xs font-medium tabular-nums text-text-inverted group-data-[collapsed=true]/sidebar:hidden"
-                >
-                  {unreadCount}
-                </span>
-                {/* Collapsed: replace count chip with a small
-                    destructive dot overlay so the rail signal stays
-                    legible at 32×32 without a number. */}
-                <span
-                  aria-hidden
-                  className="absolute -top-0.5 -right-0.5 hidden size-2 rounded-full bg-state-destructive-solid group-data-[collapsed=true]/sidebar:block"
-                />
-              </>
+              <SidebarMenuBadge aria-hidden="true" tone="urgent">
+                {unreadCount}
+              </SidebarMenuBadge>
             ) : null}
-          </button>
+          </SidebarMenuButton>
         }
       />
       <PopoverContent
@@ -175,49 +155,61 @@ function AlertsNotificationsBell() {
             ) : null}
           </div>
           <div className="flex items-center gap-1">
+            {/* 2026-06-01: Mark-all-read uses TextLink variant='secondary'
+                size='sm' — same secondary-tone hover-to-primary tonality
+                as the previous hand-rolled <button>, now from the
+                primitive. Disabled-opacity routes through the primitive's
+                rounded focus ring as before. */}
             {unreadCount > 0 ? (
-              <button
-                type="button"
+              <TextLink
+                variant="secondary"
+                size="sm"
                 onClick={() => markAllReadMutation.mutate(undefined)}
                 disabled={markAllReadMutation.isPending}
-                className="rounded-sm text-sm text-text-secondary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-50"
+                className="disabled:opacity-50"
               >
                 <Trans>Mark all read</Trans>
-              </button>
+              </TextLink>
             ) : null}
             {/* Expand icon — promotes the popover to the full-page Inbox
               at /notifications. Now that the sidebar no longer has an
               Inbox entry, this is the canonical way users reach the
               full view. Sits in the header so it's always visible
-              regardless of how long the notification list scrolls. */}
-            <Link
-              to="/notifications"
-              onClick={() => setOpen(false)}
-              aria-label={t`Open full Inbox`}
-              title={t`Open full Inbox`}
-              className="inline-flex size-7 items-center justify-center rounded text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              regardless of how long the notification list scrolls.
+              2026-06-01: hand-rolled icon link replaced by Button
+              variant='ghost' size='icon-xs' (28px), which already
+              owns the size-7 + rounded-md + hover/focus chrome. */}
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              render={
+                <Link
+                  to="/notifications"
+                  onClick={() => setOpen(false)}
+                  aria-label={t`Open full Inbox`}
+                  title={t`Open full Inbox`}
+                />
+              }
             >
-              <Maximize2Icon className="size-3.5" aria-hidden />
-            </Link>
+              <Maximize2Icon aria-hidden />
+            </Button>
           </div>
         </header>
 
-        <div className="flex gap-1 border-b border-divider-subtle px-3 py-2">
-          {(['unread', 'all'] as FilterKind[]).map((f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setFilter(f)}
-              className={cn(
-                'rounded-full px-3 py-1 text-sm transition-colors',
-                filter === f
-                  ? 'bg-state-accent-hover text-text-accent'
-                  : 'bg-transparent text-text-secondary hover:bg-background-subtle hover:text-text-primary',
-              )}
-            >
-              {FILTER_LABELS[f]}
-            </button>
-          ))}
+        {/* 2026-06-01: hand-rolled filter pills collapsed onto the
+            segmented Tabs primitive. Two triggers (Unread / All)
+            share the same value/onValueChange contract; selected
+            state comes from the primitive's `data-active` chrome. */}
+        <div className="border-b border-divider-subtle px-3 py-2">
+          <Tabs value={filter} onValueChange={(next) => setFilter(next as FilterKind)}>
+            <TabsList>
+              {(['unread', 'all'] as FilterKind[]).map((f) => (
+                <TabsTrigger key={f} value={f}>
+                  {FILTER_LABELS[f]}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
         </div>
 
         <ul className="max-h-96 overflow-y-auto">
@@ -241,14 +233,18 @@ function AlertsNotificationsBell() {
         </ul>
 
         <footer className="border-t border-divider-subtle px-4 py-2.5">
-          <Link
-            to="/notifications"
-            onClick={() => setOpen(false)}
-            className="inline-flex items-center gap-1 rounded-sm text-base text-text-secondary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          {/* 2026-06-01: footer link routed through TextLink
+              variant='secondary' size='sm' — the primitive owns the
+              secondary-tone hover-to-primary chrome + focus ring +
+              gap-1 layout. Trailing icon stays as a child. */}
+          <TextLink
+            variant="secondary"
+            size="sm"
+            render={<Link to="/notifications" onClick={() => setOpen(false)} />}
           >
             <Trans>View all in Inbox</Trans>
             <ArrowUpRightIcon className="size-3.5" aria-hidden />
-          </Link>
+          </TextLink>
         </footer>
       </PopoverContent>
     </Popover>

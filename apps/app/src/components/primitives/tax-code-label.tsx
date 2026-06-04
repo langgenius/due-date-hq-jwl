@@ -1,3 +1,4 @@
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 
@@ -63,7 +64,21 @@ function TaxCodeLabel({
 
 /**
  * Bordered chip variant — use in dense rows where the tax-code is the
- * primary read for the column (rules console preview, generation row).
+ * primary read for the column (rules console preview, generation row,
+ * dashboard ActionsTable FILING column).
+ *
+ * 2026-06-03 (Pencil VmcdD `fc` chip spec): chip chrome restyled to
+ * a true code-chip:
+ *   • `bg-background-subtle` (soft surface, not white)
+ *   • `font-mono` (JetBrains Mono) + `font-bold` (700) at `text-xs`
+ *   • `rounded-[5px]` — between pill and square — matches Pencil's
+ *     5px corner radius on form-code chips
+ *   • `px-3 py-1` (Pencil's [4, 12])
+ *   • `border-divider-subtle` hairline border (subtle, not regular)
+ *
+ * The Badge primitive's `variant="outline"` still drives focus +
+ * hover behavior; only the chrome (bg, font, radius, padding) is
+ * overridden via className. Tooltip behavior unchanged.
  */
 function TaxCodeBadge({
   code,
@@ -77,13 +92,25 @@ function TaxCodeBadge({
   return (
     <Tooltip>
       <TooltipTrigger
-        className={cn(
-          'inline-flex h-5 cursor-help items-center rounded-sm border border-divider-regular bg-background-subtle px-1.5 text-caption font-medium text-text-secondary',
-          className,
+        render={(props) => (
+          <Badge
+            variant="outline"
+            // 2026-06-04 round 3 (Yuqi feedback #10 "Filing badge
+            // should use lighter weight"): `font-bold` (700) →
+            // `font-medium` (500). The mono face + the tight
+            // tracking already give the code chip enough
+            // identity; bold made it shout next to the row's
+            // body text.
+            className={cn(
+              'cursor-help border-divider-subtle bg-background-subtle px-3 py-1 font-mono font-medium tracking-tight rounded-[5px]',
+              className,
+            )}
+            {...props}
+          >
+            {meta.label}
+          </Badge>
         )}
-      >
-        {meta.label}
-      </TooltipTrigger>
+      />
       <TooltipContent>
         <TaxCodeTooltipBody
           code={meta.code}

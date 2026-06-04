@@ -117,6 +117,7 @@ import {
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
+import { Field, FieldDescription, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import {
   SearchableCombobox,
   type SearchableComboboxOption,
@@ -180,8 +181,10 @@ import {
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
+import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
+import { KbdHint } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
@@ -2396,7 +2399,7 @@ export function ObligationQueueRoute() {
         // "no state" would be more confusing than less.
         cell: (info) => {
           const state = info.getValue<string | null>()
-          if (!state) return <span className="text-text-tertiary">—</span>
+          if (!state) return <EmptyCellMark />
           // 2026-05-29 (Yuqi /clients round 1 — "remove the state icon
           // everywhere"): swept to a bordered Badge for cross-route
           // consistency with /clients. The SVG flag glyph is gone;
@@ -3301,9 +3304,12 @@ export function ObligationQueueRoute() {
           <span className="inline-flex items-center gap-2">
             <Trans>Deadlines</Trans>
             {scopeTotal > 0 ? (
-              <span className="rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
+              // 2026-06-01: swapped hand-rolled count pill for Badge
+              // (variant="secondary" size="lg") — canonical
+              // PageHeader-title count chip.
+              <Badge variant="secondary" size="lg" className="tabular-nums">
                 {scopeTotal}
-              </span>
+              </Badge>
             ) : null}
           </span>
         }
@@ -3334,12 +3340,13 @@ export function ObligationQueueRoute() {
         // (intentional duplication: the inline copy answers "what is
         // this page" without a click, the popover answers "what's a
         // deadline" in product terms).
-        description={
-          <Trans>
-            The operating surface for deadline work — filter, sort, assign owners, update status,
-            and open evidence for each row.
-          </Trans>
-        }
+        // 2026-06-04 round 21 (Yuqi Pencil h4bQ2 — Deadlines production
+        // recreation): description text dropped per Pencil. The h1
+        // "Deadlines" + count chip is the entire header anchor; the
+        // descriptive sentence was claiming a row of chrome that
+        // Pencil's mock doesn't reserve. Concept-help popover on the
+        // title still surfaces the long-form description on demand
+        // for first-time users.
         actions={
           <>
             {/* 2026-05-26 (Yuqi seventieth pass #17): Export icon
@@ -3457,7 +3464,13 @@ export function ObligationQueueRoute() {
                 // narrow, they wrap. With the collapsible search icon
                 // (below), there's enough room on every reasonable
                 // viewport for the 5–6 visible tabs.
-                className="-mb-px flex flex-1 flex-wrap items-center gap-1"
+                // 2026-06-04 round 21 (Yuqi Pencil h4bQ2): inter-tab gap
+                // bumped `gap-1` (4px) → `gap-6` (24px) to match
+                // Pencil's `WB7vU` tab strip. The previous tight gap
+                // read as "buttons crammed together"; 24px makes each
+                // tab read as its own destination, the way the design
+                // intends.
+                className="-mb-px flex flex-1 flex-wrap items-center gap-6"
               >
                 <ObligationQueueScopeTab
                   label={t`All`}
@@ -4071,7 +4084,14 @@ export function ObligationQueueRoute() {
               // The earlier "white edge sliver" concern is moot now
               // that the inner wrapper drops its own bg + the
               // tbody alpha moved up to this layer.
-              className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-divider-subtle"
+              // 2026-06-04 round 23 (Yuqi "apply the style from
+              // Today's Action table to Deadline's table"): outer
+              // card radius bumped `rounded-md` (6px) → `rounded-[12px]`
+              // to match /today's ActionsTable wrapper exactly. The
+              // 12px radius reads as a real surface card, not a
+              // utility data panel. Border tone stays at
+              // `divider-regular` (8%) — same as /today.
+              className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[12px] border border-divider-regular"
             >
               {/* 2026-05-26 (Yuqi feedback — pagination position +
                   empty-row background): wrap Table in a flex-1 rows-
@@ -4105,39 +4125,28 @@ export function ObligationQueueRoute() {
                   area below + pagination footer all read as one
                   surface. */}
               <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                <Table className="rounded-none border-0 [&_th]:!whitespace-normal [&_th]:!px-2 [&_td]:!whitespace-normal [&_td]:!px-2 [&_td]:!align-middle [&_td]:break-words">
-                  {/* 2026-05-26 (Yuqi feedback — "table head should not be
-                    transparent. scrolling up you see the information behind
-                    the header"): dropped the `!bg-background-default-dimmed`
-                    override. That token resolves to alpha-0.4 gray, which
-                    rendered as semi-transparent over the scrolling body
-                    rows below. Falling back to the primitive's solid
-                    `bg-background-subtle` keeps the same visual gray tone
-                    WITHOUT alpha bleed. */}
+                {/* 2026-06-04 round 23 (Yuqi "apply the style from
+                    Today's Action table to Deadline's table"): the
+                    compact horizontal padding override
+                    `[&_th]:!px-2 [&_td]:!px-2` dropped. /today's
+                    ActionsTable uses the canonical px-5 cell
+                    padding; /deadlines now inherits the same — at
+                    1920px the wide-column queue has the room, and
+                    matching pad widths makes the two tables read
+                    as one family. `whitespace-normal` + `break-words`
+                    kept because /deadlines columns carry longer
+                    multi-word content (client name, why-now) that
+                    benefits from wrapping. */}
+                <Table className="rounded-none border-0 [&_th]:!whitespace-normal [&_td]:!whitespace-normal [&_td]:!align-middle [&_td]:break-words">
                   <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                      <TableRow key={headerGroup.id}>
                         {headerGroup.headers.map((header) => {
                           const meta = header.column.columnDef.meta
                           return (
                             <TableHead
                               key={header.id}
-                              className={cn(
-                                // 2026-05-26 (Yuqi /deadlines sixty-fifth
-                                // pass #2/#3/#6/#7): header text moved off
-                                // the small-caps caption style. Yuqi flagged
-                                // it as "not header style" — the uppercase
-                                // + tracking + text-tertiary combo read as
-                                // a kicker label, not a column header,
-                                // especially next to the larger body text
-                                // below. New style matches the Alerts
-                                // AffectedClientsTable headers (text-sm
-                                // sentence-case font-medium text-secondary)
-                                // so column headers across the product
-                                // read as one family.
-                                'text-sm font-medium normal-case tracking-normal text-text-secondary',
-                                meta?.headerClassName,
-                              )}
+                              className={cn(meta?.headerClassName)}
                               colSpan={header.colSpan}
                               aria-sort={obligationQueueColumnAriaSort(header.column.id, sort)}
                             >
@@ -4170,20 +4179,43 @@ export function ObligationQueueRoute() {
                     (Alerts) stays at py-2 since that table sits
                     inside a drawer with tighter chrome — different
                     surface, different density. */}
-                  {/* TableBody bg-background-default (white). Rows sit
-                    on white; outer table is transparent. Per-row hover
-                    state uses bg-state-accent-hover (light accent tint
-                    = same color the right detail panel uses for a
-                    selected row), so hovering previews where the
-                    panel will paint when you click.
-                    2026-05-26 (Yuqi /deadlines sixty-fifth pass follow-up
-                    — denser rows): cell py-3 → py-2 (12px → 8px vertical
-                    padding). Combined with text-base client name +
-                    size-8 avatar the row was reading too tall; py-2
-                    keeps the avatar comfortable and tightens the
-                    overall row rhythm so more rows fit on a 992px
-                    laptop viewport. */}
-                  <TableBody className="bg-background-default [&_td]:py-2 [&_td]:text-sm [&_tr]:hover:!bg-state-accent-hover">
+                  {/* 2026-06-04 (Yuqi table sweep): `bg-background-default`
+                    dropped — canonical default. Kept intentional
+                    deviations: `[&_td]:py-2 [&_td]:text-sm` (queue
+                    is a dense data scan, canonical py-4 + text-base
+                    forces fewer rows per laptop viewport), and
+                    `[&_tr]:hover:!bg-state-accent-hover` (this
+                    queue's hover is the SAME accent tint as the
+                    detail-panel selection, so hover = "where the
+                    panel will land" — overrides the canonical
+                    `bg-state-base-hover`). */}
+                  {/* 2026-06-04 round 23 (Yuqi "apply the style from
+                      Today's Action table to Deadline's table"):
+                      TableBody overrides REVERTED to inherit the
+                      canonical primitive defaults the same way
+                      /today's ActionsTable does.
+                        • Dropped `[&_td]:py-2 [&_td]:text-sm` —
+                          canonical px-5 py-4 + text-base now applies,
+                          giving rows the same generous breathing
+                          room as /today (rows will be ~24px taller
+                          than the previous dense queue; that's the
+                          family-consistency cost).
+                        • Dropped `[&_tr]:hover:!bg-state-accent-hover`
+                          — canonical `hover:bg-state-base-hover`
+                          applies. The accent-tinted hover was a
+                          /deadlines-only quirk; /today uses the
+                          base-hover tone and the two queues now
+                          share one hover vocabulary.
+                        • Kept `[&_tr]:even:bg-transparent` — the
+                          client-cluster welding (border-b-0 within
+                          a same-client group + continuous left rail)
+                          requires same-tone bg across cluster rows.
+                          Zebra striping by DOM position would tint
+                          cluster members differently and break the
+                          weld visual. /today doesn't have clusters,
+                          so it ships zebra striping ON; /deadlines
+                          opts out for cluster compatibility. */}
+                  <TableBody className="[&_tr]:even:bg-transparent">
                     {tableRows.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={visibleColumnCount} className="py-8">
@@ -4244,10 +4276,17 @@ export function ObligationQueueRoute() {
                           collapsedClientGroups.has(rowGroupKey)
                         if (isHiddenContinuation) return null
                         const suppressLeafRow = groupHeader && headerCollapsed
+                        // 2026-06-04 (Yuqi table sweep): on the group
+                        // header TableRow below, `border-b`,
+                        // `border-divider-subtle`, `hover:bg-state-base-hover`
+                        // ALL dropped — canonical TableRow ships them.
+                        // `bg-background-subtle/60` kept because the
+                        // group header is a quieter inset surface than
+                        // the canonical body.
                         return (
                           <Fragment key={tableRow.id}>
                             {groupHeader ? (
-                              <TableRow className="border-b border-divider-subtle bg-background-subtle/60 hover:bg-state-base-hover">
+                              <TableRow className="bg-background-subtle/60">
                                 <TableCell colSpan={visibleColumnCount} className="py-2 pl-3 pr-4">
                                   {/* 2026-05-26 (Yuqi Group-by wireframes,
                                       follow-up — Status option removed):
@@ -4430,20 +4469,13 @@ export function ObligationQueueRoute() {
                                   return (
                                     <TableCell
                                       key={cell.id}
-                                      // 2026-05-26 (Yuqi sixty-sixth pass —
-                                      // cell middle alignment): explicit
-                                      // `align-middle` so a row with a
-                                      // line-clamped 2-line client name
-                                      // keeps the 1-line cells (status,
-                                      // tax type, due-days, owner) optically
-                                      // centered against it. The primitive
-                                      // already sets it, but reinforcing
-                                      // here guards against future
-                                      // overrides via `meta.cellClassName`
-                                      // that would otherwise win on
-                                      // Tailwind specificity.
+                                      // 2026-06-04 (Yuqi table sweep): explicit
+                                      // `align-middle` reinforcement removed —
+                                      // it's a canonical primitive default
+                                      // now, so the only way `meta?.cellClassName`
+                                      // wins is if a column explicitly sets
+                                      // align-top, which would be intentional.
                                       className={cn(
-                                        'align-middle',
                                         density === 'compact' && 'px-2 py-1.5',
                                         meta?.cellClassName,
                                         indentContinuationCell && 'pl-4',
@@ -4503,29 +4535,18 @@ export function ObligationQueueRoute() {
                         aria-hidden
                         className="hidden h-3 border-l border-divider-subtle md:inline-block"
                       />
-                      <span className="hidden items-center gap-1.5 md:inline-flex">
-                        <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-caption-xs tabular-nums text-text-tertiary">
-                          J
-                        </kbd>
-                        <kbd className="rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-caption-xs tabular-nums text-text-tertiary">
-                          K
-                        </kbd>
-                        <span>
-                          <Trans>navigate</Trans>
-                        </span>
-                        <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-caption-xs tabular-nums text-text-tertiary">
-                          Enter
-                        </kbd>
-                        <span>
-                          <Trans>open</Trans>
-                        </span>
-                        <kbd className="ml-1 rounded border border-divider-regular bg-background-subtle px-1.5 py-0 font-sans text-caption-xs tabular-nums text-text-tertiary">
-                          ?
-                        </kbd>
-                        <span>
-                          <Trans>all</Trans>
-                        </span>
-                      </span>
+                      {/* 2026-06-01: hand-rolled <kbd> strip swapped for
+                          canonical KbdHint — same J/K/Enter/? recipe,
+                          but the `·` separator now comes from the
+                          primitive instead of stray mx-1 padding. */}
+                      <KbdHint
+                        className="hidden md:inline-flex"
+                        items={[
+                          { keys: ['J', 'K'], label: t`navigate` },
+                          { keys: ['Enter'], label: t`open` },
+                          { keys: ['?'], label: t`all` },
+                        ]}
+                      />
                     </>
                   ) : null}
                 </div>
@@ -4884,18 +4905,20 @@ export function ObligationQueueRoute() {
             </DialogDescription>
           </DialogHeader>
           {/* 2026-05-26 (step-6 ux-flow audit Q4.5): visible label
-              for SR users (placeholder alone disappears on type). */}
-          <div className="grid gap-2">
-            <label htmlFor="extended-memo-textarea" className="text-sm font-medium">
+              for SR users (placeholder alone disappears on type).
+              2026-06-01: switched to Field + FieldLabel so label/textarea
+              density matches the rest of the dialog forms. */}
+          <Field>
+            <FieldLabel htmlFor="extended-memo-textarea">
               <Trans>Memo</Trans>
-            </label>
+            </FieldLabel>
             <Textarea
               id="extended-memo-textarea"
               placeholder={t`e.g. Filed Form 7004 — client confirmed by phone`}
               value={extendedMemo}
               onChange={(event) => setExtendedMemo(event.target.value)}
             />
-          </div>
+          </Field>
           <DialogFooter>
             {/* 2026-05-27 (σ cross-route audit D9): final outline →
                 ghost straggler in obligations.tsx. Step 6 cont X1
@@ -5296,7 +5319,9 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
     // quiet em-dash so the column still reserves its baseline without
     // claiming a filing event that didn't happen.
     if (status === 'not_applicable' || days === 0) {
-      return <span className="text-sm text-text-tertiary tabular-nums">—</span>
+      // 2026-06-01: canonical EmptyCellMark replaces hand-rolled em-dash —
+      // shares the same accessible "No data" label as other empty cells.
+      return <EmptyCellMark />
     }
     return (
       // 2026-05-26 (Yuqi fifty-fourth pass — terminal pill larger):
@@ -8956,18 +8981,16 @@ function DeadlineInputRequestDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 px-6 py-5">
-          <div className="grid gap-2">
-            {/* 2026-05-26 (step-6 ux-flow audit Q6.1): converted the
-                span "Recipient" tag to a real <label id> so the
-                DropdownMenuTrigger button can claim it via
-                aria-labelledby — SR users now hear "Recipient: Joe
-                Smith" instead of just the truncated trigger text. */}
-            <label
-              id="deadline-input-request-recipient-label"
-              className="text-sm font-medium text-text-primary"
-            >
+          {/* 2026-05-26 (step-6 ux-flow audit Q6.1): the recipient label
+              is exposed via id so DropdownTriggerButton's aria-labelledby
+              still binds it for SR users.
+              2026-06-01: rows now ride Field + FieldLabel; the seat-warning
+              "Add an active owner…" uses FieldDescription tone="warning"
+              instead of a hand-rolled <p role=alert>. */}
+          <Field>
+            <FieldLabel id="deadline-input-request-recipient-label">
               <Trans>Recipient</Trans>
-            </label>
+            </FieldLabel>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
@@ -9009,15 +9032,15 @@ function DeadlineInputRequestDialog({
               </DropdownMenuContent>
             </DropdownMenu>
             {!loadingRecipients && recipients.length === 0 ? (
-              <p role="alert" className="text-sm text-text-warning">
+              <FieldDescription tone="warning">
                 <Trans>Add an active owner or partner before sending an input request.</Trans>
-              </p>
+              </FieldDescription>
             ) : null}
-          </div>
-          <div className="grid gap-2">
-            <label htmlFor="deadline-input-request-message" className="text-sm font-medium">
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="deadline-input-request-message">
               <Trans>Message</Trans>
-            </label>
+            </FieldLabel>
             <Textarea
               id="deadline-input-request-message"
               value={message}
@@ -9026,7 +9049,7 @@ function DeadlineInputRequestDialog({
               placeholder={t`Add the decision or context you need.`}
               onChange={(event) => onMessageChange(event.currentTarget.value)}
             />
-          </div>
+          </Field>
         </div>
         <DialogFooter className="border-t border-divider-subtle px-6 py-4">
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
@@ -9100,22 +9123,26 @@ function AuthorityRejectionDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid min-h-0 gap-4 overflow-y-auto px-6 py-5">
+          {/* 2026-06-01: 4 fields migrated to Field + FieldLabel. Reason's
+              char counter rides FieldLabel as a trailing span — FieldLabel
+              already gap-2's children so no extra flex row needed; the
+              w-full + justify-between recipe keeps counter right-aligned. */}
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="grid gap-2">
-              <label htmlFor="authority-rejected-date" className="text-sm font-medium">
+            <Field>
+              <FieldLabel htmlFor="authority-rejected-date">
                 <Trans>Rejected date</Trans>
-              </label>
+              </FieldLabel>
               <Input
                 id="authority-rejected-date"
                 type="date"
                 value={draft.rejectedAt}
                 onChange={(event) => onDraftChange({ rejectedAt: event.currentTarget.value })}
               />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="authority-rejected-authority" className="text-sm font-medium">
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="authority-rejected-authority">
                 <Trans>Authority</Trans>
-              </label>
+              </FieldLabel>
               <Input
                 id="authority-rejected-authority"
                 value={draft.authority}
@@ -9123,12 +9150,12 @@ function AuthorityRejectionDialog({
                 placeholder={t`IRS / CA FTB`}
                 onChange={(event) => onDraftChange({ authority: event.currentTarget.value })}
               />
-            </div>
+            </Field>
           </div>
-          <div className="grid gap-2">
-            <label htmlFor="authority-rejected-reference" className="text-sm font-medium">
+          <Field>
+            <FieldLabel htmlFor="authority-rejected-reference">
               <Trans>Reject code / notice reference</Trans>
-            </label>
+            </FieldLabel>
             <Input
               id="authority-rejected-reference"
               value={draft.reference}
@@ -9136,16 +9163,14 @@ function AuthorityRejectionDialog({
               placeholder={t`Optional`}
               onChange={(event) => onDraftChange({ reference: event.currentTarget.value })}
             />
-          </div>
-          <div className="grid gap-2">
-            <div className="flex items-center justify-between gap-3">
-              <label htmlFor="authority-rejected-reason" className="text-sm font-medium">
-                <Trans>Reason</Trans>
-              </label>
-              <span className="text-caption-xs tabular-nums text-text-tertiary">
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="authority-rejected-reason" className="w-full justify-between">
+              <Trans>Reason</Trans>
+              <span className="text-caption-xs tabular-nums font-normal text-text-tertiary">
                 {draft.reason.length}/280
               </span>
-            </div>
+            </FieldLabel>
             <Textarea
               id="authority-rejected-reason"
               value={draft.reason}
@@ -9157,15 +9182,11 @@ function AuthorityRejectionDialog({
               onChange={(event) => onDraftChange({ reason: event.currentTarget.value })}
             />
             {reasonError ? (
-              <p
-                id="authority-rejected-reason-error"
-                role="alert"
-                className="text-sm text-text-danger"
-              >
+              <FieldError id="authority-rejected-reason-error">
                 <Trans>Reason is required.</Trans>
-              </p>
+              </FieldError>
             ) : null}
-          </div>
+          </Field>
           <div className="grid gap-2">
             <span className="text-sm font-medium">
               <Trans>Next step</Trans>
@@ -10879,10 +10900,13 @@ function AuthorityResponsePanel({
               {rejectedAt ? <> · {formatDatePretty(rejectedAt.slice(0, 10))}</> : null}
             </p>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full border border-state-destructive-border bg-state-destructive-hover px-2 py-1 text-caption-xs font-medium text-text-destructive">
+          {/* 2026-06-01: swapped hand-rolled destructive pill for
+              Badge variant="destructive". Soft red bg carries the
+              destructive tone; the explicit border is dropped. */}
+          <Badge variant="destructive">
             <AlertTriangleIcon className="size-3" aria-hidden />
             <Trans>Rejected</Trans>
-          </span>
+          </Badge>
         </div>
         {rejection?.reason || rejection?.authority || rejection?.reference ? (
           <dl className="grid gap-2 text-sm md:grid-cols-3">
@@ -10941,10 +10965,13 @@ function AuthorityResponsePanel({
             <Trans>Awaiting authority acceptance</Trans>
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-state-warning-hover px-2 py-1 text-caption-xs font-medium text-text-warning">
+        {/* 2026-06-01: swapped hand-rolled warning pill for
+            Badge variant="warning". Same soft amber background and
+            text token, with built-in icon sizing. */}
+        <Badge variant="warning">
           <Clock className="size-3" aria-hidden />
           <Trans>Pending</Trans>
-        </span>
+        </Badge>
       </div>
       <p className="text-sm text-text-secondary">
         <Trans>
@@ -12642,10 +12669,10 @@ function PenaltyInputDialog({
             <label> elements (placeholder alone disappears on type)
             and inline helper text describing accepted formats. */}
         <div className="grid gap-3">
-          <div className="grid gap-1.5">
-            <label htmlFor="penalty-tax-due" className="text-sm font-medium">
+          <Field>
+            <FieldLabel htmlFor="penalty-tax-due">
               <Trans>Estimated tax due</Trans>
-            </label>
+            </FieldLabel>
             <Input
               id="penalty-tax-due"
               inputMode="decimal"
@@ -12655,14 +12682,14 @@ function PenaltyInputDialog({
                 setDraft((current) => ({ ...current, taxDue: event.target.value }))
               }
             />
-            <p className="text-xs text-text-tertiary">
+            <FieldDescription>
               <Trans>Dollars and cents.</Trans>
-            </p>
-          </div>
-          <div className="grid gap-1.5">
-            <label htmlFor="penalty-owner-count" className="text-sm font-medium">
+            </FieldDescription>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="penalty-owner-count">
               <Trans>Owner count</Trans>
-            </label>
+            </FieldLabel>
             <Input
               id="penalty-owner-count"
               inputMode="numeric"
@@ -12672,10 +12699,10 @@ function PenaltyInputDialog({
                 setDraft((current) => ({ ...current, ownerCount: event.target.value }))
               }
             />
-            <p className="text-xs text-text-tertiary">
+            <FieldDescription>
               <Trans>Positive whole number.</Trans>
-            </p>
-          </div>
+            </FieldDescription>
+          </Field>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>
@@ -12839,10 +12866,18 @@ function ObligationQueueScopeTab({
       aria-label={hideLabel ? label : undefined}
       title={hideLabel ? label : undefined}
       onClick={onClick}
+      // 2026-06-04 round 21 (Yuqi Pencil h4bQ2 — Deadlines): tab
+      // padding shape rebuilt to match the Pencil `Row` spec —
+      // `py-3` (12px vertical, no horizontal) so the inter-tab
+      // gap-6 on the parent nav does the spacing work, and the
+      // active text steps from `text-text-primary` to
+      // `text-state-accent-solid` (blue) so Pencil's
+      // "active tab in blue" pattern reads on screen. Inactive
+      // tabs keep their hover-deepen-border affordance.
       className={cn(
-        'relative -mb-px flex h-9 shrink-0 items-center gap-1.5 px-3 text-base whitespace-nowrap transition-colors',
+        'relative -mb-px flex shrink-0 items-center gap-1.5 py-3 text-base whitespace-nowrap transition-colors',
         active
-          ? 'font-medium text-text-primary'
+          ? 'font-semibold text-state-accent-solid'
           : 'border-b-2 border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary',
       )}
     >

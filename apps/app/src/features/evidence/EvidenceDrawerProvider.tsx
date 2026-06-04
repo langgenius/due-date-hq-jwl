@@ -14,6 +14,7 @@ import { Trans } from '@lingui/react/macro'
 import type { AuditEventPublic, EvidencePublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { Separator } from '@duedatehq/ui/components/ui/separator'
 import {
   Sheet,
@@ -115,15 +116,21 @@ function EvidenceDrawer({
 }
 
 function EvidenceSummary({ request }: { request: OpenEvidenceInput | null }) {
+  // 2026-06-01: deadline summary tile swapped to Card primitive
+  // (size='sm' radius='md'). Dropped the uppercase eyebrow per
+  // DESIGN §9 — the row label now uses the canonical
+  // text-sm font-medium text-text-secondary section-label shape.
   return (
-    <section className="grid gap-2 rounded-lg border border-divider-subtle p-3">
-      <span className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-        <Trans>Deadline</Trans>
-      </span>
-      <div className="text-sm font-medium text-text-primary">
-        {request?.label ?? <Trans>Selected deadline</Trans>}
-      </div>
-    </section>
+    <Card size="sm" radius="md">
+      <CardContent className="grid gap-2">
+        <span className="text-sm font-medium text-text-secondary">
+          <Trans>Deadline</Trans>
+        </span>
+        <div className="text-sm font-medium text-text-primary">
+          {request?.label ?? <Trans>Selected deadline</Trans>}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -172,52 +179,60 @@ function EvidenceCard({ item, focused }: { item: EvidencePublic; focused: boolea
   const practiceTimezone = usePracticeTimezone()
   const description = evidenceDescription(item)
   const details = evidenceDetails(item)
+  // 2026-06-01: evidence row swapped to Card primitive
+  // (size='sm' radius='md'). Focused state uses tone='accent-active'
+  // — the deeper accent border + hover bg variant Phase 3 added
+  // for selected/focused chrome. `interactive` is intentionally
+  // omitted because this article has no onClick handler; adding it
+  // would surface a misleading cursor-pointer + hover state.
   return (
-    <article
-      className={
-        focused
-          ? 'grid gap-3 rounded-lg border border-state-accent-border bg-state-accent-hover p-3'
-          : 'grid gap-3 rounded-lg border border-divider-subtle p-3'
-      }
-    >
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-state-base-hover text-text-secondary">
-          <EvidenceSourceIcon sourceType={item.sourceType} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">{evidenceSourceLabel(item.sourceType)}</Badge>
-            <ConfidenceBadge confidence={item.confidence} />
+    <Card size="sm" radius="md" tone={focused ? 'accent-active' : 'default'}>
+      <CardContent className="grid gap-3">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-state-base-hover text-text-secondary">
+            <EvidenceSourceIcon sourceType={item.sourceType} />
           </div>
-          <h4 className="mt-2 text-sm font-medium text-text-primary">
-            {evidenceHeadline(item.sourceType)}
-          </h4>
-          {description ? <p className="mt-1 text-sm text-text-secondary">{description}</p> : null}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline">{evidenceSourceLabel(item.sourceType)}</Badge>
+              <ConfidenceBadge confidence={item.confidence} />
+            </div>
+            <h4 className="mt-2 text-sm font-medium text-text-primary">
+              {evidenceHeadline(item.sourceType)}
+            </h4>
+            {description ? <p className="mt-1 text-sm text-text-secondary">{description}</p> : null}
+          </div>
         </div>
-      </div>
-      {details.length > 0 ? <EvidenceDetailList details={details} /> : null}
-      {item.verbatimQuote ? (
-        <div className="rounded-lg bg-severity-medium-tint px-3 py-2">
-          <p className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            <Trans>Source excerpt</Trans>
-          </p>
-          <blockquote className="mt-1 text-sm text-text-primary">{item.verbatimQuote}</blockquote>
-        </div>
-      ) : null}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text-tertiary">
-        <span>{formatDateTimeWithTimezone(item.appliedAt, practiceTimezone)}</span>
-        {item.sourceUrl ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            render={<a href={item.sourceUrl} target="_blank" rel="noreferrer" />}
-          >
-            <ExternalLinkIcon data-icon="inline-start" />
-            <Trans>Open source</Trans>
-          </Button>
+        {details.length > 0 ? <EvidenceDetailList details={details} /> : null}
+        {item.verbatimQuote ? (
+          // 2026-06-01: source-excerpt panel swapped to Card primitive
+          // (size='xs' tone='warning' radius='md'). Dropped uppercase
+          // eyebrow per DESIGN §9; replaced with the canonical
+          // text-sm font-medium text-text-secondary label.
+          <Card size="xs" tone="warning" radius="md">
+            <CardContent className="grid gap-1">
+              <p className="text-sm font-medium text-text-secondary">
+                <Trans>Source excerpt</Trans>
+              </p>
+              <blockquote className="text-sm text-text-primary">{item.verbatimQuote}</blockquote>
+            </CardContent>
+          </Card>
         ) : null}
-      </div>
-    </article>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text-tertiary">
+          <span>{formatDateTimeWithTimezone(item.appliedAt, practiceTimezone)}</span>
+          {item.sourceUrl ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              render={<a href={item.sourceUrl} target="_blank" rel="noreferrer" />}
+            >
+              <ExternalLinkIcon data-icon="inline-start" />
+              <Trans>Open source</Trans>
+            </Button>
+          ) : null}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -233,21 +248,29 @@ type ReadableValue = {
 }
 
 function EvidenceDetailList({ details }: { details: EvidenceDetail[] }) {
+  // 2026-06-01: detail list swapped to Card primitive
+  // (size='xs' tone='muted' radius='md'). The <dl> stays inside
+  // CardContent so the description-list semantic is preserved while
+  // the muted-tinted panel chrome comes from Card.
   return (
-    <dl className="grid gap-2 rounded-lg bg-background-subtle p-3 text-sm">
-      {details.map((detail) => (
-        <EvidenceDetailRow key={detail.id} detail={detail} />
-      ))}
-    </dl>
+    <Card size="xs" tone="muted" radius="md">
+      <CardContent>
+        <dl className="grid gap-2 text-sm">
+          {details.map((detail) => (
+            <EvidenceDetailRow key={detail.id} detail={detail} />
+          ))}
+        </dl>
+      </CardContent>
+    </Card>
   )
 }
 
 function EvidenceDetailRow({ detail }: { detail: EvidenceDetail }) {
+  // 2026-06-01: row label uppercase eyebrow swapped for the canonical
+  // text-sm font-medium text-text-secondary label shape per DESIGN §9.
   return (
     <div className="grid gap-1 sm:grid-cols-[128px_1fr] sm:gap-3">
-      <dt className="text-xs font-medium uppercase tracking-wider text-text-tertiary">
-        {detail.label}
-      </dt>
+      <dt className="text-sm font-medium text-text-secondary">{detail.label}</dt>
       <dd className="break-words text-text-primary">{detail.value}</dd>
     </div>
   )
@@ -643,33 +666,36 @@ function AuditTimeline({ events, loading }: { events: AuditEventPublic[]; loadin
             const actionLabel = formatAuditActionLabel(event.action, actionLabels)
             const changeView = buildAuditChangeView(event, changeLabels, practiceTimezone)
             return (
-              <article
-                key={event.id}
-                className="grid gap-2 rounded-lg border border-divider-subtle p-3"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Badge variant="outline">{actionLabel}</Badge>
-                  <span className="font-mono text-xs text-text-tertiary">
-                    {formatDateTimeWithTimezone(event.createdAt, practiceTimezone)}
-                  </span>
-                </div>
-                <p className="text-sm text-text-primary">{changeView.headline}</p>
-                {changeView.changes.length > 0 ? (
-                  <dl className="grid gap-1 text-xs text-text-secondary">
-                    {changeView.changes.slice(0, 3).map((row) => (
-                      <div key={row.field} className="grid grid-cols-[96px_1fr] gap-2">
-                        <dt className="font-medium text-text-tertiary">{row.field}</dt>
-                        <dd className="break-words">
-                          {row.previous} to {row.next}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                ) : null}
-                {changeView.notes.length > 0 ? (
-                  <p className="text-xs text-text-tertiary">{changeView.notes[0]}</p>
-                ) : null}
-              </article>
+              // 2026-06-01: audit timeline row swapped to Card primitive
+              // (size='sm' radius='md'). The bordered, rounded-md chrome
+              // matches the canonical dense in-drawer surface; <article>
+              // semantic is intentionally dropped — Card renders a <div>.
+              <Card key={event.id} size="sm" radius="md">
+                <CardContent className="grid gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <Badge variant="outline">{actionLabel}</Badge>
+                    <span className="font-mono text-xs text-text-tertiary">
+                      {formatDateTimeWithTimezone(event.createdAt, practiceTimezone)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-text-primary">{changeView.headline}</p>
+                  {changeView.changes.length > 0 ? (
+                    <dl className="grid gap-1 text-xs text-text-secondary">
+                      {changeView.changes.slice(0, 3).map((row) => (
+                        <div key={row.field} className="grid grid-cols-[96px_1fr] gap-2">
+                          <dt className="font-medium text-text-tertiary">{row.field}</dt>
+                          <dd className="break-words">
+                            {row.previous} to {row.next}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  ) : null}
+                  {changeView.notes.length > 0 ? (
+                    <p className="text-xs text-text-tertiary">{changeView.notes[0]}</p>
+                  ) : null}
+                </CardContent>
+              </Card>
             )
           })}
         </div>

@@ -1,6 +1,8 @@
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { Astroid } from 'lucide-react'
 
+import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
@@ -52,15 +54,36 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *    card on Today when alert.confidence < 0.5
  */
 export function LowConfidenceBadge({ className }: { className?: string }) {
+  const { t } = useLingui()
+  // 2026-06-04 (Yuqi feedback #5 — "why does only this one has Low
+  // Confidence?"): wrapped in `<Tooltip>` so the badge explains
+  // itself on hover. Previously the badge appeared without context;
+  // a CPA scanning the row didn't know WHY THIS alert was flagged
+  // (vs. its siblings without the badge) — the rationale is "the
+  // AI's extraction confidence on this alert fell below the
+  // canonical 0.5 threshold."
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-sm bg-state-warning-hover px-1.5 py-0.5 text-xs uppercase tracking-wide text-text-warning',
-        className,
-      )}
-    >
-      <Astroid className="size-3" aria-hidden />
-      <Trans>Low confidence</Trans>
-    </span>
+    <Tooltip>
+      <TooltipTrigger
+        render={(props) => (
+          <Badge
+            variant="warning"
+            className={cn('cursor-help uppercase tracking-wide', className)}
+            {...props}
+          >
+            <Astroid aria-hidden />
+            <Trans>Low confidence</Trans>
+          </Badge>
+        )}
+      />
+      {/* 2026-06-04 round 11 (Yuqi "you never answered - what does
+          Low Confidence do"): tooltip rewritten to state HONEST
+          current behavior. The badge is informational only — it
+          doesn't block Apply today. Its job is to prompt the CPA
+          to manually verify the extracted facts against the
+          source. Blocking logic (require sign-off before Apply,
+          route to a review queue) is roadmapped but not built. */}
+      <TooltipContent>{t`AI extraction confidence below 50%. Verify the extracted details against the source before trusting them. This is a visual warning only — it does not currently block Apply, but you should double-check before applying.`}</TooltipContent>
+    </Tooltip>
   )
 }

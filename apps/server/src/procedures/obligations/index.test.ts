@@ -281,6 +281,7 @@ function makeContext(input: {
     updateJurisdiction: null!,
     updateRiskProfile: null!,
     updateSourceDetails: null!,
+    updateNotes: null!,
     updateTaxYearProfile: null!,
     updateAssigneeMany: null!,
     softDelete: null!,

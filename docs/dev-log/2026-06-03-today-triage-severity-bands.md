@@ -25,7 +25,7 @@ Change:
 - **Alerts section weight is now state-dependent** (`needs-attention-section.tsx`). When alerts are
   live it stays the page's loudest block (destructive-tinted hero card row). When the feed is calm
   it collapses to a single quiet status line (`✓ Alerts · Monitoring Federal + 50 states + DC ·
-  nothing needs your review`) with no tinted box. Removed the now-unused `AlertsEmptyState`
+nothing needs your review`) with no tinted box. Removed the now-unused `AlertsEmptyState`
   helper + `StatusBanner` / `CircleSlashIcon` / `PulseSourceHealth` imports.
 
 Validation:

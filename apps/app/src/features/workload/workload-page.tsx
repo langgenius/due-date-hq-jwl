@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@duedatehq/ui/components/ui/card'
+import { Progress } from '@duedatehq/ui/components/ui/progress'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
   Table,
@@ -25,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
@@ -391,13 +393,9 @@ function WorkloadTable({
             />
             <NumericCell value={row.review} href={`${workloadRowHref(row)}&status=review`} />
             <TableCell>
+              {/* 2026-06-01: swapped hand-rolled track+fill divs for the Progress primitive (shared with members SeatStat / rules coverage). */}
               <div className="flex items-center gap-2">
-                <div className="h-2 flex-1 overflow-hidden rounded-sm bg-background-subtle">
-                  <div
-                    className="h-full bg-state-accent-solid"
-                    style={{ width: `${row.loadScore}%` }}
-                  />
-                </div>
+                <Progress value={row.loadScore} className="flex-1" />
                 <span className="w-10 text-right text-xs tabular-nums text-text-secondary">
                   {row.kind === 'unassigned' ? t`Risk` : `${row.loadScore}%`}
                 </span>
@@ -432,15 +430,15 @@ function NumericCell({
 }) {
   return (
     <TableCell className="text-right">
-      <Link
-        to={href}
-        className={cn(
-          'text-xs font-medium tabular-nums underline-offset-4 hover:underline',
-          danger && value > 0 ? 'text-text-destructive' : 'text-text-primary',
-        )}
+      {/* 2026-06-01: TextLink primitive replaces the hand-rolled inline Link. Danger cells pass `text-text-destructive` className — single legit site, no destructive variant needed. */}
+      <TextLink
+        variant="muted"
+        size="sm"
+        render={<Link to={href} />}
+        className={cn('tabular-nums', danger && value > 0 && 'text-text-destructive')}
       >
         {value}
-      </Link>
+      </TextLink>
     </TableCell>
   )
 }

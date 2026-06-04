@@ -75,14 +75,16 @@ The five identifiers on the left compose a unique obligation. The workflow state
 
 From PDF §3.1. The current product models only `filing` cleanly; the rest are partial or aspirational.
 
-| Type                  | Example                                             | Status today                                                   |
-| --------------------- | --------------------------------------------------- | -------------------------------------------------------------- |
-| **`filing`**          | Form 1065, Form 1120-S, NY CT-3-S                   | ✅ Fully modeled                                               |
-| **`payment`**         | Q1 estimated tax, federal withholding deposit       | ⚠️ `paymentState` enum exists; not generated as its own row    |
-| **`deposit`**         | Form 941 semi-weekly federal payroll deposit        | ⚠️ Defined in enum, not generated                              |
-| **`information`**     | W-2 / W-3 (Jan 31), 1099-NEC (Jan 31), K-1 issuance | ❌ Not modeled                                                 |
-| **`client_action`**   | "Send us your QuickBooks file by Mar 1" (firm-set)  | ❌ Not modeled                                                 |
-| **`internal_review`** | "Partner must sign off by Apr 10" (firm-set)        | ⚠️ `reviewerUserId` field exists; not generated as its own row |
+| Type                  | UI label           | Example                                             | Status today                                                   |
+| --------------------- | ------------------ | --------------------------------------------------- | -------------------------------------------------------------- |
+| **`filing`**          | **Return**         | Form 1065, Form 1120-S, NY CT-3-S                   | ✅ Fully modeled                                               |
+| **`payment`**         | Payment            | Q1 estimated tax, federal withholding deposit       | ⚠️ `paymentState` enum exists; not generated as its own row    |
+| **`deposit`**         | Deposit            | Form 941 semi-weekly federal payroll deposit        | ⚠️ Defined in enum, not generated                              |
+| **`information`**     | Information return | W-2 / W-3 (Jan 31), 1099-NEC (Jan 31), K-1 issuance | ❌ Not modeled                                                 |
+| **`client_action`**   | Client action      | "Send us your QuickBooks file by Mar 1" (firm-set)  | ❌ Not modeled                                                 |
+| **`internal_review`** | Internal review    | "Partner must sign off by Apr 10" (firm-set)        | ⚠️ `reviewerUserId` field exists; not generated as its own row |
+
+> **DB vs UI naming**: DB enum values stay verbatim per the canonical PDF §3.1. UI labels diverge where CPA speech is more natural — same pattern as `obligation` (DB) vs `Deadline` (UI). The `filing` → "Return" relabel landed 2026-06-03 (`/critique` Reviewer panel: removes the three-fil-stem collision between `filing` type, `Form` column showing "1120-S", and `Filed` status pill). `useObligationTypeLabels()` is the single source of truth for these labels.
 
 **Implication for the row:** the row is type-aware. A `payment` row should NOT show e-file state; an `information` row should NOT show payment state. Today the row renders all state machinery for all types, which produces empty "—" cells everywhere.
 

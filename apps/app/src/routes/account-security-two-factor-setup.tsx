@@ -6,8 +6,14 @@ import { QRCodeSVG } from 'qrcode.react'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
+import { Field, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
-import { Label } from '@duedatehq/ui/components/ui/label'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@duedatehq/ui/components/ui/input-group'
 
 export type PendingTwoFactorSetup = {
   totpURI: string
@@ -94,32 +100,37 @@ export function TwoFactorSetupPanel({
             </p>
           </div>
 
-          <div className="grid gap-2">
-            <div className="flex items-center justify-between gap-2">
-              <Label htmlFor="totp-uri">
-                <Trans>Setup URI</Trans>
-              </Label>
-              <Button type="button" variant="ghost" size="sm" onClick={handleCopyUri}>
-                {copiedField === 'uri' ? (
-                  <>
-                    <CheckIcon className="size-4" aria-hidden />
-                    <Trans>Copied</Trans>
-                  </>
-                ) : (
-                  <>
-                    <CopyIcon className="size-4" aria-hidden />
-                    <Trans>Copy URI</Trans>
-                  </>
-                )}
-              </Button>
-            </div>
-            <Input
-              id="totp-uri"
-              readOnly
-              value={pendingSetup.totpURI}
-              className="font-mono text-xs"
-            />
-          </div>
+          {/* 2026-06-01: setup URI now uses InputGroup with a trailing Copy
+              addon so the readOnly value + copy CTA share one focus/border
+              layer instead of stacking label-row above input. */}
+          <Field>
+            <FieldLabel htmlFor="totp-uri">
+              <Trans>Setup URI</Trans>
+            </FieldLabel>
+            <InputGroup>
+              <InputGroupInput
+                id="totp-uri"
+                readOnly
+                value={pendingSetup.totpURI}
+                className="font-mono text-xs"
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton onClick={handleCopyUri}>
+                  {copiedField === 'uri' ? (
+                    <>
+                      <CheckIcon aria-hidden />
+                      <Trans>Copied</Trans>
+                    </>
+                  ) : (
+                    <>
+                      <CopyIcon aria-hidden />
+                      <Trans>Copy URI</Trans>
+                    </>
+                  )}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </Field>
         </div>
       </div>
 
@@ -165,25 +176,28 @@ export function TwoFactorSetupPanel({
             <span key={backupCode}>{backupCode}</span>
           ))}
         </div>
-        <Label className="mt-1 flex items-start gap-2 text-sm font-normal text-text-secondary">
+        {/* 2026-06-01: ack-checkbox row uses Field horizontal so the
+            checkbox-leading label/control alignment + focus state come
+            from the primitive instead of a hand-rolled <Label> + flex. */}
+        <Field orientation="horizontal" className="mt-1">
           <Checkbox
+            id="recovery-codes-ack"
             checked={acknowledgedCodes}
             onCheckedChange={(next) => setAcknowledgedCodes(next)}
-            className="mt-0.5"
           />
-          <span>
+          <FieldLabel htmlFor="recovery-codes-ack" className="font-normal text-text-secondary">
             <Trans>
               I've saved these recovery codes somewhere safe. I know they won't be shown again.
             </Trans>
-          </span>
-        </Label>
+          </FieldLabel>
+        </Field>
       </div>
 
       <div className="grid gap-3 border-t border-border-default pt-4 sm:grid-cols-[minmax(0,220px)_auto] sm:items-end">
-        <div className="grid gap-2">
-          <Label htmlFor="totp-code">
+        <Field>
+          <FieldLabel htmlFor="totp-code">
             <Trans>Verification code</Trans>
-          </Label>
+          </FieldLabel>
           <Input
             id="totp-code"
             value={code}
@@ -191,7 +205,7 @@ export function TwoFactorSetupPanel({
             autoComplete="one-time-code"
             onChange={(event) => onCodeChange(event.target.value)}
           />
-        </div>
+        </Field>
         <Button
           type="submit"
           className="w-fit"

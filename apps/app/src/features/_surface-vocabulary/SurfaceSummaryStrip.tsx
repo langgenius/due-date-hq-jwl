@@ -2,6 +2,7 @@ import { ChevronRightIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
@@ -83,13 +84,19 @@ export function SurfaceSummaryStrip({
         )}
       </div>
       {detailHref && detailLabel ? (
-        <Link
-          to={detailHref}
-          className="inline-flex shrink-0 items-center gap-0.5 rounded-sm text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        // 2026-06-01: swap hand-rolled "text-text-accent hover:underline"
+        // Link for the canonical TextLink primitive (accent variant, default
+        // text-xs size). `shrink-0` is preserved as a layout-context override
+        // since the primitive lives inside a flex row that can collapse.
+        <TextLink
+          variant="accent"
+          size="default"
+          className="shrink-0"
+          render={<Link to={detailHref} />}
         >
           {detailLabel}
           <ChevronRightIcon className="size-3.5" aria-hidden />
-        </Link>
+        </TextLink>
       ) : null}
     </div>
   )

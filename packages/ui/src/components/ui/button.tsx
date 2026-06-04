@@ -18,7 +18,16 @@ import { cn } from '@duedatehq/ui/lib/utils'
  */
 const buttonVariants = cva(
   cn(
-    'group/button inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-colors outline-none select-none',
+    // 2026-05-31 (Yuqi /preview round): bumped corner radius scale up
+    // (was uniform rounded-md → 6px) and switched to iOS-style
+    // continuous corners via CSS `corner-shape: squircle`. The bigger
+    // border-radius does most of the work in every browser; the
+    // squircle keyword adds Apple's superellipse smoothing in
+    // browsers that ship the CSS Backgrounds & Borders L4 property
+    // (Chromium 142+, WebKit experimental). Unsupported browsers
+    // ignore it gracefully and just see the rounder corners.
+    'group/button inline-flex shrink-0 cursor-pointer items-center justify-center border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-colors outline-none select-none',
+    '[corner-shape:squircle]',
     'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-2 focus-visible:ring-offset-background-default',
     'disabled:pointer-events-none disabled:cursor-not-allowed data-[disabled]:cursor-not-allowed',
     'aria-invalid:border-state-destructive-border aria-invalid:ring-2 aria-invalid:ring-state-destructive-active aria-invalid:ring-offset-2',
@@ -98,17 +107,22 @@ const buttonVariants = cva(
         ),
       },
       size: {
-        // DESIGN.md: default button is 36px tall, rounded-md, 12px / 500.
+        // 2026-06-04 round 3 (Yuqi feedback #8 "all buttons have
+        // bigger rounded corners"): radius scale bumped one tier
+        // across every size — xs 8→10, sm 10→12, default 12→16,
+        // lg 14→18. Same iOS-HIG continuous-corner shape via
+        // `[corner-shape:squircle]` on the base class; the bump
+        // just makes the rounding more present at every scale.
         default:
-          'h-9 gap-1.5 rounded-md px-2.5 text-sm in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
-        xs: "h-7 gap-1 rounded-md px-2 text-xs in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: 'h-8 gap-1.5 rounded-md px-2.5 text-sm in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
-        lg: 'h-10 gap-1.5 rounded-md px-3 text-base font-semibold has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5',
-        icon: 'size-9 rounded-md in-data-[slot=button-group]:rounded-md',
+          'h-9 gap-1.5 rounded-2xl px-2.5 text-sm in-data-[slot=button-group]:rounded-2xl has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        xs: "h-7 gap-1 rounded-[10px] px-2 text-xs in-data-[slot=button-group]:rounded-[10px] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: 'h-8 gap-1.5 rounded-xl px-2.5 text-sm in-data-[slot=button-group]:rounded-xl has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        lg: 'h-10 gap-1.5 rounded-[18px] px-3 text-base font-semibold has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5',
+        icon: 'size-9 rounded-2xl in-data-[slot=button-group]:rounded-2xl',
         'icon-xs':
-          "size-7 rounded-md in-data-[slot=button-group]:rounded-md [&_svg:not([class*='size-'])]:size-3",
-        'icon-sm': 'size-8 rounded-md in-data-[slot=button-group]:rounded-md',
-        'icon-lg': 'size-10 rounded-md in-data-[slot=button-group]:rounded-md',
+          "size-7 rounded-[10px] in-data-[slot=button-group]:rounded-[10px] [&_svg:not([class*='size-'])]:size-3",
+        'icon-sm': 'size-8 rounded-xl in-data-[slot=button-group]:rounded-xl',
+        'icon-lg': 'size-10 rounded-[18px] in-data-[slot=button-group]:rounded-[18px]',
       },
     },
     defaultVariants: {

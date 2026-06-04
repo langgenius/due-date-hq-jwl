@@ -16,6 +16,7 @@ interface DashboardRepoTopRow {
   clientName: string
   clientEmail?: string | null
   taxType: string
+  obligationType: DashboardTopRow['obligationType']
   currentDueDate: Date
   // 2026-05-27 (D12 — Agent ω): payment due date from the obligation
   // row. Threaded through so the dashboard render layer can detect
@@ -77,6 +78,7 @@ function toTopRow(
     clientName: row.clientName,
     clientEmail: row.clientEmail ?? null,
     taxType: row.taxType,
+    obligationType: row.obligationType,
     currentDueDate: toDateOnly(row.currentDueDate),
     paymentDueDate: row.paymentDueDate ? toDateOnly(row.paymentDueDate) : null,
     status: row.status,

@@ -11,6 +11,8 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetFooter,
+  SheetHeader,
   SheetTitle,
 } from '@duedatehq/ui/components/ui/sheet'
 import { useOptionalSidebar } from '@duedatehq/ui/components/ui/sidebar'
@@ -112,10 +114,14 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
           the full SummaryStrip + alerts band + compliance posture —
           that content moved to the full page; this peek is just for
           identification. */}
-      <SheetContent className="flex flex-col gap-4 overflow-y-auto data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(400px,calc(100vw-1rem))]">
+      <SheetContent className="overflow-y-auto data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(400px,calc(100vw-1rem))]">
         {client ? (
           <>
-            <header className="flex flex-col gap-3">
+            {/* 2026-06-01: hand-rolled <header> + free-floating action
+                cluster swapped for SheetHeader/SheetFooter so the peek
+                inherits the canonical drawer padding (px-6) instead of
+                rendering flush to the panel edge. */}
+            <SheetHeader>
               <div className="flex min-w-0 flex-col gap-1">
                 <SheetTitle className="truncate text-lg font-semibold text-text-primary">
                   {client.name}
@@ -151,7 +157,7 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                   entity label a second time at smaller scale, which
                   read as duplicate metadata. State and readiness are
                   unique signals that earn their chip; entity does not. */}
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 {client.state ? (
                   <Badge variant="outline" className="text-caption">
                     {client.state}
@@ -178,18 +184,20 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
                   </Badge>
                 ) : null}
               </div>
-            </header>
+            </SheetHeader>
 
             {/* One-line next-due summary — the most-asked question
                 during a peek. Avoids the 3-tile grid that wrapped
                 badly in the narrow drawer (Form 1120-S text breaking
                 mid-name was the trigger for this redesign). */}
-            <NextDueLine nextDue={nextDue} asOfDate={asOfDate} />
+            <div className="px-6">
+              <NextDueLine nextDue={nextDue} asOfDate={asOfDate} />
+            </div>
 
             {/* Escape hatches. Anything beyond identification lives on
                 the full page; obligations queue is the other natural
                 drill-in. */}
-            <div className="flex flex-wrap items-center gap-2">
+            <SheetFooter className="flex-row flex-wrap items-center gap-2">
               <Button
                 nativeButton={false}
                 variant="primary"
@@ -209,10 +217,10 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
               >
                 <Trans>View all deadlines</Trans>
               </Button>
-            </div>
+            </SheetFooter>
           </>
         ) : clientQuery.isError ? (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="mx-6">
             <AlertTitle>
               <Trans>Couldn't load this client</Trans>
             </AlertTitle>
@@ -231,7 +239,7 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
           // announcement (semantics unchanged). Description stays
           // sr-only since the visible bars already show "we're
           // fetching things."
-          <div className="flex flex-col gap-3">
+          <SheetHeader className="gap-3">
             <SheetTitle className="text-lg font-semibold text-text-primary">
               <Trans>Loading client…</Trans>
             </SheetTitle>
@@ -240,7 +248,7 @@ export function ClientDetailDrawer({ clientId, onClose }: ClientDetailDrawerProp
             </SheetDescription>
             <Skeleton className="h-4 w-1/2 rounded-md" />
             <Skeleton className="h-12 w-full rounded-md" />
-          </div>
+          </SheetHeader>
         )}
       </SheetContent>
     </Sheet>

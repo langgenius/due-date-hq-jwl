@@ -40,6 +40,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
+import { Field, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Switch } from '@duedatehq/ui/components/ui/switch'
@@ -576,25 +577,28 @@ function SuppressionsPanel({
           <EmptyState title={<Trans>No client emails are suppressed.</Trans>} />
         ) : (
           suppressions.map((item) => (
-            <article
-              key={item.id}
-              className="grid gap-2 rounded-md border border-divider-subtle p-3"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="min-w-0 truncate text-sm font-medium text-text-primary">
-                  {item.email}
-                </span>
-                <Badge variant="secondary">{item.reason}</Badge>
-              </div>
-              {/* 2026-05-24 (critique /polish): suppression timestamp
-                  becomes RelativeTime, consistent with Inbox + Members.
-                  Hover still surfaces the precise ISO. */}
-              <RelativeTime
-                value={item.createdAt}
-                timeZone={timezone}
-                className="text-xs text-text-tertiary"
-              />
-            </article>
+            // 2026-06-01: hand-rolled <article> rounded-md border swapped
+            // for Card size="xs" radius="md" — same dense in-page chrome
+            // PulseDetailDrawer / AlertsListPage use. Card primitive
+            // owns the border + radius + padding rhythm.
+            <Card key={item.id} size="xs" radius="md">
+              <CardContent className="grid gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="min-w-0 truncate text-sm font-medium text-text-primary">
+                    {item.email}
+                  </span>
+                  <Badge variant="secondary">{item.reason}</Badge>
+                </div>
+                {/* 2026-05-24 (critique /polish): suppression timestamp
+                    becomes RelativeTime, consistent with Inbox + Members.
+                    Hover still surfaces the precise ISO. */}
+                <RelativeTime
+                  value={item.createdAt}
+                  timeZone={timezone}
+                  className="text-xs text-text-tertiary"
+                />
+              </CardContent>
+            </Card>
           ))
         )}
       </CardContent>
@@ -667,8 +671,15 @@ function TemplateDialog({
               className="min-h-40"
             />
           </label>
-          <label className="flex items-center justify-between gap-4 rounded-md border border-divider-subtle p-3 text-sm">
-            <span className="flex items-center gap-2">
+          {/* 2026-06-01: hand-rolled <label> flex justify-between row →
+              Field horizontal + FieldLabel + trailing Switch. Field
+              primitive owns the gap, label↔control wiring, and click
+              target; we keep the status-dot / pause-icon glyph inline. */}
+          <Field
+            orientation="horizontal"
+            className="rounded-md border border-divider-subtle p-3 text-sm"
+          >
+            <FieldLabel htmlFor="reminder-template-active">
               {active ? (
                 <BadgeStatusDot tone="success" />
               ) : (
@@ -677,9 +688,9 @@ function TemplateDialog({
               <span>
                 <Trans>Template active</Trans>
               </span>
-            </span>
-            <Switch checked={active} onCheckedChange={setActive} />
-          </label>
+            </FieldLabel>
+            <Switch id="reminder-template-active" checked={active} onCheckedChange={setActive} />
+          </Field>
           <DialogFooter>
             {/* 2026-05-26 (step-6 ux-flow audit F5.1/F5.3): cancel
                 outline → ghost; save announces aria-busy + shows

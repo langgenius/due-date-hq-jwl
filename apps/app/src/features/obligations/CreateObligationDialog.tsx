@@ -39,6 +39,7 @@ import {
 } from '@duedatehq/ui/components/ui/select'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { ClientCombobox } from '@/features/clients/ClientCombobox'
@@ -1084,13 +1085,18 @@ export function CreateObligationDialog({
                       // off to the right of the input above. Sits
                       // flush under the combobox now, as a quiet
                       // secondary affordance.
-                      <button
-                        type="button"
+                      // 2026-06-01: swap hand-rolled accent-link button for
+                      // the TextLink primitive (variant="accent"). The
+                      // primitive owns accent tone + underline-on-hover +
+                      // focus ring; self-start is layout context for the
+                      // Field column, so it stays via className.
+                      <TextLink
+                        variant="accent"
                         onClick={() => setCreateClientOpen(true)}
-                        className="self-start rounded-sm text-left text-xs text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                        className="self-start text-left"
                       >
                         <Trans>Don't see your client? Create one</Trans>
-                      </button>
+                      </TextLink>
                     )}
                     <FieldError errors={fieldErrors(field.state.meta.errors)} />
                   </Field>

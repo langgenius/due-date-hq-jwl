@@ -148,14 +148,16 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
       // 2026-05-29 (Yuqi /clients round 1 — "remove the state icon
       // everywhere"): SVG StateBadge dropped; the bordered pill +
       // jurisdiction code carries the identity on its own.
-      <span className="inline-flex w-fit items-center gap-1.5 rounded-sm border border-divider-regular bg-background-default px-2 py-0.5">
-        <span className="text-xs font-semibold uppercase tracking-wide text-text-primary">
+      // 2026-06-01: jurisdiction kicker swapped to the canonical
+      // Badge primitive (shape="square" variant="outline"). Same
+      // call as PulseDetailDrawer:710 — the two canonical
+      // jurisdiction surfaces now share one primitive call.
+      <Badge shape="square" variant="outline" className="gap-1.5">
+        <span className="font-semibold uppercase tracking-wide text-text-primary">
           {detail.jurisdiction}
         </span>
-        {jurisdictionFull ? (
-          <span className="text-xs text-text-secondary">{jurisdictionFull}</span>
-        ) : null}
-      </span>
+        {jurisdictionFull ? <span className="text-text-secondary">{jurisdictionFull}</span> : null}
+      </Badge>
     ),
   })
   if (detail.counties.length > 0) {

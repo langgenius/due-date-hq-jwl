@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import type { AuditEventPublic } from '@duedatehq/contracts'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
@@ -158,9 +159,19 @@ function MilestoneNode({
             {label}
           </span>
           {isCurrent ? (
-            <span className="rounded-sm border border-state-accent-active px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-wide text-state-accent-active">
+            // 2026-06-01: swap hand-rolled accent-bordered eyebrow pill for the
+            // Badge primitive (variant="outline" + shape="square"). The
+            // primitive owns the uppercase tracking + rounded-sm chrome; the
+            // className override only re-tints the border and text from the
+            // outline default (border-divider-regular / text-text-secondary)
+            // to the accent tone that distinguishes the active timeline phase.
+            <Badge
+              variant="outline"
+              shape="square"
+              className="border-state-accent-active text-state-accent-active"
+            >
               {t`Current`}
-            </span>
+            </Badge>
           ) : null}
         </div>
         {events.length > 0 ? (

@@ -59,10 +59,11 @@ import {
 } from '@duedatehq/ui/components/ui/sidebar'
 import { AlertsNotificationsBell } from '@/components/patterns/alerts-notifications-bell'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
+import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
 import { cn } from '@duedatehq/ui/lib/utils'
-import { initialsFromName } from '@/lib/auth'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { resetPracticeScopedQueryCache } from '@/lib/query-cache'
@@ -121,9 +122,9 @@ type NavConfig = {
   footer: NavItem[]
 }
 
-function firmMonogram(name: string): string {
-  return initialsFromName(name).slice(0, 2).toUpperCase() || 'DD'
-}
+// 2026-06-01: `firmMonogram` removed — both call sites now route
+// through AssigneeAvatar (type='firm', shape='square'), which calls
+// initialsFromName internally and falls back to 'DD' for empty names.
 
 const NAV_ROLE_LABELS = {
   owner: msg`Owner`,
@@ -185,8 +186,6 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
       },
     }),
   )
-  const currentMonogram = firmMonogram(firm.name)
-
   const handleSwitch = useCallback(
     (firmId: string) => {
       if (firmId === firm.id || switchMutation.isPending) return
@@ -257,14 +256,21 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
               not a slim row. Reference screenshot shows a clearly
               prominent logo + name pair as the rail's top anchor.
               Collapsed mode still uses size-7 (28px) inside the
-              56px rail. */}
-          <span
-            aria-hidden
-            className="grid size-10 shrink-0 place-items-center rounded-md bg-brand-primary text-base font-semibold text-text-inverted group-data-[collapsed=true]/sidebar:size-7 group-data-[collapsed=true]/sidebar:text-xs"
-            translate="no"
-          >
-            {currentMonogram}
-          </span>
+              56px rail.
+              2026-06-01: monogram now renders through AssigneeAvatar
+              (type='firm', shape='square') so the brand tile shares
+              one primitive with people avatars. The size cycle
+              (size-10 expanded → size-7 collapsed) stays as a
+              className override since AssigneeAvatar has no
+              sidebar-context size hook. */}
+          <AssigneeAvatar
+            name={firm.name}
+            title={firm.name}
+            type="firm"
+            shape="square"
+            size="lg"
+            className="shrink-0 group-data-[collapsed=true]/sidebar:size-7 group-data-[collapsed=true]/sidebar:text-xs"
+          />
           <span
             className="min-w-0 flex-1 truncate text-base font-medium text-text-primary group-data-[collapsed=true]/sidebar:hidden"
             translate="no"
@@ -300,13 +306,17 @@ function FirmSwitcherTrigger({ firm, firms }: { firm: FirmPublic; firms: FirmPub
                   onClick={() => handleSwitch(item.id)}
                 >
                   <span className="flex min-w-0 items-center gap-2.5">
-                    <span
-                      aria-hidden
-                      className="grid size-7 shrink-0 place-items-center rounded-md bg-brand-primary text-caption-xs font-semibold text-text-inverted"
-                      translate="no"
-                    >
-                      {firmMonogram(item.name)}
-                    </span>
+                    {/* 2026-06-01: dropdown-item monogram routed
+                        through AssigneeAvatar (firm + square + sm).
+                        Fixed 28px tile — no sidebar-context resize. */}
+                    <AssigneeAvatar
+                      name={item.name}
+                      title={item.name}
+                      type="firm"
+                      shape="square"
+                      size="sm"
+                      className="shrink-0"
+                    />
                     <span className="flex min-w-0 flex-col leading-tight">
                       <span
                         className="truncate text-sm font-medium text-text-primary"
@@ -428,20 +438,26 @@ function AddFirmDialog({
         </DialogHeader>
         {!canCreate ? (
           <div className="grid gap-4">
-            <div className="rounded-md border border-divider-regular bg-background-subtle p-4">
-              <p className="text-xs uppercase tracking-eyebrow text-text-tertiary">
-                <Trans>Practice workspaces</Trans>
-              </p>
-              <p className="mt-2 text-sm font-medium text-text-primary">
-                <Trans>{ownedFirmCount} of 1 included</Trans>
-              </p>
-              <p className="mt-1 text-sm leading-5 text-text-secondary">
-                <Trans>
-                  Solo, Pro, and Team include one active practice workspace. Contact sales for
-                  multiple practices, offices, or demo/production separation.
-                </Trans>
-              </p>
-            </div>
+            {/* 2026-06-01: hand-rolled info callout collapsed onto
+                Card size='sm' tone='muted' radius='md' — same border-
+                subtle + background-section recipe, now from the
+                primitive. Card sets py-4; CardContent adds px-4. */}
+            <Card size="sm" tone="muted" radius="md">
+              <CardContent>
+                <p className="text-xs uppercase tracking-eyebrow text-text-tertiary">
+                  <Trans>Practice workspaces</Trans>
+                </p>
+                <p className="mt-2 text-sm font-medium text-text-primary">
+                  <Trans>{ownedFirmCount} of 1 included</Trans>
+                </p>
+                <p className="mt-1 text-sm leading-5 text-text-secondary">
+                  <Trans>
+                    Solo, Pro, and Team include one active practice workspace. Contact sales for
+                    multiple practices, offices, or demo/production separation.
+                  </Trans>
+                </p>
+              </CardContent>
+            </Card>
             <DialogFooter>
               {/* 2026-05-27 (σ cross-route audit D12 — upgrade prompt):
                   Cancel was the last outline straggler from X1 in the

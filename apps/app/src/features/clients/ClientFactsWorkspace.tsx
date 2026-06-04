@@ -31,7 +31,6 @@ import {
   LinkIcon,
   SearchIcon,
   SparklesIcon,
-  UserRoundIcon,
   UsersRoundIcon,
 } from 'lucide-react'
 
@@ -1008,12 +1007,19 @@ export function ClientFactsWorkspace({
             <Trans>Assignee</Trans>
           </span>
         ),
-        cell: ({ row }) => (
-          <ClientAssigneeAvatar
-            name={row.original.assigneeName}
-            currentUserName={currentUserName}
-          />
-        ),
+        cell: ({ row }) => {
+          // 2026-06-01: ClientAssigneeAvatar shim removed — its only
+          // remaining job was the isMine accent + title construction,
+          // which is short enough to inline here. The unassigned branch
+          // now lives inside the AssigneeAvatar primitive (null name).
+          const name = row.original.assigneeName
+          const isMine =
+            currentUserName !== null &&
+            name !== null &&
+            name.trim().toLowerCase() === currentUserName.toLowerCase()
+          const title = name === null ? t`Unassigned` : isMine ? t`Assigned to you (${name})` : name
+          return <AssigneeAvatar name={name} isMine={isMine} title={title} />
+        },
         meta: {
           headerClassName: CLIENTS_COL_WIDTH.assignee,
           cellClassName: CLIENTS_COL_WIDTH.assignee,
@@ -1252,7 +1258,10 @@ export function ClientFactsWorkspace({
         // on the outer wrapper so it spans both.
         <div
           ref={setTableCardElement}
-          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-divider-subtle"
+          // 2026-06-04 round 16 (Yuqi "lighter border"): /clients
+          // outer card border settled at `divider-regular` (8%
+          // alpha) — the visible-but-quiet canonical tone.
+          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-divider-regular"
         >
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {isLoading ? (
@@ -1280,30 +1289,20 @@ export function ClientFactsWorkspace({
                 // here as a table-layout concern.
                 className="table-fixed"
               >
+                {/* 2026-06-04 (Yuqi table sweep): header `hover:bg-transparent`
+                    + the per-head `text-sm font-medium normal-case
+                    tracking-normal text-text-secondary` override
+                    REMOVED — the canonical primitive ships the header
+                    transparent-hover + 11/600 uppercase column-label
+                    style. /clients reads as the same family as
+                    /today, /deadlines, /audit etc. */}
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    // 2026-05-27 (Yuqi /clients ↔ /deadlines parity
-                    // refactor): header row drops the primitive's
-                    // default `hover:bg-state-base-hover` — header
-                    // is a non-interactive band, hover affordance
-                    // belongs on data rows. Matches /deadlines
-                    // (route obligations.tsx ~line 3648).
-                    <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                    <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
-                        // 2026-05-27 (Yuqi /clients ↔ /deadlines parity
-                        // refactor): apply the canonical column-header
-                        // typography (`text-sm font-medium normal-case
-                        // tracking-normal text-text-secondary`) on EVERY
-                        // TableHead so non-sortable columns ("Assignee",
-                        // "Opp.", "Row actions" sr-only) inherit the same
-                        // family as the ColumnSortHeader buttons. Mirrors
-                        // /deadlines (obligations.tsx ~line 3667).
                         <TableHead
                           key={header.id}
-                          className={cn(
-                            'text-sm font-medium normal-case tracking-normal text-text-secondary',
-                            header.column.columnDef.meta?.headerClassName,
-                          )}
+                          className={cn(header.column.columnDef.meta?.headerClassName)}
                         >
                           {header.isPlaceholder
                             ? null
@@ -1334,7 +1333,13 @@ export function ClientFactsWorkspace({
                     the row hairlines /deadlines has been shipping. This
                     is the structural change Yuqi flagged in the brief
                     ("Missing row dividers between client rows"). */}
-                <TableBody className="bg-background-default [&_td]:py-2 [&_td]:text-sm [&_tr]:hover:!bg-state-accent-hover">
+                {/* 2026-06-04 (Yuqi table sweep): `bg-background-default`
+                    dropped — canonical body default. Kept compact
+                    cell padding `[&_td]:py-2 [&_td]:text-sm` (Clients
+                    list is a dense scan surface) and the accent-tone
+                    hover override (matches /deadlines: hover tint =
+                    detail-panel selection tint). */}
+                <TableBody className="[&_td]:py-2 [&_td]:text-sm [&_tr]:hover:!bg-state-accent-hover">
                   {table.getRowModel().rows.length > 0 ? (
                     table.getRowModel().rows.map((row) => (
                       <TableRow
@@ -1800,31 +1805,26 @@ function ClientTableSkeleton() {
         '[&_[data-slot=table-container]]:overflow-hidden',
         '[&_[data-slot=table-container]]:rounded-md',
         '[&_[data-slot=table-container]]:border',
-        '[&_[data-slot=table-container]]:border-divider-subtle',
+        // 2026-06-04 round 16: skeleton border matches the live
+        // table's canonical tone (`divider-regular`).
+        '[&_[data-slot=table-container]]:border-divider-regular',
         '[&_[data-slot=table-container]]:bg-background-default',
       )}
       aria-busy="true"
     >
+      {/* 2026-06-04 (Yuqi table sweep): skeleton header overrides
+          dropped — canonical primitive ships the right column-label
+          style; `bg-background-default` body bg dropped. */}
       <TableHeader>
-        <TableRow className="hover:bg-transparent">
+        <TableRow>
           {columns.map((column) => (
-            <TableHead
-              key={column.id}
-              className={cn(
-                'text-sm font-medium normal-case tracking-normal text-text-secondary',
-                column.className,
-              )}
-            >
+            <TableHead key={column.id} className={cn(column.className)}>
               <Skeleton className={cn('h-3', column.header)} />
             </TableHead>
           ))}
         </TableRow>
       </TableHeader>
-      {/* 2026-05-27 (Yuqi /clients ↔ /deadlines parity refactor):
-          dropped `[&_tr]:border-b-0` so skeleton rows show the same
-          hairlines the live table renders — loading state previews
-          the real structure rather than dissolving the rows. */}
-      <TableBody className="bg-background-default [&_td]:py-2 [&_td]:text-sm">
+      <TableBody className="[&_td]:py-2 [&_td]:text-sm">
         {[0, 1, 2, 3, 4].map((row) => (
           <TableRow key={row}>
             {columns.map((column) => (
@@ -1862,30 +1862,9 @@ function ClientTableEmptyRow({ colSpan }: { colSpan: number }) {
  * /clients shows a muted person icon while /deadlines opens an inline
  * picker (different IA per surface).
  */
-function ClientAssigneeAvatar({
-  name,
-  currentUserName,
-}: {
-  name: string | null
-  currentUserName: string | null
-}) {
-  const { t } = useLingui()
-  if (!name) {
-    return (
-      <span
-        aria-label={t`Unassigned`}
-        title={t`Unassigned`}
-        className="inline-flex size-8 items-center justify-center rounded-full bg-background-subtle text-text-tertiary"
-      >
-        <UserRoundIcon className="size-3.5" aria-hidden />
-      </span>
-    )
-  }
-  const isMine =
-    currentUserName !== null && name.trim().toLowerCase() === currentUserName.toLowerCase()
-  const title = isMine ? t`Assigned to you (${name})` : name
-  return <AssigneeAvatar name={name} isMine={isMine} title={title} />
-}
+// 2026-06-01: ClientAssigneeAvatar shim removed — the unassigned
+// branch is now handled inside the shared AssigneeAvatar primitive
+// (passing `name={null}` renders the muted person silhouette).
 // 2026-05-26 (Yuqi cross-table drift #10 — "Owner/Assignee avatar
 // size + initials hash consistency"): the ASSIGNEE_TINTS palette + FNV
 // hash that used to live inline here moved to `@/lib/assignee-tint` so

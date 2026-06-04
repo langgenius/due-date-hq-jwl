@@ -41,6 +41,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@duedatehq/ui/components/ui/card'
+import { Field, FieldDescription, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
@@ -475,10 +476,15 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                 <Trans>Only the practice owner can change the practice name or timezone.</Trans>
               </PermissionInlineNotice>
             ) : null}
-            <div className="grid gap-1.5">
-              <Label htmlFor="firm-name">
+            {/* 2026-06-01: four practice-profile fields now use Field +
+                FieldLabel/FieldDescription so label-input spacing matches
+                the rest of the form family and the recalc warning rides
+                FieldDescription tone="warning" (single source for the
+                "alert helper" pattern). */}
+            <Field>
+              <FieldLabel htmlFor="firm-name">
                 <Trans>Practice name</Trans>
-              </Label>
+              </FieldLabel>
               <Input
                 id="firm-name"
                 value={name}
@@ -486,22 +492,22 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                 autoComplete="organization"
                 disabled={!canEditPractice || updateMutation.isPending}
               />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="firm-timezone">
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="firm-timezone">
                 <Trans>Timezone</Trans>
-              </Label>
+              </FieldLabel>
               <FirmTimezoneSelect
                 id="firm-timezone"
                 value={timezone}
                 onValueChange={setTimezone}
                 disabled={!canEditPractice || updateMutation.isPending}
               />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="firm-internal-deadline-offset">
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="firm-internal-deadline-offset">
                 <Trans>Internal deadline</Trans>
-              </Label>
+              </FieldLabel>
               <Input
                 id="firm-internal-deadline-offset"
                 type="number"
@@ -515,42 +521,46 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                 disabled={!canEditPractice || updateMutation.isPending}
                 className="tabular-nums"
               />
-              <p className="text-xs leading-5 text-text-tertiary">
+              <FieldDescription>
                 <Trans>
                   DueDateHQ shows work as due this many days before each statutory base deadline.
                   Changing this recalculates current deadline dates.
                 </Trans>
-              </p>
+              </FieldDescription>
               {/* 2026-05-27 (step-6 audit #113): make the one-way
                   nature of the change explicit. Reducing the offset
                   recalculates every open deadline forward; reverting
                   the number doesn't restore the prior dates. Audit
                   history (the historical record) is unaffected. */}
-              <p className="text-xs leading-5 text-text-warning">
+              <FieldDescription tone="warning">
                 <Trans>
                   Note: changes can't be reverted automatically — adjusting this back later won't
                   restore prior deadline dates. Historical audit entries stay intact.
                 </Trans>
-              </p>
-            </div>
-            <div className="grid gap-1.5">
-              <Label>
+              </FieldDescription>
+            </Field>
+            <Field>
+              <FieldLabel>
                 <Trans>Monitoring start date</Trans>
-              </Label>
+              </FieldLabel>
               <div className="rounded-md border border-divider-regular bg-background-subtle px-3 py-2 text-sm text-text-secondary">
                 <Trans>Monitoring since {formatDate(firm.monitoringStartDate)}</Trans>
               </div>
-              <p className="text-xs leading-5 text-text-tertiary">
+              <FieldDescription>
                 <Trans>
                   DueDateHQ only auto-generates active filing plans from statutory deadlines on or
                   after this date.
                 </Trans>
-              </p>
-            </div>
+              </FieldDescription>
+            </Field>
             {error ? (
-              <p role="alert" className="text-sm text-text-destructive">
-                {error}
-              </p>
+              // 2026-06-01: hand-rolled `<p role=alert>` swapped for the
+              // canonical destructive Alert — same accessible role, but
+              // picks up the bordered alert chrome the rest of the app
+              // uses for form-level errors.
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             ) : null}
             <div className="flex justify-end">
               <Button
@@ -635,8 +645,10 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                 ) : null}
                 <div className="grid gap-3 md:grid-cols-4">
                   {PRIORITY_FACTOR_KEYS.map((key) => (
-                    <div key={key} className="grid gap-1.5">
-                      <Label htmlFor={`priority-weight-${key}`}>{priorityFactorLabels[key]}</Label>
+                    <Field key={key}>
+                      <FieldLabel htmlFor={`priority-weight-${key}`}>
+                        {priorityFactorLabels[key]}
+                      </FieldLabel>
                       <Input
                         id={`priority-weight-${key}`}
                         type="number"
@@ -647,19 +659,20 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                         disabled={priorityUpdateMutation.isPending}
                         className="tabular-nums"
                       />
-                    </div>
+                    </Field>
                   ))}
                 </div>
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
-                <div className="grid gap-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <Label htmlFor="priority-urgency-window">
-                      <Trans>Urgency window</Trans>
-                    </Label>
+                {/* 2026-06-01: ConceptHelp lives inline as a child of
+                    FieldLabel — FieldLabel already gap-2's its children
+                    so no extra flex wrapper is needed. */}
+                <Field>
+                  <FieldLabel htmlFor="priority-urgency-window">
+                    <Trans>Urgency window</Trans>
                     <ConceptHelp concept="urgencyWindow" />
-                  </div>
+                  </FieldLabel>
                   <Input
                     id="priority-urgency-window"
                     type="number"
@@ -672,14 +685,12 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                     disabled={priorityUpdateMutation.isPending}
                     className="tabular-nums"
                   />
-                </div>
-                <div className="grid gap-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <Label htmlFor="priority-history-cap">
-                      <Trans>Late filing cap</Trans>
-                    </Label>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="priority-history-cap">
+                    <Trans>Late filing cap</Trans>
                     <ConceptHelp concept="lateFilingCap" />
-                  </div>
+                  </FieldLabel>
                   <Input
                     id="priority-history-cap"
                     type="number"
@@ -692,7 +703,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                     disabled={priorityUpdateMutation.isPending}
                     className="tabular-nums"
                   />
-                </div>
+                </Field>
               </div>
 
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -852,12 +863,12 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
               destructive action enables. The expected name is
               displayed verbatim so the user can copy-confirm rather
               than guess casing/spacing. */}
-          <div className="grid gap-1.5">
-            <Label htmlFor="delete-practice-confirm">
+          <Field>
+            <FieldLabel htmlFor="delete-practice-confirm">
               <Trans>
                 Type <span className="font-mono text-text-primary">{firm.name}</span> to confirm
               </Trans>
-            </Label>
+            </FieldLabel>
             <Input
               id="delete-practice-confirm"
               value={deleteConfirmName}
@@ -868,7 +879,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
               disabled={deleteMutation.isPending}
               placeholder={firm.name}
             />
-          </div>
+          </Field>
           <AlertDialogFooter>
             <AlertDialogCancel>
               <Trans>Cancel</Trans>

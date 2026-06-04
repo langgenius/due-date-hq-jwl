@@ -1,48 +1,48 @@
-import { useState } from 'react'
+import { useMemo } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, ArrowUpRightIcon, CalendarIcon } from 'lucide-react'
+import {
+  ArrowUpRightIcon,
+  CalendarIcon,
+  CircleCheckIcon,
+  ConstructionIcon,
+  FileCheckIcon,
+  HourglassIcon,
+  LoaderIcon,
+  MessageSquareTextIcon,
+  SparklesIcon,
+} from 'lucide-react'
 import { Link } from 'react-router'
 
 import type { DashboardTopRow, ObligationStatus } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { Table, TableBody, TableCell, TableRow } from '@duedatehq/ui/components/ui/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
-import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
-import { StatTile } from '@/components/patterns/stat-tile'
-import { ConceptHelp } from '@/features/concepts/concept-help'
-import { useCurrentFirm } from '@/features/billing/use-billing-data'
+import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
+import { DueDateLabel } from '@/components/primitives/due-date-label'
 import { formatDatePretty } from '@/lib/utils'
+import { ReadinessIndicator } from '@/components/primitives/readiness-indicator'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
+import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { isPaymentOverdue, paymentOverdueDays } from '@/features/obligations/payment-overdue'
-
-// 2026-06-03 (Yuqi — surface severity tiers on Today): the flat
-// priority-sorted "Actions this week" list buried the critical / high /
-// upcoming distinction behind a 3.5px leading-chevron tint + the
-// right-edge time text. A CPA doing a Monday-morning triage had to read
-// every row to learn the *shape* of the week. We now group the rows
-// into explicit severity bands with colored headers + counts, and give
-// each row a left urgency rail, so "2 on fire, 3 warm, the rest fine"
-// reads at a glance. Severity comes straight from the server's
-// DashboardTopRow.severity (critical / high / medium / neutral); medium
-// and neutral fold into one "Upcoming" band.
-type SeverityBandKey = 'critical' | 'high' | 'upcoming'
-
-// The hierarchy is carried entirely by the band header — a colored dot
-// + tinted label + plain-language caption. No boxes, washes, or row
-// rails, which fought the page's clean, borderless aesthetic.
-const SEVERITY_BAND_STYLE: Record<SeverityBandKey, { dot: string; label: string }> = {
-  critical: { dot: 'bg-text-destructive', label: 'text-text-destructive' },
-  high: { dot: 'bg-text-warning', label: 'text-text-warning' },
-  upcoming: { dot: 'bg-text-tertiary', label: 'text-text-tertiary' },
-}
-
-function severityBandKey(severity: DashboardTopRow['severity']): SeverityBandKey {
-  if (severity === 'critical') return 'critical'
-  if (severity === 'high') return 'high'
-  return 'upcoming'
-}
+import { ExtensionChip } from './extension-chip'
+import { LifecycleStripCell } from './lifecycle-strip-cell'
+import { severityToTier, type SeverityTier } from './severity-section'
+// 2026-05-31 (Yuqi Pencil FpHtM — owner-avatar slot): Pencil also
+// shows a per-row owner-initials avatar on the right cluster.
+// `DashboardTopRow` (packages/contracts/src/dashboard.ts) does not
+// expose an `assigneeName` field today — the obligation queue
+// schema does (`obligation-queue.ts`), but the dashboard top-rows
+// projection drops it. To render the avatar without a stale
+// placeholder, the contract + server projection need a small
+// extension (one field + one SELECT). Imports kept commented so
+// the wire-up is one uncomment away once the contract change
+// lands.
+// import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
+// import { useCurrentUserName } from '@/lib/use-current-user-name'
 
 function topPriorityFactors(row: DashboardTopRow): string[] {
   const factors = [...(row.smartPriority.factors ?? [])]
@@ -71,23 +71,12 @@ function daysUntilDueFromAsOf(currentDueDate: string, asOfDate: string | null): 
   return Math.round((due - as) / (1000 * 60 * 60 * 24))
 }
 
-// 2026-05-25 (Yuqi Today #33): Yuqi asked to see both the firm's
-// INTERNAL deadline ("when you actually need to file by") and the
-// OFFICIAL statutory deadline on the dashboard's expanded row.
-// `currentDueDate` on DashboardTopRow is the official date; the
-// internal date is computed by subtracting the firm's configured
-// `internalDeadlineOffsetDays` (default 14). The contract doesn't
-// surface the internal date as a separate field today — it's a
-// view-time derivation everywhere it appears. Computing it here
-// avoids a contract migration just for this UI tweak.
-function internalDueDateFromOfficial(
-  officialDueDate: string,
-  internalDeadlineOffsetDays: number,
-): string {
-  const date = new Date(`${officialDueDate}T00:00:00`)
-  date.setDate(date.getDate() - internalDeadlineOffsetDays)
-  return date.toISOString().slice(0, 10)
-}
+// 2026-06-03 (audit follow-up — dead-code prune):
+// `internalDueDateFromOfficial` removed. It only served the
+// hover-expansion `<dl>` panel in the now-deleted `ActionRow`; the
+// canonical surface for the firm-internal vs. statutory split is
+// now the obligation drawer (which has its own derivation). Restore
+// from git history if a dashboard surface ever needs the inline date.
 
 // 2026-05-25 (Yuqi #26): the previous prompts read like developer
 // prose — "close the row" is engineering-speak the CPA never uses,
@@ -117,514 +106,452 @@ function useActionPrompt(row: DashboardTopRow, asOfDate: string | null): string 
   return t`Re-verify the source still applies to this return`
 }
 
-// 2026-05-24 (critique P0): terminal-state rows render lateness as a
-// muted quality stat ("filed #d late"), not red live urgency. The
-// dashboard top-rows query typically filters terminal states out, so
-// this branch is defensive — guards against an optimistic update or
-// a future server expansion landing a completed row in the list.
+// 2026-06-04 (Yuqi triage redesign — 分诊要回答"什么最重要、什么次要"):
 //
-// 2026-05-27 (D12 — Agent ω, journey-audit drain): `'done'` removed
-// from the terminal set. Filing being done does NOT imply the
-// payment side cleared (anti-pattern #1: extension/filing ≠ payment).
-// A row marked `'done'` but with `paymentDueDate < asOfDate` is still
-// payment-overdue and should surface in "Needs attention" with a
-// "Payment N days late" chip. `'paid'` and `'completed'` remain
-// terminal — `'paid'` explicitly means the payment side closed too,
-// and `'completed'` is the canonical end state covering both sides.
-const DASHBOARD_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set(['paid', 'completed'])
+// Rows are now grouped by SEVERITY TIER (Critical / High / Upcoming)
+// at the top level, with each tier rendered as its own table preceded
+// by a `<SeveritySectionHeader>` that carries the plain-language
+// urgency copy ("Act today or risk missing the deadline").
+//
+// Row chrome stays NEUTRAL — no per-row rail, no tone-colored
+// chevron, no per-row frame. Tier identity lives entirely in the
+// section header. Inside each tier rows are sorted "Ready to work"
+// first (workable now), then "Waiting on client", then "Blocked"
+// — a 2D triage axis that answers the CPA's question "can I make
+// progress right now?"
+//
+// New columns vs. Pencil VmcdD's 5-column shape:
+//   • CLIENT 220 — name
+//   • ACTION 280 — verb prompt + (Critical only) WHY-NOW sublabel
+//   • FILING 130 — TaxCodeBadge
+//   • READINESS 180 — `<ReadinessIndicator>` "Docs N/M · missing X"
+//     (primary triage signal per item 1.4 of the redesign)
+//   • DUE 150 — `<DueDateLabel>` relative countdown
+//   • STATUS fill — status pill + `<ExtensionChip>` when applicable +
+//     payment-late caption
+//   • chevron-down end column — neutral text-tertiary, no tone color
+const TIER_ORDER_LOCAL: readonly SeverityTier[] = ['critical', 'high', 'upcoming']
 
-function RowMeta({
-  days,
-  status,
-  paymentDueDate,
-  asOfDate,
-}: {
-  days: number
-  status: ObligationStatus
-  paymentDueDate: string | null
-  asOfDate: string | null
-}) {
-  // 2026-05-27 (D12 — Agent ω): payment-overdue takes precedence on
-  // the row meta. A filed-but-payment-overdue row's "filing days
-  // late" reading is misleading (the filing is done); the urgent
-  // signal is the unpaid payment. When both apply, the payment chip
-  // wins because that's the action the CPA still needs to take.
-  const paymentLate = isPaymentOverdue(paymentDueDate, asOfDate)
-  const paymentLateDays = paymentOverdueDays(paymentDueDate, asOfDate)
+// 2D triage subgroup classification.
+//   • "ready"   — work can move forward today
+//   • "waiting" — paused waiting on client-supplied docs / signoff
+//   • "blocked" — explicit blocker (K-1 cascade, missing rule, etc.)
+type Subgroup = 'ready' | 'waiting' | 'blocked'
+function classifySubgroup(status: DashboardTopRow['status']): Subgroup {
+  if (status === 'blocked') return 'blocked'
+  if (status === 'waiting_on_client') return 'waiting'
+  return 'ready'
+}
+const SUBGROUP_ORDER: readonly Subgroup[] = ['ready', 'waiting', 'blocked']
 
-  if (paymentLate) {
-    return (
-      <span className="flex shrink-0 items-baseline whitespace-nowrap text-sm tabular-nums">
-        <span className="text-text-destructive">
-          <Plural value={paymentLateDays} one="Payment # day late" other="Payment # days late" />
-        </span>
-      </span>
-    )
+// Tier resolution WITH extension downscaling. An extended row is no
+// longer "today on fire" — demote one notch (Critical → High, High
+// → Upcoming). The payment side stays separate; payment-overdue
+// rows still surface the "Pay Nd late" caption regardless of tier.
+function resolveTier(row: DashboardTopRow): SeverityTier {
+  const baseTier = severityToTier(row.severity)
+  if (row.status === 'extended') {
+    if (baseTier === 'critical') return 'high'
+    if (baseTier === 'high') return 'upcoming'
   }
-
-  if (DASHBOARD_TERMINAL_STATUSES.has(status)) {
-    if (days === 0) return null
-    return (
-      <span className="flex shrink-0 items-baseline whitespace-nowrap text-sm tabular-nums">
-        <span className="text-text-tertiary">
-          {days < 0 ? (
-            <Plural value={-days} one="filed #d late" other="filed #d late" />
-          ) : (
-            <Plural value={days} one="filed #d early" other="filed #d early" />
-          )}
-        </span>
-      </span>
-    )
-  }
-  const past = days < 0
-  return (
-    <span className="flex shrink-0 items-baseline whitespace-nowrap text-sm tabular-nums">
-      <span className={cn(past ? 'text-text-destructive' : 'text-text-secondary')}>
-        {past ? (
-          <Plural value={-days} one="#d late" other="#d late" />
-        ) : days === 0 ? (
-          <Trans>today</Trans>
-        ) : (
-          <Plural value={days} one="in #d" other="in #d" />
-        )}
-      </span>
-    </span>
-  )
+  return baseTier
 }
 
-function ActionRow({
-  row,
+function ActionsTieredSections({
+  rows,
   asOfDate,
-  internalDeadlineOffsetDays,
-  expanded,
-  onHoverChange,
   onOpenObligation,
 }: {
-  row: DashboardTopRow
+  rows: DashboardTopRow[]
   asOfDate: string | null
-  internalDeadlineOffsetDays: number
-  expanded: boolean
-  onHoverChange: (hovered: boolean) => void
-  onOpenObligation: () => void
+  onOpenObligation: (row: DashboardTopRow) => void
 }) {
-  const { t } = useLingui()
-  const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
-  const prompt = useActionPrompt(row, asOfDate)
-  const factors = topPriorityFactors(row)
-  const detailId = `action-detail-${row.obligationId}`
-  // Internal date = official deadline − firm offset. Derived in JS so
-  // no contract change is needed for this surface (see comment on
-  // `internalDueDateFromOfficial`).
-  const internalDueDate = internalDueDateFromOfficial(
-    row.currentDueDate,
-    internalDeadlineOffsetDays,
-  )
-
+  // Single pass: bucket rows by tier (with extension demotion) and
+  // sort each tier's rows by subgroup order (ready first).
+  const byTier = useMemo(() => {
+    const buckets: Record<SeverityTier, DashboardTopRow[]> = {
+      critical: [],
+      high: [],
+      upcoming: [],
+    }
+    for (const row of rows) {
+      buckets[resolveTier(row)].push(row)
+    }
+    for (const tier of TIER_ORDER_LOCAL) {
+      buckets[tier].sort(
+        (a, b) =>
+          SUBGROUP_ORDER.indexOf(classifySubgroup(a.status)) -
+          SUBGROUP_ORDER.indexOf(classifySubgroup(b.status)),
+      )
+    }
+    return buckets
+  }, [rows])
+  // 2026-06-04 round 5 (Yuqi feedback "there is nothing else than
+  // critical, so there is no use of saying Critical 10 / Act today
+  // …"): when ONLY ONE tier has rows, suppress the tier header
+  // entirely. The "Actions this week" h2 + the Smart Priority
+  // subtitle already establish the section's framing; a tier
+  // header in a single-tier render is redundant chrome that adds
+  // a wasted line of vertical real estate.
+  //
+  // Also (Yuqi follow-up "otherway to show it is critical?"): when
+  // a tier header DOES render (multi-tier case), the row table
+  // gains a left accent border whose tone tracks the tier
+  // (destructive / warning / outline) — same color signal as the
+  // tier chip — so the critical-ness reads from the table edge
+  // without leaning on the explainer copy.
+  // 2026-06-04 round 6 (Yuqi "SeveritySectionHeader seems to be
+  // useless"): tier section headers DROPPED. The left accent
+  // border on each tier's table now carries the entire severity
+  // signal — destructive red for Critical, warning amber for
+  // High, none for Upcoming. The h2 + "Curated by Smart Priority"
+  // subtitle frame the section; severity reads from the table
+  // edge tone.
+  const tiersWithRows = TIER_ORDER_LOCAL.filter((tier) => byTier[tier].length > 0)
+  const isMultiTier = tiersWithRows.length > 1
   return (
-    <div
-      // Hover the whole container expands it inline. onMouseLeave on
-      // the outer wrapper fires when the cursor exits this row's
-      // bounding box (including the expanded panel below, which
-      // lives inside the same wrapper). onFocus / onBlur give
-      // keyboard users the same expansion path.
-      onMouseEnter={() => onHoverChange(true)}
-      onMouseLeave={() => onHoverChange(false)}
-      onFocus={() => onHoverChange(true)}
-      onBlur={(event) => {
-        // Only collapse if focus is leaving the entire row, not just
-        // moving between children (the Review button gets focus
-        // before the chevron, etc.). `relatedTarget` is the element
-        // receiving focus next.
-        const nextTarget = event.relatedTarget
-        if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
-          onHoverChange(false)
-        }
-      }}
-      className="flex flex-col"
-    >
-      <div
-        // The whole row is clickable: opens the obligation panel via
-        // the parent's openObligationDrawer handler, same shape as
-        // queue and client-filing-plan rows. Hover still expands
-        // inline detail; the click is a separate, primary affordance.
-        // The Review button below stops propagation so it doesn't
-        // double-fire.
-        role="button"
-        tabIndex={0}
-        aria-label={t`Open ${prompt} for ${row.clientName}`}
-        aria-expanded={expanded}
-        aria-controls={detailId}
-        onClick={onOpenObligation}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault()
-            onOpenObligation()
-          }
-        }}
-        className={cn(
-          // 2026-05-26 (Yuqi forty-third pass — spacing unification):
-          // py-2.5 (10px) → py-2 (8px). Canonical row padding is
-          // `px-3 py-2`; the 2.5 was a half-step that doesn't exist
-          // in the canonical scale. Affects Today's action rows so
-          // they match the row density used on Deadlines.
-          // 2026-05-26 (Yuqi /today feedback): hover transition gets
-          // a deliberate ease-in-out timing (200ms) instead of the
-          // default `transition-colors` (150ms ease). The slightly
-          // longer + symmetric easing makes the hover feel
-          // intentional, not snappy — important on a dashboard
-          // surface where the row IS the affordance.
-          // 2026-05-27 (Yuqi feedback): tighten action row vertical
-          // padding py-2 (8px) → py-1 (4px). Yuqi: "changes to .py-2
-          // { padding-block: calc(var(--spacing) * 1); }" — devtools
-          // experiment confirmed the row reads better at half height.
-          'group flex w-full cursor-pointer items-center gap-3 px-3 py-1 text-left outline-none transition-colors duration-200 ease-in-out focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-          // Background drives off the expanded state, not hover, so
-          // the row and the panel below read as a single block. When
-          // collapsed, the row stays transparent (chrome quiet at
-          // rest); when expanded, the row picks up the same bg as
-          // the panel for visual continuity.
-          expanded ? 'rounded-t-md bg-background-subtle' : 'rounded-md hover:bg-state-base-hover',
-        )}
-      >
-        {/* Leading chevron — rotates 90° when expanded so the row
-          reads as "this opens." Pure visual cue; not a button (the
-          whole row container handles expansion via hover/focus).
-          2026-06-03 (Yuqi): arrow tone reverted to a quiet neutral
-          gray. It previously tracked status color (red/amber/accent),
-          but once the severity bands carry the urgency signal at the
-          band-header level, a per-row colored arrow read as arbitrary
-          noise at the row's leading edge. Neutral keeps the chevron a
-          pure "this opens" affordance; severity now lives in the band
-          header dot + label. Expanded state still steps to text-primary
-          so the rotate-down cue stays legible. */}
-        <ArrowRightIcon
-          className={cn(
-            'size-3.5 shrink-0 transition-transform',
-            expanded ? 'rotate-90 text-text-primary' : 'text-text-tertiary',
-          )}
-          aria-hidden
-        />
-        {/* 2026-05-25 (Yuqi #25): client name was wrapped in a
-            badge-styled span (bordered + bg-subtle) that read like
-            a status label, not a client. Promoted to plain
-            font-semibold body text — same scale as the prompt next
-            to it but heavier weight. Reads as "subject" with the
-            prompt as the supporting detail, like an email
-            list-item. */}
-        {/* 2026-05-25 (Yuqi typography rebalance): client name
-            stepped down from font-semibold to font-medium.
-            Semibold made the row's leading word compete with the
-            section h2 above; medium keeps it as the row's anchor
-            without shouting next to a softer prompt. */}
-        {/* 2026-05-25 (Yuqi Today #1 — second pass): client name
-            stepped down further — was `text-base font-medium`,
-            still reading as the page's heaviest body text. Now
-            `text-sm font-medium` so it stays the row's anchor
-            without competing with the section h2. Prompt drops
-            text-base → text-sm in lockstep so the heading row
-            balances.
-            2026-05-25 (Yuqi Today #7 + #8): swapped the weight
-            assignment. The prompt ("Review the prepared return
-            and sign off") is the action the CPA needs to take —
-            it deserves the row's emphasis. The client name is
-            context, not the action; demoted to regular weight.
-            So: prompt becomes font-medium, client name becomes
-            font-normal. */}
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="flex min-w-0 items-baseline gap-2">
-            <span className="shrink-0 truncate text-sm font-normal text-text-primary">
-              {row.clientName}
-            </span>
-            <span aria-hidden className="text-text-tertiary">
-              ·
-            </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
-              {prompt}
-            </span>
-          </span>
-          {/* 2026-06-03 (Yuqi A): surface the "why now" reasoning at rest
-              on Critical rows. The Smart Priority factors (penalty,
-              passed cutoff, client readiness) are the single most
-              differentiating signal — "why is this the one to do" — and
-              were previously hover-only. Shown at rest for Critical only;
-              the expanded panel already carries the full Why-now row, so
-              gating on !expanded avoids duplication when the row opens. */}
-          {!expanded && row.severity === 'critical' && factors.length > 0 ? (
-            <span className="truncate text-xs text-text-tertiary">{factors.join(' · ')}</span>
-          ) : null}
-        </div>
-        {/* 2026-05-25 (Yuqi Today follow-up): the Review button used
-          to render unconditionally with `opacity-0` when collapsed —
-          which kept the button taking ~100px of flex space, squeezing
-          the prompt `<span>` (`flex-1 truncate`) down to nothing on
-          longer client names. Yuqi reported "actions row only shows
-          the client name" — root cause was this invisible-but-still-
-          claimed layout space. Now we conditionally render: button
-          only mounts when expanded. The minor reflow on hover (button
-          appears) is a cleaner UX than the prompt being permanently
-          truncated. RowMeta stays always-visible because the
-          time-to-due signal is needed at rest, not just on hover. */}
-        {expanded ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={(event) => {
-              event.stopPropagation()
-              onOpenObligation()
-            }}
-          >
-            <Trans>Review</Trans>
-            <ArrowRightIcon data-icon="inline-end" />
-          </Button>
-        ) : null}
-        <RowMeta
-          days={days}
-          status={row.status}
-          paymentDueDate={row.paymentDueDate}
+    <div className="flex flex-col gap-4">
+      {tiersWithRows.map((tier) => (
+        <ActionsTable
+          key={tier}
+          rows={byTier[tier]}
+          tier={tier}
           asOfDate={asOfDate}
+          onOpenObligation={onOpenObligation}
+          showTierAccent={isMultiTier}
         />
-      </div>
-
-      {/* Inline expansion — sits inside the same wrapper as the row,
-        so onMouseLeave doesn't trigger when the cursor crosses from
-        the row into the expansion panel. The whole panel is a click
-        target that opens the obligation drawer — same action as the
-        Review button on the right, but with a much bigger hit area
-        once the row is already open. Use a role-backed div rather
-        than a real button so tooltip triggers inside the panel cannot
-        create invalid button-in-button markup.
-
-        2026-05-25 (Yuqi #46): the expansion was a hard mount/unmount,
-        which read as a jarring jump on hover. Wrapped in a
-        grid-template-rows animation: collapsed = 0fr, expanded = 1fr.
-        The inner content stays mounted so the transition has a target
-        to animate to, and `overflow-hidden` on the rows track clips
-        the content while it's collapsing. 200ms ease-out feels
-        deliberate but not slow. `motion-reduce` falls back to no
-        animation (instant) so users with reduced-motion preferences
-        aren't forced into transitions. */}
-      <div
-        className={cn(
-          'grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none',
-          expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
-        )}
-        aria-hidden={!expanded}
-      >
-        <div className="overflow-hidden">
-          <div
-            role="button"
-            tabIndex={expanded ? 0 : -1}
-            id={detailId}
-            onClick={expanded ? onOpenObligation : undefined}
-            onKeyDown={(event) => {
-              if (!expanded) return
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault()
-                onOpenObligation()
-              }
-            }}
-            aria-label={t`Review ${row.clientName} in deadline drawer`}
-            // Panel sits flush against the row above — top corners
-            // squared, bottom rounded. Same bg as the row when
-            // expanded so the two read as a single block. Hover state
-            // darkens slightly to signal "this is the click target."
-            //
-            // 2026-05-25 (Yuqi Today #32): top padding tightened from
-            // `py-4` to `pt-3 pb-4`. The previous 16px top padding
-            // pushed the dl content visibly down from the row above,
-            // and the bg-continuity trick stopped working — they read
-            // as two stacked blocks with a gap. 12px top + 16px
-            // bottom keeps the dl breathing room while the top
-            // sits flush against the row's baseline.
-            // 2026-05-25 (Yuqi Today #3 — second pass): expansion
-            // panel text scale dropped text-base → text-sm. Yuqi
-            // flagged the descriptions/details as "too big" — at
-            // 16px the dt/dd pairs read at body weight, the same
-            // tier as the row header above. text-sm (14px) keeps
-            // the panel readable while making it visually
-            // subordinate to the row that opened it.
-            // 2026-05-29 (Yuqi /today round 3 — "top bottom margin of
-            // the collapsed and expanded row should be the same"):
-            // panel padding swapped pt-3 pb-4 → py-3. The 16px bottom
-            // made the expanded block read taller below its content
-            // than above; symmetric 12px frames the dl cleanly so the
-            // row+panel together feel like one balanced block.
-            className="grid w-full cursor-pointer gap-3 rounded-b-md bg-background-subtle px-4 py-3 text-left text-sm transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            {/* 2026-05-25 (Yuqi Today intro): each row of the dl
-                pinned to the same min-height so the dt/dd gaps
-                read as a consistent rhythm. Previously the Status
-                row was taller (chip h-6 + Status text) than the
-                bare-text rows, so the gap between labels varied —
-                "Action", "Deadlines", "Status" sat at three
-                different vertical pitches. `[&>dt]` / `[&>dd]`
-                selectors apply a flex+min-h-7+items-center to
-                every direct child so each pair becomes a stable
-                28px row. */}
-            <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-1 [&>dd]:flex [&>dd]:min-h-7 [&>dd]:items-center [&>dt]:flex [&>dt]:min-h-7 [&>dt]:items-center">
-              {/* 2026-05-26 (Yuqi Today #1 follow-up): the "Action" row
-                  was previously rendered FIRST here to repeat the
-                  prompt prominently. That was redundant once the
-                  collapsed row swapped weights so the prompt itself
-                  renders at font-medium (anchor of the row), so the
-                  expansion now jumps straight to deadlines + status
-                  + form + sources + why-now. The prompt continues
-                  to live on the collapsed row's heading line. */}
-
-              {/* 2026-05-25 (Yuqi Today #33): show INTERNAL and
-                  OFFICIAL deadlines on one line in the expansion
-                  panel. The collapsed row's RowMeta shows "in 3d"
-                  / "5d late" which answers "how soon" — but the
-                  CPA opening this panel wants the absolute dates to
-                  plan the week. Internal first (it's the date the
-                  CPA actually works against); official second as
-                  the statutory reality. Both shown as prose
-                  ("May 6, 2026") via formatDatePretty.
-                  2026-05-25 (Yuqi Today #10): Deadlines dd is the
-                  panel's anchor — once the user has expanded a
-                  row, they're planning around the dates. Framed
-                  the date cluster in a soft inset chip
-                  (`bg-background-default rounded-md px-2`) so the
-                  eye lands on it ahead of the other meta rows. */}
-              {/* 2026-05-29 (Yuqi /today round 3 — #8): each dl item is
-                  a real link to the surface that holds the full
-                  detail. stopPropagation on each so clicking a sub-link
-                  doesn't ALSO fire the parent row's "open obligation
-                  drawer" click. Sources is the lone exception — it
-                  still calls onOpenObligation (the obligation drawer
-                  carries the evidence list) rather than navigating
-                  away.
-
-                  2026-05-29 (Yuqi /today round 4 — "the hover state for
-                  each of the link should try to be same"): unified the
-                  hover treatment across all 4 sub-affordances. All
-                  four share the canonical
-                    `rounded-sm outline-none underline-offset-2
-                     hover:underline
-                     focus-visible:ring-2 ring-state-accent-active-alt`
-                  pattern. The Deadlines chip drops its earlier
-                  chip-style `hover:bg-state-base-hover` so it matches
-                  the inline-text affordances — its bordered surface
-                  comes from the static chip frame, hover signals
-                  clickability via the underline alone. */}
-              <dt className="text-text-tertiary">
-                <Trans>Deadlines</Trans>
-              </dt>
-              <dd className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-text-primary tabular-nums">
-                <Link
-                  to="/deadlines/calendar"
-                  onClick={(event) => event.stopPropagation()}
-                  className="inline-flex items-center gap-2 rounded-sm border border-divider-subtle bg-background-default px-2 py-0.5 outline-none underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                >
-                  <span>
-                    <Trans>
-                      Internal{' '}
-                      <span className="font-medium">{formatDatePretty(internalDueDate)}</span>
-                    </Trans>
-                  </span>
-                  <span aria-hidden className="text-text-tertiary">
-                    ·
-                  </span>
-                  <span>
-                    <Trans>
-                      Official{' '}
-                      <span className="font-medium">{formatDatePretty(row.currentDueDate)}</span>
-                    </Trans>
-                  </span>
-                </Link>
-              </dd>
-
-              <dt className="text-text-tertiary">
-                <Trans>Status</Trans>
-              </dt>
-              <dd>
-                {/* 2026-05-25 (status-pill audit #1): point at the
-                    canonical `ObligationStatusReadBadge` instead of
-                    inlining `badgeVariants` + `BadgeStatusDot`. */}
-                <Link
-                  to={`/deadlines?status=${encodeURIComponent(row.status)}`}
-                  onClick={(event) => event.stopPropagation()}
-                  className="inline-flex rounded-sm outline-none underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                  aria-label={t`See all ${row.status} deadlines`}
-                >
-                  <ObligationStatusReadBadge status={row.status} className="h-6 text-xs" />
-                </Link>
-              </dd>
-
-              <dt className="text-text-tertiary">
-                <Trans>Form</Trans>
-              </dt>
-              <dd className="text-text-primary">
-                <Link
-                  to={`/rules/library?q=${encodeURIComponent(row.taxType)}`}
-                  onClick={(event) => event.stopPropagation()}
-                  className="rounded-sm outline-none underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                  aria-label={t`Search Rule Library for ${row.taxType}`}
-                >
-                  <TaxCodeLabel code={row.taxType} asChild />
-                </Link>
-              </dd>
-
-              <dt className="text-text-tertiary">
-                <Trans>Sources</Trans>
-              </dt>
-              <dd className="text-text-primary tabular-nums">
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    onOpenObligation()
-                  }}
-                  className="rounded-sm text-left outline-none underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                  aria-label={t`Open evidence for ${row.clientName}`}
-                >
-                  {row.evidenceCount > 0 ? (
-                    <Plural
-                      value={row.evidenceCount}
-                      one="# source attached"
-                      other="# sources attached"
-                    />
-                  ) : (
-                    <span className="text-text-warning">
-                      <Trans>None attached</Trans>
-                    </span>
-                  )}
-                </button>
-              </dd>
-
-              {row.penaltyFormulaLabel ? (
-                <>
-                  <dt className="text-text-tertiary">
-                    <Trans>Penalty</Trans>
-                  </dt>
-                  <dd className="text-text-primary">{row.penaltyFormulaLabel}</dd>
-                </>
-              ) : null}
-
-              {factors.length > 0 ? (
-                <>
-                  <dt className="text-text-tertiary">
-                    <Trans>Why now</Trans>
-                  </dt>
-                  <dd className="text-text-primary">{factors.join(' · ')}</dd>
-                </>
-              ) : null}
-            </dl>
-          </div>
-        </div>
-      </div>
+      ))}
     </div>
   )
 }
 
-// 2026-05-26 (PR #28 audit cross-surface P0 #1) + 2026-05-27 (drain
-// pass ν #37/#38): `ActionsSummaryTile` was extracted to the shared
-// `StatTile` primitive at `@/components/patterns/stat-tile.tsx`. The
-// ν #38 weight-bump for critical tone (font-medium → font-semibold)
-// is now subsumed into StatTile's canonical "always semibold" rule —
-// critical tone differentiates by color only. The "All caught up"
-// empty-state slot from ν #37 was migrated to StatTile alongside the
-// regular tile callers.
+const TIER_ACCENT_BORDER_CLASS: Record<SeverityTier, string> = {
+  critical: 'border-l-4 border-l-state-destructive-solid',
+  high: 'border-l-4 border-l-state-warning-solid',
+  upcoming: '',
+}
+
+// 2026-06-04 round 11: PriorityScoreDots removed (Yuqi
+// "complicated and useless"). Rank cell renders a plain mono
+// number now; sparkle icon for top 3 retained as the only
+// algorithmic flourish.
+
+function ActionsTable({
+  rows,
+  tier,
+  asOfDate,
+  onOpenObligation,
+  showTierAccent = false,
+}: {
+  rows: DashboardTopRow[]
+  tier: SeverityTier
+  asOfDate: string | null
+  onOpenObligation: (row: DashboardTopRow) => void
+  showTierAccent?: boolean
+}) {
+  if (rows.length === 0) return null
+  // Track subgroup boundaries so the table body can interleave
+  // subgroup-divider rows between the workable and blocked buckets.
+  // First-row in each subgroup gets a top divider with the
+  // subgroup name; subsequent rows render plainly.
+  let lastSubgroup: Subgroup | null = null
+  return (
+    // 2026-06-04 round 7: rounded-[12px] perimeter + bg-background-default
+    // give the table a real card identity.
+    // 2026-06-04 round 16 (Yuqi page-feedback "lighter border"):
+    // border tone has bounced subtle (4%) → regular (8%) → deep
+    // (14%) → now back to `divider-regular` (8%). 8% is the
+    // visible-but-quiet sweet spot; deep was reading as too heavy
+    // an outline against the white card. Updated canonical doc
+    // back to regular.
+    <div
+      className={cn(
+        'overflow-hidden rounded-[12px] border border-divider-regular bg-background-default',
+        showTierAccent && TIER_ACCENT_BORDER_CLASS[tier],
+      )}
+    >
+      {/* 2026-06-04 round 13 (Yuqi "remove the table header row.
+          make it more like ACTIONS"): `<TableHeader>` dropped
+          entirely. Column labels were reading the rows as a
+          data table; without them, the same column structure
+          renders as a list of action items. Action verb +
+          Client (text-base) anchor each row; meta cells
+          (filing chip / readiness / due / status) sit as
+          right-aligned supporting context. The rank column
+          stays as the leading anchor — `#01 / ✦#02 …` reads
+          as "item number" in a list, not as a sortable table
+          column. */}
+      <Table>
+        <TableBody>
+          {rows.map((row) => {
+            const currentSubgroup = classifySubgroup(row.status)
+            const isNewSubgroup = currentSubgroup !== lastSubgroup
+            lastSubgroup = currentSubgroup
+            const subgroupHeader =
+              isNewSubgroup &&
+              // Only render subgroup dividers when the tier contains
+              // MORE THAN ONE subgroup — single-subgroup tiers don't
+              // need the extra row.
+              hasMultipleSubgroups(rows) ? (
+                // 2026-06-04 round 10 (Yuqi "ensure everything
+                // clickable is really clickable"): subgroup
+                // divider rows are NOT clickable — they're
+                // labels. Override the TableRow primitive's
+                // default hover-bg + cursor so they don't look
+                // tappable. `cursor-default` and the explicit
+                // `!hover:bg-transparent` enforce static behavior.
+                // 2026-06-04 round 14 (Yuqi page-feedback #1
+                // "header 应该有个稍微深的颜色"): subgroup-label
+                // bg bumped from `bg-background-section/40`
+                // (40% alpha gray-50, barely visible) to
+                // `bg-background-subtle` (solid gray-100) so
+                // the row reads as a real header band dividing
+                // Ready-to-work from Waiting-on-client, not a
+                // near-invisible whisper. Hover override matches
+                // so the row stays static-looking on hover.
+                // `even:bg-transparent` opts the row out of the
+                // canonical zebra (otherwise the subgroup label
+                // would alternate tint with row position).
+                <TableRow
+                  key={`${currentSubgroup}-divider`}
+                  className="cursor-default even:bg-transparent hover:!bg-background-subtle"
+                  aria-hidden="false"
+                >
+                  <TableCell
+                    colSpan={7}
+                    className="bg-background-subtle px-5 py-2 text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase"
+                  >
+                    <SubgroupLabel kind={currentSubgroup} />
+                  </TableCell>
+                </TableRow>
+              ) : null
+            return (
+              <>
+                {subgroupHeader}
+                <ActionsTableRow
+                  key={row.obligationId}
+                  row={row}
+                  tier={tier}
+                  asOfDate={asOfDate}
+                  onClick={() => onOpenObligation(row)}
+                />
+              </>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+function hasMultipleSubgroups(rows: DashboardTopRow[]): boolean {
+  const seen = new Set<Subgroup>()
+  for (const row of rows) {
+    seen.add(classifySubgroup(row.status))
+    if (seen.size > 1) return true
+  }
+  return false
+}
+
+function SubgroupLabel({ kind }: { kind: Subgroup }) {
+  if (kind === 'ready') return <Trans>Ready to work</Trans>
+  if (kind === 'waiting') return <Trans>Waiting on client</Trans>
+  return <Trans>Blocked</Trans>
+}
+
+function ActionsTableRow({
+  row,
+  tier,
+  asOfDate,
+  onClick,
+}: {
+  row: DashboardTopRow
+  tier: SeverityTier
+  asOfDate: string | null
+  onClick: () => void
+}) {
+  const { t } = useLingui()
+  const days = daysUntilDueFromAsOf(row.currentDueDate, asOfDate)
+  const prompt = useActionPrompt(row, asOfDate)
+  // 2026-06-04 round 8 (Yuqi "tooltip to show why this matter"):
+  // ALL rows compute factors for the rank-cell tooltip — even
+  // High / Upcoming rows surface their Smart Priority rationale
+  // on hover. Inline rendering still gated to Critical (no
+  // caption noise on quieter rows) but explanation is universal.
+  const allRowFactors = topPriorityFactors(row)
+  return (
+    <TableRow
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onClick()
+        }
+      }}
+      tabIndex={0}
+      aria-label={t`Open ${prompt} for ${row.clientName}`}
+      // 2026-06-04 (Yuqi table sweep): zebra striping, hover-bg,
+      // bottom border, transition-colors all PROMOTED to the
+      // canonical `<TableRow>` primitive. This callsite only
+      // owns the interactivity affordances (cursor + focus
+      // ring) and the `group` hook for descendants.
+      // 2026-06-04 round 44 (Yuqi /today #3 — "slightly taller
+      // row"): row body padding `py-2` (8px) → `py-3` (12px). The
+      // round-43 cut went too far; py-3 lands between the original
+      // py-4 (16px) and round-43's py-2. Still tighter than default,
+      // but rows can now contain a 2-line stacked cell (action +
+      // why-now, due-date + relative date) without feeling
+      // suffocated.
+      className="group cursor-pointer focus-visible:bg-state-base-hover focus-visible:outline-none [&_td]:py-3"
+    >
+      {/* 2026-06-04 round 11 (Yuqi "don't like the dedicated Smart
+          Priority chip - too complicated and useless"): chip
+          chrome dropped. Plain mono rank with sparkle ONLY for
+          top 3. Tooltip retained on the rank text itself for
+          explainability — hover the number, see the factors. */}
+      {/* 2026-06-04 (Yuqi table sweep): py-4 align-middle dropped
+          — canonical defaults. px-3 kept as a deliberate compact
+          override for the narrow rank column (canonical px-5
+          would push the mono number off-center). text-center is
+          structural. */}
+      <TableCell className="px-3 text-center">
+        <Tooltip>
+          <TooltipTrigger
+            render={(props) => (
+              <span
+                {...props}
+                onClick={(e) => {
+                  props?.onClick?.(e)
+                  e.stopPropagation()
+                }}
+                className="inline-flex cursor-help items-center justify-center gap-1 font-mono text-[11px] font-semibold tabular-nums text-text-tertiary"
+              >
+                {row.smartPriority?.rank && row.smartPriority.rank <= 3 ? (
+                  <SparklesIcon className="size-2.5 shrink-0 text-text-accent" aria-hidden />
+                ) : null}
+                {row.smartPriority?.rank ? String(row.smartPriority.rank).padStart(2, '0') : '—'}
+              </span>
+            )}
+          />
+          <TooltipContent>
+            <div className="flex max-w-[260px] flex-col gap-1 text-left">
+              <span className="font-semibold">
+                <Trans>Smart Priority</Trans>
+                {row.smartPriority?.rank
+                  ? ` #${String(row.smartPriority.rank).padStart(2, '0')}`
+                  : ''}
+              </span>
+              {allRowFactors.length > 0 ? (
+                <span className="text-text-secondary">{allRowFactors.join(' · ')}</span>
+              ) : (
+                <span className="text-text-tertiary">
+                  <Trans>No specific priority factors flagged.</Trans>
+                </span>
+              )}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TableCell>
+      {/* 2026-06-04 round 12 (Yuqi "do you not have a middle ground
+          text size between the previous too big and the current
+          too small"): both bumped `text-sm` (14px) → `text-base`
+          (16px). Middle tier — not headline-scale, but bigger
+          than dense table body. Reads as "list of actions"
+          density without the table feeling like cramped data. */}
+      {/* 2026-06-04 (Yuqi table sweep): redundant `px-5 py-4
+          align-middle` cell overrides stripped from every cell
+          below — those are the canonical primitive defaults
+          now. Only content-tone classes (text-base font-medium
+          text-text-secondary on Client column, etc.) remain. */}
+      {/* 2026-06-04 round 43 (Yuqi /today feedback #4 — "smaller
+          client name and action text size. 1 or 2 px"): row body
+          text dropped from `text-base` (16px) to `text-[14px]`. Two
+          px down — clearly less shouty than the round-12 bump but
+          still scan-friendly. Also `py-2` on every cell in this
+          table tightens the row (canonical TableCell default is
+          `py-4` = 16px each side; this saves ~16px per row, which
+          stacks meaningfully across the 10-row Actions list). */}
+      {/* 2026-06-04 round 44 (Yuqi /today #3 — "even smaller 1 or
+          2px client name and action"): body text another px down
+          `text-[14px]` → `text-[13px]`. Aligns with the source-row
+          13px on /alerts + /today PulseSourceMeta — the dashboard
+          row body and the alert card source now read at the same
+          weight. The `py-2` override here is removed; TableRow's
+          `[&_td]:py-3` carries the row height now. */}
+      <TableCell className="text-[13px] font-medium text-text-secondary">
+        {row.clientName}
+      </TableCell>
+      <TableCell>
+        {/* 2026-06-04 round 16 (Yuqi page-feedback "should allow
+            hover on each row to show more information"): the
+            Why-now factor line previously only rendered on
+            Critical rows (always visible). High + Upcoming rows
+            had Smart Priority factors but nowhere to surface
+            them inline. Now ALL rows with factors render the
+            line — Critical stays visible at rest, High / Upcoming
+            fade in on row hover via `group-hover:opacity-100`.
+            The TableRow already carries the `group` class, so
+            this is a CSS-only reveal with no JS state. Row height
+            is reserved when factors exist (opacity-0 keeps layout
+            in place) so hover doesn't jitter the table. */}
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[13px] font-medium text-text-primary">{prompt}</span>
+          {allRowFactors.length > 0 ? (
+            <span
+              className={cn(
+                'truncate text-xs text-text-tertiary transition-opacity duration-200',
+                tier === 'critical'
+                  ? 'opacity-100'
+                  : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100',
+              )}
+              title={allRowFactors.join(' · ')}
+            >
+              <Trans>Why now:</Trans> {allRowFactors.join(' · ')}
+            </span>
+          ) : null}
+        </div>
+      </TableCell>
+      <TableCell>
+        <TaxCodeBadge code={row.taxType} />
+      </TableCell>
+      <TableCell>
+        <ReadinessIndicator obligationType={row.obligationType} attached={row.evidenceCount} />
+      </TableCell>
+      {/* DUE cell stacks: relative countdown + absolute internal
+          due date (Yuqi feedback round 3 #10). */}
+      <TableCell>
+        <div className="flex flex-col gap-0.5">
+          <DueDateLabel
+            days={days}
+            status={row.status}
+            paymentDueDate={row.paymentDueDate}
+            asOfDate={asOfDate}
+          />
+          <span className="text-[11px] font-medium tabular-nums text-text-tertiary">
+            {formatDatePretty(row.currentDueDate)}
+          </span>
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="flex flex-wrap items-center gap-2">
+          <ObligationStatusReadBadge status={row.status} className="h-6 text-xs" />
+          {row.status === 'extended' ? <ExtensionChip /> : null}
+          {isPaymentOverdue(row.paymentDueDate, asOfDate) ? (
+            <span className="text-[11px] font-semibold tabular-nums text-text-destructive">
+              <Plural
+                value={paymentOverdueDays(row.paymentDueDate, asOfDate)}
+                one="Pay #d late"
+                other="Pay #d late"
+              />
+            </span>
+          ) : null}
+        </div>
+      </TableCell>
+      {/* Chevron cell dropped (Yuqi round 4): hover-to-expand isn't
+          wired; the row's whole-row click opens the drawer. */}
+    </TableRow>
+  )
+}
 
 function DashboardActionsList({
   rows,
@@ -643,6 +570,9 @@ function DashboardActionsList({
   needDecisionCount,
   blockedCount,
   waitingOnClientCount,
+  needDecisionDelta,
+  blockedDelta,
+  waitingOnClientDelta,
   hasClients,
 }: {
   rows: DashboardTopRow[]
@@ -668,83 +598,73 @@ function DashboardActionsList({
   needDecisionCount: number
   blockedCount: number
   waitingOnClientCount: number
+  // 2026-05-31 (Yuqi Pencil /today AvFsh round): optional
+  // week-over-week deltas for the summary tiles. Pass `undefined`
+  // (the current default) to suppress the trend pill; pass a real
+  // number once the route loader has prior-period counts wired in.
+  needDecisionDelta?: number | undefined
+  blockedDelta?: number | undefined
+  waitingOnClientDelta?: number | undefined
 }) {
   const { t } = useLingui()
   const VISIBLE_CAP = 10
   const visible = rows.slice(0, VISIBLE_CAP)
-  // Single-row hover state. Only one row expanded at a time — mouse
-  // can only physically be over one row.
-  const [hoveredId, setHoveredId] = useState<string | null>(null)
-  // Firm's configured offset between internal and official deadlines.
-  // Used by the expansion panel to compute the internal-deadline date
-  // for display (#33). Default of 14 matches the DB default so we
-  // render a reasonable date during the first paint before the firms
-  // cache hydrates.
-  const { currentFirm } = useCurrentFirm()
-  const internalDeadlineOffsetDays = currentFirm?.internalDeadlineOffsetDays ?? 14
+
+  // 2026-06-03 (audit follow-up — dead-code prune): `hoveredId`/
+  // `setHoveredId` state and `useCurrentFirm` lookup retired. They
+  // served the hover-expand `ActionRow` (deleted) and its
+  // `internalDeadlineOffsetDays` dependency (also dead). If a
+  // future preview-on-hover affordance comes back, it's a clean
+  // one-line `useState` add at this position.
 
   // Build summary segments — drop zero-count entries. Only `blocked`
   // uses destructive — it's the one genuinely-stuck signal.
-  const summaryTiles: Array<{
-    value: string
-    label: string
-    href: string
-    tone: 'neutral' | 'critical'
-  }> = []
-  if (needDecisionCount > 0) {
-    summaryTiles.push({
-      value: String(needDecisionCount),
-      label: t`In review`,
-      href: '/deadlines?status=review',
-      tone: 'neutral',
-    })
-  }
-  if (blockedCount > 0) {
-    summaryTiles.push({
-      value: String(blockedCount),
-      label: t`Blocked`,
-      href: '/deadlines?status=blocked',
-      tone: 'critical',
-    })
-  }
-  if (waitingOnClientCount > 0) {
-    summaryTiles.push({
-      value: String(waitingOnClientCount),
-      label: t`Waiting on client`,
-      href: '/deadlines?status=waiting_on_client',
-      tone: 'neutral',
-    })
-  }
-  // 2026-05-27 (Step 6 UX audit #37): when every exposure count is
-  // zero the strip used to vanish, which read as "the data hasn't
-  // loaded" — same shape as the isLoading skeleton above. Render an
-  // explicit "all caught up" tile so the slot is claimed and the
-  // CPA sees an affirmative signal. The tile routes to the deadlines
-  // queue so the user can still drill in if they want to verify.
-  const summaryStrip =
-    summaryTiles.length > 0 ? (
-      <div className="flex flex-wrap gap-3 px-3">
-        {summaryTiles.map((tile) => (
-          <StatTile
-            key={tile.href}
-            value={tile.value}
-            label={tile.label}
-            href={tile.href}
-            tone={tile.tone}
-          />
-        ))}
-      </div>
-    ) : (
-      <div className="flex flex-wrap gap-3 px-3">
-        <StatTile value="0" label={t`All caught up`} href="/deadlines" tone="neutral" />
-      </div>
-    )
+  //
+  // 2026-05-31 (Yuqi Pencil /today AvFsh round): each tile now also
+  // carries an optional week-over-week trend (`trend.delta`). Until
+  // the backend ships prior-period counts, the deltas come in as
+  // `undefined` from the caller — StatTile renders no pill in that
+  // case, so this stays visually backwards-compatible.
+  // 2026-06-03 (Yuqi Pencil VmcdD — 6-column status strip):
+  // Lifecycle strip replaces the 3-tile cluster. The previous
+  // 3-tile cluster ("In review · Blocked · Waiting on client")
+  // only surfaced the actionable buckets; Pencil shows the full
+  // status lifecycle on one horizontal strip so the CPA reads
+  // *everything in progress* at a glance, not just the items
+  // demanding immediate attention.
+  //
+  // Counts come from the same `rows` array the action table
+  // consumes — no extra round-trip. The legacy `needDecisionCount`,
+  // `blockedCount`, `waitingOnClientCount`, and `*Delta` props
+  // are now unused at the strip level but kept on the public API
+  // to avoid breaking the route loader's call signature; they may
+  // be retired in a follow-up once no caller passes them.
+  void needDecisionCount
+  void blockedCount
+  void waitingOnClientCount
+  void needDecisionDelta
+  void blockedDelta
+  void waitingOnClientDelta
+
+  // 2026-06-04 (Yuqi alignment fix): dropped the `px-3` wrapper.
+  // The lifecycle strip now spans the same x-edges as the tier
+  // section headers + ActionsTable wrapper below.
+  // 2026-06-04 round 6 (Yuqi "wire numbers correctly"): strip
+  // now uses `visible` (top 10 rows displayed in the table)
+  // instead of `rows` (up to 20 from server). Counts now match
+  // the rows the CPA actually sees below.
+  // 2026-06-04 round 15 (Yuqi "hide this for now"): strip render
+  // commented out below. `summaryStrip` const + `void` cheat
+  // kept so revival is a one-line uncomment without re-wiring
+  // the JSX expression.
+  const summaryStrip = <DashboardStatusLifecycleStrip rows={visible} />
+  void summaryStrip
 
   if (isLoading) {
     return (
       <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
         <ActionsListHeader count={null} onOpenAll={onOpenAllObligations} />
-        <div className="flex flex-wrap gap-3 px-3">
+        <div className="flex flex-wrap gap-3">
           <Skeleton className="h-16 w-40" />
           <Skeleton className="h-16 w-40" />
           <Skeleton className="h-16 w-40" />
@@ -828,9 +748,7 @@ function DashboardActionsList({
             <SharedEmptyState
               icon={CalendarIcon}
               title={<Trans>No clients yet</Trans>}
-              description={
-                <Trans>Import your client list to start tracking filing deadlines.</Trans>
-              }
+              description={<Trans>Import your client list to start tracking deadlines.</Trans>}
               cta={
                 <Button size="sm" variant="outline" onClick={onOpenWizard}>
                   <Trans>Import clients</Trans>
@@ -851,85 +769,42 @@ function DashboardActionsList({
     )
   }
 
-  // Partition the (already priority-sorted) rows into severity bands.
-  // Order is fixed critical → high → upcoming so the most urgent band
-  // always sits at the top of the eye line; empty bands are dropped so
-  // a calm week doesn't render three empty headers.
-  // Caption spells out, in plain CPA language, what each tier *means* to
-  // do — so the page tells the user what's most important vs. secondary,
-  // not just which color it is.
-  const severityBands = (
-    [
-      { key: 'critical', label: t`Critical`, caption: t`Needs action now` },
-      { key: 'high', label: t`High priority`, caption: t`On deck this week` },
-      { key: 'upcoming', label: t`Upcoming`, caption: t`Plan ahead` },
-    ] satisfies ReadonlyArray<{ key: SeverityBandKey; label: string; caption: string }>
-  )
-    .map((band) => ({
-      ...band,
-      rows: visible.filter((row) => severityBandKey(row.severity) === band.key),
-    }))
-    .filter((band) => band.rows.length > 0)
-
   return (
     <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
       <ActionsListHeader count={totalThisWeek} onOpenAll={onOpenAllObligations} />
-      {summaryStrip}
-      {/* 2026-06-03 (Yuqi — severity bands): rows are grouped under
-          Critical / High priority / Upcoming headers (colored dot +
-          tinted label + count) so the shape of the week reads at a
-          glance. Within a band, action rows keep the borderless rhythm
-          (`gap-0.5` + hover-bg) — the band header and the per-row left
-          rail carry the urgency cue instead of a table frame. */}
-      <div className="flex flex-col gap-4">
-        {severityBands.map((band) => {
-          const style = SEVERITY_BAND_STYLE[band.key]
-          return (
-            <div key={band.key} className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2 px-3">
-                <span className={cn('size-2 shrink-0 rounded-full', style.dot)} aria-hidden />
-                <h3
-                  className={cn(
-                    'text-xs font-semibold uppercase tracking-[0.08em]',
-                    style.label,
-                  )}
-                >
-                  {band.label}
-                </h3>
-                <span aria-hidden className="text-text-tertiary/60">
-                  ·
-                </span>
-                {/* Plain-language tier meaning — the line that actually
-                    tells the CPA how urgent this band is. */}
-                <span className="text-xs text-text-secondary">{band.caption}</span>
-                <span className="ml-auto text-xs font-medium tabular-nums text-text-tertiary">
-                  {band.rows.length}
-                </span>
-              </div>
-              <ul className="flex flex-col gap-0.5">
-                {band.rows.map((row) => (
-                  <li key={row.obligationId}>
-                    <ActionRow
-                      row={row}
-                      asOfDate={asOfDate}
-                      internalDeadlineOffsetDays={internalDeadlineOffsetDays}
-                      expanded={hoveredId === row.obligationId}
-                      onHoverChange={(hovered) => {
-                        if (hovered) setHoveredId(row.obligationId)
-                        else
-                          setHoveredId((current) =>
-                            current === row.obligationId ? null : current,
-                          )
-                      }}
-                      onOpenObligation={() => onOpenObligation(row)}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        })}
-      </div>
+      {/* 2026-06-04 round 15 (Yuqi page-feedback "hide this for
+          now"): `<DashboardStatusLifecycleStrip>` render hidden.
+          The strip + its scope caption + the new border tone work
+          all stay in code so the surface can come back in one
+          edit — uncomment the line below. The component is also
+          still EXPORTED from this file for any other consumer. */}
+      {/* {summaryStrip} */}
+      {/* 2026-06-03 (Yuqi Pencil VmcdD — table layout): action rows
+          moved from a custom hover-expand card list into a canonical
+          `<Table>` primitive. Pencil's read: an explicit 5-column
+          table (CLIENT / ACTION / FILING / INTERNAL DUE DATE / STATUS)
+          scans faster than the previous flat row anatomy when
+          there are many items, and reuses the same mental model the
+          /deadlines queue uses. Click any row → opens the
+          obligation drawer (same behavior the previous ActionRow
+          carried). The hover-expand inline `dl` panel is dropped —
+          the drawer is the canonical detail surface.
+          `setHoveredId` is preserved so any future drift-protection
+          (e.g. preview-on-hover) can re-attach without a contract
+          change; for now it's wired but unused. */}
+      {/* 2026-06-04 (Yuqi triage redesign): render rows through
+          ActionsTieredSections which buckets rows by severity tier
+          (Critical / High / Upcoming) with section headers carrying
+          plain-language urgency copy. Replaces the single flat
+          ActionsTable that didn't answer "what's most important?" */}
+      <ActionsTieredSections
+        rows={visible}
+        asOfDate={asOfDate}
+        onOpenObligation={onOpenObligation}
+      />
+      {/* 2026-06-03 (audit follow-up): `hoveredId === '__never__'`
+          dead-code suppression removed alongside the state machinery
+          it was holding alive. */}
       {/* 2026-05-26 (Yuqi /today feedback): "… N more in the queue"
           caption removed. The section already has a "View all
           deadlines" link in its header (see ActionsListHeader); the
@@ -941,7 +816,8 @@ function DashboardActionsList({
   )
 }
 
-function ActionsListHeader({ count, onOpenAll }: { count: number | null; onOpenAll: () => void }) {
+function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () => void }) {
+  const { t } = useLingui()
   return (
     // 2026-05-25 (Yuqi Today follow-up — clarification): h2 is
     // LEFT-aligned with the "All deadlines" link justify-between on
@@ -949,11 +825,14 @@ function ActionsListHeader({ count, onOpenAll }: { count: number | null; onOpenA
     // misreading Yuqi's note — she meant the row should sit on the
     // left, with the title/count/caption sharing one visual midline
     // (`items-center`, not `items-baseline`).
-    // 2026-05-27 (Yuqi feedback "px-3 is to the actions this week title,
-    // and the three card columns row"): px-3 lives on the heading row +
-    // tile row only, NOT on the section as a whole. Action rows below
-    // stay flush so the arrow column reads as a visual anchor.
-    <div className="flex items-center justify-between gap-3 px-3">
+    // 2026-06-04 (Yuqi alignment fix — "not left aligned"): dropped
+    // `px-3` so the "Actions this week" header sits at the same
+    // left edge as the lifecycle strip below, the tier headers
+    // (Critical / High / Upcoming), and the ActionsTable wrapper.
+    // The previous px-3 created an 8-12px stair-step between the
+    // section headers and the table contents that read as broken
+    // alignment.
+    <div className="flex items-center justify-between gap-3">
       {/* 2026-05-25 (Yuqi #27 + Today follow-up): sort order was
           implicit ("list is ordered by Smart Priority desc"). Surfaced
           inline as "Sorted by priority" so the CPA knows why row 3 is
@@ -970,51 +849,241 @@ function ActionsListHeader({ count, onOpenAll }: { count: number | null; onOpenA
           tier so the heading doesn't shout next to a quieter
           body. Same change made to the "Alerts" h2 in
           needs-attention-section.tsx. */}
-      <h2 className="flex items-center flex-wrap gap-x-2 gap-y-0.5 text-lg font-semibold tracking-tight text-text-primary">
-        {/* 2026-05-27 (Yuqi feedback "write 10 Actions this week, the
-            numbers are part of the title"): count prefix is now part
-            of the heading string itself (same type-style as "Actions
-            this week"). Matches the "4 Alerts" pattern on the section
-            above. When count is 0/null, the bare phrase shows. */}
-        <span className="inline-flex items-center gap-2 tabular-nums">
-          {count !== null && count > 0 ? (
-            <Trans>{count} Actions this week</Trans>
-          ) : (
-            <Trans>Actions this week</Trans>
-          )}
-        </span>
-        {/* 2026-05-25 (info-icon audit): the bare `<span title=…>
-            <Info /></span>` non-focusable affordance becomes a
-            real ConceptHelp popover. Standardizes on the
-            canonical CircleHelpIcon + Popover treatment used
-            everywhere else in the app, and routes through the
-            typed `smartPriority` concept entry so the copy
-            lives in one place. */}
-        <span className="inline-flex items-center gap-1 text-caption font-normal text-text-tertiary">
-          <Trans>· sorted by priority</Trans>
-          <ConceptHelp concept="smartPriority" />
-        </span>
-      </h2>
-      {/* 2026-05-25 (Yuqi typography rebalance): link demoted to
-          text-sm tertiary, same treatment as the Alerts "View all"
-          link. "All deadlines" is a navigation hint, not a primary
-          action.
-          2026-05-25 (Yuqi Today #4 + #5): ArrowUpRight icon dropped
-          (same change as the "View all alerts" link above) and
-          text scale stepped down to text-xs text-text-muted so
-          both nav-hint links read at exactly the same weight. */}
-      <Link
-        to="/deadlines"
-        onClick={(event) => {
-          event.preventDefault()
-          onOpenAll()
-        }}
-        className="inline-flex items-center gap-1 rounded-sm text-xs text-text-muted outline-none hover:text-text-tertiary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      {/* 2026-06-03 (Yuqi Pencil VmcdD — actions header): count
+          extracted from the heading string into a separate accent-
+          toned "{N} awaiting" pill with a leading BadgeStatusDot.
+          Matches the Alerts section's "{N} active" treatment so
+          the two sections read as a parallel pair. The "sorted by
+          priority" tail + ConceptHelp drop in favor of the cleaner
+          parallel header (priority sorting is still the implicit
+          contract; the hint moves to the column-sort affordance
+          when we add it). */}
+      {/* 2026-06-04 round 6 (Yuqi "alerts, actions this week title
+          should be 大标题Today的下一级"): h2 stepped down from
+          text-2xl → text-xl, matching the Alerts h2. Both
+          section titles now sit one tier below the page H1. */}
+      {/* 2026-06-04 round 7 (Yuqi "Smart Priority is not shown"):
+          h2 gains a tiny accent-toned `<SparklesIcon>` prefix
+          that reads as the section's algorithmic seal. Subtitle
+          calls Smart Priority by name; icon makes the seal
+          visual. Same micro-mark repeated on each row's rank
+          chip so the table is unmistakably "smart". */}
+      {/* 2026-06-04 round 16 (Yuqi page-feedback "align with
+          Actions this week"): restructured the heading column so
+          the SparklesIcon sits OUTSIDE the inner h2 + p stack.
+          The inner stack's left edge is the same as the heading
+          text's left edge, so the "Curated by Smart Priority…"
+          paragraph now starts directly under "Actions this week"
+          — not under the leading icon. Previously the p sat
+          under the icon's left edge, creating an unintended
+          indent against the heading text. */}
+      {/* 2026-06-04 round 43 (Yuqi /today feedback #2 — "move the
+          icon to after Actions this week icon? and it is replacing
+          i icon as the information tooltip"): Sparkles moved INLINE
+          INTO the h2, AFTER the "Actions this week" text. It now
+          doubles as the tooltip trigger that the InfoIcon used to
+          carry — one accent-toned icon does both jobs:
+            • Marks the section as Smart-Priority curated (the
+              original sparkle's role)
+            • Opens the explanation tooltip on hover (the InfoIcon's
+              old role)
+          Saves a slot in the header without losing either signal.
+          The leading SparklesIcon column outside the h2 is gone. */}
+      {/* 2026-06-04 round 44 (Yuqi /today #2 — "tighter"): h2 →
+          subtitle vertical gap collapsed `gap-1` (4px) → `gap-0`.
+          The h2 + p sit as one tight title-stack now; the
+          subtitle reads as a direct continuation of the h2, not
+          as a separate caption line. */}
+      <div className="flex flex-col">
+        <h2 className="flex items-center gap-1.5 text-xl font-semibold tracking-tight text-text-primary">
+          <Trans>Actions this week</Trans>
+          <Tooltip>
+            <TooltipTrigger
+              render={(props) => (
+                <button
+                  type="button"
+                  aria-label={t`About Actions this week`}
+                  className="inline-flex size-5 cursor-help items-center justify-center rounded text-text-accent outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  {...props}
+                >
+                  <SparklesIcon className="size-4" aria-hidden />
+                </button>
+              )}
+            />
+            <TooltipContent>
+              <div className="flex max-w-[300px] flex-col gap-1 text-left">
+                <span className="font-semibold">
+                  <Trans>What's in this list</Trans>
+                </span>
+                <span>
+                  <Trans>
+                    Your top 10 deadlines due this week, ranked by Smart Priority and bucketed into
+                    Critical (act today), High (this week), and Upcoming. Subgroups inside each tier
+                    separate work you can start now from work waiting on the client.
+                  </Trans>
+                </span>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </h2>
+        <p className="text-sm text-text-tertiary">
+          <Trans>
+            Curated by Smart Priority — the work that needs your attention this week, not every
+            deadline.
+          </Trans>
+        </p>
+      </div>
+      {/* 2026-06-04 round 16 (Yuqi page-feedback "remove arrow"):
+          trailing ChevronRightIcon dropped on the section-link.
+          The underlined "View all" copy alone carries the
+          affordance; chevron read as a redundant directional cue. */}
+      <TextLink
+        render={
+          <Link
+            to="/deadlines"
+            onClick={(event) => {
+              event.preventDefault()
+              onOpenAll()
+            }}
+          />
+        }
       >
-        <Trans>All deadlines</Trans>
-      </Link>
+        <Trans>View all</Trans>
+      </TextLink>
     </div>
   )
 }
 
-export { DashboardActionsList, daysUntilDueFromAsOf }
+// 2026-06-03 (Yuqi Pencil VmcdD): 6-column lifecycle strip showing
+// `Not started · Waiting on client · Blocked · In review · Filed ·
+// Completed` counts derived from `rows`. Replaces the 3-tile
+// `StatTile` cluster — the old shape only surfaced actionable
+// buckets ("In review", "Blocked", "Waiting on client"), but the
+// real CPA glance is "where does every active item sit on the
+// lifecycle?"
+//
+// Each cell is a clickable Link routing to the deadlines queue
+// filtered by status, so the strip doubles as a navigation
+// surface (drill into any bucket).
+//
+// Design-system: wraps `<Card radius="md">` (no `tone` —
+// neutral surface so the colored status icons read against a
+// quiet bg). Right-borders between cells use `border-divider-subtle`
+// to keep the lifecycle reading as one continuous strip, not 6
+// separate cards.
+const LIFECYCLE_CELLS = [
+  { key: 'pending', icon: LoaderIcon, label: 'Not started', toneClass: 'text-text-tertiary' },
+  {
+    key: 'waiting_on_client',
+    icon: HourglassIcon,
+    label: 'Waiting on client',
+    toneClass: 'text-text-warning',
+  },
+  {
+    key: 'blocked',
+    icon: ConstructionIcon,
+    label: 'Blocked',
+    toneClass: 'text-text-destructive',
+  },
+  {
+    key: 'review',
+    icon: MessageSquareTextIcon,
+    label: 'In review',
+    toneClass: 'text-text-accent',
+  },
+  { key: 'done', icon: FileCheckIcon, label: 'Filed', toneClass: 'text-text-success' },
+  {
+    key: 'completed',
+    icon: CircleCheckIcon,
+    label: 'Completed',
+    toneClass: 'text-text-success',
+  },
+] as const
+
+function DashboardStatusLifecycleStrip({ rows }: { rows: DashboardTopRow[] }) {
+  const { t } = useLingui()
+  // 2026-06-04 round 6 (Yuqi "ensure everything on Today is wired
+  // correctly - all of the numbers will match"): status
+  // aggregation now folds `in_progress` into the `review` cell
+  // (both are CPA actively working). Previously `in_progress`
+  // rows were silently dropped from the strip, so the strip
+  // totals didn't add up to the visible rows count.
+  const counts = useMemo(() => {
+    const byStatus = new Map<string, number>()
+    for (const row of rows) {
+      const key = row.status === 'in_progress' ? 'review' : row.status
+      byStatus.set(key, (byStatus.get(key) ?? 0) + 1)
+    }
+    return byStatus
+  }, [rows])
+
+  // i18n: label strings derived inside render via `t\`...\`` so the
+  // lingui extractor catches them. The `LIFECYCLE_CELLS` constant
+  // carries English fallbacks but the rendered text is gated.
+  const cellLabels: Record<(typeof LIFECYCLE_CELLS)[number]['key'], string> = {
+    pending: t`Not started`,
+    waiting_on_client: t`Waiting on client`,
+    blocked: t`Blocked`,
+    review: t`In review`,
+    done: t`Filed`,
+    completed: t`Completed`,
+  }
+
+  return (
+    // 2026-06-03 (Pencil VmcdD row-B `Y12FTm` exact replica):
+    //   • cornerRadius 10
+    //   • height: 120 (fixed) — set via min-height so the strip can
+    //     grow if labels wrap on narrow viewports, but defaults to
+    //     Pencil's exact 120px on the canonical viewport
+    //   • bg-default with a 1px subtle hairline border
+    //   • flex-row across 6 cells, no gap (cells own their dividers)
+    //   • flex-wrap defensively for sub-960px viewports so labels
+    //     don't clip into invisibility (cells fall to a 3×2 grid)
+    //   • Each cell is a `<LifecycleStripCell>` primitive carrying
+    //     icon + 28/600 value + 12/500 muted label per Pencil
+    // 2026-06-03 (Pencil VmcdD: bg-default + rounded + border).
+    // 2026-06-04 round 3 had briefly dropped the bg — strip floated
+    // on the page wash with only an outer border.
+    // 2026-06-04 round 14 (Yuqi page-feedback #2 "数据条有个背景"
+    // — the data strip should have a background): bg restored to
+    // `bg-background-default` (white). The strip now reads as a
+    // sibling card to the ActionsTable cards below it — same
+    // tonal family, page-wash > white cards. The outer border +
+    // rounded radius frame the cluster as a unit; the white fill
+    // gives the per-cell content something to sit on rather than
+    // floating against the page wash.
+    // 2026-06-04 round 14 (Yuqi page-feedback "so is this for
+    // Actions this week, or all deadlines?"): wrapped the strip
+    // with a small eyebrow caption so the scope is explicit at
+    // the glance, not implicit via the section header above.
+    // Strip is fed from `visible` (the top 10 rows of this
+    // week's actions); the caption names that scope directly.
+    // 11/600 uppercase tertiary matches the canonical column-
+    // label tone shared across tables — same family signal.
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+        <Trans>Status across this week's actions</Trans>
+      </span>
+      <div className="flex flex-row flex-wrap overflow-hidden rounded-[10px] border border-divider-deep bg-background-default">
+        {LIFECYCLE_CELLS.map((cell, index) => {
+          const count = counts.get(cell.key as ObligationStatus) ?? 0
+          return (
+            <LifecycleStripCell
+              key={cell.key}
+              href={`/deadlines?status=${cell.key}`}
+              icon={cell.icon}
+              iconToneClass={cell.toneClass}
+              value={count}
+              label={cellLabels[cell.key]}
+              isFirst={index === 0}
+              isLast={index === LIFECYCLE_CELLS.length - 1}
+              ariaLabel={t`${count} deadlines: ${cellLabels[cell.key]}`}
+            />
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+export { DashboardActionsList, DashboardStatusLifecycleStrip, daysUntilDueFromAsOf }

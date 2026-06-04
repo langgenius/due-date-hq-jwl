@@ -24,6 +24,7 @@ import type {
   RuleSource,
   RuleSourceCoverageStatus,
 } from '@duedatehq/contracts'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
   Sheet,
@@ -871,8 +872,16 @@ export function CoverageTab({
                     : 'max-h-[clamp(420px,calc(100svh-12rem),920px)] overscroll-auto',
                 )}
               >
+                {/* 2026-06-04 (Yuqi table sweep): TableHead text-xs
+                    font-medium text-text-secondary overrides removed
+                    — primitive now defaults to 11/600 uppercase
+                    tertiary, the canonical column-label style. The
+                    sticky `bg-background-section` is kept on
+                    TableHeader to opt out of the alpha-50 header tone
+                    when stickied (solid bg is required so body rows
+                    don't bleed through during scroll). */}
                 <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-background-default">
+                  <TableHeader className="sticky top-0 z-10 bg-background-section">
                     {/* Single-row header — the group-eyebrow strip ("Rules"
                 / "Entity coverage") was visually messy: small labels
                 off-center over their colspans, empty placeholders
@@ -880,24 +889,24 @@ export function CoverageTab({
                 "Entity coverage" above the table already names the
                 grouping, and Active/Pending are self-explanatory in
                 a rules table — no in-table grouping cue needed. */}
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="w-[200px] text-xs font-medium text-text-secondary">
+                    <TableRow>
+                      <TableHead className="w-[200px]">
                         <Trans>Jurisdiction</Trans>
                       </TableHead>
-                      <TableHead className="w-[80px] text-right text-xs font-medium text-text-secondary">
+                      <TableHead className="w-[80px] text-right">
                         <Trans>Active</Trans>
                       </TableHead>
-                      <TableHead className="w-[100px] text-right text-xs font-medium text-text-secondary">
+                      <TableHead className="w-[100px] text-right">
                         <Trans>Pending</Trans>
                       </TableHead>
-                      <TableHead className="w-[300px] text-xs font-medium text-text-secondary">
+                      <TableHead className="w-[300px]">
                         <Trans>Source</Trans>
                       </TableHead>
                       {visibleEntityColumns.map(({ col, label, fullName }) => (
                         <TableHead
                           key={col}
                           title={fullName}
-                          className="w-[80px] cursor-help text-center text-xs font-medium text-text-secondary"
+                          className="w-[80px] cursor-help text-center"
                         >
                           {label}
                         </TableHead>
@@ -1163,11 +1172,16 @@ function CoverageRow({
 
   return (
     <Fragment>
+      {/* 2026-06-04 (Yuqi table sweep): `transition-colors` removed
+          (canonical row default), `hover:bg-background-subtle/40`
+          replaced with primitive hover inheritance. `h-12` kept
+          because this coverage matrix is a deliberately compact
+          surface — the canonical `py-4` (40px+ rows) would force a
+          tall scroll on a 50+ jurisdiction list. Expanded row keeps
+          `border-b-0 hover:bg-transparent` because the expand panel
+          fuses to the row below. */}
       <TableRow
-        className={cn(
-          'h-12 cursor-pointer transition-colors',
-          isExpanded ? 'border-b-0 hover:bg-transparent' : 'hover:bg-background-subtle/40',
-        )}
+        className={cn('h-12 cursor-pointer', isExpanded && 'border-b-0 hover:bg-transparent')}
         onClick={handleRowClick}
         onKeyDown={handleRowKeyDown}
         role="button"
@@ -2466,24 +2480,27 @@ function RulePanel({
  * still has source gaps.
  */
 function SourceCountBadge({ count, attention }: { count: number; attention?: boolean }) {
+  // 2026-06-01: hand-rolled size-6 circular pills → Badge size='circle'.
+  // `secondary` tone for zero (muted gray), `warning` for jurisdictions
+  // with source gaps, `success` for healthy coverage.
   if (count === 0) {
     return (
-      <span className="inline-flex size-6 items-center justify-center rounded-full bg-background-subtle text-xs font-semibold tabular-nums text-text-tertiary">
+      <Badge variant="secondary" size="circle">
         0
-      </span>
+      </Badge>
     )
   }
   if (attention) {
     return (
-      <span className="inline-flex size-6 items-center justify-center rounded-full bg-severity-medium/15 text-xs font-semibold tabular-nums text-severity-medium">
+      <Badge variant="warning" size="circle">
         {count}
-      </span>
+      </Badge>
     )
   }
   return (
-    <span className="inline-flex size-6 items-center justify-center rounded-full bg-status-done/15 text-xs font-semibold tabular-nums text-status-done">
+    <Badge variant="success" size="circle">
       {count}
-    </span>
+    </Badge>
   )
 }
 

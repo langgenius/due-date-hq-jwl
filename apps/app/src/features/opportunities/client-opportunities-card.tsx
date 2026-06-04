@@ -5,6 +5,7 @@ import { ArrowUpRightIcon } from 'lucide-react'
 
 import type { OpportunityPublic } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { orpc } from '@/lib/rpc'
 import { OpportunityKindBadge, OpportunityTimingBadge, opportunityIcon } from './opportunity-ui'
@@ -20,6 +21,13 @@ import { OpportunityKindBadge, OpportunityTimingBadge, opportunityIcon } from '.
  * around what was already inside a section wrapper. Renders flat now:
  * a `rounded-md border bg-background-default p-4` frame + opportunity
  * items. The TabSection caller provides the heading.
+ *
+ * 2026-05-31: outer frame swapped from a hand-rolled `rounded-md border
+ * bg-background-default p-4` div to `<Card size="sm" radius="md">` now
+ * that the Card primitive carries the `radius="md"` axis. We render
+ * without CardHeader to preserve the flat-frame shape (the TabSection
+ * caller still owns the heading); CardContent supplies the px-4 since
+ * the outer Card only owns py spacing.
  */
 export function ClientOpportunitiesCard({ clientId }: { clientId: string }) {
   const opportunitiesQuery = useQuery(
@@ -28,34 +36,36 @@ export function ClientOpportunitiesCard({ clientId }: { clientId: string }) {
   const opportunities = opportunitiesQuery.data?.opportunities ?? []
 
   return (
-    <div className="rounded-md border border-divider-regular bg-background-default p-4">
-      {opportunitiesQuery.isLoading ? (
-        <div className="grid gap-2">
-          <Skeleton className="h-14 w-full" />
-          <Skeleton className="h-14 w-full" />
-        </div>
-      ) : opportunities.length === 0 ? (
-        <p className="text-sm text-text-secondary">
-          <Trans>No lightweight opportunity cues for this client yet.</Trans>
-        </p>
-      ) : (
-        <div className="grid gap-3">
-          {opportunities.map((opportunity) => (
-            <ClientOpportunityItem key={opportunity.id} opportunity={opportunity} />
-          ))}
-          <Button
-            nativeButton={false}
-            size="sm"
-            variant="outline"
-            className="w-fit"
-            render={<Link to="/opportunities" />}
-          >
-            <ArrowUpRightIcon data-icon="inline-start" />
-            <Trans>View all opportunities</Trans>
-          </Button>
-        </div>
-      )}
-    </div>
+    <Card size="sm" radius="md">
+      <CardContent>
+        {opportunitiesQuery.isLoading ? (
+          <div className="grid gap-2">
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-14 w-full" />
+          </div>
+        ) : opportunities.length === 0 ? (
+          <p className="text-sm text-text-secondary">
+            <Trans>No lightweight opportunity cues for this client yet.</Trans>
+          </p>
+        ) : (
+          <div className="grid gap-3">
+            {opportunities.map((opportunity) => (
+              <ClientOpportunityItem key={opportunity.id} opportunity={opportunity} />
+            ))}
+            <Button
+              nativeButton={false}
+              size="sm"
+              variant="outline"
+              className="w-fit"
+              render={<Link to="/opportunities" />}
+            >
+              <ArrowUpRightIcon data-icon="inline-start" />
+              <Trans>View all opportunities</Trans>
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
@@ -65,21 +75,32 @@ function ClientOpportunityItem({ opportunity }: { opportunity: OpportunityPublic
   // `bg-background-default` (white) so it pops on the new
   // `bg-background-inset` gray. See
   // docs/Design/inset-surface-design-system.md.
+  //
+  // 2026-05-31: per-opportunity tile chrome moved from a hand-rolled
+  // `rounded-md border bg-background-default p-3` article to the
+  // shared `<Card size="xs" radius="md">` primitive (gap-2 py-3 px-3
+  // text-sm, flat rounded-md radius). The element changes from
+  // <article> to <div> because Card is a div primitive without an
+  // asChild escape hatch; the surrounding list provides reading
+  // structure so the article tag was an enrichment, not a behavior.
+  // CardContent supplies the px-3 the outer Card omits.
   return (
-    <article className="grid gap-2 rounded-md border border-divider-subtle bg-background-default p-3">
-      <div className="flex min-w-0 items-start gap-2">
-        <div className="grid size-7 shrink-0 place-items-center rounded-md bg-background-default text-text-secondary">
-          <Icon className="size-3.5" aria-hidden />
-        </div>
-        <div className="min-w-0">
-          <div className="flex flex-wrap gap-1.5">
-            <OpportunityKindBadge kind={opportunity.kind} />
-            <OpportunityTimingBadge timing={opportunity.timing} />
+    <Card size="xs" radius="md">
+      <CardContent>
+        <div className="flex min-w-0 items-start gap-2">
+          <div className="grid size-7 shrink-0 place-items-center rounded-md bg-background-default text-text-secondary">
+            <Icon className="size-3.5" aria-hidden />
           </div>
-          <h3 className="mt-2 text-sm font-medium text-text-primary">{opportunity.title}</h3>
-          <p className="mt-1 text-sm text-text-secondary">{opportunity.summary}</p>
+          <div className="min-w-0">
+            <div className="flex flex-wrap gap-1.5">
+              <OpportunityKindBadge kind={opportunity.kind} />
+              <OpportunityTimingBadge timing={opportunity.timing} />
+            </div>
+            <h3 className="mt-2 text-sm font-medium text-text-primary">{opportunity.title}</h3>
+            <p className="mt-1 text-sm text-text-secondary">{opportunity.summary}</p>
+          </div>
         </div>
-      </div>
-    </article>
+      </CardContent>
+    </Card>
   )
 }

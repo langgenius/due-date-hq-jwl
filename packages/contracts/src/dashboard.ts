@@ -3,7 +3,7 @@ import * as z from 'zod'
 import { EvidencePublicSchema } from './evidence'
 import { PenaltyBreakdownItemSchema, PenaltySourceRefSchema } from './obligations'
 import { SmartPriorityBreakdownSchema } from './priority'
-import { ExposureStatusSchema, ObligationStatusSchema } from './shared/enums'
+import { ExposureStatusSchema, ObligationStatusSchema, ObligationTypeSchema } from './shared/enums'
 import { EntityIdSchema } from './shared/ids'
 
 export const DASHBOARD_FILTER_MAX_SELECTIONS = 16
@@ -98,6 +98,15 @@ export const DashboardTopRowSchema = z.object({
   clientName: z.string().min(1),
   clientEmail: z.email().nullable(),
   taxType: z.string().min(1),
+  // 2026-06-03 (Yuqi /critique pass — Reviewer panel finding P0
+  // "FORM column lies for 3 of 6 types"): obligation type threaded
+  // through so the dashboard ActionsTable can render a TYPE column
+  // (icon + 1-word label) distinguishing return / payment / deposit
+  // / information / client_action / internal_review without inferring
+  // from the taxType string. DB enum value is `'filing'` for tax
+  // return submissions (canonical PDF §3.1); the UI label "Return"
+  // is rendered via `useObligationTypeLabels()`.
+  obligationType: ObligationTypeSchema,
   currentDueDate: z.iso.date(),
   // 2026-05-27 (D12 — Agent ω / journey audit): payment due date,
   // populated from the underlying obligation. Lets dashboard surfaces

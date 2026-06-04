@@ -6,7 +6,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 const badgeVariants = cva(
   cn(
-    'group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent px-2 py-0.5 text-badge font-medium whitespace-nowrap transition-colors text-xs',
+    'group/badge inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden border border-transparent text-badge font-medium whitespace-nowrap transition-colors',
     'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
     'has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5',
     'aria-invalid:border-state-destructive-border aria-invalid:ring-2 aria-invalid:ring-state-destructive-active',
@@ -34,9 +34,48 @@ const badgeVariants = cva(
         ghost: 'text-text-secondary hover:bg-state-base-hover',
         link: 'text-text-accent underline-offset-4 hover:underline',
       },
+      // 2026-06-01: `size` axis added so the same Badge primitive covers
+      // both inline-text usage (default h-5) and PageHeader title-row
+      // count pills (lg h-6). Five+ call-sites hand-roll the h-6 +
+      // px-2 py-1.5 + tabular-nums pill next to a title; this lets them
+      // write <Badge variant="secondary" size="lg">{n}</Badge>.
+      //
+      // 2026-06-01: `sm` and `circle` sizes added to absorb 7+ override
+      // sites that hand-rolled h-4/h-[18px]/size-6 micro-chips and
+      // single-digit count circles. `sm` is the micro-chip used by
+      // tab-count bubbles, ext./paid-late chips, and AI-assisted
+      // provenance chips. `circle` is the equal-axis count circle
+      // used by SourceCountBadge coverage indicators, single-digit
+      // tab counts, and the rules legend 'S' glyph.
+      size: {
+        default: 'h-5 px-2 py-0.5 text-xs',
+        sm: 'h-4 min-w-4 px-1.5 text-[10px] leading-none',
+        lg: 'h-6 px-2 py-1.5 text-xs',
+        circle: 'size-6 px-0 justify-center tabular-nums',
+      },
+      // 2026-06-01: `shape` axis adds the square-corner uppercase
+      // "eyebrow" treatment used for AI provenance chips, jurisdiction
+      // kickers, and timeline phase labels. Default keeps the existing
+      // full-pill rounding; `square` swaps to rounded-sm + uppercase +
+      // tracking-wide so callers pair it with any color variant.
+      // 2026-06-04 (Yuqi Pencil qSR9p — "client name frame does
+      // not need to be always full rounded corners"): added a
+      // `rounded` shape variant (rounded-lg = 8px corner radius,
+      // matching Pencil's qSR9p frame cornerRadius). Sits between
+      // `pill` (full-radius, info-density chips) and `square`
+      // (sharp-radius, eyebrow micro-chips). Use for content
+      // chips like client-name affordances where the pill read
+      // is too aggressive for a multi-word identifier.
+      shape: {
+        pill: 'rounded-full',
+        rounded: 'rounded-lg',
+        square: 'rounded-sm font-semibold uppercase tracking-wide',
+      },
     },
     defaultVariants: {
       variant: 'default',
+      size: 'default',
+      shape: 'pill',
     },
   },
 )
@@ -87,6 +126,8 @@ function BadgeStatusDot({
 function Badge({
   className,
   variant = 'default',
+  size = 'default',
+  shape = 'pill',
   render,
   ...props
 }: useRender.ComponentProps<'span'> & VariantProps<typeof badgeVariants>) {
@@ -94,7 +135,7 @@ function Badge({
     defaultTagName: 'span',
     props: mergeProps<'span'>(
       {
-        className: cn(badgeVariants({ variant }), className),
+        className: cn(badgeVariants({ variant, size, shape }), className),
       },
       props,
     ),
@@ -102,6 +143,8 @@ function Badge({
     state: {
       slot: 'badge',
       variant,
+      size,
+      shape,
     },
   })
 }

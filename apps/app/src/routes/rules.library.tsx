@@ -36,6 +36,7 @@ import type {
 // `RuleTier` isn't re-exported from the contracts package today —
 // infer it from the same union literal the schema uses.
 type RuleTier = ObligationRule['ruleTier']
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
@@ -1657,9 +1658,12 @@ export function RulesLibraryRoute() {
           <span className="inline-flex items-center gap-2">
             <Trans>Rule library</Trans>
             {!rulesQuery.isLoading ? (
-              <span className="rounded-full bg-state-base-hover px-2 py-1.5 text-xs font-medium tabular-nums text-text-secondary">
+              // 2026-06-01: swapped hand-rolled count pill for Badge
+              // (variant="secondary" size="lg") — canonical
+              // PageHeader-title count chip.
+              <Badge variant="secondary" size="lg" className="tabular-nums">
                 <Plural value={totalRules} one="# rule" other="# rules" />
-              </span>
+              </Badge>
             ) : null}
             {!statsLoading && totalPendingReview > 0 ? (
               <button
@@ -1984,9 +1988,9 @@ function RuleReviewProgressBar(
   // firms see translated catalog progress.
   const { t } = useLingui()
   if (props.loading) {
-    return (
-      <div className="h-7 w-full animate-pulse rounded-md border border-divider-subtle bg-background-subtle" />
-    )
+    // 2026-06-01: collapse hand-rolled animate-pulse placeholder onto the
+    // canonical Skeleton primitive — same visual recipe, shared tokens.
+    return <Skeleton className="h-7 w-full rounded-md" />
   }
   const { statusCounts } = props
   // Order matches the catalog's lifecycle reading: green (done) →
@@ -2641,24 +2645,16 @@ function GroupedRulesTable({
             see-through and showed row text bleeding through. Falling back to
             the primitive's solid `bg-background-subtle` (#f2f4f7) gives the
             same visual gray tone WITHOUT alpha. */}
+          {/* 2026-06-04 (Yuqi table sweep): TableHeader sticky needs
+              a solid bg to keep body rows from bleeding through on
+              scroll. Per the new canonical, the solid color IS
+              `bg-background-section`, so the sticky header inherits
+              it from the primitive — no override needed. */}
           <TableHeader className="sticky top-0 z-10">
             <TableRow>
-              {/* 2026-05-28 (Yuqi /rules/library polish #7 —
-                  "responsive 应该首选缩短 progress + width of entity
-                  + Form，最后才是 Rule 长文字"): column widths now
-                  express a shrink PRIORITY ladder.
-                    • Rule:   `min-w-[260px]` — protected baseline so
-                              the title (the most important column —
-                              see #11) wraps last when the viewport
-                              narrows.
-                    • Form:   stays at `w-[140px]` — fixed.
-                    • Entity (7×): each `w-12` (48px) — already
-                              minimal; if the viewport falls below
-                              what fits, the entire row falls back to
-                              the existing `break-words` strategy.
-                    • Type:   `w-[120px]` — fixed cap so Type +
-                              progress bar share a stable rightmost
-                              column. */}
+              {/* 2026-05-28 column shrink ladder: Rule min-w-[260px]
+                  (protected baseline); Form/Type w-[140px]; entity
+                  columns w-12 (48px minimal). */}
               <TableHead className="min-w-[260px]">
                 <Trans>Rule</Trans>
               </TableHead>
@@ -2669,7 +2665,7 @@ function GroupedRulesTable({
                 <TableHead
                   key={entity}
                   title={ENTITY_FULL_LABELS[entity]}
-                  className="w-12 text-center text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-tertiary"
+                  className="w-12 text-center"
                 >
                   {ENTITY_COLUMN_LABELS[entity]}
                 </TableHead>
@@ -2697,7 +2693,15 @@ function GroupedRulesTable({
               </TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          {/* 2026-06-04 (Yuqi table sweep): zebra striping
+              (`even:bg-background-section/40` on canonical
+              TableRow) opted OUT here. The library interleaves
+              state group-header rows with rule data rows; zebra
+              based on DOM position would tint state headers and
+              rules inconsistently against their semantic role.
+              Tier-tinted rows (needsReview, focused, isOpen)
+              already supply per-row distinction. */}
+          <TableBody className="[&_tr]:even:bg-transparent">
             {groups.map((group) => {
               const isExpanded = expanded.has(group.jurisdiction)
               return (
@@ -2887,11 +2891,26 @@ function GroupHeaderRow({
         // "don't like state header to be gray"). Anchors by
         // typography (bigger semibold name) alone.
         //
-        // 2026-05-30 (Yuqi browser comment): TableRow already owns a
-        // single bottom hairline. Do not add a top border here; adjacent
-        // rows would render bottom + top separators and make the state
-        // list look double-ruled.
-        'h-14 cursor-pointer hover:bg-state-base-hover',
+        // 2026-05-28 (Yuqi /rules/library polish #6 — "当列表展开
+        // 的时候，现在有点难分清每个state"): added a 2px deep top
+        // border that paints over the previous row's faint
+        // `border-b divider-subtle`. The combined ~2.5px solid line
+        // gives a clear visual break between an expanded
+        // jurisdiction's rule rows and the NEXT jurisdiction header,
+        // so the eye can find the next state at a glance even after
+        // a long scroll-through of expanded rules. The first
+        // GroupHeaderRow in the table doesn't need the top border
+        // (no preceding content to separate from), but rendering it
+        // there is harmless — the sticky TableHeader sits above it
+        // anyway. `border-t-2 border-divider-deep` chosen so the
+        // line lands at deep-gray (#171717 / 0.14 alpha) rather than
+        // pulling the page tint; it has to win against the rule
+        // row's border-b without competing with row text.
+        // 2026-06-04 (Yuqi table sweep): `hover:bg-state-base-hover`
+        // dropped — canonical row default. `h-14 cursor-pointer
+        // border-t-2 border-divider-deep` kept — the deep top
+        // border is the state-boundary cue.
+        'h-14 cursor-pointer border-t-2 border-divider-deep',
         focused && 'bg-state-base-hover shadow-[inset_2px_0_0_var(--color-state-accent-solid)]',
       )}
       onClick={() => onToggle(group.jurisdiction)}
@@ -3109,7 +3128,9 @@ function RuleTableRow({
         // state. Replaces the bare `group` so the named group token
         // matches /clients list rows + /clients/[id] filing-plan
         // rows for cross-surface consistency.
-        'group/row h-14 cursor-pointer hover:bg-state-base-hover',
+        // 2026-06-04 (Yuqi table sweep): `hover:bg-state-base-hover`
+        // dropped — canonical row default.
+        'group/row h-14 cursor-pointer',
         // 2026-05-28 (Yuqi /rules/library polish #2 — same orange
         // shift as the top callout pill): needs-review row tint
         // moved from yellow-50 to orange-50 for the warm-brown read.

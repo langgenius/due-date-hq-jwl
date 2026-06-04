@@ -64,13 +64,12 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { InfoBanner } from '@/components/patterns/info-banner'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
 import { PageHeader } from '@/components/patterns/page-header'
-import { getAssigneeTint } from '@/lib/assignee-tint'
 import { formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { initialsFromName } from '@/lib/auth'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { useCurrentUserName } from '@/lib/use-current-user-name'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
@@ -85,6 +84,8 @@ import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 
 import { ClientCycleArrows } from './ClientCycleArrows'
+import { ClientNotesPanel } from './ClientNotesPanel'
+import { ClientNotesStrip } from './ClientNotesStrip'
 import { ClientTitleSwitcher } from './ClientTitleSwitcher'
 import { ClientCompliancePosturePanel } from './ClientCompliancePosturePanel'
 import { FixNeedsFactsSheet } from './FixNeedsFactsSheet'
@@ -331,6 +332,25 @@ export function ClientDetailWorkspace({
   // me into view" callback just scrolls — no panel state to toggle.
   const canReadAudit = permission.can('audit.read')
   const canUpdateObligationStatus = permission.can('obligation.status.update')
+  // 2026-06-01 (Yuqi /clients/[id] critique — IA): wraps the
+  // `client.write` capability for the Notes slide-in panel. Same
+  // permission scope the other client-edit panels (Risk profile,
+  // Source details) already gate on; surfacing it here means the
+  // sheet trigger renders read-only for coordinators / preparers
+  // who can VIEW notes but can't write them.
+  const canUpdateClient = permission.can('client.write')
+  // 2026-06-01 (Yuqi /clients/[id] critique — IA part 2): notes
+  // slide-in is now controlled by the workspace so multiple
+  // affordances can open it:
+  //   • `<ClientNotesStrip>` — inline preview below PageHeader,
+  //     always visible when notes exist. Click → open editor.
+  //   • Empty-state "Add notes" Button in the header actions
+  //     cluster — only renders when notes are empty (acts as the
+  //     discoverable "add notes" CTA).
+  //   • The slide-in panel itself — controlled instance mounted
+  //     once at the top of the workspace tree.
+  const [notesOpen, setNotesOpen] = useState(false)
+  const hasClientNotes = (client.notes?.trim().length ?? 0) > 0
   // Body is now a 4-tab structure (Work / Client info / Discover /
   // Activity) — see docs/Design/client-page-information-architecture.md
   // updated 2026-05-22. URL-bound so deep links land on the right tab.
@@ -353,12 +373,19 @@ export function ClientDetailWorkspace({
   // ShortcutHelpDialog (the `?` sheet — that's Task 4 satisfied for
   // free). No on-screen kbd hints yet — power users discover via `?`.
   const shortcutsBlocked = useKeyboardShortcutsBlocked()
+  // 2026-06-01 (Yuqi /clients/[id] critique — IA): shortcut metadata
+  // synced with the tab-label rename. The `?` Keyboard Shortcuts
+  // dialog and any other surface that reads `meta.name` /
+  // `meta.description` from the hotkey registry now show the new
+  // tab labels (Filing plan / Setup / Opportunities / History) and
+  // accurate descriptions (Activity → History no longer mentions
+  // "notes" because Notes moved to a slide-in panel).
   useAppHotkey('1', () => void setActiveTab('work'), {
     enabled: !shortcutsBlocked,
     meta: {
       id: 'clients.tab.work',
-      name: 'Work tab',
-      description: "Switch to the client's Work tab (filing plan).",
+      name: 'Filing plan tab',
+      description: "Switch to the client's Filing plan tab.",
       category: 'navigate',
       scope: 'route',
     },
@@ -367,8 +394,8 @@ export function ClientDetailWorkspace({
     enabled: !shortcutsBlocked,
     meta: {
       id: 'clients.tab.info',
-      name: 'Client info tab',
-      description: 'Switch to the Client info tab (posture, jurisdictions, risk).',
+      name: 'Setup tab',
+      description: 'Switch to the Setup tab (compliance posture, jurisdictions, risk, onboarding).',
       category: 'navigate',
       scope: 'route',
     },
@@ -377,8 +404,8 @@ export function ClientDetailWorkspace({
     enabled: !shortcutsBlocked,
     meta: {
       id: 'clients.tab.opportunities',
-      name: 'Suggested forms tab',
-      description: 'Switch to the Suggested forms tab on this client.',
+      name: 'Opportunities tab',
+      description: 'Switch to the Opportunities tab (suggested forms + future business cues).',
       category: 'navigate',
       scope: 'route',
     },
@@ -387,8 +414,8 @@ export function ClientDetailWorkspace({
     enabled: !shortcutsBlocked,
     meta: {
       id: 'clients.tab.activity',
-      name: 'Activity tab',
-      description: 'Switch to the Activity tab (AI summary, notes, audit log).',
+      name: 'History tab',
+      description: 'Switch to the History tab (AI summary + audit log).',
       category: 'navigate',
       scope: 'route',
     },
@@ -791,6 +818,27 @@ export function ClientDetailWorkspace({
             }
             actions={
               <>
+                {/* 2026-06-01 (Yuqi /clients/[id] critique — IA part 2):
+                    Notes affordance in the actions cluster ONLY renders
+                    when the client has no notes yet. With notes, the
+                    inline `<ClientNotesStrip>` below the PageHeader is
+                    the canonical read+edit affordance; an extra header
+                    button would duplicate the entry point.
+                    Without notes, the strip auto-suppresses and this
+                    button is the discoverable "add notes" CTA. RBAC:
+                    hidden when the user lacks `client.write`. */}
+                {canUpdateClient && !hasClientNotes ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setNotesOpen(true)}
+                    aria-label={t`Add notes`}
+                  >
+                    <ScrollTextIcon data-icon="inline-start" />
+                    <Trans>Add notes</Trans>
+                  </Button>
+                ) : null}
                 {/* 2026-05-26 (Yuqi follow-up — "1/9 does not belong
                     to the client detail"): ClientCycleArrows moved
                     OUT of the actions cluster up to the eyebrowAside
@@ -857,6 +905,22 @@ export function ClientDetailWorkspace({
                 dismissKey={`client-${client.id}-needs-facts-tip`}
               />
             ) : null}
+
+            {/* 2026-06-01 (Yuqi /clients/[id] critique — IA part 2):
+                Notes strip lives above the alerts band — notes are
+                *persistent context* that anyone interacting with this
+                client should glance at (preferred call window,
+                sensitivities, history). Reads as identity context,
+                NOT a now-signal. The strip auto-suppresses when the
+                client has no notes (the empty-state "Add notes" CTA
+                lives in the header actions cluster instead). Click
+                anywhere on the strip → opens the controlled slide-in
+                panel mounted at the bottom of this tree. */}
+            <ClientNotesStrip
+              client={client}
+              canWrite={canUpdateClient}
+              onOpenEditor={() => setNotesOpen(true)}
+            />
 
             {/* Active alerts + summary strip stay ABOVE the tabs —
                 they're global signals about the client ("anything wrong
@@ -950,22 +1014,38 @@ export function ClientDetailWorkspace({
                     "scan me" affordance — the icons help the CPA
                     recognize the destination before they read the
                     word.
-                      • Work → ClipboardList (filing plan tasks)
-                      • Client info → UserRound (the person itself)
-                      • Opportunities → Sparkles (discover surface)
-                      • Activity → Activity (timeline / pulse)
                     Sizes match the deadline drawer at `size-3.5` so
-                    glyph weight stays consistent across surfaces. */}
+                    glyph weight stays consistent across surfaces.
+
+                    2026-06-01 (Yuqi /clients/[id] critique — IA
+                    labels): tab labels renamed to honor what's
+                    actually inside each tab. URL keys (`?tab=work`
+                    etc.) stay stable for backwards compat — only
+                    the visible label changes.
+                      • work          → "Filing plan"
+                          (was "Work" — narrowed to match the single
+                          ClientWorkPlanPanel inside)
+                      • info          → "Setup"
+                          (was "Client info" — 5 sections of
+                          tax-setup data, not contact info)
+                      • opportunities → "Opportunities"
+                          (was "Suggested forms" — umbrella that
+                          honestly covers both "Suggested forms" AND
+                          "Future business cues" sub-sections)
+                      • activity      → "History"
+                          (was "Activity" — read-mode history once
+                          Notes moves out to a slide-in panel)
+                */}
                 <ClientDetailTabTrigger value="work" activeTab={activeTab} compact={panelOpen}>
                   <ClipboardListIcon className="size-3.5" aria-hidden />
                   <span data-tab-label>
-                    <Trans>Work</Trans>
+                    <Trans>Filing plan</Trans>
                   </span>
                 </ClientDetailTabTrigger>
                 <ClientDetailTabTrigger value="info" activeTab={activeTab} compact={panelOpen}>
                   <UserRoundIcon className="size-3.5" aria-hidden />
                   <span data-tab-label>
-                    <Trans>Client info</Trans>
+                    <Trans>Setup</Trans>
                   </span>
                   {/* 2026-05-26 (Yuqi post-revamp critique P2 / §5):
                       dot → count chip. The dot signaled "something
@@ -976,16 +1056,19 @@ export function ClientDetailWorkspace({
                       readiness chip (warning, not destructive) per
                       §3.7 canonical color reservation. */}
                   {readiness && readiness.missingRequiredFacts.length > 0 ? (
-                    <span
-                      className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full border border-state-warning-border bg-state-warning-hover px-1.5 text-[10px] font-medium leading-none tabular-nums text-text-warning"
-                      // 2026-05-27 (audit P2-2): the bare "1" badge was
-                      // unlabeled. Title gives a CPA hovering it the
-                      // actual meaning ("# required fact(s) missing").
+                    // 2026-06-01: hand-rolled h-4 min-w-4 count bubble
+                    // swapped for Badge size='sm' warning. Audit P2-2's
+                    // accessible-name (title + aria-label) stays so AT
+                    // users still hear "# required fact(s) missing".
+                    <Badge
+                      variant="warning"
+                      size="sm"
+                      className="ml-1.5 tabular-nums"
                       title={t`${readiness.missingRequiredFacts.length} required fact(s) missing`}
                       aria-label={t`${readiness.missingRequiredFacts.length} required fact(s) missing`}
                     >
                       {readiness.missingRequiredFacts.length}
-                    </span>
+                    </Badge>
                   ) : null}
                 </ClientDetailTabTrigger>
                 <ClientDetailTabTrigger
@@ -995,18 +1078,27 @@ export function ClientDetailWorkspace({
                 >
                   <SparklesIcon className="size-3.5" aria-hidden />
                   <span data-tab-label>
-                    {/* Per-client tab labeled "Suggested forms" so it
-                        doesn't collide with the firm-wide /opportunities
-                        surface in the sidebar (audit L7). URL key stays
-                        `opportunities` (see L6 rename) — same tab key,
-                        narrower visible label. */}
-                    <Trans>Suggested forms</Trans>
+                    {/* 2026-06-01 (Yuqi /clients/[id] critique — IA):
+                        promoted from "Suggested forms" → "Opportunities"
+                        so the tab honestly covers both sub-sections
+                        ("Suggested forms" catalog + "Future business
+                        cues"). The audit L7 collision concern with the
+                        firm-wide /opportunities sidebar surface is
+                        moot — the tab lives nested inside a client
+                        detail context, never reads as the firm-wide
+                        page. URL key stays `opportunities`. */}
+                    <Trans>Opportunities</Trans>
                   </span>
                 </ClientDetailTabTrigger>
                 <ClientDetailTabTrigger value="activity" activeTab={activeTab} compact={panelOpen}>
                   <ActivityIcon className="size-3.5" aria-hidden />
                   <span data-tab-label>
-                    <Trans>Activity</Trans>
+                    {/* 2026-06-01: "Activity" → "History" once Notes
+                        moves to its own slide-in panel. The tab
+                        becomes coherently read-mode (AI summary +
+                        Activity log = the story of what's happened),
+                        no longer mixing a write-mode Notes block. */}
+                    <Trans>History</Trans>
                   </span>
                 </ClientDetailTabTrigger>
               </TabsList>
@@ -1093,6 +1185,17 @@ export function ClientDetailWorkspace({
                   </div>
                 </TabSection>
 
+                {/* 2026-06-01 (Yuqi /clients/[id] critique — IA,
+                    Avery persona): missing-facts chip can now deep-
+                    link to this section. The wrapper div carries
+                    `id="client-onboarding-state"` + `scroll-mt-20`
+                    so the existing scrollIntoView pattern (used by
+                    `client-filing-jurisdictions` above) works for
+                    the onboarding-state target too. When the count
+                    chip on the Setup tab is clicked we switch to the
+                    `info` tab + RAF-scroll here so the actionable
+                    checklist lands in view, instead of leaving the
+                    preparer to scroll past 4 sections. */}
                 <TabSection
                   title={t`Onboarding state`}
                   summary={
@@ -1101,7 +1204,10 @@ export function ClientDetailWorkspace({
                       : t`All required facts present`
                   }
                 >
-                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
+                  <div
+                    id="client-onboarding-state"
+                    className="scroll-mt-20 rounded-md border border-divider-regular bg-background-default p-4"
+                  >
                     <ClientFactChecklist client={client} readiness={readiness} />
                   </div>
                 </TabSection>
@@ -1218,35 +1324,15 @@ export function ClientDetailWorkspace({
                   </div>
                 </TabSection>
 
-                <TabSection title={t`Notes`}>
-                  {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 2 /
-                      Fix #10): when there are no notes, render the
-                      canonical EmptyState (dashed border + icon +
-                      title + description) instead of an italic
-                      "No notes." inside a solid frame. The italic
-                      pattern was a one-off — every other empty state
-                      on this page (Work plan, suggested forms,
-                      audit log) uses EmptyState, so Notes now joins.
-                      When notes ARE present, the solid frame stays
-                      because the content is body text the CPA
-                      authored, not a "nothing here" surface. */}
-                  {client.notes ? (
-                    <div className="rounded-md border border-divider-regular bg-background-default px-4 py-3 text-sm text-text-secondary">
-                      {client.notes}
-                    </div>
-                  ) : (
-                    <EmptyState
-                      icon={ScrollTextIcon}
-                      title={<Trans>No notes yet</Trans>}
-                      description={
-                        <Trans>
-                          Capture context (preferred call window, sensitivities, history) so the
-                          next preparer doesn't start from scratch.
-                        </Trans>
-                      }
-                    />
-                  )}
-                </TabSection>
+                {/* 2026-06-01 (Yuqi /clients/[id] critique — IA):
+                    Notes block lifted out of the History tab body
+                    to a dedicated slide-in panel anchored in the
+                    PageHeader actions cluster (`<ClientNotesPanel>`
+                    above). Notes is a write-mode interaction that
+                    didn't share the read-mode rhythm of this tab.
+                    Removing it lets History read coherently as
+                    "the story of what's happened" — AI summary +
+                    audit log. */}
 
                 <TabSection
                   title={t`Activity log`}
@@ -1379,6 +1465,19 @@ export function ClientDetailWorkspace({
           to tab+scroll instead because the sheet's entityType
           fallback is a link button that would loop back here. */}
       <FixNeedsFactsSheet open={fixSheetOpen} onOpenChange={setFixSheetOpen} clients={[client]} />
+      {/* 2026-06-01 (Yuqi /clients/[id] critique — IA part 2): the
+          controlled Notes slide-in panel. Mounted once at the
+          workspace's root so multiple affordances (strip, header
+          "Add notes" CTA, future keyboard shortcut) all open the
+          same instance via `setNotesOpen(true)`. The Sheet is
+          portal-rendered, so the tree position doesn't affect
+          stacking. */}
+      <ClientNotesPanel
+        client={client}
+        canWrite={canUpdateClient}
+        open={notesOpen}
+        onOpenChange={setNotesOpen}
+      />
     </>
   )
 }
@@ -1744,7 +1843,6 @@ function ClientOwnerHeaderPill({
     name !== null &&
     currentUserName !== null &&
     name.trim().toLowerCase() === currentUserName.toLowerCase()
-  const tint = name === null ? null : getAssigneeTint(name)
   const triggerLabel =
     name === null
       ? t`Change owner — currently unassigned`
@@ -1799,23 +1897,18 @@ function ClientOwnerHeaderPill({
               name === null ? 'text-text-secondary' : 'text-text-primary',
             )}
           >
+            {/* 2026-06-01: hand-rolled size-5 avatar circles
+                consolidated onto the shared AssigneeAvatar primitive
+                (size='xs'). Same null-name → Unassigned glyph branch +
+                isMine accent tint live inside the primitive now. */}
             {name === null ? (
               <>
-                <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
-                  <UserRoundIcon className="size-3.5" aria-hidden />
-                </span>
+                <AssigneeAvatar name={null} size="xs" title={triggerLabel} />
                 <Trans>Unassigned</Trans>
               </>
             ) : (
               <>
-                <span
-                  className={cn(
-                    'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-                    isMine ? 'bg-state-accent-hover-alt text-text-accent' : tint,
-                  )}
-                >
-                  {initialsFromName(name)}
-                </span>
+                <AssigneeAvatar name={name} isMine={isMine} size="xs" title={triggerLabel} />
                 <span className="truncate">{name}</span>
               </>
             )}
@@ -1833,14 +1926,11 @@ function ClientOwnerHeaderPill({
           }}
         >
           <DropdownMenuRadioItem value="__unassigned__">
-            {/* Avatar slot — kept at the same size-5 the member rows
-                use so all rows share a single visual rhythm. Previously
-                the Unassigned circle was size-4 while members were
-                size-5, which made the first row sit visually lower
-                than the rest. */}
-            <span className="inline-flex size-5 items-center justify-center rounded-full bg-background-subtle text-text-tertiary">
-              <UserRoundIcon className="size-3" aria-hidden />
-            </span>
+            {/* Avatar slot — size='xs' (size-5) so the Unassigned row
+                shares one visual rhythm with the member rows below.
+                2026-06-01: hand-rolled circle swapped for AssigneeAvatar
+                primitive (null name = Unassigned glyph). */}
+            <AssigneeAvatar name={null} size="xs" title={t`Unassigned`} />
             <span>
               <Trans>Unassigned</Trans>
             </span>
@@ -1857,14 +1947,11 @@ function ClientOwnerHeaderPill({
               disabled
               title={t`This member is no longer on the team`}
             >
-              <span
-                className={cn(
-                  'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-                  tint ?? 'bg-background-subtle text-text-tertiary',
-                )}
-              >
-                {name ? initialsFromName(name) : '?'}
-              </span>
+              {/* 2026-06-01: stale-assignee chip swapped to AssigneeAvatar
+                  (size='xs'). The primitive picks the same per-name tint
+                  via getAssigneeTint and falls back to the unassigned
+                  glyph when name is null. */}
+              <AssigneeAvatar name={name} size="xs" title={name ?? t`Former teammate`} />
               <span className="truncate text-text-tertiary">
                 {name ?? <Trans>Former teammate</Trans>}
                 <span className="ml-1 text-xs italic">
@@ -1880,20 +1967,20 @@ function ClientOwnerHeaderPill({
               Separator + empty-state Item now live OUTSIDE the
               RadioGroup. Member RadioItems stay inside. */}
           {assignableMembers.map((member) => {
-            const memberTint = getAssigneeTint(member.name)
             const isCurrentUser =
               currentUserName !== null &&
               member.name.trim().toLowerCase() === currentUserName.toLowerCase()
             return (
               <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
-                <span
-                  className={cn(
-                    'inline-flex size-5 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-                    isCurrentUser ? 'bg-state-accent-hover-alt text-text-accent' : memberTint,
-                  )}
-                >
-                  {initialsFromName(member.name)}
-                </span>
+                {/* 2026-06-01: member avatars consolidated onto
+                    AssigneeAvatar (size='xs', isMine for current user
+                    accent tint). */}
+                <AssigneeAvatar
+                  name={member.name}
+                  isMine={isCurrentUser}
+                  size="xs"
+                  title={member.name}
+                />
                 <span className="truncate">{member.name}</span>
               </DropdownMenuRadioItem>
             )
@@ -1969,12 +2056,19 @@ function ClientContactMetaRow({
           pills read as one coherent meta row. Gap tightened
           gap-x-3 → gap-x-2 since the pills are now visually
           related siblings rather than two ill-matched chips. */}
-      <span
-        className="inline-flex h-7 items-center rounded-full border border-divider-regular bg-background-default px-3 text-xs text-text-secondary"
+      {/* 2026-06-01: entity-kind chip routed through Badge outline lg.
+          h-7 override stays as className because the entity pill needs
+          to match the adjacent owner pill's 28px height exactly (lg's
+          baseline is h-6). */}
+      <Badge
+        variant="outline"
+        shape="pill"
+        size="lg"
+        className="h-7"
         aria-label={`Entity type: ${entityLabel}`}
       >
         {entityLabel}
-      </span>
+      </Badge>
       {ownerSlot}
       <ClientFilingStateChips client={client} />
       {items.map((item) => (

@@ -1,6 +1,6 @@
 import { type KeyboardEvent, useCallback } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { Astroid } from 'lucide-react'
+import { Astroid, ChevronRightIcon } from 'lucide-react'
 
 import type { AuditEventPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -12,10 +12,9 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
-import { getAssigneeTint } from '@/lib/assignee-tint'
-import { initialsFromName } from '@/lib/auth'
 import { cn } from '@duedatehq/ui/lib/utils'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
+import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import {
   useLifecycleV2StatusLabels,
   useReadinessLabels,
@@ -84,13 +83,14 @@ export function AuditLogTable({
           </TableHead>
         </TableRow>
       </TableHeader>
-      {/* 2026-05-26 (86th pass, audit §16.2 P1): added
-          `bg-background-default/50` so the audit log table matches the
-          cross-workbench TableBody alpha-50 white. The
-          `[&_tr]:border-b-0` weld is preserved — audit log uses
-          paragraph-row formatting where between-row dividers compete
-          with the change-headline content. */}
-      <TableBody className="bg-background-default/50 [&_tr]:border-b-0 [&_td]:py-3">
+      {/* 2026-06-04 (Yuqi table sweep): `bg-background-default/50`
+          dropped — primitive now ships solid `bg-background-default`
+          so the alpha-50 reads as a typo-tone next to the new solid
+          gray-50 header. `[&_tr]:border-b-0` + `[&_td]:py-3` are
+          intentional deviations: audit log is paragraph-row
+          formatting (compact, no between-row dividers) so the
+          change-headline can breathe. */}
+      <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
         {events.map((event) => {
           // η pass — F-035 / F-036: actor resolution now reads actor_type
           // first. An autonomous AI event ('ai') gets "AI" as the displayed
@@ -159,7 +159,12 @@ function AuditLogRow({
       data-audit-action={event.action}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      className="cursor-pointer align-top outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+      // 2026-06-04 (Yuqi table sweep): `hover:bg-state-base-hover`
+      // removed — that's the canonical primitive default now. Kept:
+      // `align-top` (this surface stacks 2-line content per cell, so
+      // align-middle reads as misaligned), `cursor-pointer`,
+      // focus-visible ring (keyboard a11y).
+      className="cursor-pointer align-top outline-none focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
     >
       <TableCell className="text-xs tabular-nums">
         <div className="grid gap-1">
@@ -183,45 +188,36 @@ function AuditLogRow({
             collide with the human avatar bucket. ai_assisted events keep
             the human avatar + add a small AI chip below the name. */}
         <div className={cn('flex gap-2', hasActorSecondaryLine ? 'items-start' : 'items-center')}>
-          {/* 2026-05-27 (η F-035/F-036 + σ D2 merge): autonomous AI events
-              render a dedicated Astroid tile (accent tint) so they don't
-              collide with the human avatar bucket. Human-actor branch
-              uses the canonical `initialsFromName` helper (σ D2) for
-              consistency with AssigneeAvatar / app-shell / clients
-              team list — single-char and whitespace edge cases handled
-              centrally. `'?'` fallback preserved for unknown actors. */}
-          {event.actorType === 'ai' ? (
-            <span
-              aria-hidden
-              className={cn(
-                'inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-state-accent-subtle text-text-accent',
-                actorAvatarOffsetClass,
-              )}
-            >
-              <Astroid className="size-3.5" />
-            </span>
-          ) : (
-            <span
-              aria-hidden
-              className={cn(
-                'inline-flex size-6 shrink-0 items-center justify-center rounded-full text-caption-xs font-semibold uppercase tracking-tight',
-                actorAvatarOffsetClass,
-                actor ? getAssigneeTint(actor) : 'bg-background-subtle text-text-tertiary',
-              )}
-            >
-              {actor ? initialsFromName(actor) : '?'}
-            </span>
-          )}
+          {/* 2026-06-01: collapsed onto the consolidated AssigneeAvatar
+              primitive (size='sm' size-6). AI branch passes type='ai';
+              human branch passes the actor name and lets the primitive
+              resolve initials + tint via the same canonical helpers
+              the app-shell, clients, and obligations queues use.
+              `actorAvatarOffsetClass` (mt-0.5 when the row has a
+              secondary line) is preserved via the `className` prop. */}
+          <AssigneeAvatar
+            name={event.actorType === 'ai' ? null : actor || null}
+            type={event.actorType === 'ai' ? 'ai' : 'human'}
+            size="sm"
+            title={actor}
+            className={cn('shrink-0', actorAvatarOffsetClass)}
+          />
           <div className="grid min-w-0 gap-1">
             <span className="text-xs font-medium text-text-primary">{actor}</span>
             {event.actorType === 'ai_assisted' ? (
-              <span
-                className="inline-flex w-fit items-center gap-1 rounded-sm bg-state-accent-subtle px-1 py-0.5 text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-accent"
+              // 2026-06-01: AI-assisted provenance chip on the Badge
+              // primitive (variant='info' size='sm' shape='square') —
+              // the square-shape variant already carries the
+              // uppercase + tracking-wide eyebrow treatment.
+              <Badge
+                variant="info"
+                size="sm"
+                shape="square"
                 title={t`AI produced the value; the user applied it.`}
               >
-                <Astroid className="size-2.5" aria-hidden />
+                <Astroid data-icon="inline-start" aria-hidden />
                 <Trans>AI-assisted</Trans>
-              </span>
+              </Badge>
             ) : event.actorId ? (
               <span className="font-mono text-xs text-text-tertiary">
                 {shortenAuditId(event.actorId)}
@@ -247,9 +243,10 @@ function AuditLogRow({
         <span className="line-clamp-2 text-xs text-text-secondary">{changeHeadline}</span>
       </TableCell>
       <TableCell className="text-right">
-        <span className="text-xs text-text-tertiary" aria-hidden>
-          ›
-        </span>
+        {/* 2026-06-01: replaced ›-glyph with ChevronRightIcon so the
+            row-open affordance aligns with the rest of the app's
+            chevron-icon vocabulary. */}
+        <ChevronRightIcon className="ml-auto size-3.5 text-text-tertiary" aria-hidden />
       </TableCell>
     </TableRow>
   )

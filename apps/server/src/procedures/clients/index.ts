@@ -819,6 +819,73 @@ const updateSourceDetails = os.clients.updateSourceDetails.handler(async ({ inpu
   }
 })
 
+// 2026-06-01 (Yuqi /clients/[id] critique — IA): single-purpose
+// notes write. The slide-in Notes panel that replaces the in-tab
+// read-only Notes block needs a clean mutation. Single field,
+// single action — keeps the audit log readable for `client.notes`
+// drilldowns and prevents the audit drawer from showing irrelevant
+// SourceDetails diffs when only Notes changed.
+const updateNotes = os.clients.updateNotes.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const before = await scoped.clients.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Client ${input.id} not found in current firm.`,
+    })
+  }
+
+  // Trim whitespace so callers can blank Notes by sending '   ' →
+  // null. Empty strings become null too so the read side renders
+  // the EmptyState consistently.
+  const normalizedNotes =
+    typeof input.notes === 'string' && input.notes.trim().length > 0 ? input.notes : null
+
+  // Short-circuit when no change so we don't write a no-op audit
+  // event. Compare both null-string equivalence.
+  if (normalizedNotes === before.notes) {
+    const filingProfiles = await scoped.filingProfiles.listByClient(input.id)
+    const hideDollars = await shouldHideDollars(context)
+    return {
+      client: toClientPublic(before, { hideDollars, filingProfiles }),
+      auditId: '' as string,
+    }
+  }
+
+  await scoped.clients.updateNotes(input.id, normalizedNotes)
+  const [after, filingProfiles] = await Promise.all([
+    scoped.clients.findById(input.id),
+    scoped.filingProfiles.listByClient(input.id),
+  ])
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated client could not be re-read.',
+    })
+  }
+
+  const { id: auditId } = await scoped.audit.write({
+    actorId: userId,
+    entityType: 'client',
+    entityId: input.id,
+    action: 'client.notes.updated',
+    before: { notes: before.notes },
+    after: { notes: after.notes },
+    ...(input.reason !== undefined ? { reason: input.reason } : {}),
+  })
+
+  // Notes are coordinator-authored context for the next preparer;
+  // they don't feed the dashboard brief or the AI risk summary, so
+  // no downstream refresh enqueue. If we ever pipe Notes into the
+  // AI summary's "context" channel, add the enqueue here.
+  void tenant
+
+  const hideDollars = await shouldHideDollars(context)
+  return {
+    client: toClientPublic(after, { hideDollars, filingProfiles }),
+    auditId,
+  }
+})
+
 function clientRiskFallback() {
   return [
     {
@@ -972,6 +1039,7 @@ export const clientsHandlers = {
   updatePenaltyInputs,
   updateRiskProfile,
   updateSourceDetails,
+  updateNotes,
   getRiskSummary,
   requestRiskSummaryRefresh,
   bulkUpdateAssignee,

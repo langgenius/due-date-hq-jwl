@@ -5,6 +5,7 @@ import {
   Sidebar,
   SidebarCollapseToggle,
   SidebarContent,
+  SidebarFooter,
   SidebarInset,
   SidebarProvider,
   SidebarSeparator,
@@ -158,14 +159,17 @@ export function AppShell(props: AppShellProps) {
               The Audit log + Settings items live inside
               SidebarContent's footer group (see NavGroups), NOT
               here — they're nav destinations, not chrome. */}
-          <div className="flex border-t border-divider-regular px-2 py-2 group-data-[collapsed=true]/sidebar:justify-center group-data-[collapsed=true]/sidebar:px-0">
+          {/* 2026-06-01: hand-rolled footer wrapper collapsed onto
+              SidebarFooter — the primitive now bakes in border-t,
+              px-2 py-2, and the collapsed-mode centering rules. */}
+          <SidebarFooter>
             <UserMenuTrigger
               user={props.user}
               firm={props.firm}
               themePreference={props.themePreference}
               switchThemePreference={props.switchThemePreference}
             />
-          </div>
+          </SidebarFooter>
         </Sidebar>
         {/* 2026-05-26 (Yuqi twenty-first pass): SidebarInset bg
             wired to the canonical `--background-inset` token

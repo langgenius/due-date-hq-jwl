@@ -3,6 +3,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { CalendarRangeIcon } from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
+import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
@@ -78,11 +79,13 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
   const lateFlag = client.lateFilingCountLast12mo
 
   return (
-    <section
-      aria-label={t`Compliance posture`}
-      className="overflow-hidden rounded-md border border-divider-regular bg-background-default"
-    >
-      <div className="grid gap-4 p-4">
+    // 2026-06-01: swapped hand-rolled `<section className="rounded-md border…">`
+    // chrome for the Card primitive (size="sm" gives px-4/py-4 + gap-4;
+    // radius="md" matches the dense rounded-md used across the in-page
+    // surfaces). CardContent owns the inner padding so the inner grid
+    // no longer needs its own `p-4`.
+    <Card size="sm" radius="md" role="region" aria-label={t`Compliance posture`}>
+      <CardContent>
         {/* Identity row — four facts the CPA copies most often.
             2026-05-24: stayed at 2-col across all viewports. The
             previous `lg:grid-cols-4` overflowed when the obligation
@@ -138,8 +141,8 @@ export function ClientCompliancePosturePanel({ client }: ClientCompliancePosture
             }
           />
         </dl>
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   )
 }
 

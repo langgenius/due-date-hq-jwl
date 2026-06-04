@@ -34,6 +34,7 @@ import { Link } from 'react-router'
 import type { AuditEventPublic } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
@@ -259,7 +260,15 @@ function ChangesSinceLastSection() {
       // reads as informational, not as another alert zone. Same
       // rounded-xl/p-3 rhythm as the Alerts section keeps the
       // page's vertical cadence consistent.
-      className="flex flex-col gap-2 rounded-xl bg-background-section p-3"
+      // 2026-06-04 round 42 (Yuqi consistency audit follow-up #3 —
+      // "yes please"): card bg unified with the NeedsAttentionCard
+      // + PulseAlertCard family. `bg-background-section` (#f9fafb
+      // gray-50) was sitting only 2 RGB units off the page wash
+      // (#f4f4f4 gray-100) — visually invisible chrome. Stepped to
+      // `bg-background-default` (white) so the section reads as
+      // a distinct card on the gray wash, matching the rest of
+      // the dashboard's white-card-on-gray pattern.
+      className="flex flex-col gap-2 rounded-xl bg-background-default p-3"
     >
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold tracking-tight text-text-secondary">
@@ -315,16 +324,24 @@ function ChangesSinceLastSection() {
               showing everything. */}
           {auditQuery.data && (auditQuery.data.events.length ?? 0) > MAX_VISIBLE_EVENTS ? (
             <li className="pt-2">
-              <Link
-                to="/audit"
-                className="text-xs text-text-muted underline-offset-2 hover:text-text-tertiary hover:underline"
+              {/* 2026-05-31 (Yuqi DS-first revision): hand-rolled
+                  muted-underline link replaced with the canonical
+                  `<TextLink>` primitive. `hover:underline` is kept
+                  as a className addition because the muted variant
+                  intentionally has no underline-on-hover — same
+                  affordance the original site carried. */}
+              <TextLink
+                variant="muted"
+                size="default"
+                className="underline-offset-2 hover:underline"
+                render={<Link to="/audit" />}
               >
                 <Plural
                   value={(auditQuery.data.events.length ?? 0) - MAX_VISIBLE_EVENTS}
                   one="# more in the audit log"
                   other="# more in the audit log"
                 />
-              </Link>
+              </TextLink>
             </li>
           ) : null}
         </ul>

@@ -1,9 +1,12 @@
-import { AlertCircleIcon, UploadIcon } from 'lucide-react'
+import { AlertCircleIcon, RotateCwIcon, UploadIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
+import { toast } from 'sonner'
+
+import { formatRelativeTime } from '@/lib/utils'
 
 import type {
   DashboardDueBucket,
@@ -141,6 +144,14 @@ export function DashboardRoute() {
   const hasClients = (clientsProbeQuery.data?.length ?? 0) > 0
   const data = dashboardQuery.data
 
+  // 2026-06-03 (audit follow-up): greeting machinery removed
+  // entirely after the eyebrow simplification (Pencil VmcdD)
+  // dropped the personalized prefix. The `void` cheats that kept
+  // unused helpers alive went with them.
+  const syncedAtIso =
+    dashboardQuery.dataUpdatedAt > 0 ? new Date(dashboardQuery.dataUpdatedAt).toISOString() : null
+  const syncedLabel = syncedAtIso ? formatRelativeTime(syncedAtIso) : null
+
   const triageTabs = data?.triageTabs ?? []
   const facets = data?.facets
 
@@ -186,7 +197,35 @@ export function DashboardRoute() {
     // loud against the 12px inside each section. gap-6 (24px) keeps
     // the three top-level sections distinct while pulling the first
     // content row up into the user's eye line.
-    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-6 px-4 pt-8 pb-3 md:px-6 md:pb-5">
+    /* 2026-06-03 (Pencil VmcdD Main frame): page chrome aligned
+       to Pencil exactly:
+         - outer padding [32, 64] at md+ via `px-16 py-8`; scales
+           down to `px-4 py-6` on mobile so the content breathes
+         - inter-section gap-8 (32px) matches Pencil's 32px between
+           PageHeader / Alerts / Actions — was gap-6 (24px)
+         - `max-w-page-expanded` (1440) caps the content area;
+           Pencil's 1920 mock is the canvas reference, not a
+           fixed-width target */
+    // 2026-06-04 round 4 (Yuqi feedback "Today's page should not
+    // be more than a screen long"): page gap-8 (32px) → gap-6
+    // (24px) and outer py-8 → py-6 so the eyebrow + Alerts +
+    // Actions header all live in the first viewport (~1080px) on
+    // a 1920×992 display. The table below scrolls but the
+    // navigational structure stays above the fold.
+    // 2026-06-04 round 14 (Yuqi page-feedback "bottom padding can
+    // be twice double bigger"): bottom padding pb-6 → pb-12 on both
+    // mobile and md+. Top stays at pt-6 so the H1 still hangs from
+    // the same top inset. The extra bottom breathing room keeps
+    // the last action row from feeling cramped against the
+    // viewport edge when the page is short enough not to scroll.
+    /* 2026-06-04 round 39 (Yuqi /today page feedback — "bigger gap
+       between Today title, Alerts, Actions this week"): outer section
+       gap bumped back to `gap-8` (32px) — the Pencil VmcdD spec.
+       Round 4 had tightened to gap-6 (24px) to fit everything above
+       the fold, but Yuqi found the three sections reading too close
+       together. 32px gives a clearer "three distinct sections"
+       hierarchy without losing too much vertical real estate. */
+    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-6 pb-12 md:px-16 md:pt-6 md:pb-12">
       {/* 2026-05-26 (Yuqi seventy-fourth pass — Today joins the
           page-header family): the hand-rolled <header> is gone.
           /today now routes through the same `<PageHeader>`
@@ -197,20 +236,89 @@ export function DashboardRoute() {
           `actions` prop. Future polish to the PageHeader
           primitive propagates here automatically. */}
       <PageHeader
+        // 2026-05-31 (Yuqi Pencil TV9xe — eyebrow row): personalized
+        // greeting + sync indicator above the H1. The eyebrow slot's
+        // default chrome is `uppercase tracking-eyebrow text-text-tertiary`
+        // (for breadcrumb-style eyebrows on other pages); on Today we
+        // override to a normal-case, body-weight sentence with the
+        // sync state painted in `text-text-success`. Tokens used
+        // throughout — `text-text-secondary`, `text-text-tertiary`,
+        // `text-text-success` — so a token tweak in
+        // `semantic-light.css` propagates here automatically.
+        // 2026-06-03 (Yuqi Pencil VmcdD — header simplification):
+        // greeting prefix dropped — the eyebrow now carries ONLY the
+        // sync state. Rationale: the personalised greeting was a
+        // social affordance, but the load on the eye is "is this
+        // data fresh?" The single success-toned chip answers that
+        // directly. Saves one row of vertical real estate, lets the
+        // big "Today" title read as the page's anchor.
+        eyebrow={
+          syncedLabel ? (
+            // 2026-06-04 round 6: dropped CheckCircle2Icon — green
+            // tone alone carries freshness.
+            // 2026-06-04 round 8: refresh icon goes inline as
+            // success-toned size-3 in a size-4 button.
+            // 2026-06-04 round 14 (Yuqi page-feedback "click this
+            // button to actually sync again"): wrapped the entire
+            // "Synced just now" text + refresh icon in a single
+            // button so the CPA can click the LABEL itself to
+            // trigger refresh — previously only the tiny size-4
+            // icon was the click target, easy to miss. The label
+            // now reads as the affordance ("click to re-sync");
+            // the icon stays as a visual confirmation. Whole
+            // chip pulses spin while fetching so the action
+            // feedback covers both visual elements.
+            // 2026-06-04 round 18 (Yuqi page-feedback "remove all
+            // of the background and padding, hover = changes
+            // colour to dark green"): stripped `px-1.5 py-0.5
+            // rounded hover:bg-state-base-hover` — the eyebrow
+            // is now a flat color-toggle button, no chrome at
+            // rest, no bg shift on hover. Hover deepens the
+            // text tone (text-text-success → state-success-solid)
+            // so the interactive cue is purely tonal. Reads as
+            // a quiet inline affordance, not a ghost button.
+            <button
+              type="button"
+              onClick={() => void dashboardQuery.refetch()}
+              disabled={dashboardQuery.isFetching}
+              aria-label={t`Refresh dashboard`}
+              title={t`Click to refresh`}
+              className="inline-flex items-center gap-1 text-xs font-medium tracking-normal text-text-success outline-none normal-case transition-colors hover:text-state-success-solid focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-50"
+            >
+              <span>
+                {syncedLabel === 'just now' ? (
+                  <Trans>Synced just now</Trans>
+                ) : (
+                  <Trans>Synced {syncedLabel}</Trans>
+                )}
+              </span>
+              <RotateCwIcon
+                className={`size-3 ${dashboardQuery.isFetching ? 'animate-spin' : ''}`}
+                aria-hidden
+              />
+            </button>
+          ) : null
+        }
         title={
-          // 2026-05-27 (Yuqi feedback: "should be like this but May 27
-          // in gray"): the date renders inline at the same heading
-          // type-style as "Today", just in text-text-tertiary. Drops
-          // the rounded-pill chrome — the date is part of the title,
-          // not a count-chip beside it.
+          // 2026-06-04 round 3 (Yuqi feedback #6 "semibold, light
+          // font"): date weight `font-normal` → `font-semibold`
+          // and color steps DOWN to `text-text-tertiary`.
+          // 2026-06-04 round 18 (Yuqi page-feedback #2 "lighter" +
+          // #3 "closer"): date weight stepped back DOWN
+          // `font-semibold` → `font-normal` so it reads lighter
+          // against "Today" (the bold anchor). Title→date gap
+          // tightened `gap-3` (12px) → `gap-2` (8px) so the two
+          // sit as one tight word-pair, not as two separate
+          // pieces. "Today June 4" now reads as a single
+          // headline phrase.
           <span className="inline-flex items-baseline gap-2">
             <Trans>Today</Trans>
             {dashboardQuery.isLoading ? (
-              <span className="font-normal text-text-tertiary italic">
+              <span className="text-2xl font-normal text-text-tertiary italic">
                 <Trans>loading…</Trans>
               </span>
             ) : data?.asOfDate ? (
-              <span className="font-normal tabular-nums text-text-tertiary">
+              <span className="text-2xl font-normal tabular-nums text-text-tertiary">
                 {formatTodayHeader(data.asOfDate)}
               </span>
             ) : null}
@@ -225,32 +333,33 @@ export function DashboardRoute() {
                 first-time keyboardists a path in; mouse users
                 can also click. Mirrors the bottom-of-queue
                 pattern in /deadlines. */}
+            {/* 2026-06-03 (Yuqi Pencil VmcdD — actions order): button
+                cluster reordered to match Pencil. Right-to-left
+                priority: Add deadline (primary blue, the dominant
+                action) → Import clients (outline secondary) → keyboard
+                shortcut chip (smallest, leftmost). */}
             <ShortcutHintChip className="hidden md:inline-flex" />
-            <CreateObligationDialog />
-            {/* 2026-05-25 (Yuqi Today #6): FileSearchIcon → UploadIcon.
-                The button's job is "upload my client list", not
-                "browse for files" — the upload metaphor matches the
-                CTA verb.
-                2026-05-26 (Step 6 UX audit #32): a coordinator-role
-                user lands on Today, sees a greyed-out "Import
-                clients" button, and has no clue why. The `title`
-                attribute surfaces the permission requirement on
-                hover so they don't dead-end. aria-label keeps the
-                button identifiable to screen readers even when
-                disabled. */}
+            {/* 2026-06-04 round 14 (Yuqi page-feedback "why is
+                Import clients button not working"): dropped the
+                `disabled={!canRunMigration}` attribute that
+                silently swallowed clicks when the current role
+                lacked `migration.run`. Now the button is always
+                visually active; clicks ALWAYS produce feedback —
+                either the wizard opens, or a toast explains why
+                it can't. Permission-gated by a click-time guard
+                instead of native disabled state. */}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => openWizard()}
-              disabled={!canRunMigration}
-              // ROH-D11 — was "owner or manager"; migration.run is
-              // owner/partner/manager/preparer. Helper-driven so the
-              // tooltip + aria-label always name the right roles.
-              title={
-                canRunMigration
-                  ? undefined
-                  : t`Requires ${requiredRolesLabel('migration.run')} access.`
-              }
+              onClick={() => {
+                if (!canRunMigration) {
+                  toast.error(
+                    t`Importing clients requires ${requiredRolesLabel('migration.run')} access.`,
+                  )
+                  return
+                }
+                openWizard()
+              }}
               aria-label={
                 canRunMigration
                   ? undefined
@@ -260,6 +369,7 @@ export function DashboardRoute() {
               <UploadIcon data-icon="inline-start" />
               <Trans>Import clients</Trans>
             </Button>
+            <CreateObligationDialog />
           </>
         }
       />
@@ -350,3 +460,9 @@ function formatTodayHeader(asOfDate: string): string {
     day: 'numeric',
   }).format(date)
 }
+
+// 2026-06-03 (audit follow-up): `formatTodayHeaderWithWeekday`,
+// `todayGreetingPrefix`, and `firstNameFromDisplay` removed. They
+// served the personalized greeting path the Pencil VmcdD pass
+// retired. Restore from git history if the greeting is ever
+// re-introduced.

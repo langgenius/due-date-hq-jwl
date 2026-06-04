@@ -292,6 +292,17 @@ export function makeClientsRepo(db: Db, firmId: string) {
         .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
     },
 
+    // 2026-06-01 (Yuqi /clients/[id] critique — IA): dedicated notes
+    // write. Keeps the audit log honest (one action per real change)
+    // and lets the UI mutation be single-purpose (the slide-in
+    // notes panel doesn't need to plumb every SourceDetails field).
+    async updateNotes(id: string, notes: string | null): Promise<void> {
+      await db
+        .update(client)
+        .set({ notes })
+        .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
+    },
+
     async updateTaxYearProfile(
       id: string,
       input: {

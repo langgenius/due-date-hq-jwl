@@ -23,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@duedatehq/ui/components/ui/alert-dialog'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
@@ -32,9 +33,18 @@ import {
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
+import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { RowActionsMenu } from '@/components/patterns/row-actions-menu'
 import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { formatDate } from '@/lib/utils'
@@ -517,40 +527,38 @@ function FilingPlanBulkBar({
   onClear: () => void
 }) {
   const { t } = useLingui()
+  // 2026-06-01: swapped the hand-rolled fixed/centered bulk bar for the
+  // shared FloatingActionBar primitive so the Filing-plan bulk surface
+  // matches the canonical shadow/blur/z-index recipe used by the
+  // obligations queue and rules library bulk bars.
   return (
-    <div
-      role="region"
-      aria-label={t`Bulk actions`}
-      className="pointer-events-none fixed inset-x-0 bottom-10 z-30 flex justify-center px-4"
-    >
-      <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-divider-regular bg-background-default px-3 py-1.5 shadow-lg">
-        <span className="text-xs font-medium tabular-nums text-text-primary">
-          <Plural value={count} one="# selected" other="# selected" />
-        </span>
-        <span className="h-4 w-px bg-divider-regular" aria-hidden />
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="ghost" size="sm" disabled={isPending}>
-                <Trans>Move to status</Trans>
-                <ChevronDownIcon className="size-3.5" aria-hidden />
-              </Button>
-            }
-          />
-          <DropdownMenuContent align="center" className="min-w-[200px]">
-            {statuses.map((status) => (
-              <DropdownMenuItem key={status} onClick={() => onApplyStatus(status)}>
-                {statusLabels[status]}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <span className="h-4 w-px bg-divider-regular" aria-hidden />
-        <Button variant="ghost" size="sm" onClick={onClear}>
-          <Trans>Clear</Trans>
-        </Button>
-      </div>
-    </div>
+    <FloatingActionBar ariaLabel={t`Bulk actions`}>
+      <span className="text-xs font-medium tabular-nums text-text-primary">
+        <Plural value={count} one="# selected" other="# selected" />
+      </span>
+      <span className="h-4 w-px bg-divider-regular" aria-hidden />
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="ghost" size="sm" disabled={isPending}>
+              <Trans>Move to status</Trans>
+              <ChevronDownIcon className="size-3.5" aria-hidden />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="center" className="min-w-[200px]">
+          {statuses.map((status) => (
+            <DropdownMenuItem key={status} onClick={() => onApplyStatus(status)}>
+              {statusLabels[status]}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <span className="h-4 w-px bg-divider-regular" aria-hidden />
+      <Button variant="ghost" size="sm" onClick={onClear}>
+        <Trans>Clear</Trans>
+      </Button>
+    </FloatingActionBar>
   )
 }
 
@@ -654,23 +662,12 @@ function FilingPlanYearSection({
           </span>
         ) : null}
         {group.openCount > 0 ? (
-          // 2026-05-24 (design-system audit): the current-year pill used
-          // a raw `bg-[var(--color-util-colors-blue-100,#dbeafe)]` arbitrary
-          // value with a hex fallback — bypassing the design tokens. The
-          // `components-badge-bg-blue-soft` + `text-text-accent` pair is
-          // the same color treatment the Badge `info` variant uses;
-          // routing through it means a theme-level blue change updates
-          // here too. Square-corner shape preserved (Badge defaults to
-          // fully rounded, this stays a soft-corner tag for visual
-          // distinction from the filing-plan row pills above).
-          <span
-            className={cn(
-              'inline-flex items-center rounded px-2 py-0.5 text-xs leading-4',
-              group.isCurrent
-                ? 'bg-components-badge-bg-blue-soft text-text-accent'
-                : 'bg-background-default text-text-tertiary',
-            )}
-          >
+          // 2026-06-01: hand-rolled inline-flex pill replaced by Badge
+          // size='sm' shape='square' — info variant for the current
+          // year, outline for prior years. Soft-corner square shape
+          // preserved to visually distinguish from the fully-rounded
+          // row status pills below.
+          <Badge variant={group.isCurrent ? 'info' : 'outline'} size="sm" shape="square">
             {group.isUpcoming ? (
               <Plural
                 value={group.openCount}
@@ -680,30 +677,33 @@ function FilingPlanYearSection({
             ) : (
               <Plural value={group.openCount} one="# open filing" other="# open filings" />
             )}
-          </span>
+          </Badge>
         ) : null}
         {group.extendedCount > 0 ? (
-          <span className="text-xs leading-4 text-text-tertiary">
+          // 2026-06-01: inline "{n} extended" marker upgraded to a
+          // Badge outline sm pill so it stops drifting from the open-
+          // count chip next to it.
+          <Badge variant="outline" size="sm" shape="square">
             <Trans>{group.extendedCount} extended</Trans>
-          </span>
+          </Badge>
         ) : null}
       </div>
-      {/* Real <table> for the filing plan body (audit L3). Earlier shape
-          was nested <div>s — screen readers got no row/column semantics,
-          arrow-key cell navigation was lost. Now: <thead>/<tbody>/<tr>/<td>
-          with table-fixed widths preserve the visual rhythm while restoring
-          row-N-of-M announcement + native keyboard table navigation. The
-          per-row cursor-pointer + onClick stay on <tr>, and the nested
-          buttons (form code, status pill, checkbox, row-actions) still
-          stopPropagation so they don't double-fire the row open.
-          The outer wrapper provides horizontal scroll on narrow viewports
-          (mobile/tablet) where the fixed-width columns would otherwise
-          collide with the Form cell. */}
+      {/* 2026-06-04 (Yuqi table sweep): migrated from raw <table>
+          to the canonical <Table> primitive so this surface inherits
+          the same chrome (gray-50 header, hairline row borders,
+          state-base hover, zebra striping) as every other table
+          across the app. Audit L3 a11y intent preserved — the
+          primitive renders proper <thead>/<tbody>/<tr>/<td>
+          underneath, so row-N-of-M screen-reader announcement +
+          native keyboard table nav still apply.
+          The outer wrapper provides horizontal scroll on narrow
+          viewports (mobile/tablet) where the fixed-width columns
+          would otherwise collide with the Form cell. */}
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[520px] table-fixed">
-          <thead className="bg-background-subtle text-sm font-medium leading-5 text-text-secondary">
-            <tr className="border-y border-divider-subtle">
-              <th scope="col" className="w-9 px-3 py-2 text-left align-middle">
+        <Table className="min-w-[520px] table-fixed">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-9 px-3">
                 <Checkbox
                   checked={yearAllSelected}
                   indeterminate={yearSomeSelected}
@@ -711,8 +711,8 @@ function FilingPlanYearSection({
                   aria-label={t`Select all deadlines in this year`}
                   className="size-4"
                 />
-              </th>
-              <th scope="col" className="px-1 py-2 text-left align-middle font-medium">
+              </TableHead>
+              <TableHead className="px-1">
                 <FilingPlanSortHeader
                   active={sort.field === 'form'}
                   dir={sort.dir}
@@ -720,8 +720,8 @@ function FilingPlanYearSection({
                 >
                   <Trans>Form</Trans>
                 </FilingPlanSortHeader>
-              </th>
-              <th scope="col" className="w-[120px] px-1 py-2 text-left align-middle font-medium">
+              </TableHead>
+              <TableHead className="w-[120px] px-1">
                 <FilingPlanSortHeader
                   active={sort.field === 'internal'}
                   dir={sort.dir}
@@ -730,8 +730,8 @@ function FilingPlanYearSection({
                 >
                   <Trans>Internal deadline</Trans>
                 </FilingPlanSortHeader>
-              </th>
-              <th scope="col" className="w-[120px] px-1 py-2 text-left align-middle font-medium">
+              </TableHead>
+              <TableHead className="w-[120px] px-1">
                 <FilingPlanSortHeader
                   active={sort.field === 'official'}
                   dir={sort.dir}
@@ -740,8 +740,8 @@ function FilingPlanYearSection({
                 >
                   <Trans>Official deadline</Trans>
                 </FilingPlanSortHeader>
-              </th>
-              <th scope="col" className="w-[120px] px-1 py-2 text-left align-middle font-medium">
+              </TableHead>
+              <TableHead className="w-[120px] px-1">
                 <FilingPlanSortHeader
                   active={sort.field === 'status'}
                   dir={sort.dir}
@@ -750,26 +750,24 @@ function FilingPlanYearSection({
                 >
                   <Trans>Status</Trans>
                 </FilingPlanSortHeader>
-              </th>
-              <th scope="col" className="w-9 px-1 py-2" aria-hidden />
-            </tr>
-          </thead>
-          <tbody className="bg-background-default">
-            {sortedObligations.map((obligation, rowIndex) => {
-              const isLast = rowIndex === sortedObligations.length - 1
+              </TableHead>
+              <TableHead className="w-9 px-1" aria-hidden />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedObligations.map((obligation) => {
               const isSelected = selectedIds.has(obligation.id)
               return (
-                <tr
+                <TableRow
                   key={obligation.id}
                   className={cn(
-                    'group/row cursor-pointer transition-colors hover:bg-state-base-hover',
+                    'group/row cursor-pointer',
                     isSelected && 'bg-state-accent-hover-alt',
-                    !isLast && 'border-b border-divider-subtle',
                   )}
                   onClick={() => onOpen(obligation.id)}
                 >
-                  <td
-                    className="w-9 px-3 py-2 align-middle"
+                  <TableCell
+                    className="w-9 px-3 py-2"
                     onClick={(event) => event.stopPropagation()}
                     // Escape MUST bubble to the parent Dialog/Sheet close
                     // handler. Other keys stay scoped so checkbox toggle
@@ -785,8 +783,8 @@ function FilingPlanYearSection({
                       aria-label={t`Select ${formatTaxCode(obligation.taxType)}`}
                       className="size-4"
                     />
-                  </td>
-                  <td className="min-h-14 px-1 py-2 align-middle">
+                  </TableCell>
+                  <TableCell className="px-1 py-2">
                     <button
                       type="button"
                       onClick={(event) => {
@@ -798,25 +796,27 @@ function FilingPlanYearSection({
                     >
                       <TaxCodeLabel code={obligation.taxType} tooltip={false} />
                     </button>
-                  </td>
-                  <td className="w-[120px] px-1 py-2 align-middle">
+                  </TableCell>
+                  <TableCell className="w-[120px] px-1 py-2">
                     <span className="flex items-baseline gap-1.5 text-[14px] leading-5 tabular-nums text-text-primary">
                       {formatDate(obligation.currentDueDate)}
                       {obligation.extensionState === 'filed' ||
                       obligation.extensionState === 'accepted' ? (
-                        <span
+                        <Badge
+                          variant="info"
+                          size="sm"
+                          shape="square"
                           title={t`This row's deadline has been extended. The Official Deadline column shows the original statutory date; the Internal Deadline reflects the new post-extension target.`}
-                          className="rounded-sm bg-components-badge-bg-blue-soft px-1 py-0 text-caption-xs font-medium leading-4 text-text-accent"
                         >
                           ext.
-                        </span>
+                        </Badge>
                       ) : null}
                     </span>
-                  </td>
-                  <td className="w-[120px] px-1 py-2 align-middle text-[14px] leading-5 tabular-nums text-text-primary">
+                  </TableCell>
+                  <TableCell className="w-[120px] px-1 py-2 text-[14px] leading-5 tabular-nums text-text-primary">
                     {formatDate(obligation.filingDueDate ?? obligation.currentDueDate)}
-                  </td>
-                  <td className="w-[120px] px-1 py-2 align-middle">
+                  </TableCell>
+                  <TableCell className="w-[120px] px-1 py-2">
                     <span className="flex flex-wrap items-center gap-1">
                       <ObligationQueueStatusControl
                         row={{ id: obligation.id, status: obligation.status, clientName }}
@@ -830,17 +830,19 @@ function FilingPlanYearSection({
                         const overdueDays = paymentOverdueDays(obligation, Date.now())
                         if (overdueDays === null) return null
                         return (
-                          <span
+                          <Badge
+                            variant="destructive"
+                            size="sm"
+                            shape="square"
                             title={t`The filing was submitted, but the authority payment due ${formatDate(obligation.paymentDueDate ?? '')} hasn't been confirmed yet. Penalty interest accrues until the wire lands.`}
-                            className="rounded-sm bg-state-destructive-hover px-1 py-0 text-caption-xs font-medium leading-4 text-text-destructive"
                           >
                             <Trans>Payment {overdueDays}d late</Trans>
-                          </span>
+                          </Badge>
                         )
                       })()}
                     </span>
-                  </td>
-                  <td className="w-9 px-1 py-2 align-middle">
+                  </TableCell>
+                  <TableCell className="w-9 px-1 py-2">
                     <RowActionsMenu
                       label={t`Actions for ${formatTaxCode(obligation.taxType)}`}
                       items={[
@@ -870,12 +872,12 @@ function FilingPlanYearSection({
                         },
                       ]}
                     />
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

@@ -6,6 +6,7 @@ import type {
   ReadinessDocumentChecklistItemPublic,
 } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
   DropdownMenu,
@@ -174,16 +175,24 @@ export function ChecklistItemRow({
             Renders only on hover/focus to keep the default state
             calm (matches the Figma's clean card surface). */}
         <DropdownMenu>
+          {/* 2026-06-01: swap hand-rolled icon button chrome for the Button
+              primitive (variant="ghost" + size="icon-xs"). The primitive owns
+              base sizing, hover/focus ring, and ghost coloring; the className
+              keeps only the row-hover-reveal opacity behavior (opacity-0 at
+              rest, restored on group-hover/focus-visible) which is layout
+              context, not button chrome. */}
           <DropdownMenuTrigger
             render={
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-xs"
                 aria-label={t`More actions for ${item.label}`}
-                className="shrink-0 rounded-md p-1 text-text-tertiary opacity-0 outline-none transition-opacity hover:bg-state-base-hover hover:text-text-primary focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-state-accent-active-alt group-hover/checklist-item:opacity-100"
+                className="shrink-0 opacity-0 transition-opacity focus-visible:opacity-100 group-hover/checklist-item:opacity-100"
                 onClick={(event) => event.stopPropagation()}
               >
                 <EllipsisVerticalIcon className="size-4" aria-hidden />
-              </button>
+              </Button>
             }
           />
           <DropdownMenuContent align="end" className="min-w-[11rem] whitespace-nowrap">

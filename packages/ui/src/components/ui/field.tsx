@@ -131,16 +131,51 @@ function FieldTitle({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
-function FieldDescription({ className, ...props }: React.ComponentProps<'p'>) {
+function FieldDescription({
+  className,
+  tone = 'default',
+  ...props
+}: React.ComponentProps<'p'> & {
+  tone?: 'default' | 'warning' | 'destructive'
+}) {
+  // 2026-06-01: `tone` axis added so 6+ hand-rolled `role=alert`
+  // helper paragraphs (notification-preferences ack, practice.tsx
+  // recalc warning, members-page seat-limit alert, obligations
+  // recipient warning, reminders template-active, two-factor-setup
+  // ack) collapse into a single FieldDescription with a tone prop.
+  // Default keeps text-text-tertiary; warning/destructive use the
+  // matching foreground tokens.
   return (
     <p
       data-slot="field-description"
+      data-tone={tone}
+      role={tone === 'destructive' || tone === 'warning' ? 'alert' : undefined}
       className={cn(
-        'text-left text-sm leading-normal font-normal text-text-tertiary group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5',
+        'text-left text-sm leading-normal font-normal group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5',
+        tone === 'default' && 'text-text-tertiary',
+        tone === 'warning' && 'text-text-warning',
+        tone === 'destructive' && 'text-text-destructive',
         'last:mt-0 nth-last-2:-mt-1',
         '[&>a]:underline [&>a]:underline-offset-4 hover:[&>a]:text-text-accent',
         className,
       )}
+      {...props}
+    />
+  )
+}
+
+// 2026-06-01: `FieldRow` codifies the horizontal "label (+ helper)
+// stacked left, trailing control right" pattern used by 10+ form
+// rows (notification-preferences toggle rows, reminders-page
+// template-active row, two-factor ack checkbox, etc.). Composes with
+// FieldLabel + FieldDescription + a trailing Switch/Checkbox/Select/
+// Button slot so callers stop hand-rolling `flex items-center
+// justify-between` recipes.
+function FieldRow({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="field-row"
+      className={cn('flex items-center justify-between gap-3', className)}
       {...props}
     />
   )
@@ -229,6 +264,7 @@ export {
   FieldError,
   FieldGroup,
   FieldLegend,
+  FieldRow,
   FieldSeparator,
   FieldSet,
   FieldContent,

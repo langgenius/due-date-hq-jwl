@@ -6,6 +6,7 @@ import type {
   DashboardSeverity,
   ExposureStatus,
   ObligationStatus,
+  ObligationType,
 } from './shared'
 import type { PenaltyBreakdownItem, PenaltySourceRef } from './obligations'
 import type { SmartPriorityBreakdown } from './priority'
@@ -47,6 +48,11 @@ export interface DashboardTopRow {
   clientName: string
   clientEmail: string | null
   taxType: string
+  // 2026-06-03 (Yuqi /critique pass): obligation type threaded
+  // through so the dashboard ActionsTable can render a TYPE column
+  // distinguishing the 6 obligation types without inferring from
+  // taxType. See dashboard contract for full context.
+  obligationType: ObligationType
   currentDueDate: Date
   // 2026-05-27 (D12 — Agent ω): payment-side due date threaded from
   // `obligation_instance.payment_due_date`. Null when the obligation
