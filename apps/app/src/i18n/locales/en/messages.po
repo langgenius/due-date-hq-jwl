@@ -3144,7 +3144,6 @@ msgid "Confidence"
 msgstr "Confidence"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
-#: src/routes/obligations.tsx
 msgid "Confirm"
 msgstr "Confirm"
 
@@ -3206,6 +3205,10 @@ msgstr "Confirm ETA with the third party"
 #: src/features/dashboard/actions-list.tsx
 msgid "Confirm filing or payment status — due today"
 msgstr "Confirm filing or payment status — due today"
+
+#: src/routes/obligations.tsx
+msgid "Confirm projected"
+msgstr "Confirm projected"
 
 #: src/routes/obligations.tsx
 msgid "Confirm projected deadlines so they enter the reminder pipeline"

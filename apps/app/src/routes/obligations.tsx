@@ -3898,7 +3898,11 @@ export function ObligationQueueRoute() {
                   they leave the Projected lens and re-enter the reminder pipeline.
                   Already-confirmed rows are no-ops server-side. */}
               <Button
-                variant="ghost"
+                // In the Projected lens this is the primary action — lift it from
+                // ghost to accent (+ a check icon) so CPAs don't miss it among the
+                // peer bulk actions. Stays ghost in other views where the selection
+                // may be already-confirmed rows.
+                variant={projected ? 'accent' : 'ghost'}
                 size="sm"
                 disabled={!canUpdateObligationStatus || confirmObligationsMutation.isPending}
                 title={
@@ -3908,7 +3912,8 @@ export function ObligationQueueRoute() {
                 }
                 onClick={confirmSelectedProjected}
               >
-                <Trans>Confirm</Trans>
+                <CircleCheck data-icon="inline-start" />
+                <Trans>Confirm projected</Trans>
               </Button>
               {/* 2026-05-26 (Yuqi /deadlines redesign): Snooze
                   surfaced as a peer of Assign / Set status / Export.

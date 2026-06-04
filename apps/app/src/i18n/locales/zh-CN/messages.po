@@ -3180,7 +3180,6 @@ msgid "Confidence"
 msgstr "置信度"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
-#: src/routes/obligations.tsx
 msgid "Confirm"
 msgstr "确认"
 
@@ -3244,6 +3243,10 @@ msgstr "与第三方确认到货时间"
 #: src/features/dashboard/actions-list.tsx
 msgid "Confirm filing or payment status — due today"
 msgstr "确认申报或缴款状态 — 今日到期"
+
+#: src/routes/obligations.tsx
+msgid "Confirm projected"
+msgstr "确认预计截止日"
 
 #: src/routes/obligations.tsx
 msgid "Confirm projected deadlines so they enter the reminder pipeline"
