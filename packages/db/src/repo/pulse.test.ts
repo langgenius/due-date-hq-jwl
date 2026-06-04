@@ -253,6 +253,52 @@ describe('makePulseRepo', () => {
     expect(directStatements).toHaveLength(0)
   })
 
+  it('re-awakens a reviewed no-match overlay alert once accept creates a match', async () => {
+    const { db, directStatements } = fakeDb([
+      [{ jurisdiction: 'CA' }], // obligations -> jurisdictions
+      [{ id: 'alert-1' }], // candidate alerts for the jurisdiction (now includes reviewed)
+      [{ ...ALERT, alertStatus: 'reviewed', matchedCount: 0, needsReviewCount: 0 }], // getAlert
+      [ELIGIBLE], // listCandidateRows: the freshly generated obligation now matches
+      [], // withEffectiveDueDates: no active overlay -> stays eligible
+      [], // listApplicationRows
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await repo.refreshMatchedCountsForObligations(['oi-eligible'])
+
+    // The acknowledged alert flips back to `matched` so it returns to the active
+    // list and the rule-review drawer banner for the CPA to apply the new date.
+    expect(
+      directStatements.some(
+        (statement) =>
+          isKind(statement, 'update') && statementHasValue(statement, { status: 'matched' }),
+      ),
+    ).toBe(true)
+  })
+
+  it('does not flip status for an already-active alert that gains a match', async () => {
+    const { db, directStatements } = fakeDb([
+      [{ jurisdiction: 'CA' }],
+      [{ id: 'alert-1' }],
+      [{ ...ALERT, alertStatus: 'matched', matchedCount: 0, needsReviewCount: 0 }], // already active
+      [ELIGIBLE],
+      [],
+      [],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await repo.refreshMatchedCountsForObligations(['oi-eligible'])
+
+    // Re-activation is reserved for `reviewed` alerts; an already-active alert
+    // only gets its count recomputed, never a status flip.
+    expect(
+      directStatements.some(
+        (statement) =>
+          isKind(statement, 'update') && statementHasValue(statement, { status: 'matched' }),
+      ),
+    ).toBe(false)
+  })
+
   it('marks base-date matches with active overlays as already applied', async () => {
     const { db } = fakeDb([
       [ALERT],

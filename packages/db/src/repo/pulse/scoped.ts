@@ -1048,7 +1048,10 @@ export function makePulseRepo(db: Db, firmId: string) {
             eq(pulse.actionMode, 'due_date_overlay'),
             inArray(pulse.parsedJurisdiction, jurisdictions),
             or(
-              inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
+              // `reviewed` is included so a no-match overlay alert that was
+              // acknowledged BEFORE the firm activated the matching rule can be
+              // re-awakened below once accept creates the matching obligations.
+              inArray(pulseFirmAlert.status, ['matched', 'partially_applied', 'reviewed']),
               and(eq(pulseFirmAlert.status, 'snoozed'), lte(pulseFirmAlert.snoozedUntil, now)),
             ),
           ),
@@ -1056,7 +1059,21 @@ export function makePulseRepo(db: Db, firmId: string) {
       await Promise.all(
         alertIdRows.map(async ({ id }) => {
           const alert = await getAlert(id)
-          await refreshAlertCounts(id, alert)
+          const { matchedCount, needsReviewCount } = await refreshAlertCounts(id, alert)
+          // Re-awaken a previously-reviewed no-match overlay: accepting the rule
+          // created obligations that now match this pulse, so the alert must
+          // return to the active list (and the rule-review drawer banner) for the
+          // CPA to apply the new date. Reviewing was the right call when there was
+          // nothing to apply; it must not permanently bury a pulse that later
+          // becomes relevant. Applying the overlay stays the manual action.
+          // (markReviewed only allows reviewing no-match overlays, so any
+          // `reviewed` overlay reaching here was acknowledged at count 0.)
+          if (alert.alertStatus === 'reviewed' && matchedCount + needsReviewCount > 0) {
+            await db
+              .update(pulseFirmAlert)
+              .set({ status: 'matched' })
+              .where(and(eq(pulseFirmAlert.firmId, firmId), eq(pulseFirmAlert.id, id)))
+          }
         }),
       )
     },
