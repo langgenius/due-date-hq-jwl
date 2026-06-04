@@ -1881,7 +1881,16 @@ export function makePulseRepo(db: Db, firmId: string) {
       now?: Date
     }): Promise<PulseDismissResult> {
       const alert = await getAlert(input.alertId)
-      if (isDueDateOverlayAlert(alert)) throw new PulseRepoError('conflict')
+      // A `due_date_overlay` alert can be acknowledged ("mark reviewed" → moves
+      // to history) ONLY when it has no current match: there is nothing to apply,
+      // so reviewing is the terminal action that clears it from the active list.
+      // While the overlay still has live matches, reviewing is the wrong action
+      // (apply or dismiss those instead) so it stays blocked. This is the Part-2
+      // scenario — a pulse approved before the firm activated the matching rule.
+      // (firmImpact === 'no_current_match' ⟺ matchedCount === 0 && needsReviewCount === 0.)
+      if (isDueDateOverlayAlert(alert) && (alert.matchedCount > 0 || alert.needsReviewCount > 0)) {
+        throw new PulseRepoError('conflict')
+      }
       const now = input.now ?? new Date()
       const auditId = crypto.randomUUID()
       await db.batch([

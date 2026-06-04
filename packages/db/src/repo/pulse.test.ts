@@ -782,6 +782,49 @@ describe('makePulseRepo', () => {
     ).toBe(true)
   })
 
+  it('acknowledges a no-current-match due-date overlay (mark reviewed → history)', async () => {
+    // A `due_date_overlay` pulse approved before the firm activated the matching
+    // rule has matchedCount = 0 (firmImpact 'no_current_match'). There is nothing
+    // to apply, so the CPA can mark it reviewed to clear it from the active list
+    // instead of leaving it stranded forever.
+    const noMatchOverlay = {
+      ...ALERT,
+      matchedCount: 0,
+      needsReviewCount: 0,
+    }
+    const { db, batchStatements } = fakeDb([
+      [noMatchOverlay],
+      [{ ...noMatchOverlay, alertStatus: 'reviewed' as const }],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const result = await repo.markReviewed({
+      alertId: 'alert-1',
+      userId: 'user-1',
+      now: new Date('2026-04-15T19:00:00.000Z'),
+    })
+
+    expect(result.alert.status).toBe('reviewed')
+    expect(batchStatements).toHaveLength(2)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, { status: 'reviewed', dismissedBy: 'user-1' }),
+      ),
+    ).toBe(true)
+  })
+
+  it('still rejects mark-reviewed on a due-date overlay that has live matches', async () => {
+    // ALERT is a matched overlay (matchedCount: 1) — reviewing is the wrong
+    // action; the CPA must apply or dismiss the matched deadlines instead.
+    const { db, batchStatements } = fakeDb([[ALERT]])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await expect(repo.markReviewed({ alertId: 'alert-1', userId: 'user-1' })).rejects.toMatchObject(
+      { code: 'conflict' } satisfies Partial<PulseRepoError>,
+    )
+    expect(batchStatements).toHaveLength(0)
+  })
+
   it('writes default audit reasons for direct dismiss and snooze actions', async () => {
     const { db: dismissDb, batchStatements: dismissStatements } = fakeDb([
       [ALERT],
