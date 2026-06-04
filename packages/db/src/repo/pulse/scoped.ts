@@ -229,6 +229,11 @@ export function makePulseRepo(db: Db, firmId: string) {
           inArray(client.entityType, entityTypes),
           inArray(obligationInstance.taxType, forms),
           inArray(obligationInstance.status, OPEN_STATUSES),
+          // A soft-deleted client is no longer "affected" by a regulatory change.
+          // Mirror the rest of the app (queue/dashboard/calendar all filter
+          // `deletedAt`): without this, a deleted client's still-open obligation
+          // lingers in the alert's affected list and could even be applied.
+          isNull(client.deletedAt),
         ),
       )
       .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
@@ -327,6 +332,8 @@ export function makePulseRepo(db: Db, firmId: string) {
           eq(client.firmId, firmId),
           inArray(obligationInstance.ruleId, ruleIds),
           inArray(obligationInstance.status, OPEN_STATUSES),
+          // Exclude soft-deleted clients (see listCandidateRows).
+          isNull(client.deletedAt),
         ),
       )
       .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
@@ -544,6 +551,11 @@ export function makePulseRepo(db: Db, firmId: string) {
           eq(obligationInstance.firmId, firmId),
           eq(client.firmId, firmId),
           inArray(obligationInstance.id, obligationIds),
+          // Exclude soft-deleted clients (see listCandidateRows). At apply time
+          // `listFreshEligibleRows` treats a now-missing row as a conflict, so a
+          // client deleted after selection surfaces the standard "list changed,
+          // refresh" guard instead of silently applying to a dead client.
+          isNull(client.deletedAt),
         ),
       )
       .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
