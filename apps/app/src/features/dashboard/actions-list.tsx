@@ -14,8 +14,35 @@ import { StatTile } from '@/components/patterns/stat-tile'
 import { ConceptHelp } from '@/features/concepts/concept-help'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { formatDatePretty } from '@/lib/utils'
-import { ObligationStatusReadBadge, STATUS_ICON_COLOR } from '@/features/obligations/status-control'
+import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 import { isPaymentOverdue, paymentOverdueDays } from '@/features/obligations/payment-overdue'
+
+// 2026-06-03 (Yuqi — surface severity tiers on Today): the flat
+// priority-sorted "Actions this week" list buried the critical / high /
+// upcoming distinction behind a 3.5px leading-chevron tint + the
+// right-edge time text. A CPA doing a Monday-morning triage had to read
+// every row to learn the *shape* of the week. We now group the rows
+// into explicit severity bands with colored headers + counts, and give
+// each row a left urgency rail, so "2 on fire, 3 warm, the rest fine"
+// reads at a glance. Severity comes straight from the server's
+// DashboardTopRow.severity (critical / high / medium / neutral); medium
+// and neutral fold into one "Upcoming" band.
+type SeverityBandKey = 'critical' | 'high' | 'upcoming'
+
+// The hierarchy is carried entirely by the band header — a colored dot
+// + tinted label + plain-language caption. No boxes, washes, or row
+// rails, which fought the page's clean, borderless aesthetic.
+const SEVERITY_BAND_STYLE: Record<SeverityBandKey, { dot: string; label: string }> = {
+  critical: { dot: 'bg-text-destructive', label: 'text-text-destructive' },
+  high: { dot: 'bg-text-warning', label: 'text-text-warning' },
+  upcoming: { dot: 'bg-text-tertiary', label: 'text-text-tertiary' },
+}
+
+function severityBandKey(severity: DashboardTopRow['severity']): SeverityBandKey {
+  if (severity === 'critical') return 'critical'
+  if (severity === 'high') return 'high'
+  return 'upcoming'
+}
 
 function topPriorityFactors(row: DashboardTopRow): string[] {
   const factors = [...(row.smartPriority.factors ?? [])]
@@ -262,19 +289,18 @@ function ActionRow({
         {/* Leading chevron — rotates 90° when expanded so the row
           reads as "this opens." Pure visual cue; not a button (the
           whole row container handles expansion via hover/focus).
-          2026-05-26 (Yuqi sixty-ninth pass): arrow tone now tracks
-          the row's status via the canonical `STATUS_ICON_COLOR`
-          map (red for blocked, amber for waiting_on_client, accent
-          for review/in_progress, success for done, tertiary for
-          pending). Carries the urgency cue at the row's leading
-          edge so a quick scan reads "what's this row asking me to
-          do" without first parsing the right-edge Status badge.
-          Expanded state pushes the arrow to text-primary so the
-          rotate-down cue stays legible even on neutral rows. */}
+          2026-06-03 (Yuqi): arrow tone reverted to a quiet neutral
+          gray. It previously tracked status color (red/amber/accent),
+          but once the severity bands carry the urgency signal at the
+          band-header level, a per-row colored arrow read as arbitrary
+          noise at the row's leading edge. Neutral keeps the chevron a
+          pure "this opens" affordance; severity now lives in the band
+          header dot + label. Expanded state still steps to text-primary
+          so the rotate-down cue stays legible. */}
         <ArrowRightIcon
           className={cn(
             'size-3.5 shrink-0 transition-transform',
-            expanded ? 'rotate-90 text-text-primary' : STATUS_ICON_COLOR[row.status],
+            expanded ? 'rotate-90 text-text-primary' : 'text-text-tertiary',
           )}
           aria-hidden
         />
@@ -304,15 +330,29 @@ function ActionRow({
             context, not the action; demoted to regular weight.
             So: prompt becomes font-medium, client name becomes
             font-normal. */}
-        <span className="shrink-0 truncate text-sm font-normal text-text-primary">
-          {row.clientName}
-        </span>
-        <span aria-hidden className="text-text-tertiary">
-          ·
-        </span>
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
-          {prompt}
-        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="flex min-w-0 items-baseline gap-2">
+            <span className="shrink-0 truncate text-sm font-normal text-text-primary">
+              {row.clientName}
+            </span>
+            <span aria-hidden className="text-text-tertiary">
+              ·
+            </span>
+            <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
+              {prompt}
+            </span>
+          </span>
+          {/* 2026-06-03 (Yuqi A): surface the "why now" reasoning at rest
+              on Critical rows. The Smart Priority factors (penalty,
+              passed cutoff, client readiness) are the single most
+              differentiating signal — "why is this the one to do" — and
+              were previously hover-only. Shown at rest for Critical only;
+              the expanded panel already carries the full Why-now row, so
+              gating on !expanded avoids duplication when the row opens. */}
+          {!expanded && row.severity === 'critical' && factors.length > 0 ? (
+            <span className="truncate text-xs text-text-tertiary">{factors.join(' · ')}</span>
+          ) : null}
+        </div>
         {/* 2026-05-25 (Yuqi Today follow-up): the Review button used
           to render unconditionally with `opacity-0` when collapsed —
           which kept the button taking ~100px of flex space, squeezing
@@ -811,33 +851,85 @@ function DashboardActionsList({
     )
   }
 
+  // Partition the (already priority-sorted) rows into severity bands.
+  // Order is fixed critical → high → upcoming so the most urgent band
+  // always sits at the top of the eye line; empty bands are dropped so
+  // a calm week doesn't render three empty headers.
+  // Caption spells out, in plain CPA language, what each tier *means* to
+  // do — so the page tells the user what's most important vs. secondary,
+  // not just which color it is.
+  const severityBands = (
+    [
+      { key: 'critical', label: t`Critical`, caption: t`Needs action now` },
+      { key: 'high', label: t`High priority`, caption: t`On deck this week` },
+      { key: 'upcoming', label: t`Upcoming`, caption: t`Plan ahead` },
+    ] satisfies ReadonlyArray<{ key: SeverityBandKey; label: string; caption: string }>
+  )
+    .map((band) => ({
+      ...band,
+      rows: visible.filter((row) => severityBandKey(row.severity) === band.key),
+    }))
+    .filter((band) => band.rows.length > 0)
+
   return (
     <section aria-label={t`Actions this week`} className="flex flex-col gap-3">
       <ActionsListHeader count={totalThisWeek} onOpenAll={onOpenAllObligations} />
       {summaryStrip}
-      {/* 2026-05-26 (Yuqi /today feedback): row borders dropped.
-          Action rows already carry their own hover-bg state to anchor
-          attention; the hairline between every row was reading as
-          a table-frame, fighting the borderless-card aesthetic of
-          the surrounding sections. The 2px `gap-0.5` between rows
-          plus the hover-bg gives enough rhythm without chrome. */}
-      <ul className="flex flex-col gap-0.5">
-        {visible.map((row) => (
-          <li key={row.obligationId}>
-            <ActionRow
-              row={row}
-              asOfDate={asOfDate}
-              internalDeadlineOffsetDays={internalDeadlineOffsetDays}
-              expanded={hoveredId === row.obligationId}
-              onHoverChange={(hovered) => {
-                if (hovered) setHoveredId(row.obligationId)
-                else setHoveredId((current) => (current === row.obligationId ? null : current))
-              }}
-              onOpenObligation={() => onOpenObligation(row)}
-            />
-          </li>
-        ))}
-      </ul>
+      {/* 2026-06-03 (Yuqi — severity bands): rows are grouped under
+          Critical / High priority / Upcoming headers (colored dot +
+          tinted label + count) so the shape of the week reads at a
+          glance. Within a band, action rows keep the borderless rhythm
+          (`gap-0.5` + hover-bg) — the band header and the per-row left
+          rail carry the urgency cue instead of a table frame. */}
+      <div className="flex flex-col gap-4">
+        {severityBands.map((band) => {
+          const style = SEVERITY_BAND_STYLE[band.key]
+          return (
+            <div key={band.key} className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2 px-3">
+                <span className={cn('size-2 shrink-0 rounded-full', style.dot)} aria-hidden />
+                <h3
+                  className={cn(
+                    'text-xs font-semibold uppercase tracking-[0.08em]',
+                    style.label,
+                  )}
+                >
+                  {band.label}
+                </h3>
+                <span aria-hidden className="text-text-tertiary/60">
+                  ·
+                </span>
+                {/* Plain-language tier meaning — the line that actually
+                    tells the CPA how urgent this band is. */}
+                <span className="text-xs text-text-secondary">{band.caption}</span>
+                <span className="ml-auto text-xs font-medium tabular-nums text-text-tertiary">
+                  {band.rows.length}
+                </span>
+              </div>
+              <ul className="flex flex-col gap-0.5">
+                {band.rows.map((row) => (
+                  <li key={row.obligationId}>
+                    <ActionRow
+                      row={row}
+                      asOfDate={asOfDate}
+                      internalDeadlineOffsetDays={internalDeadlineOffsetDays}
+                      expanded={hoveredId === row.obligationId}
+                      onHoverChange={(hovered) => {
+                        if (hovered) setHoveredId(row.obligationId)
+                        else
+                          setHoveredId((current) =>
+                            current === row.obligationId ? null : current,
+                          )
+                      }}
+                      onOpenObligation={() => onOpenObligation(row)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        })}
+      </div>
       {/* 2026-05-26 (Yuqi /today feedback): "… N more in the queue"
           caption removed. The section already has a "View all
           deadlines" link in its header (see ActionsListHeader); the

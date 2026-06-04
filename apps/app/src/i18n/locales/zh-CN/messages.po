@@ -811,8 +811,8 @@ msgid "{owners} owners ({equity} equity)"
 msgstr "{owners} 位所有人(其中 {equity} 位为权益所有人)"
 
 #: src/features/dashboard/needs-attention-section.tsx
-msgid "{pausedCount, plural, one {# paused} other {# paused}}"
-msgstr "{pausedCount, plural, other {# 项已暂停}}"
+msgid "{pausedCount, plural, one {# source paused} other {# sources paused}}"
+msgstr "{pausedCount, plural, one {# 个来源已暂停} other {# 个来源已暂停}}"
 
 #: src/features/dashboard/actions-list.tsx
 #, fuzzy
@@ -2713,8 +2713,8 @@ msgid "Checking {label}…"
 msgstr "正在检查 {label}…"
 
 #: src/features/dashboard/needs-attention-section.tsx
-msgid "Checking monitored sources…"
-msgstr "正在检查监控的来源…"
+msgid "checking sources…"
+msgstr "正在检查监控来源…"
 
 #: src/routes/readiness.tsx
 msgid "Checklist"
@@ -3987,6 +3987,10 @@ msgstr "正在创建客户、截止日、证据链接和审计记录。"
 #: src/routes/rules.library.tsx
 msgid "Creating…"
 msgstr "正在创建…"
+
+#: src/features/dashboard/actions-list.tsx
+msgid "Critical"
+msgstr "紧急"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/migration/Step1Intake.tsx
@@ -5761,6 +5765,10 @@ msgstr "高"
 msgid "High confidence"
 msgstr "高置信度"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "High priority"
+msgstr "高优先级"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "HomeBase contacts CSV"
 msgstr "HomeBase 联系人 CSV"
@@ -7079,6 +7087,10 @@ msgstr "需复核"
 msgid "Needs action"
 msgstr "需处理"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "Needs action now"
+msgstr "需立即处理"
+
 #. placeholder {0}: needsClientFacts.length
 #: src/features/rules/generation-preview-tab.tsx
 msgid "NEEDS CLIENT FACTS — {0} items require client detail updates before deadlines can be created"
@@ -7289,10 +7301,6 @@ msgstr "下一组年份"
 #: src/features/audit/audit-log-labels.ts
 msgid "No"
 msgstr "否"
-
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "No active alerts — nothing needs your review right now."
-msgstr "没有活跃提醒 — 当前无需复核任何事项。"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No active alerts right now"
@@ -7670,10 +7678,6 @@ msgstr "没有可用席位。请先升级或暂停一名成员再邀请。"
 msgid "No source"
 msgstr "来源"
 
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "No sources are currently being monitored."
-msgstr "当前未监控任何来源。"
-
 #: src/features/rules/coverage-tab.tsx
 msgid "No sources for this jurisdiction yet."
 msgstr "此司法管辖区尚无来源。"
@@ -7685,6 +7689,10 @@ msgstr "没有来源匹配当前筛选。清除上方筛选可查看所有受监
 #: src/features/alerts/AlertsListPage.tsx
 msgid "No sources match your search."
 msgstr "没有来源匹配您的搜索。"
+
+#: src/features/dashboard/needs-attention-section.tsx
+msgid "no sources monitored"
+msgstr "暂无监控来源"
 
 #: src/features/rules/sources-tab.tsx
 msgid "No sources registered yet. Source watchers feed the rule catalog — once configured, they appear here with watch status and cadence."
@@ -7866,6 +7874,10 @@ msgstr "本周没有到期事项。"
 msgid "Nothing here."
 msgstr "这里暂无内容。"
 
+#: src/features/dashboard/needs-attention-section.tsx
+msgid "nothing needs your review"
+msgstr "暂无待处理事项"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Nothing to fix"
 msgstr "无需修复"
@@ -7929,6 +7941,10 @@ msgstr "Official source registered; rule still needs review"
 #: src/features/rules/coverage-tab.tsx
 msgid "Official sources — pending rules"
 msgstr "官方来源 — 待处理规则"
+
+#: src/features/dashboard/actions-list.tsx
+msgid "On deck this week"
+msgstr "本周待办"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding rules activated"
@@ -8809,6 +8825,10 @@ msgstr "计划"
 #: src/routes/billing.tsx
 msgid "Plan activation appears after the provider confirms the subscription."
 msgstr "支付服务商确认订阅后，计划激活状态才会显示。"
+
+#: src/features/dashboard/actions-list.tsx
+msgid "Plan ahead"
+msgstr "提前规划"
 
 #: src/routes/billing.tsx
 msgid "Plan options"
@@ -11354,10 +11374,6 @@ msgstr "来源定义规则会跳过批量接受。请逐条生成并审核其 AI
 msgid "Sources"
 msgstr "来源"
 
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "sources paused"
-msgstr "来源已暂停"
-
 #: src/routes/obligations.tsx
 msgid "Specific client"
 msgstr "特定客户"
@@ -12502,6 +12518,7 @@ msgstr "Unmapped"
 msgid "Unread: {0}"
 msgstr "未读：{0}"
 
+#: src/features/dashboard/actions-list.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Upcoming"
 msgstr "即将触发"
@@ -12713,6 +12730,7 @@ msgstr "版本冲突"
 msgid "Version history"
 msgstr "版本历史"
 
+#: src/features/dashboard/needs-attention-section.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "View"
 msgstr "查看"
@@ -12778,10 +12796,6 @@ msgstr "在截止日期中查看"
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "View open filings for this client"
 msgstr "查看此客户的进行中申报"
-
-#: src/features/dashboard/needs-attention-section.tsx
-msgid "View sources"
-msgstr "查看来源"
 
 #. placeholder {0}: queuePosition.index + 1
 #. placeholder {1}: queuePosition.total

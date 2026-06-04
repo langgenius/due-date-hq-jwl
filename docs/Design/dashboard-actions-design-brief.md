@@ -184,3 +184,28 @@ The **action prompt is the existing `nextCheck` text** the current dashboard col
 | Aggregate exposure strip                     | Yes — new (`5 need decision · $14k at risk · 2 blocked · 3 waiting on client`)                 |
 | Status vocabulary                            | v2 6-state model (`not_started · waiting_on_client · blocked · in_review · filed · completed`) |
 | Action prompt source                         | Reuse existing `nextCheck` text — no new verb dictionary                                       |
+
+## 11. Severity bands + state-weighted Alerts (2026-06-03)
+
+Follow-up after live review with Yuqi: the flat priority-sorted list didn't communicate **what's
+most important vs. secondary**, and the Alerts section over-claimed weight when empty.
+
+- **Severity bands.** "Actions this week" groups rows into `Critical / High priority / Upcoming`
+  (from `DashboardTopRow.severity`; `medium`+`neutral` → Upcoming). Each band header pairs a
+  colored dot + tinted label with a **plain-language caption** stating the tier's meaning —
+  Critical "Needs action now", High "On deck this week", Upcoming "Plan ahead". The caption (not
+  just color) is what tells the CPA the urgency level. Empty bands are dropped.
+- **Why-now at rest (Critical only).** Smart Priority factors render on a second line at rest for
+  Critical rows — the differentiating "why this one" signal is no longer hover-gated. Gated on
+  `!expanded` to avoid duplicating the expanded panel's Why-now row.
+- **No boxes / rails.** Tried a Critical wash + framed panel and a per-row left urgency rail;
+  both were rejected as fighting the borderless aesthetic. Hierarchy is carried by the band
+  header + caption alone. The leading chevron reverted to neutral tone (severity now lives in the
+  band header, so a status-colored arrow read as noise).
+- **State-weighted Alerts.** Alerts (the wedge) is a hero card row when live and collapses to a
+  single quiet status line when calm — it should only claim hero real estate when there's
+  something to review.
+
+Known gap (not addressed here): client-document readiness — the CPA's stated #1 pain (Yan Jing
+interview) — is still only a "Waiting on client" stat tile, not a first-class per-obligation
+readiness signal on Today.
