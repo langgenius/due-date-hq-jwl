@@ -1,43 +1,66 @@
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ChevronRightIcon, Plus, SquareArrowOutUpRightIcon } from 'lucide-react'
+import { CheckCircle2Icon, EyeIcon, Plus, UsersIcon } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
-import { Badge } from '@duedatehq/ui/components/ui/badge'
-import { Card, CardContent, CardHeader } from '@duedatehq/ui/components/ui/card'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
+import { cn } from '@duedatehq/ui/lib/utils'
 
-import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
-import { RelativeTime } from '@/components/primitives/relative-time'
-import { useCurrentFirm } from '@/features/billing/use-billing-data'
-import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
-import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
-import { alertTone, alertToneLabel } from '@/features/alerts/alert-tone'
+import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
+import { alertTone } from '@/features/alerts/alert-tone'
+import { PulseSourceMeta } from '@/features/alerts/components/PulseSourceMeta'
+import { severityFromConfidence } from '@/features/alerts/components/pulse-alert-chrome'
+import { StateBadge } from '@/components/primitives/state-badge'
 
 // Dashboard variant of the Alert card. Tuned for the dashboard's
-// "scan-and-act" mode:
-// - The whole card is the action target — no separate Review button.
-// - AI confidence hidden unless low enough to need review.
-// - Affected client names listed inline; tail collapses to "+N more".
+// "scan-and-act" mode and built to Pencil node VVMj9 specs:
 //
-// Per 2026-05-20 redesign: bigger title (text-base font-medium beats
-// text-sm font-semibold for readability), sans-serif numerals
-// throughout, source eyebrow demoted to small tertiary label.
+//   • Card chrome: `bg-background-default` (white), `rounded-2xl`
+//     (16px), NO border (Pencil shows the stroke disabled). Hover
+//     drops to `bg-background-subtle` (gray-100). This is the same
+//     pattern the /alerts AlertCard uses — both surfaces serve
+//     the same alert data and the same gray SidebarInset wash, so
+//     the chrome should match. Pencil VVMj9 originally drew a
+//     gray-tinted card (designed on a white canvas); inverting to
+//     white-on-gray-wash is the equivalent in the live app.
+//   • Fixed min-height (160px) so 3 cards in a row stay vertically
+//     aligned even when one title is short. Content column uses
+//     `justify-between` to push the affected-clients row to the
+//     bottom edge regardless of how tall the title block grows.
+//   • Empty client list rendered as a quiet caption, NOT an empty
+//     chip row — preserves the bottom-anchor without rendering an
+//     awkward empty container.
+//   • Responsive: caller (`NeedsAttentionSection`) drives the grid
+//     `grid-cols-{1,2,3}` based on alert count + viewport.
+//
+// Every internal element ships from a DS primitive:
+//   • `<PulseSourceMeta>` — "source · timestamp" row
+//   • `<StateBadge>` — jurisdiction chip in the top meta row
+// Title text hangs from the card's left padding directly. Source
+// meta sits flush left under the title (round 42 dropped the
+// leading tone icon, so no title inset is needed any more).
+// Minimum card height per Pencil VVMj9 — enforces vertical alignment
+// across the 3-card row. Title can line-clamp to 2 lines; if the
+// resulting card is shorter than this floor, the empty-state /
+// chip row pushes to the bottom edge via the parent's `justify-between`.
+const CARD_MIN_HEIGHT_CLASS = 'min-h-[160px]'
 
-// 2026-05-26 (Step 9 AI Visibility Audit F-019): threshold migrated
-// to the canonical `isLowAiConfidence(0.5)`. Previously this card
-// fired the LowConfidenceBadge for confidence in [0.5, 0.7) while
-// the alert drawer for the same alert showed nothing — same alert,
-// two different confidence stories. Now: card + drawer both
-// pick up the same 0.5 floor.
-const VISIBLE_CLIENT_NAMES = 2
-
-// Pure derivation of the deduped, capped affected-client name preview.
-// Affected rows are batch-loaded by the parent section (one `getDetailsBatch`
-// for all visible cards) and passed in, instead of each card fetching its own
-// `pulse.getDetail`.
+// 2026-06-04 round 19 (Yuqi Pencil vMnz5 — "for the clients
+// — and hover will show the exact client in tooltip"): this now
+// returns the FULL deduplicated list of affected client names so
+// the new Meta row's tooltip can render every name on hover. The
+// previous Top-N + overflow-tail shape (for the chip-row design)
+// is no longer needed because the card now shows a single
+// "{N} clients" label with a tooltip-revealed roster, not a chip
+// cluster.
+//
+// Affected rows are batch-loaded by the parent section (one
+// `getDetailsBatch` for all visible cards via
+// `useAlertsAffectedClients`) and passed in, instead of each card
+// fetching its own `pulse.getDetail`. This keeps the dashboard at a
+// single batched request regardless of how many cards render.
 function uniqueAffectedClientNames(affected: PulseAffectedClient[]): {
-  names: string[]
-  hasMore: number
+  allNames: string[]
 } {
   const seen = new Set<string>()
   const ordered: string[] = []
@@ -48,9 +71,21 @@ function uniqueAffectedClientNames(affected: PulseAffectedClient[]): {
     }
   }
   return {
-    names: ordered.slice(0, VISIBLE_CLIENT_NAMES),
-    hasMore: Math.max(ordered.length - VISIBLE_CLIENT_NAMES, 0),
+    allNames: ordered,
   }
+}
+
+// 2026-06-04 round 19 (Pencil vMnz5): confidence text tone
+// follows the canonical 3-tier ladder — same `aiConfidenceTier`
+// helper every other surface uses, so "conf 84%" on the card
+// reads the same green a CPA learns to associate with HIGH on
+// the AlertConfidencePill. Low confidence steps to destructive
+// so the eye still catches it.
+function confidenceToneClass(confidence: number): string {
+  const tier = aiConfidenceTier(confidence)
+  if (tier === 'high') return 'text-text-success'
+  if (tier === 'medium') return 'text-text-tertiary'
+  return 'text-text-destructive'
 }
 
 function NeedsAttentionCard({
@@ -71,16 +106,24 @@ function NeedsAttentionCard({
   // drawer used confidence-first logic — so the SAME alert read
   // green outside and red inside.
   const tone = alertTone(alert)
-  const lowConfidence = isLowAiConfidence(alert.confidence)
-  // 2026-06-01 (DS primitives sweep): source eyebrow timestamp now
-  // routes through `<RelativeTime>` so the rendered "Xm ago" gets a
-  // `<time dateTime title>` wrapper — same a11y + tooltip-precision
-  // contract every other recency surface uses (member roster,
-  // reminders, notifications). Firm timezone is resolved locally
-  // via `useCurrentFirm()` so callers don't have to plumb it.
-  const { currentFirm } = useCurrentFirm()
-  const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
-  const { names, hasMore } = uniqueAffectedClientNames(affectedClients)
+  // Affected client names come from the parent's batched load (one
+  // request for all visible cards), not a per-card query.
+  const { allNames } = uniqueAffectedClientNames(affectedClients)
+  const confidencePct = Math.round(alert.confidence * 100)
+  const confidenceToneCls = confidenceToneClass(alert.confidence)
+  // 2026-06-04 round 42 (Yuqi /today ↔ /alerts consistency #1 —
+  // "has severity pill and state badge please"): mirror the
+  // AlertCard severity-pill + StateBadge vocabulary so the
+  // dashboard summary and the alerts list speak the same visual
+  // language. `severityFromConfidence` is the shared helper from
+  // pulse-alert-chrome so the tier mapping stays canonical.
+  const severity = severityFromConfidence(alert.confidence)
+  const severityLabel =
+    severity.id === 'high'
+      ? t`HIGH IMPACT`
+      : severity.id === 'medium'
+        ? t`MEDIUM IMPACT`
+        : t`LOW IMPACT`
 
   // 2026-05-25 (Yuqi #47): clicking this card opens the alert drawer
   // in-place on the dashboard (via `useAlertDrawer().openDrawer`) —
@@ -96,181 +139,223 @@ function NeedsAttentionCard({
   // If alerts grow into long-form investigation work later we'll
   // revisit and promote to a route.
   return (
-    // 2026-05-25 (Yuqi Today #5): added `hover:bg-background-default-hover`.
-    // The previous hover only changed `border-color`, which on a card
-    // surrounded by a tinted section bg was nearly invisible — Yuqi
-    // flagged that hovering the card "didn't feel like anything was
-    // happening." The fill change makes the click affordance read
-    // immediately. Border still escalates as a secondary cue.
-    // 2026-05-31 (Yuqi DS-first revision): card chrome now goes
-    // through the shared `<Card size="xs">` primitive — a new size
-    // variant added to packages/ui/src/components/ui/card.tsx for
-    // dense dashboard surfaces (gap-2, py-3, px-3, text-sm). The
-    // outer `<button>` claims the click target + keyboard semantics;
-    // the inner `<Card>` provides the design-system chrome. Only
-    // overrides applied are the surface bg (subtle vs the card's
-    // default white) and the hover bg, which propagate via the
-    // outer group's hover state.
     <button
       type="button"
       onClick={onReview}
       aria-label={t`Open Pulse alert details: ${alert.title}`}
-      className="group block h-full w-full min-w-0 cursor-pointer rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className={cn(
+        // 2026-06-04 (Yuqi feedback #1+#6): two adjustments off the
+        // 2026-06-04 first pass —
+        //   • Dropped `justify-between` so the affected-clients
+        //     row sits CLOSE to the title block (item #6 "client
+        //     list can be close to top"). Previously the
+        //     justify-between pushed the clients to the bottom
+        //     edge for fixed-height parity, but Yuqi found that
+        //     made the bottom feel empty.
+        //   • Reduced internal gap-3 → gap-2 (12px → 8px) so
+        //     title + source + clients sit tighter together.
+        //   • Dropped CARD_MIN_HEIGHT — with the content packed
+        //     to the top, cards size to their content, and a
+        //     short card no longer floats below taller siblings.
+        //     Grid `items-stretch` (parent) still equalizes
+        //     visible heights when sibling cards are visible.
+        // 2026-06-04 round 3 (Yuqi feedback #2 "closer"):
+        // outer gap-2 (8px) → gap-1.5 (6px) so title / source meta
+        // / clients pack even tighter. The card was reading as
+        // 3 separated rows; now reads as a single block.
+        // 2026-06-04 round 11 (Yuqi "remove shadow. hate them"):
+        // dropped `shadow-xs` resting + `hover:shadow-sm`. The
+        // bg tint + rounded radius carry the card identity at
+        // rest; hover bg shift carries the interactivity cue.
+        // No drop shadow chrome.
+        //
+        // 2026-06-04 round 38 (Yuqi consistency audit /today vs
+        // /alerts): chrome tone unified with AlertCard.
+        // Resting was `bg-background-section` (#f9fafb gray-50)
+        // which sits on the `bg-background-inset` page wash
+        // (#f4f4f4) — only 1–2 RGB units of differential, so the
+        // card chrome was nearly INVISIBLE against the wash. The
+        // /alerts card flipped to white-on-gray for exactly this
+        // reason (see AlertCard "Pencil's mock has a WHITE Main
+        // bg + gray cards … our SidebarInset is gray, so the
+        // analog has to invert: white cards on the gray page
+        // wash"). Same reasoning applies here — this card surfaces
+        // the SAME alert data type as the /alerts list, and the
+        // surrounding chrome (SidebarInset gray wash) is the same.
+        // So:
+        //   • Resting → `bg-background-default` (white) — high
+        //     contrast against the wash, clear card edge without
+        //     a border.
+        //   • Hover  → `bg-background-subtle` (#f2f4f7) — same
+        //     "lift toward gray" affordance /alerts uses.
+        // The dashboard's other sections (Actions list, Changes
+        // since) already use white card chrome; this brings the
+        // alerts tile into the same family.
+        'group flex h-full w-full min-w-0 flex-col gap-1.5 rounded-2xl bg-background-default p-4 text-left',
+        'transition-colors duration-200 hover:bg-background-subtle',
+        'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+      )}
       data-tone={tone}
     >
-      <Card
-        size="xs"
-        className="bg-background-subtle transition-colors group-hover:bg-background-default"
-      >
-        <CardHeader className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2">
-            {/* Icon tone is `text-text-tertiary` — meta indicator
-                ("this card is anchored on an external source"), not
-                an urgency signal. The card's outer alerts-panel
-                wash and the LowConfidenceBadge (when applicable)
-                carry the urgency. */}
-            <SquareArrowOutUpRightIcon
-              className="size-3.5 shrink-0 text-text-tertiary"
-              aria-label={alertToneLabel(tone)}
-            />
-            <span className="truncate text-sm font-medium text-text-secondary">{alert.source}</span>
-            {alert.publishedAt ? (
-              <>
-                <span aria-hidden className="text-text-tertiary">
-                  ·
-                </span>
-                {/* 2026-06-01 (DS primitives sweep): canonical
-                    `<RelativeTime>` — renders `<time dateTime title>`
-                    with the relative label and full `YYYY-MM-DD
-                    HH:MM:SS TZ` tooltip. */}
-                <RelativeTime
-                  value={alert.publishedAt}
-                  timeZone={firmTimezone}
-                  className="shrink-0 text-xs text-text-tertiary tabular-nums"
-                />
-              </>
-            ) : null}
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {lowConfidence ? <LowConfidenceBadge /> : null}
-            <ChevronRightIcon
-              className="size-4 text-text-tertiary transition-transform duration-200 group-hover:translate-x-1 group-hover:text-text-primary"
-              aria-hidden
-            />
-          </div>
-        </CardHeader>
+      {/* TOP BLOCK — meta row (severity + state) + title + source.
+          2026-06-04 round 42 (consistency #1): structure mirrors
+          AlertCard — HIGH IMPACT pill + combined StateBadge
+          pill on a top meta row, then title below. The tone icon
+          was retired here because the severity pill carries the
+          same tier signal in the same visual language as /alerts. */}
+      <div className="flex flex-col gap-1">
+        {/* Top meta row — severity + state pill + view icon.
+            2026-06-04 round 43:
+              • Item 1 ("severity and state badge should be the same
+                height"): both pills pinned to `h-6` (24px) with
+                `items-center` so the StateBadge xs (20px) and the
+                severity label sit centered to the same midline.
+                The wrapper height is the shared spec; internal
+                padding is x-only.
+              • Item 3 ("change icon to eye icon"): trailing
+                ChevronRightIcon → EyeIcon. The card's affordance
+                isn't "navigate forward" (the chevron implication)
+                — it's "view this alert's details in the drawer".
+                Eye reads as the canonical "view / preview" verb. */}
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-flex h-6 shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-semibold tracking-[0.8px]"
+            style={{ backgroundColor: severity.bg, color: severity.text }}
+          >
+            {severityLabel}
+          </span>
+          {/* 2026-06-04 round 44 (Yuqi /today #1 — "are they having
+              the same rounded corners? also because state badge has
+              a border - it looks like it is smaller"):
+                • Corner radius matched: `rounded-[6px]` → `rounded-[4px]`
+                  (same as severity pill).
+                • Border removed, swapped to `bg-background-section`
+                  gray fill. The border was claiming 1px from the
+                  interior on each side, making the state pill read
+                  ~2px shorter than the borderless severity pill at
+                  the same h-6. Soft gray fill gives the pill
+                  presence without eating internal space — both
+                  pills now read as equal-weight colored chips. */}
+          <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-[4px] bg-background-section px-1.5">
+            <StateBadge code={alert.jurisdiction} size="xs" />
+            <span className="text-[10px] font-semibold tracking-[0.4px] text-text-secondary uppercase">
+              {alert.jurisdiction}
+            </span>
+          </span>
+          <span className="flex-1" aria-hidden />
+          <EyeIcon
+            className="size-4 shrink-0 text-text-tertiary transition-colors duration-200 group-hover:text-text-primary"
+            aria-hidden
+          />
+        </div>
+        {/* Title — full-width below the meta row */}
+        <h3
+          className="line-clamp-2 min-w-0 text-base font-semibold leading-snug text-text-primary"
+          title={alert.title}
+        >
+          {alert.title}
+        </h3>
 
-        {/* Title block has a fixed 2-line min-height so card heights
-          stay uniform across the row even when one title is short.
-          line-clamp-2 caps the upper bound.
-          2026-05-25 (Yuqi Today #3 — second pass): title size
-          stepped down text-md → text-sm and weight dropped
-          font-medium → font-normal. Yuqi flagged "smaller" — the
-          card was reading as a hero title at text-md. Body weight
-          + sm size keeps it scannable but ranks it below the
-          section h2 above. min-height bumped from min-h-10 →
-          min-h-8 so two short lines still anchor the cards at
-          equal heights. */}
-        {/* 2026-05-25 (Yuqi Today #1): explicit font-normal — the
-          title was reading as font-medium on hover. No CSS rule
-          actually changes the weight, but the subpixel-anti-
-          aliasing shift on the bg change made the text look
-          slightly heavier. Locking the weight explicitly so it
-          stays at 400 in both rest and hover states. */}
-        <CardContent>
-          <p className="line-clamp-2 min-h-8 text-sm font-medium leading-snug text-text-primary">
-            {alert.title}
-          </p>
-        </CardContent>
+        {/* Source meta row — "source · 2h ago".
+            Round 42: the title inset was dropped — without the
+            leading tone icon, the title hangs from the card's left
+            padding directly. Source meta sits flush left under
+            the title. */}
+        <PulseSourceMeta source={alert.source} publishedAt={alert.publishedAt} />
+      </div>
 
-        <CardContent>
-          {impacted > 0 ? (
-            <div className="flex min-w-0 flex-col gap-2">
-              <p className="text-xs text-text-tertiary">
-                <Plural
-                  value={impacted}
-                  one="# client may be affected"
-                  other="# clients may be affected"
-                />
-              </p>
-              {names.length > 0 ? (
-                // Per-name pills use the canonical Badge primitive
-                // so shape + border + hover come from the shared
-                // chip vocabulary, not a one-off <li> with
-                // hand-rolled rounded-sm + border classes.
-                <ul className="flex flex-wrap items-center gap-1.5">
-                  {names.map((name) => (
-                    <li key={name}>
-                      <Badge variant="outline" title={name}>
+      {/* META BLOCK — Pencil node vMnz5: compact "👥 N clients · conf X%"
+          row sits directly under the source-meta row. The chip-cluster
+          design from earlier rounds (top-N names + overflow tail) is
+          replaced by a single count text whose tooltip reveals the
+          exact roster on hover. Lighter visually, denser semantically.
+          Two states (the batched affected-client load means there's
+          no per-card loading flash):
+            • impacted > 0  → "👥 N clients · conf X%"
+                              (tooltip on the "N clients" label lists
+                              the actual names)
+            • impacted === 0 → quiet "monitoring" caption */}
+      <div>
+        {impacted > 0 ? (
+          // 2026-06-04 round 19 (Pencil vMnz5): inline meta row —
+          // small UsersIcon + count-with-tooltip + middot + confidence.
+          // The count is the click-blocking <span> wrapped in
+          // Tooltip; cursor-help signals the hover affordance. Names
+          // are rendered as one per line in the tooltip so 10+ roster
+          // entries stay readable.
+          <div className="inline-flex items-center gap-2 text-sm">
+            <UsersIcon className="size-3 shrink-0 text-text-tertiary" aria-hidden />
+            <Tooltip>
+              <TooltipTrigger
+                render={(props) => (
+                  <span
+                    className="cursor-help font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary"
+                    onClick={(event) => event.stopPropagation()}
+                    {...props}
+                  >
+                    <Plural value={impacted} one="# client" other="# clients" />
+                  </span>
+                )}
+              />
+              <TooltipContent>
+                <div className="flex max-w-[260px] flex-col gap-0.5 text-left">
+                  <span className="font-semibold">
+                    <Trans>Affected clients</Trans>
+                  </span>
+                  {allNames.length > 0 ? (
+                    allNames.map((name) => (
+                      <span key={name} className="text-text-secondary">
                         {name}
-                      </Badge>
-                    </li>
-                  ))}
-                  {hasMore > 0 ? (
-                    <li className="inline-flex text-xs text-text-tertiary">+{hasMore}</li>
-                  ) : null}
-                </ul>
-              ) : null}
-            </div>
-          ) : (
-            <p className="text-sm text-text-tertiary">
-              {/* Empty-state copy reframes the absence of matches as
-                  ongoing monitoring ("we'll flag any new matches")
-                  instead of a flat "nothing to see here." */}
-              <Trans>No matching clients in this practice — we'll flag any new matches.</Trans>
-            </p>
-          )}
-        </CardContent>
-      </Card>
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-text-tertiary">
+                      <Trans>Resolving roster…</Trans>
+                    </span>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+            <span aria-hidden className="text-xs text-text-tertiary">
+              ·
+            </span>
+            <span className={cn('text-xs font-semibold tabular-nums', confidenceToneCls)}>
+              <Trans>conf {confidencePct}%</Trans>
+            </span>
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-1.5 text-xs text-text-tertiary">
+            <CheckCircle2Icon className="size-3 shrink-0" aria-hidden />
+            <Trans>No clients matched — monitoring continues</Trans>
+          </div>
+        )}
+      </div>
     </button>
   )
 }
 
-// 2026-05-24 (critique P2 — clarify): this used to read as a third
-// "tile" sized identically to the alert cards next to it — same
-// border, same fill area — even though it's just an expand
-// affordance. CPAs were trying to click into it as if it were
-// another alert card. Compress to a quieter "View N more"
-// link-tile: smaller width, no big "+N" headline, single line of
-// copy with an arrow. Still tappable, still keyboard-focusable,
-// but visually signals "navigation" not "content."
-//
-// 2026-05-25 (Yuqi Today #6): stripped the card chrome (border,
-// fill) entirely. Yuqi flagged that even after the 2026-05-24
-// compression, the "+ N more" still read as a card sibling to the
-// alert tiles. Now it's a plain text-link tile — no border, no
-// background, just the action label with a chevron. Hover lifts
-// it to text-primary so the affordance is still discoverable. The
-// flex sibling still claims its column so the grid keeps three
-// columns of equal width (alert / alert / link).
+// Overflow tile rendered next to the alert cards when there are more
+// alerts than the dashboard's `VISIBLE_ALERTS` cap allows.
 function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: () => void }) {
   const { i18n } = useLingui()
-  // 2026-05-24 (re-critique): the aria-label used to concat
-  // `${count === 1 ? '' : 's'}` inline, which doesn't survive non-
-  // English plurals (many locales need wholly different forms,
-  // not just an `s` suffix). Route through `i18n._(plural(...))` so
-  // Lingui's extractor catches every plural variant.
   const ariaLabel = i18n._(
     plural(count, {
       one: 'View # more Alert',
       other: 'View # more Alerts',
     }),
   )
-  // 2026-05-27 (Yuqi revert — "怎么会变成这样vertical"): restored the
-  // column-shaped overflow tile so it claims its 160px grid column
-  // alongside the two alert cards. The flat inline button paired
-  // with the vertical stack; with the grid back, this tile reads as
-  // a parallel sibling to the alert cards again.
   return (
     <button
       type="button"
       onClick={onOpen}
       aria-label={ariaLabel}
-      className="group/overflow flex h-full shrink-0 flex-col items-center justify-center gap-1 self-stretch rounded-md px-4 text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+      className={cn(
+        'group/overflow flex shrink-0 flex-col items-center justify-center gap-1 self-stretch rounded-2xl px-4 text-text-secondary',
+        'transition-colors hover:text-text-primary',
+        'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        CARD_MIN_HEIGHT_CLASS,
+      )}
     >
-      {/* 2026-05-25 (Yuqi typography rebalance): "+ N more" drops
-          from font-medium to regular — it's a navigation hint, not
-          a labeled affordance, so it should read at body weight. */}
       <span className="inline-flex items-center gap-1 text-sm">
         <Plus
           className="size-3.5 transition-transform duration-200 group-hover/overflow:rotate-90"

@@ -25,15 +25,15 @@ primitive extensions.
 
 ### Primitive extensions (9)
 
-| Primitive   | New axis / variants                                            | Why                                                                                                                  |
-| ----------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `Card`      | `interactive={true}`                                           | Clickable cards (RuleEvidenceCard link, EvidenceCard, PulseAlertCard) get pointer + accent-border hover + focus ring |
-| `Card`      | `emphasis="unread"`                                            | Accent left-rail (3px) for notifications, pulse bell items, dashboard needs-attention                                |
-| `Card`      | `tone="accent-active"`                                         | Selected/focused state with deeper accent border + hover bg; distinct from quiet `tone="accent"`                     |
-| `Badge`     | additional axes (~10 LoC)                                      | Refined size / shape / tone combinations the round-1 axes didn't cover                                               |
-| `Field`     | additional variants (~40 LoC)                                  | Form chrome consolidation — `<FieldError>`, `<FieldDescription>`, density variants                                   |
-| `Sheet`     | new slot / variant (~9 LoC)                                    | Drawer-internal sections that needed a canonical slot vs hand-rolled padding                                         |
-| `Sidebar`   | refined sidebar primitives (~11 LoC)                           | Sidebar nav items + badge consumers consolidated                                                                     |
+| Primitive | New axis / variants                  | Why                                                                                                                  |
+| --------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `Card`    | `interactive={true}`                 | Clickable cards (RuleEvidenceCard link, EvidenceCard, PulseAlertCard) get pointer + accent-border hover + focus ring |
+| `Card`    | `emphasis="unread"`                  | Accent left-rail (3px) for notifications, pulse bell items, dashboard needs-attention                                |
+| `Card`    | `tone="accent-active"`               | Selected/focused state with deeper accent border + hover bg; distinct from quiet `tone="accent"`                     |
+| `Badge`   | additional axes (~10 LoC)            | Refined size / shape / tone combinations the round-1 axes didn't cover                                               |
+| `Field`   | additional variants (~40 LoC)        | Form chrome consolidation — `<FieldError>`, `<FieldDescription>`, density variants                                   |
+| `Sheet`   | new slot / variant (~9 LoC)          | Drawer-internal sections that needed a canonical slot vs hand-rolled padding                                         |
+| `Sidebar` | refined sidebar primitives (~11 LoC) | Sidebar nav items + badge consumers consolidated                                                                     |
 
 ### Call-site migrations — 87 sites across 39 files
 
@@ -80,13 +80,13 @@ parallel by bucket) → Verify (1)**. Same Workflow-driven shape as round 1.
 
 ## Cumulative state (rounds 1 + 2)
 
-| Metric                | Round 1 | Round 2 | Cumulative |
-| --------------------- | ------- | ------- | ---------- |
-| Discoveries           | ~64     | 104     | ~168       |
-| Primitive extensions  | 6       | 9       | 15         |
-| Migrations            | 34      | 87      | 121        |
-| Files modified        | 25      | 39      | ~50 (with overlap) |
-| Subagent tokens       | 916k    | 2.0M    | 2.9M       |
+| Metric               | Round 1 | Round 2 | Cumulative         |
+| -------------------- | ------- | ------- | ------------------ |
+| Discoveries          | ~64     | 104     | ~168               |
+| Primitive extensions | 6       | 9       | 15                 |
+| Migrations           | 34      | 87      | 121                |
+| Files modified       | 25      | 39      | ~50 (with overlap) |
+| Subagent tokens      | 916k    | 2.0M    | 2.9M               |
 
 ## Next
 

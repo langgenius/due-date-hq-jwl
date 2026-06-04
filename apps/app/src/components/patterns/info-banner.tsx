@@ -130,12 +130,7 @@ export function InfoBanner({
         // per docs/Design/design-system-migration-2026-05-31.md. Same
         // visual contract (accent tone + hover-underline) with shared
         // focus-ring treatment.
-        <TextLink
-          variant="accent"
-          size="sm"
-          onClick={cta.onClick}
-          className="shrink-0"
-        >
+        <TextLink variant="accent" size="sm" onClick={cta.onClick} className="shrink-0">
           {cta.label}
         </TextLink>
       ) : null}

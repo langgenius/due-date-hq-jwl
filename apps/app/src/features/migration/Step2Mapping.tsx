@@ -549,7 +549,10 @@ function dedupeSamples(samples: readonly string[]): string[] {
  * banner body. No icons. The goal is to confirm the user's mental
  * model ("I'm mapping a name field, this expects text").
  */
-function destinationDataTypeLabel(target: MappingTarget, t: ReturnType<typeof useLingui>['t']): ReactNode {
+function destinationDataTypeLabel(
+  target: MappingTarget,
+  t: ReturnType<typeof useLingui>['t'],
+): ReactNode {
   // 2026-06-01: route the IGNORE em-dash through the canonical
   // EmptyCellMark primitive so screen readers announce "Ignored column"
   // instead of "dash".

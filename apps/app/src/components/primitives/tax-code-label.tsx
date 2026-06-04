@@ -64,18 +64,21 @@ function TaxCodeLabel({
 
 /**
  * Bordered chip variant — use in dense rows where the tax-code is the
- * primary read for the column (rules console preview, generation row).
+ * primary read for the column (rules console preview, generation row,
+ * dashboard ActionsTable FILING column).
  *
- * 2026-05-31 (Yuqi DS-first revision): now wraps the canonical
- * `<Badge variant="outline" />` primitive instead of a hand-rolled
- * Tooltip+span chrome. The badge's `rounded-full` + h-5 + px-2 +
- * `border-divider-regular text-text-secondary` shape replaces the
- * previous `rounded-sm`/`px-1.5`/`bg-background-subtle` one-off so
- * tax-code chips now read with the same shape as every other badge
- * in the app. Behavior parity: still renders a tooltip with the
- * raw code + jurisdiction + description; the Badge's `render` prop
- * threads the `<TooltipTrigger>` into the badge element so the
- * hover affordance survives the wrap.
+ * 2026-06-03 (Pencil VmcdD `fc` chip spec): chip chrome restyled to
+ * a true code-chip:
+ *   • `bg-background-subtle` (soft surface, not white)
+ *   • `font-mono` (JetBrains Mono) + `font-bold` (700) at `text-xs`
+ *   • `rounded-[5px]` — between pill and square — matches Pencil's
+ *     5px corner radius on form-code chips
+ *   • `px-3 py-1` (Pencil's [4, 12])
+ *   • `border-divider-subtle` hairline border (subtle, not regular)
+ *
+ * The Badge primitive's `variant="outline"` still drives focus +
+ * hover behavior; only the chrome (bg, font, radius, padding) is
+ * overridden via className. Tooltip behavior unchanged.
  */
 function TaxCodeBadge({
   code,
@@ -90,7 +93,20 @@ function TaxCodeBadge({
     <Tooltip>
       <TooltipTrigger
         render={(props) => (
-          <Badge variant="outline" className={cn('cursor-help', className)} {...props}>
+          <Badge
+            variant="outline"
+            // 2026-06-04 round 3 (Yuqi feedback #10 "Filing badge
+            // should use lighter weight"): `font-bold` (700) →
+            // `font-medium` (500). The mono face + the tight
+            // tracking already give the code chip enough
+            // identity; bold made it shout next to the row's
+            // body text.
+            className={cn(
+              'cursor-help border-divider-subtle bg-background-subtle px-3 py-1 font-mono font-medium tracking-tight rounded-[5px]',
+              className,
+            )}
+            {...props}
+          >
             {meta.label}
           </Badge>
         )}

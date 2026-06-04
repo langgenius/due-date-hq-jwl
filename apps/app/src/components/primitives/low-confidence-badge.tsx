@@ -1,7 +1,8 @@
-import { Trans } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { Astroid } from 'lucide-react'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
@@ -53,16 +54,36 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *    card on Today when alert.confidence < 0.5
  */
 export function LowConfidenceBadge({ className }: { className?: string }) {
-  // 2026-05-31 (Yuqi DS-first revision): now wraps the canonical
-  // `<Badge variant="warning" />` primitive instead of a hand-rolled
-  // `<span>`. The amber tone, padding, and base classes live in
-  // `badge.tsx`; only the uppercase tracking treatment is added
-  // here as the "this is a low-confidence flag, not a generic
-  // warning chip" specialization.
+  const { t } = useLingui()
+  // 2026-06-04 (Yuqi feedback #5 — "why does only this one has Low
+  // Confidence?"): wrapped in `<Tooltip>` so the badge explains
+  // itself on hover. Previously the badge appeared without context;
+  // a CPA scanning the row didn't know WHY THIS alert was flagged
+  // (vs. its siblings without the badge) — the rationale is "the
+  // AI's extraction confidence on this alert fell below the
+  // canonical 0.5 threshold."
   return (
-    <Badge variant="warning" className={cn('uppercase tracking-wide', className)}>
-      <Astroid aria-hidden />
-      <Trans>Low confidence</Trans>
-    </Badge>
+    <Tooltip>
+      <TooltipTrigger
+        render={(props) => (
+          <Badge
+            variant="warning"
+            className={cn('cursor-help uppercase tracking-wide', className)}
+            {...props}
+          >
+            <Astroid aria-hidden />
+            <Trans>Low confidence</Trans>
+          </Badge>
+        )}
+      />
+      {/* 2026-06-04 round 11 (Yuqi "you never answered - what does
+          Low Confidence do"): tooltip rewritten to state HONEST
+          current behavior. The badge is informational only — it
+          doesn't block Apply today. Its job is to prompt the CPA
+          to manually verify the extracted facts against the
+          source. Blocking logic (require sign-off before Apply,
+          route to a review queue) is roadmapped but not built. */}
+      <TooltipContent>{t`AI extraction confidence below 50%. Verify the extracted details against the source before trusting them. This is a visual warning only — it does not currently block Apply, but you should double-check before applying.`}</TooltipContent>
+    </Tooltip>
   )
 }

@@ -61,7 +61,10 @@ export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; clas
             The primitive carries the muted-tone hover-to-tertiary
             chrome + the focus-visible ring; we just plug in the
             ChevronLeft + label as children. */}
-        <TextLink variant="muted" render={<Link to={item.to} title={`Go back · ${shortcutHint}`} />}>
+        <TextLink
+          variant="muted"
+          render={<Link to={item.to} title={`Go back · ${shortcutHint}`} />}
+        >
           <ChevronLeftIcon aria-hidden className="size-3.5 shrink-0" />
           {item.label}
         </TextLink>

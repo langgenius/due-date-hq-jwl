@@ -13,6 +13,7 @@ import type {
   DashboardBriefScope,
   DashboardBriefStatus,
   ExposureStatus,
+  ObligationType,
 } from '@duedatehq/ports/shared'
 import { OPEN_OBLIGATION_STATUSES } from '@duedatehq/core/obligation-workflow'
 import { estimateAccruedPenalty } from '@duedatehq/core/penalty'
@@ -89,6 +90,10 @@ export interface DashboardRawRow {
   clientName: string
   clientEmail: string | null
   taxType: string
+  // 2026-06-03 (Yuqi /critique pass): obligation type threaded
+  // from DB to dashboard render layer so the ActionsTable can
+  // render a TYPE column distinguishing the 6 obligation types.
+  obligationType: ObligationType
   filingDueDate: Date | null
   paymentDueDate: Date | null
   baseDueDate: Date
@@ -611,6 +616,7 @@ export function makeDashboardRepo(db: Db, firmId: string) {
           clientName: client.name,
           clientEmail: client.email,
           taxType: obligationInstance.taxType,
+          obligationType: obligationInstance.obligationType,
           filingDueDate: obligationInstance.filingDueDate,
           paymentDueDate: obligationInstance.paymentDueDate,
           baseDueDate: obligationInstance.baseDueDate,

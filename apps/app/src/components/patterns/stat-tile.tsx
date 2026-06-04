@@ -149,21 +149,14 @@ export function StatTile({
   if (trend) {
     const sign = trend.delta > 0 ? 'up' : trend.delta < 0 ? 'down' : 'flat'
     const resolvedTone =
-      trend.toneOverride ??
-      (sign === 'up' ? 'warning' : sign === 'down' ? 'success' : 'muted')
+      trend.toneOverride ?? (sign === 'up' ? 'warning' : sign === 'down' ? 'success' : 'muted')
     const TrendIcon =
       sign === 'up' ? TrendingUpIcon : sign === 'down' ? TrendingDownIcon : MinusIcon
     const trendCopy =
       trend.label ??
-      (sign === 'flat'
-        ? 'Flat'
-        : `${sign === 'up' ? '+' : '−'}${Math.abs(trend.delta)} vs last wk`)
+      (sign === 'flat' ? 'Flat' : `${sign === 'up' ? '+' : '−'}${Math.abs(trend.delta)} vs last wk`)
     const badgeVariant =
-      resolvedTone === 'success'
-        ? 'success'
-        : resolvedTone === 'warning'
-          ? 'warning'
-          : 'secondary'
+      resolvedTone === 'success' ? 'success' : resolvedTone === 'warning' ? 'warning' : 'secondary'
     trendPill = (
       <Badge variant={badgeVariant} aria-label={trend.ariaLabel} className="mt-0.5 tabular-nums">
         <TrendIcon aria-hidden />

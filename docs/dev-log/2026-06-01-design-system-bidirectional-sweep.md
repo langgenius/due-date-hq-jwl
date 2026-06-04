@@ -28,14 +28,14 @@ place. Both directions, single sweep.
 
 ### Primitive extensions (`packages/ui/src/components/ui/`)
 
-| Primitive       | New axis / variants                            | Why                                                                                                                  |
-| --------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `Badge`         | `shape="square"` (default `pill`)              | Per-line code chips + jurisdiction tags + form-code chips need `rounded-sm` instead of `rounded-full`                |
-| `Badge`         | `size="lg"`                                    | Drawer-header chips (change-kind, source name) needed bigger padding + text than the default `h-5 text-xs`           |
-| `Card`          | `size="xs"` (gap-2 / py-3 / px-3 / text-sm)    | Dashboard-density alert tiles ("NeedsAttentionCard") were hand-rolling `p-3 gap-2 text-sm` because Card had no xs    |
-| `Card`          | `tone="warning" \| "accent" \| "muted"`        | In-drawer tinted panels (PulseDetailDrawer warning blocks) were hand-rolling `border-amber-…/bg-amber-…` per surface |
-| `Card`          | `radius="md"` (default `xl`)                   | Dense in-page surfaces (workload, opportunities, AlertsListPage empty states) want `rounded-md` not marketing's `xl` |
-| `TextLink`      | `variant="accent"`                             | 10+ hand-rolled `text-text-accent hover:underline` inline links — quieter than `<Button variant="link">`             |
+| Primitive  | New axis / variants                         | Why                                                                                                                  |
+| ---------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `Badge`    | `shape="square"` (default `pill`)           | Per-line code chips + jurisdiction tags + form-code chips need `rounded-sm` instead of `rounded-full`                |
+| `Badge`    | `size="lg"`                                 | Drawer-header chips (change-kind, source name) needed bigger padding + text than the default `h-5 text-xs`           |
+| `Card`     | `size="xs"` (gap-2 / py-3 / px-3 / text-sm) | Dashboard-density alert tiles ("NeedsAttentionCard") were hand-rolling `p-3 gap-2 text-sm` because Card had no xs    |
+| `Card`     | `tone="warning" \| "accent" \| "muted"`     | In-drawer tinted panels (PulseDetailDrawer warning blocks) were hand-rolling `border-amber-…/bg-amber-…` per surface |
+| `Card`     | `radius="md"` (default `xl`)                | Dense in-page surfaces (workload, opportunities, AlertsListPage empty states) want `rounded-md` not marketing's `xl` |
+| `TextLink` | `variant="accent"`                          | 10+ hand-rolled `text-text-accent hover:underline` inline links — quieter than `<Button variant="link">`             |
 
 ### New primitive
 
@@ -46,17 +46,17 @@ place. Both directions, single sweep.
 
 ### Call-site migrations — 34 sites across 25 files
 
-| Feature bucket             | Files | Highlights                                                                                                                                       |
-| -------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `clients`                  | 4     | `ClientFactsWorkspace` (9 workspace panels → `Card`), `ClientCompliancePosturePanel` (section → `Card`), `ClientTitleSwitcher`, `ClientDetailDrawer` |
-| `pulse`                    | 4     | `PulseDetailDrawer` (3 in-drawer tinted panels → `Card tone="warning"`/`accent`), `AlertsListPage` empty states → `Card radius="md"`, `PulseAlertCard` change-kind chip → `Badge variant="info" size="lg"`, `PulseStructuredFields` jurisdiction → `Badge shape="square"` |
-| `obligations`              | 3     | Status pills → `Badge variant="destructive"/"warning"`, `timeline.tsx` accent eyebrow → `Badge shape="square"`, `ChecklistItemRow` icon button → `Button variant="ghost" size="icon-sm"` |
-| `routes` (top-level)       | 6     | Count chips on `/obligations`, `/clients`, `/rules/library`, `/rules/pulse` headers → `Badge variant="secondary"/"destructive"`                  |
-| `dashboard`                | 4     | `needs-attention-card` (xs Card), `needs-attention-section` (panel wash dropped), `actions-list` (Open-in-queue Badge), `changes-since-last-section` (TextLink) |
-| `audit`                    | 1     | AI provenance + override indicators → `Badge variant="info"/"warning"`                                                                            |
-| `migration`                | 2     | `WizardShell` modal → `Card`, `Step1Intake` preset switcher + paste-mode → `Button variant="outline"`/`link`                                      |
-| `opportunities`            | 1     | Per-opportunity card → `Card size="sm"`, client links → `TextLink variant="secondary"`                                                            |
-| Other small buckets        | ~8    | reminders, workload, calendar, auth, members, onboarding, `_surface-vocabulary`, `patterns/info-banner`                                          |
+| Feature bucket       | Files | Highlights                                                                                                                                                                                                                                                                |
+| -------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `clients`            | 4     | `ClientFactsWorkspace` (9 workspace panels → `Card`), `ClientCompliancePosturePanel` (section → `Card`), `ClientTitleSwitcher`, `ClientDetailDrawer`                                                                                                                      |
+| `pulse`              | 4     | `PulseDetailDrawer` (3 in-drawer tinted panels → `Card tone="warning"`/`accent`), `AlertsListPage` empty states → `Card radius="md"`, `PulseAlertCard` change-kind chip → `Badge variant="info" size="lg"`, `PulseStructuredFields` jurisdiction → `Badge shape="square"` |
+| `obligations`        | 3     | Status pills → `Badge variant="destructive"/"warning"`, `timeline.tsx` accent eyebrow → `Badge shape="square"`, `ChecklistItemRow` icon button → `Button variant="ghost" size="icon-sm"`                                                                                  |
+| `routes` (top-level) | 6     | Count chips on `/obligations`, `/clients`, `/rules/library`, `/rules/pulse` headers → `Badge variant="secondary"/"destructive"`                                                                                                                                           |
+| `dashboard`          | 4     | `needs-attention-card` (xs Card), `needs-attention-section` (panel wash dropped), `actions-list` (Open-in-queue Badge), `changes-since-last-section` (TextLink)                                                                                                           |
+| `audit`              | 1     | AI provenance + override indicators → `Badge variant="info"/"warning"`                                                                                                                                                                                                    |
+| `migration`          | 2     | `WizardShell` modal → `Card`, `Step1Intake` preset switcher + paste-mode → `Button variant="outline"`/`link`                                                                                                                                                              |
+| `opportunities`      | 1     | Per-opportunity card → `Card size="sm"`, client links → `TextLink variant="secondary"`                                                                                                                                                                                    |
+| Other small buckets  | ~8    | reminders, workload, calendar, auth, members, onboarding, `_surface-vocabulary`, `patterns/info-banner`                                                                                                                                                                   |
 
 ### Mechanism
 

@@ -324,7 +324,9 @@ function MembersPage({ data, firmTimezone }: { data: MembersListOutput; firmTime
             <span className="flex flex-col gap-0.5">
               <Trans>Active members</Trans>
               <span className="text-xs text-text-muted">
-                <Trans>{ownerCount} owner · {managedCount} managed</Trans>
+                <Trans>
+                  {ownerCount} owner · {managedCount} managed
+                </Trans>
               </span>
             </span>
           }
@@ -692,12 +694,7 @@ function SeatStat({ data }: { data: MembersListOutput }) {
           </span>
         }
       />
-      <Progress
-        value={usedPct}
-        size="hairline"
-        aria-label="Seats used"
-        className="px-1"
-      />
+      <Progress value={usedPct} size="hairline" aria-label="Seats used" className="px-1" />
     </div>
   )
 }
@@ -780,8 +777,13 @@ function ActiveMembersTable({
   return (
     <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
       <Table>
+        {/* 2026-06-04 (Yuqi table sweep): `hover:bg-transparent` on
+            the header row dropped — the canonical primitive's
+            TableHeader already applies transparent hover to its
+            child rows. `h-9` kept as deliberate compact treatment
+            for a settings/admin table. */}
         <TableHeader>
-          <TableRow className="h-9 hover:bg-transparent">
+          <TableRow className="h-9">
             <TableHead className="w-[304px] px-4">Name</TableHead>
             <TableHead className="w-[280px]">Email</TableHead>
             <TableHead className="w-44">Role</TableHead>
@@ -963,12 +965,7 @@ function MemberIdentity({ member }: { member: MemberPublic }) {
           come back. `title` carries the name for the tooltip; aria
           metadata lives on the avatar so the sibling text-name reads
           naturally and the avatar stays decorative. */}
-      <AssigneeAvatar
-        name={member.name}
-        image={member.image}
-        size="sm"
-        title={member.name}
-      />
+      <AssigneeAvatar name={member.name} image={member.image} size="sm" title={member.name} />
       <span
         className={cn(
           'truncate text-xs font-medium',
@@ -1261,11 +1258,7 @@ function InviteMemberDialog({
             // still aria-describedby's this node), but the visual lands
             // in the same chrome as the sibling invite-error Alert just
             // above so the dialog now reads as one consistent surface.
-            <Alert
-              id="members-seat-limit-note"
-              variant="warning"
-              className="text-sm"
-            >
+            <Alert id="members-seat-limit-note" variant="warning" className="text-sm">
               <AlertDescription>
                 <Trans>No seats are available. Upgrade or suspend a member before inviting.</Trans>
               </AlertDescription>

@@ -83,13 +83,14 @@ export function AuditLogTable({
           </TableHead>
         </TableRow>
       </TableHeader>
-      {/* 2026-05-26 (86th pass, audit §16.2 P1): added
-          `bg-background-default/50` so the audit log table matches the
-          cross-workbench TableBody alpha-50 white. The
-          `[&_tr]:border-b-0` weld is preserved — audit log uses
-          paragraph-row formatting where between-row dividers compete
-          with the change-headline content. */}
-      <TableBody className="bg-background-default/50 [&_tr]:border-b-0 [&_td]:py-3">
+      {/* 2026-06-04 (Yuqi table sweep): `bg-background-default/50`
+          dropped — primitive now ships solid `bg-background-default`
+          so the alpha-50 reads as a typo-tone next to the new solid
+          gray-50 header. `[&_tr]:border-b-0` + `[&_td]:py-3` are
+          intentional deviations: audit log is paragraph-row
+          formatting (compact, no between-row dividers) so the
+          change-headline can breathe. */}
+      <TableBody className="[&_tr]:border-b-0 [&_td]:py-3">
         {events.map((event) => {
           // η pass — F-035 / F-036: actor resolution now reads actor_type
           // first. An autonomous AI event ('ai') gets "AI" as the displayed
@@ -158,7 +159,12 @@ function AuditLogRow({
       data-audit-action={event.action}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      className="cursor-pointer align-top outline-none hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
+      // 2026-06-04 (Yuqi table sweep): `hover:bg-state-base-hover`
+      // removed — that's the canonical primitive default now. Kept:
+      // `align-top` (this surface stacks 2-line content per cell, so
+      // align-middle reads as misaligned), `cursor-pointer`,
+      // focus-visible ring (keyboard a11y).
+      className="cursor-pointer align-top outline-none focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset"
     >
       <TableCell className="text-xs tabular-nums">
         <div className="grid gap-1">
@@ -240,10 +246,7 @@ function AuditLogRow({
         {/* 2026-06-01: replaced ›-glyph with ChevronRightIcon so the
             row-open affordance aligns with the rest of the app's
             chevron-icon vocabulary. */}
-        <ChevronRightIcon
-          className="ml-auto size-3.5 text-text-tertiary"
-          aria-hidden
-        />
+        <ChevronRightIcon className="ml-auto size-3.5 text-text-tertiary" aria-hidden />
       </TableCell>
     </TableRow>
   )

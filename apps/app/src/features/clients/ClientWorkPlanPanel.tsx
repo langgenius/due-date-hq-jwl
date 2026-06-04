@@ -33,6 +33,14 @@ import {
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
@@ -680,22 +688,22 @@ function FilingPlanYearSection({
           </Badge>
         ) : null}
       </div>
-      {/* Real <table> for the filing plan body (audit L3). Earlier shape
-          was nested <div>s — screen readers got no row/column semantics,
-          arrow-key cell navigation was lost. Now: <thead>/<tbody>/<tr>/<td>
-          with table-fixed widths preserve the visual rhythm while restoring
-          row-N-of-M announcement + native keyboard table navigation. The
-          per-row cursor-pointer + onClick stay on <tr>, and the nested
-          buttons (form code, status pill, checkbox, row-actions) still
-          stopPropagation so they don't double-fire the row open.
-          The outer wrapper provides horizontal scroll on narrow viewports
-          (mobile/tablet) where the fixed-width columns would otherwise
-          collide with the Form cell. */}
+      {/* 2026-06-04 (Yuqi table sweep): migrated from raw <table>
+          to the canonical <Table> primitive so this surface inherits
+          the same chrome (gray-50 header, hairline row borders,
+          state-base hover, zebra striping) as every other table
+          across the app. Audit L3 a11y intent preserved — the
+          primitive renders proper <thead>/<tbody>/<tr>/<td>
+          underneath, so row-N-of-M screen-reader announcement +
+          native keyboard table nav still apply.
+          The outer wrapper provides horizontal scroll on narrow
+          viewports (mobile/tablet) where the fixed-width columns
+          would otherwise collide with the Form cell. */}
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[520px] table-fixed">
-          <thead className="bg-background-subtle text-sm font-medium leading-5 text-text-secondary">
-            <tr className="border-y border-divider-subtle">
-              <th scope="col" className="w-9 px-3 py-2 text-left align-middle">
+        <Table className="min-w-[520px] table-fixed">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-9 px-3">
                 <Checkbox
                   checked={yearAllSelected}
                   indeterminate={yearSomeSelected}
@@ -703,8 +711,8 @@ function FilingPlanYearSection({
                   aria-label={t`Select all deadlines in this year`}
                   className="size-4"
                 />
-              </th>
-              <th scope="col" className="px-1 py-2 text-left align-middle font-medium">
+              </TableHead>
+              <TableHead className="px-1">
                 <FilingPlanSortHeader
                   active={sort.field === 'form'}
                   dir={sort.dir}
@@ -712,8 +720,8 @@ function FilingPlanYearSection({
                 >
                   <Trans>Form</Trans>
                 </FilingPlanSortHeader>
-              </th>
-              <th scope="col" className="w-[120px] px-1 py-2 text-left align-middle font-medium">
+              </TableHead>
+              <TableHead className="w-[120px] px-1">
                 <FilingPlanSortHeader
                   active={sort.field === 'internal'}
                   dir={sort.dir}
@@ -722,8 +730,8 @@ function FilingPlanYearSection({
                 >
                   <Trans>Internal deadline</Trans>
                 </FilingPlanSortHeader>
-              </th>
-              <th scope="col" className="w-[120px] px-1 py-2 text-left align-middle font-medium">
+              </TableHead>
+              <TableHead className="w-[120px] px-1">
                 <FilingPlanSortHeader
                   active={sort.field === 'official'}
                   dir={sort.dir}
@@ -732,8 +740,8 @@ function FilingPlanYearSection({
                 >
                   <Trans>Official deadline</Trans>
                 </FilingPlanSortHeader>
-              </th>
-              <th scope="col" className="w-[120px] px-1 py-2 text-left align-middle font-medium">
+              </TableHead>
+              <TableHead className="w-[120px] px-1">
                 <FilingPlanSortHeader
                   active={sort.field === 'status'}
                   dir={sort.dir}
@@ -742,26 +750,24 @@ function FilingPlanYearSection({
                 >
                   <Trans>Status</Trans>
                 </FilingPlanSortHeader>
-              </th>
-              <th scope="col" className="w-9 px-1 py-2" aria-hidden />
-            </tr>
-          </thead>
-          <tbody className="bg-background-default">
-            {sortedObligations.map((obligation, rowIndex) => {
-              const isLast = rowIndex === sortedObligations.length - 1
+              </TableHead>
+              <TableHead className="w-9 px-1" aria-hidden />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedObligations.map((obligation) => {
               const isSelected = selectedIds.has(obligation.id)
               return (
-                <tr
+                <TableRow
                   key={obligation.id}
                   className={cn(
-                    'group/row cursor-pointer transition-colors hover:bg-state-base-hover',
+                    'group/row cursor-pointer',
                     isSelected && 'bg-state-accent-hover-alt',
-                    !isLast && 'border-b border-divider-subtle',
                   )}
                   onClick={() => onOpen(obligation.id)}
                 >
-                  <td
-                    className="w-9 px-3 py-2 align-middle"
+                  <TableCell
+                    className="w-9 px-3 py-2"
                     onClick={(event) => event.stopPropagation()}
                     // Escape MUST bubble to the parent Dialog/Sheet close
                     // handler. Other keys stay scoped so checkbox toggle
@@ -777,8 +783,8 @@ function FilingPlanYearSection({
                       aria-label={t`Select ${formatTaxCode(obligation.taxType)}`}
                       className="size-4"
                     />
-                  </td>
-                  <td className="min-h-14 px-1 py-2 align-middle">
+                  </TableCell>
+                  <TableCell className="px-1 py-2">
                     <button
                       type="button"
                       onClick={(event) => {
@@ -790,16 +796,12 @@ function FilingPlanYearSection({
                     >
                       <TaxCodeLabel code={obligation.taxType} tooltip={false} />
                     </button>
-                  </td>
-                  <td className="w-[120px] px-1 py-2 align-middle">
+                  </TableCell>
+                  <TableCell className="w-[120px] px-1 py-2">
                     <span className="flex items-baseline gap-1.5 text-[14px] leading-5 tabular-nums text-text-primary">
                       {formatDate(obligation.currentDueDate)}
                       {obligation.extensionState === 'filed' ||
                       obligation.extensionState === 'accepted' ? (
-                        // 2026-06-01: ext. chip swapped to Badge size=sm
-                        // shape=square info variant — same token-driven
-                        // blue treatment, but inherits the canonical
-                        // micro-chip sizing used everywhere else.
                         <Badge
                           variant="info"
                           size="sm"
@@ -810,11 +812,11 @@ function FilingPlanYearSection({
                         </Badge>
                       ) : null}
                     </span>
-                  </td>
-                  <td className="w-[120px] px-1 py-2 align-middle text-[14px] leading-5 tabular-nums text-text-primary">
+                  </TableCell>
+                  <TableCell className="w-[120px] px-1 py-2 text-[14px] leading-5 tabular-nums text-text-primary">
                     {formatDate(obligation.filingDueDate ?? obligation.currentDueDate)}
-                  </td>
-                  <td className="w-[120px] px-1 py-2 align-middle">
+                  </TableCell>
+                  <TableCell className="w-[120px] px-1 py-2">
                     <span className="flex flex-wrap items-center gap-1">
                       <ObligationQueueStatusControl
                         row={{ id: obligation.id, status: obligation.status, clientName }}
@@ -828,10 +830,6 @@ function FilingPlanYearSection({
                         const overdueDays = paymentOverdueDays(obligation, Date.now())
                         if (overdueDays === null) return null
                         return (
-                          // 2026-06-01: Payment-late chip swapped to
-                          // Badge destructive sm square so it inherits
-                          // the same micro-chip rhythm as the ext. chip
-                          // on the Internal Deadline column.
                           <Badge
                             variant="destructive"
                             size="sm"
@@ -843,8 +841,8 @@ function FilingPlanYearSection({
                         )
                       })()}
                     </span>
-                  </td>
-                  <td className="w-9 px-1 py-2 align-middle">
+                  </TableCell>
+                  <TableCell className="w-9 px-1 py-2">
                     <RowActionsMenu
                       label={t`Actions for ${formatTaxCode(obligation.taxType)}`}
                       items={[
@@ -874,12 +872,12 @@ function FilingPlanYearSection({
                         },
                       ]}
                     />
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

@@ -114,12 +114,22 @@ export function AffectedClientsTable({
               so it renders identically to the obligations row
               client name, not just relying on inherited text-sm
               from the cell. */}
-      <div className="overflow-hidden rounded-md border border-divider-subtle">
+      {/* 2026-06-04 (Yuqi table sweep): TableHead h-10 text-left
+          text-sm overrides removed — primitive ships the canonical
+          column-label style now. TableBody [&_td]:py-2 [&_td]:text-sm
+          override kept because this is a dense overlay table where
+          the canonical py-4 reads too tall; opt-in to compact cells
+          via the body selector. */}
+      {/* 2026-06-04 round 16 (Yuqi "lighter border"): outer
+          wrapper border settled at `divider-regular` (8% alpha
+          — visible-but-quiet sweet spot) after a brief deep-tone
+          overshoot. Matches the new canonical wrapper recipe. */}
+      <div className="overflow-hidden rounded-md border border-divider-regular">
         <Table>
           <TableHeader>
             <TableRow>
               {isReview ? null : (
-                <TableHead className="w-8 text-left">
+                <TableHead className="w-8">
                   <Checkbox
                     aria-label={t`Select all eligible deadlines`}
                     checked={allSelectableChecked}
@@ -128,12 +138,12 @@ export function AffectedClientsTable({
                   />
                 </TableHead>
               )}
-              <TableHead className="h-10 text-left text-sm">{t`Client`}</TableHead>
-              <TableHead className="h-10 text-left text-sm">{t`Form`}</TableHead>
+              <TableHead>{t`Client`}</TableHead>
+              <TableHead>{t`Form`}</TableHead>
               {isReview ? null : (
                 <>
-                  <TableHead className="h-10 text-left text-sm">{t`Due date change`}</TableHead>
-                  <TableHead className="h-10 text-left text-sm">{t`Match`}</TableHead>
+                  <TableHead>{t`Due date change`}</TableHead>
+                  <TableHead>{t`Match`}</TableHead>
                 </>
               )}
             </TableRow>
