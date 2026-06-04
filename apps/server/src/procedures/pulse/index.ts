@@ -7,6 +7,8 @@ import {
   type PulseAlertPublic,
   type PulseAlertSourceCoverage,
   type PulseFirmAlertStatus,
+  type PulseMorningSweepBriefing,
+  type PulseMorningSweepOutput,
   type PulsePriorityQueueItem,
   type PulsePriorityReason,
   type PulsePriorityReview,
@@ -14,6 +16,7 @@ import {
   type PulseSourceHealth,
   type PulseStatus,
 } from '@duedatehq/contracts'
+import { createAI, type MorningSweepInput } from '@duedatehq/ai'
 import { planHasFeature } from '@duedatehq/core/plan-entitlements'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
 import { runPulseIngest } from '../../jobs/pulse/ingest'
@@ -993,6 +996,227 @@ const requestReview = os.pulse.requestReview.handler(async ({ input, context }) 
   }),
 )
 
+/**
+ * 2026-06-04 round 50 (Yuqi "continue your phase 2 and 3" —
+ * morning sweep AI summary): in-memory cache for the briefing
+ * keyed by (firmId, day-bucket). Lives at module scope so within
+ * a single Worker instance the same firm gets at most one LLM
+ * call per UTC day. In production this would graduate to KV /
+ * Durable Object storage so the cache survives Worker recycling
+ * — for the v1 server endpoint, module-local is good enough to
+ * validate the shape.
+ */
+const morningSweepCache = new Map<
+  string,
+  { briefing: PulseMorningSweepBriefing; generatedAt: string; alertCount: number }
+>()
+
+function morningSweepCacheKey(firmId: string, nowMs: number): string {
+  const day = Math.floor(nowMs / (24 * 60 * 60 * 1000))
+  return `${firmId}:${day}`
+}
+
+function severityFromAlert(alert: PulseAlertRow): 'high' | 'medium' | 'low' {
+  // Mirror `aiConfidenceTier` thresholds from
+  // apps/app/src/features/_surface-vocabulary/ai-confidence.ts so
+  // the LLM gets the same impact-tier signal the UI uses. Low
+  // confidence = HIGH IMPACT (model is unsure → CPA reviews).
+  if (alert.confidence < 0.6) return 'high'
+  if (alert.confidence < 0.85) return 'medium'
+  return 'low'
+}
+
+function deterministicFallback(
+  input: MorningSweepInput,
+): PulseMorningSweepBriefing {
+  // Identical shape to the client-side `composeBriefing` in
+  // MorningSweepDialog.tsx so the dialog renders the same UX
+  // when the AI gateway refuses / errors. Phase 1 logic lifted
+  // server-side so the fallback stays in step with the LLM
+  // expectations.
+  const total = input.alerts.length
+  if (total === 0) {
+    return {
+      headline: 'Quiet overnight — no new regulatory alerts in the last 24 hours.',
+      bullets: [],
+      topActions: [],
+      footer: null,
+    }
+  }
+  const highCount = input.alerts.filter((a) => a.severity === 'high').length
+  const withClients = input.alerts.filter((a) => a.matchedClientCount > 0).length
+  const bullets: string[] = []
+  bullets.push(
+    total === 1
+      ? '1 new regulatory alert published overnight.'
+      : `${total} new regulatory alerts published overnight.${
+          highCount > 0 ? ` ${highCount} flagged HIGH IMPACT.` : ''
+        }`,
+  )
+  bullets.push(
+    withClients === 0
+      ? 'None match your current client roster yet.'
+      : withClients === 1
+        ? '1 alert touches your client roster — review before client communication this morning.'
+        : `${withClients} alerts touch your client roster — review these before client communication this morning.`,
+  )
+  const topActions = input.alerts.slice(0, 3).map((alert) => ({
+    alertId: alert.id,
+    title: alert.title,
+    whyNow:
+      alert.severity === 'high'
+        ? 'HIGH IMPACT — verify the extracted fields against the source before applying any changes.'
+        : alert.matchedClientCount > 0
+          ? 'Affects your client roster — quick-confirm before client communication.'
+          : 'Quick-confirm fields and apply when ready.',
+    clientMentions: alert.affectedClientNames,
+  }))
+  return {
+    headline:
+      highCount > 0
+        ? `${highCount} HIGH IMPACT among ${total} overnight alerts — start with the top action.`
+        : `${total} overnight alerts — none flagged HIGH IMPACT.`,
+    bullets,
+    topActions,
+    footer: null,
+  }
+}
+
+const morningSweepSummary = os.pulse.morningSweepSummary.handler(
+  async ({ context }): Promise<PulseMorningSweepOutput> => {
+    const { scoped } = requireTenant(context)
+    const tenant = context.tenant
+    if (!tenant) {
+      throw new ORPCError('UNAUTHORIZED', { message: 'morning sweep requires firm context' })
+    }
+    const nowMs = Date.now()
+    const generatedAt = new Date(nowMs).toISOString()
+    const cacheKey = morningSweepCacheKey(tenant.firmId, nowMs)
+    const cached = morningSweepCache.get(cacheKey)
+    if (cached) {
+      return {
+        briefing: cached.briefing,
+        source: 'llm-cached',
+        generatedAt: cached.generatedAt,
+        alertCount: cached.alertCount,
+      }
+    }
+
+    // Window: last 24h. Fetch a larger limit than usual so the
+    // ranking has headroom; the schema caps the LLM input to 50.
+    const allAlerts = await scoped.pulse.listAlerts({ limit: 100 })
+    const cutoffMs = nowMs - 24 * 60 * 60 * 1000
+    const windowAlerts = allAlerts.filter(
+      (a) => a.publishedAt.getTime() >= cutoffMs,
+    )
+    // Phase 3 personalisation: fetch up to 5 affected client names
+    // per alert in parallel. Per-detail fetches are bounded by the
+    // window size (≤ 100 alerts × 5 clients) which is comfortable
+    // for one briefing generation per morning.
+    const topByImpact = [...windowAlerts]
+      .sort((a, b) => {
+        const tierWeight = (al: PulseAlertRow) =>
+          severityFromAlert(al) === 'high' ? 3 : severityFromAlert(al) === 'medium' ? 2 : 1
+        const diff = tierWeight(b) - tierWeight(a)
+        if (diff !== 0) return diff
+        return b.matchedCount + b.needsReviewCount - (a.matchedCount + a.needsReviewCount)
+      })
+      .slice(0, 50)
+    const alertsWithClients: MorningSweepInput['alerts'] = await Promise.all(
+      topByImpact.map(async (alert) => {
+        // Phase 3 — pull affected client names from the detail
+        // query. Empty-list fallback is fine; client mentions are
+        // an enhancement, not a hard requirement.
+        let names: string[] = []
+        try {
+          const detail = await scoped.pulse.getDetail(alert.id)
+          names = (detail?.affectedClients ?? [])
+            .map((c: PulseAffectedClient) => c.clientName)
+            .filter((name, idx, arr) => name && arr.indexOf(name) === idx)
+            .slice(0, 5)
+        } catch {
+          // Detail-fetch failure shouldn't block the briefing.
+          names = []
+        }
+        return {
+          id: alert.id,
+          title: alert.title,
+          summary: alert.summary || null,
+          source: alert.source,
+          jurisdiction: alert.jurisdiction,
+          publishedAt: alert.publishedAt.toISOString(),
+          severity: severityFromAlert(alert),
+          changeKind: alert.changeKind,
+          matchedClientCount: alert.matchedCount + alert.needsReviewCount,
+          affectedClientNames: names,
+        }
+      }),
+    )
+
+    const input: MorningSweepInput = {
+      firmName: tenant.firmName ?? null,
+      generatedAt,
+      alerts: alertsWithClients,
+    }
+
+    // Empty window → skip LLM, return deterministic message.
+    if (input.alerts.length === 0) {
+      const fallback = deterministicFallback(input)
+      morningSweepCache.set(cacheKey, {
+        briefing: fallback,
+        generatedAt,
+        alertCount: 0,
+      })
+      return {
+        briefing: fallback,
+        source: 'llm-fresh',
+        generatedAt,
+        alertCount: 0,
+      }
+    }
+
+    const ai = createAI(context.env)
+    const result = await ai.summarizeMorningSweep(input, { taskKind: 'pulse' })
+    if (result.kind === 'success') {
+      const briefing: PulseMorningSweepBriefing = {
+        headline: result.output.headline,
+        bullets: result.output.bullets,
+        topActions: result.output.topActions.map((a) => ({
+          alertId: a.alertId,
+          title: a.title,
+          whyNow: a.whyNow,
+          clientMentions: a.clientMentions ?? [],
+        })),
+        footer: result.output.footer ?? null,
+      }
+      morningSweepCache.set(cacheKey, {
+        briefing,
+        generatedAt,
+        alertCount: input.alerts.length,
+      })
+      return {
+        briefing,
+        source: 'llm-fresh',
+        generatedAt,
+        alertCount: input.alerts.length,
+      }
+    }
+
+    // Gateway refused / errored — fall back to the deterministic
+    // template so the UI still renders something useful. Don't
+    // cache the fallback so a retry next call can try the LLM
+    // again (caching the fallback would lock the firm into the
+    // template for the whole day).
+    const fallback = deterministicFallback(input)
+    return {
+      briefing: fallback,
+      source: 'fallback',
+      generatedAt,
+      alertCount: input.alerts.length,
+    }
+  },
+)
+
 export const pulseHandlers = {
   listAlerts,
   activeCount,
@@ -1014,4 +1238,5 @@ export const pulseHandlers = {
   revert,
   reactivate,
   requestReview,
+  morningSweepSummary,
 }

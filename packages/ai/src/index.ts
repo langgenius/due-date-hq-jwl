@@ -10,6 +10,11 @@ import {
 } from './guard'
 import { redactMigrationInput } from './pii'
 import { PulseExtractOutputSchema, type PulseExtractInput, type PulseExtractOutput } from './pulse'
+import {
+  MorningSweepOutputSchema,
+  type MorningSweepInput,
+  type MorningSweepOutput,
+} from './morning-sweep'
 import { loadPrompt, type PromptName } from './prompter'
 import {
   modelForPromptTier,
@@ -286,6 +291,23 @@ export function createAI(env: AiEnv = {}) {
         taskKind: routing.taskKind ?? 'pulse',
       })
     },
+    /**
+     * 2026-06-04 round 50 (Yuqi "continue your phase 2 and 3" —
+     * morning sweep AI summary): wraps the canonical `runPrompt`
+     * pipeline so callers don't need to know the prompt name or
+     * schema. Returns the same `AiRunResult` discriminated union
+     * as `extractPulse`; the server procedure handles the refusal
+     * case by falling back to the client's template-based mock.
+     */
+    summarizeMorningSweep(
+      input: MorningSweepInput,
+      routing: AiRoutingInput = {},
+    ): Promise<AiRunResult<MorningSweepOutput>> {
+      return runPrompt('morning-sweep@v1', input, MorningSweepOutputSchema, {
+        ...routing,
+        taskKind: routing.taskKind ?? 'pulse',
+      })
+    },
     runPrompt,
     runStreaming: runPrompt,
   }
@@ -294,3 +316,13 @@ export function createAI(env: AiEnv = {}) {
 export type AI = ReturnType<typeof createAI>
 export type { PulseExtractInput, PulseExtractOutput } from './pulse'
 export { PulseExtractInputSchema, PulseExtractOutputSchema } from './pulse'
+export type {
+  MorningSweepAlert,
+  MorningSweepInput,
+  MorningSweepOutput,
+} from './morning-sweep'
+export {
+  MorningSweepAlertSchema,
+  MorningSweepInputSchema,
+  MorningSweepOutputSchema,
+} from './morning-sweep'

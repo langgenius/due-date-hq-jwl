@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { BookmarkIcon, DatabaseIcon, HistoryIcon } from 'lucide-react'
+import { CoffeeIcon, DatabaseIcon, HistoryIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -76,35 +76,28 @@ export function AlertsRoute() {
   const titleNode = (
     <span className="inline-flex items-center gap-2">
       <Trans>Alerts</Trans>
-      {hasNationalMonitoringCoverage ? (
-        // 2026-06-01: swapped hand-rolled monitoring pill for
-        // Badge (variant="secondary" size="lg") — same canonical
-        // PageHeader chip shape, with PulsingDot as a leading child.
-        <Badge variant="secondary" size="lg">
-          <PulsingDot tone="success" active />
-          {/* 2026-06-04 round 18 (Yuqi page-feedback — same copy
-              update as /today: colon + middot separators + capital
-              S). Both surfaces now read the same chip text. */}
-          <Trans>Monitoring: Federal · 50 States · DC</Trans>
-        </Badge>
-      ) : null}
+      {/* 2026-06-04 round 83 (Yuqi #6 "like how we had it on
+          today page. order before the monitoring"): count chip
+          moved BEFORE the monitoring chip so the read is
+          "Alerts [N urgent] [Monitoring …]" — same order /today's
+          section header uses. Also flipped variant `secondary` →
+          `outline` (matches round 81 #3 — /today switched the
+          equivalent badge to outline same round). */}
       {alertCount > 0 ? (
-        // 2026-06-04 round 20 (Yuqi /rules/pulse feedback #2 "red
-        // does not make sense here"): variant dropped from
-        // `destructive` (red, urgent action) to `secondary` (quiet
-        // neutral) — the page TITLE chip is a scope/count signal
-        // (here are N alerts), not a "do something about this"
-        // alarm. Red was over-claiming. Added an explicit space
-        // between the count and the word so "8urgent" stops
-        // running together (previous sibling spans had no gap).
-        // /today's count chip stays destructive because it sits
-        // next to the "Alerts" h2 as an urgency cue; this header
-        // chip is the destination-page summary, calmer by role.
-        <Badge variant="secondary" size="lg" className="gap-1">
-          <span className="tabular-nums">{alertCount}</span>
+        <Badge variant="outline" size="lg" className="gap-1 tabular-nums">
+          <span>{alertCount}</span>
           <span>
             <Trans>urgent</Trans>
           </span>
+        </Badge>
+      ) : null}
+      {hasNationalMonitoringCoverage ? (
+        // Round 83 (Yuqi #7 "bigger gap between the dot and the
+        // text"): bumped to `gap-1.5` so the PulsingDot doesn't
+        // visually glue to the Monitoring text.
+        <Badge variant="secondary" size="lg" className="gap-1.5">
+          <PulsingDot tone="success" active />
+          <Trans>Monitoring: Federal · 50 States · DC</Trans>
         </Badge>
       ) : null}
     </span>
@@ -216,11 +209,17 @@ export function AlertsRoute() {
               context; AlertsListPage reads `active` and overrides
               its `timeRangeFilter` + `statusFilter` with the
               preset combo of "Last 24 hours" + "Needs Action". */}
+            {/* Round 83 #15 (Yuqi "the button style should match
+                the dropdown button"): dropped `size="sm"` so the
+                Sources + Alert history buttons render at the
+                canonical h-9 height — same as the filter
+                triggers below. The `sm` size (h-8) sat 4px
+                shorter than the h-10 filter chrome and read as
+                two different button families. */}
             <MorningSweepHeaderButton />
             <Button
               nativeButton={false}
               variant="outline"
-              size="sm"
               render={<Link to="/rules/sources" />}
             >
               <DatabaseIcon data-icon="inline-start" />
@@ -229,7 +228,6 @@ export function AlertsRoute() {
             <Button
               nativeButton={false}
               variant="outline"
-              size="sm"
               render={<Link to="/alerts/history" />}
             >
               <HistoryIcon data-icon="inline-start" />
@@ -258,15 +256,28 @@ function MorningSweepHeaderButton() {
   const { t } = useLingui()
   const sweep = useMorningSweep()
   if (!sweep) return null
+  // 2026-06-04 round 52 (Yuqi "can you click it and it inserts a
+  // side panel or a panel before the alert list about the digest"):
+  // the button toggles the inline digest panel (rendered above the
+  // alerts list inside `AlertsListPage`) instead of opening a modal
+  // Dialog. The variant flips to `secondary` when the panel is open
+  // so the button reads as "this is what's currently showing" — same
+  // pattern the filter-active state used. When the panel's "Show me
+  // just these alerts" CTA fires it sets the filter via
+  // `sweep.toggle()` independently.
   return (
     <Button
-      variant={sweep.active ? 'secondary' : 'outline'}
+      variant={sweep.digestOpen ? 'secondary' : 'outline'}
       size="sm"
-      onClick={sweep.toggle}
-      aria-pressed={sweep.active}
-      aria-label={t`Toggle saved view: my morning sweep`}
+      onClick={sweep.toggleDigest}
+      aria-pressed={sweep.digestOpen}
+      aria-expanded={sweep.digestOpen}
+      aria-controls="morning-sweep-panel-title"
+      aria-label={t`Toggle morning sweep briefing`}
     >
-      <BookmarkIcon data-icon="inline-start" />
+      {/* Round 51 — CoffeeIcon (morning ritual anchor). Pairs with
+          the panel header's SparklesIcon (AI signal). */}
+      <CoffeeIcon data-icon="inline-start" />
       <Trans>My morning sweep</Trans>
     </Button>
   )

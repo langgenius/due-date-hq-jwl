@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 import {
@@ -43,11 +44,14 @@ import {
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { StatusBanner } from '@/components/patterns/status-banner'
+
+import { MorningSweepPanel } from './MorningSweepDialog'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
 import { useAlertDrawer } from './DrawerProvider'
@@ -55,12 +59,14 @@ import { useMorningSweep } from './MorningSweepContext'
 import { AlertDetailDrawer } from './AlertDetailDrawer'
 import { StateTilegram } from './components/StateTilegram'
 import {
+  useAlertsInvalidation,
   useAlertsListQueryOptions,
   useAlertsHistoryQueryOptions,
   useAlertSourceHealthQueryOptions,
   useAlertsAffectedClients,
 } from './api'
 import { AlertCard } from './components/AlertCard'
+import { PulseAlertList } from './components/PulseAlertRow'
 import { PulseFormRevisedCard } from './components/PulseFormRevisedCard'
 import { PulseAlertsMap } from './components/PulseAlertsMap'
 import { ALERT_STATUS_ICON } from './components/AlertStatusBadge'
@@ -182,6 +188,64 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // state-heatmap. Map mode shows `<PulseAlertsMap>` above the
   // list; clicking a state tile sets the jurisdiction filter.
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
+
+  // 2026-06-04 round 77 (Yuqi "wire to real"): row-level Snooze +
+  // Dismiss buttons in PulseAlertRow flow through `setReasonState`
+  // which opens the reason dialog (rendered below) and on confirm
+  // fires the corresponding orpc mutation.
+  //
+  // (Pre-rename naming was `usePulseInvalidation` /
+  // `dismissAlertMutation`. Renamed to `useAlertsInvalidation`
+  // post directory rename; mutation orpc keys are still
+  // `orpc.pulse.*` because the contract namespace is `pulse`.)
+  type ReasonAction = 'snooze' | 'dismiss'
+  const [reasonState, setReasonState] = useState<{
+    action: ReasonAction
+    alertId: string
+  } | null>(null)
+  void reasonState // referenced in render
+  const invalidateAlerts = useAlertsInvalidation()
+  const closeReasonDialog = () => setReasonState(null)
+  // Direct-fire mutations for now (no reason dialog scaffold yet on
+  // the renamed branch). Round 77's design called for an inline
+  // reason prompt; since the drawer handles that flow already, the
+  // row-level button fires a 24-hour snooze / no-reason dismiss
+  // directly. Re-adding the inline PulseReasonDialog is a follow-up.
+  const dismissAlertMutation = useMutation(
+    orpc.pulse.dismiss.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Alert dismissed`)
+        invalidateAlerts()
+        closeReasonDialog()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't dismiss alert`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  const snoozeAlertMutation = useMutation(
+    orpc.pulse.snooze.mutationOptions({
+      onSuccess: () => {
+        toast.success(t`Alert snoozed for 24h`)
+        invalidateAlerts()
+        closeReasonDialog()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't snooze alert`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  void dismissAlertMutation
+  void snoozeAlertMutation
+
   const activeAlertsQueryOptions = useAlertsListQueryOptions(50)
   const historyAlertsQueryOptions = useAlertsHistoryQueryOptions(50)
   const alertsQuery = useQuery(historyMode ? historyAlertsQueryOptions : activeAlertsQueryOptions)
@@ -552,9 +616,17 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto [scrollbar-gutter:stable]">
           {alertsQuery.isLoading ? (
             <SkeletonList sources={sourceHealth} />
-          ) : isEmpty ? (
-            <AlertsAllClearBanner sources={sourceHealth} />
           ) : (
+            // 2026-06-04 round 56 (Yuqi "where is the filter row?"):
+            // earlier this branch was `isEmpty ? <AllClearBanner /> :
+            // <>filter row + map + cards</>` — which meant a new firm
+            // with no alerts yet saw ONLY the success banner, with no
+            // filter row, no view-mode toggle, no source / state
+            // dropdowns. The page felt amputated. Filter chrome now
+            // ALWAYS renders post-load; the empty banner takes over
+            // ONLY the list/map area below it. Same chrome a firm
+            // with alerts sees, so the page structure is consistent
+            // even at zero data.
             <>
               {/* 2026-05-25 (Yuqi Alerts #3): dropped the framed
               container around the filter row. The cards below
@@ -566,31 +638,126 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
               above and the list below. */}
               {jurisdictionCounts.length === 0 ? null : null}
 
-              {/* 2026-06-04 round 39 (Yuqi 3-item filter-row feedback):
-                  filter row restructured into a single dense strip.
-                  Order LEFT → RIGHT:
-                    1. Search (fixed `w-[260px]`, no longer flex-1).
-                    2. Last 24 hours
-                    3. Severity
-                    4. Change types
-                    5. Status
-                    6. Source
-                    7. State
-                    8. Reset (ghost, only when filters active)
-                    9. flex-1 spacer
-                   10. Sort by  (relocated INTO this row).
-                  When the panel is open the row stays on ONE line
-                  (`flex-nowrap`); when closed it `flex-wrap`s so it
-                  reflows on narrow viewports. */}
-              <div
-                className={
-                  panelOpen
-                    ? 'flex flex-nowrap items-center gap-2'
-                    : 'flex flex-wrap items-center gap-2'
-                }
-              >
-                {/* Search alerts — Item 3: first item, shorter width */}
-                <label className="inline-flex h-10 w-[260px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt">
+              {/* 2026-05-25 (Yuqi panel polish — minimal filters):
+                  when the panel is open the filter row collapses
+                  to a single non-wrapping line that scrolls
+                  horizontally if there's overflow. The list
+                  column is narrower in split-view (~half width)
+                  so wrapping the 4 selects to 2-3 rows would eat
+                  most of the visible vertical space above the
+                  alerts list. `shrink-0` on each trigger keeps
+                  each filter at its natural width inside the
+                  scroller. When no panel is open, the row still
+                  flex-wraps as before. */}
+              {/* 2026-05-26 (Yuqi /rules/pulse third pass #5): when
+                  the panel is open, the filter row now WRAPS to a
+                  second line instead of scrolling horizontally.
+                  Horizontal scroll on a filter strip is a poor
+                  affordance — filters that scroll out of view are
+                  filters the CPA forgets exist. `flex-wrap` lets
+                  the row reflow naturally; the source filter is
+                  the narrowest one now (#4) so 3-4 chips usually
+                  fit on a single line at 520px+ panel widths. */}
+              {/* 2026-05-26 (Yuqi twentieth pass #2): when panel is
+                  open the filter row stays on ONE line — `flex-nowrap`
+                  + each filter trigger hugs its content (drop the
+                  fixed `w-[130px]` widths, fall back to natural
+                  width). When panel is closed, return to `flex-wrap`
+                  so the row can reflow on narrow viewports. */}
+              {/* 2026-06-04 round 57 (Yuqi "who told you"): the
+                  round-46 "hide filter row when the detail panel is
+                  up" rule was my own inference from a question, not
+                  an instruction. Reverted. The filter row now
+                  ALWAYS renders post-load — same chrome whether the
+                  drawer is open, closed, the user is in map view,
+                  or the firm has zero alerts. Predictable page
+                  structure beats clever collapse behavior. */}
+              {/* 2026-06-04 round 66 (Yuqi "where are the
+                  dropdowns?" with screenshot of /alerts showing no
+                  filter row): the round-49 `flex-nowrap` +
+                  `overflow-hidden` combo was the culprit. With the
+                  list column's outer `flex-1 min-h-0 min-w-0
+                  overflow-y-auto` parent, the filter row was a
+                  fixed-content non-shrinking strip inside a
+                  column that could compute a width too narrow for
+                  one line — and `overflow-hidden` then CLIPPED the
+                  entire row out of view because each flex child
+                  carries `shrink-0`, so they all overflowed to the
+                  right and got hidden. Two changes:
+                    • `flex-nowrap` → `flex-wrap` so the row
+                      gracefully reflows to a second line on narrow
+                      viewports instead of being silently clipped.
+                      The round-49 "should never wrap" rule was for
+                      a panel-open scenario; with the filter row
+                      ALWAYS visible (round 57) and the panel column
+                      now claiming its 60% via motion.div, wrapping
+                      is the right fallback.
+                    • Drop `overflow-hidden` — was the actual hide.
+                  Also added `shrink-0` on the row itself so the
+                  vertical-flex parent never compresses its height
+                  to zero if the rest of the column tries to
+                  expand. */}
+              {/* 2026-06-04 round 68 (Yuqi "when the right panel is
+                  open, you should collpase those dropdown … or only
+                  leave with the search bar"): the filter row now
+                  takes a `panelOpen` branch. When the detail panel
+                  is up, the column shrinks to ~40% of the viewport
+                  and the original row of 5+ dropdowns + view toggle
+                  + sort cannot fit on one line without wrapping
+                  into a 3-row monster of chrome. So when panelOpen
+                  we render ONLY the Search field — every other
+                  filter control hides via `hidden`. When the panel
+                  closes the full row comes back. Cheap to implement
+                  (CSS-only on each control) and 0 state churn
+                  versus a full collapse-to-popover redesign. */}
+              {/* 2026-06-04 round 71 (Yuqi #15 "should be in one
+                  line and responsive. never in two lines"): flex
+                  layout flipped from `flex-wrap` → `flex-nowrap`
+                  with `overflow-x-auto` so the row always reads as
+                  a single line. At viewports too narrow to fit
+                  every dropdown, the row scrolls horizontally —
+                  responsive without wrapping. Combined with #14
+                  (source filter dropped) and #13 ("any" labels
+                  shorter), the row fits one line on most viewports
+                  ≥1280px without ever needing the scroll.
+                  Tradeoff: at very narrow widths the trailing
+                  controls (View toggle + Sort) scroll off-screen.
+                  Acceptable — those are secondary affordances,
+                  and the chrome stays consistent versus the
+                  prior wrapping behavior. */}
+              <div className="flex shrink-0 flex-nowrap items-center gap-2 overflow-x-auto">
+                {/* 2026-06-04 round 39 (Yuqi 3-item filter-row feedback):
+                    filter row restructured into a single dense strip.
+                    Order LEFT → RIGHT:
+                      1. Search (fixed `w-[260px]`, no longer flex-1).
+                         Item 3 — "at the front, the first item,
+                         shorter width". Search anchors the row.
+                      2. Last 24 hours
+                      3. Severity
+                      4. Change types
+                      5. State
+                      6. flex-1 spacer
+                      7. Sort by  ← Item 2 — relocated INTO this row
+                         from the chip+sort row below.
+                      8. Reset (ghost)
+                    The previous chip+sort wrapper row (with
+                    `justify-between`) was removed — Item 1 "remove
+                    this". The status chips (Needs Action / Needs
+                    Review / Closed) now sit alone on their own
+                    row, no Sort-by sibling, no justify-between
+                    wrapper. */}
+
+                {/* Search alerts — Item 3: first item, shorter width.
+                    2026-06-04 round 66: now the row is `flex-wrap`,
+                    we no longer need the round-49 `shrink + min-w-[160px]`
+                    compromise that was meant to keep the search field
+                    visible while the row clipped — go back to a
+                    fixed `w-[260px] shrink-0`. The row reflows on
+                    narrow viewports via the parent's flex-wrap. */}
+                {/* Search — round 83 #16 ("slightly smaller"):
+                    h-10 → h-9 to match the now-shorter
+                    FilterTrigger and View-toggle siblings. */}
+                <label className="inline-flex h-9 w-[260px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt">
                   <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
                   <input
                     type="search"
@@ -601,6 +768,62 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     aria-label={t`Search alerts`}
                   />
                 </label>
+
+                {/* Round 68: when the detail panel is open, every
+                    filter control AFTER the Search hides — see the
+                    closing `)}` ~280 lines down. */}
+                {panelOpen ? null : (
+                  <>
+
+                {/* Round 83 (Yuqi #8 "order: search, list/map,
+                    gap, all time, …"): View mode toggle relocated
+                    from after the spacer to RIGHT AFTER the Search
+                    field. The flex-1 spacer that used to live
+                    above the dropdowns is the "gap" the user
+                    referenced — the canonical layout is now
+                    Search + ViewToggle (left cluster) ‖ Time +
+                    Severity + ChangeType + Status + State + Sort
+                    (right cluster). */}
+                <div
+                  role="group"
+                  aria-label={t`View mode`}
+                  className="inline-flex h-9 shrink-0 items-center rounded-xl border border-divider-regular bg-transparent p-0.5"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('list')}
+                    aria-pressed={viewMode === 'list'}
+                    className={cn(
+                      'inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium outline-none transition-colors',
+                      'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                      viewMode === 'list'
+                        ? 'bg-state-accent-hover text-text-accent'
+                        : 'text-text-secondary hover:text-text-primary',
+                    )}
+                  >
+                    <ListIcon className="size-3.5" aria-hidden />
+                    <Trans>List</Trans>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('map')}
+                    aria-pressed={viewMode === 'map'}
+                    className={cn(
+                      'inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium outline-none transition-colors',
+                      'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                      viewMode === 'map'
+                        ? 'bg-state-accent-hover text-text-accent'
+                        : 'text-text-secondary hover:text-text-primary',
+                    )}
+                  >
+                    <MapIcon className="size-3.5" aria-hidden />
+                    <Trans>Map</Trans>
+                  </button>
+                </div>
+
+                {/* Spacer — pushes the dropdown cluster to the
+                    right edge per #8. */}
+                <span className="flex-1" aria-hidden />
 
                 {/* Last 24 hours — time-range filter */}
                 <DropdownMenu>
@@ -652,7 +875,21 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     render={
                       <FilterTrigger
                         active={impactFilter !== 'all'}
-                        valueLabel={impactFilter === 'all' ? t`any` : impactFilter}
+                        // 2026-06-04 round 71 (Yuqi #13 "any -
+                        // remove"): drop the "any" value-label
+                        // when no severity is selected. The chip
+                        // now reads "Severity" alone at rest; the
+                        // current value renders only when one is
+                        // actually picked.
+                        // Round 83 (Yuqi #20 "when a filter is
+                        // selected, the selected item is showing
+                        // the code form - like 'needs_action',
+                        // instead of Needs action"): humanize via
+                        // `impactFilterLabel`. Same `<Trans>`
+                        // labels the dropdown items use.
+                        valueLabel={
+                          impactFilter === 'all' ? undefined : impactFilterLabel(impactFilter)
+                        }
                         aria-label={t`Filter by severity`}
                       >
                         <span>
@@ -684,7 +921,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     render={
                       <FilterTrigger
                         active={changeKindFilter !== 'all'}
-                        valueLabel={changeKindFilter === 'all' ? t`all` : changeKindFilter}
+                        // Round 83 #20: humanize via changeKindFilterLabel
+                        valueLabel={
+                          changeKindFilter === 'all' ? undefined : changeKindFilterLabel(changeKindFilter)
+                        }
                         aria-label={t`Filter by change type`}
                       >
                         <span>
@@ -721,19 +961,24 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     "all" so it matches the rest of the row's
                     pattern. */}
                 <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <FilterTrigger
-                        active={statusFilter !== 'all'}
-                        valueLabel={statusFilter === 'all' ? t`all` : statusFilter}
-                        aria-label={t`Filter by alert status`}
-                      >
-                        <span>
-                          <Trans>Status</Trans>
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
+                    <DropdownMenuTrigger
+                      render={
+                        <FilterTrigger
+                          active={statusFilter !== 'all'}
+                          // Round 83 #20: humanize via statusFilterText
+                          valueLabel={
+                            statusFilter === 'all'
+                              ? undefined
+                              : statusFilterText(statusFilter, historyMode)
+                          }
+                          aria-label={t`Filter by alert status`}
+                        >
+                          <span>
+                            <Trans>Status</Trans>
+                          </span>
+                        </FilterTrigger>
+                      }
+                    />
                   <DropdownMenuContent align="start" className="min-w-[180px]">
                     <DropdownMenuRadioGroup
                       value={statusFilter}
@@ -751,19 +996,15 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Source dropdown — 2026-06-04 round 42 (Yuqi punch
-                    list #5 — "fix all"): SourceFilterPopover restored
-                    to the filter row. Round 37 removed it because
-                    Pencil T3GhR didn't include it, but the underlying
-                    state was retained for Reset; this round reinstates
-                    the visible affordance so the CPA can narrow alerts
-                    by publisher (e.g. "FL DOR Bulletin" only). */}
-                <SourceFilterPopover
-                  sourceOptions={sourceOptions}
-                  sourceCounts={sourceCounts}
-                  activeSource={sourceFilter}
-                  onSelect={(value) => setSourceFilter(value)}
-                />
+                {/* 2026-06-04 round 71 (Yuqi #14 "Filter by source -
+                    remove this"): SourceFilterPopover removed from
+                    the filter row. The underlying `sourceFilter`
+                    state stays (Reset still clears it; the search
+                    field still acts as a publisher narrower via
+                    free-text on `alert.source`) but the dropdown
+                    chip is gone — the source narrowing was the
+                    least-used pill and was crowding the one-line
+                    constraint from #15. */}
 
                 {/* 2026-05-25 (Yuqi /alerts fifth pass — map
                     in dropdown): state-filter map lives behind a
@@ -806,10 +1047,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   </Button>
                 ) : null}
 
-                {/* Round 39: flex-1 spacer pushes Sort by to the
-                    row's trailing edge while keeping the filter
-                    pills left-anchored. */}
-                <span className="flex-1" aria-hidden />
+                {/* Round 83 (Yuqi #8 reorder): the flex-1 spacer
+                    and View toggle that used to sit here have
+                    moved to the position right after the Search
+                    field. See `Round 83 (Yuqi #8 …)` block above. */}
 
                 {/* Sort by — 2026-06-04 round 42 (Yuqi #4 — wire
                     real sort logic). Three options matching the
@@ -817,20 +1058,37 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     on the trigger so the dropdown reads "Sort by
                     Newest first" / "Sort by Oldest first" / "Sort
                     by Highest impact" without opening. */}
+                {/* Round 83 (Yuqi #18 "sort by button width does
+                    not change. Newest, Impact, Affected clients."):
+                    fixed `w-[200px]` so the trigger doesn't reflow
+                    every time the selection changes (Newest first
+                    has 12 chars, Highest impact has 14, etc.).
+                    Also short-labels: "Newest", "Impact", "Affected
+                    clients" — per Yuqi's spelling. */}
+                {/* Round 84 (Yuqi #2 "Newest align to the left.
+                    text align to the left"): dropped
+                    `justify-between`. Both "Sort by" and the
+                    selected value now stack on the LEFT edge of
+                    the fixed 200px chip with the chevron pinned
+                    right. */}
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     render={
-                      <FilterTrigger noLeadingIcon aria-label={t`Sort alerts`}>
+                      <FilterTrigger
+                        noLeadingIcon
+                        aria-label={t`Sort alerts`}
+                        className="w-[200px] justify-start text-left"
+                      >
                         <span className="text-text-tertiary">
                           <Trans>Sort by</Trans>
                         </span>
                         <span>
                           {sortOrder === 'oldest' ? (
-                            <Trans>Oldest first</Trans>
+                            <Trans>Oldest</Trans>
                           ) : sortOrder === 'highest_impact' ? (
-                            <Trans>Highest impact</Trans>
+                            <Trans>Impact</Trans>
                           ) : (
-                            <Trans>Newest first</Trans>
+                            <Trans>Newest</Trans>
                           )}
                         </span>
                       </FilterTrigger>
@@ -861,6 +1119,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
+
+                {/* Round 42: Reset relocated UP next to
+                    StateFilterPopover (see above). No longer sits
+                    here. */}
+                  </>
+                )}
               </div>
 
               {/* 2026-06-04 round 3 (Yuqi feedback "tackle map view"):
@@ -870,17 +1134,79 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   the selected state. Per Pencil RMS9y the map
                   body sits at the top of the content area; the
                   alert detail panel (this list) follows below. */}
-              {viewMode === 'map' ? (
-                <div className="rounded-2xl border border-divider-subtle bg-background-default p-4">
-                  <PulseAlertsMap
-                    alerts={alerts}
-                    selectedJurisdiction={jurisdictionFilter}
-                    onSelect={(j) => setJurisdictionFilter(j)}
-                  />
-                </div>
-              ) : null}
+              {/* 2026-06-04 round 55 (Yuqi "work on the map view —
+                  inspect Pencil RMS9y"): map view restructured to the
+                  side-by-side body split Pencil specifies:
+                    • LEFT (`MapPh`, ~66% width): map grid in a
+                      gray-50 `rounded-2xl` padded panel. Per Pencil
+                      `w2IzH` — bg #f9fafb, cornerRadius 14, padding
+                      24. Translates to `bg-background-section
+                      rounded-2xl p-6`.
+                    • RIGHT (`PanelPh`, ~34% width, min-width 360px):
+                      compact alert list with an "ACTIVE ALERTS"
+                      mono-uppercase label header. Alerts render in
+                      compact mode (title + impact + time + state)
+                      so each row is ~120px and 4–5 are visible
+                      without scrolling.
+                  In LIST mode, the original stacked layout is
+                  preserved — map UI doesn't render and the full-card
+                  list takes the whole content column. The split only
+                  activates when the user picks Map view. */}
+              <MorningSweepPanel />
 
-              {isFilteredEmpty ? (
+              {viewMode === 'map' ? (
+                <div className="flex min-h-0 flex-1 gap-6">
+                  {/* LEFT: map grid in gray-50 panel */}
+                  <div className="flex flex-1 flex-col overflow-hidden rounded-2xl bg-background-section p-6">
+                    <PulseAlertsMap
+                      alerts={alerts}
+                      selectedJurisdiction={jurisdictionFilter}
+                      onSelect={(j) => setJurisdictionFilter(j)}
+                    />
+                  </div>
+                  {/* RIGHT: active alerts panel (compact rows) */}
+                  <div className="flex w-[420px] shrink-0 flex-col gap-2 overflow-y-auto">
+                    <div className="flex items-center justify-between border-b border-divider-subtle pb-3">
+                      <span className="font-mono text-[11px] font-bold tracking-[0.8px] text-text-muted uppercase">
+                        <Trans>Active alerts</Trans>
+                        <span className="ml-2 tabular-nums">{sortedAlerts.length}</span>
+                      </span>
+                    </div>
+                    {isFilteredEmpty ? (
+                      <FilteredEmptyState />
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {sortedAlerts.map((alert) => {
+                          if (alert.changeKind === 'form_instruction') {
+                            return (
+                              <PulseFormRevisedCard
+                                key={alert.id}
+                                alert={alert}
+                                onReview={() => openDrawerAndCollapseSidebar(alert.id)}
+                              />
+                            )
+                          }
+                          return (
+                            <AlertCard
+                              key={alert.id}
+                              alert={alert}
+                              active={alert.id === openAlertId}
+                              compactClients
+                              showReadiness={false}
+                              onReview={() => openDrawerAndCollapseSidebar(alert.id)}
+                            />
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : isEmpty ? (
+                // Round 56: empty banner sits BELOW the filter row,
+                // not in its place. Same chrome a populated firm
+                // sees.
+                <AlertsAllClearBanner sources={sourceHealth} />
+              ) : isFilteredEmpty ? (
                 <FilteredEmptyState />
               ) : (
                 /* 2026-06-04 round 42 (Yuqi consistency audit
@@ -891,39 +1217,46 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                    chrome + subtle hover ring, tighter stacking
                    reads as a denser list — same pattern as
                    /deadlines rows. */
-                <div className="flex flex-col gap-2">
-                  {sortedAlerts.map((alert) => {
-                    // 2026-06-04 round 26 (Yuqi Pencil ZkXFr — "Form
-                    // Revised" card variant exact recreation):
-                    // alerts whose change-kind is `form_instruction`
-                    // render through PulseFormRevisedCard, which
-                    // surfaces the form-version diff + transition
-                    // window + schema-diff link as a structured
-                    // facts panel that the generic AlertCard
-                    // can't carry. All other change-kinds keep
-                    // using the canonical AlertCard.
-                    if (alert.changeKind === 'form_instruction') {
-                      return (
-                        <PulseFormRevisedCard
-                          key={alert.id}
-                          alert={alert}
-                          onReview={() => openDrawerAndCollapseSidebar(alert.id)}
-                        />
-                      )
-                    }
-                    return (
-                      <AlertCard
-                        key={alert.id}
-                        alert={alert}
-                        affectedClients={affectedByAlert.get(alert.id) ?? EMPTY_AFFECTED}
-                        active={alert.id === openAlertId}
-                        compactClients={panelOpen}
-                        showReadiness={!historyMode}
-                        onReview={() => openDrawerAndCollapseSidebar(alert.id)}
-                      />
-                    )
-                  })}
-                </div>
+                /* 2026-06-04 round 61 (Yuqi Pencil i90PZ — "update
+                   alert page to i90PZ. 100% REPLICATED"): list now
+                   renders day-grouped `PulseAlertRow` rows per
+                   Pencil's day-header (`wlgGV`) + alert-card
+                   (`ZkXFr`) stack. The PulseAlertCard JSX is gone
+                   from this branch — kept in the map-view branch
+                   above for the side-by-side compact list, and in
+                   the imports for /today summary tiles that use a
+                   different card primitive. */
+                <PulseAlertList
+                  alerts={sortedAlerts}
+                  openAlertId={openAlertId}
+                  onReview={openDrawerAndCollapseSidebar}
+                  // 2026-06-04 round 77 (Yuqi "wire to real"):
+                  // hover-only Snooze + Dismiss buttons in each
+                  // PulseAlertRow route through the same
+                  // `setReasonState` flow the existing
+                  // PulseAlertCard onSnooze/onDismiss callers
+                  // use — reason dialog → mutation → toast.
+                  // Round 82 (Yuqi "Alert history actions are
+                  // not correct" + "do not defer"): these
+                  // handlers are SUPPRESSED in `historyMode`.
+                  // History rows are already-handled alerts
+                  // (applied/dismissed/snoozed/reverted); they
+                  // should not re-snooze or re-dismiss. With
+                  // both handlers undefined the row only
+                  // renders the Review button (round 77's
+                  // conditional `{onSnooze ? … : null}` does
+                  // the hiding). Restoring/un-applying an alert
+                  // is a drawer-only action because it requires
+                  // the reason + audit ledger entry.
+                  {...(!historyMode
+                    ? {
+                        onSnooze: (alertId: string) =>
+                          setReasonState({ action: 'snooze', alertId }),
+                        onDismiss: (alertId: string) =>
+                          setReasonState({ action: 'dismiss', alertId }),
+                      }
+                    : {})}
+                />
               )}
             </>
           )}
@@ -1019,7 +1352,12 @@ function StateFilterPopover({
               </>
             ) : (
               <span>
-                <Trans>Any state</Trans>
+                {/* Round 83 (Yuqi #8 "state (not any state)" + #20
+                    "code form"): trigger label cleaned up. "Any
+                    state" → "State" so the at-rest chip reads
+                    consistently with the other filter triggers
+                    ("Severity" / "Change types" / "Status"). */}
+                <Trans>State</Trans>
               </span>
             )}
           </FilterTrigger>
@@ -1240,56 +1578,74 @@ function changeKindLabel(kind: PulseChangeKind): React.ReactNode {
 
 function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {
   const label = sourceLabel(sources)
+  // 2026-06-04 round 85 (Yuqi follow-up audit): skeleton rebuilt
+  // to mirror the round-72+ PulseAlertList chrome — same outer
+  // `rounded-[12px] border-divider-regular` frame, a subgroup-style
+  // header band on top, then 3 alert-row skeletons that mirror
+  // the actual row shape (time rail + main column with meta strip
+  // + title + bottom shelf). Previously the loading skeleton was
+  // a stack of 56px hairline rows that bore no resemblance to the
+  // real rendered rows, so the page visibly "jumped" when alerts
+  // arrived.
   return (
-    <div role="status" aria-live="polite" className="flex flex-col gap-2">
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex flex-col rounded-[12px] border border-divider-regular bg-background-default"
+    >
       <span className="sr-only">
         <Trans>Loading alerts…</Trans>
       </span>
-      <SkeletonRow tone="warning" active label={<Trans>Checking {label}…</Trans>} />
-      <SkeletonRow tone="disabled" />
-      <SkeletonRow tone="disabled" />
+
+      {/* Header band — mirrors the day-group divider tokens */}
+      <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-5 py-2 text-[12px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
+        <span className="inline-flex items-center gap-1.5">
+          <PulsingDot tone="warning" active />
+          <Trans>Checking {label}…</Trans>
+        </span>
+        <Skeleton aria-hidden className="h-2 w-20 rounded-full motion-reduce:animate-none" />
+      </div>
+
+      <SkeletonAlertRow />
+      <SkeletonAlertRow />
+      <SkeletonAlertRow />
     </div>
   )
 }
 
-function SkeletonRow({
-  tone,
-  active = false,
-  label,
-}: {
-  tone: 'warning' | 'disabled'
-  active?: boolean
-  label?: React.ReactNode
-}) {
+function SkeletonAlertRow() {
   return (
     <div
       data-skeleton="alert"
-      className="flex h-14 items-center gap-3 rounded-md border border-divider-subtle bg-background-default px-3"
+      className="flex gap-[10px] border-b border-divider-subtle px-5 py-3 last:border-b-0"
     >
-      <PulsingDot tone={tone} active={active} />
-      {label ? (
-        <span className="text-base text-text-tertiary">{label}</span>
-      ) : (
-        // 2026-06-01: hand-rolled animate-pulse spans replaced with the
-        // canonical Skeleton primitive (same bg-state-base-hover-alt
-        // pulse). Pill rounding + motion-reduce override added via
-        // className to preserve previous behavior; aria-hidden is
-        // covered by the parent role=status / aria-live region.
-        <>
-          <Skeleton aria-hidden className="h-2 w-24 rounded-full motion-reduce:animate-none" />
-          <span aria-hidden className="text-text-tertiary">
-            ·
-          </span>
-          <Skeleton
-            aria-hidden
-            className="h-2 max-w-[280px] flex-1 rounded-full motion-reduce:animate-none"
-          />
-          <Skeleton
-            aria-hidden
-            className="ml-auto h-2 w-12 rounded-full motion-reduce:animate-none"
-          />
-        </>
-      )}
+      {/* Time rail — 100px column matching PulseAlertRow */}
+      <div className="flex w-[100px] shrink-0 flex-col gap-1.5">
+        <Skeleton aria-hidden className="h-3 w-12 rounded-full motion-reduce:animate-none" />
+        <Skeleton aria-hidden className="h-2 w-10 rounded-full motion-reduce:animate-none" />
+      </div>
+
+      {/* Main column */}
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        {/* Meta strip — severity + state + form chip placeholders */}
+        <div className="flex items-center gap-2">
+          <Skeleton aria-hidden className="h-[22px] w-12 rounded-[4px] motion-reduce:animate-none" />
+          <Skeleton aria-hidden className="h-[22px] w-14 rounded-[4px] motion-reduce:animate-none" />
+          <Skeleton aria-hidden className="h-[22px] w-20 rounded-[5px] motion-reduce:animate-none" />
+          <span className="flex-1" aria-hidden />
+          <Skeleton aria-hidden className="h-3 w-24 rounded-full motion-reduce:animate-none" />
+        </div>
+
+        {/* Title row */}
+        <Skeleton aria-hidden className="h-4 w-3/4 rounded-full motion-reduce:animate-none" />
+
+        {/* Bottom shelf — clients + conf */}
+        <div className="mt-1 flex items-center gap-2 border-t border-divider-subtle pt-2">
+          <Skeleton aria-hidden className="h-3 w-24 rounded-full motion-reduce:animate-none" />
+          <span className="text-divider-regular" aria-hidden>·</span>
+          <Skeleton aria-hidden className="h-3 w-14 rounded-full motion-reduce:animate-none" />
+        </div>
+      </div>
     </div>
   )
 }

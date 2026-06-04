@@ -1,4 +1,4 @@
-import { AlertCircleIcon, RotateCwIcon, UploadIcon } from 'lucide-react'
+import { AlertCircleIcon, PlusIcon, RotateCwIcon, UploadIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -283,7 +283,15 @@ export function DashboardRoute() {
               disabled={dashboardQuery.isFetching}
               aria-label={t`Refresh dashboard`}
               title={t`Click to refresh`}
-              className="inline-flex items-center gap-1 text-xs font-medium tracking-normal text-text-success outline-none normal-case transition-colors hover:text-state-success-solid focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-50"
+              // 2026-06-04 round 80 (Yuqi #4 "gray colour"):
+              // sync status changed from `text-text-success` (green)
+              // to `text-text-tertiary` (gray). The freshness
+              // indicator was over-claiming with the green tone —
+              // it's an informational stamp, not a success state.
+              // Hover steps to `text-text-secondary` (one tier
+              // darker) so the interactive cue is still tonal but
+              // stays in the gray family.
+              className="inline-flex items-center gap-1 text-xs font-medium tracking-normal text-text-tertiary outline-none normal-case transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-50"
             >
               <span>
                 {syncedLabel === 'just now' ? (
@@ -369,7 +377,22 @@ export function DashboardRoute() {
               <UploadIcon data-icon="inline-start" />
               <Trans>Import clients</Trans>
             </Button>
-            <CreateObligationDialog />
+            {/* 2026-06-04 round 45 (Yuqi /today #6 — "buttons are
+                ugly"): Add deadline passed an explicit outline
+                trigger so the /today PageHeader cluster reads as a
+                single uniform button family (Import clients + Add
+                deadline = both outline + small), matching /alerts'
+                all-outline cluster (My morning sweep + Sources +
+                Alert history). The earlier mix of primary blue +
+                outline gray was the visual jar. */}
+            <CreateObligationDialog
+              trigger={
+                <Button type="button" variant="outline" size="sm">
+                  <PlusIcon data-icon="inline-start" />
+                  <Trans>Add deadline</Trans>
+                </Button>
+              }
+            />
           </>
         }
       />

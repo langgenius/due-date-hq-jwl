@@ -124,12 +124,19 @@ function PulseAlertsMap({
     <div className="flex flex-col gap-3">
       {/* FED tile + legend */}
       <div className="flex items-center justify-between gap-3">
+        {/* Federal tile — 2026-06-04 round 78 audit (Yuqi
+            "Map view's <PulseAlertsMap> jurisdiction-tile chrome
+            consistency"): radius dropped `rounded-lg` (8px) →
+            `rounded-md` (6px) to match the state-grid tiles below.
+            The two-radius mix was reading as two different
+            primitives even though they're both jurisdiction
+            selectors. */}
         <button
           type="button"
           onClick={() => onSelect(selectedJurisdiction === 'FED' ? null : 'FED')}
           aria-pressed={selectedJurisdiction === 'FED'}
           className={cn(
-            'inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold tracking-tight outline-none transition-colors',
+            'inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold tracking-tight outline-none transition-colors',
             'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
             selectedJurisdiction === 'FED'
               ? 'border-state-accent-active-alt bg-state-accent-hover ring-2 ring-state-accent-active-alt'
@@ -193,23 +200,23 @@ function MapLegend() {
   return (
     <ul className="flex items-center gap-2 text-[11px] text-text-tertiary">
       <li className="inline-flex items-center gap-1">
-        <span className="inline-block size-3 rounded-sm border border-divider-subtle bg-background-section" />
+        <span className="inline-block size-3 rounded-[3px] border border-divider-subtle bg-background-section" />
         <Trans>0</Trans>
       </li>
       <li className="inline-flex items-center gap-1">
-        <span className="inline-block size-3 rounded-sm border border-state-accent-border bg-state-accent-hover-alt" />
+        <span className="inline-block size-3 rounded-[3px] border border-state-accent-border bg-state-accent-hover-alt" />
         <Trans>1</Trans>
       </li>
       <li className="inline-flex items-center gap-1">
-        <span className="inline-block size-3 rounded-sm border border-state-accent-active-alt bg-state-accent-hover" />
+        <span className="inline-block size-3 rounded-[3px] border border-state-accent-active-alt bg-state-accent-hover" />
         <Trans>2-3</Trans>
       </li>
       <li className="inline-flex items-center gap-1">
-        <span className="inline-block size-3 rounded-sm border border-state-warning-border bg-state-warning-hover" />
+        <span className="inline-block size-3 rounded-[3px] border border-state-warning-border bg-state-warning-hover" />
         <Trans>4-6</Trans>
       </li>
       <li className="inline-flex items-center gap-1">
-        <span className="inline-block size-3 rounded-sm border border-state-destructive-border bg-state-destructive-hover" />
+        <span className="inline-block size-3 rounded-[3px] border border-state-destructive-border bg-state-destructive-hover" />
         <Trans>7+</Trans>
       </li>
     </ul>

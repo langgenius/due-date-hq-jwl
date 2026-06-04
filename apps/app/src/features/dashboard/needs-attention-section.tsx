@@ -207,9 +207,26 @@ function NeedsAttentionSection() {
         <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight text-text-primary">
           <Trans>Alerts</Trans>
           {totalAlertCount > 0 ? (
-            <Badge variant="destructive" className="tabular-nums">
-              <BadgeStatusDot tone="error" />
-              <Trans>{totalAlertCount} urgent</Trans>
+            // 2026-06-04 round 45 (Yuqi /today feedback #2 — "just
+            // write a number, [8]"): the count chip drops the
+            // "urgent" word. The destructive bg already signals
+            // urgency; the literal word was redundant. Bare count
+            // reads cleaner at a glance.
+            //
+            // 2026-06-04 round 49 (Yuqi /today #1 — "remove the
+            // dot"): BadgeStatusDot dropped from the urgent-count
+            // pill. The destructive bg already signals urgency; the
+            // leading dot was redundant chrome inside a tight
+            // numeric chip. Bare count reads at-a-glance from
+            // further away.
+            // 2026-06-04 round 81 (Yuqi #3 "gray, default kind of
+            // numbering"): count chip dropped from `destructive`
+            // (red) to `outline` (gray). The number is a scope
+            // signal, not an urgency one — the destructive red
+            // was claiming alarm semantics that the PulsingDot +
+            // card chrome already carry.
+            <Badge variant="outline" className="tabular-nums">
+              <span>{totalAlertCount}</span>
             </Badge>
           ) : null}
           {hasNationalMonitoringCoverage ? (

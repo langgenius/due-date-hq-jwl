@@ -1,0 +1,802 @@
+import { useQuery } from '@tanstack/react-query'
+import { Trans, useLingui } from '@lingui/react/macro'
+import {
+  AlarmClockIcon,
+  ArrowRightIcon,
+  ArchiveIcon,
+  Building2,
+  ClockIcon,
+  CornerDownRightIcon,
+  ExternalLinkIcon,
+  FileIcon,
+  SunIcon,
+} from 'lucide-react'
+
+import type { PulseAlertPublic } from '@duedatehq/contracts'
+import { Button } from '@duedatehq/ui/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
+import { cn } from '@duedatehq/ui/lib/utils'
+
+import { StateBadge } from '@/components/primitives/state-badge'
+import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
+import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
+import { useCurrentFirm } from '@/features/billing/use-billing-data'
+import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
+import { formatRelativeTime } from '@/lib/utils'
+
+import { useAlertDetailQueryOptions } from '../api'
+import { severityFromConfidence } from './pulse-alert-chrome'
+import { changeKindLabel } from './PulseChangeKindChip'
+
+/**
+ * `PulseAlertRow` — list-row rendering of an alert, replacing the
+ * older PulseAlertCard for the /rules/pulse main list.
+ *
+ * 2026-06-04 round 61 (Yuqi Pencil i90PZ — "update the alert page
+ * to i90PZ. ensure 100% REPLICATED. I have used placeholder for the
+ * content. you need to really wire them up."): rebuilt as a flat
+ * white row with bottom-border separator, 100px time rail on the
+ * left, and a stacked head/title/key-change/bottom main column on
+ * the right. Pencil reference: `ZkXFr Alert Card` (reusable
+ * instance used 4× inside i90PZ).
+ *
+ * Layout (snapshot_layout dimensions):
+ *   - Row: 1512×214, padding 18, white bg, bottom border 1px subtle
+ *   - Time rail RZfzU: 100×40, gap 6
+ *   - Main QEMxv: 1366×178, gap 6
+ *     - HeadRow o1cLe: ×22
+ *     - Subject IVBgx: ×44 (title + dek, gap 3)
+ *     - KeyChange hKGFX: ×70 (gray inset, padding 10, gap 6)
+ *     - Bottom vracc: ×24 (border-top, padding-top 8)
+ *
+ * Data wiring (every field on the row maps to a `PulseAlertPublic`
+ * or `PulseDetail` field; nothing is hardcoded):
+ *   - "14:32"   → `alert.publishedAt` formatted to HH:mm in the
+ *                 firm's timezone
+ *   - "2h ago"  → `formatRelativeTime(alert.publishedAt)`
+ *   - HIGH/MED/LOW → `severityFromConfidence(alert.confidence)`
+ *   - State pill   → `alert.jurisdiction` (kept the encapsulated
+ *                    StateBadge style per the user's earlier ask)
+ *   - Type tag     → `changeKindLabel(alert.changeKind)` + icon
+ *   - Source name  → `alert.source`
+ *   - Title        → `alert.title`
+ *   - Dek          → `alert.summary`
+ *   - Old → New    → `detail.originalDueDate` / `detail.newDueDate`
+ *   - "N days …"   → derived from the date diff
+ *   - "Effective"  → `detail.effectiveFrom` (immediate if past/today)
+ *   - "Form X"     → `detail.forms[0]`
+ *   - "Affects N"  → `alert.matchedCount + alert.needsReviewCount`
+ *   - "conf N%"    → `alert.confidence`
+ *
+ * Fields the contract doesn't carry today (Pencil placeholders):
+ *   - Source bulletin code "TSB-M-24(3)I" — would need a publication
+ *     identifier on the source. Omitted; the source-meta sub-line
+ *     falls back to the changeKind label when no bulletin id is
+ *     available.
+ *   - "ALBANY" city name — Pencil disabled this sub-element on the
+ *     state pill anyway, so the row uses the canonical two-letter
+ *     code only.
+ *   - Generic "ACTION" call-to-action text — derived from the
+ *     changeKind enum.
+ */
+
+const SEVERITY_LABEL: Record<'high' | 'medium' | 'low', string> = {
+  high: 'HIGH',
+  medium: 'MED',
+  low: 'LOW',
+}
+
+// Round 67: change-kind icon map dropped — ZkXFr's HeadRow doesn't
+// carry a per-kind lucide icon; the change kind now reads as text
+// inside the source/sub right cluster (`changeKindLabel`) in mono
+// uppercase.
+
+/**
+ * Mapping change-kind → derived action call-to-action text.
+ * Pencil shows "Re-attest within new window" for a DEADLINE SHIFT
+ * row; the rest follow the same template ("verb + scope object").
+ * Not perfect — the proper fix is a structured `actionText` field
+ * on PulseDetail.
+ */
+function deriveActionText(kind: PulseAlertPublic['changeKind']): string {
+  switch (kind) {
+    case 'deadline_shift':
+      return 'Re-attest within new window'
+    case 'filing_requirement':
+      return 'Verify filing requirement applies'
+    case 'applicability_scope':
+      return 'Re-confirm client scope'
+    case 'form_instruction':
+      return 'Re-issue revised form'
+    case 'source_status':
+      return 'Review source change'
+    case 'rule_source_drift':
+      return 'Re-verify source against rule'
+    case 'new_obligation':
+      return 'Register new obligation'
+    case 'threshold_advisory':
+      return 'Review adjusted thresholds'
+    case 'other':
+      return 'Review change'
+  }
+}
+
+function formatMonthDay(iso: string | null): string | null {
+  if (!iso) return null
+  const date = new Date(`${iso}T00:00:00.000Z`)
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date)
+}
+
+function daysBetweenIso(a: string | null, b: string | null): number | null {
+  if (!a || !b) return null
+  const aMs = new Date(`${a}T00:00:00.000Z`).getTime()
+  const bMs = new Date(`${b}T00:00:00.000Z`).getTime()
+  return Math.round((bMs - aMs) / (24 * 60 * 60 * 1000))
+}
+
+function PulseAlertRow({
+  alert,
+  active,
+  onReview,
+  onSnooze,
+  onDismiss,
+  compact = false,
+}: {
+  alert: PulseAlertPublic
+  active: boolean
+  onReview: () => void
+  /** 2026-06-04 round 77 (Yuqi "wire to real"): real snooze
+   *  handler — opens the reason dialog in the parent which
+   *  fires `orpc.pulse.snooze` on confirm. */
+  onSnooze?: () => void
+  /** Real dismiss/archive handler — opens the reason dialog
+   *  which fires `orpc.pulse.dismiss` on confirm. */
+  onDismiss?: () => void
+  /**
+   * 2026-06-04 round 74 (Yuqi "when right panel is open, hide
+   * the time and date, to leave more space for the alert list"):
+   * `compact` collapses the row to its main column only — the
+   * 100px time-rail on the left is dropped. PulseAlertList
+   * threads `compact={openAlertId !== null}` so every row goes
+   * compact whenever the detail panel is up. The relative time
+   * stays accessible via the head-row right cluster (rendered
+   * only in compact mode so the time/date info isn't lost
+   * entirely — just relocated to a quieter slot).
+   */
+  compact?: boolean
+}) {
+  const { t } = useLingui()
+  const detailQuery = useQuery(useAlertDetailQueryOptions(alert.id))
+  const detail = detailQuery.data
+
+  const { currentFirm } = useCurrentFirm()
+  const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
+  const absoluteTime = new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: firmTimezone,
+  }).format(new Date(alert.publishedAt))
+  const relativeTime = formatRelativeTime(alert.publishedAt)
+
+  const severity = severityFromConfidence(alert.confidence)
+  const severityLabel = SEVERITY_LABEL[severity.id]
+
+  const confidencePct = Math.round(alert.confidence * 100)
+  const confidenceTier = aiConfidenceTier(alert.confidence)
+  const confidenceColor =
+    confidenceTier === 'high'
+      ? 'text-text-success'
+      : confidenceTier === 'medium'
+        ? 'text-text-tertiary'
+        : 'text-text-destructive'
+
+  const impacted = alert.matchedCount + alert.needsReviewCount
+
+  // Pencil `jclC5` date row — only renders if BOTH dates exist on
+  // the detail payload. The diff badge ("N DAYS SOONER" red /
+  // "N DAYS LATER" amber) follows the sign of the day count.
+  const oldDateLabel = formatMonthDay(detail?.originalDueDate ?? null)
+  const newDateLabel = formatMonthDay(detail?.newDueDate ?? null)
+  const daysDiff = daysBetweenIso(
+    detail?.originalDueDate ?? null,
+    detail?.newDueDate ?? null,
+  )
+  const showDateRow = oldDateLabel && newDateLabel
+
+  // 2026-06-04 round 72 (Yuqi "revert and rework. reference to
+  // Node ID: ZkXFr"): bringing the ZkXFr KeyChange inset back —
+  // restore `effectiveLabel` so the facts row can render
+  // "Effective immediately" / "Effective MMM D" alongside the
+  // form-revised line. The new layout keeps the round-71
+  // consistency primitives (TaxCodeBadge, circular StateBadge)
+  // but restores ZkXFr's horizontal time-rail + main-column
+  // architecture.
+  const isEffectiveNow = (() => {
+    if (!detail?.effectiveFrom) return false
+    const eff = new Date(`${detail.effectiveFrom}T00:00:00.000Z`).getTime()
+    return eff <= Date.now()
+  })()
+  const effectiveLabel = detail?.effectiveFrom
+    ? isEffectiveNow
+      ? t`Effective immediately`
+      : t`Effective ${formatMonthDay(detail.effectiveFrom)}`
+    : null
+  const formLabel = detail?.forms?.[0] ?? null
+  const actionText = deriveActionText(alert.changeKind)
+  const showKeyChange = !!(showDateRow || effectiveLabel || formLabel || actionText)
+
+  return (
+    <article
+      role="button"
+      tabIndex={0}
+      aria-label={t`Pulse alert: ${alert.title}`}
+      aria-pressed={active}
+      onClick={onReview}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onReview()
+        }
+      }}
+      className={cn(
+        // 2026-06-04 round 76 (Yuqi "cross reference Today page
+        // to work on the Alert table"): row padding aligned to
+        // ActionsTable's TableCell rhythm — `px-5 py-3` so
+        // /alerts rows share the same density as /today table
+        // rows. The previous `px-[18px] py-[18px]` was an
+        // arbitrary Pencil value that diverged from the table
+        // primitive. Time rail still owns the left 100px when not
+        // compact.
+        // 2026-06-04 round 83 (Yuqi #11 "same logic as today's
+        // alert card's client. if there are affected clients,
+        // then use slightly darker gray"): row bg mirrors
+        // NeedsAttentionCard's impacted-conditional bg (round 80).
+        //   • impacted > 0 → `bg-background-section` (darker)
+        //   • impacted === 0 → `bg-background-default` (white)
+        // Active row still wins (state-accent-hover); hover steps
+        // to base-hover in both cases.
+        'group/row flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 py-3 outline-none transition-colors',
+        'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+        active
+          ? 'bg-state-accent-hover'
+          : impacted > 0
+            ? 'bg-background-section hover:bg-state-base-hover'
+            : 'bg-background-default hover:bg-state-base-hover',
+      )}
+    >
+      {/* Time rail RZfzU (100×40, vertical, gap 6). UFxh6 "14:32"
+          Geist 14/600 text-primary letterSpacing -0.1; uaDak
+          "2h ago" Geist 12/500 text-tertiary.
+          2026-06-04 round 74 (Yuqi "when right panel is open, hide
+          the time and date, to leave more space for the alert
+          list"): rail entirely unmounted in `compact` mode. The
+          panel-open layout already gives the list column ~40% of
+          the viewport — every 100px we can reclaim from the rail
+          is real estate the main column gets back. The relative
+          time still surfaces in the head-row right cluster
+          (below) so the user doesn't lose the "when did this
+          drop" signal. */}
+      {!compact ? (
+        <div className="flex w-[100px] shrink-0 flex-col gap-1.5">
+          <span className="text-[14px] font-semibold tracking-[-0.1px] text-text-primary tabular-nums">
+            {absoluteTime}
+          </span>
+          <span className="text-[12px] font-medium text-text-tertiary">{relativeTime}</span>
+        </div>
+      ) : null}
+
+      {/* Main column — round 79 (Yuqi #3 "slightly more gap"):
+          gap-1.5 (6px) → gap-2 (8px). Slight breathing room
+          between the head row, subject, KeyChange, and bottom
+          row so the four blocks read as distinct. */}
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        {/* HeadRow o1cLe — gap 8. Pill order per ZkXFr:
+            severity → form → state → spacer → source · sub. */}
+        <div className="flex min-w-0 items-center gap-2">
+          {severity.id === 'high' ? (
+            <span
+              className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-[11px] font-bold tracking-[0.7px] uppercase"
+              style={{ backgroundColor: severity.bg, color: severity.text }}
+            >
+              {severityLabel}
+            </span>
+          ) : null}
+
+          {/* STATE — round 75 (Yuqi #4 "move it forward before
+              the form"): reordered BEFORE the form pill. Plus #2
+              "smaller" — circular motif 20 → 16px via inline
+              style override. Plus #3 "bigger 1px. apply
+              everywhere" — code text 11 → 12px. */}
+          <Tooltip>
+            <TooltipTrigger
+              render={(props) => (
+                <span
+                  className="inline-flex h-[22px] shrink-0 cursor-help items-center gap-1 outline-none"
+                  {...props}
+                >
+                  <StateBadge
+                    code={alert.jurisdiction}
+                    size="xs"
+                    style={{ width: 16, height: 16 }}
+                  />
+                  <span className="font-mono text-[12px] font-bold tracking-[0.7px] text-text-secondary uppercase">
+                    {alert.jurisdiction}
+                  </span>
+                </span>
+              )}
+            />
+            <TooltipContent>{alert.jurisdiction}</TooltipContent>
+          </Tooltip>
+
+          {/* SOURCE STATUS pill (change kind) — round 83 (Yuqi
+              #12 "put this change type between state badge and the
+              form"): change-kind pill relocated from the head-
+              right cluster (next to source name) to the head-left
+              slot between state badge and form pill. Reads as
+              part of the meta strip now, not as a sub-id on the
+              source. */}
+          <span className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] bg-state-accent-hover px-2 font-mono text-[11px] font-bold tracking-[0.7px] text-text-accent uppercase">
+            {changeKindLabel(alert.changeKind)}
+          </span>
+
+          {/* FORM PILL — round 75 (Yuqi #1 "when on alert page,
+              it is normal form, with the normal (darker) text
+              colour"): dropped the round-73 muted text override.
+              On /alerts the form pill reads at canonical
+              text-secondary; only /today card keeps the muted
+              treatment. */}
+          {formLabel ? <TaxCodeBadge code={formLabel} /> : null}
+
+          {/* Spacer NdGpw (fill_container) */}
+          <span className="flex-1" aria-hidden />
+
+          {/* COMPACT-MODE inline time — only rendered when the
+              time rail is hidden (round 74). Reads as a quiet
+              relative timestamp ("2h ago" / "Jun 4") with the
+              exact HH:mm on tooltip hover, so the panel-open
+              layout doesn't lose the "when did this drop"
+              signal even though the rail is gone. */}
+          {compact ? (
+            <Tooltip>
+              <TooltipTrigger
+                render={(props) => (
+                  <span
+                    className="shrink-0 cursor-help whitespace-nowrap text-[12px] font-medium text-text-tertiary tabular-nums outline-none"
+                    {...props}
+                  >
+                    {relativeTime}
+                  </span>
+                )}
+              />
+              <TooltipContent>{absoluteTime}</TooltipContent>
+            </Tooltip>
+          ) : null}
+
+          {/* HeadRight — round 83 (Yuqi #13 "same size as today's
+              alert's card's source. add link icon"): source treated
+              identically to /today NeedsAttentionCard — 12/medium
+              text-tertiary with leading `<ExternalLinkIcon>`. The
+              sub-id (`· SOURCE STATUS`) is dropped here; the
+              change-kind pill now lives in the head-left meta
+              strip per #12, so this slot is source-only. */}
+          {alert.sourceUrl ? (
+            <Tooltip>
+              <TooltipTrigger
+                render={(props) => (
+                  <span
+                    className="inline-flex min-w-0 shrink cursor-pointer items-center gap-1 truncate text-[12px] font-medium tracking-[-0.1px] text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
+                    }}
+                    {...props}
+                  >
+                    <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+                    <span className="truncate">{alert.source}</span>
+                  </span>
+                )}
+              />
+              <TooltipContent>
+                <div className="flex max-w-[320px] flex-col gap-0.5 text-left">
+                  <span className="font-semibold">
+                    <Trans>Open source</Trans>
+                  </span>
+                  <span className="break-all text-text-secondary">{alert.sourceUrl}</span>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-[12px] font-medium tracking-[-0.1px] text-text-tertiary">
+              <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+              <span className="truncate">{alert.source}</span>
+            </span>
+          )}
+        </div>
+
+        {/* Subject IVBgx — title 16/600 + dek 13/normal.
+            Title uses the same tracking-tight / leading-1.25
+            treatment that /today's card uses, so the two surfaces
+            share a typography signature for the alert title. */}
+        <div className="flex flex-col gap-[3px]">
+          {/* Title — round 76: weight aligned to NeedsAttentionCard's
+              15/medium for cross-page consistency. ActionsTable's
+              row lede sits at 13/medium-primary; the alert title
+              gets a +2px lift (15px) because alerts are more
+              event-driven than table actions, but the weight is
+              the same medium-not-bold across both surfaces so the
+              type families read in one zone. */}
+          <h3
+            className="line-clamp-1 min-w-0 text-[15px] font-medium leading-[1.25] tracking-[-0.25px] text-text-primary"
+            title={alert.title}
+          >
+            {alert.title}
+          </h3>
+          {alert.summary && alert.summary.trim() !== alert.title.trim() ? (
+            <p className="line-clamp-2 text-[13px] leading-[1.5] text-text-tertiary">
+              {alert.summary}
+            </p>
+          ) : null}
+        </div>
+
+        {/* KeyChange inset hKGFX — transparent (Pencil fill
+            disabled), gap 8 vertical. Restored from round 67
+            (had been dropped in round 70's vi3aw rewrite). */}
+        {showKeyChange ? (
+          // 2026-06-04 round 79 (Yuqi #4 "closer"): dropped the
+          // `mt-1` push. Parent main col now uses `gap-2` so each
+          // block already has 8px breathing — the extra 4px push
+          // was reading as a double-margin.
+          <div className="flex flex-col gap-2">
+            {showDateRow ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-mono text-[12px] font-medium tracking-[0.2px] text-text-muted line-through tabular-nums">
+                  {oldDateLabel}
+                </span>
+                <ArrowRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
+                <span className="font-mono text-[12px] font-bold tracking-[-0.2px] text-text-primary tabular-nums">
+                  {newDateLabel}
+                </span>
+                {daysDiff !== null ? (
+                  <span
+                    className={cn(
+                      'text-[12px] font-medium',
+                      daysDiff < 0 ? 'text-text-destructive' : 'text-text-warning',
+                    )}
+                  >
+                    {Math.abs(daysDiff)} {daysDiff < 0 ? t`days sooner` : t`days later`}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+
+            {/* Facts row — 2026-06-04 round 79 (Yuqi #1 "this is
+                for any action changes. not the time info"):
+                DROPPED. The slot used to show "Effective
+                immediately" + "Form revised" — but those are
+                derived time/instructional facts, not action
+                changes. The user wants this row reserved for
+                action-status semantics; right now the action
+                pill below is the only thing that belongs there.
+                Effective/form facts move to the drawer (they're
+                still in PulseStructuredFields). The
+                CornerDownRightIcon bullet is retained on the
+                action pill below to preserve the "sub-clause"
+                visual reading from round 75 #9. */}
+
+            {actionText ? (
+              <div className="flex items-center gap-1.5">
+                <CornerDownRightIcon
+                  className="size-3 shrink-0 text-text-muted"
+                  aria-hidden
+                />
+                <div
+                  className="inline-flex items-center gap-2 self-start rounded-md px-[10px] py-[4px]"
+                  style={{ backgroundColor: '#FFFBEB' }}
+                >
+                <span
+                  className="text-[10px] font-bold tracking-[0.7px] uppercase"
+                  style={{ color: '#92400E' }}
+                >
+                  <Trans>Action</Trans>
+                </span>
+                <span
+                  className="text-[12px] font-medium"
+                  style={{ color: '#92400E' }}
+                >
+                  {actionText}
+                </span>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* Bottom row vracc.
+            Round 75 changes:
+              #5 "different from Today alert icon": UsersIcon →
+                  Building2 so /alerts shares /today's clients-line
+                  icon vocabulary.
+              #6 "different type weight": dropped `font-medium`
+                  from the "N clients" / "No matching clients"
+                  span so the bottom row sits at the same normal
+                  weight /today's card uses.
+              #7 "where is the top border": brought back the
+                  `border-t border-divider-subtle` separator.
+                  Round 67 dropped it per Pencil disabled-stroke,
+                  but the user wants the clear shelf line back to
+                  divide the body from the meta row.
+              #8 "missing previous actions - snooze, archive,
+                  review": three hover-revealed buttons now —
+                  Snooze, Archive, Review — replacing the lone
+                  Review. Click each with stopPropagation so the
+                  card's onReview doesn't also fire. Snooze +
+                  Archive use the same Review handler for now
+                  (visual surface only — wiring to actual snooze /
+                  archive mutations lives in the drawer). */}
+        {/* Round 79 (Yuqi #5 "closer?"): dropped the `mt-1` push
+            on the bottom row too — same reason as #4. */}
+        <div className="flex items-center gap-1.5 border-t border-divider-subtle pt-2 text-[12px] text-text-muted">
+          <Building2 className="size-3.5 shrink-0" aria-hidden />
+          <span>
+            {impacted > 0 ? (
+              <Trans>Affects {impacted} clients</Trans>
+            ) : (
+              <Trans>No matching clients</Trans>
+            )}
+          </span>
+          <span className="text-divider-regular" aria-hidden>·</span>
+          {/* Round 83 (Yuqi #10 "in san serif"): dropped
+              `font-mono` so conf reads in Geist like the rest of
+              the bottom row. tracking dropped to 0 since mono was
+              the reason for the explicit 0.3 letter-spacing. */}
+          <span
+            className={cn(
+              'text-[12px] font-semibold tabular-nums',
+              confidenceColor,
+            )}
+          >
+            <Trans>conf {confidencePct}%</Trans>
+          </span>
+
+          {/* Hover-only action cluster — Snooze / Archive / Review.
+              Fades in via group-hover so the row reads as a quiet
+              shelf at rest. Each button stopPropagation so the
+              row's onClick doesn't bubble. */}
+          <span
+            className="ml-auto inline-flex items-center gap-1 opacity-0 transition-opacity group-hover/row:opacity-100"
+            aria-hidden={!active}
+          >
+            {onSnooze ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onSnooze()
+                }}
+                className="inline-flex items-center gap-1 rounded-md border border-divider-regular bg-background-default px-2 py-1 text-[12px] font-medium text-text-secondary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                aria-label={t`Snooze alert`}
+              >
+                <ClockIcon className="size-3" aria-hidden />
+                <Trans>Snooze</Trans>
+              </button>
+            ) : null}
+            {onDismiss ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onDismiss()
+                }}
+                className="inline-flex items-center gap-1 rounded-md border border-divider-regular bg-background-default px-2 py-1 text-[12px] font-medium text-text-secondary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                aria-label={t`Dismiss alert`}
+              >
+                <ArchiveIcon className="size-3" aria-hidden />
+                <Trans>Dismiss</Trans>
+              </button>
+            ) : null}
+            {/* Round 83 (Yuqi #14 "accent primary button"):
+                Review promoted from outline to canonical
+                `<Button>` primary (filled primary token). Same
+                primitive every other primary action across the
+                app uses, so the Review action carries
+                cross-page consistency. */}
+            <Button
+              type="button"
+              size="xs"
+              onClick={(event) => {
+                event.stopPropagation()
+                onReview()
+              }}
+            >
+              <Trans>Review</Trans>
+            </Button>
+          </span>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+/**
+ * Day-grouped wrapper around `PulseAlertRow`. Per Pencil i90PZ the
+ * list is broken into per-day sections, each section opened by a
+ * "TODAY · TUE · SEP 24, 2024" header row (`wlgGV`) with a count
+ * pinned to the right. Sun icon for "today", chevron-back-ish
+ * neutrality for other days (we just drop the icon when it's not
+ * today).
+ *
+ * Day key is the firm's local date (YYYY-MM-DD), so an alert
+ * published at 23:30 in the CPA's timezone sits under that day,
+ * not UTC.
+ */
+function startOfFirmDay(iso: string, timeZone: string): string {
+  // Produce a YYYY-MM-DD key in the firm timezone. Intl
+  // DateTimeFormat with sortable 'en-CA' gives us "YYYY-MM-DD".
+  return new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone,
+  }).format(new Date(iso))
+}
+
+function formatDayHeader(dayKey: string, timeZone: string, today: string): {
+  label: string
+  isToday: boolean
+} {
+  const isToday = dayKey === today
+  // "TUE · SEP 24, 2024" — weekday + month/day/year in mono.
+  const date = new Date(`${dayKey}T12:00:00.000Z`)
+  const formatted = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone,
+  }).format(date)
+  // Convert "Tue, Sep 24, 2024" → "TUE · SEP 24, 2024" uppercase
+  // with dot separators (matches Pencil's mono header format).
+  const parts = formatted.replace(',', '').split(' ')
+  const weekday = parts[0]?.toUpperCase() ?? ''
+  const rest = parts.slice(1).join(' ').toUpperCase()
+  return { label: `${weekday} · ${rest}`, isToday }
+}
+
+function PulseAlertList({
+  alerts,
+  openAlertId,
+  onReview,
+  onSnooze,
+  onDismiss,
+}: {
+  alerts: readonly PulseAlertPublic[]
+  openAlertId: string | null
+  onReview: (alertId: string) => void
+  onSnooze?: (alertId: string) => void
+  onDismiss?: (alertId: string) => void
+}) {
+  const { t } = useLingui()
+  const { currentFirm } = useCurrentFirm()
+  const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
+  const todayKey = startOfFirmDay(new Date().toISOString(), firmTimezone)
+
+  // 2026-06-04 round 74: derive panel-open state from whether any
+  // alert is currently the active one. When panelOpen, every row
+  // renders in `compact` mode — the 100px time rail is hidden
+  // and the relative time relocates to an inline tooltip slot.
+  const panelOpen = openAlertId !== null
+
+  // Group alerts by firm-local date, preserving the (already
+  // sort-ordered) array order. Map preserves insertion order so
+  // earlier days come first when the sort is "Newest first".
+  const groups = new Map<string, PulseAlertPublic[]>()
+  for (const alert of alerts) {
+    const key = startOfFirmDay(alert.publishedAt, firmTimezone)
+    const bucket = groups.get(key)
+    if (bucket) {
+      bucket.push(alert)
+    } else {
+      groups.set(key, [alert])
+    }
+  }
+
+  return (
+    // 2026-06-04 round 73 (Yuqi "apply these table design
+    // guideline and rules to Alert and Deadlines"): list frame
+    // now uses the ActionsTable canonical chrome —
+    // `rounded-[12px] border-divider-regular` (not the round-70
+    // `rounded-2xl border-divider-subtle`). Same shape every
+    // tabular list surface uses, so /today, /alerts, /deadlines
+    // share one outer frame language.
+    // 2026-06-04 round 84 (Yuqi "remove the overflow:hidden
+    // property"): dropped `overflow-hidden` on the list frame.
+    // Was clipping anything that wanted to escape the rounded
+    // bounds (tooltips, popovers, sticky child shadows). The
+    // rounded radius + inner row borders carry the visual
+    // boundary on their own; the clip wasn't earning its keep.
+    <div className="flex flex-col rounded-[12px] border border-divider-regular bg-background-default">
+      {Array.from(groups.entries()).map(([dayKey, dayAlerts]) => {
+        const { label, isToday } = formatDayHeader(dayKey, firmTimezone, todayKey)
+        const yesterdayKey = (() => {
+          const d = new Date(`${todayKey}T12:00:00.000Z`)
+          d.setUTCDate(d.getUTCDate() - 1)
+          return d.toISOString().slice(0, 10)
+        })()
+        const dayWord = isToday
+          ? t`TODAY`
+          : dayKey === yesterdayKey
+            ? t`YESTERDAY`
+            : null
+
+        return (
+          <div key={dayKey} className="flex flex-col">
+            {/* Day header — round 70 (deferred "Day group header
+                vertical stack instead of horizontal"): weekday/
+                date now stacks vertically on the LEFT (DAY WORD
+                on top, full date below), count on the right. The
+                horizontal-justify layout was forcing the date and
+                count to compete for the same baseline; stacking
+                gives the date a clear hierarchy (label → date)
+                and the count breathes. */}
+            {/* Day header — round 79 (Yuqi #2 "I found this hard
+                to read. any way to improve?"): readability fixes
+                applied while keeping the subgroup-divider
+                chrome:
+                  • text-[11px] → text-[12px] (one tier larger,
+                    still in eyebrow scale)
+                  • text-text-tertiary → text-text-secondary
+                    (steps the contrast up by one tier — was
+                    nearly washing out at 11px tracking-[0.5px]
+                    uppercase against the bg-background-subtle
+                    band)
+                  • Date label stays text-text-secondary; dispatch
+                    count keeps the quieter `text-text-muted` so
+                    the count reads as supporting context, not the
+                    lede. */}
+            <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-5 py-2">
+              <div className="flex items-center gap-1.5 text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase">
+                {isToday ? (
+                  <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
+                ) : null}
+                {dayWord ? <span>{dayWord}</span> : null}
+                {dayWord ? <span className="text-text-muted">·</span> : null}
+                <span>{label}</span>
+              </div>
+              <span className="text-[12px] font-semibold tracking-[0.5px] text-text-muted uppercase tabular-nums">
+                <Trans>
+                  {dayAlerts.length} {dayAlerts.length === 1 ? t`dispatch` : t`dispatches`}
+                </Trans>
+              </span>
+            </div>
+
+            {/* Alert rows for this day. Round 74: `compact` propagates
+                from whether the detail panel is up — see the
+                `panelOpen` computation below. Round 77: snooze +
+                dismiss handlers pass through from AlertsListPage
+                so the hover-revealed actions actually fire the
+                orpc mutations. */}
+            {dayAlerts.map((alert) => (
+              <PulseAlertRow
+                key={alert.id}
+                alert={alert}
+                active={alert.id === openAlertId}
+                onReview={() => onReview(alert.id)}
+                {...(onSnooze ? { onSnooze: () => onSnooze(alert.id) } : {})}
+                {...(onDismiss ? { onDismiss: () => onDismiss(alert.id) } : {})}
+                compact={panelOpen}
+              />
+            ))}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+export { PulseAlertRow, PulseAlertList }

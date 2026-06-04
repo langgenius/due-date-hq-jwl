@@ -246,16 +246,14 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 2026-05-26 (Step 9 AI Visibility Audit F-009): inline
-          caveat banner above the structured-fields cards. The
-          Source / Scope cards below render AI-EXTRACTED values
-          (Authority / Issued / Effective / Forms / Entity types
-          ...) as if they were verbatim source facts. For tax
-          software, a CPA filing on a hallucinated "Effective"
-          date is a real consequence. The banner names the
-          provenance explicitly + points at the source link for
-          verification. Quiet (info tone, not destructive) so it
-          reads as orientation, not error. */}
+      {/* 2026-06-04 round 68 (Yuqi "can be in an AI icon besides
+          Extracted FACTS title"): the GENERIC AI-extraction caveat
+          banner was replaced with a tooltip-revealed Astroid AI
+          icon next to the "Extracted facts" section header in
+          AlertDetailDrawer. The threshold_advisory branch stays —
+          its banner carries deterministic-source semantics, not the
+          AI-extraction warning, so it can't collapse into the
+          shared AI-icon tooltip. */}
       {detail.alert.changeKind === 'threshold_advisory' ? (
         // Threshold advisories are emitted deterministically (NOT AI-extracted)
         // and deliberately assert no dollar figures — so the AI-extraction
@@ -271,17 +269,7 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
             </Trans>
           </span>
         </div>
-      ) : (
-        <div className="flex items-start gap-2 rounded-md border border-divider-subtle bg-background-soft px-3 py-2 text-xs text-text-secondary">
-          <Astroid className="mt-0.5 size-3.5 shrink-0 text-text-tertiary" aria-hidden />
-          <span>
-            <Trans>
-              The fields below are an AI extraction of the source bulletin. Open the official source
-              to verify before applying changes to clients.
-            </Trans>
-          </span>
-        </div>
-      )}
+      ) : null}
       {detail.alert.duplicateSourceSnapshotCount > 0 ? (
         <div className="rounded-md border border-divider-subtle bg-background-soft px-3 py-2 text-xs text-text-secondary">
           <Plural
@@ -413,7 +401,14 @@ function FactCard({
   // card's top corner radius. The body stays `bg-background-default`
   // (white) for the data content.
   return (
-    <section className="overflow-hidden rounded-md border border-divider-subtle bg-background-default">
+    // 2026-06-04 round 78 (Yuqi "finish the partially done first"
+    // — detail panel #5 audit): FactCard chrome aligned to the
+    // canonical card token combo used by /today's ActionsTable —
+    // `rounded-[12px] border-divider-regular`. The previous
+    // `rounded-md border-divider-subtle` was a one-off in the
+    // drawer that broke the card-frame consistency the user asked
+    // for in round 73 ("apply table design guideline").
+    <section className="overflow-hidden rounded-[12px] border border-divider-regular bg-background-default">
       <header className="flex min-h-10 items-center justify-between gap-3 border-b border-divider-subtle bg-background-subtle px-4 py-2">
         <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
         {action ? <div className="shrink-0">{action}</div> : null}

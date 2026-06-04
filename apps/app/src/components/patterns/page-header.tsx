@@ -108,7 +108,10 @@ export function PageHeader({
     // inside the title column, hosting chip-cluster content like
     // "Owner · Entity · State" for surfaces with overgrown header
     // chrome. Renders only when metaRow is provided.
-    <header className={cn('flex flex-col gap-3', className)}>
+    /* 2026-06-04 round 49 (Yuqi /today #2 — "closer"): outer
+       header vertical rhythm `gap-3` (12px) → `gap-2` (8px) so the
+       eyebrow row sits TIGHTER against the title block. */
+    <header className={cn('flex flex-col gap-2', className)}>
       {eyebrowRow}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
         <div className="flex min-w-0 flex-col gap-2">

@@ -37,21 +37,39 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
  * hook returns `null` and the page falls back to its local filter state
  * untouched.
  */
+/**
+ * 2026-06-04 round 52 (Yuqi "can you click it and it inserts a side
+ * panel or a panel before the alert list about the digest"): context
+ * expanded with `digestOpen` + `toggleDigest`. The trigger button in
+ * the page-header actions cluster now opens the inline digest panel
+ * (instead of a modal Dialog) and `AlertsListPage` reads `digestOpen`
+ * to render the briefing card above the alerts list. `active` /
+ * `toggle` for the filter-override still live alongside so the
+ * panel's "Show me just these alerts" CTA can keep applying the
+ * preset.
+ */
 export type MorningSweepValue = {
   active: boolean
   toggle: () => void
+  digestOpen: boolean
+  toggleDigest: () => void
+  closeDigest: () => void
 }
 
 const MorningSweepContext = createContext<MorningSweepValue | null>(null)
 
 export function MorningSweepProvider({ children }: { children: ReactNode }) {
   const [active, setActive] = useState(false)
+  const [digestOpen, setDigestOpen] = useState(false)
   const value = useMemo<MorningSweepValue>(
     () => ({
       active,
       toggle: () => setActive((prev) => !prev),
+      digestOpen,
+      toggleDigest: () => setDigestOpen((prev) => !prev),
+      closeDigest: () => setDigestOpen(false),
     }),
-    [active],
+    [active, digestOpen],
   )
   return <MorningSweepContext.Provider value={value}>{children}</MorningSweepContext.Provider>
 }

@@ -454,6 +454,58 @@ export interface PromptDefinition {
   route: string
 }
 
+const MORNING_SWEEP_V1 = `prompt_version: morning-sweep@v1
+model_tier: quality-json
+temperature: 0
+response_format: json_object
+route: via Vercel AI SDK Core + Cloudflare AI Gateway
+
+You write daily-briefing summaries of regulatory alerts for US CPAs
+using only the provided alert snapshot. Output STRICT JSON only.
+
+Return:
+{
+  "headline": "<one sentence, <= 20 words, anchors the briefing>",
+  "bullets": [
+    "<short paragraph, <= 28 words, on overnight changes / urgency / client impact>"
+  ],
+  "topActions": [
+    {
+      "alertId": "<exactly one alert ID from input.alerts>",
+      "title": "<the alert's title copied verbatim>",
+      "whyNow": "<why the CPA should action this first, <= 30 words>",
+      "clientMentions": ["<client names from input.alerts[].affectedClientNames, if any>"]
+    }
+  ],
+  "footer": "<optional closing nudge, <= 18 words, or null>"
+}
+
+Rules:
+
+- Top actions: rank by input.alerts[].severity ('high' > 'medium' > 'low'),
+  then by matchedClientCount desc. Use AT MOST 3 — fewer if there are
+  fewer alerts. Always cite the exact alertId from input.
+- Bullets: 2 to 3 short paragraphs. The first names the volume + tier
+  breakdown ("N alerts overnight, K HIGH IMPACT"); the second frames
+  client-roster exposure ("J alerts touch your client roster"); the
+  third is OPTIONAL deep-dive if there's a HIGH IMPACT alert worth
+  flagging by name.
+- Personalisation: when an alert has affectedClientNames, name them
+  in topActions[].clientMentions. NEVER invent client names.
+- Tone: operational, calm, declarative. NOT marketing copy.
+- Do NOT give tax advice or say "applies to your client" without
+  evidence — the matchedClientCount + affectedClientNames in input
+  is your only evidence.
+- Do NOT say "AI confirmed", "guaranteed", or "no penalty will apply".
+- If input.alerts is empty: headline reads "Quiet overnight — no
+  new alerts in the last 24 hours.", bullets is [], topActions is [],
+  footer is null.
+
+Retention: Do not retain any data seen for training.
+PII handling: client names are real PII; use them VERBATIM, do NOT
+add new personal data or invent names.
+`
+
 const prompts = {
   'mapper@v1': MAPPER_V1,
   'mapper@v2': MAPPER_V2,
@@ -462,6 +514,7 @@ const prompts = {
   'brief@v1': BRIEF_V1,
   'client-risk-summary@v1': CLIENT_RISK_SUMMARY_V1,
   'deadline-tip@v1': DEADLINE_TIP_V1,
+  'morning-sweep@v1': MORNING_SWEEP_V1,
   'pulse-extract@v2': PULSE_EXTRACT_V2,
   'rule-concrete-draft@v1': RULE_CONCRETE_DRAFT_V1,
   'rule-concrete-draft@v2': RULE_CONCRETE_DRAFT_V2,
