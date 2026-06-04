@@ -253,6 +253,52 @@ describe('makePulseRepo', () => {
     expect(directStatements).toHaveLength(0)
   })
 
+  it('re-awakens a reviewed no-match overlay alert once accept creates a match', async () => {
+    const { db, directStatements } = fakeDb([
+      [{ jurisdiction: 'CA' }], // obligations -> jurisdictions
+      [{ id: 'alert-1' }], // candidate alerts for the jurisdiction (now includes reviewed)
+      [{ ...ALERT, alertStatus: 'reviewed', matchedCount: 0, needsReviewCount: 0 }], // getAlert
+      [ELIGIBLE], // listCandidateRows: the freshly generated obligation now matches
+      [], // withEffectiveDueDates: no active overlay -> stays eligible
+      [], // listApplicationRows
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await repo.refreshMatchedCountsForObligations(['oi-eligible'])
+
+    // The acknowledged alert flips back to `matched` so it returns to the active
+    // list and the rule-review drawer banner for the CPA to apply the new date.
+    expect(
+      directStatements.some(
+        (statement) =>
+          isKind(statement, 'update') && statementHasValue(statement, { status: 'matched' }),
+      ),
+    ).toBe(true)
+  })
+
+  it('does not flip status for an already-active alert that gains a match', async () => {
+    const { db, directStatements } = fakeDb([
+      [{ jurisdiction: 'CA' }],
+      [{ id: 'alert-1' }],
+      [{ ...ALERT, alertStatus: 'matched', matchedCount: 0, needsReviewCount: 0 }], // already active
+      [ELIGIBLE],
+      [],
+      [],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await repo.refreshMatchedCountsForObligations(['oi-eligible'])
+
+    // Re-activation is reserved for `reviewed` alerts; an already-active alert
+    // only gets its count recomputed, never a status flip.
+    expect(
+      directStatements.some(
+        (statement) =>
+          isKind(statement, 'update') && statementHasValue(statement, { status: 'matched' }),
+      ),
+    ).toBe(false)
+  })
+
   it('marks base-date matches with active overlays as already applied', async () => {
     const { db } = fakeDb([
       [ALERT],
@@ -780,6 +826,49 @@ describe('makePulseRepo', () => {
         statementHasValue(statement, { reason: 'Marked reviewed from Pulse detail.' }),
       ),
     ).toBe(true)
+  })
+
+  it('acknowledges a no-current-match due-date overlay (mark reviewed → history)', async () => {
+    // A `due_date_overlay` pulse approved before the firm activated the matching
+    // rule has matchedCount = 0 (firmImpact 'no_current_match'). There is nothing
+    // to apply, so the CPA can mark it reviewed to clear it from the active list
+    // instead of leaving it stranded forever.
+    const noMatchOverlay = {
+      ...ALERT,
+      matchedCount: 0,
+      needsReviewCount: 0,
+    }
+    const { db, batchStatements } = fakeDb([
+      [noMatchOverlay],
+      [{ ...noMatchOverlay, alertStatus: 'reviewed' as const }],
+    ])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const result = await repo.markReviewed({
+      alertId: 'alert-1',
+      userId: 'user-1',
+      now: new Date('2026-04-15T19:00:00.000Z'),
+    })
+
+    expect(result.alert.status).toBe('reviewed')
+    expect(batchStatements).toHaveLength(2)
+    expect(
+      batchStatements.some((statement) =>
+        statementHasValue(statement, { status: 'reviewed', dismissedBy: 'user-1' }),
+      ),
+    ).toBe(true)
+  })
+
+  it('still rejects mark-reviewed on a due-date overlay that has live matches', async () => {
+    // ALERT is a matched overlay (matchedCount: 1) — reviewing is the wrong
+    // action; the CPA must apply or dismiss the matched deadlines instead.
+    const { db, batchStatements } = fakeDb([[ALERT]])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    await expect(repo.markReviewed({ alertId: 'alert-1', userId: 'user-1' })).rejects.toMatchObject(
+      { code: 'conflict' } satisfies Partial<PulseRepoError>,
+    )
+    expect(batchStatements).toHaveLength(0)
   })
 
   it('writes default audit reasons for direct dismiss and snooze actions', async () => {

@@ -229,6 +229,11 @@ export function makePulseRepo(db: Db, firmId: string) {
           inArray(client.entityType, entityTypes),
           inArray(obligationInstance.taxType, forms),
           inArray(obligationInstance.status, OPEN_STATUSES),
+          // A soft-deleted client is no longer "affected" by a regulatory change.
+          // Mirror the rest of the app (queue/dashboard/calendar all filter
+          // `deletedAt`): without this, a deleted client's still-open obligation
+          // lingers in the alert's affected list and could even be applied.
+          isNull(client.deletedAt),
         ),
       )
       .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
@@ -327,6 +332,8 @@ export function makePulseRepo(db: Db, firmId: string) {
           eq(client.firmId, firmId),
           inArray(obligationInstance.ruleId, ruleIds),
           inArray(obligationInstance.status, OPEN_STATUSES),
+          // Exclude soft-deleted clients (see listCandidateRows).
+          isNull(client.deletedAt),
         ),
       )
       .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
@@ -544,6 +551,11 @@ export function makePulseRepo(db: Db, firmId: string) {
           eq(obligationInstance.firmId, firmId),
           eq(client.firmId, firmId),
           inArray(obligationInstance.id, obligationIds),
+          // Exclude soft-deleted clients (see listCandidateRows). At apply time
+          // `listFreshEligibleRows` treats a now-missing row as a conflict, so a
+          // client deleted after selection surfaces the standard "list changed,
+          // refresh" guard instead of silently applying to a dead client.
+          isNull(client.deletedAt),
         ),
       )
       .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
@@ -1036,7 +1048,10 @@ export function makePulseRepo(db: Db, firmId: string) {
             eq(pulse.actionMode, 'due_date_overlay'),
             inArray(pulse.parsedJurisdiction, jurisdictions),
             or(
-              inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
+              // `reviewed` is included so a no-match overlay alert that was
+              // acknowledged BEFORE the firm activated the matching rule can be
+              // re-awakened below once accept creates the matching obligations.
+              inArray(pulseFirmAlert.status, ['matched', 'partially_applied', 'reviewed']),
               and(eq(pulseFirmAlert.status, 'snoozed'), lte(pulseFirmAlert.snoozedUntil, now)),
             ),
           ),
@@ -1044,7 +1059,21 @@ export function makePulseRepo(db: Db, firmId: string) {
       await Promise.all(
         alertIdRows.map(async ({ id }) => {
           const alert = await getAlert(id)
-          await refreshAlertCounts(id, alert)
+          const { matchedCount, needsReviewCount } = await refreshAlertCounts(id, alert)
+          // Re-awaken a previously-reviewed no-match overlay: accepting the rule
+          // created obligations that now match this pulse, so the alert must
+          // return to the active list (and the rule-review drawer banner) for the
+          // CPA to apply the new date. Reviewing was the right call when there was
+          // nothing to apply; it must not permanently bury a pulse that later
+          // becomes relevant. Applying the overlay stays the manual action.
+          // (markReviewed only allows reviewing no-match overlays, so any
+          // `reviewed` overlay reaching here was acknowledged at count 0.)
+          if (alert.alertStatus === 'reviewed' && matchedCount + needsReviewCount > 0) {
+            await db
+              .update(pulseFirmAlert)
+              .set({ status: 'matched' })
+              .where(and(eq(pulseFirmAlert.firmId, firmId), eq(pulseFirmAlert.id, id)))
+          }
         }),
       )
     },
@@ -1881,7 +1910,16 @@ export function makePulseRepo(db: Db, firmId: string) {
       now?: Date
     }): Promise<PulseDismissResult> {
       const alert = await getAlert(input.alertId)
-      if (isDueDateOverlayAlert(alert)) throw new PulseRepoError('conflict')
+      // A `due_date_overlay` alert can be acknowledged ("mark reviewed" → moves
+      // to history) ONLY when it has no current match: there is nothing to apply,
+      // so reviewing is the terminal action that clears it from the active list.
+      // While the overlay still has live matches, reviewing is the wrong action
+      // (apply or dismiss those instead) so it stays blocked. This is the Part-2
+      // scenario — a pulse approved before the firm activated the matching rule.
+      // (firmImpact === 'no_current_match' ⟺ matchedCount === 0 && needsReviewCount === 0.)
+      if (isDueDateOverlayAlert(alert) && (alert.matchedCount > 0 || alert.needsReviewCount > 0)) {
+        throw new PulseRepoError('conflict')
+      }
       const now = input.now ?? new Date()
       const auditId = crypto.randomUUID()
       await db.batch([
