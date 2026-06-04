@@ -7,10 +7,13 @@ import {
   type DueDateLogic,
   type ObligationGenerationPreview,
   type ObligationInstancePublic,
+  type ObligationRule,
+  type RuleCoverageRow,
   type RuleEvidenceAuthorityRole,
   type RuleGenerationPreviewInput,
   type RuleGenerationState,
   type RuleSource,
+  type RuleStatus,
 } from '@duedatehq/contracts'
 import { ClientTaxClassificationSchema } from '@duedatehq/contracts/shared/enums'
 
@@ -84,6 +87,109 @@ export const RULE_JURISDICTION_LABELS: Record<string, string> = {
 
 export function jurisdictionLabel(jurisdiction: string): string {
   return RULE_JURISDICTION_LABELS[jurisdiction] ?? jurisdiction
+}
+
+// ---------------------------------------------------------------------------
+// Shared rule-library model — entity + status maps and small pure helpers.
+//
+// Lifted out of routes/rules.library.tsx (2026-06-04, Yuqi rule-library
+// master–detail pivot) so the new states-rail + per-jurisdiction table
+// feature components can share the exact same entity ordering, status
+// tones, and title-stripping logic as the route WITHOUT importing back
+// from the route module (which would create a circular dependency — the
+// route imports those feature components). Behaviour is identical to the
+// previous in-route definitions; only the home moved.
+// ---------------------------------------------------------------------------
+
+export type EntityKey = keyof RuleCoverageRow['entityCoverage']
+
+// Rule-tier label map type, shared so the per-jurisdiction table can
+// accept the same `useRuleTierLabels()` output the route produces.
+export type RuleTier = ObligationRule['ruleTier']
+export type RuleTierLabels = Record<RuleTier, string>
+
+export const ENTITY_KEYS: readonly EntityKey[] = [
+  'llc',
+  'partnership',
+  's_corp',
+  'c_corp',
+  'sole_prop',
+  'individual',
+  'trust',
+] as const
+
+export const ENTITY_LABELS: Record<EntityKey, string> = {
+  llc: 'LLC',
+  partnership: 'Partnership',
+  s_corp: 'S-Corp',
+  c_corp: 'C-Corp',
+  sole_prop: 'Sole prop',
+  individual: 'Individual',
+  trust: 'Trust',
+}
+
+// Status sub-grouping. Rules are bucketed into these groups so a
+// reviewer reads "needs review / active / …" rather than scanning a
+// per-rule status column.
+export type StatusGroupKey = 'needs_review' | 'active' | 'rejected' | 'archived' | 'other'
+
+export const STATUS_GROUP_ORDER: readonly StatusGroupKey[] = [
+  'needs_review',
+  'active',
+  'rejected',
+  'archived',
+  'other',
+] as const
+
+export function statusGroupOf(status: RuleStatus): StatusGroupKey {
+  if (status === 'pending_review' || status === 'candidate') return 'needs_review'
+  if (status === 'active' || status === 'verified') return 'active'
+  if (status === 'rejected') return 'rejected'
+  if (status === 'archived') return 'archived'
+  return 'other'
+}
+
+// Status tone palette — `review` is its own tone (accent blue), NOT
+// reused with `warning`. Amber/warning is reserved for true caution
+// states (paused sources, expiring auth) so the eye learns one
+// signal = one meaning.
+export const STATUS_TONE: Record<RuleStatus, 'success' | 'review' | 'destructive' | 'muted'> = {
+  active: 'success',
+  verified: 'success',
+  pending_review: 'review',
+  candidate: 'review',
+  rejected: 'destructive',
+  archived: 'muted',
+  deprecated: 'muted',
+}
+
+// Single-word label per status, used next to the leading status dot
+// and inside the per-jurisdiction table's Status column.
+export const STATUS_LABEL_SHORT: Record<RuleStatus, string> = {
+  active: 'Active',
+  verified: 'Verified',
+  pending_review: 'Needs review',
+  candidate: 'Candidate',
+  rejected: 'Rejected',
+  archived: 'Archived',
+  deprecated: 'Deprecated',
+}
+
+// Drop a leading jurisdiction label from a rule title so the same
+// state name doesn't repeat down a state-scoped table. "Alabama
+// individual income tax" → "Individual income tax".
+export function stripJurisdictionPrefix(title: string, jurisLabel: string): string {
+  const trimmedTitle = title.trim()
+  const label = jurisLabel.trim()
+  if (!label) return trimmedTitle
+  const lcTitle = trimmedTitle.toLowerCase()
+  const lcLabel = label.toLowerCase()
+  if (!lcTitle.startsWith(lcLabel)) return trimmedTitle
+  let stripped = trimmedTitle.slice(label.length).trimStart()
+  // Drop a leading separator if present (em-dash, dash, colon).
+  stripped = stripped.replace(/^[-:·—]+\s*/, '')
+  if (!stripped) return trimmedTitle
+  return stripped.charAt(0).toUpperCase() + stripped.slice(1)
 }
 
 export const PREVIEW_ENTITY_OPTIONS = [
