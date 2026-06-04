@@ -24,14 +24,24 @@ function normalizeAlertsListLimit(limit: number | undefined): number | undefined
 // mutation (apply, dismiss, revert) refreshes the same surfaces:
 //   - pulse.* engine queries (banner / detail / history)
 //   - dashboard.load (open obligations + risk summary)
-//   - obligations.list (the underlying obligations may have moved due dates)
+//   - obligations.* — applying/reverting a due-date overlay moves an
+//     obligation's EFFECTIVE due date, so every obligation surface must
+//     refetch, not just the queue list: the deadline detail
+//     (obligations.getDetail) and the client view (obligations.listByClient)
+//     live under this namespace and previously kept showing the pre-apply
+//     date. Invalidating the whole namespace keeps them in sync.
+//   - calendar.* / workload.* / reminders.* — these schedule off the same due
+//     dates, so a moved deadline must refresh them too.
 //   - audit.* (newly written audit events)
 export function useAlertsInvalidation(): () => void {
   const queryClient = useQueryClient()
   return useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: orpc.pulse.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
-    void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.calendar.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.workload.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.reminders.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
   }, [queryClient])
 }
