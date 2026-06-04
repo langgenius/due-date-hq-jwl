@@ -3,37 +3,21 @@ import { Link } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
-import { AlertCircleIcon, CheckIcon, HistoryIcon, type LucideIcon } from 'lucide-react'
+import { AlertCircleIcon, HistoryIcon } from 'lucide-react'
 
-import type {
-  PulseAffectedClient,
-  PulseAlertPublic,
-  PulseChangeKind,
-  PulseSourceHealth,
-} from '@duedatehq/contracts'
+import type { PulseAffectedClient, PulseAlertPublic, PulseSourceHealth } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@duedatehq/ui/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@duedatehq/ui/components/ui/dropdown-menu'
 
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
+import {
+  TableHeaderMultiFilter,
+  type TableFilterOption,
+} from '@/components/patterns/table-header-filter'
 import { StatusBanner } from '@/components/patterns/status-banner'
 
 import { useAlertDrawer } from './DrawerProvider'
@@ -46,7 +30,6 @@ import {
   useAlertsAffectedClients,
 } from './api'
 import { AlertCard } from './components/AlertCard'
-import { ALERT_STATUS_ICON } from './components/AlertStatusBadge'
 import { PulsingDot } from './components/PulsingDot'
 import {
   isAlertImpactFilter,
@@ -109,10 +92,16 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // auto-collapse properly via `setAutoCollapsed` (see that
   // component) — no wrapper needed here. Just open the drawer.
   const openDrawerAndCollapseSidebar = openDrawer
-  const [statusFilter, setStatusFilter] = useState<AlertStatusFilter>('all')
-  const [impactFilter, setImpactFilter] = useState<AlertImpactFilter>('all')
-  const [changeKindFilter, setChangeKindFilter] = useState<AlertChangeKindFilter>('all')
-  const [sourceFilter, setSourceFilter] = useState('all')
+  // 2026-06-04: Alerts top filters aligned to the /clients toolbar —
+  // Impact / Change type / Status / Source are now multi-select
+  // `TableHeaderMultiFilter` dropdowns (checkbox in front of each
+  // option). An empty array means "no filter" (matches everything);
+  // selecting multiple values within one filter is OR'd. The State
+  // filter keeps its dedicated tilegram popover and stays single-pick.
+  const [statusFilter, setStatusFilter] = useState<AlertStatusFilter[]>([])
+  const [impactFilter, setImpactFilter] = useState<AlertImpactFilter[]>([])
+  const [changeKindFilter, setChangeKindFilter] = useState<AlertChangeKindFilter[]>([])
+  const [sourceFilter, setSourceFilter] = useState<string[]>([])
   // 2026-05-25 (Yuqi Alerts #9): state filter. v1 ships as a chip
   // strip (one chip per state with active alerts, count badge,
   // click-to-filter). The full SVG US map is a follow-on polish
@@ -168,14 +157,76 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       return aCode.localeCompare(bCode)
     })
   }, [alerts])
+  // Option lists for the multi-select filter dropdowns. The leading
+  // `all` sentinel is dropped — an empty selection IS "all" now — so
+  // these only carry the concrete facet values, each with a plain
+  // string label (the toolbar checkbox rows render text, not JSX).
+  const impactFilterOptions = useMemo<TableFilterOption[]>(() => {
+    const labels: Record<AlertImpactFilter, string> = {
+      all: '',
+      needs_action: t`Needs action`,
+      needs_review: t`Needs review`,
+      no_matches: t`No matches`,
+      closed: t`Closed`,
+    }
+    return ALERT_IMPACT_FILTER_OPTIONS.filter((option) => option !== 'all').map((option) => ({
+      value: option,
+      label: labels[option],
+    }))
+  }, [t])
+  const changeKindFilterOptions = useMemo<TableFilterOption[]>(() => {
+    const labels: Record<AlertChangeKindFilter, string> = {
+      all: '',
+      deadline_shift: t`Deadline shifts`,
+      filing_requirement: t`Filing requirements`,
+      applicability_scope: t`Applicability scope`,
+      form_instruction: t`Forms and instructions`,
+      source_status: t`Source status`,
+      rule_source_drift: t`Source changed — re-verify`,
+      new_obligation: t`New deadlines`,
+      threshold_advisory: t`Threshold advisories`,
+      other: t`Other changes`,
+    }
+    return CHANGE_KIND_FILTER_OPTIONS.filter((option) => option !== 'all').map((option) => ({
+      value: option,
+      label: labels[option],
+    }))
+  }, [t])
+  const statusFilterSelectOptions = useMemo<TableFilterOption[]>(() => {
+    const labels: Record<AlertStatusFilter, string> = {
+      all: '',
+      active: t`Active`,
+      partially_applied: t`Partially applied`,
+      applied: t`Applied`,
+      dismissed: t`Dismissed`,
+      reverted: t`Reverted`,
+      reviewed: t`Reviewed`,
+      snoozed: t`Snoozed`,
+    }
+    return statusFilterOptions
+      .filter((option) => option !== 'all')
+      .map((option) => ({ value: option, label: labels[option] }))
+  }, [statusFilterOptions, t])
+  const sourceFilterOptions = useMemo<TableFilterOption[]>(
+    () =>
+      sourceOptions.map((source) => ({
+        value: source,
+        label: source,
+        count: sourceCounts.get(source) ?? 0,
+      })),
+    [sourceOptions, sourceCounts],
+  )
   const filteredAlerts = useMemo(
     () =>
       alerts.filter(
         (alert) =>
-          matchesAlertImpactFilter(alert, impactFilter) &&
-          matchesStatusFilter(alert.status, statusFilter) &&
-          (changeKindFilter === 'all' || alert.changeKind === changeKindFilter) &&
-          (sourceFilter === 'all' || alert.source === sourceFilter) &&
+          (impactFilter.length === 0 ||
+            impactFilter.some((filter) => matchesAlertImpactFilter(alert, filter))) &&
+          (statusFilter.length === 0 ||
+            statusFilter.some((filter) => matchesStatusFilter(alert.status, filter))) &&
+          (changeKindFilter.length === 0 ||
+            changeKindFilter.some((kind) => kind === alert.changeKind)) &&
+          (sourceFilter.length === 0 || sourceFilter.includes(alert.source)) &&
           (jurisdictionFilter === null || alert.jurisdiction === jurisdictionFilter),
       ),
     [alerts, changeKindFilter, impactFilter, jurisdictionFilter, sourceFilter, statusFilter],
@@ -183,10 +234,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const isEmpty = !alertsQuery.isLoading && alerts.length === 0
   const isFilteredEmpty = !alertsQuery.isLoading && alerts.length > 0 && filteredAlerts.length === 0
   const filtersActive =
-    impactFilter !== 'all' ||
-    statusFilter !== 'all' ||
-    changeKindFilter !== 'all' ||
-    sourceFilter !== 'all' ||
+    impactFilter.length > 0 ||
+    statusFilter.length > 0 ||
+    changeKindFilter.length > 0 ||
+    sourceFilter.length > 0 ||
     jurisdictionFilter !== null
 
   // 2026-05-25 (Yuqi /alerts #9 — drawer → page panel): when
@@ -450,121 +501,55 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   min-content width can turn that same column into a
                   horizontal scroller when the detail panel is open. */}
               <div className="flex min-w-0 flex-wrap items-center gap-2">
-                {/* 2026-05-26 (Yuqi seventy-fourth pass follow-up
-                    — finish E): three Base UI Selects converted to
-                    DropdownMenu + FilterTrigger. Yuqi's standing
-                    "incorrect dropdown interaction" feedback on
-                    Base UI Selects applies here too — the rest of
-                    the product uses DropdownMenu + RadioGroup. The
-                    panelOpen ? 'w-auto' : 'w-[180px]' sizing is
-                    preserved per the previous twentieth-pass
-                    rationale (one-line filter row when the right
-                    panel is open). */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <FilterTrigger
-                        active={impactFilter !== 'all'}
-                        aria-label={t`Filter by impact`}
-                        className={panelOpen ? 'w-auto' : 'w-[180px]'}
-                      >
-                        <span className="min-w-0 flex-1 truncate text-left">
-                          {impactFilterLabel(impactFilter)}
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
-                  <DropdownMenuContent align="start" className="min-w-[180px]">
-                    <DropdownMenuRadioGroup
-                      value={impactFilter}
-                      onValueChange={(value) => {
-                        if (typeof value === 'string' && isAlertImpactFilter(value))
-                          setImpactFilter(value)
-                      }}
-                    >
-                      {ALERT_IMPACT_FILTER_OPTIONS.map((option) => (
-                        <DropdownMenuRadioItem key={option} value={option}>
-                          {impactFilterLabel(option)}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <FilterTrigger
-                        active={changeKindFilter !== 'all'}
-                        aria-label={t`Filter by change type`}
-                        className={panelOpen ? 'w-auto' : 'w-[180px]'}
-                      >
-                        <span className="min-w-0 flex-1 truncate text-left">
-                          {changeKindFilterLabel(changeKindFilter)}
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
-                  <DropdownMenuContent align="start" className="min-w-[180px]">
-                    <DropdownMenuRadioGroup
-                      value={changeKindFilter}
-                      onValueChange={(value) => {
-                        if (typeof value === 'string' && isChangeKindFilter(value))
-                          setChangeKindFilter(value)
-                      }}
-                    >
-                      {CHANGE_KIND_FILTER_OPTIONS.map((option) => (
-                        <DropdownMenuRadioItem key={option} value={option}>
-                          {changeKindFilterLabel(option)}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <FilterTrigger
-                        active={statusFilter !== 'all'}
-                        aria-label={t`Filter by alert status`}
-                        className={panelOpen ? 'w-auto' : 'w-[180px]'}
-                      >
-                        <span className="min-w-0 flex-1 truncate text-left">
-                          {statusFilterLabel(statusFilter, historyMode)}
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
-                  <DropdownMenuContent align="start" className="min-w-[180px]">
-                    <DropdownMenuRadioGroup
-                      value={statusFilter}
-                      onValueChange={(value) => {
-                        if (typeof value === 'string' && isStatusFilter(value, statusFilterOptions))
-                          setStatusFilter(value)
-                      }}
-                    >
-                      {statusFilterOptions.map((option) => (
-                        <DropdownMenuRadioItem key={option} value={option}>
-                          {statusFilterLabel(option, historyMode)}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {/* 2026-05-26 (Yuqi /alerts follow-up): source
-                    filter converted from a flat Select to a searchable
-                    Popover + Command combobox. Practices with 30+
-                    sources (IRS, NY DTF, CA FTB, TX Comptroller, FL DOR,
-                    …) made the plain Select scroll list slow to navigate.
-                    CommandInput pattern lets the CPA type "ny" and
-                    narrow to NY-prefixed sources instantly. */}
-                <SourceFilterPopover
-                  sourceOptions={sourceOptions}
-                  sourceCounts={sourceCounts}
-                  activeSource={sourceFilter}
-                  onSelect={(value) => setSourceFilter(value)}
+                {/* 2026-06-04: top filters aligned to the /clients
+                    toolbar. Impact / Change type / Status / Source are
+                    multi-select `TableHeaderMultiFilter` dropdowns —
+                    same chrome as /clients (FilterTrigger + count
+                    badge), a checkbox in front of every option, values
+                    OR'd within each filter. The State filter below keeps
+                    its dedicated tilegram popover. */}
+                <TableHeaderMultiFilter
+                  trigger="toolbar"
+                  label={t`Impact`}
+                  options={impactFilterOptions}
+                  selected={impactFilter}
+                  emptyLabel={t`No impact levels`}
+                  onSelectedChange={(next) => setImpactFilter(next.filter(isAlertImpactFilter))}
+                />
+                <TableHeaderMultiFilter
+                  trigger="toolbar"
+                  label={t`Change type`}
+                  options={changeKindFilterOptions}
+                  selected={changeKindFilter}
+                  emptyLabel={t`No change types`}
+                  onSelectedChange={(next) => setChangeKindFilter(next.filter(isChangeKindFilter))}
+                />
+                <TableHeaderMultiFilter
+                  trigger="toolbar"
+                  label={t`Status`}
+                  options={statusFilterSelectOptions}
+                  selected={statusFilter}
+                  emptyLabel={t`No statuses`}
+                  onSelectedChange={(next) =>
+                    setStatusFilter(
+                      next.filter((value): value is AlertStatusFilter =>
+                        isStatusFilter(value, statusFilterOptions),
+                      ),
+                    )
+                  }
+                />
+                {/* Source can run to 30+ entries (IRS, NY DTF, CA FTB,
+                    …) so this filter stays searchable, mirroring the
+                    /clients Client + States dropdowns. */}
+                <TableHeaderMultiFilter
+                  trigger="toolbar"
+                  label={t`Source`}
+                  options={sourceFilterOptions}
+                  selected={sourceFilter}
+                  emptyLabel={t`No sources`}
+                  searchable
+                  searchPlaceholder={t`Search sources`}
+                  onSelectedChange={setSourceFilter}
                 />
 
                 {/* 2026-05-25 (Yuqi /alerts fifth pass — map
@@ -597,10 +582,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   size="sm"
                   disabled={!filtersActive}
                   onClick={() => {
-                    setImpactFilter('all')
-                    setStatusFilter('all')
-                    setChangeKindFilter('all')
-                    setSourceFilter('all')
+                    setImpactFilter([])
+                    setStatusFilter([])
+                    setChangeKindFilter([])
+                    setSourceFilter([])
                     setJurisdictionFilter(null)
                   }}
                 >
@@ -756,184 +741,12 @@ function StateFilterPopover({
   )
 }
 
-// 2026-05-26 (Yuqi /alerts follow-up): searchable source-filter
-// combobox. Built on Popover + Command (cmdk under the hood) so it
-// matches the picker pattern used in ClientCombobox / the Cmd+K
-// palette — type to filter, ↑/↓ to navigate, Enter to apply, Esc
-// to dismiss. Each row carries its per-source alert count on the
-// right, and the active source's count is also surfaced on the
-// trigger (e.g. "IRS · 12 alerts") so the filter row still reads
-// at a glance without opening the popover.
-function SourceFilterPopover({
-  sourceOptions,
-  sourceCounts,
-  activeSource,
-  onSelect,
-}: {
-  sourceOptions: readonly string[]
-  sourceCounts: ReadonlyMap<string, number>
-  activeSource: string
-  onSelect: (value: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const { t } = useLingui()
-  const isFiltered = activeSource !== 'all'
-  const activeCount = isFiltered ? (sourceCounts.get(activeSource) ?? 0) : 0
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        render={
-          <FilterTrigger active={isFiltered} aria-label={t`Filter by source`}>
-            <span className="min-w-0 flex-1 truncate text-left">
-              {isFiltered ? (
-                <>
-                  <span className="font-medium">{activeSource}</span>
-                  <span className="ml-1.5 tabular-nums text-text-accent/70">
-                    <Plural value={activeCount} one="# alert" other="# alerts" />
-                  </span>
-                </>
-              ) : (
-                <Trans>All sources</Trans>
-              )}
-            </span>
-          </FilterTrigger>
-        }
-      />
-      <PopoverContent
-        align="start"
-        sideOffset={4}
-        className="w-(--anchor-width) min-w-[240px] overflow-hidden p-0"
-      >
-        <Command loop>
-          <CommandInput autoFocus placeholder={t`Search sources…`} />
-          <CommandList className="max-h-[280px]">
-            <CommandEmpty>
-              <Trans>No sources match your search.</Trans>
-            </CommandEmpty>
-            <CommandGroup>
-              <CommandItem
-                value="all"
-                onSelect={() => {
-                  onSelect('all')
-                  setOpen(false)
-                }}
-                className="grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2"
-              >
-                <span className="min-w-0 truncate text-sm text-text-primary">
-                  <Trans>All sources</Trans>
-                </span>
-                <span className="shrink-0 tabular-nums text-xs text-text-tertiary">
-                  {sourceOptions.length}
-                </span>
-                {!isFiltered ? (
-                  <CheckIcon className="size-4 text-text-accent" aria-hidden />
-                ) : (
-                  <span aria-hidden className="size-4" />
-                )}
-              </CommandItem>
-              {sourceOptions.map((source) => {
-                const count = sourceCounts.get(source) ?? 0
-                const selected = source === activeSource
-                return (
-                  <CommandItem
-                    key={source}
-                    value={source}
-                    onSelect={() => {
-                      onSelect(source)
-                      setOpen(false)
-                    }}
-                    className="grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2"
-                  >
-                    <span className="min-w-0 truncate text-sm text-text-primary">{source}</span>
-                    <span className="shrink-0 tabular-nums text-xs text-text-tertiary">
-                      {count}
-                    </span>
-                    {selected ? (
-                      <CheckIcon className="size-4 text-text-accent" aria-hidden />
-                    ) : (
-                      <span aria-hidden className="size-4" />
-                    )}
-                  </CommandItem>
-                )
-              })}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
 function FilteredEmptyState() {
   return (
     <StatusBanner indicator={<PulsingDot tone="disabled" />}>
       <Trans>No alerts match these filters.</Trans>
     </StatusBanner>
   )
-}
-
-function impactFilterLabel(filter: AlertImpactFilter): React.ReactNode {
-  if (filter === 'all') return <Trans>All impact</Trans>
-  if (filter === 'needs_action') return <Trans>Needs action</Trans>
-  if (filter === 'needs_review') return <Trans>Needs review</Trans>
-  if (filter === 'no_matches') return <Trans>No matches</Trans>
-  return <Trans>Closed</Trans>
-}
-
-// 2026-05-26 (Yuqi /alerts thirteenth pass): each non-`all`
-// filter renders a leading lucide icon — the canonical alert-status
-// vocabulary (CircleCheckBig / AlarmClock / Undo2 / FileCheck) is
-// duplicated here so the dropdown rows read as "[icon] Label" and
-// the active trigger label gets the icon too. Filter values map to
-// the real PulseFirmAlertStatus 1:1 except for `active` → `matched`.
-const STATUS_FILTER_ICON: Record<AlertStatusFilter, LucideIcon | null> = {
-  all: null,
-  active: ALERT_STATUS_ICON.matched,
-  snoozed: ALERT_STATUS_ICON.snoozed,
-  applied: ALERT_STATUS_ICON.applied,
-  partially_applied: ALERT_STATUS_ICON.partially_applied,
-  reviewed: ALERT_STATUS_ICON.reviewed,
-  reverted: ALERT_STATUS_ICON.reverted,
-  dismissed: ALERT_STATUS_ICON.dismissed,
-}
-
-function statusFilterText(filter: AlertStatusFilter, historyMode: boolean): React.ReactNode {
-  if (filter === 'all')
-    return historyMode ? <Trans>All handled</Trans> : <Trans>All statuses</Trans>
-  if (filter === 'active') return <Trans>Active</Trans>
-  if (filter === 'partially_applied') return <Trans>Partially applied</Trans>
-  if (filter === 'applied') return <Trans>Applied</Trans>
-  if (filter === 'dismissed') return <Trans>Dismissed</Trans>
-  if (filter === 'reverted') return <Trans>Reverted</Trans>
-  if (filter === 'reviewed') return <Trans>Reviewed</Trans>
-  return <Trans>Snoozed</Trans>
-}
-
-function statusFilterLabel(filter: AlertStatusFilter, historyMode: boolean): React.ReactNode {
-  const Icon = STATUS_FILTER_ICON[filter]
-  return (
-    <span className="inline-flex items-center gap-2">
-      {Icon ? <Icon className="size-3.5 text-text-tertiary" aria-hidden /> : null}
-      {statusFilterText(filter, historyMode)}
-    </span>
-  )
-}
-
-function changeKindFilterLabel(filter: AlertChangeKindFilter): React.ReactNode {
-  if (filter === 'all') return <Trans>All change types</Trans>
-  return changeKindLabel(filter)
-}
-
-function changeKindLabel(kind: PulseChangeKind): React.ReactNode {
-  if (kind === 'deadline_shift') return <Trans>Deadline shifts</Trans>
-  if (kind === 'filing_requirement') return <Trans>Filing requirements</Trans>
-  if (kind === 'applicability_scope') return <Trans>Applicability scope</Trans>
-  if (kind === 'form_instruction') return <Trans>Forms and instructions</Trans>
-  if (kind === 'source_status') return <Trans>Source status</Trans>
-  if (kind === 'rule_source_drift') return <Trans>Source changed — re-verify</Trans>
-  if (kind === 'new_obligation') return <Trans>New deadlines</Trans>
-  if (kind === 'threshold_advisory') return <Trans>Threshold advisories</Trans>
-  return <Trans>Other changes</Trans>
 }
 
 function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {
