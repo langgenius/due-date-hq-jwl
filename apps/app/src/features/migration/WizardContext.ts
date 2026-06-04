@@ -2,7 +2,7 @@ import { createContext } from 'react'
 
 export interface MigrationWizardContextValue {
   open: boolean
-  openWizard: () => void
+  openWizard: (options?: { resumeBatchId?: string }) => void
   closeWizard: () => void
 }
 

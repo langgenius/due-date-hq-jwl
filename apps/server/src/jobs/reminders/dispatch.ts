@@ -177,6 +177,10 @@ async function loadOpenObligations(env: Env, firmId: string): Promise<Obligation
       and(
         eq(obligationInstance.firmId, firmId),
         inArray(obligationInstance.status, OPEN_STATUSES),
+        // Projected (rolled-forward / auto-generated) deadlines stay out of the
+        // reminder pipeline until a CPA confirms them — no client or internal
+        // emails for an unconfirmed future-year deadline.
+        eq(obligationInstance.confirmed, true),
         isNull(client.deletedAt),
       ),
     )

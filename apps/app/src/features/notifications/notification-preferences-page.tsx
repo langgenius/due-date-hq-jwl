@@ -147,7 +147,7 @@ export function NotificationPreferencesPage() {
                     ['emailEnabled', t`Email`],
                     ['inAppEnabled', t`In-app`],
                     ['remindersEnabled', t`Deadline reminders`],
-                    ['pulseEnabled', t`Pulse alerts`],
+                    ['pulseEnabled', t`Alerts`],
                     ['unassignedRemindersEnabled', t`Unassigned work`],
                   ] as const
                 ).map(([key, label]) => (
@@ -334,7 +334,7 @@ function MorningDigestCard({
                   </div>
                   <p className="text-xs text-text-tertiary">
                     <Trans>
-                      {run.urgentCount} urgent · {run.pulseCount} Pulse · {run.failedReminderCount}{' '}
+                      {run.urgentCount} urgent · {run.pulseCount} Alerts · {run.failedReminderCount}{' '}
                       failed reminders · {run.unassignedCount} unassigned
                     </Trans>
                   </p>

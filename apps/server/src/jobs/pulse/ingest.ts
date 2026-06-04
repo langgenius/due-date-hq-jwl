@@ -13,6 +13,32 @@ export interface PulseExtractQueueMessage {
   snapshotId: string
 }
 
+export const PULSE_INGEST_SOURCE_MESSAGE_TYPE = 'pulse.ingest.source'
+
+// One message per *due* source, enqueued by the cron path (`enqueuePulseIngestScans`)
+// and consumed one-source-per-invocation (`consumePulseIngestSource`). This keeps the
+// scheduled tick O(1) — it only decides which sources are due and fans them out — so a
+// slow or hanging source can no longer burn the whole cron invocation's CPU/wall-clock
+// budget. Mirrors the rules-scan pattern (jobs/rules/reconcile.ts).
+export interface PulseIngestSourceMessage {
+  type: typeof PULSE_INGEST_SOURCE_MESSAGE_TYPE
+  sourceId: string
+  reason: 'cadence_due'
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+export function isPulseIngestSourceMessage(value: unknown): value is PulseIngestSourceMessage {
+  return (
+    isRecord(value) &&
+    value.type === PULSE_INGEST_SOURCE_MESSAGE_TYPE &&
+    typeof value.sourceId === 'string' &&
+    value.reason === 'cadence_due'
+  )
+}
+
 interface IngestCounts {
   snapshots: number
   queued: number
@@ -23,8 +49,11 @@ interface IngestCounts {
 type PulseIngestRepo = Pick<
   ReturnType<typeof makePulseOpsRepo>,
   | 'ensureSourceState'
+  | 'ensureSourceStates'
   | 'getSourceState'
+  | 'establishSourceBaseline'
   | 'createSourceSnapshot'
+  | 'updateSourceSnapshotStatus'
   | 'recordSourceSuccess'
   | 'recordSourceFailure'
   | 'listSourceStates'
@@ -34,8 +63,12 @@ function makePulseIngestRepo(db: ReturnType<typeof createDb>): PulseIngestRepo {
   const repo = makePulseOpsRepo(db)
   return {
     ensureSourceState: (input) => repo.ensureSourceState(input),
+    ensureSourceStates: (inputs, now) => repo.ensureSourceStates(inputs, now),
     getSourceState: (sourceId) => repo.getSourceState(sourceId),
+    establishSourceBaseline: (input) => repo.establishSourceBaseline(input),
     createSourceSnapshot: (input) => repo.createSourceSnapshot(input),
+    updateSourceSnapshotStatus: (snapshotId, patch) =>
+      repo.updateSourceSnapshotStatus(snapshotId, patch),
     recordSourceSuccess: (input) => repo.recordSourceSuccess(input),
     recordSourceFailure: (input) => repo.recordSourceFailure(input),
     listSourceStates: () => repo.listSourceStates(),
@@ -108,6 +141,22 @@ function nextCheckAt(from: Date, intervalMs: number): Date {
   return new Date(from.getTime() + intervalMs)
 }
 
+// Shared due-check used by both the synchronous `ingestAdapter` guard and the
+// `enqueuePulseIngestScans` cron fan-out, so the enqueue side never queues a source
+// the consumer would just skip.
+function sourceIsDue(state: { enabled?: boolean; nextCheckAt?: Date | null }, now: Date): boolean {
+  return (
+    state.enabled !== false && (!state.nextCheckAt || state.nextCheckAt.getTime() <= now.getTime())
+  )
+}
+
+function sourceNeedsMonitoringBaseline(state: {
+  monitoringBaselineAt?: Date | null
+  baselineMode?: string
+}): boolean {
+  return state.monitoringBaselineAt === null && state.baselineMode !== 'backfill'
+}
+
 function resolveFetcherForAdapter(
   adapter: SourceAdapter,
   ctx: Pick<IngestCtx, 'browserlessFetch' | 'govdeliveryFetch'>,
@@ -167,12 +216,10 @@ async function ingestAdapter(
     cadenceMs: adapter.cronIntervalMs,
     now: checkedAt,
   })
-  if (
-    !state.enabled ||
-    (!opts.force && state.nextCheckAt && state.nextCheckAt.getTime() > checkedAt.getTime())
-  ) {
+  if (!state.enabled || (!opts.force && !sourceIsDue(state, checkedAt))) {
     return { snapshots: 0, queued: 0, duplicates: 0, failures: 0 }
   }
+  const establishingBaseline = sourceNeedsMonitoringBaseline(state)
 
   try {
     const startedAt = Date.now()
@@ -198,7 +245,19 @@ async function ingestAdapter(
     )
     const changedSnapshots = rawSnapshots.filter((snapshot) => !snapshot.notModified).length
     const parsedItemCount = parsedGroups.reduce((count, group) => count + group.items.length, 0)
-    if (changedSnapshots > 0 && parsedItemCount === 0 && !adapter.allowEmptyParse) {
+    // Skip selector-drift detection while establishing a source's monitoring
+    // baseline. A brand-new source's first scan legitimately yields zero parsed
+    // items (cold start), and — more importantly — throwing here happens before
+    // the `establishSourceBaseline` call below, so a drift throw would strand the
+    // source in `establish_on_first_seen` forever: every queue retry re-fetches,
+    // re-parses zero, and re-throws, never recording a baseline. Real drift on an
+    // established source is still caught on the next (active) scan.
+    if (
+      changedSnapshots > 0 &&
+      parsedItemCount === 0 &&
+      !adapter.allowEmptyParse &&
+      !establishingBaseline
+    ) {
       throw new Error(`selector_drift: ${adapter.id} produced no parsed items`)
     }
 
@@ -224,6 +283,18 @@ async function ingestAdapter(
         if (!result.inserted) {
           return { snapshots: 1, queued: 0, duplicates: 1, failures: 0 }
         }
+        if (establishingBaseline) {
+          await repo.updateSourceSnapshotStatus(result.snapshot.id, {
+            parseStatus: 'ignored',
+            failureReason: 'monitoring_baseline_established',
+          })
+          return {
+            snapshots: 1,
+            queued: 0,
+            duplicates: 0,
+            failures: 0,
+          }
+        }
         await queue.send({
           type: 'pulse.extract',
           snapshotId: result.snapshot.id,
@@ -238,12 +309,15 @@ async function ingestAdapter(
     )
 
     const counts = sumCounts(await Promise.all(writes))
+    if (establishingBaseline) {
+      await repo.establishSourceBaseline({ sourceId: adapter.id, baselineAt: checkedAt })
+    }
     const freshest = rawSnapshots.find((snapshot) => snapshot.etag || snapshot.lastModified)
     await repo.recordSourceSuccess({
       sourceId: adapter.id,
       checkedAt,
       nextCheckAt: nextCheckAt(checkedAt, adapter.cronIntervalMs),
-      changed: counts.queued > 0,
+      changed: !establishingBaseline && counts.queued > 0,
       ...(freshest?.etag !== undefined ? { etag: freshest.etag } : {}),
       ...(freshest?.lastModified !== undefined ? { lastModified: freshest.lastModified } : {}),
     })
@@ -258,6 +332,16 @@ async function ingestAdapter(
     })
     return counts
   } catch (error) {
+    // Source failures are caught here and only the message reaches `last_error`
+    // in D1, which hides the call site of runtime faults (e.g. workerd "Illegal
+    // invocation"). Log the full stack + resolved fetcher to observability so a
+    // failing source can be traced to an exact line via `wrangler tail`.
+    console.error('pulse.ingest.source_failed', {
+      sourceId: adapter.id,
+      fetcher: resolveFetcherForAdapter(adapter, ctx, opts.browserlessSourceIds),
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     await repo.recordSourceFailure({
       sourceId: adapter.id,
       checkedAt,
@@ -275,16 +359,44 @@ async function ingestAdapter(
   }
 }
 
+type PulseIngestEnv = Pick<
+  Env,
+  | 'DB'
+  | 'R2_PULSE'
+  | 'PULSE_QUEUE'
+  | 'PULSE_BROWSERLESS_URL'
+  | 'PULSE_BROWSERLESS_TOKEN'
+  | 'PULSE_BROWSERLESS_SOURCE_IDS'
+>
+
+// Builds the per-run ingest context (polite fetch, browserless wiring, R2 archive,
+// source-state lookup). Shared by the synchronous `runPulseIngest` (retry button +
+// tests) and the queued single-source `consumePulseIngestSource` so both fetch
+// identically.
+function createPulseIngestCtx(
+  env: PulseIngestEnv,
+  repo: PulseIngestRepo,
+): { ctx: IngestCtx; browserlessSourceIds: ReadonlySet<string> } {
+  const browserlessFetch = createBrowserlessFetch({
+    ...(env.PULSE_BROWSERLESS_URL ? { endpoint: env.PULSE_BROWSERLESS_URL } : {}),
+    ...(env.PULSE_BROWSERLESS_TOKEN ? { token: env.PULSE_BROWSERLESS_TOKEN } : {}),
+  })
+  const browserlessSourceIds = parseSourceIdList(env.PULSE_BROWSERLESS_SOURCE_IDS)
+  const ctx: IngestCtx = {
+    fetch: createPoliteFetch(fetch),
+    binaryFetch: createPoliteFetch(fetch),
+    ...(browserlessFetch ? { browserlessFetch } : {}),
+    getSourceState: async (sourceId) => {
+      const state = await repo.getSourceState(sourceId)
+      return state ? { etag: state.etag, lastModified: state.lastModified } : null
+    },
+    archiveRaw: (input: Parameters<IngestCtx['archiveRaw']>[0]) => archivePulseRaw(env, input),
+  }
+  return { ctx, browserlessSourceIds }
+}
+
 export async function runPulseIngest(
-  env: Pick<
-    Env,
-    | 'DB'
-    | 'R2_PULSE'
-    | 'PULSE_QUEUE'
-    | 'PULSE_BROWSERLESS_URL'
-    | 'PULSE_BROWSERLESS_TOKEN'
-    | 'PULSE_BROWSERLESS_SOURCE_IDS'
-  >,
+  env: PulseIngestEnv,
   adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
   opts: { force?: boolean } = {},
 ): Promise<{
@@ -295,20 +407,7 @@ export async function runPulseIngest(
 }> {
   const db = createDb(env.DB)
   const repo = makePulseIngestRepo(db)
-  const browserlessFetch = createBrowserlessFetch({
-    ...(env.PULSE_BROWSERLESS_URL ? { endpoint: env.PULSE_BROWSERLESS_URL } : {}),
-    ...(env.PULSE_BROWSERLESS_TOKEN ? { token: env.PULSE_BROWSERLESS_TOKEN } : {}),
-  })
-  const browserlessSourceIds = parseSourceIdList(env.PULSE_BROWSERLESS_SOURCE_IDS)
-  const ctx: IngestCtx = {
-    fetch: createPoliteFetch(fetch),
-    ...(browserlessFetch ? { browserlessFetch } : {}),
-    getSourceState: async (sourceId) => {
-      const state = await repo.getSourceState(sourceId)
-      return state ? { etag: state.etag, lastModified: state.lastModified } : null
-    },
-    archiveRaw: (input: Parameters<IngestCtx['archiveRaw']>[0]) => archivePulseRaw(env, input),
-  }
+  const { ctx, browserlessSourceIds } = createPulseIngestCtx(env, repo)
 
   const results = await Promise.all(
     adapters.map((adapter) =>
@@ -322,4 +421,74 @@ export async function runPulseIngest(
   )
   recordPulseMetric('pulse.ingest.run_result', { ...counts })
   return counts
+}
+
+// Cron entry point. Decides which sources are due and fans out one queue message per
+// due source — it does NOT fetch. This bounds the scheduled tick's work regardless of
+// how many sources exist (the P0 scaling fix). `emitSourceIdleAlerts` runs here over the
+// full source set; it reflects prior runs' success times (independent of this tick's
+// not-yet-run fetches), so computing it pre-fetch is correct and not masked by the tick.
+export async function enqueuePulseIngestScans(
+  env: Pick<Env, 'DB' | 'PULSE_QUEUE'>,
+  adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
+  now: Date = new Date(),
+): Promise<{ queued: number }> {
+  const db = createDb(env.DB)
+  const repo = makePulseIngestRepo(db)
+  // One batched read+upsert for all sources instead of N serial round-trips —
+  // the per-source loop was blowing the cron's wall-clock budget (exceededCpu).
+  const states = await repo.ensureSourceStates(
+    adapters.map((adapter) => ({
+      sourceId: adapter.id,
+      tier: adapter.tier,
+      jurisdiction: adapter.jurisdiction,
+      cadenceMs: adapter.cronIntervalMs,
+      now,
+    })),
+    now,
+  )
+  const dueSourceIds = adapters
+    .filter((adapter) => {
+      const state = states.get(adapter.id)
+      return state ? sourceIsDue(state, now) : false
+    })
+    .map((adapter) => adapter.id)
+
+  await Promise.all(
+    dueSourceIds.map((sourceId) =>
+      env.PULSE_QUEUE.send({
+        type: PULSE_INGEST_SOURCE_MESSAGE_TYPE,
+        sourceId,
+        reason: 'cadence_due',
+      } satisfies PulseIngestSourceMessage),
+    ),
+  )
+
+  const activeSourceIds = new Set(adapters.map((adapter) => adapter.id))
+  emitSourceIdleAlerts(
+    (await repo.listSourceStates()).filter((row) => activeSourceIds.has(row.sourceId)),
+    now,
+  )
+  recordPulseMetric('pulse.ingest.enqueued', { queued: dueSourceIds.length })
+  return { queued: dueSourceIds.length }
+}
+
+// Queue consumer for a single source enqueued by `enqueuePulseIngestScans`. Runs with
+// `force: true` because the due-check already happened at enqueue time, and so a queue
+// retry re-fetches rather than short-circuiting on a stale `nextCheckAt`. Idempotency is
+// still guaranteed downstream by the snapshot unique index + the extract status guard.
+export async function consumePulseIngestSource(
+  env: PulseIngestEnv,
+  message: PulseIngestSourceMessage,
+  adapters: readonly SourceAdapter[] = liveRegulatorySourceAdapters,
+): Promise<IngestCounts> {
+  const adapter = adapters.find((candidate) => candidate.id === message.sourceId)
+  if (!adapter) {
+    recordPulseMetric('pulse.ingest.source_missing', { sourceId: message.sourceId })
+    return { snapshots: 0, queued: 0, duplicates: 0, failures: 0 }
+  }
+  const db = createDb(env.DB)
+  const repo = makePulseIngestRepo(db)
+  const { ctx, browserlessSourceIds } = createPulseIngestCtx(env, repo)
+  return ingestAdapter(adapter, ctx, repo, env.PULSE_QUEUE, { force: true, browserlessSourceIds })
 }

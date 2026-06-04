@@ -15,13 +15,13 @@ export const ALL_ENTITIES = 'all'
 export const STATE_FILTER_ALL = 'all'
 export const CLIENT_READINESS_FILTERS = ['ready', 'needs_facts'] as const
 export const CLIENT_SOURCE_FILTERS = ['imported', 'manual'] as const
-export const CLIENT_PULSE_FILTERS = ['affected', 'clear'] as const
+export const CLIENT_ALERT_FILTERS = ['affected', 'clear'] as const
 export const CLIENT_UNASSIGNED_OWNER_FILTER = '__unassigned__'
 
 export type ClientEntityType = ClientCreateInput['entityType']
 export type ClientSourceType = 'imported' | 'manual'
 export type ClientReadinessStatus = 'ready' | 'needs_facts'
-export type ClientPulseFilter = (typeof CLIENT_PULSE_FILTERS)[number]
+export type ClientAlertFilter = (typeof CLIENT_ALERT_FILTERS)[number]
 type RequiredClientFact = 'state' | 'entityType'
 type OptionalClientFact = 'ein' | 'owner' | 'email'
 
@@ -55,7 +55,7 @@ export type ClientFilters = {
   readinessFilters: readonly ClientReadinessStatus[]
   sourceFilters: readonly ClientSourceType[]
   ownerFilters: readonly string[]
-  pulseFilters: readonly ClientPulseFilter[]
+  alertFilters: readonly ClientAlertFilter[]
 }
 
 type FilterClientsContext = {
@@ -74,8 +74,8 @@ export function isClientSourceType(value: string): value is ClientSourceType {
   return CLIENT_SOURCE_FILTERS.some((source) => source === value)
 }
 
-export function isClientPulseFilter(value: string): value is ClientPulseFilter {
-  return CLIENT_PULSE_FILTERS.some((option) => option === value)
+export function isClientAlertFilter(value: string): value is ClientAlertFilter {
+  return CLIENT_ALERT_FILTERS.some((option) => option === value)
 }
 
 export function getClientSourceType(client: ClientPublic): ClientSourceType {
@@ -187,7 +187,7 @@ export function filterClients(
   const readinessFilterSet = new Set(filters.readinessFilters)
   const sourceFilterSet = new Set(filters.sourceFilters)
   const ownerFilterSet = new Set(filters.ownerFilters.filter((owner) => owner.trim().length > 0))
-  const pulseFilterSet = new Set(filters.pulseFilters)
+  const alertFilterSet = new Set(filters.alertFilters)
   const affectedClientIds = context.affectedClientIds
 
   return clients.filter((client) => {
@@ -213,10 +213,10 @@ export function filterClients(
       const ownerValue = client.assigneeName ?? CLIENT_UNASSIGNED_OWNER_FILTER
       if (!ownerFilterSet.has(ownerValue)) return false
     }
-    if (pulseFilterSet.size > 0) {
+    if (alertFilterSet.size > 0) {
       const isAffected = affectedClientIds?.has(client.id) ?? false
-      const matchesAffected = pulseFilterSet.has('affected') && isAffected
-      const matchesClear = pulseFilterSet.has('clear') && !isAffected
+      const matchesAffected = alertFilterSet.has('affected') && isAffected
+      const matchesClear = alertFilterSet.has('clear') && !isAffected
       if (!matchesAffected && !matchesClear) return false
     }
     if (normalizedSearch && !getClientSearchHaystack(client).includes(normalizedSearch)) {

@@ -5,13 +5,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SourceAdapter } from '@duedatehq/ingest/types'
 import type { Env } from '../../env'
 import { createBrowserlessFetch } from './browserless'
-import { createPoliteFetch, runPulseIngest } from './ingest'
+import {
+  consumePulseIngestSource,
+  createPoliteFetch,
+  enqueuePulseIngestScans,
+  runPulseIngest,
+} from './ingest'
 
 const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
   const repo = {
     ensureSourceState: vi.fn(),
+    ensureSourceStates: vi.fn(),
     getSourceState: vi.fn(),
+    establishSourceBaseline: vi.fn(),
     createSourceSnapshot: vi.fn(),
+    updateSourceSnapshotStatus: vi.fn(),
     recordSourceSuccess: vi.fn(),
     recordSourceFailure: vi.fn(),
     listSourceStates: vi.fn(),
@@ -106,6 +114,12 @@ describe('runPulseIngest', () => {
       inserted: true,
       snapshot: { id: 'snapshot-1' },
     })
+    repoMocks.updateSourceSnapshotStatus.mockResolvedValue(undefined)
+    repoMocks.establishSourceBaseline.mockResolvedValue({
+      sourceId: 'fema.declarations',
+      monitoringBaselineAt: new Date('2026-04-30T00:00:00.000Z'),
+      baselineMode: 'active',
+    })
     repoMocks.listSourceStates.mockResolvedValue([])
     repoMocks.apply.mockRejectedValue(new Error('ingest must not apply deadline changes'))
     repoMocks.applyReviewed.mockRejectedValue(
@@ -134,6 +148,35 @@ describe('runPulseIngest', () => {
     expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
     expect(repoMocks.apply).not.toHaveBeenCalled()
     expect(repoMocks.applyReviewed).not.toHaveBeenCalled()
+  })
+
+  it('establishes a new source baseline without queueing historical parsed items', async () => {
+    const queueSend = vi.fn()
+    repoMocks.ensureSourceState.mockResolvedValue({
+      enabled: true,
+      nextCheckAt: null,
+      monitoringBaselineAt: null,
+      baselineMode: 'establish_on_first_seen',
+    })
+
+    const result = await runPulseIngest(env(queueSend), [adapter()])
+
+    expect(result).toMatchObject({ snapshots: 1, queued: 0, failures: 0 })
+    expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith('snapshot-1', {
+      parseStatus: 'ignored',
+      failureReason: 'monitoring_baseline_established',
+    })
+    expect(repoMocks.establishSourceBaseline).toHaveBeenCalledWith({
+      sourceId: 'fema.declarations',
+      baselineAt: expect.any(Date),
+    })
+    expect(repoMocks.recordSourceSuccess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceId: 'fema.declarations',
+        changed: false,
+      }),
+    )
+    expect(queueSend).not.toHaveBeenCalled()
   })
 
   it('classifies changed snapshots with no parsed items as selector drift', async () => {
@@ -256,6 +299,149 @@ describe('runPulseIngest', () => {
   })
 })
 
+describe('enqueuePulseIngestScans', () => {
+  beforeEach(() => {
+    Object.values(dbMocks).forEach((mock) => mock.mockClear())
+    Object.values(metricsMocks).forEach((mock) => mock.mockClear())
+    Object.values(repoMocks).forEach((mock) => mock.mockReset())
+    repoMocks.listSourceStates.mockResolvedValue([])
+    // Batched ensureSourceStates delegates to the per-source ensureSourceState
+    // mock so each test's ensureSourceState setup keeps driving behavior.
+    repoMocks.ensureSourceStates.mockImplementation(
+      async (inputs: ReadonlyArray<{ sourceId: string }>, now?: Date) => {
+        const entries = await Promise.all(
+          inputs.map(async (input) => {
+            const state = await repoMocks.ensureSourceState({ ...input, now })
+            return [input.sourceId, state] as const
+          }),
+        )
+        return new Map(entries)
+      },
+    )
+  })
+
+  it('enqueues one message per due source and never fetches', async () => {
+    const now = new Date('2026-05-01T00:00:00.000Z')
+    repoMocks.ensureSourceState.mockImplementation(async (input: { sourceId: string }) =>
+      input.sourceId === 'due.source'
+        ? { enabled: true, nextCheckAt: null }
+        : { enabled: true, nextCheckAt: new Date('2026-05-01T01:00:00.000Z') },
+    )
+    const queueSend = vi.fn()
+
+    const result = await enqueuePulseIngestScans(
+      env(queueSend),
+      [adapter({ id: 'due.source' }), adapter({ id: 'not-due.source' })],
+      now,
+    )
+
+    expect(result).toEqual({ queued: 1 })
+    expect(queueSend).toHaveBeenCalledTimes(1)
+    expect(queueSend).toHaveBeenCalledWith({
+      type: 'pulse.ingest.source',
+      sourceId: 'due.source',
+      reason: 'cadence_due',
+    })
+    expect(repoMocks.createSourceSnapshot).not.toHaveBeenCalled()
+    expect(repoMocks.recordSourceSuccess).not.toHaveBeenCalled()
+  })
+
+  it('emits idle alerts over the active set and records an enqueued metric', async () => {
+    const now = new Date('2026-05-01T00:00:00.000Z')
+    repoMocks.ensureSourceState.mockResolvedValue({ enabled: true, nextCheckAt: null })
+    repoMocks.listSourceStates.mockResolvedValue([
+      {
+        sourceId: 'fema.declarations',
+        tier: 'T2',
+        jurisdiction: 'US',
+        enabled: true,
+        healthStatus: 'healthy',
+        lastSuccessAt: null,
+      },
+      {
+        sourceId: 'gone.source',
+        tier: 'T1',
+        jurisdiction: 'CA',
+        enabled: true,
+        healthStatus: 'healthy',
+        lastSuccessAt: null,
+      },
+    ])
+
+    await enqueuePulseIngestScans(env(), [adapter()], now)
+
+    expect(metricsMocks.emitSourceIdleAlerts).toHaveBeenCalledWith(
+      [expect.objectContaining({ sourceId: 'fema.declarations' })],
+      now,
+    )
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith('pulse.ingest.enqueued', {
+      queued: 1,
+    })
+  })
+})
+
+describe('consumePulseIngestSource', () => {
+  beforeEach(() => {
+    Object.values(dbMocks).forEach((mock) => mock.mockClear())
+    Object.values(metricsMocks).forEach((mock) => mock.mockClear())
+    Object.values(repoMocks).forEach((mock) => mock.mockReset())
+    repoMocks.ensureSourceState.mockResolvedValue({ enabled: true, nextCheckAt: null })
+    repoMocks.getSourceState.mockResolvedValue(null)
+    repoMocks.createSourceSnapshot.mockResolvedValue({
+      inserted: true,
+      snapshot: { id: 'snapshot-1' },
+    })
+    repoMocks.listSourceStates.mockResolvedValue([])
+  })
+
+  it('fetches the single named source and queues its extract', async () => {
+    const queueSend = vi.fn()
+
+    const result = await consumePulseIngestSource(
+      env(queueSend),
+      { type: 'pulse.ingest.source', sourceId: 'fema.declarations', reason: 'cadence_due' },
+      [adapter()],
+    )
+
+    expect(result).toMatchObject({ snapshots: 1, queued: 1, failures: 0 })
+    expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
+  })
+
+  it('runs with force even when nextCheckAt is in the future', async () => {
+    repoMocks.ensureSourceState.mockResolvedValue({
+      enabled: true,
+      nextCheckAt: new Date('2999-01-01T00:00:00.000Z'),
+    })
+    const queueSend = vi.fn()
+
+    const result = await consumePulseIngestSource(
+      env(queueSend),
+      { type: 'pulse.ingest.source', sourceId: 'fema.declarations', reason: 'cadence_due' },
+      [adapter()],
+    )
+
+    expect(result).toMatchObject({ snapshots: 1, queued: 1 })
+    expect(queueSend).toHaveBeenCalledWith({ type: 'pulse.extract', snapshotId: 'snapshot-1' })
+  })
+
+  it('returns zero counts and records a metric for an unknown source', async () => {
+    const queueSend = vi.fn()
+
+    const result = await consumePulseIngestSource(
+      env(queueSend),
+      { type: 'pulse.ingest.source', sourceId: 'does.not.exist', reason: 'cadence_due' },
+      [adapter()],
+    )
+
+    expect(result).toEqual({ snapshots: 0, queued: 0, duplicates: 0, failures: 0 })
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith('pulse.ingest.source_missing', {
+      sourceId: 'does.not.exist',
+    })
+    expect(queueSend).not.toHaveBeenCalled()
+    expect(repoMocks.createSourceSnapshot).not.toHaveBeenCalled()
+  })
+})
+
 describe('createBrowserlessFetch', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
@@ -300,12 +486,21 @@ describe('createBrowserlessFetch', () => {
     expect(typeof init?.body).toBe('string')
     const requestBody = init?.body
     if (typeof requestBody !== 'string') throw new Error('Browserless request body must be JSON')
-    const body = JSON.parse(requestBody) as {
-      headers: Record<string, string>
-    }
-    expect(body.headers['user-agent']).toContain('Chrome/')
-    expect(body.headers['cache-control']).toBeUndefined()
-    expect(body.headers.accept).toContain('text/html')
+    const body = JSON.parse(requestBody) as Record<string, unknown>
+    // Must match the browserless /content schema (additionalProperties:false):
+    // only url / userAgent / setExtraHTTPHeaders — never method/headers/body,
+    // which previously triggered HTTP 400.
+    expect(Object.keys(body).toSorted()).toEqual(['setExtraHTTPHeaders', 'url', 'userAgent'])
+    expect(body).not.toHaveProperty('method')
+    expect(body).not.toHaveProperty('headers')
+    expect(body).not.toHaveProperty('body')
+    // Caller-provided User-Agent is hoisted to the top-level `userAgent` field.
+    expect(body.userAgent).toBe('DueDateHQ-PulseBot/1.0')
+    const extraHeaders = body.setExtraHTTPHeaders as Record<string, string>
+    // Cache-Control and User-Agent are stripped from extra headers; Accept is kept.
+    expect(extraHeaders['cache-control']).toBeUndefined()
+    expect(extraHeaders['user-agent']).toBeUndefined()
+    expect(extraHeaders.accept).toContain('text/html')
   })
 
   it('maps target response codes reported by Browserless', async () => {

@@ -331,19 +331,8 @@ const sourceRows = [
 ]
 
 const clients = sourceRows.map((row, index) => {
-  const [
-    name,
-    entity,
-    returnType,
-    state,
-    city,
-    zip,
-    county,
-    firstName,
-    lastName,
-    staffCode,
-    status,
-  ] = row
+  const [name, entity, returnType, state, city, zip, county, firstName, lastName, staffCode, note] =
+    row
   const id = index + 1
   const email = `test+realistic${String(id).padStart(3, '0')}@example.com`
   return {
@@ -373,13 +362,12 @@ const clients = sourceRows.map((row, index) => {
     email,
     phone: `555-01${String(id).padStart(2, '0')}`,
     address: `${1000 + id} Ledger Lane`,
-    status,
     terms: id % 3 === 0 ? 'Due on receipt' : id % 2 === 0 ? 'Net 15' : 'Net 30',
     customerType: returnType === '1040' ? 'Individual' : entity,
     balance: (id % 5 === 0 ? 0 : 250 + id * 37).toFixed(2),
     taxYear: '2025',
     dueDate: dueDateFor(returnType),
-    notes: status,
+    note,
   }
 })
 
@@ -442,7 +430,7 @@ function writeTaxDome() {
     'Custom field - Filing state': client.state,
     'Custom field - Federal ID': client.ein,
     'Linked contact #1': client.contactName,
-    Notes: client.notes,
+    Notes: client.note,
   }))
 
   const contactHeaders = [
@@ -477,7 +465,7 @@ function writeTaxDome() {
     Tags: 'primary contact',
     Timezone: 'America/New_York',
     'Linked account #1': client.name,
-    Notes: client.notes,
+    Notes: client.note,
   }))
 
   writeZip('taxdome-client-export.zip', {
@@ -514,14 +502,14 @@ function writeDrake() {
         Entity: client.entity,
         State: client.state,
         'Return Type': client.formLabel,
-        'EF Status': client.id % 5 === 0 ? 'Accepted extension' : client.status,
+        'EF Status': efStatusFor(client, 'drake'),
         Staff: client.preparer,
         Email: client.email,
         Phone: client.phone,
         Address: client.address,
         City: client.city,
         ZIP: client.zip,
-        Notes: client.notes,
+        Notes: client.note,
       })),
     ),
   )
@@ -557,8 +545,8 @@ function writeKarbon() {
       'Tax ID': client.ein,
       Country: 'United States',
       State: client.state,
-      Tags: `${client.returnType}; ${client.status}`,
-      Notes: client.notes,
+      Tags: `${client.returnType}; ${workflowStatusFor(client)}`,
+      Notes: client.note,
     })),
   )
 }
@@ -598,7 +586,7 @@ function writeQuickBooksOnline() {
       Terms: client.terms,
       'Open Balance': client.balance,
       'Tax Registration No.': client.ein,
-      Notes: client.notes,
+      Notes: client.note,
     })),
   )
 }
@@ -629,7 +617,7 @@ function writeQuickBooksDesktopIif() {
       '',
       client.email,
       client.customerType,
-      client.notes,
+      client.note,
     ].join('\t'),
   )
   writeText('quickbooks-desktop-customers.iif', `${headers.join('\t')}\n${rows.join('\n')}\n`)
@@ -657,14 +645,14 @@ function writeFileInTime() {
         ClientName: client.name,
         Service: client.formLabel,
         DueDate: client.dueDate,
-        Status: client.status,
+        Status: workflowStatusFor(client),
         AssignedStaff: client.preparer,
         Entity: client.entity,
         State: client.state,
         County: client.county,
         Email: client.email,
         Phone: client.phone,
-        Notes: client.notes,
+        Notes: client.note,
       })),
     ),
   )
@@ -711,7 +699,7 @@ function writeCchAxcess() {
         'Business Unit': 'Tax',
         'Email Address': client.email,
         Phone: client.phone,
-        Status: client.status,
+        Status: workflowStatusFor(client),
       })),
     ),
   )
@@ -756,7 +744,7 @@ function writeCchProSystemFx() {
         Zip: client.zip,
         Email: client.email,
         Phone: client.phone,
-        Status: client.status,
+        Status: workflowStatusFor(client),
       })),
     ),
   )
@@ -797,7 +785,7 @@ function writeLacerte() {
         'Entity Type': client.entity,
         'Return Type': client.formLabel,
         Preparer: client.preparer,
-        Status: client.status,
+        Status: workflowStatusFor(client),
       })),
     ),
   )
@@ -826,7 +814,7 @@ function writeProSeries() {
       headers,
       clients.map((client) => ({
         'Client Name': client.name,
-        'Client Status': client.status,
+        'Client Status': workflowStatusFor(client),
         'Client Street and Apt Address': client.address,
         'Client City': client.city,
         'Client State': client.state,
@@ -837,8 +825,8 @@ function writeProSeries() {
         'Return Type': client.formLabel,
         'HomeBase View': 'Current Year',
         Preparer: client.preparer,
-        'EF Status': client.id % 6 === 0 ? 'Extension accepted' : client.status,
-        Notes: client.notes,
+        'EF Status': efStatusFor(client, 'proseries'),
+        Notes: client.note,
       })),
     ),
   )
@@ -876,7 +864,7 @@ function writeUltraTax() {
         State: client.state,
         Zip: client.zip,
         Preparer: client.preparer,
-        Status: client.status,
+        Status: workflowStatusFor(client),
         Email: client.email,
         Phone: client.phone,
         'Federal Product': client.formLabel,
@@ -921,7 +909,7 @@ function writeProConnect() {
         State: client.state,
         ZIP: client.zip,
         'Return type': client.formLabel,
-        'Return status': client.status,
+        'Return status': workflowStatusFor(client),
         Preparer: client.preparer,
         'Total tax': (1000 + client.id * 185).toFixed(2),
         'Taxes owed': (client.id % 4 === 0 ? 0 : 75 + client.id * 11).toFixed(2),
@@ -1114,6 +1102,9 @@ function dueDateFor(returnType) {
     case '1065':
     case '1120S':
       return '09/15/2026'
+    case '1041':
+      // Trusts get a 5.5-month extension (no Oct 15 like 1040/1120).
+      return '09/30/2026'
     case '990':
       return '11/16/2026'
     default:
@@ -1140,4 +1131,35 @@ function officeFor(client) {
   if (client.state === 'CA' || client.state === 'WA' || client.state === 'C.A.') return 'West'
   if (client.state === 'TX' || client.state === 'FL') return 'South'
   return 'Unassigned'
+}
+
+// Practice-workflow status values that real practice-management / tax tools
+// expose in a "Status" column. Deterministic by client id so output is stable.
+function workflowStatusFor(client) {
+  const statuses = [
+    'In Progress',
+    'Ready for Review',
+    'On Extension',
+    'Waiting on Client',
+    'Complete',
+    'Not Started',
+  ]
+  return statuses[client.id % statuses.length]
+}
+
+// Real e-file acknowledgement statuses (NOT workflow notes). Drake also shows
+// single-letter ACK codes (A/P/R) in some views; spelled-out forms are used
+// here for readability. ProSeries surfaces its own transmit/ack vocabulary.
+function efStatusFor(client, vendor) {
+  const drake = ['Accepted', 'Accepted', 'Pending', 'Rejected', 'Not transmitted']
+  const proSeries = [
+    'Accepted',
+    'Accepted',
+    'Ready to transmit',
+    'Sent to Intuit',
+    'Rejected',
+    'Not ready',
+  ]
+  const set = vendor === 'proseries' ? proSeries : drake
+  return set[client.id % set.length]
 }

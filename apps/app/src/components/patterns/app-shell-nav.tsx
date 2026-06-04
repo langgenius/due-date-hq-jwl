@@ -57,7 +57,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@duedatehq/ui/components/ui/sidebar'
-import { PulseNotificationsBell } from '@/components/patterns/pulse-notifications-bell'
+import { AlertsNotificationsBell } from '@/components/patterns/alerts-notifications-bell'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { Input } from '@duedatehq/ui/components/ui/input'
@@ -553,9 +553,9 @@ function AddFirmDialog({
 // from `notifications.unreadCount`. That bucket covers @-mentions,
 // status changes, system events — anything that lands in the unified
 // Inbox — while the Alerts sidebar entry and the Today "Alerts" strip
-// both scope to *Pulse* (statutory-source changes). Result: three
+// both scope to alert-source changes. Result: three
 // surfaces claiming the same word counted three different things
-// (2 sidebar, 3 Today, 4 Pulse-page history).
+// (2 sidebar, 3 Today, 4 Alerts history).
 //
 // 2026-05-24 (B2): the badge now uses the dedicated `pulse.activeCount`
 // endpoint — a true `COUNT(*)` against the same WHERE clause
@@ -565,11 +565,11 @@ function AddFirmDialog({
 // has no upper bound; Today's section still uses `listAlerts(50)`
 // because it needs the row contents to render the alert cards.
 //
-// 2026-05-29 (Pulse active/history split): keep this badge scoped to
+// 2026-05-29 (Alerts active/history split): keep this badge scoped to
 // the active queue. Alert history is now CPA-handled alerts and can
 // include snoozed / applied / dismissed rows that should not inflate
 // the sidebar's needs-attention count.
-function useActivePulseAlertCount(): number {
+function useActiveAlertCount(): number {
   const query = useQuery(orpc.pulse.activeCount.queryOptions({ input: undefined }))
   return query.data?.count ?? 0
 }
@@ -602,10 +602,10 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
   const { t } = useLingui()
   // 2026-05-24 (critique P0): switched from notifications.unreadCount
   // (which mixed @-mentions and system notifications into the count)
-  // to useActivePulseAlertCount (Pulse-only). Sidebar and Today now
+  // to useActiveAlertCount (alert-source only). Sidebar and Today now
   // share one cache entry and report the same number.
-  const pulseCount = useActivePulseAlertCount()
-  const pulseBadge = pulseCount > 0 ? String(pulseCount) : undefined
+  const alertCount = useActiveAlertCount()
+  const alertBadge = alertCount > 0 ? String(alertCount) : undefined
   const ruleReviewCount = useRuleLibraryPendingCount()
   const ruleReviewBadge = ruleReviewCount > 0 ? String(ruleReviewCount) : undefined
   // D-2: sidebar counts. Clients = total active clients; Deadlines =
@@ -621,9 +621,9 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
     firm.openObligationCount > 0 ? String(firm.openObligationCount) : undefined
   return useMemo<NavConfig>(() => {
     if (navV2) {
-      // v2 IA per 2026-05-19 design mockup. Radar disappears from the
-      // sidebar — it lives as the NEEDS ATTENTION surface on the
-      // dashboard. Coverage / Library consolidate under their own
+      // v2 IA per 2026-05-19 design mockup. Alerts is a top-level
+      // primary item (mirrored by the dashboard's NEEDS ATTENTION
+      // surface). Coverage / Library consolidate under their own
       // group. Practice management gathers Team, Workload, Billing,
       // Audit log, Practice profile into one group instead of
       // scattering them across Clients group + Settings sub-pages.
@@ -634,7 +634,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
         // group — no "Operations" label. Order reads as the CPA's
         // morning routine: glance Today → triage Deadlines. The
         // Inbox lives behind the bell icon in the top-right utility
-        // strip (PulseNotificationsBell) — clicking it opens a
+        // strip (AlertsNotificationsBell) — clicking it opens a
         // popover; the expand icon there promotes to the full-page
         // Inbox at /notifications. Surfacing Inbox in the sidebar
         // too created two top-level destinations for the same thing.
@@ -644,7 +644,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
         //                   variant — the open grid reads cleaner
         //                   at sidebar scale)
         //   Alerts       → Megaphone (a literal announcement vector,
-        //                   matches the Pulse concept of "the system
+        //                   matches the alert concept of "the system
         //                   is broadcasting at you")
         //   Deadlines    → SquareChartGantt (Gantt = scheduling /
         //                   timeline view, matches the Deadlines
@@ -654,12 +654,12 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
         primary: [
           { href: '/', label: t`Today`, icon: CalendarIcon, end: true },
           {
-            href: '/rules/pulse',
+            href: '/alerts',
             label: t`Alerts`,
             icon: MegaphoneIcon,
             end: false,
-            ...(pulseBadge !== undefined
-              ? { badge: pulseBadge, badgeTooltip: t`${pulseCount} active alerts` }
+            ...(alertBadge !== undefined
+              ? { badge: alertBadge, badgeTooltip: t`${alertCount} active alerts` }
               : {}),
           },
           {
@@ -721,7 +721,7 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
           // of /alerts (review what already happened on the same
           // surface), not a peer of Audit log / Settings.
           // Now lives as an "Archive" button inside the /alerts
-          // page header instead. See features/pulse/AlertsListPage.tsx.
+          // page header instead. See features/alerts/AlertsListPage.tsx.
           { href: '/audit', label: t`Audit log`, icon: ScrollTextIcon, end: false },
           { href: '/settings', label: t`Settings`, icon: SettingsIcon, end: false },
         ],
@@ -749,12 +749,12 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
             : {}),
         },
         {
-          href: '/rules/pulse',
-          label: t`Pulse`,
+          href: '/alerts',
+          label: t`Alerts`,
           icon: MegaphoneIcon,
           end: false,
-          ...(pulseBadge !== undefined
-            ? { badge: pulseBadge, badgeTooltip: t`${pulseCount} active alerts` }
+          ...(alertBadge !== undefined
+            ? { badge: alertBadge, badgeTooltip: t`${alertCount} active alerts` }
             : {}),
         },
       ],
@@ -799,8 +799,8 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
     }
   }, [
     t,
-    pulseBadge,
-    pulseCount,
+    alertBadge,
+    alertCount,
     ruleReviewBadge,
     ruleReviewCount,
     clientsBadge,
@@ -879,11 +879,11 @@ function NavGroups({ firm }: { firm: FirmPublic }) {
         {/* 2026-05-28 (Yuqi /today polish — bell back in sidebar):
             Inbox bell sits with the rest of the footer's account-
             level controls (Audit log, Settings). The bell renders
-            its own sidebar-styled trigger inside `PulseNotifications-
+            its own sidebar-styled trigger inside `AlertsNotifications-
             Bell`, so we just drop it next to its siblings inside the
             `SidebarMenuItem` envelope. */}
         <SidebarMenuItem>
-          <PulseNotificationsBell />
+          <AlertsNotificationsBell />
         </SidebarMenuItem>
       </NavGroupSection>
     </nav>

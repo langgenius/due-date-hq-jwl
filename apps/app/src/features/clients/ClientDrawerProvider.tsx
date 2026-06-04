@@ -17,17 +17,17 @@ const ClientDrawerContext = createContext<ClientDrawerContextValue | null>(null)
  * `useClientDrawer().openDrawer(id)` to peek a client without losing
  * context.
  *
- * Mirrors `ObligationDrawerProvider` / `PulseDrawerProvider` /
+ * Mirrors `ObligationDrawerProvider` / `AlertDrawerProvider` /
  * `EvidenceDrawerProvider`. Before this existed, every "open client"
  * affordance navigated to `/clients/[id]` and dropped the user's
- * queue / dashboard / Pulse context. The drawer is the glance form;
+ * queue / dashboard / Alerts context. The drawer is the glance form;
  * the full page at `/clients/[id]` remains the deep-work form.
  *
  * **List-route deference.** When the user is on `/clients` (they
  * came here to dive into ONE client), `openDrawer(id)` navigates to
  * the full page instead of opening the drawer — clicking a row in
  * the browse list should give you room to work. Anywhere else
- * (Obligations queue drawer, Dashboard, Pulse) the drawer is the
+ * (Obligations queue drawer, Dashboard, Alerts) the drawer is the
  * preferred surface.
  *
  * The drawer body itself lives in `ClientDetailDrawer.tsx`. It

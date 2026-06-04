@@ -1,22 +1,21 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CircleCheckIcon, CircleSlashIcon } from 'lucide-react'
+import { CircleCheckIcon } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 
-import type { PulseSourceHealth } from '@duedatehq/contracts'
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 
-import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
+import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import {
-  usePulseListAlertsQueryOptions,
-  usePulseSourceHealthQueryOptions,
-} from '@/features/pulse/api'
-import { PulsingDot } from '@/features/pulse/components/PulsingDot'
-import { StatusBanner } from '@/components/patterns/status-banner'
+  useAlertsAffectedClients,
+  useAlertsListQueryOptions,
+  useAlertSourceHealthQueryOptions,
+} from '@/features/alerts/api'
+import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 
 // 2026-05-31 (Yuqi Pencil Sq0EX): NeedsAttentionOverflowCard is no
 // longer used in this section — the "View all" section link below
@@ -24,8 +23,18 @@ import { StatusBanner } from '@/components/patterns/status-banner'
 // retained from the card module for any future callers.
 import { NeedsAttentionCard } from './needs-attention-card'
 
-// Dashboard "Needs attention" section — top surface that promotes
-// Pulse alerts from a first-class card row.
+// Dashboard "Alerts" section — promotes state-policy Alerts (the
+// product's wedge: "a rule changed → here are the affected clients")
+// to a first-class row.
+//
+// 2026-06-03 (Yuqi B): the section now has two clearly different
+// weights. When alerts are live it is the page's loudest block — a
+// destructive-tinted hero card row. When the feed is calm it collapses
+// to a single quiet status line (no tinted box), so an empty alerts
+// state stops claiming hero real estate it hasn't earned. Previously
+// the empty state rendered the same large tinted panel + dashed
+// "No active alerts" banner as the live state, which read as the most
+// important thing on the page even when nothing needed review.
 
 // 2026-05-31 (Yuqi Pencil Sq0EX): grid widened from 2 to 3 cards
 // in the wide-viewport row so the Today alerts surface mirrors the
@@ -36,68 +45,93 @@ const VISIBLE_ALERTS = 3
 const NATIONAL_MONITORING_JURISDICTION_COUNT = 52
 
 // 2026-05-24 (critique P0): aligned with the sidebar's
-// `SIDEBAR_PULSE_LIMIT` so this page and the sidebar Alerts badge
-// share a single React Query cache entry. Previously this section
-// fetched 5 and the sidebar fetched the unified-inbox count from a
-// different endpoint — three surfaces, three numbers.
+// `TODAY_ALERTS_LIMIT` so this page and the sidebar Alerts badge share
+// a single React Query cache entry.
 const TODAY_ALERTS_LIMIT = 50
 
 function NeedsAttentionSection() {
   const { t } = useLingui()
   const navigate = useNavigate()
-  const { openDrawer: openAlert } = usePulseDrawer()
+  const { openDrawer: openAlert } = useAlertDrawer()
 
-  const alertsQuery = useQuery(usePulseListAlertsQueryOptions(TODAY_ALERTS_LIMIT))
-  // 2026-05-26 (Yuqi Today #3): also pull source-health so we can
-  // surface "are we even receiving signal from the monitored
-  // jurisdictions?" alongside the alert count. Without this, an
-  // empty alerts list could mean either "all good" or "feed
-  // broken" — same UI, opposite meaning.
-  const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
+  const alertsQuery = useQuery(useAlertsListQueryOptions(TODAY_ALERTS_LIMIT))
+  // Source-health rides alongside the alert count so an empty list can
+  // distinguish "all good" from "feed paused / broken" — same UI,
+  // opposite meaning.
+  const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const alerts = alertsQuery.data?.alerts ?? []
   const sources = sourceHealthQuery.data?.sources ?? []
   const visibleAlerts = alerts.slice(0, VISIBLE_ALERTS)
   const overflowCount = Math.max(alerts.length - VISIBLE_ALERTS, 0)
+  // One batched detail request for the visible cards instead of one
+  // `getDetail` per card — the cards only need affected-client names.
+  const affectedByAlert = useAlertsAffectedClients(visibleAlerts.map((alert) => alert.id))
   const totalAlertCount = alerts.length
-  // 2026-05-28 (national policy watch): this chip describes
-  // jurisdiction coverage, not raw source/adapter count. Hidden
-  // policy-watch adapters can grow without making the Today header
-  // read as "monitoring 150 sources."
+  // Describes jurisdiction coverage, not raw adapter count, so hidden
+  // policy-watch adapters can grow without the header reading
+  // "monitoring 150 sources."
   const hasNationalMonitoringCoverage =
     MVP_RULE_JURISDICTIONS.length === NATIONAL_MONITORING_JURISDICTION_COUNT
 
+  // ── Calm feed → thin single line, no tinted box ──
+  if (totalAlertCount === 0) {
+    const watchedCount = sources.filter(
+      (source) => source.enabled && source.healthStatus !== 'paused',
+    ).length
+    const pausedCount = sources.filter(
+      (source) => source.enabled && source.healthStatus === 'paused',
+    ).length
+
+    return (
+      <section
+        aria-label={t`Alerts`}
+        className="flex flex-wrap items-center gap-x-2 gap-y-1 px-1 py-0.5 text-xs text-text-tertiary"
+      >
+        <CircleCheckIcon className="size-3.5 shrink-0 text-text-success" aria-hidden />
+        <span className="font-medium text-text-secondary">
+          <Trans>Alerts</Trans>
+        </span>
+        {hasNationalMonitoringCoverage ? (
+          <>
+            <span aria-hidden>·</span>
+            <span className="inline-flex items-center gap-1.5">
+              <PulsingDot tone="success" active />
+              <Trans>Monitoring Federal + 50 states + DC</Trans>
+            </span>
+          </>
+        ) : null}
+        <span aria-hidden>·</span>
+        {sourceHealthQuery.isLoading ? (
+          <span>
+            <Trans>checking sources…</Trans>
+          </span>
+        ) : watchedCount === 0 ? (
+          <span className="text-text-warning">
+            <Trans>no sources monitored</Trans>
+          </span>
+        ) : pausedCount > 0 ? (
+          <span className="inline-flex items-center gap-2">
+            <span className="text-text-warning">
+              <Plural value={pausedCount} one="# source paused" other="# sources paused" />
+            </span>
+            <Link
+              to="/rules/sources"
+              className="underline-offset-2 hover:text-text-secondary hover:underline"
+            >
+              <Trans>View</Trans>
+            </Link>
+          </span>
+        ) : (
+          <span>
+            <Trans>nothing needs your review</Trans>
+          </span>
+        )}
+      </section>
+    )
+  }
+
+  // ── Live alerts → hero card row ──
   return (
-    // 2026-05-25 (Yuqi review #4): Alerts is the most important
-    // section on Today, but the previous flat layout made it sit at
-    // the same visual weight as the work tiles below. Frame it with
-    // a soft destructive tint + 12px padding so the eye lands on it
-    // first. The frame also lets the section breathe inside its own
-    // container instead of leaning on the page's outer gap.
-    //
-    // 2026-05-25 (Yuqi Today #4): bumped from `rounded-md` (6px) to
-    // `rounded-2xl` (16px). On a section this large (full content
-    // width × ~140px tall) the smaller radius read as a button
-    // frame, not a card. 16px reads as a content surface — the same
-    // family as the Pulse drawer's outer corners and the dashboard's
-    // own NeedsAttentionCard tiles.
-    // 2026-05-25 (GitHub-density pass): rounded-2xl → rounded-xl,
-    // p-4 → p-3, inner gap-3 → gap-2.5. Reads as one tighter
-    // information block rather than a generous tile. The tinted
-    // bg still anchors the section visually without claiming a
-    // large vertical share of the page.
-    // 2026-05-25 (Yuqi Today #11): section tint stepped slightly
-    // darker and the border dropped. The previous treatment
-    // (`bg-state-destructive-hover/15` + soft border) sat too
-    // close to the page bg to anchor the section. The new bg
-    // (`/25`) reads as a clearly-tinted block without claiming
-    // it's an alert in its own right.
-    // 2026-05-26 (Yuqi Today #2): in the no-alerts case the
-    // section used to unmount entirely (`return null`). That
-    // hid a meaningful signal — "we're monitoring N sources
-    // and nothing is wrong". Now the section ALWAYS renders;
-    // the content adapts (alert cards vs "all clear" panel)
-    // and the bg tone steps down to neutral when there's
-    // nothing to act on.
     <section
       aria-label={t`Alerts`}
       // 2026-05-26 (Yuqi sixty-ninth pass — "背景太浅了，看不出"):
@@ -223,7 +257,11 @@ function NeedsAttentionSection() {
           >
             {visibleAlerts.map((alert) => (
               <div key={alert.id} className="h-full min-w-0">
-                <NeedsAttentionCard alert={alert} onReview={() => openAlert(alert.id)} />
+                <NeedsAttentionCard
+                  alert={alert}
+                  affectedClients={affectedByAlert.get(alert.id) ?? []}
+                  onReview={() => openAlert(alert.id)}
+                />
               </div>
             ))}
           </div>
@@ -236,7 +274,7 @@ function NeedsAttentionSection() {
                   used by the "All deadlines" link on the Actions
                   section header. */}
               <TextLink
-                onClick={() => void navigate('/rules/pulse')}
+                onClick={() => void navigate('/alerts')}
                 aria-label={t`View all ${alerts.length} alerts`}
               >
                 <Trans>View all</Trans>
@@ -244,104 +282,8 @@ function NeedsAttentionSection() {
             </div>
           ) : null}
         </>
-      ) : (
-        // 2026-05-26 (Yuqi Today #2 + #3): empty-state body. Two
-        // signals stacked:
-        //   1. "no alerts right now" — confirms the absence is
-        //      intentional, not a missing render.
-        //   2. Source health edge cases — the healthy-state signal
-        //      lives in the heading chip as jurisdiction coverage,
-        //      while paused/zero-source states remain in the body.
-        <AlertsEmptyState sources={sources} loading={sourceHealthQuery.isLoading} />
-      )}
+      ) : null}
     </section>
-  )
-}
-
-// 2026-05-26 (Yuqi Today #2 + #3): displayed in the Alerts section
-// when there are zero active alerts. The first line tells the user
-// nothing needs their attention; a second line surfaces source-health
-// status only when it carries non-redundant signal.
-//
-// 2026-05-27 (Yuqi header unification pass): the healthy-state
-// "Monitoring N sources. New matches will appear here. · View sources"
-// paragraph was dropped; the h2 now carries jurisdiction coverage
-// instead of raw source count, so a second restatement would be
-// redundant chrome.
-// The paused-state warning and the "no sources monitored at all"
-// branch were retained because the chip does NOT surface those
-// states; they remain meaningful here. The loading branch was
-// also retained so users see "checking…" before the chip flickers in.
-function AlertsEmptyState({
-  sources,
-  loading,
-}: {
-  sources: readonly PulseSourceHealth[]
-  loading: boolean
-}) {
-  // 2026-05-26 (Step 6 UX audit #43): aria-labels below were
-  // hardcoded English strings — 'sources paused'. Lifted to `t`
-  // macro so non-English assistive-tech users get a localized
-  // announcement.
-  const { t } = useLingui()
-  const watchedCount = sources.filter(
-    (source) => source.enabled && source.healthStatus !== 'paused',
-  ).length
-  const pausedCount = sources.filter(
-    (source) => source.enabled && source.healthStatus === 'paused',
-  ).length
-
-  const supportingLine = loading ? (
-    <Trans>Checking monitored sources…</Trans>
-  ) : watchedCount === 0 ? (
-    <Trans>No sources are currently being monitored.</Trans>
-  ) : pausedCount > 0 ? (
-    <>
-      <CircleSlashIcon className="size-3.5 text-text-tertiary" aria-label={t`sources paused`} />
-      <span>
-        <Plural value={pausedCount} one="# paused" other="# paused" />
-      </span>
-      <span aria-hidden className="text-text-tertiary">
-        ·
-      </span>
-      {/* 2026-05-31 (Yuqi DS-first revision): hand-rolled inline
-          link replaced with the canonical `<TextLink>` primitive.
-          The parent span is `text-xs`, so the default size (text-xs)
-          matches the surrounding text density. */}
-      <TextLink
-        variant="muted"
-        size="default"
-        className="underline-offset-2 hover:underline"
-        render={<Link to="/rules/sources" />}
-      >
-        <Trans>View sources</Trans>
-      </TextLink>
-    </>
-  ) : null
-
-  // 2026-05-28 (Yuqi /today polish — "信息重复了"): when the section
-  // is healthy AND the supporting line carries no substantive issue
-  // (no paused sources / no loading / sources monitored > 0), the
-  // dashed StatusBanner body just restates what the h2 + green
-  // "Monitoring N jurisdictions" chip already said — "we're watching,
-  // nothing to act on." Drop the banner in that case; the header row
-  // is the full empty state. The banner only renders when it carries
-  // non-redundant signal (paused / loading / zero-sources), where the
-  // chip alone wouldn't tell the story.
-  if (!supportingLine) {
-    return null
-  }
-  return (
-    <StatusBanner indicator={<CircleCheckIcon className="size-4 text-text-success" aria-hidden />}>
-      <span className="flex flex-col gap-1">
-        <span className="text-sm text-text-secondary">
-          <Trans>No active alerts — nothing needs your review right now.</Trans>
-        </span>
-        <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-text-tertiary">
-          {supportingLine}
-        </span>
-      </span>
-    </StatusBanner>
   )
 }
 

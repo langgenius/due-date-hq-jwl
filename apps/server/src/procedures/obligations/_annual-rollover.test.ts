@@ -89,6 +89,7 @@ function makeSeed(overrides: Partial<ObligationInstanceRow> = {}): ObligationIns
     baseDueDate: due,
     currentDueDate: due,
     status: 'paid',
+    confirmed: true,
     blockedByObligationInstanceId: null,
     readiness: 'ready',
     extensionDecision: 'not_considered',
@@ -265,6 +266,9 @@ describe('runAnnualRollover', () => {
       createdCount: 2,
     })
     expect(createdInputs.map((row) => row.status)).toEqual(['pending', 'review'])
+    // Rolled-forward deadlines are created projected (confirmed=false) so the
+    // reminder dispatch gate withholds client/internal emails until a CPA confirms.
+    expect(createdInputs.every((row) => row.confirmed === false)).toBe(true)
     expect(createdInputs).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

@@ -7,7 +7,6 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
   AlertTriangleIcon,
-  ArchiveIcon,
   CheckCircle2Icon,
   ChevronDownIcon,
   ChevronRightIcon,
@@ -24,6 +23,7 @@ import {
   ScrollTextIcon,
   SettingsIcon,
   SparklesIcon,
+  Trash2Icon,
   UserRoundIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -110,11 +110,11 @@ import {
 } from './client-readiness'
 import {
   buildClientHeaderContactItems,
-  buildClientPulseMatches,
+  buildClientAlertMatches,
   buildClientWorkPlanSummary,
   findExtensionWithoutPaymentObligations,
   type ClientHeaderContactItem,
-  type ClientPulseMatch,
+  type ClientAlertMatch,
   type ClientWorkPlanSummary,
 } from './client-detail-model'
 
@@ -451,15 +451,15 @@ export function ClientDetailWorkspace({
   const obligationsQuery = useQuery(
     orpc.obligations.listByClient.queryOptions({ input: { clientId: client.id } }),
   )
-  const pulseHistoryQuery = useQuery(orpc.pulse.listHistory.queryOptions({ input: { limit: 30 } }))
+  const alertHistoryQuery = useQuery(orpc.pulse.listHistory.queryOptions({ input: { limit: 30 } }))
   // Audit P1-4: single batch round-trip instead of N+1 useQueries.
-  const pulseAlertIds = useMemo(
-    () => (pulseHistoryQuery.data?.alerts ?? []).map((alert) => alert.id),
-    [pulseHistoryQuery.data?.alerts],
+  const alertIds = useMemo(
+    () => (alertHistoryQuery.data?.alerts ?? []).map((alert) => alert.id),
+    [alertHistoryQuery.data?.alerts],
   )
-  const pulseDetailsBatchQuery = useQuery({
-    ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds: pulseAlertIds } }),
-    enabled: pulseAlertIds.length > 0,
+  const alertDetailsBatchQuery = useQuery({
+    ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds: alertIds } }),
+    enabled: alertIds.length > 0,
   })
   const auditQuery = useQuery({
     ...orpc.audit.list.queryOptions({
@@ -482,8 +482,8 @@ export function ClientDetailWorkspace({
     () => findExtensionWithoutPaymentObligations(obligations),
     [obligations],
   )
-  const pulseDetails = pulseDetailsBatchQuery.data?.details ?? []
-  const pulseMatches = buildClientPulseMatches(pulseDetails, client.id)
+  const alertDetails = alertDetailsBatchQuery.data?.details ?? []
+  const alertMatches = buildClientAlertMatches(alertDetails, client.id)
   const updateRiskProfileMutation = useMutation(
     orpc.clients.updateRiskProfile.mutationOptions({
       onSuccess: (result) => {
@@ -669,14 +669,11 @@ export function ClientDetailWorkspace({
     [changeStatusMutation],
   )
 
-  // Archive (a.k.a. soft-delete) state + mutation. CPA compliance
-  // requires soft-delete — `clients.delete` actually flips `deletedAt`
-  // server-side, audit log retains everything. The UI surfaces the
-  // action as "Archive" (the action verb a CPA would use) instead of
-  // "Delete" (which implies irreversible). See critique L-10 for the
-  // rationale on Archive vs Delete vocabulary.
-  const [archiveOpen, setArchiveOpen] = useState(false)
-  const archiveMutation = useMutation(
+  // Delete state + mutation. The server still performs the compliance-safe
+  // `deletedAt` write; active deadline/dashboard queries filter the client out
+  // while audit history remains available.
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const deleteMutation = useMutation(
     orpc.clients.delete.mutationOptions({
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
@@ -684,12 +681,12 @@ export function ClientDetailWorkspace({
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
-        toast.success(t`Client archived`, { description: client.name })
-        setArchiveOpen(false)
+        toast.success(t`Client deleted`, { description: client.name })
+        setDeleteOpen(false)
         void navigate('/clients')
       },
       onError: (err) => {
-        toast.error(t`Couldn't archive client`, {
+        toast.error(t`Couldn't delete client`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -852,7 +849,7 @@ export function ClientDetailWorkspace({
                   clientId={client.id}
                   clientName={client.name}
                   canReadAudit={canReadAudit}
-                  onArchive={() => setArchiveOpen(true)}
+                  onDelete={() => setDeleteOpen(true)}
                 />
                 <CreateObligationDialog
                   defaultClientId={client.id}
@@ -930,7 +927,7 @@ export function ClientDetailWorkspace({
                 with this client right now?") that apply regardless of
                 which tab is open. */}
             <ClientActiveAlertsSection
-              pulseMatches={pulseMatches}
+              alertMatches={alertMatches}
               extensionPaymentMismatches={extensionPaymentMismatches}
             />
 
@@ -1403,10 +1400,10 @@ export function ClientDetailWorkspace({
             // the parent's xl:gap-6 so the unused gap doesn't show
             // up as a void on the right edge.
             'xl:w-0 xl:-mr-6',
-            // 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
+            // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
             // open width switched from a fixed 600px to 60% of the
             // parent flex row so the obligation panel mirrors
-            // PulseDetailDrawer's wrapper (AlertsListPage.tsx L844:
+            // AlertDetailDrawer's wrapper (AlertsListPage.tsx L844:
             // `width: '60%'`). Same proportional split between the
             // client-facts left column and the obligation drawer on
             // the right; both right-rail panels in the product now
@@ -1432,36 +1429,30 @@ export function ClientDetailWorkspace({
         </aside>
       </div>
 
-      {/* Archive confirmation. `clients.delete` is a soft-delete server-
-          side (sets `deletedAt` + writes an audit row) — see commit
-          b925449. We surface it as "Archive" because that's the CPA's
-          mental model: hide from daily views, retain for audit /
-          historical record. Critique L-10. */}
-      <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              <Trans>Archive {client.name}?</Trans>
+            <AlertDialogTitle className="text-text-destructive">
+              <Trans>Delete {client.name}?</Trans>
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-text-destructive-secondary">
               <Trans>
-                The client will be hidden from the active list and dashboards. All audit history,
-                filings, and deadlines stay retained. You can restore from the archived view if you
-                change your mind.
+                This removes the client and its deadlines from active lists, Deadlines, and
+                dashboard views. Audit history stays retained for compliance records.
               </Trans>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={archiveMutation.isPending}>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
               <Trans>Cancel</Trans>
             </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive-primary"
-              disabled={archiveMutation.isPending}
-              onClick={() => archiveMutation.mutate({ id: client.id })}
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteMutation.mutate({ id: client.id })}
             >
-              <ArchiveIcon data-icon="inline-start" />
-              <Trans>Archive client</Trans>
+              <Trash2Icon data-icon="inline-start" />
+              <Trans>Delete client</Trans>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1571,7 +1562,7 @@ function ClientDetailTabTrigger({
 }
 
 /**
- * Active alerts affecting this specific client. Pulse matches +
+ * Active alerts affecting this specific client. Alert matches +
  * extension-without-payment warnings live here. The old
  * `ClientAlertsBand` lumped these together with missing-facts into a
  * single warning strip — D-3 split them apart:
@@ -1588,13 +1579,13 @@ function ClientDetailTabTrigger({
  * nothing is active, the whole section disappears.
  */
 function ClientActiveAlertsSection({
-  pulseMatches,
+  alertMatches,
   extensionPaymentMismatches,
 }: {
-  pulseMatches: readonly ClientPulseMatch[]
+  alertMatches: readonly ClientAlertMatch[]
   extensionPaymentMismatches: readonly ObligationInstancePublic[]
 }) {
-  const totalCount = pulseMatches.length + extensionPaymentMismatches.length
+  const totalCount = alertMatches.length + extensionPaymentMismatches.length
   if (totalCount === 0) return null
   return (
     <section
@@ -1612,9 +1603,9 @@ function ClientActiveAlertsSection({
         <span className="text-xs tabular-nums text-text-tertiary">{totalCount}</span>
       </header>
       <ul className="divide-y divide-divider-subtle">
-        {pulseMatches.map((match) => (
+        {alertMatches.map((match) => (
           <li key={match.alertId}>
-            <ClientActiveAlertsPulseCard match={match} />
+            <ClientActiveAlertsCard match={match} />
           </li>
         ))}
         {extensionPaymentMismatches.length > 0 ? (
@@ -1627,8 +1618,8 @@ function ClientActiveAlertsSection({
   )
 }
 
-function ClientActiveAlertsPulseCard({ match }: { match: ClientPulseMatch }) {
-  // `ClientPulseMatch` doesn't carry a jurisdiction code today (the
+function ClientActiveAlertsCard({ match }: { match: ClientAlertMatch }) {
+  // `ClientAlertMatch` doesn't carry a jurisdiction code today (the
   // server-side model returns `source` as a free-text label like
   // "Pennsylvania Department of Revenue"). Show the tax code as the
   // leading chip so the CPA sees what kind of filing is affected;
@@ -1643,7 +1634,7 @@ function ClientActiveAlertsPulseCard({ match }: { match: ClientPulseMatch }) {
         <p className="text-sm font-medium text-text-primary">{match.title}</p>
         <p className="mt-0.5 text-xs text-text-tertiary">{match.source}</p>
       </div>
-      <Button variant="ghost" size="sm" render={<Link to="/rules/pulse" />}>
+      <Button variant="ghost" size="sm" render={<Link to="/alerts" />}>
         <Trans>Review</Trans>
         <ChevronRightIcon data-icon="inline-end" aria-hidden />
       </Button>
@@ -1695,21 +1686,17 @@ function ClientHeaderOverflowMenu({
   clientId,
   clientName,
   canReadAudit,
-  onArchive,
+  onDelete,
 }: {
   clientId: string
   clientName: string
   canReadAudit: boolean
-  onArchive: () => void
+  onDelete: () => void
 }) {
   const { t } = useLingui()
   const navigate = useNavigate()
-  // 2026-05-26 (Yuqi macro→micro audit, Fix #4 / §2.3): Archive moved
-  // INSIDE the ⋯ overflow per canonical (≤2 outline buttons + no
-  // destructive in the visible cluster). The menu used to gate on
-  // `canReadAudit` and disappear entirely when the user lacked audit
-  // — now Archive is always available so the menu renders, with the
-  // audit-log entry conditionally shown.
+  // 2026-06-02 (browser comment): destructive client removal stays in the
+  // overflow, but now uses the direct "Delete" verb and red menu variant.
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -1732,12 +1719,12 @@ function ClientHeaderOverflowMenu({
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuItem
-          onClick={onArchive}
-          aria-label={t`Archive ${clientName}`}
-          className="text-state-warning-text"
+          onClick={onDelete}
+          aria-label={t`Delete ${clientName}`}
+          variant="destructive"
         >
-          <ArchiveIcon className="size-4" aria-hidden />
-          <Trans>Archive client</Trans>
+          <Trash2Icon className="size-4" aria-hidden />
+          <Trans>Delete client</Trans>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -1921,12 +1908,7 @@ function ClientOwnerHeaderPill({
               </>
             ) : (
               <>
-                <AssigneeAvatar
-                  name={name}
-                  isMine={isMine}
-                  size="xs"
-                  title={triggerLabel}
-                />
+                <AssigneeAvatar name={name} isMine={isMine} size="xs" title={triggerLabel} />
                 <span className="truncate">{name}</span>
               </>
             )}
@@ -1969,11 +1951,7 @@ function ClientOwnerHeaderPill({
                   (size='xs'). The primitive picks the same per-name tint
                   via getAssigneeTint and falls back to the unassigned
                   glyph when name is null. */}
-              <AssigneeAvatar
-                name={name}
-                size="xs"
-                title={name ?? t`Former teammate`}
-              />
+              <AssigneeAvatar name={name} size="xs" title={name ?? t`Former teammate`} />
               <span className="truncate text-text-tertiary">
                 {name ?? <Trans>Former teammate</Trans>}
                 <span className="ml-1 text-xs italic">

@@ -242,7 +242,7 @@ components:
     backgroundColor: '{colors.surface-canvas}'
     textColor: '{colors.text-primary}'
     typography: '{typography.hero-metric}'
-  pulse-banner:
+  alert-banner:
     backgroundColor: '{colors.severity-medium-tint}'
     textColor: '{colors.text-primary}'
     rounded: '{rounded.md}'
@@ -460,7 +460,7 @@ motion:
     color: '{colors.accent-default}'
     trailAlpha: 0.1
     bezier: ['start', 'startPlus(0, -200)', 'endPlus(0, -100)', 'end']
-  pulse-banner-breathing:
+  alert-banner-breathing:
     durationMs: 3800
     ease: 'ease-in-out'
     backgroundTint: '{colors.severity-medium}'
@@ -548,7 +548,7 @@ Token pixel values are set in `packages/ui/src/styles/tokens/primitives.css`. Th
 | Token                      | Tailwind                                                 | Pixels | Use                                                                                                                                                |
 | -------------------------- | -------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **H1 page title**          | `text-2xl font-semibold tracking-tight`                  | 28px   | The page's anchor word — "Today", "Deadlines", "Clients"                                                                                           |
-| **H2 section**             | `text-xl font-semibold tracking-tight`                   | 18px   | "Pulse alerts", "This week's exposure", "Actions this week". A counter sits beside it at `text-base font-normal text-text-tertiary tabular-nums`.  |
+| **H2 section**             | `text-xl font-semibold tracking-tight`                   | 18px   | "Alerts", "This week's exposure", "Actions this week". A counter sits beside it at `text-base font-normal text-text-tertiary tabular-nums`.        |
 | **KPI numeral**            | `text-xl font-semibold tabular-nums tracking-tight`      | 18px   | The number on an exposure tile. Label below at `text-base text-text-secondary`. Matches H2 scale so KPIs read as section labels, not page anchors. |
 | **Row primary**            | `text-md font-medium text-text-primary`                  | 14px   | The thing the user is scanning for — client name in action rows, alert title on cards.                                                             |
 | **Row secondary**          | `text-base text-text-secondary`                          | 13px   | Task prompt under a row primary, supporting metadata.                                                                                              |
@@ -568,7 +568,7 @@ Default to Inter `tabular-nums`. Drop `font-mono` unless the number is part of a
 
 The spacing scale is based on 4px. Dashboard and Deadlines views are full-width work surfaces. Settings form pages stay around 880px max width, while Settings data surfaces such as Members and Billing use the 1172-1180px workbench width from Figma. The sidebar is 220px on desktop. Default right drawers are 400px; workflow drawers that contain tables, batch review, or evidence-heavy content may scale from 720px to 880px while remaining full-width on mobile. Modals are capped at 640px.
 
-First screens must show useful work, not marketing chrome. Dashboard should reveal Pulse, the dollar risk hero, and at least eight customer rows. Deadlines should reveal at least twelve rows.
+First screens must show useful work, not marketing chrome. Dashboard should reveal Alerts, the dollar risk hero, and at least eight customer rows. Deadlines should reveal at least twelve rows.
 
 ## Elevation & Depth
 
@@ -581,16 +581,16 @@ Avoid nested cards and decorative depth. Depth exists to preserve focus and laye
 Radii are intentionally restrained:
 
 - 4px (`rounded.sm`) for chips, evidence chips, confidence badges, and other small inline tokens.
-- 6px (`rounded.md`) for **buttons (shadcn `base-vega` primitive)**, inputs, cards, banners, dropdowns, toasts, and the pulse banner.
+- 6px (`rounded.md`) for **buttons (shadcn `base-vega` primitive)**, inputs, cards, banners, dropdowns, toasts, and the alert banner.
 - 12px (`rounded.lg`) for drawers, modals, and the command palette only.
 
-Do not use pill buttons, circular decorative controls, or radius above 12px. **Button radius / height / padding mirror shadcn `base-vega` defaults verbatim** (`rounded-md` 6px · `h-9` 36px · `px-2.5` 10px · `text-sm` 12px / 500) — the tokens in `components.button-{primary,secondary,primary-hover,primary-active}` document the runtime values produced by `pnpm dlx shadcn add`, so importing a fresh shadcn component requires zero manual patching. Non-shadcn business components (risk-row, evidence-chip, hero-metric, command-palette, sidebar, stepper, toast, confidence-badge, pulse-banner, genesis-, email-shell) keep DESIGN.md as the authoritative source.
+Do not use pill buttons, circular decorative controls, or radius above 12px. **Button radius / height / padding mirror shadcn `base-vega` defaults verbatim** (`rounded-md` 6px · `h-9` 36px · `px-2.5` 10px · `text-sm` 12px / 500) — the tokens in `components.button-{primary,secondary,primary-hover,primary-active}` document the runtime values produced by `pnpm dlx shadcn add`, so importing a fresh shadcn component requires zero manual patching. Non-shadcn business components (risk-row, evidence-chip, hero-metric, command-palette, sidebar, stepper, toast, confidence-badge, alert-banner, genesis-, email-shell) keep DESIGN.md as the authoritative source.
 
 ## Components
 
 Use shadcn Base UI `base-vega` primitives as the foundation. Project-specific components belong above them in this order: `routes -> features -> patterns -> primitives -> ui -> lib`.
 
-Primary buttons use indigo and are reserved for the most important action on a surface. Risk rows encode severity with both label and color. Evidence chips are mandatory for AI output, rules, Pulse entries, and cited numeric claims. Command palette, drawer, and toast behavior must remain keyboard-friendly.
+Primary buttons use indigo and are reserved for the most important action on a surface. Risk rows encode severity with both label and color. Evidence chips are mandatory for AI output, rules, Alerts entries, and cited numeric claims. Command palette, drawer, and toast behavior must remain keyboard-friendly.
 
 Clients `Fact profile` uses a `Filing jurisdictions` panel for multi-state client facts. The panel is
 a compact bordered work surface, not a nested card: state chips show primary vs secondary filing
@@ -732,14 +732,13 @@ Modals interrupt for input only (T7). The bar for triggering one is **damage tha
 
 **Confirm modal REQUIRED on:**
 
-1. Batch-adjust deadlines from a Pulse alert — preview the date diff before applying.
+1. Batch-adjust deadlines from an alert — preview the date diff before applying.
 2. Archive client — show active-deadline count; warn if > 0.
 3. CSV / XLSX import commit (final wizard step) — preview row counts.
 4. Remove team member — show how many client assignments revert to Owner.
-5. Dismiss / hide a Pulse alert that affects > 0 clients — explicit opt-in text.
-6. Remove a filing-jurisdiction from a client — list the pending deadlines that will be removed.
-7. Send batch reminder email — preview recipient list + editable body before send.
-8. Undo import (within the 7-day window) — show the N clients / M deadlines that get wiped.
+5. Remove a filing-jurisdiction from a client — list the pending deadlines that will be removed.
+6. Send batch reminder email — preview recipient list + editable body before send.
+7. Undo import (within the 7-day window) — show the N clients / M deadlines that get wiped.
 
 **No modal on** (reversible + activity-logged): Mark complete · Mark in progress · Mark waiting · Add note · Edit note · Toggle filters · Toggle view modes · Snooze (own affordance).
 
@@ -838,7 +837,7 @@ If a component spec doesn't answer all 7, send it back.
 The dashboard has one rhythm rule: spacing doubles between scopes (4 → 8 → 16 → 24 → 48). Page sections, top to bottom:
 
 1. **Page header** (date / route name inline, single line)
-2. **Pulse alerts** — a single grouped section. Header `<h2>` plus, when sources are unhealthy, a "_N_ source needs attention" warning row that lives **inside** the section (tight gap) so it never reads as an orphan banner above the cards. Source labels are shown as inline chips. The warning's primary action is **Review** (filled button); **Hide** is a ghost button — Review is the desired path, Hide is the lesser one.
+2. **Alerts** — a single grouped section. Header `<h2>` plus alert cards for source-backed changes that may affect current client work. Source-health diagnostics stay out of the CPA-facing review queue; the section is for reviewable alerts only.
 3. **This week's exposure** — KPI mini-tiles (number on top, label below). Sans-serif tabular numerals at `text-2xl semibold`. Each tile is a deep-link into the matching Deadlines filter.
 4. **Actions this week** — the daily action queue.
 
@@ -938,7 +937,7 @@ Motion confirms; it does not perform. Subtle, fast, professional. The product is
 | Toast in/out             | 200 / 150 ms                           |
 | Skeleton shimmer         | 1500 ms loop                           |
 
-Anything longer than 300 ms on a UI transition is a bug. Reserve longer durations (pulse-breathing 3800 ms) for ambient signal, not state changes.
+Anything longer than 300 ms on a UI transition is a bug. Reserve longer durations (alert-breathing 3800 ms) for ambient signal, not state changes.
 
 ## Do's and Don'ts
 
@@ -976,13 +975,13 @@ This block tightens the product's taste filter. Apply uniformly; in conflict wit
 
 Yellow / golden tones read as caution-tape — loud, dated, visually noisy on a calm canvas. Mercury's "Pending Review" (lavender) and "Declined" (peach) prove a quieter palette carries the same urgency vocabulary without amber.
 
-**Direction.** Keep the `warn` semantic but shift the visual tone toward soft peach / coral hues rather than golden amber. The amber palette survives only where state-of-the-art workflow status (Pulse "Needs review", Migration Copilot "Applicability review") is genuinely the right semantic — and even there, prefer a tinted pill over a tinted row background.
+**Direction.** Keep the `warn` semantic but shift the visual tone toward soft peach / coral hues rather than golden amber. The amber palette survives only where state-of-the-art workflow status (Alerts "Needs review", Migration Copilot "Applicability review") is genuinely the right semantic — and even there, prefer a tinted pill over a tinted row background.
 
 **Where this changes existing surfaces:**
 
 - "Stuck >14d" / "Behind target" / "Awaiting reply" status pills — repaint with peach-leaning tones, not amber.
 - "Reminders out, awaiting reply" mail-card sub-zone — peach tint or migrate to `review` (lavender) since the semantic IS "waiting on client".
-- Pulse "Source needs attention" banner — keep peach/amber, but never elevate the row's _background_ on the list itself; the banner is the loud surface.
+- Alerts attention banners — keep peach/amber, but never elevate the row's _background_ on the list itself; the banner is the loud surface.
 - "Overdue −Nd" — stays `danger` red (unchanged; this is the one loud tier).
 
 There is **no middle tier between calm peach and alarm red.** If a future signal needs higher urgency than peach, it earns red.
@@ -1084,7 +1083,7 @@ When two surfaces present the same concept, the click target on the secondary su
 
 - **Deadline detail.** Deadline drawer is the primary surface (right-side sheet). Every click target on a secondary surface (dashboard action row, calendar cell, client workspace row) navigates to a URL that opens the same drawer, not a duplicate inline view.
 - **Client detail.** `/clients/<id>` is the single drilldown. No duplicate drawers, no inline expansions that recreate the page.
-- **Pulse alert.** Pulse drawer is the primary surface. Dashboard cards click into the same drawer.
+- **Alert.** The alert drawer is the primary surface. Dashboard cards click into the same drawer.
 - **Rule detail.** Coverage's inline rule panel is the canonical surface. Library row click navigates to `/rules/coverage?rule=…`, not a duplicate drawer.
 
 This rule prevents the "drawer that duplicates the page" failure mode and keeps deep-links to a single canonical URL per record.
@@ -1121,7 +1120,7 @@ Exports are decisions across three orthogonal axes. The modal renders one axis p
 | **Format**    | PDF (firm-branded client-facing report) · CSV (raw data, portability guarantee) · iCal `.ics` (subscription URL for calendar apps)    |
 | **Recipient** | Download (default) · Email to self · Email to teammate (paid tiers only)                                                              |
 
-**Trigger locations:** any `Export` button across the product points to the same modal — Deadlines page header, Client detail's overflow menu, Pulse alert detail's affected-client list, Calendar / Audit log header. Same modal everywhere keeps the user's mental model intact (one entrance, one name).
+**Trigger locations:** any `Export` button across the product points to the same modal — Deadlines page header, Client detail's overflow menu, alert detail's affected-client list, Calendar / Audit log header. Same modal everywhere keeps the user's mental model intact (one entrance, one name).
 
 **No additional axes.** No "include archived?" checkbox, no "anonymize names?" toggle — options-creep. If a future case demands a fourth axis, it earns its own dialog with its own load-bearing rationale.
 
@@ -1132,7 +1131,7 @@ Pair this table with the existing Voice & Terminology section below. These are t
 | Surface                            | Copy                                                                      | Why                                                           |
 | :--------------------------------- | :------------------------------------------------------------------------ | :------------------------------------------------------------ |
 | Page title (Today)                 | `Today May 19` (date inline, medium-weight)                               | Factual. Not "Welcome, Sarah" — desk, not stage.              |
-| Empty Pulse / Alerts               | `No active alerts.`                                                       | Calm fact. Not "All caught up!" — no celebration.             |
+| Empty Alerts                       | `No active alerts.`                                                       | Calm fact. Not "All caught up!" — no celebration.             |
 | Empty Actions queue                | `Caught up. Next deadline due May 18.`                                    | Provides horizon, per the Do rule.                            |
 | Confirmation toast (status change) | `Marked filed.`                                                           | Past tense, terse, no exclamation.                            |
 | Error toast (send failed)          | `Couldn't send. Retry, or check the email address.`                       | Direct: what failed, what to try. Not "Oops!"                 |
@@ -1181,11 +1180,11 @@ These are decisions, not suggestions. If you need a new term, add it here before
 | The CSV / XLSX mapping used to onboard client records            | **import template**                                                                                      | source template, mapping template                        |
 | The customizable email body sent to a client                     | **reminder template**                                                                                    | (always qualify with "reminder" — never bare "template") |
 | The US state where a client files                                | **state** (when scope is 50 states) / **jurisdiction** (when federal, DC, or counties are also included) | filing state + jurisdiction in the same sentence         |
-| A regulatory change detected from a source                       | **Pulse change** (internal-facing) / **incoming change** (user-facing labels)                            | alert, signal, notification                              |
+| A regulatory change detected from a source                       | **alert** (user-facing) / `pulse` event (engine boundary only)                                           | Pulse change, signal, notification                       |
 | Status awaiting human review                                     | **Needs review** (long label) · `Pending` (short chip)                                                   | Pending review, Awaiting review                          |
 | The end-product work item the practice must complete             | **deadline** (all user-facing surfaces) / `obligation` (internal data model only)                        | task, item, obligation in visible copy                   |
 | A practice member you're adding                                  | **member** (verb: **invite**)                                                                            | teammate, colleague, seat                                |
-| Time-limited rule override applied from a Pulse change           | **active override** / **relief** (IRS register)                                                          | temporary rule, exception (in nav)                       |
+| Time-limited rule override applied from an alert                 | **active override** / **relief** (IRS register)                                                          | temporary rule, exception (in nav)                       |
 
 ### When in doubt
 

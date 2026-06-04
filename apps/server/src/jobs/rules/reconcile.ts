@@ -12,19 +12,21 @@ import {
   type ObligationRule,
   type RuleSource,
 } from '@duedatehq/core/rules'
-import { announcementItemsFromSnapshot } from '@duedatehq/ingest'
+import { announcementItemsFromSnapshotWithPdfLinks } from '@duedatehq/ingest'
 import { fetchTextSnapshot } from '@duedatehq/ingest/http'
+import type { IngestCtx } from '@duedatehq/ingest/types'
 import type { Env } from '../../env'
 import {
   cachedConcreteDraftKey,
   RULE_CONCRETE_DRAFT_PROMPT,
 } from '../../procedures/rules/concrete-draft'
-import { archivePulseRaw } from '../pulse/ingest'
+import { archivePulseRaw, createPoliteFetch } from '../pulse/ingest'
 import { recordPulseMetric } from '../pulse/metrics'
 import {
   RULE_CONCRETE_DRAFT_GENERATE_MESSAGE_TYPE,
   type RuleConcreteDraftGenerateMessage,
 } from './concrete-draft'
+import { findRuleDateReconciliationIssues } from '../../procedures/rules/rule-date-reconciliation'
 
 export const PULSE_RULE_SOURCE_SCAN_MESSAGE_TYPE = 'pulse.rule_source.scan'
 export const RULE_REGISTRY_CATALOG_SYNC_MESSAGE_TYPE = 'rule.registry.catalog.sync'
@@ -67,6 +69,23 @@ export function isRuleRegistryCatalogSyncMessage(
   )
 }
 
+export const RULE_DATE_RECONCILIATION_MESSAGE_TYPE = 'rule.date.reconciliation'
+
+export interface RuleDateReconciliationMessage {
+  type: typeof RULE_DATE_RECONCILIATION_MESSAGE_TYPE
+  reason: 'scheduled' | 'manual'
+}
+
+export function isRuleDateReconciliationMessage(
+  value: unknown,
+): value is RuleDateReconciliationMessage {
+  return (
+    isRecord(value) &&
+    value.type === RULE_DATE_RECONCILIATION_MESSAGE_TYPE &&
+    (value.reason === 'scheduled' || value.reason === 'manual')
+  )
+}
+
 function sourceCadenceMs(source: Pick<RuleSource, 'cadence'>): number {
   const day = 24 * 60 * 60 * 1000
   if (source.cadence === 'daily') return day
@@ -100,6 +119,13 @@ function sourceIsDue(state: { enabled?: boolean; nextCheckAt?: Date | null }, no
   )
 }
 
+function sourceNeedsMonitoringBaseline(state: {
+  monitoringBaselineAt?: Date | null
+  baselineMode?: string
+}): boolean {
+  return state.monitoringBaselineAt === null && state.baselineMode !== 'backfill'
+}
+
 function sourceCanAutoScan(source: RuleSource): boolean {
   return (
     source.healthStatus !== 'paused' &&
@@ -111,7 +137,13 @@ function sourceCanAutoScan(source: RuleSource): boolean {
 }
 
 function sourceFetchUrl(source: RuleSource): string {
-  return source.feedUrl ?? source.url
+  const url = source.feedUrl ?? source.url
+  // Resolve the {year} token (e.g. WV AdministrativeNotices{year}.aspx) like the
+  // adapter path does, so the scan fetches the current-year page instead of a
+  // literal "{year}" URL that 404s.
+  return url.includes('{year}')
+    ? url.replaceAll('{year}', String(new Date().getUTCFullYear()))
+    : url
 }
 
 function sourceTemplateInput(source: RuleSource) {
@@ -162,6 +194,27 @@ export async function enqueueRuleRegistryCatalogSync(
   } satisfies RuleRegistryCatalogSyncMessage)
 }
 
+/**
+ * Enqueue the catalog-level rule-date reconciliation (gap #5). Scheduled runs are gated to the
+ * weekly governance window — the findings (stale filing year / literal-vs-excerpt mismatch) only
+ * change on a catalog edit or a year rollover, and the alert is deduped on the durable drift state,
+ * so weekly is plenty. `manual` always enqueues for on-demand runs.
+ */
+export async function enqueueRuleDateReconciliation(
+  env: Pick<Env, 'PULSE_QUEUE'>,
+  now: Date,
+  reason: RuleDateReconciliationMessage['reason'] = 'scheduled',
+): Promise<{ queued: boolean }> {
+  if (reason === 'scheduled' && !shouldRunWeeklyRuleSourceGovernance(now)) {
+    return { queued: false }
+  }
+  await env.PULSE_QUEUE.send({
+    type: RULE_DATE_RECONCILIATION_MESSAGE_TYPE,
+    reason,
+  } satisfies RuleDateReconciliationMessage)
+  return { queued: true }
+}
+
 export async function enqueueDueRuleSourceScans(
   env: Pick<Env, 'DB' | 'PULSE_QUEUE'>,
   now: Date,
@@ -169,25 +222,30 @@ export async function enqueueDueRuleSourceScans(
   const sources = listRuleSources()
   const weeklyGovernance = shouldRunWeeklyRuleSourceGovernance(now)
   const pulseOps = makePulseOpsRepo(createDb(env.DB))
-  const queueItems = (
-    await Promise.all(
-      sources.map(async (source) => {
-        const state = await pulseOps.ensureSourceState({
-          sourceId: source.id,
-          tier: sourceTier(source),
-          jurisdiction: source.jurisdiction,
-          cadenceMs: sourceCadenceMs(source),
-          now,
-          enabled: source.healthStatus !== 'paused',
-        })
-        if (!state.enabled) return null
-        if (sourceCanAutoScan(source)) {
-          return sourceIsDue(state, now) ? { source, reason: 'cadence_due' as const } : null
-        }
-        return weeklyGovernance ? { source, reason: 'weekly_governance' as const } : null
-      }),
-    )
-  ).filter((item): item is NonNullable<typeof item> => item !== null)
+  // One batched read+upsert for all rule sources instead of N serial
+  // round-trips — the per-source loop here (plus the pulse-ingest one) blew the
+  // cron's 15-minute wall-clock budget (exceededCpu), killing every fan-out.
+  const states = await pulseOps.ensureSourceStates(
+    sources.map((source) => ({
+      sourceId: source.id,
+      tier: sourceTier(source),
+      jurisdiction: source.jurisdiction,
+      cadenceMs: sourceCadenceMs(source),
+      now,
+      enabled: source.healthStatus !== 'paused',
+    })),
+    now,
+  )
+  const queueItems = sources.flatMap(
+    (source): Array<{ source: RuleSource; reason: PulseRuleSourceScanMessage['reason'] }> => {
+      const state = states.get(source.id)
+      if (!state || !state.enabled) return []
+      if (sourceCanAutoScan(source)) {
+        return sourceIsDue(state, now) ? [{ source, reason: 'cadence_due' }] : []
+      }
+      return weeklyGovernance ? [{ source, reason: 'weekly_governance' }] : []
+    },
+  )
 
   await Promise.all(
     queueItems.map(({ source, reason }) =>
@@ -214,13 +272,14 @@ export async function consumePulseRuleSourceScan(
   }
 
   const now = new Date()
-  await pulseOps.ensureSourceState({
+  const sourceState = await pulseOps.ensureSourceState({
     sourceId: source.id,
     tier: sourceTier(source),
     jurisdiction: source.jurisdiction,
     cadenceMs: sourceCadenceMs(source),
     now,
   })
+  const establishingBaseline = sourceNeedsMonitoringBaseline(sourceState)
 
   if (!sourceCanAutoScan(source)) {
     await pulseOps.recordSourceSuccess({
@@ -233,20 +292,34 @@ export async function consumePulseRuleSourceScan(
   }
 
   try {
-    const fetched = await fetchTextSnapshot(
-      {
-        fetch,
-        getSourceState: async (sourceId) => {
-          const state = await pulseOps.getSourceState(sourceId)
-          return state ? { etag: state.etag, lastModified: state.lastModified } : null
-        },
-        archiveRaw: (input) => archivePulseRaw(env, input),
+    // Wrap the global fetch: assigning the bare `fetch` to a context property
+    // and calling it as `ctx.fetch(...)` runs it with `this === ctx`, which
+    // workerd rejects with "Illegal invocation". createPoliteFetch calls fetch
+    // as a free function (correct `this`) and adds the 30s/host rate limiting
+    // this scan path otherwise lacks. A single instance is shared so text and
+    // PDF (binary) fetches to the same host coordinate.
+    const politeFetch = createPoliteFetch(fetch)
+    const ingestCtx: IngestCtx = {
+      fetch: politeFetch,
+      binaryFetch: politeFetch,
+      getSourceState: async (sourceId) => {
+        const currentState = await pulseOps.getSourceState(sourceId)
+        return currentState
+          ? { etag: currentState.etag, lastModified: currentState.lastModified }
+          : null
       },
-      { sourceId: source.id, url: sourceFetchUrl(source) },
-    )
+      archiveRaw: (input) => archivePulseRaw(env, input),
+    }
+    const fetched = await fetchTextSnapshot(ingestCtx, {
+      sourceId: source.id,
+      url: sourceFetchUrl(source),
+    })
     const checkedAt = fetched.fetchedAt
 
     if (fetched.notModified) {
+      if (establishingBaseline) {
+        await pulseOps.establishSourceBaseline({ sourceId: source.id, baselineAt: checkedAt })
+      }
       await pulseOps.recordSourceSuccess({
         sourceId: source.id,
         checkedAt,
@@ -259,7 +332,11 @@ export async function consumePulseRuleSourceScan(
     }
 
     const announcementItems = isTemporaryAnnouncementSource(source)
-      ? announcementItemsFromSnapshot({ ...source, url: sourceFetchUrl(source) }, fetched)
+      ? await announcementItemsFromSnapshotWithPdfLinks(
+          { ...source, url: sourceFetchUrl(source) },
+          fetched,
+          ingestCtx,
+        )
       : []
     const snapshotResults =
       announcementItems.length > 0
@@ -297,14 +374,27 @@ export async function consumePulseRuleSourceScan(
             }),
           ]
     const insertedSnapshots = snapshotResults.filter((result) => result.inserted)
+    if (establishingBaseline) {
+      await Promise.all(
+        insertedSnapshots.map((snapshot) =>
+          pulseOps.updateSourceSnapshotStatus(snapshot.snapshot.id, {
+            parseStatus: 'ignored',
+            failureReason: 'monitoring_baseline_established',
+          }),
+        ),
+      )
+      await pulseOps.establishSourceBaseline({ sourceId: source.id, baselineAt: checkedAt })
+    }
     await pulseOps.recordSourceSuccess({
       sourceId: source.id,
       checkedAt,
       nextCheckAt: nextCheckAt(checkedAt, source),
-      changed: insertedSnapshots.length > 0,
+      changed: !establishingBaseline && insertedSnapshots.length > 0,
       ...(fetched.etag !== undefined ? { etag: fetched.etag } : {}),
       ...(fetched.lastModified !== undefined ? { lastModified: fetched.lastModified } : {}),
     })
+
+    if (establishingBaseline) return
 
     await Promise.all(
       insertedSnapshots.map((snapshot) =>
@@ -376,6 +466,68 @@ export async function consumeRuleRegistryCatalogSync(
 
   await ops.fanoutReviewTasks({ newRules, changedRules })
 
+  // Library version bump → unified Alert: for each changed rule that firms have adopted,
+  // raise a targeted rule_source_drift Alert (only to the adopting firms) so CPAs handle it
+  // in the alerts surface and re-verify inline. Mirrors consumeRuleDateReconciliation; deduped
+  // on uncleared drift state (and on the persisted template version, since changedRules only
+  // fires when old.version < current) so re-running catalog sync never double-alerts.
+  if (changedRules.length > 0) {
+    const pulseOps = makePulseOpsRepo(db)
+    const unclearedRuleIds = new Set(
+      await pulseOps.listUnclearedDriftRuleIds(changedRules.map((rule) => rule.ruleId)),
+    )
+    const ruleById = new Map(rules.map((rule) => [rule.id, rule]))
+    const sourceUrlById = new Map(sources.map((source) => [source.id, source.url]))
+    const detectedAt = new Date()
+    // Serialized: each alert fans out to its adopting firms — avoid spiking D1 when many
+    // rules change at once (e.g. a year-start catalog refresh).
+    for (const changed of changedRules) {
+      if (unclearedRuleIds.has(changed.ruleId)) continue
+      const rule = ruleById.get(changed.ruleId)
+      if (!rule) continue
+      const sourceId = basisSourceIdForRule(rule)
+      if (!sourceId) continue
+      const sourceUrl = sourceUrlById.get(sourceId)
+      if (!sourceUrl) continue
+      const firmIds = await ops.firmIdsWithReviewedRule(changed.ruleId)
+      if (firmIds.length === 0) continue
+      const basisExcerpt = rule.evidence.find(
+        (evidence) => evidence.authorityRole === 'basis' && evidence.sourceExcerpt.length > 0,
+      )?.sourceExcerpt
+      const { pulseId } = await pulseOps.createRuleSourceDriftPulse(
+        {
+          sourceId,
+          sourceUrl,
+          parsedJurisdiction: rule.jurisdiction,
+          parsedForms: [rule.taxType],
+          parsedEntityTypes: [...rule.entityApplicability],
+          reverifyRuleIds: [changed.ruleId],
+          aiSummary: `Rule ${changed.ruleId} was updated in the library (v${changed.templateVersion}). Re-verify the rule before relying on it.`,
+          verbatimQuote:
+            basisExcerpt ??
+            `Library rule ${changed.ruleId} changed to v${changed.templateVersion}.`,
+          publishedAt: detectedAt,
+          structuredChange: {
+            kind: 'rule_source_drift',
+            origin: 'catalog_version_bump',
+            sourceId,
+            ruleIds: [changed.ruleId],
+            templateVersion: changed.templateVersion,
+          },
+        },
+        { firmIds },
+      )
+      await pulseOps.upsertRuleSourceDriftState({
+        ruleId: changed.ruleId,
+        sourceId,
+        pulseId,
+        contentHash: `catalog:${changed.ruleId}:v${changed.templateVersion}`,
+        excerptMatched: false,
+        detectedAt,
+      })
+    }
+  }
+
   const changedOrNewIds = new Set([...newRules, ...changedRules].map((rule) => rule.ruleId))
   const sourceDefinedRules = rules.filter(
     (rule) => rule.status !== 'deprecated' && isSourceDefinedRule(rule),
@@ -436,4 +588,144 @@ export async function consumeRuleRegistryCatalogSync(
     deprecatedRules,
     draftMessages: draftTargets.length,
   }
+}
+
+export interface RuleDateAlertPlan {
+  ruleId: string
+  sourceId: string
+  jurisdiction: string
+  forms: string[]
+  entityTypes: string[]
+  sourceUrl: string
+  aiSummary: string
+  verbatimQuote: string
+}
+
+function basisSourceIdForRule(rule: Pick<ObligationRule, 'sourceIds' | 'evidence'>): string | null {
+  const basis = rule.evidence.find(
+    (evidence) => evidence.authorityRole === 'basis' && evidence.sourceExcerpt.length > 0,
+  )
+  return basis?.sourceId ?? rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? null
+}
+
+/**
+ * Turn rule-date reconciliation findings into rule_source_drift alert plans, one per stale rule:
+ * group the issues by rule, drop any rule that already carries an uncleared drift signal (so a
+ * re-run never re-alerts), resolve the rule's basis source + url, and compose the alert copy. Pure
+ * — the consumer supplies the catalog, the sources, and the uncleared-rule set.
+ */
+export function buildRuleDateAlertPlans(input: {
+  rules: readonly ObligationRule[]
+  sources: readonly RuleSource[]
+  currentYear: number
+  unclearedRuleIds: ReadonlySet<string>
+}): RuleDateAlertPlan[] {
+  const issues = findRuleDateReconciliationIssues({
+    rules: input.rules,
+    currentYear: input.currentYear,
+  })
+  if (issues.length === 0) return []
+
+  const detailsByRule = new Map<string, string[]>()
+  for (const issue of issues) {
+    const details = detailsByRule.get(issue.ruleId) ?? []
+    details.push(issue.detail)
+    detailsByRule.set(issue.ruleId, details)
+  }
+  const ruleById = new Map(input.rules.map((rule) => [rule.id, rule]))
+  const sourceUrlById = new Map(input.sources.map((source) => [source.id, source.url]))
+
+  const plans: RuleDateAlertPlan[] = []
+  for (const [ruleId, details] of detailsByRule) {
+    if (input.unclearedRuleIds.has(ruleId)) continue
+    const rule = ruleById.get(ruleId)
+    if (!rule) continue
+    const sourceId = basisSourceIdForRule(rule)
+    if (!sourceId) continue
+    const sourceUrl = sourceUrlById.get(sourceId)
+    if (!sourceUrl) continue
+    const basisExcerpt = rule.evidence.find(
+      (evidence) => evidence.authorityRole === 'basis' && evidence.sourceExcerpt.length > 0,
+    )?.sourceExcerpt
+    plans.push({
+      ruleId,
+      sourceId,
+      jurisdiction: rule.jurisdiction,
+      forms: [rule.taxType],
+      entityTypes: [...rule.entityApplicability],
+      sourceUrl,
+      aiSummary: `Catalog date check flagged verified rule ${ruleId} for re-verification — ${details.join(' ')} Confirm the due date against the official source.`,
+      verbatimQuote: basisExcerpt ?? details.join(' '),
+    })
+  }
+  return plans
+}
+
+/**
+ * Catalog-level rule-date reconciliation (gap #5): raise a rule_source_drift Alert for any verified
+ * rule whose literal due date is stale (filing year already past) or contradicts its own cited basis
+ * excerpt, and record the durable drift state so the rule cannot be (bulk-)adopted until re-verified.
+ * Deduped on the uncleared drift state, so re-running never double-alerts.
+ */
+export async function consumeRuleDateReconciliation(
+  _message: RuleDateReconciliationMessage,
+  env: Env,
+): Promise<{ staleRules: number; alertsCreated: number }> {
+  const rules = listObligationRules({ includeCandidates: true })
+  const currentYear = new Date().getUTCFullYear()
+  const staleRuleIds = Array.from(
+    new Set(findRuleDateReconciliationIssues({ rules, currentYear }).map((issue) => issue.ruleId)),
+  )
+  if (staleRuleIds.length === 0) {
+    recordPulseMetric('rule.date_reconciliation', { staleRules: 0, alertsCreated: 0 })
+    return { staleRules: 0, alertsCreated: 0 }
+  }
+
+  const pulseOps = makePulseOpsRepo(createDb(env.DB))
+  const unclearedRuleIds = new Set(await pulseOps.listUnclearedDriftRuleIds(staleRuleIds))
+  const plans = buildRuleDateAlertPlans({
+    rules,
+    sources: listRuleSources(),
+    currentYear,
+    unclearedRuleIds,
+  })
+
+  const detectedAt = new Date()
+  // Serialized rather than Promise.all: each alert fans out to every active firm, so we avoid
+  // spiking D1 when several rules go stale at once (e.g. a year rollover).
+  const created = []
+  for (const plan of plans) {
+    const { pulseId } = await pulseOps.createRuleSourceDriftPulse({
+      sourceId: plan.sourceId,
+      sourceUrl: plan.sourceUrl,
+      parsedJurisdiction: plan.jurisdiction,
+      parsedForms: plan.forms,
+      parsedEntityTypes: plan.entityTypes,
+      reverifyRuleIds: [plan.ruleId],
+      aiSummary: plan.aiSummary,
+      verbatimQuote: plan.verbatimQuote,
+      publishedAt: detectedAt,
+      structuredChange: {
+        kind: 'rule_source_drift',
+        origin: 'date_reconciliation',
+        sourceId: plan.sourceId,
+        ruleIds: [plan.ruleId],
+      },
+    })
+    await pulseOps.upsertRuleSourceDriftState({
+      ruleId: plan.ruleId,
+      sourceId: plan.sourceId,
+      pulseId,
+      contentHash: `reconcile:${plan.ruleId}`,
+      excerptMatched: false,
+      detectedAt,
+    })
+    created.push(pulseId)
+  }
+
+  recordPulseMetric('rule.date_reconciliation', {
+    staleRules: staleRuleIds.length,
+    alertsCreated: created.length,
+  })
+  return { staleRules: staleRuleIds.length, alertsCreated: created.length }
 }

@@ -22,6 +22,8 @@ type AuditActionCategory =
   | 'pulse'
   | 'opportunity'
   | 'export'
+  | 'calendar'
+  | 'reminder'
   | 'ai'
   | 'system'
 
@@ -60,13 +62,26 @@ const MAX_SEARCH_LENGTH = 80
 const LIKE_WILDCARD_RE = /[\\%_]/g
 const UNSAFE_SEARCH_CHARS_RE = /[^\p{L}\p{N}\s&'.:_-]+/gu
 
-const CATEGORY_PREFIXES: Record<Exclude<AuditActionCategory, 'system'>, readonly string[]> = {
-  client: ['client.'],
-  obligation: ['obligation.'],
+// Action-prefix → category map. `system` (catch-all) and `ai` (actorType-
+// based, see categoryFilter) are handled separately, hence excluded here.
+//
+// 2026-06-02 bucketing fix: several written actions used to fall through to
+// the `system` catch-all because their prefix wasn't listed —
+//   - `penalty.*` (client penalty inputs) → now under `client`
+//   - `obligations.*` (plural: saved views / export) + `readiness.*`
+//     (obligation-scoped materials) → now under `obligation`
+//   - `firm.*` (settings) only matched `firm.owner.`, so firm.created/
+//     updated/switched/deleted were invisible to the Team filter → now `firm.`
+const CATEGORY_PREFIXES: Record<
+  Exclude<AuditActionCategory, 'system' | 'ai'>,
+  readonly string[]
+> = {
+  client: ['client.', 'penalty.'],
+  obligation: ['obligation.', 'obligations.', 'readiness.'],
   migration: ['migration.'],
   rules: ['rule.', 'rules.'],
   auth: ['auth.'],
-  team: ['team.', 'member.', 'firm.owner.'],
+  team: ['team.', 'member.', 'firm.'],
   pulse: ['pulse.'],
   // 2026-05-24 (re-critique): `opportunity.*` events (dismiss /
   // snooze / restore) used to fall through into the "system" bucket
@@ -75,7 +90,8 @@ const CATEGORY_PREFIXES: Record<Exclude<AuditActionCategory, 'system'>, readonly
   // category alongside `pulse`.
   opportunity: ['opportunity.'],
   export: ['export.', 'ics.'],
-  ai: ['ai.', 'ask.', 'onboarding.agent.'],
+  calendar: ['calendar.'],
+  reminder: ['reminder.'],
 }
 
 const ALL_KNOWN_PREFIXES = Object.values(CATEGORY_PREFIXES).flat()
@@ -126,8 +142,33 @@ function categoryFilter(category: AuditActionCategory): SQL | null {
     return and(...ALL_KNOWN_PREFIXES.map((prefix) => not(like(auditEvent.action, `${prefix}%`))))!
   }
 
+  // "AI" is a provenance axis (actorType), not an action-name prefix. Anything
+  // an AI authored (autonomous) or co-authored (human pressed apply on an
+  // AI-sourced value) belongs here regardless of which domain action it used.
+  if (category === 'ai') {
+    return inArray(auditEvent.actorType, ['ai', 'ai_assisted'] as const)
+  }
+
   const prefixes = CATEGORY_PREFIXES[category]
   return or(...prefixes.map((prefix) => like(auditEvent.action, `${prefix}%`))) ?? null
+}
+
+/**
+ * Inverse of CATEGORY_PREFIXES: which category does an action string belong to?
+ * Shares the same prefix table as `categoryFilter`, so the read filter and any
+ * per-row category chip stay consistent. Returns `system` when no domain prefix
+ * matches. (The `ai` category is an actorType axis, not an action prefix, so it
+ * is intentionally not derivable here.)
+ */
+export function categoryForAction(action: string): Exclude<AuditActionCategory, 'ai'> {
+  for (const category of Object.keys(CATEGORY_PREFIXES) as Array<
+    Exclude<AuditActionCategory, 'system' | 'ai'>
+  >) {
+    if (CATEGORY_PREFIXES[category].some((prefix) => action.startsWith(prefix))) {
+      return category
+    }
+  }
+  return 'system'
 }
 
 export function makeAuditRepo(db: Db, firmId: string) {
@@ -149,6 +190,31 @@ export function makeAuditRepo(db: Db, firmId: string) {
     ): Promise<AuditEvent[]> {
       const result = await this.list({ ...opts, range: 'all' })
       return result.rows
+    },
+
+    async latestByEntityIds(action: string, entityIds: string[]): Promise<Map<string, Date>> {
+      const map = new Map<string, Date>()
+      if (entityIds.length === 0) return map
+      const rows = await db
+        .select({
+          entityId: auditEvent.entityId,
+          last: sql<number>`max(${auditEvent.createdAt})`,
+        })
+        .from(auditEvent)
+        .where(
+          and(
+            eq(auditEvent.firmId, firmId),
+            eq(auditEvent.action, action),
+            inArray(auditEvent.entityId, entityIds),
+          ),
+        )
+        .groupBy(auditEvent.entityId)
+      for (const row of rows) {
+        if (row.entityId != null && row.last != null) {
+          map.set(row.entityId, new Date(row.last))
+        }
+      }
+      return map
     },
 
     async list(input: AuditListInput = {}): Promise<AuditListResult> {

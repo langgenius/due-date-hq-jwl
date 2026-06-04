@@ -38,7 +38,7 @@ const ObligationDrawerContext = createContext<ObligationDrawerContextValue | nul
  *    the right panel showing.
  *
  * That unification (2026-05-22) collapsed three render shapes into
- * one: previously dashboard / Pulse / Cmd+K opened the drawer as a
+ * one: previously dashboard / Alerts / Cmd+K opened the drawer as a
  * Sheet over their pages. Now the queue is the canonical workspace,
  * and pickers route there.
  *

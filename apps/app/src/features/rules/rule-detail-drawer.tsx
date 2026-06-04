@@ -19,6 +19,7 @@ import { Card } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { EntityAuditActivityPanel } from '@/features/audit/entity-audit-activity-panel'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -33,6 +34,7 @@ import {
   RULE_AUTHORITY_ROLE_LABEL,
 } from './rules-console-model'
 import { JurisdictionCode } from './rules-console-primitives'
+import { MatchedPulseBlock } from './matched-pulse-block'
 import { useSourceLookup } from './use-source-lookup'
 
 const ACCEPT_RULE_LOADING_TOAST_STYLE: CSSProperties = {
@@ -89,23 +91,63 @@ export function RuleDetailInline({ rule }: { rule: ObligationRule }) {
   // (RuleDetailKicker), so the body just renders the structured
   // sections. ReviewReasonsSection is conditionally pushed to the top
   // when present so the "you need to act" prompt isn't buried below
-  // Applicability / Due date when the rule still needs review.
+  // the rule substance when the rule still needs review.
   // 2026-05-27 (Yuqi — "Practice review在最下面而且需要滑动才能看到"):
   // `CandidateReviewSection` no longer renders inside the scrollable
   // body. The dialog renders it as a sticky footer below this
   // component so the Accept action is always visible without
   // scrolling past every reference section first.
   const needsReview = rule.status === 'candidate' || rule.status === 'pending_review'
+  // Approved, still-active pulses that affect this rule — surfaced as an
+  // additive "proposed change" block above the rule substance so a CPA sees a
+  // pending regulatory change before accepting. Lazy per-rule (mirrors the
+  // previewRuleImpact query in CandidateReviewSection); errors fall back to no
+  // block (the rule detail stays fully usable).
+  const matchedPulsesQuery = useQuery({
+    ...orpc.pulse.listAlertsForRule.queryOptions({
+      input: {
+        ruleId: rule.id,
+        jurisdiction: rule.jurisdiction,
+        taxType: rule.taxType,
+        formName: rule.formName,
+      },
+    }),
+    staleTime: 60_000,
+  })
+  const matchedPulses = matchedPulsesQuery.data?.matches ?? []
   return (
     <div className="flex flex-col gap-4">
+      <MatchedPulseBlock matches={matchedPulses} />
       {needsReview ? <ReviewReasonsSection rule={rule} /> : null}
       <ApplicabilitySection rule={rule} />
+      <EvidenceSection rule={rule} sourceLookup={sourceLookup} />
       <DueDateLogicSection rule={rule} />
       <ExtensionSection rule={rule} />
       {!needsReview ? <ReviewReasonsSection rule={rule} /> : null}
-      <EvidenceSection rule={rule} sourceLookup={sourceLookup} />
       <VerificationSection rule={rule} />
+      <RuleVersionHistorySection rule={rule} />
     </div>
+  )
+}
+
+function RuleVersionHistorySection({ rule }: { rule: ObligationRule }) {
+  // Per-rule audit timeline — created / updated (with body diff) / accepted /
+  // archived events, keyed by entityType 'rule' + the rule id. Closes the
+  // "Rule library row → version history" surface gap.
+  return (
+    <section className="flex flex-col gap-3 border-t border-divider-subtle pt-4">
+      <RuleSectionHeading>
+        <Trans>Version history</Trans>
+      </RuleSectionHeading>
+      <EntityAuditActivityPanel
+        entityType="rule"
+        entityId={rule.id}
+        emptyTitle={<Trans>No audited rule changes yet</Trans>}
+        emptyDescription={
+          <Trans>Edits, version bumps, and review decisions for this rule will appear here.</Trans>
+        }
+      />
+    </section>
   )
 }
 
@@ -347,6 +389,10 @@ function CandidateReviewForm({
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
     void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+    // Accepting may have recomputed matched pulse alerts' matchedCount against
+    // the freshly-generated deadlines — refetch so the "proposed change" block
+    // and the alerts surfaces reflect the new counts.
+    void queryClient.invalidateQueries({ queryKey: orpc.pulse.key() })
   }
 
   function acceptToastOptions(options: Omit<ExternalToast, 'id'> = {}): ExternalToast {
@@ -631,25 +677,14 @@ function AiDraftReviewPanel({
       {draft ? (
         <div className="flex flex-col gap-2 text-sm">
           <p className="text-text-primary">{humanizeDueDateLogic(draft.dueDateLogic)}</p>
-          <div className="grid grid-cols-[96px_1fr] gap-x-2 gap-y-1 text-xs">
-            <span className="text-text-tertiary">
-              <Trans>Coverage</Trans>
-            </span>
-            <span className="text-text-secondary">
-              {formatEnumLabel(draft.coverageStatus)}
-              {draft.requiresApplicabilityReview ? (
-                <span className="ml-1 text-severity-medium">
-                  <Trans>needs applicability review</Trans>
-                </span>
-              ) : null}
-            </span>
+          <div className="flex items-baseline gap-2 text-xs">
             <span className="text-text-tertiary">
               <Trans>Confidence</Trans>
             </span>
             {/* 2026-05-26 (Step 9 AI Visibility Audit F-013): qualitative
                 tier (Low/Medium/High) renders alongside the raw
                 percentage so a CPA reading the draft can match against
-                the same Low/Medium/High vocabulary used in Pulse,
+                the same Low/Medium/High vocabulary used in Alerts,
                 instead of mentally translating "72%" into the canonical
                 ladder. */}
             <span className="font-mono text-text-secondary">

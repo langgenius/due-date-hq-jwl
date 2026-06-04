@@ -95,6 +95,15 @@ export const SourceCadenceSchema = z.enum(['daily', 'weekly', 'monthly', 'quarte
 export const SourcePrioritySchema = z.enum(['critical', 'high', 'medium', 'low'])
 export const SourceHealthStatusSchema = z.enum(['healthy', 'degraded', 'failing', 'paused'])
 
+export const AlertSourcePurposeSchema = z.enum([
+  'explicit_live_adapter',
+  'temporary_announcements_or_news',
+  'rule_source_watch',
+  'email_signal',
+  'hidden_policy_watch',
+])
+export type AlertSourcePurpose = z.infer<typeof AlertSourcePurposeSchema>
+
 export const RuleSourceDomainSchema = z.enum([
   'individual_income_return',
   'individual_estimated_tax',
@@ -224,6 +233,7 @@ export const RuleSourceSchema = z.object({
   domains: z.array(RuleSourceDomainSchema).min(1),
   entityApplicability: z.array(EntityApplicabilitySchema).min(1),
   authorityRole: RuleEvidenceAuthorityRoleSchema,
+  alertPurpose: AlertSourcePurposeSchema.optional(),
   notificationChannels: z.array(RuleNotificationChannelSchema),
   lastReviewedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   adapterKind: SourceAdapterKindSchema.optional(),
@@ -601,6 +611,7 @@ export const RuleBulkAcceptSkipSchema = z.object({
     'archived',
     'invalid_template',
     'source_changed_requires_review',
+    'source_drifted_requires_review',
     'source_defined_requires_ai_review',
   ]),
 })
@@ -770,6 +781,9 @@ export const RuleBulkVerifyCandidateSkipSchema = z.object({
     'rejected',
     'archived',
     'source_changed_requires_review',
+    'source_drifted_requires_review',
+    'low_trust_requires_review',
+    'draft_stale_source',
     'no_open_task',
     'validation_failed',
   ]),

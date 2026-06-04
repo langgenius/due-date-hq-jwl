@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx vitest *)",
+      "Bash(npx tsc *)",
+      "Bash(npx @biomejs/biome check apps/server/src/jobs/pulse/extract.ts apps/server/src/jobs/queue.ts apps/server/src/jobs/queue.test.ts apps/server/src/jobs/pulse/extract.test.ts)",
+      "Bash(npx vp *)",
+      "Bash(git --no-pager diff apps/server/src/jobs/pulse/extract.ts apps/server/src/jobs/queue.ts)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "WebFetch(domain:excise-tax-div.wyo.gov)",
+      "WebSearch"
+    ]
+  }
+}

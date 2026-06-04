@@ -7,10 +7,30 @@ import {
   deriveObligationReadiness,
   defaultReadinessForStatus,
   isClosedObligationStatus,
+  isLegalEfileTransition,
   isLegalObligationTransition,
   isOpenObligationStatus,
+  obligationUsesEfileAuthorization,
   type ObligationStatus,
 } from './index'
+
+describe('isLegalEfileTransition (P0 signature loop)', () => {
+  it('allows the signature-loop step authorization_requested → authorization_signed', () => {
+    expect(isLegalEfileTransition('authorization_requested', 'authorization_signed')).toBe(true)
+  })
+
+  it('treats a same-state transition as legal (no-op)', () => {
+    expect(isLegalEfileTransition('authorization_requested', 'authorization_requested')).toBe(true)
+  })
+
+  it('rejects skipping ahead from authorization_requested straight to accepted', () => {
+    expect(isLegalEfileTransition('authorization_requested', 'accepted')).toBe(false)
+  })
+
+  it('treats final_package_delivered as terminal', () => {
+    expect(isLegalEfileTransition('final_package_delivered', 'submitted')).toBe(false)
+  })
+})
 
 describe('obligation workflow state model', () => {
   it('classifies open and closed statuses', () => {
@@ -144,5 +164,57 @@ describe('obligation workflow state model', () => {
       expect(targets).toContain('done')
       expect(targets).not.toContain('completed')
     })
+  })
+})
+
+describe('obligationUsesEfileAuthorization (8879 signature loop scope)', () => {
+  it('includes federal income-tax returns (8879-series authorization)', () => {
+    for (const code of [
+      'federal_1040',
+      'federal_1041',
+      'federal_1065',
+      'federal_1120',
+      'federal_1120s',
+      'federal_990',
+    ]) {
+      expect(obligationUsesEfileAuthorization(code)).toBe(true)
+    }
+  })
+
+  it('includes state income / business returns, including jurisdiction-prefixed codes', () => {
+    expect(obligationUsesEfileAuthorization('state_business_income_tax')).toBe(true)
+    expect(obligationUsesEfileAuthorization('ca_state_business_income_tax')).toBe(true)
+    expect(obligationUsesEfileAuthorization('ny_state_individual_income_tax')).toBe(true)
+    expect(obligationUsesEfileAuthorization('ca_568')).toBe(true)
+    expect(obligationUsesEfileAuthorization('ny_ct3s')).toBe(true)
+    expect(obligationUsesEfileAuthorization('fl_corp_income')).toBe(true)
+  })
+
+  it('excludes payments, estimates, extensions, payroll, sales/use, info, and fees', () => {
+    for (const code of [
+      'federal_1040_estimated_tax',
+      'federal_1120_estimated_tax',
+      'federal_1040_extension',
+      'federal_4868',
+      'federal_7004',
+      'federal_941',
+      'ca_llc_annual_tax',
+      'ca_llc_estimated_fee',
+      'ny_it204ll',
+      'tx_franchise_report',
+      'fl_state_sales_use_tax',
+      'fl_state_ui_wage_report',
+      'state_franchise_or_entity_tax',
+      'ca_state_franchise_or_entity_tax',
+    ]) {
+      expect(obligationUsesEfileAuthorization(code)).toBe(false)
+    }
+  })
+
+  it('is null-safe and case-insensitive', () => {
+    expect(obligationUsesEfileAuthorization(null)).toBe(false)
+    expect(obligationUsesEfileAuthorization(undefined)).toBe(false)
+    expect(obligationUsesEfileAuthorization('')).toBe(false)
+    expect(obligationUsesEfileAuthorization('FEDERAL_1120S')).toBe(true)
   })
 })

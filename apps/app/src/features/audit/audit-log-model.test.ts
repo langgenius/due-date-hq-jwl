@@ -47,7 +47,7 @@ function makeChangeLabels(overrides: Partial<AuditActionLabels> = {}): AuditChan
     obligationDueDateUpdated: 'Internal deadline changed',
     obligationStatusUpdated: 'Deadline status changed',
     penaltyOverride: 'Penalty inputs changed',
-    pulseApply: 'Pulse applied',
+    pulseApply: 'Alert applied',
     obligationQueueSavedViewUpdated: 'Saved view updated',
     ...overrides,
   })
@@ -324,20 +324,110 @@ describe('audit-log-model', () => {
     expect(rendered).not.toContain('object')
   })
 
+  it('humanizes rule-change diffs instead of dumping raw rule JSON', () => {
+    const view = buildAuditChangeView(
+      {
+        action: 'rules.updated',
+        beforeJson: {
+          status: 'active',
+          version: 1,
+          rule: {
+            dueDateLogic: {
+              kind: 'nth_day_after_tax_year_end',
+              day: 15,
+              monthOffset: 3,
+              holidayRollover: 'next_business_day',
+            },
+            extensionPolicy: { available: false, paymentExtended: false },
+            jurisdiction: 'CA',
+          },
+        },
+        afterJson: {
+          status: 'active',
+          version: 2,
+          rule: {
+            dueDateLogic: {
+              kind: 'nth_day_after_tax_year_end',
+              day: 15,
+              monthOffset: 4,
+              holidayRollover: 'next_business_day',
+            },
+            extensionPolicy: { available: true, formName: 'Form 7004', paymentExtended: true },
+            jurisdiction: 'NY',
+          },
+        },
+      },
+      makeChangeLabels({ rulesUpdated: 'Practice rule updated' }),
+    )
+
+    const rendered = [
+      view.headline,
+      ...view.changes.flatMap((row) => [row.field, row.previous, row.next]),
+    ].join(' ')
+    // Due-date logic is humanized, not collapsed to "Details updated".
+    expect(rendered).toContain('3rd month after tax year end')
+    expect(rendered).toContain('4th month after tax year end')
+    // Extension policy reads in plain English.
+    expect(rendered).toContain('Allowed')
+    expect(rendered).toContain('Form 7004')
+    // Scalar aspects show the actual change.
+    expect(rendered).toContain('CA')
+    expect(rendered).toContain('NY')
+    // No raw rule JSON / nested keys leak to the CPA.
+    expect(rendered).not.toContain('dueDateLogic')
+    expect(rendered).not.toContain('nth_day_after_tax_year_end')
+    expect(rendered).not.toContain('paymentExtended')
+  })
+
+  it('renders client reminder lifecycle events as plain CPA-readable lines', () => {
+    const labels = makeChangeLabels({
+      reminderSent: 'Reminder sent',
+      reminderBounced: 'Reminder bounced',
+    })
+
+    const sent = buildAuditChangeView(
+      {
+        action: 'reminder.sent',
+        beforeJson: null,
+        afterJson: { clientId: 'client_1', channel: 'email', offsetDays: 7 },
+      },
+      labels,
+    )
+    expect(sent.headline).toBe('Reminder sent')
+    expect(sent.changes).toEqual([])
+    // The technical clientId never leaks into the user-facing view.
+    expect([sent.headline, ...sent.notes].join(' ')).not.toContain('client_1')
+
+    const bounced = buildAuditChangeView(
+      {
+        action: 'reminder.bounced',
+        beforeJson: null,
+        afterJson: { clientId: 'client_1', reason: 'Mailbox unavailable' },
+      },
+      labels,
+    )
+    expect(bounced.headline).toBe('Reminder bounced')
+    // The why-it-bounced reason surfaces as a plain note.
+    expect(bounced.notes).toContain('Mailbox unavailable')
+  })
+
   it('formats audit entity type labels for user-facing surfaces', () => {
     const labels = {
       auth: 'Authentication',
       auditEvidencePackage: 'Audit export package',
+      calendarSubscription: 'Calendar feed',
       client: 'Client',
       clientBatch: 'Client import batch',
+      clientEmailSuppression: 'Email unsubscribe',
       firm: 'Practice',
       member: 'Team member',
       memberInvitation: 'Member invitation',
       migrationBatch: 'Import batch',
       obligationBatch: 'Deadline batch',
       obligationInstance: 'Deadline',
-      pulseApplication: 'Pulse application',
-      pulseAlert: 'Pulse alert',
+      pulseApplication: 'Alert application',
+      pulseAlert: 'Alert',
+      reminderTemplate: 'Reminder template',
       rule: 'Rule',
       ruleSource: 'Rule source',
       obligationQueueExport: 'Deadlines export',

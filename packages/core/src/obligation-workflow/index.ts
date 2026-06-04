@@ -210,6 +210,137 @@ export function allowedObligationTargets(from: ObligationStatus): readonly Oblig
   return OBLIGATION_TRANSITIONS[from]
 }
 
+// E-file sub-state pipeline (the `efileState` column). Mirrors the enum in
+// packages/db/src/schema/obligations.ts + ObligationEfileStateSchema —
+// duplicated locally here the same way OBLIGATION_STATUSES is, to keep the
+// core workflow package dependency-free. The string literals must stay in
+// lockstep across the three definitions.
+export const OBLIGATION_EFILE_STATES = [
+  'not_applicable',
+  'authorization_requested',
+  'authorization_signed',
+  'ready_to_submit',
+  'submitted',
+  'accepted',
+  'rejected',
+  'corrected_resubmitted',
+  'paper_filed',
+  'final_package_delivered',
+] as const
+export type ObligationEfileState = (typeof OBLIGATION_EFILE_STATES)[number]
+
+// Forward-only pipeline with the documented branches (reject → correct →
+// resubmit; e-file vs paper). P0 only exercises
+// `authorization_requested → authorization_signed` ("Mark 8879 signed");
+// the rest of the map is defined so later slices that wire submitted /
+// accepted / delivered reuse the same guard. `markFiledRejected` keeps its
+// own status-level unwind path and does not flow through here.
+const EFILE_TRANSITIONS: Record<ObligationEfileState, readonly ObligationEfileState[]> = {
+  not_applicable: ['authorization_requested', 'ready_to_submit', 'paper_filed'],
+  authorization_requested: [
+    'authorization_signed',
+    'ready_to_submit',
+    'paper_filed',
+    'not_applicable',
+  ],
+  authorization_signed: ['ready_to_submit', 'submitted', 'paper_filed', 'authorization_requested'],
+  ready_to_submit: ['submitted', 'paper_filed', 'authorization_signed'],
+  submitted: ['accepted', 'rejected'],
+  accepted: ['final_package_delivered'],
+  rejected: ['corrected_resubmitted', 'authorization_requested', 'ready_to_submit', 'paper_filed'],
+  corrected_resubmitted: ['submitted', 'accepted', 'rejected'],
+  paper_filed: ['final_package_delivered', 'accepted'],
+  final_package_delivered: [],
+}
+
+export function isLegalEfileTransition(
+  from: ObligationEfileState,
+  to: ObligationEfileState,
+): boolean {
+  if (from === to) return true // no-op transitions are always legal
+  return EFILE_TRANSITIONS[from].includes(to)
+}
+
+// Which obligations actually walk the 8879 signature loop. An IRS Form
+// 8879 — and its state analogs (CA FTB 8453/8879, NY TR-579, …) — is a
+// *signed e-file authorization* the client must return before an
+// income-tax RETURN can be transmitted. It does NOT apply to
+// estimated-tax payments, extensions, payroll/withholding returns,
+// sales & use returns, information returns (1099 / UI wage), franchise
+// *fees*, or LLC annual-tax payments — none of those carry an 8879.
+//
+// This is the single source of truth for the two call sites that must
+// agree (or a row could be born outside the loop yet pulled in, or
+// vice-versa):
+//   1. generation seeds `efileState='authorization_requested'` for
+//      these returns (everything else gets `not_applicable`); and
+//   2. marking such a return Filed enters the loop on the spot — the
+//      deterministic UI entry point, since migration-imported and
+//      hand-added returns never ran through generation.
+//
+// Allowlist (not denylist) on purpose: the safe failure mode is "a
+// return misses the loop", never "a payment falsely claims an 8879".
+const EFILE_AUTHORIZATION_TAX_TYPES: ReadonlySet<string> = new Set([
+  // Federal income-tax returns (8879 / 8879-PE / 8879-CORP / 8879-F / 8879-TE)
+  'federal_1040',
+  'federal_1041',
+  'federal_1065',
+  'federal_1065_or_1040',
+  'federal_1120',
+  'federal_1120s',
+  'federal_990',
+  // Generic state income / business / fiduciary / PTE returns (the
+  // pre-jurisdiction-prefix forms used by the state candidate domains)
+  'state_individual_income_tax',
+  'state_business_income_tax',
+  'state_fiduciary_income_tax',
+  'state_pte_composite_ptet',
+  // California income / franchise *returns* — the LLC $800 tax + the
+  // gross-receipts fee are payments and stay out of the loop
+  'ca_100',
+  'ca_100_franchise',
+  'ca_100s',
+  'ca_100s_franchise',
+  'ca_540',
+  'ca_541',
+  'ca_565',
+  'ca_565_partnership',
+  'ca_568',
+  'ca_llc_568',
+  // New York income / franchise returns — the IT-204-LL and the LLC
+  // filing fee are fees and stay out
+  'ny_ct3',
+  'ny_ct3s',
+  'ny_it201',
+  'ny_it204',
+  'ny_it205',
+  // Illinois income-tax returns
+  'il_il1040',
+  'il_il1120',
+  // Other state income-tax returns present in the matrix
+  'fl_corp_income',
+  'co_partnership',
+])
+
+// Jurisdiction-prefixed state income returns (`ca_state_business_income_tax`,
+// `ny_state_individual_income_tax`, …) all carry a state e-file signature
+// authorization. Matches only the income-tax families — franchise, sales/use,
+// withholding, and UI-wage `*_state_*` codes are deliberately excluded.
+const PREFIXED_STATE_RETURN_RE =
+  /_state_(individual|business|fiduciary)_income_tax$|_state_pte_composite_ptet$/
+
+/**
+ * True when an obligation's tax type is an income-tax return that is
+ * e-filed under a signed Form 8879 (or a state e-file authorization).
+ * Drives both generation seeding and the Mark-filed entry into the
+ * signature loop — see EFILE_AUTHORIZATION_TAX_TYPES above.
+ */
+export function obligationUsesEfileAuthorization(taxType: string | null | undefined): boolean {
+  if (!taxType) return false
+  const code = taxType.toLowerCase()
+  return EFILE_AUTHORIZATION_TAX_TYPES.has(code) || PREFIXED_STATE_RETURN_RE.test(code)
+}
+
 export function deriveObligationReadiness(input: {
   status: ObligationStatus
   requestStatus?: 'sent' | 'opened' | 'responded' | 'revoked' | 'expired' | null

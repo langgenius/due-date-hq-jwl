@@ -155,7 +155,7 @@ export function unsupportedUploadMessageDescriptor(input: UnsupportedUpload): Me
     case 'qbo_archive':
       return msg`This looks like a QuickBooks Online Advanced archive. Export Customers or Customer Contact List to Excel instead.`
     case 'cch_axcess_backup':
-      return msg`This looks like a CCH Axcess return backup. Export Client Manager or Return Manager grid data as CSV/XLSX instead.`
+      return msg`This looks like a CCH return file we can't read. Export your client list from CCH Axcess (Client Manager or Return Manager grid → CSV/XLSX), or from ProSystem fx (Create client list for Portal).`
     case 'cch_prosystem_fx_backup':
       return msg`This looks like a CCH ProSystem fx client backup. Use Create client list for Portal and save as CSV/XLSX instead.`
     case 'lacerte_data_file':

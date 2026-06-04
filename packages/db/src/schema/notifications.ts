@@ -16,6 +16,7 @@ export const EMAIL_OUTBOX_TYPES = [
   'client_deadline_reminder',
   'audit_evidence_package_ready',
   'readiness_request',
+  'signature_reminder',
 ] as const
 export type EmailOutboxType = (typeof EMAIL_OUTBOX_TYPES)[number]
 
@@ -190,6 +191,9 @@ export const reminder = sqliteTable(
     uniqueIndex('uq_reminder_dedupe').on(table.dedupeKey),
     index('idx_reminder_firm_status_time').on(table.firmId, table.status, table.scheduledFor),
     index('idx_reminder_obligation').on(table.obligationInstanceId),
+    // Resend webhook + outbox flush correlate a delivery event back to its
+    // reminder by email_outbox_id (to recover client/deadline + set clickedAt).
+    index('idx_reminder_outbox').on(table.emailOutboxId),
   ],
 )
 

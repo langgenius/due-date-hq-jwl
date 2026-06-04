@@ -170,6 +170,8 @@ export type AuditActionCategory =
   | 'pulse'
   | 'opportunity'
   | 'export'
+  | 'calendar'
+  | 'reminder'
   | 'ai'
   | 'system'
 

@@ -2,11 +2,12 @@
  * Focused procedure-context test doubles only implement fields the Pulse
  * request-review helper reads.
  */
+import { call } from '@orpc/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { MemberRow } from '@duedatehq/ports/tenants'
 import type { ContextVars, Env } from '../../env'
 import type { RpcContext } from '../_context'
-import { requestPulseReview } from './index'
+import { pulseHandlers, requestPulseReview } from './index'
 
 type Role = 'owner' | 'partner' | 'manager' | 'preparer' | 'coordinator'
 type Status = 'matched' | 'dismissed' | 'reverted'
@@ -20,6 +21,11 @@ type EnqueueEmailInput = {
     text: string
   }
 }
+
+const REVIEW_ALERT_ID = '11111111-1111-4111-8111-111111111111'
+const REVIEW_OBLIGATION_ID = '22222222-2222-4222-8222-222222222222'
+const REVIEW_PULSE_ID = '33333333-3333-4333-8333-333333333333'
+const REVIEW_AUDIT_ID = '44444444-4444-4444-8444-444444444444'
 
 function member(role: Role, overrides: Partial<MemberRow> = {}): MemberRow {
   return {
@@ -73,11 +79,62 @@ function pulseDetail(status: Status = 'matched', sourceStatus: SourceStatus = 'a
     originalDueDate: new Date('2026-03-15T00:00:00.000Z'),
     newDueDate: new Date('2026-10-15T00:00:00.000Z'),
     effectiveFrom: null,
+    effectiveUntil: null,
+    affectedRuleIds: [],
+    reverifyRuleIds: [],
+    structuredChange: null,
     sourceExcerpt: 'Tax relief applies.',
     reviewedAt: null,
     applyReadiness: { status: 'ready', missing: [] },
     affectedClients: [],
   }
+}
+
+function pulseActionContext({
+  role,
+  plan,
+  detail = pulseDetail(),
+}: {
+  role: Role
+  plan: 'solo' | 'pro' | 'team' | 'firm'
+  detail?: ReturnType<typeof pulseDetail>
+}) {
+  const actor = member(role)
+  const actionDetail = {
+    ...detail,
+    alert: { ...detail.alert, id: REVIEW_ALERT_ID, pulseId: REVIEW_PULSE_ID },
+  }
+  const markReviewed = vi.fn(async () => ({ alert: actionDetail.alert, auditId: REVIEW_AUDIT_ID }))
+  const reviewDueDateOverlayDetails = vi.fn(async () => actionDetail)
+  const auditWrite = vi.fn(async () => ({ id: 'audit_denied' }))
+  const findMembership = vi.fn(async () => actor)
+  const context: RpcContext = {
+    env: {} as unknown as Env,
+    request: new Request('https://app.test/rpc/pulse/markReviewed'),
+    vars: {
+      requestId: 'req_1',
+      tenantContext: {
+        firmId: 'firm_1',
+        timezone: 'America/New_York',
+        plan,
+        seatLimit: 5,
+        status: 'active',
+        internalDeadlineOffsetDays: 14,
+        monitoringStartDate: '2026-05-29',
+        ownerUserId: 'user_owner',
+        coordinatorCanSeeDollars: false,
+      },
+      userId: actor.userId,
+      scoped: {
+        firmId: 'firm_1',
+        pulse: { markReviewed, reviewDueDateOverlayDetails },
+        audit: { write: auditWrite },
+      } as unknown as NonNullable<ContextVars['scoped']>,
+      members: { findMembership } as unknown as NonNullable<ContextVars['members']>,
+    },
+  }
+
+  return { context, markReviewed, reviewDueDateOverlayDetails, auditWrite }
 }
 
 function contextFor(
@@ -164,6 +221,68 @@ function contextFor(
   }
 }
 
+describe('Pulse review action gates', () => {
+  it('lets Solo owners mark review-only alerts reviewed', async () => {
+    const { context, markReviewed } = pulseActionContext({ role: 'owner', plan: 'solo' })
+
+    await expect(
+      call(pulseHandlers.markReviewed, { alertId: REVIEW_ALERT_ID }, { context }),
+    ).resolves.toEqual({
+      alert: expect.objectContaining({ id: REVIEW_ALERT_ID, firmImpact: 'matched' }),
+      auditId: REVIEW_AUDIT_ID,
+    })
+    expect(markReviewed).toHaveBeenCalledWith({ alertId: REVIEW_ALERT_ID, userId: 'user_owner' })
+  })
+
+  it.each([
+    ['pro', 'manager'],
+    ['pro', 'partner'],
+    ['team', 'owner'],
+  ] as const)('lets %s %s confirm alert deadline details', async (plan, role) => {
+    const { context, reviewDueDateOverlayDetails } = pulseActionContext({ role, plan })
+
+    await expect(
+      call(
+        pulseHandlers.reviewDueDateOverlayDetails,
+        {
+          alertId: REVIEW_ALERT_ID,
+          newDueDate: '2026-10-15',
+          selectedObligationIds: [REVIEW_OBLIGATION_ID],
+        },
+        { context },
+      ),
+    ).resolves.toEqual(
+      expect.objectContaining({ alert: expect.objectContaining({ id: REVIEW_ALERT_ID }) }),
+    )
+    expect(reviewDueDateOverlayDetails).toHaveBeenCalledWith(
+      expect.objectContaining({
+        alertId: REVIEW_ALERT_ID,
+        newDueDate: new Date('2026-10-15T00:00:00.000Z'),
+        selectedObligationIds: [REVIEW_OBLIGATION_ID],
+        confirmedObligationIds: [],
+        excludedObligationIds: [],
+        note: null,
+        userId: `user_${role}`,
+      }),
+    )
+  })
+
+  it('keeps Pro preparers from confirming alert review', async () => {
+    const { context, markReviewed, auditWrite } = pulseActionContext({
+      role: 'preparer',
+      plan: 'pro',
+    })
+
+    await expect(
+      call(pulseHandlers.markReviewed, { alertId: REVIEW_ALERT_ID }, { context }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' })
+    expect(markReviewed).not.toHaveBeenCalled()
+    expect(auditWrite).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'auth.denied', reason: 'role' }),
+    )
+  })
+})
+
 describe('requestPulseReview', () => {
   it.each([
     ['owner', 2],
@@ -194,7 +313,7 @@ describe('requestPulseReview', () => {
           type: 'pulse_alert',
           entityType: 'pulse_firm_alert',
           entityId: 'alert_1',
-          href: '/rules?tab=pulse&alert=alert_1',
+          href: '/alerts?alert=alert_1',
           title: 'Review requested: IRS CA storm relief',
           body: expect.stringContaining('Note: Please confirm LA County applicability.'),
         }),
@@ -214,9 +333,7 @@ describe('requestPulseReview', () => {
       expect(emailInput.payloadJson.text).toContain(
         'requested Partner/Manager review for this Pulse',
       )
-      expect(emailInput.payloadJson.text).toContain(
-        'https://app.test/rules?tab=pulse&alert=alert_1',
-      )
+      expect(emailInput.payloadJson.text).toContain('https://app.test/alerts?alert=alert_1')
       expect(emailInput.payloadJson.text).toContain('Note: Please confirm LA County applicability.')
       expect(emailQueueSend).toHaveBeenCalledWith({ type: 'email.flush' })
       expect(auditWrite).toHaveBeenCalledWith(
@@ -302,5 +419,85 @@ describe('requestPulseReview', () => {
     expect(notificationsCreate).not.toHaveBeenCalled()
     expect(notificationsEnqueueEmail).not.toHaveBeenCalled()
     expect(auditWrite).not.toHaveBeenCalled()
+  })
+})
+
+describe('listAlerts output resilience', () => {
+  const GOOD_ALERT_ID = '11111111-1111-4111-8111-111111111111'
+  const GOOD_PULSE_ID = '22222222-2222-4222-8222-222222222222'
+  const BAD_ALERT_ID = '33333333-3333-4333-8333-333333333333'
+  const BAD_PULSE_ID = '44444444-4444-4444-8444-444444444444'
+
+  function alertRow(overrides: Record<string, unknown>) {
+    return {
+      id: GOOD_ALERT_ID,
+      pulseId: GOOD_PULSE_ID,
+      status: 'matched',
+      sourceStatus: 'approved',
+      changeKind: 'deadline_shift',
+      actionMode: 'due_date_overlay',
+      title: 'IRS storm relief',
+      source: 'irs.newsroom',
+      sourceUrl: 'https://www.irs.gov/newsroom/tax-relief',
+      summary: 'IRS extends selected filing deadlines.',
+      publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+      matchedCount: 1,
+      needsReviewCount: 0,
+      applyReadiness: { status: 'ready', missing: [] },
+      duplicateSourceSnapshotCount: 0,
+      confidence: 0.9,
+      isSample: false,
+      jurisdiction: 'CA',
+      ...overrides,
+    }
+  }
+
+  function listAlertsContext(rows: ReturnType<typeof alertRow>[]) {
+    const listAlerts = vi.fn(async () => rows)
+    const context: RpcContext = {
+      env: {} as unknown as Env,
+      request: new Request('https://app.test/rpc/pulse/listAlerts'),
+      vars: {
+        requestId: 'req_1',
+        tenantContext: {
+          firmId: 'firm_1',
+          timezone: 'America/New_York',
+          plan: 'team',
+          seatLimit: 5,
+          status: 'active',
+          internalDeadlineOffsetDays: 14,
+          monitoringStartDate: '2026-05-29',
+          ownerUserId: 'user_owner',
+          coordinatorCanSeeDollars: false,
+        },
+        userId: 'user_owner',
+        scoped: {
+          firmId: 'firm_1',
+          pulse: { listAlerts },
+        } as unknown as NonNullable<ContextVars['scoped']>,
+      },
+    }
+    return { context, listAlerts }
+  }
+
+  it('drops a row that fails output validation instead of 500ing the whole list', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    // A garbage `jurisdiction` ('f!') is exactly the production incident: it
+    // fails PulseJurisdictionSchema and, pre-fix, failed the whole `z.array`.
+    const { context, listAlerts } = listAlertsContext([
+      alertRow({ id: GOOD_ALERT_ID, pulseId: GOOD_PULSE_ID, jurisdiction: 'CA' }),
+      alertRow({ id: BAD_ALERT_ID, pulseId: BAD_PULSE_ID, jurisdiction: 'f!' }),
+    ])
+
+    const result = await call(pulseHandlers.listAlerts, {}, { context })
+
+    expect(listAlerts).toHaveBeenCalledTimes(1)
+    expect(result.alerts).toHaveLength(1)
+    expect(result.alerts[0]).toMatchObject({ pulseId: GOOD_PULSE_ID, jurisdiction: 'CA' })
+    expect(consoleError).toHaveBeenCalledWith(
+      'pulse.alert.dropped_invalid_output',
+      expect.objectContaining({ endpoint: 'listAlerts', pulseId: BAD_PULSE_ID }),
+    )
+    consoleError.mockRestore()
   })
 })

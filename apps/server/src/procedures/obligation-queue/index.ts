@@ -63,6 +63,7 @@ interface RawRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationQueueRow['status']
+  confirmed: ObligationQueueRow['confirmed']
   blockedByObligationInstanceId: string | null
   readiness: ObligationQueueRow['readiness']
   extensionDecision: ObligationQueueRow['extensionDecision']
@@ -194,6 +195,7 @@ function toRow(
     baseDueDate: toIsoDate(row.baseDueDate),
     currentDueDate: toIsoDate(row.currentDueDate),
     status: row.status,
+    confirmed: row.confirmed,
     blockedByObligationInstanceId: row.blockedByObligationInstanceId,
     readiness: row.readiness,
     extensionDecision: row.extensionDecision,
@@ -535,6 +537,8 @@ function toRepoListInput(
   if (input.minDaysUntilDue !== undefined) repoInput.minDaysUntilDue = input.minDaysUntilDue
   if (input.maxDaysUntilDue !== undefined) repoInput.maxDaysUntilDue = input.maxDaysUntilDue
   if (input.needsEvidence !== undefined) repoInput.needsEvidence = input.needsEvidence
+  if (input.awaitingSignature !== undefined) repoInput.awaitingSignature = input.awaitingSignature
+  if (input.confirmed !== undefined) repoInput.confirmed = input.confirmed
   if (input.asOfDate !== undefined) repoInput.asOfDate = input.asOfDate
   if (input.sort !== undefined) repoInput.sort = input.sort
   if (input.cursor !== undefined) repoInput.cursor = input.cursor

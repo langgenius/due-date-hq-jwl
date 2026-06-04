@@ -7,6 +7,8 @@ export const sourceFixtureBodies = {
     '<main><a href="/newsroom/irs-announces-tax-relief">IRS announces tax relief deadline extension</a></main>',
   'irs.guidance':
     '<main><a href="/newsroom/irs-guidance-disaster-relief">IRS guidance disaster relief</a></main>',
+  'irs.tips':
+    '<main><a href="/newsroom/irs-tax-tip-filing-deadline">IRS tax tip on filing deadline and extension relief</a></main>',
   'ca.ftb.newsroom':
     '<main><a href="/about-ftb/newsroom/tax-relief.html">FTB tax relief deadline extension</a></main>',
   'ca.ftb.tax_news':

@@ -1173,8 +1173,8 @@ export function CreateObligationDialog({
                           <SelectGroup>
                             {taxYearContext.options.map((year) => (
                               <SelectItem key={year} value={year}>
-                                {year === String(taxYearContext.currentCalendarYear)
-                                  ? t`${year} (current year)`
+                                {year === taxYearContext.defaultTaxYear
+                                  ? t`${year} (current tax year)`
                                   : year}
                               </SelectItem>
                             ))}

@@ -171,9 +171,8 @@ const comparisonSpecs: ComparisonSpec[] = [
     bestFit: 'firms that mainly want a narrow deadline tracker',
     bestFitZh: '主要需要窄范围截止日跟踪器的事务所',
     contrast:
-      'DueDateHQ is built around risk triage, source evidence, Pulse state changes, and migration-assisted client context.',
-    contrastZh:
-      'DueDateHQ 更关注风险分诊、来源证据、Pulse 州税变更复核，以及迁移后保留的客户上下文。',
+      'DueDateHQ is built around risk triage, source evidence, state alerts, and migration-assisted client context.',
+    contrastZh: 'DueDateHQ 更关注风险分诊、来源证据、州级提醒复核，以及迁移后保留的客户上下文。',
   },
   {
     slug: 'taxdome-deadline-operations',
@@ -313,7 +312,7 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
             },
             {
               title: 'Evidence drawer',
-              body: '用户可以从 deadline、Dashboard 或 Pulse 上下文打开证据链，解释来源、更新时间和操作历史。',
+              body: '用户可以从 deadline、Dashboard 或提醒上下文打开证据链，解释来源、更新时间和操作历史。',
             },
           ],
         },
@@ -409,7 +408,7 @@ function ruleReferencePage(spec: RuleReferenceSpec, locale: Locale): GuidePageCo
           },
           {
             title: 'Evidence drawer',
-            body: 'Users can inspect the source chain from deadline, Dashboard, or Pulse context instead of trusting an unexplained date.',
+            body: 'Users can inspect the source chain from deadline, Dashboard, or Alerts context instead of trusting an unexplained date.',
           },
         ],
       },
@@ -496,7 +495,7 @@ function statePage(spec: StateSpec, locale: Locale): StatePageCopy {
       coveredSignals: [
         {
           title: spec.signalZh,
-          body: '这些公开信号可以进入 Pulse 复核，并保留来源链接、来源摘录和验证元数据。',
+          body: '这些公开信号可以进入提醒复核，并保留来源链接、来源摘录和验证元数据。',
         },
         {
           title: spec.taxFocusZh,
@@ -638,7 +637,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
               body: 'Unowned deadline work is riskier because nobody is accountable for the next review step.',
             },
             {
-              title: 'Pulse changes',
+              title: 'State alerts',
               body: 'State updates should move into review only with source context and affected-client clues.',
             },
           ],
@@ -646,7 +645,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         {
           eyebrow: 'PRODUCT SURFACE',
           title: 'Triage should land in Today, Deadlines, and evidence review.',
-          body: 'The current app uses Dashboard/Today to aggregate risk and Pulse banners, while the Deadlines queue carries filters, status updates, readiness, extension, risk, evidence, and audit detail.',
+          body: 'The current app uses Dashboard/Today to aggregate risk and Alerts, while the Deadlines queue carries filters, status updates, readiness, extension, risk, evidence, and audit detail.',
           items: [
             {
               title: 'Today/Dashboard',
@@ -932,7 +931,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
               body: '没有负责人的截止日工作风险更高，因为没有人负责下一步。',
             },
             {
-              title: 'Pulse 变化',
+              title: '州级提醒',
               body: '州变化必须带来源上下文和受影响客户线索进入复核。',
             },
           ],
@@ -940,7 +939,7 @@ export const supplementalGuides: Record<Locale, GuidePageCopy[]> = {
         {
           eyebrow: '产品落点',
           title: '分诊结果应能落到 Today、Deadlines 和证据抽屉。',
-          body: '当前 app 的 Dashboard/Today surface 聚合风险和 Pulse banner，Deadlines 队列承载筛选、状态更新、readiness、extension、risk、evidence 和 audit 详情。',
+          body: '当前 app 的 Dashboard/Today surface 聚合风险和提醒，Deadlines 队列承载筛选、状态更新、readiness、extension、risk、evidence 和 audit 详情。',
           items: [
             {
               title: 'Today/Dashboard',
@@ -1179,13 +1178,13 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
       slug: spec.slug,
       meta: {
         title: `DueDateHQ vs ${spec.product} — 截止日运营对比`,
-        description: `了解 CPA 事务所如何在 ${spec.product} 和 DueDateHQ 之间比较截止日风险、官方来源证据、州级 Pulse 复核、迁移成本和每周分诊工作流。`,
+        description: `了解 CPA 事务所如何在 ${spec.product} 和 DueDateHQ 之间比较截止日风险、官方来源证据、州级提醒复核、迁移成本和每周分诊工作流。`,
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
         eyebrow: '对比',
         title: `DueDateHQ vs ${spec.product}: 哪个更适合截止日运营？`,
-        description: `${spec.product} 更接近${spec.positioningZh}。DueDateHQ 的选择角度更窄：CPA 截止日风险、官方来源证据、州级 Pulse 复核和每周运营分诊。`,
+        description: `${spec.product} 更接近${spec.positioningZh}。DueDateHQ 的选择角度更窄：CPA 截止日风险、官方来源证据、州级提醒复核和每周运营分诊。`,
         note: '对比页面基于公开定位和产品边界，不声称竞品私有能力。',
       },
       sections: [
@@ -1219,8 +1218,8 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
             },
             { title: '每周分诊', body: '首页关注本周谁最急、为什么急、下一步检查什么。' },
             {
-              title: '州级 Pulse 复核',
-              body: '州变化进入 Pulse 后先复核，再影响客户运营工作。',
+              title: '州级提醒复核',
+              body: '州变化进入提醒后先复核，再影响客户运营工作。',
             },
           ],
         },
@@ -1239,7 +1238,7 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
             },
             {
               title: '适用买点',
-              body: '当事务所需要更好的截止日队列、Pulse 复核、证据抽屉和审计链路时，DueDateHQ 才是更直接的选择。',
+              body: '当事务所需要更好的截止日队列、提醒复核、证据抽屉和审计链路时，DueDateHQ 才是更直接的选择。',
             },
           ],
         },
@@ -1278,7 +1277,7 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
     hero: {
       eyebrow: 'COMPARISON',
       title: `DueDateHQ vs ${spec.product}: which fits deadline operations?`,
-      description: `${spec.product} is closer to ${spec.positioning}. DueDateHQ takes a narrower angle: CPA deadline risk, official-source evidence, state Pulse review, and weekly operations triage.`,
+      description: `${spec.product} is closer to ${spec.positioning}. DueDateHQ takes a narrower angle: CPA deadline risk, official-source evidence, state alert review, and weekly operations triage.`,
       note: 'This comparison is based on public positioning and product boundaries, not competitor claims beyond visible market framing.',
     },
     sections: [
@@ -1315,8 +1314,8 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
             body: 'The homepage focuses on who is risky this week, why they are risky, and what the team should inspect next.',
           },
           {
-            title: 'State Pulse review',
-            body: 'State changes enter Pulse review before they can affect client operations.',
+            title: 'State alert review',
+            body: 'State changes enter alert review before they can affect client operations.',
           },
         ],
       },
@@ -1335,7 +1334,7 @@ function comparisonPage(spec: ComparisonSpec, locale: Locale): GuidePageCopy {
           },
           {
             title: 'Best-fit buying job',
-            body: 'DueDateHQ is the more direct choice when the firm needs a better deadline queue, Pulse review, evidence drawer, and audit trail.',
+            body: 'DueDateHQ is the more direct choice when the firm needs a better deadline queue, alert review, evidence drawer, and audit trail.',
           },
         ],
       },

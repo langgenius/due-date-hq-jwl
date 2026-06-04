@@ -12,6 +12,7 @@
     "./penalty": "./src/penalty/index.ts",
     "./priority": "./src/priority/index.ts",
     "./date-logic": "./src/date-logic/index.ts",
+    "./federal-holidays": "./src/federal-holidays/index.ts",
     "./deadlines": "./src/deadlines/index.ts",
     "./obligation-workflow": "./src/obligation-workflow/index.ts",
     "./overlay": "./src/overlay/index.ts",
@@ -24,6 +25,8 @@
     "./plan-entitlements": "./src/plan-entitlements/index.ts",
     "./permissions": "./src/permissions/index.ts",
     "./tax-periods": "./src/tax-periods/index.ts",
+    "./tax-codes": "./src/tax-codes/index.ts",
+    "./email-template": "./src/email-template/index.ts",
     "./practice-name": "./src/practice-name.ts"
   },
   "scripts": {

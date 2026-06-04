@@ -2,16 +2,23 @@ import { Hono } from 'hono'
 import { Resend } from 'resend'
 import { eq } from 'drizzle-orm'
 import { createDb } from '@duedatehq/db'
+import { auditEvent } from '@duedatehq/db/schema/audit'
 import { emailOutbox } from '@duedatehq/db/schema/notifications'
 import type { Env, ContextVars } from '../env'
+import {
+  markRemindersOpened,
+  reminderLinkageByOutboxId,
+  type ReminderLinkage,
+} from '@duedatehq/db/reminder-linkage'
 
 type ResendWebhookEnv = Pick<Env, 'DB' | 'RESEND_API_KEY' | 'RESEND_WEBHOOK_SECRET'>
 
-type OutboxWebhookUpdate = {
-  outboxId: string
-  status: 'sent' | 'failed'
-  failureReason: string | null
-}
+type OutboxWebhookUpdate =
+  | { kind: 'status'; outboxId: string; status: 'sent' | 'failed'; failureReason: string | null }
+  // `opened` does not change the send status — it records first-open on the
+  // linked reminder(s). Resend fires this per device / proxy prefetch, so the
+  // linkage helper dedups to first-open.
+  | { kind: 'opened'; outboxId: string }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -49,7 +56,7 @@ function parseWebhookUpdate(payload: string): OutboxWebhookUpdate | null {
   if (!type || !outboxId) return null
 
   if (type === 'email.sent' || type === 'email.delivered') {
-    return { outboxId, status: 'sent', failureReason: null }
+    return { kind: 'status', outboxId, status: 'sent', failureReason: null }
   }
   if (
     type === 'email.failed' ||
@@ -58,12 +65,40 @@ function parseWebhookUpdate(payload: string): OutboxWebhookUpdate | null {
     type === 'email.suppressed'
   ) {
     return {
+      kind: 'status',
       outboxId,
       status: 'failed',
       failureReason: failureReasonFor(type, parsed.data),
     }
   }
+  if (type === 'email.opened' || type === 'email.clicked') {
+    return { kind: 'opened', outboxId }
+  }
   return null
+}
+
+// Audit a delivery-feedback event against the client reminder's deadline. The
+// "sent" side is already audited at dispatch (outbox.ts → reminder.sent), so
+// the webhook only records bounces and first-opens. System actor.
+async function auditReminderDeliveryEvent(
+  db: ReturnType<typeof createDb>,
+  links: ReminderLinkage[],
+  action: 'reminder.bounced' | 'reminder.opened',
+  reason: string | null,
+): Promise<void> {
+  for (const link of links) {
+    if (link.recipientKind !== 'client') continue
+    await db.insert(auditEvent).values({
+      id: crypto.randomUUID(),
+      firmId: link.firmId,
+      actorId: null,
+      actorType: 'system',
+      entityType: 'obligation_instance',
+      entityId: link.obligationInstanceId,
+      action,
+      afterJson: { clientId: link.clientId, ...(reason ? { reason } : {}) },
+    })
+  }
 }
 
 async function updateOutboxFromWebhook(env: ResendWebhookEnv, payload: string): Promise<boolean> {
@@ -71,6 +106,13 @@ async function updateOutboxFromWebhook(env: ResendWebhookEnv, payload: string): 
   if (!update) return false
 
   const db = createDb(env.DB)
+  if (update.kind === 'opened') {
+    // Stamp first-open on the linked reminder(s); leave the send status alone.
+    // markRemindersOpened returns only the freshly-opened rows (first-open dedup).
+    const opened = await markRemindersOpened(db, update.outboxId, new Date())
+    await auditReminderDeliveryEvent(db, opened, 'reminder.opened', null)
+    return true
+  }
   await db
     .update(emailOutbox)
     .set({
@@ -80,6 +122,10 @@ async function updateOutboxFromWebhook(env: ResendWebhookEnv, payload: string): 
         : { failedAt: new Date(), failureReason: update.failureReason }),
     })
     .where(eq(emailOutbox.id, update.outboxId))
+  if (update.status === 'failed') {
+    const links = await reminderLinkageByOutboxId(db, update.outboxId)
+    await auditReminderDeliveryEvent(db, links, 'reminder.bounced', update.failureReason)
+  }
   return true
 }
 

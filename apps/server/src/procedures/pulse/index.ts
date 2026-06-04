@@ -1,19 +1,27 @@
 import { ORPCError } from '@orpc/server'
 import {
   ErrorCodes,
+  PulseAlertPublicSchema,
+  PulseRuleMatchSchema,
   type PulseAffectedClient,
   type PulseAlertPublic,
+  type PulseAlertSourceCoverage,
   type PulseFirmAlertStatus,
   type PulsePriorityQueueItem,
   type PulsePriorityReason,
   type PulsePriorityReview,
+  type PulseRuleMatch,
   type PulseSourceHealth,
   type PulseStatus,
 } from '@duedatehq/contracts'
 import { planHasFeature } from '@duedatehq/core/plan-entitlements'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
 import { runPulseIngest } from '../../jobs/pulse/ingest'
-import { visibleRegulatorySourceAdapters } from '../../jobs/pulse/rule-source-adapters'
+import {
+  alertSourceAdapterMetadataById,
+  listAlertSourceCoverage,
+  visibleRegulatorySourceAdapters,
+} from '../../jobs/pulse/rule-source-adapters'
 import { requireTenant, type RpcContext } from '../_context'
 import { requireCurrentFirmRole } from '../_permissions'
 import { requirePriorityPulseMatching, requireProductionPulse } from '../_plan-gates'
@@ -48,6 +56,7 @@ const SOURCE_LABELS: Record<string, string> = {
   'irs.disaster': 'IRS Disaster Relief',
   'irs.newsroom': 'IRS Newsroom',
   'irs.guidance': 'IRS Guidance',
+  'irs.tips': 'IRS Tax Tips',
   'ca.ftb.newsroom': 'CA FTB Newsroom',
   'ca.ftb.tax_news': 'CA FTB Tax News',
   'ca.cdtfa.news': 'CA CDTFA News',
@@ -190,6 +199,37 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
   }
 }
 
+/**
+ * Map repo alert rows to the public output shape, dropping (and loudly logging)
+ * any row that fails the output contract rather than letting a single malformed
+ * row fail the whole `z.array(...)` and 500 the entire endpoint for every firm.
+ * Pulse fields are AI-extracted, so one bad value (the production incident was a
+ * garbage `parsedJurisdiction` like `f!` on a federal IRS pulse) must degrade to
+ * "one missing alert", never "every alert down". The dropped row is logged for
+ * repair; the write-path normalization + a data backfill remove it at the source.
+ */
+function toPublicAlertsSafely(rows: PulseAlertRow[], endpoint: string): PulseAlertPublic[] {
+  const alerts: PulseAlertPublic[] = []
+  for (const row of rows) {
+    const parsed = PulseAlertPublicSchema.safeParse(toAlertPublic(row))
+    if (parsed.success) {
+      alerts.push(parsed.data)
+      continue
+    }
+    console.error('pulse.alert.dropped_invalid_output', {
+      endpoint,
+      pulseId: row.pulseId,
+      alertId: row.id,
+      source: row.source,
+      issues: parsed.error.issues.map((issue) => ({
+        path: issue.path.join('.'),
+        code: issue.code,
+      })),
+    })
+  }
+  return alerts
+}
+
 function toAffectedClientPublic(row: PulseAffectedClientRow): PulseAffectedClient {
   return {
     obligationId: row.obligationId,
@@ -247,20 +287,32 @@ function toIsoOrNull(date: Date | null): string | null {
   return date ? date.toISOString() : null
 }
 
+const PULSE_MUTATION_LOCK_TTL_MS = 60_000
+
+// Serializes mutating Pulse operations on a single alert. The lock key is
+// per-(firm, alert) and deliberately omits the action: apply and revert on the
+// same alert must block each other (the cross race that no DB unique constraint
+// guards), not only apply-vs-apply. Backed by a D1 conditional upsert
+// (scoped.mutationLock) so acquisition is atomic — the prior KV get-then-put
+// had a TOCTOU window where two callers could both pass the read. The TTL
+// self-heals the lock if a holder dies mid-mutation. When the lock repo is not
+// wired (test scoped doubles), fall back to running directly under the DB
+// constraints, matching the other optional scoped repos.
 async function withPulseMutationLock<T>(
-  context: RpcContext,
-  input: { firmId: string; alertId: string; action: 'apply' | 'revert' },
+  scoped: ReturnType<typeof requireTenant>['scoped'],
+  input: { firmId: string; alertId: string },
   run: () => Promise<T>,
 ): Promise<T> {
-  const key = `pulse:lock:${input.firmId}:${input.alertId}:${input.action}`
-  if (await context.env.CACHE.get(key)) {
+  const locks = scoped.mutationLock
+  if (!locks) return run()
+  const key = `pulse:lock:${input.firmId}:${input.alertId}`
+  if (!(await locks.tryAcquire(key, PULSE_MUTATION_LOCK_TTL_MS))) {
     throw new ORPCError('CONFLICT', { message: ErrorCodes.PULSE_APPLY_CONFLICT })
   }
-  await context.env.CACHE.put(key, String(Date.now()), { expirationTtl: 60 })
   try {
     return await run()
   } finally {
-    await context.env.CACHE.delete(key).catch(() => undefined)
+    await locks.release(key).catch(() => undefined)
   }
 }
 
@@ -316,6 +368,65 @@ function uniqueEmails(values: string[]): string[] {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)))
 }
 
+function newestDate(dates: readonly (Date | null | undefined)[]): Date | null {
+  return dates.reduce<Date | null>((latest, date) => {
+    if (!date) return latest
+    if (!latest || date.getTime() > latest.getTime()) return date
+    return latest
+  }, null)
+}
+
+function toCoveragePublic(
+  row: ReturnType<typeof listAlertSourceCoverage>[number],
+  states: Map<
+    string,
+    {
+      lastCheckedAt?: Date | null
+      lastSuccessAt?: Date | null
+      lastError?: string | null
+    }
+  >,
+): PulseAlertSourceCoverage {
+  const publicSourceIds = row.sourceIds.filter(
+    (sourceId) => !row.hiddenPolicyWatchSourceIds.includes(sourceId),
+  )
+  const sourceStates = publicSourceIds.map((sourceId) => states.get(sourceId)).filter(Boolean)
+  const lastCheckedAt = newestDate(sourceStates.map((state) => state?.lastCheckedAt))
+  const lastSuccessAt = newestDate(sourceStates.map((state) => state?.lastSuccessAt))
+  const failureRows = sourceStates.filter((state) => state?.lastError)
+  const lastFailureAt = newestDate(failureRows.map((state) => state?.lastCheckedAt))
+  const lastError = failureRows.find((state) => state?.lastError)?.lastError ?? null
+  return {
+    jurisdiction: row.jurisdiction,
+    status: row.status,
+    coverageLevel: row.coverageLevel,
+    parserStatus: row.parserStatus,
+    requiredRoles: [...row.requiredRoles],
+    coveredRoles: [...row.coveredRoles],
+    missingRoles: [...row.missingRoles],
+    roleDetails: row.roleDetails.map((detail) => ({
+      role: detail.role,
+      status: detail.status,
+      sourceIds: [...detail.sourceIds],
+      reason: detail.reason,
+    })),
+    explicitLiveSourceIds: [...row.explicitLiveSourceIds],
+    primaryWebSourceIds: [...row.primaryWebSourceIds],
+    emailSignalSourceIds: [...row.emailSignalSourceIds],
+    ruleSourceWatchIds: [...row.ruleSourceWatchIds],
+    guidanceNoticeSourceIds: [...row.guidanceNoticeSourceIds],
+    taxTypeSourceIds: [...row.taxTypeSourceIds],
+    reliefOrDisasterSourceIds: [...row.reliefOrDisasterSourceIds],
+    multiAgencySourceIds: [...row.multiAgencySourceIds],
+    sourceIds: publicSourceIds,
+    lastCheckedAt: toIsoOrNull(lastCheckedAt),
+    lastSuccessAt: toIsoOrNull(lastSuccessAt),
+    lastFailureAt: toIsoOrNull(lastFailureAt),
+    lastError,
+    missingReason: row.missingReason,
+  }
+}
+
 function pulseReviewEmailText(input: {
   alertTitle: string
   requesterName: string
@@ -334,7 +445,7 @@ const listAlerts = os.pulse.listAlerts.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
   const opts = input?.limit === undefined ? {} : { limit: input.limit }
   const alerts = await scoped.pulse.listAlerts(opts)
-  return { alerts: alerts.map(toAlertPublic) }
+  return { alerts: toPublicAlertsSafely(alerts, 'listAlerts') }
 })
 
 const activeCount = os.pulse.activeCount.handler(async ({ context }) => {
@@ -349,7 +460,7 @@ const listHistory = os.pulse.listHistory.handler(async ({ input, context }) => {
     ...(input?.limit === undefined ? {} : { limit: input.limit }),
     ...(input?.status === undefined ? {} : { status: input.status }),
   })
-  return { alerts: alerts.map(toAlertPublic) }
+  return { alerts: toPublicAlertsSafely(alerts, 'listHistory') }
 })
 
 async function listSourceHealthForScopedRepo(
@@ -360,13 +471,19 @@ async function listSourceHealthForScopedRepo(
   )
   const sources: PulseSourceHealth[] = visibleRegulatorySourceAdapters.map((adapter) => {
     const state = persisted.get(adapter.id)
+    const metadata = alertSourceAdapterMetadataById.get(adapter.id)
     const healthStatus =
-      state?.enabled === false || state?.healthStatus === 'paused' ? 'paused' : 'healthy'
+      state?.enabled === false || state?.healthStatus === 'paused'
+        ? 'paused'
+        : (state?.healthStatus ?? 'healthy')
     return {
       sourceId: adapter.id,
-      label: SOURCE_LABELS[adapter.id] ?? adapter.id,
+      label: metadata?.label ?? SOURCE_LABELS[adapter.id] ?? adapter.id,
       tier: adapter.tier,
       jurisdiction: adapter.jurisdiction,
+      purpose: metadata?.purpose ?? 'rule_source_watch',
+      primaryWeb: metadata?.primaryWeb ?? adapter.fetcher !== 'govdelivery',
+      relatedSourceIds: [...(metadata?.relatedSourceIds ?? [])],
       enabled: state?.enabled ?? true,
       healthStatus,
       lastCheckedAt: toIsoOrNull(state?.lastCheckedAt ?? null),
@@ -383,6 +500,18 @@ const listSourceHealth = os.pulse.listSourceHealth.handler(async ({ context }) =
   const { scoped } = requireTenant(context)
   return listSourceHealthForScopedRepo(scoped)
 })
+
+const listAlertSourceCoverageHandler = os.pulse.listAlertSourceCoverage.handler(
+  async ({ context }) => {
+    const { scoped } = requireTenant(context)
+    const persisted = new Map(
+      (await scoped.pulse.listSourceStates()).map((row) => [row.sourceId, row]),
+    )
+    return {
+      coverage: listAlertSourceCoverage().map((row) => toCoveragePublic(row, persisted)),
+    }
+  },
+)
 
 const retrySourceHealth = os.pulse.retrySourceHealth.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
@@ -413,6 +542,7 @@ const getDetail = os.pulse.getDetail.handler(async ({ input, context }) => {
       effectiveFrom: detail.effectiveFrom ? toDateOnly(detail.effectiveFrom) : null,
       effectiveUntil: detail.effectiveUntil ? toDateOnly(detail.effectiveUntil) : null,
       affectedRuleIds: detail.affectedRuleIds,
+      reverifyRuleIds: detail.reverifyRuleIds,
       structuredChange: detail.structuredChange ?? null,
       sourceExcerpt: detail.sourceExcerpt,
       reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
@@ -422,6 +552,44 @@ const getDetail = os.pulse.getDetail.handler(async ({ input, context }) => {
   } catch (error) {
     return mapPulseError(error)
   }
+})
+
+// Approved, still-active pulses affecting one rule — backs the rule-review
+// dialog's "proposed change" block. Lazy per-rule (the dialog opens one rule
+// at a time). Dates serialize date-only, same as getDetail.
+const listAlertsForRule = os.pulse.listAlertsForRule.handler(async ({ input, context }) => {
+  const { scoped } = requireTenant(context)
+  const matches = await scoped.pulse.listAlertsForRule({
+    ruleId: input.ruleId,
+    jurisdiction: input.jurisdiction,
+    taxType: input.taxType,
+    ...(input.formName === undefined ? {} : { formName: input.formName }),
+  })
+  // Safe-parse + drop, same resilience contract as `toPublicAlertsSafely`:
+  // pulse fields are AI-extracted, so one garbage value (e.g. a non-UUID id or a
+  // bad jurisdiction) must degrade to "one missing match", never 500 the whole
+  // block for the firm. Dropped matches are logged for repair.
+  const safe: PulseRuleMatch[] = []
+  for (const match of matches) {
+    const parsed = PulseRuleMatchSchema.safeParse({
+      alert: toAlertPublic(match.alert),
+      originalDueDate: match.originalDueDate ? toDateOnly(match.originalDueDate) : null,
+      newDueDate: match.newDueDate ? toDateOnly(match.newDueDate) : null,
+      effectiveFrom: match.effectiveFrom ? toDateOnly(match.effectiveFrom) : null,
+      effectiveUntil: match.effectiveUntil ? toDateOnly(match.effectiveUntil) : null,
+      sourceExcerpt: match.sourceExcerpt,
+      matchReason: match.matchReason,
+    })
+    if (parsed.success) {
+      safe.push(parsed.data)
+    } else {
+      console.error('[pulse.listAlertsForRule] dropped malformed match', {
+        pulseId: match.alert.pulseId,
+        issues: parsed.error.issues,
+      })
+    }
+  }
+  return { matches: safe }
 })
 
 // Batch counterpart — fans out N `scoped.pulse.getDetail(id)` calls
@@ -452,6 +620,7 @@ const getDetailsBatch = os.pulse.getDetailsBatch.handler(async ({ input, context
         effectiveFrom: detail.effectiveFrom ? toDateOnly(detail.effectiveFrom) : null,
         effectiveUntil: detail.effectiveUntil ? toDateOnly(detail.effectiveUntil) : null,
         affectedRuleIds: detail.affectedRuleIds,
+        reverifyRuleIds: detail.reverifyRuleIds,
         structuredChange: detail.structuredChange ?? null,
         sourceExcerpt: detail.sourceExcerpt,
         reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
@@ -492,8 +661,7 @@ const reviewPriorityMatches = os.pulse.reviewPriorityMatches.handler(async ({ in
 const reviewDueDateOverlayDetails = os.pulse.reviewDueDateOverlayDetails.handler(
   async ({ input, context }) => {
     const { userId } = await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
-    const { scoped, tenant } = requireTenant(context)
-    requireProductionPulse(tenant.plan)
+    const { scoped } = requireTenant(context)
     try {
       const detail = await scoped.pulse.reviewDueDateOverlayDetails({
         alertId: input.alertId,
@@ -515,6 +683,7 @@ const reviewDueDateOverlayDetails = os.pulse.reviewDueDateOverlayDetails.handler
         effectiveFrom: detail.effectiveFrom ? toDateOnly(detail.effectiveFrom) : null,
         effectiveUntil: detail.effectiveUntil ? toDateOnly(detail.effectiveUntil) : null,
         affectedRuleIds: detail.affectedRuleIds,
+        reverifyRuleIds: detail.reverifyRuleIds,
         structuredChange: detail.structuredChange ?? null,
         sourceExcerpt: detail.sourceExcerpt,
         reviewedAt: detail.reviewedAt ? detail.reviewedAt.toISOString() : null,
@@ -533,8 +702,8 @@ const applyReviewed = os.pulse.applyReviewed.handler(async ({ input, context }) 
   requirePriorityPulseMatching(tenant.plan)
   try {
     const result = await withPulseMutationLock(
-      context,
-      { firmId: tenant.firmId, alertId: input.alertId, action: 'apply' },
+      scoped,
+      { firmId: tenant.firmId, alertId: input.alertId },
       () => scoped.pulse.applyReviewed({ alertId: input.alertId, userId }),
     )
     const output = {
@@ -562,8 +731,8 @@ const apply = os.pulse.apply.handler(async ({ input, context }) => {
   requireProductionPulse(tenant.plan)
   try {
     const result = await withPulseMutationLock(
-      context,
-      { firmId: tenant.firmId, alertId: input.alertId, action: 'apply' },
+      scoped,
+      { firmId: tenant.firmId, alertId: input.alertId },
       () =>
         scoped.pulse.apply({
           alertId: input.alertId,
@@ -635,7 +804,6 @@ const snooze = os.pulse.snooze.handler(async ({ input, context }) => {
 const markReviewed = os.pulse.markReviewed.handler(async ({ input, context }) => {
   const { userId } = await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
   const { scoped, tenant } = requireTenant(context)
-  requireProductionPulse(tenant.plan)
   try {
     const result = await scoped.pulse.markReviewed({
       alertId: input.alertId,
@@ -658,8 +826,8 @@ const revert = os.pulse.revert.handler(async ({ input, context }) => {
   requireProductionPulse(tenant.plan)
   try {
     const result = await withPulseMutationLock(
-      context,
-      { firmId: tenant.firmId, alertId: input.alertId, action: 'revert' },
+      scoped,
+      { firmId: tenant.firmId, alertId: input.alertId },
       () => scoped.pulse.revert({ alertId: input.alertId, userId }),
     )
     const output = {
@@ -706,7 +874,6 @@ export async function requestPulseReview(input: {
     'preparer',
   ])
   const { scoped } = requireTenant(input.context)
-  requireProductionPulse(tenant.plan)
   const { notifications } = scoped
   if (!notifications) {
     throw new Error('Notifications repo methods are not available.')
@@ -738,7 +905,7 @@ export async function requestPulseReview(input: {
         member.userId !== userId &&
         (member.role === 'owner' || member.role === 'partner' || member.role === 'manager'),
     )
-    const href = `/rules?tab=pulse&alert=${encodeURIComponent(alert.id)}`
+    const href = `/alerts?alert=${encodeURIComponent(alert.id)}`
     const subject = `Review requested: ${alert.title}`
     await Promise.all(
       recipients.map((recipient) =>
@@ -831,8 +998,10 @@ export const pulseHandlers = {
   activeCount,
   listHistory,
   listSourceHealth,
+  listAlertSourceCoverage: listAlertSourceCoverageHandler,
   retrySourceHealth,
   getDetail,
+  listAlertsForRule,
   getDetailsBatch,
   listPriorityQueue,
   reviewPriorityMatches,

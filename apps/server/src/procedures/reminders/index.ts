@@ -71,15 +71,29 @@ const listTemplates = os.reminders.listTemplates.handler(async ({ context }) => 
 
 const updateTemplate = os.reminders.updateTemplate.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, REMINDER_MANAGE_ROLES)
-  const { scoped } = requireTenant(context)
+  const { scoped, userId } = requireTenant(context)
   const reminders = requireRemindersRepo(scoped)
-  return toTemplatePublic(
-    await reminders.updateTemplate(input.templateKey, {
+  const updated = await reminders.updateTemplate(input.templateKey, {
+    ...(input.subject !== undefined ? { subject: input.subject } : {}),
+    ...(input.bodyText !== undefined ? { bodyText: input.bodyText } : {}),
+    ...(input.active !== undefined ? { active: input.active } : {}),
+  })
+  // A partner editing the content that goes out under the firm's name to
+  // clients is reviewable. Record which fields changed + the new values
+  // (the body text itself can be long, so log only that it changed).
+  await scoped.audit.write({
+    actorId: userId,
+    entityType: 'reminder_template',
+    entityId: input.templateKey,
+    action: 'reminder.template.updated',
+    after: {
+      templateKey: input.templateKey,
       ...(input.subject !== undefined ? { subject: input.subject } : {}),
-      ...(input.bodyText !== undefined ? { bodyText: input.bodyText } : {}),
       ...(input.active !== undefined ? { active: input.active } : {}),
-    }),
-  )
+      bodyTextChanged: input.bodyText !== undefined,
+    },
+  })
+  return toTemplatePublic(updated)
 })
 
 const listUpcoming = os.reminders.listUpcoming.handler(async ({ input, context }) => {

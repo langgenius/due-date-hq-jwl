@@ -96,7 +96,7 @@ export type ClientWorkPlanSummary = {
   nextDueDate: string | null
 }
 
-export type ClientPulseMatch = {
+export type ClientAlertMatch = {
   alertId: string
   title: string
   source: string
@@ -227,10 +227,10 @@ export function buildClientWorkPlanSummary(
   }
 }
 
-export function buildClientPulseMatches(
+export function buildClientAlertMatches(
   details: readonly PulseDetail[],
   clientId: string,
-): ClientPulseMatch[] {
+): ClientAlertMatch[] {
   return details
     .flatMap((detail) =>
       detail.affectedClients
@@ -252,19 +252,19 @@ export function buildClientPulseMatches(
     .toSorted((left, right) => right.publishedAt.localeCompare(left.publishedAt))
 }
 
-const PULSE_MATCH_ACTIVE_STATUSES: ReadonlySet<PulseAffectedClient['matchStatus']> = new Set([
+const ALERT_MATCH_ACTIVE_STATUSES: ReadonlySet<PulseAffectedClient['matchStatus']> = new Set([
   'eligible',
   'needs_review',
 ])
 
-export function buildPulseMatchesByClient(
+export function buildAlertMatchesByClient(
   details: readonly PulseDetail[],
-): Map<string, ClientPulseMatch[]> {
-  const byClient = new Map<string, ClientPulseMatch[]>()
+): Map<string, ClientAlertMatch[]> {
+  const byClient = new Map<string, ClientAlertMatch[]>()
   for (const detail of details) {
     for (const row of detail.affectedClients) {
-      if (!PULSE_MATCH_ACTIVE_STATUSES.has(row.matchStatus)) continue
-      const match: ClientPulseMatch = {
+      if (!ALERT_MATCH_ACTIVE_STATUSES.has(row.matchStatus)) continue
+      const match: ClientAlertMatch = {
         alertId: detail.alert.id,
         title: detail.alert.title,
         source: detail.alert.source,

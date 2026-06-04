@@ -152,7 +152,7 @@ function entityHref(event: AuditEventPublic): string {
     case 'pulse_alert':
     case 'pulse_application':
     case 'pulse_firm_alert':
-      return '/rules/pulse'
+      return '/alerts'
     case 'member':
     case 'member_invitation':
       return '/settings/team'

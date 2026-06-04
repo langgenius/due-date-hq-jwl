@@ -44,6 +44,8 @@ import { isOnOrAfterDateOnly } from '../../lib/date-only'
 import { generateObligationsForAcceptedRules } from './_obligation-generation'
 import {
   cachedConcreteDraftKey,
+  concreteDraftBulkTrustIssue,
+  concreteDraftSourceIsStale,
   generateConcreteDraft,
   parseCachedConcreteDraft,
   RETIRED_DETERMINISTIC_CONCRETE_DRAFT_MODEL,
@@ -795,6 +797,9 @@ async function previewBulkImpactForSelections(
       task,
     ]),
   )
+  const driftRuleIds = new Set(
+    await scoped.rules.listUnclearedDriftRuleIds(selections.map((selection) => selection.ruleId)),
+  )
   const ready: CoreObligationRule[] = []
   const skipped: RuleBulkAcceptSkip[] = []
 
@@ -830,6 +835,14 @@ async function previewBulkImpactForSelections(
         ruleId: selection.ruleId,
         expectedVersion: selection.expectedVersion,
         reason: 'source_changed_requires_review',
+      })
+      continue
+    }
+    if (driftRuleIds.has(selection.ruleId)) {
+      skipped.push({
+        ruleId: selection.ruleId,
+        expectedVersion: selection.expectedVersion,
+        reason: 'source_drifted_requires_review',
       })
       continue
     }
@@ -919,6 +932,9 @@ export async function acceptTemplateRule(input: {
   editedRule?: ObligationRule
   catalogSeeded?: boolean
   generateObligations?: boolean
+  // When the accepted rule was drafted by AI (the verify-candidate flow), the
+  // human pressed accept but the value came from the model → ai_assisted.
+  aiAssisted?: boolean
 }): Promise<RuleReviewTask> {
   const { scoped, tenant } = requireTenant(input.context)
   if (!input.editedRule && isSourceDefinedRule(input.rule)) throw sourceDefinedAcceptError()
@@ -951,11 +967,18 @@ export async function acceptTemplateRule(input: {
   })
   await scoped.audit.write({
     actorId: input.reviewedBy,
+    ...(input.aiAssisted
+      ? { actorType: 'ai_assisted' as const, previousActorType: 'ai' as const }
+      : {}),
     entityType: 'rule',
     entityId: input.rule.id,
     action: 'rules.accepted',
-    before: { status: 'pending_review', version: input.rule.version },
-    after: { status: 'active', version: activeRule.version },
+    before: {
+      status: 'pending_review',
+      version: input.rule.version,
+      rule: ruleBodyForAudit(input.rule),
+    },
+    after: { status: 'active', version: activeRule.version, rule: ruleBodyForAudit(activeRule) },
     reason: input.reviewNote,
   })
   const task = await acceptedTaskForRule({
@@ -967,7 +990,7 @@ export async function acceptTemplateRule(input: {
     reviewedAt: input.reviewedAt,
   })
   if (input.generateObligations ?? true) {
-    await generateObligationsForAcceptedRules({
+    const generated = await generateObligationsForAcceptedRules({
       scoped,
       userId: input.reviewedBy,
       rules: [toCoreRule(activeRule)],
@@ -976,6 +999,23 @@ export async function acceptTemplateRule(input: {
       now: input.reviewedAt,
       reason: input.reviewNote,
     })
+    if (generated.createdObligationIds.length > 0) {
+      // A firm that activated this state AFTER an approved pulse changed its
+      // deadline had the pulse's matchedCount stuck at its point-in-time (0)
+      // value — nothing recomputes on obligation creation. Recompute now so
+      // the alert reflects these new deadlines and the CPA gets prompted to
+      // apply. Best-effort: applying the overlay stays a manual action, and a
+      // recompute failure must never fail the accept.
+      try {
+        await scoped.pulse.refreshMatchedCountsForObligations(generated.createdObligationIds)
+      } catch (err) {
+        console.error('[rules.accept] pulse matchedCount recompute failed', {
+          firmId: scoped.pulse.firmId,
+          ruleId: input.rule.id,
+          error: err instanceof Error ? err.message : String(err),
+        })
+      }
+    }
   }
   return task
 }
@@ -1079,7 +1119,7 @@ const listTemporaryRules = os.rules.listTemporaryRules.handler(async ({ context 
 })
 
 const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }) => {
-  const { userId } = requireTenant(context)
+  const { scoped, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
   const reviewerName = await currentReviewerName(context, userId)
   const rule = templateRuleById(input.ruleId)
@@ -1087,7 +1127,7 @@ const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }
   if (rule.version !== input.expectedVersion) {
     throw new ORPCError('CONFLICT', { message: 'Rule template version has changed.' })
   }
-  return acceptTemplateRule({
+  const accepted = await acceptTemplateRule({
     context,
     rule,
     reviewNote: input.reviewNote,
@@ -1095,6 +1135,10 @@ const acceptTemplate = os.rules.acceptTemplate.handler(async ({ input, context }
     reviewedByName: reviewerName,
     reviewedAt: new Date(),
   })
+  // Accepting a single rule (the alert's rule modal flow) is the "I reviewed the
+  // changed source" action — clear its drift so the adoption gate reopens.
+  await scoped.rules.clearRuleSourceDrift({ ruleId: rule.id, clearedBy: userId })
+  return accepted
 })
 
 const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input, context }) => {
@@ -1110,6 +1154,9 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
       `${task.ruleId}:${task.templateVersion}`,
       task,
     ]),
+  )
+  const driftRuleIds = new Set(
+    await scoped.rules.listUnclearedDriftRuleIds(input.rules.map((selection) => selection.ruleId)),
   )
   const acceptInputs: CoreObligationRule[] = []
   const skipped: RuleBulkAcceptSkip[] = []
@@ -1147,6 +1194,14 @@ const bulkAcceptTemplates = os.rules.bulkAcceptTemplates.handler(async ({ input,
         ruleId: selection.ruleId,
         expectedVersion: selection.expectedVersion,
         reason: 'source_changed_requires_review',
+      })
+      continue
+    }
+    if (driftRuleIds.has(selection.ruleId)) {
+      skipped.push({
+        ruleId: selection.ruleId,
+        expectedVersion: selection.expectedVersion,
+        reason: 'source_drifted_requires_review',
       })
       continue
     }
@@ -1249,6 +1304,23 @@ const rejectTemplate = os.rules.rejectTemplate.handler(async ({ input, context }
   })
 })
 
+// Strip volatile review metadata so a rule audit diff surfaces the parts a
+// reviewer cares about — due-date logic, extension/payment rules, evidence
+// requirements, jurisdiction, effective date — instead of only {status,
+// version} (which never told you WHAT changed in the rule). See gap P0-4.
+function ruleBodyForAudit(ruleJson: unknown): Record<string, unknown> | null {
+  if (!ruleJson || typeof ruleJson !== 'object') return null
+  const {
+    status: _status,
+    verifiedBy: _verifiedBy,
+    verifiedAt: _verifiedAt,
+    reviewedByName: _reviewedByName,
+    reviewedAt: _reviewedAt,
+    ...body
+  } = ruleJson as Record<string, unknown>
+  return body
+}
+
 const createCustomRule = os.rules.createCustomRule.handler(async ({ input, context }) => {
   const { scoped, userId } = requireTenant(context)
   await requireCurrentFirmRole(context, RULE_REVIEW_ROLES)
@@ -1277,7 +1349,7 @@ const createCustomRule = os.rules.createCustomRule.handler(async ({ input, conte
     entityType: 'rule',
     entityId: rule.id,
     action: 'rules.created',
-    after: { status: 'active', version: rule.version, custom: true },
+    after: { status: 'active', version: rule.version, custom: true, rule: ruleBodyForAudit(rule) },
     reason: input.reviewNote,
   })
   return acceptedTaskForRule({
@@ -1321,8 +1393,12 @@ const updatePracticeRule = os.rules.updatePracticeRule.handler(async ({ input, c
     entityType: 'rule',
     entityId: rule.id,
     action: 'rules.updated',
-    before: { status: existing.status, version: existing.templateVersion },
-    after: { status: 'active', version: rule.version },
+    before: {
+      status: existing.status,
+      version: existing.templateVersion,
+      rule: ruleBodyForAudit(existing.ruleJson),
+    },
+    after: { status: 'active', version: rule.version, rule: ruleBodyForAudit(rule) },
     reason: input.reviewNote,
   })
   return acceptedTaskForRule({
@@ -1511,6 +1587,13 @@ function missingAcceptedConcreteDraftError(): never {
   })
 }
 
+function staleConcreteDraftError(): never {
+  throw new ORPCError('BAD_REQUEST', {
+    message:
+      'The official source has changed since this AI draft was generated. Regenerate the draft, then verify the fresh version.',
+  })
+}
+
 function toConcreteDraftRule(input: {
   base: CoreObligationRule
   source: ReturnType<typeof listRuleSources>[number]
@@ -1651,6 +1734,18 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     aiOutputId: input.aiOutputId,
   })
 
+  // Gap #4: refuse a draft built against an outdated source snapshot — its dueDateLogic may no
+  // longer reflect the live source. The reviewer must regenerate before verifying.
+  const latestSourceSnapshot = await loadLatestSourceSnapshot({ context, sourceId: source.id })
+  if (
+    concreteDraftSourceIsStale({
+      citations: cachedRun.citations,
+      latestSnapshotId: latestSourceSnapshot?.id ?? null,
+    })
+  ) {
+    staleConcreteDraftError()
+  }
+
   const reviewedAt = new Date()
   const reviewerName = await currentReviewerName(context, userId)
   const editedRule = toConcreteDraftRule({
@@ -1671,6 +1766,7 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     reviewedByName: reviewerName,
     reviewedAt,
     editedRule,
+    aiAssisted: true,
   })
   const row = await scoped.rules.upsertDecision({
     ruleId: base.id,
@@ -1681,6 +1777,9 @@ const verifyCandidate = os.rules.verifyCandidate.handler(async ({ input, context
     reviewedBy: userId,
     reviewedAt,
   })
+  // Verifying a candidate from the alert's rule modal is the review action —
+  // clear its source drift so the adoption gate reopens for every firm.
+  await scoped.rules.clearRuleSourceDrift({ ruleId: base.id, clearedBy: userId })
   void task
   return toReviewDecision(row)
 })
@@ -1715,8 +1814,19 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
   const cachedRunByContextAndId = new Map(
     allRuns.map((run) => [`${run.inputContextRef ?? ''}:${run.id}`, run]),
   )
+  // Gap #4: latest snapshot id per source, to reject drafts built against stale source content.
+  const latestSnapshotIdBySource = new Map<string, string | null>()
+  await Promise.all(
+    [...new Set(input.rules.map((selection) => selection.sourceId))].map(async (sourceId) => {
+      const snapshot = await scoped.pulse.getLatestSourceSnapshotBySourceId(sourceId)
+      latestSnapshotIdBySource.set(sourceId, snapshot?.id ?? null)
+    }),
+  )
   const reviewedAt = new Date()
   const reviewerName = await currentReviewerName(context, userId)
+  const driftRuleIds = new Set(
+    await scoped.rules.listUnclearedDriftRuleIds(input.rules.map((selection) => selection.ruleId)),
+  )
   const verified: RuleReviewDecision[] = []
   const skipped: RuleBulkVerifyCandidateSkip[] = []
   const acceptedRules: CoreObligationRule[] = []
@@ -1744,6 +1854,9 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
       if (task.reason === 'source_changed') {
         return skipConcreteDraftSelection(selection, 'source_changed_requires_review')
       }
+      if (driftRuleIds.has(selection.ruleId)) {
+        return skipConcreteDraftSelection(selection, 'source_drifted_requires_review')
+      }
 
       const contextRef = cachedConcreteDraftKey({
         ruleId: selection.ruleId,
@@ -1757,6 +1870,29 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
       }
       if (cachedRun.id !== selection.aiOutputId) {
         return skipConcreteDraftSelection(selection, 'draft_mismatch')
+      }
+
+      // Gap #2/#3 trust gate: a low-confidence draft, or one whose cited excerpt is not a verbatim
+      // match in its source, is not eligible for one-click bulk verify. Route it to single human
+      // review instead — never auto-stamp it. (Single verify stays open as the review escape valve.)
+      if (
+        concreteDraftBulkTrustIssue({
+          confidence: draft.confidence,
+          sourceExcerpt: draft.sourceExcerpt,
+          citations: cachedRun.citations,
+        })
+      ) {
+        return skipConcreteDraftSelection(selection, 'low_trust_requires_review')
+      }
+
+      // Gap #4: reject a draft built against an outdated source snapshot — regenerate first.
+      if (
+        concreteDraftSourceIsStale({
+          citations: cachedRun.citations,
+          latestSnapshotId: latestSnapshotIdBySource.get(selection.sourceId) ?? null,
+        })
+      ) {
+        return skipConcreteDraftSelection(selection, 'draft_stale_source')
       }
 
       let sourceContext: Awaited<ReturnType<typeof loadCandidateSourceContext>>
@@ -1789,6 +1925,7 @@ const bulkVerifyCandidates = os.rules.bulkVerifyCandidates.handler(async ({ inpu
         editedRule,
         catalogSeeded: true,
         generateObligations: false,
+        aiAssisted: true,
       })
       const row = await scoped.rules.upsertDecision({
         ruleId: base.id,

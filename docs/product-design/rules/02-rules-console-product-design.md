@@ -270,15 +270,15 @@ Applicability
   Tax type: ca_llc_annual_tax_800
   Event type: payment
 
+Evidence
+  Watch: CA FTB Due dates: businesses
+  Excerpt: official-source text that supports the rule
+
 Due date logic
   Relative to tax year start
   Month offset: 4
   Day: 15
   Rollover: next business day
-
-Sources
-  Primary: CA FTB Due dates: businesses
-  Cross-check: CA LLC Web Pay payment types
 
 Practice review
   Reviewed by: practice owner/manager

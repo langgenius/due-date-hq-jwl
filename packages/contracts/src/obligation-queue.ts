@@ -77,6 +77,15 @@ export const ObligationQueueListInputSchema = z.object({
   minDaysUntilDue: z.number().int().min(-3650).max(3650).optional(),
   maxDaysUntilDue: z.number().int().min(-3650).max(3650).optional(),
   needsEvidence: z.boolean().optional(),
+  // "Awaiting signature" lens — returns only rows where the return is
+  // marked filed but the client hasn't signed Form 8879 yet (status='done'
+  // AND efileState='authorization_requested'). The combined predicate is
+  // deliberate: efileState alone is unreliable because new filing
+  // obligations are seeded with 'authorization_requested' at creation.
+  awaitingSignature: z.boolean().optional(),
+  // Projected/confirmed lens. `false` returns only projected (annual-rollover /
+  // auto-projection) deadlines awaiting CPA confirmation; `true` only confirmed.
+  confirmed: z.boolean().optional(),
   asOfDate: z.iso.date().optional(),
   sort: ObligationQueueSortSchema.default('smart_priority').optional(),
   cursor: z.string().nullable().optional(),
@@ -89,6 +98,9 @@ export const ObligationQueueRowSchema = ObligationInstancePublicSchema.omit({
   exposureStatus: true,
   exposureCalculatedAt: true,
 }).extend({
+  // Projected lifecycle gate (annual rollover / auto-projection). Surfaced so the
+  // queue can badge projected rows and filter the Projected lens.
+  confirmed: z.boolean(),
   clientName: z.string().min(1),
   clientState: StateCodeSchema.nullable(),
   clientCounty: ObligationQueueFilterValueSchema.nullable(),

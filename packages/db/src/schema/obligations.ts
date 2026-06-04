@@ -204,6 +204,12 @@ export const obligationInstance = sqliteTable(
     })
       .notNull()
       .default('pending'),
+    // Annual-rollover lifecycle gate. Rolled-forward, auto-projected, and
+    // pulse-generated next-year deadlines are written `confirmed=false` so they
+    // surface in dashboards/calendar for planning but are withheld from the
+    // client + internal reminder pipeline until a CPA confirms them. Every other
+    // creation path (manual add, migration) leaves this at the default `true`.
+    confirmed: integer('confirmed', { mode: 'boolean' }).notNull().default(true),
     // Lifecycle v2 (slice 2b): when status === 'blocked', this column
     // records *which other obligation* is blocking this one. Encodes
     // the K-1 dependency graph from PDF anti-pattern #4 — the

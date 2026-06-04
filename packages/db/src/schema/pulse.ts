@@ -31,7 +31,13 @@ export const PULSE_CHANGE_KINDS = [
   'applicability_scope',
   'form_instruction',
   'source_status',
+  'rule_source_drift',
   'new_obligation',
+  // Deterministic-only (no AI): annual IRS inflation Revenue Procedure
+  // "pointer" advisory — review_only, asserts no dollar figures. Never
+  // produced by AI extraction; packages/ai/src/pulse.ts deliberately
+  // omits this kind so the model can't emit it (cf. 'rule_source_drift').
+  'threshold_advisory',
   'other',
 ] as const
 export type PulseChangeKind = (typeof PULSE_CHANGE_KINDS)[number]
@@ -54,6 +60,13 @@ export type PulseSourceSnapshotStatus = (typeof PULSE_SOURCE_SNAPSHOT_STATUSES)[
 
 export const PULSE_SOURCE_HEALTH_STATUSES = ['healthy', 'degraded', 'failing', 'paused'] as const
 export type PulseSourceHealthStatus = (typeof PULSE_SOURCE_HEALTH_STATUSES)[number]
+
+export const PULSE_SOURCE_BASELINE_MODES = [
+  'establish_on_first_seen',
+  'active',
+  'backfill',
+] as const
+export type PulseSourceBaselineMode = (typeof PULSE_SOURCE_BASELINE_MODES)[number]
 
 /**
  * pulse — source-backed regulatory announcement routed to practice review.
@@ -91,6 +104,12 @@ export const pulse = sqliteTable(
     parsedEffectiveFrom: integer('parsed_effective_from', { mode: 'timestamp_ms' }),
     parsedEffectiveUntil: integer('parsed_effective_until', { mode: 'timestamp_ms' }),
     affectedRuleIdsJson: text('affected_rule_ids_json', { mode: 'json' })
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'`),
+    // Rules whose cited source produced this alert and should be re-verified.
+    // Deterministic (source-cite join), unlike AI-guessed affectedRuleIdsJson.
+    reverifyRuleIdsJson: text('reverify_rule_ids_json', { mode: 'json' })
       .$type<string[]>()
       .notNull()
       .default(sql`'[]'`),
@@ -175,6 +194,10 @@ export const pulseSourceState = sqliteTable(
     lastCheckedAt: integer('last_checked_at', { mode: 'timestamp_ms' }),
     lastSuccessAt: integer('last_success_at', { mode: 'timestamp_ms' }),
     lastChangeDetectedAt: integer('last_change_detected_at', { mode: 'timestamp_ms' }),
+    monitoringBaselineAt: integer('monitoring_baseline_at', { mode: 'timestamp_ms' }),
+    baselineMode: text('baseline_mode', { enum: PULSE_SOURCE_BASELINE_MODES })
+      .notNull()
+      .default('establish_on_first_seen'),
     nextCheckAt: integer('next_check_at', { mode: 'timestamp_ms' }),
     consecutiveFailures: integer('consecutive_failures').notNull().default(0),
     lastError: text('last_error'),
@@ -192,6 +215,44 @@ export const pulseSourceState = sqliteTable(
   (table) => [
     index('idx_pss_health_next').on(table.healthStatus, table.nextCheckAt),
     index('idx_pss_enabled_next').on(table.enabled, table.nextCheckAt),
+  ],
+)
+
+/**
+ * rule_source_drift_state — durable "this rule's official source changed since
+ * the rule was last verified", keyed by (ruleId, sourceId). The pulse alert is a
+ * projection of this row; the rule accept/verify gate reads it so a firm that
+ * adopts the rule LATER is still blocked until the drift is cleared. Cleared
+ * only when a human re-verifies the rule (or the template is re-authored).
+ */
+export const ruleSourceDriftState = sqliteTable(
+  'rule_source_drift_state',
+  {
+    id: text('id').primaryKey(),
+    ruleId: text('rule_id').notNull(),
+    sourceId: text('source_id').notNull(),
+    snapshotId: text('snapshot_id').references(() => pulseSourceSnapshot.id, {
+      onDelete: 'set null',
+    }),
+    pulseId: text('pulse_id').references(() => pulse.id, { onDelete: 'set null' }),
+    contentHash: text('content_hash').notNull(),
+    excerptMatched: integer('excerpt_matched', { mode: 'boolean' }).notNull().default(false),
+    detectedAt: integer('detected_at', { mode: 'timestamp_ms' }).notNull(),
+    clearedAt: integer('cleared_at', { mode: 'timestamp_ms' }),
+    clearedBy: text('cleared_by').references(() => user.id, { onDelete: 'set null' }),
+
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('uq_rsds_rule_source').on(table.ruleId, table.sourceId),
+    index('idx_rsds_rule_cleared').on(table.ruleId, table.clearedAt),
+    index('idx_rsds_source').on(table.sourceId),
   ],
 )
 
@@ -416,3 +477,5 @@ export type PulsePriorityReview = typeof pulsePriorityReview.$inferSelect
 export type NewPulsePriorityReview = typeof pulsePriorityReview.$inferInsert
 export type PulseApplication = typeof pulseApplication.$inferSelect
 export type NewPulseApplication = typeof pulseApplication.$inferInsert
+export type RuleSourceDriftState = typeof ruleSourceDriftState.$inferSelect
+export type NewRuleSourceDriftState = typeof ruleSourceDriftState.$inferInsert

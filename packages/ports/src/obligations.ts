@@ -64,6 +64,7 @@ export interface ObligationInstanceRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
+  confirmed: boolean
   blockedByObligationInstanceId: string | null
   readiness: ObligationReadiness
   extensionDecision: ObligationExtensionDecision
@@ -133,6 +134,8 @@ export interface ObligationCreateInput {
   baseDueDate: Date
   currentDueDate?: Date
   status?: ObligationStatus
+  /** Annual-rollover lifecycle gate; defaults to true (confirmed) when omitted. */
+  confirmed?: boolean
   prepStage?: ObligationPrepStage
   reviewStage?: ObligationReviewStage
   extensionState?: ObligationExtensionState
@@ -161,6 +164,8 @@ export interface ObligationsRepo {
   findManyByIds(ids: string[]): Promise<ObligationInstanceRow[]>
   listByClient(clientId: string): Promise<ObligationInstanceRow[]>
   listByBatch(batchId: string): Promise<ObligationInstanceRow[]>
+  /** Filed (`done`) rows still at `efileState='not_applicable'` — signature-loop backfill candidates. */
+  listSignatureLoopBackfillCandidates(): Promise<ObligationInstanceRow[]>
   listAnnualRolloverSeeds(input: {
     sourceFilingYear: number
     clientIds?: string[]
@@ -220,9 +225,36 @@ export interface ObligationsRepo {
       decidedAt: Date
       decidedByUserId: string
       status?: ObligationStatus
+      // Applying an extension moves the deadline (filing → statutory extended
+      // date, current follows, payment pinned to the original date). Optional
+      // so non-extension callers of this write path are unaffected.
+      filingDueDate?: Date
+      currentDueDate?: Date
+      paymentDueDate?: Date | null
     },
   ): Promise<void>
   updateStatusMany(ids: string[], status: ObligationStatus): Promise<void>
+  /**
+   * Flip projected (annual-rollover / auto-generated) obligations to confirmed,
+   * scoped to the current firm. Already-confirmed ids are no-ops. Returns the ids
+   * actually transitioned so the caller can audit + report a count.
+   */
+  confirmByIds(ids: string[]): Promise<{ confirmedIds: string[] }>
+  /** Rule-backed, still-open obligations whose statutory date may have drifted. */
+  listReprojectionCandidates(input: {
+    taxYears?: number[]
+    obligationIds?: string[]
+  }): Promise<ObligationInstanceRow[]>
+  /** Distinct clients with an OPEN obligation backed by each rule — the "who is affected" set for a rule-change/drift alert. */
+  listAffectedClientsByRules(
+    ruleIds: string[],
+  ): Promise<Map<string, Array<{ clientId: string; clientName: string }>>>
+  /** Unconfirmed, still-open deadlines awaiting CPA confirmation (the review queue). */
+  listProjected(input: { taxYears?: number[] }): Promise<ObligationInstanceRow[]>
+  /** Apply re-projected dates to still-projected obligations (confirmed rows are skipped). */
+  updateProjectedDueDates(
+    updates: ReadonlyArray<{ id: string; baseDueDate: Date; currentDueDate: Date }>,
+  ): Promise<void>
   /**
    * Filed → e-file rejected unwind (PDF anti-pattern #3: Filed ≠ Done).
    * Stamps `efile_rejected_at`, clears any acceptance timestamp, and
@@ -250,6 +282,13 @@ export interface ObligationsRepo {
    */
   setPrepStage(id: string, prepStage: ObligationPrepStage): Promise<void>
   setReviewStage(id: string, reviewStage: ObligationReviewStage): Promise<void>
+  /**
+   * E-file pipeline advance (the P0 "signature loop" + later e-file
+   * sub-states). Sets `efile_state` only — never touches `status`. Like
+   * the prep/review setters, transition legality is enforced in the
+   * service layer (isLegalEfileTransition), not here.
+   */
+  setEfileState(id: string, efileState: ObligationEfileState): Promise<void>
   /**
    * Lifecycle v2: when the obligation identified by
    * `parentObligationInstanceId` reaches `completed`, every child row

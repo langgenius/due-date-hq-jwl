@@ -45,13 +45,13 @@ const { t } = Astro.props
   <div class="flex items-center gap-3 border-b border-divider-subtle bg-components-badge-bg-warning-soft px-4 py-2.5">
     <span class:list={[badgeBase, 'rounded-md bg-components-badge-bg-warning-soft text-text-warning']}>
       <span class:list={['inline-block size-2 shrink-0 rounded-full', statusDot.warning]}></span>
-      {t.pulse.tag}
+      {t.alert.tag}
     </span>
-    <p class="min-w-0 flex-1 truncate text-xs text-text-primary">{t.pulse.text}</p>
+    <p class="min-w-0 flex-1 truncate text-xs text-text-primary">{t.alert.text}</p>
     <span class="hidden rounded border border-divider-regular bg-background-default px-2 py-0.5 font-mono text-caption-xs text-text-secondary sm:inline-flex">
-      {t.pulse.source}
+      {t.alert.source}
     </span>
-    <span class="font-mono text-xs text-text-accent">{t.pulse.cta} →</span>
+    <span class="font-mono text-xs text-text-accent">{t.alert.cta} →</span>
   </div>
 
   <div class="grid gap-0 border-b border-divider-subtle lg:grid-cols-[1fr_0.82fr]">

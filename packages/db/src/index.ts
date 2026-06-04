@@ -11,6 +11,7 @@ import * as obligationSavedViewSchema from './schema/obligation-saved-view'
 import { makeFirmsRepo } from './repo/firms'
 import { makeAiRepo } from './repo/ai'
 import { makeMembersRepo } from './repo/members'
+import { makeMutationLockRepo } from './repo/mutation-lock'
 import { makePulseOpsRepo } from './repo/pulse'
 import { makeReadinessPortalRepo } from './repo/readiness'
 import { makeRuleConcreteDraftRepo } from './repo/rule-concrete-drafts'
@@ -45,6 +46,7 @@ export { makeAiRepo }
 export { makeCalendarRepo }
 export { makeCalendarFeedRepo }
 export { makeMembersRepo }
+export { makeMutationLockRepo }
 export { makePulseOpsRepo }
 export { makeReadinessPortalRepo }
 export { makeRuleConcreteDraftRepo }

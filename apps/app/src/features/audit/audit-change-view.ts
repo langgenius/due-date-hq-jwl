@@ -1,5 +1,6 @@
-import type { AuditEventPublic } from '@duedatehq/contracts'
+import type { AuditEventPublic, DueDateLogic } from '@duedatehq/contracts'
 import { formatCents, formatDate, formatDateTimeWithTimezone } from '@/lib/utils'
+import { humanizeDueDateLogic } from '@/features/rules/rules-console-model'
 
 import {
   AUDIT_ACTION_LABEL_KEYS,
@@ -114,16 +115,17 @@ const TECHNICAL_FIELD_KEYS = new Set([
 const TECHNICAL_FIELD_SUFFIXES = ['Hash', 'Id', 'Ids', 'IDs', '_id']
 
 export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresenter> = {
-  'ai.guard_failed': genericPresenter,
-  'ai.refusal': genericPresenter,
-  'ask.query_run': genericPresenter,
   'auth.denied': genericPresenter,
   'auth.login.failed': genericPresenter,
   'auth.login.success': genericPresenter,
+  'auth.mfa.challenge.verified': genericPresenter,
   'auth.mfa.disabled': genericPresenter,
   'auth.mfa.enabled': genericPresenter,
   'auth.mfa.setup.started': genericPresenter,
   'auth.session.revoked': genericPresenter,
+  'calendar.subscription.created': genericPresenter,
+  'calendar.subscription.regenerated': genericPresenter,
+  'calendar.subscription.disabled': genericPresenter,
   'client.assignee.updated': clientAssigneePresenter,
   'client.batch_created': (context) => countPresenter(context, 'count', 'clients'),
   'client.created': genericPresenter,
@@ -160,22 +162,19 @@ export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresen
   'obligation.annual_rollover.created': annualRolloverPresenter,
   'obligation.batch_created': (context) => countPresenter(context, 'count', 'deadlines'),
   'obligation.due_date.updated': obligationDueDatePresenter,
+  'obligation.efile.state.updated': genericPresenter,
+  'obligation.efile.rejected': genericPresenter,
   'obligation.extension.decided': genericPresenter,
   'obligation.input_requested': genericPresenter,
+  'obligation.blocked_by.set': genericPresenter,
+  'obligation.blocked_by.cleared': genericPresenter,
+  'obligation.prep_stage.updated': genericPresenter,
+  'obligation.review_stage.updated': genericPresenter,
   'obligation.readiness.updated': obligationReadinessPresenter,
+  'obligation.signature.reminded': genericPresenter,
   'obligation.status.updated': obligationStatusPresenter,
+  'obligation.status.auto_unblocked': obligationStatusPresenter,
   'obligation.tax_year_profile.updated': genericPresenter,
-  'onboarding.agent.dry_run.previewed': genericPresenter,
-  'onboarding.agent.fallback.triggered': genericPresenter,
-  'onboarding.agent.handoff.chosen': genericPresenter,
-  'onboarding.agent.handoff.offered': genericPresenter,
-  'onboarding.agent.import.committed': migrationImportedPresenter,
-  'onboarding.agent.intake.submitted': genericPresenter,
-  'onboarding.agent.matrix.preloaded': migrationMatrixPresenter,
-  'onboarding.agent.normalize.confirmed': migrationReviewStepPresenter,
-  'onboarding.agent.preview_card.clicked': genericPresenter,
-  'onboarding.agent.state.advanced': genericPresenter,
-  'onboarding.agent.turn.opened': genericPresenter,
   'opportunity.dismissed': opportunityDismissedPresenter,
   'opportunity.restored': opportunityRestoredPresenter,
   'opportunity.snoozed': opportunitySnoozedPresenter,
@@ -186,30 +185,40 @@ export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresen
   'readiness.checklist_item.created': genericPresenter,
   'readiness.checklist_item.deleted': genericPresenter,
   'readiness.checklist_item.updated': genericPresenter,
+  'readiness.request.sent': genericPresenter,
+  'readiness.request.revoked': genericPresenter,
+  'readiness.checklist.regenerated': genericPresenter,
+  'readiness.materials_received': genericPresenter,
+  'readiness.portal.opened': genericPresenter,
+  'readiness.client_response': genericPresenter,
   'penalty.override': penaltyPresenter,
-  'pulse.apply': pulseDueDatePresenter,
-  'pulse.approve': pulseAlertPresenter,
-  'pulse.dismiss': pulseAlertPresenter,
-  'pulse.extract': genericPresenter,
-  'pulse.ingest': genericPresenter,
-  'pulse.quarantine': pulseOpsPresenter,
-  'pulse.reactivate': pulseAlertPresenter,
-  'pulse.reject': pulseOpsPresenter,
-  'pulse.revert': pulseDueDatePresenter,
+  'pulse.apply': alertDueDatePresenter,
+  'pulse.approve': alertPresenter,
+  'pulse.dismiss': alertPresenter,
+  'pulse.quarantine': alertOpsPresenter,
+  'pulse.reactivate': alertPresenter,
+  'pulse.reject': alertOpsPresenter,
+  'pulse.revert': alertDueDatePresenter,
   'pulse.review_requested': genericPresenter,
-  'pulse.snooze': pulseAlertPresenter,
-  'pulse.source_revoked': pulseOpsPresenter,
-  'role.check': genericPresenter,
+  'pulse.reviewed': alertPresenter,
+  'pulse.snooze': alertPresenter,
+  'pulse.source_revoked': alertOpsPresenter,
+  'reminder.bounced': reminderEventPresenter,
+  'reminder.failed': reminderEventPresenter,
+  'reminder.opened': reminderEventPresenter,
+  'reminder.sent': reminderEventPresenter,
+  'reminder.template.updated': genericPresenter,
+  'reminder.unsubscribed': reminderEventPresenter,
   'rule.report_issue': genericPresenter,
   'rule.updated': genericPresenter,
   'rule.verified': genericPresenter,
   'rules.candidate.created': genericPresenter,
-  'rules.accepted': genericPresenter,
+  'rules.accepted': ruleDiffPresenter,
   'rules.bulk_accepted': genericPresenter,
   'rules.onboarding_activated': genericPresenter,
   'rules.rejected': genericPresenter,
-  'rules.created': genericPresenter,
-  'rules.updated': genericPresenter,
+  'rules.created': ruleDiffPresenter,
+  'rules.updated': ruleDiffPresenter,
   'rules.archived': genericPresenter,
   'rules.published': genericPresenter,
   'rules.review.rejected': genericPresenter,
@@ -318,7 +327,12 @@ function formatValue(key: string, value: unknown, context: AuditChangeContext): 
     if (labels.enumValues[value]) return labels.enumValues[value]
     if (ISO_DATE_PATTERN.test(value)) return formatDate(value)
     if (ISO_DATETIME_PATTERN.test(value)) return formatDateTimeWithTimezone(value, timeZone)
-    if (key.toLowerCase().includes('status') || key === 'role' || key === 'kind') {
+    if (
+      key.toLowerCase().includes('status') ||
+      key === 'role' ||
+      key === 'kind' ||
+      key === 'templateKey'
+    ) {
       return humanizeValue(value, labels)
     }
     return value
@@ -420,6 +434,99 @@ function genericPresenter(context: AuditChangeContext): AuditChangeView {
   return view(headlineFromRows(context, rows), rows, appendGenericNotes(context, rows))
 }
 
+// Client reminder lifecycle (sent / failed / bounced / opened / unsubscribed).
+// These are "an event happened" audits, not before→after field diffs, so the
+// action label is the headline. The client + deadline live on the event's
+// entity; the one useful detail is why a send failed or bounced, shown as a
+// note. (clientId in the payload is a technical field and stays hidden.)
+function reminderEventPresenter(context: AuditChangeContext): AuditChangeView {
+  const reason = readString(context.after, 'failureReason') ?? readString(context.after, 'reason')
+  return view(context.actionLabel, [], reason ? [reason] : [])
+}
+
+// Rule-change diff (rules.created/updated/accepted). The audit payload stores
+// the rule body under `rule`; the generic presenter collapses that nested
+// object to "Details updated", which tells a CPA nothing. This presenter
+// humanizes the aspects a CPA actually reviews — when it's due, extension
+// policy, jurisdiction, form, filing year — plus version/status at the top.
+const RULE_BODY_ASPECTS = [
+  'dueDateLogic',
+  'extensionPolicy',
+  'jurisdiction',
+  'formName',
+  'applicableYear',
+] as const
+
+function humanizeRuleDueDate(value: unknown): string | null {
+  const record = readRecord(value)
+  if (!record || typeof record.kind !== 'string') return null
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- audit JSON; humanizer is total over DueDateLogic kinds, and we fall back to null on throw.
+    return humanizeDueDateLogic(record as unknown as DueDateLogic)
+  } catch {
+    return null
+  }
+}
+
+function humanizeRuleExtension(value: unknown, labels: AuditChangeLabels): string | null {
+  const record = readRecord(value)
+  if (!record || typeof record.available !== 'boolean') return null
+  if (!record.available) return labels.enumValues.not_allowed ?? 'Not allowed'
+  const parts: string[] = []
+  if (typeof record.formName === 'string' && record.formName) parts.push(record.formName)
+  if (typeof record.durationMonths === 'number') parts.push(`${record.durationMonths}mo`)
+  parts.push(record.paymentExtended === true ? 'payment included' : 'filing only')
+  return `${labels.enumValues.allowed ?? 'Allowed'} · ${parts.join(' · ')}`
+}
+
+function ruleAspectValue(key: string, value: unknown, context: AuditChangeContext): string {
+  if (value === undefined) return context.labels.values.notSet
+  if (key === 'dueDateLogic') {
+    return humanizeRuleDueDate(value) ?? context.labels.values.detailsUpdated
+  }
+  if (key === 'extensionPolicy') {
+    return humanizeRuleExtension(value, context.labels) ?? context.labels.values.detailsUpdated
+  }
+  return formatValue(key, value, context)
+}
+
+function ruleDiffPresenter(context: AuditChangeContext): AuditChangeView {
+  const beforeRule = readRecord(context.before?.rule)
+  const afterRule = readRecord(context.after?.rule)
+  const rows: AuditChangeRow[] = []
+
+  // Top-level status / version sit alongside `rule`, not inside it.
+  for (const key of ['status', 'version'] as const) {
+    if (valuesDiffer(context.before?.[key], context.after?.[key])) {
+      rows.push(makeRow(context, key, context.before?.[key], context.after?.[key]))
+    }
+  }
+  if (beforeRule || afterRule) {
+    for (const key of RULE_BODY_ASPECTS) {
+      if (!valuesDiffer(beforeRule?.[key], afterRule?.[key])) continue
+      rows.push({
+        field: fieldLabel(key, context.labels),
+        previous: ruleAspectValue(key, beforeRule?.[key], context),
+        next: ruleAspectValue(key, afterRule?.[key], context),
+      })
+    }
+  }
+
+  const limited = rows.slice(0, 6)
+  const notes =
+    rows.length > limited.length
+      ? [context.labels.notes.additionalChanges(rows.length - limited.length)]
+      : []
+  if (limited.length === 0) {
+    return view(
+      context.labels.headlines.actionRecorded(context.actionLabel),
+      [],
+      !context.before && !context.after ? [context.labels.notes.noDetailedSnapshot] : [],
+    )
+  }
+  return view(headlineFromRows(context, limited), limited, notes)
+}
+
 function countPresenter(
   context: AuditChangeContext,
   key: string,
@@ -476,7 +583,7 @@ function obligationDueDatePresenter(context: AuditChangeContext): AuditChangeVie
   )
 }
 
-function pulseDueDatePresenter(context: AuditChangeContext): AuditChangeView {
+function alertDueDatePresenter(context: AuditChangeContext): AuditChangeView {
   const rows = changedRowsForKeys(context, ['currentDueDate'])
   const row = rows[0]
   return view(
@@ -648,14 +755,14 @@ function annualRolloverPresenter(context: AuditChangeContext): AuditChangeView {
   )
 }
 
-function pulseAlertPresenter(context: AuditChangeContext): AuditChangeView {
+function alertPresenter(context: AuditChangeContext): AuditChangeView {
   const rows = changedRowsForKeys(context, ['status']).concat(
     rowsForKeys(context, ['snoozedUntil', 'matchedCount', 'needsReviewCount']),
   )
   return view(headlineFromRows(context, rows), rows, appendGenericNotes(context, rows))
 }
 
-function pulseOpsPresenter(context: AuditChangeContext): AuditChangeView {
+function alertOpsPresenter(context: AuditChangeContext): AuditChangeView {
   const rows = changedRowsForKeys(context, ['pulseStatus', 'alertStatus']).concat(
     rowsForKeys(context, ['matchedCount', 'needsReviewCount']),
   )

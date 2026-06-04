@@ -7,6 +7,7 @@ import { join } from 'node:path'
 import { generateText } from '../packages/ai/node_modules/ai/dist/index.mjs'
 import { createAiGateway } from '../packages/ai/node_modules/ai-gateway-provider/dist/index.mjs'
 import { createOpenRouter } from '../packages/ai/node_modules/ai-gateway-provider/dist/providers/openrouter.mjs'
+import { createUnified } from '../packages/ai/node_modules/ai-gateway-provider/dist/providers/unified.mjs'
 import {
   extractOfficialSourceText,
   SOURCE_WATCH_PLACEHOLDER_RE,
@@ -522,7 +523,7 @@ async function generateStructuredLocalDraftWithText(input: {
   const model =
     input.env.AI_GATEWAY_PROVIDER === 'openrouter'
       ? createOpenRouter({ apiKey: input.env.AI_GATEWAY_PROVIDER_API_KEY }).chat(modelName)
-      : modelName
+      : createUnified()(modelName)
   let lastError: unknown = null
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {

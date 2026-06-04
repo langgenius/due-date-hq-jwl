@@ -1,7 +1,7 @@
 import { APIError } from 'better-auth/api'
 import { and, count, eq, gt, isNull } from 'drizzle-orm'
 import { planHasFeature } from '@duedatehq/core/plan-entitlements'
-import { authSchema, firmSchema, type Db } from '@duedatehq/db'
+import { authSchema, firmSchema, makePulseOpsRepo, type Db } from '@duedatehq/db'
 import { createAuditWriter } from '@duedatehq/db/audit-writer'
 import type { OrganizationHooks } from '@duedatehq/auth'
 
@@ -55,6 +55,19 @@ export function buildOrganizationHooks(db: Db): OrganizationHooks {
         console.error('[firm_profile.afterCreateOrganization] insert failed', {
           orgId: organization.id,
           userId: user.id,
+          message: err instanceof Error ? err.message : String(err),
+        })
+        return
+      }
+      // Catch the new firm up to the currently-actionable regulatory landscape so
+      // it does not silently miss policy changes published before it registered —
+      // the live alert fan-out only reaches firms that exist when a change is
+      // approved. Best effort, same swallow-and-log semantics as the insert above.
+      try {
+        await makePulseOpsRepo(db).backfillFirmAlertsForActiveLandscape(organization.id, now)
+      } catch (err) {
+        console.error('[firm_profile.afterCreateOrganization] alert backfill failed', {
+          orgId: organization.id,
           message: err instanceof Error ? err.message : String(err),
         })
       }

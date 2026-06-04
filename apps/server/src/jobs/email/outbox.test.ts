@@ -48,10 +48,16 @@ const { sendMock, dbMocks } = vi.hoisted(() => {
   ]
   const limit = vi.fn(async () => rows)
   const orderBy = vi.fn(() => ({ limit }))
-  const whereSelect = vi.fn(() => ({ orderBy }))
+  // `.where(...)` is used by two queries: the outbox poll (chains to
+  // .orderBy().limit()) and reminderLinkageByOutboxId (awaited directly). The
+  // digest/pulse rows here have no linked client reminder, so the linkage
+  // query resolves to []. Return a thenable-with-.orderBy to satisfy both.
+  const whereSelect = vi.fn(() => Object.assign(Promise.resolve([] as unknown[]), { orderBy }))
   const from = vi.fn(() => ({ where: whereSelect }))
   const select = vi.fn(() => ({ from }))
-  const createDb = vi.fn(() => ({ select, update }))
+  const insertValues = vi.fn(async () => undefined)
+  const insert = vi.fn(() => ({ values: insertValues }))
+  const createDb = vi.fn(() => ({ select, update, insert }))
   return {
     sendMock: vi.fn(async () => ({ data: { id: 'email_1' }, error: null })),
     dbMocks: {

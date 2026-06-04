@@ -125,6 +125,22 @@ export type RuleNotificationChannel =
   | 'practice_rule_preview'
   | 'user_deadline_reminder'
 
+export type AlertSourceCoverageRole =
+  | 'primary_web_news'
+  | 'guidance_notice'
+  | 'email_signal'
+  | 'rule_source_watch'
+  | 'tax_type_sources'
+  | 'relief_or_disaster_signal'
+  | 'multi_agency_sources'
+
+export type SourceVerificationStatus =
+  | 'verified'
+  | 'manual_verification_required'
+  | 'not_available_verified'
+
+export type InboundEmailVerificationStatus = 'verified_official' | 'routing_only'
+
 export type LocalJurisdictionLevel =
   | 'state_administered_local'
   | 'county'
@@ -170,7 +186,17 @@ export interface InboundEmailRuleSourceConfig {
   listIdPatterns: readonly string[]
   canonicalUrlHosts: readonly string[]
   accountCodes?: readonly string[]
+  verificationStatus?: InboundEmailVerificationStatus
+  subscriptionUrl?: string
+  verificationNotes?: string
 }
+
+export type AlertSourcePurpose =
+  | 'explicit_live_adapter'
+  | 'temporary_announcements_or_news'
+  | 'rule_source_watch'
+  | 'email_signal'
+  | 'hidden_policy_watch'
 
 export interface RuleSource {
   id: string
@@ -188,11 +214,17 @@ export interface RuleSource {
   domains: readonly RuleSourceDomain[]
   entityApplicability: readonly EntityApplicability[]
   authorityRole: RuleEvidenceAuthorityRole
+  alertPurpose: AlertSourcePurpose
+  alertCoverageRoles?: readonly AlertSourceCoverageRole[]
   notificationChannels: readonly RuleNotificationChannel[]
   lastReviewedOn: string
   adapterKind?: SourceAdapterKind
   feedUrl?: string
   inboundEmail?: InboundEmailRuleSourceConfig
+  sourceAgency?: string
+  verificationStatus?: SourceVerificationStatus
+  verifiedOn?: string
+  sourceNotes?: string
 }
 
 export type EntityApplicability =
@@ -894,7 +926,7 @@ const STATE_INCOME_TAX_SOURCE_SEEDS = [
   {
     jurisdiction: 'IL',
     title: 'Illinois DOR Due Dates for Filing Returns',
-    url: 'https://tax.illinois.gov/individuals/filingrequirements/duedate.html',
+    url: 'https://tax.illinois.gov/individuals/filingrequirements/extension.html',
   },
   {
     jurisdiction: 'IN',
@@ -937,7 +969,7 @@ const STATE_INCOME_TAX_SOURCE_SEEDS = [
   {
     jurisdiction: 'MA',
     title: 'Massachusetts DOR Due Dates',
-    url: 'https://www.mass.gov/info-details/dor-due-dates',
+    url: 'https://www.mass.gov/info-details/massachusetts-dor-tax-due-dates-and-extensions',
   },
   {
     jurisdiction: 'MI',
@@ -979,12 +1011,12 @@ const STATE_INCOME_TAX_SOURCE_SEEDS = [
   {
     jurisdiction: 'NH',
     title: 'New Hampshire DRA Interest and Dividends Tax FAQs',
-    url: 'https://www.revenue.nh.gov/resource-center/frequently-asked-questions/interest-dividends-tax-faqs',
+    url: 'https://www.revenue.nh.gov/resource-center/frequently-asked-questions/interest-dividends-tax-frequently-asked-questions',
   },
   {
     jurisdiction: 'NJ',
     title: 'New Jersey Division of Taxation Individual Income Tax',
-    url: 'https://www.nj.gov/treasury/taxation/njit1.shtml',
+    url: 'https://www.nj.gov/treasury/taxation/prntgit.shtml',
   },
   {
     jurisdiction: 'NM',
@@ -2460,10 +2492,10 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
   {
     jurisdiction: 'UT',
     id: 'ut.individual_estimated_tax',
-    title: 'Utah Individual Income Tax Extensions and Prepayments',
-    url: 'https://incometax.utah.gov/general-instructions/#when',
+    title: 'Utah Individual Income Tax Prepayment Coupon (TC-546)',
+    url: 'https://tax.utah.gov/forms/current/tc-546.pdf',
     sourceType: 'instructions',
-    acquisitionMethod: 'html_watch',
+    acquisitionMethod: 'pdf_watch',
     domains: ['individual_estimated_tax'],
     entityApplicability: ['individual', 'sole_prop'],
     priority: 'high',
@@ -2819,7 +2851,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'DC',
     id: 'dc.tax_filing_deadlines',
     title: 'DC OTR Tax Filing Deadlines',
-    url: 'https://otr.cfo.dc.gov/page/tax-filing-deadlines',
+    url: 'https://otr.cfo.dc.gov/',
     sourceType: 'due_dates',
     acquisitionMethod: 'manual_review',
     domains: [
@@ -3808,7 +3840,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'RI',
     id: 'ri.sales_tax',
     title: 'Rhode Island Division of Taxation Sales and Use Tax',
-    url: 'https://tax.ri.gov/tax-sections/sales-use-tax',
+    url: 'https://tax.ri.gov/tax-sections/sales-excise-taxes/sales-use-tax',
     sourceType: 'instructions',
     acquisitionMethod: 'manual_review',
     domains: ['sales_use_tax'],
@@ -3892,7 +3924,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'VT',
     id: 'vt.corporate_income_tax',
     title: 'Vermont Corporate and Business Income Tax Return Instructions',
-    url: 'https://tax.vermont.gov/sites/tax/files/documents/CO-411-Instr.pdf',
+    url: 'https://tax.vermont.gov/business/corporate-income-tax',
     sourceType: 'instructions',
     acquisitionMethod: 'manual_review',
     domains: ['business_income_return', 'business_estimated_tax'],
@@ -3904,7 +3936,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'VT',
     id: 'vt.pass_through_entity_tax',
     title: 'Vermont Business Income Tax Return Instructions',
-    url: 'https://tax.vermont.gov/sites/tax/files/documents/BI-471-Instr-rev0216.pdf',
+    url: 'https://tax.vermont.gov/business/business-entity-income-tax',
     sourceType: 'instructions',
     acquisitionMethod: 'manual_review',
     domains: ['pass_through_entity_return'],
@@ -3916,7 +3948,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'VT',
     id: 'vt.sales_use_tax',
     title: 'Vermont Sales and Use Tax Business Registration Guidance',
-    url: 'https://tax.vermont.gov/sites/tax/files/documents/FS-1006.pdf',
+    url: 'https://tax.vermont.gov/business/sales-and-use-tax',
     sourceType: 'instructions',
     acquisitionMethod: 'manual_review',
     domains: ['sales_use_tax'],
@@ -3960,7 +3992,7 @@ const STATE_ADDITIONAL_RULE_SOURCE_SEEDS: readonly StateAdditionalRuleSourceSeed
     jurisdiction: 'VT',
     id: 'vt.ui_wage_report',
     title: 'Vermont Department of Labor Quarterly Wage and Contribution Reports',
-    url: 'https://labor.vermont.gov/unemployment-insurance/ui-employers/quarterly-wage-contribution-reports',
+    url: 'https://labor.vermont.gov/unemployment-insurance/ui-employers/quarterly-reporting-taxable-wage-information',
     sourceType: 'instructions',
     acquisitionMethod: 'manual_review',
     domains: ['ui_wage_report'],
@@ -4080,6 +4112,7 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
         ? ['individual', 'sole_prop']
         : ['individual'],
       authorityRole: 'basis',
+      alertPurpose: 'rule_source_watch',
       notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
       lastReviewedOn: VERIFIED_AT,
     })
@@ -4105,6 +4138,7 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
       domains: source.domains,
       entityApplicability: source.entityApplicability,
       authorityRole: 'basis',
+      alertPurpose: 'rule_source_watch',
       notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
       lastReviewedOn: VERIFIED_AT,
     })
@@ -4113,8 +4147,11 @@ export const STATE_OFFICIAL_SOURCES = STATE_RULE_SOURCE_SEEDS.flatMap<RuleSource
   return sources
 })
 
-type RuleSourceSeedRecord = Omit<RuleSource, 'domains' | 'entityApplicability' | 'authorityRole'> &
-  Partial<Pick<RuleSource, 'domains' | 'entityApplicability' | 'authorityRole'>>
+type RuleSourceSeedRecord = Omit<
+  RuleSource,
+  'domains' | 'entityApplicability' | 'authorityRole' | 'alertPurpose'
+> &
+  Partial<Pick<RuleSource, 'domains' | 'entityApplicability' | 'authorityRole' | 'alertPurpose'>>
 
 const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   id: string
@@ -4127,12 +4164,15 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   adapterKind?: SourceAdapterKind
   feedUrl?: string
   inboundEmail?: InboundEmailRuleSourceConfig
+  alertCoverageRoles?: readonly AlertSourceCoverageRole[]
+  sourceAgency?: string
+  sourceNotes?: string
 }[] = [
   {
     id: 'ak.temporary_announcements',
     jurisdiction: 'AK',
-    title: 'Alaska Department of Revenue Press Releases',
-    url: 'https://dor.alaska.gov/archived-press-releases',
+    title: 'Alaska Tax Division News',
+    url: 'https://tax.alaska.gov/programs/whatsnew.aspx',
   },
   {
     id: 'al.temporary_announcements',
@@ -4267,6 +4307,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
       ],
       listIdPatterns: ['mador', 'massachusetts department of revenue', 'massachusetts dor'],
       canonicalUrlHosts: ['content.govdelivery.com', 'mass.gov', 'www.mass.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://www.mass.gov/lists/2026-dor-press-releases',
+      verificationNotes:
+        'Official Massachusetts DOR GovDelivery/List-ID signal; monitored in parallel with the web page.',
     },
   },
   {
@@ -4341,10 +4385,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'nh.temporary_announcements',
     jurisdiction: 'NH',
-    title: 'New Hampshire DRA Technical Information Releases',
-    url: 'https://www.revenue.nh.gov/tirs',
-    acquisitionMethod: 'pdf_watch',
-    adapterKind: 'pdf_index',
+    title: 'New Hampshire DRA News and Media',
+    url: 'https://www.revenue.nh.gov/news-and-media',
   },
   {
     id: 'nj.temporary_announcements',
@@ -4389,7 +4431,20 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
       ],
       listIdPatterns: ['ohtax', 'ohio department of taxation', 'ohio tax'],
       canonicalUrlHosts: ['content.govdelivery.com', 'tax.ohio.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://public.govdelivery.com/accounts/OHTAX/subscriber/new',
+      verificationNotes: 'Official Ohio Department of Taxation GovDelivery subscription page.',
     },
+  },
+  {
+    id: 'oh.sales_tax_rate_changes',
+    jurisdiction: 'OH',
+    title: 'Ohio Department of Taxation Tax Alerts',
+    url: 'https://tax.ohio.gov/taxalerts',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+    sourceNotes:
+      'Official Ohio Department of Taxation Tax Alerts feed (dated tax-change notices). Replaces The Finder rate-lookup tool, which is an interactive query form, not an announcement stream.',
   },
   {
     id: 'ok.temporary_announcements',
@@ -4415,10 +4470,14 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ri.temporary_announcements',
     jurisdiction: 'RI',
     title: 'Rhode Island DOR Press Releases',
+    // RI publishes press releases as an HTML listing (dor.ri.gov/press-releases
+    // with /press-releases/<slug> items), not an RSS/Atom feed. Previously this
+    // was mislabeled api_watch + rss_or_announcement_list with feedUrl pointing
+    // at the same HTML page; corrected to html_watch so the metadata matches the
+    // actual acquisition path.
     url: 'https://dor.ri.gov/press-releases',
-    acquisitionMethod: 'api_watch',
-    adapterKind: 'rss_or_announcement_list',
-    feedUrl: 'https://dor.ri.gov/press-releases',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
   },
   {
     id: 'sc.temporary_announcements',
@@ -4453,13 +4512,21 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
       ],
       listIdPatterns: ['txcompt', 'texas comptroller', 'comptroller of public accounts'],
       canonicalUrlHosts: ['content.govdelivery.com', 'comptroller.texas.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://comptroller.texas.gov/about/media-center/news/',
+      verificationNotes:
+        'Official Texas Comptroller GovDelivery/List-ID signal; monitored in parallel with the web page.',
     },
   },
   {
     id: 'ut.temporary_announcements',
     jurisdiction: 'UT',
-    title: 'Utah Tax Commission Public Notices and Recent Information',
-    url: 'https://tax.utah.gov/public-info/',
+    title: 'Utah State Tax Commission News Releases',
+    url: 'https://tax.utah.gov/commission-office/news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+    sourceNotes:
+      'Official Utah State Tax Commission dated news releases. Replaces the public-info landing page, which is a static hub with no dated announcement list.',
   },
   {
     id: 'va.temporary_announcements',
@@ -4470,10 +4537,8 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'vt.temporary_announcements',
     jurisdiction: 'VT',
-    title: 'Vermont Department of Taxes Technical Bulletins',
-    url: 'https://tax.vermont.gov/tax-law-and-guidance/technical-bulletins',
-    acquisitionMethod: 'pdf_watch',
-    adapterKind: 'pdf_index',
+    title: 'Vermont Department of Taxes News',
+    url: 'https://tax.vermont.gov/news',
   },
   {
     id: 'wa.temporary_announcements',
@@ -4491,20 +4556,79 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'wv.temporary_announcements',
     jurisdiction: 'WV',
     title: 'West Virginia Tax Division Administrative Notices',
-    url: 'https://tax.wv.gov/TaxProfessionals/AdministrativeNotices/Pages/AdministrativeNotices2026.aspx',
+    // The WV notices index is paginated by year (…AdministrativeNotices2026.aspx,
+    // …2025.aspx, …); there is no non-year index page. The `{year}` token is
+    // resolved to the current calendar year at fetch time (see
+    // resolveAnnouncementYearUrl in rule-source-adapters.ts) so the watcher
+    // follows the live year instead of silently stalling on a past year.
+    url: 'https://tax.wv.gov/TaxProfessionals/AdministrativeNotices/Pages/AdministrativeNotices{year}.aspx',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
+    sourceNotes:
+      'Year-paginated administrative notices index; URL year is resolved dynamically to the current year at fetch time.',
   },
   {
     id: 'wy.temporary_announcements',
     jurisdiction: 'WY',
-    title: 'Wyoming DOR Rules and Regulations',
-    url: 'https://revenue.wyo.gov/rules-and-regulations',
+    title: 'Wyoming Excise Tax Division Taxing Issues',
+    url: 'https://excise-tax-div.wyo.gov/newsletter-taxing-issues',
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
+    sourceNotes:
+      'Sales, use, lodging, and excise tax update newsletter; not a disaster relief signal.',
   },
 ] as const
 
+const GOVDELIVERY_SENDER_DOMAINS = [
+  'content.govdelivery.com',
+  'public.govdelivery.com',
+  'service.govdelivery.com',
+] as const
+
+function uniqueEmailConfigValues(values: readonly string[]): string[] {
+  return Array.from(new Set(values.map((value) => value.toLowerCase()).filter(Boolean)))
+}
+
+function sourceEmailSlug(sourceId: string): string {
+  return sourceId
+    .replace(/[^a-z0-9]+/gi, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase()
+}
+
+function hostCandidatesForSourceUrl(url: string): string[] {
+  try {
+    const host = new URL(url).host.toLowerCase()
+    const bareHost = host.startsWith('www.') ? host.slice(4) : host
+    return host === bareHost ? [host] : [host, bareHost]
+  } catch {
+    return []
+  }
+}
+
+function defaultInboundEmailForTemporarySource(
+  source: (typeof STATE_TEMPORARY_ANNOUNCEMENT_SOURCES)[number],
+): InboundEmailRuleSourceConfig {
+  const hosts = hostCandidatesForSourceUrl(source.url)
+  const stateCode = source.jurisdiction.toLowerCase()
+  const normalizedTitle = source.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+  return {
+    localParts: [`pulse-ingest+${sourceEmailSlug(source.id)}`],
+    senderDomains: uniqueEmailConfigValues([...GOVDELIVERY_SENDER_DOMAINS, ...hosts]),
+    listIdPatterns: uniqueEmailConfigValues([source.id, stateCode, normalizedTitle]),
+    canonicalUrlHosts: uniqueEmailConfigValues(['content.govdelivery.com', ...hosts]),
+    verificationStatus: 'routing_only',
+    verificationNotes:
+      'Automatically generated routing metadata; not a verified official email subscription source.',
+  }
+}
+
 const TEMPORARY_ANNOUNCEMENT_RULE_SOURCES = STATE_TEMPORARY_ANNOUNCEMENT_SOURCES.map(
   (source): RuleSourceSeedRecord => {
+    const inboundEmail = source.inboundEmail ?? defaultInboundEmailForTemporarySource(source)
     const record: RuleSourceSeedRecord = {
       id: source.id,
       jurisdiction: source.jurisdiction,
@@ -4519,12 +4643,19 @@ const TEMPORARY_ANNOUNCEMENT_RULE_SOURCES = STATE_TEMPORARY_ANNOUNCEMENT_SOURCES
       domains: RULE_SOURCE_DOMAINS,
       entityApplicability: ['any_business'],
       authorityRole: 'watch',
+      alertPurpose:
+        source.acquisitionMethod === 'email_subscription'
+          ? 'email_signal'
+          : 'temporary_announcements_or_news',
       notificationChannels: ['source_change', 'practice_rule_review'],
       lastReviewedOn: VERIFIED_AT,
     }
     if (source.adapterKind) record.adapterKind = source.adapterKind
     if (source.feedUrl) record.feedUrl = source.feedUrl
-    if (source.inboundEmail) record.inboundEmail = source.inboundEmail
+    if (source.alertCoverageRoles) record.alertCoverageRoles = source.alertCoverageRoles
+    if (source.sourceAgency) record.sourceAgency = source.sourceAgency
+    if (source.sourceNotes) record.sourceNotes = source.sourceNotes
+    record.inboundEmail = inboundEmail
     return record
   },
 )
@@ -4594,13 +4725,36 @@ function defaultSourceAuthorityRole(source: RuleSourceSeedRecord): RuleEvidenceA
   return 'basis'
 }
 
+function defaultSourceAlertPurpose(source: RuleSourceSeedRecord): AlertSourcePurpose {
+  if (source.alertPurpose) return source.alertPurpose
+  if (source.acquisitionMethod === 'email_subscription' || source.adapterKind === 'email_inbound') {
+    return 'email_signal'
+  }
+  const authorityRole = source.authorityRole ?? defaultSourceAuthorityRole(source)
+  if (authorityRole === 'watch') return 'temporary_announcements_or_news'
+  if (authorityRole === 'early_warning') return 'explicit_live_adapter'
+  return 'rule_source_watch'
+}
+
 function hydrateRuleSources(sources: readonly RuleSourceSeedRecord[]): readonly RuleSource[] {
-  return sources.map((source) => ({
-    ...source,
-    domains: source.domains ?? defaultSourceDomains(source),
-    entityApplicability: source.entityApplicability ?? defaultSourceEntityApplicability(source),
-    authorityRole: source.authorityRole ?? defaultSourceAuthorityRole(source),
-  }))
+  return sources.map((source) => {
+    const authorityRole = source.authorityRole ?? defaultSourceAuthorityRole(source)
+    const alertPurpose = defaultSourceAlertPurpose({ ...source, authorityRole })
+    const notificationChannels: readonly RuleNotificationChannel[] =
+      alertPurpose === 'rule_source_watch' &&
+      source.notificationChannels.includes('source_change') &&
+      !source.notificationChannels.includes('practice_rule_review')
+        ? [...source.notificationChannels, 'practice_rule_review']
+        : source.notificationChannels
+    return {
+      ...source,
+      domains: source.domains ?? defaultSourceDomains(source),
+      entityApplicability: source.entityApplicability ?? defaultSourceEntityApplicability(source),
+      authorityRole,
+      alertPurpose,
+      notificationChannels,
+    }
+  })
 }
 
 export const RULE_SOURCES = hydrateRuleSources([
@@ -4632,6 +4786,31 @@ export const RULE_SOURCES = hydrateRuleSources([
     healthStatus: 'healthy',
     isEarlyWarning: false,
     notificationChannels: ['source_change', 'practice_rule_preview'],
+    lastReviewedOn: VERIFIED_AT,
+  },
+  {
+    // Annual IRS inflation-adjustment Revenue Procedure, watched as a
+    // deterministic "pointer" advisory. When a new tax year's Rev. Proc.
+    // publishes (this page changes), the pulse extract job short-circuits
+    // BEFORE the AI step and emits a review_only `threshold_advisory` Alert
+    // that asserts NO dollar figures — it points the CPA at the official
+    // source to read the adjusted thresholds (gift/estate exclusions,
+    // estimated-tax safe harbor, ...) themselves. The product never lets AI
+    // invent dollar amounts (cf. client.estimatedTaxLiabilityCents). See
+    // isThresholdAdvisorySource() and the branch in jobs/pulse/extract.ts.
+    // Year-stamped like the other fed.irs_* sources; add next season's entry
+    // and the prefix gate covers it automatically.
+    id: 'fed.irs_inflation_adjustments_2026',
+    jurisdiction: 'FED',
+    title: 'IRS Annual Inflation Adjustments — Tax Year 2026 (Rev. Proc.)',
+    url: 'https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2026',
+    sourceType: 'publication',
+    acquisitionMethod: 'html_watch',
+    cadence: 'pre_season',
+    priority: 'high',
+    healthStatus: 'healthy',
+    isEarlyWarning: false,
+    notificationChannels: ['source_change'],
     lastReviewedOn: VERIFIED_AT,
   },
   {
@@ -4841,6 +5020,9 @@ export const RULE_SOURCES = hydrateRuleSources([
         'www.federalregister.gov',
       ],
       accountCodes: ['USIRS'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://www.irs.gov/newsroom/e-news-subscriptions',
+      verificationNotes: 'Official IRS Newswire e-News subscription / USIRS GovDelivery channel.',
     },
   },
   {
@@ -4926,6 +5108,21 @@ export const RULE_SOURCES = hydrateRuleSources([
     isEarlyWarning: false,
     notificationChannels: ['source_change', 'practice_rule_review'],
     lastReviewedOn: VERIFIED_AT,
+    inboundEmail: {
+      localParts: ['pulse-ingest+ca-ftb-tax-news'],
+      senderDomains: [
+        'service.govdelivery.com',
+        'public.govdelivery.com',
+        'content.govdelivery.com',
+        'ftb.ca.gov',
+      ],
+      listIdPatterns: ['california franchise tax board', 'ftb tax news', 'ca ftb tax news'],
+      canonicalUrlHosts: ['content.govdelivery.com', 'ftb.ca.gov', 'www.ftb.ca.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://www.ftb.ca.gov/about-ftb/newsroom/tax-news/index.html',
+      verificationNotes:
+        'Official FTB Tax News channel; inbound messages must link back to FTB or GovDelivery content.',
+    },
   },
   {
     id: 'ny.tax_calendar.2026',
@@ -5001,6 +5198,9 @@ export const RULE_SOURCES = hydrateRuleSources([
       senderDomains: ['public.govdelivery.com', 'service.govdelivery.com', 'tax.ny.gov'],
       listIdPatterns: ['tax.ny.gov', 'new-york-tax-department', 'new york tax department'],
       canonicalUrlHosts: ['tax.ny.gov', 'www.tax.ny.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://www.tax.ny.gov/help/subscribe.htm',
+      verificationNotes: 'Official New York Tax Department Email Services subscription page.',
     },
   },
   {
@@ -5147,6 +5347,10 @@ export const RULE_SOURCES = hydrateRuleSources([
       senderDomains: ['floridarevenue.com', 'www.floridarevenue.com'],
       listIdPatterns: ['florida department of revenue', 'tax information publications'],
       canonicalUrlHosts: ['floridarevenue.com', 'www.floridarevenue.com'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://floridarevenue.com/taxes/tips/Pages/default.aspx',
+      verificationNotes:
+        'Official Florida DOR Tax Information Publications channel; inbound messages must link back to Florida DOR.',
     },
   },
   {
@@ -5200,6 +5404,10 @@ export const RULE_SOURCES = hydrateRuleSources([
       ],
       listIdPatterns: ['wador', 'washington department of revenue', 'wa department of revenue'],
       canonicalUrlHosts: ['content.govdelivery.com', 'dor.wa.gov', 'www.dor.wa.gov'],
+      verificationStatus: 'verified_official',
+      subscriptionUrl: 'https://dor.wa.gov/about/news-releases',
+      verificationNotes:
+        'Official Washington DOR GovDelivery/List-ID signal; monitored in parallel with the web page.',
     },
   },
   {
@@ -8017,6 +8225,69 @@ export const OBLIGATION_RULES: readonly ObligationRule[] = [
     version: 1,
   },
   {
+    // Tax-year-2026 partnership return. Seeded at version 2 — it models a
+    // 2026 return that has already had one library revision, so a firm that
+    // adopted v1 trails the catalog and surfaces a `source_changed`
+    // re-verify task. This is what drives the rule-change Alert → Re-verify
+    // → Accept flow (the Accept action is template-driven; an adopted rule
+    // with no backing template, or one not behind its template, has nothing
+    // to accept).
+    id: 'fed.1065.return.2026',
+    title: 'Federal Form 1065 return for partnerships',
+    jurisdiction: 'FED',
+    entityApplicability: ['partnership', 'llc'],
+    taxType: 'federal_1065',
+    formName: 'Form 1065',
+    eventType: 'filing',
+    isFiling: true,
+    isPayment: false,
+    taxYear: 2026,
+    applicableYear: 2027,
+    ruleTier: 'applicability_review',
+    status: 'verified',
+    coverageStatus: 'manual',
+    riskLevel: 'med',
+    requiresApplicabilityReview: true,
+    dueDateLogic: {
+      kind: 'nth_day_after_tax_year_end',
+      monthOffset: 3,
+      day: 15,
+      holidayRollover: 'next_business_day',
+    },
+    extensionPolicy: {
+      available: true,
+      formName: 'Form 7004',
+      durationMonths: 6,
+      paymentExtended: false,
+      notes: 'Form 7004 extends filing time only; payment obligations must be reviewed separately.',
+    },
+    sourceIds: ['fed.irs_pub_509_2026', 'fed.irs_i1065_2025', 'fed.irs_i7004_2025'],
+    evidence: [
+      sourceEvidence(
+        'fed.irs_i1065_2025',
+        'When To File',
+        'Form 1065 instructions provide the form-specific partnership filing deadline.',
+      ),
+      sourceEvidence(
+        'fed.irs_pub_509_2026',
+        'Partnerships / Form 1065',
+        'Due on the 15th day of the 3rd month after tax year end.',
+      ),
+      sourceEvidence(
+        'fed.irs_i7004_2025',
+        'Purpose and When To File',
+        'Form 7004 must be filed by the applicable return due date.',
+      ),
+    ],
+    defaultTip:
+      'Calendar-year partnership returns for tax year 2026 are due the 15th day of the 3rd month after year end (mid-March 2027).',
+    quality: VERIFIED_QUALITY,
+    verifiedBy: 'practice.template_seed',
+    verifiedAt: VERIFIED_AT,
+    nextReviewOn: NEXT_PRE_SEASON_REVIEW,
+    version: 2,
+  },
+  {
     id: 'fed.1120s.return.2025',
     title: 'Federal Form 1120-S return for S corporations',
     jurisdiction: 'FED',
@@ -9444,6 +9715,7 @@ export interface PolicyWatchSource {
   healthStatus: SourceHealthStatus
   families: readonly PolicyWatchFamily[]
   visibleInSourcesPage: boolean
+  alertPurpose: AlertSourcePurpose
   adapterKind?: SourceAdapterKind
   feedUrl?: string
   derivedFromSourceIds?: readonly string[]
@@ -9775,6 +10047,7 @@ function baselinePolicyWatchSource(source: RuleSource): PolicyWatchSource {
     healthStatus: source.healthStatus,
     families: ['baseline_rule'],
     visibleInSourcesPage: true,
+    alertPurpose: source.alertPurpose,
     ...(source.adapterKind ? { adapterKind: source.adapterKind } : {}),
     ...(source.feedUrl ? { feedUrl: source.feedUrl } : {}),
   }
@@ -9804,6 +10077,7 @@ function hiddenPolicyAnnouncementSource(jurisdiction: RuleJurisdiction): PolicyW
     healthStatus: preferred.healthStatus,
     families: ['tax_news', 'disaster_relief'],
     visibleInSourcesPage: false,
+    alertPurpose: 'hidden_policy_watch',
     derivedFromSourceIds: [preferred.id],
     ...(preferred.adapterKind ? { adapterKind: preferred.adapterKind } : {}),
     ...(preferred.feedUrl ? { feedUrl: preferred.feedUrl } : {}),
@@ -10072,6 +10346,36 @@ export function listObligationRules(
 
 export function findRuleById(id: string): ObligationRule | undefined {
   return OBLIGATION_RULES.find((rule) => rule.id === id)
+}
+
+// Reverse index for drift detection: which rules cite a given official source.
+// Defaults to verified rules only — candidates already carry their own
+// source_defined_calendar concrete-draft regeneration path.
+export function rulesBySourceId(
+  sourceId: string,
+  options: { status?: RuleStatus } = {},
+): readonly ObligationRule[] {
+  const status = options.status ?? 'verified'
+  return OBLIGATION_RULES.filter(
+    (rule) => rule.status === status && rule.sourceIds.includes(sourceId),
+  )
+}
+
+// When a rule names a source as its `basis` authority, return the excerpt the
+// rule was verified against — used to detect "our cited basis text no longer
+// appears in the changed source". Returns null when the source is not a basis
+// for the rule (or carries no excerpt).
+export function ruleCitesSourceAsBasis(
+  rule: Pick<ObligationRule, 'evidence'>,
+  sourceId: string,
+): string | null {
+  for (const evidence of rule.evidence) {
+    if (evidence.sourceId !== sourceId) continue
+    if (evidence.authorityRole !== 'basis') continue
+    if (evidence.sourceExcerpt.length === 0) continue
+    return evidence.sourceExcerpt
+  }
+  return null
 }
 
 export function isTaxYearDrivenRule(rule: Pick<ObligationRule, 'dueDateLogic'>): boolean {

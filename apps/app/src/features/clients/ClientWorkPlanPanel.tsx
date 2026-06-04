@@ -58,6 +58,11 @@ import type { ClientWorkPlanSummary } from './client-detail-model'
 type FilingPlanYearGroup = {
   year: number | 'unknown'
   isCurrent: boolean
+  // Tax years beyond the current one are next-season work — in practice these
+  // are the projected (annual-rollover / auto-projection) deadlines, not yet
+  // active filings. Year-based proxy for projected status (the precise signal
+  // is `confirmed`, which this public-obligation view doesn't carry).
+  isUpcoming: boolean
   obligations: readonly ObligationInstancePublic[]
   openCount: number
   extendedCount: number
@@ -69,6 +74,7 @@ type FilingPlanYearGroup = {
 // at the top with a "Current tax year" chip; prior years follow descending.
 function groupObligationsByTaxYear(
   obligations: readonly ObligationInstancePublic[],
+  currentTaxYear: number,
 ): FilingPlanYearGroup[] {
   const buckets = new Map<number | 'unknown', ObligationInstancePublic[]>()
   for (const obligation of obligations) {
@@ -80,12 +86,12 @@ function groupObligationsByTaxYear(
   const knownYears = [...buckets.keys()]
     .filter((k): k is number => typeof k === 'number')
     .toSorted((a, b) => b - a)
-  const currentYear = knownYears[0] ?? null
   const groups: FilingPlanYearGroup[] = knownYears.map((year) => {
     const list = buckets.get(year) ?? []
     return {
       year,
-      isCurrent: year === currentYear,
+      isCurrent: year === currentTaxYear,
+      isUpcoming: year > currentTaxYear,
       obligations: list,
       openCount: list.filter((o) => OPEN_FILING_PLAN_STATUSES.has(o.status)).length,
       extendedCount: list.filter((o) => o.status === 'extended').length,
@@ -96,6 +102,7 @@ function groupObligationsByTaxYear(
     groups.push({
       year: 'unknown',
       isCurrent: false,
+      isUpcoming: false,
       obligations: list,
       openCount: list.filter((o) => OPEN_FILING_PLAN_STATUSES.has(o.status)).length,
       extendedCount: list.filter((o) => o.status === 'extended').length,
@@ -251,7 +258,13 @@ export function ClientWorkPlanPanel({
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
   const { t } = useLingui()
   const queryClient = useQueryClient()
-  const yearGroups = useMemo(() => groupObligationsByTaxYear(obligations), [obligations])
+  // Current tax year = the calendar year just closed (the season being filed
+  // now); tax years beyond it are upcoming/projected, not active filings.
+  const currentTaxYear = new Date().getFullYear() - 1
+  const yearGroups = useMemo(
+    () => groupObligationsByTaxYear(obligations, currentTaxYear),
+    [obligations, currentTaxYear],
+  )
 
   // 2026-05-24 (shape — critique P2 power-user pass): sort state
   // lives at the panel level so all year sections share the same
@@ -633,7 +646,11 @@ function FilingPlanYearSection({
         </span>
         {group.isCurrent ? (
           <span className="text-xs leading-4 text-text-tertiary">
-            <Trans>· current year</Trans>
+            <Trans>· current tax year</Trans>
+          </span>
+        ) : group.isUpcoming ? (
+          <span className="text-xs leading-4 text-text-tertiary">
+            <Trans>· projected</Trans>
           </span>
         ) : null}
         {group.openCount > 0 ? (
@@ -642,12 +659,16 @@ function FilingPlanYearSection({
           // year, outline for prior years. Soft-corner square shape
           // preserved to visually distinguish from the fully-rounded
           // row status pills below.
-          <Badge
-            variant={group.isCurrent ? 'info' : 'outline'}
-            size="sm"
-            shape="square"
-          >
-            <Plural value={group.openCount} one="# open filing" other="# open filings" />
+          <Badge variant={group.isCurrent ? 'info' : 'outline'} size="sm" shape="square">
+            {group.isUpcoming ? (
+              <Plural
+                value={group.openCount}
+                one="# projected filing"
+                other="# projected filings"
+              />
+            ) : (
+              <Plural value={group.openCount} one="# open filing" other="# open filings" />
+            )}
           </Badge>
         ) : null}
         {group.extendedCount > 0 ? (

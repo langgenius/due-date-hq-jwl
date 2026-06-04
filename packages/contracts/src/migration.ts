@@ -219,14 +219,47 @@ export const MigrationRuleReviewWarningSchema = z.object({
   reason: z.enum(['rules_pending_review', 'no_matching_rule']),
 })
 
+// Per-client preview of what Import will create. Surfaced in the Step 4
+// dry-run so the user confirms by outcome (the actual clients) rather than
+// by column mapping. Capped to a sample; clientsToCreate is the full total.
+export const DryRunClientPreviewSchema = z.object({
+  name: z.string(),
+  ein: z.string().nullable(),
+  entityType: z.string().nullable(),
+  state: z.string().nullable(),
+  taxTypes: z.array(z.string()),
+  obligationCount: z.number().int().min(0),
+})
+export type DryRunClientPreview = z.infer<typeof DryRunClientPreviewSchema>
+
+// Imported rows whose EIN matches an existing firm client (re-import dedup).
+export const DryRunClientConflictSchema = z.object({
+  ein: z.string(),
+  incomingName: z.string(),
+  existingClientId: EntityIdSchema,
+  existingClientName: z.string(),
+})
+export type DryRunClientConflict = z.infer<typeof DryRunClientConflictSchema>
+
+// How to handle imported rows that match an existing client by EIN.
+export const DuplicateHandlingSchema = z.enum(['skip', 'import_as_new'])
+export type DuplicateHandling = z.infer<typeof DuplicateHandlingSchema>
+
 export const DryRunSummarySchema = z.object({
   batchId: EntityIdSchema,
   clientsToCreate: z.number().int().min(0),
   obligationsToCreate: z.number().int().min(0),
   historicalDeadlinesSkipped: z.number().int().min(0).default(0),
+  rolledForwardDeadlines: z.number().int().min(0).default(0),
   skippedRows: z.number().int().min(0),
   errors: z.array(MigrationErrorSchema),
   ruleReviewWarnings: z.array(MigrationRuleReviewWarningSchema),
+  // Capped sample of clients to be created (full count = clientsToCreate).
+  // Optional so older payloads and existing test fixtures still parse.
+  clientsPreview: z.array(DryRunClientPreviewSchema).optional(),
+  // EIN matches against existing firm clients. With 'skip' (default) these
+  // are excluded from the counts above; with 'import_as_new' they're kept.
+  clientConflicts: z.array(DryRunClientConflictSchema).optional(),
 })
 
 export const MatrixSelectionSchema = z.object({
@@ -336,14 +369,23 @@ export const migrationContract = oc.router({
     .input(z.object({ batchId: EntityIdSchema, normalizations: z.array(NormalizationRowSchema) }))
     .output(z.object({ normalizations: z.array(NormalizationRowSchema) })),
   applyDefaultMatrix: oc.input(ApplyDefaultMatrixInput).output(DryRunSummarySchema),
-  dryRun: oc.input(BatchIdInput).output(DryRunSummarySchema),
-  apply: oc.input(BatchIdInput).output(ApplyResultSchema),
+  dryRun: oc
+    .input(BatchIdInput.extend({ duplicateHandling: DuplicateHandlingSchema.default('skip') }))
+    .output(DryRunSummarySchema),
+  apply: oc
+    .input(BatchIdInput.extend({ duplicateHandling: DuplicateHandlingSchema.default('skip') }))
+    .output(ApplyResultSchema),
   discardDraft: oc.input(BatchIdInput).output(z.object({ discardedAt: z.iso.datetime() })),
   revert: oc.input(BatchIdInput).output(z.object({ revertedAt: z.iso.datetime() })),
   singleUndo: oc
     .input(z.object({ batchId: EntityIdSchema, clientId: EntityIdSchema }))
     .output(z.object({ revertedAt: z.iso.datetime() })),
   getBatch: oc.input(BatchIdInput).output(MigrationBatchSchema.nullable()),
+  /**
+   * The firm's single in-progress import (status draft/mapping/reviewing), if
+   * any — used to offer Resume on wizard open. Null when none is in progress.
+   */
+  getResumableImport: oc.input(z.object({})).output(MigrationBatchSchema.nullable()),
   /**
    * Read-only list of `migration_error` rows for a batch.
    * `stage` lets the wizard surface only the errors relevant to the

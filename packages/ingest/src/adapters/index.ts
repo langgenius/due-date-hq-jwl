@@ -6,6 +6,7 @@ import type { IngestCtx, ParsedItem, SourceAdapter } from '../types'
 const IRS_DISASTER_URL = 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations'
 const IRS_NEWSROOM_URL = 'https://www.irs.gov/newsroom'
 const IRS_GUIDANCE_URL = 'https://www.irs.gov/newsroom/irs-guidance'
+const IRS_TAX_TIPS_URL = 'https://www.irs.gov/newsroom/irs-tax-tips'
 const TX_CPA_NEWS_RELEASES_URL = 'https://comptroller.texas.gov/about/media-center/news/'
 const NY_DTF_PRESS_URL = 'https://www.tax.ny.gov/press/'
 const CA_FTB_NEWSROOM_URL = 'https://www.ftb.ca.gov/about-ftb/newsroom/index.html'
@@ -186,6 +187,26 @@ export const irsGuidanceAdapter: SourceAdapter = {
   },
 }
 
+export const irsTaxTipsAdapter: SourceAdapter = {
+  id: 'irs.tips',
+  tier: 'T2',
+  cronIntervalMs: 120 * 60 * 1000,
+  jurisdiction: 'federal',
+  async fetch(ctx) {
+    return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: IRS_TAX_TIPS_URL })]
+  },
+  async parse(snapshot, ctx) {
+    if (snapshot.notModified) return []
+    return parsedItemsFromLinks({
+      sourceId: this.id,
+      baseUrl: IRS_TAX_TIPS_URL,
+      html: snapshot.body,
+      ctx,
+      limit: 12,
+    })
+  },
+}
+
 export const txComptrollerRssAdapter: SourceAdapter = {
   id: 'tx.cpa.rss',
   tier: 'T1',
@@ -209,7 +230,6 @@ export const caFtbNewsroomAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 60 * 60 * 1000,
   jurisdiction: 'CA',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: CA_FTB_NEWSROOM_URL })]
   },
@@ -231,7 +251,6 @@ export const caFtbTaxNewsAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 60 * 60 * 1000,
   jurisdiction: 'CA',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: CA_FTB_TAX_NEWS_URL })]
   },
@@ -253,7 +272,6 @@ export const caCdtfaNewsAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 120 * 60 * 1000,
   jurisdiction: 'CA',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: CA_CDTFA_NEWS_URL })]
   },
@@ -296,7 +314,6 @@ export const flDorTipsAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 120 * 60 * 1000,
   jurisdiction: 'FL',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: FL_DOR_TIPS_URL })]
   },
@@ -318,7 +335,6 @@ export const waDorNewsAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 120 * 60 * 1000,
   jurisdiction: 'WA',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: WA_DOR_NEWS_URL })]
   },
@@ -340,7 +356,6 @@ export const waDorWhatsNewAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 120 * 60 * 1000,
   jurisdiction: 'WA',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: WA_DOR_WHATS_NEW_URL })]
   },
@@ -362,7 +377,6 @@ export const maDorPressAdapter: SourceAdapter = {
   tier: 'T1',
   cronIntervalMs: 120 * 60 * 1000,
   jurisdiction: 'MA',
-  fetcher: 'browserless',
   async fetch(ctx) {
     return [await fetchTextSnapshot(ctx, { sourceId: this.id, url: MA_DOR_PRESS_URL })]
   },
@@ -501,6 +515,7 @@ export const livePulseAdapters = [
   irsDisasterAdapter,
   irsNewsroomAdapter,
   irsGuidanceAdapter,
+  irsTaxTipsAdapter,
   caFtbNewsroomAdapter,
   caFtbTaxNewsAdapter,
   caCdtfaNewsAdapter,

@@ -14,6 +14,7 @@ import {
   internalDeadlineFromBaseDueDate,
 } from '@duedatehq/core/deadlines'
 import { rollTaxPeriodForward } from '@duedatehq/core/tax-periods'
+import { federalHolidaysForYears } from '@duedatehq/core/federal-holidays'
 import type { ObligationCreateInput } from '@duedatehq/ports/obligations'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import { isOnOrAfterDateOnly } from '../../lib/date-only'
@@ -187,6 +188,14 @@ export async function runAnnualRollover(input: {
   now?: Date
 }): Promise<AnnualRolloverOutput> {
   const now = input.now ?? new Date()
+  // Statutory dates roll off weekends and federal holidays (incl. DC Emancipation
+  // Day, which shifts the April 15 deadline). Provide a holiday window around the
+  // target filing year so rolled-forward due dates are weekend/holiday-adjusted.
+  const rolloverHolidays = federalHolidaysForYears([
+    input.params.targetFilingYear - 1,
+    input.params.targetFilingYear,
+    input.params.targetFilingYear + 1,
+  ])
   const seedInput: { sourceFilingYear: number; clientIds?: string[] } = {
     sourceFilingYear: input.params.sourceFilingYear,
   }
@@ -288,6 +297,7 @@ export async function runAnnualRollover(input: {
               }),
         },
         rules: runtimeRules,
+        holidays: rolloverHolidays,
       }).filter((preview) => preview.matchedTaxType === bucket.taxType)
 
       if (matchedPreviews.length === 0) {
@@ -395,6 +405,9 @@ export async function runAnnualRollover(input: {
           ruleVersion: preview.ruleVersion,
           rulePeriod: preview.period,
           generationSource: 'annual_rollover',
+          // Rolled-forward deadlines are projected until a CPA confirms them:
+          // visible in dashboards/calendar, withheld from the reminder pipeline.
+          confirmed: false,
           jurisdiction: preview.jurisdiction,
           baseDueDate: dueDate,
           currentDueDate: internalDueDate,

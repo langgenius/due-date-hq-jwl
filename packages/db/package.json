@@ -13,11 +13,13 @@
     "./scoped": "./src/scoped.ts",
     "./audit-writer": "./src/audit-writer.ts",
     "./evidence-writer": "./src/evidence-writer.ts",
+    "./reminder-linkage": "./src/reminder-linkage.ts",
     "./types": "./src/types.ts",
     "./schema/*": "./src/schema/*.ts"
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",
+    "demo:generate": "node --experimental-strip-types seed/generate-demo.ts",
     "seed:demo": "node --experimental-strip-types seed/demo.ts",
     "test": "vp test"
   },

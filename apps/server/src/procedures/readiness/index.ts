@@ -338,6 +338,15 @@ const generateChecklist = os.readiness.generateChecklist.handler(async ({ input,
     userId,
     now: new Date(),
   })
+  // Reconcile can add/remove document-checklist items in bulk; the per-item
+  // add/update/delete siblings all audit, so the bulk rebuild should too.
+  await scoped.audit.write({
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: obligation.id,
+    action: 'readiness.checklist.regenerated',
+    after: { itemCount: rows.length },
+  })
   return {
     checklist: toPublicDocumentChecklist(rows),
     degraded: false,

@@ -23,7 +23,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *    a human to confirm. Use the existing `AlertTriangleIcon + Needs
  *    review` inline badge there. Different label, different icon,
  *    same tone family.
- *  - Pulse confidence pills (in `PulseAlertCard` / drawer) — those
+ *  - Alert confidence pills (in `AlertCard` / drawer) — those
  *    are the 3-tier (Low/Medium/High) per-alert qualitative pill,
  *    keyed off the canonical `aiConfidenceTier` helper. Both surfaces
  *    use the Astroid icon as the "AI signal" mark — confidence is
@@ -49,7 +49,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *    accurate framing.
  *
  * ## Current consumers
- *  - `features/dashboard/needs-attention-card.tsx` — Pulse alert
+ *  - `features/dashboard/needs-attention-card.tsx` — Alert
  *    card on Today when alert.confidence < 0.5
  */
 export function LowConfidenceBadge({ className }: { className?: string }) {

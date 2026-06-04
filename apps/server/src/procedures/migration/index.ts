@@ -99,12 +99,12 @@ const applyDefaultMatrix = os.migration.applyDefaultMatrix.handler(async ({ inpu
 
 const dryRun = os.migration.dryRun.handler(async ({ input, context }) => {
   const service = await buildService(context, MIGRATION_RUN_ROLES)
-  return service.dryRun(input.batchId)
+  return service.dryRun(input.batchId, input.duplicateHandling)
 })
 
 const apply = os.migration.apply.handler(async ({ input, context }) => {
   const service = await buildService(context, MIGRATION_RUN_ROLES)
-  const result = await service.apply(input.batchId)
+  const result = await service.apply(input.batchId, input.duplicateHandling)
   const { tenant } = requireTenant(context)
   await enqueueDashboardBriefRefresh(context.env, {
     firmId: tenant.firmId,
@@ -121,6 +121,11 @@ const discardDraft = os.migration.discardDraft.handler(async ({ input, context }
 const getBatch = os.migration.getBatch.handler(async ({ input, context }) => {
   const service = await buildService(context, MIGRATION_RUN_ROLES)
   return service.getBatch(input.batchId)
+})
+
+const getResumableImport = os.migration.getResumableImport.handler(async ({ context }) => {
+  const service = await buildService(context, MIGRATION_RUN_ROLES)
+  return service.getResumableImport()
 })
 
 const listErrors = os.migration.listErrors.handler(async ({ input, context }) => {
@@ -182,6 +187,7 @@ export const migrationHandlers = {
   revert,
   singleUndo,
   getBatch,
+  getResumableImport,
   listErrors,
   listBatches,
   listBatchClients,

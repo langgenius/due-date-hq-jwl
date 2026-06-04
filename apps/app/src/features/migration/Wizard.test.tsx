@@ -32,6 +32,7 @@ const rpcMocks = vi.hoisted(() => ({
   applyMutationFn: vi.fn(),
   revertMutationFn: vi.fn(),
   listErrorsMutationFn: vi.fn(),
+  dryRunMutationFn: vi.fn(),
   mutationOptions: (mutationFn: unknown, options: Record<string, unknown> = {}) => ({
     ...options,
     mutationFn,
@@ -57,6 +58,11 @@ vi.mock('@/lib/rpc', () => {
         key: () => ['migration'],
         getBatch: {
           queryKey: ({ input }: { input: unknown }) => ['migration', 'getBatch', input],
+          queryOptions: ({ input, enabled }: { input: unknown; enabled?: boolean }) => ({
+            queryKey: ['migration', 'getBatch', input],
+            queryFn: async () => null,
+            enabled: enabled ?? true,
+          }),
         },
         createBatch: {
           mutationOptions: (options: Record<string, unknown> = {}) =>
@@ -97,6 +103,10 @@ vi.mock('@/lib/rpc', () => {
         listErrors: {
           mutationOptions: (options: Record<string, unknown> = {}) =>
             rpcMocks.mutationOptions(rpcMocks.listErrorsMutationFn, options),
+        },
+        dryRun: {
+          mutationOptions: (options: Record<string, unknown> = {}) =>
+            rpcMocks.mutationOptions(rpcMocks.dryRunMutationFn, options),
         },
       },
       obligations: {
@@ -475,6 +485,7 @@ function dryRunSummary(): DryRunSummary {
     clientsToCreate: 1,
     obligationsToCreate: 1,
     historicalDeadlinesSkipped: 0,
+    rolledForwardDeadlines: 0,
     skippedRows: 0,
     errors: [],
     ruleReviewWarnings: [],

@@ -52,7 +52,7 @@ test.describe('role permission surfaces', () => {
 
       await appShellPage.goto()
       await openPulseAlert(authenticatedPage)
-      const drawer = authenticatedPage.getByRole('complementary', { name: 'Pulse alert detail' })
+      const drawer = authenticatedPage.getByRole('complementary', { name: 'Alert detail' })
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
       await expect(drawer.getByRole('button', { name: 'Apply Deadline Exception' })).toBeDisabled()
@@ -87,20 +87,20 @@ test.describe('role permission surfaces', () => {
 
 function pulseListAlertButton(page: Page) {
   return page.getByRole('button', {
-    name: /Pulse alert: IRS CA storm relief extends selected filing deadlines/,
+    name: /Alert: IRS CA storm relief extends selected filing deadlines/,
   })
 }
 
 async function openPulseAlert(page: Page) {
   const dashboardButton = page.getByRole('button', {
-    name: /Open Pulse alert details: IRS CA storm relief extends selected filing deadlines/,
+    name: /Open Alert details: IRS CA storm relief extends selected filing deadlines/,
   })
   if (await dashboardButton.isVisible().catch(() => false)) {
     await dashboardButton.click()
     return
   }
 
-  await page.goto('/rules/pulse')
+  await page.goto('/alerts')
   await expect(pulseListAlertButton(page)).toBeVisible()
   await pulseListAlertButton(page).click()
 }

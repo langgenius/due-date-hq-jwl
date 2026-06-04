@@ -16,6 +16,7 @@ import { requireTenant } from '../_context'
 import {
   MIGRATION_RUN_ROLES,
   OBLIGATION_STATUS_WRITE_ROLES,
+  requireCurrentFirmOwner,
   requireCurrentFirmRole,
 } from '../_permissions'
 import { requirePracticeAiWorkflow } from '../_plan-gates'
@@ -24,16 +25,25 @@ import { dateInTimezone, toAiInsightPublic } from '../_ai-insights'
 import { enqueueAiInsightRefresh } from '../../jobs/ai-insights/enqueue'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
 import {
+  bulkDecideObligationExtension,
+  bulkPreviewObligationExtensionDecision,
+  bulkPreviewObligationSignatureReminder,
+  backfillObligationSignatureLoop,
+  bulkRemindObligationSignature,
   bulkUpdateObligationStatus,
   decideObligationExtension,
   markObligationFiledRejected,
+  previewObligationSignatureReminder,
+  remindObligationSignature,
   toObligationPublic,
   updateObligationBlockedBy,
+  updateObligationEfileState,
   updateObligationPrepStage,
   updateObligationReviewStage,
   updateObligationStatus,
 } from './_service'
 import { runAnnualRollover } from './_annual-rollover'
+import { runReprojection } from './_reprojection'
 import { resolveUpdatedTaxYearProfilePlan } from './_tax-year-profile'
 import { toCoreRule } from '../rules/runtime'
 import {
@@ -643,6 +653,83 @@ const createAnnualRollover = os.obligations.createAnnualRollover.handler(
   },
 )
 
+const confirmObligations = os.obligations.confirmObligations.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  const { confirmedIds } = await scoped.obligations.confirmByIds(input.obligationIds)
+  let auditId: string | null = null
+  if (confirmedIds.length > 0) {
+    const audit = await scoped.audit.write({
+      actorId: userId,
+      entityType: 'obligation_batch',
+      entityId: confirmedIds[0] ?? 'empty',
+      action: 'obligation.confirmed',
+      after: { confirmedCount: confirmedIds.length, confirmedObligationIds: confirmedIds },
+    })
+    auditId = audit.id
+  }
+  return { confirmedCount: confirmedIds.length, confirmedObligationIds: confirmedIds, auditId }
+})
+
+const previewReprojection = os.obligations.previewReprojection.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped, tenant, userId } = requireTenant(context)
+    return runReprojection({
+      scoped,
+      userId,
+      mode: 'preview',
+      params: input,
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+    })
+  },
+)
+
+const applyReprojection = os.obligations.applyReprojection.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const result = await runReprojection({
+    scoped,
+    userId,
+    mode: 'apply',
+    params: input,
+    internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+  })
+  if (result.summary.updatedCount > 0) {
+    await enqueueDashboardBriefRefresh(context.env, {
+      firmId: tenant.firmId,
+      reason: 'due_date_update',
+    }).catch(() => false)
+  }
+  return result
+})
+
+const listProjectedDeadlines = os.obligations.listProjectedDeadlines.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped } = requireTenant(context)
+    const rows = await scoped.obligations.listProjected(
+      input.targetFilingYear !== undefined ? { taxYears: [input.targetFilingYear] } : {},
+    )
+    const clients = await scoped.clients.findManyByIds([
+      ...new Set(rows.map((row) => row.clientId)),
+    ])
+    const nameById = new Map(clients.map((client) => [client.id, client.name]))
+    const deadlines = rows.map((row) => ({
+      obligationId: row.id,
+      clientId: row.clientId,
+      clientName: nameById.get(row.clientId) ?? row.clientId,
+      taxType: row.taxType,
+      taxYear: row.taxYear,
+      jurisdiction: row.jurisdiction,
+      baseDueDate: row.baseDueDate.toISOString().slice(0, 10),
+      currentDueDate: row.currentDueDate.toISOString().slice(0, 10),
+      generationSource: row.generationSource,
+    }))
+    return { deadlines, count: deadlines.length }
+  },
+)
+
 const updateDueDate = os.obligations.updateDueDate.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, tenant, userId } = requireTenant(context)
@@ -762,7 +849,12 @@ const bulkUpdateStatus = os.obligations.bulkUpdateStatus.handler(async ({ input,
 const decideExtension = os.obligations.decideExtension.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, tenant, userId } = requireTenant(context)
-  const result = await decideObligationExtension(scoped, userId, input)
+  const result = await decideObligationExtension(
+    scoped,
+    userId,
+    input,
+    tenant.internalDeadlineOffsetDays,
+  )
   await enqueueDashboardBriefRefresh(context.env, {
     firmId: tenant.firmId,
     reason: 'status_change',
@@ -774,6 +866,102 @@ const decideExtension = os.obligations.decideExtension.handler(async ({ input, c
     reason: 'status_change',
   }).catch(() => false)
   return result
+})
+
+// Bulk "Decide extension" from the queue floating action bar. Same write
+// permission as the single decideExtension; one dashboard-brief refresh when
+// anything changed (no per-subject AI refresh — that's per-row and would fan
+// out to up to 100 enqueues, matching how bulkUpdateStatus omits it).
+const bulkDecideExtension = os.obligations.bulkDecideExtension.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped, tenant, userId } = requireTenant(context)
+    const result = await bulkDecideObligationExtension(
+      scoped,
+      userId,
+      input,
+      tenant.internalDeadlineOffsetDays,
+    )
+    if (result.decidedCount > 0) {
+      await enqueueDashboardBriefRefresh(context.env, {
+        firmId: tenant.firmId,
+        reason: 'status_change',
+      }).catch(() => false)
+    }
+    return result
+  },
+)
+
+// Read-only eligibility breakdown for the bulk "Decide extension" dialog.
+const bulkExtensionDecisionPreview = os.obligations.bulkExtensionDecisionPreview.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped } = requireTenant(context)
+    return bulkPreviewObligationExtensionDecision(scoped, input)
+  },
+)
+
+// E-file sub-state advance (P0: "Mark 8879 signed"). Sibling of the
+// prep/review sub-status mutations — same write permission, no dashboard
+// brief refresh (status is unchanged; only the e-file column moves).
+const updateEfileState = os.obligations.updateEfileState.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  return updateObligationEfileState(scoped, userId, input)
+})
+
+// Email a single client a Form 8879 signature reminder. The service
+// enqueues the email; we trigger the EMAIL_QUEUE flush here (where
+// context.env is available), mirroring readiness.sendRequest.
+const remindSignature = os.obligations.remindSignature.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, userId } = requireTenant(context)
+  const result = await remindObligationSignature(scoped, userId, input)
+  if (result.emailQueued) {
+    await context.env.EMAIL_QUEUE.send({ type: 'email.flush' }).catch(() => undefined)
+  }
+  return result
+})
+
+// Read-only preview that pre-fills the drawer's "Remind to sign" editor.
+const signatureReminderPreview = os.obligations.signatureReminderPreview.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped } = requireTenant(context)
+    return previewObligationSignatureReminder(scoped, input)
+  },
+)
+
+// Read-only eligibility + default-template source for the bulk "Remind to
+// sign" editor (counts who will actually be emailed across the selection).
+const bulkSignatureReminderPreview = os.obligations.bulkSignatureReminderPreview.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped } = requireTenant(context)
+    return bulkPreviewObligationSignatureReminder(scoped, input)
+  },
+)
+
+// Bulk signature reminders from the queue floating action bar. One flush
+// for the whole batch if anything was actually queued.
+const bulkRemindSignature = os.obligations.bulkRemindSignature.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+    const { scoped, userId } = requireTenant(context)
+    const result = await bulkRemindObligationSignature(scoped, userId, input)
+    if (result.remindedCount > 0) {
+      await context.env.EMAIL_QUEUE.send({ type: 'email.flush' }).catch(() => undefined)
+    }
+    return result
+  },
+)
+
+// One-time, owner-only backfill of legacy filed returns into the 8879 loop.
+// Firm-wide data correction → owner role (broader write roles are too loose).
+const backfillSignatureLoop = os.obligations.backfillSignatureLoop.handler(async ({ context }) => {
+  await requireCurrentFirmOwner(context)
+  const { scoped, userId } = requireTenant(context)
+  return backfillObligationSignatureLoop(scoped, userId)
 })
 
 const requestInput = os.obligations.requestInput.handler(async ({ input, context }) => {
@@ -1083,6 +1271,10 @@ export const obligationsHandlers = {
   createFromRules,
   previewAnnualRollover,
   createAnnualRollover,
+  confirmObligations,
+  previewReprojection,
+  applyReprojection,
+  listProjectedDeadlines,
   updateDueDate,
   updateTaxYearProfile,
   listByClient,
@@ -1093,6 +1285,14 @@ export const obligationsHandlers = {
   updateReviewStage,
   bulkUpdateStatus,
   decideExtension,
+  bulkDecideExtension,
+  bulkExtensionDecisionPreview,
+  updateEfileState,
+  remindSignature,
+  signatureReminderPreview,
+  bulkRemindSignature,
+  bulkSignatureReminderPreview,
+  backfillSignatureLoop,
   requestInput,
   getDeadlineTip,
   requestDeadlineTipRefresh,

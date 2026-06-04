@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Db } from '../client'
-import { makeAuditRepo, normalizeAuditSearch, type AuditListRow } from './audit'
+import { categoryForAction, makeAuditRepo, normalizeAuditSearch, type AuditListRow } from './audit'
 
 function createFakeDb(rows: AuditListRow[]) {
   const limit = vi.fn(async (_n: number) => rows)
@@ -113,5 +113,34 @@ describe('makeAuditRepo.list', () => {
 
     expect(rows).toHaveLength(1)
     expect(rows[0]?.action).toBe('client.created')
+  })
+})
+
+describe('categoryForAction (bucketing)', () => {
+  it('buckets actions that previously fell through to the system catch-all', () => {
+    // 2026-06-02 fix: these used to be invisible to their logical category
+    // filter and dumped into `system`.
+    expect(categoryForAction('firm.updated')).toBe('team') // matched only firm.owner. before
+    expect(categoryForAction('firm.created')).toBe('team')
+    expect(categoryForAction('penalty.override')).toBe('client') // no penalty. prefix before
+    expect(categoryForAction('readiness.request.sent')).toBe('obligation') // no readiness. prefix
+    expect(categoryForAction('readiness.client_response')).toBe('obligation')
+    expect(categoryForAction('obligations.exported')).toBe('obligation') // plural ≠ obligation.
+    expect(categoryForAction('obligations.saved_view.created')).toBe('obligation')
+  })
+
+  it('buckets the existing and new first-class categories', () => {
+    expect(categoryForAction('client.created')).toBe('client')
+    expect(categoryForAction('obligation.status.updated')).toBe('obligation')
+    expect(categoryForAction('member.invited')).toBe('team')
+    expect(categoryForAction('pulse.apply')).toBe('pulse')
+    expect(categoryForAction('opportunity.dismissed')).toBe('opportunity')
+    expect(categoryForAction('calendar.subscription.created')).toBe('calendar')
+    expect(categoryForAction('reminder.template.updated')).toBe('reminder')
+    expect(categoryForAction('export.audit_package.ready')).toBe('export')
+  })
+
+  it('falls back to system for unknown action prefixes', () => {
+    expect(categoryForAction('something.unexpected')).toBe('system')
   })
 })

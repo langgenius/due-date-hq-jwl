@@ -47,6 +47,51 @@ function applyRollover(date: Date, logic: DueDateLogic, holidays: readonly strin
   return date
 }
 
+/**
+ * Roll a date off weekends (and optional holidays) to the next business day.
+ * Exported wrapper over the internal helper so callers outside this module
+ * (e.g. the extension-deadline computation) can reuse the same rollover.
+ */
+export function nextBusinessDay(date: Date, holidays: readonly string[] = []): Date {
+  return applyNextBusinessDay(date, holidays)
+}
+
+/**
+ * Add whole + half calendar months to a UTC date.
+ *
+ * Whole months use month arithmetic with day-of-month clamping
+ * (e.g. Jan 31 + 1mo → Feb 28). The only fractional duration in the rule
+ * catalog is `.5` (federal trusts / NY fiduciary carry 5.5 months); a half
+ * month follows the 15-day convention, so April 15 + 5.5mo → Sept 30.
+ */
+export function addExtensionMonths(date: Date, months: number): Date {
+  const whole = Math.trunc(months)
+  const candidate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + whole, 1))
+  const lastDay = new Date(
+    Date.UTC(candidate.getUTCFullYear(), candidate.getUTCMonth() + 1, 0),
+  ).getUTCDate()
+  candidate.setUTCDate(Math.min(date.getUTCDate(), lastDay))
+  const extraDays = Math.round((months - whole) * 30)
+  if (extraDays !== 0) candidate.setUTCDate(candidate.getUTCDate() + extraDays)
+  return candidate
+}
+
+/**
+ * The statutory extended filing deadline = the original filing deadline plus
+ * the rule's extension duration, rolled off weekends to the next business day.
+ *
+ * No federal-holiday list is plumbed at extension-decision time, so this rolls
+ * weekends only (the original due date was already holiday-adjusted at
+ * generation). Callers pass `holidays` when a list is available.
+ */
+export function computeExtendedFilingDeadline(
+  originalFiling: Date,
+  durationMonths: number,
+  holidays: readonly string[] = [],
+): Date {
+  return applyNextBusinessDay(addExtensionMonths(originalFiling, durationMonths), holidays)
+}
+
 export function expandDueDateLogic(
   logic: DueDateLogic,
   input: ExpandDueDateInput = {},

@@ -1,13 +1,17 @@
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AlertTriangleIcon, CheckCircle2Icon, PlayIcon, ShieldCheckIcon } from 'lucide-react'
 
-import type { DryRunSummary } from '@duedatehq/contracts'
+import type { DryRunSummary, DuplicateHandling } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { formatMigrationErrorMessage, useMappingTargetLabels } from './mapping-target-labels'
 
 interface Step4Props {
   summary: DryRunSummary | null
+  duplicateHandling: DuplicateHandling
+  onDuplicateHandlingChange: (next: DuplicateHandling) => void
+  isUpdatingPreview?: boolean
 }
 
 /**
@@ -16,12 +20,18 @@ interface Step4Props {
  * The Import CTA is rendered in the WizardShell footer; this body owns the
  * counts, skipped-row visibility, and safety checks before `migration.apply`.
  */
-export function Step4Preview({ summary }: Step4Props) {
+export function Step4Preview({
+  summary,
+  duplicateHandling,
+  onDuplicateHandlingChange,
+  isUpdatingPreview = false,
+}: Step4Props) {
   const { t } = useLingui()
   const targetLabels = useMappingTargetLabels()
   const clientCount = summary?.clientsToCreate ?? 0
   const obligationCount = summary?.obligationsToCreate ?? 0
   const historicalDeadlinesSkipped = summary?.historicalDeadlinesSkipped ?? 0
+  const rolledForwardDeadlines = summary?.rolledForwardDeadlines ?? 0
   const skipped = summary?.skippedRows ?? 0
   const ruleReviewWarnings = summary?.ruleReviewWarnings ?? []
   const ruleReviewStateSummaries = buildRuleReviewStateSummaries(ruleReviewWarnings)
@@ -29,6 +39,9 @@ export function Step4Preview({ summary }: Step4Props) {
     (sum, stateSummary) => sum + stateSummary.affectedClientCount,
     0,
   )
+  const clientsPreview = summary?.clientsPreview ?? []
+  const previewMoreCount = Math.max(0, clientCount - clientsPreview.length)
+  const conflicts = summary?.clientConflicts ?? []
 
   return (
     <div className="flex flex-col gap-4 py-5">
@@ -86,12 +99,135 @@ export function Step4Preview({ summary }: Step4Props) {
             <PlayIcon className="size-3" aria-hidden />
             <Plural
               value={historicalDeadlinesSkipped}
-              one="# historical deadline before monitoring start will be skipped"
-              other="# historical deadlines before monitoring start will be skipped"
+              one="# historical deadline could not be created"
+              other="# historical deadlines could not be created"
+            />
+          </li>
+        ) : null}
+        {rolledForwardDeadlines > 0 ? (
+          <li className="flex items-center gap-2 text-text-tertiary">
+            <PlayIcon className="size-3" aria-hidden />
+            <Plural
+              value={rolledForwardDeadlines}
+              one="# past deadline will be created as the next monitoring deadline"
+              other="# past deadlines will be created as next monitoring deadlines"
             />
           </li>
         ) : null}
       </ul>
+
+      {/* Per-client preview — "confirm by outcome, not by schema". Shows the
+          actual clients the import will create with their deadline counts, so
+          a CPA verifies their client list rather than DueDateHQ's field map.
+          Flows in the wizard-body scroll (no inner scrollbar, per the
+          errors-list rationale below). */}
+      {clientsPreview.length > 0 ? (
+        <section
+          aria-label={t`Clients to create`}
+          className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-section p-3"
+        >
+          <h3 className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
+            <Trans>Clients to create</Trans>
+          </h3>
+          <ul className="flex flex-col divide-y divide-divider-subtle text-sm">
+            {clientsPreview.map((client) => (
+              <li
+                key={client.ein ?? client.name}
+                className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 py-1.5"
+              >
+                <span className="font-medium text-text-primary">{client.name}</span>
+                <span className="flex flex-wrap items-center gap-x-1.5 text-text-tertiary tabular-nums">
+                  {client.entityType ? (
+                    <span>{formatEntityTypeLabel(client.entityType)}</span>
+                  ) : null}
+                  {client.state ? (
+                    <>
+                      <span aria-hidden>·</span>
+                      <span>{client.state}</span>
+                    </>
+                  ) : null}
+                  {client.ein ? (
+                    <>
+                      <span aria-hidden>·</span>
+                      <span className="font-mono">{client.ein}</span>
+                    </>
+                  ) : null}
+                </span>
+                <span className="ml-auto shrink-0 text-text-secondary tabular-nums">
+                  <Plural value={client.obligationCount} one="# deadline" other="# deadlines" />
+                </span>
+              </li>
+            ))}
+          </ul>
+          {previewMoreCount > 0 ? (
+            <p className="text-xs text-text-tertiary tabular-nums">
+              <Plural value={previewMoreCount} one="+ # more client" other="+ # more clients" />
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
+      {/* Re-import dedup: imported rows whose EIN matches an existing client.
+          Default is Skip (no duplicates created); the user can switch to
+          "Import as new", which re-runs the dry-run with the new counts. */}
+      {conflicts.length > 0 ? (
+        <section
+          aria-label={t`Clients already in your list`}
+          className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-section p-3"
+        >
+          <h3 className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
+            <Trans>Already in your client list</Trans>
+          </h3>
+          <p className="text-sm text-text-secondary">
+            <Plural
+              value={conflicts.length}
+              one="# imported client matches an existing client by EIN."
+              other="# imported clients match existing clients by EIN."
+            />
+          </p>
+          <ul className="flex flex-col divide-y divide-divider-subtle text-sm">
+            {conflicts.map((conflict) => (
+              <li
+                key={conflict.ein || conflict.incomingName}
+                className="flex flex-wrap items-baseline gap-x-2 py-1.5"
+              >
+                <span className="font-medium text-text-primary">{conflict.incomingName}</span>
+                {conflict.ein ? (
+                  <span className="font-mono text-text-tertiary tabular-nums">{conflict.ein}</span>
+                ) : null}
+                <span className="text-text-tertiary">
+                  <Trans>matches {conflict.existingClientName}</Trans>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Button
+              size="sm"
+              variant={duplicateHandling === 'skip' ? undefined : 'outline'}
+              disabled={isUpdatingPreview}
+              onClick={() => onDuplicateHandlingChange('skip')}
+            >
+              <Trans>Skip duplicates</Trans>
+            </Button>
+            <Button
+              size="sm"
+              variant={duplicateHandling === 'import_as_new' ? undefined : 'outline'}
+              disabled={isUpdatingPreview}
+              onClick={() => onDuplicateHandlingChange('import_as_new')}
+            >
+              <Trans>Import as new</Trans>
+            </Button>
+            <span className="text-xs text-text-tertiary">
+              {duplicateHandling === 'skip' ? (
+                <Trans>Duplicates won&apos;t be imported.</Trans>
+              ) : (
+                <Trans>Duplicates will be created as new clients.</Trans>
+              )}
+            </span>
+          </div>
+        </section>
+      ) : null}
 
       {/* 2026-05-26 (Step 7 onboarding audit F6-20): heading was
           "Safety" — so abstract it read as throat-clearing.

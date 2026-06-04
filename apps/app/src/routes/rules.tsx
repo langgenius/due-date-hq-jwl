@@ -4,12 +4,12 @@ import { redirect, type LoaderFunctionArgs } from 'react-router'
 // into multiple destinations:
 //   - Coverage / Sources / Rule library → merged into one `/rules/library`
 //     page with section anchors
-//   - Pulse changes → its own direct entry `/rules/pulse` (sidebar-promoted)
+//   - Alerts → their own direct entry `/alerts` (sidebar-promoted)
 //   - Temporary rules → unlisted but reachable at `/rules/temporary`
 //   - Deadline preview → unlisted but reachable at `/rules/preview`
 //
 // Bare `/rules` lands on the merged Library page (the canonical hub).
-// `?tab=...` deep-links from before the refactor (Pulse banner, dashboard
+// `?tab=...` deep-links from before the refactor (Alerts page, dashboard
 // notes, external bookmarks) are preserved by mapping them to the new
 // equivalent. The three merged-tab values resolve to the same Library URL
 // with the matching section anchor.
@@ -17,7 +17,7 @@ const LEGACY_TAB_TO_PATH: Record<string, string> = {
   coverage: '/rules/coverage',
   sources: '/rules/sources',
   library: '/rules/library',
-  pulse: '/rules/pulse',
+  pulse: '/alerts',
   temporary: '/rules/temporary',
   preview: '/rules/preview',
 }

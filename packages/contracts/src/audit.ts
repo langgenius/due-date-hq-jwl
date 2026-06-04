@@ -12,6 +12,8 @@ export const AuditActionCategorySchema = z.enum([
   'pulse',
   'opportunity',
   'export',
+  'calendar',
+  'reminder',
   'ai',
   'system',
 ])

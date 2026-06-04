@@ -17,12 +17,12 @@ question: "What should the team handle next, and why?"
    ownership.
 3. Generate obligations from verified rules and practice-reviewed facts.
 4. Triage work by due date, readiness, evidence, owner, and projected penalty risk.
-5. Review Pulse updates from official sources before applying them to affected
+5. Review Alerts from official sources before applying them to affected
    clients and obligations.
 6. Run reminder automation from the dedicated Reminders surface: review the
    30/7/1-day schedule, adjust firm message templates, and monitor delivery or
    suppression status.
-7. Send personal morning digests only when deadline pressure, Pulse changes, or
+7. Send personal morning digests only when deadline pressure, Alerts, or
    reminder delivery failures need attention.
 8. Keep audit evidence for important import, rule, status, billing, and team
    events.
@@ -37,17 +37,17 @@ replacement for review by a CPA, EA, attorney, or other qualified professional.
   role-aware surfaces, practice switching, account security, and bilingual app copy.
 - **Client facts**: client profiles, filing jurisdictions, owners, contact details,
   import history, readiness signals, client detail workspace, work plan context,
-  Pulse impact, lightweight future-business cues, activity log, and fact review.
+  Alert impact, lightweight future-business cues, activity log, and fact review.
 - **Migration Copilot**: CSV, TSV, XLSX, pasted tables, and provider-export-shaped
   data with field mapping, risky-input blocking, preview, generated clients,
   generated obligations, and audit evidence.
 - **Dashboard and obligations**: risk triage, saved views, bulk status updates,
   readiness, evidence drawers, weekly/monthly views, and projected penalty
   exposure.
-- **Rules and Pulse**: source registry, coverage, rule library, generation preview,
+- **Rules and Alerts**: source registry, coverage, rule library, generation preview,
   candidate review, firm-scoped verification decisions, official-source monitoring,
-  Pulse Changes impact triage, source-backed suggested actions,
-  apply/dismiss/snooze/revert flows, and source-health operations.
+  Alerts impact triage, source-backed suggested actions,
+  apply/mark-reviewed/request-review/revert flows, and source-health operations.
 - **Practice operations**: audit log, reminders, personal notifications with
   morning digest controls,
   readiness portal, calendar subscription, billing checkout handoff, members,
@@ -98,7 +98,7 @@ packages/
   core        Pure domain logic for dates, rules, imports, risk, priority
   db          Drizzle schema, migrations, D1 repositories
   i18n        Shared locale helpers
-  ingest      Pulse source adapters and fetch/parse utilities
+  ingest      Alert source adapters and fetch/parse utilities
   ports       Boundary interfaces
   ui          Design tokens and reusable UI primitives
 ```

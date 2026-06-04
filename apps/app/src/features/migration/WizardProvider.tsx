@@ -9,8 +9,15 @@ interface MigrationWizardProviderProps {
 
 export function MigrationWizardProvider({ children }: MigrationWizardProviderProps) {
   const [open, setOpen] = useState(false)
-  const openWizard = useCallback(() => setOpen(true), [])
-  const closeWizard = useCallback(() => setOpen(false), [])
+  const [resumeBatchId, setResumeBatchId] = useState<string | null>(null)
+  const openWizard = useCallback((options?: { resumeBatchId?: string }) => {
+    setResumeBatchId(options?.resumeBatchId ?? null)
+    setOpen(true)
+  }, [])
+  const closeWizard = useCallback(() => {
+    setOpen(false)
+    setResumeBatchId(null)
+  }, [])
 
   const value = useMemo<MigrationWizardContextValue>(
     () => ({ open, openWizard, closeWizard }),
@@ -20,7 +27,7 @@ export function MigrationWizardProvider({ children }: MigrationWizardProviderPro
   return (
     <MigrationWizardContext.Provider value={value}>
       {children}
-      <Wizard open={open} onClose={closeWizard} />
+      <Wizard open={open} onClose={closeWizard} {...(resumeBatchId ? { resumeBatchId } : {})} />
     </MigrationWizardContext.Provider>
   )
 }

@@ -1,11 +1,31 @@
 import { extractPdfText } from './pdf'
 import type { IngestCtx, RawSnapshot } from './types'
 
+// Several state .gov sites 403-block an honest bot User-Agent. Browserless
+// already evaded this by presenting a Chrome UA; now that direct fetch is the
+// default for HTML sources (browserless was overloaded + buggy), direct fetch
+// must present the same browser UA or those sites reject it. robots.txt is
+// still honored under our bot identity (assertRobotsAllowed matches the
+// DueDateHQ-PulseBot agent string independently of this request header).
+export const PULSE_BROWSER_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+
 export const DEFAULT_HEADERS = {
-  'User-Agent': 'DueDateHQ-PulseBot/1.0 (+https://duedatehq.com/bot; support@duedatehq.com)',
-  Accept: 'text/html,application/xhtml+xml,application/xml,application/rss+xml,application/json',
+  'User-Agent': PULSE_BROWSER_USER_AGENT,
+  // Trailing */* (as real browsers send) so servers that strictly content-negotiate
+  // don't 406 us when the target is a PDF or other type not in the explicit list.
+  Accept:
+    'text/html,application/xhtml+xml,application/xml,application/rss+xml,application/json,*/*;q=0.8',
   'Accept-Language': 'en-US,en;q=0.9',
   'Cache-Control': 'no-cache',
+  // Present as a top-level browser navigation. Some .gov WAFs return 400/403 to a
+  // Chrome User-Agent that arrives without the Sec-Fetch-*/Upgrade-Insecure-Requests
+  // headers a real Chrome always sends (UA-vs-header fingerprint mismatch = bot).
+  'Sec-Fetch-Dest': 'document',
+  'Sec-Fetch-Mode': 'navigate',
+  'Sec-Fetch-Site': 'none',
+  'Sec-Fetch-User': '?1',
+  'Upgrade-Insecure-Requests': '1',
 } as const
 
 export const RATE_LIMIT = {
@@ -35,8 +55,48 @@ export function textExcerpt(text: string, max = 6000): string {
   return text.replace(/\s+/g, ' ').trim().slice(0, max)
 }
 
-function isPdfSourceResponse(contentType: string, url: string): boolean {
-  return contentType.includes('application/pdf') || /\.pdf(?:[?#]|$)/i.test(url)
+function contentDispositionHasPdfFilename(contentDisposition: string | null): boolean {
+  return /filename\*?=(?:UTF-8''|")?[^";]+\.pdf(?:[";]|$)/i.test(contentDisposition ?? '')
+}
+
+export function isPdfSourceResponse(input: {
+  contentType: string
+  url: string
+  contentDisposition?: string | null
+}): boolean {
+  return (
+    input.contentType.includes('application/pdf') ||
+    /\.pdf(?:[?#]|$)/i.test(input.url) ||
+    contentDispositionHasPdfFilename(input.contentDisposition ?? null)
+  )
+}
+
+export async function readSourceResponseText(
+  response: Response,
+  input: { sourceId: string; url: string },
+): Promise<{ body: string; contentType: string | null; isPdf: boolean }> {
+  const contentType = response.headers.get('content-type') ?? ''
+  const isPdf = isPdfSourceResponse({
+    contentType,
+    url: input.url,
+    contentDisposition: response.headers.get('content-disposition'),
+  })
+  if (!isPdf) {
+    return {
+      body: await response.text(),
+      contentType: response.headers.get('content-type'),
+      isPdf: false,
+    }
+  }
+
+  const text = await response.arrayBuffer().then(extractPdfText)
+  if (!text) throw new Error(`Pulse source PDF text extraction failed for ${input.sourceId}`)
+
+  return {
+    body: text,
+    contentType: 'text/plain; charset=utf-8',
+    isPdf: true,
+  }
 }
 
 function pathDisallowedByRobots(robots: string, userAgent: string, path: string): boolean {
@@ -119,36 +179,22 @@ export async function fetchTextSnapshot(
     throw new Error(`Pulse source fetch failed for ${input.sourceId}: ${response.status}`)
   }
 
-  const contentType = response.headers.get('content-type') ?? ''
-  const body = isPdfSourceResponse(contentType, input.url)
-    ? await response
-        .arrayBuffer()
-        .then(extractPdfText)
-        .then((text) => {
-          if (!text)
-            throw new Error(`Pulse source PDF text extraction failed for ${input.sourceId}`)
-          return text
-        })
-    : await response.text()
+  const parsedBody = await readSourceResponseText(response, input)
   const archived = await ctx.archiveRaw({
     sourceId: input.sourceId,
     externalId,
     fetchedAt,
-    body,
-    contentType: isPdfSourceResponse(contentType, input.url)
-      ? 'text/plain; charset=utf-8'
-      : response.headers.get('content-type'),
+    body: parsedBody.body,
+    contentType: parsedBody.contentType,
   })
 
   return {
     sourceId: input.sourceId,
     fetchedAt,
-    body,
+    body: parsedBody.body,
     contentHash: archived.contentHash,
     r2Key: archived.r2Key,
-    contentType: isPdfSourceResponse(contentType, input.url)
-      ? 'text/plain; charset=utf-8'
-      : response.headers.get('content-type'),
+    contentType: parsedBody.contentType,
     etag: response.headers.get('etag'),
     lastModified: response.headers.get('last-modified'),
   }

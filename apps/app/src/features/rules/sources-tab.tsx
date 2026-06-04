@@ -19,7 +19,7 @@ import {
   TableHeaderMultiFilter,
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
-import { usePulseSourceHealthQueryOptions } from '@/features/pulse/api'
+import { useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
 import { orpc } from '@/lib/rpc'
 
 import {
@@ -58,12 +58,12 @@ export function SourcesTab() {
   const [pageIndex, setPageIndex] = useState(0)
 
   const sourcesQuery = useQuery(orpc.rules.listSources.queryOptions({ input: undefined }))
-  // Pulse maintains the watcher health record per source (when the scraper
+  // Alert ingestion maintains the watcher health record per source (when the scraper
   // last ran, when it'll run next, and the most recent error if any). The
   // RuleSource registry doesn't carry these — they're operational signals
-  // owned by the Pulse subsystem. Join here by id so the Sources table can
+  // owned by the alert-ingestion subsystem. Join here by id so the Sources table can
   // surface diagnostic columns alongside the registry metadata.
-  const sourceHealthQuery = useQuery(usePulseSourceHealthQueryOptions())
+  const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const sourceHealthBySourceId = useMemo(() => {
     const map = new Map<string, PulseSourceHealth>()
     for (const entry of sourceHealthQuery.data?.sources ?? []) {

@@ -138,6 +138,7 @@ function rowFromInput(input: ObligationCreateInput, id: string): ObligationInsta
   return {
     id,
     firmId: FIRM_ID,
+    confirmed: input.confirmed ?? true,
     clientId: input.clientId,
     clientFilingProfileId: input.clientFilingProfileId ?? null,
     taxType: input.taxType,
@@ -312,15 +313,23 @@ function makeContext(input: {
     listTemporaryRules: null!,
     getDecision: null!,
     upsertDecision: null!,
+    listUnclearedDriftRuleIds: null!,
+    clearRuleSourceDrift: null!,
   }
   const obligations: ScopedRepo['obligations'] = {
     firmId: FIRM_ID,
+    confirmByIds: null!,
+    listReprojectionCandidates: null!,
+    listAffectedClientsByRules: null!,
+    updateProjectedDueDates: null!,
+    listProjected: null!,
     createBatch,
     findById: vi.fn(async () => input.obligation ?? undefined),
     findManyByIds: null!,
     listByClient: vi.fn(async () => rows),
     listByBatch: null!,
     listAnnualRolloverSeeds: null!,
+    listSignatureLoopBackfillCandidates: null!,
     listGeneratedByClientAndTaxYears: vi.fn(async () => input.duplicates ?? []),
     updateDueDate: null!,
     updateTaxYearProfile: null!,
@@ -332,6 +341,7 @@ function makeContext(input: {
     setBlockedBy: null!,
     setPrepStage: null!,
     setReviewStage: null!,
+    setEfileState: null!,
     unblockChildrenOf: null!,
     deleteByBatch: null!,
   }
@@ -347,6 +357,7 @@ function makeContext(input: {
     writeBatch: null!,
     listByFirm: null!,
     list: null!,
+    latestByEntityIds: null!,
   }
   const readiness: ScopedRepo['readiness'] = {
     firmId: FIRM_ID,
@@ -642,7 +653,7 @@ describe('obligations.createFromRule', () => {
         createdByUserId: USER_ID,
         template: expect.arrayContaining([
           expect.objectContaining({
-            templateKey: '1120s.s_corporation_return.s_election',
+            templateKey: '1120s.s_corporation_return.s_election', // gitleaks:allow (tax-form template key, not a secret)
           }),
         ]),
       }),

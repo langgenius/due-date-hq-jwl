@@ -87,12 +87,19 @@ const upsertSubscription = os.calendar.upsertSubscription.handler(async ({ input
     privacyMode: input.privacyMode ?? 'redacted',
     tokenNonce: crypto.randomUUID(),
   })
+  await scoped.audit.write({
+    actorId: userId,
+    entityType: 'calendar_subscription',
+    entityId: row.id,
+    action: 'calendar.subscription.created',
+    after: { scope: row.scope, privacyMode: row.privacyMode, status: row.status },
+  })
   return toPublic(context, row)
 })
 
 const regenerateSubscription = os.calendar.regenerateSubscription.handler(
   async ({ input, context }) => {
-    const { scoped } = requireTenant(context)
+    const { scoped, userId } = requireTenant(context)
     const existing = await scoped.calendar.find(input.id)
     if (!existing) {
       throw new ORPCError('NOT_FOUND', { message: 'Calendar subscription not found.' })
@@ -102,12 +109,20 @@ const regenerateSubscription = os.calendar.regenerateSubscription.handler(
     if (!row) {
       throw new ORPCError('NOT_FOUND', { message: 'Calendar subscription not found.' })
     }
+    await scoped.audit.write({
+      actorId: userId,
+      entityType: 'calendar_subscription',
+      entityId: row.id,
+      action: 'calendar.subscription.regenerated',
+      reason: 'Feed link rotated; the previous URL no longer works.',
+      after: { scope: row.scope, status: row.status },
+    })
     return toPublic(context, row)
   },
 )
 
 const disableSubscription = os.calendar.disableSubscription.handler(async ({ input, context }) => {
-  const { scoped } = requireTenant(context)
+  const { scoped, userId } = requireTenant(context)
   const existing = await scoped.calendar.find(input.id)
   if (!existing) {
     throw new ORPCError('NOT_FOUND', { message: 'Calendar subscription not found.' })
@@ -117,6 +132,14 @@ const disableSubscription = os.calendar.disableSubscription.handler(async ({ inp
   if (!row) {
     throw new ORPCError('NOT_FOUND', { message: 'Calendar subscription not found.' })
   }
+  await scoped.audit.write({
+    actorId: userId,
+    entityType: 'calendar_subscription',
+    entityId: row.id,
+    action: 'calendar.subscription.disabled',
+    before: { status: existing.status },
+    after: { status: row.status },
+  })
   return toPublic(context, row)
 })
 

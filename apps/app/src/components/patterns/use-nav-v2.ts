@@ -2,8 +2,8 @@ import { useLocation } from 'react-router'
 
 // Sidebar IA v2 feature flag (`?nav=v2`). Restructures the primary
 // navigation into Operations / Coverage / Practice groups per the
-// design mockup pinned 2026-05-19. Radar disappears from the sidebar
-// — it now lives on the dashboard's NEEDS ATTENTION surface. When v2
+// design mockup pinned 2026-05-19. Alerts sits as a top-level primary
+// item (the dashboard's NEEDS ATTENTION surface mirrors it). When v2
 // becomes default-on this hook collapses to `() => true` and the
 // legacy useNavItems branch can be deleted.
 

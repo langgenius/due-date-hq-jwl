@@ -68,6 +68,7 @@ import {
 } from 'lucide-react'
 import {
   parseAsArrayOf,
+  parseAsBoolean,
   parseAsInteger,
   parseAsString,
   parseAsStringLiteral,
@@ -100,6 +101,8 @@ import {
   type ReadinessDocumentChecklistItemPublic,
   type ReadinessPreviewRequestEmailOutput,
 } from '@duedatehq/contracts'
+import { renderTemplate, SIGNATURE_REMINDER_THROTTLE_DAYS } from '@duedatehq/core/email-template'
+import { computeExtendedFilingDeadline } from '@duedatehq/core/date-logic'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import {
   AlertDialog,
@@ -114,12 +117,7 @@ import {
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from '@duedatehq/ui/components/ui/field'
+import { Field, FieldDescription, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import {
   SearchableCombobox,
   type SearchableComboboxOption,
@@ -522,6 +520,9 @@ type ExtensionPlanDraft = {
   memo: string
   source: string
   internalTargetDate: string
+  // Manually-entered extended filing deadline — only used for rules with no
+  // statutory durationMonths (the server computes it otherwise).
+  extendedFilingDate: string
 }
 
 export function emptyExtensionPlanDraft(obligationId = ''): ExtensionPlanDraft {
@@ -530,6 +531,7 @@ export function emptyExtensionPlanDraft(obligationId = ''): ExtensionPlanDraft {
     memo: '',
     source: '',
     internalTargetDate: '',
+    extendedFilingDate: '',
   }
 }
 
@@ -544,6 +546,7 @@ export function extensionPlanDraftFromRow(
     memo: row.extensionMemo ?? '',
     source: row.extensionSource ?? '',
     internalTargetDate: row.extensionInternalTargetDate ?? '',
+    extendedFilingDate: '',
   }
 }
 
@@ -622,13 +625,13 @@ const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
 const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
   'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
 
-// 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
+// 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
 // the obligation detail panel now shares the alerts panel's
 // width contract and motion choreography. The flex slot opens
 // from 0 → 60% (matching the alerts panel in
 // AlertsListPage.tsx L838-867), the inner surface rises from
 // y:'100%' → 0 on enter, dissolves opacity → 0 on exit. Same
-// ease-apple curve, same durations as the Pulse drawer so the
+// ease-apple curve, same durations as the alert drawer so the
 // two right-rail panels read as siblings.
 const DETAIL_SWIFT_EASE = [0.32, 0.72, 0, 1] as const
 // 2026-05-27 (Yuqi feedback "remove width:60%" + "responsive也都
@@ -648,7 +651,7 @@ const DETAIL_PANEL_CLOSE_ANIM = {
   transition: { duration: 0.28, ease: DETAIL_SWIFT_EASE },
 } as const
 // 2026-05-27 (Yuqi drawer parity): paper-rise enter matches
-// PulseDetailDrawer's inner choreography (y:100%→0, 0.64s
+// AlertDetailDrawer's inner choreography (y:100%→0, 0.64s
 // duration, 0.14s delay) — the surface visibly extrudes from
 // below the slot. Exit collapses to opacity-only dissolve
 // (0.22s) so the slot closes underneath without a slide-down
@@ -774,6 +777,13 @@ const obligationQueueSearchParamsParsers = {
   due: parseAsStringLiteral(DUE_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
   dueWithin: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
   evidence: parseAsStringLiteral(EVIDENCE_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
+  // "Awaiting signature" triage lens — filed returns still waiting on the
+  // client's 8879. Absent when off (no default); ?awaitingSignature=true
+  // when on.
+  awaitingSignature: parseAsBoolean.withOptions(REPLACE_HISTORY_OPTIONS),
+  // Projected lens — projected (annual-rollover / auto-projection) deadlines
+  // awaiting CPA confirmation. Absent when off; ?projected=true when on.
+  projected: parseAsBoolean.withOptions(REPLACE_HISTORY_OPTIONS),
   drawer: parseAsStringLiteral(DETAIL_DRAWERS).withOptions(REPLACE_HISTORY_OPTIONS),
   id: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
   tab: parseAsStringLiteral(DETAIL_TABS)
@@ -804,6 +814,107 @@ const obligationQueueSearchParamsParsers = {
 } as const
 
 type ObligationQueueSearchParams = inferParserType<typeof obligationQueueSearchParamsParsers>
+type DeadlineDetailQueueSearchState = Pick<
+  ObligationQueueSearchParams,
+  | 'q'
+  | 'status'
+  | 'obligation'
+  | 'client'
+  | 'rule'
+  | 'state'
+  | 'county'
+  | 'taxType'
+  | 'assignee'
+  | 'assignees'
+  | 'owner'
+  | 'due'
+  | 'dueWithin'
+  | 'evidence'
+  | 'awaitingSignature'
+  | 'projected'
+  | 'daysMin'
+  | 'daysMax'
+  | 'asOf'
+  | 'sort'
+  | 'density'
+  | 'group'
+  | 'hide'
+>
+
+function searchParamArrayEquals(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((value, index) => value === b[index])
+}
+
+function setOptionalSearchParam(
+  params: URLSearchParams,
+  key: string,
+  value: string | number | null,
+): void {
+  if (value === null || value === '') {
+    params.delete(key)
+    return
+  }
+  params.set(key, String(value))
+}
+
+function setArraySearchParam(
+  params: URLSearchParams,
+  key: string,
+  values: readonly string[],
+): void {
+  if (values.length === 0) {
+    params.delete(key)
+    return
+  }
+  params.set(key, values.join(','))
+}
+
+export function deadlineDetailSearchFromQueueState(
+  search: string,
+  state: DeadlineDetailQueueSearchState,
+): string {
+  const baseSearch = cleanDeadlineDetailSearch(search)
+  const params = new URLSearchParams(baseSearch.startsWith('?') ? baseSearch.slice(1) : baseSearch)
+
+  setOptionalSearchParam(params, 'q', state.q)
+  setArraySearchParam(params, 'status', state.status)
+  setOptionalSearchParam(params, 'obligation', state.obligation)
+  setArraySearchParam(params, 'client', state.client)
+  setArraySearchParam(params, 'rule', state.rule)
+  setArraySearchParam(params, 'state', state.state)
+  setArraySearchParam(params, 'county', state.county)
+  setArraySearchParam(params, 'taxType', state.taxType)
+  setOptionalSearchParam(params, 'assignee', state.assignee)
+  setArraySearchParam(params, 'assignees', state.assignees)
+  setOptionalSearchParam(params, 'owner', state.owner)
+  setOptionalSearchParam(params, 'due', state.due)
+  setOptionalSearchParam(params, 'dueWithin', state.dueWithin)
+  setOptionalSearchParam(params, 'evidence', state.evidence)
+  if (state.awaitingSignature === true) params.set('awaitingSignature', 'true')
+  else params.delete('awaitingSignature')
+  if (state.projected === true) params.set('projected', 'true')
+  else params.delete('projected')
+  setOptionalSearchParam(params, 'daysMin', state.daysMin)
+  setOptionalSearchParam(params, 'daysMax', state.daysMax)
+  setOptionalSearchParam(params, 'asOf', state.asOf)
+  setOptionalSearchParam(params, 'sort', state.sort === DEFAULT_SORT ? null : state.sort)
+  setOptionalSearchParam(
+    params,
+    'density',
+    state.density === DEFAULT_DENSITY ? null : state.density,
+  )
+  setOptionalSearchParam(params, 'group', state.group === DEFAULT_GROUP ? null : state.group)
+  if (state.hide.length === 0) {
+    params.set('hide', '')
+  } else if (searchParamArrayEquals(state.hide, DEFAULT_HIDDEN_COLUMN_IDS)) {
+    params.delete('hide')
+  } else {
+    params.set('hide', state.hide.join(','))
+  }
+
+  const nextSearch = params.toString()
+  return nextSearch ? `?${nextSearch}` : ''
+}
 
 export function isThisWeekFilterActive(daysMin: number | null, daysMax: number | null): boolean {
   return daysMin === null && daysMax === THIS_WEEK_MAX_DAYS
@@ -1168,6 +1279,8 @@ export function ObligationQueueRoute() {
       due,
       dueWithin,
       evidence,
+      awaitingSignature,
+      projected,
       drawer,
       id: detailId,
       tab: detailTab,
@@ -1182,6 +1295,62 @@ export function ObligationQueueRoute() {
     },
     setObligationQueueQuery,
   ] = useQueryStates(obligationQueueSearchParamsParsers)
+  const liveLocationSearch =
+    typeof window === 'undefined' ? location.search : window.location.search
+  const deadlineDetailSearch = useMemo(
+    () =>
+      deadlineDetailSearchFromQueueState(liveLocationSearch, {
+        q: searchInput,
+        status: statusFilter,
+        obligation,
+        client: clientFilter,
+        rule: ruleFilter,
+        state: stateFilter,
+        county: countyFilter,
+        taxType: taxTypeFilter,
+        assignee,
+        assignees: assigneeFilter,
+        owner,
+        due,
+        dueWithin,
+        evidence,
+        awaitingSignature,
+        projected,
+        daysMin,
+        daysMax,
+        asOf,
+        sort: urlSort,
+        density,
+        group,
+        hide: hiddenColumns,
+      }),
+    [
+      liveLocationSearch,
+      searchInput,
+      statusFilter,
+      obligation,
+      clientFilter,
+      ruleFilter,
+      stateFilter,
+      countyFilter,
+      taxTypeFilter,
+      assignee,
+      assigneeFilter,
+      owner,
+      due,
+      dueWithin,
+      evidence,
+      awaitingSignature,
+      projected,
+      daysMin,
+      daysMax,
+      asOf,
+      urlSort,
+      density,
+      group,
+      hiddenColumns,
+    ],
+  )
   // Slice D: when ?lifecycle=v2 is active AND the URL has no explicit
   // ?sort= param, default the queue to internal deadline ascending instead of
   // Smart Priority. Smart Priority remains in the sort dropdown — it's
@@ -1227,6 +1396,10 @@ export function ObligationQueueRoute() {
   const lastSelectedIdRef = useRef<string | null>(null)
   const [openHeaderFilter, setOpenHeaderFilter] = useState<string | null>(null)
   const [extendedMemoOpen, setExtendedMemoOpen] = useState(false)
+  // P0: confirm gate for the bulk "Remind to sign" floating-bar action.
+  const [remindToSignConfirmOpen, setRemindToSignConfirmOpen] = useState(false)
+  // P1: bulk "Decide extension" floating-bar action.
+  const [bulkExtensionOpen, setBulkExtensionOpen] = useState(false)
   const [extendedMemo, setExtendedMemo] = useState('')
   const [exportModalOpen, setExportModalOpen] = useState(false)
   const [exportScope, setExportScope] = useState<ObligationExportDialogScope>('filtered')
@@ -1409,6 +1582,8 @@ export function ObligationQueueRoute() {
       ...(minDaysUntilDue !== undefined ? { minDaysUntilDue } : {}),
       ...(maxDaysUntilDue !== undefined ? { maxDaysUntilDue } : {}),
       ...(evidence === 'needs' ? { needsEvidence: true } : {}),
+      ...(awaitingSignature ? { awaitingSignature: true } : {}),
+      ...(projected ? { confirmed: false } : {}),
       ...(asOf ? { asOfDate: asOf } : {}),
       sort,
       limit: PAGE_SIZE,
@@ -1430,6 +1605,8 @@ export function ObligationQueueRoute() {
       minDaysUntilDue,
       maxDaysUntilDue,
       evidence,
+      awaitingSignature,
+      projected,
       asOf,
       sort,
     ],
@@ -1513,6 +1690,82 @@ export function ObligationQueueRoute() {
       },
       onError: (err) => {
         toast.error(t`Couldn't update selected rows`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  const confirmObligationsMutation = useMutation(
+    orpc.obligations.confirmObligations.mutationOptions({
+      onSuccess: (result) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+        setRowSelection({})
+        toast.success(t`${result.confirmedCount} deadlines confirmed`, {
+          description: t`Confirmed deadlines now send client reminders on schedule.`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't confirm deadlines`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  // P0: bulk Form 8879 signature reminders from the floating action bar.
+  // The server emails only the rows actually awaiting signature and
+  // returns counts so the toast can report what was sent vs skipped.
+  const bulkRemindSignatureMutation = useMutation(
+    orpc.obligations.bulkRemindSignature.mutationOptions({
+      onSuccess: (result) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+        setRowSelection({})
+        const description =
+          result.skippedCount > 0 || result.noEmailCount > 0
+            ? t`${result.remindedCount} emailed · ${result.skippedCount} not awaiting signature · ${result.noEmailCount} without an email on file`
+            : t`${result.remindedCount} emailed`
+        toast.success(t`Signature reminders sent`, { description })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't send reminders`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  // P1: bulk "Decide extension" from the floating action bar. Applies one
+  // extension plan to every eligible selected deadline; the server skips rows
+  // already extended (or past the shared target date) and returns counts.
+  const bulkDecideExtensionMutation = useMutation(
+    orpc.obligations.bulkDecideExtension.mutationOptions({
+      onSuccess: (result) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.getDetail.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.firms.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+        setRowSelection({})
+        toast.success(t`Extension plans saved`, {
+          description:
+            result.skippedCount > 0
+              ? t`${result.decidedCount} deadlines extended · ${result.skippedCount} skipped (already extended or past deadline)`
+              : t`${result.decidedCount} deadlines extended`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't decide extensions`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -1760,19 +2013,19 @@ export function ObligationQueueRoute() {
         : null
   const openQueueDetail = useCallback(
     (obligationId: string, tab: ObligationQueueDetailTab = activeDetailTab) => {
-      void navigate(deadlineDetailHref({ obligationId, tab, search: location.search }), {
+      void navigate(deadlineDetailHref({ obligationId, tab, search: deadlineDetailSearch }), {
         state: { obligationId },
       })
     },
-    [activeDetailTab, location.search, navigate],
+    [activeDetailTab, deadlineDetailSearch, navigate],
   )
   const closeQueueDetail = useCallback(() => {
     if (routeObligationRef) {
-      void navigate(`/deadlines${cleanDeadlineDetailSearch(location.search)}`)
+      void navigate(`/deadlines${deadlineDetailSearch}`)
       return
     }
     void setObligationQueueQuery({ drawer: null, id: null, row: null })
-  }, [location.search, navigate, routeObligationRef, setObligationQueueQuery])
+  }, [deadlineDetailSearch, navigate, routeObligationRef, setObligationQueueQuery])
   const onRowSelectionChange = useCallback(
     (updater: Updater<RowSelectionState>) => {
       const nextSelection = functionalUpdate(updater, rowSelection)
@@ -2391,6 +2644,43 @@ export function ObligationQueueRoute() {
                 compact={panelOpenIntent}
                 readOnly={!canUpdateObligationStatus}
               />
+              {/* Projected (rolled-forward / auto-generated) deadline awaiting CPA
+                  confirmation — withheld from the reminder pipeline until confirmed. */}
+              {!obligationQueueRow.confirmed ? (
+                <Badge
+                  variant="secondary"
+                  className="h-5 px-1.5 text-caption-xs"
+                  title={t`Projected — won't send client reminders until a CPA confirms it.`}
+                >
+                  <Trans>Projected</Trans>
+                </Badge>
+              ) : null}
+              {/* Awaiting-signature signal. A row marked Filed but still
+                  parked at efileState=authorization_requested isn't truly
+                  done — it's waiting on the client's 8879. Quiet outline
+                  chip so the green Filed pill stops reading as "complete."
+                  Mirrors the queue "Awaiting signature" filter lens. */}
+              {obligationQueueRow.status === 'done' &&
+              obligationQueueRow.efileState === 'authorization_requested' ? (
+                panelOpenIntent ? (
+                  <span
+                    title={t`Filed, but the client hasn't signed Form 8879 yet — e-filing is blocked until they sign.`}
+                    aria-label={t`Awaiting signature`}
+                    className="inline-flex size-4 shrink-0 items-center justify-center text-text-tertiary"
+                  >
+                    <Hourglass className="size-3.5" aria-hidden />
+                  </span>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="h-5 gap-1 px-1.5 text-caption-xs"
+                    title={t`Filed, but the client hasn't signed Form 8879 yet — e-filing is blocked until they sign.`}
+                  >
+                    <Hourglass className="size-3" aria-hidden />
+                    <Trans>Awaiting signature</Trans>
+                  </Badge>
+                )
+              ) : null}
               {obligationQueueRow.efileAcceptedAt && obligationQueueRow.status !== 'completed' ? (
                 <span
                   className="inline-flex items-center gap-1 rounded-full bg-state-success-solid px-2 py-0.5 text-caption-xs font-medium text-text-inverted"
@@ -2867,6 +3157,11 @@ export function ObligationQueueRoute() {
     })
   }
 
+  function confirmSelectedProjected() {
+    if (selectedIds.length === 0) return
+    confirmObligationsMutation.mutate({ obligationIds: selectedIds })
+  }
+
   function changeSelectedAssignee(assigneeId: string | null, assigneeName?: string) {
     if (selectedClientIds.length === 0) return
     bulkAssigneeMutation.mutate(
@@ -3294,6 +3589,26 @@ export function ObligationQueueRoute() {
               >
                 <Trans>Needs evidence</Trans>
               </ObligationQueueActionChip>
+              <ObligationQueueActionChip
+                active={awaitingSignature === true}
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    awaitingSignature: awaitingSignature ? null : true,
+                  })
+                }
+              >
+                <Trans>Awaiting signature</Trans>
+              </ObligationQueueActionChip>
+              <ObligationQueueActionChip
+                active={projected === true}
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    projected: projected ? null : true,
+                  })
+                }
+              >
+                <Trans>Projected</Trans>
+              </ObligationQueueActionChip>
               {/* "Penalty input needed" chip retired 2026-05-22 with
                 hanxujiang's projected-exposure refactor (30f29dc).
                 The `exposure` query param and its filter pipeline are
@@ -3301,6 +3616,7 @@ export function ObligationQueueRoute() {
                 inside the obligation drawer. */}
             </div>
             <div className="flex flex-wrap items-center gap-3">
+              <RollForwardAction canRun={canRunMigration} />
               {/* "Applied · <chip> · Clear filters" strip removed
                 2026-05-21 — the row chips above are already the
                 authoritative active-filter display, and each carries
@@ -3324,7 +3640,7 @@ export function ObligationQueueRoute() {
                   to DropdownMenu puts Sort-by in the same interaction
                   family as the Columns dropdown right next to it.
                   Trigger chrome unchanged (single "Sort by X" label,
-                  matches Pulse). */}
+                  matches Alerts). */}
               <DropdownMenu>
                 {/* 2026-05-26 (Yuqi feedback — "change the icon for
                     sort by to lucide arrow-down-up"): the FilterTrigger
@@ -3584,6 +3900,27 @@ export function ObligationQueueRoute() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
+              {/* Confirm projected (rolled-forward / auto-generated) deadlines so
+                  they leave the Projected lens and re-enter the reminder pipeline.
+                  Already-confirmed rows are no-ops server-side. */}
+              <Button
+                // In the Projected lens this is the primary action — lift it from
+                // ghost to accent (+ a check icon) so CPAs don't miss it among the
+                // peer bulk actions. Stays ghost in other views where the selection
+                // may be already-confirmed rows.
+                variant={projected ? 'accent' : 'ghost'}
+                size="sm"
+                disabled={!canUpdateObligationStatus || confirmObligationsMutation.isPending}
+                title={
+                  canUpdateObligationStatus
+                    ? t`Confirm projected deadlines so they enter the reminder pipeline`
+                    : t`Confirming requires owner, partner, manager, or preparer access.`
+                }
+                onClick={confirmSelectedProjected}
+              >
+                <CircleCheck data-icon="inline-start" />
+                <Trans>Confirm projected</Trans>
+              </Button>
               {/* 2026-05-26 (Yuqi /deadlines redesign): Snooze
                   surfaced as a peer of Assign / Set status / Export.
                   Backend mutation (bulk reschedule internal due
@@ -3606,6 +3943,40 @@ export function ObligationQueueRoute() {
               <Button variant="ghost" size="sm" onClick={() => openExportDialog('selected')}>
                 <ArrowUpRightIcon data-icon="inline-start" />
                 <Trans>Export</Trans>
+              </Button>
+              {/* P0: bulk Form 8879 signature reminder. Outward-facing,
+                  fan-out email — confirm before sending. Rows not awaiting
+                  signature are skipped server-side. */}
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!canUpdateObligationStatus || bulkRemindSignatureMutation.isPending}
+                title={
+                  canUpdateObligationStatus
+                    ? t`Email selected clients a Form 8879 signature reminder`
+                    : t`Requires status-update access`
+                }
+                onClick={() => setRemindToSignConfirmOpen(true)}
+              >
+                <SendIcon data-icon="inline-start" />
+                <Trans>Remind to sign</Trans>
+              </Button>
+              {/* P1: bulk "Decide extension" — applies one extension plan to
+                  every eligible selected deadline. Rows already extended (or
+                  past the shared target date) are skipped server-side. */}
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!canUpdateObligationStatus || bulkDecideExtensionMutation.isPending}
+                title={
+                  canUpdateObligationStatus
+                    ? t`Apply an internal extension plan to the selected deadlines`
+                    : t`Requires status-update access`
+                }
+                onClick={() => setBulkExtensionOpen(true)}
+              >
+                <CalendarClockIcon data-icon="inline-start" />
+                <Trans>Decide extension</Trans>
               </Button>
               <Separator orientation="vertical" className="mx-0.5 h-4" />
               <Button
@@ -4217,7 +4588,7 @@ export function ObligationQueueRoute() {
         {/* 2026-05-26 (Yuqi fifty-ninth pass — architectural parity with
             Alerts panel): wrap in AnimatePresence + motion.div so the
             panel uses the same paper-rises enter + dissolve exit motion
-            that /rules/pulse uses. Two layered motion divs:
+            that /alerts uses. Two layered motion divs:
               • Outer: animates the flex slot's width (0 → 600px on xl+,
                 or full-width on narrower viewports). Fast (300ms) with
                 Apple's swiftOut curve so the column opens cleanly.
@@ -4230,14 +4601,14 @@ export function ObligationQueueRoute() {
             with the same feel as Alerts. */}
         <AnimatePresence initial={false}>
           {activeDetailId ? (
-            // 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
+            // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
             //
             // The OUTER motion.div is the FLEX SLOT — it owns
             // width: 0 → 60%. Stable key so AnimatePresence
             // doesn't remount on row switch; the queue beside
             // it holds its geometry.
             //
-            // Width contract (matches PulseDetailDrawer wrapper
+            // Width contract (matches AlertDetailDrawer wrapper
             // in AlertsListPage.tsx L838-867):
             //   • `shrink-0` so the slot's animated width is the
             //     authoritative source, never compressed by the
@@ -4250,7 +4621,7 @@ export function ObligationQueueRoute() {
             // The INNER motion.div is the PAPER-RISE surface.
             // On initial open it slides up from y:'100%' → 0
             // (paper extrudes from below the slot), matching
-            // Pulse's "paper printing from the desk" motion.
+            // the alert drawer's "paper printing from the desk" motion.
             // On ROW SWITCH (activeDetailId changes), the inner
             // `<AnimatePresence mode="wait">` swaps the content
             // with a quick fade so the user gets feedback that
@@ -4542,6 +4913,45 @@ export function ObligationQueueRoute() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* P0: editable bulk signature-reminder dialog — same editor as the
+          single drawer flow. The Send button is the deliberate fan-out
+          action; the dialog shows how many clients will actually be emailed
+          and a live preview of how the template resolves per client. */}
+      <SignatureReminderDialog
+        open={remindToSignConfirmOpen}
+        onOpenChange={setRemindToSignConfirmOpen}
+        target={{ mode: 'bulk', ids: selectedIds }}
+        sending={bulkRemindSignatureMutation.isPending}
+        onSend={({ subject, body, excludeIds }) => {
+          // "Skip recently reminded" drops those ids before sending.
+          const ids = excludeIds?.length
+            ? selectedIds.filter((id) => !excludeIds.includes(id))
+            : selectedIds
+          if (ids.length === 0) {
+            setRemindToSignConfirmOpen(false)
+            return
+          }
+          bulkRemindSignatureMutation.mutate(
+            { ids, subject, body },
+            { onSuccess: () => setRemindToSignConfirmOpen(false) },
+          )
+        }}
+      />
+      {/* P1: bulk "Decide extension" dialog — caps the target date at the
+          earliest filing deadline in the selection so every eligible row
+          passes validation. */}
+      <BulkExtensionDialog
+        open={bulkExtensionOpen}
+        onOpenChange={setBulkExtensionOpen}
+        ids={selectedIds}
+        sending={bulkDecideExtensionMutation.isPending}
+        onSend={(payload) => {
+          bulkDecideExtensionMutation.mutate(
+            { ids: selectedIds, ...payload },
+            { onSuccess: () => setBulkExtensionOpen(false) },
+          )
+        }}
+      />
     </div>
   )
 }
@@ -4976,6 +5386,438 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
 // generic numeric-range column filter again, restore from git
 // history (commit before 2026-05-26-deadlines-pass-65).
 
+// P0: editable email preview shared by the single ("Remind client to sign")
+// and bulk ("Remind to sign") flows. The CPA edits a TOKEN template
+// ({{client_name}} / {{form}} / {{tax_year}}); the server substitutes it per
+// recipient on send, so one edited template still personalizes each email. A
+// live preview shows how the current template resolves for one sample client.
+type SignatureReminderTarget =
+  | { mode: 'single'; obligationId: string | null }
+  | { mode: 'bulk'; ids: string[] }
+
+function SignatureReminderDialog({
+  open,
+  onOpenChange,
+  target,
+  sending,
+  onSend,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  target: SignatureReminderTarget
+  sending: boolean
+  onSend: (input: { subject: string; body: string; excludeIds?: string[] }) => void
+}) {
+  const { t } = useLingui()
+  const isBulk = target.mode === 'bulk'
+  const singleQuery = useQuery({
+    ...orpc.obligations.signatureReminderPreview.queryOptions({
+      input: { id: target.mode === 'single' ? (target.obligationId ?? '') : '' },
+    }),
+    enabled: open && target.mode === 'single' && Boolean(target.obligationId),
+  })
+  const bulkQuery = useQuery({
+    ...orpc.obligations.bulkSignatureReminderPreview.queryOptions({
+      input: { ids: target.mode === 'bulk' ? target.ids : [] },
+    }),
+    enabled: open && target.mode === 'bulk' && target.ids.length > 0,
+  })
+  const isLoading = isBulk ? bulkQuery.isLoading : singleQuery.isLoading
+  const data = isBulk ? bulkQuery.data : singleQuery.data
+
+  const [subject, setSubject] = useState('')
+  const [body, setBody] = useState('')
+  const [edited, setEdited] = useState(false)
+  // Which eligible recipient the bulk preview is paged to (single mode ignores).
+  const [previewIndex, setPreviewIndex] = useState(0)
+  // P1 throttle: bulk "skip recently reminded" toggle + single two-click
+  // "send anyway" confirm when the client was nudged within the window.
+  const [skipRecent, setSkipRecent] = useState(false)
+  const [confirmResend, setConfirmResend] = useState(false)
+  // Seed the editable fields from the server template once it arrives
+  // (unless the CPA already started editing this open session).
+  useEffect(() => {
+    if (open && data && !edited) {
+      setSubject(data.subjectTemplate)
+      setBody(data.bodyTemplate)
+    }
+  }, [open, data, edited])
+  // Reset on close so the next open re-seeds from a fresh template.
+  useEffect(() => {
+    if (!open) {
+      setSubject('')
+      setBody('')
+      setEdited(false)
+      setPreviewIndex(0)
+      setSkipRecent(false)
+      setConfirmResend(false)
+    }
+  }, [open])
+
+  const tokens = data?.tokens ?? []
+  // Single returns one recipient; bulk returns every eligible recipient so the
+  // CPA can page through them. Clamp the index in case the data shrank.
+  const singleSample = singleQuery.data?.sample ?? null
+  const bulkSamples = bulkQuery.data?.samples ?? []
+  const previewTotal = bulkSamples.length
+  const safePreviewIndex = previewTotal > 0 ? Math.min(previewIndex, previewTotal - 1) : 0
+  // Live-render the preview against the active sample recipient as the CPA edits.
+  const sample = isBulk ? (bulkSamples[safePreviewIndex] ?? null) : singleSample
+  const previewSubject = sample ? renderTemplate(subject, sample.vars) : ''
+  const previewBody = sample ? renderTemplate(body, sample.vars) : ''
+
+  const recipientEmail = singleQuery.data?.recipientEmail ?? null
+  const eligibleCount = bulkQuery.data?.eligibleCount ?? 0
+  const hasRecipient = isBulk ? eligibleCount > 0 : Boolean(recipientEmail)
+  const canSend = hasRecipient && subject.trim().length > 0 && body.trim().length > 0 && !sending
+
+  // P1 repeat-nudge throttle. Single: warn + require a "send anyway" confirm
+  // when this client was reminded within the window. Bulk: count + optionally
+  // skip the eligible rows reminded recently. Never hard-blocks the send.
+  const throttleMs = SIGNATURE_REMINDER_THROTTLE_DAYS * 86_400_000
+  const lastRemindedAt = singleQuery.data?.lastRemindedAt ?? null
+  const msSinceReminded = lastRemindedAt ? Date.now() - new Date(lastRemindedAt).getTime() : null
+  const recentlyReminded = !isBulk && msSinceReminded !== null && msSinceReminded < throttleMs
+  const daysSinceReminded = msSinceReminded !== null ? Math.floor(msSinceReminded / 86_400_000) : 0
+  const recentlyRemindedCount = bulkQuery.data?.recentlyRemindedCount ?? 0
+  const recentlyRemindedIds = bulkQuery.data?.recentlyRemindedIds ?? []
+  const needsResendConfirm = recentlyReminded && !confirmResend
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>
+            {isBulk ? (
+              <Trans>Remind clients to sign Form 8879</Trans>
+            ) : (
+              <Trans>Remind client to sign Form 8879</Trans>
+            )}
+          </DialogTitle>
+          <DialogDescription>
+            {isBulk ? (
+              <Trans>
+                Edit the email, then send it to the selected clients. Each client gets their own
+                details filled in; deadlines not awaiting a signature are skipped.
+              </Trans>
+            ) : recipientEmail ? (
+              <Trans>Review and edit the email, then send it to {recipientEmail}.</Trans>
+            ) : (
+              <Trans>No email address on file for this client — add one to send a reminder.</Trans>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+        {isLoading ? (
+          <p className="text-sm text-text-tertiary">
+            <Trans>Loading preview…</Trans>
+          </p>
+        ) : (
+          <div className="grid gap-3">
+            {isBulk ? (
+              <p className="text-sm text-text-secondary">
+                <Trans>
+                  Sending to {eligibleCount} clients · {bulkQuery.data?.skippedCount ?? 0} not
+                  awaiting signature · {bulkQuery.data?.noEmailCount ?? 0} without an email
+                </Trans>
+              </p>
+            ) : null}
+            {/* P1 throttle: bulk skip toggle for recently-reminded clients. */}
+            {isBulk && recentlyRemindedCount > 0 ? (
+              <label className="flex items-center gap-2 text-sm text-text-secondary">
+                <Checkbox
+                  checked={skipRecent}
+                  onCheckedChange={(checked) => setSkipRecent(checked)}
+                />
+                <Plural
+                  value={recentlyRemindedCount}
+                  one="Skip # client reminded in the last few days"
+                  other="Skip # clients reminded in the last few days"
+                />
+              </label>
+            ) : null}
+            {/* P1 throttle: single "you just reminded them" warning. */}
+            {recentlyReminded ? (
+              <p className="rounded-md bg-background-subtle px-3 py-2 text-sm text-text-secondary">
+                <Trans>
+                  You reminded this client{' '}
+                  <Plural value={daysSinceReminded} _0="today" one="# day ago" other="# days ago" />
+                  . Send another?
+                </Trans>
+              </p>
+            ) : null}
+            <div className="grid gap-1.5">
+              <label htmlFor="signature-reminder-subject" className="text-sm font-medium">
+                <Trans>Subject</Trans>
+              </label>
+              <Input
+                id="signature-reminder-subject"
+                value={subject}
+                onChange={(event) => {
+                  setSubject(event.target.value)
+                  setEdited(true)
+                }}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <label htmlFor="signature-reminder-body" className="text-sm font-medium">
+                <Trans>Message</Trans>
+              </label>
+              <Textarea
+                id="signature-reminder-body"
+                rows={9}
+                value={body}
+                onChange={(event) => {
+                  setBody(event.target.value)
+                  setEdited(true)
+                }}
+              />
+            </div>
+            {tokens.length > 0 ? (
+              <p className="text-xs text-text-tertiary">
+                <Trans>Placeholders filled in per client:</Trans>{' '}
+                {tokens.map((token) => `{{${token}}}`).join(' · ')}
+              </p>
+            ) : null}
+            {sample ? (
+              <div className="grid gap-1 rounded-md bg-background-subtle p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
+                    <Trans>Preview for {sample.clientName}</Trans>
+                  </p>
+                  {isBulk && previewTotal > 1 ? (
+                    <div
+                      className="inline-flex items-center gap-0.5 text-xs text-text-secondary"
+                      role="group"
+                      aria-label={t`Preview pagination`}
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="h-6 w-6"
+                        aria-label={t`Previous client`}
+                        disabled={safePreviewIndex === 0}
+                        onClick={() => setPreviewIndex((index) => Math.max(0, index - 1))}
+                      >
+                        <ChevronLeftIcon className="size-3.5" aria-hidden />
+                      </Button>
+                      <span className="min-w-10 px-1 text-center tabular-nums">
+                        <Trans>
+                          {safePreviewIndex + 1} / {previewTotal}
+                        </Trans>
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="h-6 w-6"
+                        aria-label={t`Next client`}
+                        disabled={safePreviewIndex + 1 >= previewTotal}
+                        onClick={() =>
+                          setPreviewIndex((index) => Math.min(previewTotal - 1, index + 1))
+                        }
+                      >
+                        <ChevronRightIcon className="size-3.5" aria-hidden />
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
+                <p className="text-sm font-medium text-text-primary">{previewSubject}</p>
+                <p className="text-sm whitespace-pre-wrap text-text-secondary">{previewBody}</p>
+              </div>
+            ) : null}
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button
+            disabled={!canSend}
+            onClick={() => {
+              // Single: first click on a recently-reminded client just confirms.
+              if (needsResendConfirm) {
+                setConfirmResend(true)
+                return
+              }
+              onSend({
+                subject: subject.trim(),
+                body: body.trim(),
+                ...(isBulk && skipRecent ? { excludeIds: recentlyRemindedIds } : {}),
+              })
+            }}
+          >
+            {needsResendConfirm ? (
+              <Trans>Send anyway</Trans>
+            ) : isBulk ? (
+              <Trans>Send reminders</Trans>
+            ) : (
+              <Trans>Send reminder</Trans>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// P1: bulk "Decide extension" dialog. Collects one shared extension plan (memo
+// + optional source + optional internal target date) and applies it to every
+// eligible selected deadline. The date picker is capped at the earliest filing
+// deadline in the selection (from the preview) so any picked date passes the
+// server's per-row "target ≤ filing deadline" check for every row.
+function BulkExtensionDialog({
+  open,
+  onOpenChange,
+  ids,
+  sending,
+  onSend,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  ids: string[]
+  sending: boolean
+  onSend: (input: { memo: string; source?: string; internalTargetDate?: string }) => void
+}) {
+  const { t } = useLingui()
+  const query = useQuery({
+    ...orpc.obligations.bulkExtensionDecisionPreview.queryOptions({ input: { ids } }),
+    enabled: open && ids.length > 0,
+  })
+  const [memo, setMemo] = useState('')
+  const [source, setSource] = useState('')
+  const [internalTargetDate, setInternalTargetDate] = useState('')
+  // Reset on close so the next open starts clean.
+  useEffect(() => {
+    if (!open) {
+      setMemo('')
+      setSource('')
+      setInternalTargetDate('')
+    }
+  }, [open])
+
+  const eligibleCount = query.data?.eligibleCount ?? 0
+  const needsManualCount = query.data?.needsManualDeadlineCount ?? 0
+  // Rows that can actually be bulk-decided: eligible AND have a computable
+  // extended date. Rows lacking a statutory duration are skipped in bulk
+  // (they need an individually-entered extended date).
+  const applicableCount = Math.max(0, eligibleCount - needsManualCount)
+  // Cap the picker at the earliest EXTENDED deadline so any picked date is
+  // valid for every applicable row.
+  const cap = query.data?.earliestExtendedFilingDeadline ?? ''
+  // The picker normally prevents this, but guard if the cap shrank after a
+  // re-query while a later date was already chosen.
+  const dateInvalid = internalTargetDate !== '' && cap !== '' && internalTargetDate > cap
+  // Internal target date is required (mirrors the single extension's
+  // canSaveInternalExtensionPlan), alongside a memo.
+  const canSend =
+    applicableCount > 0 &&
+    memo.trim().length > 0 &&
+    internalTargetDate !== '' &&
+    !dateInvalid &&
+    !sending
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
+            <Trans>Decide extension for selected deadlines</Trans>
+          </DialogTitle>
+          <DialogDescription>
+            <Trans>
+              Apply an internal extension plan to every eligible selected deadline. Each filing
+              deadline moves to its statutory extended date; payment stays due on the original date.
+              The target date is capped at the earliest extended deadline; deadlines already
+              extended are skipped.
+            </Trans>
+          </DialogDescription>
+        </DialogHeader>
+        {query.isLoading ? (
+          <p className="text-sm text-text-tertiary">
+            <Trans>Loading preview…</Trans>
+          </p>
+        ) : (
+          <div className="grid gap-3">
+            <p className="text-sm text-text-secondary">
+              <Trans>
+                Extending {applicableCount} deadlines · {query.data?.alreadyExtendedCount ?? 0}{' '}
+                already extended · {query.data?.skippedCount ?? 0} not found
+              </Trans>
+            </p>
+            {needsManualCount > 0 ? (
+              <p className="text-xs text-text-tertiary">
+                <Plural
+                  value={needsManualCount}
+                  one="# selected deadline has no fixed extension length — decide it individually."
+                  other="# selected deadlines have no fixed extension length — decide them individually."
+                />
+              </p>
+            ) : null}
+            <div className="grid gap-1.5">
+              <label htmlFor="bulk-extension-memo" className="text-sm font-medium">
+                <Trans>Decision memo</Trans>
+              </label>
+              <Textarea
+                id="bulk-extension-memo"
+                rows={4}
+                value={memo}
+                onChange={(event) => setMemo(event.target.value)}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <label htmlFor="bulk-extension-source" className="text-sm font-medium">
+                <Trans>Source (optional)</Trans>
+              </label>
+              <Input
+                id="bulk-extension-source"
+                value={source}
+                onChange={(event) => setSource(event.target.value)}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <label className="text-sm font-medium">
+                <Trans>Internal target date</Trans>
+              </label>
+              <IsoDatePicker
+                value={internalTargetDate}
+                invalid={dateInvalid}
+                {...(cap ? { maxIsoDate: cap } : {})}
+                ariaLabel={t`Internal extension target date`}
+                placeholder={t`Internal extension target date`}
+                onValueChange={setInternalTargetDate}
+              />
+              {cap ? (
+                <p className="text-xs text-text-tertiary">
+                  <Trans>Capped at the earliest extended filing deadline: {cap}</Trans>
+                </p>
+              ) : null}
+              <p className="text-xs text-text-tertiary">
+                <Trans>Payment stays due on each deadline&apos;s original date.</Trans>
+              </p>
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button
+            disabled={!canSend}
+            onClick={() =>
+              onSend({
+                memo: memo.trim(),
+                ...(source.trim() ? { source: source.trim() } : {}),
+                ...(internalTargetDate ? { internalTargetDate } : {}),
+              })
+            }
+          >
+            <Trans>Decide extensions</Trans>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export function ObligationQueueDetailDrawer({
   obligationId,
   activeTab,
@@ -5066,6 +5908,9 @@ export function ObligationQueueDetailDrawer({
     message: '',
   })
   const [authorityRejectionDialogOpen, setAuthorityRejectionDialogOpen] = useState(false)
+  // P0: editable signature-reminder email preview dialog (opened from the
+  // drawer's "Remind client to sign" action).
+  const [remindDialogOpen, setRemindDialogOpen] = useState(false)
   const [authorityRejectionDraft, setAuthorityRejectionDraft] = useState<AuthorityRejectionDraft>({
     rejectedAt: todayIsoDate(),
     authority: 'IRS',
@@ -5225,12 +6070,36 @@ export function ObligationQueueDetailDrawer({
   void deadlineTipPreparing
   const latestRequest = detail?.readinessRequests[0] ?? null
   const storedChecklist = detail?.readinessChecklist ?? EMPTY_DOCUMENT_CHECKLIST
-  const extensionFilingDeadline = row?.filingDueDate ?? row?.baseDueDate ?? ''
+  // Extension policy from the matched rule (drives the extended-deadline math).
+  const extensionPolicy = detail?.matchedRule?.extensionPolicy ?? null
+  const extensionDurationMonths = extensionPolicy?.durationMonths ?? null
+  const extensionOriginalDeadline = row?.baseDueDate ?? ''
+  // The statutory extended filing deadline, computed from the immutable base
+  // date so it matches the server (and stays stable across re-saves). Rules
+  // with no durationMonths (Form 8809 / TX franchise) need a manual date.
+  const extensionComputedDeadline =
+    row && extensionDurationMonths !== null && isValidIsoDate(row.baseDueDate)
+      ? computeExtendedFilingDeadline(
+          new Date(`${row.baseDueDate}T00:00:00.000Z`),
+          extensionDurationMonths,
+        )
+          .toISOString()
+          .slice(0, 10)
+      : ''
+  const extensionNeedsManualDeadline = Boolean(row) && extensionDurationMonths === null
+  // The cap for the internal target picker = the extended filing deadline
+  // (manual date when the rule has no duration). The internal target can now
+  // sit anywhere up to the extended deadline — the whole point of an extension.
+  const extensionDeadlineCap = extensionNeedsManualDeadline
+    ? extensionDraft.extendedFilingDate
+    : extensionComputedDeadline
+  const extensionManualDeadlineInvalid =
+    extensionNeedsManualDeadline &&
+    extensionDraft.extendedFilingDate !== '' &&
+    isValidIsoDate(extensionOriginalDeadline) &&
+    extensionDraft.extendedFilingDate <= extensionOriginalDeadline
   const internalTargetDateInvalid = row
-    ? !isInternalExtensionTargetDateValid(
-        extensionDraft.internalTargetDate,
-        extensionFilingDeadline,
-      )
+    ? !isInternalExtensionTargetDateValid(extensionDraft.internalTargetDate, extensionDeadlineCap)
     : false
   const fiscalYearEnd = fiscalYearEndParts(taxYearDraft.fiscalYearEndDate)
   const taxYearFiscalMissing =
@@ -5521,9 +6390,11 @@ export function ObligationQueueDetailDrawer({
   )
   const saveExtensionPlanDisabled =
     !row ||
+    (extensionNeedsManualDeadline &&
+      (extensionDraft.extendedFilingDate === '' || extensionManualDeadlineInvalid)) ||
     !canSaveInternalExtensionPlan({
       draftTargetDate: extensionDraft.internalTargetDate,
-      filingDeadline: extensionFilingDeadline,
+      filingDeadline: extensionDeadlineCap,
       isPending: decideExtensionMutation.isPending,
       memo: extensionDraft.memo,
     })
@@ -5562,6 +6433,50 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't mark e-file rejected`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  // P0 signature loop: advance the e-file pipeline from
+  // authorization_requested → authorization_signed when the client returns
+  // their signed 8879. Sub-status only — status stays `done` ("Filed").
+  // Base mutation handles invalidate + error toast; the success toast
+  // (with Undo) fires from the per-call onSuccess at the call site, same
+  // split as `changeStatus` below.
+  const updateEfileStateMutation = useMutation(
+    orpc.obligations.updateEfileState.mutationOptions({
+      onSuccess: () => {
+        invalidateDetail()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't update e-file state`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  // P0: email the client a Form 8879 signature reminder. Record-and-send —
+  // the server queues the email AND writes an audit row (so the stage card
+  // can surface "last reminded N days ago"). No Undo — you can't unsend.
+  const remindSignatureMutation = useMutation(
+    orpc.obligations.remindSignature.mutationOptions({
+      onSuccess: (result) => {
+        invalidateDetail()
+        if (result.emailQueued) {
+          toast.success(t`Signature reminder emailed`)
+        } else {
+          toast.warning(t`No client email on file`, {
+            description: t`Add an email address for this client to send signature reminders.`,
+          })
+        }
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't send reminder`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -5871,6 +6786,14 @@ export function ObligationQueueDetailDrawer({
 
   function saveExtensionDecision() {
     if (!row) return
+    if (extensionNeedsManualDeadline && !extensionDraft.extendedFilingDate) {
+      toast.error(t`Enter the extended filing deadline.`)
+      return
+    }
+    if (extensionManualDeadlineInvalid) {
+      toast.error(t`Extended filing deadline must be after the original deadline.`)
+      return
+    }
     if (!extensionDraft.internalTargetDate) {
       toast.error(t`Internal extension target date is required.`)
       return
@@ -5880,7 +6803,9 @@ export function ObligationQueueDetailDrawer({
       return
     }
     if (internalTargetDateInvalid) {
-      toast.error(t`Internal extension target date must be on or before the filing deadline.`)
+      toast.error(
+        t`Internal extension target date must be on or before the extended filing deadline.`,
+      )
       return
     }
 
@@ -5889,6 +6814,9 @@ export function ObligationQueueDetailDrawer({
       memo: extensionDraft.memo.trim(),
       ...(extensionDraft.source.trim() ? { source: extensionDraft.source.trim() } : {}),
       internalTargetDate: extensionDraft.internalTargetDate,
+      ...(extensionNeedsManualDeadline && extensionDraft.extendedFilingDate
+        ? { extendedFilingDate: extensionDraft.extendedFilingDate }
+        : {}),
     })
   }
 
@@ -5978,7 +6906,7 @@ export function ObligationQueueDetailDrawer({
   // (e.g. "Form 1040") with the client name as a kicker label above
   // — see header comment below for the rationale.
   const titleText = row?.clientName ?? null
-  const body = (
+  const drawerBody = (
     <>
       {/* Header — flipped 2026-05-23. The drawer is a per-obligation
           surface, so the obligation identity (Form 1040, Form 1120-S)
@@ -6009,18 +6937,18 @@ export function ObligationQueueDetailDrawer({
           meta line — about 80-100px of content. py-10 (40+40)
           added 80px of dead chrome around it. py-6 (24+24) gives
           enough breathing room without the panel reading as half-
-          empty before the body even starts. Pulse drawer keeps
+          empty before the body even starts. Alert drawer keeps
           py-10 because its header has a state kicker + bigger h1
           + chip row + description — more content earning more
           vertical space. */}
-      {/* 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
-          header padding aligned to PulseDetailDrawer.tsx L574
+      {/* 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
+          header padding aligned to AlertDetailDrawer.tsx L574
           (`px-12 py-10`). Both right-rail drawers in the product
           now share the same paper-document header rhythm — same
           left margin top-to-bottom, same vertical breathing room
           above the title. The earlier inset-followups tightening
           (px-8 py-5) was reverted in favor of cross-drawer
-          consistency per Yuqi's "should match Pulse alert detail"
+          consistency per Yuqi's "should match Alert detail"
           instruction. */}
       {/* 2026-05-27 (Yuqi "remove top padding"): header pt-10 → pt-4
           so the title sits closer to the top of the drawer. Bottom
@@ -6038,8 +6966,8 @@ export function ObligationQueueDetailDrawer({
             since Radix already owns the corner there. */}
         {mode === 'panel' && row ? (
           // 2026-05-27 (Yuqi drawer parity): close-button cluster
-          // pinned at `right-3 top-3` to match PulseDetailDrawer's
-          // close affordance (PulseDetailDrawer.tsx L1112). Both
+          // pinned at `right-3 top-3` to match AlertDetailDrawer's
+          // close affordance (AlertDetailDrawer.tsx L1112). Both
           // drawers' close X now sit at the identical corner inset.
           <div className="absolute right-3 top-3 flex items-center gap-0.5">
             <button
@@ -6101,7 +7029,7 @@ export function ObligationQueueDetailDrawer({
             // the row's true primary identity (form is the secondary
             // identifier). Bigger text gives the client the visual
             // anchor it deserves.
-            className="group/clientlink inline-flex w-fit items-center gap-1 rounded-sm pr-8 text-left text-sm text-text-secondary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            className="group/clientlink inline-flex w-fit cursor-pointer items-center gap-1 rounded-sm pr-8 text-left text-sm text-text-secondary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
           >
             <span className="font-semibold">{titleText}</span>
             <ArrowUpRightIcon
@@ -6264,11 +7192,11 @@ export function ObligationQueueDetailDrawer({
           unit (containing TabsList + tab content). */}
       {/* 2026-05-26 (Yuqi drawer canonical): body padding `px-5 pb-5`
           → `px-12 py-10` per the drawer canonical. Same paper-document
-          padding as PulseDetailDrawer body — left margin runs as one
+          padding as AlertDetailDrawer body — left margin runs as one
           line from header through body. */}
       {/* 2026-05-26 (Yuqi forty-seventh pass — sticky-footer buffer):
           body bottom padding bumped `py-10` → `pt-10 pb-24` to match
-          PulseDetailDrawer. Sticky footer (min-h-16 + py-4) was
+          AlertDetailDrawer. Sticky footer (min-h-16 + py-4) was
           covering the last content row when scrolled — 96px buffer
           guarantees clean separation between bottom content and
           action bar. */}
@@ -6276,17 +7204,17 @@ export function ObligationQueueDetailDrawer({
           body wrapper is now `flex flex-col gap-4` per drawer
           canonical. Children get a consistent 16px gap between
           them instead of each carrying its own `mb-*` margin.
-          Same shape as PulseDetailDrawer body so the two drawers
+          Same shape as AlertDetailDrawer body so the two drawers
           read with identical rhythm. */}
       <div
         className={cn(
-          // 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
-          // body padding aligned to PulseDetailDrawer.tsx L752
+          // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
+          // body padding aligned to AlertDetailDrawer.tsx L752
           // (`px-12 pt-10 pb-24`). Same left margin as header/footer
           // so the panel reads as one continuous paper-document
           // surface edge-to-edge. The earlier inset-followups
           // tightening (px-8 pt-0) was reverted for cross-drawer
-          // consistency; the body's pt-10 buffer mirrors Pulse's
+          // consistency; the body's pt-10 buffer mirrors the alert drawer's
           // header → body breathing room.
           // 2026-05-27 (Yuqi "remove padding-top"): pt-10 dropped.
           'flex flex-col gap-4 px-12 pb-12',
@@ -6690,6 +7618,53 @@ export function ObligationQueueDetailDrawer({
                         id: row.id,
                         reviewStage: nextReviewStage,
                       })
+                    }}
+                    onMarkSigned={() => {
+                      // Advance the e-file pipeline; success toast offers an
+                      // Undo that reverts to authorization_requested (the
+                      // only state mark-signed fires from). Same per-call
+                      // onSuccess + Undo split as `changeStatus`.
+                      updateEfileStateMutation.mutate(
+                        { id: row.id, efileState: 'authorization_signed' },
+                        {
+                          onSuccess: (result) => {
+                            toast.success(t`Marked 8879 signed`, {
+                              description: t`Audit ${result.auditId.slice(0, 8)}`,
+                              action: {
+                                label: t`Undo`,
+                                onClick: () =>
+                                  updateEfileStateMutation.mutate({
+                                    id: row.id,
+                                    efileState: 'authorization_requested',
+                                  }),
+                              },
+                            })
+                          },
+                        },
+                      )
+                    }}
+                    onRemindSignature={() => setRemindDialogOpen(true)}
+                    onSubmitEfile={() => {
+                      // Signed → e-filed. Undo reverts to
+                      // authorization_signed (where submit fires from).
+                      updateEfileStateMutation.mutate(
+                        { id: row.id, efileState: 'submitted' },
+                        {
+                          onSuccess: (result) => {
+                            toast.success(t`Marked e-filed`, {
+                              description: t`Audit ${result.auditId.slice(0, 8)}`,
+                              action: {
+                                label: t`Undo`,
+                                onClick: () =>
+                                  updateEfileStateMutation.mutate({
+                                    id: row.id,
+                                    efileState: 'authorization_signed',
+                                  }),
+                              },
+                            })
+                          },
+                        },
+                      )
                     }}
                   />
                 </div>
@@ -7434,15 +8409,56 @@ export function ObligationQueueDetailDrawer({
                         value={detail.matchedRule?.extensionPolicy.formName ?? t`Not specified`}
                       />
                       <DetailRow
+                        label={<Trans>Extension length</Trans>}
+                        value={
+                          extensionDurationMonths !== null
+                            ? t`${extensionDurationMonths} months`
+                            : t`Not specified`
+                        }
+                      />
+                      <DetailRow
+                        label={<Trans>Original filing deadline</Trans>}
+                        value={formatDate(extensionOriginalDeadline)}
+                      />
+                      <DetailRow
+                        label={<Trans>Extended filing deadline</Trans>}
+                        value={
+                          extensionDeadlineCap ? formatDate(extensionDeadlineCap) : t`Enter below`
+                        }
+                      />
+                      <DetailRow
+                        label={<Trans>Payment still due</Trans>}
+                        value={formatDate(row.paymentDueDate ?? row.baseDueDate)}
+                      />
+                      <DetailRow
                         label={<Trans>Rule notes</Trans>}
                         value={detail.matchedRule?.extensionPolicy.notes ?? t`No matched rule`}
                       />
                     </div>
                   </section>
+                  {extensionNeedsManualDeadline ? (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-caption-xs text-text-tertiary">
+                        <Trans>
+                          This obligation type has no fixed extension length — enter the extended
+                          filing deadline.
+                        </Trans>
+                      </span>
+                      <IsoDatePicker
+                        value={extensionDraft.extendedFilingDate}
+                        invalid={extensionManualDeadlineInvalid}
+                        ariaLabel={t`Extended filing deadline`}
+                        placeholder={t`Extended filing deadline`}
+                        onValueChange={(extendedFilingDate) =>
+                          setExtensionDraft((current) => ({ ...current, extendedFilingDate }))
+                        }
+                      />
+                    </div>
+                  ) : null}
                   <IsoDatePicker
                     value={extensionDraft.internalTargetDate}
                     invalid={internalTargetDateInvalid}
-                    maxIsoDate={extensionFilingDeadline}
+                    maxIsoDate={extensionDeadlineCap}
                     ariaLabel={t`Internal extension target date`}
                     placeholder={t`Internal extension target date`}
                     onValueChange={(internalTargetDate) =>
@@ -7717,6 +8733,19 @@ export function ObligationQueueDetailDrawer({
         }}
         onSubmit={submitAuthorityRejection}
       />
+      <SignatureReminderDialog
+        open={remindDialogOpen}
+        onOpenChange={setRemindDialogOpen}
+        target={{ mode: 'single', obligationId: row?.id ?? null }}
+        sending={remindSignatureMutation.isPending}
+        onSend={({ subject, body }) => {
+          if (!row) return
+          remindSignatureMutation.mutate(
+            { id: row.id, subject, body },
+            { onSuccess: () => setRemindDialogOpen(false) },
+          )
+        }}
+      />
       <MaterialsRequestPreviewDialog
         open={materialsRequestPreview.open}
         preview={previewRequestEmail}
@@ -7745,16 +8774,16 @@ export function ObligationQueueDetailDrawer({
         }}
       />
       {row ? (
-        /* 2026-05-27 (Yuqi drawer parity — match PulseDetailDrawer):
-           footer chrome reinstated to match the Pulse drawer's
-           sticky action bar (PulseDetailDrawer.tsx L955):
+        /* 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
+           footer chrome reinstated to match the alert drawer's
+           sticky action bar (AlertDetailDrawer.tsx L955):
              • `border-t-2 border-divider-regular` — committed
                decision surface separator (vs. relying on body's
                pb-24 alone, which read inconsistent between
                drawers).
              • `px-12` — match header/body left margin.
            The pt-4 pb-6 vertical rhythm and `min-h-16` stay —
-           those already mirror Pulse. */
+           those already mirror the alert drawer. */
         <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t-2 border-divider-regular bg-background-default px-12 pt-4 pb-6">
           {/* 2026-05-26 (Yuqi feedback #7): "Last updated" stacked
               vertically — label on line 1, timestamp on line 2.
@@ -7829,7 +8858,7 @@ export function ObligationQueueDetailDrawer({
         aria-label={titleText ?? t`Deadline detail`}
         // 2026-05-26 (Yuqi forty-eighth pass — drawer canonical
         // applied to obligation panel): chrome migrated to match
-        // PulseDetailDrawer's panel-mode aside exactly. Both
+        // AlertDetailDrawer's panel-mode aside exactly. Both
         // drawers in the product now read as the same surface
         // treatment from a CPA's perspective.
         //   • `rounded-lg border` → `border-l` only — the panel
@@ -7853,13 +8882,13 @@ export function ObligationQueueDetailDrawer({
         // row they're on.
         className="relative flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-subtle"
       >
-        {body}
+        {drawerBody}
       </aside>
     )
   }
   // Sheet mode: Radix provides backdrop, focus trap, scroll lock, Esc.
   // A visually-hidden SheetTitle satisfies Radix Dialog's a11y
-  // requirement; the visible heading is the <h2> inside `body`.
+  // requirement; the visible heading is the <h2> inside `drawerBody`.
   return (
     <Sheet open={obligationId !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <SheetContent className="flex flex-col data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none overflow-y-auto">
@@ -7867,7 +8896,7 @@ export function ObligationQueueDetailDrawer({
         <SheetDescription className="sr-only">
           <Trans>Deadline workflow detail panel.</Trans>
         </SheetDescription>
-        {body}
+        {drawerBody}
       </SheetContent>
     </Sheet>
   )
@@ -10200,6 +11229,9 @@ function ActiveStageDetailCard({
   onRecordRejection,
   onChangePrepStage,
   onChangeReviewStage,
+  onMarkSigned,
+  onRemindSignature,
+  onSubmitEfile,
 }: {
   row: ObligationQueueRow
   auditEvents: readonly AuditEventPublic[]
@@ -10210,6 +11242,12 @@ function ActiveStageDetailCard({
   onRecordRejection: () => void
   onChangePrepStage: (prepStage: ObligationPrepStage) => void
   onChangeReviewStage: (reviewStage: ObligationReviewStage) => void
+  // P0 signature loop: advance efileState → authorization_signed.
+  onMarkSigned: () => void
+  // P0: email the client a Form 8879 signature reminder.
+  onRemindSignature: () => void
+  // P0: e-file the signed return (efileState → submitted).
+  onSubmitEfile: () => void
 }) {
   const { t } = useLingui()
   // For the `blocked` stage's "Open blocking obligation" action.
@@ -10347,6 +11385,17 @@ function ActiveStageDetailCard({
     })
     return [...filtered].toSorted((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4)
   }, [auditEvents, stageStatusSet])
+  // P0: most-recent Form 8879 signature-reminder timestamp, for the "last
+  // reminded N days ago" line on the awaiting-signature stage card.
+  // Derived from the audit log — no dedicated column.
+  const lastSignatureReminderAt = useMemo(() => {
+    let latest: string | null = null
+    for (const event of auditEvents) {
+      if (event.action !== 'obligation.signature.reminded') continue
+      if (!latest || event.createdAt > latest) latest = event.createdAt
+    }
+    return latest
+  }, [auditEvents])
   const reviewCurrent = reviewPipelineCurrent(row)
   const notesOpen = row.reviewStage === 'notes_open'
   const tasks: StageTask[] = useMemo(() => {
@@ -10590,38 +11639,32 @@ function ActiveStageDetailCard({
         switch (row.efileState) {
           case 'authorization_requested':
             return [
+              // P0: both wired now. Primary = advance the pipeline once
+              // the client signs; secondary = chase them until they do.
+              {
+                id: 'mark-signed',
+                label: t`Mark 8879 signed`,
+                flavor: 'mutation',
+                primary: true,
+              },
               {
                 id: 'remind-8879',
                 label: t`Remind client to sign the 8879`,
-                flavor: 'manual',
-              },
-              {
-                id: 'mark-signed',
-                label: t`Mark 8879 signed when client returns it`,
-                flavor: 'manual',
-              },
-              // Even pre-submission rows benefit from a direct route
-              // to the Evidence tab — that's where the 8879 packet
-              // lives.
-              {
-                id: 'request-auth',
-                label: t`Open the Evidence tab`,
-                flavor: 'routing',
-                hint: t`The Evidence tab is where the 8879 packet lives`,
+                flavor: 'mutation',
               },
             ]
           case 'authorization_signed':
           case 'ready_to_submit':
+            // Client signed → the next move is to e-file with the
+            // authority. Primary, wired action (efileState →
+            // `submitted`); the Authority response panel then handles
+            // acceptance / rejection.
             return [
               {
                 id: 'submit',
                 label: t`E-file the return with the tax authority`,
-                flavor: 'manual',
-              },
-              {
-                id: 'request-auth',
-                label: t`Open the Evidence tab`,
-                flavor: 'routing',
+                flavor: 'mutation',
+                primary: true,
               },
             ]
           case 'submitted':
@@ -10821,6 +11864,16 @@ function ActiveStageDetailCard({
         return onChangeReviewStage('notes_open')
       case 'mark-notes-addressed':
         return onChangeReviewStage('in_review')
+      // P0 signature loop (efileState authorization_requested →
+      // authorization_signed when the client returns their signed 8879).
+      case 'mark-signed':
+        return onMarkSigned()
+      // P0: email the client a Form 8879 signature reminder.
+      case 'remind-8879':
+        return onRemindSignature()
+      // P0: signed → e-file with the authority (efileState → submitted).
+      case 'submit':
+        return onSubmitEfile()
       // Status → done (mark filed)
       case 'file':
         return onChangeStatus('done')
@@ -10974,6 +12027,21 @@ function ActiveStageDetailCard({
           ) : null}
         </div>
       </header>
+      {/* P0: chase visibility on the awaiting-signature card — how long
+          since we last nudged the client to sign their 8879. */}
+      {row.status === 'done' &&
+      row.efileState === 'authorization_requested' &&
+      lastSignatureReminderAt ? (
+        <p className="text-xs text-text-tertiary">
+          {(() => {
+            const today = new Date().toISOString().slice(0, 10)
+            const days = daysBetween(lastSignatureReminderAt.slice(0, 10), today)
+            if (days <= 0) return t`Last reminded today`
+            if (days === 1) return t`Last reminded · 1 day ago`
+            return t`Last reminded · ${days} days ago`
+          })()}
+        </p>
+      ) : null}
 
       {/* 2026-05-26 (Yuqi sixty-seventh pass — overdue context):
           the milestone strip's red "Past deadline" word answers "is
@@ -11831,6 +12899,122 @@ function ObligationQueueActionChip({
       <span>{children}</span>
       {active ? <XIcon aria-hidden className="size-3.5" /> : null}
     </button>
+  )
+}
+
+// Annual rollover, simplified to one button + a confirm dialog. Rolls the firm's
+// book forward to next filing year — generating *projected* (confirmed=false)
+// deadlines that stay out of the reminder pipeline until a CPA confirms them via
+// the Projected lens. Gated on migration.run (matches the server handler).
+function RollForwardAction({ canRun }: { canRun: boolean }) {
+  const { t } = useLingui()
+  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false)
+  const targetFilingYear = new Date().getFullYear() + 1
+  const sourceFilingYear = targetFilingYear - 1
+  // Copy speaks Tax Year (the canonical identifier): a return filed in FY{n} is
+  // for tax year {n-1}. The engine stays filing-year driven (source/target
+  // FilingYear above feed the rollover); only the user-facing labels change.
+  const targetTaxYear = targetFilingYear - 1
+  const sourceTaxYear = sourceFilingYear - 1
+  const previewQuery = useQuery({
+    ...orpc.obligations.previewAnnualRollover.queryOptions({
+      input: { sourceFilingYear, targetFilingYear },
+    }),
+    enabled: open,
+  })
+  const createMutation = useMutation(
+    orpc.obligations.createAnnualRollover.mutationOptions({
+      onSuccess: (result) => {
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.facets.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+        void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+        setOpen(false)
+        toast.success(t`${result.summary.createdCount} projected deadlines created`, {
+          description: t`Review and confirm them with the Projected filter.`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't roll deadlines forward`, {
+          description: rpcErrorMessage(err) ?? t`Try again in a moment.`,
+        })
+      },
+    }),
+  )
+  const summary = previewQuery.data?.summary
+  const willCreate = summary ? summary.willCreateCount + summary.reviewCount : 0
+  const clientCount = summary?.clientCount ?? 0
+  // Surfaced so a "0 to create" result explains itself: already-rolled returns
+  // (target exists) vs returns with no verified target-year rule yet.
+  const duplicateCount = summary?.duplicateCount ?? 0
+  const skippedCount = summary?.skippedCount ?? 0
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={!canRun}
+        title={
+          canRun
+            ? undefined
+            : t`Rolling deadlines forward requires owner, partner, manager, or preparer access.`
+        }
+        onClick={() => setOpen(true)}
+      >
+        <Trans>Generate Tax Year {targetTaxYear} deadlines</Trans>
+      </Button>
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Trans>Generate Tax Year {targetTaxYear} deadlines?</Trans>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {previewQuery.isLoading ? (
+                <Trans>Calculating what will be created…</Trans>
+              ) : willCreate > 0 ? (
+                <Trans>
+                  Creates {willCreate} projected Tax Year {targetTaxYear} deadlines for{' '}
+                  {clientCount} clients from their completed Tax Year {sourceTaxYear} returns.
+                  Projected deadlines stay hidden from client reminders until you confirm them with
+                  the Projected filter.
+                </Trans>
+              ) : (
+                <Trans>
+                  No new Tax Year {targetTaxYear} deadlines to create from completed Tax Year{' '}
+                  {sourceTaxYear} returns.
+                </Trans>
+              )}
+              {duplicateCount > 0 || skippedCount > 0 ? (
+                <span className="mt-2 block text-xs text-text-tertiary">
+                  <Trans>
+                    {duplicateCount} already rolled forward · {skippedCount} skipped (no verified
+                    Tax Year {targetTaxYear} rule)
+                  </Trans>
+                </span>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              <Trans>Cancel</Trans>
+            </AlertDialogCancel>
+            <Button
+              variant="accent"
+              disabled={createMutation.isPending || previewQuery.isLoading || willCreate === 0}
+              onClick={() => createMutation.mutate({ sourceFilingYear, targetFilingYear })}
+            >
+              {createMutation.isPending ? (
+                <Trans>Rolling forward…</Trans>
+              ) : (
+                <Trans>Roll forward</Trans>
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 

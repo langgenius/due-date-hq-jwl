@@ -157,8 +157,10 @@ fair-use 保护，但 Billing 文案不能暗示 Team 有更强模型或更深 A
   新 practice 在创建后 7 天内、且尚未完成首次真实导入前，Solo migration 享有 onboarding
   credit（30 req / firm / day）；首次成功导入后或窗口结束后回到 Solo migration 标准额度
   （15 req / firm / day）。AI 不可用时才降级到 preset / dictionary fallback，并继续写入 trace。
-- Pro 的 Production Pulse 包含 needs-review 确认和 review request；Team 不改变 AI 功能面，
-  但解锁 `priorityPulseMatching`、`guidedMigrationReview`、`auditExport` 等更高阶运营和审计差异。
+- Alert review / review request 可在所有套餐使用，但多人套餐仍按 owner / partner / manager
+  做 review 签核权限控制；Production Pulse 的 apply / revert / dismiss / snooze / reactivate
+  仍要求 Pro 及以上。Team 不改变 AI 功能面，但解锁 `priorityPulseMatching`、
+  `guidedMigrationReview`、`auditExport` 等更高阶运营和审计差异。
 
 ---
 

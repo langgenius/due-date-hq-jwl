@@ -7,6 +7,8 @@ import { ingestGovDeliveryEmail } from './govdelivery'
 
 const { dbMocks, metricsMocks, repoMocks } = vi.hoisted(() => {
   const repo = {
+    ensureSourceState: vi.fn(),
+    establishSourceBaseline: vi.fn(),
     createSourceSnapshot: vi.fn(),
     updateSourceSnapshotStatus: vi.fn(),
   }
@@ -76,6 +78,13 @@ describe('ingestGovDeliveryEmail', () => {
       inserted: true,
       snapshot: { id: `snapshot-${input.sourceId}`, sourceId: input.sourceId },
     }))
+    repoMocks.ensureSourceState.mockResolvedValue({
+      enabled: true,
+      nextCheckAt: null,
+      monitoringBaselineAt: new Date('2026-05-01T00:00:00.000Z'),
+      baselineMode: 'active',
+    })
+    repoMocks.establishSourceBaseline.mockResolvedValue(undefined)
     repoMocks.updateSourceSnapshotStatus.mockResolvedValue(undefined)
   })
 
@@ -364,6 +373,37 @@ describe('ingestGovDeliveryEmail', () => {
         failureReason: 'unmatched_inbound_email',
       },
     )
+    expect(queueSend).not.toHaveBeenCalled()
+  })
+
+  it('establishes the first matched email as baseline without queueing extraction', async () => {
+    const queueSend = vi.fn()
+    repoMocks.ensureSourceState.mockResolvedValue({
+      enabled: true,
+      nextCheckAt: null,
+      monitoringBaselineAt: null,
+      baselineMode: 'establish_on_first_seen',
+    })
+
+    const result = await ingestGovDeliveryEmail(env(queueSend), inboundMessage({}))
+
+    expect(result).toMatchObject({
+      inserted: true,
+      matched: true,
+      queued: false,
+      snapshotId: 'snapshot-ny.email_services',
+    })
+    expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith(
+      'snapshot-ny.email_services',
+      {
+        parseStatus: 'ignored',
+        failureReason: 'monitoring_baseline_established',
+      },
+    )
+    expect(repoMocks.establishSourceBaseline).toHaveBeenCalledWith({
+      sourceId: 'ny.email_services',
+      baselineAt: expect.any(Date),
+    })
     expect(queueSend).not.toHaveBeenCalled()
   })
 

@@ -257,7 +257,7 @@ async function buildDigestPayload(
     pulseRows.length > 0 ? 'Pulse changes waiting for review' : 'Pulse changes: none',
     ...pulseRows.map(
       (row) =>
-        `- ${row.summary} (${row.matchedCount} matched, ${row.needsReviewCount} need review) ${env.APP_URL}/rules?tab=pulse&alert=${row.alertId}`,
+        `- ${row.summary} (${row.matchedCount} matched, ${row.needsReviewCount} need review) ${env.APP_URL}/alerts?alert=${row.alertId}`,
     ),
     '',
     failedReminderRows.length > 0

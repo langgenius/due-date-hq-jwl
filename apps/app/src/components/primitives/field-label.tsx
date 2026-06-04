@@ -7,7 +7,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *
  * Pattern: `text-xs font-medium uppercase tracking-wide
  * text-text-tertiary`. Lives anywhere a small caps key labels a
- * value below or beside it — Pulse drawer fact grid, audit timeline
+ * value below or beside it — alert drawer fact grid, audit timeline
  * group titles, and (going forward) any structured-fields panel.
  *
  * Extracted 2026-05-25 (Yuqi Alerts second pass #9 — "这个 badge

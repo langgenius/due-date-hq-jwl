@@ -264,6 +264,7 @@ export function makeNotificationsRepo(db: Db, firmId: string) {
         | 'client_deadline_reminder'
         | 'audit_evidence_package_ready'
         | 'readiness_request'
+        | 'signature_reminder'
       payloadJson: unknown
     }): Promise<{ id: string; created: boolean }> {
       const id = crypto.randomUUID()

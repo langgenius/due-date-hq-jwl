@@ -305,7 +305,7 @@ describe('generateObligationsForAcceptedRules', () => {
     )
   })
 
-  it('filters automatic generation by statutory due date on or after monitoring start', async () => {
+  it('rolls annual deadlines before monitoring start into the next tax year', async () => {
     const client = makeClient({
       entityType: 'individual',
       taxClassification: 'individual',
@@ -341,16 +341,161 @@ describe('generateObligationsForAcceptedRules', () => {
 
     expect(result).toMatchObject({
       candidateCount: 2,
-      createdCount: 1,
+      createdCount: 2,
       duplicateCount: 0,
-      historicalSkippedCount: 1,
+      historicalSkippedCount: 0,
+      rolledForwardDeadlineCount: 1,
+    })
+    expect(createdInputs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          ruleId: 'fed.1040.return.2025',
+          taxYear: 2026,
+          baseDueDate: new Date('2027-04-15T00:00:00.000Z'),
+          currentDueDate: new Date('2027-04-01T00:00:00.000Z'),
+          filingDueDate: new Date('2027-04-15T00:00:00.000Z'),
+        }),
+        expect.objectContaining({
+          ruleId: 'test.federal_1040.future.2025',
+          taxYear: 2025,
+          baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
+          currentDueDate: new Date('2026-09-01T00:00:00.000Z'),
+          filingDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        }),
+      ]),
+    )
+  })
+
+  it('treats an existing rolled-forward deadline as a duplicate', async () => {
+    const client = makeClient({
+      entityType: 'individual',
+      taxClassification: 'individual',
+      migrationBatchId: null,
+    })
+    const profile = makeProfile({
+      taxTypes: ['federal_1040'],
+      migrationBatchId: null,
+    })
+    const { scoped, createBatch } = makeScoped({
+      clients: [client],
+      profiles: new Map([[CLIENT_ID, [profile]]]),
+      duplicates: [
+        {
+          id: 'existing_rolled_forward',
+          clientId: CLIENT_ID,
+          jurisdiction: 'FED',
+          ruleId: 'fed.1040.return.2025',
+          taxYear: 2026,
+          rulePeriod: 'default',
+        },
+      ],
+    })
+
+    const result = await generateObligationsForAcceptedRules({
+      scoped,
+      userId: USER_ID,
+      rules: [mustRule('fed.1040.return.2025')],
+      internalDeadlineOffsetDays: 14,
+      monitoringStartDate: '2026-09-15',
+      now: new Date('2026-05-29T00:00:00.000Z'),
+    })
+
+    expect(result).toMatchObject({
+      candidateCount: 1,
+      createdCount: 0,
+      duplicateCount: 1,
+      historicalSkippedCount: 0,
+      rolledForwardDeadlineCount: 0,
+    })
+    expect(createBatch).not.toHaveBeenCalled()
+  })
+
+  it('keeps source-defined calendars out of automatic roll-forward', async () => {
+    const client = makeClient({
+      entityType: 'individual',
+      taxClassification: 'individual',
+      migrationBatchId: null,
+    })
+    const profile = makeProfile({
+      taxTypes: ['federal_1040'],
+      migrationBatchId: null,
+    })
+    const sourceDefinedRule: ObligationRule = {
+      ...mustRule('fed.1040.return.2025'),
+      id: 'test.federal_1040.source_defined.2025',
+      dueDateLogic: {
+        kind: 'source_defined_calendar',
+        description: 'Use official calendar.',
+        holidayRollover: 'source_adjusted',
+      },
+    }
+    const { scoped, createBatch } = makeScoped({
+      clients: [client],
+      profiles: new Map([[CLIENT_ID, [profile]]]),
+    })
+
+    const result = await generateObligationsForAcceptedRules({
+      scoped,
+      userId: USER_ID,
+      rules: [sourceDefinedRule],
+      internalDeadlineOffsetDays: 14,
+      monitoringStartDate: '2026-09-15',
+      now: new Date('2026-05-29T00:00:00.000Z'),
+    })
+
+    expect(result).toMatchObject({
+      candidateCount: 0,
+      createdCount: 0,
+      duplicateCount: 0,
+      historicalSkippedCount: 0,
+      rolledForwardDeadlineCount: 0,
+    })
+    expect(createBatch).not.toHaveBeenCalled()
+  })
+
+  it('keeps only future period-table periods without inventing next-year periods', async () => {
+    const client = makeClient({
+      entityType: 'individual',
+      taxClassification: 'individual',
+      migrationBatchId: null,
+    })
+    const profile = makeProfile({
+      taxTypes: ['federal_1040_estimated_tax'],
+      migrationBatchId: null,
+    })
+    const periodRule: ObligationRule = mustRule('fed.1040.estimated_tax.2026')
+    const { scoped, createdInputs } = makeScoped({
+      clients: [client],
+      profiles: new Map([[CLIENT_ID, [profile]]]),
+    })
+
+    const result = await generateObligationsForAcceptedRules({
+      scoped,
+      userId: USER_ID,
+      rules: [periodRule],
+      internalDeadlineOffsetDays: 14,
+      monitoringStartDate: '2026-09-15',
+      now: new Date('2026-05-29T00:00:00.000Z'),
+    })
+
+    expect(result).toMatchObject({
+      createdCount: 2,
+      historicalSkippedCount: 2,
+      rolledForwardDeadlineCount: 0,
     })
     expect(createdInputs).toEqual([
       expect.objectContaining({
-        ruleId: 'test.federal_1040.future.2025',
+        ruleId: 'fed.1040.estimated_tax.2026',
+        rulePeriod: 'Q3',
+        filingDueDate: null,
+        paymentDueDate: new Date('2026-09-15T00:00:00.000Z'),
         baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
-        currentDueDate: new Date('2026-09-01T00:00:00.000Z'),
-        filingDueDate: new Date('2026-09-15T00:00:00.000Z'),
+      }),
+      expect.objectContaining({
+        ruleId: 'fed.1040.estimated_tax.2026',
+        rulePeriod: 'Q4',
+        filingDueDate: null,
+        baseDueDate: new Date('2027-01-15T00:00:00.000Z'),
       }),
     ])
   })
@@ -474,7 +619,7 @@ describe('generateObligationsForAcceptedRules', () => {
     ])
   })
 
-  it('does not inherit fiscal-year S corporation periods from the client profile', async () => {
+  it('uses fiscal-year S corporation periods from the client profile', async () => {
     const client = makeClient({
       entityType: 's_corp',
       taxClassification: 's_corp',
@@ -505,12 +650,12 @@ describe('generateObligationsForAcceptedRules', () => {
       expect.objectContaining({
         clientFilingProfileId: null,
         taxType: 'federal_1120s',
-        baseDueDate: new Date('2026-03-16T00:00:00.000Z'),
-        filingDueDate: new Date('2026-03-16T00:00:00.000Z'),
-        paymentDueDate: new Date('2026-03-16T00:00:00.000Z'),
-        taxPeriodStart: new Date('2025-01-01T00:00:00.000Z'),
-        taxPeriodEnd: new Date('2025-12-31T00:00:00.000Z'),
-        taxPeriodKind: 'calendar',
+        baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        filingDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        paymentDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        taxPeriodStart: new Date('2025-07-01T00:00:00.000Z'),
+        taxPeriodEnd: new Date('2026-06-30T00:00:00.000Z'),
+        taxPeriodKind: 'fiscal',
         taxPeriodSource: 'client_default',
         taxPeriodReviewReason: null,
         status: 'pending',

@@ -33,7 +33,7 @@ const en: LandingCopy = {
       { label: 'No black-box AI' },
       { label: 'Cites every number' },
       { label: 'Keyboard-first' },
-      { label: '24h Pulse SLA' },
+      { label: '24h Alert SLA' },
     ],
     surface: {
       breadcrumb: { workbench: 'Workbench', dashboard: 'Dashboard', week: 'This week' },
@@ -44,8 +44,8 @@ const en: LandingCopy = {
         text: 'Start with Acme and Birchwood: both are inside the seven-day window, have complete source trails, and need review.',
         citation: '[1] IRS Pub 509',
       },
-      pulse: {
-        tag: 'PULSE',
+      alert: {
+        tag: 'ALERT',
         text: 'CA-FTB extends Form 540 + 540-ES to Oct 15 · Affects 12 of your clients.',
         source: 'ftb.ca.gov · 2026-04-25',
         cta: 'Review',
@@ -58,7 +58,7 @@ const en: LandingCopy = {
         stats: [
           { label: 'CRITICAL CLIENTS', value: '5' },
           { label: 'REVIEW NEEDED', value: '12' },
-          { label: 'PULSE EVENTS (24h)', value: '3' },
+          { label: 'ALERTS (24h)', value: '3' },
           { label: 'FILED THIS WEEK', value: '11' },
         ],
       },
@@ -150,7 +150,7 @@ const en: LandingCopy = {
             statusTone: 'secondary',
             statusDotTone: 'disabled',
             severityLabel: 'medium',
-            exposure: 'Monitor Pulse',
+            exposure: 'Review alerts',
             exposureTone: 'warning',
             evidence: 'CA-FTB FR-31',
             evidenceTone: 'info',
@@ -206,7 +206,7 @@ const en: LandingCopy = {
       },
       {
         ruleNumber: 'RULE 00',
-        ruleLabel: '03 PULSE',
+        ruleLabel: '03 ALERTS',
         value: '24',
         unit: 'hrs',
         description:
@@ -228,7 +228,7 @@ const en: LandingCopy = {
         cadence: 'avg / firm / yr',
         headline:
           '14 rule changes ship in a 30-day window. You need to know which 4 hit your clients.',
-        body: 'Pulse condenses every IRS notice and 50-state filing change into a single dashboard banner with `source_excerpt`, `source_url`, and a one-click apply path.',
+        body: 'Alerts condense every IRS notice and 50-state filing change into a single dashboard banner with `source_excerpt`, `source_url`, and a one-click apply path.',
         listTitle: 'Rule changes, last 30 days',
         listSummary: '14 changes · 50 states + DC',
         rows: [
@@ -314,8 +314,8 @@ const en: LandingCopy = {
             exposure: 'NEXT STEP',
             evidence: 'EVIDENCE',
           },
-          pulse: {
-            tag: 'PULSE',
+          alert: {
+            tag: 'ALERT',
             text: 'IRS extends Form 1040 to Oct 15 · 18 of your clients now in the new window.',
             cta: 'Apply to 18',
           },
@@ -467,14 +467,14 @@ const en: LandingCopy = {
           source: {
             label: 'SOURCE',
             value: 'irs.gov / pub / 509 · §3 · v17',
-            verified: 'verified 2026-04-25T08:14:03Z by pulse-ingest-3.2',
+            verified: 'verified 2026-04-25T08:14:03Z by alert-ingest-3.2',
             quoteLabel: 'SOURCE EXCERPT',
             quote:
               '"If an S corporation election was made and the corporation files Form 1120-S on the basis of a calendar year, the return is due on or before March 15. If the corporation operates on a fiscal year, the return is due on or before the 15th day of the third month after the close of the tax year."',
           },
           meta: {
             source: 'irs.gov · v17',
-            verifiedBy: 'pulse-ingest-3.2',
+            verifiedBy: 'alert-ingest-3.2',
             reviewed: 'sarah@firmname',
             status: 'done',
           },
@@ -503,7 +503,7 @@ const en: LandingCopy = {
         body: 'IRS, FTB, DTF · 50-state filing authorities, organized into one rule library.',
       },
       {
-        label: 'PULSE SLA',
+        label: 'ALERT SLA',
         value: '24',
         unit: 'h',
         body: 'From source publication to dashboard banner + email digest, with the affected client list pre-computed.',
@@ -597,7 +597,7 @@ const en: LandingCopy = {
         seats: '1 PRODUCTION PRACTICE · 3 SEATS',
         aiLabel: 'Practice AI included',
         aiDescription:
-          'Dashboard briefs, Pulse summaries, client risk summaries, deadline tips, and guided import AI for live client data.',
+          'Dashboard briefs, alert summaries, client risk summaries, deadline tips, and guided import AI for live client data.',
         aiFeatures: ['Full practice AI workflows', 'Same AI capability as Team'],
         cta: 'Upgrade to Pro',
         hrefKind: 'checkout',
@@ -606,7 +606,7 @@ const en: LandingCopy = {
           '1 production practice',
           '3 seats included',
           'Shared deadline operations',
-          'Pulse and Deadlines access',
+          'Alerts and Deadlines access',
         ],
       },
       {
@@ -670,7 +670,7 @@ const en: LandingCopy = {
       {
         question: 'What does Pro add over Solo?',
         answer:
-          'Pro adds a three-seat shared workspace, Pulse monitoring, and the Deadlines views a small practice needs for deadline operations.',
+          'Pro adds a three-seat shared workspace, Alerts monitoring, and the Deadlines views a small practice needs for deadline operations.',
       },
       {
         question: 'When should I choose Team?',
@@ -711,7 +711,7 @@ const en: LandingCopy = {
         eyebrow: 'RULE LIBRARY',
         title: 'How does a filing rule become trusted work for a CPA team?',
         description:
-          'DueDateHQ keeps rules, source evidence, generated deadlines, Pulse changes, and human review in one workflow. A rule is useful only when the team can see the official source, the affected client context, and the action history.',
+          'DueDateHQ keeps rules, source evidence, generated deadlines, Alerts, and human review in one workflow. A rule is useful only when the team can see the official source, the affected client context, and the action history.',
         note: 'Coverage pages describe software behavior, not professional tax advice.',
       },
       sections: [
@@ -772,7 +772,7 @@ const en: LandingCopy = {
         {
           question: 'How does DueDateHQ connect rule changes to the right clients?',
           answer:
-            'It uses the firm’s client filing profiles, jurisdictions, tax types, and deadline records to route reviewed changes into Pulse, Deadlines, and triage workflows for the clients that may be affected.',
+            'It uses the firm’s client filing profiles, jurisdictions, tax types, and deadline records to route reviewed changes into Alerts, Deadlines, and triage workflows for the clients that may be affected.',
         },
       ],
       cta: {
@@ -786,14 +786,14 @@ const en: LandingCopy = {
       meta: {
         title: 'DueDateHQ State Coverage — 50-state and DC filing signals',
         description:
-          'Which state filing updates DueDateHQ monitors, how Pulse routes them into review, and how CPA teams decide client impact.',
+          'Which state filing updates DueDateHQ monitors, how Alerts route them into review, and how CPA teams decide client impact.',
         ogImage: '/og/home.en.png',
       },
       hero: {
         eyebrow: 'STATE COVERAGE',
         title: 'Which state updates can become deadline work for my firm?',
         description:
-          'DueDateHQ public coverage spans all 50 states and DC. Coverage means public state signals can be monitored, matched against firm client context, and routed through Pulse review before they affect deadline operations.',
+          'DueDateHQ public coverage spans all 50 states and DC. Coverage means public state signals can be monitored, matched against firm client context, and routed through alert review before they affect deadline operations.',
         note: 'Coverage is software monitoring scope; it is not a guarantee that every deadline applies to every firm.',
       },
       statesHeader: {
@@ -874,7 +874,7 @@ const en: LandingCopy = {
         {
           question: 'How do state updates become work for my firm?',
           answer:
-            'A candidate update enters Pulse with source context, is reviewed for relevance, and can then be applied, dismissed, snoozed, or reverted with an audit trail.',
+            'A candidate update enters Alerts with source context, is reviewed for relevance, and can then be applied, marked reviewed, or reverted with an audit trail.',
         },
         {
           question: 'Does coverage mean the update applies to every client?',
@@ -1067,7 +1067,7 @@ const en: LandingCopy = {
               'Franchise-tax updates are important, but the workflow also watches public filing notices, deadline movement, relief material, and entity-context signals.',
           },
           {
-            question: 'What happens after a Texas Pulse alert is reviewed?',
+            question: 'What happens after a Texas alert is reviewed?',
             answer:
               'Review-only alerts can be dismissed or marked reviewed, while apply-ready alerts can become deadline actions after CPA confirmation.',
           },
@@ -1125,7 +1125,7 @@ const en: LandingCopy = {
         ],
         faq: [
           {
-            question: 'Which Florida updates can appear in Pulse?',
+            question: 'Which Florida updates can appear in Alerts?',
             answer:
               'Public DOR updates, notices, relief announcements, and filing-window changes can appear when they may affect firm deadline operations.',
           },
@@ -1206,7 +1206,7 @@ const en: LandingCopy = {
         meta: {
           title: 'CPA Deadline Risk Guide — How firms see penalties before they happen',
           description:
-            'How CPA teams decide which client deadline to touch first using migration data, evidence, ownership, readiness, and Pulse changes.',
+            'How CPA teams decide which client deadline to touch first using migration data, evidence, ownership, readiness, and state alerts.',
           ogImage: '/og/home.en.png',
         },
         hero: {
@@ -1289,7 +1289,7 @@ const en: LandingCopy = {
         meta: {
           title: 'Evidence-backed Tax Deadline Software — DueDateHQ Guide',
           description:
-            'What CPA teams should be able to prove before a deadline, Pulse change, AI suggestion, or migration action changes client work.',
+            'What CPA teams should be able to prove before a deadline, alert, AI suggestion, or migration action changes client work.',
           ogImage: '/og/home.en.png',
         },
         hero: {
@@ -1303,7 +1303,7 @@ const en: LandingCopy = {
           {
             eyebrow: 'DEFINITION',
             title: 'Evidence-backed means every operational claim can be inspected.',
-            body: 'The product should preserve enough context for a reviewer to understand where a rule, deadline, Pulse alert, or migration-created deadline came from and why it entered the workflow.',
+            body: 'The product should preserve enough context for a reviewer to understand where a rule, deadline, alert, or migration-created deadline came from and why it entered the workflow.',
             items: [
               {
                 title: 'Source URL',
@@ -1350,9 +1350,9 @@ const en: LandingCopy = {
               'A reviewer should see the official source URL, relevant excerpt, verification metadata, client context, review state, and the audit event for the change.',
           },
           {
-            question: 'How do Pulse apply and revert actions stay auditable?',
+            question: 'How do alert apply and revert actions stay auditable?',
             answer:
-              'Pulse decisions are explicit actions. Apply, dismiss, snooze, and revert flows keep source context and write audit records so the firm can inspect what changed and why.',
+              'Alert decisions are explicit actions. Apply, mark-reviewed, and revert flows keep source context and write audit records so the firm can inspect what changed and why.',
           },
           {
             question: 'Where does AI fit in evidence-backed workflows?',
@@ -1399,7 +1399,7 @@ const en: LandingCopy = {
         title: 'PRODUCT',
         links: [
           { label: 'Workbench', href: '/#hero' },
-          { label: 'Pulse', href: '/#workflow' },
+          { label: 'Alerts', href: '/#workflow' },
           { label: 'Migration Copilot', href: '/guides/cpa-deadline-risk' },
           { label: 'Evidence drawer', href: '/rules' },
           { label: 'Pricing', href: '/pricing' },

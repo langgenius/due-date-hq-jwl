@@ -13,7 +13,7 @@ import { EvidenceDrawerProvider } from '@/features/evidence/EvidenceDrawerProvid
 import { ObligationDrawerProvider } from '@/features/obligations/ObligationDrawerProvider'
 import { PracticeTimezoneProvider } from '@/features/firm/practice-timezone'
 import { MigrationWizardProvider } from '@/features/migration/WizardProvider'
-import { PulseDrawerProvider } from '@/features/pulse/DrawerProvider'
+import { AlertDrawerProvider } from '@/features/alerts/DrawerProvider'
 import type { AuthUser } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
 import { getRouteSummaryMessages } from '@/routes/route-summary'
@@ -96,16 +96,16 @@ function RootLayoutShell({
           / shortcut-help dialogs the keyboard shell mounts can portal over the
           whole shell.
 
-          PulseDrawerProvider lives inside KeyboardProvider so the drawer's Sheet
-          can portal cleanly over the whole layout. It exposes `usePulseDrawer`
-          to the dashboard banner and Rules > Pulse Changes.
+          AlertDrawerProvider lives inside KeyboardProvider so the drawer's Sheet
+          can portal cleanly over the whole layout. It exposes `useAlertDrawer`
+          to the dashboard banner and the Alerts page.
         */}
         <KeyboardProvider
           themePreference={themePreference}
           switchThemePreference={switchThemePreference}
         >
           <EvidenceDrawerProvider>
-            <PulseDrawerProvider>
+            <AlertDrawerProvider>
               {/* ClientDrawerProvider wraps ObligationDrawerProvider
                 because the obligation drawer's body uses
                 `useClientDrawer()` for its "Open client detail"
@@ -133,7 +133,7 @@ function RootLayoutShell({
                   <ClientDrawerMount />
                 </ObligationDrawerProvider>
               </ClientDrawerProvider>
-            </PulseDrawerProvider>
+            </AlertDrawerProvider>
           </EvidenceDrawerProvider>
         </KeyboardProvider>
       </MigrationWizardProvider>

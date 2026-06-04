@@ -25,7 +25,7 @@ import {
   type TaxPeriodSource,
 } from '../schema/obligations'
 import { obligationSavedView, type ObligationQueueDensity } from '../schema/obligation-saved-view'
-import { listActiveOverlayInternalDeadlines } from './overlay'
+import { listActiveOverlayDueDateSet } from './overlay'
 import { toSmartPriorityProfile } from './priority-profile'
 import { loadDerivedReadinessByObligation } from './readiness-derived'
 
@@ -64,6 +64,8 @@ export interface ObligationQueueListInput {
   minDaysUntilDue?: number
   maxDaysUntilDue?: number
   needsEvidence?: boolean
+  awaitingSignature?: boolean
+  confirmed?: boolean
   asOfDate?: string
   sort?: ObligationQueueSort
   cursor?: string | null
@@ -101,6 +103,7 @@ export interface ObligationQueueListRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
+  confirmed: boolean
   blockedByObligationInstanceId: string | null
   readiness: ObligationQueueReadiness
   extensionDecision: 'not_considered' | 'applied' | 'rejected'
@@ -242,6 +245,7 @@ interface ObligationQueueRawJoinedRow {
   baseDueDate: Date
   currentDueDate: Date
   status: ObligationStatus
+  confirmed: boolean
   blockedByObligationInstanceId: string | null
   extensionDecision: 'not_considered' | 'applied' | 'rejected'
   extensionMemo: string | null
@@ -535,25 +539,40 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
   ): Promise<ObligationQueueListRow[]> {
     const obligationIds = rawRows.map((row) => row.id)
     const statuses = new Map(rawRows.map((row) => [row.id, row.status]))
-    const [overlayDueDates, evidenceCounts, readinessById, smartPriorityProfile] =
+    const [overlayDueDateSet, evidenceCounts, readinessById, smartPriorityProfile] =
       await Promise.all([
-        listActiveOverlayInternalDeadlines(db, firmId, obligationIds),
+        listActiveOverlayDueDateSet(db, firmId, obligationIds),
         listEvidenceCounts(obligationIds),
         loadDerivedReadinessByObligation(db, firmId, statuses),
         loadSmartPriorityProfile(),
       ])
+    const { statutory: overlayStatutory, internal: overlayInternal } = overlayDueDateSet
     const asOfDate = getAsOfDate(input)
     const asOfDateOnly = asOfDate.toISOString().slice(0, 10)
     const rowDrafts = rawRows.map((row) => {
-      const currentDueDate = overlayDueDates.get(row.id) ?? row.currentDueDate
-      const taxAuthorityFilingDueDate = row.filingDueDate ?? row.baseDueDate
-      const taxAuthorityPaymentDueDate = row.paymentDueDate ?? row.baseDueDate
+      const currentDueDate = overlayInternal.get(row.id) ?? row.currentDueDate
+      // A pulse postponement moves the tax-authority FILING + PAYMENT deadlines
+      // to the new statutory date; current_due_date (internal target) is that
+      // date minus the firm offset. Overlaying only current_due_date left the
+      // filing/payment tiles showing the old date — and the UI clamps the
+      // internal target to <= filing, hiding the move entirely.
+      const overlayStatutoryDate = overlayStatutory.get(row.id)
+      const taxAuthorityFilingDueDate = overlayStatutoryDate ?? row.filingDueDate ?? row.baseDueDate
+      const taxAuthorityPaymentDueDate =
+        overlayStatutoryDate ?? row.paymentDueDate ?? row.baseDueDate
       const accrued = estimateAccruedPenalty(
         {
           jurisdiction: row.clientState,
           taxType: row.taxType,
           entityType: row.clientEntityType,
-          dueDate: statutoryPenaltyDueDate({ ...row, currentDueDate }),
+          // Penalties accrue from the postponed statutory date — feed the
+          // overlaid filing/payment so a relief extension defers accrual.
+          dueDate: statutoryPenaltyDueDate({
+            ...row,
+            filingDueDate: taxAuthorityFilingDueDate,
+            paymentDueDate: taxAuthorityPaymentDueDate,
+            currentDueDate,
+          }),
           penaltyFactsJson: row.penaltyFactsJson,
         },
         { asOfDate: asOfDateOnly },
@@ -612,6 +631,24 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
 
       if (input.status && input.status.length > 0) {
         filters.push(inArray(obligationInstance.status, input.status))
+      }
+
+      // "Awaiting signature" lens — filed returns whose client hasn't
+      // signed Form 8879 yet. Combined predicate on purpose: efileState
+      // alone is unreliable (new filing obligations are seeded with
+      // 'authorization_requested' at creation while still 'pending'), so
+      // we also require status='done'.
+      if (input.awaitingSignature) {
+        filters.push(
+          and(
+            eq(obligationInstance.status, 'done'),
+            eq(obligationInstance.efileState, 'authorization_requested'),
+          )!,
+        )
+      }
+
+      if (input.confirmed !== undefined) {
+        filters.push(eq(obligationInstance.confirmed, input.confirmed))
       }
 
       const obligationIds = uniqueNonEmpty(input.obligationIds)
@@ -700,6 +737,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
           baseDueDate: obligationInstance.baseDueDate,
           currentDueDate: obligationInstance.currentDueDate,
           status: obligationInstance.status,
+          confirmed: obligationInstance.confirmed,
           blockedByObligationInstanceId: obligationInstance.blockedByObligationInstanceId,
           extensionDecision: obligationInstance.extensionDecision,
           extensionMemo: obligationInstance.extensionMemo,
@@ -826,6 +864,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
               baseDueDate: obligationInstance.baseDueDate,
               currentDueDate: obligationInstance.currentDueDate,
               status: obligationInstance.status,
+              confirmed: obligationInstance.confirmed,
               blockedByObligationInstanceId: obligationInstance.blockedByObligationInstanceId,
               extensionDecision: obligationInstance.extensionDecision,
               extensionMemo: obligationInstance.extensionMemo,

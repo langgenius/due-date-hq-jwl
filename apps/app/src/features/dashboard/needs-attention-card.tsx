@@ -1,22 +1,19 @@
-import { useQuery } from '@tanstack/react-query'
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ChevronRightIcon, Plus, SquareArrowOutUpRightIcon } from 'lucide-react'
 
-import type { PulseAlertPublic } from '@duedatehq/contracts'
+import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@duedatehq/ui/components/ui/card'
-import { cn } from '@duedatehq/ui/lib/utils'
 
 import { LowConfidenceBadge } from '@/components/primitives/low-confidence-badge'
 import { RelativeTime } from '@/components/primitives/relative-time'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
-import { usePulseDetailQueryOptions } from '@/features/pulse/api'
-import { pulseAlertTone, pulseAlertToneLabel } from '@/features/pulse/pulse-alert-tone'
+import { alertTone, alertToneLabel } from '@/features/alerts/alert-tone'
 
-// Dashboard variant of the Pulse alert card. Tuned for the dashboard's
+// Dashboard variant of the Alert card. Tuned for the dashboard's
 // "scan-and-act" mode:
 // - The whole card is the action target — no separate Review button.
 // - AI confidence hidden unless low enough to need review.
@@ -29,18 +26,19 @@ import { pulseAlertTone, pulseAlertToneLabel } from '@/features/pulse/pulse-aler
 // 2026-05-26 (Step 9 AI Visibility Audit F-019): threshold migrated
 // to the canonical `isLowAiConfidence(0.5)`. Previously this card
 // fired the LowConfidenceBadge for confidence in [0.5, 0.7) while
-// the Pulse drawer for the same alert showed nothing — same alert,
+// the alert drawer for the same alert showed nothing — same alert,
 // two different confidence stories. Now: card + drawer both
 // pick up the same 0.5 floor.
 const VISIBLE_CLIENT_NAMES = 2
 
-function useUniqueAffectedClientNames(alertId: string): {
+// Pure derivation of the deduped, capped affected-client name preview.
+// Affected rows are batch-loaded by the parent section (one `getDetailsBatch`
+// for all visible cards) and passed in, instead of each card fetching its own
+// `pulse.getDetail`.
+function uniqueAffectedClientNames(affected: PulseAffectedClient[]): {
   names: string[]
   hasMore: number
-  isLoading: boolean
 } {
-  const detailQuery = useQuery(usePulseDetailQueryOptions(alertId))
-  const affected = detailQuery.data?.affectedClients ?? []
   const seen = new Set<string>()
   const ordered: string[] = []
   for (const row of affected) {
@@ -52,15 +50,16 @@ function useUniqueAffectedClientNames(alertId: string): {
   return {
     names: ordered.slice(0, VISIBLE_CLIENT_NAMES),
     hasMore: Math.max(ordered.length - VISIBLE_CLIENT_NAMES, 0),
-    isLoading: detailQuery.isLoading,
   }
 }
 
 function NeedsAttentionCard({
   alert,
+  affectedClients = [],
   onReview,
 }: {
   alert: PulseAlertPublic
+  affectedClients?: PulseAffectedClient[]
   onReview: () => void
 }) {
   const { t } = useLingui()
@@ -71,7 +70,7 @@ function NeedsAttentionCard({
   // showed green/yellow based on impacted-count alone, while the
   // drawer used confidence-first logic — so the SAME alert read
   // green outside and red inside.
-  const tone = pulseAlertTone(alert)
+  const tone = alertTone(alert)
   const lowConfidence = isLowAiConfidence(alert.confidence)
   // 2026-06-01 (DS primitives sweep): source eyebrow timestamp now
   // routes through `<RelativeTime>` so the rendered "Xm ago" gets a
@@ -81,18 +80,18 @@ function NeedsAttentionCard({
   // via `useCurrentFirm()` so callers don't have to plumb it.
   const { currentFirm } = useCurrentFirm()
   const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
-  const { names, hasMore, isLoading: clientsLoading } = useUniqueAffectedClientNames(alert.id)
+  const { names, hasMore } = uniqueAffectedClientNames(affectedClients)
 
-  // 2026-05-25 (Yuqi #47): clicking this card opens the Pulse drawer
-  // in-place on the dashboard (via `usePulseDrawer().openDrawer`) —
-  // not a navigation to /rules/pulse. This is intentional:
-  //   • Pulse review is list-driven and quick (1-3 min per alert).
+  // 2026-05-25 (Yuqi #47): clicking this card opens the alert drawer
+  // in-place on the dashboard (via `useAlertDrawer().openDrawer`) —
+  // not a navigation to /alerts. This is intentional:
+  //   • Alert review is list-driven and quick (1-3 min per alert).
   //     Keeping the user on Today lets them sweep through the 2-3
   //     cards without losing place.
   //   • Same pattern the obligation drawer + client drawer use —
   //     consistency across surfaces beats per-page novelty.
   //   • The overflow tile ("View N more") DOES navigate to
-  //     /rules/pulse — that's the right behaviour when the user is
+  //     /alerts — that's the right behaviour when the user is
   //     asking for the full list, not one specific alert.
   // If alerts grow into long-form investigation work later we'll
   // revisit and promote to a route.
@@ -132,11 +131,9 @@ function NeedsAttentionCard({
                 carry the urgency. */}
             <SquareArrowOutUpRightIcon
               className="size-3.5 shrink-0 text-text-tertiary"
-              aria-label={pulseAlertToneLabel(tone)}
+              aria-label={alertToneLabel(tone)}
             />
-            <span className="truncate text-sm font-medium text-text-secondary">
-              {alert.source}
-            </span>
+            <span className="truncate text-sm font-medium text-text-secondary">{alert.source}</span>
             {alert.publishedAt ? (
               <>
                 <span aria-hidden className="text-text-tertiary">
@@ -163,7 +160,7 @@ function NeedsAttentionCard({
           </div>
         </CardHeader>
 
-      {/* Title block has a fixed 2-line min-height so card heights
+        {/* Title block has a fixed 2-line min-height so card heights
           stay uniform across the row even when one title is short.
           line-clamp-2 caps the upper bound.
           2026-05-25 (Yuqi Today #3 — second pass): title size
@@ -174,7 +171,7 @@ function NeedsAttentionCard({
           section h2 above. min-height bumped from min-h-10 →
           min-h-8 so two short lines still anchor the cards at
           equal heights. */}
-      {/* 2026-05-25 (Yuqi Today #1): explicit font-normal — the
+        {/* 2026-05-25 (Yuqi Today #1): explicit font-normal — the
           title was reading as font-medium on hover. No CSS rule
           actually changes the weight, but the subpixel-anti-
           aliasing shift on the bg change made the text look
@@ -196,7 +193,7 @@ function NeedsAttentionCard({
                   other="# clients may be affected"
                 />
               </p>
-              {!clientsLoading && names.length > 0 ? (
+              {names.length > 0 ? (
                 // Per-name pills use the canonical Badge primitive
                 // so shape + border + hover come from the shared
                 // chip vocabulary, not a one-off <li> with
@@ -220,9 +217,7 @@ function NeedsAttentionCard({
               {/* Empty-state copy reframes the absence of matches as
                   ongoing monitoring ("we'll flag any new matches")
                   instead of a flat "nothing to see here." */}
-              <Trans>
-                No matching clients in this practice — we'll flag any new matches.
-              </Trans>
+              <Trans>No matching clients in this practice — we'll flag any new matches.</Trans>
             </p>
           )}
         </CardContent>
@@ -257,8 +252,8 @@ function NeedsAttentionOverflowCard({ count, onOpen }: { count: number; onOpen: 
   // Lingui's extractor catches every plural variant.
   const ariaLabel = i18n._(
     plural(count, {
-      one: 'View # more Pulse alert',
-      other: 'View # more Pulse alerts',
+      one: 'View # more Alert',
+      other: 'View # more Alerts',
     }),
   )
   // 2026-05-27 (Yuqi revert — "怎么会变成这样vertical"): restored the

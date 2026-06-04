@@ -25,9 +25,6 @@ import {
 } from '../schema/migration'
 import { obligationInstance, type NewObligationInstance } from '../schema/obligations'
 
-// migration_batch has 17 columns → 5/batch.
-const BATCH_COLS = 17
-const BATCH_WRITE_SIZE = Math.floor(100 / BATCH_COLS) // = 5
 // migration_mapping has 9 columns → 11/batch.
 const MAPPING_COLS = 9
 const MAPPING_BATCH_SIZE = Math.floor(100 / MAPPING_COLS) // = 11
@@ -564,8 +561,5 @@ function toNonEmptyBatch<T>(items: T[]): [T, ...T[]] {
   }
   return [first, ...rest]
 }
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _batchWriteSizeNotExported = BATCH_WRITE_SIZE
 
 export type MigrationRepo = ReturnType<typeof makeMigrationRepo>

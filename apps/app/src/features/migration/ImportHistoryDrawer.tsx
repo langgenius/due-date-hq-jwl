@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { EyeIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react'
+import { ArrowRightIcon, EyeIcon, RotateCcwIcon, Trash2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { ClientPublic, MigrationBatch } from '@duedatehq/contracts'
@@ -36,6 +36,8 @@ import { PermissionInlineNotice, useFirmPermission } from '@/features/permission
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
+
+import { useMigrationWizard } from './WizardProvider'
 
 type ImportHistoryDrawerProps = {
   open: boolean
@@ -87,6 +89,7 @@ export function ImportHistoryDrawer({
   }, [open, setAutoCollapsed])
   const canRevertMigration = permission.can('migration.revert')
   const canRunMigration = permission.can('migration.run')
+  const { openWizard } = useMigrationWizard()
   const [pendingRecovery, setPendingRecovery] = useState<PendingRecovery | null>(null)
   const batchesQuery = useQuery({
     ...orpc.migration.listBatches.queryOptions({ input: { limit: 50 } }),
@@ -245,7 +248,11 @@ export function ImportHistoryDrawer({
                 ) : null}
                 {batches.map((batch) => {
                   const canRevertBatch = canRevertMigration && isBatchRevertible(batch)
-                  const canDiscardDraft = canRunMigration && batch.status === 'draft'
+                  const isInProgress =
+                    batch.status === 'draft' ||
+                    batch.status === 'mapping' ||
+                    batch.status === 'reviewing'
+                  const canDiscardInProgress = canRunMigration && isInProgress
                   return (
                     <Card key={batch.id}>
                       <CardHeader className="flex flex-row items-start justify-between gap-4">
@@ -303,22 +310,35 @@ export function ImportHistoryDrawer({
                             setPendingRecovery({ kind: 'client', batchId: batch.id, client })
                           }
                         />
-                        <div className="flex justify-end">
-                          {batch.status === 'draft' ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setPendingRecovery({
-                                  kind: 'draft',
-                                  batchId: batch.id,
-                                })
-                              }
-                              disabled={!canDiscardDraft || recoveryPending}
-                            >
-                              <Trash2Icon data-icon="inline-start" />
-                              <Trans>Discard draft</Trans>
-                            </Button>
+                        <div className="flex justify-end gap-2">
+                          {isInProgress ? (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  onOpenChange(false)
+                                  openWizard({ resumeBatchId: batch.id })
+                                }}
+                                disabled={!canRunMigration || recoveryPending}
+                              >
+                                <ArrowRightIcon data-icon="inline-start" />
+                                <Trans>Resume</Trans>
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setPendingRecovery({
+                                    kind: 'draft',
+                                    batchId: batch.id,
+                                  })
+                                }
+                                disabled={!canDiscardInProgress || recoveryPending}
+                              >
+                                <Trash2Icon data-icon="inline-start" />
+                                <Trans>Discard</Trans>
+                              </Button>
+                            </>
                           ) : (
                             <Button
                               variant="outline"

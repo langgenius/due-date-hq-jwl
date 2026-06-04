@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   canSaveInternalExtensionPlan,
   countOutstandingReadinessDocuments,
+  deadlineDetailSearchFromQueueState,
   daysUntilEffectiveInternalDueDate,
   effectiveInternalDueDate,
   emptyExtensionPlanDraft,
@@ -22,6 +23,39 @@ import {
 } from './obligations'
 
 describe('obligations quick filters', () => {
+  const defaultDetailSearchState = {
+    q: '',
+    status: [],
+    obligation: null,
+    client: [],
+    rule: [],
+    state: [],
+    county: [],
+    taxType: [],
+    assignee: '',
+    assignees: [],
+    owner: null,
+    due: null,
+    dueWithin: null,
+    evidence: null,
+    awaitingSignature: null,
+    projected: null,
+    daysMin: null,
+    daysMax: null,
+    asOf: null,
+    sort: 'smart_priority' as const,
+    density: 'comfortable' as const,
+    group: 'due' as const,
+    hide: [
+      'smartPriority',
+      'clientState',
+      'clientCounty',
+      'dueDateExact',
+      'daysUntilDue',
+      'evidenceCount',
+    ],
+  } satisfies Parameters<typeof deadlineDetailSearchFromQueueState>[1]
+
   it('applies the this week days filter when inactive', () => {
     expect(nextThisWeekFilterPatch(null, null)).toEqual({
       dueWithin: null,
@@ -48,6 +82,30 @@ describe('obligations quick filters', () => {
     expect(isThisWeekFilterActive(null, 7)).toBe(true)
     expect(isThisWeekFilterActive(0, 7)).toBe(false)
     expect(isThisWeekFilterActive(null, 14)).toBe(false)
+  })
+
+  it('builds deadline detail search from parsed queue filters when router search is stale', () => {
+    expect(
+      deadlineDetailSearchFromQueueState('', {
+        ...defaultDetailSearchState,
+        status: ['review'],
+        evidence: 'needs',
+      }),
+    ).toBe('?status=review&evidence=needs')
+  })
+
+  it('drops detail-only params while preserving unknown params and explicit show-all columns', () => {
+    expect(
+      deadlineDetailSearchFromQueueState(
+        '?drawer=obligation&id=old&row=old&tab=audit&lifecycle=v1',
+        {
+          ...defaultDetailSearchState,
+          client: ['client_1'],
+          awaitingSignature: true,
+          hide: [],
+        },
+      ),
+    ).toBe('?lifecycle=v1&client=client_1&awaitingSignature=true&hide=')
   })
 })
 
@@ -128,6 +186,14 @@ describe('internal extension target date validation', () => {
   it('rejects dates after the filing deadline', () => {
     expect(isInternalExtensionTargetDateValid('2026-04-16', '2026-04-15')).toBe(false)
   })
+
+  it('allows a target after the original deadline but within the extended window', () => {
+    // The cap fed in is now the EXTENDED filing deadline, so a realistic
+    // post-extension target (after the original April 15) is valid up to Oct 15.
+    expect(isInternalExtensionTargetDateValid('2026-08-01', '2026-10-15')).toBe(true)
+    expect(isInternalExtensionTargetDateValid('2026-10-15', '2026-10-15')).toBe(true)
+    expect(isInternalExtensionTargetDateValid('2026-10-16', '2026-10-15')).toBe(false)
+  })
 })
 
 describe('internal extension plan save state', () => {
@@ -205,12 +271,14 @@ describe('internal extension plan save state', () => {
       internalTargetDate: '2026-04-15',
       memo: 'Client materials are late.',
       source: 'Partner approval',
+      extendedFilingDate: '',
     })
     expect(emptyExtensionPlanDraft(currentDraft.obligationId)).toEqual({
       obligationId: 'deadline_1',
       internalTargetDate: '',
       memo: '',
       source: '',
+      extendedFilingDate: '',
     })
   })
 })

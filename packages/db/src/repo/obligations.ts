@@ -17,10 +17,10 @@ import {
   type TaxPeriodSource,
   type ObligationType,
 } from '../schema/obligations'
-import { listActiveOverlayInternalDeadlines } from './overlay'
+import { listActiveOverlayDueDateSet } from './overlay'
 import { loadDerivedReadinessByObligation } from './readiness-derived'
 
-const COLS_PER_OI_ROW = 53
+const COLS_PER_OI_ROW = 54
 const OI_BATCH_SIZE = Math.max(1, Math.floor(100 / COLS_PER_OI_ROW)) // D1 allows 100 bound params.
 const CLIENT_ASSERT_BATCH_SIZE = 90
 const OI_LOOKUP_IDS_PER_BATCH = 90
@@ -56,6 +56,7 @@ export interface ObligationCreateInput {
   baseDueDate: Date
   currentDueDate?: Date
   status?: ObligationStatus
+  confirmed?: boolean
   prepStage?: ObligationPrepStage
   reviewStage?: ObligationReviewStage
   extensionState?: ObligationExtensionState
@@ -124,18 +125,25 @@ export function makeObligationsRepo(db: Db, firmId: string) {
     }))
   }
 
-  async function applyOverlayDueDates<T extends { id: string; currentDueDate: Date }>(
-    rows: T[],
-  ): Promise<T[]> {
-    const overlayDueDates = await listActiveOverlayInternalDeadlines(
+  async function applyOverlayDueDates<T extends ObligationInstance>(rows: T[]): Promise<T[]> {
+    const { statutory, internal } = await listActiveOverlayDueDateSet(
       db,
       firmId,
       rows.map((row) => row.id),
     )
-    return rows.map((row) => ({
-      ...row,
-      currentDueDate: overlayDueDates.get(row.id) ?? row.currentDueDate,
-    }))
+    return rows.map((row) => {
+      // A pulse postponement moves the statutory filing + payment deadlines to
+      // the override date; current_due_date (internal target) is that minus the
+      // firm offset. When there's no overlay, leave filing/payment as-is (incl.
+      // null) — the public serializer already falls back to baseDueDate.
+      const overlayStatutoryDate = statutory.get(row.id)
+      return {
+        ...row,
+        currentDueDate: internal.get(row.id) ?? row.currentDueDate,
+        filingDueDate: overlayStatutoryDate ?? row.filingDueDate,
+        paymentDueDate: overlayStatutoryDate ?? row.paymentDueDate,
+      }
+    })
   }
 
   async function loadClientsInFirm(
@@ -281,6 +289,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
           baseDueDate: i.baseDueDate,
           currentDueDate: i.currentDueDate ?? i.baseDueDate,
           status: i.status ?? ('pending' as const),
+          confirmed: i.confirmed ?? true,
           prepStage: i.prepStage ?? 'not_started',
           reviewStage: i.reviewStage ?? 'not_required',
           extensionState: i.extensionState ?? 'not_started',
@@ -379,6 +388,28 @@ export function makeObligationsRepo(db: Db, firmId: string) {
       return hydrateObligationRows(await applyOverlayDueDates(rows))
     },
 
+    /**
+     * Backfill candidates for the signature loop: already-filed (`done`) rows
+     * still parked at `efileState='not_applicable'` — migration-sourced returns
+     * that never entered the 8879 loop. The service filters these by tax type
+     * via obligationUsesEfileAuthorization. Tiny slice; no batching needed.
+     */
+    async listSignatureLoopBackfillCandidates(): Promise<
+      Array<ObligationInstance & { readiness: ObligationReadiness }>
+    > {
+      const rows = await db
+        .select()
+        .from(obligationInstance)
+        .where(
+          and(
+            eq(obligationInstance.firmId, firmId),
+            eq(obligationInstance.status, 'done'),
+            eq(obligationInstance.efileState, 'not_applicable'),
+          ),
+        )
+      return hydrateObligationRows(await applyOverlayDueDates(rows))
+    },
+
     async listAnnualRolloverSeeds(input: {
       sourceFilingYear: number
       clientIds?: string[]
@@ -399,6 +430,104 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .from(obligationInstance)
         .where(and(...filters))
         .orderBy(asc(obligationInstance.clientId), asc(obligationInstance.taxType))
+      return hydrateObligationRows(rows)
+    },
+
+    async listReprojectionCandidates(input: {
+      taxYears?: number[]
+      obligationIds?: string[]
+    }): Promise<Array<ObligationInstance & { readiness: ObligationReadiness }>> {
+      // Rule-backed, still-open obligations whose statutory date could have drifted
+      // (rule re-verified, or a weekend/holiday adjustment not applied at creation).
+      // Mirrors OPEN_OBLIGATION_STATUSES — done/paid/completed are never re-projected.
+      const filters = [
+        eq(obligationInstance.firmId, firmId),
+        isNotNull(obligationInstance.ruleId),
+        inArray(obligationInstance.status, [
+          'pending',
+          'in_progress',
+          'waiting_on_client',
+          'review',
+          'blocked',
+        ]),
+      ]
+      const taxYears = [...new Set(input.taxYears ?? [])]
+      if (taxYears.length > 0) filters.push(inArray(obligationInstance.taxYear, taxYears))
+      const obligationIds = [...new Set(input.obligationIds ?? [])]
+      if (obligationIds.length > 0) filters.push(inArray(obligationInstance.id, obligationIds))
+      const rows = await db
+        .select()
+        .from(obligationInstance)
+        .where(and(...filters))
+        .orderBy(asc(obligationInstance.clientId), asc(obligationInstance.taxType))
+      return hydrateObligationRows(rows)
+    },
+
+    async listAffectedClientsByRules(
+      ruleIds: string[],
+    ): Promise<Map<string, Array<{ clientId: string; clientName: string }>>> {
+      const uniqueRuleIds = [...new Set(ruleIds)].filter((id) => id.length > 0)
+      const byRule = new Map<string, Array<{ clientId: string; clientName: string }>>()
+      for (const id of uniqueRuleIds) byRule.set(id, [])
+      if (uniqueRuleIds.length === 0) return byRule
+
+      // Distinct clients with an OPEN obligation backed by each rule — the "who is
+      // affected" set for a rule-change/drift alert. Cheap: (firmId, ruleId) is
+      // indexed and selectDistinct collapses per-client duplicates server-side.
+      // Mirrors OPEN_OBLIGATION_STATUSES — done/paid/completed are excluded.
+      const rows = await db
+        .selectDistinct({
+          ruleId: obligationInstance.ruleId,
+          clientId: client.id,
+          clientName: client.name,
+        })
+        .from(obligationInstance)
+        .innerJoin(client, eq(obligationInstance.clientId, client.id))
+        .where(
+          and(
+            eq(obligationInstance.firmId, firmId),
+            eq(client.firmId, firmId),
+            inArray(obligationInstance.ruleId, uniqueRuleIds),
+            inArray(obligationInstance.status, [
+              'pending',
+              'in_progress',
+              'waiting_on_client',
+              'review',
+              'blocked',
+            ]),
+          ),
+        )
+        .orderBy(asc(client.name))
+
+      for (const row of rows) {
+        if (row.ruleId === null) continue
+        byRule.get(row.ruleId)?.push({ clientId: row.clientId, clientName: row.clientName })
+      }
+      return byRule
+    },
+
+    async listProjected(input: {
+      taxYears?: number[]
+    }): Promise<Array<ObligationInstance & { readiness: ObligationReadiness }>> {
+      // Unconfirmed, still-open deadlines awaiting CPA confirmation (the review queue).
+      const filters = [
+        eq(obligationInstance.firmId, firmId),
+        eq(obligationInstance.confirmed, false),
+        inArray(obligationInstance.status, [
+          'pending',
+          'in_progress',
+          'waiting_on_client',
+          'review',
+          'blocked',
+        ]),
+      ]
+      const taxYears = [...new Set(input.taxYears ?? [])]
+      if (taxYears.length > 0) filters.push(inArray(obligationInstance.taxYear, taxYears))
+      const rows = await db
+        .select()
+        .from(obligationInstance)
+        .where(and(...filters))
+        .orderBy(asc(obligationInstance.currentDueDate))
       return hydrateObligationRows(rows)
     },
 
@@ -580,6 +709,18 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },
 
+    // E-file pipeline advance (the "signature loop" + later e-file
+    // sub-states). Sets the efile_state column only — never touches
+    // `status`. Transition legality is enforced in the service layer via
+    // isLegalEfileTransition; this repo write is unguarded like the
+    // prep/review setters above.
+    async setEfileState(id: string, efileState: ObligationEfileState): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({ efileState })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
     async updateExtensionDecision(
       id: string,
       patch: {
@@ -590,6 +731,14 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         decidedAt: Date
         decidedByUserId: string
         status?: ObligationStatus
+        // Applying an extension moves the deadline: the filing deadline shifts
+        // to the statutory extended date, the internal (current) deadline
+        // follows, and the payment deadline is pinned to the original date.
+        // Optional so prep/review/other callers of this write path are
+        // unaffected (only the extension service sets them).
+        filingDueDate?: Date
+        currentDueDate?: Date
+        paymentDueDate?: Date | null
       },
     ): Promise<void> {
       await db
@@ -603,6 +752,9 @@ export function makeObligationsRepo(db: Db, firmId: string) {
           extensionDecidedByUserId: patch.decidedByUserId,
           extensionState: patch.decision === 'applied' ? 'filed' : 'rejected',
           ...(patch.status !== undefined ? { status: patch.status } : {}),
+          ...(patch.filingDueDate !== undefined ? { filingDueDate: patch.filingDueDate } : {}),
+          ...(patch.currentDueDate !== undefined ? { currentDueDate: patch.currentDueDate } : {}),
+          ...(patch.paymentDueDate !== undefined ? { paymentDueDate: patch.paymentDueDate } : {}),
         })
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },
@@ -658,6 +810,69 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         )
       }
       await Promise.all(writes)
+    },
+
+    /**
+     * Promote projected obligations (annual rollover / auto-projection) to
+     * confirmed, scoped to the current firm. Reads which of the requested ids are
+     * still projected, then confirms exactly those — already-confirmed ids are
+     * no-ops. Returns the ids actually transitioned so the caller can audit them.
+     */
+    async confirmByIds(ids: string[]): Promise<{ confirmedIds: string[] }> {
+      if (ids.length === 0) return { confirmedIds: [] }
+      const uniqueIds = [...new Set(ids)]
+      const confirmedIds: string[] = []
+      for (let i = 0; i < uniqueIds.length; i += OI_UPDATE_IDS_PER_BATCH) {
+        const chunk = uniqueIds.slice(i, i + OI_UPDATE_IDS_PER_BATCH)
+        const projected = await db
+          .select({ id: obligationInstance.id })
+          .from(obligationInstance)
+          .where(
+            and(
+              eq(obligationInstance.firmId, firmId),
+              inArray(obligationInstance.id, chunk),
+              eq(obligationInstance.confirmed, false),
+            ),
+          )
+        const projectedIds = projected.map((row) => row.id)
+        if (projectedIds.length === 0) continue
+        await db
+          .update(obligationInstance)
+          .set({ confirmed: true })
+          .where(
+            and(
+              eq(obligationInstance.firmId, firmId),
+              inArray(obligationInstance.id, projectedIds),
+            ),
+          )
+        confirmedIds.push(...projectedIds)
+      }
+      return { confirmedIds }
+    },
+
+    /**
+     * Apply re-projected due dates to still-projected obligations. Per-row (each
+     * carries a distinct date). The confirmed=false guard is defense-in-depth so a
+     * confirmed deadline's baseDueDate is never rewritten — those shift via overlays.
+     */
+    async updateProjectedDueDates(
+      updates: ReadonlyArray<{ id: string; baseDueDate: Date; currentDueDate: Date }>,
+    ): Promise<void> {
+      if (updates.length === 0) return
+      await Promise.all(
+        updates.map((update) =>
+          db
+            .update(obligationInstance)
+            .set({ baseDueDate: update.baseDueDate, currentDueDate: update.currentDueDate })
+            .where(
+              and(
+                eq(obligationInstance.firmId, firmId),
+                eq(obligationInstance.id, update.id),
+                eq(obligationInstance.confirmed, false),
+              ),
+            ),
+        ),
+      )
     },
 
     /**

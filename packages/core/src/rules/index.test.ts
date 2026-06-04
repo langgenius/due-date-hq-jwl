@@ -23,6 +23,8 @@ import {
   OBLIGATION_RULES,
   previewObligationsFromRules,
   RULE_SOURCES,
+  ruleCitesSourceAsBasis,
+  rulesBySourceId,
   sourceCoversRuleDomain,
   STATE_RULE_JURISDICTIONS,
 } from './index'
@@ -157,6 +159,9 @@ describe('@duedatehq/core/rules', () => {
       expect(source.authorityRole, `${source.id} has no authority role`).toMatch(
         /^(basis|cross_check|watch|early_warning)$/,
       )
+      expect(source.alertPurpose, `${source.id} has no Alert source purpose`).toMatch(
+        /^(explicit_live_adapter|temporary_announcements_or_news|rule_source_watch|email_signal|hidden_policy_watch)$/,
+      )
     }
   })
 
@@ -190,8 +195,35 @@ describe('@duedatehq/core/rules', () => {
           expect(source.inboundEmail?.localParts.length, sourceId).toBeGreaterThan(0)
         }
         expect(['emergency_relief', 'news'], sourceId).toContain(source.sourceType)
+        expect(['temporary_announcements_or_news', 'email_signal'], sourceId).toContain(
+          source.alertPurpose,
+        )
       }
     }
+
+    expect(sourcesById.get('ak.temporary_announcements')).toMatchObject({
+      title: 'Alaska Tax Division News',
+      url: 'https://tax.alaska.gov/programs/whatsnew.aspx',
+      acquisitionMethod: 'html_watch',
+    })
+    expect(sourcesById.get('nh.temporary_announcements')).toMatchObject({
+      title: 'New Hampshire DRA News and Media',
+      url: 'https://www.revenue.nh.gov/news-and-media',
+      acquisitionMethod: 'html_watch',
+    })
+    expect(sourcesById.get('vt.temporary_announcements')).toMatchObject({
+      title: 'Vermont Department of Taxes News',
+      url: 'https://tax.vermont.gov/news',
+      acquisitionMethod: 'html_watch',
+    })
+    expect(sourcesById.get('wy.temporary_announcements')).toMatchObject({
+      title: 'Wyoming Excise Tax Division Taxing Issues',
+      url: 'https://excise-tax-div.wyo.gov/newsletter-taxing-issues',
+      acquisitionMethod: 'html_watch',
+      adapterKind: 'html_announcement_list',
+      sourceNotes:
+        'Sales, use, lodging, and excise tax update newsletter; not a disaster relief signal.',
+    })
   })
 
   it('keeps national policy-watch coverage complete while hiding internal watch sources', () => {
@@ -317,13 +349,13 @@ describe('@duedatehq/core/rules', () => {
     })
     expect(rowsBySourceId.get('policy-watch.nh.announcements')).toMatchObject({
       quality: 'parser_ready',
-      url: 'https://www.revenue.nh.gov/tirs',
-      adapterKind: 'pdf_index',
+      url: 'https://www.revenue.nh.gov/news-and-media',
+      adapterKind: null,
     })
     expect(rowsBySourceId.get('policy-watch.vt.announcements')).toMatchObject({
       quality: 'parser_ready',
-      url: 'https://tax.vermont.gov/tax-law-and-guidance/technical-bulletins',
-      adapterKind: 'pdf_index',
+      url: 'https://tax.vermont.gov/news',
+      adapterKind: null,
     })
     expect(rowsBySourceId.get('policy-watch.pa.announcements')).toMatchObject({
       quality: 'parser_ready',
@@ -337,7 +369,7 @@ describe('@duedatehq/core/rules', () => {
     })
     expect(rowsBySourceId.get('policy-watch.wy.announcements')).toMatchObject({
       quality: 'parser_ready',
-      url: 'https://revenue.wyo.gov/rules-and-regulations',
+      url: 'https://excise-tax-div.wyo.gov/newsletter-taxing-issues',
       adapterKind: 'html_announcement_list',
     })
 
@@ -1454,7 +1486,7 @@ describe('@duedatehq/core/rules', () => {
       domains: ['individual_estimated_tax'],
     })
     expect(sourcesById.get('vt.corporate_income_tax')).toMatchObject({
-      url: 'https://tax.vermont.gov/sites/tax/files/documents/CO-411-Instr.pdf',
+      url: 'https://tax.vermont.gov/business/corporate-income-tax',
       domains: ['business_income_return', 'business_estimated_tax'],
       entityApplicability: ['llc', 'partnership', 's_corp', 'c_corp'],
     })
@@ -2358,5 +2390,42 @@ describe('@duedatehq/core/rules', () => {
       sourceId: 'fl.cit_due_dates_2026',
       sourceExcerpt: expect.stringContaining('12/31/26 06/01/26 06/30/26 09/30/26 12/31/26'),
     })
+  })
+})
+
+describe('rulesBySourceId / ruleCitesSourceAsBasis', () => {
+  it('returns verified rules that cite the source', () => {
+    const sample = listObligationRules().find(
+      (rule) => rule.status === 'verified' && rule.sourceIds.length > 0,
+    )
+    expect(sample).toBeDefined()
+    const sourceId = sample!.sourceIds[0]!
+    const hits = rulesBySourceId(sourceId)
+    expect(hits.some((rule) => rule.id === sample!.id)).toBe(true)
+    for (const rule of hits) {
+      expect(rule.status).toBe('verified')
+      expect(rule.sourceIds).toContain(sourceId)
+    }
+  })
+
+  it('excludes candidate rules by default and unknown sources return nothing', () => {
+    expect(rulesBySourceId('__no_such_source__')).toHaveLength(0)
+    for (const rule of rulesBySourceId('fed.irs_pub_509_2026')) {
+      expect(rule.status).not.toBe('candidate')
+    }
+  })
+
+  it('returns the basis excerpt the rule was verified against, else null', () => {
+    const ruleWithBasis = listObligationRules().find(
+      (rule) =>
+        rule.status === 'verified' &&
+        rule.evidence.some((e) => e.authorityRole === 'basis' && e.sourceExcerpt.length > 0),
+    )
+    expect(ruleWithBasis).toBeDefined()
+    const basis = ruleWithBasis!.evidence.find(
+      (e) => e.authorityRole === 'basis' && e.sourceExcerpt.length > 0,
+    )!
+    expect(ruleCitesSourceAsBasis(ruleWithBasis!, basis.sourceId)).toBe(basis.sourceExcerpt)
+    expect(ruleCitesSourceAsBasis(ruleWithBasis!, '__not_a_source__')).toBeNull()
   })
 })

@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
 
-import { usePulseDrawer } from '@/features/pulse/DrawerProvider'
+import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { orpc } from '@/lib/rpc'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
@@ -34,7 +34,7 @@ const EMPTY_RULES: readonly TemporaryRule[] = []
 
 export function TemporaryRulesTab() {
   const { t } = useLingui()
-  const { openDrawer } = usePulseDrawer()
+  const { openDrawer } = useAlertDrawer()
   const practiceTimezone = usePracticeTimezone()
   const [filter, setFilter] = useState<TemporaryRuleFilter>('all')
   const rulesQuery = useQuery(orpc.rules.listTemporaryRules.queryOptions({ input: undefined }))
@@ -73,8 +73,8 @@ export function TemporaryRulesTab() {
               owner/partner/manager. Helper-driven plural noun keeps the
               gate label honest as roles change. */}
           <Trans>
-            Temporary rules appear here after {requiredRolesLabel('pulse.apply')} apply a Pulse
-            Change to matched deadlines.
+            Temporary rules appear here after {requiredRolesLabel('pulse.apply')} apply an alert to
+            matched deadlines.
           </Trans>
         </p>
       </SectionFrame>
@@ -110,7 +110,7 @@ export function TemporaryRulesTab() {
                 key={rule.id}
                 rule={rule}
                 practiceTimezone={practiceTimezone}
-                onOpenPulse={openDrawer}
+                onOpenAlert={openDrawer}
               />
             ))}
           </TableBody>
@@ -123,11 +123,11 @@ export function TemporaryRulesTab() {
 function TemporaryRuleRow({
   rule,
   practiceTimezone,
-  onOpenPulse,
+  onOpenAlert,
 }: {
   rule: TemporaryRule
   practiceTimezone: string
-  onOpenPulse: (alertId: string) => void
+  onOpenAlert: (alertId: string) => void
 }) {
   const { t } = useLingui()
   return (
@@ -181,8 +181,8 @@ function TemporaryRuleRow({
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label={t`Open Pulse detail`}
-              onClick={() => onOpenPulse(rule.alertId!)}
+              aria-label={t`Open alert detail`}
+              onClick={() => onOpenAlert(rule.alertId!)}
             >
               <RotateCcwIcon className="size-4" aria-hidden />
             </Button>

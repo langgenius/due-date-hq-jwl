@@ -170,20 +170,19 @@ import { DestructiveChangePreview } from '@/components/patterns/destructive-chan
 // Page-level components (AlertsListPage, ClientDetailWorkspace, Migration wizard,
 // Dashboard sections, audit-log-page, etc.) are deliberately not previewed —
 // they need RPC-loaded data, router context, or drawer providers to render.
-import { PulseStatusBadge } from '@/features/pulse/components/PulseStatusBadge'
-import { PulseSourceStatusBadge } from '@/features/pulse/components/PulseSourceStatusBadge'
-import { PulseSourceBadge } from '@/features/pulse/components/PulseSourceBadge'
-import { PulseConfidencePill } from '@/features/pulse/components/PulseConfidencePill'
-import { PulsingDot } from '@/features/pulse/components/PulsingDot'
-import { StateTilegram } from '@/features/pulse/components/StateTilegram'
-import { PulseAlertCard } from '@/features/pulse/components/PulseAlertCard'
+import { AlertStatusBadge } from '@/features/alerts/components/AlertStatusBadge'
+import { AlertSourceStatusBadge } from '@/features/alerts/components/AlertSourceStatusBadge'
+import { AlertSourceBadge } from '@/features/alerts/components/AlertSourceBadge'
+import { AlertConfidencePill } from '@/features/alerts/components/AlertConfidencePill'
+import { PulsingDot } from '@/features/alerts/components/PulsingDot'
+import { StateTilegram } from '@/features/alerts/components/StateTilegram'
+import { AlertCard } from '@/features/alerts/components/AlertCard'
 import {
-  PulseReadinessChip,
-  PulseDecisionStatusNotice,
-} from '@/features/pulse/components/PulseReadinessStatus'
-import { PulseStructuredFields } from '@/features/pulse/components/PulseStructuredFields'
-import { AffectedClientsTable } from '@/features/pulse/components/AffectedClientsTable'
-import { PulseReasonDialog } from '@/features/pulse/components/PulseReasonDialog'
+  AlertReadinessChip,
+  AlertDecisionStatusNotice,
+} from '@/features/alerts/components/AlertReadinessStatus'
+import { AlertStructuredFields } from '@/features/alerts/components/AlertStructuredFields'
+import { AffectedClientsTable } from '@/features/alerts/components/AffectedClientsTable'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { BlockedByChip } from '@/features/obligations/blocked-by-chip'
 import { RejectionChip } from '@/features/obligations/rejection-chip'
@@ -202,7 +201,6 @@ import {
   OpportunityTimingBadge,
 } from '@/features/opportunities/opportunity-ui'
 import {
-  RulesPageShell,
   SectionFrame,
   SectionLabel,
   FilterChips,
@@ -429,6 +427,7 @@ const MOCK_PULSE_DETAIL: PulseDetail = {
   effectiveFrom: '2026-05-28',
   effectiveUntil: null,
   affectedRuleIds: ['rule_ca_q3_estimated', 'rule_ca_estimated_individual'],
+  reverifyRuleIds: [],
   structuredChange: null,
   sourceExcerpt:
     'The Franchise Tax Board today announced postponement of the September 15, 2026 estimated tax payment deadline to September 29, 2026 for taxpayers in Sonoma, Mendocino, Napa, and Lake counties due to wildfire disaster declarations.',
@@ -587,14 +586,10 @@ export function PreviewRoute() {
   const [activeState, setActiveState] = useState<string | null>('CA')
   const [rulesFilter, setRulesFilter] = useState<'all' | 'verified' | 'draft'>('all')
   const [timezone, setTimezone] = useState<USFirmTimezone>('America/Los_Angeles')
-  const [reasonOpen, setReasonOpen] = useState(false)
-  const [reasonText, setReasonText] = useState('')
   const [affectedSelection, setAffectedSelection] = useState<Set<string>>(
     () => new Set(['obl_mock_acme_q3', 'obl_mock_brightline_q3']),
   )
-  const [confirmedReviewIds, setConfirmedReviewIds] = useState<Set<string>>(
-    () => new Set(),
-  )
+  const [confirmedReviewIds, setConfirmedReviewIds] = useState<Set<string>>(() => new Set())
 
   // Static demo data
   const comboOptions = [
@@ -651,9 +646,8 @@ export function PreviewRoute() {
                 DueDateHQ component library
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-text-secondary">
-                Live preview of <code className="font-mono text-xs">@duedatehq/ui</code>{' '}
-                primitives and{' '}
-                <code className="font-mono text-xs">apps/app/src/components/</code> composed
+                Live preview of <code className="font-mono text-xs">@duedatehq/ui</code> primitives
+                and <code className="font-mono text-xs">apps/app/src/components/</code> composed
                 building blocks. All renders use the real semantic tokens — change a value in{' '}
                 <code className="font-mono text-xs">
                   packages/ui/src/styles/tokens/semantic-light.css
@@ -932,11 +926,7 @@ export function PreviewRoute() {
           >
             <Row label="Checkbox">
               <div className="flex items-center gap-2">
-                <Checkbox
-                  id="cb"
-                  checked={checked}
-                  onCheckedChange={(v) => setChecked(v === true)}
-                />
+                <Checkbox id="cb" checked={checked} onCheckedChange={(v) => setChecked(v)} />
                 <Label htmlFor="cb">Remember this firm on this device</Label>
               </div>
               <div className="flex items-center gap-2">
@@ -968,10 +958,7 @@ export function PreviewRoute() {
             subtitle="Single-value dropdown with grouped options. For multi-select or async search, use SearchableCombobox."
           >
             <Row label="Default" mono="<Select />">
-              <Select
-                value={selectValue}
-                onValueChange={(value) => setSelectValue(value ?? 'all')}
-              >
+              <Select value={selectValue} onValueChange={(value) => setSelectValue(value ?? 'all')}>
                 <SelectTrigger className="w-64">
                   <SelectValue placeholder="Filter by owner" />
                 </SelectTrigger>
@@ -1188,9 +1175,7 @@ export function PreviewRoute() {
                 <TooltipContent>This client has no obligations yet</TooltipContent>
               </Tooltip>
               <Tooltip>
-                <TooltipTrigger
-                  render={<Button variant="outline">Hover me for shortcut</Button>}
-                />
+                <TooltipTrigger render={<Button variant="outline">Hover me for shortcut</Button>} />
                 <TooltipContent>
                   Press <Kbd>⌘</Kbd>
                   <Kbd>K</Kbd> for command palette
@@ -1274,9 +1259,7 @@ export function PreviewRoute() {
 
             <Row label="AlertDialog" mono="<AlertDialog />">
               <AlertDialog>
-                <AlertDialogTrigger
-                  render={<Button variant="destructive">Delete client</Button>}
-                />
+                <AlertDialogTrigger render={<Button variant="destructive">Delete client</Button>} />
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete Acme LLC?</AlertDialogTitle>
@@ -1310,8 +1293,8 @@ export function PreviewRoute() {
                       wide.
                     </p>
                     <p>
-                      Internal scroll, sticky header + footer. The chrome here is the same
-                      primitive every panel reuses.
+                      Internal scroll, sticky header + footer. The chrome here is the same primitive
+                      every panel reuses.
                     </p>
                   </div>
                   <SheetFooter>
@@ -1578,12 +1561,7 @@ export function PreviewRoute() {
             <Row label="StatTile (with week-over-week trend)" mono="patterns/stat-tile">
               <div className="grid w-full max-w-2xl grid-cols-3 gap-3">
                 <StatTile label="In review" value="3" trend={{ delta: -1 }} />
-                <StatTile
-                  label="Blocked"
-                  value="2"
-                  tone="critical"
-                  trend={{ delta: 1 }}
-                />
+                <StatTile label="Blocked" value="2" tone="critical" trend={{ delta: 1 }} />
                 <StatTile label="Waiting on client" value="1" trend={{ delta: 0 }} />
               </div>
             </Row>
@@ -1640,8 +1618,8 @@ export function PreviewRoute() {
             </Row>
             <Row label="EmptyCellMark" mono="patterns/empty-cell-mark">
               <span className="text-sm">
-                Owner: <EmptyCellMark label="Unassigned" /> · Due:{' '}
-                <EmptyCellMark /> · Tags: <EmptyCellMark />
+                Owner: <EmptyCellMark label="Unassigned" /> · Due: <EmptyCellMark /> · Tags:{' '}
+                <EmptyCellMark />
               </span>
             </Row>
           </Section>
@@ -1656,10 +1634,7 @@ export function PreviewRoute() {
               <div className="w-full max-w-3xl rounded-lg border border-divider-regular bg-background-default p-6">
                 <PageHeader
                   eyebrow="Client"
-                  breadcrumbs={[
-                    { label: 'Clients', to: '#' },
-                    { label: 'Acme LLC' },
-                  ]}
+                  breadcrumbs={[{ label: 'Clients', to: '#' }, { label: 'Acme LLC' }]}
                   title="Acme LLC"
                   metaRow={
                     <>
@@ -1853,30 +1828,30 @@ export function PreviewRoute() {
             title="Pulse — status family"
             subtitle="The badge / pill / dot vocabulary used across /rules/pulse and its drawer. Tone matches the obligation status ladder."
           >
-            <Row label="PulseStatusBadge" mono="features/pulse/PulseStatusBadge">
-              <PulseStatusBadge status="matched" />
-              <PulseStatusBadge status="snoozed" />
-              <PulseStatusBadge status="partially_applied" />
-              <PulseStatusBadge status="applied" />
-              <PulseStatusBadge status="reverted" />
-              <PulseStatusBadge status="dismissed" />
-              <PulseStatusBadge status="reviewed" />
+            <Row label="AlertStatusBadge" mono="features/pulse/AlertStatusBadge">
+              <AlertStatusBadge status="matched" />
+              <AlertStatusBadge status="snoozed" />
+              <AlertStatusBadge status="partially_applied" />
+              <AlertStatusBadge status="applied" />
+              <AlertStatusBadge status="reverted" />
+              <AlertStatusBadge status="dismissed" />
+              <AlertStatusBadge status="reviewed" />
             </Row>
-            <Row label="PulseSourceStatusBadge" mono="features/pulse/PulseSourceStatusBadge">
-              <PulseSourceStatusBadge status="source_revoked" />
+            <Row label="AlertSourceStatusBadge" mono="features/pulse/AlertSourceStatusBadge">
+              <AlertSourceStatusBadge status="source_revoked" />
               <span className="text-xs text-text-tertiary">
                 Renders null unless status === "source_revoked"
               </span>
             </Row>
-            <Row label="PulseSourceBadge" mono="features/pulse/PulseSourceBadge">
-              <PulseSourceBadge source="CA FTB" sourceUrl="https://ftb.ca.gov" />
-              <PulseSourceBadge source="IRS" sourceUrl="https://irs.gov" />
-              <PulseSourceBadge source="NY DTF" sourceUrl="https://tax.ny.gov" />
+            <Row label="AlertSourceBadge" mono="features/pulse/AlertSourceBadge">
+              <AlertSourceBadge source="CA FTB" sourceUrl="https://ftb.ca.gov" />
+              <AlertSourceBadge source="IRS" sourceUrl="https://irs.gov" />
+              <AlertSourceBadge source="NY DTF" sourceUrl="https://tax.ny.gov" />
             </Row>
-            <Row label="PulseConfidencePill" mono="features/pulse/PulseConfidencePill">
-              <PulseConfidencePill confidence="low" />
-              <PulseConfidencePill confidence="medium" />
-              <PulseConfidencePill confidence="high" />
+            <Row label="AlertConfidencePill" mono="features/pulse/AlertConfidencePill">
+              <AlertConfidencePill confidence="low" />
+              <AlertConfidencePill confidence="medium" />
+              <AlertConfidencePill confidence="high" />
             </Row>
             <Row label="PulsingDot (tones × active)" mono="features/pulse/PulsingDot">
               <div className="flex flex-col gap-2">
@@ -1914,11 +1889,8 @@ export function PreviewRoute() {
                   onSelect={(code) => setActiveState((s) => (s === code ? null : code))}
                 />
                 <p className="text-xs text-text-tertiary">
-                  Active:{' '}
-                  <code className="font-mono">
-                    {activeState ?? 'null (no filter)'}
-                  </code>{' '}
-                  · Click a state to toggle.
+                  Active: <code className="font-mono">{activeState ?? 'null (no filter)'}</code> ·
+                  Click a state to toggle.
                 </p>
               </div>
             </Row>
@@ -1934,16 +1906,8 @@ export function PreviewRoute() {
               <AssigneeAvatar name="Sarah Chen" isMine={false} title="Assigned: Sarah Chen" />
               <AssigneeAvatar name="Avery Patel" isMine={true} title="Assigned to you" />
               <AssigneeAvatar name="Jules Rivera" isMine={false} title="Assigned: Jules Rivera" />
-              <AssigneeAvatar
-                name="Priya Pro"
-                isMine={false}
-                title="Assigned: Priya Pro"
-              />
-              <AssigneeAvatar
-                name="Taylor Team"
-                isMine={false}
-                title="Assigned: Taylor Team"
-              />
+              <AssigneeAvatar name="Priya Pro" isMine={false} title="Assigned: Priya Pro" />
+              <AssigneeAvatar name="Taylor Team" isMine={false} title="Assigned: Taylor Team" />
             </Row>
             <Row label="BlockedByChip" mono="features/obligations/blocked-by-chip">
               <BlockedByChip
@@ -1972,7 +1936,10 @@ export function PreviewRoute() {
             title="Surface · Billing · Concepts"
             subtitle="Surface-strip summary primitive, the upgrade CTA used across plan gates, and the inline concept-help affordance."
           >
-            <Row label="SurfaceSummaryStrip" mono="features/_surface-vocabulary/SurfaceSummaryStrip">
+            <Row
+              label="SurfaceSummaryStrip"
+              mono="features/_surface-vocabulary/SurfaceSummaryStrip"
+            >
               <SurfaceSummaryStrip
                 label="Deadlines"
                 items={[
@@ -2013,29 +1980,14 @@ export function PreviewRoute() {
             title="Pulse — full alert cards"
             subtitle="The big card shape from /rules/pulse and the smaller dashboard variant. Mocked PulseAlertPublic — no network calls."
           >
-            <Row label="PulseAlertCard (default)" mono="features/pulse/PulseAlertCard">
-              <PulseAlertCard
-                alert={MOCK_PULSE_ALERT}
-                onReview={() => {}}
-                onSnooze={() => {}}
-                onDismiss={() => {}}
-                onArchive={() => {}}
-              />
+            <Row label="AlertCard (default)" mono="features/pulse/AlertCard">
+              <AlertCard alert={MOCK_PULSE_ALERT} onReview={() => {}} />
             </Row>
-            <Row label="PulseAlertCard (active row)">
-              <PulseAlertCard
-                alert={MOCK_PULSE_ALERT}
-                onReview={() => {}}
-                active
-                showReadiness
-              />
+            <Row label="AlertCard (active row)">
+              <AlertCard alert={MOCK_PULSE_ALERT} onReview={() => {}} active showReadiness />
             </Row>
-            <Row label="PulseAlertCard (low confidence)">
-              <PulseAlertCard
-                alert={MOCK_PULSE_ALERT_LOW_CONF}
-                onReview={() => {}}
-                onDismiss={() => {}}
-              />
+            <Row label="AlertCard (low confidence)">
+              <AlertCard alert={MOCK_PULSE_ALERT_LOW_CONF} onReview={() => {}} />
             </Row>
           </Section>
 
@@ -2043,26 +1995,26 @@ export function PreviewRoute() {
           <Section
             id="pulse-detail"
             title="Pulse — detail pieces"
-            subtitle="Right-panel components from the Pulse drawer. PulseStructuredFields shows scope chips; AffectedClientsTable shows the row impact; readiness chips show whether the alert can be auto-applied."
+            subtitle="Right-panel components from the Pulse drawer. AlertStructuredFields shows scope chips; AffectedClientsTable shows the row impact; readiness chips show whether the alert can be auto-applied."
           >
-            <Row label="PulseReadinessChip" mono="features/pulse/PulseReadinessStatus">
-              <PulseReadinessChip
+            <Row label="AlertReadinessChip" mono="features/pulse/AlertReadinessStatus">
+              <AlertReadinessChip
                 readiness={MOCK_PULSE_ALERT.applyReadiness}
                 firmImpact={MOCK_PULSE_ALERT.firmImpact}
               />
-              <PulseReadinessChip
+              <AlertReadinessChip
                 readiness={MOCK_PULSE_ALERT_LOW_CONF.applyReadiness}
                 firmImpact={MOCK_PULSE_ALERT_LOW_CONF.firmImpact}
               />
             </Row>
-            <Row label="PulseDecisionStatusNotice">
+            <Row label="AlertDecisionStatusNotice">
               <div className="w-full max-w-2xl">
-                <PulseDecisionStatusNotice alert={MOCK_PULSE_ALERT} />
+                <AlertDecisionStatusNotice alert={MOCK_PULSE_ALERT} />
               </div>
             </Row>
-            <Row label="PulseStructuredFields" mono="features/pulse/PulseStructuredFields">
+            <Row label="AlertStructuredFields" mono="features/pulse/AlertStructuredFields">
               <div className="w-full max-w-2xl">
-                <PulseStructuredFields detail={MOCK_PULSE_DETAIL} />
+                <AlertStructuredFields detail={MOCK_PULSE_DETAIL} />
               </div>
             </Row>
             <Row label="AffectedClientsTable" mono="features/pulse/AffectedClientsTable">
@@ -2083,25 +2035,6 @@ export function PreviewRoute() {
                 />
               </div>
             </Row>
-            <Row label="PulseReasonDialog (snooze)" mono="features/pulse/PulseReasonDialog">
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setReasonText('')
-                  setReasonOpen(true)
-                }}
-              >
-                Open snooze-reason dialog
-              </Button>
-              <PulseReasonDialog
-                action={reasonOpen ? 'snooze' : null}
-                reason={reasonText}
-                pending={false}
-                onChangeReason={setReasonText}
-                onOpenChange={setReasonOpen}
-                onSubmit={() => setReasonOpen(false)}
-              />
-            </Row>
           </Section>
 
           {/* Obligation blocks */}
@@ -2120,8 +2053,8 @@ export function PreviewRoute() {
                 <BlockerContextCard blockerId="" onOpen={() => {}} />
                 <p className="text-xs text-text-tertiary">
                   Renders its skeleton state because the blockerId is empty (no live RPC). The
-                  populated chrome appears at <code className="font-mono">/deadlines</code> when
-                  an obligation has a blocking parent.
+                  populated chrome appears at <code className="font-mono">/deadlines</code> when an
+                  obligation has a blocking parent.
                 </p>
               </div>
             </Row>
@@ -2292,17 +2225,17 @@ export function PreviewRoute() {
           <p className="pb-12 pt-6 text-xs text-text-tertiary">
             Routes: <code className="font-mono">apps/app/src/routes/preview.tsx</code> · Tokens:{' '}
             <code className="font-mono">packages/ui/src/styles/tokens/semantic-light.css</code> ·
-            Primitives: <code className="font-mono">packages/ui/src/components/ui/</code> ·
-            Feature components:{' '}
-            <code className="font-mono">apps/app/src/features/</code>
+            Primitives: <code className="font-mono">packages/ui/src/components/ui/</code> · Feature
+            components: <code className="font-mono">apps/app/src/features/</code>
           </p>
           <p className="pb-12 text-xs text-text-tertiary">
             <strong className="text-text-secondary">Still not previewed</strong> — these are
-            page-level shells, workspaces, or multi-step wizards that need router params,
-            drawer providers, or full RPC data graphs to render meaningfully. To see them, sign
-            in via the demo-login URL (top of this thread) and navigate to their host route:
+            page-level shells, workspaces, or multi-step wizards that need router params, drawer
+            providers, or full RPC data graphs to render meaningfully. To see them, sign in via the
+            demo-login URL (top of this thread) and navigate to their host route:
             <br />
-            <code className="font-mono">AlertsListPage</code> → <code className="font-mono">/rules/pulse</code> ·{' '}
+            <code className="font-mono">AlertsListPage</code> →{' '}
+            <code className="font-mono">/rules/pulse</code> ·{' '}
             <code className="font-mono">PulseDetailDrawer</code> → opens from the same route ·{' '}
             <code className="font-mono">ClientDetailWorkspace</code> ·{' '}
             <code className="font-mono">ClientFactsWorkspace</code> ·{' '}

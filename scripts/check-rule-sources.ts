@@ -16,6 +16,7 @@ import {
   sourceDomainsForRule,
   type RuleSource,
 } from '../packages/core/src/rules/index.ts'
+import { findRuleDateReconciliationIssues } from '../apps/server/src/procedures/rules/rule-date-reconciliation.ts'
 
 type CheckedMethod = 'HEAD' | 'GET'
 
@@ -367,6 +368,7 @@ const results = await Promise.all(RULE_SOURCES.map(checkWithRetry))
 const penaltyCatalog = listPenaltyFormulaCatalog()
 const penaltySourceFailures: string[] = []
 const sourceCoverageFailures: string[] = []
+const ruleDateFailures: string[] = []
 const knownDomains = new Set<string>(RULE_SOURCE_DOMAINS)
 const sourceById = new Map(RULE_SOURCES.map((source) => [source.id, source]))
 const COMPLETED_SOURCE_PACK_JURISDICTIONS = [
@@ -478,6 +480,17 @@ for (const rule of listObligationRules({ includeCandidates: true })) {
   }
 }
 
+// Gap #5: reconcile verified rule literal due dates against their own cited basis excerpt and filing
+// year. Deterministic/offline — catching a source that silently changed its dates is the rule-source
+// drift detector's job (Alert), not this static-catalog check.
+const ruleDateIssues = findRuleDateReconciliationIssues({
+  rules: listObligationRules({ includeCandidates: true }),
+  currentYear: new Date().getFullYear(),
+})
+for (const issue of ruleDateIssues) {
+  ruleDateFailures.push(`${issue.ruleId}: ${issue.kind} — ${issue.detail}`)
+}
+
 for (const result of results) {
   const status =
     result.status === 'ok'
@@ -528,6 +541,15 @@ for (const failure of sourceCoverageFailures) {
   console.error(failure)
 }
 
-if (failed.length > 0 || penaltySourceFailures.length > 0 || sourceCoverageFailures.length > 0) {
+for (const failure of ruleDateFailures) {
+  console.error(failure)
+}
+
+if (
+  failed.length > 0 ||
+  penaltySourceFailures.length > 0 ||
+  sourceCoverageFailures.length > 0 ||
+  ruleDateFailures.length > 0
+) {
   process.exitCode = 1
 }

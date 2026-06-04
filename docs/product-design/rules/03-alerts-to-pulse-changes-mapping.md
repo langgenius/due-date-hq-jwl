@@ -1,5 +1,13 @@
 # Alerts to Pulse Changes Mapping
 
+> **2026-05-30 update.** The decision surface is now the top-level **`/alerts`**
+> route (it left the Rules subtree; `/rules/pulse[/history]` redirects to
+> `/alerts[/history]`). References to `Rules > Pulse Changes` below mean `/alerts`.
+> The **Dismiss / Snooze / Archive** actions were removed from the UI — `apply`,
+> `mark reviewed`, `request review`, and `revert` remain; `mark reviewed` is the
+> single clear-without-apply path. "Pulse" is now the engine name only (DB /
+> contracts / RPC); the user/frontend word is "Alerts."
+
 ## Boundary
 
 The reference `https://github.com/helloigig/DueDateHQ` Alerts surface is not a route or schema to

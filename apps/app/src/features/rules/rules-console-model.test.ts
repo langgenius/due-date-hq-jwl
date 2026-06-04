@@ -4,13 +4,13 @@ import {
   COVERAGE_ENTITY_GROUPS,
   ENTITY_COLUMN_GROUPS,
   countSourcesByHealth,
-  DEFAULT_PREVIEW_CALENDAR_YEAR,
+  DEFAULT_PREVIEW_TAX_YEAR,
   filterSources,
   groupPreviewRows,
   humanizeDueDateLogic,
-  previewCalendarYearFromObligations,
-  previewCalendarYearFromFormDates,
-  previewCalendarYearToFormDates,
+  previewTaxYearFromObligations,
+  previewTaxYearFromFormDates,
+  previewTaxYearToFormDates,
   previewFormValuesForClient,
   previewFormToInput,
   previewTaxTypesFromObligations,
@@ -48,7 +48,7 @@ describe('rules console model', () => {
         state: 'CA',
       },
       taxTypes: ['federal_1065_or_1040', 'ca_llc_franchise_min_800', 'ca_llc_fee_gross_receipts'],
-      calendarYear: 2026,
+      taxYear: 2025,
     })
 
     expect(previewFormToInput(values)).toEqual({
@@ -58,13 +58,13 @@ describe('rules console model', () => {
         taxClassification: 'partnership',
         state: 'CA',
         taxTypes: ['federal_1065_or_1040', 'ca_llc_franchise_min_800', 'ca_llc_fee_gross_receipts'],
-        taxYearStart: '2026-01-01',
+        taxYearStart: '2025-01-01',
         taxYearEnd: '2025-12-31',
       },
     })
   })
 
-  it('derives preview tax types and calendar year from existing obligations', () => {
+  it('derives preview tax types and tax year from existing obligations', () => {
     const obligations = [
       { taxType: 'federal_1120s', taxYear: 2025 },
       { taxType: 'ny_ct3s', taxYear: 2026 },
@@ -77,23 +77,21 @@ describe('rules console model', () => {
       'ny_ct3s',
       'ny_ptet_optional',
     ])
-    expect(previewCalendarYearFromObligations(obligations)).toBe(2026)
-    expect(previewCalendarYearFromObligations([])).toBe(DEFAULT_PREVIEW_CALENDAR_YEAR)
+    expect(previewTaxYearFromObligations(obligations)).toBe(2026)
+    expect(previewTaxYearFromObligations([])).toBe(DEFAULT_PREVIEW_TAX_YEAR)
   })
 
-  it('maps the preview calendar year to rule-engine date inputs', () => {
+  it('maps the preview tax year to rule-engine date inputs', () => {
     expect(
-      previewCalendarYearFromFormDates({
-        taxYearStart: '2026-01-01',
+      previewTaxYearFromFormDates({
+        taxYearStart: '2025-01-01',
         taxYearEnd: '2025-12-31',
       }),
-    ).toBe(2026)
-    expect(previewCalendarYearFromFormDates({ taxYearStart: '', taxYearEnd: '2025-12-31' })).toBe(
-      2026,
-    )
-    expect(previewCalendarYearToFormDates(2027)).toEqual({
+    ).toBe(2025)
+    expect(previewTaxYearFromFormDates({ taxYearStart: '', taxYearEnd: '2025-12-31' })).toBe(2025)
+    expect(previewTaxYearToFormDates(2027)).toEqual({
       taxYearStart: '2027-01-01',
-      taxYearEnd: '2026-12-31',
+      taxYearEnd: '2027-12-31',
     })
   })
 

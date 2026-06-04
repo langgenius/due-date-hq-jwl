@@ -29,7 +29,7 @@ test.describe('seeded Pulse alerts', () => {
     await expect(drawer.getByRole('heading', { name: /Affected clients/ })).toBeVisible()
     await expect(drawer.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(drawer.getByText('Bright Studio S-Corp')).toBeVisible()
-    await expect(drawer.getByText('Pulse evidence linked to each deadline')).toBeVisible()
+    await expect(drawer.getByText('Alert evidence linked to each deadline')).toBeVisible()
 
     await drawer.getByRole('button', { name: 'Apply Deadline Exception' }).click()
     const verificationDialog = authenticatedPage.getByRole('dialog', {
@@ -70,15 +70,15 @@ test.describe('seeded Pulse alerts', () => {
 
     await appShellPage.goto('/audit?action=pulse.apply&range=all')
     await expect(auditPage.eventRowFor('pulse.apply')).toBeVisible()
-    await expect(auditPage.eventRowFor('pulse.apply')).toContainText('Pulse applied')
+    await expect(auditPage.eventRowFor('pulse.apply')).toContainText('Alert applied')
 
     await appShellPage.goto('/?asOfDate=2026-05-03')
     await expect(authenticatedPage.getByRole('region', { name: 'Actions this week' })).toBeVisible()
 
-    // The Pulse alerts page is `/rules/pulse` now (previously `/rules?tab=pulse`).
-    await appShellPage.goto('/rules/pulse')
+    // The Alerts page is `/alerts` now (previously `/rules/pulse`, `/rules?tab=pulse`).
+    await appShellPage.goto('/alerts')
     const appliedAlert = authenticatedPage.getByRole('button', {
-      name: /Pulse alert: IRS CA storm relief/,
+      name: /Alert: IRS CA storm relief/,
     })
     await appliedAlert.click()
     const appliedDrawer = pulseDetailDrawer(authenticatedPage)
@@ -94,6 +94,17 @@ test.describe('seeded Pulse alerts', () => {
     await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toContainText('72 days late')
   })
 
+  test('AC: legacy /rules/pulse redirects to /alerts, preserving ?alert deep links', async ({
+    appShellPage,
+    authenticatedPage,
+  }) => {
+    await appShellPage.goto('/rules/pulse')
+    await expect(authenticatedPage).toHaveURL(/\/alerts(?:$|\?|#)/)
+
+    await appShellPage.goto('/rules/pulse/history')
+    await expect(authenticatedPage).toHaveURL(/\/alerts\/history(?:$|\?|#)/)
+  })
+
   test('AC: E2E-PULSE-PRIORITY-QUEUE keeps the MVP priority queue UI hidden', async ({
     appShellPage,
     authSession,
@@ -101,7 +112,7 @@ test.describe('seeded Pulse alerts', () => {
     request,
   }) => {
     await seedBillingSubscription(request, { firmId: authSession.firmId, plan: 'team' })
-    await appShellPage.goto('/rules/pulse')
+    await appShellPage.goto('/alerts')
 
     await expect(authenticatedPage.getByRole('button', { name: 'Priority Queue' })).toHaveCount(0)
     await expect(authenticatedPage.getByRole('button', { name: 'All Pulse' })).toHaveCount(0)
@@ -133,8 +144,6 @@ test.describe('seeded Pulse alerts', () => {
       await expect(readOnlyAlert).toContainText('Current role: Coordinator')
       await expect(readOnlyAlert).toContainText('Required: Owner, Partner, Manager')
       await expect(drawer.getByRole('button', { name: 'Apply Deadline Exception' })).toBeDisabled()
-      await expect(drawer.getByRole('button', { name: 'Dismiss' })).toBeDisabled()
-      await expect(drawer.getByRole('button', { name: 'Snooze 24h' })).toBeDisabled()
     })
   })
 
@@ -154,13 +163,11 @@ test.describe('seeded Pulse alerts', () => {
 
       await expect(drawer.getByText('Read-only view')).toBeVisible()
       await expect(drawer.getByRole('button', { name: 'Apply Deadline Exception' })).toBeDisabled()
-      await expect(drawer.getByRole('button', { name: 'Dismiss' })).toBeDisabled()
-      await expect(drawer.getByRole('button', { name: 'Snooze 24h' })).toBeDisabled()
       const requestReviewButton = drawer.getByRole('button', { name: 'Request review' }).first()
       await expect(requestReviewButton).toBeVisible()
 
       await requestReviewButton.click()
-      const requestDialog = authenticatedPage.getByRole('dialog', { name: 'Request Pulse review' })
+      const requestDialog = authenticatedPage.getByRole('dialog', { name: 'Request alert review' })
       await requestDialog
         .getByLabel('Optional note')
         .fill('Please confirm LA County applicability.')
@@ -181,7 +188,7 @@ test.describe('seeded Pulse alerts', () => {
       await expect(notification).toContainText('Please confirm LA County applicability.')
 
       await notification.getByRole('link', { name: 'Open' }).click()
-      await expect(authenticatedPage).toHaveURL(/\/rules\/pulse\?alert=/)
+      await expect(authenticatedPage).toHaveURL(/\/alerts\?alert=/)
       await expect(
         pulseDetailDrawer(authenticatedPage).getByRole('heading', { name: /IRS CA storm relief/ }),
       ).toBeVisible()
@@ -213,13 +220,13 @@ function e2eSeedHeaders(): Record<string, string> {
 
 function dashboardPulseAlertButton(page: Page) {
   return page.getByRole('button', {
-    name: /Open Pulse alert details: IRS CA storm relief extends selected filing deadlines/,
+    name: /Open Alert details: IRS CA storm relief extends selected filing deadlines/,
   })
 }
 
 function pulseListAlertButton(page: Page) {
   return page.getByRole('button', {
-    name: /Pulse alert: IRS CA storm relief extends selected filing deadlines/,
+    name: /Alert: IRS CA storm relief extends selected filing deadlines/,
   })
 }
 
@@ -230,13 +237,13 @@ async function openDashboardPulseAlert(page: Page) {
     return
   }
 
-  await page.goto('/rules/pulse')
+  await page.goto('/alerts')
   await expect(pulseListAlertButton(page)).toBeVisible()
   await pulseListAlertButton(page).click()
 }
 
 function pulseDetailDrawer(page: Page) {
-  return page.getByRole('complementary', { name: 'Pulse alert detail' })
+  return page.getByRole('complementary', { name: 'Alert detail' })
 }
 
 function isSwitchRoleResponse(value: unknown): value is { cookie: Cookie } {

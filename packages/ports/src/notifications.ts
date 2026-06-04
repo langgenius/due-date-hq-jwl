@@ -112,6 +112,7 @@ export interface NotificationsRepo {
       | 'client_deadline_reminder'
       | 'audit_evidence_package_ready'
       | 'readiness_request'
+      | 'signature_reminder'
     payloadJson: unknown
   }): Promise<{ id: string; created: boolean }>
 }

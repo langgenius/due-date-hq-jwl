@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { PDFDocument, StandardFonts } from 'pdf-lib'
 import { fetchTextSnapshot, hashText } from './http'
 import { runFixtureAdapter, sourceFixtureBodies } from './fixtures'
@@ -11,7 +11,10 @@ import {
   txComptrollerRssAdapter,
 } from './adapters'
 import { createSourceFetcherRegistry } from './fetcher'
-import { announcementItemsFromSnapshot } from './announcements'
+import {
+  announcementItemsFromSnapshot,
+  announcementItemsFromSnapshotWithPdfLinks,
+} from './announcements'
 import { parseRssItems, parsedItemsFromRss } from './rss'
 import { extractLinks, pickSelector } from './selectors'
 import type { IngestCtx } from './types'
@@ -20,22 +23,29 @@ const cloudflareFetch = async () => new Response('cloudflare')
 const browserlessFetch = async () => new Response('browserless')
 
 describe('@duedatehq/ingest', () => {
-  it('hashes text with stable sha256 output', async () => {
-    await expect(hashText('pulse')).resolves.toMatch(/^[a-f0-9]{64}$/)
-    await expect(hashText('pulse')).resolves.toBe(await hashText('pulse'))
-  })
-
-  it('extracts PDF source text before archiving snapshots', async () => {
+  async function createPdfBytes(text: string): Promise<ArrayBuffer> {
     const pdf = await PDFDocument.create()
-    const page = pdf.addPage([400, 160])
+    const page = pdf.addPage([500, 160])
     const font = await pdf.embedFont(StandardFonts.Helvetica)
-    page.drawText('April 15 filing deadline for individual income tax returns', {
+    page.drawText(text, {
       x: 24,
       y: 96,
       size: 12,
       font,
     })
     const bytes = await pdf.save()
+    const buffer = new ArrayBuffer(bytes.byteLength)
+    new Uint8Array(buffer).set(bytes)
+    return buffer
+  }
+
+  it('hashes text with stable sha256 output', async () => {
+    await expect(hashText('pulse')).resolves.toMatch(/^[a-f0-9]{64}$/)
+    await expect(hashText('pulse')).resolves.toBe(await hashText('pulse'))
+  })
+
+  it('extracts PDF source text before archiving snapshots', async () => {
+    const bytes = await createPdfBytes('April 15 filing deadline for individual income tax returns')
     const archivedBodies: string[] = []
 
     const snapshot = await fetchTextSnapshot(
@@ -56,6 +66,155 @@ describe('@duedatehq/ingest', () => {
     expect(snapshot.body).toContain('April 15 filing deadline')
     expect(snapshot.contentType).toBe('text/plain; charset=utf-8')
     expect(archivedBodies[0]).toContain('individual income tax returns')
+  })
+
+  it('extracts linked PDF announcement text and deduplicates the link item', async () => {
+    const bytes = await createPdfBytes('Quarterly tax update changes the filing deadline')
+
+    const items = await announcementItemsFromSnapshotWithPdfLinks(
+      {
+        id: 'pa.temporary_announcements',
+        title: 'Pennsylvania DOR PA Tax Update Newsletter',
+        url: 'https://www.pa.gov/agencies/revenue/resources/pa-tax-update-newsletter',
+        jurisdiction: 'PA',
+      },
+      {
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        body: '<a href="/content/dam/revenue/tax-update.pdf">Tax Update PDF</a>',
+      },
+      {
+        async fetch(input) {
+          expect(String(input)).toBe('https://www.pa.gov/content/dam/revenue/tax-update.pdf')
+          return new Response(bytes, { headers: { 'content-type': 'application/pdf' } })
+        },
+      },
+    )
+
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      sourceId: 'pa.temporary_announcements',
+      title: 'Tax Update PDF',
+      officialSourceUrl: 'https://www.pa.gov/content/dam/revenue/tax-update.pdf',
+      jurisdiction: 'PA',
+    })
+    expect(items[0]?.rawText).toContain('Quarterly tax update changes')
+  })
+
+  it('does not fall back to a link-only item when a PDF candidate cannot be read', async () => {
+    const items = await announcementItemsFromSnapshotWithPdfLinks(
+      {
+        id: 'pa.temporary_announcements',
+        title: 'Pennsylvania DOR PA Tax Update Newsletter',
+        url: 'https://www.pa.gov/agencies/revenue/resources/pa-tax-update-newsletter',
+        jurisdiction: 'PA',
+      },
+      {
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        body: '<a href="/content/dam/revenue/tax-update.pdf">Tax Update PDF</a>',
+      },
+      {
+        async fetch() {
+          return new Response('not available', { status: 500 })
+        },
+      },
+    )
+
+    expect(items).toHaveLength(0)
+  })
+
+  it('treats content-disposition PDF downloads as linked PDF announcements', async () => {
+    const bytes = await createPdfBytes('Administrative notice changes sales tax filing guidance')
+
+    const items = await announcementItemsFromSnapshotWithPdfLinks(
+      {
+        id: 'nm.temporary_announcements',
+        title: 'New Mexico TRD News Alerts',
+        url: 'https://www.tax.newmexico.gov/news-alerts/',
+        jurisdiction: 'NM',
+      },
+      {
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        body: '<a href="/download/notice">Administrative notice PDF</a>',
+      },
+      {
+        async fetch() {
+          return new Response(bytes, {
+            headers: {
+              'content-type': 'application/octet-stream',
+              'content-disposition': 'attachment; filename="notice.pdf"',
+            },
+          })
+        },
+      },
+    )
+
+    expect(items).toHaveLength(1)
+    expect(items[0]?.rawText).toContain('sales tax filing guidance')
+  })
+
+  it('does not fetch unrelated linked PDFs', async () => {
+    const fetchMock = vi.fn(async () => new Response('should not fetch'))
+
+    const items = await announcementItemsFromSnapshotWithPdfLinks(
+      {
+        id: 'ak.temporary_announcements',
+        title: 'Alaska Tax Division News',
+        url: 'https://tax.alaska.gov/programs/whatsnew.aspx',
+        jurisdiction: 'AK',
+      },
+      {
+        fetchedAt: new Date('2026-04-08T00:00:00.000Z'),
+        body: '<a href="/forms/estate-tax-form.pdf">Estate Tax Form</a>',
+      },
+      { fetch: fetchMock },
+    )
+
+    expect(items).toHaveLength(0)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('normalizes Google Drive PDF links while preserving the official source URL', async () => {
+    const bytes = await createPdfBytes('Wyoming sales tax exemption matrix changed in March')
+    const fetchedUrls: string[] = []
+
+    const items = await announcementItemsFromSnapshotWithPdfLinks(
+      {
+        id: 'wy.temporary_announcements',
+        title: 'Wyoming Excise Tax Division Taxing Issues',
+        url: 'https://excise-tax-div.wyo.gov/newsletter-taxing-issues',
+        jurisdiction: 'WY',
+      },
+      {
+        fetchedAt: new Date('2026-06-01T00:00:00.000Z'),
+        body: [
+          '<a href="https://excise-tax-div.wyo.gov/salesuselodging-tax/salesuselodging-returns">Returns</a>',
+          '<a href="https://drive.google.com/file/d/1VrvUS6LeG1m3g3IeGJ9DW1zwlAtkfdqU/view?usp=drive_link">03-2026 Taxing Issues</a>',
+        ].join(''),
+      },
+      {
+        async fetch(input) {
+          fetchedUrls.push(String(input))
+          return new Response(bytes, {
+            headers: {
+              'content-type': 'application/octet-stream',
+              'content-disposition': 'attachment; filename="03-2026Taxing Issues.pdf"',
+            },
+          })
+        },
+      },
+    )
+
+    expect(fetchedUrls).toEqual([
+      'https://drive.google.com/uc?export=download&id=1VrvUS6LeG1m3g3IeGJ9DW1zwlAtkfdqU',
+    ])
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({
+      title: '03-2026 Taxing Issues',
+      officialSourceUrl: 'https://drive.google.com/file/d/1VrvUS6LeG1m3g3IeGJ9DW1zwlAtkfdqU/view',
+      publishedAt: new Date('2026-03-01T00:00:00.000Z'),
+      jurisdiction: 'WY',
+    })
+    expect(items[0]?.rawText).toContain('Wyoming sales tax exemption')
   })
 
   it('picks the first selector with results', () => {
@@ -439,9 +598,11 @@ describe('@duedatehq/ingest', () => {
   it('routes browserless adapters through the configured fetch implementation', async () => {
     const selectFetch = createSourceFetcherRegistry(cloudflareFetch, { browserlessFetch })
 
-    await expect(selectFetch(caFtbNewsroomAdapter)('/').then((res) => res.text())).resolves.toBe(
-      'browserless',
-    )
+    await expect(
+      selectFetch({ ...caFtbNewsroomAdapter, fetcher: 'browserless' })('/').then((res) =>
+        res.text(),
+      ),
+    ).resolves.toBe('browserless')
     await expect(
       selectFetch({ ...nyDtfPressFixtureAdapter, fetcher: 'browserless' })('/'),
     ).resolves.toHaveProperty('ok', true)

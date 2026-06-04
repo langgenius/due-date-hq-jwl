@@ -70,6 +70,8 @@ function createFakeDb(
     readinessRequests?: FakeReadinessRequest[]
     readinessResponses?: FakeReadinessResponse[]
     readinessChecklistItems?: FakeReadinessChecklistItem[]
+    overlay?: Array<{ obligationId: string; overrideDueDate: Date; appliedAt: Date }>
+    internalDeadlineOffsetDays?: number
   } = {},
 ) {
   const limit = vi.fn(async (_n: number) => rows)
@@ -78,10 +80,19 @@ function createFakeDb(
   const leftJoin = vi.fn(() => ({ where }))
   const innerJoin = vi.fn(() => ({ leftJoin, where }))
   const from = vi.fn(() => ({ innerJoin, leftJoin }))
-  const overlayOrderBy = vi.fn(async () => [])
+  const overlayOrderBy = vi.fn(async () => options.overlay ?? [])
   const overlayWhere = vi.fn(() => ({ orderBy: overlayOrderBy }))
   const overlayInnerJoin = vi.fn(() => ({ where: overlayWhere }))
   const overlayFrom = vi.fn(() => ({ innerJoin: overlayInnerJoin }))
+  // Firm internal-deadline-offset lookup — only reached when the overlay set is
+  // non-empty (otherwise listActiveOverlayDueDateSet short-circuits).
+  const offsetLimit = vi.fn(async () =>
+    options.internalDeadlineOffsetDays === undefined
+      ? []
+      : [{ internalDeadlineOffsetDays: options.internalDeadlineOffsetDays }],
+  )
+  const offsetWhere = vi.fn(() => ({ limit: offsetLimit }))
+  const offsetFrom = vi.fn(() => ({ where: offsetWhere }))
   const evidenceWhere = vi.fn(async () => [])
   const evidenceFrom = vi.fn(() => ({ where: evidenceWhere }))
   const profileLimit = vi.fn(async () => [])
@@ -118,6 +129,9 @@ function createFakeDb(
     }
     if (keys.length === 1 && keys.includes('smartPriorityProfileJson')) {
       return { from: profileFrom }
+    }
+    if (keys.length === 1 && keys.includes('internalDeadlineOffsetDays')) {
+      return { from: offsetFrom }
     }
     return { from }
   })
@@ -171,6 +185,64 @@ function makeRow(over: Partial<FakeRow> = {}): FakeRow {
     assigneeName: over.assigneeName ?? null,
   }
 }
+
+describe('makeObligationQueueRepo overlay (pulse postponement)', () => {
+  it('moves filing + payment to the statutory override and current to the internal target', async () => {
+    const fake = createFakeDb(
+      [
+        makeRow({
+          id: 'oi1',
+          currentDueDate: new Date('2026-09-01T00:00:00.000Z'),
+          baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
+          filingDueDate: new Date('2026-09-15T00:00:00.000Z'),
+          paymentDueDate: null,
+        }),
+      ],
+      {
+        overlay: [
+          {
+            obligationId: 'oi1',
+            overrideDueDate: new Date('2026-11-16T00:00:00.000Z'),
+            appliedAt: new Date('2026-06-01T00:00:00.000Z'),
+          },
+        ],
+        internalDeadlineOffsetDays: 14,
+      },
+    )
+    const repo = makeObligationQueueRepo(fake.db, 'firm_a')
+
+    const result = await repo.list({ limit: 50 })
+    const [row] = result.rows
+
+    // Filing + payment move to the postponed statutory date. Payment was null
+    // and now reflects the override (not the baseDueDate fallback).
+    expect(row?.filingDueDate?.getTime()).toBe(new Date('2026-11-16T00:00:00.000Z').getTime())
+    expect(row?.paymentDueDate?.getTime()).toBe(new Date('2026-11-16T00:00:00.000Z').getTime())
+    // Internal target = statutory − firm offset (14 days) = 2026-11-02.
+    expect(row?.currentDueDate.getTime()).toBe(new Date('2026-11-02T00:00:00.000Z').getTime())
+  })
+
+  it('leaves dates unchanged when no overlay is active', async () => {
+    const fake = createFakeDb([
+      makeRow({
+        id: 'oi1',
+        currentDueDate: new Date('2026-09-01T00:00:00.000Z'),
+        baseDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        filingDueDate: new Date('2026-09-15T00:00:00.000Z'),
+        paymentDueDate: null,
+      }),
+    ])
+    const repo = makeObligationQueueRepo(fake.db, 'firm_a')
+
+    const result = await repo.list({ limit: 50 })
+    const [row] = result.rows
+
+    expect(row?.currentDueDate.getTime()).toBe(new Date('2026-09-01T00:00:00.000Z').getTime())
+    expect(row?.filingDueDate?.getTime()).toBe(new Date('2026-09-15T00:00:00.000Z').getTime())
+    // Queue coalesces a null payment date to baseDueDate (existing behavior).
+    expect(row?.paymentDueDate?.getTime()).toBe(new Date('2026-09-15T00:00:00.000Z').getTime())
+  })
+})
 
 describe('makeObligationQueueRepo.list', () => {
   it('normalizes client search before building a LIKE query', () => {

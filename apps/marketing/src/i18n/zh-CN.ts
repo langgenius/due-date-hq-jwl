@@ -33,7 +33,7 @@ const zhCN: LandingCopy = {
       { label: '不用黑盒 AI' },
       { label: '每个数字都有出处' },
       { label: '键盘优先' },
-      { label: '24 小时 Pulse SLA' },
+      { label: '24 小时提醒 SLA' },
     ],
     surface: {
       breadcrumb: { workbench: 'Workbench', dashboard: 'Dashboard', week: '本周' },
@@ -44,8 +44,8 @@ const zhCN: LandingCopy = {
         text: '先处理 Acme 和 Birchwood：两者都在七天窗口内，来源链完整，并且需要复核。',
         citation: '[1] IRS Pub 509',
       },
-      pulse: {
-        tag: 'PULSE',
+      alert: {
+        tag: '提醒',
         text: 'CA-FTB 将 Form 540 + 540-ES 延期至 10 月 15 日 · 影响你的 12 位客户。',
         source: 'ftb.ca.gov · 2026-04-25',
         cta: '查看',
@@ -58,7 +58,7 @@ const zhCN: LandingCopy = {
         stats: [
           { label: '高危客户', value: '5' },
           { label: '需要复核', value: '12' },
-          { label: 'PULSE 事件 (24h)', value: '3' },
+          { label: '提醒 (24h)', value: '3' },
           { label: '本周已申报', value: '11' },
         ],
       },
@@ -150,7 +150,7 @@ const zhCN: LandingCopy = {
             statusTone: 'secondary',
             statusDotTone: 'disabled',
             severityLabel: 'medium',
-            exposure: '监控 Pulse',
+            exposure: '查看提醒',
             exposureTone: 'warning',
             evidence: 'CA-FTB FR-31',
             evidenceTone: 'info',
@@ -206,7 +206,7 @@ const zhCN: LandingCopy = {
       },
       {
         ruleNumber: 'RULE 00',
-        ruleLabel: '03 PULSE',
+        ruleLabel: '03 提醒',
         value: '24',
         unit: '小时',
         description:
@@ -227,7 +227,7 @@ const zhCN: LandingCopy = {
         severity: 'critical',
         cadence: '平均 / 每家 / 每年',
         headline: '一个 30 天窗口内会发布 14 条规则变更。你需要知道命中你客户的是哪 4 条。',
-        body: 'Pulse 把每条 IRS 通知和 50 州申报变更压缩成一条仪表盘横幅，附 `source_excerpt`、`source_url` 和一键应用入口。',
+        body: '提醒把每条 IRS 通知和 50 州申报变更压缩成一条仪表盘横幅，附 `source_excerpt`、`source_url` 和一键应用入口。',
         listTitle: '近 30 天规则变更',
         listSummary: '14 条 · 50 州 + DC',
         rows: [
@@ -303,8 +303,8 @@ const zhCN: LandingCopy = {
             exposure: '下一步',
             evidence: '证据',
           },
-          pulse: {
-            tag: 'PULSE',
+          alert: {
+            tag: '提醒',
             text: 'IRS 将 Form 1040 延期至 10 月 15 日 · 你的 18 位客户进入新窗口。',
             cta: '应用至 18 位',
           },
@@ -451,14 +451,14 @@ const zhCN: LandingCopy = {
           source: {
             label: '来源',
             value: 'irs.gov / pub / 509 · §3 · v17',
-            verified: '2026-04-25T08:14:03Z 由 pulse-ingest-3.2 校验',
+            verified: '2026-04-25T08:14:03Z 由 alert-ingest-3.2 校验',
             quoteLabel: 'SOURCE EXCERPT',
             quote:
               '"If an S corporation election was made and the corporation files Form 1120-S on the basis of a calendar year, the return is due on or before March 15. If the corporation operates on a fiscal year, the return is due on or before the 15th day of the third month after the close of the tax year."',
           },
           meta: {
             source: 'irs.gov · v17',
-            verifiedBy: 'pulse-ingest-3.2',
+            verifiedBy: 'alert-ingest-3.2',
             reviewed: 'sarah@firmname',
             status: '完成',
           },
@@ -487,7 +487,7 @@ const zhCN: LandingCopy = {
         body: 'IRS、FTB、DTF · 50 个州的申报机构，全部映射到一套规则模式。',
       },
       {
-        label: 'PULSE SLA',
+        label: '提醒 SLA',
         value: '24',
         unit: 'h',
         body: '从来源发布到仪表盘横幅 + 邮件摘要，受影响客户列表已预先计算。',
@@ -522,7 +522,7 @@ const zhCN: LandingCopy = {
     meta: {
       title: 'DueDateHQ 价格 — 面向 CPA 团队的截止日智能',
       description:
-        '查看 DueDateHQ 面向美国 CPA 团队的订阅方案：一个 practice 工作区、席位数量、Pulse 与 Deadlines 访问权限、可追溯规则和共享运营队列如何对应 Solo、Pro、Team 与 Enterprise。',
+        '查看 DueDateHQ 面向美国 CPA 团队的订阅方案：一个 practice 工作区、席位数量、提醒与 Deadlines 访问权限、可追溯规则和共享运营队列如何对应 Solo、Pro、Team 与 Enterprise。',
       ogImage: '/og/home.zh-CN.png',
     },
     navPricingHref: '/zh-CN/pricing',
@@ -576,7 +576,7 @@ const zhCN: LandingCopy = {
         seats: '1 个生产 practice · 3 个席位',
         aiLabel: '包含 Practice AI',
         aiDescription:
-          '包含 Dashboard brief、Pulse 摘要、客户风险摘要、截止日提示和正式客户数据的智能导入辅助。',
+          '包含 Dashboard brief、提醒摘要、客户风险摘要、截止日提示和正式客户数据的智能导入辅助。',
         aiFeatures: ['完整 practice AI 工作流', '与 Team 相同的 AI 能力'],
         cta: '升级到 Pro',
         hrefKind: 'checkout',
@@ -585,7 +585,7 @@ const zhCN: LandingCopy = {
           '1 个生产 practice',
           '包含 3 个席位',
           '共享截止日运营',
-          'Pulse 与 Deadlines 访问权限',
+          '提醒与 Deadlines 访问权限',
         ],
       },
       {
@@ -647,7 +647,7 @@ const zhCN: LandingCopy = {
       {
         question: 'Pro 比 Solo 多什么？',
         answer:
-          'Pro 增加 3 席共享工作区、Pulse 监控和小型 practice 管理截止日运营所需的 Deadlines 视图。',
+          'Pro 增加 3 席共享工作区、提醒监控和小型 practice 管理截止日运营所需的 Deadlines 视图。',
       },
       {
         question: '什么时候选择 Team？',
@@ -687,7 +687,7 @@ const zhCN: LandingCopy = {
         eyebrow: '规则库',
         title: '一条申报规则如何变成 CPA 团队可信的工作？',
         description:
-          'DueDateHQ 把规则、来源证据、生成的截止日、Pulse 变化和人工复核放在同一条工作流里。规则只有在团队能看到官方来源、受影响客户上下文和操作历史时，才真正有用。',
+          'DueDateHQ 把规则、来源证据、生成的截止日、提醒和人工复核放在同一条工作流里。规则只有在团队能看到官方来源、受影响客户上下文和操作历史时，才真正有用。',
         note: '覆盖页面描述软件行为，不构成专业税务建议。',
       },
       sections: [
@@ -748,7 +748,7 @@ const zhCN: LandingCopy = {
         {
           question: 'DueDateHQ 如何把规则变化连接到正确客户？',
           answer:
-            '它使用事务所的客户申报档案、辖区、税种和截止日记录，把已复核变化路由到可能受影响客户的 Pulse、Deadlines 和分诊工作流。',
+            '它使用事务所的客户申报档案、辖区、税种和截止日记录，把已复核变化路由到可能受影响客户的提醒、Deadlines 和分诊工作流。',
         },
       ],
       cta: {
@@ -762,14 +762,14 @@ const zhCN: LandingCopy = {
       meta: {
         title: 'DueDateHQ 州覆盖 — 50 州和 DC 申报信号',
         description:
-          'DueDateHQ 说明哪些州级申报更新会进入监控，Pulse 如何把公开来源信号送入人工复核，以及 CPA 团队如何结合客户事实判断影响范围。',
+          'DueDateHQ 说明哪些州级申报更新会进入监控，提醒如何把公开来源信号送入人工复核，以及 CPA 团队如何结合客户事实判断影响范围。',
         ogImage: '/og/home.zh-CN.png',
       },
       hero: {
         eyebrow: '州覆盖',
         title: '哪些州级更新会变成事务所的截止日工作？',
         description:
-          'DueDateHQ 公开覆盖已经扩展到美国 50 州和 DC。覆盖表示公开州级信号可以被监控、匹配事务所客户上下文，并在影响截止日运营前进入 Pulse 复核。',
+          'DueDateHQ 公开覆盖已经扩展到美国 50 州和 DC。覆盖表示公开州级信号可以被监控、匹配事务所客户上下文，并在影响截止日运营前进入提醒复核。',
         note: '覆盖是软件监控范围，不代表每项义务都适用于每个事务所。',
       },
       statesHeader: {
@@ -850,7 +850,7 @@ const zhCN: LandingCopy = {
         {
           question: '州级更新如何变成事务所工作？',
           answer:
-            '候选更新会带来源上下文进入 Pulse，先复核相关性，然后可以被应用、忽略、暂缓或回滚，并留下审计记录。',
+            '候选更新会带来源上下文进入提醒队列，先复核相关性，然后可以被应用、标记已复核或回滚，并留下审计记录。',
         },
         {
           question: '覆盖是否代表更新适用于每个客户？',
@@ -1053,7 +1053,7 @@ const zhCN: LandingCopy = {
         meta: {
           title: 'Florida 申报截止日监控 — DueDateHQ 州覆盖',
           description:
-            '了解 DueDateHQ 如何用证据复核、来源摘录、客户上下文和 Pulse 复核监控 Florida 公开申报公告、救济信息和截止日相关州级更新。',
+            '了解 DueDateHQ 如何用证据复核、来源摘录、客户上下文和提醒复核监控 Florida 公开申报公告、救济信息和截止日相关州级更新。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
@@ -1098,9 +1098,9 @@ const zhCN: LandingCopy = {
         ],
         faq: [
           {
-            question: '哪些 Florida 更新可以进入 Pulse？',
+            question: '哪些 Florida 更新可以进入提醒？',
             answer:
-              '公开 DOR 更新、公告、救济信息和申报窗口变化，在可能影响事务所截止日运营时可以进入 Pulse。',
+              '公开 DOR 更新、公告、救济信息和申报窗口变化，在可能影响事务所截止日运营时可以进入提醒。',
           },
           {
             question: 'DueDateHQ 会判断某个 Florida 客户是否适用吗？',
@@ -1177,7 +1177,7 @@ const zhCN: LandingCopy = {
         meta: {
           title: 'CPA 截止日风险指南 — 如何在罚款前看清风险',
           description:
-            '了解 CPA 团队如何结合迁移数据、来源证据、负责人、资料准备状态、罚款敞口、州级 Pulse 变化和审计历史判断本周先处理哪个客户截止日。',
+            '了解 CPA 团队如何结合迁移数据、来源证据、负责人、资料准备状态、罚款敞口、州级提醒和审计历史判断本周先处理哪个客户截止日。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
@@ -1260,7 +1260,7 @@ const zhCN: LandingCopy = {
         meta: {
           title: '带证据的税务截止日软件 — DueDateHQ 指南',
           description:
-            '了解 CPA 团队在截止日、Pulse 变化、AI 建议或迁移动作改变客户工作前，应该保留哪些官方来源、摘录、验证元数据、复核状态和审计历史。',
+            '了解 CPA 团队在截止日、提醒、AI 建议或迁移动作改变客户工作前，应该保留哪些官方来源、摘录、验证元数据、复核状态和审计历史。',
           ogImage: '/og/home.zh-CN.png',
         },
         hero: {
@@ -1274,7 +1274,7 @@ const zhCN: LandingCopy = {
           {
             eyebrow: '定义',
             title: '带证据意味着每个运营主张都可检查。',
-            body: '产品应保留足够上下文，让复核者理解规则、截止日、Pulse alert 或迁移创建的义务从哪里来、为什么进入工作流。',
+            body: '产品应保留足够上下文，让复核者理解规则、截止日、提醒或迁移创建的义务从哪里来、为什么进入工作流。',
             items: [
               {
                 title: '来源 URL',
@@ -1321,9 +1321,9 @@ const zhCN: LandingCopy = {
               '复核者应看到官方 source URL、相关摘录、验证元数据、客户上下文、复核状态和本次变更的审计事件。',
           },
           {
-            question: 'Pulse 应用和回滚如何保持可审计？',
+            question: '提醒应用和回滚如何保持可审计？',
             answer:
-              'Pulse 决策是显式动作。应用、忽略、暂缓和回滚都会保留来源上下文并写入审计记录，便于事务所检查发生了什么以及为什么。',
+              '提醒决策是显式动作。应用、标记已复核和回滚都会保留来源上下文并写入审计记录，便于事务所检查发生了什么以及为什么。',
           },
           {
             question: 'AI 在带证据工作流中扮演什么角色？',
@@ -1369,7 +1369,7 @@ const zhCN: LandingCopy = {
         title: 'PRODUCT',
         links: [
           { label: 'Workbench', href: '/zh-CN#hero' },
-          { label: 'Pulse', href: '/zh-CN#workflow' },
+          { label: '提醒', href: '/zh-CN#workflow' },
           { label: 'Migration Copilot', href: '/zh-CN/guides/cpa-deadline-risk' },
           { label: '证据抽屉', href: '/zh-CN/rules' },
           { label: '价格', href: '/zh-CN/pricing' },

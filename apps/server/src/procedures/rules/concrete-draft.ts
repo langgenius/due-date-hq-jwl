@@ -416,15 +416,28 @@ export function normalizeExcerptText(value: string): string {
   return value.toLowerCase().replace(/\s+/g, ' ').trim()
 }
 
-export function sourceTextContainsExcerpt(sourceText: string, excerpt: string): boolean {
+export type ExcerptMatch = 'exact' | 'fuzzy' | 'none'
+
+/**
+ * Classify how strongly a source page supports a cited excerpt:
+ * - 'exact' — the excerpt appears verbatim in the source (whitespace/case-normalized substring)
+ * - 'fuzzy' — only a loose signal matches: every date-code in the excerpt appears *somewhere* on
+ *             the page, or ≥85% order-insensitive token overlap. Plausible but not verbatim.
+ * - 'none'  — no meaningful support
+ *
+ * `sourceTextContainsExcerpt` is a thin `!== 'none'` wrapper so existing callers — including the
+ * rule-source drift detector in jobs/pulse/extract.ts — keep their exact prior behavior. New
+ * callers (the concrete-draft guard) can demand 'exact' and treat 'fuzzy' as low-trust.
+ */
+export function classifyExcerptMatch(sourceText: string, excerpt: string): ExcerptMatch {
   const normalizedSource = normalizeExcerptText(sourceText)
   const normalizedExcerpt = normalizeExcerptText(excerpt)
-  if (normalizedSource.includes(normalizedExcerpt)) return true
+  if (normalizedSource.includes(normalizedExcerpt)) return 'exact'
 
   const sourceDateCodes = new Set(extractComparableDateCodes(normalizedSource))
   const excerptDateCodes = extractComparableDateCodes(normalizedExcerpt)
   if (excerptDateCodes.length > 0 && excerptDateCodes.every((code) => sourceDateCodes.has(code))) {
-    return true
+    return 'fuzzy'
   }
 
   const sourceTokens = new Set(
@@ -441,25 +454,92 @@ export function sourceTextContainsExcerpt(sourceText: string, excerpt: string): 
         ?.filter((token) => token.length > 1) ?? [],
     ),
   )
-  if (excerptTokens.length === 0) return false
+  if (excerptTokens.length === 0) return 'none'
 
   const hasNumericExcerptToken = excerptTokens.some((token) => /\d/.test(token))
   const hasExcerptAnchor =
     /(due|deadline|return|payment|filing|tax|filer|withholding|wage|installment|due-date)/i.test(
       normalizedExcerpt,
     )
-  if (excerptTokens.length < 4 && !hasNumericExcerptToken && !hasExcerptAnchor) return false
+  if (excerptTokens.length < 4 && !hasNumericExcerptToken && !hasExcerptAnchor) return 'none'
 
   const hitCount = excerptTokens.filter((token) => sourceTokens.has(token)).length
   const threshold = excerptTokens.length <= 3 ? 1 : 0.85
-  return hitCount / excerptTokens.length >= threshold
+  return hitCount / excerptTokens.length >= threshold ? 'fuzzy' : 'none'
+}
+
+export function sourceTextContainsExcerpt(sourceText: string, excerpt: string): boolean {
+  return classifyExcerptMatch(sourceText, excerpt) !== 'none'
+}
+
+/**
+ * Minimum model confidence for a concrete draft to be eligible for one-click bulk verification.
+ * Chosen from scripts/audit-concrete-draft-trust.ts against real data: confidence clusters in
+ * [0.50, 0.70) (~84%), so 0.5 flags only the genuinely low-confidence tail (~2%) rather than the
+ * bulk of normal drafts. Lower-confidence drafts are routed to single human review, not rejected.
+ */
+export const CONCRETE_DRAFT_MIN_BULK_CONFIDENCE = 0.5
+
+export type ConcreteDraftTrustIssue = 'low_confidence' | 'fuzzy_excerpt'
+
+/**
+ * Why a cached concrete draft is too low-trust to be bulk-verified (one-click stamped) and should
+ * instead be routed to single human review — or null if it is safe to bulk-verify:
+ *   - 'low_confidence' — the model's own confidence is below the bulk threshold
+ *   - 'fuzzy_excerpt'  — the cited excerpt is not a verbatim ('exact') match in the source it was
+ *     drafted from, recomputed from the run's stored citations.sourceText
+ * When no source text was stored with the run (legacy rows), only the confidence signal applies —
+ * we do not block on an excerpt we cannot re-check. This never rejects a draft; it only gates the
+ * unattended bulk path, leaving single verify as the review escape valve.
+ */
+export function concreteDraftBulkTrustIssue(input: {
+  confidence: number
+  sourceExcerpt: string
+  citations: unknown
+}): ConcreteDraftTrustIssue | null {
+  if (input.confidence < CONCRETE_DRAFT_MIN_BULK_CONFIDENCE) return 'low_confidence'
+  const sourceText =
+    isRecord(input.citations) && typeof input.citations.sourceText === 'string'
+      ? input.citations.sourceText
+      : null
+  if (
+    sourceText &&
+    input.sourceExcerpt &&
+    classifyExcerptMatch(sourceText, input.sourceExcerpt) !== 'exact'
+  ) {
+    return 'fuzzy_excerpt'
+  }
+  return null
+}
+
+/**
+ * Whether a cached draft was built against an older source snapshot than the latest one — i.e. the
+ * monitored source content has changed since the draft was generated, so the draft is stale and must
+ * be regenerated rather than verified/accepted. Returns false when staleness cannot be proven: the
+ * draft recorded no snapshot id (legacy rows) or the source has no current snapshot to compare with.
+ *
+ * Sound because snapshots dedup on (sourceId, externalId, contentHash) — a new latest snapshot id
+ * appears only when the page content actually changed. Complements the version-driven
+ * 'source_changed' review task, catching content changes that never bumped the template version.
+ */
+export function concreteDraftSourceIsStale(input: {
+  citations: unknown
+  latestSnapshotId: string | null
+}): boolean {
+  if (!input.latestSnapshotId) return false
+  const draftSnapshotId =
+    isRecord(input.citations) && typeof input.citations.sourceSnapshotId === 'string'
+      ? input.citations.sourceSnapshotId
+      : null
+  if (!draftSnapshotId) return false
+  return draftSnapshotId !== input.latestSnapshotId
 }
 
 function isSourceWatchTemplateExcerpt(value: string | null | undefined): boolean {
   return typeof value === 'string' && SOURCE_WATCH_PLACEHOLDER_RE.test(value)
 }
 
-function extractComparableDateCodes(value: string): string[] {
+export function extractComparableDateCodes(value: string): string[] {
   const normalized = normalizeExcerptText(value)
   const codes = new Set<string>()
 
@@ -487,6 +567,25 @@ function extractComparableDateCodes(value: string): string[] {
     }
   }
 
+  return Array.from(codes)
+}
+
+/**
+ * The MM-DD codes a due-date logic explicitly *claims*, for cross-checking against the dates
+ * present in a cited excerpt (the concrete-draft guard) or a live source page (the FED literal-date
+ * reconciliation). Only absolute kinds carry a calendar date; relative kinds
+ * (nth_day_after_tax_year_*) and source_defined_calendar return [] and are exempt from the check.
+ * Output is zero-padded MM-DD, matching extractComparableDateCodes.
+ */
+export function dueDateLogicDateCodes(dueDateLogic: CoreObligationRule['dueDateLogic']): string[] {
+  const codes = new Set<string>()
+  if (dueDateLogic.kind === 'fixed_date') {
+    codes.add(dueDateLogic.date.slice(5))
+  } else if (dueDateLogic.kind === 'period_table') {
+    for (const period of dueDateLogic.periods) {
+      codes.add(period.dueDate.slice(5))
+    }
+  }
   return Array.from(codes)
 }
 
@@ -527,6 +626,20 @@ export function validateConcreteRuleDraft(input: {
 
   if (!sourceTextContainsExcerpt(input.sourceText, input.sourceExcerpt)) {
     return 'AI source excerpt was not found in the selected official source text.'
+  }
+
+  // Claim ↔ evidence consistency: the concrete date the model chose must actually be supported by
+  // the date it cited. We only reject the unambiguous contradiction — the excerpt cites concrete
+  // date(s) but NONE of them match any date the logic claims (e.g. cites "April 15" yet outputs a
+  // fixed_date of 03-15). When the excerpt carries no machine-readable date (word-form or relative
+  // phrasing) we abstain, and a single partial period_table excerpt only needs to support one of
+  // its rows — both avoid false rejections of otherwise-valid drafts.
+  const claimedDateCodes = dueDateLogicDateCodes(input.dueDateLogic)
+  if (claimedDateCodes.length > 0) {
+    const excerptDateCodes = new Set(extractComparableDateCodes(input.sourceExcerpt))
+    if (excerptDateCodes.size > 0 && !claimedDateCodes.some((code) => excerptDateCodes.has(code))) {
+      return `Concrete due date(s) ${claimedDateCodes.join(', ')} are not supported by any date in the cited source excerpt (excerpt dates: ${Array.from(excerptDateCodes).join(', ')}).`
+    }
   }
 
   if (

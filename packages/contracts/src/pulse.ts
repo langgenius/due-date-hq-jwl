@@ -39,7 +39,12 @@ export const PulseChangeKindSchema = z.enum([
   'applicability_scope',
   'form_instruction',
   'source_status',
+  'rule_source_drift',
   'new_obligation',
+  // Deterministic-only (no AI) — annual IRS inflation Rev. Proc. pointer
+  // advisory (review_only, no asserted dollar amounts). Mirrors the DB
+  // enum in @duedatehq/db PULSE_CHANGE_KINDS.
+  'threshold_advisory',
   'other',
 ])
 export type PulseChangeKind = z.infer<typeof PulseChangeKindSchema>
@@ -166,6 +171,9 @@ export const PulseDetailSchema = z.object({
   effectiveFrom: z.iso.date().nullable(),
   effectiveUntil: z.iso.date().nullable(),
   affectedRuleIds: z.array(z.string()),
+  // Deterministic source-cite join: rules whose cited source changed and that
+  // the CPA should re-verify from this alert. Empty for ordinary alerts.
+  reverifyRuleIds: z.array(z.string()),
   structuredChange: z.unknown().nullable(),
   sourceExcerpt: z.string().min(1),
   reviewedAt: z.iso.datetime().nullable(),
@@ -227,6 +235,17 @@ export const PulseSourceHealthSchema = z.object({
   label: z.string().min(1),
   tier: z.enum(['T1', 'T2', 'T3']),
   jurisdiction: z.string().min(1),
+  purpose: z
+    .enum([
+      'explicit_live_adapter',
+      'temporary_announcements_or_news',
+      'rule_source_watch',
+      'email_signal',
+      'hidden_policy_watch',
+    ])
+    .optional(),
+  primaryWeb: z.boolean().optional(),
+  relatedSourceIds: z.array(z.string().min(1)).optional(),
   enabled: z.boolean(),
   healthStatus: PulseSourceHealthStatusSchema,
   lastCheckedAt: z.iso.datetime().nullable(),
@@ -236,6 +255,62 @@ export const PulseSourceHealthSchema = z.object({
   lastError: z.string().nullable(),
 })
 export type PulseSourceHealth = z.infer<typeof PulseSourceHealthSchema>
+
+export const PulseAlertSourceCoverageRoleSchema = z.enum([
+  'primary_web_news',
+  'guidance_notice',
+  'email_signal',
+  'rule_source_watch',
+  'tax_type_sources',
+  'relief_or_disaster_signal',
+  'multi_agency_sources',
+])
+export type PulseAlertSourceCoverageRole = z.infer<typeof PulseAlertSourceCoverageRoleSchema>
+
+export const PulseAlertSourceCoverageRoleStatusSchema = z.enum([
+  'covered',
+  'missing',
+  'not_available_verified',
+])
+export type PulseAlertSourceCoverageRoleStatus = z.infer<
+  typeof PulseAlertSourceCoverageRoleStatusSchema
+>
+
+export const PulseAlertSourceCoverageRoleDetailSchema = z.object({
+  role: PulseAlertSourceCoverageRoleSchema,
+  status: PulseAlertSourceCoverageRoleStatusSchema,
+  sourceIds: z.array(z.string().min(1)),
+  reason: z.string().nullable(),
+})
+export type PulseAlertSourceCoverageRoleDetail = z.infer<
+  typeof PulseAlertSourceCoverageRoleDetailSchema
+>
+
+export const PulseAlertSourceCoverageSchema = z.object({
+  jurisdiction: z.string().min(1),
+  status: z.enum(['covered', 'missing_source']),
+  coverageLevel: z.enum(['missing', 'standard', 'comprehensive']),
+  parserStatus: z.enum(['web_primary', 'email_signal_only', 'missing_source']),
+  requiredRoles: z.array(PulseAlertSourceCoverageRoleSchema),
+  coveredRoles: z.array(PulseAlertSourceCoverageRoleSchema),
+  missingRoles: z.array(PulseAlertSourceCoverageRoleSchema),
+  roleDetails: z.array(PulseAlertSourceCoverageRoleDetailSchema),
+  explicitLiveSourceIds: z.array(z.string().min(1)),
+  primaryWebSourceIds: z.array(z.string().min(1)),
+  emailSignalSourceIds: z.array(z.string().min(1)),
+  ruleSourceWatchIds: z.array(z.string().min(1)),
+  guidanceNoticeSourceIds: z.array(z.string().min(1)),
+  taxTypeSourceIds: z.array(z.string().min(1)),
+  reliefOrDisasterSourceIds: z.array(z.string().min(1)),
+  multiAgencySourceIds: z.array(z.string().min(1)),
+  sourceIds: z.array(z.string().min(1)),
+  lastCheckedAt: z.iso.datetime().nullable(),
+  lastSuccessAt: z.iso.datetime().nullable(),
+  lastFailureAt: z.iso.datetime().nullable(),
+  lastError: z.string().nullable(),
+  missingReason: z.string().nullable(),
+})
+export type PulseAlertSourceCoverage = z.infer<typeof PulseAlertSourceCoverageSchema>
 
 export const PulseAlertIdInputSchema = z.object({ alertId: EntityIdSchema })
 export const PulseSourceHealthInputSchema = z.object({ sourceId: z.string().min(1) })
@@ -332,7 +407,46 @@ export const PulseRequestReviewOutputSchema = z.object({
 })
 export type PulseRequestReviewOutput = z.infer<typeof PulseRequestReviewOutputSchema>
 
+// Why a pulse matched a specific rule, surfaced in the rule-review dialog:
+//  - affected_rule: the rule is named in the pulse's AI-guessed affectedRuleIds
+//  - reverify_rule: the rule cites the changed source (deterministic join)
+//  - scope: the rule falls in the pulse's jurisdiction + form scope
+export const PulseRuleMatchReasonSchema = z.enum(['affected_rule', 'reverify_rule', 'scope'])
+export type PulseRuleMatchReason = z.infer<typeof PulseRuleMatchReasonSchema>
+
+// One approved pulse that affects the rule open in the review dialog. Carries
+// the alert's public metadata plus the detail-level date diff + excerpt so the
+// dialog can render an additive "proposed change" block (it never replaces the
+// catalog evidence/date) with a deep-link to /alerts?alert=<alert.id>.
+export const PulseRuleMatchSchema = z.object({
+  alert: PulseAlertPublicSchema,
+  originalDueDate: z.iso.date().nullable(),
+  newDueDate: z.iso.date().nullable(),
+  effectiveFrom: z.iso.date().nullable(),
+  effectiveUntil: z.iso.date().nullable(),
+  sourceExcerpt: z.string().nullable(),
+  matchReason: PulseRuleMatchReasonSchema,
+})
+export type PulseRuleMatch = z.infer<typeof PulseRuleMatchSchema>
+
+export const PulseListAlertsForRuleInputSchema = z.object({
+  ruleId: z.string().min(1),
+  // Plain string (not PulseJurisdictionSchema): it is only a match key against
+  // pulse.parsedJurisdiction, and the caller passes the rule's own jurisdiction
+  // (RuleJurisdiction is a broader enum than PulseJurisdiction).
+  jurisdiction: z.string().min(1),
+  taxType: z.string().min(1),
+  formName: z.string().min(1).nullable().optional(),
+})
+export type PulseListAlertsForRuleInput = z.infer<typeof PulseListAlertsForRuleInputSchema>
+
 export const pulseContract = oc.router({
+  // Pulses (approved, still-active) that affect a specific rule. Backs the
+  // rule-review dialog's "proposed change" block. Lazy, per-rule (the dialog
+  // opens one rule at a time) — mirrors the existing previewRuleImpact query.
+  listAlertsForRule: oc
+    .input(PulseListAlertsForRuleInputSchema)
+    .output(z.object({ matches: z.array(PulseRuleMatchSchema) })),
   listAlerts: oc
     .input(PulseListAlertsInputSchema)
     .output(z.object({ alerts: z.array(PulseAlertPublicSchema) })),
@@ -352,6 +466,9 @@ export const pulseContract = oc.router({
   listSourceHealth: oc
     .input(z.undefined())
     .output(z.object({ sources: z.array(PulseSourceHealthSchema) })),
+  listAlertSourceCoverage: oc
+    .input(z.undefined())
+    .output(z.object({ coverage: z.array(PulseAlertSourceCoverageSchema) })),
   retrySourceHealth: oc
     .input(PulseSourceHealthInputSchema)
     .output(z.object({ sources: z.array(PulseSourceHealthSchema) })),

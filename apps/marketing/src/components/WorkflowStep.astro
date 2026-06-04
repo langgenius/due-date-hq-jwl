@@ -74,10 +74,10 @@ const confidenceDot = {
             <div class="flex items-center gap-3 border-b border-divider-subtle bg-components-badge-bg-warning-soft px-4 py-2.5">
               <span class:list={[badgeBase, 'bg-components-badge-bg-warning-soft text-text-warning']}>
                 <span class:list={['inline-block size-2 shrink-0 rounded-full', statusDot.warning]}></span>
-                {s.pulse.tag}
+                {s.alert.tag}
               </span>
-              <p class="min-w-0 flex-1 truncate text-xs text-text-primary">{s.pulse.text}</p>
-              <span class="font-mono text-xs text-text-accent">{s.pulse.cta} →</span>
+              <p class="min-w-0 flex-1 truncate text-xs text-text-primary">{s.alert.text}</p>
+              <span class="font-mono text-xs text-text-accent">{s.alert.cta} →</span>
             </div>
             <div class="grid grid-cols-3 border-b border-divider-subtle">
               {s.summary.map((item, idx) => (

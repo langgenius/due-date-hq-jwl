@@ -53,7 +53,7 @@ export function OpportunitiesPage() {
     // Pattern A (scroll page) per DESIGN.md §5.5. /opportunities is
     // a header-heavy scroll page (PageHeader → stat tiles → list →
     // dismissed-disclosure) with no sticky footer, so it follows
-    // the same rhythm as dashboard / /rules/pulse / /rules/library:
+    // the same rhythm as dashboard / /alerts / /rules/library:
     //   `gap-6 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6`
     // Previously: `gap-4 ... md:pb-5` — `gap-4` came from a 2026-05-25
     // pass that treated this page as a dense-table surface (it isn't
@@ -329,7 +329,7 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
   // 2026-05-27 (step-6 ux-flow audit F3.1): Sonner toast supports an
   // `action` slot — used here so the user can undo a dismiss without
   // hunting the "Recently dismissed" disclosure at the bottom of the
-  // page. Mirrors the Pulse/Migration/Obligations undo patterns
+  // page. Mirrors the Alerts/Migration/Obligations undo patterns
   // already in the codebase.
   const restoreFromToast = useMutation(
     orpc.opportunities.restore.mutationOptions({
@@ -416,7 +416,7 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
   }
   const pending = dismissMutation.isPending || snoozeMutation.isPending
   // 2026-05-25 (Yuqi /opportunities fifth pass #2, #4):
-  // restructured to match the PulseAlertCard layout — content on
+  // restructured to match the AlertCard layout — content on
   // the left, vertical action column on the right. Previous
   // shape grid'd the two halves separately and put the client
   // name on the RIGHT side next to the action buttons (#4: "move
@@ -461,7 +461,7 @@ function OpportunityRow({ opportunity }: { opportunity: OpportunityPublic }) {
       </div>
       {/* Action column — primary CTA (Open client) on TOP so the
           eye finds it at the same vertical anchor across every
-          row, matching the PulseAlertCard treatment. Snooze +
+          row, matching the AlertCard treatment. Snooze +
           Dismiss are softer ghost siblings below. */}
       <div className="flex shrink-0 flex-col items-stretch gap-1">
         <Button
