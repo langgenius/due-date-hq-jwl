@@ -12944,6 +12944,10 @@ function RollForwardAction({ canRun }: { canRun: boolean }) {
   const summary = previewQuery.data?.summary
   const willCreate = summary ? summary.willCreateCount + summary.reviewCount : 0
   const clientCount = summary?.clientCount ?? 0
+  // Surfaced so a "0 to create" result explains itself: already-rolled returns
+  // (target exists) vs returns with no verified target-year rule yet.
+  const duplicateCount = summary?.duplicateCount ?? 0
+  const skippedCount = summary?.skippedCount ?? 0
   return (
     <>
       <Button
@@ -12968,14 +12972,27 @@ function RollForwardAction({ canRun }: { canRun: boolean }) {
             <AlertDialogDescription>
               {previewQuery.isLoading ? (
                 <Trans>Calculating what will be created…</Trans>
-              ) : (
+              ) : willCreate > 0 ? (
                 <Trans>
                   Creates {willCreate} projected Tax Year {targetTaxYear} deadlines for{' '}
                   {clientCount} clients from their completed Tax Year {sourceTaxYear} returns.
                   Projected deadlines stay hidden from client reminders until you confirm them with
                   the Projected filter.
                 </Trans>
+              ) : (
+                <Trans>
+                  No new Tax Year {targetTaxYear} deadlines to create from completed Tax Year{' '}
+                  {sourceTaxYear} returns.
+                </Trans>
               )}
+              {duplicateCount > 0 || skippedCount > 0 ? (
+                <span className="mt-2 block text-xs text-text-tertiary">
+                  <Trans>
+                    {duplicateCount} already rolled forward · {skippedCount} skipped (no verified
+                    Tax Year {targetTaxYear} rule)
+                  </Trans>
+                </span>
+              ) : null}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

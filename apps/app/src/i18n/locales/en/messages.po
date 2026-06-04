@@ -646,6 +646,10 @@ msgstr "{days, plural, one {in #d} other {in #d}}"
 msgid "{daysAbs}d late"
 msgstr "{daysAbs}d late"
 
+#: src/routes/obligations.tsx
+msgid "{duplicateCount} already rolled forward · {skippedCount} skipped (no verified Tax Year {targetTaxYear} rule)"
+msgstr "{duplicateCount} already rolled forward · {skippedCount} skipped (no verified Tax Year {targetTaxYear} rule)"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{durationMonths, plural, one {# month} other {# months}}"
 msgstr "{durationMonths, plural, one {# month} other {# months}}"
@@ -7451,6 +7455,10 @@ msgstr "No missing rules"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "No morning digests have run yet."
 msgstr "No morning digests have run yet."
+
+#: src/routes/obligations.tsx
+msgid "No new Tax Year {targetTaxYear} deadlines to create from completed Tax Year {sourceTaxYear} returns."
+msgstr "No new Tax Year {targetTaxYear} deadlines to create from completed Tax Year {sourceTaxYear} returns."
 
 #: src/features/clients/ClientCycleArrows.tsx
 msgid "No next client"

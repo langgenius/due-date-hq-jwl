@@ -654,6 +654,10 @@ msgstr "{days, plural, one {# 天后} other {# 天后}}"
 msgid "{daysAbs}d late"
 msgstr "逾期 {daysAbs} 天"
 
+#: src/routes/obligations.tsx
+msgid "{duplicateCount} already rolled forward · {skippedCount} skipped (no verified Tax Year {targetTaxYear} rule)"
+msgstr "{duplicateCount} 条已生成 · {skippedCount} 条跳过（无已验证的 {targetTaxYear} 税年规则）"
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{durationMonths, plural, one {# month} other {# months}}"
 msgstr "{durationMonths, plural, other {# 个月}}"
@@ -7516,6 +7520,10 @@ msgstr "没有缺失规则"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "No morning digests have run yet."
 msgstr "还没有 morning digest 运行记录。"
+
+#: src/routes/obligations.tsx
+msgid "No new Tax Year {targetTaxYear} deadlines to create from completed Tax Year {sourceTaxYear} returns."
+msgstr "没有可从已完成的 {sourceTaxYear} 税年申报生成的新 {targetTaxYear} 税年截止日。"
 
 #: src/features/clients/ClientCycleArrows.tsx
 msgid "No next client"
