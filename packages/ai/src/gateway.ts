@@ -4,6 +4,9 @@ import { createUnified } from 'ai-gateway-provider/providers/unified'
 import { generateText, Output } from 'ai'
 import * as z from 'zod'
 
+/** JSON-compatible value matching the AI SDK provider-options value type (no cast needed at the call site). */
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
+
 export interface GatewayRequest<TOut> {
   accountId: string
   slug: string
@@ -15,6 +18,8 @@ export interface GatewayRequest<TOut> {
   input: unknown
   schema: z.ZodType<TOut>
   timeoutMs?: number
+  /** Provider-namespaced options forwarded to generateText, e.g. { openrouter: { reasoning: { effort } } }. */
+  providerOptions?: Record<string, Record<string, JsonValue>>
 }
 
 export interface GatewayResponse<TOut> {
@@ -82,6 +87,9 @@ export async function callGateway<TOut>(
       output: Output.object({ schema: request.schema }),
       temperature: 0,
       ...(controller ? { abortSignal: controller.signal } : {}),
+      // Provider-namespaced opts (e.g. OpenRouter reasoning.effort). The AI SDK forwards these to
+      // the model's doGenerate; ai-gateway-provider passes them through unchanged.
+      ...(request.providerOptions ? { providerOptions: request.providerOptions } : {}),
     })
   } finally {
     if (timeout) clearTimeout(timeout)

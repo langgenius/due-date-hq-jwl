@@ -14,6 +14,7 @@ import { loadPrompt, type PromptName } from './prompter'
 import {
   modelForPromptTier,
   parseModelTier,
+  reasoningEffortForTier,
   taskKindForPrompt,
   type AiModelRoutingEnv,
   type AiRoutingInput,
@@ -173,6 +174,8 @@ export function createAI(env: AiEnv = {}) {
       }
 
       const provider = gatewayProvider(env)
+      const reasoningEffort =
+        provider === 'openrouter' && modelTier ? reasoningEffortForTier(env, modelTier) : undefined
       const gatewayRequest = {
         accountId: env.AI_GATEWAY_ACCOUNT_ID,
         slug: env.AI_GATEWAY_SLUG,
@@ -183,6 +186,9 @@ export function createAI(env: AiEnv = {}) {
         provider,
         ...(name === 'rule-concrete-draft@v1' || name === 'rule-concrete-draft@v2'
           ? { timeoutMs: 25_000 }
+          : {}),
+        ...(reasoningEffort
+          ? { providerOptions: { openrouter: { reasoning: { effort: reasoningEffort } } } }
           : {}),
         ...(env.AI_GATEWAY_API_KEY ? { gatewayApiKey: env.AI_GATEWAY_API_KEY } : {}),
         ...(provider === 'openrouter' && env.AI_GATEWAY_PROVIDER_API_KEY

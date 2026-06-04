@@ -20,9 +20,6 @@ const CONFIGURED_ENV = {
   AI_GATEWAY_SLUG: 'duedatehq',
   AI_GATEWAY_API_KEY: 'test-key',
   AI_GATEWAY_MODEL_FAST_JSON: 'fast-json-test-model',
-  AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING: 'fast-json-solo-onboarding-test-model',
-  AI_GATEWAY_MODEL_FAST_JSON_SOLO: 'fast-json-solo-test-model',
-  AI_GATEWAY_MODEL_FAST_JSON_PAID: 'fast-json-paid-test-model',
   AI_GATEWAY_MODEL_QUALITY_JSON: 'quality-json-test-model',
   AI_GATEWAY_MODEL_REASONING: 'reasoning-test-model',
 }
@@ -32,12 +29,9 @@ const OPENROUTER_ENV = {
   AI_GATEWAY_SLUG: 'duedatehq',
   AI_GATEWAY_PROVIDER: 'openrouter',
   AI_GATEWAY_PROVIDER_API_KEY: 'test-openrouter-key',
-  AI_GATEWAY_MODEL_FAST_JSON: 'google/gemini-2.5-flash-lite',
-  AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING: 'google/gemini-3.1-flash-lite-preview',
-  AI_GATEWAY_MODEL_FAST_JSON_SOLO: 'google/gemini-2.5-flash-lite',
-  AI_GATEWAY_MODEL_FAST_JSON_PAID: 'google/gemini-3.1-flash-lite-preview',
-  AI_GATEWAY_MODEL_QUALITY_JSON: 'google/gemini-3-flash-preview',
-  AI_GATEWAY_MODEL_REASONING: 'openai/gpt-5-mini',
+  AI_GATEWAY_MODEL_FAST_JSON: 'google/gemini-3.5-flash',
+  AI_GATEWAY_MODEL_QUALITY_JSON: 'google/gemini-3.5-flash',
+  AI_GATEWAY_MODEL_REASONING: 'google/gemini-3.5-flash',
 }
 
 describe('@duedatehq/ai', () => {
@@ -144,7 +138,7 @@ describe('@duedatehq/ai', () => {
   it('uses the OpenRouter provider key without requiring a gateway auth key', async () => {
     callGatewayMock.mockResolvedValueOnce({
       output: { ok: true },
-      model: 'openai/gpt-5-mini',
+      model: 'google/gemini-3.5-flash',
     })
     const ai = createAI(OPENROUTER_ENV)
 
@@ -159,12 +153,13 @@ describe('@duedatehq/ai', () => {
     expect(request).toMatchObject({
       provider: 'openrouter',
       providerApiKey: 'test-openrouter-key',
-      model: 'google/gemini-2.5-flash-lite',
+      model: 'google/gemini-3.5-flash',
+      providerOptions: { openrouter: { reasoning: { effort: 'low' } } },
     })
     expect(request).not.toHaveProperty('gatewayApiKey')
   })
 
-  it('routes fast-json by billing plan and Solo onboarding state', async () => {
+  it('routes fast-json to a single model regardless of billing plan', async () => {
     callGatewayMock.mockResolvedValue({
       output: { ok: true },
       model: 'routed-model',
@@ -176,23 +171,60 @@ describe('@duedatehq/ai', () => {
       plan: 'solo',
       migrationOnboardingCompleted: false,
     })
-    await ai.runPrompt('normalizer-entity@v1', { values: ['LLC'] }, schema, {
-      plan: 'solo',
-      migrationOnboardingCompleted: true,
-    })
     await ai.runPrompt('normalizer-entity@v1', { values: ['LLC'] }, schema, { plan: 'pro' })
-    await ai.runPrompt('normalizer-entity@v1', { values: ['LLC'] }, schema, { plan: 'team' })
     await ai.runPrompt('normalizer-entity@v1', { values: ['LLC'] }, schema, { plan: 'firm' })
     await ai.runPrompt('brief@v1', { summary: {}, sources: [] }, schema, { plan: 'firm' })
 
     expect(callGatewayMock.mock.calls.map((call) => call[0].model)).toEqual([
-      'fast-json-solo-onboarding-test-model',
-      'fast-json-solo-test-model',
-      'fast-json-paid-test-model',
-      'fast-json-paid-test-model',
-      'fast-json-paid-test-model',
+      'fast-json-test-model',
+      'fast-json-test-model',
+      'fast-json-test-model',
       'quality-json-test-model',
     ])
+  })
+
+  it('attaches reasoning effort=high for quality-json on OpenRouter', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: { ok: true },
+      model: 'google/gemini-3.5-flash',
+    })
+    const ai = createAI(OPENROUTER_ENV)
+    await ai.runPrompt('brief@v1', { summary: {}, sources: [] }, z.object({ ok: z.boolean() }))
+    expect(callGatewayMock.mock.calls[0]?.[0]).toMatchObject({
+      providerOptions: { openrouter: { reasoning: { effort: 'high' } } },
+    })
+  })
+
+  it('lets AI_GATEWAY_QUALITY_REASONING_EFFORT override the quality effort', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: { ok: true },
+      model: 'google/gemini-3.5-flash',
+    })
+    const ai = createAI({ ...OPENROUTER_ENV, AI_GATEWAY_QUALITY_REASONING_EFFORT: 'medium' })
+    await ai.runPrompt('brief@v1', { summary: {}, sources: [] }, z.object({ ok: z.boolean() }))
+    expect(callGatewayMock.mock.calls[0]?.[0]).toMatchObject({
+      providerOptions: { openrouter: { reasoning: { effort: 'medium' } } },
+    })
+  })
+
+  it('omits reasoning options when the effort var is empty', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: { ok: true },
+      model: 'google/gemini-3.5-flash',
+    })
+    const ai = createAI({ ...OPENROUTER_ENV, AI_GATEWAY_QUALITY_REASONING_EFFORT: '' })
+    await ai.runPrompt('brief@v1', { summary: {}, sources: [] }, z.object({ ok: z.boolean() }))
+    expect(callGatewayMock.mock.calls[0]?.[0]).not.toHaveProperty('providerOptions')
+  })
+
+  it('omits reasoning options for non-OpenRouter providers', async () => {
+    callGatewayMock.mockResolvedValueOnce({
+      output: { ok: true },
+      model: 'quality-json-test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+    await ai.runPrompt('brief@v1', { summary: {}, sources: [] }, z.object({ ok: z.boolean() }))
+    expect(callGatewayMock.mock.calls[0]?.[0]).not.toHaveProperty('providerOptions')
   })
 
   it('keeps the reasoning model as a task-tier route for future prompts', () => {
@@ -263,7 +295,7 @@ describe('@duedatehq/ai', () => {
       expect(put).not.toHaveBeenCalled()
       expect(callGatewayMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'fast-json-solo-test-model',
+          model: 'fast-json-test-model',
         }),
       )
     },

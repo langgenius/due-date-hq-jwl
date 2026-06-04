@@ -152,12 +152,14 @@ GOOGLE_CLIENT_ID = "921927048644-ub9la8vt77v4p1fftn1tc3b1naeemh9h.apps.googleuse
 AI_GATEWAY_ACCOUNT_ID = "8f7d374db5cb1f025b7f71e28b84c9bb"
 AI_GATEWAY_SLUG = "duedatehq"
 AI_GATEWAY_PROVIDER = "openrouter"
-AI_GATEWAY_MODEL_FAST_JSON = "google/gemini-2.5-flash-lite"
-AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING = "google/gemini-3.1-flash-lite-preview"
-AI_GATEWAY_MODEL_FAST_JSON_SOLO = "google/gemini-2.5-flash-lite"
-AI_GATEWAY_MODEL_FAST_JSON_PAID = "google/gemini-3.1-flash-lite-preview"
-AI_GATEWAY_MODEL_QUALITY_JSON = "google/gemini-3-flash-preview"
-AI_GATEWAY_MODEL_REASONING = "openai/gpt-5-mini"
+# Single model across all tiers (plan-based routing retired). Effort is tiered:
+# quality tasks (pulse/rule/brief/insights) run reasoning.effort=high for accuracy; fast
+# tasks (CSV mapper/normalizer/readiness) run low to stay fast & cheap on the import path.
+AI_GATEWAY_MODEL_FAST_JSON = "google/gemini-3.5-flash"
+AI_GATEWAY_MODEL_QUALITY_JSON = "google/gemini-3.5-flash"
+AI_GATEWAY_MODEL_REASONING = "google/gemini-3.5-flash"
+AI_GATEWAY_QUALITY_REASONING_EFFORT = "high"
+AI_GATEWAY_FAST_REASONING_EFFORT = "low"
 PULSE_BROWSERLESS_URL = "https://production-sfo.browserless.io/content"
 # Emptied: browserless was 400-failing these news pages. They now fetch direct
 # (with the browser UA), matching the rest of the fleet. Re-add IDs here only for

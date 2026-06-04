@@ -108,10 +108,11 @@ STRIPE_PRICE_FIRM_YEARLY=
 # Fill AI_GATEWAY_PROVIDER_API_KEY with your OpenRouter token. This is the only
 # required secret for the OpenRouter path. Do not put an OpenAI key here.
 #
-# Model routing is mostly task-tier based. fast-json has plan-aware overrides:
-# Solo onboarding uses the newer preview model until the first successful import,
-# then returns to the stable low-cost model. Paid plans use the preview model.
-# Examples: google/gemini-2.5-flash-lite, google/gemini-3-flash-preview, openai/gpt-5-mini
+# Single model across all tiers (plan-based routing retired). Reasoning effort is tiered:
+# quality tasks (pulse/rule/brief/insights) run reasoning.effort=high for accuracy; fast tasks
+# (CSV mapper/normalizer/readiness) run low to stay fast & cheap on the import path. Set an
+# effort var empty to disable reasoning options (e.g. if AI_GATEWAY_PROVIDER is not openrouter).
+# Example model: google/gemini-3.5-flash
 #
 # Leave AI_GATEWAY_API_KEY empty unless you explicitly enable Cloudflare
 # Authenticated Gateway or switch AI_GATEWAY_PROVIDER away from openrouter.
@@ -119,12 +120,11 @@ AI_GATEWAY_ACCOUNT_ID=
 AI_GATEWAY_SLUG=duedatehq
 AI_GATEWAY_PROVIDER=openrouter
 AI_GATEWAY_PROVIDER_API_KEY=
-AI_GATEWAY_MODEL_FAST_JSON=google/gemini-2.5-flash-lite
-AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING=google/gemini-3.1-flash-lite-preview
-AI_GATEWAY_MODEL_FAST_JSON_SOLO=google/gemini-2.5-flash-lite
-AI_GATEWAY_MODEL_FAST_JSON_PAID=google/gemini-3.1-flash-lite-preview
-AI_GATEWAY_MODEL_QUALITY_JSON=google/gemini-3-flash-preview
-AI_GATEWAY_MODEL_REASONING=openai/gpt-5-mini
+AI_GATEWAY_MODEL_FAST_JSON=google/gemini-3.5-flash
+AI_GATEWAY_MODEL_QUALITY_JSON=google/gemini-3.5-flash
+AI_GATEWAY_MODEL_REASONING=google/gemini-3.5-flash
+AI_GATEWAY_QUALITY_REASONING_EFFORT=high
+AI_GATEWAY_FAST_REASONING_EFFORT=low
 AI_GATEWAY_API_KEY=
 
 # ═════════════════════════════════════════════════════════════════════════════

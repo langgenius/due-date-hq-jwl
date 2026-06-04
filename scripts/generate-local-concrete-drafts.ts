@@ -621,27 +621,14 @@ const env = {
   AI_GATEWAY_PROVIDER: envValue('AI_GATEWAY_PROVIDER', 'openrouter'),
   AI_GATEWAY_PROVIDER_API_KEY: envValue('AI_GATEWAY_PROVIDER_API_KEY'),
   AI_GATEWAY_API_KEY: envValue('AI_GATEWAY_API_KEY'),
-  AI_GATEWAY_MODEL_FAST_JSON: envValue(
-    'AI_GATEWAY_MODEL_FAST_JSON',
-    'google/gemini-2.5-flash-lite',
-  ),
-  AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING: envValue(
-    'AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING',
-    'google/gemini-3.1-flash-lite-preview',
-  ),
-  AI_GATEWAY_MODEL_FAST_JSON_SOLO: envValue(
-    'AI_GATEWAY_MODEL_FAST_JSON_SOLO',
-    'google/gemini-2.5-flash-lite',
-  ),
-  AI_GATEWAY_MODEL_FAST_JSON_PAID: envValue(
-    'AI_GATEWAY_MODEL_FAST_JSON_PAID',
-    'google/gemini-3.1-flash-lite-preview',
-  ),
+  AI_GATEWAY_MODEL_FAST_JSON: envValue('AI_GATEWAY_MODEL_FAST_JSON', 'google/gemini-3.5-flash'),
   AI_GATEWAY_MODEL_QUALITY_JSON:
     envValue('AI_GATEWAY_MODEL_QUALITY_JSON') ??
     envValue('AI_GATEWAY_MODEL') ??
-    'google/gemini-3-flash-preview',
-  AI_GATEWAY_MODEL_REASONING: envValue('AI_GATEWAY_MODEL_REASONING', 'openai/gpt-5-mini'),
+    'google/gemini-3.5-flash',
+  AI_GATEWAY_MODEL_REASONING: envValue('AI_GATEWAY_MODEL_REASONING', 'google/gemini-3.5-flash'),
+  AI_GATEWAY_QUALITY_REASONING_EFFORT: envValue('AI_GATEWAY_QUALITY_REASONING_EFFORT', 'high'),
+  AI_GATEWAY_FAST_REASONING_EFFORT: envValue('AI_GATEWAY_FAST_REASONING_EFFORT', 'low'),
   PULSE_BROWSERLESS_URL: envValue('PULSE_BROWSERLESS_URL'),
   PULSE_BROWSERLESS_TOKEN: envValue('PULSE_BROWSERLESS_TOKEN'),
   PULSE_BROWSERLESS_SOURCE_IDS: envValue('PULSE_BROWSERLESS_SOURCE_IDS'),

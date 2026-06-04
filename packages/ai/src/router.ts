@@ -3,11 +3,10 @@ import type { PromptName } from './prompter'
 
 export interface AiModelRoutingEnv {
   AI_GATEWAY_MODEL_FAST_JSON?: string
-  AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING?: string
-  AI_GATEWAY_MODEL_FAST_JSON_SOLO?: string
-  AI_GATEWAY_MODEL_FAST_JSON_PAID?: string
   AI_GATEWAY_MODEL_QUALITY_JSON?: string
   AI_GATEWAY_MODEL_REASONING?: string
+  AI_GATEWAY_QUALITY_REASONING_EFFORT?: string
+  AI_GATEWAY_FAST_REASONING_EFFORT?: string
 }
 
 export type AiModelTier = 'fast-json' | 'quality-json' | 'reasoning'
@@ -41,33 +40,46 @@ export function parseModelTier(value: string): AiModelTier | null {
   return null
 }
 
-function fastJsonModelForPlan(
-  env: AiModelRoutingEnv,
-  routing: Pick<AiRoutingInput, 'migrationOnboardingCompleted' | 'plan'>,
-): string | undefined {
-  const { migrationOnboardingCompleted, plan } = routing
-  if (plan === 'solo') {
-    if (migrationOnboardingCompleted === false) {
-      return (
-        env.AI_GATEWAY_MODEL_FAST_JSON_SOLO_ONBOARDING ??
-        env.AI_GATEWAY_MODEL_FAST_JSON_SOLO ??
-        env.AI_GATEWAY_MODEL_FAST_JSON
-      )
-    }
-    return env.AI_GATEWAY_MODEL_FAST_JSON_SOLO ?? env.AI_GATEWAY_MODEL_FAST_JSON
-  }
-  if (plan === 'pro' || plan === 'team' || plan === 'firm') {
-    return env.AI_GATEWAY_MODEL_FAST_JSON_PAID ?? env.AI_GATEWAY_MODEL_FAST_JSON
-  }
-  return env.AI_GATEWAY_MODEL_FAST_JSON
-}
-
 export function modelForPromptTier(
   env: AiModelRoutingEnv,
   tier: AiModelTier,
-  routing: Pick<AiRoutingInput, 'migrationOnboardingCompleted' | 'plan'> = {},
+  // Plan-based routing was retired (single model across all plans). Param kept for call-site
+  // and signature stability; billing plan still drives budget limits in index.ts, not model choice.
+  _routing: Pick<AiRoutingInput, 'migrationOnboardingCompleted' | 'plan'> = {},
 ): string | undefined {
-  if (tier === 'fast-json') return fastJsonModelForPlan(env, routing)
+  if (tier === 'fast-json') return env.AI_GATEWAY_MODEL_FAST_JSON
   if (tier === 'quality-json') return env.AI_GATEWAY_MODEL_QUALITY_JSON
   return env.AI_GATEWAY_MODEL_REASONING
+}
+
+export type AiReasoningEffort = 'xhigh' | 'high' | 'medium' | 'low' | 'minimal' | 'none'
+
+const AI_REASONING_EFFORTS: readonly AiReasoningEffort[] = [
+  'xhigh',
+  'high',
+  'medium',
+  'low',
+  'minimal',
+  'none',
+]
+
+/**
+ * OpenRouter reasoning effort per tier. Quality tasks (pulse/rule/brief/insights) default to
+ * 'high' for accuracy; fast tasks (mapper/normalizer/readiness) default to 'low' to stay fast and
+ * cheap on the interactive import path. Env vars override; an empty or unrecognized value returns
+ * undefined so the caller omits provider reasoning options entirely (used by e2e/tests, and any
+ * non-OpenRouter provider). gemini-3.5-flash mandates reasoning, so 'low' is the practical floor.
+ */
+export function reasoningEffortForTier(
+  env: AiModelRoutingEnv,
+  tier: AiModelTier,
+): AiReasoningEffort | undefined {
+  const raw =
+    tier === 'quality-json'
+      ? (env.AI_GATEWAY_QUALITY_REASONING_EFFORT ?? 'high')
+      : tier === 'fast-json'
+        ? (env.AI_GATEWAY_FAST_REASONING_EFFORT ?? 'low')
+        : undefined
+  const trimmed = raw?.trim()
+  return AI_REASONING_EFFORTS.find((value) => value === trimmed)
 }
