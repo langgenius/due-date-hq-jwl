@@ -49,6 +49,17 @@ function nullableDateFromIsoDate(value: string | null): Date | null {
 // date are kept (no evidence they are historical). Bump the year to raise the floor.
 const PULSE_ALERT_MIN_RELEVANT_AT = new Date('2026-01-01T00:00:00.000Z')
 
+// Confidence gating for AI regulatory extracts, calibrated against the live
+// alert corpus (non-events cluster ≤0.25; genuine items ≥0.5):
+//   < MIN     → drop outright (almost always a non-event the model failed to
+//               mark no_regulatory_change — revenue-distribution press
+//               releases, "no due-date relief" pages).
+//   MIN..PUB  → real-but-shaky: create quarantined (kept for review, not
+//               fanned out to firms).
+//   ≥ PUB     → publish (approved + fan out) as before.
+const PULSE_MIN_ALERT_CONFIDENCE = 0.3
+const PULSE_PUBLISH_CONFIDENCE = 0.5
+
 function latestPolicyDate(values: ReadonlyArray<string | null>): Date | null {
   const times = values
     .map(nullableDateFromIsoDate)
@@ -408,6 +419,24 @@ async function runPulseExtractionAfterMark(
     return { pulseId: null, status: 'skipped' }
   }
 
+  // Confidence floor: drop near-zero-confidence extracts outright. These are
+  // almost always non-events the model failed to mark no_regulatory_change.
+  if (result.result.confidence < PULSE_MIN_ALERT_CONFIDENCE) {
+    await repo.updateSourceSnapshotStatus(snapshotId, {
+      parseStatus: 'ignored',
+      aiOutputId,
+      failureReason: 'low_confidence',
+    })
+    recordPulseMetric('pulse.extract.result', {
+      snapshotId,
+      sourceId: snapshot.sourceId,
+      result: 'ignored',
+      refusalCode: null,
+      confidence: result.result.confidence,
+    })
+    return { pulseId: null, status: 'skipped' }
+  }
+
   const actionMode = shouldForceReviewOnlyPulseAlert({
     sourceId: snapshot.sourceId,
     changeKind: result.result.changeKind,
@@ -477,7 +506,29 @@ async function runPulseExtractionAfterMark(
     confidence: result.result.confidence,
     requiresHumanReview: true,
     isSample: false,
+    // Race-safe canonical de-duplication for AI extracts. Low-confidence items
+    // land quarantined (retained for review, never fanned out).
+    dedupe: true,
+    status: result.result.confidence < PULSE_PUBLISH_CONFIDENCE ? 'quarantined' : 'approved',
   })
+
+  // The unique dedupe key caught a sibling/cross-feed extraction of the same
+  // event that the signature pre-check missed — fold onto the survivor exactly
+  // like the explicit duplicate branch above.
+  if (created.deduped) {
+    await repo.refreshFirmAlertsForApprovedPulse(created.pulseId)
+    await repo.mergeReverifyRuleIdsIntoPulse(created.pulseId, reverifyRuleIds)
+    await recordRuleSourceDrift(created.pulseId)
+    recordPulseMetric('pulse.extract.result', {
+      snapshotId,
+      sourceId: snapshot.sourceId,
+      result: 'duplicate',
+      refusalCode: null,
+      confidence: result.result.confidence,
+    })
+    return { pulseId: created.pulseId, status: 'skipped' }
+  }
+
   await recordRuleSourceDrift(created.pulseId)
 
   recordPulseMetric('pulse.extract.result', {
@@ -487,7 +538,7 @@ async function runPulseExtractionAfterMark(
     refusalCode: null,
     confidence: result.result.confidence,
   })
-  if (result.result.confidence < 0.5) {
+  if (result.result.confidence < PULSE_PUBLISH_CONFIDENCE) {
     recordPulseAlert('pulse.extract.low_confidence', {
       snapshotId,
       sourceId: snapshot.sourceId,

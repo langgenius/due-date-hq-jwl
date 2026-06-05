@@ -326,6 +326,18 @@ export interface PulseExtractInput {
   confidence: number
   requiresHumanReview?: boolean
   isSample?: boolean
+  /**
+   * When true, derive and persist a canonical `dedupeKey` so this AI-extracted
+   * alert collapses with other extractions of the same real-world event
+   * (race-safe via the uq_pulse_dedupe_key unique index). Deterministic callers
+   * (threshold_advisory / rule_source_drift) leave this unset → NULL key.
+   */
+  dedupe?: boolean
+  /**
+   * Persisted pulse status. Defaults to 'approved'. Low-confidence AI extracts
+   * pass 'quarantined' so they are retained for review but never fanned out.
+   */
+  status?: PulseStatus
 }
 
 export interface PulseExtractDuplicateInput extends Pick<
@@ -932,6 +944,76 @@ export function normalizePulseDuplicateList(
   ]
     .toSorted()
     .join('|')
+}
+
+/**
+ * Group change kinds that the extractor frequently swaps between for the *same*
+ * underlying event, so a re-classification does not defeat de-duplication.
+ * Observed in production: one county sales-tax change surfaced as both
+ * `applicability_scope` and `other`; an SB711 conformity item as both
+ * `applicability_scope` and `filing_requirement`.
+ */
+export function pulseChangeKindFamily(changeKind: PulseChangeKind | undefined): string {
+  switch (changeKind) {
+    case 'deadline_shift':
+    case 'threshold_advisory':
+      return 'deadline'
+    case 'applicability_scope':
+    case 'filing_requirement':
+    case 'form_instruction':
+    case 'source_status':
+    case 'other':
+      return 'scope'
+    case 'new_obligation':
+      return 'new_obligation'
+    case 'rule_source_drift':
+      return 'drift'
+    default:
+      return 'deadline'
+  }
+}
+
+function isoDateUtcDay(date: Date | null | undefined): string {
+  return date ? date.toISOString().slice(0, 10) : ''
+}
+
+export interface PulseDedupeKeyInput {
+  parsedJurisdiction: string
+  changeKind?: PulseChangeKind
+  parsedOriginalDueDate: Date | null
+  parsedNewDueDate: Date | null
+  parsedForms: readonly string[]
+  parsedCounties: readonly string[]
+  publishedAt: Date
+}
+
+/**
+ * Canonical identity of a real-world regulatory event, used to de-duplicate
+ * AI-extracted alerts (stored in pulse.dedupeKey, enforced by
+ * uq_pulse_dedupe_key). Two shapes:
+ *
+ *  • Dated event (postponement / deadline): keyed on jurisdiction + change
+ *    family + original/new due dates. Deliberately *excludes* forms and source
+ *    URL so the same postponement arriving from multiple feeds, or with a
+ *    drifting form list ([] vs ["various"]), collapses to one alert.
+ *  • Undated change (rate / scope / conformity): no date axis, so keyed on
+ *    jurisdiction + family + normalized forms + counties, bounded to the
+ *    publication year so unrelated future changes do not collide.
+ *
+ * The `v1` prefix lets the scheme evolve without colliding with backfilled keys.
+ */
+export function computePulseDedupeKey(input: PulseDedupeKeyInput): string {
+  const jurisdiction = input.parsedJurisdiction.trim().toUpperCase()
+  const family = pulseChangeKindFamily(input.changeKind)
+  const originalDue = isoDateUtcDay(input.parsedOriginalDueDate)
+  const newDue = isoDateUtcDay(input.parsedNewDueDate)
+  if (originalDue || newDue) {
+    return ['v1', jurisdiction, family, originalDue, newDue].join('::')
+  }
+  const forms = normalizePulseDuplicateList(input.parsedForms, 'plain')
+  const counties = normalizePulseDuplicateList(input.parsedCounties, 'county')
+  const year = String(input.publishedAt.getUTCFullYear())
+  return ['v1', jurisdiction, family, year, forms, counties].join('::')
 }
 
 export function pulseDuplicateScopeHasEvidence(input: PulseExtractDuplicateInput): boolean {

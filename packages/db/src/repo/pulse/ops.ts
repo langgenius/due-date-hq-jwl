@@ -35,6 +35,7 @@ import {
   PULSE_DUPLICATE_WINDOW_MS,
   PulseRepoError,
   chunkRows,
+  computePulseDedupeKey,
   displayCounty,
   normalizeCountyName,
   pulseAlertHasFirmImpact,
@@ -1021,15 +1022,31 @@ export function makePulseOpsRepo(db: Db) {
 
     async createPulseForFirmReviewFromExtract(
       input: PulseExtractInput,
-    ): Promise<{ pulseId: string; alertCount: number }> {
+    ): Promise<{ pulseId: string; alertCount: number; deduped: boolean }> {
       const pulseId = crypto.randomUUID()
+      const changeKind = input.changeKind ?? 'deadline_shift'
+      const status = input.status ?? 'approved'
+      // Canonical event key only for AI extracts (input.dedupe). Deterministic
+      // callers leave it NULL so they keep their snapshot-contentHash idempotency
+      // and never collide on the unique index.
+      const dedupeKey = input.dedupe
+        ? computePulseDedupeKey({
+            parsedJurisdiction: input.parsedJurisdiction,
+            changeKind,
+            parsedOriginalDueDate: input.parsedOriginalDueDate,
+            parsedNewDueDate: input.parsedNewDueDate,
+            parsedForms: input.parsedForms,
+            parsedCounties: input.parsedCounties,
+            publishedAt: input.publishedAt,
+          })
+        : null
       const pulseRow: NewPulse = {
         id: pulseId,
         source: input.source,
         sourceUrl: input.sourceUrl,
         rawR2Key: input.rawR2Key ?? null,
         publishedAt: input.publishedAt,
-        changeKind: input.changeKind ?? 'deadline_shift',
+        changeKind,
         actionMode: input.actionMode ?? 'due_date_overlay',
         aiSummary: input.aiSummary,
         verbatimQuote: input.verbatimQuote,
@@ -1044,26 +1061,54 @@ export function makePulseOpsRepo(db: Db) {
         affectedRuleIdsJson: input.affectedRuleIds ?? [],
         reverifyRuleIdsJson: input.reverifyRuleIds ?? [],
         structuredChangeJson: input.structuredChange ?? null,
+        dedupeKey,
         confidence: input.confidence,
-        status: 'approved',
+        status,
         reviewedBy: null,
         reviewedAt: null,
         requiresHumanReview: input.requiresHumanReview ?? true,
         isSample: input.isSample ?? false,
       }
-      await db.batch([
-        db.insert(pulse).values(pulseRow),
-        db
-          .update(pulseSourceSnapshot)
-          .set({
-            parseStatus: 'extracted',
-            pulseId,
-            aiOutputId: input.aiOutputId ?? null,
-            failureReason: null,
-          })
-          .where(eq(pulseSourceSnapshot.id, input.snapshotId)),
-      ])
-      return finalizePulseFanOut(pulseId)
+      // Race-safe insert: a sibling extraction that already created this event's
+      // row wins on uq_pulse_dedupe_key and this one no-ops. Re-read by key to
+      // learn who won (mirrors createSourceSnapshot's onConflict + re-select).
+      await db.insert(pulse).values(pulseRow).onConflictDoNothing({ target: pulse.dedupeKey })
+      if (dedupeKey) {
+        const rows = await db
+          .select({ id: pulse.id })
+          .from(pulse)
+          .where(eq(pulse.dedupeKey, dedupeKey))
+          .limit(1)
+        const winnerId = rows[0]?.id ?? pulseId
+        if (winnerId !== pulseId) {
+          await db
+            .update(pulseSourceSnapshot)
+            .set({
+              parseStatus: 'duplicate',
+              pulseId: winnerId,
+              aiOutputId: input.aiOutputId ?? null,
+              failureReason: null,
+            })
+            .where(eq(pulseSourceSnapshot.id, input.snapshotId))
+          return { pulseId: winnerId, alertCount: 0, deduped: true }
+        }
+      }
+      await db
+        .update(pulseSourceSnapshot)
+        .set({
+          parseStatus: 'extracted',
+          pulseId,
+          aiOutputId: input.aiOutputId ?? null,
+          failureReason: null,
+        })
+        .where(eq(pulseSourceSnapshot.id, input.snapshotId))
+      // Quarantined (low-confidence) alerts are retained for review but never
+      // fanned out to firms — refreshFirmAlertsForPulse requires 'approved'.
+      if (status !== 'approved') {
+        return { pulseId, alertCount: 0, deduped: false }
+      }
+      const fanOut = await finalizePulseFanOut(pulseId)
+      return { ...fanOut, deduped: false }
     },
 
     /**

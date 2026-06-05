@@ -115,7 +115,10 @@ describe('extractPulseSnapshot', () => {
     aiMocks.createAI.mockReturnValue({ extractPulse: aiMocks.extractPulse })
     repoMocks.findDuplicatePulseForExtract.mockResolvedValue(null)
     repoMocks.refreshFirmAlertsForApprovedPulse.mockResolvedValue(0)
-    repoMocks.createPulseForFirmReviewFromExtract.mockResolvedValue({ pulseId: 'pulse-created' })
+    repoMocks.createPulseForFirmReviewFromExtract.mockResolvedValue({
+      pulseId: 'pulse-created',
+      deduped: false,
+    })
     repoMocks.apply.mockRejectedValue(new Error('extract must not apply deadline changes'))
     repoMocks.applyReviewed.mockRejectedValue(
       new Error('extract must not apply reviewed deadline changes'),
@@ -796,5 +799,127 @@ describe('normalizeExtractJurisdiction', () => {
     expect(normalizeExtractJurisdiction('fed.irs_newswire', ':(')).toBe('FED')
     // A garbage value on a state source recovers to that state from the prefix.
     expect(normalizeExtractJurisdiction('ca.ftb.tax_news', '??')).toBe('CA')
+  })
+})
+
+describe('extractPulseSnapshot — confidence gating & race-safe de-duplication', () => {
+  beforeEach(() => {
+    Object.values(aiMocks).forEach((mock) => mock.mockReset())
+    Object.values(dbMocks).forEach((mock) => mock.mockClear())
+    Object.values(metricsMocks).forEach((mock) => mock.mockReset())
+    Object.values(repoMocks).forEach((mock) => mock.mockReset())
+    aiMocks.createAI.mockReturnValue({ extractPulse: aiMocks.extractPulse })
+    repoMocks.findDuplicatePulseForExtract.mockResolvedValue(null)
+    repoMocks.refreshFirmAlertsForApprovedPulse.mockResolvedValue(0)
+    repoMocks.createPulseForFirmReviewFromExtract.mockResolvedValue({
+      pulseId: 'pulse-created',
+      deduped: false,
+    })
+    Object.values(coreMocks).forEach((mock) => mock.mockReset())
+    coreMocks.rulesBySourceId.mockReturnValue([])
+    coreMocks.ruleCitesSourceAsBasis.mockReturnValue(null)
+    coreMocks.sourceTextContainsExcerpt.mockReturnValue(true)
+  })
+
+  const snapshot = {
+    id: 'snapshot-conf',
+    sourceId: 'tx.cpa.rss',
+    title: 'Texas Comptroller news',
+    officialSourceUrl: 'https://comptroller.texas.gov/about/media-center/news/relief',
+    publishedAt: new Date('2026-04-15T17:00:00.000Z'),
+    rawR2Key: 'raw/pulse.txt',
+    pulseId: null,
+    parseStatus: 'pending_extract' as const,
+  }
+
+  // A real regulatory_change with a 2026 due date (clears the historical floor),
+  // parameterized by confidence so we can probe each gating band.
+  const regChange = (confidence: number) => ({
+    result: {
+      classification: 'regulatory_change' as const,
+      changeKind: 'deadline_shift' as const,
+      actionMode: 'due_date_overlay' as const,
+      summary: 'Texas postpones selected filing deadlines.',
+      sourceExcerpt: 'postponed to October 15, 2026',
+      jurisdiction: 'TX',
+      counties: [],
+      forms: [],
+      entityTypes: [],
+      originalDueDate: null,
+      newDueDate: '2026-10-15',
+      effectiveFrom: null,
+      effectiveUntil: null,
+      affectedRuleIds: [],
+      structuredChange: null,
+      confidence,
+    },
+    trace: {
+      promptVersion: 'pulse-extract@v2',
+      model: 'test-model',
+      inputHash: 'hash',
+      guardResult: 'pass',
+      latencyMs: 1,
+    },
+    model: 'test-model',
+    refusal: null,
+  })
+
+  it('drops a near-zero-confidence extract without creating an alert', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue(snapshot)
+    aiMocks.extractPulse.mockResolvedValue(regChange(0.2))
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-conf')
+
+    expect(result.status).toBe('skipped')
+    expect(repoMocks.createPulseForFirmReviewFromExtract).not.toHaveBeenCalled()
+    expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith(
+      'snapshot-conf',
+      expect.objectContaining({ parseStatus: 'ignored', failureReason: 'low_confidence' }),
+    )
+  })
+
+  it('quarantines a mid-confidence extract (created, never fanned out)', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue(snapshot)
+    aiMocks.extractPulse.mockResolvedValue(regChange(0.4))
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-conf')
+
+    expect(result.status).toBe('created')
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'quarantined', dedupe: true }),
+    )
+  })
+
+  it('publishes a confident extract as approved with a dedupe key', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue(snapshot)
+    aiMocks.extractPulse.mockResolvedValue(regChange(0.8))
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-conf')
+
+    expect(result.status).toBe('created')
+    expect(repoMocks.createPulseForFirmReviewFromExtract).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'approved', dedupe: true }),
+    )
+  })
+
+  it('folds onto the survivor when the keyed insert loses the race', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue(snapshot)
+    aiMocks.extractPulse.mockResolvedValue(regChange(0.8))
+    // Signature pre-check missed it, but a sibling extraction already created the
+    // row, so the keyed insert no-ops and the repo reports the surviving alert.
+    repoMocks.createPulseForFirmReviewFromExtract.mockResolvedValue({
+      pulseId: 'pulse-winner',
+      deduped: true,
+    })
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-conf')
+
+    expect(result).toEqual({ pulseId: 'pulse-winner', status: 'skipped' })
+    expect(repoMocks.refreshFirmAlertsForApprovedPulse).toHaveBeenCalledWith('pulse-winner')
+    expect(repoMocks.mergeReverifyRuleIdsIntoPulse).toHaveBeenCalledWith('pulse-winner', [])
+    expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
+      'pulse.extract.result',
+      expect.objectContaining({ result: 'duplicate' }),
+    )
   })
 })

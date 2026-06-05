@@ -3,4 +3,9 @@
 // oxc no-barrel-file rule happy and make the surface auditable.
 export { makePulseRepo, type PulseRepo } from './scoped'
 export { makePulseOpsRepo, type PulseOpsRepo } from './ops'
-export { PulseRepoError, scorePulsePriority } from './shared'
+export {
+  PulseRepoError,
+  scorePulsePriority,
+  computePulseDedupeKey,
+  pulseChangeKindFamily,
+} from './shared'

@@ -2,7 +2,14 @@
  * Focused Drizzle chain doubles only implement the query-builder methods used here.
  */
 import { describe, expect, it, vi } from 'vitest'
-import { makePulseOpsRepo, makePulseRepo, PulseRepoError, scorePulsePriority } from './pulse'
+import {
+  computePulseDedupeKey,
+  makePulseOpsRepo,
+  makePulseRepo,
+  pulseChangeKindFamily,
+  PulseRepoError,
+  scorePulsePriority,
+} from './pulse'
 
 const ALERT = {
   alertId: 'alert-1',
@@ -1249,7 +1256,7 @@ describe('makePulseOpsRepo', () => {
       parsedForms: [],
       parsedEntityTypes: [],
     }
-    const { db, batchStatements } = fakeDb([[extractedPulse], [extractedPulse], []])
+    const { db, directStatements } = fakeDb([[extractedPulse], [extractedPulse], []])
 
     const result = await makePulseOpsRepo(db).createPulseForFirmReviewFromExtract({
       snapshotId: 'snapshot-1',
@@ -1271,14 +1278,53 @@ describe('makePulseOpsRepo', () => {
     })
 
     expect(result.alertCount).toBe(0)
+    expect(result.deduped).toBe(false)
+    // Insert + snapshot update now run as direct statements (race-safe
+    // onConflictDoNothing) rather than a db.batch.
     expect(
-      batchStatements.some((statement) =>
+      directStatements.some((statement) =>
         statementHasValue(statement, { status: 'approved', requiresHumanReview: true }),
       ),
     ).toBe(true)
     expect(
-      batchStatements.some((statement) =>
+      directStatements.some((statement) =>
         statementHasValue(statement, { parseStatus: 'extracted', failureReason: null }),
+      ),
+    ).toBe(true)
+  })
+
+  it('folds an AI extract onto the survivor when the dedupe key already exists (race)', async () => {
+    // The keyed insert no-ops; the re-read by key returns a different id (a
+    // sibling extraction won), so we point the snapshot at the survivor and
+    // never create a second alert or fan out.
+    const { db, directStatements } = fakeDb([[{ id: 'pulse-winner' }]])
+
+    const result = await makePulseOpsRepo(db).createPulseForFirmReviewFromExtract({
+      snapshotId: 'snapshot-2',
+      source: 'irs.disaster',
+      sourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
+      publishedAt: new Date('2026-02-10T00:00:00.000Z'),
+      aiSummary: 'IRS GA wildfire relief',
+      verbatimQuote: 'postponed to August 20, 2026',
+      parsedJurisdiction: 'GA',
+      parsedCounties: [],
+      parsedForms: [],
+      parsedEntityTypes: [],
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: new Date('2026-08-20T00:00:00.000Z'),
+      confidence: 0.9,
+      dedupe: true,
+    })
+
+    expect(result).toEqual({ pulseId: 'pulse-winner', alertCount: 0, deduped: true })
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, { dedupeKey: 'v1::GA::deadline::::2026-08-20' }),
+      ),
+    ).toBe(true)
+    expect(
+      directStatements.some((statement) =>
+        statementHasValue(statement, { parseStatus: 'duplicate', pulseId: 'pulse-winner' }),
       ),
     ).toBe(true)
   })
@@ -1695,3 +1741,97 @@ function statementHasValue(statement: unknown, expected: Record<string, unknown>
     )
   })
 }
+
+describe('computePulseDedupeKey', () => {
+  // The three real production duplicate clusters this key is designed to fold.
+  const dated = (over: Partial<Parameters<typeof computePulseDedupeKey>[0]>) =>
+    computePulseDedupeKey({
+      parsedJurisdiction: 'FED',
+      changeKind: 'deadline_shift',
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: new Date('2026-07-06T00:00:00.000Z'),
+      parsedForms: [],
+      parsedCounties: [],
+      publishedAt: new Date('2026-05-06T12:00:00.000Z'),
+      ...over,
+    })
+
+  it('collapses the 6× LITC race despite form-string drift and differing publish time', () => {
+    const a = dated({ parsedForms: ['LITC_Grant_Application'] })
+    const b = dated({ parsedForms: ['LITC matching grant application'] })
+    const c = dated({ parsedForms: [], publishedAt: new Date('2026-06-01T09:00:00.000Z') })
+    expect(a).toBe(b)
+    expect(b).toBe(c)
+    expect(a).toBe('v1::FED::deadline::::2026-07-06')
+  })
+
+  it('collapses the GA wildfire across feeds: ignores forms ([] vs ["various"]) and source URL', () => {
+    const base = {
+      parsedJurisdiction: 'GA',
+      changeKind: 'deadline_shift' as const,
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: new Date('2026-08-20T00:00:00.000Z'),
+      parsedCounties: [],
+      publishedAt: new Date('2026-02-10T00:00:00.000Z'),
+    }
+    const empty = computePulseDedupeKey({ ...base, parsedForms: [] })
+    const various = computePulseDedupeKey({ ...base, parsedForms: ['various'] })
+    expect(empty).toBe(various)
+    expect(empty).toBe('v1::GA::deadline::::2026-08-20')
+  })
+
+  it('folds an undated county tax change re-classified across kinds (Mecklenburg)', () => {
+    const base = {
+      parsedJurisdiction: 'NC',
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+      parsedForms: ['Sales and Use Tax'],
+      parsedCounties: ['Mecklenburg County'],
+      publishedAt: new Date('2026-03-01T00:00:00.000Z'),
+    }
+    const scope = computePulseDedupeKey({ ...base, changeKind: 'applicability_scope' })
+    const other = computePulseDedupeKey({ ...base, changeKind: 'other' })
+    expect(scope).toBe(other) // both → 'scope' family
+    expect(scope).toBe('v1::NC::scope::2026::sales and use tax::mecklenburg')
+  })
+
+  it('keeps genuinely distinct events apart (jurisdiction / due date)', () => {
+    const ga820 = dated({ parsedJurisdiction: 'GA', parsedNewDueDate: new Date('2026-08-20') })
+    const ga901 = dated({ parsedJurisdiction: 'GA', parsedNewDueDate: new Date('2026-09-01') })
+    const tx820 = dated({ parsedJurisdiction: 'TX', parsedNewDueDate: new Date('2026-08-20') })
+    expect(new Set([ga820, ga901, tx820]).size).toBe(3)
+  })
+
+  it('separates undated changes by normalized forms', () => {
+    const base = {
+      parsedJurisdiction: 'CA',
+      changeKind: 'applicability_scope' as const,
+      parsedOriginalDueDate: null,
+      parsedNewDueDate: null,
+      parsedCounties: [],
+      publishedAt: new Date('2026-03-01T00:00:00.000Z'),
+    }
+    expect(computePulseDedupeKey({ ...base, parsedForms: ['Sales Tax'] })).not.toBe(
+      computePulseDedupeKey({ ...base, parsedForms: ['Income Tax'] }),
+    )
+  })
+})
+
+describe('pulseChangeKindFamily', () => {
+  it('groups the kinds the extractor swaps for the same underlying event', () => {
+    expect(pulseChangeKindFamily('deadline_shift')).toBe('deadline')
+    expect(pulseChangeKindFamily('threshold_advisory')).toBe('deadline')
+    for (const kind of [
+      'applicability_scope',
+      'filing_requirement',
+      'form_instruction',
+      'source_status',
+      'other',
+    ] as const) {
+      expect(pulseChangeKindFamily(kind)).toBe('scope')
+    }
+    expect(pulseChangeKindFamily('new_obligation')).toBe('new_obligation')
+    expect(pulseChangeKindFamily('rule_source_drift')).toBe('drift')
+    expect(pulseChangeKindFamily(undefined)).toBe('deadline')
+  })
+})
