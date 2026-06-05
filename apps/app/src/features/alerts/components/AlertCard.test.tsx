@@ -188,7 +188,7 @@ describe('AlertCard readiness', () => {
     renderCard(baseAlert({ forms: ['1040', '1065', '1120-S'] }))
 
     const text = document.body.textContent ?? ''
-    expect(text).toContain('2 more')
+    expect(text).toContain('(2 more)')
     expect(text).not.toContain('+2')
   })
 })
