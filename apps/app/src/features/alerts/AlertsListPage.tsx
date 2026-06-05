@@ -5,7 +5,6 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 import {
   AlertCircleIcon,
-  CheckIcon,
   Clock3Icon,
   HistoryIcon,
   ListIcon,
@@ -19,14 +18,6 @@ import type { PulseAffectedClient, PulseAlertPublic, PulseSourceHealth } from '@
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@duedatehq/ui/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
@@ -125,7 +116,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const [statusFilter, setStatusFilter] = useState<AlertStatusFilter>('all')
   const [impactFilter, setImpactFilter] = useState<AlertImpactFilter>('all')
   const [changeKindFilter, setChangeKindFilter] = useState<AlertChangeKindFilter>('all')
-  const [sourceFilter, setSourceFilter] = useState('all')
   // 2026-06-04 round 34 (Yuqi Pencil T3GhR "implement the function and
   // also the visual"): time-range filter ("Last 24 hours" / "Last
   // 7 days" / "All time"). Default: all_time so existing behavior
@@ -193,25 +183,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const statusFilterOptions = historyMode
     ? HISTORY_STATUS_FILTER_OPTIONS
     : ACTIVE_STATUS_FILTER_OPTIONS
-  const sourceOptions = useMemo(
-    () =>
-      alerts
-        .map((alert) => alert.source)
-        .filter((source, index, sources) => sources.indexOf(source) === index)
-        .toSorted(),
-    [alerts],
-  )
-  // 2026-05-26 (Yuqi /alerts follow-up): per-source alert count
-  // — feeds the searchable source-filter popover so each row reads
-  // as "IRS · 12" and the active-source trigger label can say
-  // "IRS · 12 alerts" instead of just the bare source name.
-  const sourceCounts = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const alert of alerts) {
-      map.set(alert.source, (map.get(alert.source) ?? 0) + 1)
-    }
-    return map
-  }, [alerts])
   // Counts per jurisdiction (state) across the unfiltered alerts —
   // backs the chip strip below. Sorted by count desc then state code
   // asc so the highest-impact states float to the front; zero-count
@@ -245,7 +216,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         matchesAlertImpactFilter(alert, impactFilter) &&
         matchesStatusFilter(alert.status, effectiveStatusFilter) &&
         matchesChangeKindFilter(alert.changeKind, changeKindFilter) &&
-        (sourceFilter === 'all' || alert.source === sourceFilter) &&
         (jurisdictionFilter === null || alert.jurisdiction === jurisdictionFilter) &&
         (cutoffMs === null || new Date(alert.publishedAt).getTime() >= cutoffMs) &&
         (trimmedQuery === '' ||
@@ -260,7 +230,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     impactFilter,
     jurisdictionFilter,
     searchQuery,
-    sourceFilter,
   ])
   // 2026-06-04 round 42 (Yuqi punch list #4): real sort logic.
   // The list renderer reads `sortedAlerts` instead of
@@ -296,7 +265,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     impactFilter !== 'all' ||
     statusFilter !== 'all' ||
     changeKindFilter !== 'all' ||
-    sourceFilter !== 'all' ||
     jurisdictionFilter !== null ||
     timeRangeFilter !== 'all_time' ||
     searchQuery.trim() !== ''
@@ -748,19 +716,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Source dropdown — 2026-06-04 round 42 (Yuqi punch
-                    list #5 — "fix all"): SourceFilterPopover restored
-                    to the filter row. Round 37 removed it because
-                    Pencil T3GhR didn't include it, but the underlying
-                    state was retained for Reset; this round reinstates
-                    the visible affordance so the CPA can narrow alerts
-                    by publisher (e.g. "FL DOR Bulletin" only). */}
-                <SourceFilterPopover
-                  sourceOptions={sourceOptions}
-                  sourceCounts={sourceCounts}
-                  activeSource={sourceFilter}
-                  onSelect={(value) => setSourceFilter(value)}
-                />
+                {/* 2026-06-05 (Yuqi — "all sources filter is too
+                    granular"): the agency-level source dropdown
+                    (e.g. "CA FTB", "IRS") was removed. State + Federal
+                    filtering is fully covered by the "Any state" map
+                    below, which keys off `alert.jurisdiction` (incl.
+                    the FED tile). Free-text search still matches the
+                    source string. */}
 
                 {/* 2026-05-25 (Yuqi /alerts fifth pass — map
                     in dropdown): state-filter map lives behind a
@@ -793,7 +755,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       setImpactFilter('all')
                       setStatusFilter('all')
                       setChangeKindFilter('all')
-                      setSourceFilter('all')
                       setJurisdictionFilter(null)
                       setTimeRangeFilter('all_time')
                       setSearchQuery('')
@@ -1052,114 +1013,6 @@ function StateFilterPopover({
             }}
           />
         </div>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-// 2026-05-26 (Yuqi /alerts follow-up): searchable source-filter
-// combobox. Built on Popover + Command (cmdk under the hood) so it
-// matches the picker pattern used in ClientCombobox / the Cmd+K
-// palette — type to filter, ↑/↓ to navigate, Enter to apply, Esc
-// to dismiss. Each row carries its per-source alert count on the
-// right, and the active source's count is also surfaced on the
-// trigger (e.g. "IRS · 12 alerts") so the filter row still reads
-// at a glance without opening the popover.
-function SourceFilterPopover({
-  sourceOptions,
-  sourceCounts,
-  activeSource,
-  onSelect,
-}: {
-  sourceOptions: readonly string[]
-  sourceCounts: ReadonlyMap<string, number>
-  activeSource: string
-  onSelect: (value: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const { t } = useLingui()
-  const isFiltered = activeSource !== 'all'
-  const activeCount = isFiltered ? (sourceCounts.get(activeSource) ?? 0) : 0
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        render={
-          <FilterTrigger active={isFiltered} aria-label={t`Filter by source`}>
-            <span className="min-w-0 flex-1 truncate text-left">
-              {isFiltered ? (
-                <>
-                  <span className="font-medium">{activeSource}</span>
-                  <span className="ml-1.5 tabular-nums text-text-accent/70">
-                    <Plural value={activeCount} one="# alert" other="# alerts" />
-                  </span>
-                </>
-              ) : (
-                <Trans>All sources</Trans>
-              )}
-            </span>
-          </FilterTrigger>
-        }
-      />
-      <PopoverContent
-        align="start"
-        sideOffset={4}
-        className="w-(--anchor-width) min-w-[240px] overflow-hidden p-0"
-      >
-        <Command loop>
-          <CommandInput autoFocus placeholder={t`Search sources…`} />
-          <CommandList className="max-h-[280px]">
-            <CommandEmpty>
-              <Trans>No sources match your search.</Trans>
-            </CommandEmpty>
-            <CommandGroup>
-              <CommandItem
-                value="all"
-                onSelect={() => {
-                  onSelect('all')
-                  setOpen(false)
-                }}
-                className="grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2"
-              >
-                <span className="min-w-0 truncate text-sm text-text-primary">
-                  <Trans>All sources</Trans>
-                </span>
-                <span className="shrink-0 tabular-nums text-xs text-text-tertiary">
-                  {sourceOptions.length}
-                </span>
-                {!isFiltered ? (
-                  <CheckIcon className="size-4 text-text-accent" aria-hidden />
-                ) : (
-                  <span aria-hidden className="size-4" />
-                )}
-              </CommandItem>
-              {sourceOptions.map((source) => {
-                const count = sourceCounts.get(source) ?? 0
-                const selected = source === activeSource
-                return (
-                  <CommandItem
-                    key={source}
-                    value={source}
-                    onSelect={() => {
-                      onSelect(source)
-                      setOpen(false)
-                    }}
-                    className="grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2"
-                  >
-                    <span className="min-w-0 truncate text-sm text-text-primary">{source}</span>
-                    <span className="shrink-0 tabular-nums text-xs text-text-tertiary">
-                      {count}
-                    </span>
-                    {selected ? (
-                      <CheckIcon className="size-4 text-text-accent" aria-hidden />
-                    ) : (
-                      <span aria-hidden className="size-4" />
-                    )}
-                  </CommandItem>
-                )
-              })}
-            </CommandGroup>
-          </CommandList>
-        </Command>
       </PopoverContent>
     </Popover>
   )
