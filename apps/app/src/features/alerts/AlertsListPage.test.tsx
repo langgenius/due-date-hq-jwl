@@ -24,6 +24,20 @@ vi.mock('@/lib/rpc', () => ({
     audit: { key: () => ['audit'] },
     dashboard: { load: { key: () => ['dashboard', 'load'] } },
     obligations: { list: { key: () => ['obligations', 'list'] } },
+    // 2026-06-05 (post-merge regression fix): the alerts/today card
+    // redesign cherry-pick (3495a30c → 3fe74bf6) added day-grouped
+    // `PulseAlertRow`s whose RelativeTime primitive resolves the firm
+    // timezone via `useCurrentFirm` (→ `orpc.firms.listMine`). The
+    // stub returns an empty list so the hook resolves without
+    // requiring a real firm.
+    firms: {
+      listMine: {
+        queryOptions: () => ({
+          queryKey: ['firms', 'listMine'],
+          queryFn: async () => [],
+        }),
+      },
+    },
     pulse: {
       key: () => ['pulse'],
       listAlerts: {
@@ -52,6 +66,28 @@ vi.mock('@/lib/rpc', () => ({
       },
       getDetail: {
         queryKey: (args: { input: unknown }) => ['pulse', 'getDetail', args.input],
+        // 2026-06-05 (post-merge regression fix): PulseAlertRow now
+        // prefetches per-alert detail on hover via
+        // `useAlertDetailQueryOptions`, which calls
+        // `orpc.pulse.getDetail.queryOptions`. Stub it so the row
+        // renders without forcing each test to opt in.
+        queryOptions: (args: { input: unknown }) => ({
+          queryKey: ['pulse', 'getDetail', args.input],
+          queryFn: async () => null,
+        }),
+      },
+      // 2026-06-05 (post-merge regression fix): rounds 70-85 wired
+      // hover-only Snooze + Dismiss buttons on each list row through
+      // `orpc.pulse.snooze` / `orpc.pulse.dismiss`. The component
+      // calls `mutationOptions(...)` at render time, so the mocks
+      // need to exist even though these tests don't exercise the
+      // mutations. Returning a benign mutationOptions shape keeps
+      // useMutation happy.
+      dismiss: {
+        mutationOptions: () => ({ mutationFn: vi.fn() }),
+      },
+      snooze: {
+        mutationOptions: () => ({ mutationFn: vi.fn() }),
       },
     },
   },
@@ -244,16 +280,24 @@ describe('AlertsListPage source health display', () => {
 })
 
 describe('AlertsListPage affected-client batching', () => {
-  it('renders names from one batch and seeds each getDetail cache for instant drawer open', async () => {
+  // 2026-06-05 (post-merge): rounds 70-85 reshaped the alert row
+  // chrome — the i90PZ list-row layout shows count-only
+  // ("Affects N clients") and dropped the per-row client-name
+  // surface. Names render in the drawer instead. The visible-name
+  // assertion was retired; the batch-fires-once + cache-seed
+  // assertions are the structural contract this test still
+  // protects (one round trip per page, drawer-open is a cache
+  // hit not a re-fetch).
+  it('fires exactly one batch and seeds each getDetail cache for instant drawer open', async () => {
     const detail = alertDetail()
     rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [detail.alert] })
     rpcMocks.getDetailsBatchQueryFn.mockResolvedValue({ details: [detail] })
 
     const client = await render(<AlertsListPage embedded />)
 
-    // The card shows the affected-client name pulled from the BATCH (no
-    // per-card getDetail), and the batch fired exactly once.
-    await waitForText('Seeded Client Co')
+    // Wait for the list to settle — the row chrome (count + conf%)
+    // marks completion of the render pass that triggered the batch.
+    await waitForText('Affects 1 client')
     expect(rpcMocks.getDetailsBatchQueryFn).toHaveBeenCalledTimes(1)
 
     // The drawer's per-alert getDetail cache is pre-seeded from the batch, so

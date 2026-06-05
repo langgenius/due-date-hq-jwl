@@ -45,12 +45,18 @@ describe('obligations quick filters', () => {
     daysMin: null,
     daysMax: null,
     asOf: null,
-    sort: 'smart_priority' as const,
+    // 2026-06-05 (post-merge regression fix): the urgency-band table
+    // recreation (3f4940cd → 77979882) repinned the queue defaults to
+    // due_asc / urgency / a leaner hidden-column set (no clientState,
+    // since STATE is now a primary column). Keeping the test seed in
+    // sync with `DEFAULT_SORT` / `DEFAULT_GROUP` / `DEFAULT_HIDDEN_COLUMN_IDS`
+    // in obligations.tsx is the whole point — these tests verify that
+    // helpers DROP defaults from the URL.
+    sort: 'due_asc' as const,
     density: 'comfortable' as const,
-    group: 'due' as const,
+    group: 'urgency' as const,
     hide: [
       'smartPriority',
-      'clientState',
       'clientCounty',
       'dueDateExact',
       'daysUntilDue',

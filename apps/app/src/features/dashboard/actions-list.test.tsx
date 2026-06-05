@@ -171,7 +171,16 @@ describe('DashboardActionsList', () => {
     expect(document.body.textContent).toContain('Payment 10 days late')
   })
 
-  it('does not render the expanded detail target as a real button', () => {
+  // 2026-06-05 (post-merge): rounds 70-85 simplified the actions
+  // table — the expand-on-focus inline detail panel was removed and
+  // each row now opens the obligation drawer directly. The
+  // `[aria-controls="action-detail-…"]` summary + `#action-detail-…`
+  // detail target no longer exist in the markup, so this test's
+  // premise is obsolete. Skipping rather than deleting because the
+  // assertions (no native <button> inside an expand target, Sources
+  // affordance carries an aria-label) document a real a11y contract
+  // that any future inline-detail revival should re-enforce.
+  it.skip('does not render the expanded detail target as a real button', () => {
     render(
       <DashboardActionsList
         rows={[dashboardRow]}
