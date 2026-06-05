@@ -22,7 +22,7 @@ based on the surface's role (list row vs summary tile).
 │                                                              │
 │ ┌──────────────────────────────────────────────────────────┐ │
 │ │ WHAT CHANGED      AFFECTING       PUBLISHED         │ │   ← facts panel
-│ │ Deadline shifted  Form 1065 +3    2026-05-28        │ │   (alerts-only)
+│ │ Deadline shifted  Form 1065 2 more    2026-05-28    │ │   (alerts-only)
 │ └──────────────────────────────────────────────────────────┘ │
 │                                                              │
 │ 👥 4 clients · 1 federal_1065 affected  [Review→]   [snz][arch][dsm] │
@@ -83,7 +83,7 @@ grid grid-cols-[5fr_5fr_3fr] rounded-[8px] bg-background-section
 Each cell: `px-3 py-2` with a `text-[10px] font-semibold tracking-[0.6px]
 text-text-muted uppercase` label + `text-xs font-medium text-text-secondary`
 value. The three cells: **What changed** → `changeKindLabel`; **Affecting**
-→ the first parsed form (human label via `formatTaxCode`) + a `+N` overflow,
+→ the first parsed form (human label via `formatTaxCode`) + an `N more` overflow,
 falling back to `—` when the alert carries no form scope; **Published** →
 the source bulletin's publish date (absolute `formatDate(publishedAt)`; the
 meta row above carries the relative "Nmo ago"). 2026-06-05: `forms` now rides

@@ -144,7 +144,7 @@ export function AlertCard({
   // 2026-06-05 (Affecting facts cell): the alert-level `forms` list now rides
   // on PulseAlertPublic (plumbed through toAlert / toAlertPublic), so the
   // "Affecting" cell renders the first parsed form (human label via
-  // formatTaxCode) plus a "+N" overflow when the change touches several forms
+  // formatTaxCode) plus an "N more" overflow when the change touches several forms
   // — no per-card detail fetch. Empty forms fall back to the `—` placeholder.
   const firstForm = alert.forms[0]
   const moreFormsCount = Math.max(alert.forms.length - 1, 0)
@@ -318,7 +318,7 @@ export function AlertCard({
                   PUBLISHED (the old First Application + Transition
                   placeholder cells were dropped).
                   • WHAT CHANGED → changeKindLabel(alert.changeKind)
-                  • AFFECTING    → first parsed form (human label) + "+N"
+                  • AFFECTING    → first parsed form (human label) + "N more"
                     overflow; `—` when the alert carries no form scope.
                   • PUBLISHED    → source bulletin's publish date (absolute;
                     the meta row above carries the relative "Nmo ago"). */}
@@ -339,7 +339,7 @@ export function AlertCard({
                     {firstForm ? (
                       <>
                         {formatTaxCode(firstForm)}
-                        {moreFormsCount > 0 ? ` +${moreFormsCount}` : ''}
+                        {moreFormsCount > 0 ? ` ${moreFormsCount} more` : ''}
                       </>
                     ) : (
                       '—'
