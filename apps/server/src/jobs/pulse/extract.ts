@@ -1,5 +1,6 @@
 import { createAI } from '@duedatehq/ai'
 import { ruleCitesSourceAsBasis, rulesBySourceId } from '@duedatehq/core/rules'
+import { taxAreasForAlert } from '@duedatehq/core/tax-area'
 import { createDb, makePulseOpsRepo } from '@duedatehq/db'
 import { aiOutput, llmLog } from '@duedatehq/db/schema/ai'
 import type { Env } from '../../env'
@@ -48,6 +49,25 @@ function nullableDateFromIsoDate(value: string | null): Date | null {
 // alert when every parsed policy date is before this floor. Items with no parsed
 // date are kept (no evidence they are historical). Bump the year to raise the floor.
 const PULSE_ALERT_MIN_RELEVANT_AT = new Date('2026-01-01T00:00:00.000Z')
+
+// Confidence gating for AI regulatory extracts, calibrated against the live
+// alert corpus (non-events cluster ≤0.25; genuine items ≥0.5):
+//   < MIN     → drop outright (almost always a non-event the model failed to
+//               mark no_regulatory_change — revenue-distribution press
+//               releases, "no due-date relief" pages).
+//   MIN..PUB  → real-but-shaky: create quarantined (kept for review, not
+//               fanned out to firms).
+//   ≥ PUB     → publish (approved + fan out) as before.
+const PULSE_MIN_ALERT_CONFIDENCE = 0.3
+const PULSE_PUBLISH_CONFIDENCE = 0.5
+
+// Scope backstop behind the pulse-extract@v3 prompt exclusions: form/summary
+// signals that an extracted "deadline" is an internal agency program window
+// (grant, clinic, advisory council, job posting) rather than a taxpayer
+// filing/payment obligation — e.g. the LITC matching-grant and IRSAC council
+// application windows the model still occasionally mis-files as a deadline_shift.
+const NON_OBLIGATION_DEADLINE_PATTERN =
+  /\b(grants?|clinics?|advisory\s+(?:council|committee|board|panel)|councils?|membership|fellowships?|scholarships?|internships?|recruit\w*|nominations?|volunteers?)\b/i
 
 function latestPolicyDate(values: ReadonlyArray<string | null>): Date | null {
   const times = values
@@ -386,6 +406,31 @@ async function runPulseExtractionAfterMark(
     return { pulseId: null, status: 'failed' }
   }
 
+  // Scope guard: drop a dated "deadline" that is an internal agency program
+  // window (grant/clinic, advisory council, job) rather than a taxpayer
+  // filing/payment obligation. Triple-gated so it can't false-drop real relief:
+  // disaster postponements also carry a due date and resolve to no tax area, but
+  // their text matches no program keyword — that keyword gate is the separator.
+  const hasParsedDueDate = Boolean(result.result.originalDueDate || result.result.newDueDate)
+  const resolvesToNoTaxArea =
+    taxAreasForAlert({ reverifyRuleIds, parsedForms: result.result.forms }).length === 0
+  const scopeText = `${result.result.forms.join(' ')} ${result.result.summary}`
+  if (hasParsedDueDate && resolvesToNoTaxArea && NON_OBLIGATION_DEADLINE_PATTERN.test(scopeText)) {
+    await repo.updateSourceSnapshotStatus(snapshotId, {
+      parseStatus: 'ignored',
+      aiOutputId,
+      failureReason: 'out_of_scope_program',
+    })
+    recordPulseMetric('pulse.extract.result', {
+      snapshotId,
+      sourceId: snapshot.sourceId,
+      result: 'ignored',
+      refusalCode: null,
+      confidence: result.result.confidence,
+    })
+    return { pulseId: null, status: 'skipped' }
+  }
+
   const latestRelevant = latestPolicyDate([
     result.result.originalDueDate,
     result.result.newDueDate,
@@ -397,6 +442,24 @@ async function runPulseExtractionAfterMark(
       parseStatus: 'ignored',
       aiOutputId,
       failureReason: 'historical_pre_2026',
+    })
+    recordPulseMetric('pulse.extract.result', {
+      snapshotId,
+      sourceId: snapshot.sourceId,
+      result: 'ignored',
+      refusalCode: null,
+      confidence: result.result.confidence,
+    })
+    return { pulseId: null, status: 'skipped' }
+  }
+
+  // Confidence floor: drop near-zero-confidence extracts outright. These are
+  // almost always non-events the model failed to mark no_regulatory_change.
+  if (result.result.confidence < PULSE_MIN_ALERT_CONFIDENCE) {
+    await repo.updateSourceSnapshotStatus(snapshotId, {
+      parseStatus: 'ignored',
+      aiOutputId,
+      failureReason: 'low_confidence',
     })
     recordPulseMetric('pulse.extract.result', {
       snapshotId,
@@ -477,7 +540,29 @@ async function runPulseExtractionAfterMark(
     confidence: result.result.confidence,
     requiresHumanReview: true,
     isSample: false,
+    // Race-safe canonical de-duplication for AI extracts. Low-confidence items
+    // land quarantined (retained for review, never fanned out).
+    dedupe: true,
+    status: result.result.confidence < PULSE_PUBLISH_CONFIDENCE ? 'quarantined' : 'approved',
   })
+
+  // The unique dedupe key caught a sibling/cross-feed extraction of the same
+  // event that the signature pre-check missed — fold onto the survivor exactly
+  // like the explicit duplicate branch above.
+  if (created.deduped) {
+    await repo.refreshFirmAlertsForApprovedPulse(created.pulseId)
+    await repo.mergeReverifyRuleIdsIntoPulse(created.pulseId, reverifyRuleIds)
+    await recordRuleSourceDrift(created.pulseId)
+    recordPulseMetric('pulse.extract.result', {
+      snapshotId,
+      sourceId: snapshot.sourceId,
+      result: 'duplicate',
+      refusalCode: null,
+      confidence: result.result.confidence,
+    })
+    return { pulseId: created.pulseId, status: 'skipped' }
+  }
+
   await recordRuleSourceDrift(created.pulseId)
 
   recordPulseMetric('pulse.extract.result', {
@@ -487,7 +572,7 @@ async function runPulseExtractionAfterMark(
     refusalCode: null,
     confidence: result.result.confidence,
   })
-  if (result.result.confidence < 0.5) {
+  if (result.result.confidence < PULSE_PUBLISH_CONFIDENCE) {
     recordPulseAlert('pulse.extract.low_confidence', {
       snapshotId,
       sourceId: snapshot.sourceId,

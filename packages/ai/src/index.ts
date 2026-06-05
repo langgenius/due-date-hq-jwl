@@ -222,7 +222,7 @@ export function createAI(env: AiEnv = {}) {
       }
 
       if (name === 'mapper@v1' || name === 'mapper@v2') verifyMapperEinHitRate(input, parsed.data)
-      if (name === 'pulse-extract@v2') verifyPulseSourceExcerpt(input, parsed.data)
+      if (name === 'pulse-extract@v3') verifyPulseSourceExcerpt(input, parsed.data)
       if (name === 'rule-concrete-draft@v1' || name === 'rule-concrete-draft@v2') {
         verifyRuleConcreteDraft(input, parsed.data)
       }
@@ -286,7 +286,7 @@ export function createAI(env: AiEnv = {}) {
       input: PulseExtractInput,
       routing: AiRoutingInput = {},
     ): Promise<AiRunResult<PulseExtractOutput>> {
-      return runPrompt('pulse-extract@v2', input, PulseExtractOutputSchema, {
+      return runPrompt('pulse-extract@v3', input, PulseExtractOutputSchema, {
         ...routing,
         taskKind: routing.taskKind ?? 'pulse',
       })

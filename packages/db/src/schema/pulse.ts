@@ -115,6 +115,15 @@ export const pulse = sqliteTable(
       .default(sql`'[]'`),
     structuredChangeJson: text('structured_change_json', { mode: 'json' }).$type<unknown>(),
 
+    // Canonical de-duplication key for AI-extracted regulatory alerts. NULL for
+    // deterministic alerts (threshold_advisory / rule_source_drift) and any row
+    // predating this column. A plain UNIQUE index (uq_pulse_dedupe_key) enforces
+    // one alert per real-world event: SQLite treats NULLs as mutually distinct,
+    // so the many NULL rows never collide, while concurrent extractions of the
+    // same event (identical key) collapse via INSERT … ON CONFLICT DO NOTHING —
+    // closing the check-then-insert race that previously let duplicates through.
+    dedupeKey: text('dedupe_key'),
+
     confidence: real('confidence').notNull(),
     status: text('status', { enum: PULSE_STATUSES }).notNull().default('pending_review'),
     reviewedBy: text('reviewed_by').references(() => user.id, { onDelete: 'set null' }),
@@ -135,6 +144,7 @@ export const pulse = sqliteTable(
   (table) => [
     index('idx_pulse_status_pub').on(table.status, table.publishedAt),
     index('idx_pulse_jurisdiction_pub').on(table.parsedJurisdiction, table.publishedAt),
+    uniqueIndex('uq_pulse_dedupe_key').on(table.dedupeKey),
   ],
 )
 
