@@ -43,6 +43,7 @@ import {
   CalendarDaysIcon,
   CheckCircle2Icon,
   ChevronDownIcon,
+  ChevronLeftIcon,
   ChevronRightIcon,
   CircleDollarSignIcon,
   CircleIcon,
