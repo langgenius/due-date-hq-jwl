@@ -2476,6 +2476,23 @@ export function ObligationQueueDetailDrawer({
                             {formatDatePretty(latestRequest.expiresAt.slice(0, 10))}
                           </Trans>
                         </span>
+                        {/* 5b: the open/respond signal a CPA needs ("opened
+                            but no response yet") — was never shown. */}
+                        {latestRequest.firstOpenedAt ? (
+                          <span className="text-xs text-text-secondary">
+                            <Trans>
+                              · opened {formatDatePretty(latestRequest.firstOpenedAt.slice(0, 10))}
+                            </Trans>
+                          </span>
+                        ) : null}
+                        {latestRequest.lastRespondedAt ? (
+                          <span className="text-xs text-text-secondary">
+                            <Trans>
+                              · responded{' '}
+                              {formatDatePretty(latestRequest.lastRespondedAt.slice(0, 10))}
+                            </Trans>
+                          </span>
+                        ) : null}
                         <div className="ml-auto flex items-center gap-1.5">
                           {latestRequest.portalUrl ? (
                             <>
@@ -2507,6 +2524,57 @@ export function ObligationQueueDetailDrawer({
                           ) : null}
                         </div>
                       </div>
+                    </section>
+                  ) : null}
+                  {/* 5b: prior materials requests — every earlier send with
+                      its sent/opened/responded timeline. The drawer used to
+                      read only readinessRequests[0]; the full history was
+                      already in the payload, just never surfaced. */}
+                  {(detail?.readinessRequests ?? []).length > 1 ? (
+                    <section className="flex flex-col gap-2">
+                      <h3 className="text-sm font-semibold text-text-primary">
+                        <Trans>Request history</Trans>
+                      </h3>
+                      <ul className="flex flex-col gap-1.5">
+                        {(detail?.readinessRequests ?? []).slice(1).map((request) => (
+                          <li
+                            key={request.id}
+                            className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-md bg-background-subtle px-3 py-2 text-xs text-text-secondary"
+                          >
+                            <Badge
+                              variant="outline"
+                              className="text-caption-xs uppercase tracking-wide"
+                            >
+                              {request.status}
+                            </Badge>
+                            {request.sentAt ? (
+                              <span>
+                                <Trans>sent {formatDatePretty(request.sentAt.slice(0, 10))}</Trans>
+                              </span>
+                            ) : null}
+                            {request.firstOpenedAt ? (
+                              <span>
+                                <Trans>
+                                  · opened {formatDatePretty(request.firstOpenedAt.slice(0, 10))}
+                                </Trans>
+                              </span>
+                            ) : null}
+                            {request.lastRespondedAt ? (
+                              <span>
+                                <Trans>
+                                  · responded{' '}
+                                  {formatDatePretty(request.lastRespondedAt.slice(0, 10))}
+                                </Trans>
+                              </span>
+                            ) : null}
+                            {request.recipientEmail ? (
+                              <span className="ml-auto text-text-tertiary">
+                                {request.recipientEmail}
+                              </span>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
                     </section>
                   ) : null}
                   {/* Tax year profile — relocated 2026-05-21 from the

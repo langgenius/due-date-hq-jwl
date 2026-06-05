@@ -1,10 +1,12 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ExternalLinkIcon } from 'lucide-react'
+import { ExternalLinkIcon, RefreshCwIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
-import type { PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
+import type { PulseAlertSourceCoverage, PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -71,6 +73,23 @@ export function SourcesTab() {
     }
     return map
   }, [sourceHealthQuery.data])
+
+  // Force a re-poll of a degraded/failing source instead of waiting for its
+  // scheduled `nextCheckAt`. (`retrySourceHealth` was previously unused.)
+  const queryClient = useQueryClient()
+  const retryMutation = useMutation(
+    orpc.pulse.retrySourceHealth.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: orpc.pulse.listSourceHealth.key() })
+      },
+      onError: () => {
+        toast.error(t`Couldn't re-check that source`)
+      },
+    }),
+  )
+  const retryingSourceId = retryMutation.isPending
+    ? (retryMutation.variables?.sourceId ?? null)
+    : null
 
   const rows = useMemo(() => sourcesQuery.data ?? EMPTY_SOURCE_ROWS, [sourcesQuery.data])
   const counts = useMemo(() => countSourcesByHealth(rows), [rows])
@@ -228,7 +247,7 @@ export function SourcesTab() {
               <TableHead className="w-[112px] px-2">WATCH</TableHead>
               {/* 2026-06-01: dropped uppercase/eyebrow override per DESIGN §9 — TableHead default already carries the canonical column-header type. */}
               <TableHead className="w-[92px] px-2">LAST CHECKED</TableHead>
-              <TableHead className="w-[42px] px-0" />
+              <TableHead className="w-[72px] px-0" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -238,6 +257,8 @@ export function SourcesTab() {
                 source={source}
                 health={sourceHealthBySourceId.get(source.id)}
                 sourceTypeLabels={sourceTypeLabels}
+                onRetry={(sourceId) => retryMutation.mutate({ sourceId })}
+                retrying={retryingSourceId === source.id}
               />
             ))}
             {visibleRows.length === 0 ? (
@@ -279,7 +300,99 @@ export function SourcesTab() {
           onNextPage={() => setPageIndex(Math.min(pageCount - 1, currentPageIndex + 1))}
         />
       </SectionFrame>
+
+      <SourceCoverageSection />
     </div>
+  )
+}
+
+/**
+ * Coverage-by-jurisdiction matrix — answers "are we actually watching
+ * everything for my states?" Each row reports how comprehensively a
+ * jurisdiction is covered and which watcher roles (primary web, guidance
+ * notices, email signal, …) are missing. Powered by the previously-unused
+ * `pulse.listAlertSourceCoverage`.
+ */
+function SourceCoverageSection() {
+  const { t } = useLingui()
+  const coverageQuery = useQuery(
+    orpc.pulse.listAlertSourceCoverage.queryOptions({ input: undefined }),
+  )
+  const roleLabels = useMemo<Record<PulseAlertSourceCoverage['requiredRoles'][number], string>>(
+    () => ({
+      primary_web_news: t`Primary web`,
+      guidance_notice: t`Guidance notices`,
+      email_signal: t`Email signal`,
+      rule_source_watch: t`Rule watch`,
+      tax_type_sources: t`Tax-type sources`,
+      relief_or_disaster_signal: t`Relief / disaster`,
+      multi_agency_sources: t`Multi-agency`,
+    }),
+    [t],
+  )
+
+  const coverage = coverageQuery.data?.coverage ?? []
+  if (coverageQuery.isLoading || coverage.length === 0) return null
+
+  const coverageLevelVariant = {
+    comprehensive: 'success',
+    standard: 'info',
+    missing: 'destructive',
+  } as const
+
+  return (
+    <SectionFrame>
+      <div className="flex flex-col gap-1 px-4 py-3">
+        <h2 className="text-sm font-semibold text-text-primary">
+          <Trans>Coverage by jurisdiction</Trans>
+        </h2>
+        <p className="text-xs text-text-tertiary">
+          <Trans>
+            Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed.
+          </Trans>
+        </p>
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="px-4">JURISDICTION</TableHead>
+            <TableHead className="w-[140px] px-2">COVERAGE</TableHead>
+            <TableHead className="w-[88px] px-2">ROLES</TableHead>
+            <TableHead className="px-2">MISSING</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {coverage.map((row) => (
+            <TableRow key={row.jurisdiction} className="hover:bg-transparent">
+              <TableCell className="px-4 py-1.5">
+                <JurisdictionCode code={row.jurisdiction} />
+              </TableCell>
+              <TableCell className="px-2 py-1.5">
+                <Badge variant={coverageLevelVariant[row.coverageLevel]} size="sm">
+                  {row.coverageLevel}
+                </Badge>
+              </TableCell>
+              <TableCell className="px-2 py-1.5 font-mono text-xs tabular-nums text-text-secondary">
+                {row.coveredRoles.length}/{row.requiredRoles.length}
+              </TableCell>
+              <TableCell className="px-2 py-1.5">
+                {row.missingRoles.length === 0 ? (
+                  <span className="text-xs text-text-tertiary">—</span>
+                ) : (
+                  <div className="flex flex-wrap gap-1" title={row.missingReason ?? undefined}>
+                    {row.missingRoles.map((role) => (
+                      <Badge key={role} variant="outline" size="sm">
+                        {roleLabels[role]}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </SectionFrame>
   )
 }
 
@@ -336,12 +449,19 @@ function SourceRow({
   source,
   health,
   sourceTypeLabels,
+  onRetry,
+  retrying,
 }: {
   source: RuleSource
   health: PulseSourceHealth | undefined
   sourceTypeLabels: SourceTypeLabelMap
+  onRetry: (sourceId: string) => void
+  retrying: boolean
 }) {
   const { t } = useLingui()
+  // A source "needs attention" when the watcher has a failure streak or a
+  // recorded last error — that's when the manual re-check is worth offering.
+  const needsAttention = Boolean(health && (health.consecutiveFailures > 0 || health.lastError))
 
   // Keep every interactive affordance on this row pointed at the exact
   // RuleSource.url from the registry. The title and trailing icon are native
@@ -402,9 +522,11 @@ function SourceRow({
       <TableCell
         className="px-2 py-1.5"
         title={
-          health?.lastCheckedAt
-            ? t`Last checked: ${relativeTimeShort(health.lastCheckedAt)}`
-            : undefined
+          needsAttention && health?.lastError
+            ? t`Last error: ${health.lastError}`
+            : health?.lastCheckedAt
+              ? t`Last checked: ${relativeTimeShort(health.lastCheckedAt)}`
+              : undefined
         }
       >
         <HealthBadge health={source.healthStatus} />
@@ -417,17 +539,34 @@ function SourceRow({
       >
         {health?.lastCheckedAt ? relativeTimeShort(health.lastCheckedAt) : '—'}
       </TableCell>
-      <TableCell className="px-0 py-1.5 text-center">
-        <a
-          href={source.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={t`Open official source: ${source.title}`}
-          onClick={(event) => event.stopPropagation()}
-          className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover-alt hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-        >
-          <ExternalLinkIcon className="size-3.5" aria-hidden />
-        </a>
+      <TableCell className="px-0 py-1.5">
+        <div className="flex items-center justify-center gap-0.5">
+          {needsAttention ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation()
+                onRetry(source.id)
+              }}
+              disabled={retrying}
+              aria-label={t`Re-check ${source.title} now`}
+              title={t`Re-check now`}
+              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover-alt hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-50"
+            >
+              <RefreshCwIcon className={`size-3.5 ${retrying ? 'animate-spin' : ''}`} aria-hidden />
+            </button>
+          ) : null}
+          <a
+            href={source.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t`Open official source: ${source.title}`}
+            onClick={(event) => event.stopPropagation()}
+            className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover-alt hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <ExternalLinkIcon className="size-3.5" aria-hidden />
+          </a>
+        </div>
       </TableCell>
     </TableRow>
   )

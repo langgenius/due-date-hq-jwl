@@ -480,6 +480,9 @@ export function AuditLogPage() {
     coordinatorCanSeeDollars: currentFirm?.coordinatorCanSeeDollars,
   })
 
+  // B17: forward the search term to the server so it matches across ALL
+  // rows, not just the page already loaded (it was client-side only).
+  const searchTerm = query.q.trim()
   const queryInputWithoutCursor = useMemo<Omit<AuditListInput, 'cursor'>>(
     () => ({
       limit: AUDIT_QUERY_PAGE_SIZE,
@@ -488,8 +491,9 @@ export function AuditLogPage() {
       ...(actionFilter ? { action: actionFilter } : {}),
       ...(actorFilter ? { actorId: actorFilter } : {}),
       ...(entityTypeFilter ? { entityType: entityTypeFilter } : {}),
+      ...(searchTerm ? { search: searchTerm } : {}),
     }),
-    [actionFilter, actorFilter, entityTypeFilter, query.category, query.range],
+    [actionFilter, actorFilter, entityTypeFilter, query.category, query.range, searchTerm],
   )
 
   const auditQuery = useAuditEvents(queryInputWithoutCursor, canReadAudit)

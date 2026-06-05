@@ -6,11 +6,13 @@ import {
   AlarmClockIcon,
   BellIcon,
   CheckCircle2Icon,
+  ClockIcon,
   Edit3Icon,
   Loader2,
   MailWarningIcon,
   PauseCircleIcon,
   SendIcon,
+  TriangleAlertIcon,
   type LucideIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -154,11 +156,15 @@ function StatTile({
   label,
   value,
   caption,
+  tone = 'neutral',
 }: {
   icon: LucideIcon
   label: ReactNode
   value: number
   caption: ReactNode
+  // `critical` reserves destructive color for genuinely-stuck magnitudes
+  // (failed sends) per DESIGN.md §7 — never default to it.
+  tone?: 'neutral' | 'critical'
 }) {
   return (
     <Card>
@@ -167,7 +173,11 @@ function StatTile({
           <span className="text-xs font-medium tracking-wider text-text-tertiary uppercase">
             {label}
           </span>
-          <span className="text-2xl leading-none font-semibold tabular-nums text-text-primary">
+          <span
+            className={`text-2xl leading-none font-semibold tabular-nums ${
+              tone === 'critical' ? 'text-text-destructive' : 'text-text-primary'
+            }`}
+          >
             {value}
           </span>
           <span className="text-xs text-text-tertiary">{caption}</span>
@@ -231,7 +241,7 @@ export function RemindersPage() {
         </Alert>
       ) : null}
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <StatTile
           icon={CheckCircle2Icon}
           label={<Trans>Active templates</Trans>}
@@ -245,10 +255,23 @@ export function RemindersPage() {
           caption={<Trans>30 / 7 days and overdue</Trans>}
         />
         <StatTile
+          icon={ClockIcon}
+          label={<Trans>Queued today</Trans>}
+          value={overview?.queuedTodayCount ?? 0}
+          caption={<Trans>Scheduled to send today</Trans>}
+        />
+        <StatTile
           icon={SendIcon}
           label={<Trans>Sent last 7 days</Trans>}
           value={overview?.sentLast7DaysCount ?? 0}
           caption={<Trans>Outbox-confirmed sends</Trans>}
+        />
+        <StatTile
+          icon={TriangleAlertIcon}
+          label={<Trans>Failed last 7 days</Trans>}
+          value={overview?.failedLast7DaysCount ?? 0}
+          caption={<Trans>Bounced or rejected sends</Trans>}
+          tone={(overview?.failedLast7DaysCount ?? 0) > 0 ? 'critical' : 'neutral'}
         />
         <StatTile
           icon={MailWarningIcon}

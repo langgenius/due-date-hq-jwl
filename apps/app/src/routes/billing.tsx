@@ -29,7 +29,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/component
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { createBillingPortal } from '@/features/billing/api'
-import { formatDollarPrice } from '@/lib/utils'
+import { formatDate, formatDollarPrice } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 import {
   activeFirmEntitlementLimit,
@@ -228,6 +228,22 @@ export function BillingRoute() {
     : '—'
   const seatLimit = currentFirm ? t`${currentFirm.seatLimit} seat limit` : '—'
   const subscriptionStatus = activeSubscription?.status ?? t`No paid subscription`
+  // B21: surface trial / pending-cancellation / renewal context — these
+  // fields are on the subscription but were never shown.
+  const billingPeriodLabel = (() => {
+    if (!activeSubscription) return null
+    if (activeSubscription.cancelAtPeriodEnd) {
+      const when = activeSubscription.cancelAt ?? activeSubscription.periodEnd
+      return when ? t`Cancels ${formatDate(when)}` : t`Cancels at period end`
+    }
+    if (activeSubscription.status === 'trialing' && activeSubscription.trialEnd) {
+      return t`Trial ends ${formatDate(activeSubscription.trialEnd)}`
+    }
+    if (activeSubscription.periodEnd) {
+      return t`Renews ${formatDate(activeSubscription.periodEnd)}`
+    }
+    return null
+  })()
   const portalMutation = useMutation({
     mutationFn: async () => {
       if (!currentFirm) throw new Error(t`No active practice is selected.`)
@@ -395,6 +411,13 @@ export function BillingRoute() {
                     value={subscriptionStatus}
                     name={`Subscription status: ${subscriptionStatus}`}
                   />
+                  {billingPeriodLabel ? (
+                    <Metric
+                      label={<Trans>Billing period</Trans>}
+                      value={billingPeriodLabel}
+                      name={`Billing period: ${billingPeriodLabel}`}
+                    />
+                  ) : null}
                   <Metric
                     label={<Trans>Billing role</Trans>}
                     value={owner ? t`Owner` : t`Member`}

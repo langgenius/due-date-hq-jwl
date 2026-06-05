@@ -451,8 +451,21 @@ function ActionsTableRow({
                   ? ` #${String(row.smartPriority.rank).padStart(2, '0')}`
                   : ''}
               </span>
-              {allRowFactors.length > 0 ? (
-                <span className="text-text-secondary">{allRowFactors.join(' · ')}</span>
+              {row.smartPriority?.factors && row.smartPriority.factors.length > 0 ? (
+                // B11: surface each factor's rawValue ("Due in 3 days",
+                // "Importance: high") + its source, not just the label —
+                // makes the rank legible instead of a bare number.
+                <div className="flex flex-col gap-0.5">
+                  {[...row.smartPriority.factors]
+                    .sort((a, b) => b.contribution - a.contribution)
+                    .slice(0, 4)
+                    .map((factor) => (
+                      <span key={factor.key} className="text-text-secondary">
+                        {factor.label}:{' '}
+                        <span className="text-text-tertiary">{factor.rawValue}</span>
+                      </span>
+                    ))}
+                </div>
               ) : (
                 <span className="text-text-tertiary">
                   <Trans>No specific priority factors flagged.</Trans>

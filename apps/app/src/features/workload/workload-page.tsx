@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRightIcon, ClipboardListIcon, LockKeyholeIcon, RefreshCwIcon } from 'lucide-react'
@@ -47,7 +47,9 @@ export function WorkloadPage() {
   const { firmsQuery, currentFirm } = useCurrentFirm()
   const paid = paidPlanActive(currentFirm)
   const asOfDate = todayDateOnly()
-  const windowDays = 7
+  // WorkloadLoadInput.windowDays accepts 1–30; expose the three useful
+  // horizons (was hardcoded to 7).
+  const [windowDays, setWindowDays] = useState<number>(7)
   const workloadQuery = useQuery({
     ...orpc.workload.load.queryOptions({ input: { asOfDate, windowDays } }),
     enabled: paid,
@@ -97,22 +99,46 @@ export function WorkloadPage() {
           </>
         }
         actions={
-          // 2026-05-26 (step-6 ux-flow audit F2.4): refresh button
-          // now announces aria-busy + spins the icon while
-          // refetching so the user has a visible signal.
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void workloadQuery.refetch()}
-            disabled={workloadQuery.isFetching}
-            aria-busy={workloadQuery.isFetching}
-          >
-            <RefreshCwIcon
-              data-icon="inline-start"
-              className={workloadQuery.isFetching ? 'animate-spin' : undefined}
-            />
-            <Trans>Refresh</Trans>
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Window picker — 7 / 14 / 30 day horizon for the load query. */}
+            <div
+              role="group"
+              aria-label={t`Workload window`}
+              className="inline-flex items-center rounded-md border border-divider-subtle bg-background-default p-0.5"
+            >
+              {[7, 14, 30].map((days) => (
+                <button
+                  key={days}
+                  type="button"
+                  onClick={() => setWindowDays(days)}
+                  aria-pressed={windowDays === days}
+                  className={`rounded px-2 py-1 text-caption-xs font-medium tabular-nums transition-colors ${
+                    windowDays === days
+                      ? 'bg-state-accent-active-alt text-text-accent'
+                      : 'text-text-tertiary hover:text-text-secondary'
+                  }`}
+                >
+                  {days}d
+                </button>
+              ))}
+            </div>
+            {/* 2026-05-26 (step-6 ux-flow audit F2.4): refresh button
+                now announces aria-busy + spins the icon while
+                refetching so the user has a visible signal. */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void workloadQuery.refetch()}
+              disabled={workloadQuery.isFetching}
+              aria-busy={workloadQuery.isFetching}
+            >
+              <RefreshCwIcon
+                data-icon="inline-start"
+                className={workloadQuery.isFetching ? 'animate-spin' : undefined}
+              />
+              <Trans>Refresh</Trans>
+            </Button>
+          </div>
         }
       />
 
@@ -266,7 +292,8 @@ function ManagerInsights({ insights }: { insights: WorkloadManagerInsights }) {
           label={<Trans>Capacity pressure</Trans>}
           value={
             insights.capacityOwnerLabel ? (
-              `${insights.capacityOwnerLabel} · ${insights.capacityOpen}`
+              // Surface the 0–100 load score alongside the busiest owner.
+              `${insights.capacityOwnerLabel} · ${insights.capacityOpen} · ${insights.capacityLoadScore}% load`
             ) : (
               <Trans>No assigned work</Trans>
             )

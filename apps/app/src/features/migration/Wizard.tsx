@@ -41,9 +41,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@duedatehq/ui/components/ui/alert-dialog'
+import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
+import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { orpc } from '@/lib/rpc'
+import { formatRelativeTime } from '@/lib/utils'
 
 import { canContinueNormalization } from './continue-rules'
 import { Step1Intake } from './Step1Intake'
@@ -217,6 +220,20 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
       enabled: Boolean(resumeBatchId) && open,
     }),
   )
+
+  // Resume-on-open: when the wizard opens fresh (no explicit resume target) and
+  // nothing has been started yet, surface the firm's in-progress draft so the
+  // user can pick it back up instead of digging through Import history.
+  // (`getResumableImport` was previously unused.)
+  const [resumeDismissed, setResumeDismissed] = useState(false)
+  const resumableImportQuery = useQuery(
+    orpc.migration.getResumableImport.queryOptions({
+      input: {},
+      enabled: open && !resumeBatchId && state.step === 1 && state.batchId === null,
+    }),
+  )
+  const resumableImport =
+    !resumeDismissed && state.batchId === null ? (resumableImportQuery.data ?? null) : null
 
   const resetAndClose = useCallback(() => {
     dispatch({ type: 'RESET' })
@@ -653,6 +670,33 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
     confirmOnClose: hasDiscardableWizardWork(state),
     children: (
       <>
+        {state.step === 1 && resumableImport ? (
+          <Alert className="mb-4">
+            <AlertTitle>
+              <Trans>Resume your in-progress import?</Trans>
+            </AlertTitle>
+            <AlertDescription className="flex flex-col gap-3">
+              <span>
+                <Trans>
+                  {resumableImport.rawInputFileName ?? t`An import`} · {resumableImport.rowCount}{' '}
+                  rows · started {formatRelativeTime(resumableImport.createdAt)}
+                </Trans>
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => dispatch({ type: 'HYDRATE', batch: resumableImport })}
+                >
+                  <Trans>Resume</Trans>
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setResumeDismissed(true)}>
+                  <Trans>Start fresh</Trans>
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         {state.step === 1 ? (
           <Step1Intake
             density={variant === 'route' ? 'compact' : 'comfortable'}

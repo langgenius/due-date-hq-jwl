@@ -219,7 +219,16 @@ function EvidenceCard({ item, focused }: { item: EvidencePublic; focused: boolea
           </Card>
         ) : null}
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text-tertiary">
-          <span>{formatDateTimeWithTimezone(item.appliedAt, practiceTimezone)}</span>
+          <span className="inline-flex flex-wrap items-center gap-1.5">
+            <span>{formatDateTimeWithTimezone(item.appliedAt, practiceTimezone)}</span>
+            {item.model ? (
+              <>
+                <span aria-hidden>·</span>
+                {/* AI-provenance disclosure: which model produced this value. */}
+                <span className="font-mono text-[11px]">{item.model}</span>
+              </>
+            ) : null}
+          </span>
           {item.sourceUrl ? (
             <Button
               variant="ghost"

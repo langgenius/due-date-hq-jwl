@@ -64,6 +64,14 @@ vi.mock('@/lib/rpc', () => {
             enabled: enabled ?? true,
           }),
         },
+        getResumableImport: {
+          queryKey: () => ['migration', 'getResumableImport'],
+          queryOptions: ({ enabled }: { input?: unknown; enabled?: boolean } = {}) => ({
+            queryKey: ['migration', 'getResumableImport'],
+            queryFn: async () => null,
+            enabled: enabled ?? true,
+          }),
+        },
         createBatch: {
           mutationOptions: (options: Record<string, unknown> = {}) =>
             rpcMocks.mutationOptions(rpcMocks.createBatchMutationFn, options),

@@ -1,15 +1,22 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ArrowRightIcon, CheckCheckIcon, CheckIcon, InboxIcon } from 'lucide-react'
-import { parseAsString, useQueryState } from 'nuqs'
+import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { toast } from 'sonner'
 
 import type { NotificationType } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@duedatehq/ui/components/ui/select'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { PageHeader } from '@/components/patterns/page-header'
@@ -29,6 +36,20 @@ function notificationTypeLabel(type: NotificationType): React.ReactNode {
   return <Trans>System notification</Trans>
 }
 
+// Server-side `type` filter options for the inbox. 'all' clears the filter.
+const NOTIFICATION_TYPE_FILTERS = [
+  'all',
+  'deadline_reminder',
+  'overdue',
+  'client_reminder',
+  'pulse_alert',
+  'audit_package_ready',
+  'internal_request',
+  'system',
+] as const
+type NotificationTypeFilter = (typeof NOTIFICATION_TYPE_FILTERS)[number]
+const NOTIFICATIONS_PAGE_SIZE = 50
+
 export function NotificationsPage() {
   const { t } = useLingui()
   const practiceTimezone = usePracticeTimezone()
@@ -45,8 +66,23 @@ export function NotificationsPage() {
     'q',
     parseAsString.withDefault('').withOptions({ history: 'replace' }),
   )
-  const notificationsQuery = useQuery(
-    orpc.notifications.list.queryOptions({ input: { status: 'all', limit: 50 } }),
+  const [typeFilter, setTypeFilter] = useQueryState(
+    'type',
+    parseAsStringLiteral(NOTIFICATION_TYPE_FILTERS)
+      .withDefault('all')
+      .withOptions({ history: 'replace' }),
+  )
+  const notificationsQuery = useInfiniteQuery(
+    orpc.notifications.list.infiniteOptions({
+      initialPageParam: null as string | null,
+      input: (cursor) => ({
+        status: 'all' as const,
+        ...(typeFilter === 'all' ? {} : { type: typeFilter }),
+        limit: NOTIFICATIONS_PAGE_SIZE,
+        cursor,
+      }),
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }),
   )
   const markRead = useMutation(
     orpc.notifications.markRead.mutationOptions({
@@ -70,10 +106,10 @@ export function NotificationsPage() {
     }),
   )
 
-  // Stable reference for empty list so the useMemo below doesn't bust
-  // every render when notifications is undefined.
-  const rawNotifications = notificationsQuery.data?.notifications
-  const notifications = useMemo(() => rawNotifications ?? [], [rawNotifications])
+  // Flatten the cursor pages into one list. Client-side search (below)
+  // scans whatever has been loaded so far; "Load more" pulls the next page.
+  const pages = notificationsQuery.data?.pages
+  const notifications = useMemo(() => pages?.flatMap((page) => page.notifications) ?? [], [pages])
   // 2026-05-26 (step-6 ux-flow audit F1.4): explicit
   // notifications-have-unread check instead of `every(item =>
   // item.readAt)` which returns true for [] (silently disabling
@@ -121,21 +157,44 @@ export function NotificationsPage() {
           synced so a shared `/notifications?q=...` link lands the
           recipient on the filtered subset. `/` hotkey wires through
           the canonical primitive so the help dialog lists it. */}
-      <SearchInput
-        value={searchQuery}
-        onChange={(next) => void setSearchQuery(next.length > 0 ? next : null)}
-        placeholder={t`Filter inbox`}
-        ariaLabel={t`Filter notifications`}
-        className="md:max-w-sm"
-        hotkey="/"
-        hotkeyMeta={{
-          id: 'notifications.focus-search',
-          name: 'Filter inbox',
-          description: 'Focus the inbox filter input.',
-          category: 'practice',
-          scope: 'route',
-        }}
-      />
+      <div className="flex flex-wrap items-center gap-3">
+        <SearchInput
+          value={searchQuery}
+          onChange={(next) => void setSearchQuery(next.length > 0 ? next : null)}
+          placeholder={t`Filter inbox`}
+          ariaLabel={t`Filter notifications`}
+          className="md:max-w-sm"
+          hotkey="/"
+          hotkeyMeta={{
+            id: 'notifications.focus-search',
+            name: 'Filter inbox',
+            description: 'Focus the inbox filter input.',
+            category: 'practice',
+            scope: 'route',
+          }}
+        />
+        {/* Server-side type filter — narrows the inbox by notification kind
+            (deadline reminder, overdue, alert, …) before the client search. */}
+        <Select
+          value={typeFilter}
+          onValueChange={(value) => void setTypeFilter(value as NotificationTypeFilter)}
+        >
+          <SelectTrigger className="w-full md:w-52" aria-label={t`Filter by type`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {NOTIFICATION_TYPE_FILTERS.map((filterValue) => (
+              <SelectItem key={filterValue} value={filterValue}>
+                {filterValue === 'all' ? (
+                  <Trans>All types</Trans>
+                ) : (
+                  notificationTypeLabel(filterValue)
+                )}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       <Card>
         {/* 2026-05-24 (critique P2 — clarify): dropped the duplicate
@@ -285,6 +344,27 @@ export function NotificationsPage() {
               </CardContent>
             </Card>
           ))}
+
+          {/* Cursor pagination — older notifications past the first page were
+              previously unreachable (hardcoded limit 50). "Load more" pulls
+              the next keyset page; hidden while a client search is active
+              (search only scans already-loaded rows). */}
+          {!isFiltering && notificationsQuery.hasNextPage ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="justify-self-center"
+              onClick={() => void notificationsQuery.fetchNextPage()}
+              disabled={notificationsQuery.isFetchingNextPage}
+              aria-busy={notificationsQuery.isFetchingNextPage}
+            >
+              {notificationsQuery.isFetchingNextPage ? (
+                <Trans>Loading…</Trans>
+              ) : (
+                <Trans>Load more</Trans>
+              )}
+            </Button>
+          ) : null}
         </CardContent>
       </Card>
     </div>

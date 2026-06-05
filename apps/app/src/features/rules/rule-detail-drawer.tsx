@@ -124,9 +124,32 @@ export function RuleDetailInline({ rule }: { rule: ObligationRule }) {
       <DueDateLogicSection rule={rule} />
       <ExtensionSection rule={rule} />
       {!needsReview ? <ReviewReasonsSection rule={rule} /> : null}
+      <ProvenanceSection rule={rule} />
       <VerificationSection rule={rule} />
       <RuleVersionHistorySection rule={rule} />
     </div>
+  )
+}
+
+/**
+ * B22: the local facts a local-jurisdiction rule needs to compute its
+ * obligation (resident county, PSD code, local collector, …). Carried on
+ * the rule but never rendered. Only local rules have these, so the section
+ * renders nothing for the common case.
+ */
+function ProvenanceSection({ rule }: { rule: ObligationRule }) {
+  const localFacts = rule.localFactRequirements ?? []
+  if (localFacts.length === 0) return null
+  return (
+    <DetailSection label={<Trans>Local facts required</Trans>}>
+      <div className="flex flex-wrap gap-1">
+        {localFacts.map((fact) => (
+          <Badge key={fact} variant="outline" size="sm">
+            {fact.replace(/_/g, ' ')}
+          </Badge>
+        ))}
+      </div>
+    </DetailSection>
   )
 }
 

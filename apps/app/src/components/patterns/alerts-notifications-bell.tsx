@@ -69,11 +69,20 @@ function AlertsNotificationsBell() {
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState<FilterKind>('unread')
   const query = useQuery(orpc.notifications.list.queryOptions({ input: { limit: 20 } }))
+  // Badge count comes from the server, not the loaded 20-item page — the
+  // client-side `.filter(isUnread).length` silently undercounts once unread
+  // exceeds the fetched page. Falls back to the local count while the
+  // count query is in flight. (`invalidate()` already busts this key.)
+  const unreadCountQuery = useQuery(
+    orpc.notifications.unreadCount.queryOptions({ input: undefined }),
+  )
   const notifications = useMemo<InAppNotificationPublic[]>(
     () => query.data?.notifications ?? [],
     [query.data],
   )
-  const unreadCount = useMemo(() => notifications.filter(isUnread).length, [notifications])
+  const localUnread = useMemo(() => notifications.filter(isUnread).length, [notifications])
+  const unreadCount = unreadCountQuery.data?.count ?? localUnread
+  const unreadBadgeLabel = unreadCount > 99 ? '99+' : String(unreadCount)
   const filtered = useMemo(
     () => (filter === 'unread' ? notifications.filter(isUnread) : notifications),
     [notifications, filter],
@@ -131,7 +140,7 @@ function AlertsNotificationsBell() {
             </span>
             {unreadCount > 0 ? (
               <SidebarMenuBadge aria-hidden="true" tone="urgent">
-                {unreadCount}
+                {unreadBadgeLabel}
               </SidebarMenuBadge>
             ) : null}
           </SidebarMenuButton>

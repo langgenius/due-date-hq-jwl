@@ -88,6 +88,9 @@ export function ReadinessPortalRoute() {
     token: '',
     responses: [],
   })
+  // Local flag so the confirmation screen appears immediately on submit,
+  // before the refetch reports the server-side `responded` status.
+  const [submitted, setSubmitted] = useState(false)
   const portal = portalQuery.data
 
   if (portal && draft.token !== token) {
@@ -98,6 +101,7 @@ export function ReadinessPortalRoute() {
     mutationFn: submitReadinessPortal,
     onSuccess: () => {
       toast.success(t`Readiness response submitted`)
+      setSubmitted(true)
       void portalQuery.refetch()
     },
     onError: () => {
@@ -143,6 +147,13 @@ export function ReadinessPortalRoute() {
               {formatDate(portal.currentDueDate)}
             </p>
           ) : null}
+          {/* Expiry cue — without it a client can sit on a link until it
+              silently dies. Hidden once already responded. */}
+          {portal && !submitted && portal.status !== 'responded' ? (
+            <p className="text-xs text-text-tertiary">
+              <Trans>This link expires {formatDate(portal.expiresAt)}.</Trans>
+            </p>
+          ) : null}
         </header>
 
         {portalQuery.isLoading ? (
@@ -184,6 +195,22 @@ export function ReadinessPortalRoute() {
               </p>
             </CardContent>
           </Card>
+        ) : submitted || portal.status === 'responded' ? (
+          // Terminal confirmation — the client knows the submit landed and
+          // their CPA was notified, instead of being left on the form.
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <Trans>Thanks — you're all set</Trans>
+              </CardTitle>
+              <CardDescription>
+                <Trans>
+                  {portal.senderName} at {portal.firmName} has been notified. You can close this
+                  page.
+                </Trans>
+              </CardDescription>
+            </CardHeader>
+          </Card>
         ) : (
           <Card>
             <CardHeader>
@@ -206,6 +233,11 @@ export function ReadinessPortalRoute() {
                       <h2 className="font-medium">{item.label}</h2>
                       {item.description ? (
                         <p className="text-sm text-text-secondary">{item.description}</p>
+                      ) : null}
+                      {/* Where to find the document — most useful to a
+                          non-expert client, and previously dropped. */}
+                      {item.sourceHint ? (
+                        <p className="text-xs text-text-tertiary">{item.sourceHint}</p>
                       ) : null}
                     </div>
                     <Select

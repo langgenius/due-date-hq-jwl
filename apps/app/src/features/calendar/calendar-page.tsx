@@ -55,7 +55,10 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { appleCalendarSubscriptionUrl } from '@/features/calendar/calendar-model'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
-import { PermissionObscuredContent } from '@/features/permissions/permission-gate'
+import {
+  PermissionObscuredContent,
+  useFirmPermission,
+} from '@/features/permissions/permission-gate'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDateTimeWithTimezone } from '@/lib/utils'
@@ -91,6 +94,7 @@ export function CalendarPage() {
   const { t } = useLingui()
   const queryClient = useQueryClient()
   const { firmsQuery, currentFirm } = useCurrentFirm()
+  const permission = useFirmPermission()
   const subscriptionsQuery = useQuery(
     orpc.calendar.listSubscriptions.queryOptions({ input: undefined }),
   )
@@ -147,6 +151,16 @@ export function CalendarPage() {
       scope: 'my',
       title: t`My deadlines`,
       description: t`A personal feed for deadlines assigned to you.`,
+    },
+    {
+      // Practice-wide feed — every deadline across the firm. The card
+      // component routes `locked` config through PermissionObscuredContent;
+      // members without `firm.calendar.manage` (e.g. preparers) see the
+      // redacted state, owners/managers/partners get the real feed.
+      scope: 'firm',
+      title: t`Practice deadlines`,
+      description: t`A shared feed of every deadline across the practice.`,
+      locked: !permission.can('firm.calendar.manage'),
     },
   ]
 
