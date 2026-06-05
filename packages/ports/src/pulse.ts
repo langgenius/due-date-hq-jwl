@@ -278,7 +278,10 @@ export interface PulseRuleMatchRow {
 export interface PulseRepo {
   readonly firmId: string
   createSeedAlert(input: PulseSeedInput): Promise<{ pulseId: string; alertId: string }>
-  listAlerts(opts?: { limit?: number }): Promise<PulseAlertRow[]>
+  listAlerts(opts?: {
+    limit?: number
+    cursor?: string | null
+  }): Promise<{ alerts: PulseAlertRow[]; nextCursor: string | null }>
   /**
    * Approved, still-active pulses that affect a specific rule. Backs the
    * rule-review dialog's "proposed change" block. Matches by the pulse's
@@ -304,7 +307,11 @@ export interface PulseRepo {
    * no longer keeps a stale matchedCount=0. Does not apply any overlay.
    */
   refreshMatchedCountsForObligations(obligationIds: string[]): Promise<void>
-  listHistory(opts?: { limit?: number; status?: PulseAlertRow['status'] }): Promise<PulseAlertRow[]>
+  listHistory(opts?: {
+    limit?: number
+    status?: PulseAlertRow['status']
+    cursor?: string | null
+  }): Promise<{ alerts: PulseAlertRow[]; nextCursor: string | null }>
   listSourceStates(): Promise<PulseSourceStateRow[]>
   getLatestSourceSnapshotBySourceId(sourceId: string): Promise<PulseSourceSnapshotRow | null>
   getDetail(alertId: string): Promise<PulseDetailRow>

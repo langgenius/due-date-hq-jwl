@@ -443,9 +443,11 @@ function pulseReviewEmailText(input: {
 
 const listAlerts = os.pulse.listAlerts.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
-  const opts = input?.limit === undefined ? {} : { limit: input.limit }
-  const alerts = await scoped.pulse.listAlerts(opts)
-  return { alerts: toPublicAlertsSafely(alerts, 'listAlerts') }
+  const { alerts, nextCursor } = await scoped.pulse.listAlerts({
+    ...(input?.limit === undefined ? {} : { limit: input.limit }),
+    ...(input?.cursor == null ? {} : { cursor: input.cursor }),
+  })
+  return { alerts: toPublicAlertsSafely(alerts, 'listAlerts'), nextCursor }
 })
 
 const activeCount = os.pulse.activeCount.handler(async ({ context }) => {
@@ -456,11 +458,12 @@ const activeCount = os.pulse.activeCount.handler(async ({ context }) => {
 
 const listHistory = os.pulse.listHistory.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
-  const alerts = await scoped.pulse.listHistory({
+  const { alerts, nextCursor } = await scoped.pulse.listHistory({
     ...(input?.limit === undefined ? {} : { limit: input.limit }),
     ...(input?.status === undefined ? {} : { status: input.status }),
+    ...(input?.cursor == null ? {} : { cursor: input.cursor }),
   })
-  return { alerts: toPublicAlertsSafely(alerts, 'listHistory') }
+  return { alerts: toPublicAlertsSafely(alerts, 'listHistory'), nextCursor }
 })
 
 async function listSourceHealthForScopedRepo(

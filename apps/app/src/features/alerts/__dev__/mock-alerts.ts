@@ -28,6 +28,8 @@ import { SMART_PRIORITY_DEFAULT_PROFILE } from '@duedatehq/contracts'
 
 import { orpc } from '@/lib/rpc'
 
+import { buildAlertsHistoryInfiniteInput, buildAlertsListInfiniteInput } from '../api'
+
 const ALERT_IDS = {
   matched: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
   needsDetails: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
@@ -584,20 +586,52 @@ export function seedAlertMock(queryClient: QueryClient): void {
 
   queryClient.setQueryData(orpc.firms.listMine.queryKey({ input: undefined }), [MOCK_FIRM])
 
-  // Call sites read listAlerts with different limits — seed each shape.
-  queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: undefined }), { alerts: ALERTS })
+  // Call sites read listAlerts with different limits — seed each shape. These
+  // plain (non-infinite) keys back the dashboard + route-shell widgets that
+  // still use `useAlertsListQueryOptions`; nextCursor is part of the output
+  // contract so seed it null (a single capped page never has a next page).
+  queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: undefined }), {
+    alerts: ALERTS,
+    nextCursor: null,
+  })
   queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: { limit: 5 } }), {
     alerts: ALERTS.slice(0, 5),
+    nextCursor: null,
   })
   queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: { limit: 20 } }), {
     alerts: ALERTS,
+    nextCursor: null,
   })
   queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: { limit: 50 } }), {
     alerts: ALERTS,
+    nextCursor: null,
   })
   queryClient.setQueryData(orpc.pulse.listHistory.queryKey({ input: { limit: 50 } }), {
     alerts: ALERTS.filter((alert) => alert.status !== 'matched'),
+    nextCursor: null,
   })
+
+  // The /alerts list + /alerts/history now paginate via infinite queries, so
+  // seed the first page under the infinite key those hooks build (the input
+  // builders are shared with api.ts so the keys match exactly). All mock
+  // alerts fit one page → nextCursor null → no "Load more" in the demo.
+  queryClient.setQueryData(
+    orpc.pulse.listAlerts.infiniteKey({
+      input: buildAlertsListInfiniteInput,
+      initialPageParam: null,
+    }),
+    { pages: [{ alerts: ALERTS, nextCursor: null }], pageParams: [null] },
+  )
+  queryClient.setQueryData(
+    orpc.pulse.listHistory.infiniteKey({
+      input: buildAlertsHistoryInfiniteInput,
+      initialPageParam: null,
+    }),
+    {
+      pages: [{ alerts: ALERTS.filter((alert) => alert.status !== 'matched'), nextCursor: null }],
+      pageParams: [null],
+    },
+  )
   queryClient.setQueryData(orpc.pulse.activeCount.queryKey({ input: undefined }), {
     count: ALERTS.filter((alert) => alert.status === 'matched').length,
   })

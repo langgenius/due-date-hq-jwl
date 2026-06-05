@@ -211,6 +211,10 @@ export type PulsePriorityQueueItem = z.infer<typeof PulsePriorityQueueItemSchema
 export const PulseListAlertsInputSchema = z
   .object({
     limit: z.number().int().min(1).max(50).default(5).optional(),
+    // Opaque keyset cursor (publishedAt|id, base64url) for "Load more"
+    // pagination — null/absent fetches the first page. Optional (not
+    // `.default`) so the existing input shape parses unchanged.
+    cursor: z.string().nullable().optional(),
   })
   .optional()
 export type PulseListAlertsInput = z.infer<typeof PulseListAlertsInputSchema>
@@ -219,6 +223,7 @@ export const PulseListHistoryInputSchema = z
   .object({
     limit: z.number().int().min(1).max(100).default(20).optional(),
     status: PulseHandledFirmAlertStatusSchema.optional(),
+    cursor: z.string().nullable().optional(),
   })
   .optional()
 export type PulseListHistoryInput = z.infer<typeof PulseListHistoryInputSchema>
@@ -447,9 +452,14 @@ export const pulseContract = oc.router({
   listAlertsForRule: oc
     .input(PulseListAlertsForRuleInputSchema)
     .output(z.object({ matches: z.array(PulseRuleMatchSchema) })),
-  listAlerts: oc
-    .input(PulseListAlertsInputSchema)
-    .output(z.object({ alerts: z.array(PulseAlertPublicSchema) })),
+  listAlerts: oc.input(PulseListAlertsInputSchema).output(
+    z.object({
+      alerts: z.array(PulseAlertPublicSchema),
+      // Pass to the next `listAlerts` call's `cursor` to fetch the
+      // following page; null when the active queue is fully loaded.
+      nextCursor: z.string().nullable(),
+    }),
+  ),
   /**
    * Count-only variant of `listAlerts` for the sidebar nav badge.
    *
@@ -460,9 +470,12 @@ export const pulseContract = oc.router({
    * always shows the true number with no upper bound.
    */
   activeCount: oc.input(z.undefined()).output(z.object({ count: z.number().int().min(0) })),
-  listHistory: oc
-    .input(PulseListHistoryInputSchema)
-    .output(z.object({ alerts: z.array(PulseAlertPublicSchema) })),
+  listHistory: oc.input(PulseListHistoryInputSchema).output(
+    z.object({
+      alerts: z.array(PulseAlertPublicSchema),
+      nextCursor: z.string().nullable(),
+    }),
+  ),
   listSourceHealth: oc
     .input(z.undefined())
     .output(z.object({ sources: z.array(PulseSourceHealthSchema) })),

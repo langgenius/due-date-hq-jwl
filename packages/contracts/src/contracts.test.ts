@@ -1250,6 +1250,19 @@ describe('@duedatehq/contracts', () => {
       limit: 20,
       status: 'snoozed',
     })
+    // 2026-06-05 (Load more): both list inputs accept an optional keyset
+    // cursor. Absent leaves the shape unchanged (asserted above); present
+    // round-trips so "Load more" can thread nextCursor back in.
+    expect(PulseListAlertsInputSchema.parse({ limit: 50, cursor: null })).toEqual({
+      limit: 50,
+      cursor: null,
+    })
+    expect(PulseListAlertsInputSchema.parse({ cursor: 'eyJjIjoxfQ' })?.cursor).toBe('eyJjIjoxfQ')
+    expect(PulseListHistoryInputSchema.parse({ status: 'snoozed', cursor: 'c1' })).toEqual({
+      limit: 20,
+      status: 'snoozed',
+      cursor: 'c1',
+    })
 
     const alert = PulseAlertPublicSchema.parse({
       id: '11111111-1111-4111-8111-111111111111',

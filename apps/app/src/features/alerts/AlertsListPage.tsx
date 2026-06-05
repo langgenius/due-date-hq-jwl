@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 import {
@@ -41,8 +41,8 @@ import { useMorningSweep } from './MorningSweepContext'
 import { AlertDetailDrawer } from './AlertDetailDrawer'
 import { StateTilegram } from './components/StateTilegram'
 import {
-  useAlertsListQueryOptions,
-  useAlertsHistoryQueryOptions,
+  useAlertsListInfiniteQueryOptions,
+  useAlertsHistoryInfiniteQueryOptions,
   useAlertSourceHealthQueryOptions,
   useAlertsAffectedClients,
 } from './api'
@@ -168,11 +168,20 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // state-heatmap. Map mode shows `<PulseAlertsMap>` above the
   // list; clicking a state tile sets the jurisdiction filter.
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
-  const activeAlertsQueryOptions = useAlertsListQueryOptions(50)
-  const historyAlertsQueryOptions = useAlertsHistoryQueryOptions(50)
-  const alertsQuery = useQuery(historyMode ? historyAlertsQueryOptions : activeAlertsQueryOptions)
+  // 2026-06-05 (Load more): both surfaces paginate via keyset cursor. The
+  // server returns one page at a time (publishedAt DESC); "Load more" appends
+  // the next page and the client-side filters + sort below operate on the
+  // full loaded set.
+  const activeAlertsInfiniteOptions = useAlertsListInfiniteQueryOptions()
+  const historyAlertsInfiniteOptions = useAlertsHistoryInfiniteQueryOptions()
+  const alertsQuery = useInfiniteQuery(
+    historyMode ? historyAlertsInfiniteOptions : activeAlertsInfiniteOptions,
+  )
   const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
-  const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
+  const alerts = useMemo(
+    () => alertsQuery.data?.pages.flatMap((page) => page.alerts) ?? EMPTY_ALERTS,
+    [alertsQuery.data?.pages],
+  )
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
   // Batch the affected-client rows for every alert in ONE request and hand each
   // card its slice, instead of every AlertCard firing its own `getDetail`.
@@ -885,6 +894,30 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   })}
                 </div>
               )}
+
+              {/* 2026-06-05 (Load more): keyset-paginated next page. Shows
+                  whenever the server reports another page, regardless of the
+                  active client-side filters — same affordance the audit log
+                  uses. The active queue polls every 60s, so a refetch reloads
+                  all loaded pages consistently (stable publishedAt cursor). */}
+              {alertsQuery.hasNextPage ? (
+                <div className="flex justify-center pt-1 pb-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void alertsQuery.fetchNextPage()}
+                    disabled={alertsQuery.isFetchingNextPage}
+                    aria-label={t`Load more alerts`}
+                  >
+                    {alertsQuery.isFetchingNextPage ? (
+                      <Trans>Loading…</Trans>
+                    ) : (
+                      <Trans>Load more</Trans>
+                    )}
+                  </Button>
+                </div>
+              ) : null}
             </>
           )}
         </div>
