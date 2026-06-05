@@ -12875,7 +12875,7 @@ function ObligationQueueScopeTab({
       // "active tab in blue" pattern reads on screen. Inactive
       // tabs keep their hover-deepen-border affordance.
       className={cn(
-        'relative -mb-px flex shrink-0 items-center gap-1.5 py-3 text-base whitespace-nowrap transition-colors',
+        'relative -mb-px flex shrink-0 cursor-pointer items-center gap-1.5 py-3 text-base whitespace-nowrap transition-colors',
         active
           ? 'font-semibold text-state-accent-solid'
           : 'border-b-2 border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary',

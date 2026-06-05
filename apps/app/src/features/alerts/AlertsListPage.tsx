@@ -577,17 +577,18 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     6. Source
                     7. State
                     8. Reset (ghost, only when filters active)
-                    9. flex-1 spacer
-                   10. Sort by  (relocated INTO this row).
-                  When the panel is open the row stays on ONE line
-                  (`flex-nowrap`); when closed it `flex-wrap`s so it
-                  reflows on narrow viewports. */}
+                    9. Sort by  (relocated INTO this row).
+                  When the panel is open the row now wraps to the same
+                  width as the alert list column, instead of preserving
+                  the list-only strip width and creating a horizontal
+                  scroll offset inside the left pane. The trailing
+                  spacer is list-only; in split view it creates a large
+                  blank slot between filters. */}
               <div
-                className={
-                  panelOpen
-                    ? 'flex flex-nowrap items-center gap-2'
-                    : 'flex flex-wrap items-center gap-2'
-                }
+                className={cn(
+                  'flex w-full min-w-0 flex-wrap items-center',
+                  panelOpen ? 'gap-1.5' : 'gap-2',
+                )}
               >
                 {/* Search alerts — Item 3: first item, shorter width */}
                 <label className="inline-flex h-10 w-[260px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt">
@@ -806,10 +807,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   </Button>
                 ) : null}
 
-                {/* Round 39: flex-1 spacer pushes Sort by to the
-                    row's trailing edge while keeping the filter
-                    pills left-anchored. */}
-                <span className="flex-1" aria-hidden />
+                {/* Round 39: in the full-width list, a flex spacer
+                    pushes Sort by to the trailing edge while keeping
+                    filter pills left-anchored. In split view the row
+                    wraps, so the spacer is omitted to avoid large
+                    intra-toolbar gaps. */}
+                {panelOpen ? null : <span className="flex-1" aria-hidden />}
 
                 {/* Sort by — 2026-06-04 round 42 (Yuqi #4 — wire
                     real sort logic). Three options matching the
