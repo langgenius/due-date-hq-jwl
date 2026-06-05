@@ -4,7 +4,7 @@ import { CircleCheckIcon } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
-import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 

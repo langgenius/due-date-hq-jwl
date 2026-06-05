@@ -4,9 +4,9 @@ import { dedupeTitleSource } from './needs-attention-card'
 
 describe('dedupeTitleSource', () => {
   it('strips a leading source prefix from the title', () => {
-    expect(
-      dedupeTitleSource('FL DOR Bulletin has very-low-confidence', 'FL DOR Bulletin'),
-    ).toBe('Has very-low-confidence')
+    expect(dedupeTitleSource('FL DOR Bulletin has very-low-confidence', 'FL DOR Bulletin')).toBe(
+      'Has very-low-confidence',
+    )
   })
 
   it('strips a trailing separator after the source prefix', () => {
@@ -29,9 +29,9 @@ describe('dedupeTitleSource', () => {
   })
 
   it('falls back to the raw title when source is not a prefix', () => {
-    expect(
-      dedupeTitleSource('NY DTF advisory has new rules', 'FL DOR Bulletin'),
-    ).toBe('NY DTF advisory has new rules')
+    expect(dedupeTitleSource('NY DTF advisory has new rules', 'FL DOR Bulletin')).toBe(
+      'NY DTF advisory has new rules',
+    )
   })
 
   it('falls back to the raw title when source is empty', () => {
@@ -58,8 +58,6 @@ describe('dedupeTitleSource', () => {
   })
 
   it('trims whitespace on both arguments before comparison', () => {
-    expect(dedupeTitleSource('  FL DOR Bulletin: changed  ', '  FL DOR Bulletin  ')).toBe(
-      'Changed',
-    )
+    expect(dedupeTitleSource('  FL DOR Bulletin: changed  ', '  FL DOR Bulletin  ')).toBe('Changed')
   })
 })

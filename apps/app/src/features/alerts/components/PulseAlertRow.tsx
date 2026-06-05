@@ -1,14 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
-  AlarmClockIcon,
   ArrowRightIcon,
   ArchiveIcon,
   Building2,
   ClockIcon,
   CornerDownRightIcon,
   ExternalLinkIcon,
-  FileIcon,
   SunIcon,
 } from 'lucide-react'
 
@@ -203,10 +201,7 @@ function PulseAlertRow({
   // "N DAYS LATER" amber) follows the sign of the day count.
   const oldDateLabel = formatMonthDay(detail?.originalDueDate ?? null)
   const newDateLabel = formatMonthDay(detail?.newDueDate ?? null)
-  const daysDiff = daysBetweenIso(
-    detail?.originalDueDate ?? null,
-    detail?.newDueDate ?? null,
-  )
+  const daysDiff = daysBetweenIso(detail?.originalDueDate ?? null, detail?.newDueDate ?? null)
   const showDateRow = oldDateLabel && newDateLabel
 
   // 2026-06-04 round 72 (Yuqi "revert and rework. reference to
@@ -235,7 +230,12 @@ function PulseAlertRow({
     <article
       role="button"
       tabIndex={0}
-      aria-label={t`Pulse alert: ${alert.title}`}
+      // 2026-06-05 (post Pulse→Alert rename): aria-label was stale
+      // "Pulse alert: …" from before the product rename. E2E specs
+      // (pulse.spec.ts:248, rbac-permissions.spec.ts:123) match
+      // /Alert: …/ so the row reads as "Alert: <title>" to both
+      // screen readers and the test locators.
+      aria-label={t`Alert: ${alert.title}`}
       aria-pressed={active}
       onClick={onReview}
       onKeyDown={(event) => {
@@ -491,26 +491,20 @@ function PulseAlertRow({
 
             {actionText ? (
               <div className="flex items-center gap-1.5">
-                <CornerDownRightIcon
-                  className="size-3 shrink-0 text-text-muted"
-                  aria-hidden
-                />
+                <CornerDownRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
                 <div
                   className="inline-flex items-center gap-2 self-start rounded-md px-[10px] py-[4px]"
                   style={{ backgroundColor: '#FFFBEB' }}
                 >
-                <span
-                  className="text-[10px] font-bold tracking-[0.7px] uppercase"
-                  style={{ color: '#92400E' }}
-                >
-                  <Trans>Action</Trans>
-                </span>
-                <span
-                  className="text-[12px] font-medium"
-                  style={{ color: '#92400E' }}
-                >
-                  {actionText}
-                </span>
+                  <span
+                    className="text-[10px] font-bold tracking-[0.7px] uppercase"
+                    style={{ color: '#92400E' }}
+                  >
+                    <Trans>Action</Trans>
+                  </span>
+                  <span className="text-[12px] font-medium" style={{ color: '#92400E' }}>
+                    {actionText}
+                  </span>
                 </div>
               </div>
             ) : null}
@@ -550,17 +544,14 @@ function PulseAlertRow({
               <Trans>No matching clients</Trans>
             )}
           </span>
-          <span className="text-divider-regular" aria-hidden>·</span>
+          <span className="text-divider-regular" aria-hidden>
+            ·
+          </span>
           {/* Round 83 (Yuqi #10 "in san serif"): dropped
               `font-mono` so conf reads in Geist like the rest of
               the bottom row. tracking dropped to 0 since mono was
               the reason for the explicit 0.3 letter-spacing. */}
-          <span
-            className={cn(
-              'text-[12px] font-semibold tabular-nums',
-              confidenceColor,
-            )}
-          >
+          <span className={cn('text-[12px] font-semibold tabular-nums', confidenceColor)}>
             <Trans>conf {confidencePct}%</Trans>
           </span>
 
@@ -646,7 +637,11 @@ function startOfFirmDay(iso: string, timeZone: string): string {
   }).format(new Date(iso))
 }
 
-function formatDayHeader(dayKey: string, timeZone: string, today: string): {
+function formatDayHeader(
+  dayKey: string,
+  timeZone: string,
+  today: string,
+): {
   label: string
   isToday: boolean
 } {
@@ -728,11 +723,7 @@ function PulseAlertList({
           d.setUTCDate(d.getUTCDate() - 1)
           return d.toISOString().slice(0, 10)
         })()
-        const dayWord = isToday
-          ? t`TODAY`
-          : dayKey === yesterdayKey
-            ? t`YESTERDAY`
-            : null
+        const dayWord = isToday ? t`TODAY` : dayKey === yesterdayKey ? t`YESTERDAY` : null
 
         return (
           <div key={dayKey} className="flex flex-col">

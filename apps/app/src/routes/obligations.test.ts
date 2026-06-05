@@ -55,13 +55,7 @@ describe('obligations quick filters', () => {
     sort: 'due_asc' as const,
     density: 'comfortable' as const,
     group: 'urgency' as const,
-    hide: [
-      'smartPriority',
-      'clientCounty',
-      'dueDateExact',
-      'daysUntilDue',
-      'evidenceCount',
-    ],
+    hide: ['smartPriority', 'clientCounty', 'dueDateExact', 'daysUntilDue', 'evidenceCount'],
   } satisfies Parameters<typeof deadlineDetailSearchFromQueueState>[1]
 
   it('applies the this week days filter when inactive', () => {

@@ -1,16 +1,13 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, CoffeeIcon, RotateCwIcon, SparklesIcon, XIcon } from 'lucide-react'
+import { Trans, useLingui } from '@lingui/react/macro'
+import { ArrowRightIcon, CoffeeIcon, SparklesIcon, XIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
-import {
-  useAlertsListQueryOptions,
-  useAlertsMorningSweepQueryOptions,
-} from './api'
+import { useAlertsListQueryOptions, useAlertsMorningSweepQueryOptions } from './api'
 import { useMorningSweep } from './MorningSweepContext'
 
 /**
@@ -81,7 +78,7 @@ function composeBriefing(alerts: PulseAlertPublic[], firmName: string | null): B
     if (tier === 'medium') return 2
     return 1
   }
-  const ranked = [...windowAlerts].sort((a, b) => {
+  const ranked = [...windowAlerts].toSorted((a, b) => {
     const diff = tierRank(b) - tierRank(a)
     if (diff !== 0) return diff
     const aImpact = a.matchedCount + a.needsReviewCount
@@ -166,7 +163,11 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
   // shows an empty body.
   const summaryQuery = useQuery(useAlertsMorningSweepQueryOptions())
   const alertsQuery = useQuery(useAlertsListQueryOptions(100))
-  const alerts = alertsQuery.data?.alerts ?? []
+  // 2026-06-05 (pre-CI green-up): pin the fallback list to the alerts
+  // query DATA reference (memoize the dereference) so the useMemo
+  // below depends on a stable identity instead of a freshly-allocated
+  // array on every render. Satisfies react-hooks/exhaustive-deps.
+  const alerts = useMemo(() => alertsQuery.data?.alerts ?? [], [alertsQuery.data?.alerts])
   const clientFallback = useMemo(() => composeBriefing(alerts, null), [alerts])
   // Prefer the server briefing; fall back to client template when
   // unavailable or when source === 'fallback' AND the deterministic
@@ -176,7 +177,7 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
   // local clientFallback is loading / network-error states.
   const briefing = summaryQuery.data?.briefing ?? null
   const briefingSource = summaryQuery.data?.source ?? null
-  const generatedAt = summaryQuery.data?.generatedAt ?? null
+  const _generatedAt = summaryQuery.data?.generatedAt ?? null
 
   const applyFilter = () => {
     if (sweep && !sweep.active) sweep.toggle()
@@ -220,35 +221,29 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
             title: a.title,
             jurisdiction: fullAlert?.jurisdiction ?? '',
             tier,
-            impacted: fullAlert
-              ? fullAlert.matchedCount + fullAlert.needsReviewCount
-              : 0,
+            impacted: fullAlert ? fullAlert.matchedCount + fullAlert.needsReviewCount : 0,
             whyNow: a.whyNow,
             clientMentions: a.clientMentions,
           }
         }),
         windowAlerts: alerts.filter(
-          (a) =>
-            new Date(a.publishedAt).getTime() >=
-            Date.now() - 24 * 60 * 60 * 1000,
+          (a) => new Date(a.publishedAt).getTime() >= Date.now() - 24 * 60 * 60 * 1000,
         ),
       }
     : {
         paragraphs: clientFallback.paragraphs,
-        topActions: clientFallback.topActions.map(
-          (a): RenderAction => {
-            const t = aiConfidenceTier(a.confidence)
-            return {
-              alertId: a.id,
-              title: a.title,
-              jurisdiction: a.jurisdiction,
-              tier: t === 'low' ? 'high' : t === 'medium' ? 'medium' : 'low',
-              impacted: a.matchedCount + a.needsReviewCount,
-              whyNow: null,
-              clientMentions: [],
-            }
-          },
-        ),
+        topActions: clientFallback.topActions.map((a): RenderAction => {
+          const t = aiConfidenceTier(a.confidence)
+          return {
+            alertId: a.id,
+            title: a.title,
+            jurisdiction: a.jurisdiction,
+            tier: t === 'low' ? 'high' : t === 'medium' ? 'medium' : 'low',
+            impacted: a.matchedCount + a.needsReviewCount,
+            whyNow: null,
+            clientMentions: [],
+          }
+        }),
         windowAlerts: clientFallback.windowAlerts,
       }
 
@@ -261,9 +256,7 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
   // so the row stays a true single line at any viewport width.
   const headline =
     renderBriefing.paragraphs[0] ??
-    (briefingSource === 'fallback'
-      ? t`AI summarisation unavailable.`
-      : t`Brewing your briefing…`)
+    (briefingSource === 'fallback' ? t`AI summarisation unavailable.` : t`Brewing your briefing…`)
   const isLoading = summaryQuery.isLoading || alertsQuery.isLoading
   return (
     <section
@@ -275,15 +268,9 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
           Coffee while the brewing message is showing. Once the
           briefing arrives the Sparkles (AI signal) takes over. */}
       {isLoading ? (
-        <CoffeeIcon
-          className="size-4 shrink-0 text-text-accent"
-          aria-hidden
-        />
+        <CoffeeIcon className="size-4 shrink-0 text-text-accent" aria-hidden />
       ) : (
-        <SparklesIcon
-          className="size-4 shrink-0 text-text-accent"
-          aria-hidden
-        />
+        <SparklesIcon className="size-4 shrink-0 text-text-accent" aria-hidden />
       )}
       <p
         id="morning-sweep-panel-title"

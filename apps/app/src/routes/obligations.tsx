@@ -117,12 +117,7 @@ import {
 import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from '@duedatehq/ui/components/ui/field'
+import { Field, FieldDescription, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import {
   SearchableCombobox,
   type SearchableComboboxOption,
@@ -2559,7 +2554,9 @@ export function ObligationQueueRoute() {
         cell: (info) => {
           const value = info.getValue<string | null>()
           if (!value) return <EmptyCellMark />
-          return <span className="text-xs tabular-nums text-text-secondary">{formatDate(value)}</span>
+          return (
+            <span className="text-xs tabular-nums text-text-secondary">{formatDate(value)}</span>
+          )
         },
         meta: { cellClassName: 'w-[180px] tabular-nums' },
       },
@@ -3690,107 +3687,107 @@ export function ObligationQueueRoute() {
                 ships. Keeps the panel-open layout from wrapping
                 Sort + Reset to a second line. */}
             {panelOpenIntent ? null : (
-            <>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <FilterTrigger
-                    noLeadingIcon
-                    active={sort !== DEFAULT_SORT}
-                    valueLabel={
-                      sort === 'smart_priority'
-                        ? t`Smart priority`
-                        : sort === 'due_desc'
-                          ? t`Due ↓`
-                          : sort === 'updated_desc'
-                            ? t`Recently updated`
-                            : t`Due ↑`
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <FilterTrigger
+                        noLeadingIcon
+                        active={sort !== DEFAULT_SORT}
+                        valueLabel={
+                          sort === 'smart_priority'
+                            ? t`Smart priority`
+                            : sort === 'due_desc'
+                              ? t`Due ↓`
+                              : sort === 'updated_desc'
+                                ? t`Recently updated`
+                                : t`Due ↑`
+                        }
+                        aria-label={t`Sort deadlines`}
+                      >
+                        <span>
+                          <Trans>Sort by</Trans>
+                        </span>
+                      </FilterTrigger>
                     }
-                    aria-label={t`Sort deadlines`}
-                  >
-                    <span>
-                      <Trans>Sort by</Trans>
-                    </span>
-                  </FilterTrigger>
-                }
-              />
-              <DropdownMenuContent align="start" className="min-w-[200px]">
-                <DropdownMenuRadioGroup
-                  value={sort}
-                  onValueChange={(next) => {
-                    if (typeof next === 'string') {
+                  />
+                  <DropdownMenuContent align="start" className="min-w-[200px]">
+                    <DropdownMenuRadioGroup
+                      value={sort}
+                      onValueChange={(next) => {
+                        if (typeof next === 'string') {
+                          void setObligationQueueQuery({
+                            sort: ALL_SORTS.includes(next as ObligationQueueSort)
+                              ? (next as ObligationQueueSort)
+                              : null,
+                          })
+                        }
+                      }}
+                    >
+                      <DropdownMenuRadioItem value="smart_priority">
+                        <Trans>Smart priority</Trans>
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="due_asc">
+                        <Trans>Due date (earliest first)</Trans>
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="due_desc">
+                        <Trans>Due date (latest first)</Trans>
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="updated_desc">
+                        <Trans>Recently updated</Trans>
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {due !== null ||
+                thisWeekFilterActive ||
+                evidence !== null ||
+                awaitingSignature ||
+                projected ||
+                stateQuery.length > 0 ||
+                countyQuery.length > 0 ||
+                taxTypeQuery.length > 0 ||
+                assigneeQuery.length > 0 ||
+                obligationQuery.length > 0 ||
+                ruleQuery.length > 0 ||
+                clientQuery.length > 0 ||
+                assigneeNameQuery !== null ||
+                owner !== null ||
+                minDaysUntilDue !== undefined ||
+                maxDaysUntilDue !== undefined ||
+                asOf !== null ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
                       void setObligationQueueQuery({
-                        sort: ALL_SORTS.includes(next as ObligationQueueSort)
-                          ? (next as ObligationQueueSort)
-                          : null,
+                        q: null,
+                        status: null,
+                        obligation: null,
+                        client: null,
+                        rule: null,
+                        state: null,
+                        county: null,
+                        taxType: null,
+                        assignee: null,
+                        assignees: null,
+                        owner: null,
+                        due: null,
+                        dueWithin: null,
+                        daysMin: null,
+                        daysMax: null,
+                        evidence: null,
+                        awaitingSignature: null,
+                        projected: null,
+                        asOf: null,
                       })
                     }
-                  }}
-                >
-                  <DropdownMenuRadioItem value="smart_priority">
-                    <Trans>Smart priority</Trans>
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="due_asc">
-                    <Trans>Due date (earliest first)</Trans>
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="due_desc">
-                    <Trans>Due date (latest first)</Trans>
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="updated_desc">
-                    <Trans>Recently updated</Trans>
-                  </DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            {due !== null ||
-            thisWeekFilterActive ||
-            evidence !== null ||
-            awaitingSignature ||
-            projected ||
-            stateQuery.length > 0 ||
-            countyQuery.length > 0 ||
-            taxTypeQuery.length > 0 ||
-            assigneeQuery.length > 0 ||
-            obligationQuery.length > 0 ||
-            ruleQuery.length > 0 ||
-            clientQuery.length > 0 ||
-            assigneeNameQuery !== null ||
-            owner !== null ||
-            minDaysUntilDue !== undefined ||
-            maxDaysUntilDue !== undefined ||
-            asOf !== null ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    q: null,
-                    status: null,
-                    obligation: null,
-                    client: null,
-                    rule: null,
-                    state: null,
-                    county: null,
-                    taxType: null,
-                    assignee: null,
-                    assignees: null,
-                    owner: null,
-                    due: null,
-                    dueWithin: null,
-                    daysMin: null,
-                    daysMax: null,
-                    evidence: null,
-                    awaitingSignature: null,
-                    projected: null,
-                    asOf: null,
-                  })
-                }
-                aria-label={t`Reset filters`}
-              >
-                <Trans>Reset</Trans>
-              </Button>
-            ) : null}
-            </>
+                    aria-label={t`Reset filters`}
+                  >
+                    <Trans>Reset</Trans>
+                  </Button>
+                ) : null}
+              </>
             )}
           </div>
 
@@ -3801,14 +3798,14 @@ export function ObligationQueueRoute() {
               and the table's auto-collapse already trims columns
               so the focus mode reads as clean as /alerts'. */}
           {panelOpenIntent ? null : (
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-wrap items-center gap-1.5">
-              {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass — page
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass — page
                   blink fix): same change as scope tabs — dropped the
                   `obligation: null, row: null` clears so action-chip
                   toggles no longer auto-close the detail panel and
                   trigger its width-collapse animation. */}
-              {/* 2026-05-26 (Yuqi inset-followups B): Past due + Due
+                {/* 2026-05-26 (Yuqi inset-followups B): Past due + Due
                   this week are now MUTUALLY EXCLUSIVE. Clicking one
                   clears the other. They're conceptually overlapping
                   views of the same date axis (Past due = days < 0,
@@ -3818,75 +3815,75 @@ export function ObligationQueueRoute() {
                   the user can still combine "Past due AND needs
                   evidence" to find overdue rows still missing
                   documents. */}
-              <ObligationQueueActionChip
-                active={due === 'overdue'}
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    due: due === 'overdue' ? null : 'overdue',
-                    // Clearing Due this week if it was active — same axis
-                    daysMin: null,
-                    daysMax: null,
-                  })
-                }
-              >
-                <Trans>Past due</Trans>
-              </ObligationQueueActionChip>
-              <ObligationQueueActionChip
-                active={thisWeekFilterActive}
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    ...nextThisWeekFilterPatch(daysMin, daysMax),
-                    // Clearing Past due if it was active — same axis
-                    due: null,
-                  })
-                }
-              >
-                <Trans>Due this week</Trans>
-              </ObligationQueueActionChip>
-              <ObligationQueueActionChip
-                active={evidence === 'needs'}
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    evidence: evidence === 'needs' ? null : 'needs',
-                  })
-                }
-              >
-                <Trans>Needs evidence</Trans>
-              </ObligationQueueActionChip>
-              <ObligationQueueActionChip
-                active={awaitingSignature === true}
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    awaitingSignature: awaitingSignature ? null : true,
-                  })
-                }
-              >
-                <Trans>Awaiting signature</Trans>
-              </ObligationQueueActionChip>
-              <ObligationQueueActionChip
-                active={projected === true}
-                onClick={() =>
-                  void setObligationQueueQuery({
-                    projected: projected ? null : true,
-                  })
-                }
-              >
-                <Trans>Projected</Trans>
-              </ObligationQueueActionChip>
-              {/* "Penalty input needed" chip retired 2026-05-22 with
+                <ObligationQueueActionChip
+                  active={due === 'overdue'}
+                  onClick={() =>
+                    void setObligationQueueQuery({
+                      due: due === 'overdue' ? null : 'overdue',
+                      // Clearing Due this week if it was active — same axis
+                      daysMin: null,
+                      daysMax: null,
+                    })
+                  }
+                >
+                  <Trans>Past due</Trans>
+                </ObligationQueueActionChip>
+                <ObligationQueueActionChip
+                  active={thisWeekFilterActive}
+                  onClick={() =>
+                    void setObligationQueueQuery({
+                      ...nextThisWeekFilterPatch(daysMin, daysMax),
+                      // Clearing Past due if it was active — same axis
+                      due: null,
+                    })
+                  }
+                >
+                  <Trans>Due this week</Trans>
+                </ObligationQueueActionChip>
+                <ObligationQueueActionChip
+                  active={evidence === 'needs'}
+                  onClick={() =>
+                    void setObligationQueueQuery({
+                      evidence: evidence === 'needs' ? null : 'needs',
+                    })
+                  }
+                >
+                  <Trans>Needs evidence</Trans>
+                </ObligationQueueActionChip>
+                <ObligationQueueActionChip
+                  active={awaitingSignature === true}
+                  onClick={() =>
+                    void setObligationQueueQuery({
+                      awaitingSignature: awaitingSignature ? null : true,
+                    })
+                  }
+                >
+                  <Trans>Awaiting signature</Trans>
+                </ObligationQueueActionChip>
+                <ObligationQueueActionChip
+                  active={projected === true}
+                  onClick={() =>
+                    void setObligationQueueQuery({
+                      projected: projected ? null : true,
+                    })
+                  }
+                >
+                  <Trans>Projected</Trans>
+                </ObligationQueueActionChip>
+                {/* "Penalty input needed" chip retired 2026-05-22 with
                 hanxujiang's projected-exposure refactor (30f29dc).
                 The `exposure` query param and its filter pipeline are
                 gone; the surface that asks for penalty inputs lives
                 inside the obligation drawer. */}
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <RollForwardAction canRun={canRunMigration} />
-              {/* "Applied · <chip> · Clear filters" strip removed
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <RollForwardAction canRun={canRunMigration} />
+                {/* "Applied · <chip> · Clear filters" strip removed
                 2026-05-21 — the row chips above are already the
                 authoritative active-filter display, and each carries
                 its own × to dismiss. The breadcrumb was reading the
                 same state twice. */}
-              {/* 2026-05-26 (Yuqi /deadlines redesign): Group by
+                {/* 2026-05-26 (Yuqi /deadlines redesign): Group by
                   switcher. Three modes — Due date (default flat
                   chronological), Client (clusters by client),
                   Status (clusters by status). The selected mode
@@ -3895,7 +3892,7 @@ export function ObligationQueueRoute() {
                   rendering lands. The full grouped UI with sticky
                   collapsible section headers + aggregate pills is
                   in a separate spawned task per PRD. */}
-              {/* 2026-05-26 (Yuqi inset-followups D): Sort by converted
+                {/* 2026-05-26 (Yuqi inset-followups D): Sort by converted
                   from Base UI Select → DropdownMenu w/ RadioGroup.
                   Base UI Select had different click + keyboard
                   behavior than every other dropdown in the product
@@ -3905,8 +3902,8 @@ export function ObligationQueueRoute() {
                   family as the Columns dropdown right next to it.
                   Trigger chrome unchanged (single "Sort by X" label,
                   matches Alerts). */}
-              <DropdownMenu>
-                {/* 2026-05-26 (Yuqi feedback — "change the icon for
+                <DropdownMenu>
+                  {/* 2026-05-26 (Yuqi feedback — "change the icon for
                     sort by to lucide arrow-down-up"): the FilterTrigger
                     default leading `+` icon read as "add a filter".
                     Sort/Group-by isn't a filter — it's reorder. Swapped
@@ -3914,58 +3911,58 @@ export function ObligationQueueRoute() {
                     so the trigger reads as "change how rows are
                     ordered/grouped". Aligns with the three Group-by
                     wireframes Yuqi shared. */}
-                <DropdownMenuTrigger
-                  render={
-                    /* 2026-05-27 (Yuqi feedback "remove" Plus icon):
+                  <DropdownMenuTrigger
+                    render={
+                      /* 2026-05-27 (Yuqi feedback "remove" Plus icon):
                        `noLeadingIcon` explicitly suppresses both the
                        default PlusIcon (which was showing up after
                        I removed ArrowDownUp) and any custom icon.
                        The "Group by" label already names the action. */
-                    <FilterTrigger noLeadingIcon>
-                      <span className="text-text-tertiary">
-                        <Trans>Group by</Trans>
-                      </span>
-                      <span>
-                        {group === 'client' ? (
-                          <Trans>Client</Trans>
-                        ) : group === 'urgency' ? (
-                          <Trans>Urgency</Trans>
-                        ) : (
-                          <Trans>Due date</Trans>
-                        )}
-                      </span>
-                    </FilterTrigger>
-                  }
-                />
-                <DropdownMenuContent align="end" className="min-w-[180px]">
-                  {/* 2026-05-26 (Yuqi follow-up — "remove group by
+                      <FilterTrigger noLeadingIcon>
+                        <span className="text-text-tertiary">
+                          <Trans>Group by</Trans>
+                        </span>
+                        <span>
+                          {group === 'client' ? (
+                            <Trans>Client</Trans>
+                          ) : group === 'urgency' ? (
+                            <Trans>Urgency</Trans>
+                          ) : (
+                            <Trans>Due date</Trans>
+                          )}
+                        </span>
+                      </FilterTrigger>
+                    }
+                  />
+                  <DropdownMenuContent align="end" className="min-w-[180px]">
+                    {/* 2026-05-26 (Yuqi follow-up — "remove group by
                       status, since there is already the top tab switch
                       between status"): Status option dropped. The
                       scope-tab band above the table already filters by
                       status, so a Group-by option was a redundant
                       control. Just Due date (default flat list) and
                       Client (per-client cluster headers) remain. */}
-                  <DropdownMenuRadioGroup
-                    value={group}
-                    onValueChange={(next) => {
-                      if (next === 'due' || next === 'client' || next === 'urgency') {
-                        void setObligationQueueQuery({ group: next })
-                      }
-                    }}
-                  >
-                    <DropdownMenuRadioItem value="urgency">
-                      <Trans>Urgency</Trans>
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="due">
-                      <Trans>Due date</Trans>
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="client">
-                      <Trans>Client</Trans>
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {/* 2026-05-26 (Yuqi feedback — "14 rows is misleading on
+                    <DropdownMenuRadioGroup
+                      value={group}
+                      onValueChange={(next) => {
+                        if (next === 'due' || next === 'client' || next === 'urgency') {
+                          void setObligationQueueQuery({ group: next })
+                        }
+                      }}
+                    >
+                      <DropdownMenuRadioItem value="urgency">
+                        <Trans>Urgency</Trans>
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="due">
+                        <Trans>Due date</Trans>
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="client">
+                        <Trans>Client</Trans>
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {/* 2026-05-26 (Yuqi feedback — "14 rows is misleading on
                   top right. should say the number of deadlines in
                   total"): label switched from `totalShown` (current
                   page row count) to `rows.length` (total deadlines
@@ -3975,87 +3972,87 @@ export function ObligationQueueRoute() {
                   and this toolbar slot should reflect the same
                   semantic ("how many things am I working with"),
                   not "how many things are on this page right now." */}
-              {/* 2026-05-27 (Yuqi "去掉这个17 deadlines"): inline
+                {/* 2026-05-27 (Yuqi "去掉这个17 deadlines"): inline
                   "{N} deadlines" count next to Group-by removed —
                   was duplicating what the status tabs above already
                   show (All 17, Not started 3, etc.). */}
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    /* 2026-05-26 (Yuqi /deadlines #8): variant outline →
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      /* 2026-05-26 (Yuqi /deadlines #8): variant outline →
                        ghost. The toolbar's right cluster has the
                        row-count + columns trigger; the column trigger
                        was reading as a primary affordance via its
                        outline border. Ghost matches the row-count's
                        quietness — both are "info / control" rather
                        than "do something." */
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      aria-label={t`Columns — ${visibleHideableCount} of ${totalHideableCount} visible`}
-                      title={t`${visibleHideableCount} of ${totalHideableCount} columns visible`}
-                      className="gap-1.5"
-                    >
-                      <Columns3Icon className="size-4" aria-hidden />
-                      <span className="text-caption tabular-nums text-text-secondary">
-                        {visibleHideableCount}/{totalHideableCount}
-                      </span>
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent className="w-56" align="end">
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="flex items-center justify-between gap-2">
-                      <Trans>Visible columns</Trans>
-                      {hiddenColumnsCount > 0 ? (
-                        // Bulk "Show all" — clear the hidden set in
-                        // ONE state write.
-                        // 2026-05-26 (Yuqi /deadlines sixty-fifth pass
-                        // — "Show all doesn't work"): switched from
-                        // `hide: null` → `hide: []`. The `hide` parser
-                        // has a non-empty default (DEFAULT_HIDDEN_-
-                        // COLUMN_IDS), so passing null resolved BACK
-                        // to that default — which still hides 3+
-                        // columns. The user clicked "Show all" and
-                        // nothing changed because the defaults were
-                        // re-applied. Passing an empty array (combined
-                        // with `clearOnDefault: false` on the parser)
-                        // explicitly says "no columns are hidden,
-                        // preserve this in URL."
-                        <button
-                          type="button"
-                          onClick={() => {
-                            void setObligationQueueQuery({ hide: [] })
-                          }}
-                          className="rounded-sm text-xs font-normal text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                        >
-                          <Trans>Show all</Trans>
-                        </button>
-                      ) : null}
-                    </DropdownMenuLabel>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  {table
-                    .getAllLeafColumns()
-                    .filter((column) => column.getCanHide())
-                    .map((column) => {
-                      const label = columnLabel(column.id, columnLabels)
-                      return (
-                        <DropdownMenuCheckboxItem
-                          key={column.id}
-                          aria-label={label}
-                          checked={column.getIsVisible()}
-                          closeOnClick={false}
-                          onCheckedChange={(checked) => column.toggleVisibility(checked)}
-                        >
-                          <span>{label}</span>
-                        </DropdownMenuCheckboxItem>
-                      )
-                    })}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={t`Columns — ${visibleHideableCount} of ${totalHideableCount} visible`}
+                        title={t`${visibleHideableCount} of ${totalHideableCount} columns visible`}
+                        className="gap-1.5"
+                      >
+                        <Columns3Icon className="size-4" aria-hidden />
+                        <span className="text-caption tabular-nums text-text-secondary">
+                          {visibleHideableCount}/{totalHideableCount}
+                        </span>
+                      </Button>
+                    }
+                  />
+                  <DropdownMenuContent className="w-56" align="end">
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel className="flex items-center justify-between gap-2">
+                        <Trans>Visible columns</Trans>
+                        {hiddenColumnsCount > 0 ? (
+                          // Bulk "Show all" — clear the hidden set in
+                          // ONE state write.
+                          // 2026-05-26 (Yuqi /deadlines sixty-fifth pass
+                          // — "Show all doesn't work"): switched from
+                          // `hide: null` → `hide: []`. The `hide` parser
+                          // has a non-empty default (DEFAULT_HIDDEN_-
+                          // COLUMN_IDS), so passing null resolved BACK
+                          // to that default — which still hides 3+
+                          // columns. The user clicked "Show all" and
+                          // nothing changed because the defaults were
+                          // re-applied. Passing an empty array (combined
+                          // with `clearOnDefault: false` on the parser)
+                          // explicitly says "no columns are hidden,
+                          // preserve this in URL."
+                          <button
+                            type="button"
+                            onClick={() => {
+                              void setObligationQueueQuery({ hide: [] })
+                            }}
+                            className="rounded-sm text-xs font-normal text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                          >
+                            <Trans>Show all</Trans>
+                          </button>
+                        ) : null}
+                      </DropdownMenuLabel>
+                    </DropdownMenuGroup>
+                    <DropdownMenuSeparator />
+                    {table
+                      .getAllLeafColumns()
+                      .filter((column) => column.getCanHide())
+                      .map((column) => {
+                        const label = columnLabel(column.id, columnLabels)
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={column.id}
+                            aria-label={label}
+                            checked={column.getIsVisible()}
+                            closeOnClick={false}
+                            onCheckedChange={(checked) => column.toggleVisibility(checked)}
+                          >
+                            <span>{label}</span>
+                          </DropdownMenuCheckboxItem>
+                        )
+                      })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
-          </div>
           )}
 
           {selectedIds.length > 0 ? (

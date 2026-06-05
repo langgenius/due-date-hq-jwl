@@ -126,7 +126,10 @@ export function dedupeTitleSource(title: string, source: string): string {
   // after stripping; fall back to the raw title.
   if (t.toLowerCase() === s.toLowerCase()) return t
   if (t.toLowerCase().startsWith(s.toLowerCase())) {
-    const rest = t.slice(s.length).trim().replace(/^[-—:·]+\s*/u, '')
+    const rest = t
+      .slice(s.length)
+      .trim()
+      .replace(/^[-—:·]+\s*/u, '')
     // Also guard against rest being non-empty but pure
     // punctuation/whitespace — render the raw title instead.
     if (rest.length > 0 && /[\p{L}\p{N}]/u.test(rest)) {
@@ -167,8 +170,12 @@ function NeedsAttentionCard({
   // collapse to constants the render uses below.
   const clientsLoading = false
   const hasData = true
-  const confidencePct = Math.round(alert.confidence * 100)
-  const confidenceToneCls = confidenceToneClass(alert.confidence)
+  // 2026-06-05 (pre-CI green-up): both vars went unused after the
+  // round 81 inline source treatment. Prefixed with `_` per the
+  // no-unused-vars rule rather than deleting in case the round 19
+  // confidence pill is restored later.
+  const _confidencePct = Math.round(alert.confidence * 100)
+  const _confidenceToneCls = confidenceToneClass(alert.confidence)
   // 2026-06-04 round 42 (Yuqi /today ↔ /alerts consistency #1 —
   // "has severity pill and state badge please"): mirror the
   // AlertCard severity-pill + StateBadge vocabulary so the
@@ -181,11 +188,7 @@ function NeedsAttentionCard({
   // 22px-tall pill, which makes a real visual difference at the
   // mono 10/700 type scale used here.
   const severityLabel =
-    severity.id === 'high'
-      ? t`HIGH`
-      : severity.id === 'medium'
-        ? t`MED`
-        : t`LOW`
+    severity.id === 'high' ? t`HIGH` : severity.id === 'medium' ? t`MED` : t`LOW`
 
   // Pencil X3j4nt TimeColumn shows "2h ago" + an absolute "14:32"
   // in mono. Resolve the firm's timezone so the absolute time
@@ -600,9 +603,7 @@ function NeedsAttentionCard({
             steps down `text-text-secondary` → `text-text-muted` to
             mute the form code so the card's title and clients
             line lead the eye instead. */}
-        {firstForm ? (
-          <TaxCodeBadge code={firstForm} className="text-text-muted" />
-        ) : null}
+        {firstForm ? <TaxCodeBadge code={firstForm} className="text-text-muted" /> : null}
       </div>
     </button>
   )

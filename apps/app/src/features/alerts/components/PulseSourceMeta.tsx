@@ -42,10 +42,7 @@ function PulseSourceMeta({
       // 12px so the two surfaces stay aligned at the new smaller
       // size. Reads as a quiet caption beside the larger severity
       // pill + title.
-      className={cn(
-        'flex min-w-0 items-center gap-2 text-[12px] text-text-tertiary',
-        className,
-      )}
+      className={cn('flex min-w-0 items-center gap-2 text-[12px] text-text-tertiary', className)}
       aria-label={t`Alert source`}
     >
       <span className="truncate font-medium text-text-tertiary">{source}</span>

@@ -18,10 +18,7 @@ import { Link, useNavigate } from 'react-router'
 import type { InAppNotificationPublic, NotificationType } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
-import {
-  SidebarMenuBadge,
-  SidebarMenuButton,
-} from '@duedatehq/ui/components/ui/sidebar'
+import { SidebarMenuBadge, SidebarMenuButton } from '@duedatehq/ui/components/ui/sidebar'
 import { Tabs, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { cn } from '@duedatehq/ui/lib/utils'

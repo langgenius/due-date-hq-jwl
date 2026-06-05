@@ -46,7 +46,6 @@ import { StatusBanner } from '@/components/patterns/status-banner'
 // (the "My morning sweep" surface). Main didn't have either — so
 // the imports stay as HEAD additions on top of main.
 import { MorningSweepPanel } from './MorningSweepDialog'
-import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
 import { useAlertDrawer } from './DrawerProvider'
 import { useMorningSweep } from './MorningSweepContext'
@@ -100,7 +99,7 @@ import {
 // active-workflow states, while history exposes CPA-handled states.
 const EMPTY_ALERTS: readonly PulseAlertPublic[] = []
 const EMPTY_SOURCES: readonly PulseSourceHealth[] = []
-const EMPTY_AFFECTED: PulseAffectedClient[] = []
+const _EMPTY_AFFECTED: PulseAffectedClient[] = []
 
 interface AlertsListPageProps {
   embedded?: boolean
@@ -272,7 +271,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // Keyed off the full (stable) `alerts` set — not `filteredAlerts` — so
   // client-side filter changes don't refetch; cards just look up their id.
   const alertIds = useMemo(() => alerts.map((alert) => alert.id), [alerts])
-  const affectedByAlert = useAlertsAffectedClients(alertIds)
+  const _affectedByAlert = useAlertsAffectedClients(alertIds)
   const statusFilterOptions = historyMode
     ? HISTORY_STATUS_FILTER_OPTIONS
     : ACTIVE_STATUS_FILTER_OPTIONS
@@ -773,8 +772,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     closing `)}` ~280 lines down. */}
                 {panelOpen ? null : (
                   <>
-
-                {/* Round 83 (Yuqi #8 "order: search, list/map,
+                    {/* Round 83 (Yuqi #8 "order: search, list/map,
                     gap, all time, …"): View mode toggle relocated
                     from after the spacer to RIGHT AFTER the Search
                     field. The flex-1 spacer that used to live
@@ -783,173 +781,179 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     Search + ViewToggle (left cluster) ‖ Time +
                     Severity + ChangeType + Status + State + Sort
                     (right cluster). */}
-                <div
-                  role="group"
-                  aria-label={t`View mode`}
-                  className="inline-flex h-9 shrink-0 items-center rounded-xl border border-divider-regular bg-transparent p-0.5"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('list')}
-                    aria-pressed={viewMode === 'list'}
-                    className={cn(
-                      'inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium outline-none transition-colors',
-                      'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                      viewMode === 'list'
-                        ? 'bg-state-accent-hover text-text-accent'
-                        : 'text-text-secondary hover:text-text-primary',
-                    )}
-                  >
-                    <ListIcon className="size-3.5" aria-hidden />
-                    <Trans>List</Trans>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('map')}
-                    aria-pressed={viewMode === 'map'}
-                    className={cn(
-                      'inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium outline-none transition-colors',
-                      'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                      viewMode === 'map'
-                        ? 'bg-state-accent-hover text-text-accent'
-                        : 'text-text-secondary hover:text-text-primary',
-                    )}
-                  >
-                    <MapIcon className="size-3.5" aria-hidden />
-                    <Trans>Map</Trans>
-                  </button>
-                </div>
-
-                {/* Spacer — pushes the dropdown cluster to the
-                    right edge per #8. */}
-                <span className="flex-1" aria-hidden />
-
-                {/* Last 24 hours — time-range filter */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <FilterTrigger
-                        active={timeRangeFilter !== 'all_time'}
-                        leadingIcon={Clock3Icon}
-                        aria-label={t`Filter by time range`}
-                      >
-                        <span>
-                          {timeRangeFilter === 'last_24h'
-                            ? t`Last 24 hours`
-                            : timeRangeFilter === 'last_7d'
-                              ? t`Last 7 days`
-                              : t`All time`}
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
-                  <DropdownMenuContent align="start" className="min-w-[180px]">
-                    <DropdownMenuRadioGroup
-                      value={timeRangeFilter}
-                      onValueChange={(value) => {
-                        if (value === 'all_time' || value === 'last_24h' || value === 'last_7d') {
-                          setTimeRangeFilter(value)
-                        }
-                      }}
+                    <div
+                      role="group"
+                      aria-label={t`View mode`}
+                      className="inline-flex h-9 shrink-0 items-center rounded-xl border border-divider-regular bg-transparent p-0.5"
                     >
-                      <DropdownMenuRadioItem value="all_time">
-                        <Trans>All time</Trans>
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="last_24h">
-                        <Trans>Last 24 hours</Trans>
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="last_7d">
-                        <Trans>Last 7 days</Trans>
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('list')}
+                        aria-pressed={viewMode === 'list'}
+                        className={cn(
+                          'inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium outline-none transition-colors',
+                          'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                          viewMode === 'list'
+                            ? 'bg-state-accent-hover text-text-accent'
+                            : 'text-text-secondary hover:text-text-primary',
+                        )}
+                      >
+                        <ListIcon className="size-3.5" aria-hidden />
+                        <Trans>List</Trans>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('map')}
+                        aria-pressed={viewMode === 'map'}
+                        className={cn(
+                          'inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-medium outline-none transition-colors',
+                          'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                          viewMode === 'map'
+                            ? 'bg-state-accent-hover text-text-accent'
+                            : 'text-text-secondary hover:text-text-primary',
+                        )}
+                      >
+                        <MapIcon className="size-3.5" aria-hidden />
+                        <Trans>Map</Trans>
+                      </button>
+                    </div>
 
-                {/* Severity — was "All impact" / per-tier label; now
+                    {/* Spacer — pushes the dropdown cluster to the
+                    right edge per #8. */}
+                    <span className="flex-1" aria-hidden />
+
+                    {/* Last 24 hours — time-range filter */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <FilterTrigger
+                            active={timeRangeFilter !== 'all_time'}
+                            leadingIcon={Clock3Icon}
+                            aria-label={t`Filter by time range`}
+                          >
+                            <span>
+                              {timeRangeFilter === 'last_24h'
+                                ? t`Last 24 hours`
+                                : timeRangeFilter === 'last_7d'
+                                  ? t`Last 7 days`
+                                  : t`All time`}
+                            </span>
+                          </FilterTrigger>
+                        }
+                      />
+                      <DropdownMenuContent align="start" className="min-w-[180px]">
+                        <DropdownMenuRadioGroup
+                          value={timeRangeFilter}
+                          onValueChange={(value) => {
+                            if (
+                              value === 'all_time' ||
+                              value === 'last_24h' ||
+                              value === 'last_7d'
+                            ) {
+                              setTimeRangeFilter(value)
+                            }
+                          }}
+                        >
+                          <DropdownMenuRadioItem value="all_time">
+                            <Trans>All time</Trans>
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="last_24h">
+                            <Trans>Last 24 hours</Trans>
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="last_7d">
+                            <Trans>Last 7 days</Trans>
+                          </DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {/* Severity — was "All impact" / per-tier label; now
                     uses static label "Severity" + valueLabel counter
                     so the chip reads "Severity / any" or "Severity /
                     high" exactly per Pencil T3GhR iOxIZ. */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <FilterTrigger
-                        active={impactFilter !== 'all'}
-                        // 2026-06-04 round 71 (Yuqi #13 "any -
-                        // remove"): drop the "any" value-label
-                        // when no severity is selected. The chip
-                        // now reads "Severity" alone at rest; the
-                        // current value renders only when one is
-                        // actually picked.
-                        // Round 83 (Yuqi #20 "when a filter is
-                        // selected, the selected item is showing
-                        // the code form - like 'needs_action',
-                        // instead of Needs action"): humanize via
-                        // `impactFilterLabel`. Same `<Trans>`
-                        // labels the dropdown items use.
-                        valueLabel={
-                          impactFilter === 'all' ? undefined : impactFilterLabel(impactFilter)
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <FilterTrigger
+                            active={impactFilter !== 'all'}
+                            // 2026-06-04 round 71 (Yuqi #13 "any -
+                            // remove"): drop the "any" value-label
+                            // when no severity is selected. The chip
+                            // now reads "Severity" alone at rest; the
+                            // current value renders only when one is
+                            // actually picked.
+                            // Round 83 (Yuqi #20 "when a filter is
+                            // selected, the selected item is showing
+                            // the code form - like 'needs_action',
+                            // instead of Needs action"): humanize via
+                            // `impactFilterLabel`. Same `<Trans>`
+                            // labels the dropdown items use.
+                            valueLabel={
+                              impactFilter === 'all' ? undefined : impactFilterLabel(impactFilter)
+                            }
+                            aria-label={t`Filter by severity`}
+                          >
+                            <span>
+                              <Trans>Severity</Trans>
+                            </span>
+                          </FilterTrigger>
                         }
-                        aria-label={t`Filter by severity`}
-                      >
-                        <span>
-                          <Trans>Severity</Trans>
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
-                  <DropdownMenuContent align="start" className="min-w-[180px]">
-                    <DropdownMenuRadioGroup
-                      value={impactFilter}
-                      onValueChange={(value) => {
-                        if (typeof value === 'string' && isAlertImpactFilter(value))
-                          setImpactFilter(value)
-                      }}
-                    >
-                      {ALERT_IMPACT_FILTER_OPTIONS.map((option) => (
-                        <DropdownMenuRadioItem key={option} value={option}>
-                          {impactFilterLabel(option)}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      />
+                      <DropdownMenuContent align="start" className="min-w-[180px]">
+                        <DropdownMenuRadioGroup
+                          value={impactFilter}
+                          onValueChange={(value) => {
+                            if (typeof value === 'string' && isAlertImpactFilter(value))
+                              setImpactFilter(value)
+                          }}
+                        >
+                          {ALERT_IMPACT_FILTER_OPTIONS.map((option) => (
+                            <DropdownMenuRadioItem key={option} value={option}>
+                              {impactFilterLabel(option)}
+                            </DropdownMenuRadioItem>
+                          ))}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
 
-                {/* Change types — label/value pattern. */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <FilterTrigger
-                        active={changeKindFilter !== 'all'}
-                        // Round 83 #20: humanize via changeKindFilterLabel
-                        valueLabel={
-                          changeKindFilter === 'all' ? undefined : changeKindFilterLabel(changeKindFilter)
+                    {/* Change types — label/value pattern. */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <FilterTrigger
+                            active={changeKindFilter !== 'all'}
+                            // Round 83 #20: humanize via changeKindFilterLabel
+                            valueLabel={
+                              changeKindFilter === 'all'
+                                ? undefined
+                                : changeKindFilterLabel(changeKindFilter)
+                            }
+                            aria-label={t`Filter by change type`}
+                          >
+                            <span>
+                              <Trans>Change types</Trans>
+                            </span>
+                          </FilterTrigger>
                         }
-                        aria-label={t`Filter by change type`}
-                      >
-                        <span>
-                          <Trans>Change types</Trans>
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
-                  <DropdownMenuContent align="start" className="min-w-[180px]">
-                    <DropdownMenuRadioGroup
-                      value={changeKindFilter}
-                      onValueChange={(value) => {
-                        if (typeof value === 'string' && isChangeKindFilter(value))
-                          setChangeKindFilter(value)
-                      }}
-                    >
-                      {CHANGE_KIND_FILTER_OPTIONS.map((option) => (
-                        <DropdownMenuRadioItem key={option} value={option}>
-                          {changeKindFilterLabel(option)}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      />
+                      <DropdownMenuContent align="start" className="min-w-[180px]">
+                        <DropdownMenuRadioGroup
+                          value={changeKindFilter}
+                          onValueChange={(value) => {
+                            if (typeof value === 'string' && isChangeKindFilter(value))
+                              setChangeKindFilter(value)
+                          }}
+                        >
+                          {CHANGE_KIND_FILTER_OPTIONS.map((option) => (
+                            <DropdownMenuRadioItem key={option} value={option}>
+                              {changeKindFilterLabel(option)}
+                            </DropdownMenuRadioItem>
+                          ))}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
 
-                {/* Status dropdown — HISTORY MODE ONLY. 2026-06-05:
+                    {/* Status dropdown — HISTORY MODE ONLY. 2026-06-05:
                     removed from the active queue (Yuqi — "Status is
                     redundant"): there it overlapped the Severity filter,
                     and "My morning sweep" already forces
@@ -959,50 +963,50 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     slice the archive. The `statusFilter` state +
                     `effectiveStatusFilter` mechanism stay intact so
                     morning sweep is unaffected. */}
-                {historyMode ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={
-                        <FilterTrigger
-                          active={statusFilter !== 'all'}
-                          valueLabel={statusFilter === 'all' ? t`all` : statusFilter}
-                          aria-label={t`Filter by alert status`}
-                        >
-                          <span>
-                            <Trans>Status</Trans>
-                          </span>
-                        </FilterTrigger>
-                      }
-                    />
-                    <DropdownMenuContent align="start" className="min-w-[180px]">
-                      <DropdownMenuRadioGroup
-                        value={statusFilter}
-                        onValueChange={(value) => {
-                          if (
-                            typeof value === 'string' &&
-                            isStatusFilter(value, statusFilterOptions)
-                          )
-                            setStatusFilter(value)
-                        }}
-                      >
-                        {statusFilterOptions.map((option) => (
-                          <DropdownMenuRadioItem key={option} value={option}>
-                            {statusFilterLabel(option, historyMode)}
-                          </DropdownMenuRadioItem>
-                        ))}
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : null}
+                    {historyMode ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={
+                            <FilterTrigger
+                              active={statusFilter !== 'all'}
+                              valueLabel={statusFilter === 'all' ? t`all` : statusFilter}
+                              aria-label={t`Filter by alert status`}
+                            >
+                              <span>
+                                <Trans>Status</Trans>
+                              </span>
+                            </FilterTrigger>
+                          }
+                        />
+                        <DropdownMenuContent align="start" className="min-w-[180px]">
+                          <DropdownMenuRadioGroup
+                            value={statusFilter}
+                            onValueChange={(value) => {
+                              if (
+                                typeof value === 'string' &&
+                                isStatusFilter(value, statusFilterOptions)
+                              )
+                                setStatusFilter(value)
+                            }}
+                          >
+                            {statusFilterOptions.map((option) => (
+                              <DropdownMenuRadioItem key={option} value={option}>
+                                {statusFilterLabel(option, historyMode)}
+                              </DropdownMenuRadioItem>
+                            ))}
+                          </DropdownMenuRadioGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : null}
 
-                {/* Tax area — 2026-06-05: single-select service-line filter
+                    {/* Tax area — 2026-06-05: single-select service-line filter
                     (Individual / Business income / Sales & use / Payroll /
                     Franchise / Information). Mirrors the Change types
                     dropdown; keeps alerts whose server-derived `taxAreas`
                     include the pick. Alerts that could not be classified
                     surface only under "all". */}
-                <DropdownMenu>
-                  {/* 2026-06-05 (merge with origin/main): HEAD had a
+                    <DropdownMenu>
+                      {/* 2026-06-05 (merge with origin/main): HEAD had a
                       duplicate Status trigger here, leftover from when
                       Status sat in this slot before the historyMode
                       wrapper above moved it. Main introduced the
@@ -1010,39 +1014,39 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       surrounding DropdownMenuContent below already
                       drives `taxAreaFilter`, so this is the correct
                       trigger. Status stays history-only above. */}
-                  <DropdownMenuTrigger
-                    render={
-                      <FilterTrigger
-                        active={taxAreaFilter !== 'all'}
-                        valueLabel={
-                          taxAreaFilter === 'all' ? t`all` : taxAreaFilterLabel(taxAreaFilter)
+                      <DropdownMenuTrigger
+                        render={
+                          <FilterTrigger
+                            active={taxAreaFilter !== 'all'}
+                            valueLabel={
+                              taxAreaFilter === 'all' ? t`all` : taxAreaFilterLabel(taxAreaFilter)
+                            }
+                            aria-label={t`Filter by tax area`}
+                          >
+                            <span>
+                              <Trans>Tax area</Trans>
+                            </span>
+                          </FilterTrigger>
                         }
-                        aria-label={t`Filter by tax area`}
-                      >
-                        <span>
-                          <Trans>Tax area</Trans>
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
-                  <DropdownMenuContent align="start" className="min-w-[180px]">
-                    <DropdownMenuRadioGroup
-                      value={taxAreaFilter}
-                      onValueChange={(value) => {
-                        if (typeof value === 'string' && isTaxAreaFilter(value))
-                          setTaxAreaFilter(value)
-                      }}
-                    >
-                      {TAX_AREA_FILTER_OPTIONS.map((option) => (
-                        <DropdownMenuRadioItem key={option} value={option}>
-                          {taxAreaFilterLabel(option)}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      />
+                      <DropdownMenuContent align="start" className="min-w-[180px]">
+                        <DropdownMenuRadioGroup
+                          value={taxAreaFilter}
+                          onValueChange={(value) => {
+                            if (typeof value === 'string' && isTaxAreaFilter(value))
+                              setTaxAreaFilter(value)
+                          }}
+                        >
+                          {TAX_AREA_FILTER_OPTIONS.map((option) => (
+                            <DropdownMenuRadioItem key={option} value={option}>
+                              {taxAreaFilterLabel(option)}
+                            </DropdownMenuRadioItem>
+                          ))}
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
 
-                {/* 2026-06-04 round 71 (Yuqi #14 "Filter by source -
+                    {/* 2026-06-04 round 71 (Yuqi #14 "Filter by source -
                     remove this") + 2026-06-05 (Yuqi — "all sources
                     filter is too granular"): SourceFilterPopover
                     removed from the filter row. The underlying
@@ -1056,7 +1060,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     keys off `alert.jurisdiction` (incl. the FED tile)
                     for the same narrowing intent. */}
 
-                {/* 2026-05-25 (Yuqi /alerts fifth pass — map
+                    {/* 2026-05-25 (Yuqi /alerts fifth pass — map
                     in dropdown): state-filter map lives behind a
                     Popover trigger instead of being always
                     visible. The trigger sits in the filter row
@@ -1065,39 +1069,39 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     state"). Clicking opens the tilegram in a
                     popover panel; clicking a tile applies the
                     filter and closes the popover. */}
-                {jurisdictionCounts.length > 0 ? (
-                  <StateFilterPopover
-                    jurisdictionCounts={jurisdictionCounts}
-                    activeState={jurisdictionFilter}
-                    onSelect={(code) =>
-                      setJurisdictionFilter(jurisdictionFilter === code ? null : code)
-                    }
-                  />
-                ) : null}
+                    {jurisdictionCounts.length > 0 ? (
+                      <StateFilterPopover
+                        jurisdictionCounts={jurisdictionCounts}
+                        activeState={jurisdictionFilter}
+                        onSelect={(code) =>
+                          setJurisdictionFilter(jurisdictionFilter === code ? null : code)
+                        }
+                      />
+                    ) : null}
 
-                {/* Reset — 2026-06-04 round 42 (Yuqi list-2 #1 —
+                    {/* Reset — 2026-06-04 round 42 (Yuqi list-2 #1 —
                     "reset is close to Any state dropdown, not
                     besides sort by. if nothing is selected, reset
                     not shown"). Only mounts when `filtersActive`. */}
-                {filtersActive ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setImpactFilter('all')
-                      setStatusFilter('all')
-                      setChangeKindFilter('all')
-                      setTaxAreaFilter('all')
-                      setJurisdictionFilter(null)
-                      setTimeRangeFilter('all_time')
-                      setSearchQuery('')
-                    }}
-                  >
-                    <Trans>Reset</Trans>
-                  </Button>
-                ) : null}
+                    {filtersActive ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setImpactFilter('all')
+                          setStatusFilter('all')
+                          setChangeKindFilter('all')
+                          setTaxAreaFilter('all')
+                          setJurisdictionFilter(null)
+                          setTimeRangeFilter('all_time')
+                          setSearchQuery('')
+                        }}
+                      >
+                        <Trans>Reset</Trans>
+                      </Button>
+                    ) : null}
 
-                {/* Round 83 (Yuqi #8 reorder) supersedes round 39's
+                    {/* Round 83 (Yuqi #8 reorder) supersedes round 39's
                     flex-1 spacer + Sort-by-on-the-right pattern: the
                     spacer and View toggle moved to the position
                     immediately after the Search field (round 83
@@ -1106,75 +1110,75 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     `flex-nowrap overflow-x-auto` and Sort sits at
                     the natural right end of the content flow. */}
 
-                {/* Sort by — 2026-06-04 round 42 (Yuqi #4 — wire
+                    {/* Sort by — 2026-06-04 round 42 (Yuqi #4 — wire
                     real sort logic). Three options matching the
                     sortOrder enum. Current value is shown inline
                     on the trigger so the dropdown reads "Sort by
                     Newest first" / "Sort by Oldest first" / "Sort
                     by Highest impact" without opening. */}
-                {/* Round 83 (Yuqi #18 "sort by button width does
+                    {/* Round 83 (Yuqi #18 "sort by button width does
                     not change. Newest, Impact, Affected clients."):
                     fixed `w-[200px]` so the trigger doesn't reflow
                     every time the selection changes (Newest first
                     has 12 chars, Highest impact has 14, etc.).
                     Also short-labels: "Newest", "Impact", "Affected
                     clients" — per Yuqi's spelling. */}
-                {/* Round 84 (Yuqi #2 "Newest align to the left.
+                    {/* Round 84 (Yuqi #2 "Newest align to the left.
                     text align to the left"): dropped
                     `justify-between`. Both "Sort by" and the
                     selected value now stack on the LEFT edge of
                     the fixed 200px chip with the chevron pinned
                     right. */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <FilterTrigger
-                        noLeadingIcon
-                        aria-label={t`Sort alerts`}
-                        className="w-[200px] justify-start text-left"
-                      >
-                        <span className="text-text-tertiary">
-                          <Trans>Sort by</Trans>
-                        </span>
-                        <span>
-                          {sortOrder === 'oldest' ? (
-                            <Trans>Oldest</Trans>
-                          ) : sortOrder === 'highest_impact' ? (
-                            <Trans>Impact</Trans>
-                          ) : (
-                            <Trans>Newest</Trans>
-                          )}
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
-                  <DropdownMenuContent align="end" className="min-w-[200px]">
-                    <DropdownMenuRadioGroup
-                      value={sortOrder}
-                      onValueChange={(value) => {
-                        if (
-                          value === 'newest' ||
-                          value === 'oldest' ||
-                          value === 'highest_impact'
-                        ) {
-                          setSortOrder(value)
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <FilterTrigger
+                            noLeadingIcon
+                            aria-label={t`Sort alerts`}
+                            className="w-[200px] justify-start text-left"
+                          >
+                            <span className="text-text-tertiary">
+                              <Trans>Sort by</Trans>
+                            </span>
+                            <span>
+                              {sortOrder === 'oldest' ? (
+                                <Trans>Oldest</Trans>
+                              ) : sortOrder === 'highest_impact' ? (
+                                <Trans>Impact</Trans>
+                              ) : (
+                                <Trans>Newest</Trans>
+                              )}
+                            </span>
+                          </FilterTrigger>
                         }
-                      }}
-                    >
-                      <DropdownMenuRadioItem value="newest">
-                        <Trans>Newest first</Trans>
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="oldest">
-                        <Trans>Oldest first</Trans>
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="highest_impact">
-                        <Trans>Highest impact</Trans>
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      />
+                      <DropdownMenuContent align="end" className="min-w-[200px]">
+                        <DropdownMenuRadioGroup
+                          value={sortOrder}
+                          onValueChange={(value) => {
+                            if (
+                              value === 'newest' ||
+                              value === 'oldest' ||
+                              value === 'highest_impact'
+                            ) {
+                              setSortOrder(value)
+                            }
+                          }}
+                        >
+                          <DropdownMenuRadioItem value="newest">
+                            <Trans>Newest first</Trans>
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="oldest">
+                            <Trans>Oldest first</Trans>
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="highest_impact">
+                            <Trans>Highest impact</Trans>
+                          </DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
 
-                {/* Round 42: Reset relocated UP next to
+                    {/* Round 42: Reset relocated UP next to
                     StateFilterPopover (see above). No longer sits
                     here. */}
                   </>
@@ -1587,9 +1591,18 @@ function SkeletonAlertRow() {
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         {/* Meta strip — severity + state + form chip placeholders */}
         <div className="flex items-center gap-2">
-          <Skeleton aria-hidden className="h-[22px] w-12 rounded-[4px] motion-reduce:animate-none" />
-          <Skeleton aria-hidden className="h-[22px] w-14 rounded-[4px] motion-reduce:animate-none" />
-          <Skeleton aria-hidden className="h-[22px] w-20 rounded-[5px] motion-reduce:animate-none" />
+          <Skeleton
+            aria-hidden
+            className="h-[22px] w-12 rounded-[4px] motion-reduce:animate-none"
+          />
+          <Skeleton
+            aria-hidden
+            className="h-[22px] w-14 rounded-[4px] motion-reduce:animate-none"
+          />
+          <Skeleton
+            aria-hidden
+            className="h-[22px] w-20 rounded-[5px] motion-reduce:animate-none"
+          />
           <span className="flex-1" aria-hidden />
           <Skeleton aria-hidden className="h-3 w-24 rounded-full motion-reduce:animate-none" />
         </div>
@@ -1600,7 +1613,9 @@ function SkeletonAlertRow() {
         {/* Bottom shelf — clients + conf */}
         <div className="mt-1 flex items-center gap-2 border-t border-divider-subtle pt-2">
           <Skeleton aria-hidden className="h-3 w-24 rounded-full motion-reduce:animate-none" />
-          <span className="text-divider-regular" aria-hidden>·</span>
+          <span className="text-divider-regular" aria-hidden>
+            ·
+          </span>
           <Skeleton aria-hidden className="h-3 w-14 rounded-full motion-reduce:animate-none" />
         </div>
       </div>

@@ -217,19 +217,11 @@ export function AlertsRoute() {
                 shorter than the h-10 filter chrome and read as
                 two different button families. */}
             <MorningSweepHeaderButton />
-            <Button
-              nativeButton={false}
-              variant="outline"
-              render={<Link to="/rules/sources" />}
-            >
+            <Button nativeButton={false} variant="outline" render={<Link to="/rules/sources" />}>
               <DatabaseIcon data-icon="inline-start" />
               <Trans>Sources</Trans>
             </Button>
-            <Button
-              nativeButton={false}
-              variant="outline"
-              render={<Link to="/alerts/history" />}
-            >
+            <Button nativeButton={false} variant="outline" render={<Link to="/alerts/history" />}>
               <HistoryIcon data-icon="inline-start" />
               <Trans>Alert history</Trans>
             </Button>

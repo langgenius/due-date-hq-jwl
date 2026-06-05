@@ -240,10 +240,7 @@ function AuditLogRow({
         {/* 2026-06-01: replaced ›-glyph with ChevronRightIcon so the
             row-open affordance aligns with the rest of the app's
             chevron-icon vocabulary. */}
-        <ChevronRightIcon
-          className="ml-auto size-3.5 text-text-tertiary"
-          aria-hidden
-        />
+        <ChevronRightIcon className="ml-auto size-3.5 text-text-tertiary" aria-hidden />
       </TableCell>
     </TableRow>
   )

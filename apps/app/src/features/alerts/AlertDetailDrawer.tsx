@@ -57,13 +57,11 @@ import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabul
 import { severityFromConfidence, actionPillFromAlert } from './components/pulse-alert-chrome'
 import { AffectedClientsTable } from './components/AffectedClientsTable'
 // Step 9 retired `AlertConfidencePill` in favor of the canonical
-// `aiConfidenceTier` / `isLowAiConfidence` helpers imported above.
-// `PulseConfidencePill` kept — still rendered in the drawer header.
-import { AlertConfidencePill } from './components/AlertConfidencePill'
+// 2026-06-05 (pre-CI green-up): the four pill imports below
+// (AlertConfidencePill, AlertSourceBadge, AlertSourceStatusBadge,
+// AlertStatusBadge) all went unused after the round 84/85 drawer
+// chrome refactor. Dropped to satisfy no-unused-vars.
 import { AlertDecisionStatusNotice } from './components/AlertReadinessStatus'
-import { AlertSourceBadge } from './components/AlertSourceBadge'
-import { AlertSourceStatusBadge } from './components/AlertSourceStatusBadge'
-import { AlertStatusBadge } from './components/AlertStatusBadge'
 import { AlertStructuredFields } from './components/AlertStructuredFields'
 import { changeKindLabel } from './components/PulseChangeKindChip'
 import {
@@ -803,9 +801,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
                   <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
                     <Trans>Affected clients</Trans>
                     {detail.affectedClients.length > 0 ? (
-                      <span className="ml-2 tabular-nums">
-                        {detail.affectedClients.length}
-                      </span>
+                      <span className="ml-2 tabular-nums">{detail.affectedClients.length}</span>
                     ) : null}
                   </span>
                   {stats ? <SelectionSummary stats={stats} /> : null}
@@ -1035,11 +1031,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
                     ? 'text-text-tertiary'
                     : 'text-text-destructive'
               const confTierLabel =
-                confTier === 'high'
-                  ? t`HIGH`
-                  : confTier === 'medium'
-                    ? t`MEDIUM`
-                    : t`LOW`
+                confTier === 'high' ? t`HIGH` : confTier === 'medium' ? t`MEDIUM` : t`LOW`
               return (
                 <section className="flex flex-col gap-3">
                   <header className="flex items-baseline justify-between">
@@ -1054,15 +1046,15 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
                         <Trans>AI confidence</Trans>
                       </span>
                       <div className="flex items-baseline gap-2">
+                        <span className={cn('text-2xl font-semibold tabular-nums', confToneClass)}>
+                          {confPct}%
+                        </span>
                         <span
                           className={cn(
-                            'text-2xl font-semibold tabular-nums',
+                            'text-xs font-semibold tracking-wide uppercase',
                             confToneClass,
                           )}
                         >
-                          {confPct}%
-                        </span>
-                        <span className={cn('text-xs font-semibold tracking-wide uppercase', confToneClass)}>
                           {confTierLabel}
                         </span>
                       </div>
@@ -1072,9 +1064,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
                             Verify the extract panel matches the official source before applying.
                           </Trans>
                         ) : confTier === 'medium' ? (
-                          <Trans>
-                            Quick-confirm the extracted fields look right.
-                          </Trans>
+                          <Trans>Quick-confirm the extracted fields look right.</Trans>
                         ) : (
                           <Trans>Model is confident — review and apply when ready.</Trans>
                         )}
@@ -1182,36 +1172,36 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
           </div>
         ) : null}
         <div className="flex w-full">
-        {detail ? (
-          <DrawerActions
-            alertStatus={detail.alert.status}
-            sourceStatus={detail.alert.sourceStatus}
-            selectionCount={stats?.selectedCount ?? 0}
-            actionMode={detail.alert.actionMode}
-            firmImpact={detail.alert.firmImpact}
-            requiresDeadlineDetails={missingDeadlineDetails}
-            canApply={canApply}
-            // ROH-D15 — Undo button now gates on `pulse.revert` instead
-            // of the `pulse.apply` proxy.
-            canRevert={permissions.canRevert}
-            canRequestReview={canRequestAlertReview({
-              role: permissions.role,
-              alertStatus: detail.alert.status,
-              sourceStatus: detail.alert.sourceStatus,
-            })}
-            canApplyReviewed={permissions.canManagePriorityReview}
-            reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
-            reverifyIncomplete={reverifyIncomplete}
-            isMutating={isMutating}
-            onApply={handleApply}
-            onMarkReviewed={() => markReviewedMutation.mutate({ alertId: detail.alert.id })}
-            onApplyReviewed={() => applyReviewedMutation.mutate({ alertId: detail.alert.id })}
-            onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
-            onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
-            onRequestReview={() => setReviewDialogOpen(true)}
-            onCopyDraft={handleCopyDraft}
-          />
-        ) : null}
+          {detail ? (
+            <DrawerActions
+              alertStatus={detail.alert.status}
+              sourceStatus={detail.alert.sourceStatus}
+              selectionCount={stats?.selectedCount ?? 0}
+              actionMode={detail.alert.actionMode}
+              firmImpact={detail.alert.firmImpact}
+              requiresDeadlineDetails={missingDeadlineDetails}
+              canApply={canApply}
+              // ROH-D15 — Undo button now gates on `pulse.revert` instead
+              // of the `pulse.apply` proxy.
+              canRevert={permissions.canRevert}
+              canRequestReview={canRequestAlertReview({
+                role: permissions.role,
+                alertStatus: detail.alert.status,
+                sourceStatus: detail.alert.sourceStatus,
+              })}
+              canApplyReviewed={permissions.canManagePriorityReview}
+              reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
+              reverifyIncomplete={reverifyIncomplete}
+              isMutating={isMutating}
+              onApply={handleApply}
+              onMarkReviewed={() => markReviewedMutation.mutate({ alertId: detail.alert.id })}
+              onApplyReviewed={() => applyReviewedMutation.mutate({ alertId: detail.alert.id })}
+              onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
+              onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
+              onRequestReview={() => setReviewDialogOpen(true)}
+              onCopyDraft={handleCopyDraft}
+            />
+          ) : null}
         </div>
       </SheetFooter>
     </>
@@ -1551,7 +1541,7 @@ function openNativeDatePicker(event: MouseEvent<HTMLInputElement>) {
   }
 }
 
-function AlertActivitySection({ alertId }: { alertId: string }) {
+function _AlertActivitySection({ alertId }: { alertId: string }) {
   // Per-alert audit timeline — review-requested / reviewed / dismissed /
   // snoozed / reactivated events (entityType 'pulse_firm_alert'). Closes the
   // "Pulse alert drawer → Activity" surface gap. (Per-obligation apply/revert
@@ -2129,7 +2119,7 @@ function DetailHeaderSkeleton() {
 // pill. If this label diverges across all three sites in the
 // future, promote to a shared util at
 // `apps/app/src/features/alerts/components/alert-change-kind.ts`.
-function drawerChangeKindLabel(kind: PulseDetail['alert']['changeKind']) {
+function _drawerChangeKindLabel(kind: PulseDetail['alert']['changeKind']) {
   switch (kind) {
     case 'deadline_shift':
       return <Trans>Deadline Shifted</Trans>
