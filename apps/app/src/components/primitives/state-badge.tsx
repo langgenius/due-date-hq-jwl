@@ -15,8 +15,10 @@
 // The seal renders in an <img> sized 20–88px. At the small (xs/sm)
 // sizes used in alert cards it reads as a detailed disc and the
 // adjacent state code does the identifying; the engraving detail comes
-// through at lg/xl. Codes outside the registry fall back to a navy-disk
-// monogram so layout stays consistent.
+// through at lg/xl, and hovering (or focusing) any badge opens a preview
+// card with the seal enlarged — the `preview` prop, on by default. Codes
+// outside the registry fall back to a navy-disk monogram so layout stays
+// consistent.
 //
 // To refresh or add a jurisdiction, drop a <CODE>.png in ./state-seals/
 // (256px, transparent or white background) and add the matching import
@@ -30,6 +32,12 @@
 // Sizes: xs (20px), sm (28px), md (32px), lg (56px), xl (88px).
 
 import * as React from 'react'
+
+import {
+  PreviewCard,
+  PreviewCardContent,
+  PreviewCardTrigger,
+} from '@duedatehq/ui/components/ui/preview-card'
 
 import seal_AK from './state-seals/AK.png?url'
 import seal_AL from './state-seals/AL.png?url'
@@ -92,6 +100,12 @@ interface StateBadgeProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 't
   size?: StateBadgeSize
   /** Override the tooltip; defaults to the resolved jurisdiction name. */
   title?: string
+  /**
+   * On hover (or keyboard focus), open a preview card showing the seal
+   * enlarged. Default true; only renders when a seal image exists for the
+   * code. Pass `preview={false}` to opt a call site out.
+   */
+  preview?: boolean
 }
 
 const sizePx: Record<StateBadgeSize, number> = {
@@ -216,11 +230,12 @@ const SEAL_URLS: Record<string, string> = {
 }
 
 export const StateBadge = React.forwardRef<HTMLSpanElement, StateBadgeProps>(
-  ({ code, size = 'md', title, className, style, ...rest }, ref) => {
+  ({ code, size = 'md', title, preview = true, className, style, ...rest }, ref) => {
     const px = sizePx[size]
     const upper = code.toUpperCase()
     const sealUrl = SEAL_URLS[upper]
     const tooltip = title ?? NAMES[upper] ?? upper
+    const showPreview = preview && Boolean(sealUrl)
 
     const cls = [
       'inline-flex',
@@ -233,10 +248,10 @@ export const StateBadge = React.forwardRef<HTMLSpanElement, StateBadgeProps>(
       .filter(Boolean)
       .join(' ')
 
-    return (
+    const badge = (
       <span
         ref={ref}
-        title={tooltip}
+        title={showPreview ? undefined : tooltip}
         aria-label={tooltip}
         className={cls}
         style={{
@@ -280,6 +295,32 @@ export const StateBadge = React.forwardRef<HTMLSpanElement, StateBadgeProps>(
           </svg>
         )}
       </span>
+    )
+
+    if (!showPreview) {
+      return badge
+    }
+
+    // Hover/focus → enlarged seal in a preview card. PreviewCard is the
+    // house primitive for hover-rich content (Tooltip is text-only); it
+    // carries the standard scale-95→100 + fade overlay animation and only
+    // mounts/loads the enlarged image once opened.
+    return (
+      <PreviewCard>
+        <PreviewCardTrigger render={badge} delay={150} closeDelay={150} />
+        <PreviewCardContent side="top" sideOffset={8} className="w-auto items-center gap-2 p-3">
+          <span className="flex size-40 items-center justify-center overflow-hidden rounded-lg bg-white p-1.5 ring-1 ring-black/5">
+            <img
+              src={sealUrl}
+              alt=""
+              aria-hidden
+              draggable={false}
+              className="size-full object-contain"
+            />
+          </span>
+          <span className="text-xs font-medium text-text-secondary">{tooltip}</span>
+        </PreviewCardContent>
+      </PreviewCard>
     )
   },
 )
