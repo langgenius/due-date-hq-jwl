@@ -19,8 +19,8 @@ import { changeKindLabel } from './PulseChangeKindChip'
 import { PulseAlertActionsRow } from './PulseAlertActionsRow'
 import {
   actionPillFromAlert,
+  impactBadgeFromAlert,
   openStatusFromAlert,
-  severityFromConfidence,
 } from './pulse-alert-chrome'
 
 const VISIBLE_CLIENT_NAMES = 3
@@ -211,7 +211,7 @@ export function AlertCard({
           impact row and functional footer follow. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         {(() => {
-          const severity = severityFromConfidence(alert.confidence)
+          const severity = impactBadgeFromAlert(alert)
           const actionPill = actionPillFromAlert(alert)
           const openId = openStatusFromAlert(alert.status)
           const severityLabel =

@@ -9,7 +9,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { alertTone } from '@/features/alerts/alert-tone'
 import { PulseSourceMeta } from '@/features/alerts/components/PulseSourceMeta'
-import { severityFromConfidence } from '@/features/alerts/components/pulse-alert-chrome'
+import { impactBadgeFromAlert } from '@/features/alerts/components/pulse-alert-chrome'
 import { StateBadge } from '@/components/primitives/state-badge'
 
 // Dashboard variant of the Alert card. Tuned for the dashboard's
@@ -115,9 +115,9 @@ function NeedsAttentionCard({
   // "has severity pill and state badge please"): mirror the
   // AlertCard severity-pill + StateBadge vocabulary so the
   // dashboard summary and the alerts list speak the same visual
-  // language. `severityFromConfidence` is the shared helper from
+  // language. `impactBadgeFromAlert` is the shared helper from
   // pulse-alert-chrome so the tier mapping stays canonical.
-  const severity = severityFromConfidence(alert.confidence)
+  const severity = impactBadgeFromAlert(alert)
   const severityLabel =
     severity.id === 'high'
       ? t`HIGH IMPACT`

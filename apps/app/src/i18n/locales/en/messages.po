@@ -1860,6 +1860,10 @@ msgstr "All ignored"
 msgid "All impact"
 msgstr "All impact"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "All impact levels"
+msgstr "All impact levels"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "All items received."
 msgstr "All items received."
@@ -5491,6 +5495,10 @@ msgstr "Filter by alert status"
 msgid "Filter by change type"
 msgstr "Filter by change type"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Filter by impact level"
+msgstr "Filter by impact level"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filter by name or EIN"
 msgstr "Filter by name or EIN"
@@ -5891,6 +5899,10 @@ msgstr "High"
 msgid "High confidence"
 msgstr "High confidence"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "High impact"
+msgstr "High impact"
+
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 #: src/features/dashboard/needs-attention-card.tsx
@@ -5944,6 +5956,10 @@ msgstr "Ignore this column"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Ignored"
 msgstr "Ignored"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Impact"
+msgstr "Impact"
 
 #: src/routes/clients.tsx
 #: src/routes/migration.new.tsx
@@ -6655,6 +6671,10 @@ msgstr "Low"
 msgid "Low confidence"
 msgstr "Low confidence"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Low impact"
+msgstr "Low impact"
+
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 #: src/features/dashboard/needs-attention-card.tsx
@@ -6972,6 +6992,10 @@ msgstr "Materials still outstanding"
 #: src/features/opportunities/opportunity-ui.tsx
 msgid "Medium"
 msgstr "Medium"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Medium impact"
+msgstr "Medium impact"
 
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx

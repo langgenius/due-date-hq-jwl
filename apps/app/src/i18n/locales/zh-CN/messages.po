@@ -1887,6 +1887,10 @@ msgstr "全部忽略"
 msgid "All impact"
 msgstr "全部影响"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "All impact levels"
+msgstr "全部影响程度"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "All items received."
 msgstr "已收到全部项目。"
@@ -5538,6 +5542,10 @@ msgstr "按提醒状态筛选"
 msgid "Filter by change type"
 msgstr "按变更类型筛选"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Filter by impact level"
+msgstr "按影响程度筛选"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 #, fuzzy
 msgid "Filter by name or EIN"
@@ -5944,6 +5952,10 @@ msgstr "高"
 msgid "High confidence"
 msgstr "高置信度"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "High impact"
+msgstr "高影响"
+
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 #: src/features/dashboard/needs-attention-card.tsx
@@ -5997,6 +6009,10 @@ msgstr "忽略此列"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Ignored"
 msgstr "已忽略"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Impact"
+msgstr "影响"
 
 #: src/routes/clients.tsx
 #: src/routes/migration.new.tsx
@@ -6714,6 +6730,10 @@ msgstr "低"
 msgid "Low confidence"
 msgstr "低置信度"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Low impact"
+msgstr "低影响"
+
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 #: src/features/dashboard/needs-attention-card.tsx
@@ -7036,6 +7056,10 @@ msgstr "仍有材料未收齐"
 #: src/features/opportunities/opportunity-ui.tsx
 msgid "Medium"
 msgstr "中"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Medium impact"
+msgstr "中等影响"
 
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx

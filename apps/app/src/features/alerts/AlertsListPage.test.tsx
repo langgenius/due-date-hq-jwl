@@ -333,3 +333,37 @@ describe('AlertsListPage tax area filter', () => {
     expect(document.body.textContent).toContain('Tax area')
   })
 })
+
+describe('AlertsListPage impact filter', () => {
+  it('exposes the Impact (low/medium/high) filter on the active surface', async () => {
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [listAlert()], nextCursor: null })
+
+    await render(<AlertsListPage embedded />)
+
+    await waitForText('Seeded CA relief')
+    expect(document.querySelector('[aria-label="Filter by impact level"]')).not.toBeNull()
+  })
+})
+
+describe('AlertsListPage status filter scope', () => {
+  it('hides Status on the active surface (now covered by Severity + Impact)', async () => {
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [listAlert()], nextCursor: null })
+
+    await render(<AlertsListPage embedded />)
+
+    await waitForText('Seeded CA relief')
+    expect(document.querySelector('[aria-label="Filter by alert status"]')).toBeNull()
+  })
+
+  it('keeps Status on the history surface (its handled-state slicer)', async () => {
+    rpcMocks.listHistoryQueryFn.mockResolvedValue({
+      alerts: [listAlert({ status: 'applied' })],
+      nextCursor: null,
+    })
+
+    await render(<AlertsListPage embedded historyMode />, '/alerts/history')
+
+    await waitForText('Seeded CA relief')
+    expect(document.querySelector('[aria-label="Filter by alert status"]')).not.toBeNull()
+  })
+})

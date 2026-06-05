@@ -1,6 +1,6 @@
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 
-import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
+import { alertImpactLevel, type ImpactLevel } from '../lib/impact-level-filter'
 
 /**
  * Shared chrome helpers for `PulseAlertCard` + `PulseFormRevisedCard`
@@ -18,26 +18,27 @@ import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
  */
 
 /**
- * Map the AI confidence score to a severity tier. PulseAlertPublic
- * doesn't carry an explicit severity field, so the confidence ladder
- * (canonical `aiConfidenceTier` helper) drives it: low confidence
- * surfaces as HIGH IMPACT urgency (the model is unsure, so a CPA
- * should review), high confidence is LOW IMPACT (the model is
- * confident, no urgency), medium sits between.
+ * Impact badge for the card's top-left meta row. The id is the REAL
+ * client-impact level (`alertImpactLevel` — how many obligations the
+ * firm has riding on this Pulse), NOT AI confidence. Colors: high
+ * impact → destructive red, medium → amber, low / none → success
+ * green.
  *
- * Colors mirror Pencil's `l6Xgs` amber (#FEF3C7 / #92400E) plus
- * the canonical destructive (red) and success (green) pairs from
- * the same palette family.
+ * 2026-06-05: replaced `severityFromConfidence`. The old helper mapped
+ * INVERTED AI confidence onto an "IMPACT" label (low confidence →
+ * "HIGH IMPACT"), conflating model uncertainty with client impact.
+ * Impact now means impact; confidence keeps its own surfaces (the
+ * pulsing-dot tone, the drawer confidence pill, the low-confidence
+ * banner). Colors mirror Pencil's `l6Xgs` amber (#FEF3C7 / #92400E)
+ * plus the canonical destructive (red) and success (green) pairs.
  */
-export type SeverityId = 'low' | 'medium' | 'high'
-export function severityFromConfidence(confidence: number): {
-  id: SeverityId
-  bg: string
-  text: string
-} {
-  const tier = aiConfidenceTier(confidence)
-  if (tier === 'low') return { id: 'high', bg: '#FEE4E2', text: '#9F1239' }
-  if (tier === 'medium') return { id: 'medium', bg: '#FEF3C7', text: '#92400E' }
+export type SeverityId = ImpactLevel
+export function impactBadgeFromAlert(
+  alert: Pick<PulseAlertPublic, 'matchedCount' | 'needsReviewCount'>,
+): { id: SeverityId; bg: string; text: string } {
+  const level = alertImpactLevel(alert)
+  if (level === 'high') return { id: 'high', bg: '#FEE4E2', text: '#9F1239' }
+  if (level === 'medium') return { id: 'medium', bg: '#FEF3C7', text: '#92400E' }
   return { id: 'low', bg: '#D1FADF', text: '#054F31' }
 }
 

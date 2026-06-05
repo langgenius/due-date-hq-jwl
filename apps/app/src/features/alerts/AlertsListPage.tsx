@@ -34,7 +34,6 @@ import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { StatusBanner } from '@/components/patterns/status-banner'
-import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
 import { useAlertDrawer } from './DrawerProvider'
 import { useMorningSweep } from './MorningSweepContext'
@@ -57,6 +56,13 @@ import {
   ALERT_IMPACT_FILTER_OPTIONS,
   type AlertImpactFilter,
 } from './lib/impact-filter'
+import {
+  alertImpactLevel,
+  ALERT_IMPACT_LEVEL_FILTER_OPTIONS,
+  isAlertImpactLevelFilter,
+  matchesAlertImpactLevelFilter,
+  type AlertImpactLevelFilter,
+} from './lib/impact-level-filter'
 import {
   ACTIVE_STATUS_FILTER_OPTIONS,
   CHANGE_KIND_FILTER_OPTIONS,
@@ -119,6 +125,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const openDrawerAndCollapseSidebar = openDrawer
   const [statusFilter, setStatusFilter] = useState<AlertStatusFilter>('all')
   const [impactFilter, setImpactFilter] = useState<AlertImpactFilter>('all')
+  // 2026-06-05 (Impact filter): real client-impact magnitude
+  // (matchedCount + needsReviewCount → low/medium/high via
+  // `alertImpactLevel`). Distinct from the firmImpact-based "Severity"
+  // filter above — this is "how many clients are affected", not the
+  // workflow-attention state. Same source of truth as the card badge
+  // and the highest-impact sort.
+  const [impactLevelFilter, setImpactLevelFilter] = useState<AlertImpactLevelFilter>('all')
   const [changeKindFilter, setChangeKindFilter] = useState<AlertChangeKindFilter>('all')
   // 2026-06-05 (Tax area filter): single-select service-line filter. Each alert
   // carries a derived `taxAreas` array; 'all' shows everything (including alerts
@@ -139,9 +152,9 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   //                        most recent edit-style scan)
   //   • 'oldest'         — publishedAt ASC  (work-through-backlog
   //                        scan)
-  //   • 'highest_impact' — confidence tier DESC then publishedAt
-  //                        DESC. HIGH IMPACT (low confidence) first
-  //                        so the riskiest items rise.
+  //   • 'highest_impact' — impact level DESC then publishedAt DESC.
+  //                        HIGH IMPACT (most affected clients) first
+  //                        so the biggest items rise.
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'highest_impact'>('newest')
   // 2026-06-04 round 35 (Yuqi "also missing the search bar"): inline
   // search field per Pencil T3GhR `JsUoN` — fills remaining width
@@ -231,6 +244,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     return alerts.filter(
       (alert) =>
         matchesAlertImpactFilter(alert, impactFilter) &&
+        matchesAlertImpactLevelFilter(alert, impactLevelFilter) &&
         matchesStatusFilter(alert.status, effectiveStatusFilter) &&
         matchesChangeKindFilter(alert.changeKind, changeKindFilter) &&
         matchesTaxAreaFilter(alert.taxAreas, taxAreaFilter) &&
@@ -246,6 +260,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     effectiveStatusFilter,
     effectiveTimeRangeFilter,
     impactFilter,
+    impactLevelFilter,
     jurisdictionFilter,
     searchQuery,
     taxAreaFilter,
@@ -256,11 +271,14 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // the cards.
   const sortedAlerts = useMemo(() => {
     const tierRank = (a: PulseAlertPublic) => {
-      const tier = aiConfidenceTier(a.confidence)
-      // Lower confidence = HIGH IMPACT → rank 3 (sorts first when
-      // we DESC by rank). Higher confidence = LOW IMPACT → rank 1.
-      if (tier === 'low') return 3
-      if (tier === 'medium') return 2
+      // 2026-06-05: rank by REAL client impact (matchedCount +
+      // needsReviewCount via `alertImpactLevel`), not inverted AI
+      // confidence — so "Highest impact" agrees with the card badge
+      // and the Impact filter. high → 3 (sorts first when we DESC by
+      // rank), medium → 2, low → 1.
+      const level = alertImpactLevel(a)
+      if (level === 'high') return 3
+      if (level === 'medium') return 2
       return 1
     }
     const next = [...filteredAlerts]
@@ -282,6 +300,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const isFilteredEmpty = !alertsQuery.isLoading && alerts.length > 0 && filteredAlerts.length === 0
   const filtersActive =
     impactFilter !== 'all' ||
+    impactLevelFilter !== 'all' ||
     statusFilter !== 'all' ||
     changeKindFilter !== 'all' ||
     taxAreaFilter !== 'all' ||
@@ -663,6 +682,43 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   </DropdownMenuContent>
                 </DropdownMenu>
 
+                {/* Impact — 2026-06-05: real client-impact magnitude
+                    (low / medium / high from matchedCount +
+                    needsReviewCount). Distinct from "Severity" above,
+                    which is the firmImpact workflow-attention state.
+                    Same source of truth as the card badge + the
+                    Highest-impact sort. */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <FilterTrigger
+                        active={impactLevelFilter !== 'all'}
+                        valueLabel={impactLevelFilter === 'all' ? t`any` : impactLevelFilter}
+                        aria-label={t`Filter by impact level`}
+                      >
+                        <span>
+                          <Trans>Impact</Trans>
+                        </span>
+                      </FilterTrigger>
+                    }
+                  />
+                  <DropdownMenuContent align="start" className="min-w-[180px]">
+                    <DropdownMenuRadioGroup
+                      value={impactLevelFilter}
+                      onValueChange={(value) => {
+                        if (typeof value === 'string' && isAlertImpactLevelFilter(value))
+                          setImpactLevelFilter(value)
+                      }}
+                    >
+                      {ALERT_IMPACT_LEVEL_FILTER_OPTIONS.map((option) => (
+                        <DropdownMenuRadioItem key={option} value={option}>
+                          {impactLevelFilterLabel(option)}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 {/* Change types — label/value pattern. */}
                 <DropdownMenu>
                   <DropdownMenuTrigger
@@ -695,46 +751,51 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Status dropdown — 2026-06-04 round 42 (Yuqi
-                    punch list #6 — "fix all" for the filter state
-                    that lost its UI surface): the dropdown now
-                    renders in BOTH non-history and history mode.
-                    Round 41 removed the standalone chip strip
-                    ("可以去掉"); this round brings the Status
-                    affordance back as a filter pill instead. The
-                    valueLabel counter shows the active filter or
-                    "all" so it matches the rest of the row's
-                    pattern. */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <FilterTrigger
-                        active={statusFilter !== 'all'}
-                        valueLabel={statusFilter === 'all' ? t`all` : statusFilter}
-                        aria-label={t`Filter by alert status`}
+                {/* Status dropdown — HISTORY MODE ONLY. 2026-06-05:
+                    removed from the active queue (Yuqi — "Status is
+                    redundant"): there it overlapped Severity + the new
+                    Impact filter, and "My morning sweep" already forces
+                    the "active" status under the hood. History keeps it
+                    — its handled-state options (applied / dismissed /
+                    reverted / reviewed / snoozed) are the only way to
+                    slice the archive. The `statusFilter` state +
+                    `effectiveStatusFilter` mechanism stay intact so
+                    morning sweep is unaffected. */}
+                {historyMode ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <FilterTrigger
+                          active={statusFilter !== 'all'}
+                          valueLabel={statusFilter === 'all' ? t`all` : statusFilter}
+                          aria-label={t`Filter by alert status`}
+                        >
+                          <span>
+                            <Trans>Status</Trans>
+                          </span>
+                        </FilterTrigger>
+                      }
+                    />
+                    <DropdownMenuContent align="start" className="min-w-[180px]">
+                      <DropdownMenuRadioGroup
+                        value={statusFilter}
+                        onValueChange={(value) => {
+                          if (
+                            typeof value === 'string' &&
+                            isStatusFilter(value, statusFilterOptions)
+                          )
+                            setStatusFilter(value)
+                        }}
                       >
-                        <span>
-                          <Trans>Status</Trans>
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
-                  <DropdownMenuContent align="start" className="min-w-[180px]">
-                    <DropdownMenuRadioGroup
-                      value={statusFilter}
-                      onValueChange={(value) => {
-                        if (typeof value === 'string' && isStatusFilter(value, statusFilterOptions))
-                          setStatusFilter(value)
-                      }}
-                    >
-                      {statusFilterOptions.map((option) => (
-                        <DropdownMenuRadioItem key={option} value={option}>
-                          {statusFilterLabel(option, historyMode)}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                        {statusFilterOptions.map((option) => (
+                          <DropdownMenuRadioItem key={option} value={option}>
+                            {statusFilterLabel(option, historyMode)}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : null}
 
                 {/* Tax area — 2026-06-05: single-select service-line filter
                     (Individual / Business income / Sales & use / Payroll /
@@ -812,6 +873,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     size="sm"
                     onClick={() => {
                       setImpactFilter('all')
+                      setImpactLevelFilter('all')
                       setStatusFilter('all')
                       setChangeKindFilter('all')
                       setTaxAreaFilter('all')
@@ -1116,6 +1178,17 @@ function impactFilterLabel(filter: AlertImpactFilter): React.ReactNode {
   if (filter === 'needs_review') return <Trans>Needs review</Trans>
   if (filter === 'no_matches') return <Trans>No matches</Trans>
   return <Trans>Closed</Trans>
+}
+
+// Impact-level filter labels — real client-impact magnitude (low /
+// medium / high from matchedCount + needsReviewCount via
+// `alertImpactLevel`). Distinct from `impactFilterLabel` above, which
+// names the firmImpact workflow-attention buckets.
+function impactLevelFilterLabel(filter: AlertImpactLevelFilter): React.ReactNode {
+  if (filter === 'all') return <Trans>All impact levels</Trans>
+  if (filter === 'high') return <Trans>High impact</Trans>
+  if (filter === 'medium') return <Trans>Medium impact</Trans>
+  return <Trans>Low impact</Trans>
 }
 
 // 2026-05-26 (Yuqi /alerts thirteenth pass): each non-`all`

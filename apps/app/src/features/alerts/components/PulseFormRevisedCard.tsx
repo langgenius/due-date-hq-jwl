@@ -10,8 +10,8 @@ import { formatRelativeTime } from '@/lib/utils'
 import { useAlertDetailQueryOptions } from '../api'
 import {
   actionPillFromAlert,
+  impactBadgeFromAlert,
   openStatusFromAlert,
-  severityFromConfidence,
 } from './pulse-alert-chrome'
 import { changeKindLabel } from './PulseChangeKindChip'
 
@@ -72,7 +72,7 @@ interface PulseFormRevisedCardProps {
 
 function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRevisedCardProps) {
   const { t } = useLingui()
-  const severity = severityFromConfidence(alert.confidence)
+  const severity = impactBadgeFromAlert(alert)
   const actionPill = actionPillFromAlert(alert)
   const openId = openStatusFromAlert(alert.status)
   const totalAffected = alert.matchedCount + alert.needsReviewCount
@@ -144,7 +144,7 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
         {/* uHKcq left cluster, gap-2 (8px). */}
         <div className="flex min-w-0 items-center gap-2">
           {/* l6Xgs severity pill: 11/600 ls 0.8, rounded-4, fill +
-              text from severityFromConfidence(). padding [3,8,2,8]. */}
+              text from impactBadgeFromAlert(). padding [3,8,2,8]. */}
           <span
             className="inline-flex shrink-0 items-center rounded-[4px] px-2 pt-[3px] pb-[2px] text-[11px] font-semibold tracking-[0.8px]"
             style={{ backgroundColor: severity.bg, color: severity.text }}
