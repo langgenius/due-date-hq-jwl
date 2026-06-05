@@ -3682,6 +3682,15 @@ export function ObligationQueueRoute() {
                 className="min-w-0 flex-1 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-tertiary"
               />
             </label>
+            {/* 2026-06-05 (Yuqi DS alignment — "the right panel
+                opening mechanism should be the same as alert
+                detail. now it's chaotic"): when the detail panel
+                is up the filter row collapses to ONLY the Search
+                field — same Round 68 collapse behavior /alerts
+                ships. Keeps the panel-open layout from wrapping
+                Sort + Reset to a second line. */}
+            {panelOpenIntent ? null : (
+            <>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
@@ -3781,8 +3790,17 @@ export function ObligationQueueRoute() {
                 <Trans>Reset</Trans>
               </Button>
             ) : null}
+            </>
+            )}
           </div>
 
+          {/* 2026-06-05 (Yuqi DS alignment — same Round 68 collapse
+              as /alerts): existing quick-filter chip row + actions
+              cluster hide entirely when the detail panel is up. The
+              new alerts-style row above keeps the Search anchored,
+              and the table's auto-collapse already trims columns
+              so the focus mode reads as clean as /alerts'. */}
+          {panelOpenIntent ? null : (
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-wrap items-center gap-1.5">
               {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass — page
@@ -4038,6 +4056,7 @@ export function ObligationQueueRoute() {
               </DropdownMenu>
             </div>
           </div>
+          )}
 
           {selectedIds.length > 0 ? (
             /*
