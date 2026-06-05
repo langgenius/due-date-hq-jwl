@@ -56,7 +56,13 @@ test.describe('seeded opportunities', () => {
       .click()
 
     await expect(authenticatedPage.getByRole('heading', { name: 'Arbor & Vale LLC' })).toBeVisible()
-    await authenticatedPage.getByRole('tab', { name: 'Suggested forms' }).click()
+    // 2026-06-01 client-detail IA rename: the "Suggested forms" tab was
+    // promoted to "Opportunities" (it now houses both the Suggested-forms
+    // catalog AND the Future business cues sub-sections).
+    // See apps/app/src/features/clients/ClientDetailWorkspace.tsx:1090
+    // (tab label) — the "Future business cues" TabSection still lives
+    // inside it (ClientDetailWorkspace.tsx:1250).
+    await authenticatedPage.getByRole('tab', { name: 'Opportunities' }).click()
     const card = authenticatedPage
       .locator('section')
       .filter({
