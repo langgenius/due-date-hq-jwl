@@ -1203,6 +1203,7 @@ describe('@duedatehq/contracts', () => {
 
   it('freezes Pulse demo backend contracts', () => {
     expect(Object.keys(pulseContract)).toEqual([
+      'listAlertsForRule',
       'listAlerts',
       'activeCount',
       'listHistory',
@@ -1452,6 +1453,7 @@ describe('@duedatehq/contracts', () => {
           clientName: 'Acme LLC',
           clientEmail: 'acme@example.com',
           taxType: 'ca_llc_annual_tax',
+          obligationType: 'filing',
           currentDueDate: '2026-04-30',
           paymentDueDate: null,
           status: 'pending',
@@ -1500,6 +1502,7 @@ describe('@duedatehq/contracts', () => {
               clientName: 'Acme LLC',
               clientEmail: 'acme@example.com',
               taxType: 'ca_llc_annual_tax',
+              obligationType: 'filing',
               currentDueDate: '2026-04-30',
               paymentDueDate: null,
               status: 'pending',
