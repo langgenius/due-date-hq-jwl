@@ -1,12 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-// 2026-06-05 (merge with origin/main): main switched the alerts
-// list from a flat `useQuery` to a keyset-paginated
-// `useInfiniteQuery` with Load More. Our rounds 70-85 + 77 wired
-// hover-only Snooze / Dismiss buttons via `useMutation` + sonner
-// toast. Both stay — `useInfiniteQuery` drives the list, the row-
-// action mutations live alongside.
-import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query'
+// 2026-06-05 (Yuqi post-merge call — "flat list, not Load More"):
+// reverted main's keyset-paginated `useInfiniteQuery` back to our
+// flat `useQuery` with a 50-item page. Rounds 70-85 + 77 wired
+// row-level Snooze / Dismiss via `useMutation` + sonner toast.
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
@@ -55,15 +53,16 @@ import { useMorningSweep } from './MorningSweepContext'
 import { AlertDetailDrawer } from './AlertDetailDrawer'
 import { StateTilegram } from './components/StateTilegram'
 import {
-  // 2026-06-05 (merge with origin/main): main moved both list
-  // surfaces to keyset-paginated infinite queries (canonical
-  // direction). HEAD also kept `useAlertsInvalidation` for the
-  // round 77 row-level Snooze / Dismiss mutations — invalidation
-  // re-fetches the first page of either infinite query, which is
-  // what we want after a row action.
+  // 2026-06-05 (Yuqi post-merge call — "flat list, not Load More"):
+  // reverted to the non-infinite query options. The infinite
+  // variants `useAlertsListInfiniteQueryOptions` /
+  // `useAlertsHistoryInfiniteQueryOptions` from origin/main are
+  // still exported in api.ts; they're just not consumed here.
+  // `useAlertsInvalidation` stays for the round 77 row-level
+  // Snooze / Dismiss mutations (re-fetches the list on success).
   useAlertsInvalidation,
-  useAlertsListInfiniteQueryOptions,
-  useAlertsHistoryInfiniteQueryOptions,
+  useAlertsListQueryOptions,
+  useAlertsHistoryQueryOptions,
   useAlertSourceHealthQueryOptions,
   useAlertsAffectedClients,
 } from './api'
@@ -259,20 +258,14 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   void dismissAlertMutation
   void snoozeAlertMutation
 
-  // 2026-06-05 (Load more): both surfaces paginate via keyset cursor. The
-  // server returns one page at a time (publishedAt DESC); "Load more" appends
-  // the next page and the client-side filters + sort below operate on the
-  // full loaded set.
-  const activeAlertsInfiniteOptions = useAlertsListInfiniteQueryOptions()
-  const historyAlertsInfiniteOptions = useAlertsHistoryInfiniteQueryOptions()
-  const alertsQuery = useInfiniteQuery(
-    historyMode ? historyAlertsInfiniteOptions : activeAlertsInfiniteOptions,
-  )
+  // 2026-06-05 (Yuqi post-merge call — "flat list, not Load More"):
+  // back to a flat 50-item query per surface. Client-side filters +
+  // sort below operate on the loaded set; no pagination chrome.
+  const activeAlertsQueryOptions = useAlertsListQueryOptions(50)
+  const historyAlertsQueryOptions = useAlertsHistoryQueryOptions(50)
+  const alertsQuery = useQuery(historyMode ? historyAlertsQueryOptions : activeAlertsQueryOptions)
   const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
-  const alerts = useMemo(
-    () => alertsQuery.data?.pages.flatMap((page) => page.alerts) ?? EMPTY_ALERTS,
-    [alertsQuery.data?.pages],
-  )
+  const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
   // Batch the affected-client rows for every alert in ONE request and hand each
   // card its slice, instead of every AlertCard firing its own `getDetail`.
@@ -1321,29 +1314,9 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 />
               )}
 
-              {/* 2026-06-05 (Load more): keyset-paginated next page. Shows
-                  whenever the server reports another page, regardless of the
-                  active client-side filters — same affordance the audit log
-                  uses. The active queue polls every 60s, so a refetch reloads
-                  all loaded pages consistently (stable publishedAt cursor). */}
-              {alertsQuery.hasNextPage ? (
-                <div className="flex justify-center pt-1 pb-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => void alertsQuery.fetchNextPage()}
-                    disabled={alertsQuery.isFetchingNextPage}
-                    aria-label={t`Load more alerts`}
-                  >
-                    {alertsQuery.isFetchingNextPage ? (
-                      <Trans>Loading…</Trans>
-                    ) : (
-                      <Trans>Load more</Trans>
-                    )}
-                  </Button>
-                </div>
-              ) : null}
+              {/* 2026-06-05 (Yuqi post-merge call — "flat list,
+                  not Load More"): main's keyset "Load more" button
+                  removed. The 50-item flat page is the surface. */}
             </>
           )}
         </div>

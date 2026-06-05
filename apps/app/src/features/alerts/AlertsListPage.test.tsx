@@ -328,7 +328,13 @@ describe('AlertsListPage affected-client batching', () => {
   })
 })
 
-describe('AlertsListPage load more', () => {
+// 2026-06-05 (Yuqi post-merge call — "flat list, not Load More"):
+// the AlertsListPage no longer paginates — main's keyset-based
+// `useInfiniteQuery` + "Load more" button were reverted to a flat
+// 50-item `useQuery` per surface. This describe block is
+// `describe.skip`'d (rather than deleted) so a future engineer
+// restoring pagination can see exactly what the contract was.
+describe.skip('AlertsListPage load more', () => {
   it('appends the next keyset page and hides Load more once exhausted', async () => {
     const first = listAlert({ title: 'First relief', publishedAt: '2026-05-02T00:00:00.000Z' })
     const second = listAlert({
