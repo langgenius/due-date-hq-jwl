@@ -588,18 +588,32 @@ function rowsToIcs(rows: ObligationQueueRow[], timestamp: Date): string {
 }
 
 const list = os.obligations.list.handler(async ({ input, context }) => {
-  const { scoped, tenant, userId } = requireTenant(context)
-  const actor = await context.vars.members?.findMembership(tenant.firmId, userId)
-  const hideDollars = actor?.role === 'coordinator' && !tenant.coordinatorCanSeeDollars
-  const hideSmartPriorityFactors = actor?.role !== 'owner'
+  // 2026-06-05 (TEMP debug — Yuqi reported `/rpc/obligations/list` 500
+  // post-merge with the ORPC envelope swallowing the real error.
+  // Catch + console.error the actual cause so wrangler dev surfaces
+  // it. REMOVE this wrapper once the root cause is fixed.
+  try {
+    const { scoped, tenant, userId } = requireTenant(context)
+    const actor = await context.vars.members?.findMembership(tenant.firmId, userId)
+    const hideDollars = actor?.role === 'coordinator' && !tenant.coordinatorCanSeeDollars
+    const hideSmartPriorityFactors = actor?.role !== 'owner'
 
-  const repoInput = toRepoListInput(input, {})
+    const repoInput = toRepoListInput(input, {})
 
-  const result = await scoped.obligationQueue.list(repoInput)
+    const result = await scoped.obligationQueue.list(repoInput)
 
-  return {
-    rows: result.rows.map((row) => toRow(row, { hideDollars, hideSmartPriorityFactors })),
-    nextCursor: result.nextCursor,
+    return {
+      rows: result.rows.map((row) => toRow(row, { hideDollars, hideSmartPriorityFactors })),
+      nextCursor: result.nextCursor,
+    }
+  } catch (err) {
+    console.error('[obligations.list DEBUG]', {
+      name: err instanceof Error ? err.name : typeof err,
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack?.split('\n').slice(0, 12).join('\n') : undefined,
+      input,
+    })
+    throw err
   }
 })
 
