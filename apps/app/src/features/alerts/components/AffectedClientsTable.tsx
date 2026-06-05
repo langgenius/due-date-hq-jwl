@@ -124,7 +124,11 @@ export function AffectedClientsTable({
           wrapper border settled at `divider-regular` (8% alpha
           — visible-but-quiet sweet spot) after a brief deep-tone
           overshoot. Matches the new canonical wrapper recipe. */}
-      <div className="overflow-hidden rounded-md border border-divider-regular">
+      {/* 2026-06-04 round 78 (Yuqi "finish the partially done first"
+          — detail panel #5): outer frame `rounded-md` (6px) →
+          `rounded-[12px]` to match ActionsTable's canonical card
+          radius. Border token already at `divider-regular`. */}
+      <div className="overflow-hidden rounded-[12px] border border-divider-regular">
         <Table>
           <TableHeader>
             <TableRow>

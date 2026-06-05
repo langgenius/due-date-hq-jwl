@@ -112,7 +112,13 @@ async function ensurePdfJsWorker(): Promise<void> {
     pdfjsWorker?: { WorkerMessageHandler?: unknown }
   }
   if (globalScope.pdfjsWorker?.WorkerMessageHandler) return
-  const workerModule = await import('pdfjs-dist/legacy/build/pdf.worker.mjs')
+  // 2026-06-05 (pre-CI green-up): pdfjs-dist's legacy worker subpath
+  // ships an .mjs without a sibling .d.ts. A local ambient module
+  // declaration lives at `./pdfjs-worker.d.ts` so packages/ingest's
+  // tsc resolves the dynamic import to a narrow `WorkerMessageHandler`
+  // shape rather than implicit-any.
+  const workerModule: { WorkerMessageHandler: unknown } =
+    await import('pdfjs-dist/legacy/build/pdf.worker.mjs')
   globalScope.pdfjsWorker = { WorkerMessageHandler: workerModule.WorkerMessageHandler }
 }
 

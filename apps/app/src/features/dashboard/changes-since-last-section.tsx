@@ -262,7 +262,7 @@ function ChangesSinceLastSection() {
       // page's vertical cadence consistent.
       // 2026-06-04 round 42 (Yuqi consistency audit follow-up #3 —
       // "yes please"): card bg unified with the NeedsAttentionCard
-      // + PulseAlertCard family. `bg-background-section` (#f9fafb
+      // + AlertCard family. `bg-background-section` (#f9fafb
       // gray-50) was sitting only 2 RGB units off the page wash
       // (#f4f4f4 gray-100) — visually invisible chrome. Stepped to
       // `bg-background-default` (white) so the section reads as

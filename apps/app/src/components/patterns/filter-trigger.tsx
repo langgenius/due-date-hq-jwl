@@ -111,10 +111,11 @@ export const FilterTrigger = forwardRef<HTMLButtonElement, FilterTriggerProps>(
         type="button"
         data-active={active ? 'true' : 'false'}
         className={cn(
-          // Pencil T3GhR: cornerRadius 12, padding [10,16], gap 6, stroke
-          // divider-regular 1px. h-10 (40px) keeps the click target +
-          // matches Pencil's rendered 37px frame (height incl border).
-          'inline-flex h-10 items-center gap-1.5 rounded-xl border border-divider-regular px-4 text-[13px] font-medium whitespace-nowrap text-text-secondary outline-none transition-colors',
+          // Round 83 (Yuqi #16 "all of these can be slightly
+          // smaller. just to be more delicate"): height 10 → 9,
+          // horizontal pad 4 → 3, text 13 → 12. The filter row
+          // reads as a quieter, more deliberate strip.
+          'inline-flex h-9 items-center gap-1.5 rounded-xl border border-divider-regular px-3 text-[12px] font-medium whitespace-nowrap text-text-secondary outline-none transition-colors',
           'focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
           variantBg,
           'disabled:cursor-not-allowed disabled:opacity-50',

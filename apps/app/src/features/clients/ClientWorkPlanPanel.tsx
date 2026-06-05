@@ -802,6 +802,10 @@ function FilingPlanYearSection({
                       {formatDate(obligation.currentDueDate)}
                       {obligation.extensionState === 'filed' ||
                       obligation.extensionState === 'accepted' ? (
+                        // 2026-06-01: ext. chip swapped to Badge size=sm
+                        // shape=square info variant — same token-driven
+                        // blue treatment, but inherits the canonical
+                        // micro-chip sizing used everywhere else.
                         <Badge
                           variant="info"
                           size="sm"
@@ -830,6 +834,10 @@ function FilingPlanYearSection({
                         const overdueDays = paymentOverdueDays(obligation, Date.now())
                         if (overdueDays === null) return null
                         return (
+                          // 2026-06-01: Payment-late chip swapped to
+                          // Badge destructive sm square so it inherits
+                          // the same micro-chip rhythm as the ext. chip
+                          // on the Internal Deadline column.
                           <Badge
                             variant="destructive"
                             size="sm"

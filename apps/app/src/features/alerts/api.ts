@@ -49,6 +49,26 @@ export function useAlertsInvalidation(): () => void {
   }, [queryClient])
 }
 
+/**
+ * 2026-06-04 round 50 — Phase 2 morning sweep AI summary endpoint.
+ * Queries the server-side LLM briefing. Cache-friendly: server
+ * caches per (firmId, day-bucket) so the same firm gets one LLM
+ * call per UTC day; the React Query cache here keeps the dialog
+ * snappy on repeat opens.
+ *
+ * (Pre-rename naming was `usePulseMorningSweepQueryOptions`; renamed
+ * to match the round-86 directory-rename's `useAlerts*` convention.)
+ */
+export function useAlertsMorningSweepQueryOptions() {
+  return {
+    ...orpc.pulse.morningSweepSummary.queryOptions({ input: undefined }),
+    // Stale time matches the server's day-bucket cache so the
+    // client doesn't refetch within the same morning unless the
+    // user clicks "Regenerate".
+    staleTime: 60 * 60 * 1000,
+  }
+}
+
 export function useAlertsListQueryOptions(limit?: number) {
   const normalizedLimit = normalizeAlertsListLimit(limit)
   return {

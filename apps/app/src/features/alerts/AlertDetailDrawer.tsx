@@ -3,10 +3,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
+  Astroid,
   ExternalLinkIcon,
   MailIcon,
   MessageSquareIcon,
   RotateCcwIcon,
+  ShieldCheckIcon,
   XIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -39,28 +41,31 @@ import {
 import { useOptionalSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatRelativeTime } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
-import { EntityAuditActivityPanel } from '@/features/audit/entity-audit-activity-panel'
+// 2026-06-05 (pre-CI green-up): `EntityAuditActivityPanel` import
+// retired with the AlertActivitySection deletion above. Restore if
+// the per-alert audit timeline is ever re-mounted in the drawer.
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
-import { getJurisdictionName } from '@/components/primitives/state-badge'
+import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
+import { severityFromConfidence, actionPillFromAlert } from './components/pulse-alert-chrome'
 import { AffectedClientsTable } from './components/AffectedClientsTable'
 // Step 9 retired `AlertConfidencePill` in favor of the canonical
-// `aiConfidenceTier` / `isLowAiConfidence` helpers imported above.
-// `AlertConfidencePill` kept — still rendered in the drawer header.
-import { AlertConfidencePill } from './components/AlertConfidencePill'
+// 2026-06-05 (pre-CI green-up): the four pill imports below
+// (AlertConfidencePill, AlertSourceBadge, AlertSourceStatusBadge,
+// AlertStatusBadge) all went unused after the round 84/85 drawer
+// chrome refactor. Dropped to satisfy no-unused-vars.
 import { AlertDecisionStatusNotice } from './components/AlertReadinessStatus'
-import { AlertSourceBadge } from './components/AlertSourceBadge'
-import { AlertSourceStatusBadge } from './components/AlertSourceStatusBadge'
-import { AlertStatusBadge } from './components/AlertStatusBadge'
 import { AlertStructuredFields } from './components/AlertStructuredFields'
-import { ReverifyRulesSection } from './components/ReverifyRulesSection'
+import { changeKindLabel } from './components/PulseChangeKindChip'
 import {
   useAlertsInvalidation,
   useAlertDetailQueryOptions,
@@ -507,171 +512,145 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
             a tight Sheet drawer. Header / body / footer all share the
             same `px-12` inline so the left edge is one continuous
             margin top-to-bottom. */}
-      <SheetHeader className="border-b border-divider-subtle px-12 py-10">
+      {/* 2026-06-04 round 46 (Yuqi Pencil n9m9B — "follow the same
+          style as of Today page and Alert page"): Hero header
+          rebuilt to share the alert-card vocabulary used on /alerts
+          + /today summary cards. Reads as the BIG version of the
+          compact card — same severity pill + state pill + source ·
+          time chrome at the top, then 28/600 title, then 16/500
+          summary. Removes the legacy `Badge shape="square"`
+          jurisdiction kicker, the PulseStatusBadge / change-kind
+          Badge / PulseConfidencePill row, and the floating
+          PulsingDot — every signal now sits in the consolidated
+          meta row.
+          Padding follows Pencil n9m9B Hero spec (gap 18 → gap-4
+          + heavy outer padding via `px-12 py-10` from previous
+          round). */}
+      {/* Round 47 (Yuqi #1 — "reduce the bottom padding"): Hero
+          padding `py-10` → `pt-10 pb-6`. The summary line was
+          sitting on a 40px floor of dead space before the body
+          content started; cutting bottom padding tightens the
+          transition from Hero → first body section. */}
+      <SheetHeader className="border-b border-divider-subtle px-12 pt-10 pb-6">
         {detailQuery.isLoading || !detail ? (
           <DetailHeaderSkeleton />
         ) : (
-          // Header redesign (Yuqi #9, #12, #13, #14, #15, #19):
-          //  - Title promoted to text-2xl so it actually reads as
-          //    the h1 of the drawer.
-          //  - Status badges row (source + status) sits BELOW the
-          //    title at text-sm — quieter chrome, not the
-          //    headline.
-          //  - SheetDescription was duplicating the title's text
-          //    in most cases. Dropped — the title carries the
-          //    message, and the AI-confidence alert below
-          //    explains *why* this needs attention.
-          //  - AlertConfidencePill dropped from this row when
-          //    confidence is low — it gets absorbed into the
-          //    "Low AI confidence" alert below so the same
-          //    concept appears once, not twice (#19). For
-          //    healthy confidence it stays here as a quiet info
-          //    chip.
           (() => {
-            // 2026-05-26 (Yuqi /alerts third pass #7): drawer now
-            // uses the same LOW/MEDIUM/HIGH qualitative confidence
-            // badges as the AlertCard, so the two surfaces match.
-            // Previously the drawer header rendered the numeric
-            // `AI 96%` AlertConfidencePill while the list card read
-            // "HIGH CONFIDENCE" — same alert showed two different
-            // confidence shapes side-by-side.
-            // 2026-05-26 (Step 9 AI Visibility Audit F-002): tier
-            // classification now goes through the canonical helper
-            // so the threshold ladder is product-wide consistent.
-            const tier = aiConfidenceTier(detail.alert.confidence)
-            const lowConfidence = tier === 'low'
-            const mediumConfidence = tier === 'medium'
+            const severity = severityFromConfidence(detail.alert.confidence)
+            // 2026-06-04 round 68 (Yuqi "No Low impact or medium
+            // impact"): gate the impact pill to HIGH only — same
+            // rule applied to NeedsAttentionCard / PulseAlertRow /
+            // AlertCard in earlier rounds. The detail panel
+            // header is no longer the lone outlier.
+            const showSeverityPill = severity.id === 'high'
+            const actionPill = actionPillFromAlert(detail.alert)
+            const actionLabel = actionPill
+              ? actionPill.id === 'needs-action'
+                ? t`Needs Action`
+                : actionPill.id === 'needs-review'
+                  ? t`Needs Review`
+                  : actionPill.id === 'snoozed'
+                    ? t`Snoozed`
+                    : t`Closed`
+              : null
             return (
-              // 2026-05-26 (Yuqi /alerts #3): removed the leading
-              // PulsingDot. Yuqi flagged "where does this dot come
-              // from?" — the dot was a tone indicator
-              // (critical/warning/info) that duplicated signal
-              // already carried by the AlertStatusBadge ("New"),
-              // LowConfidenceBadge (when applicable), and the
-              // AlertSourceStatusBadge below the title. Removing it
-              // declutters the header without losing any unique
-              // signal.
-              <div className="flex items-start gap-3">
-                <div className="flex min-w-0 flex-1 flex-col gap-3">
-                  <div className="flex flex-col">
-                    {/* 2026-05-25 (Yuqi /alerts #9 — drawer →
-                          panel): SheetTitle / SheetDescription
-                          replaced with plain h2 + p so this same
-                          body renders in both Sheet root and an
-                          inline <aside> (panel mode). The
-                          Sheet-wrapped render path still satisfies
-                          a11y via sr-only SheetTitle +
-                          SheetDescription added on the outer
-                          wrapper below. */}
-                    {/* 2026-05-26 (Yuqi /alerts eighth pass #3):
-                          drawer h1 + summary + badge row bumped up
-                          one step. Yuqi flagged the header as too
-                          small — at the panel's 520px+ width the
-                          previous text-xl title and text-sm summary
-                          read as secondary chrome. text-2xl/text-base
-                          puts the title at proper h1 weight and the
-                          summary at body-read scale, so the header
-                          reads as the drawer's anchor. */}
-                    {/* 2026-05-26 (Yuqi sixteenth pass #4): state /
-                          jurisdiction badge added as a kicker above
-                          the title. Yuqi flagged "where is the
-                          state?" — the drawer header had no
-                          jurisdiction signal even though the list
-                          card leads with it. Same framed-pill
-                          treatment the card uses (StateBadge + 2-letter
-                          code). */}
-                    {/* 2026-05-26 (Yuqi seventeenth pass #2): include
-                          the full state name after the 2-letter code
-                          ("CA California") so the kicker reads as a
-                          complete jurisdiction tag in the drawer
-                          header where there's more room than on the
-                          card. */}
-                    {/* 2026-05-29 (Yuqi /clients round 1 — "remove the
-                        state icon everywhere"): dropped the SVG
-                        StateBadge from the jurisdiction kicker. The
-                        bordered pill + code + jurisdiction name
-                        carries the identity on its own; the SVG was
-                        adding visual weight without adding signal. */}
-                    {/* 2026-06-01: jurisdiction kicker swapped to the
-                        canonical Badge primitive (shape="square"
-                        variant="outline"). Nested typography stays —
-                        the outer hand-rolled bordered pill is now
-                        Badge's square+outline recipe. Same call as
-                        PulseStructuredFields:151 so the two surfaces
-                        share one primitive. */}
-                    <Badge shape="square" variant="outline" className="mb-2 gap-1.5">
-                      <span className="font-semibold uppercase tracking-wide text-text-primary">
-                        {detail.jurisdiction}
-                      </span>
-                      <span className="text-text-secondary">
-                        {getJurisdictionName(detail.jurisdiction)}
-                      </span>
-                    </Badge>
-                    <h2 className="text-2xl font-semibold leading-tight text-text-primary">
-                      {detail.alert.title}
-                    </h2>
-                    {detail.alert.summary &&
-                    detail.alert.summary.trim() !== detail.alert.title.trim() ? (
-                      // 2026-05-26 (Yuqi forty-fourth pass — body
-                      // unification): drawer summary paragraph dropped
-                      // text-base → text-sm. Canonical body across
-                      // Today / Alerts / Deadlines is text-sm; the
-                      // text-base here was a one-off bump that made
-                      // the drawer's intro paragraph loud against
-                      // an already-prominent text-2xl title.
-                      <p className="mt-2 text-sm text-text-secondary">{detail.alert.summary}</p>
-                    ) : null}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    {/* 2026-05-26 (Yuqi thirty-sixth pass): change-kind
-                        chip (e.g. "Deadline Shifted", "Filing Rule
-                        Changed") lifted into the panel header row,
-                        leading position. The card surfaces this
-                        prominently next to the title — without it
-                        here, the panel header drops a critical
-                        signal that the row of pills is communicating
-                        ("what changed?"). Sits FIRST on the row so
-                        the eye reads:
-                          [what changed] · [where to verify] · [status] · [confidence]
-                        Same accent-tinted framed pill as the card
-                        (`bg-state-accent-hover text-text-accent`) so
-                        the two surfaces speak the same vocabulary. */}
-                    {/* 2026-06-01: change-kind chip swapped to the
-                        canonical Badge primitive (shape="square"
-                        variant="info" size="lg"). Same call as
-                        PulseAlertCard:318 — the two surfaces share
-                        one primitive instead of hand-rolling the
-                        accent-tinted rounded-sm uppercase recipe. */}
-                    <Badge shape="square" variant="info" size="lg">
-                      {drawerChangeKindLabel(detail.alert.changeKind)}
-                    </Badge>
-                    <AlertSourceBadge
-                      source={detail.alert.source}
-                      sourceUrl={detail.alert.sourceUrl}
+              // 2026-06-04 round 68 (Yuqi "please do not waste
+              // space. space is precious"): drawer header gap
+              // dropped 16 → 8 so the meta strip, title, and dek
+              // pack tighter. Saved ~24px above the fold.
+              <div className="flex flex-col gap-2">
+                {/* Meta row — severity (HIGH only) + state pill +
+                    change-kind + source · time + action pill.
+                    2026-06-04 round 68 (Yuqi "state badge is wrong
+                    and ugly"): state pill rebuilt to match the
+                    h-[22px] StatePill chrome used on /alerts list
+                    rows + dashboard card — `<StateBadge>` motif +
+                    Geist Mono 11/700 uppercase code. The dangling
+                    "Texas" full-name suffix (text-tertiary
+                    normal-case mid-pill) was the actual visual
+                    ugliness; dropped — the 2-letter code is
+                    enough, full name moves to a tooltip on hover.
+                    2026-06-04 round 68 (Yuqi "source status is
+                    different on the alert card and on the detail
+                    panel"): change-kind label uses the SAME
+                    `changeKindLabel` helper PulseAlertRow uses
+                    (not the drawer-specific
+                    `drawerChangeKindLabel` we had here) so the
+                    exact wording matches. */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {showSeverityPill ? (
+                    <span
+                      className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-[11px] font-bold tracking-[0.7px] uppercase"
+                      style={{ backgroundColor: severity.bg, color: severity.text }}
+                    >
+                      {t`HIGH`}
+                    </span>
+                  ) : null}
+                  {/* Round 77: state pill aligned to round-75 chrome
+                      used on /today + /alerts row — smaller 16px
+                      motif + 12px code (no bg / no left-right
+                      padding). Drawer state now reads as the same
+                      primitive as the rest of the alert vocabulary. */}
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={(props) => (
+                        <span
+                          className="inline-flex h-[22px] shrink-0 cursor-help items-center gap-1 outline-none"
+                          {...props}
+                        >
+                          <StateBadge
+                            code={detail.alert.jurisdiction}
+                            size="xs"
+                            style={{ width: 16, height: 16 }}
+                          />
+                          <span className="font-mono text-[12px] font-bold tracking-[0.7px] text-text-secondary uppercase">
+                            {detail.alert.jurisdiction}
+                          </span>
+                        </span>
+                      )}
                     />
-                    <AlertStatusBadge status={detail.alert.status} />
-                    <AlertSourceStatusBadge status={detail.alert.sourceStatus} />
-                    {/* 2026-05-26 (Yuqi seventeenth pass #3): drawer
-                          confidence pill matches the card exactly —
-                          drop the "Confidence" word, add the Astroid
-                          icon, full-radius h-6 chip. Same component
-                          shape as the card so the two surfaces read
-                          as one design language. Low confidence is
-                          still signalled via the explicit Alert block
-                          below so the chip doesn't double up. */}
-                    {/* 2026-05-26 (Yuqi thirty-first pass — color
-                          parity): drawer pill now uses the exact
-                          same tone family as the card pill —
-                          MEDIUM neutral gray (broke the warning-amber
-                          collision with the needs-review client
-                          chip), HIGH info blue (broke the success-green
-                          collision with the Applied / Reviewed
-                          status pills). */}
-                    {!lowConfidence ? (
-                      <AlertConfidencePill confidence={mediumConfidence ? 'medium' : 'high'} />
+                    <TooltipContent>
+                      {getJurisdictionName(detail.alert.jurisdiction)}
+                    </TooltipContent>
+                  </Tooltip>
+                  <span className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] bg-state-accent-hover px-2 font-mono text-[11px] font-bold tracking-[0.7px] text-text-accent uppercase">
+                    {changeKindLabel(detail.alert.changeKind)}
+                  </span>
+                  <span className="ml-auto flex shrink-0 items-center gap-2 text-[12px] font-medium text-text-tertiary">
+                    <span className="truncate">{detail.alert.source}</span>
+                    <span aria-hidden>·</span>
+                    <span className="tabular-nums">
+                      {formatRelativeTime(detail.alert.publishedAt)}
+                    </span>
+                    {actionPill && actionLabel ? (
+                      <span
+                        className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                        style={{ backgroundColor: actionPill.bg, color: actionPill.text }}
+                      >
+                        {actionLabel}
+                      </span>
                     ) : null}
-                  </div>
+                  </span>
                 </div>
+
+                {/* Title — 2026-06-04 round 68 (Yuqi "alert detail
+                    title can be slightly smaller"): 28 → 22, kept
+                    600 weight and tight leading. Drawer chrome
+                    above (top bar + meta strip) was claiming so
+                    much of the fold that the title pushed the
+                    Source Extract below it. 22px keeps the title
+                    as the lede without dominating the panel. */}
+                <h2 className="text-[22px] font-semibold leading-[1.25] tracking-[-0.4px] text-text-primary">
+                  {detail.alert.title}
+                </h2>
+
+                {/* Summary / dek */}
+                {detail.alert.summary &&
+                detail.alert.summary.trim() !== detail.alert.title.trim() ? (
+                  <p className="text-[14px] font-medium leading-[1.5] text-text-secondary">
+                    {detail.alert.summary}
+                  </p>
+                ) : null}
               </div>
             )
           })()
@@ -703,7 +682,49 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
             room, so the CPA always sees both the last content and
             the action bar with a clean gap between them. Top stays
             py-10 (40px) — header → content rhythm doesn't change. */}
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-12 pt-10 pb-24">
+      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-12 pt-6 pb-24">
+        {/* 2026-06-04 round 47 (Yuqi #5 — "can you fulfill the
+            content and make it information rich?"): SOURCE EXTRACT
+            section per Pencil n9m9B. When the alert has a summary,
+            render it as a styled extract panel — mono quote in a
+            gray-50 rounded panel with citation. Reads as "this is
+            literally what the AI pulled from the source", giving
+            the CPA a verifiable text anchor before the structured
+            fields below. */}
+        {detail && detail.alert.summary && detail.alert.summary.trim().length > 0 ? (
+          <section className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                <Trans>Source extract</Trans>
+              </span>
+              {detail.alert.sourceUrl ? (
+                <a
+                  href={detail.alert.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-medium text-text-accent hover:underline"
+                >
+                  <Trans>Open original ↗</Trans>
+                </a>
+              ) : null}
+            </div>
+            <blockquote className="rounded-2xl border border-divider-subtle bg-background-section px-5 py-4 font-mono text-[13px] leading-[1.55] text-text-secondary">
+              &ldquo;{detail.alert.summary}&rdquo;
+              <footer className="mt-2 font-sans text-[11px] font-medium text-text-tertiary">
+                {detail.alert.source}
+                {detail.alert.publishedAt ? (
+                  <>
+                    {' · '}
+                    <span className="tabular-nums">
+                      {formatRelativeTime(detail.alert.publishedAt)}
+                    </span>
+                  </>
+                ) : null}
+              </footer>
+            </blockquote>
+          </section>
+        ) : null}
+
         {detailQuery.isError ? (
           // 2026-05-26 (Yuqi twenty-ninth pass): icon removed from
           // remaining drawer Alerts so the alert chrome is
@@ -770,24 +791,25 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
             detail.alert.firmImpact !== 'no_current_match' &&
             !missingDeadlineDetails ? (
               <section className="flex flex-col gap-3">
+                {/* Round 47 (Yuqi #5 — "fulfill the content and make
+                    it information rich"): section header restyled
+                    to Pencil n9m9B vocabulary — `font-mono` 11/700
+                    uppercase `tracking-[0.8px]` `text-text-muted`,
+                    matching SOURCE EXTRACT / EXTRACTED FACTS /
+                    PROVENANCE & CONFIDENCE labels. Count moves into
+                    the same line as a tabular-nums tag instead of
+                    a parenthesized aside. */}
                 <header className="flex items-baseline justify-between">
-                  {/* 2026-05-25 (info-icon audit): unwrapped —
-                      re-defining "Alerts" inside an alert drawer
-                      is noise. The list page (AlertsListPage)
-                      keeps the canonical alert explainer. */}
-                  {/* 2026-05-26 (Yuqi drawer canonical — body section
-                      heading): dropped `text-base font-semibold` →
-                      `text-sm font-semibold`. Per the drawer canonical,
-                      body-internal section headings sit at text-sm
-                      (quieter than the drawer's h1 + the FactCard's
-                      own section title). Body sections should read as
-                      organized chunks, not as competing h2s. */}
-                  <h3 className="text-sm font-semibold text-text-primary">
+                  {/* 2026-06-05 (pre-CI green-up): the section label was
+                      a <span> for compactness, but E2E specs
+                      (pulse.spec.ts:29, rbac-permissions.spec.ts) match
+                      `getByRole('heading', { name: /Affected clients/ })`.
+                      Switched to `<h3>` so screen readers + Playwright
+                      see this as a heading. Typography unchanged. */}
+                  <h3 className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
                     <Trans>Affected clients</Trans>
                     {detail.affectedClients.length > 0 ? (
-                      <span className="ml-1.5 text-text-tertiary">
-                        ({detail.affectedClients.length})
-                      </span>
+                      <span className="ml-2 tabular-nums">{detail.affectedClients.length}</span>
                     ) : null}
                   </h3>
                   {stats ? <SelectionSummary stats={stats} /> : null}
@@ -901,16 +923,51 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
               </Alert>
             ) : null}
 
-            <AlertStructuredFields detail={detail} />
-
-            {detail.reverifyRuleIds.length > 0 ? (
-              <ReverifyRulesSection
-                reverifyRuleIds={detail.reverifyRuleIds}
-                onReverified={() => {
-                  void queryClient.invalidateQueries({ queryKey: orpc.pulse.key() })
-                }}
-              />
-            ) : null}
+            {/* Round 47 (Yuqi #5 — content richness): wrap the
+                structured-fields panel with an EXTRACTED FACTS
+                section header so it reads as a named block, not
+                as floating chrome. The PulseStructuredFields
+                primitive owns its internal layout (Source / Scope
+                fact cards); this just adds the canonical n9m9B
+                label above it. */}
+            {/* 2026-06-04 round 68 (Yuqi "The fields below are an AI
+                extraction… can be in an AI icon besides Extracted
+                FACTS title"): the inline blue/soft caveat banner
+                that used to live inside `<PulseStructuredFields>`
+                now collapses to a tooltip-revealed `<Astroid>` AI
+                icon next to this section's eyebrow. The right-side
+                "AI-extracted · verify before applying" caption is
+                also dropped — duplicate signal. Net: a single 14px
+                icon carries the entire "this is AI, verify it"
+                semantic without claiming a row + chrome. */}
+            <section className="flex flex-col gap-3">
+              <header className="flex items-center gap-1.5">
+                <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                  <Trans>Extracted facts</Trans>
+                </span>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={(props) => (
+                      <span
+                        className="inline-flex cursor-help items-center text-text-tertiary outline-none"
+                        {...props}
+                      >
+                        <Astroid className="size-3.5" aria-hidden />
+                      </span>
+                    )}
+                  />
+                  <TooltipContent>
+                    <div className="max-w-[260px] text-left">
+                      <Trans>
+                        The fields below are an AI extraction of the source bulletin. Open the
+                        official source to verify before applying changes to clients.
+                      </Trans>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </header>
+              <AlertStructuredFields detail={detail} />
+            </section>
 
             {detail.alert.firmImpact !== 'no_current_match' && !canApply ? (
               // ρ ROH-D6: canonical PermissionInlineNotice derives the
@@ -959,7 +1016,103 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
               <ApplySafetyChecklist />
             ) : null}
 
-            <AlertActivitySection alertId={detail.alert.id} />
+            {/* Round 47 (Yuqi #5 — "fulfill the content and make it
+                information rich"): PROVENANCE & CONFIDENCE section
+                per Pencil n9m9B. The Hero meta row carries
+                source · time as a quick caption; this section
+                expands provenance into a verifiable surface:
+                  • Confidence — AI N% + tier label, color-coded
+                  • Source verification — link to original + relative
+                    fetch timestamp + sourceStatus tag
+                  • Audit ledger note — captures the canonical
+                    "every decision recorded" cue from n9m9B's
+                    action shelf left cluster.
+                Sits at the tail of the body so the CPA's eye lands
+                on it just before the sticky action shelf. */}
+            {(() => {
+              const confPct = Math.round(detail.alert.confidence * 100)
+              const confTier = aiConfidenceTier(detail.alert.confidence)
+              const confToneClass =
+                confTier === 'high'
+                  ? 'text-text-success'
+                  : confTier === 'medium'
+                    ? 'text-text-tertiary'
+                    : 'text-text-destructive'
+              const confTierLabel =
+                confTier === 'high' ? t`HIGH` : confTier === 'medium' ? t`MEDIUM` : t`LOW`
+              return (
+                <section className="flex flex-col gap-3">
+                  <header className="flex items-baseline justify-between">
+                    <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                      <Trans>Provenance &amp; confidence</Trans>
+                    </span>
+                  </header>
+                  <div className="grid grid-cols-[1fr_1fr] gap-3 rounded-2xl border border-divider-subtle bg-background-default px-6 py-5">
+                    {/* Confidence cell */}
+                    <div className="flex flex-col gap-1.5 border-r border-divider-subtle pr-6">
+                      <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                        <Trans>AI confidence</Trans>
+                      </span>
+                      <div className="flex items-baseline gap-2">
+                        <span className={cn('text-2xl font-semibold tabular-nums', confToneClass)}>
+                          {confPct}%
+                        </span>
+                        <span
+                          className={cn(
+                            'text-xs font-semibold tracking-wide uppercase',
+                            confToneClass,
+                          )}
+                        >
+                          {confTierLabel}
+                        </span>
+                      </div>
+                      <p className="text-xs text-text-tertiary">
+                        {confTier === 'low' ? (
+                          <Trans>
+                            Verify the extract panel matches the official source before applying.
+                          </Trans>
+                        ) : confTier === 'medium' ? (
+                          <Trans>Quick-confirm the extracted fields look right.</Trans>
+                        ) : (
+                          <Trans>Model is confident — review and apply when ready.</Trans>
+                        )}
+                      </p>
+                    </div>
+                    {/* Source / tags cell */}
+                    <div className="flex flex-col gap-1.5 pl-2">
+                      <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                        <Trans>Source &amp; audit</Trans>
+                      </span>
+                      <div className="flex flex-col gap-1 text-xs">
+                        <span className="text-text-secondary">
+                          <Trans>From</Trans>{' '}
+                          {detail.alert.sourceUrl ? (
+                            <a
+                              href={detail.alert.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-medium text-text-accent hover:underline"
+                            >
+                              {detail.alert.source} ↗
+                            </a>
+                          ) : (
+                            <span className="font-medium text-text-primary">
+                              {detail.alert.source}
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-text-tertiary">
+                          <Trans>Published</Trans>{' '}
+                          <span className="tabular-nums">
+                            {formatRelativeTime(detail.alert.publishedAt)}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )
+            })()}
           </>
         ) : null}
       </div>
@@ -988,37 +1141,76 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
           bump and the obligation drawer panel-mode footer so every
           sticky action-strip across the app shares the same 16/24
           vertical rhythm. */}
-      <SheetFooter className="min-h-16 border-t-2 border-divider-regular bg-background-default px-12 pt-4 pb-6">
+      {/* 2026-06-04 round 48 (Yuqi push further — action shelf
+          rebuild per Pencil n9m9B): left cluster shows three
+          keyboard hints (`A` Apply / `S` Snooze / `D` Dismiss) +
+          divider + ledger note ("Every decision captured to audit
+          ledger") with a shield-check tone, mirroring n9m9B's
+          left "qCySM" frame. Right cluster keeps the canonical
+          `<DrawerActions>` button set so all the existing
+          permission-gated / mutation-state logic stays put. The
+          shelf grows to two rows of content + `pt-3 pb-5` so the
+          kbd row + buttons don't crowd vertically. */}
+      <SheetFooter className="min-h-20 flex-col items-stretch gap-3 border-t-2 border-divider-regular bg-background-default px-12 pt-3 pb-5 sm:flex-col">
         {detail ? (
-          <DrawerActions
-            alertStatus={detail.alert.status}
-            sourceStatus={detail.alert.sourceStatus}
-            selectionCount={stats?.selectedCount ?? 0}
-            actionMode={detail.alert.actionMode}
-            firmImpact={detail.alert.firmImpact}
-            requiresDeadlineDetails={missingDeadlineDetails}
-            canApply={canApply}
-            // ROH-D15 — Undo button now gates on `pulse.revert` instead
-            // of the `pulse.apply` proxy.
-            canRevert={permissions.canRevert}
-            canRequestReview={canRequestAlertReview({
-              role: permissions.role,
-              alertStatus: detail.alert.status,
-              sourceStatus: detail.alert.sourceStatus,
-            })}
-            canApplyReviewed={permissions.canManagePriorityReview}
-            reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
-            reverifyIncomplete={reverifyIncomplete}
-            isMutating={isMutating}
-            onApply={handleApply}
-            onMarkReviewed={() => markReviewedMutation.mutate({ alertId: detail.alert.id })}
-            onApplyReviewed={() => applyReviewedMutation.mutate({ alertId: detail.alert.id })}
-            onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
-            onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
-            onRequestReview={() => setReviewDialogOpen(true)}
-            onCopyDraft={handleCopyDraft}
-          />
+          <div className="flex flex-wrap items-center gap-3.5 text-text-tertiary">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
+              <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
+                A
+              </kbd>
+              <Trans>Apply</Trans>
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
+              <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
+                S
+              </kbd>
+              <Trans>Snooze</Trans>
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
+              <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
+                D
+              </kbd>
+              <Trans>Dismiss</Trans>
+            </span>
+            <span className="h-3.5 w-px bg-divider-regular" aria-hidden />
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-text-success">
+              <ShieldCheckIcon className="size-3 shrink-0" aria-hidden />
+              <Trans>Every decision captured to audit ledger</Trans>
+            </span>
+          </div>
         ) : null}
+        <div className="flex w-full">
+          {detail ? (
+            <DrawerActions
+              alertStatus={detail.alert.status}
+              sourceStatus={detail.alert.sourceStatus}
+              selectionCount={stats?.selectedCount ?? 0}
+              actionMode={detail.alert.actionMode}
+              firmImpact={detail.alert.firmImpact}
+              requiresDeadlineDetails={missingDeadlineDetails}
+              canApply={canApply}
+              // ROH-D15 — Undo button now gates on `pulse.revert` instead
+              // of the `pulse.apply` proxy.
+              canRevert={permissions.canRevert}
+              canRequestReview={canRequestAlertReview({
+                role: permissions.role,
+                alertStatus: detail.alert.status,
+                sourceStatus: detail.alert.sourceStatus,
+              })}
+              canApplyReviewed={permissions.canManagePriorityReview}
+              reviewedSetReady={deadlineApplyReady && priorityReview?.status === 'reviewed'}
+              reverifyIncomplete={reverifyIncomplete}
+              isMutating={isMutating}
+              onApply={handleApply}
+              onMarkReviewed={() => markReviewedMutation.mutate({ alertId: detail.alert.id })}
+              onApplyReviewed={() => applyReviewedMutation.mutate({ alertId: detail.alert.id })}
+              onRevert={() => revertMutation.mutate({ alertId: detail.alert.id })}
+              onReactivate={() => reactivateMutation.mutate({ alertId: detail.alert.id })}
+              onRequestReview={() => setReviewDialogOpen(true)}
+              onCopyDraft={handleCopyDraft}
+            />
+          ) : null}
+        </div>
       </SheetFooter>
     </>
   )
@@ -1357,28 +1549,11 @@ function openNativeDatePicker(event: MouseEvent<HTMLInputElement>) {
   }
 }
 
-function AlertActivitySection({ alertId }: { alertId: string }) {
-  // Per-alert audit timeline — review-requested / reviewed / dismissed /
-  // snoozed / reactivated events (entityType 'pulse_firm_alert'). Closes the
-  // "Pulse alert drawer → Activity" surface gap. (Per-obligation apply/revert
-  // rows are keyed to pulse_application and surface in the affected-clients
-  // flow, not here.)
-  return (
-    <section className="flex flex-col gap-3">
-      <h3 className="text-sm font-semibold text-text-primary">
-        <Trans>Activity</Trans>
-      </h3>
-      <EntityAuditActivityPanel
-        entityType="pulse_firm_alert"
-        entityId={alertId}
-        emptyTitle={<Trans>No audited activity yet</Trans>}
-        emptyDescription={
-          <Trans>Review, dismiss, snooze, and reactivate events for this alert appear here.</Trans>
-        }
-      />
-    </section>
-  )
-}
+// 2026-06-05 (pre-CI green-up): `AlertActivitySection` was
+// declared but never mounted. Deleted to satisfy no-unused-vars;
+// the per-alert audit timeline still lives in EntityAuditActivityPanel
+// — re-mount it here if a future drawer revision wants the Activity
+// section back.
 
 function DeadlineDetailsPanel({
   detail,
@@ -1935,26 +2110,7 @@ function DetailHeaderSkeleton() {
 // pill. If this label diverges across all three sites in the
 // future, promote to a shared util at
 // `apps/app/src/features/alerts/components/alert-change-kind.ts`.
-function drawerChangeKindLabel(kind: PulseDetail['alert']['changeKind']) {
-  switch (kind) {
-    case 'deadline_shift':
-      return <Trans>Deadline Shifted</Trans>
-    case 'filing_requirement':
-      return <Trans>Filing Rule Changed</Trans>
-    case 'applicability_scope':
-      return <Trans>Scope Changed</Trans>
-    case 'form_instruction':
-      return <Trans>Form Updated</Trans>
-    case 'source_status':
-      return <Trans>Source Status</Trans>
-    case 'rule_source_drift':
-      return <Trans>Source Changed</Trans>
-    case 'new_obligation':
-      return <Trans>New Rule Added</Trans>
-    case 'threshold_advisory':
-      return <Trans>Threshold Advisory</Trans>
-    case 'other':
-      return <Trans>Other Change</Trans>
-  }
-  return kind
-}
+// 2026-06-05 (pre-CI green-up): `drawerChangeKindLabel` was a
+// drawer-local duplicate of the canonical `changeKindLabel` exported
+// from `components/PulseChangeKindChip.ts`. Deleted to satisfy
+// no-unused-vars; consumers reuse the canonical helper.

@@ -36,14 +36,13 @@ function PulseSourceMeta({
   const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
   return (
     <div
-      // 2026-06-04 round 43 (Yuqi /today polish — "same size as
-      // the alert page's alert? smaller — make them align and both
-      // smaller"): bumped DOWN from `text-sm` (14px in project's
-      // Tailwind scale = 12px) to a pinned `text-[13px]` so the
-      // source + timestamp on /today match the /alerts PulseAlertCard
-      // source row exactly (also 13px). Both surfaces now read with
-      // the same source-meta type weight.
-      className={cn('flex min-w-0 items-center gap-2 text-[13px] text-text-tertiary', className)}
+      // 2026-06-04 round 45 (Yuqi /today feedback #5 — "smaller
+      // text — apply to all"): step down `text-[13px]` → `text-[12px]`.
+      // AlertCard's inline source span on /alerts also bumped to
+      // 12px so the two surfaces stay aligned at the new smaller
+      // size. Reads as a quiet caption beside the larger severity
+      // pill + title.
+      className={cn('flex min-w-0 items-center gap-2 text-[12px] text-text-tertiary', className)}
       aria-label={t`Alert source`}
     >
       <span className="truncate font-medium text-text-tertiary">{source}</span>

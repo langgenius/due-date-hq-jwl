@@ -317,9 +317,19 @@ function ActionsTable({
                   className="cursor-default even:bg-transparent hover:!bg-background-subtle"
                   aria-hidden="false"
                 >
+                  {/* 2026-06-04 round 84 (Yuqi "apply table design
+                      guideline … to Alert and Deadlines" — push
+                      readability to both surfaces): subgroup
+                      divider tokens lifted to match /alerts day-
+                      header chrome — `text-[12px] text-text-secondary`
+                      (was `text-[11px] text-text-tertiary`). Round
+                      79 #2 made /alerts more readable; this
+                      brings /today's matching primitive up to
+                      the same readable scale so both surfaces
+                      share one token combo end-to-end. */}
                   <TableCell
                     colSpan={7}
-                    className="bg-background-subtle px-5 py-2 text-[11px] font-semibold tracking-[0.5px] text-text-tertiary uppercase"
+                    className="bg-background-subtle px-5 py-2 text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase"
                   >
                     <SubgroupLabel kind={currentSubgroup} />
                   </TableCell>
@@ -478,9 +488,15 @@ function ActionsTableRow({
           row body and the alert card source now read at the same
           weight. The `py-2` override here is removed; TableRow's
           `[&_td]:py-3` carries the row height now. */}
-      <TableCell className="text-[13px] font-medium text-text-secondary">
-        {row.clientName}
-      </TableCell>
+      {/* 2026-06-04 round 71 (Yuqi "change the client name to a
+          lighter tone"): client column color stepped one tier
+          quieter — `text-text-secondary` → `text-text-tertiary`.
+          The client name was reading as the second-loudest cell
+          on every row after the title in the ACTION column;
+          dropping it lets the action prompt own the eye and the
+          client name reads as the "for which client?" context
+          rather than competing for primary attention. */}
+      <TableCell className="text-[13px] font-medium text-text-tertiary">{row.clientName}</TableCell>
       <TableCell>
         {/* 2026-06-04 round 16 (Yuqi page-feedback "should allow
             hover on each row to show more information"): the

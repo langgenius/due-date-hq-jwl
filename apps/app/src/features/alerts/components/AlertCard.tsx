@@ -248,12 +248,19 @@ export function AlertCard({
                   timestamp + action-status pill on the right. */}
               <div className="flex items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2">
-                  <span
-                    className="inline-flex h-6 shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-semibold tracking-[0.8px]"
-                    style={{ backgroundColor: severity.bg, color: severity.text }}
-                  >
-                    {severityLabel}
-                  </span>
+                  {/* Round 66 + 84: severity gated to HIGH only (LOW /
+                      MEDIUM render nothing; absence IS the signal),
+                      pill chrome aligned to canonical
+                      h-[22px] rounded-[4px] px-2 text-[11px] font-bold
+                      tracking-[0.7px] uppercase (rounds 66/84). */}
+                  {severity.id === 'high' ? (
+                    <span
+                      className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-[11px] font-bold tracking-[0.7px] uppercase"
+                      style={{ backgroundColor: severity.bg, color: severity.text }}
+                    >
+                      {severityLabel}
+                    </span>
+                  ) : null}
                   {/* Source size pinned to `text-[13px]` — sits refined
                       between the 11px timestamp/facts and the 18px title. */}
                   <span className="truncate text-[13px] font-medium text-text-secondary">
@@ -282,9 +289,17 @@ export function AlertCard({
                   the workflow status word ("Open"/"Applied"/…) follows
                   via a flex-1 spacer. */}
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-[4px] bg-background-section px-1.5">
-                  <StateBadge code={alert.jurisdiction} size="xs" />
-                  <span className="text-[10px] font-semibold tracking-[0.4px] text-text-secondary uppercase">
+                {/* Round 77 + 84: state pill aligned to canonical —
+                    no bg, no padding, 16px circular motif, 12/700
+                    mono code with tracking-[0.7px]. Same primitive
+                    across /today + /alerts + drawer. */}
+                <span className="inline-flex h-[22px] shrink-0 items-center gap-1">
+                  <StateBadge
+                    code={alert.jurisdiction}
+                    size="xs"
+                    style={{ width: 16, height: 16 }}
+                  />
+                  <span className="font-mono text-[12px] font-bold tracking-[0.7px] text-text-secondary uppercase">
                     {alert.jurisdiction}
                   </span>
                 </span>

@@ -19,8 +19,10 @@ import {
   rangeSelectionUpdate,
   reviewPipelineCurrent,
   selectionHeaderState,
+  urgencyBandOf,
+  URGENCY_BAND_ORDER,
   willReadinessChecklistBeFullyReceived,
-} from '@/features/obligations/queue/helpers'
+} from './obligations'
 
 describe('obligations quick filters', () => {
   const defaultDetailSearchState = {
@@ -43,17 +45,17 @@ describe('obligations quick filters', () => {
     daysMin: null,
     daysMax: null,
     asOf: null,
-    sort: 'smart_priority' as const,
+    // 2026-06-05 (post-merge regression fix): the urgency-band table
+    // recreation (3f4940cd → 77979882) repinned the queue defaults to
+    // due_asc / urgency / a leaner hidden-column set (no clientState,
+    // since STATE is now a primary column). Keeping the test seed in
+    // sync with `DEFAULT_SORT` / `DEFAULT_GROUP` / `DEFAULT_HIDDEN_COLUMN_IDS`
+    // in obligations.tsx is the whole point — these tests verify that
+    // helpers DROP defaults from the URL.
+    sort: 'due_asc' as const,
     density: 'comfortable' as const,
-    group: 'due' as const,
-    hide: [
-      'smartPriority',
-      'clientState',
-      'clientCounty',
-      'dueDateExact',
-      'daysUntilDue',
-      'evidenceCount',
-    ],
+    group: 'urgency' as const,
+    hide: ['smartPriority', 'clientCounty', 'dueDateExact', 'daysUntilDue', 'evidenceCount'],
   } satisfies Parameters<typeof deadlineDetailSearchFromQueueState>[1]
 
   it('applies the this week days filter when inactive', () => {
@@ -311,6 +313,51 @@ describe('internal due date queue display', () => {
         '2026-05-29',
       ),
     ).toBe(12)
+  })
+})
+
+describe('urgency band derivation', () => {
+  // 2026-06-04 (Yuqi h4bQ2): bands group the /deadlines table by the
+  // INTERNAL (effective) due date. Boundaries: <0 overdue, 0..7 this
+  // week, >7 upcoming.
+  const baseRow = {
+    currentDueDate: '2026-06-01',
+    daysUntilDue: 0,
+    extensionInternalTargetDate: null as string | null,
+  }
+
+  it('classifies a past-due row as overdue', () => {
+    expect(urgencyBandOf({ ...baseRow, daysUntilDue: -1 }, '2026-06-01')).toBe('overdue')
+    expect(urgencyBandOf({ ...baseRow, daysUntilDue: -12 }, '2026-06-01')).toBe('overdue')
+  })
+
+  it('treats today and the next seven days as this week', () => {
+    expect(urgencyBandOf({ ...baseRow, daysUntilDue: 0 }, '2026-06-01')).toBe('this_week')
+    expect(urgencyBandOf({ ...baseRow, daysUntilDue: 7 }, '2026-06-01')).toBe('this_week')
+  })
+
+  it('classifies anything beyond seven days as upcoming', () => {
+    expect(urgencyBandOf({ ...baseRow, daysUntilDue: 8 }, '2026-06-01')).toBe('upcoming')
+    expect(urgencyBandOf({ ...baseRow, daysUntilDue: 90 }, '2026-06-01')).toBe('upcoming')
+  })
+
+  it('bands off the extension target date when present', () => {
+    // currentDueDate is far out, but the saved extension target is
+    // tomorrow → the row belongs in "this week", not "upcoming".
+    expect(
+      urgencyBandOf(
+        {
+          currentDueDate: '2026-08-01',
+          daysUntilDue: 60,
+          extensionInternalTargetDate: '2026-06-02',
+        },
+        '2026-06-01',
+      ),
+    ).toBe('this_week')
+  })
+
+  it('orders bands overdue → this week → upcoming', () => {
+    expect(URGENCY_BAND_ORDER).toEqual(['overdue', 'this_week', 'upcoming'])
   })
 })
 

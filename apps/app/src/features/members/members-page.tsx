@@ -777,13 +777,8 @@ function ActiveMembersTable({
   return (
     <div className="overflow-hidden rounded-md border border-divider-regular bg-background-default">
       <Table>
-        {/* 2026-06-04 (Yuqi table sweep): `hover:bg-transparent` on
-            the header row dropped — the canonical primitive's
-            TableHeader already applies transparent hover to its
-            child rows. `h-9` kept as deliberate compact treatment
-            for a settings/admin table. */}
         <TableHeader>
-          <TableRow className="h-9">
+          <TableRow className="h-9 hover:bg-transparent">
             <TableHead className="w-[304px] px-4">Name</TableHead>
             <TableHead className="w-[280px]">Email</TableHead>
             <TableHead className="w-44">Role</TableHead>

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { AI } from '@duedatehq/ai'
-import { PulseExtractOutputSchema } from '@duedatehq/ai'
+import { MorningSweepOutputSchema, PulseExtractOutputSchema } from '@duedatehq/ai'
 import type { MappingTarget } from '@duedatehq/contracts'
 import { listObligationRules } from '@duedatehq/core/rules'
 import { sanitizeMapperOutput, validateNormalizedRows } from './_deterministic'
@@ -933,7 +933,13 @@ function buildAi(rawResult?: unknown): AI {
   const extractPulse: AI['extractPulse'] = async (input) =>
     runPrompt('pulse-extract@v3', input, PulseExtractOutputSchema)
 
-  return { extractPulse, runPrompt, runStreaming: runPrompt }
+  // 2026-06-05 (pre-CI green-up): morning-sweep was added to the AI
+  // facade after these test stubs were written. Stub via runPrompt
+  // so the AI type contract stays satisfied without each test having
+  // to ship a real briefing.
+  const summarizeMorningSweep: AI['summarizeMorningSweep'] = async (input, routing) =>
+    runPrompt('morning-sweep@v1', input, MorningSweepOutputSchema, routing)
+  return { extractPulse, summarizeMorningSweep, runPrompt, runStreaming: runPrompt }
 }
 
 const taxTypeMissRunPrompt: AI['runPrompt'] = async (name, _input, schema) => {
@@ -984,7 +990,14 @@ function buildTaxTypeMissAi(): AI {
   const extractPulse: AI['extractPulse'] = async (input) =>
     taxTypeMissRunPrompt('pulse-extract@v3', input, PulseExtractOutputSchema)
 
-  return { extractPulse, runPrompt: taxTypeMissRunPrompt, runStreaming: taxTypeMissRunPrompt }
+  const summarizeMorningSweep: AI['summarizeMorningSweep'] = async (input, routing) =>
+    taxTypeMissRunPrompt('morning-sweep@v1', input, MorningSweepOutputSchema, routing)
+  return {
+    extractPulse,
+    summarizeMorningSweep,
+    runPrompt: taxTypeMissRunPrompt,
+    runStreaming: taxTypeMissRunPrompt,
+  }
 }
 
 function buildCountingMigrationAi(): {
@@ -1077,7 +1090,13 @@ function buildCountingMigrationAi(): {
   const extractPulse: AI['extractPulse'] = async (input) =>
     runPrompt('pulse-extract@v3', input, PulseExtractOutputSchema)
 
-  return { ai: { extractPulse, runPrompt, runStreaming: runPrompt }, calls, routings }
+  const summarizeMorningSweep: AI['summarizeMorningSweep'] = async (input, routing) =>
+    runPrompt('morning-sweep@v1', input, MorningSweepOutputSchema, routing)
+  return {
+    ai: { extractPulse, summarizeMorningSweep, runPrompt, runStreaming: runPrompt },
+    calls,
+    routings,
+  }
 }
 
 const SAMPLE_CSV = `Client Name,Tax ID,State,Entity Type,Email

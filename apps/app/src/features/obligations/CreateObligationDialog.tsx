@@ -1009,7 +1009,19 @@ export function CreateObligationDialog({
         <DialogTrigger
           render={
             trigger ?? (
-              <Button type="button" size="sm">
+              // 2026-06-04 round 69 (Yuqi "buttons - lighter
+              // border. style closer to the dropdown button"):
+              // default variant → outline. The "Add deadline"
+              // trigger sits next to dropdown filter triggers
+              // (Time range / Severity / Sort by) which all use a
+              // lighter `border-divider-regular` outline pattern.
+              // The filled-solid primary `default` variant
+              // out-shouted the filters AND drew the eye to the
+              // wrong corner of the toolbar (it's a discovery
+              // button, not the page's destination CTA). Outline
+              // gives it the same visual weight as the dropdowns
+              // so the toolbar reads as a uniform action strip.
+              <Button type="button" variant="outline" size="sm">
                 <PlusIcon data-icon="inline-start" />
                 {/* Keep the visible copy in the CPA-facing "deadline"
                     vocabulary; the component name still follows the

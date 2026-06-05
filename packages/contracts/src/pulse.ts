@@ -472,6 +472,49 @@ export const PulseListAlertsForRuleInputSchema = z.object({
 })
 export type PulseListAlertsForRuleInput = z.infer<typeof PulseListAlertsForRuleInputSchema>
 
+/**
+ * `morningSweepSummary` procedure schemas.
+ *
+ * 2026-06-04 round 50 (Yuqi "continue your phase 2 and 3" —
+ * morning sweep AI summary): server-side LLM endpoint that
+ * powers the MorningSweepDialog briefing.
+ *
+ * `source`:
+ *   • 'llm-fresh'  — generated this call, no cache hit
+ *   • 'llm-cached' — returned from the aiOutput row keyed on
+ *                    (firmId, day-bucket). Same response every
+ *                    repeat call within the same morning.
+ *   • 'fallback'   — AI gateway unavailable / refused / errored.
+ *                    `briefing` is composed from the same alert
+ *                    list using a deterministic template so the
+ *                    UX stays functional. Client renders the
+ *                    same shape regardless of source.
+ */
+export const PulseMorningSweepBriefingSchema = z.object({
+  headline: z.string(),
+  bullets: z.array(z.string()),
+  topActions: z.array(
+    z.object({
+      alertId: z.string(),
+      title: z.string(),
+      whyNow: z.string(),
+      clientMentions: z.array(z.string()).default([]),
+    }),
+  ),
+  footer: z.string().nullable().optional(),
+})
+export type PulseMorningSweepBriefing = z.infer<typeof PulseMorningSweepBriefingSchema>
+
+export const PulseMorningSweepOutputSchema = z.object({
+  briefing: PulseMorningSweepBriefingSchema,
+  source: z.enum(['llm-fresh', 'llm-cached', 'fallback']),
+  /** ISO timestamp when the briefing was generated. Drives "Generated Nm ago" UI. */
+  generatedAt: z.string(),
+  /** Number of alerts the briefing was computed from (last-24h window). */
+  alertCount: z.number().int().min(0),
+})
+export type PulseMorningSweepOutput = z.infer<typeof PulseMorningSweepOutputSchema>
+
 export const pulseContract = oc.router({
   // Pulses (approved, still-active) that affect a specific rule. Backs the
   // rule-review dialog's "proposed change" block. Lazy, per-rule (the dialog
@@ -540,5 +583,12 @@ export const pulseContract = oc.router({
   revert: oc.input(PulseAlertIdInputSchema).output(PulseRevertOutputSchema),
   reactivate: oc.input(PulseAlertIdInputSchema).output(PulseReactivateOutputSchema),
   requestReview: oc.input(PulseRequestReviewInputSchema).output(PulseRequestReviewOutputSchema),
+  /**
+   * Daily-briefing AI summary for the /rules/pulse Morning sweep
+   * surface. Empty input — the server window is fixed to "last 24h
+   * for the caller's firm". See Phase 2 design in
+   * `packages/ai/src/morning-sweep.ts`.
+   */
+  morningSweepSummary: oc.input(z.undefined()).output(PulseMorningSweepOutputSchema),
 })
 export type PulseContract = typeof pulseContract

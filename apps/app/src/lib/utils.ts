@@ -167,6 +167,25 @@ export function formatRelativeTime(value: string, now: Date = new Date()): strin
   if (abs < MS_PER_HOUR) return ago(Math.round(abs / MS_PER_MINUTE), 'm')
   if (abs < MS_PER_DAY) return ago(Math.round(abs / MS_PER_HOUR), 'h')
   if (abs < MS_PER_WEEK) return ago(Math.round(abs / MS_PER_DAY), 'd')
+
+  // 2026-06-04 round 68 (Yuqi "over 1 week ago it needs to be exact
+  // date"): past the 1-week mark, "2w ago" / "1mo ago" tell the CPA
+  // basically nothing — the original date is more informative AND
+  // less ambiguous (does "1mo" mean 30 days or "early last month"?).
+  // Switch to absolute formatting once we're outside the
+  // human-meaningful relative window. Format:
+  //   • Same year → "Jun 4"          (e.g. "Jun 4")
+  //   • Different year → "Jun 4, 2025"
+  // Future dates (past === false) keep the relative format because
+  // "in 3 months" is a plan, not a memory.
+  if (past) {
+    const sameYear = date.getFullYear() === now.getFullYear()
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      ...(sameYear ? {} : { year: 'numeric' }),
+    }).format(date)
+  }
   if (abs < MS_PER_MONTH) return ago(Math.round(abs / MS_PER_WEEK), 'w')
   if (abs < MS_PER_YEAR) return ago(Math.round(abs / MS_PER_MONTH), 'mo')
   return ago(Math.round(abs / MS_PER_YEAR), 'y')
