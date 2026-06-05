@@ -263,6 +263,39 @@ async function protectedLoader(args: LoaderFunctionArgs) {
   const consumedLocale = applyRequestLocaleHandoff(url)
   if (!session) {
     const pathAndQuery = pathAndQueryWithoutLocale(url)
+    // 2026-06-05 (Yuqi "i don't want to login, to see the demo space"):
+    // in dev mode (Vite `import.meta.env.DEV`) we auto-bootstrap a demo
+    // session via the server's existing `/api/e2e/demo-login` endpoint
+    // instead of redirecting to `/login`. The endpoint signs you in as
+    // the Pro Plan demo CPA (firm `mock_firm_plan_pro` — seeded with
+    // clients, deadlines, and pulse alerts), sets the auth cookie, and
+    // bounces back to `redirectTo`. The result: visiting `/today` on a
+    // fresh browser session lands in a populated demo workspace with
+    // zero clicks, no login form. Prod (`!import.meta.env.DEV`) is
+    // unaffected — the original `/login` redirect runs there.
+    if (import.meta.env.DEV) {
+      // Default to `/` because "Today" is mounted at the root path,
+      // not `/today` — only override when the request had a real
+      // deep-link path.
+      const target = pathAndQuery && pathAndQuery !== '/' ? pathAndQuery : '/'
+      // `/api/e2e/demo-login` is a server endpoint that needs to set
+      // the auth cookie via Set-Cookie before the bounce back to
+      // `redirectTo`. React Router's `redirect()` would try to match
+      // it as an internal route and fail. Use `window.location.assign`
+      // (no SSR concerns here — protectedLoader only runs in the
+      // browser). Account ID `plan-pro` matches the seeded Pro Plan
+      // demo firm (`mock_firm_plan_pro` — clients, deadlines, pulse
+      // alerts all present in `mock/demo.sql`). The loader still
+      // throws a never-resolving promise so React Router suspends
+      // rendering during the full-page nav.
+      const demoLoginUrl = `/api/e2e/demo-login?account=plan-pro&redirectTo=${encodeURIComponent(target)}`
+      window.location.assign(demoLoginUrl)
+      await new Promise(() => {})
+      // Unreachable — the never-resolving promise above keeps the
+      // loader pending until the browser-level navigation lands. Throw
+      // as a defensive fall-through so the type system is happy.
+      throw redirect(demoLoginUrl)
+    }
     const param =
       pathAndQuery && pathAndQuery !== '/' ? `?redirectTo=${encodeURIComponent(pathAndQuery)}` : ''
     throw redirect(`/login${param}`)
