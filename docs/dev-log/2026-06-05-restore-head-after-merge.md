@@ -2,7 +2,7 @@
 
 ## Why
 
-The origin/main merge that landed in 30604895 took *theirs* on
+The origin/main merge that landed in 30604895 took _theirs_ on
 `obligations.tsx`, `pulse-alert-chrome.ts`, and the cascade of files
 that consumed `impactBadgeFromAlert`. Yuqi's direction afterward —
 "应该尽量以我的commit为主" / "did you lose anything? Any of my work is
@@ -21,17 +21,17 @@ Concretely lost in the merge:
   branch.
 - `apps/app/src/features/alerts/components/pulse-alert-chrome.ts`:
   HEAD's `severityFromConfidence` (round 58 X3j4nt amber palette
-  + round 47 / 68 HIGH-only gate) was replaced by main's
-  `impactBadgeFromAlert` (count-based, destructive-red palette).
-  Three downstream surfaces (`AlertDetailDrawer.tsx`,
-  `PulseAlertRow.tsx`, `needs-attention-card.tsx`) had their
-  severity helper swapped accordingly — silently demoting the
-  X3j4nt amber to destructive red.
+  - round 47 / 68 HIGH-only gate) was replaced by main's
+    `impactBadgeFromAlert` (count-based, destructive-red palette).
+    Three downstream surfaces (`AlertDetailDrawer.tsx`,
+    `PulseAlertRow.tsx`, `needs-attention-card.tsx`) had their
+    severity helper swapped accordingly — silently demoting the
+    X3j4nt amber to destructive red.
 - `apps/app/src/features/dashboard/actions-list.test.tsx`: my
   `it.skip` placeholder for the removed expand-on-focus assertion
   was replaced by main's new "renders each obligation as a
   focusable non-button row" test. Main's test is the correct
-  *next* assertion against the table-sweep markup, but
+  _next_ assertion against the table-sweep markup, but
   prioritizing HEAD means re-applying the test additions as
   follow-up rather than dropping HEAD's placeholder unilaterally.
 
@@ -72,6 +72,7 @@ the new export explains both helpers stay until the user picks a
 winner.
 
 ### `apps/app/src/features/alerts/AlertDetailDrawer.tsx`,
+
 `apps/app/src/features/alerts/components/PulseAlertRow.tsx`,
 `apps/app/src/features/dashboard/needs-attention-card.tsx`
 
@@ -102,7 +103,7 @@ restoration commit.
 ## Follow-ups (not in this commit)
 
 - Re-apply main's `actions-list.test.tsx` `renders each obligation
-  as a focusable non-button row` assertion as a small follow-up
+as a focusable non-button row` assertion as a small follow-up
   PR. Main's test is the right shape against the current markup;
   it just got dropped during the priority-HEAD restoration.
 - Decide which severity helper wins long-term:

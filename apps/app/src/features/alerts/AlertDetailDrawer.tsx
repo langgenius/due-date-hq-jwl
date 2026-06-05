@@ -49,7 +49,9 @@ import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatDate, formatRelativeTime } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
-import { EntityAuditActivityPanel } from '@/features/audit/entity-audit-activity-panel'
+// 2026-06-05 (pre-CI green-up): `EntityAuditActivityPanel` import
+// retired with the AlertActivitySection deletion above. Restore if
+// the per-alert audit timeline is ever re-mounted in the drawer.
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
@@ -798,12 +800,18 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
                     the same line as a tabular-nums tag instead of
                     a parenthesized aside. */}
                 <header className="flex items-baseline justify-between">
-                  <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                  {/* 2026-06-05 (pre-CI green-up): the section label was
+                      a <span> for compactness, but E2E specs
+                      (pulse.spec.ts:29, rbac-permissions.spec.ts) match
+                      `getByRole('heading', { name: /Affected clients/ })`.
+                      Switched to `<h3>` so screen readers + Playwright
+                      see this as a heading. Typography unchanged. */}
+                  <h3 className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
                     <Trans>Affected clients</Trans>
                     {detail.affectedClients.length > 0 ? (
                       <span className="ml-2 tabular-nums">{detail.affectedClients.length}</span>
                     ) : null}
-                  </span>
+                  </h3>
                   {stats ? <SelectionSummary stats={stats} /> : null}
                 </header>
                 {detail.affectedClients.length > 0 ? (
@@ -1541,28 +1549,11 @@ function openNativeDatePicker(event: MouseEvent<HTMLInputElement>) {
   }
 }
 
-function _AlertActivitySection({ alertId }: { alertId: string }) {
-  // Per-alert audit timeline — review-requested / reviewed / dismissed /
-  // snoozed / reactivated events (entityType 'pulse_firm_alert'). Closes the
-  // "Pulse alert drawer → Activity" surface gap. (Per-obligation apply/revert
-  // rows are keyed to pulse_application and surface in the affected-clients
-  // flow, not here.)
-  return (
-    <section className="flex flex-col gap-3">
-      <h3 className="text-sm font-semibold text-text-primary">
-        <Trans>Activity</Trans>
-      </h3>
-      <EntityAuditActivityPanel
-        entityType="pulse_firm_alert"
-        entityId={alertId}
-        emptyTitle={<Trans>No audited activity yet</Trans>}
-        emptyDescription={
-          <Trans>Review, dismiss, snooze, and reactivate events for this alert appear here.</Trans>
-        }
-      />
-    </section>
-  )
-}
+// 2026-06-05 (pre-CI green-up): `AlertActivitySection` was
+// declared but never mounted. Deleted to satisfy no-unused-vars;
+// the per-alert audit timeline still lives in EntityAuditActivityPanel
+// — re-mount it here if a future drawer revision wants the Activity
+// section back.
 
 function DeadlineDetailsPanel({
   detail,
@@ -2119,26 +2110,7 @@ function DetailHeaderSkeleton() {
 // pill. If this label diverges across all three sites in the
 // future, promote to a shared util at
 // `apps/app/src/features/alerts/components/alert-change-kind.ts`.
-function _drawerChangeKindLabel(kind: PulseDetail['alert']['changeKind']) {
-  switch (kind) {
-    case 'deadline_shift':
-      return <Trans>Deadline Shifted</Trans>
-    case 'filing_requirement':
-      return <Trans>Filing Rule Changed</Trans>
-    case 'applicability_scope':
-      return <Trans>Scope Changed</Trans>
-    case 'form_instruction':
-      return <Trans>Form Updated</Trans>
-    case 'source_status':
-      return <Trans>Source Status</Trans>
-    case 'rule_source_drift':
-      return <Trans>Source Changed</Trans>
-    case 'new_obligation':
-      return <Trans>New Rule Added</Trans>
-    case 'threshold_advisory':
-      return <Trans>Threshold Advisory</Trans>
-    case 'other':
-      return <Trans>Other Change</Trans>
-  }
-  return kind
-}
+// 2026-06-05 (pre-CI green-up): `drawerChangeKindLabel` was a
+// drawer-local duplicate of the canonical `changeKindLabel` exported
+// from `components/PulseChangeKindChip.ts`. Deleted to satisfy
+// no-unused-vars; consumers reuse the canonical helper.

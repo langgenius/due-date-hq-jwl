@@ -31,7 +31,7 @@ Today/Alerts visual system.
   contiguously and the Internal-due header shows the blue active-sort ↑.
 - **Table chrome**: already inherits the canonical `table.tsx` recipe (rounded-[12px] outer card +
   `border-divider-regular`, `bg-background-section` header, no zebra, `data-[state=selected]:
-  bg-state-accent-hover` = #eff4ff). No chrome change needed.
+bg-state-accent-hover` = #eff4ff). No chrome change needed.
 
 ## i18n
 

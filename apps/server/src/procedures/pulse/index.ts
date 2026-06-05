@@ -1042,9 +1042,7 @@ function severityFromAlert(alert: PulseAlertRow): 'high' | 'medium' | 'low' {
   return 'low'
 }
 
-function deterministicFallback(
-  input: MorningSweepInput,
-): PulseMorningSweepBriefing {
+function deterministicFallback(input: MorningSweepInput): PulseMorningSweepBriefing {
   // Identical shape to the client-side `composeBriefing` in
   // MorningSweepDialog.tsx so the dialog renders the same UX
   // when the AI gateway refuses / errors. Phase 1 logic lifted
@@ -1100,11 +1098,11 @@ function deterministicFallback(
 
 const morningSweepSummary = os.pulse.morningSweepSummary.handler(
   async ({ context }): Promise<PulseMorningSweepOutput> => {
-    const { scoped } = requireTenant(context)
-    const tenant = context.tenant
-    if (!tenant) {
-      throw new ORPCError('UNAUTHORIZED', { message: 'morning sweep requires firm context' })
-    }
+    // 2026-06-05 (pre-CI green-up): `context.tenant` was removed when
+    // main pulled the tenant lookup into `requireTenant`. Destructure
+    // tenant from the helper (which already throws UNAUTHORIZED on a
+    // missing firm context) and drop the now-redundant null check.
+    const { scoped, tenant } = requireTenant(context)
     const nowMs = Date.now()
     const generatedAt = new Date(nowMs).toISOString()
     const cacheKey = morningSweepCacheKey(tenant.firmId, nowMs)
@@ -1120,17 +1118,19 @@ const morningSweepSummary = os.pulse.morningSweepSummary.handler(
 
     // Window: last 24h. Fetch a larger limit than usual so the
     // ranking has headroom; the schema caps the LLM input to 50.
-    const allAlerts = await scoped.pulse.listAlerts({ limit: 100 })
+    // 2026-06-05 (pre-CI green-up): main wrapped `listAlerts` in a
+    // pagination envelope (`{ alerts, nextCursor }`) for the new
+    // Load-more flow on /alerts. Destructure here so the existing
+    // 24-h windowing logic still runs on the alerts array.
+    const { alerts: allAlerts } = await scoped.pulse.listAlerts({ limit: 100 })
     const cutoffMs = nowMs - 24 * 60 * 60 * 1000
-    const windowAlerts = allAlerts.filter(
-      (a) => a.publishedAt.getTime() >= cutoffMs,
-    )
+    const windowAlerts = allAlerts.filter((a: PulseAlertRow) => a.publishedAt.getTime() >= cutoffMs)
     // Phase 3 personalisation: fetch up to 5 affected client names
     // per alert in parallel. Per-detail fetches are bounded by the
     // window size (≤ 100 alerts × 5 clients) which is comfortable
     // for one briefing generation per morning.
     const topByImpact = [...windowAlerts]
-      .sort((a, b) => {
+      .toSorted((a, b) => {
         const tierWeight = (al: PulseAlertRow) =>
           severityFromAlert(al) === 'high' ? 3 : severityFromAlert(al) === 'medium' ? 2 : 1
         const diff = tierWeight(b) - tierWeight(a)
@@ -1146,8 +1146,13 @@ const morningSweepSummary = os.pulse.morningSweepSummary.handler(
         let names: string[] = []
         try {
           const detail = await scoped.pulse.getDetail(alert.id)
+          // 2026-06-05 (pre-CI green-up): scoped.pulse.getDetail returns
+          // the internal `PulseDetailRow` shape whose affectedClients use
+          // `PulseAffectedClientRow` (with Date fields), not the public
+          // `PulseAffectedClient` projection. We only need clientName
+          // here so the row type is sufficient.
           names = (detail?.affectedClients ?? [])
-            .map((c: PulseAffectedClient) => c.clientName)
+            .map((c: PulseAffectedClientRow) => c.clientName)
             .filter((name, idx, arr) => name && arr.indexOf(name) === idx)
             .slice(0, 5)
         } catch {
@@ -1169,8 +1174,14 @@ const morningSweepSummary = os.pulse.morningSweepSummary.handler(
       }),
     )
 
+    // 2026-06-05 (pre-CI green-up): origin/main pruned `firmName` from
+    // `TenantContext` (it now lives on FirmMembershipRow). The morning-
+    // sweep input still accepts `firmName: string | null` so passing
+    // null keeps the LLM in "Your morning sweep" mode instead of the
+    // personalised "Acme's morning sweep" phrasing. A follow-up that
+    // joins the firm name in could promote this back.
     const input: MorningSweepInput = {
-      firmName: tenant.firmName ?? null,
+      firmName: null,
       generatedAt,
       alerts: alertsWithClients,
     }
@@ -1193,17 +1204,25 @@ const morningSweepSummary = os.pulse.morningSweepSummary.handler(
 
     const ai = createAI(context.env)
     const result = await ai.summarizeMorningSweep(input, { taskKind: 'pulse' })
-    if (result.kind === 'success') {
+    // 2026-06-05 (pre-CI green-up): main refactored AiRunResult from
+    // a `kind`-discriminated union with `output` to a `refusal`-
+    // discriminated union with `result`. The success branch is now
+    // `{ result, refusal: null, … }`; the refusal branch is
+    // `{ result: null, refusal, … }`. Discriminate on
+    // `result.result !== null` so TypeScript narrows to the success
+    // variant and `result.result.X` is accessible.
+    if (result.result !== null) {
+      const out = result.result
       const briefing: PulseMorningSweepBriefing = {
-        headline: result.output.headline,
-        bullets: result.output.bullets,
-        topActions: result.output.topActions.map((a) => ({
+        headline: out.headline,
+        bullets: out.bullets,
+        topActions: out.topActions.map((a) => ({
           alertId: a.alertId,
           title: a.title,
           whyNow: a.whyNow,
           clientMentions: a.clientMentions ?? [],
         })),
-        footer: result.output.footer ?? null,
+        footer: out.footer ?? null,
       }
       morningSweepCache.set(cacheKey, {
         briefing,

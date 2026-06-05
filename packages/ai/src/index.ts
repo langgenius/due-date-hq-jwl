@@ -316,11 +316,7 @@ export function createAI(env: AiEnv = {}) {
 export type AI = ReturnType<typeof createAI>
 export type { PulseExtractInput, PulseExtractOutput } from './pulse'
 export { PulseExtractInputSchema, PulseExtractOutputSchema } from './pulse'
-export type {
-  MorningSweepAlert,
-  MorningSweepInput,
-  MorningSweepOutput,
-} from './morning-sweep'
+export type { MorningSweepAlert, MorningSweepInput, MorningSweepOutput } from './morning-sweep'
 export {
   MorningSweepAlertSchema,
   MorningSweepInputSchema,

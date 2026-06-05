@@ -19,7 +19,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-import type { PulseAffectedClient, PulseAlertPublic, PulseSourceHealth } from '@duedatehq/contracts'
+import type { PulseAlertPublic, PulseSourceHealth } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -99,7 +99,9 @@ import {
 // active-workflow states, while history exposes CPA-handled states.
 const EMPTY_ALERTS: readonly PulseAlertPublic[] = []
 const EMPTY_SOURCES: readonly PulseSourceHealth[] = []
-const _EMPTY_AFFECTED: PulseAffectedClient[] = []
+// 2026-06-05 (pre-CI green-up): `EMPTY_AFFECTED` const had no
+// consumer after rounds 70-85 dropped per-card affected-client
+// rendering — the batched detail flow returns its own empty array.
 
 interface AlertsListPageProps {
   embedded?: boolean
@@ -271,7 +273,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // Keyed off the full (stable) `alerts` set — not `filteredAlerts` — so
   // client-side filter changes don't refetch; cards just look up their id.
   const alertIds = useMemo(() => alerts.map((alert) => alert.id), [alerts])
-  const _affectedByAlert = useAlertsAffectedClients(alertIds)
+  // 2026-06-05 (pre-CI green-up): `useAlertsAffectedClients(alertIds)`
+  // is invoked for its side effect of seeding the per-alert detail
+  // query cache, but the returned map went unused after rounds 70-85
+  // moved client-name rendering to the drawer. Keep the hook call
+  // — dropping it would lose the prefetch — but don't bind the
+  // return value.
+  useAlertsAffectedClients(alertIds)
   const statusFilterOptions = historyMode
     ? HISTORY_STATUS_FILTER_OPTIONS
     : ACTIVE_STATUS_FILTER_OPTIONS

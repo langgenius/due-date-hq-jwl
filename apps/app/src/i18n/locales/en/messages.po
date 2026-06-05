@@ -1409,10 +1409,6 @@ msgstr "Active stage detail"
 msgid "Active templates"
 msgstr "Active templates"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Activity"
-msgstr "Activity"
-
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Activity log"
 msgstr "Activity log"
@@ -4547,10 +4543,6 @@ msgstr "Deadline shift"
 msgid "Deadline shifted"
 msgstr "Deadline shifted"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Deadline Shifted"
-msgstr "Deadline Shifted"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Deadline status changed"
 msgstr "Deadline status changed"
@@ -5838,10 +5830,6 @@ msgstr "Filing profile updated"
 msgid "Filing rule changed"
 msgstr "Filing rule changed"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Filing Rule Changed"
-msgstr "Filing Rule Changed"
-
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/migration/mapping-target-labels.ts
 msgid "Filing states"
@@ -6110,10 +6098,6 @@ msgstr "Form name"
 #: src/features/alerts/components/PulseChangeKindChip.tsx
 msgid "Form updated"
 msgstr "Form updated"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Form Updated"
-msgstr "Form Updated"
 
 #: src/features/alerts/components/PulseAuthorityRoleChip.tsx
 msgid "Formal"
@@ -7934,10 +7918,6 @@ msgstr "New rule"
 msgid "New rule added"
 msgstr "New rule added"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "New Rule Added"
-msgstr "New Rule Added"
-
 #. placeholder {0}: seed.jurisdiction
 #. placeholder {1}: ENTITY_LABELS[seed.entity]
 #: src/routes/rules.library.tsx
@@ -8108,10 +8088,6 @@ msgstr "No audit events recorded for this deadline."
 #: src/features/audit/audit-log-page.tsx
 msgid "No audit events yet."
 msgstr "No audit events yet."
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "No audited activity yet"
-msgstr "No audited activity yet"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "No audited client changes yet"
@@ -9177,10 +9153,6 @@ msgstr "Other calendars → From URL"
 #: src/features/alerts/components/PulseChangeKindChip.tsx
 msgid "Other change"
 msgstr "Other change"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Other Change"
-msgstr "Other Change"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Other changes"
@@ -11000,10 +10972,6 @@ msgid "Review-only source change. No due-date overlay will be applied."
 msgstr "Review-only source change. No due-date overlay will be applied."
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Review, dismiss, snooze, and reactivate events for this alert appear here."
-msgstr "Review, dismiss, snooze, and reactivate events for this alert appear here."
-
-#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/AlertStatusBadge.tsx
 msgid "Reviewed"
@@ -11538,10 +11506,6 @@ msgstr "Scope"
 #: src/features/alerts/components/PulseChangeKindChip.tsx
 msgid "Scope changed"
 msgstr "Scope changed"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Scope Changed"
-msgstr "Scope Changed"
 
 #: src/features/opportunities/opportunity-ui.tsx
 msgid "Scope review"
@@ -12372,10 +12336,6 @@ msgstr "Source & audit"
 msgid "Source #{0} · retrieved {1}"
 msgstr "Source #{0} · retrieved {1}"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Source Changed"
-msgstr "Source Changed"
-
 #: src/features/rules/coverage-tab.tsx
 msgid "Source changed requires single-rule review"
 msgstr "Source changed requires single-rule review"
@@ -12428,10 +12388,6 @@ msgstr "Source set to {selectedPresetLabel}."
 #: src/features/migration/mapping-target-labels.ts
 msgid "Source status"
 msgstr "Source status"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Source Status"
-msgstr "Source Status"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "Source updated — re-verify before adopting"
@@ -13428,10 +13384,6 @@ msgstr "This stage was skipped — no date applies."
 #: src/features/reminders/reminders-page.tsx
 msgid "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
 msgstr "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Threshold Advisory"
-msgstr "Threshold Advisory"
 
 #: src/features/audit/audit-log-table.tsx
 msgid "Time"

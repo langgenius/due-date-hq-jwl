@@ -6,7 +6,9 @@ import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
+// 2026-06-05 (pre-CI green-up): `aiConfidenceTier` import retired
+// after the round 81 inline source treatment dropped the confidence
+// pill. Re-import if the pill is ever restored.
 import { alertTone } from '@/features/alerts/alert-tone'
 // PulseSourceMeta was retired from this card in round 81 — source
 // now renders inline in the subject block via `<ExternalLinkIcon>` +
@@ -81,18 +83,12 @@ function uniqueAffectedClientNames(affected: PulseAffectedClient[]): {
   }
 }
 
-// 2026-06-04 round 19 (Pencil vMnz5): confidence text tone
-// follows the canonical 3-tier ladder — same `aiConfidenceTier`
-// helper every other surface uses, so "conf 84%" on the card
-// reads the same green a CPA learns to associate with HIGH on
-// the AlertConfidencePill. Low confidence steps to destructive
-// so the eye still catches it.
-function confidenceToneClass(confidence: number): string {
-  const tier = aiConfidenceTier(confidence)
-  if (tier === 'high') return 'text-text-success'
-  if (tier === 'medium') return 'text-text-tertiary'
-  return 'text-text-destructive'
-}
+// 2026-06-05 (pre-CI green-up): `confidenceToneClass` helper
+// removed — its only call site (the confidence pill) was retired in
+// round 81's inline source treatment. The 3-tier ladder it encoded
+// (high → success, medium → tertiary, low → destructive) is still
+// canonical via `aiConfidenceTier`; rebuild this 4-line helper at
+// the call site if the confidence pill is ever restored.
 
 /**
  * 2026-06-04 round 81 (Yuqi #4 "avoid writing the source e.g. FL
@@ -170,12 +166,12 @@ function NeedsAttentionCard({
   // collapse to constants the render uses below.
   const clientsLoading = false
   const hasData = true
-  // 2026-06-05 (pre-CI green-up): both vars went unused after the
-  // round 81 inline source treatment. Prefixed with `_` per the
-  // no-unused-vars rule rather than deleting in case the round 19
-  // confidence pill is restored later.
-  const _confidencePct = Math.round(alert.confidence * 100)
-  const _confidenceToneCls = confidenceToneClass(alert.confidence)
+  // 2026-06-05 (pre-CI green-up): `confidencePct` + `confidenceToneCls`
+  // went unused after the round 81 inline source treatment.
+  // Deleted (rather than prefixed with `_`) because this project's
+  // eslint config forbids dangling underscores. If the round 19
+  // confidence pill is ever restored, re-derive both from
+  // `alert.confidence` at the call site.
   // 2026-06-04 round 42 (Yuqi /today ↔ /alerts consistency #1 —
   // "has severity pill and state badge please"): mirror the
   // AlertCard severity-pill + StateBadge vocabulary so the

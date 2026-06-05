@@ -45,6 +45,10 @@ export const MorningSweepAlertSchema = z.object({
    * doesn't have to reason about confidence scores itself.
    */
   severity: z.enum(['high', 'medium', 'low']),
+  // 2026-06-05 (pre-CI green-up): origin/main added `rule_source_drift`
+  // and `threshold_advisory` to the canonical alert changeKind union
+  // after this schema was written. Mirror them so the morning-sweep
+  // input still typecheck-passes the full alert taxonomy.
   changeKind: z
     .enum([
       'deadline_shift',
@@ -52,7 +56,9 @@ export const MorningSweepAlertSchema = z.object({
       'applicability_scope',
       'form_instruction',
       'source_status',
+      'rule_source_drift',
       'new_obligation',
+      'threshold_advisory',
       'other',
     ])
     .nullable(),

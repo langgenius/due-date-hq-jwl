@@ -9,7 +9,7 @@ overlap on the alerts surface (new pagination, tax-area filter,
 impact-level rewrite, e2e adaptations, 334 zh-CN translations) +
 the obligations queue extraction. Open PR to main requires the
 branch to integrate origin/main first so the diff shows just the
-*delta*, not the divergence.
+_delta_, not the divergence.
 
 ## Conflict shape
 
@@ -62,7 +62,7 @@ Took main's replacement test
 span rank tooltip`). HEAD's `it.skip` of the old expand-on-focus
 test was the right placeholder; main's new test covers the same
 a11y contract (no native `<button>`, tabindex, role) against the
-*current* table-sweep markup. Main's version is the proper update,
+_current_ table-sweep markup. Main's version is the proper update,
 not just a substitute.
 
 ### `alerts.history.tsx`
@@ -85,10 +85,10 @@ legitimate additions — no semantic conflict.
   `useAlertsHistoryInfiniteQueryOptions` but kept HEAD's
   `useAlertsInvalidation` for the post-action cache reset.
 - 70-line state-machine block: merged. Round 77's `setReasonState`
-  + `dismissAlertMutation` + `snoozeAlertMutation` + sonner toasts
-  kept verbatim; the query-options block at the end switched to
-  main's `useInfiniteQuery` shape so the consumer matches the
-  `alertsQuery.data?.pages.flatMap` already on the next line.
+  - `dismissAlertMutation` + `snoozeAlertMutation` + sonner toasts
+    kept verbatim; the query-options block at the end switched to
+    main's `useInfiniteQuery` shape so the consumer matches the
+    `alertsQuery.data?.pages.flatMap` already on the next line.
 - Filter-row outer container: kept HEAD's round 71
   `flex-nowrap overflow-x-auto` single-line scroll, dropped
   main's round 42-44 wrap-with-panel-open container (rounds 71+

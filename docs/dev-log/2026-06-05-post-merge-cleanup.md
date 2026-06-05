@@ -34,6 +34,7 @@ were never sent to a translator). Flagged for a translator pass; not
 blocking this commit.
 
 ### Comment sweep — `PulseAlertCard` → `AlertCard` (where the rename
+
 applies) or `AlertCard (née PulseAlertCard)` (where the historical
 identity matters)
 

@@ -42,7 +42,7 @@ Across all 5 surfaces that render an alert (`NeedsAttentionCard`,
   (per the 2026-05-29 "remove state icon everywhere on tables"
   decision).
 - **Severity pill**: HIGH-only, `h-[22px] rounded-[4px] px-2 text-[11px]
-  font-bold tracking-[0.7px] uppercase`, colors from
+font-bold tracking-[0.7px] uppercase`, colors from
   `severityFromConfidence`. LOW / MEDIUM render nothing — absence is
   the signal (round 66).
 - **Action pill (change-action amber)**: `bg #FFFBEB`, `color #92400E`,
@@ -55,16 +55,16 @@ Across all 5 surfaces that render an alert (`NeedsAttentionCard`,
 with a guideline comment block covering:
 
 1. Outer card frame: `rounded-[12px] border border-divider-regular
-   bg-background-default`
+bg-background-default`
 2. Subgroup divider band / day-group header: `bg-background-subtle
-   px-5 py-2 text-[12px] font-semibold tracking-[0.5px] text-text-secondary
-   uppercase`
+px-5 py-2 text-[12px] font-semibold tracking-[0.5px] text-text-secondary
+uppercase`
 3. Row body: `px-5 py-3` cells, body 13px (with documented per-surface
    exemptions)
 4. Pill primitives recipe
 5. Hover/focus tokens
 6. **The rule:** any divergence MUST be documented inline with a `Round
-   NN intentional divergence:` comment so future audits can tell signal
+NN intentional divergence:` comment so future audits can tell signal
    from noise.
 
 `/today` `ActionsTable` subgroup divider was lifted from `text-[11px]
@@ -124,7 +124,7 @@ boundary.
   hardened the edge cases (title === source + punctuation-only
   remainder) and added 8 unit tests.
 - Source line: `<ExternalLinkIcon>` prefix, tighter tracking (round 80
-  + 81)
+  - 81.
 - Outer card: conditional `bg-background-section` when impacted > 0
   (round 80 #1)
 - Bottom row icon + text both at `text-text-muted` for visual unity
@@ -146,7 +146,7 @@ the right detail panel is open, every filter except Search collapses
 ### `/rules/pulse` page header (round 83)
 
 - Badge order: `[Alerts] [N urgent] [Monitoring…]` (was `[Alerts]
-  [Monitoring…] [N urgent]`). Matches /today section header.
+[Monitoring…] [N urgent]`). Matches /today section header.
 - Count chip variant: `secondary` → `outline` (gray, neutral; round 83
   #6 + /today round 81 #3)
 - Monitoring chip `gap-1.5` so PulsingDot breathes against the text
@@ -156,9 +156,10 @@ the right detail panel is open, every filter except Search collapses
 ### `/rules/pulse-history` actions (round 82)
 
 Was an empty actions cluster. Now has `Active alerts` (`<ArrowLeftIcon>`
-+ link to /rules/pulse) + Sources. Self-referential "Alert history"
-omitted, "My morning sweep" omitted (triage tool for active alerts only).
-Added `wide` flag so the page caps at 1440 like /rules/pulse (round 81).
+
+- link to /rules/pulse) + Sources. Self-referential "Alert history"
+  omitted, "My morning sweep" omitted (triage tool for active alerts only).
+  Added `wide` flag so the page caps at 1440 like /rules/pulse (round 81).
 
 ### `/rules/sources` (round 81)
 
@@ -181,7 +182,7 @@ Added `wide` flag so the page caps at 1440 like /rules/pulse (round 81).
 - Hero gap 16 → 8 (round 68 "do not waste space")
 - Eyebrow scale unified: every `text-[10-11px] tracking-[0.6-0.8px]`
   outlier collapsed to canonical `text-[11px] font-semibold tracking-
-  [0.5px]` (rounds 77 + 78)
+[0.5px]` (rounds 77 + 78)
 - `<FactCard>` + `<AffectedClientsTable>` outer frames: `rounded-md`
   → `rounded-[12px]` (round 78)
 

@@ -177,7 +177,9 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
   // local clientFallback is loading / network-error states.
   const briefing = summaryQuery.data?.briefing ?? null
   const briefingSource = summaryQuery.data?.source ?? null
-  const _generatedAt = summaryQuery.data?.generatedAt ?? null
+  // 2026-06-05 (pre-CI green-up): `generatedAt` no longer surfaced
+  // in the dialog body; if a "Last generated …" caption is added,
+  // re-read `summaryQuery.data?.generatedAt` at that call site.
 
   const applyFilter = () => {
     if (sweep && !sweep.active) sweep.toggle()

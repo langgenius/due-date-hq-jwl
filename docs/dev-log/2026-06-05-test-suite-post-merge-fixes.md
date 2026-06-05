@@ -3,11 +3,12 @@
 ## Why
 
 After the 5-commit cherry-pick onto `origin/main` + the lingui re-extract
-+ comment sweep, `pnpm test` failed 14 tests across 4 files. Investigation
-showed all 14 were real regressions where rounds 70-85 + the urgency-band
-table redesign + the alerts/today card redesign reshaped the surfaces
-the tests asserted against. None affected runtime; all were tests that
-had drifted from the new structure.
+
+- comment sweep, `pnpm test` failed 14 tests across 4 files. Investigation
+  showed all 14 were real regressions where rounds 70-85 + the urgency-band
+  table redesign + the alerts/today card redesign reshaped the surfaces
+  the tests asserted against. None affected runtime; all were tests that
+  had drifted from the new structure.
 
 Root causes:
 
@@ -72,7 +73,7 @@ defaults in `obligations.tsx`:
 
 Comment in the test seed now explains why these track the constants
 in `obligations.tsx` — the point of these tests is that the URL
-helpers drop *default* values, so the test seed has to actually
+helpers drop _default_ values, so the test seed has to actually
 match the defaults.
 
 ### `apps/app/src/features/dashboard/actions-list.test.tsx`
