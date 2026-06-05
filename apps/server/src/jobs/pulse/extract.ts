@@ -1,5 +1,6 @@
 import { createAI } from '@duedatehq/ai'
 import { ruleCitesSourceAsBasis, rulesBySourceId } from '@duedatehq/core/rules'
+import { taxAreasForAlert } from '@duedatehq/core/tax-area'
 import { createDb, makePulseOpsRepo } from '@duedatehq/db'
 import { aiOutput, llmLog } from '@duedatehq/db/schema/ai'
 import type { Env } from '../../env'
@@ -59,6 +60,14 @@ const PULSE_ALERT_MIN_RELEVANT_AT = new Date('2026-01-01T00:00:00.000Z')
 //   ≥ PUB     → publish (approved + fan out) as before.
 const PULSE_MIN_ALERT_CONFIDENCE = 0.3
 const PULSE_PUBLISH_CONFIDENCE = 0.5
+
+// Scope backstop behind the pulse-extract@v3 prompt exclusions: form/summary
+// signals that an extracted "deadline" is an internal agency program window
+// (grant, clinic, advisory council, job posting) rather than a taxpayer
+// filing/payment obligation — e.g. the LITC matching-grant and IRSAC council
+// application windows the model still occasionally mis-files as a deadline_shift.
+const NON_OBLIGATION_DEADLINE_PATTERN =
+  /\b(grants?|clinics?|advisory\s+(?:council|committee|board|panel)|councils?|membership|fellowships?|scholarships?|internships?|recruit\w*|nominations?|volunteers?)\b/i
 
 function latestPolicyDate(values: ReadonlyArray<string | null>): Date | null {
   const times = values
@@ -395,6 +404,31 @@ async function runPulseExtractionAfterMark(
       failureReason: 'Pulse extract returned a regulatory change without kind or action mode.',
     })
     return { pulseId: null, status: 'failed' }
+  }
+
+  // Scope guard: drop a dated "deadline" that is an internal agency program
+  // window (grant/clinic, advisory council, job) rather than a taxpayer
+  // filing/payment obligation. Triple-gated so it can't false-drop real relief:
+  // disaster postponements also carry a due date and resolve to no tax area, but
+  // their text matches no program keyword — that keyword gate is the separator.
+  const hasParsedDueDate = Boolean(result.result.originalDueDate || result.result.newDueDate)
+  const resolvesToNoTaxArea =
+    taxAreasForAlert({ reverifyRuleIds, parsedForms: result.result.forms }).length === 0
+  const scopeText = `${result.result.forms.join(' ')} ${result.result.summary}`
+  if (hasParsedDueDate && resolvesToNoTaxArea && NON_OBLIGATION_DEADLINE_PATTERN.test(scopeText)) {
+    await repo.updateSourceSnapshotStatus(snapshotId, {
+      parseStatus: 'ignored',
+      aiOutputId,
+      failureReason: 'out_of_scope_program',
+    })
+    recordPulseMetric('pulse.extract.result', {
+      snapshotId,
+      sourceId: snapshot.sourceId,
+      result: 'ignored',
+      refusalCode: null,
+      confidence: result.result.confidence,
+    })
+    return { pulseId: null, status: 'skipped' }
   }
 
   const latestRelevant = latestPolicyDate([

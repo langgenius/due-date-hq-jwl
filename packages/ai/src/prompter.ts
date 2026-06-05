@@ -263,7 +263,7 @@ Retention: Do not retain any data seen for training.
 PII handling: client names may be placeholders; do not add new personal data.
 `
 
-const PULSE_EXTRACT_V2 = `prompt_version: pulse-extract@v2
+const PULSE_EXTRACT_V3 = `prompt_version: pulse-extract@v3
 model_tier: quality-json
 temperature: 0
 response_format: json_object
@@ -297,6 +297,8 @@ Rules:
 - The sourceExcerpt must be copied verbatim from rawText.
 - Use no_regulatory_change for navigation, formatting, contact details, generic instructions, or freshness-only changes.
 - Use no_regulatory_change for non-tax agency news, staffing, awards, auctions, fraud warnings, unclaimed property, portal availability, office hours, and generic taxpayer education unless the text changes a filing/payment requirement or due date.
+- Use no_regulatory_change for program or grant application windows (e.g. Low Income Taxpayer Clinic / LITC matching grants), advisory council, board, or committee membership recruitment (e.g. IRSAC), job postings, and revenue collection or distribution statistics. A date is only a regulatory deadline when it is the date for a taxpayer to file a return, pay a tax, or make an election — not an application window for a program, grant, council, or job.
+- Use no_regulatory_change when the source announces no change: it merely restates an existing or standard due date, or states that no relief, extension, or deadline change is provided.
 - RSS or news-list items are already narrowed to one candidate item. Classify only that item; do not infer a broader regulatory change from surrounding feed/list boilerplate.
 - Use deadline_shift with actionMode due_date_overlay when the source appears to discuss a due-date change.
 - Leave originalDueDate, newDueDate, forms, counties, entityTypes, or affectedRuleIds null/[] when the source does not state them; never infer missing due-date scope.
@@ -462,7 +464,7 @@ const prompts = {
   'brief@v1': BRIEF_V1,
   'client-risk-summary@v1': CLIENT_RISK_SUMMARY_V1,
   'deadline-tip@v1': DEADLINE_TIP_V1,
-  'pulse-extract@v2': PULSE_EXTRACT_V2,
+  'pulse-extract@v3': PULSE_EXTRACT_V3,
   'rule-concrete-draft@v1': RULE_CONCRETE_DRAFT_V1,
   'rule-concrete-draft@v2': RULE_CONCRETE_DRAFT_V2,
   'readiness-checklist@v1': READINESS_CHECKLIST_V1,

@@ -931,7 +931,7 @@ function buildAi(rawResult?: unknown): AI {
   }
 
   const extractPulse: AI['extractPulse'] = async (input) =>
-    runPrompt('pulse-extract@v2', input, PulseExtractOutputSchema)
+    runPrompt('pulse-extract@v3', input, PulseExtractOutputSchema)
 
   return { extractPulse, runPrompt, runStreaming: runPrompt }
 }
@@ -982,7 +982,7 @@ const taxTypeMissRunPrompt: AI['runPrompt'] = async (name, _input, schema) => {
 
 function buildTaxTypeMissAi(): AI {
   const extractPulse: AI['extractPulse'] = async (input) =>
-    taxTypeMissRunPrompt('pulse-extract@v2', input, PulseExtractOutputSchema)
+    taxTypeMissRunPrompt('pulse-extract@v3', input, PulseExtractOutputSchema)
 
   return { extractPulse, runPrompt: taxTypeMissRunPrompt, runStreaming: taxTypeMissRunPrompt }
 }
@@ -1075,7 +1075,7 @@ function buildCountingMigrationAi(): {
   }
 
   const extractPulse: AI['extractPulse'] = async (input) =>
-    runPrompt('pulse-extract@v2', input, PulseExtractOutputSchema)
+    runPrompt('pulse-extract@v3', input, PulseExtractOutputSchema)
 
   return { ai: { extractPulse, runPrompt, runStreaming: runPrompt }, calls, routings }
 }

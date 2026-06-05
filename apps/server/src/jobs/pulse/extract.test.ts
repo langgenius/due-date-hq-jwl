@@ -146,7 +146,7 @@ describe('extractPulseSnapshot', () => {
   const noRegulatoryChange = {
     result: { classification: 'no_regulatory_change' as const, confidence: 0.2 },
     trace: {
-      promptVersion: 'pulse-extract@v2',
+      promptVersion: 'pulse-extract@v3',
       model: 'm',
       inputHash: 'h',
       guardResult: 'pass',
@@ -235,7 +235,7 @@ describe('extractPulseSnapshot', () => {
         confidence: 0.91,
       },
       trace: {
-        promptVersion: 'pulse-extract@v2',
+        promptVersion: 'pulse-extract@v3',
         model: 'test-model',
         inputHash: 'hash',
         guardResult: 'pass',
@@ -290,7 +290,7 @@ describe('extractPulseSnapshot', () => {
         confidence: 0.9,
       },
       trace: {
-        promptVersion: 'pulse-extract@v2',
+        promptVersion: 'pulse-extract@v3',
         model: 'test-model',
         inputHash: 'hash',
         guardResult: 'pass',
@@ -344,7 +344,7 @@ describe('extractPulseSnapshot', () => {
         confidence: 0.9,
       },
       trace: {
-        promptVersion: 'pulse-extract@v2',
+        promptVersion: 'pulse-extract@v3',
         model: 'test-model',
         inputHash: 'hash',
         guardResult: 'pass',
@@ -395,7 +395,7 @@ describe('extractPulseSnapshot', () => {
         confidence: 0.88,
       },
       trace: {
-        promptVersion: 'pulse-extract@v2',
+        promptVersion: 'pulse-extract@v3',
         model: 'test-model',
         inputHash: 'hash',
         guardResult: 'pass',
@@ -446,7 +446,7 @@ describe('extractPulseSnapshot', () => {
         confidence: 0.84,
       },
       trace: {
-        promptVersion: 'pulse-extract@v2',
+        promptVersion: 'pulse-extract@v3',
         model: 'test-model',
         inputHash: 'hash',
         guardResult: 'pass',
@@ -522,7 +522,7 @@ describe('extractPulseSnapshot', () => {
         confidence: 0.65,
       },
       trace: {
-        promptVersion: 'pulse-extract@v2',
+        promptVersion: 'pulse-extract@v3',
         model: 'test-model',
         inputHash: 'hash',
         guardResult: 'pass',
@@ -583,7 +583,7 @@ describe('extractPulseSnapshot', () => {
         confidence: 0.82,
       },
       trace: {
-        promptVersion: 'pulse-extract@v2',
+        promptVersion: 'pulse-extract@v3',
         model: 'test-model',
         inputHash: 'hash',
         guardResult: 'pass',
@@ -638,7 +638,7 @@ describe('extractPulseSnapshot', () => {
         confidence: 0.8,
       },
       trace: {
-        promptVersion: 'pulse-extract@v2',
+        promptVersion: 'pulse-extract@v3',
         model: 'test-model',
         inputHash: 'hash',
         guardResult: 'pass',
@@ -761,7 +761,7 @@ describe('extractPulseSnapshot', () => {
         confidence: 0.9,
       },
       trace: {
-        promptVersion: 'pulse-extract@v2',
+        promptVersion: 'pulse-extract@v3',
         model: 'test-model',
         inputHash: 'hash',
         guardResult: 'pass',
@@ -854,7 +854,7 @@ describe('extractPulseSnapshot — confidence gating & race-safe de-duplication'
       confidence,
     },
     trace: {
-      promptVersion: 'pulse-extract@v2',
+      promptVersion: 'pulse-extract@v3',
       model: 'test-model',
       inputHash: 'hash',
       guardResult: 'pass',
@@ -920,6 +920,49 @@ describe('extractPulseSnapshot — confidence gating & race-safe de-duplication'
     expect(metricsMocks.recordPulseMetric).toHaveBeenCalledWith(
       'pulse.extract.result',
       expect.objectContaining({ result: 'duplicate' }),
+    )
+  })
+
+  it('drops an out-of-scope program deadline (LITC grant window) before it becomes an alert', async () => {
+    repoMocks.getSourceSnapshot.mockResolvedValue(snapshot)
+    aiMocks.extractPulse.mockResolvedValue({
+      result: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
+        summary:
+          'The IRS is accepting applications for Low Income Taxpayer Clinic (LITC) matching grants.',
+        sourceExcerpt: 'applications from May 6, 2026, to July 6, 2026',
+        jurisdiction: 'FED',
+        counties: [],
+        forms: ['LITC_Grant_Application'],
+        entityTypes: [],
+        originalDueDate: null,
+        newDueDate: '2026-07-06',
+        effectiveFrom: null,
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: null,
+        confidence: 0.95,
+      },
+      trace: {
+        promptVersion: 'pulse-extract@v3',
+        model: 'test-model',
+        inputHash: 'hash',
+        guardResult: 'pass',
+        latencyMs: 1,
+      },
+      model: 'test-model',
+      refusal: null,
+    })
+
+    const result = await extractPulseSnapshot(env(), 'snapshot-conf')
+
+    expect(result.status).toBe('skipped')
+    expect(repoMocks.createPulseForFirmReviewFromExtract).not.toHaveBeenCalled()
+    expect(repoMocks.updateSourceSnapshotStatus).toHaveBeenCalledWith(
+      'snapshot-conf',
+      expect.objectContaining({ parseStatus: 'ignored', failureReason: 'out_of_scope_program' }),
     )
   })
 })
