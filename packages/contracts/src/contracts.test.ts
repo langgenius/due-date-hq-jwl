@@ -1223,6 +1223,7 @@ describe('@duedatehq/contracts', () => {
       'revert',
       'reactivate',
       'requestReview',
+      'morningSweepSummary',
     ])
     expect(PulseFirmAlertStatusSchema.options).toEqual([
       'matched',
