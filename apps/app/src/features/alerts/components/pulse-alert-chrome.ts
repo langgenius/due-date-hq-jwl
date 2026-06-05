@@ -51,15 +51,22 @@ import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
  *
  * ---
  *
- * Shared chrome helpers for `PulseAlertCard` + `PulseFormRevisedCard`
+ * Shared chrome helpers for `AlertCard` + `PulseFormRevisedCard`
  * + any future alert-card variant — they all share the jykZH meta
  * vocabulary so the helpers below stay in one place.
+ *
+ * (Naming note: file + helper prefix stayed `pulse-alert-chrome` /
+ * `pulse-alert-*` after the Pulse → Alert product rename because
+ * the JSX components renamed but the chrome vocabulary the helpers
+ * encode still tracks the original Pencil specs. The legacy
+ * `PulseAlertCard` was renamed to `AlertCard` in the merge with PR
+ * #61; comments below predating that rename were updated in place.)
  *
  * 2026-06-04 round 31 (Yuqi screenshot — "did you do any changes
  * and updates? dumb"): the previous round's restyle only applied
  * to PulseFormRevisedCard, which never rendered because no demo
  * alerts have changeKind === 'form_instruction'. The generic
- * PulseAlertCard was still on the old layout. This module extracts
+ * AlertCard was still on the old layout. This module extracts
  * the data-mapping helpers so both cards can share the jykZH
  * chrome — severity / action / status / change-kind labels — and
  * be wired to real alert data.

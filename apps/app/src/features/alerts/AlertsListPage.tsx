@@ -1221,11 +1221,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                    alert page to i90PZ. 100% REPLICATED"): list now
                    renders day-grouped `PulseAlertRow` rows per
                    Pencil's day-header (`wlgGV`) + alert-card
-                   (`ZkXFr`) stack. The PulseAlertCard JSX is gone
-                   from this branch — kept in the map-view branch
-                   above for the side-by-side compact list, and in
-                   the imports for /today summary tiles that use a
-                   different card primitive. */
+                   (`ZkXFr`) stack. The AlertCard (née
+                   `PulseAlertCard`) JSX is gone from this branch
+                   — kept in the map-view branch above for the
+                   side-by-side compact list, and in the imports
+                   for /today summary tiles that use a different
+                   card primitive. */
                 <PulseAlertList
                   alerts={sortedAlerts}
                   openAlertId={openAlertId}
@@ -1234,7 +1235,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   // hover-only Snooze + Dismiss buttons in each
                   // PulseAlertRow route through the same
                   // `setReasonState` flow the existing
-                  // PulseAlertCard onSnooze/onDismiss callers
+                  // AlertCard onSnooze/onDismiss callers
                   // use — reason dialog → mutation → toast.
                   // Round 82 (Yuqi "Alert history actions are
                   // not correct" + "do not defer"): these

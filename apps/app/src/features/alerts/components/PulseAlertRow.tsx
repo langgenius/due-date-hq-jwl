@@ -30,7 +30,7 @@ import { changeKindLabel } from './PulseChangeKindChip'
 
 /**
  * `PulseAlertRow` — list-row rendering of an alert, replacing the
- * older PulseAlertCard for the /rules/pulse main list.
+ * older AlertCard (née `PulseAlertCard`) for the /alerts main list.
  *
  * 2026-06-04 round 61 (Yuqi Pencil i90PZ — "update the alert page
  * to i90PZ. ensure 100% REPLICATED. I have used placeholder for the

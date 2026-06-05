@@ -540,7 +540,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
             // 2026-06-04 round 68 (Yuqi "No Low impact or medium
             // impact"): gate the impact pill to HIGH only — same
             // rule applied to NeedsAttentionCard / PulseAlertRow /
-            // PulseAlertCard in earlier rounds. The detail panel
+            // AlertCard in earlier rounds. The detail panel
             // header is no longer the lone outlier.
             const showSeverityPill = severity.id === 'high'
             const actionPill = actionPillFromAlert(detail.alert)
