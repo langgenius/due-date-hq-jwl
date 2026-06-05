@@ -3650,6 +3650,139 @@ export function ObligationQueueRoute() {
             </div>
           </div>
 
+          {/* 2026-06-05 (Yuqi DS alignment — "add both on deadlines"):
+              new /alerts-style FilterTrigger scroll row above the
+              existing quick-filter chip + actions cluster. Same
+              `flex-nowrap overflow-x-auto` single-line scroll pattern
+              /alerts uses (rounds 71/83). Search field sits left at
+              h-9 w-[260px] rounded-xl chrome that matches /alerts'
+              search input pixel-for-pixel; Sort by + Reset trail at
+              the right. The collapsible search next to the scope
+              tabs above STAYS — it carries the `q` URL param and
+              the `/` hotkey; this new search field is a parallel
+              affordance in the canonical /alerts spot so both
+              filter primitives coexist as Yuqi requested. */}
+          <div className="flex shrink-0 flex-nowrap items-center gap-2 overflow-x-auto">
+            <label className="inline-flex h-9 w-[260px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt">
+              <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+              <input
+                type="search"
+                value={searchInput}
+                onChange={(event) => {
+                  const nextSearch = event.target.value
+                  void setObligationQueueQuery(
+                    { q: nextSearch || null, obligation: null, row: null },
+                    nextSearch === ''
+                      ? undefined
+                      : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
+                  )
+                }}
+                placeholder={t`Search deadlines`}
+                aria-label={t`Search deadlines`}
+                className="min-w-0 flex-1 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-tertiary"
+              />
+            </label>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <FilterTrigger
+                    noLeadingIcon
+                    active={sort !== DEFAULT_SORT}
+                    valueLabel={
+                      sort === 'smart_priority'
+                        ? t`Smart priority`
+                        : sort === 'due_desc'
+                          ? t`Due ↓`
+                          : sort === 'updated_desc'
+                            ? t`Recently updated`
+                            : t`Due ↑`
+                    }
+                    aria-label={t`Sort deadlines`}
+                  >
+                    <span>
+                      <Trans>Sort by</Trans>
+                    </span>
+                  </FilterTrigger>
+                }
+              />
+              <DropdownMenuContent align="start" className="min-w-[200px]">
+                <DropdownMenuRadioGroup
+                  value={sort}
+                  onValueChange={(next) => {
+                    if (typeof next === 'string') {
+                      void setObligationQueueQuery({
+                        sort: ALL_SORTS.includes(next as ObligationQueueSort)
+                          ? (next as ObligationQueueSort)
+                          : null,
+                      })
+                    }
+                  }}
+                >
+                  <DropdownMenuRadioItem value="smart_priority">
+                    <Trans>Smart priority</Trans>
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="due_asc">
+                    <Trans>Due date (earliest first)</Trans>
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="due_desc">
+                    <Trans>Due date (latest first)</Trans>
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="updated_desc">
+                    <Trans>Recently updated</Trans>
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {due !== null ||
+            thisWeekFilterActive ||
+            evidence !== null ||
+            awaitingSignature ||
+            projected ||
+            stateQuery.length > 0 ||
+            countyQuery.length > 0 ||
+            taxTypeQuery.length > 0 ||
+            assigneeQuery.length > 0 ||
+            obligationQuery.length > 0 ||
+            ruleQuery.length > 0 ||
+            clientQuery.length > 0 ||
+            assigneeNameQuery !== null ||
+            owner !== null ||
+            minDaysUntilDue !== undefined ||
+            maxDaysUntilDue !== undefined ||
+            asOf !== null ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  void setObligationQueueQuery({
+                    q: null,
+                    status: null,
+                    obligation: null,
+                    client: null,
+                    rule: null,
+                    state: null,
+                    county: null,
+                    taxType: null,
+                    assignee: null,
+                    assignees: null,
+                    owner: null,
+                    due: null,
+                    dueWithin: null,
+                    daysMin: null,
+                    daysMax: null,
+                    evidence: null,
+                    awaitingSignature: null,
+                    projected: null,
+                    asOf: null,
+                  })
+                }
+                aria-label={t`Reset filters`}
+              >
+                <Trans>Reset</Trans>
+              </Button>
+            ) : null}
+          </div>
+
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-wrap items-center gap-1.5">
               {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass — page
