@@ -210,6 +210,7 @@ export function makeFirmsRepo(db: Db) {
           inArray(obligationInstance.status, [
             ...OPEN_OBLIGATION_STATUSES,
           ] satisfies ObligationStatus[]),
+          isNull(obligationInstance.supersededAt),
         ),
       )
     return row?.value ?? 0
@@ -234,6 +235,7 @@ export function makeFirmsRepo(db: Db) {
           inArray(obligationInstance.status, [
             ...OPEN_OBLIGATION_STATUSES,
           ] satisfies ObligationStatus[]),
+          isNull(obligationInstance.supersededAt),
         ),
       )
       .groupBy(obligationInstance.firmId)
@@ -361,6 +363,7 @@ export function makeFirmsRepo(db: Db) {
             inArray(obligationInstance.status, [
               ...OPEN_OBLIGATION_STATUSES,
             ] satisfies ObligationStatus[]),
+            isNull(obligationInstance.supersededAt),
           ),
         )
         .orderBy(asc(obligationInstance.currentDueDate), asc(obligationInstance.id))

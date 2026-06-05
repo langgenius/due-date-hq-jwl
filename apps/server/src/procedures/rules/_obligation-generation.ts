@@ -230,35 +230,196 @@ export async function reconcileReadinessChecklistsForCreatedRuleObligations(inpu
   )
 }
 
+export type RuleBackedCreateInput = ObligationCreateInput & {
+  preview: ObligationGenerationPreview
+}
+
+export interface ClientGeneratedObligation {
+  /** Dedup key — (clientId, jurisdiction, ruleId, taxYear, rulePeriod). */
+  key: string
+  createInput: RuleBackedCreateInput
+}
+
+export interface ComputeClientObligationsResult {
+  items: ClientGeneratedObligation[]
+  candidateCount: number
+  historicalSkippedCount: number
+  rolledForwardDeadlineCount: number
+  duplicateCount: number
+  hasCandidates: boolean
+}
+
+/**
+ * Compute the rule-backed obligation set a SINGLE client should have, deduped
+ * against `seenGeneratedKeys` (mutated in place). This is the shared kernel of
+ * both obligation pipelines:
+ *
+ *  - Firm-wide accept-rules generation seeds `seenGeneratedKeys` from existing
+ *    DB rows + accumulates across clients, so only genuinely-new obligations are
+ *    emitted (the rest count as duplicates). FED-rule dedup across a client's
+ *    multiple state profiles also relies on this shared set.
+ *  - Single-client reclassification recompute passes a FRESH empty set, so the
+ *    returned items are the client's FULL target set — to be diffed against the
+ *    client's existing obligations by the same key.
+ *
+ * `entityTypeOverride` lets the reclassification path feed a candidate
+ * classification without mutating the client row (Phase 2 extends this to a
+ * per-tax-year override). When absent, the live `client.entityType` /
+ * `client.taxClassification` are used — identical to historical behavior.
+ */
+export function computeClientGeneratedObligations(input: {
+  client: ClientRow
+  profiles: readonly ClientFilingProfileRow[]
+  rules: readonly ObligationRule[]
+  internalDeadlineOffsetDays: number
+  monitoringStartDate?: string
+  now: Date
+  seenGeneratedKeys: Set<string>
+  entityTypeOverride?: {
+    entityType?: ClientRow['entityType']
+    taxClassification?: ClientRow['taxClassification']
+  }
+}): ComputeClientObligationsResult {
+  const { client, profiles, rules, internalDeadlineOffsetDays, now, seenGeneratedKeys } = input
+  const entityType = input.entityTypeOverride?.entityType ?? client.entityType
+  const taxClassification = input.entityTypeOverride?.taxClassification ?? client.taxClassification
+
+  const items: ClientGeneratedObligation[] = []
+  let candidateCount = 0
+  let historicalSkippedCount = 0
+  let rolledForwardDeadlineCount = 0
+  let duplicateCount = 0
+  let hasCandidates = false
+
+  for (const profile of profiles) {
+    if (!isRuleGenerationState(profile.state) || profile.taxTypes.length === 0) continue
+
+    const clientFacts = {
+      id: client.id,
+      entityType,
+      state: profile.state,
+      taxTypes: profile.taxTypes,
+      taxPeriodSource: 'client_default' as const,
+      taxYearType: client.taxYearType,
+      fiscalYearEndMonth: client.fiscalYearEndMonth,
+      fiscalYearEndDay: client.fiscalYearEndDay,
+      ...(taxClassification ? { taxClassification } : {}),
+    } as const
+    const monitored = resolveMonitoredRulePreviews({
+      client: clientFacts,
+      rules,
+      ...(input.monitoringStartDate ? { monitoringStartDate: input.monitoringStartDate } : {}),
+    })
+    candidateCount += monitored.previews.length + monitored.historicalSkippedCount
+    historicalSkippedCount += monitored.historicalSkippedCount
+    if (monitored.previews.length > 0 || monitored.historicalSkippedCount > 0) {
+      hasCandidates = true
+    }
+
+    for (const monitoredPreview of monitored.previews) {
+      const { preview, rule, effectiveTaxYear } = monitoredPreview
+      const key = keyForGenerated({
+        clientId: client.id,
+        jurisdiction: preview.jurisdiction,
+        ruleId: rule.id,
+        taxYear: effectiveTaxYear,
+        rulePeriod: preview.period,
+      })
+      if (seenGeneratedKeys.has(key)) {
+        duplicateCount += 1
+        continue
+      }
+
+      seenGeneratedKeys.add(key)
+      if (monitoredPreview.rolledForwardYears > 0) rolledForwardDeadlineCount += 1
+      const createInput = buildRuleBackedCreateInput({
+        client: { ...client, entityType, taxClassification },
+        profile,
+        rule,
+        preview,
+        internalDeadlineOffsetDays,
+        now,
+      })
+      items.push({ key, createInput })
+    }
+  }
+
+  return {
+    items,
+    candidateCount,
+    historicalSkippedCount,
+    rolledForwardDeadlineCount,
+    duplicateCount,
+    hasCandidates,
+  }
+}
+
+/**
+ * Persist a freshly-computed obligation set: createBatch + readiness checklist
+ * reconcile + evidence provenance. Returns the created ids in createInputs
+ * order. Callers own their own audit event (the accept-rules path writes
+ * `obligation.batch_created`; the reclassification path writes
+ * `client.obligations.reclassified`).
+ */
+export async function persistGeneratedObligations(input: {
+  scoped: Pick<ScopedRepo, 'obligations' | 'readiness' | 'evidence'>
+  userId: string
+  createInputs: readonly RuleBackedCreateInput[]
+  readinessInputs: readonly { obligation: RuleBackedCreateInput; client: ClientRow }[]
+  now: Date
+}): Promise<{ ids: string[] }> {
+  if (input.createInputs.length === 0) return { ids: [] }
+  const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
+  const { ids } = await input.scoped.obligations.createBatch([...input.createInputs])
+  await reconcileReadinessChecklistsForCreatedRuleObligations({
+    scoped: input.scoped,
+    userId: input.userId,
+    obligations: ids.flatMap((id, index) => {
+      const entry = input.readinessInputs[index]
+      return entry ? [{ id, obligation: entry.obligation, client: entry.client }] : []
+    }),
+    now: input.now,
+  })
+  await input.scoped.evidence.writeBatch(
+    input.createInputs.map((created, index) => ({
+      obligationInstanceId: ids[index] ?? null,
+      aiOutputId: null,
+      sourceType: 'verified_rule',
+      sourceId: created.preview.ruleId,
+      sourceUrl: sourceUrlForPreview(created.preview, sourceById),
+      verbatimQuote: created.preview.evidence[0]?.sourceExcerpt ?? null,
+      rawValue: created.preview.matchedTaxType,
+      normalizedValue: created.preview.taxType,
+      confidence: created.preview.reminderReady ? 1 : 0.7,
+      model: null,
+      matrixVersion: null,
+      verifiedAt: null,
+      verifiedBy: null,
+      appliedAt: input.now,
+      appliedBy: input.userId,
+    })),
+  )
+  return { ids }
+}
+
 export async function generateObligationsForAcceptedRules(
   input: GenerateForAcceptedRulesInput,
 ): Promise<GenerateForAcceptedRulesSummary> {
   const now = input.now ?? new Date()
   const rules = input.rules.filter((rule) => rule.status === 'verified')
-  if (rules.length === 0) {
-    return {
-      candidateCount: 0,
-      createdCount: 0,
-      duplicateCount: 0,
-      historicalSkippedCount: 0,
-      rolledForwardDeadlineCount: 0,
-      clientCount: 0,
-      createdObligationIds: [],
-    }
+  const emptySummary: GenerateForAcceptedRulesSummary = {
+    candidateCount: 0,
+    createdCount: 0,
+    duplicateCount: 0,
+    historicalSkippedCount: 0,
+    rolledForwardDeadlineCount: 0,
+    clientCount: 0,
+    createdObligationIds: [],
   }
+  if (rules.length === 0) return emptySummary
 
   const clients = await input.scoped.clients.listByFirm()
-  if (clients.length === 0) {
-    return {
-      candidateCount: 0,
-      createdCount: 0,
-      duplicateCount: 0,
-      historicalSkippedCount: 0,
-      rolledForwardDeadlineCount: 0,
-      clientCount: 0,
-      createdObligationIds: [],
-    }
-  }
+  if (clients.length === 0) return emptySummary
 
   const profilesByClient = await input.scoped.filingProfiles.listByClients(
     clients.map((client) => client.id),
@@ -290,72 +451,33 @@ export async function generateObligationsForAcceptedRules(
         }),
       ),
   )
-  const sourceById = new Map(listRuleSources().map((source) => [source.id, source]))
-  const createInputs: Array<ObligationCreateInput & { preview: ObligationGenerationPreview }> = []
-  const readinessInputs: Array<{
-    obligation: ObligationCreateInput & { preview: ObligationGenerationPreview }
-    client: ClientRow
-  }> = []
-  const clientIdsWithCandidates = new Set<string>()
+  const createInputs: RuleBackedCreateInput[] = []
+  const readinessInputs: Array<{ obligation: RuleBackedCreateInput; client: ClientRow }> = []
   let candidateCount = 0
   let duplicateCount = 0
   let historicalSkippedCount = 0
   let rolledForwardDeadlineCount = 0
+  let clientCount = 0
 
   for (const client of clients) {
     const profiles = profilesByClient.get(client.id) ?? []
-    for (const profile of profiles) {
-      if (!isRuleGenerationState(profile.state) || profile.taxTypes.length === 0) continue
-
-      const clientFacts = {
-        id: client.id,
-        entityType: client.entityType,
-        state: profile.state,
-        taxTypes: profile.taxTypes,
-        taxPeriodSource: 'client_default' as const,
-        taxYearType: client.taxYearType,
-        fiscalYearEndMonth: client.fiscalYearEndMonth,
-        fiscalYearEndDay: client.fiscalYearEndDay,
-        ...(client.taxClassification ? { taxClassification: client.taxClassification } : {}),
-      } as const
-      const monitored = resolveMonitoredRulePreviews({
-        client: clientFacts,
-        rules,
-        ...(input.monitoringStartDate ? { monitoringStartDate: input.monitoringStartDate } : {}),
-      })
-      candidateCount += monitored.previews.length + monitored.historicalSkippedCount
-      historicalSkippedCount += monitored.historicalSkippedCount
-      if (monitored.previews.length > 0 || monitored.historicalSkippedCount > 0) {
-        clientIdsWithCandidates.add(client.id)
-      }
-
-      for (const monitoredPreview of monitored.previews) {
-        const { preview, rule, effectiveTaxYear } = monitoredPreview
-        const key = keyForGenerated({
-          clientId: client.id,
-          jurisdiction: preview.jurisdiction,
-          ruleId: rule.id,
-          taxYear: effectiveTaxYear,
-          rulePeriod: preview.period,
-        })
-        if (seenGeneratedKeys.has(key)) {
-          duplicateCount += 1
-          continue
-        }
-
-        seenGeneratedKeys.add(key)
-        if (monitoredPreview.rolledForwardYears > 0) rolledForwardDeadlineCount += 1
-        const createInput = buildRuleBackedCreateInput({
-          client,
-          profile,
-          rule,
-          preview,
-          internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
-          now,
-        })
-        createInputs.push(createInput)
-        readinessInputs.push({ obligation: createInput, client })
-      }
+    const result = computeClientGeneratedObligations({
+      client,
+      profiles,
+      rules,
+      internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
+      ...(input.monitoringStartDate ? { monitoringStartDate: input.monitoringStartDate } : {}),
+      now,
+      seenGeneratedKeys,
+    })
+    candidateCount += result.candidateCount
+    historicalSkippedCount += result.historicalSkippedCount
+    rolledForwardDeadlineCount += result.rolledForwardDeadlineCount
+    duplicateCount += result.duplicateCount
+    if (result.hasCandidates) clientCount += 1
+    for (const item of result.items) {
+      createInputs.push(item.createInput)
+      readinessInputs.push({ obligation: item.createInput, client })
     }
   }
 
@@ -366,40 +488,18 @@ export async function generateObligationsForAcceptedRules(
       duplicateCount,
       historicalSkippedCount,
       rolledForwardDeadlineCount,
-      clientCount: clientIdsWithCandidates.size,
+      clientCount,
       createdObligationIds: [],
     }
   }
 
-  const { ids } = await input.scoped.obligations.createBatch(createInputs)
-  await reconcileReadinessChecklistsForCreatedRuleObligations({
+  const { ids } = await persistGeneratedObligations({
     scoped: input.scoped,
     userId: input.userId,
-    obligations: ids.flatMap((id, index) => {
-      const entry = readinessInputs[index]
-      return entry ? [{ id, obligation: entry.obligation, client: entry.client }] : []
-    }),
+    createInputs,
+    readinessInputs,
     now,
   })
-  await input.scoped.evidence.writeBatch(
-    createInputs.map((created, index) => ({
-      obligationInstanceId: ids[index] ?? null,
-      aiOutputId: null,
-      sourceType: 'verified_rule',
-      sourceId: created.preview.ruleId,
-      sourceUrl: sourceUrlForPreview(created.preview, sourceById),
-      verbatimQuote: created.preview.evidence[0]?.sourceExcerpt ?? null,
-      rawValue: created.preview.matchedTaxType,
-      normalizedValue: created.preview.taxType,
-      confidence: created.preview.reminderReady ? 1 : 0.7,
-      model: null,
-      matrixVersion: null,
-      verifiedAt: null,
-      verifiedBy: null,
-      appliedAt: now,
-      appliedBy: input.userId,
-    })),
-  )
   await input.scoped.audit.write({
     actorId: input.userId,
     entityType: 'obligation_batch',
@@ -412,7 +512,7 @@ export async function generateObligationsForAcceptedRules(
       duplicateCount,
       historicalSkippedCount,
       rolledForwardDeadlineCount,
-      clientCount: clientIdsWithCandidates.size,
+      clientCount,
       createdObligationIds: ids,
     },
     reason: input.reason ?? 'Generated from newly accepted practice rules.',
@@ -424,7 +524,7 @@ export async function generateObligationsForAcceptedRules(
     duplicateCount,
     historicalSkippedCount,
     rolledForwardDeadlineCount,
-    clientCount: clientIdsWithCandidates.size,
+    clientCount,
     createdObligationIds: ids,
   }
 }

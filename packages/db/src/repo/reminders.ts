@@ -334,6 +334,7 @@ export function makeRemindersRepo(db: Db, firmId: string) {
           eq(obligationInstance.firmId, firmId),
           inArray(obligationInstance.status, OPEN_STATUSES),
           isNull(client.deletedAt),
+          isNull(obligationInstance.supersededAt),
         ),
       )
       .orderBy(obligationInstance.currentDueDate)

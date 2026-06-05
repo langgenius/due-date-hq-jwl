@@ -292,6 +292,28 @@ export function makeClientsRepo(db: Db, firmId: string) {
         .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
     },
 
+    // Tax classification write (entity type / tax classification / legal entity).
+    // Used by the reclassification apply flow, which writes this then recomputes
+    // the client's rule-backed obligations in the same operation.
+    async updateClassification(
+      id: string,
+      input: {
+        entityType?: (typeof client.$inferInsert)['entityType']
+        legalEntity?: (typeof client.$inferInsert)['legalEntity']
+        taxClassification?: (typeof client.$inferInsert)['taxClassification']
+      },
+    ): Promise<void> {
+      const patch: Partial<typeof client.$inferInsert> = {}
+      if (input.entityType !== undefined) patch.entityType = input.entityType
+      if (input.legalEntity !== undefined) patch.legalEntity = input.legalEntity
+      if (input.taxClassification !== undefined) patch.taxClassification = input.taxClassification
+      if (Object.keys(patch).length === 0) return
+      await db
+        .update(client)
+        .set(patch)
+        .where(and(eq(client.firmId, firmId), eq(client.id, id), isNull(client.deletedAt)))
+    },
+
     // 2026-06-01 (Yuqi /clients/[id] critique — IA): dedicated notes
     // write. Keeps the audit log honest (one action per real change)
     // and lets the UI mutation be single-purpose (the slide-in

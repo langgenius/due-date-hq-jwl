@@ -121,6 +121,17 @@ export interface ClientsRepo {
       sourceStatus?: string | null
     },
   ): Promise<void>
+  // Tax classification write (entity type / tax classification / legal entity).
+  // Used by the reclassification apply flow, which recomputes obligations in
+  // the same operation.
+  updateClassification(
+    id: string,
+    input: {
+      entityType?: ClientEntityType
+      legalEntity?: ClientLegalEntity | null
+      taxClassification?: ClientTaxClassification | null
+    },
+  ): Promise<void>
   // 2026-06-01 (Yuqi /clients/[id] critique — IA): dedicated notes
   // write. Mirrors the contract-level `updateNotes` mutation that
   // powers the slide-in Notes panel.

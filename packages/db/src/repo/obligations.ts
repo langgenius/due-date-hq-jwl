@@ -365,7 +365,11 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .select()
         .from(obligationInstance)
         .where(
-          and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.clientId, clientId)),
+          and(
+            eq(obligationInstance.firmId, firmId),
+            eq(obligationInstance.clientId, clientId),
+            isNull(obligationInstance.supersededAt),
+          ),
         )
         .orderBy(asc(obligationInstance.currentDueDate))
       return (await hydrateObligationRows(await applyOverlayDueDates(rows))).toSorted(
@@ -405,6 +409,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
             eq(obligationInstance.firmId, firmId),
             eq(obligationInstance.status, 'done'),
             eq(obligationInstance.efileState, 'not_applicable'),
+            isNull(obligationInstance.supersededAt),
           ),
         )
       return hydrateObligationRows(await applyOverlayDueDates(rows))
@@ -418,6 +423,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
       const nextYearStart = new Date(Date.UTC(input.sourceFilingYear + 1, 0, 1))
       const filters = [
         eq(obligationInstance.firmId, firmId),
+        isNull(obligationInstance.supersededAt),
         inArray(obligationInstance.status, ['done', 'paid', 'extended']),
         gte(obligationInstance.baseDueDate, yearStart),
         lt(obligationInstance.baseDueDate, nextYearStart),
@@ -442,6 +448,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
       // Mirrors OPEN_OBLIGATION_STATUSES — done/paid/completed are never re-projected.
       const filters = [
         eq(obligationInstance.firmId, firmId),
+        isNull(obligationInstance.supersededAt),
         isNotNull(obligationInstance.ruleId),
         inArray(obligationInstance.status, [
           'pending',
@@ -487,6 +494,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
           and(
             eq(obligationInstance.firmId, firmId),
             eq(client.firmId, firmId),
+            isNull(obligationInstance.supersededAt),
             inArray(obligationInstance.ruleId, uniqueRuleIds),
             inArray(obligationInstance.status, [
               'pending',
@@ -512,6 +520,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
       // Unconfirmed, still-open deadlines awaiting CPA confirmation (the review queue).
       const filters = [
         eq(obligationInstance.firmId, firmId),
+        isNull(obligationInstance.supersededAt),
         eq(obligationInstance.confirmed, false),
         inArray(obligationInstance.status, [
           'pending',
@@ -568,6 +577,7 @@ export function makeObligationsRepo(db: Db, firmId: string) {
                 inArray(obligationInstance.clientId, chunk),
                 inArray(obligationInstance.taxYear, taxYears),
                 isNotNull(obligationInstance.ruleId),
+                isNull(obligationInstance.supersededAt),
               ),
             ),
         )
@@ -899,6 +909,51 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .delete(obligationInstance)
         .where(and(eq(obligationInstance.firmId, firmId), inArray(obligationInstance.id, ids)))
       return ids.length
+    },
+
+    /**
+     * Soft-archive obligations during a reclassification recompute. Reads which
+     * of the requested ids are still active (superseded_at IS NULL), stamps
+     * superseded_at + reason + a soft pointer to the audit event on exactly
+     * those, and returns the ids actually transitioned so the caller can audit
+     * them. Idempotent (already-superseded ids are no-ops). Preserves all
+     * workflow state; rows stay visible to audit/history but disappear from
+     * active surfaces + the generation dedup feed.
+     */
+    async supersedeByIds(
+      ids: string[],
+      meta: { reason: string; auditId?: string | null },
+    ): Promise<{ supersededIds: string[] }> {
+      if (ids.length === 0) return { supersededIds: [] }
+      const uniqueIds = [...new Set(ids)]
+      const supersededIds: string[] = []
+      for (let i = 0; i < uniqueIds.length; i += OI_UPDATE_IDS_PER_BATCH) {
+        const chunk = uniqueIds.slice(i, i + OI_UPDATE_IDS_PER_BATCH)
+        const active = await db
+          .select({ id: obligationInstance.id })
+          .from(obligationInstance)
+          .where(
+            and(
+              eq(obligationInstance.firmId, firmId),
+              inArray(obligationInstance.id, chunk),
+              isNull(obligationInstance.supersededAt),
+            ),
+          )
+        const activeIds = active.map((row) => row.id)
+        if (activeIds.length === 0) continue
+        await db
+          .update(obligationInstance)
+          .set({
+            supersededAt: new Date(),
+            supersededReason: meta.reason,
+            supersededByAuditId: meta.auditId ?? null,
+          })
+          .where(
+            and(eq(obligationInstance.firmId, firmId), inArray(obligationInstance.id, activeIds)),
+          )
+        supersededIds.push(...activeIds)
+      }
+      return { supersededIds }
     },
   }
 }

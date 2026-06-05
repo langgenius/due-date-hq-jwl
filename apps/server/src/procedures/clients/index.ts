@@ -1,5 +1,5 @@
 import { ORPCError } from '@orpc/server'
-import type { ClientFilingProfileInput } from '@duedatehq/contracts'
+import type { ClientClassificationReason, ClientFilingProfileInput } from '@duedatehq/contracts'
 import type {
   ClientFilingProfileInput as ClientFilingProfileRepoInput,
   ClientFilingProfileReplaceInput as ClientFilingProfileRepoReplaceInput,
@@ -13,6 +13,8 @@ import { os } from '../_root'
 import { dateInTimezone, toAiInsightPublic } from '../_ai-insights'
 import { enqueueAiInsightRefresh } from '../../jobs/ai-insights/enqueue'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
+import { listActiveCoreRules } from '../rules'
+import { runClassificationRecompute } from './_classification-recompute'
 import {
   toClientPublic,
   type ClientCreateInputForRepo,
@@ -819,6 +821,118 @@ const updateSourceDetails = os.clients.updateSourceDetails.handler(async ({ inpu
   }
 })
 
+function reclassificationReasonText(reason: ClientClassificationReason): string {
+  const parts: string[] = [reason.kind === 'correction' ? 'Correction' : 'Reclassification']
+  if (reason.event) parts.push(reason.event)
+  if (reason.note) parts.push(reason.note)
+  return parts.join(' — ')
+}
+
+// Read-only impact preview for a tax-classification change: what obligations
+// would be added / removed (and which removals need confirmation). No writes.
+const previewClassificationRecompute = os.clients.previewClassificationRecompute.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
+    const { scoped, tenant, userId } = requireTenant(context)
+    const client = await scoped.clients.findById(input.clientId)
+    if (!client) {
+      throw new ORPCError('NOT_FOUND', {
+        message: `Client ${input.clientId} not found in current firm.`,
+      })
+    }
+    const rules = await listActiveCoreRules(scoped)
+    const outcome = await runClassificationRecompute({
+      scoped,
+      userId,
+      client,
+      candidate: input.candidate,
+      rules,
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+      ...(tenant.monitoringStartDate ? { monitoringStartDate: tenant.monitoringStartDate } : {}),
+      now: new Date(),
+      mode: 'preview',
+      ...(input.effectiveFromTaxYear !== undefined
+        ? { effectiveFromTaxYear: input.effectiveFromTaxYear }
+        : {}),
+    })
+    return { summary: outcome.summary, rows: outcome.rows }
+  },
+)
+
+// Atomic classification write + obligation recompute. Writes the new
+// classification, adds the newly-applicable obligations, supersedes the
+// orphaned ones (pristine automatically; stateful only when confirmed), and
+// audits the change. This is the only classification write path — there is no
+// field-only update, so a client can never be left with stale obligations.
+const applyClassificationRecompute = os.clients.applyClassificationRecompute.handler(
+  async ({ input, context }) => {
+    await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
+    const { scoped, tenant, userId } = requireTenant(context)
+    const client = await scoped.clients.findById(input.clientId)
+    if (!client) {
+      throw new ORPCError('NOT_FOUND', {
+        message: `Client ${input.clientId} not found in current firm.`,
+      })
+    }
+    const rules = await listActiveCoreRules(scoped)
+    const outcome = await runClassificationRecompute({
+      scoped,
+      userId,
+      client,
+      candidate: input.candidate,
+      rules,
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+      ...(tenant.monitoringStartDate ? { monitoringStartDate: tenant.monitoringStartDate } : {}),
+      now: new Date(),
+      mode: 'apply',
+      reason: reclassificationReasonText(input.reason),
+      ...(input.effectiveFromTaxYear !== undefined
+        ? { effectiveFromTaxYear: input.effectiveFromTaxYear }
+        : {}),
+      ...(input.confirmedOrphanObligationIds
+        ? { confirmedOrphanObligationIds: input.confirmedOrphanObligationIds }
+        : {}),
+    })
+    if (!outcome.auditId) {
+      throw new ORPCError('INTERNAL_SERVER_ERROR', {
+        message: 'Reclassification did not produce an audit id.',
+      })
+    }
+
+    await Promise.all([
+      enqueueDashboardBriefRefresh(context.env, {
+        firmId: tenant.firmId,
+        reason: 'client_facts_change',
+      }).catch(() => false),
+      enqueueAiInsightRefresh(context.env, {
+        firmId: tenant.firmId,
+        kind: 'client_risk_summary',
+        subjectId: input.clientId,
+        reason: 'client_classification_update',
+      }).catch(() => false),
+    ])
+
+    const [after, afterProfiles] = await Promise.all([
+      scoped.clients.findById(input.clientId),
+      scoped.filingProfiles.listByClient(input.clientId),
+    ])
+    if (!after) {
+      throw new ORPCError('INTERNAL_SERVER_ERROR', {
+        message: 'Updated client could not be re-read.',
+      })
+    }
+    const hideDollars = await shouldHideDollars(context)
+    return {
+      client: toClientPublic(after, { hideDollars, filingProfiles: afterProfiles }),
+      addedCount: outcome.addedObligationIds.length,
+      supersededCount: outcome.supersededObligationIds.length,
+      recalculatedObligationCount:
+        outcome.addedObligationIds.length + outcome.supersededObligationIds.length,
+      auditId: outcome.auditId,
+    }
+  },
+)
+
 // 2026-06-01 (Yuqi /clients/[id] critique — IA): single-purpose
 // notes write. The slide-in Notes panel that replaces the in-tab
 // read-only Notes block needs a clean mutation. Single field,
@@ -1039,6 +1153,8 @@ export const clientsHandlers = {
   updatePenaltyInputs,
   updateRiskProfile,
   updateSourceDetails,
+  previewClassificationRecompute,
+  applyClassificationRecompute,
   updateNotes,
   getRiskSummary,
   requestRiskSummaryRefresh,

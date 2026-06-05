@@ -4,6 +4,7 @@ export const AI_INSIGHT_MESSAGE_TYPE = 'ai.insight.refresh'
 
 export type AiInsightRefreshReason =
   | 'manual_refresh'
+  | 'client_classification_update'
   | 'client_jurisdiction_update'
   | 'client_risk_profile_update'
   | 'client_source_details_update'

@@ -643,6 +643,7 @@ export function makeDashboardRepo(db: Db, firmId: string) {
             eq(client.firmId, firmId),
             isNull(client.deletedAt),
             inArray(obligationInstance.status, OPEN_STATUSES),
+            isNull(obligationInstance.supersededAt),
           ),
         )
         .orderBy(asc(obligationInstance.currentDueDate), asc(obligationInstance.id))

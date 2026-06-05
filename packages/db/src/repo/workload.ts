@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm'
 import { OPEN_OBLIGATION_STATUSES } from '@duedatehq/core/obligation-workflow'
 import type { Db } from '../client'
 import { client } from '../schema/clients'
@@ -169,6 +169,7 @@ export function makeWorkloadRepo(db: Db, firmId: string) {
           and(
             eq(obligationInstance.firmId, firmId),
             inArray(obligationInstance.status, OPEN_STATUSES),
+            isNull(obligationInstance.supersededAt),
           ),
         )
         .orderBy(asc(client.assigneeName), asc(obligationInstance.currentDueDate))

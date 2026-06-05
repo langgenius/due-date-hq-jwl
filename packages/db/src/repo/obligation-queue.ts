@@ -624,6 +624,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         eq(obligationInstance.firmId, firmId),
         eq(client.firmId, firmId),
         isNull(client.deletedAt),
+        isNull(obligationInstance.supersededAt),
       ]
       const clientCountySql = sql<
         string | null
@@ -962,6 +963,7 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
             eq(obligationInstance.firmId, firmId),
             eq(client.firmId, firmId),
             isNull(client.deletedAt),
+            isNull(obligationInstance.supersededAt),
           ),
         )
         .orderBy(asc(client.name), asc(obligationInstance.taxType))

@@ -122,6 +122,7 @@ export function makePulseOpsRepo(db: Db) {
             inArray(obligationInstance.taxType, forms),
             inArray(obligationInstance.status, OPEN_STATUSES),
             isNull(client.deletedAt),
+            isNull(obligationInstance.supersededAt),
           ),
         )
 
@@ -174,6 +175,7 @@ export function makePulseOpsRepo(db: Db) {
           and(
             inArray(obligationInstance.ruleId, reverifyRuleIds),
             inArray(obligationInstance.status, OPEN_STATUSES),
+            isNull(obligationInstance.supersededAt),
           ),
         )
       const perFirm = new Map<string, number>()
@@ -469,6 +471,7 @@ export function makePulseOpsRepo(db: Db) {
           inArray(obligationInstance.taxType, forms),
           inArray(obligationInstance.status, OPEN_STATUSES),
           isNull(client.deletedAt),
+          isNull(obligationInstance.supersededAt),
         ),
       )
       .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))

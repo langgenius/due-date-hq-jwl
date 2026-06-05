@@ -269,6 +269,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           // `deletedAt`): without this, a deleted client's still-open obligation
           // lingers in the alert's affected list and could even be applied.
           isNull(client.deletedAt),
+          isNull(obligationInstance.supersededAt),
         ),
       )
       .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
@@ -369,6 +370,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           inArray(obligationInstance.status, OPEN_STATUSES),
           // Exclude soft-deleted clients (see listCandidateRows).
           isNull(client.deletedAt),
+          isNull(obligationInstance.supersededAt),
         ),
       )
       .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
@@ -420,6 +422,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           eq(obligationInstance.jurisdiction, alert.parsedJurisdiction),
           inArray(obligationInstance.status, OPEN_STATUSES),
           isNull(client.deletedAt),
+          isNull(obligationInstance.supersededAt),
         ),
       )
       .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
@@ -589,8 +592,11 @@ export function makePulseRepo(db: Db, firmId: string) {
           // Exclude soft-deleted clients (see listCandidateRows). At apply time
           // `listFreshEligibleRows` treats a now-missing row as a conflict, so a
           // client deleted after selection surfaces the standard "list changed,
-          // refresh" guard instead of silently applying to a dead client.
+          // refresh" guard instead of silently applying to a dead client. A
+          // superseded obligation drops out the same way — it must not be
+          // applyable once a reclassification soft-removed it.
           isNull(client.deletedAt),
+          isNull(obligationInstance.supersededAt),
         ),
       )
       .orderBy(asc(obligationInstance.currentDueDate), asc(client.name))
@@ -1085,7 +1091,11 @@ export function makePulseRepo(db: Db, firmId: string) {
         .select({ jurisdiction: obligationInstance.jurisdiction })
         .from(obligationInstance)
         .where(
-          and(eq(obligationInstance.firmId, firmId), inArray(obligationInstance.id, obligationIds)),
+          and(
+            eq(obligationInstance.firmId, firmId),
+            inArray(obligationInstance.id, obligationIds),
+            isNull(obligationInstance.supersededAt),
+          ),
         )
       const jurisdictions = [...new Set(obligations.map((row) => row.jurisdiction))].filter(
         (value): value is string => value !== null,

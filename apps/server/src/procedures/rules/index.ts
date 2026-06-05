@@ -600,7 +600,7 @@ async function listPracticeRules(input: {
   })
 }
 
-async function listActiveCoreRules(scoped: ReturnType<typeof requireTenant>['scoped']) {
+export async function listActiveCoreRules(scoped: ReturnType<typeof requireTenant>['scoped']) {
   const rows = await scoped.rules.listActivePracticeRules()
   const activeRows = rows.flatMap((row) => {
     const rule = parsePracticeRule(row)

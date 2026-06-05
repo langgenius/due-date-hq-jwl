@@ -180,6 +180,11 @@ export interface ObligationsRepo {
       rulePeriod: string | null
     }>
   >
+  /** Soft-archive rule-backed obligations during a reclassification recompute. */
+  supersedeByIds(
+    ids: string[],
+    meta: { reason: string; auditId?: string | null },
+  ): Promise<{ supersededIds: string[] }>
   updateDueDate(id: string, newDate: Date): Promise<void>
   updateTaxYearProfile(
     id: string,

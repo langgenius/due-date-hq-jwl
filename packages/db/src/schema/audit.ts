@@ -370,10 +370,12 @@ export type ReminderAuditAction = (typeof REMINDER_AUDIT_ACTIONS)[number]
 export const CLIENT_AUDIT_ACTIONS = [
   'client.assignee.updated',
   'client.batch_created',
+  'client.classification.updated',
   'client.created',
   'client.deleted',
   'client.filing_profiles.replaced',
   'client.jurisdiction.updated',
+  'client.obligations.reclassified',
   'client.risk_profile.updated',
   'client.source_details.updated',
   'client.tax_year_profile.updated',

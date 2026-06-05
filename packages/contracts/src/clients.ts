@@ -255,6 +255,124 @@ export const ClientSourceDetailsUpdateOutputSchema = z.object({
 })
 export type ClientSourceDetailsUpdateOutput = z.infer<typeof ClientSourceDetailsUpdateOutputSchema>
 
+// --- Tax classification editing + obligation recompute --------------------
+//
+// Changing a client's entity type / tax classification (S election, revocation,
+// check-the-box, conversion). Two procedures, mirroring the repo's existing
+// preview/apply pairs (annual rollover, reprojection): a read-only PREVIEW that
+// shows the obligation impact, and an APPLY that writes the classification AND
+// recomputes obligations atomically — closing the stale window a classification-
+// only write would leave. NO transition restrictions: every entityType /
+// taxClassification is always selectable; the impact preview + the structured
+// reason are the safety net, not input limits.
+
+export const ClientClassificationReasonSchema = z.object({
+  kind: z.enum(['correction', 'reclassification']),
+  event: z
+    .enum([
+      's_election',
+      's_election_revocation',
+      'check_the_box_8832',
+      'legal_conversion',
+      'other',
+    ])
+    .optional(),
+  note: z.string().max(280).optional(),
+})
+export type ClientClassificationReason = z.infer<typeof ClientClassificationReasonSchema>
+
+export const ClientClassificationCandidateSchema = z.object({
+  entityType: EntityTypeSchema.optional(),
+  legalEntity: ClientLegalEntitySchema.nullable().optional(),
+  taxClassification: ClientTaxClassificationSchema.optional(),
+})
+export type ClientClassificationCandidate = z.infer<typeof ClientClassificationCandidateSchema>
+
+export const ClassificationRecomputeDispositionSchema = z.enum([
+  'will_add',
+  'unchanged',
+  'orphan_safe',
+  'orphan_needs_confirmation',
+])
+export type ClassificationRecomputeDisposition = z.infer<
+  typeof ClassificationRecomputeDispositionSchema
+>
+
+export const ClassificationRecomputeRowSchema = z.object({
+  disposition: ClassificationRecomputeDispositionSchema,
+  // null for will_add (not yet created); the existing obligation id otherwise.
+  obligationId: EntityIdSchema.nullable(),
+  taxType: z.string(),
+  formName: z.string().nullable(),
+  jurisdiction: z.string().nullable(),
+  taxYear: z.number().int().nullable(),
+  dueDate: z.iso.datetime().nullable(),
+  // For orphan_needs_confirmation: human-readable reasons (status, e-file in
+  // progress, has review notes, …) powering the dialog badges.
+  workflowFlags: z.array(z.string()),
+})
+export type ClassificationRecomputeRow = z.infer<typeof ClassificationRecomputeRowSchema>
+
+export const ClassificationRecomputeSummarySchema = z.object({
+  willAddCount: z.number().int().min(0),
+  unchangedCount: z.number().int().min(0),
+  orphanSafeCount: z.number().int().min(0),
+  orphanNeedsConfirmationCount: z.number().int().min(0),
+})
+export type ClassificationRecomputeSummary = z.infer<typeof ClassificationRecomputeSummarySchema>
+
+export const ClassificationRecomputePreviewInputSchema = z.object({
+  clientId: EntityIdSchema,
+  candidate: ClientClassificationCandidateSchema,
+  // Reclassification effective tax year — recompute touches only years >= this.
+  // Omitted (correction) recomputes all monitored years (history rewrite).
+  effectiveFromTaxYear: z.number().int().min(2000).max(2100).optional(),
+})
+export type ClassificationRecomputePreviewInput = z.infer<
+  typeof ClassificationRecomputePreviewInputSchema
+>
+
+export const ClassificationRecomputePreviewOutputSchema = z.object({
+  summary: ClassificationRecomputeSummarySchema,
+  rows: z.array(ClassificationRecomputeRowSchema),
+})
+export type ClassificationRecomputePreviewOutput = z.infer<
+  typeof ClassificationRecomputePreviewOutputSchema
+>
+
+export const ClassificationRecomputeApplyInputSchema = z
+  .object({
+    clientId: EntityIdSchema,
+    candidate: ClientClassificationCandidateSchema,
+    reason: ClientClassificationReasonSchema,
+    effectiveFromTaxYear: z.number().int().min(2000).max(2100).optional(),
+    // Orphans with workflow state are removed only if explicitly confirmed here.
+    confirmedOrphanObligationIds: z.array(EntityIdSchema).max(1000).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.reason.kind === 'reclassification' && value.effectiveFromTaxYear === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['effectiveFromTaxYear'],
+        message: 'Reclassification requires an effective tax year.',
+      })
+    }
+  })
+export type ClassificationRecomputeApplyInput = z.infer<
+  typeof ClassificationRecomputeApplyInputSchema
+>
+
+export const ClassificationRecomputeApplyOutputSchema = z.object({
+  client: ClientPublicSchema,
+  addedCount: z.number().int().min(0),
+  supersededCount: z.number().int().min(0),
+  recalculatedObligationCount: z.number().int().min(0),
+  auditId: EntityIdSchema,
+})
+export type ClassificationRecomputeApplyOutput = z.infer<
+  typeof ClassificationRecomputeApplyOutputSchema
+>
+
 // 2026-06-01 (Yuqi /clients/[id] critique — IA): dedicated `updateNotes`
 // mutation. Notes used to be a read-only display inside the Activity
 // tab (no write surface). After moving Notes out to a slide-in panel
@@ -335,6 +453,12 @@ export const clientsContract = oc.router({
   updateSourceDetails: oc
     .input(ClientSourceDetailsUpdateSchema)
     .output(ClientSourceDetailsUpdateOutputSchema),
+  previewClassificationRecompute: oc
+    .input(ClassificationRecomputePreviewInputSchema)
+    .output(ClassificationRecomputePreviewOutputSchema),
+  applyClassificationRecompute: oc
+    .input(ClassificationRecomputeApplyInputSchema)
+    .output(ClassificationRecomputeApplyOutputSchema),
   updateNotes: oc.input(ClientNotesUpdateSchema).output(ClientNotesUpdateOutputSchema),
   getRiskSummary: oc.input(ClientRiskSummaryInputSchema).output(AiInsightPublicSchema),
   requestRiskSummaryRefresh: oc

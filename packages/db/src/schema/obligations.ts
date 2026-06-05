@@ -271,6 +271,18 @@ export const obligationInstance = sqliteTable(
     penaltyFormulaLabel: text('penalty_formula_label'),
     exposureCalculatedAt: integer('exposure_calculated_at', { mode: 'timestamp_ms' }),
 
+    // Soft-archive for rule-backed obligations. When a client is reclassified
+    // (e.g. C->S election), obligations that no longer apply are SUPERSEDED, not
+    // hard-deleted — preserving workflow state (status, prep/review, e-file,
+    // extension, notes) and keeping the change reversible. `supersededAt` NULL =
+    // active; active reads + the generation dedup feed filter on it.
+    // `supersededByAuditId` is a SOFT pointer (no FK) to the
+    // `client.obligations.reclassified` event — obligation_instance must not
+    // depend on audit_event, which already references obligation_instance.
+    supersededAt: integer('superseded_at', { mode: 'timestamp_ms' }),
+    supersededReason: text('superseded_reason'),
+    supersededByAuditId: text('superseded_by_audit_id'),
+
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
       .notNull(),
@@ -302,7 +314,9 @@ export const obligationInstance = sqliteTable(
         table.taxYear,
         table.rulePeriod,
       )
-      .where(sql`rule_id is not null and tax_year is not null and rule_period is not null`),
+      .where(
+        sql`rule_id is not null and tax_year is not null and rule_period is not null and superseded_at is null`,
+      ),
     index('idx_oi_firm_rule_tax_year').on(table.firmId, table.ruleId, table.taxYear),
     index('idx_oi_firm_jurisdiction_due').on(
       table.firmId,
