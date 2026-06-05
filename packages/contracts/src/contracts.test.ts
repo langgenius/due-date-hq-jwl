@@ -1203,6 +1203,7 @@ describe('@duedatehq/contracts', () => {
 
   it('freezes Pulse demo backend contracts', () => {
     expect(Object.keys(pulseContract)).toEqual([
+      'listAlertsForRule',
       'listAlerts',
       'activeCount',
       'listHistory',
@@ -1249,6 +1250,19 @@ describe('@duedatehq/contracts', () => {
       limit: 20,
       status: 'snoozed',
     })
+    // 2026-06-05 (Load more): both list inputs accept an optional keyset
+    // cursor. Absent leaves the shape unchanged (asserted above); present
+    // round-trips so "Load more" can thread nextCursor back in.
+    expect(PulseListAlertsInputSchema.parse({ limit: 50, cursor: null })).toEqual({
+      limit: 50,
+      cursor: null,
+    })
+    expect(PulseListAlertsInputSchema.parse({ cursor: 'eyJjIjoxfQ' })?.cursor).toBe('eyJjIjoxfQ')
+    expect(PulseListHistoryInputSchema.parse({ status: 'snoozed', cursor: 'c1' })).toEqual({
+      limit: 20,
+      status: 'snoozed',
+      cursor: 'c1',
+    })
 
     const alert = PulseAlertPublicSchema.parse({
       id: '11111111-1111-4111-8111-111111111111',
@@ -1273,6 +1287,7 @@ describe('@duedatehq/contracts', () => {
       duplicateSourceSnapshotCount: 2,
       confidence: 0.94,
       isSample: true,
+      taxAreas: ['income_individual'],
     })
     expect(alert.isSample).toBe(true)
     expect(alert.duplicateSourceSnapshotCount).toBe(2)
@@ -1452,6 +1467,7 @@ describe('@duedatehq/contracts', () => {
           clientName: 'Acme LLC',
           clientEmail: 'acme@example.com',
           taxType: 'ca_llc_annual_tax',
+          obligationType: 'filing',
           currentDueDate: '2026-04-30',
           paymentDueDate: null,
           status: 'pending',
@@ -1500,6 +1516,7 @@ describe('@duedatehq/contracts', () => {
               clientName: 'Acme LLC',
               clientEmail: 'acme@example.com',
               taxType: 'ca_llc_annual_tax',
+              obligationType: 'filing',
               currentDueDate: '2026-04-30',
               paymentDueDate: null,
               status: 'pending',

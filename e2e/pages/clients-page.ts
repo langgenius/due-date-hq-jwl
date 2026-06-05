@@ -151,7 +151,19 @@ export class ClientsPage {
   }
 
   detailSection(sectionName: string) {
-    return this.page.getByText(sectionName, { exact: true })
+    // 2026-06-05: the redesigned client-detail tabs render every section
+    // header through the shared `TabSection` primitive, which emits an
+    // `<h2>` (apps/app/src/features/clients/ClientFactsWorkspace.tsx:243
+    // — `<h2 className="text-base font-semibold ...">{title}</h2>`).
+    // A raw `getByText('Filing plan', { exact: true })` now matches TWO
+    // nodes: the `<h2>` heading AND the tab label
+    // `<span data-tab-label>Filing plan</span>` rendered by the Work tab
+    // trigger (ClientDetailWorkspace.tsx:1041-1043) — the tab key `work`
+    // was relabelled "Filing plan" in the IA pass. Targeting the level-2
+    // heading scopes to the section header only (role `heading`), so it
+    // can never resolve to the `role="tab"` element regardless of label
+    // overlap.
+    return this.page.getByRole('heading', { level: 2, name: sectionName })
   }
 }
 

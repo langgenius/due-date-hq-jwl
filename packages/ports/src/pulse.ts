@@ -45,6 +45,18 @@ export interface PulseAlertRow {
   // from the DB. Lets the alerts list page filter / group by jurisdiction
   // without an N+1 detail fetch.
   jurisdiction: string
+  // 2026-06-05 (Tax area filter): derived service-line bucket(s) the alert
+  // touches (see @duedatehq/core/tax-area). Empty = uncategorized. Inlined as a
+  // literal union to keep this port boundary decoupled from contracts, matching
+  // the other enum-ish fields above.
+  taxAreas: Array<
+    | 'income_individual'
+    | 'income_business'
+    | 'sales_use'
+    | 'payroll_withholding'
+    | 'franchise'
+    | 'info_compliance'
+  >
 }
 
 export interface PulseAffectedClientRow {
@@ -278,7 +290,10 @@ export interface PulseRuleMatchRow {
 export interface PulseRepo {
   readonly firmId: string
   createSeedAlert(input: PulseSeedInput): Promise<{ pulseId: string; alertId: string }>
-  listAlerts(opts?: { limit?: number }): Promise<PulseAlertRow[]>
+  listAlerts(opts?: {
+    limit?: number
+    cursor?: string | null
+  }): Promise<{ alerts: PulseAlertRow[]; nextCursor: string | null }>
   /**
    * Approved, still-active pulses that affect a specific rule. Backs the
    * rule-review dialog's "proposed change" block. Matches by the pulse's
@@ -304,7 +319,11 @@ export interface PulseRepo {
    * no longer keeps a stale matchedCount=0. Does not apply any overlay.
    */
   refreshMatchedCountsForObligations(obligationIds: string[]): Promise<void>
-  listHistory(opts?: { limit?: number; status?: PulseAlertRow['status'] }): Promise<PulseAlertRow[]>
+  listHistory(opts?: {
+    limit?: number
+    status?: PulseAlertRow['status']
+    cursor?: string | null
+  }): Promise<{ alerts: PulseAlertRow[]; nextCursor: string | null }>
   listSourceStates(): Promise<PulseSourceStateRow[]>
   getLatestSourceSnapshotBySourceId(sourceId: string): Promise<PulseSourceSnapshotRow | null>
   getDetail(alertId: string): Promise<PulseDetailRow>

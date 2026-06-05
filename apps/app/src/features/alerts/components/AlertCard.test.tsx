@@ -43,6 +43,7 @@ function baseAlert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic 
     confidence: 0.92,
     isSample: false,
     jurisdiction: 'CA',
+    taxAreas: [],
     ...overrides,
   }
 }

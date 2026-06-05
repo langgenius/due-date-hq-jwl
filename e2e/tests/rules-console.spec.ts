@@ -74,7 +74,13 @@ test('AC: E2E-RULES-PREVIEW runs the implemented obligation preview', async ({
 
   await expect(authenticatedPage.getByText(/REMINDER READY/)).toBeVisible()
   await expect(authenticatedPage.getByText(/REQUIRES REVIEW/)).toBeVisible()
+  // The rule pack ships two same-titled federal 1065 rules — `fed.1065.return.2025`
+  // and `fed.1065.return.2026` (packages/core/src/rules/index.ts:8174 and :8236) —
+  // both `requiresApplicabilityReview`, so for a partnership/LLC client both land
+  // in the REQUIRES REVIEW group and the title renders in two preview rows
+  // (`{ruleTitle} · {formName}` at generation-preview-tab.tsx:682-684). The test
+  // only needs to confirm the 1065 obligation surfaced, so target the first row.
   await expect(
-    authenticatedPage.getByText('Federal Form 1065 return for partnerships'),
+    authenticatedPage.getByText('Federal Form 1065 return for partnerships').first(),
   ).toBeVisible()
 })

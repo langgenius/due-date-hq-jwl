@@ -19,6 +19,7 @@
     "./readiness-documents": "./src/readiness-documents/index.ts",
     "./default-matrix": "./src/default-matrix/index.ts",
     "./rules": "./src/rules/index.ts",
+    "./tax-area": "./src/tax-area/index.ts",
     "./csv-parser": "./src/csv-parser/index.ts",
     "./pii": "./src/pii/index.ts",
     "./normalize-dict": "./src/normalize-dict/index.ts",

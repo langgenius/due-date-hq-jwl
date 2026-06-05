@@ -7,6 +7,7 @@ import {
   inArray,
   isNotNull,
   isNull,
+  lt,
   lte,
   or,
 } from 'drizzle-orm'
@@ -108,6 +109,40 @@ import type {
   PulseSourceSnapshotRow,
   PulseSourceStateRow,
 } from './shared'
+
+// Keyset cursor for the active + history alert lists. Both order by
+// (pulse.publishedAt DESC, pulseFirmAlert.id DESC) — publishedAt is an
+// immutable `timestamp_ms` so the cursor is stable across the 60s poll
+// (unlike pulseFirmAlert.updatedAt, which mutates and would skip/duplicate
+// rows mid-pagination — the same reason obligation-queue disables cursors
+// for its `updated_desc` sort). `id` is the unique tiebreaker so same-ms
+// publishedAt rows page deterministically. Encoded opaque (base64url) so
+// callers can't construct positions — mirrors notifications/audit repos.
+interface PulseAlertCursor {
+  publishedAt: Date
+  id: string
+}
+
+function encodePulseAlertCursor(row: PulseAlertCursor): string {
+  return Buffer.from(`${row.publishedAt.toISOString()}|${row.id}`, 'utf8').toString('base64url')
+}
+
+function decodePulseAlertCursor(cursor: string): PulseAlertCursor | null {
+  try {
+    const raw = Buffer.from(cursor, 'base64url').toString('utf8')
+    const separator = raw.indexOf('|')
+    if (separator === -1) return null
+    const iso = raw.slice(0, separator)
+    const id = raw.slice(separator + 1)
+    if (!iso || !id) return null
+    const publishedAt = new Date(iso)
+    if (Number.isNaN(publishedAt.getTime())) return null
+    return { publishedAt, id }
+  } catch {
+    return null
+  }
+}
+
 export function makePulseRepo(db: Db, firmId: string) {
   async function getAlert(
     alertId: string,
@@ -960,9 +995,12 @@ export function makePulseRepo(db: Db, firmId: string) {
       return { pulseId, alertId }
     },
 
-    async listAlerts(opts: { limit?: number } = {}): Promise<PulseAlertRow[]> {
+    async listAlerts(
+      opts: { limit?: number; cursor?: string | null } = {},
+    ): Promise<{ alerts: PulseAlertRow[]; nextCursor: string | null }> {
       const limit = Math.min(Math.max(opts.limit ?? 5, 1), 50)
       const now = new Date()
+      const cursor = opts.cursor ? decodePulseAlertCursor(opts.cursor) : null
       const rows = await db
         .select({
           alertId: pulseFirmAlert.id,
@@ -1005,12 +1043,29 @@ export function makePulseRepo(db: Db, firmId: string) {
               inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
               and(eq(pulseFirmAlert.status, 'snoozed'), lte(pulseFirmAlert.snoozedUntil, now)),
             ),
+            // Keyset: rows strictly "after" the cursor in (publishedAt DESC,
+            // id DESC) order. `and(...)` drops the `undefined` when no cursor.
+            cursor
+              ? or(
+                  lt(pulse.publishedAt, cursor.publishedAt),
+                  and(eq(pulse.publishedAt, cursor.publishedAt), lt(pulseFirmAlert.id, cursor.id)),
+                )
+              : undefined,
           ),
         )
-        .orderBy(desc(pulseFirmAlert.updatedAt), desc(pulse.publishedAt))
-        .limit(limit)
+        .orderBy(desc(pulse.publishedAt), desc(pulseFirmAlert.id))
+        // Over-fetch one row to know whether a further page exists without a
+        // second COUNT query.
+        .limit(limit + 1)
 
-      return rows.map((row) => toAlert(row))
+      const hasMore = rows.length > limit
+      const page = hasMore ? rows.slice(0, limit) : rows
+      const lastRow = page[page.length - 1]
+      const nextCursor =
+        hasMore && lastRow
+          ? encodePulseAlertCursor({ publishedAt: lastRow.publishedAt, id: lastRow.alertId })
+          : null
+      return { alerts: page.map((row) => toAlert(row)), nextCursor }
     },
 
     /**
@@ -1164,9 +1219,10 @@ export function makePulseRepo(db: Db, firmId: string) {
     },
 
     async listHistory(
-      opts: { limit?: number; status?: PulseHandledFirmAlertStatus } = {},
-    ): Promise<PulseAlertRow[]> {
+      opts: { limit?: number; status?: PulseHandledFirmAlertStatus; cursor?: string | null } = {},
+    ): Promise<{ alerts: PulseAlertRow[]; nextCursor: string | null }> {
       const limit = Math.min(Math.max(opts.limit ?? 20, 1), 100)
+      const cursor = opts.cursor ? decodePulseAlertCursor(opts.cursor) : null
       const statusFilter = opts.status
         ? eq(pulseFirmAlert.status, opts.status)
         : inArray(pulseFirmAlert.status, PULSE_HANDLED_ALERT_STATUSES)
@@ -1209,14 +1265,29 @@ export function makePulseRepo(db: Db, firmId: string) {
             eq(pulseFirmAlert.firmId, firmId),
             inArray(pulse.status, ['approved', 'source_revoked']),
             statusFilter,
+            cursor
+              ? or(
+                  lt(pulse.publishedAt, cursor.publishedAt),
+                  and(eq(pulse.publishedAt, cursor.publishedAt), lt(pulseFirmAlert.id, cursor.id)),
+                )
+              : undefined,
           ),
         )
-        .orderBy(desc(pulse.publishedAt), desc(pulseFirmAlert.updatedAt))
-        .limit(limit)
+        .orderBy(desc(pulse.publishedAt), desc(pulseFirmAlert.id))
+        .limit(limit + 1)
 
-      return rows
-        .filter((row) => isHandledFirmAlertStatus(row.alertStatus))
-        .map((row) => toAlert(row))
+      // SQL already restricts to handled statuses, so this guard only narrows
+      // the type — it never drops rows, which keeps the slice/hasMore math
+      // below correct.
+      const handled = rows.filter((row) => isHandledFirmAlertStatus(row.alertStatus))
+      const hasMore = handled.length > limit
+      const page = hasMore ? handled.slice(0, limit) : handled
+      const lastRow = page[page.length - 1]
+      const nextCursor =
+        hasMore && lastRow
+          ? encodePulseAlertCursor({ publishedAt: lastRow.publishedAt, id: lastRow.alertId })
+          : null
+      return { alerts: page.map((row) => toAlert(row)), nextCursor }
     },
 
     async listSourceStates(): Promise<PulseSourceStateRow[]> {

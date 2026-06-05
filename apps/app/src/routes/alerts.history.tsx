@@ -4,6 +4,9 @@ import { Link } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 
+import { cn } from '@duedatehq/ui/lib/utils'
+
+import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { AlertsListPage } from '@/features/alerts/AlertsListPage'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 
@@ -27,6 +30,7 @@ import { RulesPageShell } from '@/features/rules/rules-console-primitives'
  */
 export function AlertsHistoryRoute() {
   const { t } = useLingui()
+  const { open: panelOpen } = useAlertDrawer()
   return (
     <RulesPageShell
       title={t`Alert history`}
@@ -36,12 +40,16 @@ export function AlertsHistoryRoute() {
       // scrollbar.
       lockViewport
       // 2026-06-04 round 81 (Yuqi "the page width should be
-      // unified"): added `wide` so the history route caps at
+      // unified"): `wide` so the history route caps at
       // `max-w-page-expanded` (1440) — same as /alerts active.
       // Without it the history page used the default 1100 cap,
       // visibly narrower than /alerts even though it's the same
       // surface in archive mode.
       wide
+      contentClassName={cn(
+        'gap-8 md:px-16 transition-[padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
+        panelOpen && '!pb-0 md:!pb-0',
+      )}
       breadcrumbs={[{ label: t`Alerts`, to: '/alerts' }]}
       // 2026-06-04 round 82 (Yuqi "Alert history actions are not
       // correct"): the actions cluster was empty — no Sources, no

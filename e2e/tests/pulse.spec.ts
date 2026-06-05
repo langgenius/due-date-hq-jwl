@@ -121,7 +121,14 @@ test.describe('seeded Pulse alerts', () => {
         'IRS CA storm relief extends selected filing deadlines for Los Angeles County.',
       ),
     ).toBeVisible()
-    await authenticatedPage.getByRole('button', { name: 'Review' }).first().click()
+    // The alert card is itself `role="button"` (aria-label `Alert: {title}`,
+    // AlertCard.tsx:171-175) and its onClick opens the detail drawer — the same
+    // handler the inner "Review →" link fires. We click the card directly via
+    // the existing helper instead of the inner link, which (a) renders as
+    // `Review →` not `Review` (AlertCard.tsx:484, so the old exact-name match
+    // never resolved) and (b) is hover/focus-gated `opacity-0 pointer-events-none`
+    // until the card is active (AlertCard.tsx:477-482), so it isn't clickable cold.
+    await pulseListAlertButton(authenticatedPage).first().click()
     const drawer = pulseDetailDrawer(authenticatedPage)
     await expect(drawer.getByText('Manager review')).toHaveCount(0)
     await expect(drawer.getByRole('button', { name: 'Apply reviewed set' })).toHaveCount(0)

@@ -71,6 +71,7 @@ function pulseDetail(status: Status = 'matched', sourceStatus: SourceStatus = 'a
       confidence: 0.94,
       isSample: true,
       jurisdiction: 'CA',
+      taxAreas: [],
     },
     jurisdiction: 'CA',
     counties: ['Los Angeles'],
@@ -448,12 +449,13 @@ describe('listAlerts output resilience', () => {
       confidence: 0.9,
       isSample: false,
       jurisdiction: 'CA',
+      taxAreas: [],
       ...overrides,
     }
   }
 
   function listAlertsContext(rows: ReturnType<typeof alertRow>[]) {
-    const listAlerts = vi.fn(async () => rows)
+    const listAlerts = vi.fn(async () => ({ alerts: rows, nextCursor: null }))
     const context: RpcContext = {
       env: {} as unknown as Env,
       request: new Request('https://app.test/rpc/pulse/listAlerts'),
@@ -493,6 +495,7 @@ describe('listAlerts output resilience', () => {
 
     expect(listAlerts).toHaveBeenCalledTimes(1)
     expect(result.alerts).toHaveLength(1)
+    expect(result.nextCursor).toBeNull()
     expect(result.alerts[0]).toMatchObject({ pulseId: GOOD_PULSE_ID, jurisdiction: 'CA' })
     expect(consoleError).toHaveBeenCalledWith(
       'pulse.alert.dropped_invalid_output',

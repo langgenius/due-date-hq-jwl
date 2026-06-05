@@ -171,16 +171,16 @@ describe('DashboardActionsList', () => {
     expect(document.body.textContent).toContain('Payment 10 days late')
   })
 
-  // 2026-06-05 (post-merge): rounds 70-85 simplified the actions
-  // table — the expand-on-focus inline detail panel was removed and
-  // each row now opens the obligation drawer directly. The
-  // `[aria-controls="action-detail-…"]` summary + `#action-detail-…`
-  // detail target no longer exist in the markup, so this test's
-  // premise is obsolete. Skipping rather than deleting because the
-  // assertions (no native <button> inside an expand target, Sources
-  // affordance carries an aria-label) document a real a11y contract
-  // that any future inline-detail revival should re-enforce.
-  it.skip('does not render the expanded detail target as a real button', () => {
+  it('renders each obligation as a focusable non-button row with a span rank tooltip', () => {
+    // The 2026-06 "table sweep" (rounds 7–16) deleted the old hover-expansion
+    // ActionRow and its `<dl>` detail panel — the removed `action-detail`
+    // region / `role="button"` target / inline Sources button. Each
+    // obligation is now a single interactive `<tr>`: click / Enter / Space
+    // opens it, it is keyboard-focusable + labelled, and it is NOT a native
+    // <button>, so nested affordances can live inside without invalid button
+    // nesting. The Smart-Priority rank stays a `<span>` tooltip trigger whose
+    // click is stopPropagation-guarded so it never double-fires the row open.
+    const onOpenObligation = vi.fn()
     render(
       <DashboardActionsList
         rows={[dashboardRow]}
@@ -194,33 +194,30 @@ describe('DashboardActionsList', () => {
         canRunMigration={false}
         hasClients={true}
         onOpenWizard={vi.fn()}
-        onOpenObligation={vi.fn()}
+        onOpenObligation={onOpenObligation}
         onOpenAllObligations={vi.fn()}
       />,
     )
 
-    const detailId = `action-detail-${dashboardRow.obligationId}`
-    const summary = document.querySelector(`[aria-controls="${detailId}"]`)
-    expect(summary).toBeInstanceOf(HTMLElement)
+    const row = document.querySelector(`[aria-label$="for ${dashboardRow.clientName}"]`)
+    expect(row).toBeInstanceOf(HTMLElement)
+    expect(row?.tagName).not.toBe('BUTTON')
+    expect(row?.getAttribute('tabindex')).toBe('0')
 
+    // The rank cell's Smart-Priority tooltip trigger is a <span>, not a button.
+    const tooltipTrigger = row?.querySelector('[data-slot="tooltip-trigger"]')
+    expect(tooltipTrigger?.tagName).toBe('SPAN')
+
+    // Clicking the rank span is stopPropagation-guarded → the row stays closed…
     act(() => {
-      if (!(summary instanceof HTMLElement)) throw new Error('Missing dashboard action row')
-      summary.focus()
+      tooltipTrigger?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
+    expect(onOpenObligation).not.toHaveBeenCalled()
 
-    const detail = document.getElementById(detailId)
-    expect(detail).toBeInstanceOf(HTMLDivElement)
-    expect(detail?.getAttribute('role')).toBe('button')
-    // 2026-05-29 (Yuqi /today round 3 — #8): the expanded dl items
-    // are now intentional sub-affordances (Link → /deadlines?status=,
-    // Link → /rules/library?q=, button → onOpenObligation/Sources).
-    // Each one uses stopPropagation so the parent row's "open
-    // obligation" click doesn't double-fire. The original guard ("no
-    // buttons inside detail") existed when the panel was a single
-    // click target; now we ALLOW the Sources button but assert it has
-    // the expected aria-label so the affordance stays identifiable.
-    const sourcesButton = detail?.querySelector('button[aria-label^="Open evidence"]')
-    expect(sourcesButton).toBeInstanceOf(HTMLButtonElement)
-    expect(detail?.querySelector('[data-slot="tooltip-trigger"]')?.tagName).toBe('SPAN')
+    // …while clicking the row itself opens the obligation.
+    act(() => {
+      row?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+    expect(onOpenObligation).toHaveBeenCalledTimes(1)
   })
 })

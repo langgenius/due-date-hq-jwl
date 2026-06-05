@@ -22,7 +22,7 @@ test.describe('seeded obligations', () => {
     await expect(actions.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(actions.getByText('Northstar Dental Group')).toBeVisible()
 
-    await actions.getByRole('link', { name: 'All deadlines' }).click()
+    await actions.getByRole('link', { name: 'View all' }).click()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
   })
 
@@ -32,7 +32,7 @@ test.describe('seeded obligations', () => {
     await authenticatedPage.goto('/')
 
     const actions = authenticatedPage.getByRole('region', { name: 'Actions this week' })
-    const arborAction = actions.getByRole('button', {
+    const arborAction = actions.getByRole('row', {
       name: /Open Attach the source document for Arbor & Vale LLC/,
     })
     await arborAction.click()

@@ -70,7 +70,16 @@ test.describe('role permission surfaces', () => {
       await appShellPage.goto()
 
       await expect(authenticatedPage.getByRole('heading', { name: /^Today/ })).toBeVisible()
-      await expect(appShellPage.importClientsButton).toBeDisabled()
+      // 2026-06-04 the Today-header "Import clients" button no longer uses
+      // a native `disabled` attribute: it stays clickable and surfaces a
+      // permission toast on click, exposing the gate via its accessible
+      // name instead. So a coordinator (lacking `migration.run`) sees the
+      // button enabled but renamed to "Import clients (requires … access)".
+      // See apps/app/src/routes/dashboard.tsx:351-371.
+      const importEntry = appShellPage.importClientsButton
+      await expect(importEntry).toBeVisible()
+      await expect(importEntry).toBeEnabled()
+      await expect(importEntry).toHaveAccessibleName(/Import clients \(requires .* access\)/)
 
       await auditPage.goto()
       await expect(
@@ -79,7 +88,17 @@ test.describe('role permission surfaces', () => {
       await expect(authenticatedPage.getByText('Current role: Coordinator')).toBeVisible()
 
       await appShellPage.goto('/clients')
-      await expect(authenticatedPage.getByRole('button', { name: 'New client' })).toBeVisible()
+      // /clients header is now a "New client" split button (primary create +
+      // a chevron dropdown whose only alt action is "Import from CSV…").
+      // A coordinator lacks `client.write`, so the primary button renders
+      // visible-but-disabled with a permission-explaining accessible name.
+      // See apps/app/src/features/clients/ClientsCreateSplitButton.tsx:71-82.
+      const newClientButton = authenticatedPage.getByRole('button', { name: /^New client/ })
+      await expect(newClientButton).toBeVisible()
+      await expect(newClientButton).toBeDisabled()
+      // The standalone "Import clients" header button was retired in the
+      // /clients redesign (import is now the gated "Import from CSV…" item
+      // inside the split-button dropdown), so no such button should exist.
       await expect(authenticatedPage.getByRole('button', { name: 'Import clients' })).toHaveCount(0)
     })
   })

@@ -10,6 +10,9 @@ const EMPTY_AFFECTED_CLIENTS: PulseAffectedClient[] = []
 const ALERT_ACTIVE_ALERTS_REFETCH_INTERVAL_MS = 60_000
 const ALERT_SOURCE_HEALTH_REFETCH_INTERVAL_MS = 60_000
 const ALERT_LIST_ALERTS_MAX_LIMIT = 50
+// `getDetailsBatch` caps its input at 100 ids (contract). With "Load more"
+// the loaded alert set can grow past that, so we batch only the first 100.
+const GET_DETAILS_BATCH_MAX_IDS = 100
 // Keep a batch-seeded alert detail fresh for one list-poll cycle so opening
 // the drawer stays a cache hit instead of a background refetch (see
 // useAlertDetailQueryOptions).
@@ -83,6 +86,51 @@ export function useAlertsHistoryQueryOptions(limit?: number) {
   })
 }
 
+// "Load more" page sizes. Active stays at the contract max (50) so the first
+// page matches the pre-pagination view — no regression for firms with ≤50
+// active alerts; history uses the same chunk.
+export const ALERTS_LIST_PAGE_SIZE = ALERT_LIST_ALERTS_MAX_LIMIT
+export const ALERTS_HISTORY_PAGE_SIZE = 50
+
+// `cursor === null` fetches the first page; a string cursor fetches the page
+// after it. Exported so the demo mock can seed the EXACT query key the hook
+// builds (oRPC keys the infinite query off `input(initialPageParam)`).
+export function buildAlertsListInfiniteInput(cursor: string | null) {
+  return cursor === null
+    ? { limit: ALERTS_LIST_PAGE_SIZE }
+    : { limit: ALERTS_LIST_PAGE_SIZE, cursor }
+}
+
+export function buildAlertsHistoryInfiniteInput(cursor: string | null) {
+  return cursor === null
+    ? { limit: ALERTS_HISTORY_PAGE_SIZE }
+    : { limit: ALERTS_HISTORY_PAGE_SIZE, cursor }
+}
+
+// Typed so oRPC infers `string | null` as the page-param across initial /
+// next pages (mirrors the audit log's infinite query).
+const INITIAL_ALERTS_CURSOR: string | null = null
+
+export function useAlertsListInfiniteQueryOptions() {
+  return {
+    ...orpc.pulse.listAlerts.infiniteOptions({
+      input: buildAlertsListInfiniteInput,
+      initialPageParam: INITIAL_ALERTS_CURSOR,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }),
+    refetchInterval: ALERT_ACTIVE_ALERTS_REFETCH_INTERVAL_MS,
+    refetchIntervalInBackground: true,
+  }
+}
+
+export function useAlertsHistoryInfiniteQueryOptions() {
+  return orpc.pulse.listHistory.infiniteOptions({
+    input: buildAlertsHistoryInfiniteInput,
+    initialPageParam: INITIAL_ALERTS_CURSOR,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  })
+}
+
 export function useAlertsPriorityQueueQueryOptions(limit?: number, enabled = true) {
   return {
     ...orpc.pulse.listPriorityQueue.queryOptions({
@@ -129,9 +177,16 @@ export function useAlertDetailQueryOptions(alertId: string | null) {
 // never round-trips.
 export function useAlertsAffectedClients(alertIds: string[]): Map<string, PulseAffectedClient[]> {
   const queryClient = useQueryClient()
+  // Cap at the contract's 100-id batch limit. Once "Load more" pushes the
+  // loaded set past 100, cards beyond the cap render without pre-seeded
+  // affected-client chips and their drawer fetches detail on open.
+  const batchIds =
+    alertIds.length > GET_DETAILS_BATCH_MAX_IDS
+      ? alertIds.slice(0, GET_DETAILS_BATCH_MAX_IDS)
+      : alertIds
   const batchQuery = useQuery({
-    ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds } }),
-    enabled: alertIds.length > 0,
+    ...orpc.pulse.getDetailsBatch.queryOptions({ input: { alertIds: batchIds } }),
+    enabled: batchIds.length > 0,
   })
 
   // The batch already pulled the FULL PulseDetail for every visible alert, so

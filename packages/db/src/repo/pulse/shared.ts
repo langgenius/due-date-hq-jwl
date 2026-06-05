@@ -17,6 +17,7 @@ import {
   type PulseStatus,
 } from '../../schema/pulse'
 import { OPEN_OBLIGATION_STATUSES } from '@duedatehq/core/obligation-workflow'
+import { taxAreasForAlert, type TaxArea } from '@duedatehq/core/tax-area'
 export const OPEN_STATUSES = [...OPEN_OBLIGATION_STATUSES] satisfies ObligationStatus[]
 export const APPLICATION_BATCH_SIZE = Math.floor(100 / 9)
 export const EXCEPTION_RULE_BATCH_SIZE = Math.floor(100 / 18)
@@ -78,6 +79,10 @@ export interface PulseAlertRow {
   // `pulse.parsedJurisdiction` — same source field used by
   // PulseDetailRow.jurisdiction.
   jurisdiction: string
+  // 2026-06-05 (Tax area filter): coarse service-line bucket(s) this alert
+  // touches, derived from its reverify-rule citations (+ parsedForms fallback)
+  // in toAlert. Empty = uncategorized.
+  taxAreas: TaxArea[]
 }
 
 export interface PulseAffectedClientRow {
@@ -651,6 +656,10 @@ export function toAlert(row: AlertJoinedRow): PulseAlertRow {
     // `loadAlertJoined`) so list consumers can filter by jurisdiction
     // without a per-row detail fetch.
     jurisdiction: row.parsedJurisdiction,
+    // 2026-06-05 (Tax area filter): classify the alert into coarse service-line
+    // buckets from its deterministic reverify-rule citations, falling back to
+    // the AI-parsed forms. See @duedatehq/core/tax-area.
+    taxAreas: taxAreasForAlert(row),
   }
 }
 

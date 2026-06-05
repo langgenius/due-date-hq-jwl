@@ -28,6 +28,8 @@ import { SMART_PRIORITY_DEFAULT_PROFILE } from '@duedatehq/contracts'
 
 import { orpc } from '@/lib/rpc'
 
+import { buildAlertsHistoryInfiniteInput, buildAlertsListInfiniteInput } from '../api'
+
 const ALERT_IDS = {
   matched: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
   needsDetails: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
@@ -167,6 +169,9 @@ const MATCHED_ALERT: PulseAlertPublic = {
   confidence: 0.96,
   isSample: true,
   jurisdiction: 'CA',
+  // 2026-06-05 (Tax area filter): wildfire relief spans 1040/1041 (individual)
+  // and 1065/1120-S (business).
+  taxAreas: ['income_individual', 'income_business'],
 }
 
 const MATCHED_DETAIL: PulseDetail = {
@@ -212,6 +217,8 @@ const NEEDS_DETAILS_ALERT: PulseAlertPublic = {
   confidence: 0.68,
   isSample: true,
   jurisdiction: 'AZ',
+  // 2026-06-05 (Tax area filter): scope still unknown → uncategorized.
+  taxAreas: [],
 }
 
 const NEEDS_DETAILS_AFFECTED: PulseAffectedClient[] = [
@@ -324,6 +331,8 @@ const APPLIED_ALERT: PulseAlertPublic = {
   confidence: 0.82,
   isSample: true,
   jurisdiction: 'CA',
+  // 2026-06-05 (Tax area filter): franchise-tax notice on 100S/568 entities.
+  taxAreas: ['income_business', 'franchise'],
 }
 
 const APPLIED_DETAIL: PulseDetail = {
@@ -369,6 +378,8 @@ const DISMISSED_ALERT: PulseAlertPublic = {
   confidence: 0.58,
   isSample: true,
   jurisdiction: 'NY',
+  // 2026-06-05 (Tax area filter): NY PTE / IT-204 / CT-3 → business income.
+  taxAreas: ['income_business'],
 }
 
 const DISMISSED_DETAIL: PulseDetail = {
@@ -416,6 +427,8 @@ const VERY_LOW_ALERT: PulseAlertPublic = {
   confidence: 0.46,
   isSample: true,
   jurisdiction: 'FL',
+  // 2026-06-05 (Tax area filter): FL F-1120 corporate income.
+  taxAreas: ['income_business'],
 }
 
 const VERY_LOW_DETAIL: PulseDetail = {
@@ -464,6 +477,8 @@ const THRESHOLD_ALERT: PulseAlertPublic = {
   confidence: 1,
   isSample: true,
   jurisdiction: 'FED',
+  // 2026-06-05 (Tax area filter): cross-cutting inflation advisory → uncategorized.
+  taxAreas: [],
 }
 
 const THRESHOLD_DETAIL: PulseDetail = {
@@ -584,20 +599,52 @@ export function seedAlertMock(queryClient: QueryClient): void {
 
   queryClient.setQueryData(orpc.firms.listMine.queryKey({ input: undefined }), [MOCK_FIRM])
 
-  // Call sites read listAlerts with different limits — seed each shape.
-  queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: undefined }), { alerts: ALERTS })
+  // Call sites read listAlerts with different limits — seed each shape. These
+  // plain (non-infinite) keys back the dashboard + route-shell widgets that
+  // still use `useAlertsListQueryOptions`; nextCursor is part of the output
+  // contract so seed it null (a single capped page never has a next page).
+  queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: undefined }), {
+    alerts: ALERTS,
+    nextCursor: null,
+  })
   queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: { limit: 5 } }), {
     alerts: ALERTS.slice(0, 5),
+    nextCursor: null,
   })
   queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: { limit: 20 } }), {
     alerts: ALERTS,
+    nextCursor: null,
   })
   queryClient.setQueryData(orpc.pulse.listAlerts.queryKey({ input: { limit: 50 } }), {
     alerts: ALERTS,
+    nextCursor: null,
   })
   queryClient.setQueryData(orpc.pulse.listHistory.queryKey({ input: { limit: 50 } }), {
     alerts: ALERTS.filter((alert) => alert.status !== 'matched'),
+    nextCursor: null,
   })
+
+  // The /alerts list + /alerts/history now paginate via infinite queries, so
+  // seed the first page under the infinite key those hooks build (the input
+  // builders are shared with api.ts so the keys match exactly). All mock
+  // alerts fit one page → nextCursor null → no "Load more" in the demo.
+  queryClient.setQueryData(
+    orpc.pulse.listAlerts.infiniteKey({
+      input: buildAlertsListInfiniteInput,
+      initialPageParam: null,
+    }),
+    { pages: [{ alerts: ALERTS, nextCursor: null }], pageParams: [null] },
+  )
+  queryClient.setQueryData(
+    orpc.pulse.listHistory.infiniteKey({
+      input: buildAlertsHistoryInfiniteInput,
+      initialPageParam: null,
+    }),
+    {
+      pages: [{ alerts: ALERTS.filter((alert) => alert.status !== 'matched'), nextCursor: null }],
+      pageParams: [null],
+    },
+  )
   queryClient.setQueryData(orpc.pulse.activeCount.queryKey({ input: undefined }), {
     count: ALERTS.filter((alert) => alert.status === 'matched').length,
   })

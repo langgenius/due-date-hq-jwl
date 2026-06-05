@@ -18,7 +18,7 @@ test('AC: E2E-MIGRATION-INTAKE parses pasted rows and protects discard', async (
   migrationWizardPage,
 }) => {
   await appShellPage.goto()
-  await appShellPage.importClientsButton.click()
+  await appShellPage.openImportWizard()
 
   await expect(migrationWizardPage.dialog).toBeVisible()
   await migrationWizardPage.pasteRows(
@@ -48,7 +48,7 @@ test('AC: E2E-MIGRATION-IMPORT-UNDO imports from the wizard and reverts from toa
   const importedClient = 'Undoable Migration LLC'
 
   await appShellPage.goto()
-  await appShellPage.importClientsButton.click()
+  await appShellPage.openImportWizard()
 
   await expect(migrationWizardPage.dialog).toBeVisible()
   await migrationWizardPage.presetButton('TaxDome').click()
@@ -93,7 +93,7 @@ test('AC: E2E-MIGRATION-EXPOSURE imports tax inputs into Dashboard and Evidence 
   await authenticatedPage.emulateMedia({ reducedMotion: 'reduce' })
 
   await appShellPage.goto()
-  await appShellPage.importClientsButton.click()
+  await appShellPage.openImportWizard()
 
   await expect(migrationWizardPage.dialog).toBeVisible()
   await migrationWizardPage.presetButton('TaxDome').click()

@@ -114,6 +114,24 @@ export const PulsePriorityReasonSchema = z.object({
 })
 export type PulsePriorityReason = z.infer<typeof PulsePriorityReasonSchema>
 
+// 2026-06-05 (Tax area filter): coarse practice / service-line bucket(s) an
+// alert touches, derived server-side from its reverify-rule citations (with
+// `parsedForms` as a fallback — see @duedatehq/core/tax-area, applied in the
+// db repo's toAlert mapping and passed through toAlertPublic).
+// The six buckets collapse the 14 RuleSourceDomain values plus named
+// federal/state forms. Mirrors the core `TaxArea` union (keep the two value
+// lists in sync). An alert can span several areas, so the field on the alert
+// is an array; empty = uncategorized (shows only under the "All" filter).
+export const TaxAreaSchema = z.enum([
+  'income_individual',
+  'income_business',
+  'sales_use',
+  'payroll_withholding',
+  'franchise',
+  'info_compliance',
+])
+export type TaxArea = z.infer<typeof TaxAreaSchema>
+
 export const PulseAlertPublicSchema = z.object({
   id: EntityIdSchema,
   pulseId: EntityIdSchema,
@@ -141,6 +159,10 @@ export const PulseAlertPublicSchema = z.object({
   // plus state/DC codes because federal policy-watch and federal
   // obligation alerts are first-class Pulse rows.
   jurisdiction: PulseJurisdictionSchema,
+  // 2026-06-05 (Tax area filter): zero or more coarse service-line buckets the
+  // alert touches, derived server-side in the db repo's toAlert. Empty array
+  // means uncategorized — the alert then only appears under "All tax areas".
+  taxAreas: z.array(TaxAreaSchema),
 })
 export type PulseAlertPublic = z.infer<typeof PulseAlertPublicSchema>
 
@@ -211,6 +233,10 @@ export type PulsePriorityQueueItem = z.infer<typeof PulsePriorityQueueItemSchema
 export const PulseListAlertsInputSchema = z
   .object({
     limit: z.number().int().min(1).max(50).default(5).optional(),
+    // Opaque keyset cursor (publishedAt|id, base64url) for "Load more"
+    // pagination — null/absent fetches the first page. Optional (not
+    // `.default`) so the existing input shape parses unchanged.
+    cursor: z.string().nullable().optional(),
   })
   .optional()
 export type PulseListAlertsInput = z.infer<typeof PulseListAlertsInputSchema>
@@ -219,6 +245,7 @@ export const PulseListHistoryInputSchema = z
   .object({
     limit: z.number().int().min(1).max(100).default(20).optional(),
     status: PulseHandledFirmAlertStatusSchema.optional(),
+    cursor: z.string().nullable().optional(),
   })
   .optional()
 export type PulseListHistoryInput = z.infer<typeof PulseListHistoryInputSchema>
@@ -490,9 +517,14 @@ export const pulseContract = oc.router({
   listAlertsForRule: oc
     .input(PulseListAlertsForRuleInputSchema)
     .output(z.object({ matches: z.array(PulseRuleMatchSchema) })),
-  listAlerts: oc
-    .input(PulseListAlertsInputSchema)
-    .output(z.object({ alerts: z.array(PulseAlertPublicSchema) })),
+  listAlerts: oc.input(PulseListAlertsInputSchema).output(
+    z.object({
+      alerts: z.array(PulseAlertPublicSchema),
+      // Pass to the next `listAlerts` call's `cursor` to fetch the
+      // following page; null when the active queue is fully loaded.
+      nextCursor: z.string().nullable(),
+    }),
+  ),
   /**
    * Count-only variant of `listAlerts` for the sidebar nav badge.
    *
@@ -503,9 +535,12 @@ export const pulseContract = oc.router({
    * always shows the true number with no upper bound.
    */
   activeCount: oc.input(z.undefined()).output(z.object({ count: z.number().int().min(0) })),
-  listHistory: oc
-    .input(PulseListHistoryInputSchema)
-    .output(z.object({ alerts: z.array(PulseAlertPublicSchema) })),
+  listHistory: oc.input(PulseListHistoryInputSchema).output(
+    z.object({
+      alerts: z.array(PulseAlertPublicSchema),
+      nextCursor: z.string().nullable(),
+    }),
+  ),
   listSourceHealth: oc
     .input(z.undefined())
     .output(z.object({ sources: z.array(PulseSourceHealthSchema) })),

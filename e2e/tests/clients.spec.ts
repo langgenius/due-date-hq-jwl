@@ -43,8 +43,17 @@ test('AC: E2E-CLIENTS-CREATE creates a manual client through oRPC', async ({
 
   await expect(authenticatedPage.getByText('Client created')).toBeVisible()
   await expect(clientsPage.clientDetailHeading(clientName)).toBeVisible()
+  // A freshly created client lands on the default `work` tab, relabelled
+  // "Filing plan" in the IA redesign — `ClientWorkPlanPanel` renders the
+  // `TabSection` heading <h2>Filing plan</h2>
+  // (apps/app/src/features/clients/ClientWorkPlanPanel.tsx:383).
   await expect(clientsPage.detailSection('Filing plan')).toBeVisible()
-  await authenticatedPage.getByRole('tab', { name: 'Client info' }).click()
+  // The `info` tab key was relabelled "Client info" → "Setup"
+  // (apps/app/src/features/clients/ClientDetailWorkspace.tsx:1048,
+  // `<Trans>Setup</Trans>`). Substring match tolerates the trailing
+  // "N required fact(s) missing" count badge baked into the tab's
+  // accessible name when the client still has gaps (line 1063-1072).
+  await authenticatedPage.getByRole('tab', { name: 'Setup' }).click()
   await expect(clientsPage.detailSection('Filing jurisdictions')).toBeVisible()
   await expect(clientsPage.detailSection('Onboarding state')).toBeVisible()
 })
@@ -99,12 +108,28 @@ test.describe('seeded client facts', () => {
     await expect(
       authenticatedPage.getByRole('button', { name: 'Change owner — currently unassigned' }),
     ).toBeVisible()
-    await expect(authenticatedPage.getByText(/1 open filing/)).toBeVisible()
-    await authenticatedPage.getByRole('tab', { name: 'Suggested forms' }).click()
+    // The open-filing count surfaces on the detail header chip — a button
+    // labelled "View open filings for this client" whose visible text is
+    // "1 Open filing". (The Filing-plan year-group badge reads "1 projected
+    // filing" for the upcoming 2026 group under the e2e date anchor, so it is
+    // not the right target.) Scope to the button by its stable accessible name
+    // and assert the count text with flexible whitespace + case.
+    await expect(
+      authenticatedPage.getByRole('button', { name: 'View open filings for this client' }),
+    ).toContainText(/1\s*open filing/i)
+    // IA redesign renamed the four detail tabs (URL keys unchanged):
+    //   work → "Filing plan", info → "Setup",
+    //   opportunities → "Opportunities", activity → "History"
+    // (apps/app/src/features/clients/ClientDetailWorkspace.tsx:1042-1102).
+    // The `opportunities` tab now umbrellas both the Suggested-forms
+    // catalog and the Future-business-cues section, so "Future business
+    // cues" (a TabSection <h2>, line 1250) lives under the Opportunities
+    // tab.
+    await authenticatedPage.getByRole('tab', { name: 'Opportunities' }).click()
     await expect(clientsPage.detailSection('Future business cues')).toBeVisible()
-    await authenticatedPage.getByRole('tab', { name: 'Work' }).click()
+    await authenticatedPage.getByRole('tab', { name: 'Filing plan' }).click()
     await expect(clientsPage.detailSection('Filing plan')).toBeVisible()
-    await authenticatedPage.getByRole('tab', { name: 'Client info' }).click()
+    await authenticatedPage.getByRole('tab', { name: 'Setup' }).click()
     await expect(clientsPage.detailSection('Filing jurisdictions')).toBeVisible()
     await expect(authenticatedPage.getByText('Entity type')).toBeVisible()
     await expect(authenticatedPage.getByText('EIN', { exact: true })).toBeVisible()

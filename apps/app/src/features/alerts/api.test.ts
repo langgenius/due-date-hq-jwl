@@ -16,7 +16,11 @@ vi.mock('@/lib/rpc', () => ({
   },
 }))
 
-import { useAlertsListQueryOptions } from './api'
+import {
+  buildAlertsHistoryInfiniteInput,
+  buildAlertsListInfiniteInput,
+  useAlertsListQueryOptions,
+} from './api'
 
 describe('useAlertsListQueryOptions', () => {
   it('keeps undefined input so the server default applies', () => {
@@ -44,5 +48,17 @@ describe('useAlertsListQueryOptions', () => {
 
     useAlertsListQueryOptions(2.9)
     expect(rpcMocks.listAlertsQueryOptions).toHaveBeenLastCalledWith({ input: { limit: 2 } })
+  })
+})
+
+describe('alerts infinite-query input builders', () => {
+  it('omits the cursor on the first page at the contract-max page size', () => {
+    expect(buildAlertsListInfiniteInput(null)).toEqual({ limit: 50 })
+    expect(buildAlertsHistoryInfiniteInput(null)).toEqual({ limit: 50 })
+  })
+
+  it('threads a cursor into subsequent pages', () => {
+    expect(buildAlertsListInfiniteInput('cursor-2')).toEqual({ limit: 50, cursor: 'cursor-2' })
+    expect(buildAlertsHistoryInfiniteInput('cursor-2')).toEqual({ limit: 50, cursor: 'cursor-2' })
   })
 })

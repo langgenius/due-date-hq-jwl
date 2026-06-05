@@ -81,6 +81,17 @@ vi.mock('@/lib/rpc', () => ({
       facets: { key: () => ['obligations', 'facets'] },
       list: { key: () => ['obligations', 'list'] },
     },
+    // RuleDetailInline lazily queries pulse.listAlertsForRule for the
+    // "proposed change" block. Stub it with no matches so the drawer
+    // renders (the rule-detail tests assert other sections).
+    pulse: {
+      listAlertsForRule: {
+        queryOptions: ({ input }: { input: unknown }) => ({
+          queryKey: ['pulse', 'listAlertsForRule', input],
+          queryFn: async () => ({ matches: [] }),
+        }),
+      },
+    },
     rules: {
       key: () => ['rules'],
       coverage: {
@@ -149,21 +160,6 @@ vi.mock('@/lib/rpc', () => ({
         mutationOptions: (options: Record<string, unknown>) => ({
           mutationFn: rpcMocks.createCustomRuleMutationFn,
           ...options,
-        }),
-      },
-    },
-    // 2026-06-05 (post-merge regression fix): the alerts/today card
-    // redesign cherry-pick (3495a30c → 3fe74bf6) added a "Recent
-    // alerts" panel inside RuleDetailInline that calls
-    // `orpc.pulse.listAlertsForRule.queryOptions` at render time.
-    // Returning an empty list keeps the rule-detail panel renderable
-    // without these tests having to opt into the alerts surface.
-    pulse: {
-      key: () => ['pulse'],
-      listAlertsForRule: {
-        queryOptions: () => ({
-          queryKey: ['pulse', 'listAlertsForRule'],
-          queryFn: async () => ({ alerts: [] }),
         }),
       },
     },

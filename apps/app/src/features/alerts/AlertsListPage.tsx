@@ -1,12 +1,17 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
-import { useMutation, useQuery } from '@tanstack/react-query'
+// 2026-06-05 (merge with origin/main): main switched the alerts
+// list from a flat `useQuery` to a keyset-paginated
+// `useInfiniteQuery` with Load More. Our rounds 70-85 + 77 wired
+// hover-only Snooze / Dismiss buttons via `useMutation` + sonner
+// toast. Both stay — `useInfiniteQuery` drives the list, the row-
+// action mutations live alongside.
+import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 import {
   AlertCircleIcon,
-  CheckIcon,
   Clock3Icon,
   HistoryIcon,
   ListIcon,
@@ -16,23 +21,10 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-import type {
-  PulseAffectedClient,
-  PulseAlertPublic,
-  PulseChangeKind,
-  PulseSourceHealth,
-} from '@duedatehq/contracts'
+import type { PulseAffectedClient, PulseAlertPublic, PulseSourceHealth } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@duedatehq/ui/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
@@ -51,6 +43,10 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { StatusBanner } from '@/components/patterns/status-banner'
 
+// 2026-06-05 (merge with origin/main): the MorningSweepPanel +
+// aiConfidenceTier imports below were added in our rounds 70-85
+// (the "My morning sweep" surface). Main didn't have either — so
+// the imports stay as HEAD additions on top of main.
 import { MorningSweepPanel } from './MorningSweepDialog'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
@@ -59,9 +55,15 @@ import { useMorningSweep } from './MorningSweepContext'
 import { AlertDetailDrawer } from './AlertDetailDrawer'
 import { StateTilegram } from './components/StateTilegram'
 import {
+  // 2026-06-05 (merge with origin/main): main moved both list
+  // surfaces to keyset-paginated infinite queries (canonical
+  // direction). HEAD also kept `useAlertsInvalidation` for the
+  // round 77 row-level Snooze / Dismiss mutations — invalidation
+  // re-fetches the first page of either infinite query, which is
+  // what we want after a row action.
   useAlertsInvalidation,
-  useAlertsListQueryOptions,
-  useAlertsHistoryQueryOptions,
+  useAlertsListInfiniteQueryOptions,
+  useAlertsHistoryInfiniteQueryOptions,
   useAlertSourceHealthQueryOptions,
   useAlertsAffectedClients,
 } from './api'
@@ -77,16 +79,22 @@ import {
   ALERT_IMPACT_FILTER_OPTIONS,
   type AlertImpactFilter,
 } from './lib/impact-filter'
+import { alertImpactLevel } from './lib/impact-level'
 import {
   ACTIVE_STATUS_FILTER_OPTIONS,
   CHANGE_KIND_FILTER_OPTIONS,
   HISTORY_STATUS_FILTER_OPTIONS,
   isChangeKindFilter,
   isStatusFilter,
+  isTaxAreaFilter,
+  matchesChangeKindFilter,
   matchesStatusFilter,
+  matchesTaxAreaFilter,
   sourceLabel,
+  TAX_AREA_FILTER_OPTIONS,
   type AlertChangeKindFilter,
   type AlertStatusFilter,
+  type AlertTaxAreaFilter,
 } from './lib/alert-filters'
 
 // Status filters are scoped by surface: the active queue exposes only
@@ -135,7 +143,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const [statusFilter, setStatusFilter] = useState<AlertStatusFilter>('all')
   const [impactFilter, setImpactFilter] = useState<AlertImpactFilter>('all')
   const [changeKindFilter, setChangeKindFilter] = useState<AlertChangeKindFilter>('all')
-  const [sourceFilter, setSourceFilter] = useState('all')
+  // 2026-06-05 (Tax area filter): single-select service-line filter. Each alert
+  // carries a derived `taxAreas` array; 'all' shows everything (including alerts
+  // the server could not classify into a bucket).
+  const [taxAreaFilter, setTaxAreaFilter] = useState<AlertTaxAreaFilter>('all')
   // 2026-06-04 round 34 (Yuqi Pencil T3GhR "implement the function and
   // also the visual"): time-range filter ("Last 24 hours" / "Last
   // 7 days" / "All time"). Default: all_time so existing behavior
@@ -151,9 +162,9 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   //                        most recent edit-style scan)
   //   • 'oldest'         — publishedAt ASC  (work-through-backlog
   //                        scan)
-  //   • 'highest_impact' — confidence tier DESC then publishedAt
-  //                        DESC. HIGH IMPACT (low confidence) first
-  //                        so the riskiest items rise.
+  //   • 'highest_impact' — impact level DESC then publishedAt DESC.
+  //                        HIGH IMPACT (most affected clients) first
+  //                        so the biggest items rise.
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'highest_impact'>('newest')
   // 2026-06-04 round 35 (Yuqi "also missing the search bar"): inline
   // search field per Pencil T3GhR `JsUoN` — fills remaining width
@@ -198,6 +209,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // `dismissAlertMutation`. Renamed to `useAlertsInvalidation`
   // post directory rename; mutation orpc keys are still
   // `orpc.pulse.*` because the contract namespace is `pulse`.)
+  //
+  // 2026-06-05 (merge with origin/main): invalidation now resets
+  // both infinite queries' first pages — the canonical recovery
+  // path after a snooze / dismiss. `closeReasonDialog` retired
+  // the inline reason dialog scaffold and kept the direct-fire
+  // 24h snooze / no-reason dismiss; the drawer carries the full
+  // reason-prompt flow if a CPA wants it.
   type ReasonAction = 'snooze' | 'dismiss'
   const [reasonState, setReasonState] = useState<{
     action: ReasonAction
@@ -206,11 +224,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   void reasonState // referenced in render
   const invalidateAlerts = useAlertsInvalidation()
   const closeReasonDialog = () => setReasonState(null)
-  // Direct-fire mutations for now (no reason dialog scaffold yet on
-  // the renamed branch). Round 77's design called for an inline
-  // reason prompt; since the drawer handles that flow already, the
-  // row-level button fires a 24-hour snooze / no-reason dismiss
-  // directly. Re-adding the inline PulseReasonDialog is a follow-up.
   const dismissAlertMutation = useMutation(
     orpc.pulse.dismiss.mutationOptions({
       onSuccess: () => {
@@ -246,11 +259,20 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   void dismissAlertMutation
   void snoozeAlertMutation
 
-  const activeAlertsQueryOptions = useAlertsListQueryOptions(50)
-  const historyAlertsQueryOptions = useAlertsHistoryQueryOptions(50)
-  const alertsQuery = useQuery(historyMode ? historyAlertsQueryOptions : activeAlertsQueryOptions)
+  // 2026-06-05 (Load more): both surfaces paginate via keyset cursor. The
+  // server returns one page at a time (publishedAt DESC); "Load more" appends
+  // the next page and the client-side filters + sort below operate on the
+  // full loaded set.
+  const activeAlertsInfiniteOptions = useAlertsListInfiniteQueryOptions()
+  const historyAlertsInfiniteOptions = useAlertsHistoryInfiniteQueryOptions()
+  const alertsQuery = useInfiniteQuery(
+    historyMode ? historyAlertsInfiniteOptions : activeAlertsInfiniteOptions,
+  )
   const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
-  const alerts = alertsQuery.data?.alerts ?? EMPTY_ALERTS
+  const alerts = useMemo(
+    () => alertsQuery.data?.pages.flatMap((page) => page.alerts) ?? EMPTY_ALERTS,
+    [alertsQuery.data?.pages],
+  )
   const sourceHealth = sourceHealthQuery.data?.sources ?? EMPTY_SOURCES
   // Batch the affected-client rows for every alert in ONE request and hand each
   // card its slice, instead of every AlertCard firing its own `getDetail`.
@@ -261,25 +283,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const statusFilterOptions = historyMode
     ? HISTORY_STATUS_FILTER_OPTIONS
     : ACTIVE_STATUS_FILTER_OPTIONS
-  const sourceOptions = useMemo(
-    () =>
-      alerts
-        .map((alert) => alert.source)
-        .filter((source, index, sources) => sources.indexOf(source) === index)
-        .toSorted(),
-    [alerts],
-  )
-  // 2026-05-26 (Yuqi /alerts follow-up): per-source alert count
-  // — feeds the searchable source-filter popover so each row reads
-  // as "IRS · 12" and the active-source trigger label can say
-  // "IRS · 12 alerts" instead of just the bare source name.
-  const sourceCounts = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const alert of alerts) {
-      map.set(alert.source, (map.get(alert.source) ?? 0) + 1)
-    }
-    return map
-  }, [alerts])
   // Counts per jurisdiction (state) across the unfiltered alerts —
   // backs the chip strip below. Sorted by count desc then state code
   // asc so the highest-impact states float to the front; zero-count
@@ -312,8 +315,8 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       (alert) =>
         matchesAlertImpactFilter(alert, impactFilter) &&
         matchesStatusFilter(alert.status, effectiveStatusFilter) &&
-        (changeKindFilter === 'all' || alert.changeKind === changeKindFilter) &&
-        (sourceFilter === 'all' || alert.source === sourceFilter) &&
+        matchesChangeKindFilter(alert.changeKind, changeKindFilter) &&
+        matchesTaxAreaFilter(alert.taxAreas, taxAreaFilter) &&
         (jurisdictionFilter === null || alert.jurisdiction === jurisdictionFilter) &&
         (cutoffMs === null || new Date(alert.publishedAt).getTime() >= cutoffMs) &&
         (trimmedQuery === '' ||
@@ -328,7 +331,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     impactFilter,
     jurisdictionFilter,
     searchQuery,
-    sourceFilter,
+    taxAreaFilter,
   ])
   // 2026-06-04 round 42 (Yuqi punch list #4): real sort logic.
   // The list renderer reads `sortedAlerts` instead of
@@ -336,11 +339,14 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // the cards.
   const sortedAlerts = useMemo(() => {
     const tierRank = (a: PulseAlertPublic) => {
-      const tier = aiConfidenceTier(a.confidence)
-      // Lower confidence = HIGH IMPACT → rank 3 (sorts first when
-      // we DESC by rank). Higher confidence = LOW IMPACT → rank 1.
-      if (tier === 'low') return 3
-      if (tier === 'medium') return 2
+      // 2026-06-05: rank by REAL client impact (matchedCount +
+      // needsReviewCount via `alertImpactLevel`), not inverted AI
+      // confidence — so "Highest impact" agrees with the card badge
+      // and the Impact filter. high → 3 (sorts first when we DESC by
+      // rank), medium → 2, low → 1.
+      const level = alertImpactLevel(a)
+      if (level === 'high') return 3
+      if (level === 'medium') return 2
       return 1
     }
     const next = [...filteredAlerts]
@@ -364,7 +370,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     impactFilter !== 'all' ||
     statusFilter !== 'all' ||
     changeKindFilter !== 'all' ||
-    sourceFilter !== 'all' ||
+    taxAreaFilter !== 'all' ||
     jurisdictionFilter !== null ||
     timeRangeFilter !== 'all_time' ||
     searchQuery.trim() !== ''
@@ -950,27 +956,23 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Status dropdown — 2026-06-04 round 42 (Yuqi
-                    punch list #6 — "fix all" for the filter state
-                    that lost its UI surface): the dropdown now
-                    renders in BOTH non-history and history mode.
-                    Round 41 removed the standalone chip strip
-                    ("可以去掉"); this round brings the Status
-                    affordance back as a filter pill instead. The
-                    valueLabel counter shows the active filter or
-                    "all" so it matches the rest of the row's
-                    pattern. */}
-                <DropdownMenu>
+                {/* Status dropdown — HISTORY MODE ONLY. 2026-06-05:
+                    removed from the active queue (Yuqi — "Status is
+                    redundant"): there it overlapped the Severity filter,
+                    and "My morning sweep" already forces
+                    the "active" status under the hood. History keeps it
+                    — its handled-state options (applied / dismissed /
+                    reverted / reviewed / snoozed) are the only way to
+                    slice the archive. The `statusFilter` state +
+                    `effectiveStatusFilter` mechanism stay intact so
+                    morning sweep is unaffected. */}
+                {historyMode ? (
+                  <DropdownMenu>
                     <DropdownMenuTrigger
                       render={
                         <FilterTrigger
                           active={statusFilter !== 'all'}
-                          // Round 83 #20: humanize via statusFilterText
-                          valueLabel={
-                            statusFilter === 'all'
-                              ? undefined
-                              : statusFilterText(statusFilter, historyMode)
-                          }
+                          valueLabel={statusFilter === 'all' ? t`all` : statusFilter}
                           aria-label={t`Filter by alert status`}
                         >
                           <span>
@@ -979,17 +981,68 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                         </FilterTrigger>
                       }
                     />
+                    <DropdownMenuContent align="start" className="min-w-[180px]">
+                      <DropdownMenuRadioGroup
+                        value={statusFilter}
+                        onValueChange={(value) => {
+                          if (
+                            typeof value === 'string' &&
+                            isStatusFilter(value, statusFilterOptions)
+                          )
+                            setStatusFilter(value)
+                        }}
+                      >
+                        {statusFilterOptions.map((option) => (
+                          <DropdownMenuRadioItem key={option} value={option}>
+                            {statusFilterLabel(option, historyMode)}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : null}
+
+                {/* Tax area — 2026-06-05: single-select service-line filter
+                    (Individual / Business income / Sales & use / Payroll /
+                    Franchise / Information). Mirrors the Change types
+                    dropdown; keeps alerts whose server-derived `taxAreas`
+                    include the pick. Alerts that could not be classified
+                    surface only under "all". */}
+                <DropdownMenu>
+                  {/* 2026-06-05 (merge with origin/main): HEAD had a
+                      duplicate Status trigger here, leftover from when
+                      Status sat in this slot before the historyMode
+                      wrapper above moved it. Main introduced the
+                      service-line Tax area filter in this slot — the
+                      surrounding DropdownMenuContent below already
+                      drives `taxAreaFilter`, so this is the correct
+                      trigger. Status stays history-only above. */}
+                  <DropdownMenuTrigger
+                    render={
+                      <FilterTrigger
+                        active={taxAreaFilter !== 'all'}
+                        valueLabel={
+                          taxAreaFilter === 'all' ? t`all` : taxAreaFilterLabel(taxAreaFilter)
+                        }
+                        aria-label={t`Filter by tax area`}
+                      >
+                        <span>
+                          <Trans>Tax area</Trans>
+                        </span>
+                      </FilterTrigger>
+                    }
+                  />
                   <DropdownMenuContent align="start" className="min-w-[180px]">
                     <DropdownMenuRadioGroup
-                      value={statusFilter}
+                      value={taxAreaFilter}
                       onValueChange={(value) => {
-                        if (typeof value === 'string' && isStatusFilter(value, statusFilterOptions))
-                          setStatusFilter(value)
+                        if (typeof value === 'string' && isTaxAreaFilter(value))
+                          setTaxAreaFilter(value)
                       }}
                     >
-                      {statusFilterOptions.map((option) => (
+                      {TAX_AREA_FILTER_OPTIONS.map((option) => (
                         <DropdownMenuRadioItem key={option} value={option}>
-                          {statusFilterLabel(option, historyMode)}
+                          {taxAreaFilterLabel(option)}
                         </DropdownMenuRadioItem>
                       ))}
                     </DropdownMenuRadioGroup>
@@ -997,14 +1050,18 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 </DropdownMenu>
 
                 {/* 2026-06-04 round 71 (Yuqi #14 "Filter by source -
-                    remove this"): SourceFilterPopover removed from
-                    the filter row. The underlying `sourceFilter`
-                    state stays (Reset still clears it; the search
-                    field still acts as a publisher narrower via
-                    free-text on `alert.source`) but the dropdown
-                    chip is gone — the source narrowing was the
-                    least-used pill and was crowding the one-line
-                    constraint from #15. */}
+                    remove this") + 2026-06-05 (Yuqi — "all sources
+                    filter is too granular"): SourceFilterPopover
+                    removed from the filter row. The underlying
+                    `sourceFilter` state stays (Reset still clears it;
+                    the search field still acts as a publisher
+                    narrower via free-text on `alert.source`) but the
+                    agency-level dropdown chip ("CA FTB", "IRS") is
+                    gone — least-used pill, crowded the round 71
+                    one-line constraint, and main's State/Federal
+                    coverage via the "Any state" map below already
+                    keys off `alert.jurisdiction` (incl. the FED tile)
+                    for the same narrowing intent. */}
 
                 {/* 2026-05-25 (Yuqi /alerts fifth pass — map
                     in dropdown): state-filter map lives behind a
@@ -1037,7 +1094,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       setImpactFilter('all')
                       setStatusFilter('all')
                       setChangeKindFilter('all')
-                      setSourceFilter('all')
+                      setTaxAreaFilter('all')
                       setJurisdictionFilter(null)
                       setTimeRangeFilter('all_time')
                       setSearchQuery('')
@@ -1047,10 +1104,14 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   </Button>
                 ) : null}
 
-                {/* Round 83 (Yuqi #8 reorder): the flex-1 spacer
-                    and View toggle that used to sit here have
-                    moved to the position right after the Search
-                    field. See `Round 83 (Yuqi #8 …)` block above. */}
+                {/* Round 83 (Yuqi #8 reorder) supersedes round 39's
+                    flex-1 spacer + Sort-by-on-the-right pattern: the
+                    spacer and View toggle moved to the position
+                    immediately after the Search field (round 83
+                    `Yuqi #8 …` block above). The trailing edge of
+                    the row no longer needs a pusher — the row is
+                    `flex-nowrap overflow-x-auto` and Sort sits at
+                    the natural right end of the content flow. */}
 
                 {/* Sort by — 2026-06-04 round 42 (Yuqi #4 — wire
                     real sort logic). Three options matching the
@@ -1259,6 +1320,30 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     : {})}
                 />
               )}
+
+              {/* 2026-06-05 (Load more): keyset-paginated next page. Shows
+                  whenever the server reports another page, regardless of the
+                  active client-side filters — same affordance the audit log
+                  uses. The active queue polls every 60s, so a refetch reloads
+                  all loaded pages consistently (stable publishedAt cursor). */}
+              {alertsQuery.hasNextPage ? (
+                <div className="flex justify-center pt-1 pb-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void alertsQuery.fetchNextPage()}
+                    disabled={alertsQuery.isFetchingNextPage}
+                    aria-label={t`Load more alerts`}
+                  >
+                    {alertsQuery.isFetchingNextPage ? (
+                      <Trans>Loading…</Trans>
+                    ) : (
+                      <Trans>Load more</Trans>
+                    )}
+                  </Button>
+                </div>
+              ) : null}
             </>
           )}
         </div>
@@ -1377,7 +1462,7 @@ function StateFilterPopover({
                   onSelect(activeState)
                   setOpen(false)
                 }}
-                className="rounded-sm text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                className="cursor-pointer rounded-sm text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
               >
                 <Trans>Clear</Trans>
               </button>
@@ -1392,114 +1477,6 @@ function StateFilterPopover({
             }}
           />
         </div>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-// 2026-05-26 (Yuqi /alerts follow-up): searchable source-filter
-// combobox. Built on Popover + Command (cmdk under the hood) so it
-// matches the picker pattern used in ClientCombobox / the Cmd+K
-// palette — type to filter, ↑/↓ to navigate, Enter to apply, Esc
-// to dismiss. Each row carries its per-source alert count on the
-// right, and the active source's count is also surfaced on the
-// trigger (e.g. "IRS · 12 alerts") so the filter row still reads
-// at a glance without opening the popover.
-function SourceFilterPopover({
-  sourceOptions,
-  sourceCounts,
-  activeSource,
-  onSelect,
-}: {
-  sourceOptions: readonly string[]
-  sourceCounts: ReadonlyMap<string, number>
-  activeSource: string
-  onSelect: (value: string) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const { t } = useLingui()
-  const isFiltered = activeSource !== 'all'
-  const activeCount = isFiltered ? (sourceCounts.get(activeSource) ?? 0) : 0
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        render={
-          <FilterTrigger active={isFiltered} aria-label={t`Filter by source`}>
-            <span className="min-w-0 flex-1 truncate text-left">
-              {isFiltered ? (
-                <>
-                  <span className="font-medium">{activeSource}</span>
-                  <span className="ml-1.5 tabular-nums text-text-accent/70">
-                    <Plural value={activeCount} one="# alert" other="# alerts" />
-                  </span>
-                </>
-              ) : (
-                <Trans>All sources</Trans>
-              )}
-            </span>
-          </FilterTrigger>
-        }
-      />
-      <PopoverContent
-        align="start"
-        sideOffset={4}
-        className="w-(--anchor-width) min-w-[240px] overflow-hidden p-0"
-      >
-        <Command loop>
-          <CommandInput autoFocus placeholder={t`Search sources…`} />
-          <CommandList className="max-h-[280px]">
-            <CommandEmpty>
-              <Trans>No sources match your search.</Trans>
-            </CommandEmpty>
-            <CommandGroup>
-              <CommandItem
-                value="all"
-                onSelect={() => {
-                  onSelect('all')
-                  setOpen(false)
-                }}
-                className="grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2"
-              >
-                <span className="min-w-0 truncate text-sm text-text-primary">
-                  <Trans>All sources</Trans>
-                </span>
-                <span className="shrink-0 tabular-nums text-xs text-text-tertiary">
-                  {sourceOptions.length}
-                </span>
-                {!isFiltered ? (
-                  <CheckIcon className="size-4 text-text-accent" aria-hidden />
-                ) : (
-                  <span aria-hidden className="size-4" />
-                )}
-              </CommandItem>
-              {sourceOptions.map((source) => {
-                const count = sourceCounts.get(source) ?? 0
-                const selected = source === activeSource
-                return (
-                  <CommandItem
-                    key={source}
-                    value={source}
-                    onSelect={() => {
-                      onSelect(source)
-                      setOpen(false)
-                    }}
-                    className="grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2"
-                  >
-                    <span className="min-w-0 truncate text-sm text-text-primary">{source}</span>
-                    <span className="shrink-0 tabular-nums text-xs text-text-tertiary">
-                      {count}
-                    </span>
-                    {selected ? (
-                      <CheckIcon className="size-4 text-text-accent" aria-hidden />
-                    ) : (
-                      <span aria-hidden className="size-4" />
-                    )}
-                  </CommandItem>
-                )
-              })}
-            </CommandGroup>
-          </CommandList>
-        </Command>
       </PopoverContent>
     </Popover>
   )
@@ -1560,21 +1537,28 @@ function statusFilterLabel(filter: AlertStatusFilter, historyMode: boolean): Rea
   )
 }
 
+// Filter dropdown labels. These name the four collapsed buckets defined by
+// `CHANGE_KIND_FILTER_GROUP_MEMBERS`, not the nine underlying kinds — the
+// per-card chip (`PulseChangeKindChip`) still names the precise kind.
 function changeKindFilterLabel(filter: AlertChangeKindFilter): React.ReactNode {
   if (filter === 'all') return <Trans>All change types</Trans>
-  return changeKindLabel(filter)
+  if (filter === 'deadlines') return <Trans>Deadlines</Trans>
+  if (filter === 'rules') return <Trans>Rules & forms</Trans>
+  if (filter === 'source') return <Trans>Source updates</Trans>
+  return <Trans>Other changes</Trans>
 }
 
-function changeKindLabel(kind: PulseChangeKind): React.ReactNode {
-  if (kind === 'deadline_shift') return <Trans>Deadline shifts</Trans>
-  if (kind === 'filing_requirement') return <Trans>Filing requirements</Trans>
-  if (kind === 'applicability_scope') return <Trans>Applicability scope</Trans>
-  if (kind === 'form_instruction') return <Trans>Forms and instructions</Trans>
-  if (kind === 'source_status') return <Trans>Source status</Trans>
-  if (kind === 'rule_source_drift') return <Trans>Source changed — re-verify</Trans>
-  if (kind === 'new_obligation') return <Trans>New deadlines</Trans>
-  if (kind === 'threshold_advisory') return <Trans>Threshold advisories</Trans>
-  return <Trans>Other changes</Trans>
+// Tax-area filter labels — the six service-line buckets (+ "all"). Names the
+// derived `taxAreas` values from @duedatehq/core/tax-area; the per-card chips
+// still carry the precise form / jurisdiction.
+function taxAreaFilterLabel(filter: AlertTaxAreaFilter): React.ReactNode {
+  if (filter === 'all') return <Trans>All tax areas</Trans>
+  if (filter === 'income_individual') return <Trans>Individual income</Trans>
+  if (filter === 'income_business') return <Trans>Business income</Trans>
+  if (filter === 'sales_use') return <Trans>Sales & use</Trans>
+  if (filter === 'payroll_withholding') return <Trans>Payroll</Trans>
+  if (filter === 'franchise') return <Trans>Franchise & fees</Trans>
+  return <Trans>Information</Trans>
 }
 
 function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {

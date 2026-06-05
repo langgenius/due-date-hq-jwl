@@ -388,7 +388,7 @@ describe('makePulseRepo', () => {
     ])
     const repo = makePulseRepo(db, 'firm-1')
 
-    const alerts = await repo.listAlerts({ limit: 50 })
+    const { alerts } = await repo.listAlerts({ limit: 50 })
 
     expect(alerts[0]?.applyReadiness).toEqual({ status: 'ready', missing: [] })
     expect(alerts[0]?.duplicateSourceSnapshotCount).toBe(3)
@@ -422,9 +422,37 @@ describe('makePulseRepo', () => {
     ])
     const repo = makePulseRepo(db, 'firm-1')
 
-    const alerts = await repo.listHistory({ limit: 50 })
+    const { alerts } = await repo.listHistory({ limit: 50 })
 
     expect(alerts.map((alert) => alert.status)).toEqual([...handledStatuses])
+  })
+
+  it('paginates active alerts with a keyset cursor and reports the next page', async () => {
+    // Three rows already in (publishedAt DESC) order — the chain double's
+    // `.limit()` returns them all regardless of the limit+1 over-fetch, so a
+    // limit of 2 must trim to a 2-row page and surface a cursor for the rest.
+    const rows = [
+      { ...ALERT, alertId: 'alert-a', publishedAt: new Date('2026-04-15T00:00:00.000Z') },
+      { ...ALERT, alertId: 'alert-b', publishedAt: new Date('2026-04-14T00:00:00.000Z') },
+      { ...ALERT, alertId: 'alert-c', publishedAt: new Date('2026-04-13T00:00:00.000Z') },
+    ]
+    const { db } = fakeDb([rows])
+    const repo = makePulseRepo(db, 'firm-1')
+
+    const firstPage = await repo.listAlerts({ limit: 2 })
+
+    expect(firstPage.alerts.map((alert) => alert.id)).toEqual(['alert-a', 'alert-b'])
+    expect(firstPage.nextCursor).not.toBeNull()
+    // The opaque cursor decodes to the last returned row's (publishedAt, id).
+    expect(Buffer.from(firstPage.nextCursor as string, 'base64url').toString('utf8')).toBe(
+      '2026-04-14T00:00:00.000Z|alert-b',
+    )
+
+    // A short final page (fewer rows than the limit) ends pagination.
+    const { db: lastDb } = fakeDb([[{ ...ALERT, alertId: 'alert-c' }]])
+    const lastPage = await makePulseRepo(lastDb, 'firm-1').listAlerts({ limit: 2 })
+    expect(lastPage.alerts.map((alert) => alert.id)).toEqual(['alert-c'])
+    expect(lastPage.nextCursor).toBeNull()
   })
 
   it('updates due-date overlay details and refreshes affected-client counts', async () => {

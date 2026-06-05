@@ -53,6 +53,9 @@ interface PulseAlertRow {
   // structural twin of the repo type (history-deep separation;
   // merging the two is a refactor task on its own).
   jurisdiction: string
+  // 2026-06-05 (Tax area filter): mirrors the repo's PulseAlertRow.taxAreas —
+  // server-derived service-line buckets. Same structural-twin caveat as above.
+  taxAreas: PulseAlertPublic['taxAreas']
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -199,6 +202,10 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     // public row so the alerts list page can group/filter without
     // losing federal Pulse rows.
     jurisdiction: row.jurisdiction,
+    // 2026-06-05 (Tax area filter): derived service-line buckets (computed in
+    // the repo's toAlert from reverify-rule citations). Surfaced so the alerts
+    // list can filter by practice area; raw rule ids stay server-side.
+    taxAreas: row.taxAreas,
   }
 }
 
@@ -446,9 +453,11 @@ function pulseReviewEmailText(input: {
 
 const listAlerts = os.pulse.listAlerts.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
-  const opts = input?.limit === undefined ? {} : { limit: input.limit }
-  const alerts = await scoped.pulse.listAlerts(opts)
-  return { alerts: toPublicAlertsSafely(alerts, 'listAlerts') }
+  const { alerts, nextCursor } = await scoped.pulse.listAlerts({
+    ...(input?.limit === undefined ? {} : { limit: input.limit }),
+    ...(input?.cursor == null ? {} : { cursor: input.cursor }),
+  })
+  return { alerts: toPublicAlertsSafely(alerts, 'listAlerts'), nextCursor }
 })
 
 const activeCount = os.pulse.activeCount.handler(async ({ context }) => {
@@ -459,11 +468,12 @@ const activeCount = os.pulse.activeCount.handler(async ({ context }) => {
 
 const listHistory = os.pulse.listHistory.handler(async ({ input, context }) => {
   const { scoped } = requireTenant(context)
-  const alerts = await scoped.pulse.listHistory({
+  const { alerts, nextCursor } = await scoped.pulse.listHistory({
     ...(input?.limit === undefined ? {} : { limit: input.limit }),
     ...(input?.status === undefined ? {} : { status: input.status }),
+    ...(input?.cursor == null ? {} : { cursor: input.cursor }),
   })
-  return { alerts: toPublicAlertsSafely(alerts, 'listHistory') }
+  return { alerts: toPublicAlertsSafely(alerts, 'listHistory'), nextCursor }
 })
 
 async function listSourceHealthForScopedRepo(

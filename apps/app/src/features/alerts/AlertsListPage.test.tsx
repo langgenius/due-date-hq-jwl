@@ -12,6 +12,14 @@ import { AppI18nProvider } from '@/i18n/provider'
 
 import { AlertsListPage } from './AlertsListPage'
 
+// Shape of the options object the api.ts infinite hooks pass to
+// orpc.pulse.list*.infiniteOptions — mirrored by the mock below.
+type InfiniteOptionsArg = {
+  input: (cursor: string | null) => unknown
+  initialPageParam: string | null
+  getNextPageParam: (page: { nextCursor: string | null }) => string | null | undefined
+}
+
 const rpcMocks = vi.hoisted(() => ({
   listAlertsQueryFn: vi.fn(),
   listHistoryQueryFn: vi.fn(),
@@ -45,11 +53,23 @@ vi.mock('@/lib/rpc', () => ({
           queryKey: ['pulse', 'listAlerts', args.input],
           queryFn: rpcMocks.listAlertsQueryFn,
         }),
+        infiniteOptions: (opts: InfiniteOptionsArg) => ({
+          queryKey: ['pulse', 'listAlerts', 'infinite', opts.input(opts.initialPageParam)],
+          queryFn: rpcMocks.listAlertsQueryFn,
+          initialPageParam: opts.initialPageParam,
+          getNextPageParam: opts.getNextPageParam,
+        }),
       },
       listHistory: {
         queryOptions: (args: { input: unknown }) => ({
           queryKey: ['pulse', 'listHistory', args.input],
           queryFn: rpcMocks.listHistoryQueryFn,
+        }),
+        infiniteOptions: (opts: InfiniteOptionsArg) => ({
+          queryKey: ['pulse', 'listHistory', 'infinite', opts.input(opts.initialPageParam)],
+          queryFn: rpcMocks.listHistoryQueryFn,
+          initialPageParam: opts.initialPageParam,
+          getNextPageParam: opts.getNextPageParam,
         }),
       },
       listSourceHealth: {
@@ -125,7 +145,7 @@ function source(overrides: Partial<PulseSourceHealth> = {}): PulseSourceHealth {
 
 const SEED_ALERT_ID = '12121212-1212-4121-8121-121212121212'
 
-function listAlert(): PulseAlertPublic {
+function listAlert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic {
   return {
     id: SEED_ALERT_ID,
     pulseId: '34343434-3434-4343-8343-343434343434',
@@ -146,6 +166,8 @@ function listAlert(): PulseAlertPublic {
     confidence: 0.9,
     isSample: false,
     jurisdiction: 'CA',
+    taxAreas: [],
+    ...overrides,
   }
 }
 
@@ -221,8 +243,8 @@ beforeEach(() => {
   rpcMocks.listHistoryQueryFn.mockReset()
   rpcMocks.listSourceHealthQueryFn.mockReset()
   rpcMocks.getDetailsBatchQueryFn.mockReset()
-  rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [] })
-  rpcMocks.listHistoryQueryFn.mockResolvedValue({ alerts: [] })
+  rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [], nextCursor: null })
+  rpcMocks.listHistoryQueryFn.mockResolvedValue({ alerts: [], nextCursor: null })
   rpcMocks.listSourceHealthQueryFn.mockResolvedValue({ sources: [] })
   rpcMocks.getDetailsBatchQueryFn.mockResolvedValue({ details: [] })
 })
@@ -290,7 +312,7 @@ describe('AlertsListPage affected-client batching', () => {
   // hit not a re-fetch).
   it('fires exactly one batch and seeds each getDetail cache for instant drawer open', async () => {
     const detail = alertDetail()
-    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [detail.alert] })
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [detail.alert], nextCursor: null })
     rpcMocks.getDetailsBatchQueryFn.mockResolvedValue({ details: [detail] })
 
     const client = await render(<AlertsListPage embedded />)
@@ -303,5 +325,82 @@ describe('AlertsListPage affected-client batching', () => {
     // The drawer's per-alert getDetail cache is pre-seeded from the batch, so
     // opening the drawer is a cache hit instead of a re-fetch.
     expect(client.getQueryData(['pulse', 'getDetail', { alertId: SEED_ALERT_ID }])).toEqual(detail)
+  })
+})
+
+describe('AlertsListPage load more', () => {
+  it('appends the next keyset page and hides Load more once exhausted', async () => {
+    const first = listAlert({ title: 'First relief', publishedAt: '2026-05-02T00:00:00.000Z' })
+    const second = listAlert({
+      id: '56565656-5656-4565-8565-565656565656',
+      pulseId: '78787878-7878-4787-8787-787878787878',
+      title: 'Second relief',
+      publishedAt: '2026-05-01T00:00:00.000Z',
+    })
+    // Page 1 reports a further page; page 2 closes it out.
+    rpcMocks.listAlertsQueryFn
+      .mockResolvedValueOnce({ alerts: [first], nextCursor: 'cursor-2' })
+      .mockResolvedValueOnce({ alerts: [second], nextCursor: null })
+
+    await render(<AlertsListPage embedded />)
+
+    await waitForText('First relief')
+    expect(document.body.textContent).toContain('Load more')
+    expect(document.body.textContent).not.toContain('Second relief')
+
+    const loadMore = [...document.querySelectorAll('button')].find((button) =>
+      button.textContent?.includes('Load more'),
+    )
+    expect(loadMore).toBeTruthy()
+    await act(async () => {
+      loadMore?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    await waitForText('Second relief')
+    // nextCursor null on the second page → the control disappears.
+    expect(document.body.textContent).not.toContain('Load more')
+  })
+})
+
+describe('AlertsListPage tax area filter', () => {
+  it('exposes the Tax area filter and renders alerts carrying derived tax areas', async () => {
+    const detail = alertDetail()
+    detail.alert.taxAreas = ['income_individual']
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [detail.alert] })
+    rpcMocks.getDetailsBatchQueryFn.mockResolvedValue({ details: [detail] })
+
+    await render(<AlertsListPage embedded />)
+
+    // 2026-06-05 (merge with origin/main): the i90PZ row layout
+    // from rounds 70-85 shows count-only ("Affects N clients"); the
+    // per-row client-name surface main's version waited on
+    // ("Seeded Client Co") moved to the drawer. Settling probe
+    // updated to the count chip the new row chrome renders.
+    await waitForText('Affects 1 client')
+    // …and the single-select Tax area filter control is present in the row.
+    expect(document.body.textContent).toContain('Tax area')
+  })
+})
+
+describe('AlertsListPage status filter scope', () => {
+  it('hides Status on the active surface (redundant with Severity)', async () => {
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [listAlert()], nextCursor: null })
+
+    await render(<AlertsListPage embedded />)
+
+    await waitForText('Seeded CA relief')
+    expect(document.querySelector('[aria-label="Filter by alert status"]')).toBeNull()
+  })
+
+  it('keeps Status on the history surface (its handled-state slicer)', async () => {
+    rpcMocks.listHistoryQueryFn.mockResolvedValue({
+      alerts: [listAlert({ status: 'applied' })],
+      nextCursor: null,
+    })
+
+    await render(<AlertsListPage embedded historyMode />, '/alerts/history')
+
+    await waitForText('Seeded CA relief')
+    expect(document.querySelector('[aria-label="Filter by alert status"]')).not.toBeNull()
   })
 })

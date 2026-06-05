@@ -36,6 +36,20 @@ export class AppShellPage {
     await this.primaryNavigation.waitFor({ state: 'visible' })
   }
 
+  /**
+   * Open the import/migration wizard from the dashboard header.
+   *
+   * `canRunMigration` is gated on the non-blocking `firms.listMine` query
+   * (permission-gate.tsx): until it resolves the button renders with the
+   * "(requires … access)" name and a click only fires a permission toast —
+   * it never opens the wizard. Wait for the button to reach its ungated name
+   * before clicking. (A real user can't out-race the query; a test can.)
+   */
+  async openImportWizard() {
+    await expect(this.importClientsButton).toHaveAccessibleName(/^Import clients$/)
+    await this.importClientsButton.click()
+  }
+
   async openCommandPalette() {
     await this.primaryNavigation.waitFor({ state: 'visible' })
 
