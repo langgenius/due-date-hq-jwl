@@ -46,10 +46,22 @@ export function FloatingActionBar({
   ariaLabel,
   className,
   children,
+  tone = 'default',
 }: {
   ariaLabel: string
   className?: string
   children: ReactNode
+  /**
+   * `default` — clean elevated white pill (legacy recipe, used by
+   * Rule library's bulk-review bar).
+   *
+   * `elevated` — dark inverted surface so the bar reads as a
+   * deliberate "command bar" mode (think Linear / Notion batch
+   * tools). Adopted by /deadlines per 2026-06-05 page feedback
+   * — the white pill blended into the page chrome and didn't
+   * read as a distinct selection-mode surface.
+   */
+  tone?: 'default' | 'elevated'
 }) {
   // 2026-05-26 (Yuqi feedback — "Bulk review actions look ugly and
   // not UX friendly"): third iteration on the surface. Previously:
@@ -57,14 +69,20 @@ export function FloatingActionBar({
   // beige: ugly. New recipe — clean elevated white pill, hairline
   // neutral border, slightly stronger lifted shadow. Reads as a
   // floating control surface (think Linear/Stripe context bars)
-  // without claiming a warm/warning tone. The "you have a batch
-  // selection active" signal comes from the bar APPEARING at all +
-  // its centered floating position; surface color doesn't need to
-  // carry that signal.
+  // without claiming a warm/warning tone.
   //
-  // Inner ghost buttons inherit text-primary; the canonical primary
-  // action (sized `sm` by the caller) uses the standard accent fill
-  // for the "do the batch action" CTA.
+  // 2026-06-05 (Yuqi /deadlines page-feedback — "batch selection
+  // bar is ugly, not designed, blended into the rest of the page,
+  // not highlighted and differentiated"): added `tone="elevated"`
+  // variant so consumers can opt into a dark contrast surface that
+  // reads as a distinct selection-mode bar. The default white
+  // recipe stays for callers (Rule library) that want the quieter
+  // shape.
+  //
+  // Inner ghost buttons inherit text-primary (default) or
+  // text-inverted (elevated); the canonical primary action (sized
+  // `sm` by the caller) uses the standard accent fill for the
+  // "do the batch action" CTA.
   return (
     <div
       role="region"
@@ -72,7 +90,37 @@ export function FloatingActionBar({
       className={cn(
         // Step 1-5 reaudit canonicalized shadows — keep `shadow-overlay`
         // token, not main's arbitrary `shadow-[0_20px_48px_-16px_...]`.
-        'fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-wrap items-center gap-3 rounded-xl border border-divider-regular bg-background-default px-5 py-3 text-text-primary shadow-overlay [&_button]:text-text-primary [&_button:hover:not(:disabled)]:bg-state-base-hover [&_button:disabled]:opacity-50',
+        // 2026-06-05 (Yuqi page-feedback #12): `flex-wrap` → `flex-nowrap`
+        // so the bar stays a single horizontal row at desktop widths.
+        // Consumers that need more than ~6 affordances must use a `More`
+        // overflow dropdown (see /deadlines) — wrapping to two lines
+        // reads as "the bar is broken" rather than "the bar has many
+        // actions."
+        'fixed bottom-12 left-1/2 z-40 flex -translate-x-1/2 flex-nowrap items-center gap-2 rounded-2xl px-4 py-2.5 shadow-overlay',
+        tone === 'elevated'
+          ? [
+              // Dark inverted surface — matches the `bg-text-primary +
+              // text-text-inverted` pattern used by selected state-rail
+              // chips and rules-console primitives. No border (the
+              // dark surface reads as elevated on its own; a hairline
+              // would just thicken the silhouette).
+              'bg-text-primary text-text-inverted',
+              // Ghost buttons inside need to flip to inverted text +
+              // a translucent-white hover so they read against the
+              // dark fill.
+              '[&_button]:text-text-inverted',
+              '[&_button:hover:not(:disabled)]:bg-white/10',
+              '[&_button:disabled]:opacity-50',
+              // Vertical separators between groups also need to be
+              // visible against the dark surface.
+              '[&_[role=separator]]:bg-white/15',
+            ]
+          : [
+              'border border-divider-regular bg-background-default text-text-primary',
+              '[&_button]:text-text-primary',
+              '[&_button:hover:not(:disabled)]:bg-state-base-hover',
+              '[&_button:disabled]:opacity-50',
+            ],
         className,
       )}
     >

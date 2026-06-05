@@ -184,11 +184,9 @@ import { DestructiveChangePreview } from '@/components/patterns/destructive-chan
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
-import { KbdHint } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
-import { SearchInput } from '@/components/primitives/search-input'
 import { ConceptLabel } from '@/features/concepts/concept-help'
 import { ClientPeekHoverCard } from '@/features/clients/ClientPeekHoverCard'
 import { useEvidenceDrawer } from '@/features/evidence/EvidenceDrawerContext'
@@ -1419,13 +1417,10 @@ export function ObligationQueueRoute() {
   // initial render path. See useResponsivePageSize above for the
   // diagnosis.
   const [, setTableCardElement] = useResponsivePageSize()
+  // 2026-06-05 (page-feedback #5): collapsible `ObligationQueueSearch-
+  // Control` retired in favor of the fixed-row search field. Ref now
+  // targets that always-mounted input — no open-state shim needed.
   const searchInputRef = useRef<HTMLInputElement | null>(null)
-  // 2026-05-24 (re-critique): lifted from `ObligationQueueSearchControl`
-  // so the `/` hotkey can imperatively expand the collapsed search
-  // box before deferring focus. The control's own click-to-expand
-  // path also goes through this setter, so the two entry points
-  // share the same expansion mechanism.
-  const [searchOpen, setSearchOpen] = useState(false)
   // Anchor for shift-click range selection — last id the user clicked.
   const lastSelectedIdRef = useRef<string | null>(null)
   const [openHeaderFilter, setOpenHeaderFilter] = useState<string | null>(null)
@@ -2929,10 +2924,10 @@ export function ObligationQueueRoute() {
   // subtitle was dropped per feedback #2, so the computations are
   // now dead. Removed entirely; restore from git history if a
   // subtitle is revived.
-  const uniqueClientCount = useMemo(
-    () => new Set(tableRows.map((r) => r.original.clientId)).size,
-    [tableRows],
-  )
+  // 2026-06-05 (page-feedback #10): `uniqueClientCount` powered the
+  // "N deadlines · M clients" footer string. Footer dropped — the
+  // aggregate count is now redundant with the scope-tab counts at
+  // the top — so this memo is no longer consumed.
   const selectedRows = table.getSelectedRowModel().rows.map((selectedRow) => selectedRow.original)
   const selectedIds = selectedRows.map((selectedRow) => selectedRow.id)
   const selectedClientIds = [...new Set(selectedRows.map((selectedRow) => selectedRow.clientId))]
@@ -3028,23 +3023,17 @@ export function ObligationQueueRoute() {
 
   // `/` focuses search — Linear/Slack convention. The kbd hint in the
   // input's right gutter advertises it; this wires the actual binding.
-  //
-  // 2026-05-24 (re-critique): the search control is COLLAPSED to a
-  // magnifier button when neither `searchOpen` nor `value.length > 0`
-  // is true, so on a fresh load with no `?q=` in the URL the
-  // `<Input>` isn't rendered and `searchInputRef.current` is null —
-  // pressing `/` was a silent no-op. Now the hotkey opens the
-  // control first (if needed) and RAF-defers focus until the input
-  // mounts. `searchOpen` was lifted from the search control into
-  // this parent for exactly this reason.
+  // 2026-06-05 (page-feedback #5): the search input is always
+  // mounted in the filter row above the table, so the hotkey just
+  // focuses + selects; no open-the-collapsed-control dance.
   useAppHotkey(
     '/',
     () => {
-      setSearchOpen(true)
-      requestAnimationFrame(() => {
-        searchInputRef.current?.focus()
-        searchInputRef.current?.select()
-      })
+      // 2026-06-05 (page-feedback #5): the collapsible search next to
+      // the scope tabs is gone — the fixed-row search is always
+      // mounted, so no open-first dance is needed before focusing.
+      searchInputRef.current?.focus()
+      searchInputRef.current?.select()
     },
     {
       enabled: !shortcutsBlocked,
@@ -3620,30 +3609,14 @@ export function ObligationQueueRoute() {
                   />
                 ))}
               </nav>
-              {/* Collapsible search — icon button at rest, expands into an
-              inline input on click (or stays open while a query is
-              active). Saves ~190px of horizontal real estate so the
-              scope tabs never wrap onto a second line. The `/`
-              keyboard shortcut still focuses the input (it auto-
-              expands the search when triggered). */}
-              <ObligationQueueSearchControl
-                inputRef={searchInputRef}
-                value={searchInput}
-                open={searchOpen}
-                onOpenChange={setSearchOpen}
-                onChange={(nextSearch) =>
-                  void setObligationQueueQuery(
-                    {
-                      q: nextSearch || null,
-                      obligation: null,
-                      row: null,
-                    },
-                    nextSearch === ''
-                      ? undefined
-                      : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
-                  )
-                }
-              />
+              {/* 2026-06-05 (Yuqi page-feedback #5 — "isn't there is a
+                  search already, on the above tab row"): the collapsible
+                  icon-button search next to the scope tabs is removed.
+                  The fixed search field in the /alerts-style filter row
+                  below is the single search affordance for the page.
+                  Keeps the `/` hotkey alive — see `useAppHotkey('/')` —
+                  but the ref now targets the fixed field, not the
+                  collapsible one. */}
             </div>
           </div>
 
@@ -3663,6 +3636,7 @@ export function ObligationQueueRoute() {
             <label className="inline-flex h-9 w-[260px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt">
               <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
               <input
+                ref={searchInputRef}
                 type="search"
                 value={searchInput}
                 onChange={(event) => {
@@ -3689,6 +3663,18 @@ export function ObligationQueueRoute() {
             {panelOpenIntent ? null : (
               <>
                 <DropdownMenu>
+                  {/* 2026-06-05 (page-feedback #6 — "what does the Sort
+                      by Due and this Group by Urgency do? aren't they
+                      the same?"): they're orthogonal — Group sets the
+                      band/cluster axis, Sort orders rows WITHIN each
+                      band. The previous "Sort by · Due ↑" copy
+                      collapsed the answer to a directional arrow,
+                      which read like the Group label. Now the trigger
+                      always prefixes the verb ("Sort"), spells the
+                      dimension and direction out longhand ("Due date
+                      (earliest first)"), and the dropdown options
+                      match — so the user can see at a glance that
+                      Group and Sort are different controls. */}
                   <DropdownMenuTrigger
                     render={
                       <FilterTrigger
@@ -3698,14 +3684,14 @@ export function ObligationQueueRoute() {
                           sort === 'smart_priority'
                             ? t`Smart priority`
                             : sort === 'due_desc'
-                              ? t`Due ↓`
+                              ? t`Due date (latest)`
                               : sort === 'updated_desc'
                                 ? t`Recently updated`
-                                : t`Due ↑`
+                                : t`Due date (earliest)`
                         }
-                        aria-label={t`Sort deadlines`}
+                        aria-label={t`Sort deadlines within each group`}
                       >
-                        <span>
+                        <span className="text-text-tertiary">
                           <Trans>Sort by</Trans>
                         </span>
                       </FilterTrigger>
@@ -4059,20 +4045,47 @@ export function ObligationQueueRoute() {
             /*
              * Floating bulk-action toolbar.
              *
-             * Uses the shared `<FloatingActionBar>` primitive so the
-             * shape, shadow, blur, and z-stacking match the Rule
-             * library's bulk-review bar (both surfaces converged on
-             * the same recipe 2026-05-22).
+             * Uses the shared `<FloatingActionBar>` primitive — but as
+             * of 2026-06-05 (Yuqi page-feedback) on the elevated dark
+             * tone. The white pill we'd shipped previously read as
+             * page chrome, not as a distinct selection-mode surface;
+             * darkening the fill makes the "you are now in batch
+             * mode" signal unmistakable.
+             *
+             * Action layout:
+             *   • Primary (always inline): Assign owner, Set status,
+             *     Confirm projected (lifted to accent when in the
+             *     Projected lens).
+             *   • Secondary (collapsed under "More"): Snooze (coming
+             *     soon), Export selected, Remind to sign, Decide
+             *     extension. Moving them off the bar shortens it
+             *     significantly — pre-fix it was ~11 chip-width
+             *     wide and ran outside the queue's optical center;
+             *     post-fix it's 5 buttons + counter + clear.
+             *   • Trailing: Clear selection, separated by a divider.
              *
              * Originally lived as a sticky bar at `top-2` inside the
              * queue column — but its appearance reflowed the table
              * downward 50px the moment a row was checked, which broke
              * the reading flow ("where did my row go?"). Detached to
-             * `fixed bottom-10` (40px from viewport bottom), which
+             * `fixed bottom-12` (48px from viewport bottom), which
              * the primitive now bakes in.
              */
-            <FloatingActionBar ariaLabel={t`Bulk actions`}>
-              <span className="text-xs font-medium tabular-nums text-text-primary">
+            <FloatingActionBar
+              ariaLabel={t`Bulk actions`}
+              tone="elevated"
+              // 2026-06-05 (page-feedback #12 — "not at the center of
+              // the right panel"): default position centers on the
+              // viewport, but the persistent sidebar (220px / 13.75rem)
+              // pushes the queue panel's optical center ~110px right
+              // of the viewport center. `md:!left-[calc(50%+6.875rem)]`
+              // restores center alignment over the queue at md+
+              // widths; at narrow viewports the sidebar collapses to
+              // an off-canvas drawer, so we let the bar fall back to
+              // the viewport-centered default.
+              className="md:!left-[calc(50%+6.875rem)]"
+            >
+              <span className="whitespace-nowrap text-xs font-medium tabular-nums">
                 {/* 2026-05-26 (step-6 ux-flow audit Q4.1): "rows" is
                     engineering-speak. CPAs say "deadlines". The prev
                     audit shipped the toast fix but missed this
@@ -4134,19 +4147,6 @@ export function ObligationQueueRoute() {
                   }
                 />
                 <DropdownMenuContent align="start">
-                  {/* Bulk-action Set Status — iterates statusDropdownOptions
-                      (6 under v2, 10 under legacy). Pre-fix iterated
-                      ALL_STATUSES → duplicate "In review" / "Filed" /
-                      "Not started" entries with v2 collapsed labels.
-                      The `extended` special-case for the memo modal
-                      is preserved but only fires under legacy (v2
-                      dropdown options don't include `extended`). */}
-                  {/* 2026-05-27 (Step 6 cont Q4.4 — P1): each item now
-                      respects `bulkStatusMutation.isPending` so a CPA
-                      hammering "Filed" on a 47-row selection during the
-                      first request can't fire the mutation twice. The
-                      Base UI DropdownMenuItem honors `disabled` for
-                      both pointer and keyboard activation. */}
                   {statusDropdownOptions.map((status) =>
                     status === 'extended' ? (
                       <DropdownMenuItem
@@ -4171,14 +4171,9 @@ export function ObligationQueueRoute() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-              {/* Confirm projected (rolled-forward / auto-generated) deadlines so
-                  they leave the Projected lens and re-enter the reminder pipeline.
-                  Already-confirmed rows are no-ops server-side. */}
+              {/* Confirm projected stays inline because it's the primary
+                  action in the Projected lens (lifted to accent). */}
               <Button
-                // In the Projected lens this is the primary action — lift it from
-                // ghost to accent (+ a check icon) so CPAs don't miss it among the
-                // peer bulk actions. Stays ghost in other views where the selection
-                // may be already-confirmed rows.
                 variant={projected ? 'accent' : 'ghost'}
                 size="sm"
                 disabled={!canUpdateObligationStatus || confirmObligationsMutation.isPending}
@@ -4192,63 +4187,64 @@ export function ObligationQueueRoute() {
                 <CircleCheck data-icon="inline-start" />
                 <Trans>Confirm projected</Trans>
               </Button>
-              {/* 2026-05-26 (Yuqi /deadlines redesign): Snooze
-                  surfaced as a peer of Assign / Set status / Export.
-                  Backend mutation (bulk reschedule internal due
-                  date) hasn't shipped yet — for now the affordance
-                  is visually present but disabled with a "Coming
-                  soon" tooltip, matching the CommandPalette's
-                  honest-coming-soon pattern. When the backend
-                  lands, this gets wired to `orpc.obligations.
-                  bulkSnooze` and the disabled state drops. */}
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled
-                title={t`Snooze (coming soon)`}
-                aria-label={t`Snooze selected deadlines (coming soon)`}
-              >
-                <Clock data-icon="inline-start" />
-                <Trans>Snooze</Trans>
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => openExportDialog('selected')}>
-                <ArrowUpRightIcon data-icon="inline-start" />
-                <Trans>Export</Trans>
-              </Button>
-              {/* P0: bulk Form 8879 signature reminder. Outward-facing,
-                  fan-out email — confirm before sending. Rows not awaiting
-                  signature are skipped server-side. */}
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={!canUpdateObligationStatus || bulkRemindSignatureMutation.isPending}
-                title={
-                  canUpdateObligationStatus
-                    ? t`Email selected clients a Form 8879 signature reminder`
-                    : t`Requires status-update access`
-                }
-                onClick={() => setRemindToSignConfirmOpen(true)}
-              >
-                <SendIcon data-icon="inline-start" />
-                <Trans>Remind to sign</Trans>
-              </Button>
-              {/* P1: bulk "Decide extension" — applies one extension plan to
-                  every eligible selected deadline. Rows already extended (or
-                  past the shared target date) are skipped server-side. */}
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={!canUpdateObligationStatus || bulkDecideExtensionMutation.isPending}
-                title={
-                  canUpdateObligationStatus
-                    ? t`Apply an internal extension plan to the selected deadlines`
-                    : t`Requires status-update access`
-                }
-                onClick={() => setBulkExtensionOpen(true)}
-              >
-                <CalendarClockIcon data-icon="inline-start" />
-                <Trans>Decide extension</Trans>
-              </Button>
+              {/* 2026-06-05 (Yuqi page-feedback #12 — "batch selection
+                  bar is ugly, ... too long"): secondary actions
+                  collapsed under a single "More" overflow menu so the
+                  bar reads as ~5 affordances instead of 8. Order
+                  preserved (Snooze → Export → Remind to sign → Decide
+                  extension) so muscle memory survives the move. */}
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button variant="ghost" size="sm" aria-label={t`More bulk actions`}>
+                      <Trans>More</Trans>
+                      <ChevronDownIcon data-icon="inline-end" />
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem
+                    disabled
+                    title={t`Snooze (coming soon)`}
+                    aria-label={t`Snooze selected deadlines (coming soon)`}
+                  >
+                    <Clock className="mr-2 size-4" aria-hidden />
+                    <Trans>Snooze</Trans>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openExportDialog('selected')}>
+                    <ArrowUpRightIcon className="mr-2 size-4" aria-hidden />
+                    <Trans>Export selected</Trans>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={
+                      !canUpdateObligationStatus || bulkRemindSignatureMutation.isPending
+                    }
+                    title={
+                      canUpdateObligationStatus
+                        ? t`Email selected clients a Form 8879 signature reminder`
+                        : t`Requires status-update access`
+                    }
+                    onClick={() => setRemindToSignConfirmOpen(true)}
+                  >
+                    <SendIcon className="mr-2 size-4" aria-hidden />
+                    <Trans>Remind to sign</Trans>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={
+                      !canUpdateObligationStatus || bulkDecideExtensionMutation.isPending
+                    }
+                    title={
+                      canUpdateObligationStatus
+                        ? t`Apply an internal extension plan to the selected deadlines`
+                        : t`Requires status-update access`
+                    }
+                    onClick={() => setBulkExtensionOpen(true)}
+                  >
+                    <CalendarClockIcon className="mr-2 size-4" aria-hidden />
+                    <Trans>Decide extension</Trans>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Separator orientation="vertical" className="mx-0.5 h-4" />
               <Button
                 variant="ghost"
@@ -4350,12 +4346,18 @@ export function ObligationQueueRoute() {
               // tbody alpha moved up to this layer.
               // 2026-06-04 round 23 (Yuqi "apply the style from
               // Today's Action table to Deadline's table"): outer
-              // card radius bumped `rounded-md` (6px) → `rounded-[12px]`
-              // to match /today's ActionsTable wrapper exactly. The
-              // 12px radius reads as a real surface card, not a
-              // utility data panel. Border tone stays at
-              // `divider-regular` (8%) — same as /today.
-              className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[12px] border border-divider-regular"
+              // 2026-06-05 (Yuqi page-feedback #11 — "looking ugly,
+              // when there are only a few rows not fulfilling the
+              // full page, there is still the borders"): the framing
+              // border + 12px radius around the table card paint a
+              // tall empty rectangle below the last row when the
+              // result set is short. Dropped the wrapper border and
+              // radius — the TableHeader's `bg-background-section`
+              // band is enough to mark the top of the data region,
+              // and the empty area below the last row now reads as
+              // the page surface, not a bordered "this is the data
+              // card and it has nothing in it" frame.
+              className="flex min-h-0 flex-1 flex-col overflow-hidden"
             >
               {/* 2026-05-26 (Yuqi feedback — pagination position +
                   empty-row background): wrap Table in a flex-1 rows-
@@ -4635,19 +4637,32 @@ export function ObligationQueueRoute() {
                                       <span className="text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase">
                                         {bandLabel}
                                       </span>
-                                      <Badge
-                                        variant={URGENCY_BAND_BADGE_VARIANT[groupHeader.band]}
-                                        className="tabular-nums"
-                                      >
-                                        {groupHeader.count}
-                                      </Badge>
+                                      {/* 2026-06-05 (page-feedback #7/#8 —
+                                          "different sub-category header from
+                                          Alerts. Please align them"): right-
+                                          side count was a filled Badge pill;
+                                          /alerts' dispatch divider renders
+                                          counts as plain uppercase text
+                                          ("3 DISPATCHES") sharing the same
+                                          12/0.5px/uppercase eyebrow type as
+                                          the left label. Switched to that
+                                          treatment so the urgency band reads
+                                          as the same primitive — the count
+                                          is part of the eyebrow, not a chip
+                                          competing with it. */}
+                                      <span className="text-[12px] font-semibold tracking-[0.5px] text-text-muted uppercase tabular-nums">
+                                        <Trans>
+                                          {groupHeader.count}{' '}
+                                          {groupHeader.count === 1 ? t`deadline` : t`deadlines`}
+                                        </Trans>
+                                      </span>
                                     </button>
                                     {groupHeader.band === 'overdue' ? (
                                       // STATIC placeholder. `estimatedExposureCents`
                                       // is omitted from ObligationQueueRow, so no
                                       // real penalty total exists to compute yet.
-                                      <span className="text-xs tabular-nums text-text-tertiary">
-                                        <Trans>≈12d avg · ≈$11,840 penalty exposure</Trans>
+                                      <span className="text-[12px] font-semibold tracking-[0.5px] text-text-muted uppercase tabular-nums">
+                                        <Trans>≈12D AVG · ≈$11,840 PENALTY EXPOSURE</Trans>
                                       </span>
                                     ) : null}
                                   </div>
@@ -4890,82 +4905,32 @@ export function ObligationQueueRoute() {
                   </TableBody>
                 </Table>
               </div>
-              {/* 2026-05-26 (Yuqi /deadlines feedback — refactor):
-                  pagination is the last child of the bordered table-
-                  card. The card's rounded corners + border are
-                  applied to the WRAPPER and clip via overflow-hidden,
-                  so pagination drops its own rounded-b + outer
-                  borders. Only the `border-t` hairline survives —
-                  that's the line that separates the strip from the
-                  last data row, which the card's overflow-hidden
-                  clip won't draw on its own. `shrink-0` keeps the
-                  strip at its natural height so the flex-1 rows-
-                  area above can grow into all remaining card height
-                  — that's what pins the pagination position across
-                  pages with different row counts. */}
-              {/* 2026-05-26 (Yuqi feedback — vertical padding bump):
-                  py-2 (8px) → py-6 (24px) so the pagination strip
-                  reads as a deliberate card footer with breathing
-                  room, not a slim toolbar squeezed against the last
-                  data row. The card now ends with a clearly framed
-                  strip below the rows-area. */}
-              <div className="flex shrink-0 items-center justify-between border-t border-divider-subtle bg-background-default px-2 py-6">
-                <div className="flex items-center gap-3 text-xs text-text-tertiary">
-                  {/* 2026-05-26 (Yuqi /deadlines redesign): footer now
-                  carries "N deadlines · M clients" so the aggregate
-                  scope is visible at the bottom of the table. The
-                  client count comes from distinct clientIds across
-                  the loaded rows. */}
-                  <span>
-                    <Plural value={rows.length} one="# deadline" other="# deadlines" />
-                    {uniqueClientCount > 0 ? (
-                      <>
-                        <span aria-hidden> · </span>
-                        <Plural value={uniqueClientCount} one="# client" other="# clients" />
-                      </>
-                    ) : null}
-                  </span>
-                  {rows.length > 0 ? (
-                    <>
-                      <span
-                        aria-hidden
-                        className="hidden h-3 border-l border-divider-subtle md:inline-block"
-                      />
-                      {/* 2026-06-01: hand-rolled <kbd> strip swapped for
-                          canonical KbdHint — same J/K/Enter/? recipe,
-                          but the `·` separator now comes from the
-                          primitive instead of stray mx-1 padding. */}
-                      <KbdHint
-                        className="hidden md:inline-flex"
-                        items={[
-                          { keys: ['J', 'K'], label: t`navigate` },
-                          { keys: ['Enter'], label: t`open` },
-                          { keys: ['?'], label: t`all` },
-                        ]}
-                      />
-                    </>
-                  ) : null}
-                </div>
-                {/* 2026-06-04 (Yuqi "infinite scroll, not pagination"):
-                    the prev/next page control is replaced by a loaded-count
-                    readout + a keyboard/touch-accessible "Load more"
-                    fallback. The common path is the IntersectionObserver
-                    sentinel inside the scroll container above — this button
-                    only exists for users who don't auto-scroll. When the
-                    buffer is fully loaded the button disappears and just the
-                    total count remains. */}
-                {rows.length > 0 && hasNextPage ? (
+              {/* 2026-06-05 (Yuqi page-feedback #10 — "we don't need
+                  this. It is a infinite scroll"): the bottom strip
+                  carrying "N deadlines · M clients · J K navigate ·
+                  Enter open · ? all" + Load-more button is removed.
+                  The scope tabs at the top already carry the per-
+                  status counts; the IntersectionObserver sentinel
+                  inside the scroll container above is the infinite-
+                  scroll trigger; and the global "?" help dialog
+                  surfaces the keyboard shortcuts. So this row was
+                  echoing chrome that lives elsewhere — drop it. */}
+              {rows.length > 0 && hasNextPage ? (
+                // Load-more fallback for users whose viewport never
+                // scrolls (so the sentinel never fires). Tiny ghost
+                // button below the table, no chrome around it.
+                <div className="flex shrink-0 justify-center bg-background-default px-2 py-3">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    className="h-6 px-2 text-xs"
+                    className="h-7 px-3 text-xs text-text-secondary"
                     onClick={() => void fetchNextPage()}
                     disabled={isFetchingNextPage}
                   >
                     <Trans>Load more</Trans>
                   </Button>
-                ) : null}
-              </div>
+                </div>
+              ) : null}
             </div>
           )}
         </div>
@@ -13137,82 +13102,13 @@ function parseOwnerCount(value: string): number | null {
 // the parent and border-b-2 here). The count is a sibling tabular span,
 // not a nested pill — pill-inside-pill was visual stutter.
 //
-// Collapsible search control — magnifier icon at rest, expands into
-// an inline Input when clicked OR when the user presses `/` (the
-// global hotkey focuses `inputRef`, which auto-opens via the
-// Input's own onFocus). Stays open while a query value is present
-// so the user always sees what they're filtering by.
-function ObligationQueueSearchControl({
-  inputRef,
-  value,
-  open,
-  onOpenChange,
-  onChange,
-}: {
-  inputRef: React.RefObject<HTMLInputElement | null>
-  value: string
-  // 2026-05-24 (re-critique): lifted from local state to a controlled
-  // prop so the route's `/` hotkey can expand the collapsed control
-  // before deferring focus. The button-click expand path and the
-  // hotkey path now share the same setter.
-  open: boolean
-  onOpenChange: (next: boolean) => void
-  onChange: (next: string) => void
-}) {
-  const { t } = useLingui()
-  const isOpen = open || value.length > 0
-  const setOpen = onOpenChange
-  // 2026-05-24 (useEffect audit): the previous shape attached a
-  // window-style focus listener to the input ref via useEffect. The
-  // Input component already exposes an `onFocus` prop — moved the
-  // open-on-focus signal there, removing one useEffect violation.
-  if (!isOpen) {
-    return (
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={t`Filter deadlines`}
-        title={t`Filter deadlines  ·  press / to focus`}
-        onClick={() => {
-          setOpen(true)
-          requestAnimationFrame(() => inputRef.current?.focus())
-        }}
-        className="mb-1.5 size-8 shrink-0"
-      >
-        <SearchIcon className="size-4" aria-hidden />
-      </Button>
-    )
-  }
-  // 2026-05-26 (Yuqi cross-product search audit): expanded state now
-  // delegates to the canonical SearchInput primitive. Previously the
-  // expanded state hand-rolled an h-8 Input with bespoke clear button
-  // + Escape logic — which drifted from /rules/library's h-9
-  // SearchInput. Now both surfaces share the exact same chrome when
-  // expanded; deadlines keeps the toolbar-density collapse pattern
-  // because Yuqi #2 specifically designed for it (densest table
-  // surface needs room).
-  return (
-    <div className="relative mb-1.5 w-full md:w-56 md:flex-none">
-      {/* 2026-05-26 (Yuqi step-8 data-finding audit — F-X05): placeholder
-          changed "Filter clients" → "Filter deadlines" to align with
-          the expanded state's ariaLabel and the collapsed-state
-          aria-label. The input matches client name + obligation title
-          + rule name; the prior placeholder named just one of those
-          axes which understated the input's reach. */}
-      <SearchInput
-        ref={inputRef}
-        value={value}
-        onChange={onChange}
-        placeholder={t`Filter deadlines`}
-        ariaLabel={t`Filter deadlines`}
-        onFocus={() => setOpen(true)}
-        onBlur={() => {
-          if (value.length === 0) setOpen(false)
-        }}
-      />
-    </div>
-  )
-}
+// 2026-06-05 (page-feedback #5): `ObligationQueueSearchControl`
+// removed. The page now has a single search affordance — the fixed
+// search field in the filter row above the table — so the
+// collapsible icon-button variant that used to live next to the
+// scope tabs is no longer needed. The canonical extracted version
+// at `features/obligations/queue/components/toolbar.tsx` stays for
+// other consumers; only this route's local copy is dropped.
 
 // `dotTone` (optional) renders the same status indicator dot the row
 // badge uses, mirroring queue colors into the tab so the user can see
