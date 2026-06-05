@@ -10,18 +10,6 @@ import { router } from './procedures/index'
 const handler = new RPCHandler(router, {
   clientInterceptors: [
     onError((error, options) => {
-      // 2026-06-05 TEMP debug — swallowed `/rpc/obligations/list` 500.
-      // ORPC's default error envelope hides the original cause; dump
-      // the raw error here so wrangler dev surfaces it. REMOVE once the
-      // root cause is identified and fixed.
-      console.error('[ORPC ERROR DEBUG]', {
-        path: options.path.join('/'),
-        name: error instanceof Error ? error.name : typeof error,
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack?.split('\n').slice(0, 15).join('\n') : undefined,
-        firmId: options.context.vars.firmId,
-        userId: options.context.vars.userId,
-      })
       logServerError({
         boundary: 'orpc',
         error,
