@@ -8,6 +8,11 @@ import type {
   ClientPublic,
   ClientSourceDetailsUpdateInput,
 } from '@duedatehq/contracts'
+import type {
+  ClientClassificationCandidate,
+  ClientClassificationReason,
+} from '@duedatehq/contracts/clients'
+import type { ClientTaxClassification } from '@duedatehq/contracts/shared/enums'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
@@ -21,11 +26,18 @@ import {
   SelectValue,
 } from '@duedatehq/ui/components/ui/select'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 
 import { EmptyState } from '@/components/patterns/empty-state'
+import { useEntityLabels, useTaxClassificationLabels } from '@/routes/clients'
 
-import { getClientFilingStates, type ClientReadiness } from './client-readiness'
+import { ClassificationImpactDialog } from './ClassificationImpactDialog'
+import {
+  CLIENT_ENTITY_TYPES,
+  getClientFilingStates,
+  type ClientReadiness,
+} from './client-readiness'
 
 const STATE_CODE_RE = /^[A-Z]{2}$/
 
@@ -622,6 +634,327 @@ function FactCheckRow({
         <p className="text-sm font-medium text-text-primary">{label}</p>
         <p className="text-xs text-text-tertiary">{detail}</p>
       </div>
+    </div>
+  )
+}
+
+// All 10 federal tax-classification values, in the same order the
+// contract enum declares them. `satisfies` makes the compiler reject
+// this list if it ever drifts from the enum (missing/extra value), so
+// the Select never silently omits an option the backend accepts.
+const TAX_CLASSIFICATION_VALUES = [
+  'individual',
+  'disregarded_entity',
+  'partnership',
+  's_corp',
+  'c_corp',
+  'trust',
+  'estate',
+  'nonprofit',
+  'foreign_reporting_company',
+  'unknown',
+] as const satisfies readonly ClientTaxClassification[]
+
+const CLASSIFICATION_REASON_KINDS = ['correction', 'reclassification'] as const
+type ClassificationReasonKind = (typeof CLASSIFICATION_REASON_KINDS)[number]
+
+const CLASSIFICATION_REASON_EVENTS = [
+  's_election',
+  's_election_revocation',
+  'check_the_box_8832',
+  'legal_conversion',
+  'other',
+] as const
+type ClassificationReasonEvent = (typeof CLASSIFICATION_REASON_EVENTS)[number]
+
+const NOTE_MAX_LENGTH = 280
+
+function useReasonEventLabels(): Record<ClassificationReasonEvent, string> {
+  const { t } = useLingui()
+  return {
+    s_election: t`S election`,
+    s_election_revocation: t`S-election revocation`,
+    check_the_box_8832: t`Check-the-box (8832)`,
+    legal_conversion: t`Legal conversion`,
+    other: t`Other`,
+  }
+}
+
+/**
+ * `ClientClassificationPanel` — edits the two facts that decide which
+ * federal forms the deadline generator emits: the entity's legal
+ * `entityType` and its federal `taxClassification`.
+ *
+ * Deliberately has NO transition restrictions — every entity type and
+ * every tax classification is always selectable regardless of the
+ * current value. The impact preview + reason are the safety net, not
+ * input limits. The primary button is "Review impact…" (not "Save"):
+ * it opens `ClassificationImpactDialog`, which previews the add/remove
+ * fan-out and performs the atomic apply. This panel never mutates.
+ */
+export function ClientClassificationPanel({
+  client,
+  onApplied,
+}: {
+  client: ClientPublic
+  onApplied: (result: { client: ClientPublic; addedCount: number; supersededCount: number }) => void
+}) {
+  const { t } = useLingui()
+  const entityLabels = useEntityLabels()
+  const taxClassificationLabels = useTaxClassificationLabels()
+  const reasonEventLabels = useReasonEventLabels()
+  const currentYear = new Date().getFullYear()
+
+  const [entityType, setEntityType] = useState<ClientPublic['entityType']>(client.entityType)
+  const [taxClassification, setTaxClassification] = useState<ClientTaxClassification>(
+    client.taxClassification,
+  )
+  const [reasonKind, setReasonKind] = useState<ClassificationReasonKind>('correction')
+  const [reasonEvent, setReasonEvent] = useState<ClassificationReasonEvent | ''>('')
+  const [effectiveYear, setEffectiveYear] = useState(String(currentYear))
+  const [note, setNote] = useState('')
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  const isReclassification = reasonKind === 'reclassification'
+  const effectiveYearNumber = Number(effectiveYear)
+  const effectiveYearInvalid =
+    isReclassification &&
+    (!/^\d{4}$/.test(effectiveYear.trim()) ||
+      effectiveYearNumber < 2000 ||
+      effectiveYearNumber > 2100)
+  const noteOverLimit = note.length > NOTE_MAX_LENGTH
+  const hasChanges =
+    entityType !== client.entityType || taxClassification !== client.taxClassification
+
+  const candidate: ClientClassificationCandidate = {
+    entityType,
+    taxClassification,
+  }
+  const reason: ClientClassificationReason = {
+    kind: reasonKind,
+    ...(isReclassification && reasonEvent ? { event: reasonEvent } : {}),
+    ...(note.trim().length > 0 ? { note: note.trim() } : {}),
+  }
+  // Reclassification recompute touches only years >= this effective
+  // year; corrections rewrite all monitored years, so the field is
+  // omitted entirely (and required-validated server-side only for
+  // reclassification).
+  const effectiveFromTaxYear = isReclassification ? effectiveYearNumber : undefined
+
+  const reset = () => {
+    setEntityType(client.entityType)
+    setTaxClassification(client.taxClassification)
+    setReasonKind('correction')
+    setReasonEvent('')
+    setEffectiveYear(String(currentYear))
+    setNote('')
+  }
+
+  const handleApplied = (result: {
+    client: ClientPublic
+    addedCount: number
+    supersededCount: number
+  }) => {
+    onApplied(result)
+    // Re-anchor the form to the freshly-saved classification so the
+    // panel reflects the new truth and "Review impact…" disables again
+    // until the next edit.
+    setEntityType(result.client.entityType)
+    setTaxClassification(result.client.taxClassification)
+    setReasonKind('correction')
+    setReasonEvent('')
+    setEffectiveYear(String(currentYear))
+    setNote('')
+  }
+
+  return (
+    <div className="grid gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field>
+          <FieldLabel>
+            <Trans>Entity type</Trans>
+          </FieldLabel>
+          <Select
+            value={entityType}
+            onValueChange={(value) => {
+              if (value) setEntityType(value as ClientPublic['entityType'])
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue>{entityLabels[entityType]}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {CLIENT_ENTITY_TYPES.map((entity) => (
+                  <SelectItem key={entity} value={entity}>
+                    {entityLabels[entity]}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field>
+          <FieldLabel>
+            <Trans>Tax classification</Trans>
+          </FieldLabel>
+          <Select
+            value={taxClassification}
+            onValueChange={(value) => {
+              if (value) setTaxClassification(value as ClientTaxClassification)
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue>{taxClassificationLabels[taxClassification]}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {TAX_CLASSIFICATION_VALUES.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {taxClassificationLabels[value]}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </Field>
+      </div>
+
+      <Field>
+        <FieldLabel>
+          <Trans>Reason</Trans>
+        </FieldLabel>
+        <Select
+          value={reasonKind}
+          onValueChange={(value) => {
+            if (value === 'correction' || value === 'reclassification') setReasonKind(value)
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue>
+              {reasonKind === 'reclassification' ? (
+                <Trans>Reclassification (S-election, revocation, conversion)</Trans>
+              ) : (
+                <Trans>Correction (fix a data-entry error)</Trans>
+              )}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="correction">
+                <Trans>Correction (fix a data-entry error)</Trans>
+              </SelectItem>
+              <SelectItem value="reclassification">
+                <Trans>Reclassification (S-election, revocation, conversion)</Trans>
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </Field>
+
+      {isReclassification ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field>
+            <FieldLabel>
+              <Trans>Event</Trans>
+            </FieldLabel>
+            <Select
+              value={reasonEvent}
+              onValueChange={(value) => {
+                if (CLASSIFICATION_REASON_EVENTS.some((event) => event === value)) {
+                  setReasonEvent(value as ClassificationReasonEvent)
+                }
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t`Optional`}>
+                  {reasonEvent ? reasonEventLabels[reasonEvent] : null}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {CLASSIFICATION_REASON_EVENTS.map((event) => (
+                    <SelectItem key={event} value={event}>
+                      {reasonEventLabels[event]}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="classification-effective-year">
+              <Trans>Effective from tax year</Trans>
+            </FieldLabel>
+            <Input
+              id="classification-effective-year"
+              type="number"
+              min={2000}
+              max={2100}
+              className="tabular-nums"
+              value={effectiveYear}
+              aria-invalid={effectiveYearInvalid}
+              onChange={(event) => setEffectiveYear(event.target.value)}
+            />
+            {effectiveYearInvalid ? (
+              <FieldError>{t`Enter a tax year between 2000 and 2100`}</FieldError>
+            ) : null}
+          </Field>
+        </div>
+      ) : null}
+
+      <Field>
+        <div className="flex items-center justify-between gap-2">
+          <FieldLabel htmlFor="classification-note">
+            <Trans>Note</Trans>
+          </FieldLabel>
+          {note.length > 0 ? (
+            <span
+              className={
+                noteOverLimit
+                  ? 'text-xs tabular-nums text-text-destructive'
+                  : 'text-xs tabular-nums text-text-tertiary'
+              }
+              aria-live="polite"
+            >
+              {note.length} / {NOTE_MAX_LENGTH}
+            </span>
+          ) : null}
+        </div>
+        <Textarea
+          id="classification-note"
+          value={note}
+          rows={2}
+          placeholder={t`Optional context for the audit log.`}
+          aria-invalid={noteOverLimit}
+          onChange={(event) => setNote(event.target.value)}
+        />
+      </Field>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          size="sm"
+          disabled={!hasChanges || effectiveYearInvalid || noteOverLimit}
+          onClick={() => setDialogOpen(true)}
+        >
+          <Trans>Review impact…</Trans>
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={reset} disabled={!hasChanges}>
+          <Trans>Cancel</Trans>
+        </Button>
+      </div>
+
+      <ClassificationImpactDialog
+        clientId={client.id}
+        candidate={candidate}
+        reason={reason}
+        effectiveFromTaxYear={effectiveFromTaxYear}
+        client={client}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onApplied={handleApplied}
+      />
     </div>
   )
 }

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 import type { ClientCreateInput, ClientPublic, ObligationStatus } from '@duedatehq/contracts'
+import type { ClientTaxClassification } from '@duedatehq/contracts/shared/enums'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -90,6 +91,31 @@ export function useEntityLabels(): Record<ClientEntityType, string> {
       trust: t`Trust`,
       individual: t`Individual`,
       other: t`Other`,
+    }),
+    [t],
+  )
+}
+
+// Localized labels for the client's federal tax classification — the
+// "how is this entity taxed?" axis that drives which federal forms the
+// deadline generator emits (1040 / 1065 / 1120 / 1120-S …). Kept next
+// to useEntityLabels so the classification recompute panel + impact
+// dialog share one label source, the same way entity labels are shared
+// across the create dialog, the directory table, and the header pill.
+export function useTaxClassificationLabels(): Record<ClientTaxClassification, string> {
+  const { t } = useLingui()
+  return useMemo(
+    () => ({
+      individual: t`Individual`,
+      disregarded_entity: t`Disregarded entity`,
+      partnership: t`Partnership`,
+      s_corp: t`S corp`,
+      c_corp: t`C corp`,
+      trust: t`Trust`,
+      estate: t`Estate`,
+      nonprofit: t`Nonprofit`,
+      foreign_reporting_company: t`Foreign reporting company`,
+      unknown: t`Unknown`,
     }),
     [t],
   )

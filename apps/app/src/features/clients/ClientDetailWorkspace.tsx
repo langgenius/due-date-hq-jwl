@@ -92,6 +92,7 @@ import { FixNeedsFactsSheet } from './FixNeedsFactsSheet'
 import { ClientSummaryStrip } from './ClientSummaryStrip'
 import { ClientWorkPlanPanel } from './ClientWorkPlanPanel'
 import {
+  ClientClassificationPanel,
   ClientFactChecklist,
   ClientJurisdictionPanel,
   ClientRiskInputsPanel,
@@ -543,6 +544,24 @@ export function ClientDetailWorkspace({
       },
     }),
   )
+  // Classification reclassification lands its own toast + atomic apply
+  // inside ClassificationImpactDialog (it owns the
+  // `applyClassificationRecompute` mutation). This callback only fans
+  // out the cache invalidation so every downstream surface — the client
+  // record, the directory list, the dashboard counts, both obligation
+  // lists, the risk summary, and the audit log — repaints with the
+  // recomputed deadlines. Mirrors the invalidation set the other
+  // client-edit mutations above use.
+  const handleClassificationApplied = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: orpc.clients.get.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.clients.getRiskSummary.key() })
+    void queryClient.invalidateQueries({ queryKey: orpc.audit.key() })
+  }, [queryClient])
+
   const requestRiskSummaryMutation = useMutation(
     orpc.clients.requestRiskSummaryRefresh.mutationOptions({
       onSuccess: () => {
@@ -1146,6 +1165,26 @@ export function ClientDetailWorkspace({
                   summary={t`Identity facts that drive the deadline generator`}
                 >
                   <ClientCompliancePosturePanel client={client} />
+                </TabSection>
+
+                {/* Tax classification — the entity-type + federal
+                    tax-classification pair that decides which forms the
+                    deadline generator emits. Editing it doesn't save
+                    inline; "Review impact…" opens an impact dialog that
+                    previews the add/remove fan-out and applies the
+                    reclassification atomically (recomputing obligations
+                    + writing an audit reason). */}
+                <TabSection
+                  title={t`Tax classification`}
+                  summary={t`Changing this recomputes which forms this client owes`}
+                >
+                  <div className="rounded-md border border-divider-regular bg-background-default p-4">
+                    <ClientClassificationPanel
+                      key={`${client.id}:classification`}
+                      client={client}
+                      onApplied={handleClassificationApplied}
+                    />
+                  </div>
                 </TabSection>
 
                 <TabSection
