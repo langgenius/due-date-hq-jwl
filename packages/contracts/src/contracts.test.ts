@@ -1288,6 +1288,7 @@ describe('@duedatehq/contracts', () => {
       confidence: 0.94,
       isSample: true,
       taxAreas: ['income_individual'],
+      forms: [],
     })
     expect(alert.isSample).toBe(true)
     expect(alert.duplicateSourceSnapshotCount).toBe(2)

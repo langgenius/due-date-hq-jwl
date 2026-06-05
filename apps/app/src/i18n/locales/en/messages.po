@@ -5588,10 +5588,6 @@ msgstr "Firm"
 msgid "Firm-branded client-facing PDFs grouped by client."
 msgstr "Firm-branded client-facing PDFs grouped by client."
 
-#: src/features/alerts/components/AlertCard.tsx
-msgid "First application"
-msgstr "First application"
-
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "FIRST YEAR"
 msgstr "FIRST YEAR"
@@ -9455,6 +9451,10 @@ msgstr "Provider hosted"
 msgid "Publication"
 msgstr "Publication"
 
+#: src/features/alerts/components/AlertCard.tsx
+msgid "Published"
+msgstr "Published"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Quarantined"
 msgstr "Quarantined"
@@ -12580,10 +12580,6 @@ msgstr "Top deadlines by risk"
 #: src/routes/practice.tsx
 msgid "Total"
 msgstr "Total"
-
-#: src/features/alerts/components/AlertCard.tsx
-msgid "Transition"
-msgstr "Transition"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"

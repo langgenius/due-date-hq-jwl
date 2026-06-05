@@ -8,7 +8,8 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { StateBadge } from '@/components/primitives/state-badge'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
-import { formatRelativeTime } from '@/lib/utils'
+import { formatTaxCode } from '@/lib/tax-codes'
+import { formatDate, formatRelativeTime } from '@/lib/utils'
 
 import { AlertConfidencePill } from './AlertConfidencePill'
 import { AlertReadinessChip } from './AlertReadinessStatus'
@@ -140,13 +141,13 @@ export function AlertCard({
   const lowConfidence = confidenceLevel === 'low'
   const mediumConfidence = confidenceLevel === 'medium'
   const showReadinessChip = showReadiness && alert.status === 'matched'
-  // The Pencil facts panel surfaces the first affected form in its
-  // "AFFECTING" column. The batch-loaded `affectedClients` prop carries
-  // per-client rows, not the alert-level `forms` list (that lives on
-  // PulseDetail, which the list page deliberately does NOT fetch per
-  // card). So `firstForm` is unset here and the column falls back to
-  // the `—` placeholder; the drawer still shows the full forms list.
-  const firstForm: string | undefined = undefined
+  // 2026-06-05 (Affecting facts cell): the alert-level `forms` list now rides
+  // on PulseAlertPublic (plumbed through toAlert / toAlertPublic), so the
+  // "Affecting" cell renders the first parsed form (human label via
+  // formatTaxCode) plus a "+N" overflow when the change touches several forms
+  // — no per-card detail fetch. Empty forms fall back to the `—` placeholder.
+  const firstForm = alert.forms[0]
+  const moreFormsCount = Math.max(alert.forms.length - 1, 0)
 
   const handleCardKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -312,18 +313,16 @@ export function AlertCard({
                 </p>
               ) : null}
 
-              {/* Facts panel R2kul — 2026-06-04 round 36, item 6.
-                  4 columns: WHAT CHANGED / AFFECTING / FIRST
-                  APPLICATION / TRANSITION.
-                  • WHAT CHANGED  → changeKindLabel(alert.changeKind)
-                  • AFFECTING     → firstForm when present, `—` otherwise
-                    (the list page doesn't fetch the alert-level forms
-                    per card; the drawer carries the full list).
-                  • FIRST APPLICATION / TRANSITION → `—` (PulseAlertPublic
-                    doesn't carry structured effective-date / transition
-                    fields today; they light up when the contract grows
-                    the fields). */}
-              <div className="grid grid-cols-[5fr_5fr_2fr_2fr] overflow-hidden rounded-[8px] bg-background-section">
+              {/* Facts panel R2kul — 2026-06-04 round 36, item 6;
+                  2026-06-05 rewire: 3 columns WHAT CHANGED / AFFECTING /
+                  PUBLISHED (the old First Application + Transition
+                  placeholder cells were dropped).
+                  • WHAT CHANGED → changeKindLabel(alert.changeKind)
+                  • AFFECTING    → first parsed form (human label) + "+N"
+                    overflow; `—` when the alert carries no form scope.
+                  • PUBLISHED    → source bulletin's publish date (absolute;
+                    the meta row above carries the relative "Nmo ago"). */}
+              <div className="grid grid-cols-[5fr_5fr_3fr] overflow-hidden rounded-[8px] bg-background-section">
                 <div className="flex flex-col gap-1 px-3 py-2">
                   <span className="text-[10px] font-semibold tracking-[0.6px] text-text-muted uppercase">
                     <Trans>What changed</Trans>
@@ -337,20 +336,23 @@ export function AlertCard({
                     <Trans>Affecting</Trans>
                   </span>
                   <span className="truncate text-xs font-medium text-text-secondary">
-                    {firstForm ?? '—'}
+                    {firstForm ? (
+                      <>
+                        {formatTaxCode(firstForm)}
+                        {moreFormsCount > 0 ? ` +${moreFormsCount}` : ''}
+                      </>
+                    ) : (
+                      '—'
+                    )}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 px-3 py-2">
                   <span className="text-[10px] font-semibold tracking-[0.6px] text-text-muted uppercase">
-                    <Trans>First application</Trans>
+                    <Trans>Published</Trans>
                   </span>
-                  <span className="truncate text-xs font-medium text-text-secondary">—</span>
-                </div>
-                <div className="flex flex-col gap-1 px-3 py-2">
-                  <span className="text-[10px] font-semibold tracking-[0.6px] text-text-muted uppercase">
-                    <Trans>Transition</Trans>
+                  <span className="truncate text-xs font-medium text-text-secondary tabular-nums">
+                    {formatDate(alert.publishedAt)}
                   </span>
-                  <span className="truncate text-xs font-medium text-text-secondary">—</span>
                 </div>
               </div>
             </>

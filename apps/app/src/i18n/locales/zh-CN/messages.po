@@ -5638,10 +5638,6 @@ msgstr "事务所"
 msgid "Firm-branded client-facing PDFs grouped by client."
 msgstr "按客户分组、带事务所品牌的客户版 PDF。"
 
-#: src/features/alerts/components/AlertCard.tsx
-msgid "First application"
-msgstr "首次应用"
-
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "FIRST YEAR"
 msgstr "首个年度"
@@ -9546,6 +9542,10 @@ msgstr "服务商托管"
 msgid "Publication"
 msgstr "出版物"
 
+#: src/features/alerts/components/AlertCard.tsx
+msgid "Published"
+msgstr "发布日期"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Quarantined"
 msgstr "已隔离"
@@ -12691,10 +12691,6 @@ msgstr "按风险排序的重点截止事项"
 #: src/routes/practice.tsx
 msgid "Total"
 msgstr "合计"
-
-#: src/features/alerts/components/AlertCard.tsx
-msgid "Transition"
-msgstr "转换"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"

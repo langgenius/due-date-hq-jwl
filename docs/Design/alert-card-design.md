@@ -21,8 +21,8 @@ based on the surface's role (list row vs summary tile).
 │ ▢ FL flag│FL   Title text — alert headline here     Open   │   ← title row
 │                                                              │
 │ ┌──────────────────────────────────────────────────────────┐ │
-│ │ WHAT CHANGED   AFFECTING    FIRST APP    TRANSITION    │ │   ← facts panel
-│ │ Deadline shifted  fl_corp_income   —           —       │ │   (alerts-only)
+│ │ WHAT CHANGED      AFFECTING       PUBLISHED         │ │   ← facts panel
+│ │ Deadline shifted  Form 1065 +3    2026-05-28        │ │   (alerts-only)
 │ └──────────────────────────────────────────────────────────┘ │
 │                                                              │
 │ 👥 4 clients · 1 federal_1065 affected  [Review→]   [snz][arch][dsm] │
@@ -72,18 +72,23 @@ spacer follows so the right-edge tail of the card stays empty at rest.
 
 ### Facts panel (alerts-only)
 
-The 4-column grid panel (Pencil **R2kul**) lives between the title row
+The 3-column grid panel (Pencil **R2kul**) lives between the title row
 and the impact row on `/alerts` only. `/today` summary tiles omit it
 because they're 3-column densely-packed dashboard cards.
 
 ```
-grid grid-cols-[5fr_5fr_2fr_2fr] rounded-[8px] bg-background-section
+grid grid-cols-[5fr_5fr_3fr] rounded-[8px] bg-background-section
 ```
 
 Each cell: `px-3 py-2` with a `text-[10px] font-semibold tracking-[0.6px]
 text-text-muted uppercase` label + `text-xs font-medium text-text-secondary`
-value. Affecting falls back to `—` when no forms data exists; First
-Application and Transition are placeholders pending contract growth.
+value. The three cells: **What changed** → `changeKindLabel`; **Affecting**
+→ the first parsed form (human label via `formatTaxCode`) + a `+N` overflow,
+falling back to `—` when the alert carries no form scope; **Published** →
+the source bulletin's publish date (absolute `formatDate(publishedAt)`; the
+meta row above carries the relative "Nmo ago"). 2026-06-05: `forms` now rides
+on `PulseAlertPublic`, so Affecting renders from the list payload; the former
+First Application + Transition placeholder cells were dropped.
 
 ### Impact row
 
@@ -178,5 +183,3 @@ When changing any of these, change BOTH cards together.
   impact + time + state + Open/Snoozed only (no severity pill, no
   source, no facts panel, no actions row).
 - **Pencil n9m9B** — right-side detail panel exact recreation.
-- **Pencil R2kul** First Application + Transition cells — render `—`
-  pending `PulseAlertPublic` contract extension.
