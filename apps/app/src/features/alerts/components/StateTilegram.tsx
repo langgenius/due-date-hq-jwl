@@ -141,7 +141,7 @@ export function StateTilegram({ counts, activeState, onSelect, className }: Stat
             aria-label={t`${code}: ${count} ${count === 1 ? 'alert' : 'alerts'}`}
             disabled={!hasCount && !active}
             className={cn(
-              'group/tile absolute inline-flex flex-col items-center justify-center gap-0 rounded-md border transition-all',
+              'group/tile absolute inline-flex cursor-pointer flex-col items-center justify-center gap-0 rounded-md border transition-all',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-offset-1',
               active
                 ? 'border-state-accent-solid bg-state-accent-hover'

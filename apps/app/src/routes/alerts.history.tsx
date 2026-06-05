@@ -1,5 +1,8 @@
 import { useLingui } from '@lingui/react/macro'
 
+import { cn } from '@duedatehq/ui/lib/utils'
+
+import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { AlertsListPage } from '@/features/alerts/AlertsListPage'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 
@@ -23,6 +26,7 @@ import { RulesPageShell } from '@/features/rules/rules-console-primitives'
  */
 export function AlertsHistoryRoute() {
   const { t } = useLingui()
+  const { open: panelOpen } = useAlertDrawer()
   return (
     <RulesPageShell
       title={t`Alert history`}
@@ -31,6 +35,11 @@ export function AlertsHistoryRoute() {
       // inside its own column instead of pushing a page-level
       // scrollbar.
       lockViewport
+      wide
+      contentClassName={cn(
+        'gap-8 md:px-16 transition-[padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
+        panelOpen && '!pb-0 md:!pb-0',
+      )}
       breadcrumbs={[{ label: t`Alerts`, to: '/alerts' }]}
     >
       <AlertsListPage embedded historyMode />
