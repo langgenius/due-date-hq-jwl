@@ -4425,8 +4425,28 @@ export function ObligationQueueRoute() {
                               // muted caption on the right (overdue only, per
                               // the production design). Band-header surface is
                               // bg-background-section (#f9fafb).
-                              <TableRow className="bg-background-section hover:!bg-background-section">
-                                <TableCell colSpan={visibleColumnCount} className="px-5 py-2.5">
+                              // 2026-06-05 (Yuqi DS alignment — "match
+                              // Deadline's table and overall design to
+                              // Today + Alert"): urgency-band header
+                              // surface and typography aligned to the
+                              // canonical subgroup-divider tokens used by
+                              // /today's ActionsTable + /alerts'
+                              // PulseAlertList day-group:
+                              //   - bg-background-section (gray-50) →
+                              //     bg-background-subtle (gray-100) so
+                              //     the band reads at the same weight as
+                              //     subgroup dividers on the other two
+                              //     surfaces.
+                              //   - py-2.5 → py-2 (canonical vertical).
+                              //   - 13/primary/0.4px tracking →
+                              //     12/secondary/0.5px tracking
+                              //     (canonical eyebrow scale). The chrome
+                              //     — collapse chevron + BadgeStatusDot +
+                              //     count Badge + overdue summary —
+                              //     stays; only the bg / type tokens
+                              //     align.
+                              <TableRow className="bg-background-subtle hover:!bg-background-subtle">
+                                <TableCell colSpan={visibleColumnCount} className="px-5 py-2">
                                   <div className="flex items-center justify-between gap-3">
                                     <button
                                       type="button"
@@ -4452,7 +4472,7 @@ export function ObligationQueueRoute() {
                                       <BadgeStatusDot
                                         tone={URGENCY_BAND_DOT_TONE[groupHeader.band]}
                                       />
-                                      <span className="text-[13px] font-semibold tracking-[0.4px] text-text-primary uppercase">
+                                      <span className="text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase">
                                         {bandLabel}
                                       </span>
                                       <Badge
@@ -4474,8 +4494,22 @@ export function ObligationQueueRoute() {
                                 </TableCell>
                               </TableRow>
                             ) : groupHeader ? (
-                              <TableRow className="bg-background-subtle/60">
-                                <TableCell colSpan={visibleColumnCount} className="py-2 pl-3 pr-4">
+                              // 2026-06-05 (Yuqi DS alignment): client-
+                              // group header surface bumped from
+                              // bg-background-subtle/60 to fully opaque
+                              // bg-background-subtle, and padding bumped
+                              // from py-2 pl-3 pr-4 → px-5 py-2 so the
+                              // surface matches the canonical subgroup
+                              // divider on /today + /alerts. The inner
+                              // content (client name + meta + late pill)
+                              // is intentionally different from the
+                              // urgency-band content above — client
+                              // grouping is a logical cluster start, not
+                              // a categorical eyebrow — so the text scale
+                              // stays at 14/semibold/primary rather than
+                              // the 12/secondary eyebrow.
+                              <TableRow className="bg-background-subtle">
+                                <TableCell colSpan={visibleColumnCount} className="px-5 py-2">
                                   {/* 2026-05-26 (Yuqi Group-by wireframes,
                                       follow-up — Status option removed):
                                       Client-mode is now the only group
