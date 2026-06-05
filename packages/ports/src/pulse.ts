@@ -45,6 +45,18 @@ export interface PulseAlertRow {
   // from the DB. Lets the alerts list page filter / group by jurisdiction
   // without an N+1 detail fetch.
   jurisdiction: string
+  // 2026-06-05 (Tax area filter): derived service-line bucket(s) the alert
+  // touches (see @duedatehq/core/tax-area). Empty = uncategorized. Inlined as a
+  // literal union to keep this port boundary decoupled from contracts, matching
+  // the other enum-ish fields above.
+  taxAreas: Array<
+    | 'income_individual'
+    | 'income_business'
+    | 'sales_use'
+    | 'payroll_withholding'
+    | 'franchise'
+    | 'info_compliance'
+  >
 }
 
 export interface PulseAffectedClientRow {

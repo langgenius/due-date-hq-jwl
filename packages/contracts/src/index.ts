@@ -642,6 +642,7 @@ export type {
   PulseRuleMatch,
   PulseRuleMatchReason,
   PulseListAlertsForRuleInput,
+  TaxArea,
 } from './pulse'
 export {
   PulseRuleMatchSchema,
@@ -689,6 +690,7 @@ export {
   PulseSnoozeInputSchema,
   PulseSnoozeOutputSchema,
   PulseStatusSchema,
+  TaxAreaSchema,
 } from './pulse'
 
 export type {

@@ -182,6 +182,7 @@ function alertDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       confidence: 0.92,
       isSample: false,
       jurisdiction: 'CA',
+      taxAreas: [],
     },
     jurisdiction: 'CA',
     counties: ['Alameda'],

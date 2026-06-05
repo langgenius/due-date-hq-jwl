@@ -50,6 +50,9 @@ interface PulseAlertRow {
   // structural twin of the repo type (history-deep separation;
   // merging the two is a refactor task on its own).
   jurisdiction: string
+  // 2026-06-05 (Tax area filter): mirrors the repo's PulseAlertRow.taxAreas —
+  // server-derived service-line buckets. Same structural-twin caveat as above.
+  taxAreas: PulseAlertPublic['taxAreas']
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -196,6 +199,10 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     // public row so the alerts list page can group/filter without
     // losing federal Pulse rows.
     jurisdiction: row.jurisdiction,
+    // 2026-06-05 (Tax area filter): derived service-line buckets (computed in
+    // the repo's toAlert from reverify-rule citations). Surfaced so the alerts
+    // list can filter by practice area; raw rule ids stay server-side.
+    taxAreas: row.taxAreas,
   }
 }
 

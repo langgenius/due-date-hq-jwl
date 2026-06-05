@@ -63,11 +63,15 @@ import {
   HISTORY_STATUS_FILTER_OPTIONS,
   isChangeKindFilter,
   isStatusFilter,
+  isTaxAreaFilter,
   matchesChangeKindFilter,
   matchesStatusFilter,
+  matchesTaxAreaFilter,
   sourceLabel,
+  TAX_AREA_FILTER_OPTIONS,
   type AlertChangeKindFilter,
   type AlertStatusFilter,
+  type AlertTaxAreaFilter,
 } from './lib/alert-filters'
 
 // Status filters are scoped by surface: the active queue exposes only
@@ -116,6 +120,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const [statusFilter, setStatusFilter] = useState<AlertStatusFilter>('all')
   const [impactFilter, setImpactFilter] = useState<AlertImpactFilter>('all')
   const [changeKindFilter, setChangeKindFilter] = useState<AlertChangeKindFilter>('all')
+  // 2026-06-05 (Tax area filter): single-select service-line filter. Each alert
+  // carries a derived `taxAreas` array; 'all' shows everything (including alerts
+  // the server could not classify into a bucket).
+  const [taxAreaFilter, setTaxAreaFilter] = useState<AlertTaxAreaFilter>('all')
   // 2026-06-04 round 34 (Yuqi Pencil T3GhR "implement the function and
   // also the visual"): time-range filter ("Last 24 hours" / "Last
   // 7 days" / "All time"). Default: all_time so existing behavior
@@ -225,6 +233,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
         matchesAlertImpactFilter(alert, impactFilter) &&
         matchesStatusFilter(alert.status, effectiveStatusFilter) &&
         matchesChangeKindFilter(alert.changeKind, changeKindFilter) &&
+        matchesTaxAreaFilter(alert.taxAreas, taxAreaFilter) &&
         (jurisdictionFilter === null || alert.jurisdiction === jurisdictionFilter) &&
         (cutoffMs === null || new Date(alert.publishedAt).getTime() >= cutoffMs) &&
         (trimmedQuery === '' ||
@@ -239,6 +248,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     impactFilter,
     jurisdictionFilter,
     searchQuery,
+    taxAreaFilter,
   ])
   // 2026-06-04 round 42 (Yuqi punch list #4): real sort logic.
   // The list renderer reads `sortedAlerts` instead of
@@ -274,6 +284,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     impactFilter !== 'all' ||
     statusFilter !== 'all' ||
     changeKindFilter !== 'all' ||
+    taxAreaFilter !== 'all' ||
     jurisdictionFilter !== null ||
     timeRangeFilter !== 'all_time' ||
     searchQuery.trim() !== ''
@@ -725,6 +736,45 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   </DropdownMenuContent>
                 </DropdownMenu>
 
+                {/* Tax area — 2026-06-05: single-select service-line filter
+                    (Individual / Business income / Sales & use / Payroll /
+                    Franchise / Information). Mirrors the Change types
+                    dropdown; keeps alerts whose server-derived `taxAreas`
+                    include the pick. Alerts that could not be classified
+                    surface only under "all". */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <FilterTrigger
+                        active={taxAreaFilter !== 'all'}
+                        valueLabel={
+                          taxAreaFilter === 'all' ? t`all` : taxAreaFilterLabel(taxAreaFilter)
+                        }
+                        aria-label={t`Filter by tax area`}
+                      >
+                        <span>
+                          <Trans>Tax area</Trans>
+                        </span>
+                      </FilterTrigger>
+                    }
+                  />
+                  <DropdownMenuContent align="start" className="min-w-[180px]">
+                    <DropdownMenuRadioGroup
+                      value={taxAreaFilter}
+                      onValueChange={(value) => {
+                        if (typeof value === 'string' && isTaxAreaFilter(value))
+                          setTaxAreaFilter(value)
+                      }}
+                    >
+                      {TAX_AREA_FILTER_OPTIONS.map((option) => (
+                        <DropdownMenuRadioItem key={option} value={option}>
+                          {taxAreaFilterLabel(option)}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 {/* 2026-06-05 (Yuqi — "all sources filter is too
                     granular"): the agency-level source dropdown
                     (e.g. "CA FTB", "IRS") was removed. State + Federal
@@ -764,6 +814,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       setImpactFilter('all')
                       setStatusFilter('all')
                       setChangeKindFilter('all')
+                      setTaxAreaFilter('all')
                       setJurisdictionFilter(null)
                       setTimeRangeFilter('all_time')
                       setSearchQuery('')
@@ -1115,6 +1166,19 @@ function changeKindFilterLabel(filter: AlertChangeKindFilter): React.ReactNode {
   if (filter === 'rules') return <Trans>Rules & forms</Trans>
   if (filter === 'source') return <Trans>Source updates</Trans>
   return <Trans>Other changes</Trans>
+}
+
+// Tax-area filter labels — the six service-line buckets (+ "all"). Names the
+// derived `taxAreas` values from @duedatehq/core/tax-area; the per-card chips
+// still carry the precise form / jurisdiction.
+function taxAreaFilterLabel(filter: AlertTaxAreaFilter): React.ReactNode {
+  if (filter === 'all') return <Trans>All tax areas</Trans>
+  if (filter === 'income_individual') return <Trans>Individual income</Trans>
+  if (filter === 'income_business') return <Trans>Business income</Trans>
+  if (filter === 'sales_use') return <Trans>Sales & use</Trans>
+  if (filter === 'payroll_withholding') return <Trans>Payroll</Trans>
+  if (filter === 'franchise') return <Trans>Franchise & fees</Trans>
+  return <Trans>Information</Trans>
 }
 
 function SkeletonList({ sources }: { sources: readonly PulseSourceHealth[] }) {

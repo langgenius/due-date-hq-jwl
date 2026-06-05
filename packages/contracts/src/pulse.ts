@@ -114,6 +114,24 @@ export const PulsePriorityReasonSchema = z.object({
 })
 export type PulsePriorityReason = z.infer<typeof PulsePriorityReasonSchema>
 
+// 2026-06-05 (Tax area filter): coarse practice / service-line bucket(s) an
+// alert touches, derived server-side from its reverify-rule citations (with
+// `parsedForms` as a fallback — see @duedatehq/core/tax-area, applied in the
+// db repo's toAlert mapping and passed through toAlertPublic).
+// The six buckets collapse the 14 RuleSourceDomain values plus named
+// federal/state forms. Mirrors the core `TaxArea` union (keep the two value
+// lists in sync). An alert can span several areas, so the field on the alert
+// is an array; empty = uncategorized (shows only under the "All" filter).
+export const TaxAreaSchema = z.enum([
+  'income_individual',
+  'income_business',
+  'sales_use',
+  'payroll_withholding',
+  'franchise',
+  'info_compliance',
+])
+export type TaxArea = z.infer<typeof TaxAreaSchema>
+
 export const PulseAlertPublicSchema = z.object({
   id: EntityIdSchema,
   pulseId: EntityIdSchema,
@@ -141,6 +159,10 @@ export const PulseAlertPublicSchema = z.object({
   // plus state/DC codes because federal policy-watch and federal
   // obligation alerts are first-class Pulse rows.
   jurisdiction: PulseJurisdictionSchema,
+  // 2026-06-05 (Tax area filter): zero or more coarse service-line buckets the
+  // alert touches, derived server-side in the db repo's toAlert. Empty array
+  // means uncategorized — the alert then only appears under "All tax areas".
+  taxAreas: z.array(TaxAreaSchema),
 })
 export type PulseAlertPublic = z.infer<typeof PulseAlertPublicSchema>
 

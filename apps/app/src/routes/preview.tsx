@@ -353,6 +353,7 @@ const MOCK_PULSE_ALERT: PulseAlertPublic = {
   confidence: 0.82,
   isSample: true,
   jurisdiction: 'CA',
+  taxAreas: ['income_individual'],
 }
 
 const MOCK_PULSE_ALERT_LOW_CONF: PulseAlertPublic = {
@@ -369,6 +370,8 @@ const MOCK_PULSE_ALERT_LOW_CONF: PulseAlertPublic = {
   firmImpact: 'needs_review',
   applyReadiness: { status: 'needs_details', missing: ['new_due_date'] },
   status: 'reviewed',
+  // NY PTE → business income, overriding the individual value from the spread.
+  taxAreas: ['income_business'],
 }
 
 const MOCK_AFFECTED_CLIENTS: PulseAffectedClient[] = [

@@ -71,6 +71,7 @@ function pulseDetail(status: Status = 'matched', sourceStatus: SourceStatus = 'a
       confidence: 0.94,
       isSample: true,
       jurisdiction: 'CA',
+      taxAreas: [],
     },
     jurisdiction: 'CA',
     counties: ['Los Angeles'],
@@ -448,6 +449,7 @@ describe('listAlerts output resilience', () => {
       confidence: 0.9,
       isSample: false,
       jurisdiction: 'CA',
+      taxAreas: [],
       ...overrides,
     }
   }

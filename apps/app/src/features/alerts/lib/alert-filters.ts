@@ -2,7 +2,12 @@
 // change-kind filter option sets, their derived union types, the type-guard
 // predicates, and the status matcher + source-label summary. No JSX — the
 // ReactNode-returning label helpers stay in the page with the component.
-import type { PulseChangeKind, PulseFirmAlertStatus, PulseSourceHealth } from '@duedatehq/contracts'
+import type {
+  PulseChangeKind,
+  PulseFirmAlertStatus,
+  PulseSourceHealth,
+  TaxArea,
+} from '@duedatehq/contracts'
 import { summarizeAlertSources } from './source-health-labels'
 
 export const ACTIVE_STATUS_FILTER_OPTIONS = ['all', 'active', 'partially_applied'] as const
@@ -47,6 +52,22 @@ export const CHANGE_KIND_FILTER_OPTIONS = [
 ] as const satisfies readonly ('all' | AlertChangeKindFilterGroup)[]
 export type AlertChangeKindFilter = (typeof CHANGE_KIND_FILTER_OPTIONS)[number]
 
+// Tax-area (service-line) filter. Each alert carries a derived `taxAreas` array
+// (server-side, see @duedatehq/core/tax-area) collapsing rule domains + named
+// forms into six practice-line buckets. The dropdown is single-select like the
+// others: pick one area and we keep alerts that include it. Alerts the server
+// could not classify (empty `taxAreas`) only appear under "all".
+export const TAX_AREA_FILTER_OPTIONS = [
+  'all',
+  'income_individual',
+  'income_business',
+  'sales_use',
+  'payroll_withholding',
+  'franchise',
+  'info_compliance',
+] as const satisfies readonly ('all' | TaxArea)[]
+export type AlertTaxAreaFilter = (typeof TAX_AREA_FILTER_OPTIONS)[number]
+
 export function sourceLabel(sources: readonly PulseSourceHealth[]): string {
   return summarizeAlertSources(sources, { emptyLabel: 'configured alert sources' })
 }
@@ -60,6 +81,10 @@ export function isStatusFilter(
 
 export function isChangeKindFilter(value: string): value is AlertChangeKindFilter {
   return CHANGE_KIND_FILTER_OPTIONS.some((option) => option === value)
+}
+
+export function isTaxAreaFilter(value: string): value is AlertTaxAreaFilter {
+  return TAX_AREA_FILTER_OPTIONS.some((option) => option === value)
 }
 
 export function matchesStatusFilter(
@@ -77,4 +102,12 @@ export function matchesChangeKindFilter(
 ): boolean {
   if (filter === 'all') return true
   return CHANGE_KIND_FILTER_GROUP_MEMBERS[filter].some((kind) => kind === changeKind)
+}
+
+export function matchesTaxAreaFilter(
+  taxAreas: readonly TaxArea[],
+  filter: AlertTaxAreaFilter,
+): boolean {
+  if (filter === 'all') return true
+  return taxAreas.includes(filter)
 }

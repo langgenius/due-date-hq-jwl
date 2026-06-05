@@ -130,6 +130,7 @@ function listAlert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic 
     confidence: 0.9,
     isSample: false,
     jurisdiction: 'CA',
+    taxAreas: [],
     ...overrides,
   }
 }
@@ -314,5 +315,21 @@ describe('AlertsListPage load more', () => {
     await waitForText('Second relief')
     // nextCursor null on the second page → the control disappears.
     expect(document.body.textContent).not.toContain('Load more')
+  })
+})
+
+describe('AlertsListPage tax area filter', () => {
+  it('exposes the Tax area filter and renders alerts carrying derived tax areas', async () => {
+    const detail = alertDetail()
+    detail.alert.taxAreas = ['income_individual']
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [detail.alert] })
+    rpcMocks.getDetailsBatchQueryFn.mockResolvedValue({ details: [detail] })
+
+    await render(<AlertsListPage embedded />)
+
+    // The alert (carrying a derived `taxAreas` value) renders without error…
+    await waitForText('Seeded Client Co')
+    // …and the single-select Tax area filter control is present in the row.
+    expect(document.body.textContent).toContain('Tax area')
   })
 })

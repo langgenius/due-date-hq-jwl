@@ -25,6 +25,7 @@ function makeAlert(status: PulseAlertPublic['status']): PulseAlertPublic {
     confidence: 0.94,
     isSample: true,
     jurisdiction: 'CA',
+    taxAreas: [],
   }
 }
 

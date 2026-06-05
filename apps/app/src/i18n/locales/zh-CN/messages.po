@@ -13537,3 +13537,39 @@ msgstr "邮编"
 #: src/features/migration/Step1Intake.tsx
 msgid "ZIP or CSV"
 msgstr "ZIP 或 CSV"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Tax area"
+msgstr "税务领域"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "All tax areas"
+msgstr "全部税务领域"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Individual income"
+msgstr "个人所得税"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Business income"
+msgstr "企业所得税"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Sales & use"
+msgstr "销售与使用税"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Payroll"
+msgstr "薪资预扣"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Franchise & fees"
+msgstr "特许经营税与规费"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Information"
+msgstr "信息申报"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Filter by tax area"
+msgstr "按税务领域筛选"

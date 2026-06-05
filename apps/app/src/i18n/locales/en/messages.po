@@ -13419,3 +13419,39 @@ msgstr "ZIP / postal code"
 #: src/features/migration/Step1Intake.tsx
 msgid "ZIP or CSV"
 msgstr "ZIP or CSV"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Tax area"
+msgstr "Tax area"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "All tax areas"
+msgstr "All tax areas"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Individual income"
+msgstr "Individual income"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Business income"
+msgstr "Business income"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Sales & use"
+msgstr "Sales & use"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Payroll"
+msgstr "Payroll"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Franchise & fees"
+msgstr "Franchise & fees"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Information"
+msgstr "Information"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Filter by tax area"
+msgstr "Filter by tax area"
