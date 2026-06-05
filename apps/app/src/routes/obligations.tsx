@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
   type ComponentProps,
-  type MouseEvent,
   type ReactNode,
 } from 'react'
 import { plural } from '@lingui/core/macro'
@@ -21,7 +20,6 @@ import {
   type RowSelectionState,
   type SortingState,
   type Updater,
-  type VisibilityState,
 } from '@tanstack/react-table'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
@@ -66,30 +64,16 @@ import {
   UserRoundIcon,
   XIcon,
 } from 'lucide-react'
-import {
-  parseAsArrayOf,
-  parseAsBoolean,
-  parseAsInteger,
-  parseAsString,
-  parseAsStringLiteral,
-  useQueryStates,
-  type inferParserType,
-} from 'nuqs'
+import { useQueryStates } from 'nuqs'
 import { toast } from 'sonner'
 import { Link } from 'react-router'
 
 import {
   OBLIGATION_QUEUE_SEARCH_MAX_LENGTH,
-  OBLIGATION_QUEUE_FILTER_MAX_SELECTIONS,
-  ReadinessChecklistItemSchema,
-  ObligationQueueDetailTabSchema,
   type MemberAssigneeOption,
   type ReadinessChecklistItem,
   type ObligationQueueDetailTab,
-  type ObligationQueueDensity,
-  type ObligationQueueFacetOption,
   type ObligationPrepStage,
-  type ObligationQueueListInput,
   type ObligationQueueRow,
   type ObligationQueueSort,
   type ObligationQueueExportFormat,
@@ -176,10 +160,7 @@ import {
   useKeyboardShortcutsBlocked,
 } from '@/components/patterns/keyboard-shell'
 import { useCurrentUserName } from '@/lib/use-current-user-name'
-import {
-  TableHeaderMultiFilter,
-  type TableFilterOption,
-} from '@/components/patterns/table-header-filter'
+import { TableHeaderMultiFilter } from '@/components/patterns/table-header-filter'
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { EmptyState } from '@/components/patterns/empty-state'
@@ -216,13 +197,10 @@ import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocke
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import {
-  DEADLINE_DETAIL_TABS,
-  cleanDeadlineDetailSearch,
   deadlineDetailHref,
   findObligationIdByDeadlineRef,
   normalizeDeadlineDetailTab,
   normalizeDeadlineRef,
-  obligationIdMatchesDeadlineRef,
 } from '@/features/obligations/deadline-detail-url'
 import { isTabVisibleForType, tabsForObligationType } from '@/features/obligations/obligation-type'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
@@ -249,143 +227,118 @@ import {
   formatDateTimeWithTimezone,
 } from '@/lib/utils'
 
+import type {
+  AuditSummaryRow,
+  AuthorityRejectionDraft,
+  ClientFilterOption,
+  DeadlineInputRequestDraft,
+  FilterOption,
+  ObligationExportDialogScope,
+  ObligationExportRecipient,
+  ObligationQueueEvidenceItem,
+  ObligationQueueListInputWithoutCursor,
+  ReadinessResponseEvidenceItem,
+  SignatureReminderTarget,
+} from '@/features/obligations/queue/types'
+import {
+  CLIENT_PAGE_SIZE_MAX,
+  CLIENT_PAGE_SIZE_MIN,
+  CLIENT_ROW_HEIGHT_PX,
+  DAY_MS,
+  DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS,
+  DEADLINE_TIP_REFRESH_TIMEOUT_MS,
+  DETAIL_PANEL_CLOSE_ANIM,
+  DETAIL_PANEL_CONTENT_ENTER_ANIM,
+  DETAIL_PANEL_CONTENT_EXIT_ANIM,
+  DETAIL_PANEL_INNER_FADE_ANIM,
+  DETAIL_PANEL_INNER_RISE_ANIM,
+  DETAIL_PANEL_OPEN_ANIM,
+  EFILE_PIPELINE_KEYS,
+  EMPTY_ASSIGNEES,
+  EMPTY_CLIENT_OPTIONS,
+  EMPTY_DOCUMENT_CHECKLIST,
+  EMPTY_FACET_OPTIONS,
+  EMPTY_OBLIGATION_QUEUE_ROWS,
+  INITIAL_CURSOR,
+  INSIDE_CHROME_PX,
+  OBLIGATION_QUEUE_DUE_COL_WIDTH,
+  obligationQueueSearchParamsParsers,
+  PAGE_SIZE,
+  PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS,
+  PAYMENT_PIPELINE_KEYS,
+  REVIEW_PIPELINE_KEYS,
+  STAGE_STATUS_GROUPS,
+  TIMELINE_STAGE_KEYS,
+  TIMELINE_TERMINAL_STAGE_KEYS,
+  type ReviewPipelineKey,
+  type TimelineStageKey,
+} from '@/features/obligations/queue/constants'
+import {
+  canSaveInternalExtensionPlan,
+  cleanEntityIdFilters,
+  cleanOptionalText,
+  cleanStateFilters,
+  cleanStringFilters,
+  columnLabel,
+  columnVisibilityFromHidden,
+  computePastStageEntries,
+  copyTextToClipboard,
+  countOutstandingReadinessDocuments,
+  daysFilterValue,
+  daysUntilEffectiveInternalDueDate,
+  deadlineDetailSearchFromQueueState,
+  deadlineDetailStateObligationId,
+  defaultAuthorityRejectionDraft,
+  diffIsoDateDays,
+  downloadBase64File,
+  dueDaysTone,
+  effectiveInternalDueDate,
+  emptyExtensionPlanDraft,
+  exportQueryFromListInput,
+  extensionPlanDraftFromRow,
+  facetOptionToFilterOption,
+  fiscalYearEndDraftValue,
+  fiscalYearEndParts,
+  formatFiscalYearEnd,
+  formatTaxPeriod,
+  getSortingState,
+  hiddenFromColumnVisibility,
+  humanizeAuditAction,
+  isDueDaysSuppressedForStatus,
+  isInternalExtensionTargetDateValid,
+  isObligationQueueDetailTab,
+  isObligationQueueRowControlClick,
+  isObligationStatus,
+  isThisWeekFilterActive,
+  latestAuthorityRejectionAudit,
+  latestDeadlineInputRequest,
+  materialsChecklistReference,
+  mineTimelineTimestamps,
+  nextHeaderSort,
+  nextThisWeekFilterPatch,
+  obligationQueueColumnAriaSort,
+  openExternalUrl,
+  openExternalUrlFromAnchorClick,
+  parseGeneratedReadinessChecklist,
+  parseMoneyCents,
+  parseOwnerCount,
+  pipelineStateOf,
+  rangeSelectionUpdate,
+  reviewPipelineCurrent,
+  scrollObligationRowIntoView,
+  subStatusForActiveStage,
+  timelineIndexForStatus,
+  todayIsoDate,
+  willReadinessChecklistBeFullyReceived,
+  withDefaultSortCleared,
+} from '@/features/obligations/queue/helpers'
+
 declare module '@tanstack/react-table' {
   interface ColumnMeta<TData extends RowData, TValue> {
     headerClassName?: string
     cellClassName?: string
   }
 }
-type ObligationQueueCursor = NonNullable<ObligationQueueListInput['cursor']> | null
-type ObligationQueueListInputWithoutCursor = Omit<ObligationQueueListInput, 'cursor'>
-type ObligationQueueExportQuery = Omit<ObligationQueueListInput, 'cursor' | 'limit'>
-type ObligationExportDialogScope = 'selected' | 'filtered' | 'all_active' | 'date_range' | 'client'
-type ObligationExportRecipient = 'download' | 'email_self' | 'email_teammate'
-
-const ALL_SORTS = [
-  'smart_priority',
-  'due_asc',
-  'due_desc',
-  'updated_desc',
-] as const satisfies readonly ObligationQueueSort[]
-const OWNER_FILTERS = ['unassigned'] as const
-const DUE_FILTERS = ['overdue'] as const
-const EVIDENCE_FILTERS = ['needs'] as const
-const DETAIL_DRAWERS = ['obligation'] as const
-const DETAIL_TABS = DEADLINE_DETAIL_TABS
-const DENSITY_OPTIONS = [
-  'comfortable',
-  'compact',
-] as const satisfies readonly ObligationQueueDensity[]
-const DEFAULT_SORT: ObligationQueueSort = 'smart_priority'
-const DEFAULT_DENSITY: ObligationQueueDensity = 'comfortable'
-// 2026-05-26 (Yuqi /deadlines #2): explicit "Group by" mode. Default
-// `due` keeps the chronological flat list the current product
-// optimises for. `client` clusters rows under client section
-// headers (with aggregate metadata). `status` clusters by status
-// (Blocked / Waiting on client / In review / Filed / Not started).
-// 2026-05-26 (Yuqi follow-up — "remove group by status, since there
-// is already the top tab switch between status"): Status is no
-// longer a Group-by option. The scope-tab band above the table
-// already filters by status (All / Past due / This week / Not started
-// / Waiting on client / Blocked / In review / Filed), so adding it
-// as a grouping axis was a redundant control. Group-by now offers
-// only "Due date" (default flat list) and "Client" (per-client
-// cluster headers). Legacy URLs with `?group=status` fall back to
-// the default `due` via nuqs's `parseAsStringLiteral` rejection.
-const GROUP_OPTIONS = ['due', 'client'] as const
-type ObligationQueueGroup = (typeof GROUP_OPTIONS)[number]
-const DEFAULT_GROUP: ObligationQueueGroup = 'due'
-const DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS = 3_000
-const DEADLINE_TIP_REFRESH_TIMEOUT_MS = 60_000
-const EMPTY_OBLIGATION_QUEUE_ROWS: ObligationQueueRow[] = []
-const EMPTY_ASSIGNEES: MemberAssigneeOption[] = []
-const EMPTY_DOCUMENT_CHECKLIST: ReadinessDocumentChecklistItemPublic[] = []
-const EMPTY_FACET_OPTIONS: FilterOption[] = []
-const EMPTY_CLIENT_OPTIONS: ClientFilterOption[] = []
-const INITIAL_CURSOR: ObligationQueueCursor = null
-const PAGE_SIZE = 50
-// Client-side pagination window over the cumulative useInfiniteQuery
-// buffer. The page size is now derived from the viewport height
-// (2026-05-26, /deadlines sixty-fifth pass #14) so the table fills
-// the screen with as many rows as fit and the user never gets a
-// "half-full page above the pagination footer" view on short
-// monitors or a "scroll to see anything" view on tall monitors.
-// See `useResponsivePageSize` below — the floor/ceil + per-row
-// estimate live there. The constants here are clamp bounds so the
-// table never collapses to <8 rows or balloons past ~40 even on
-// huge displays (40 already taxes scan readability).
-const CLIENT_PAGE_SIZE_MIN = 8
-const CLIENT_PAGE_SIZE_MAX = 40
-// Estimated per-row height in the current rendering. 56px = h-14
-// (the canonical workbench-table row height shared with /clients +
-// /rules/library after the 2026-05-26 cross-table element unify
-// pass). Was 48 briefly during a tighter-density experiment; bumped
-// back so all three tables share the same row pitch. If row chrome
-// changes again, re-measure with a quick `getBoundingClientRect().
-// height` test and adjust — undershooting fills the viewport
-// partially, overshooting scrolls.
-const CLIENT_ROW_HEIGHT_PX = 56
-// Page chrome above + below the rows: page header + breadcrumb +
-// filter scope-tabs + filter action-chips + table header + pagination
-// footer + page bottom padding ≈ 320-360px. We pick 360 to leave
-// a small buffer so the last row is never clipped under the
-// footer. If the chrome grows or shrinks materially, tune here.
-// PAGE_CHROME_PX retired 2026-05-26 — responsive page size now
-// measures the scroll container's clientHeight directly, see
-// useResponsivePageSize. INSIDE_CHROME_PX replaces this constant
-// (defined near the hook).
-const REPLACE_HISTORY_OPTIONS = { history: 'replace' } as const
-const DAYS_FILTER_MIN = -3650
-const DAYS_FILTER_MAX = 3650
-const THIS_WEEK_MAX_DAYS = 7
-
-async function copyTextToClipboard(value: string): Promise<void> {
-  try {
-    await navigator.clipboard.writeText(value)
-    return
-  } catch {
-    const textarea = document.createElement('textarea')
-    textarea.value = value
-    textarea.setAttribute('readonly', '')
-    textarea.style.position = 'fixed'
-    textarea.style.top = '0'
-    textarea.style.left = '0'
-    textarea.style.opacity = '0'
-    textarea.style.pointerEvents = 'none'
-    document.body.append(textarea)
-    textarea.focus()
-    textarea.select()
-    try {
-      if (!document.execCommand('copy')) throw new Error('Clipboard fallback failed.')
-    } finally {
-      textarea.remove()
-    }
-  }
-}
-
-// 2026-05-26 (Yuqi feedback — responsive page size pivot): page size
-// now derived from the ACTUAL scroll container height, not window
-// height. The window-height heuristic overshot when the page chrome
-// was tall (e.g. filter bar wrapping two lines) and undershot when
-// the panel was open eating side space but not vertical. Measuring
-// the container with ResizeObserver gives the true "how much room
-// do I have for rows" answer.
-//
-// 2026-05-26 (Yuqi feedback — "refactor the page structure or table
-// structure/pagination framing"): the measurement target moved from
-// the queue column to the table-card. The table-card is a bordered
-// frame that contains ONLY the Table + Pagination — no filter bars,
-// no page header. So the chrome budget shrinks dramatically and
-// becomes stable (no longer drifts when the filter bar wraps).
-//
-// Chrome subtracted from the table-card's clientHeight:
-//   - TableHeader                ≈ 40px (h-12 with cell padding + border)
-//   - Pagination footer          ≈ 44px (border-t + py-2 + content)
-//   - card border (1px × 2)      ≈ 2px
-//   - safety buffer              ≈ 4px (round-off vs sub-px line heights)
-//   Total ≈ 90px. Set to 96 for breathing room.
-const INSIDE_CHROME_PX = 96
-
 function computeResponsivePageSize(containerHeight: number): number {
   const usable = Math.max(0, containerHeight - INSIDE_CHROME_PX)
   const fit = Math.floor(usable / CLIENT_ROW_HEIGHT_PX)
@@ -464,759 +417,6 @@ function DropdownTriggerButton({
       {children}
     </button>
   )
-}
-
-function openExternalUrl(value: string): void {
-  const opened = window.open(value, '_blank')
-  if (opened) {
-    opened.opener = null
-    opened.focus()
-    return
-  }
-  window.location.assign(value)
-}
-
-function openExternalUrlFromAnchorClick(event: MouseEvent<HTMLAnchorElement>, value: string): void {
-  if (
-    event.defaultPrevented ||
-    event.button !== 0 ||
-    event.metaKey ||
-    event.altKey ||
-    event.ctrlKey ||
-    event.shiftKey
-  ) {
-    return
-  }
-  event.preventDefault()
-  openExternalUrl(value)
-}
-
-export function isInternalExtensionTargetDateValid(value: string, filingDueDate: string): boolean {
-  if (value === '') return true
-  return isValidIsoDate(value) && isValidIsoDate(filingDueDate) && value <= filingDueDate
-}
-
-export function canSaveInternalExtensionPlan({
-  draftTargetDate,
-  filingDeadline,
-  isPending = false,
-  memo,
-}: {
-  draftTargetDate: string
-  filingDeadline: string
-  isPending?: boolean
-  memo: string
-}): boolean {
-  return (
-    !isPending &&
-    draftTargetDate !== '' &&
-    memo.trim().length > 0 &&
-    isInternalExtensionTargetDateValid(draftTargetDate, filingDeadline)
-  )
-}
-
-type ExtensionPlanDraft = {
-  obligationId: string
-  memo: string
-  source: string
-  internalTargetDate: string
-  // Manually-entered extended filing deadline — only used for rules with no
-  // statutory durationMonths (the server computes it otherwise).
-  extendedFilingDate: string
-}
-
-export function emptyExtensionPlanDraft(obligationId = ''): ExtensionPlanDraft {
-  return {
-    obligationId,
-    memo: '',
-    source: '',
-    internalTargetDate: '',
-    extendedFilingDate: '',
-  }
-}
-
-export function extensionPlanDraftFromRow(
-  row: Pick<
-    ObligationQueueRow,
-    'id' | 'extensionInternalTargetDate' | 'extensionMemo' | 'extensionSource'
-  >,
-): ExtensionPlanDraft {
-  return {
-    obligationId: row.id,
-    memo: row.extensionMemo ?? '',
-    source: row.extensionSource ?? '',
-    internalTargetDate: row.extensionInternalTargetDate ?? '',
-    extendedFilingDate: '',
-  }
-}
-
-function formatFiscalYearEnd(month: number, day: number): string {
-  return `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}`
-}
-
-function fiscalYearEndDraftValue(month: number | null, day: number | null): string {
-  if (!month || !day) return ''
-  return formatFiscalYearEnd(month, day)
-}
-
-function fiscalYearEndParts(value: string): { month: number; day: number } | null {
-  const match = /^\s*(\d{1,2})\s*\/\s*(\d{1,2})\s*$/.exec(value)
-  if (!match) return null
-  const month = Number(match[1])
-  const day = Number(match[2])
-  const date = new Date(Date.UTC(2024, month - 1, day))
-  if (date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null
-  return {
-    month,
-    day,
-  }
-}
-
-const DAY_MS = 86_400_000
-// OBLIGATION_QUEUE_TABLE_PILL_CLASSNAME retired 2026-05-26 with the
-// sixty-fifth pass #17 DueDaysPill cleanup — the Badge wrapper was
-// dropped so the shared text-xs token is no longer in use.
-// Width of the Due column. Tokenized so the magic-number doesn't fight
-// long client-name wraps if the table layout shifts.
-const OBLIGATION_QUEUE_DUE_COL_WIDTH = 'min-w-[148px]'
-const NON_HIDEABLE_COLUMNS = new Set(['select'])
-// Columns that ship hidden by default and are opt-in via the
-// Columns dropdown. The default visible set was trimmed to 6
-// (2026-05-21) — Select · Client · Form · Status · Due · Owner —
-// per design call: 12 columns is too much for skim-reading, and
-// power users can opt into the rest from the Columns menu. Smart
-// Priority is hidden by default but the queue still sorts by it
-// (sort=smart_priority); enable it from the menu when you want
-// the tier label rendered as a cell.
-const DEFAULT_HIDDEN_COLUMN_IDS = [
-  'smartPriority',
-  'clientState',
-  'clientCounty',
-  'dueDateExact',
-  'daysUntilDue',
-  'evidenceCount',
-] as const
-// Columns that auto-collapse when the detail panel is open.
-// 2026-05-25 (Yuqi Deadlines #11): widened the auto-hide set to
-// keep only Client + Internal Due in the queue while the drawer is
-// open. Status / Priority / Days-until-due all repeat information
-// the drawer header / body already surfaces for the focused
-// obligation, and the queue here only needs to support row-to-row
-// navigation — name + when-it's-due. State / County / Tax type /
-// Assignee / Evidence were already in the auto-hide set from the
-// earlier 2026-05-21 panel-fit pass for the same reason (panel
-// header carries them). On close, the user's saved column choices
-// come back because we strip the auto-hidden set from the saved
-// `hidden` URL state before persisting (see onColumnVisibilityChange).
-// 2026-05-26 (Yuqi feedback #8): the auto-hide set when the right
-// panel is open shrunk significantly. Yuqi's call: task/deadline
-// (taxType + daysUntilDue) and status should stay visible alongside
-// the client name so the table still tells the row's primary story
-// even with a 600px panel claiming half the width. Now only the
-// secondary / state-cluster columns auto-hide; the row anchor
-// (Client + Form + Due + Status) survives the panel-open layout.
-const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
-  'clientState',
-  'clientCounty',
-  'assigneeName',
-  'evidenceCount',
-  'smartPriority',
-] as const
-const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
-  'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
-
-// 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
-// the obligation detail panel now shares the alerts panel's
-// width contract and motion choreography. The flex slot opens
-// from 0 → 60% (matching the alerts panel in
-// AlertsListPage.tsx L838-867), the inner surface rises from
-// y:'100%' → 0 on enter, dissolves opacity → 0 on exit. Same
-// ease-apple curve, same durations as the alert drawer so the
-// two right-rail panels read as siblings.
-const DETAIL_SWIFT_EASE = [0.32, 0.72, 0, 1] as const
-// 2026-05-27 (Yuqi feedback "remove width:60%" + "responsive也都
-//是没有的"): dropped the hardcoded width animation. Sizing is now
-// CSS-class driven (responsive: full width on narrow, 3/5 at xl+,
-// max-capped so ultra-wide doesn't bloat the drawer past usefulness).
-// Animation switched from width-interpolation to x-transform so the
-// slide-in works regardless of the final width value.
-const DETAIL_PANEL_OPEN_ANIM = {
-  x: 0,
-  opacity: 1,
-  transition: { duration: 0.3, ease: DETAIL_SWIFT_EASE },
-} as const
-const DETAIL_PANEL_CLOSE_ANIM = {
-  x: '100%',
-  opacity: 0,
-  transition: { duration: 0.28, ease: DETAIL_SWIFT_EASE },
-} as const
-// 2026-05-27 (Yuqi drawer parity): paper-rise enter matches
-// AlertDetailDrawer's inner choreography (y:100%→0, 0.64s
-// duration, 0.14s delay) — the surface visibly extrudes from
-// below the slot. Exit collapses to opacity-only dissolve
-// (0.22s) so the slot closes underneath without a slide-down
-// mirror motion.
-const DETAIL_PANEL_INNER_RISE_ANIM = {
-  y: 0,
-  transition: { duration: 0.64, ease: DETAIL_SWIFT_EASE, delay: 0.14 },
-} as const
-const DETAIL_PANEL_INNER_FADE_ANIM = {
-  opacity: 0,
-  transition: { duration: 0.22, ease: DETAIL_SWIFT_EASE },
-} as const
-// 2026-05-26 (Yuqi seventieth pass #1 — row-switch should be a
-// SMALL animation, not big): drop the x-translation on the
-// content swap entirely and tighten the duration. Open/close
-// still uses the bigger width + paper-rise animations above; only
-// the row-to-row content transition is the quick crossfade.
-const DETAIL_PANEL_CONTENT_ENTER_ANIM = {
-  opacity: 1,
-  transition: { duration: 0.12, ease: DETAIL_SWIFT_EASE },
-} as const
-const DETAIL_PANEL_CONTENT_EXIT_ANIM = {
-  opacity: 0,
-  transition: { duration: 0.08, ease: DETAIL_SWIFT_EASE },
-} as const
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-const STATE_CODE_RE = /^[A-Z]{2}$/
-const ReadinessChecklistItemsSchema = ReadinessChecklistItemSchema.array().min(1).max(30)
-
-type DeadlineInputRequestAudit = {
-  recipientName: string | null
-  recipientRole: string | null
-  message: string | null
-  createdAt: string
-}
-
-type DeadlineInputRequestDraft = {
-  obligationId: string
-  recipientUserId: string
-  message: string
-}
-
-function isObligationQueueDetailTab(value: string): value is ObligationQueueDetailTab {
-  return ObligationQueueDetailTabSchema.safeParse(value).success
-}
-
-function readPlainRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
-  return Object.fromEntries(Object.entries(value))
-}
-
-function readNonEmptyString(record: Record<string, unknown> | null, key: string): string | null {
-  const value = record?.[key]
-  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
-}
-
-export function latestDeadlineInputRequest(
-  auditEvents: readonly AuditEventPublic[],
-): DeadlineInputRequestAudit | null {
-  const sorted = [...auditEvents].toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
-  for (const event of sorted) {
-    if (event.action !== 'obligation.input_requested') continue
-    const after = readPlainRecord(event.afterJson)
-    return {
-      recipientName: readNonEmptyString(after, 'recipientName'),
-      recipientRole: readNonEmptyString(after, 'recipientRole'),
-      message: readNonEmptyString(after, 'message'),
-      createdAt: event.createdAt,
-    }
-  }
-  return null
-}
-
-function deadlineDetailStateObligationId(state: unknown, routeRef: string | null): string | null {
-  if (!routeRef || !state || typeof state !== 'object') return null
-  const obligationId = Reflect.get(state, 'obligationId')
-  if (typeof obligationId !== 'string') return null
-  return obligationIdMatchesDeadlineRef(obligationId, routeRef) ? obligationId : null
-}
-
-function parseGeneratedReadinessChecklist(value: string | null): ReadinessChecklistItem[] | null {
-  if (!value) return null
-  try {
-    const parsed = ReadinessChecklistItemsSchema.safeParse(JSON.parse(value))
-    return parsed.success ? parsed.data : null
-  } catch {
-    return null
-  }
-}
-
-type DueDaysTone = {
-  variant: 'destructive' | 'warning' | 'success' | 'outline'
-  dot: 'error' | 'warning' | 'success' | 'normal'
-  badgeClassName?: string
-  dotClassName?: string
-}
-
-type FilterOption = TableFilterOption
-
-interface ClientFilterOption extends FilterOption {
-  state: string | null
-  county: string | null
-}
-
-const obligationQueueSearchParamsParsers = {
-  q: parseAsString.withDefault('').withOptions(REPLACE_HISTORY_OPTIONS),
-  status: parseAsArrayOf(parseAsStringLiteral(ALL_STATUSES))
-    .withDefault([])
-    .withOptions(REPLACE_HISTORY_OPTIONS),
-  obligation: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
-  client: parseAsArrayOf(parseAsString).withDefault([]).withOptions(REPLACE_HISTORY_OPTIONS),
-  // Rule deep-link from the Rule library: lands the user on the
-  // queue filtered to the obligations generated by one or more
-  // rules. No header filter UI for this (yet) — it's a one-way
-  // pre-filter set by the inbound link.
-  rule: parseAsArrayOf(parseAsString).withDefault([]).withOptions(REPLACE_HISTORY_OPTIONS),
-  state: parseAsArrayOf(parseAsString).withDefault([]).withOptions(REPLACE_HISTORY_OPTIONS),
-  county: parseAsArrayOf(parseAsString).withDefault([]).withOptions(REPLACE_HISTORY_OPTIONS),
-  taxType: parseAsArrayOf(parseAsString).withDefault([]).withOptions(REPLACE_HISTORY_OPTIONS),
-  assignee: parseAsString.withDefault('').withOptions(REPLACE_HISTORY_OPTIONS),
-  assignees: parseAsArrayOf(parseAsString).withDefault([]).withOptions(REPLACE_HISTORY_OPTIONS),
-  owner: parseAsStringLiteral(OWNER_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
-  due: parseAsStringLiteral(DUE_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
-  dueWithin: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
-  evidence: parseAsStringLiteral(EVIDENCE_FILTERS).withOptions(REPLACE_HISTORY_OPTIONS),
-  // "Awaiting signature" triage lens — filed returns still waiting on the
-  // client's 8879. Absent when off (no default); ?awaitingSignature=true
-  // when on.
-  awaitingSignature: parseAsBoolean.withOptions(REPLACE_HISTORY_OPTIONS),
-  // Projected lens — projected (annual-rollover / auto-projection) deadlines
-  // awaiting CPA confirmation. Absent when off; ?projected=true when on.
-  projected: parseAsBoolean.withOptions(REPLACE_HISTORY_OPTIONS),
-  drawer: parseAsStringLiteral(DETAIL_DRAWERS).withOptions(REPLACE_HISTORY_OPTIONS),
-  id: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
-  tab: parseAsStringLiteral(DETAIL_TABS)
-    .withDefault('summary')
-    .withOptions({ ...REPLACE_HISTORY_OPTIONS, clearOnDefault: false }),
-  daysMin: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
-  daysMax: parseAsInteger.withOptions(REPLACE_HISTORY_OPTIONS),
-  asOf: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
-  sort: parseAsStringLiteral(ALL_SORTS)
-    .withDefault(DEFAULT_SORT)
-    .withOptions(REPLACE_HISTORY_OPTIONS),
-  density: parseAsStringLiteral(DENSITY_OPTIONS)
-    .withDefault(DEFAULT_DENSITY)
-    .withOptions(REPLACE_HISTORY_OPTIONS),
-  group: parseAsStringLiteral(GROUP_OPTIONS)
-    .withDefault(DEFAULT_GROUP)
-    .withOptions(REPLACE_HISTORY_OPTIONS),
-  // Default-hidden columns are seeded into the `hide` param so they
-  // stay off until the user opts them in via the Columns dropdown.
-  // `clearOnDefault: false` keeps an empty hide=[] in the URL after
-  // the user un-hides one, so a page reload doesn't snap back to the
-  // default. (Without it, nuqs strips the param and the default kicks
-  // back in.)
-  hide: parseAsArrayOf(parseAsString)
-    .withDefault([...DEFAULT_HIDDEN_COLUMN_IDS])
-    .withOptions({ ...REPLACE_HISTORY_OPTIONS, clearOnDefault: false }),
-  row: parseAsString.withOptions(REPLACE_HISTORY_OPTIONS),
-} as const
-
-type ObligationQueueSearchParams = inferParserType<typeof obligationQueueSearchParamsParsers>
-type DeadlineDetailQueueSearchState = Pick<
-  ObligationQueueSearchParams,
-  | 'q'
-  | 'status'
-  | 'obligation'
-  | 'client'
-  | 'rule'
-  | 'state'
-  | 'county'
-  | 'taxType'
-  | 'assignee'
-  | 'assignees'
-  | 'owner'
-  | 'due'
-  | 'dueWithin'
-  | 'evidence'
-  | 'awaitingSignature'
-  | 'projected'
-  | 'daysMin'
-  | 'daysMax'
-  | 'asOf'
-  | 'sort'
-  | 'density'
-  | 'group'
-  | 'hide'
->
-
-function searchParamArrayEquals(a: readonly string[], b: readonly string[]): boolean {
-  return a.length === b.length && a.every((value, index) => value === b[index])
-}
-
-function setOptionalSearchParam(
-  params: URLSearchParams,
-  key: string,
-  value: string | number | null,
-): void {
-  if (value === null || value === '') {
-    params.delete(key)
-    return
-  }
-  params.set(key, String(value))
-}
-
-function setArraySearchParam(
-  params: URLSearchParams,
-  key: string,
-  values: readonly string[],
-): void {
-  if (values.length === 0) {
-    params.delete(key)
-    return
-  }
-  params.set(key, values.join(','))
-}
-
-export function deadlineDetailSearchFromQueueState(
-  search: string,
-  state: DeadlineDetailQueueSearchState,
-): string {
-  const baseSearch = cleanDeadlineDetailSearch(search)
-  const params = new URLSearchParams(baseSearch.startsWith('?') ? baseSearch.slice(1) : baseSearch)
-
-  setOptionalSearchParam(params, 'q', state.q)
-  setArraySearchParam(params, 'status', state.status)
-  setOptionalSearchParam(params, 'obligation', state.obligation)
-  setArraySearchParam(params, 'client', state.client)
-  setArraySearchParam(params, 'rule', state.rule)
-  setArraySearchParam(params, 'state', state.state)
-  setArraySearchParam(params, 'county', state.county)
-  setArraySearchParam(params, 'taxType', state.taxType)
-  setOptionalSearchParam(params, 'assignee', state.assignee)
-  setArraySearchParam(params, 'assignees', state.assignees)
-  setOptionalSearchParam(params, 'owner', state.owner)
-  setOptionalSearchParam(params, 'due', state.due)
-  setOptionalSearchParam(params, 'dueWithin', state.dueWithin)
-  setOptionalSearchParam(params, 'evidence', state.evidence)
-  if (state.awaitingSignature === true) params.set('awaitingSignature', 'true')
-  else params.delete('awaitingSignature')
-  if (state.projected === true) params.set('projected', 'true')
-  else params.delete('projected')
-  setOptionalSearchParam(params, 'daysMin', state.daysMin)
-  setOptionalSearchParam(params, 'daysMax', state.daysMax)
-  setOptionalSearchParam(params, 'asOf', state.asOf)
-  setOptionalSearchParam(params, 'sort', state.sort === DEFAULT_SORT ? null : state.sort)
-  setOptionalSearchParam(
-    params,
-    'density',
-    state.density === DEFAULT_DENSITY ? null : state.density,
-  )
-  setOptionalSearchParam(params, 'group', state.group === DEFAULT_GROUP ? null : state.group)
-  if (state.hide.length === 0) {
-    params.set('hide', '')
-  } else if (searchParamArrayEquals(state.hide, DEFAULT_HIDDEN_COLUMN_IDS)) {
-    params.delete('hide')
-  } else {
-    params.set('hide', state.hide.join(','))
-  }
-
-  const nextSearch = params.toString()
-  return nextSearch ? `?${nextSearch}` : ''
-}
-
-export function isThisWeekFilterActive(daysMin: number | null, daysMax: number | null): boolean {
-  return daysMin === null && daysMax === THIS_WEEK_MAX_DAYS
-}
-
-export function nextThisWeekFilterPatch(
-  daysMin: number | null,
-  daysMax: number | null,
-): Partial<ObligationQueueSearchParams> {
-  const isActive = isThisWeekFilterActive(daysMin, daysMax)
-  return {
-    dueWithin: null,
-    due: null,
-    daysMin: null,
-    daysMax: isActive ? null : THIS_WEEK_MAX_DAYS,
-    obligation: null,
-    row: null,
-  }
-}
-
-function isObligationStatus(value: string): value is ObligationStatus {
-  return ALL_STATUSES.some((status) => status === value)
-}
-
-function getSortingState(sort: ObligationQueueSort): SortingState {
-  if (sort === 'smart_priority') return [{ id: 'smartPriority', desc: true }]
-  if (sort === 'due_desc') return [{ id: 'currentDueDate', desc: true }]
-  if (sort === 'updated_desc') return [{ id: 'updatedAt', desc: true }]
-  return [{ id: 'currentDueDate', desc: false }]
-}
-
-function withDefaultSortCleared(sort: ObligationQueueSort): ObligationQueueSort | null {
-  return sort === DEFAULT_SORT ? null : sort
-}
-
-export function nextHeaderSort({
-  currentSort,
-  ascSort,
-  descSort,
-  firstSort,
-}: {
-  currentSort: ObligationQueueSort
-  ascSort: ObligationQueueSort
-  descSort: ObligationQueueSort
-  firstSort: ObligationQueueSort
-}): ObligationQueueSort {
-  if (currentSort !== ascSort && currentSort !== descSort) return firstSort
-  return currentSort === ascSort ? descSort : ascSort
-}
-
-function obligationQueueColumnAriaSort(columnId: string, sort: ObligationQueueSort) {
-  if (columnId === 'currentDueDate') {
-    if (sort === 'due_asc') return 'ascending'
-    if (sort === 'due_desc') return 'descending'
-    return 'none'
-  }
-  return undefined
-}
-
-function cleanStringFilters(values: readonly string[], maxLength = 120): string[] {
-  return [
-    ...new Set(
-      values
-        .map((value) => value.trim())
-        .filter((value) => value.length > 0 && value.length <= maxLength),
-    ),
-  ].slice(0, OBLIGATION_QUEUE_FILTER_MAX_SELECTIONS)
-}
-
-function cleanEntityIdFilters(values: readonly string[]): string[] {
-  return cleanStringFilters(values).filter((value) => UUID_RE.test(value))
-}
-
-function cleanStateFilters(values: readonly string[]): string[] {
-  return cleanStringFilters(values)
-    .map((value) => value.toUpperCase())
-    .filter((value) => STATE_CODE_RE.test(value))
-}
-
-function cleanColumnIds(values: readonly string[]): string[] {
-  return cleanStringFilters(values, 80).filter((value) => !NON_HIDEABLE_COLUMNS.has(value))
-}
-
-function columnVisibilityFromHidden(hidden: readonly string[]): VisibilityState {
-  return Object.fromEntries(cleanColumnIds(hidden).map((columnId) => [columnId, false]))
-}
-
-function hiddenFromColumnVisibility(visibility: VisibilityState): string[] {
-  return Object.entries(visibility)
-    .filter(([columnId, isVisible]) => !isVisible && !NON_HIDEABLE_COLUMNS.has(columnId))
-    .map(([columnId]) => columnId)
-}
-
-// `integerFromInput` retired 2026-05-26 with the sixty-fifth pass #5
-// RangeHeaderFilterDropdown removal — only the dropdown's onCommit
-// callback ever called this helper.
-
-function daysFilterValue(value: number | null): number | undefined {
-  if (value === null || !Number.isSafeInteger(value)) return undefined
-  return Math.min(DAYS_FILTER_MAX, Math.max(DAYS_FILTER_MIN, value))
-}
-
-// `inputValueFromNumber` retired 2026-05-26 with RangeHeaderFilter-
-// Dropdown removal — only the dropdown's draft-input state needed it.
-
-function columnLabel(columnId: string, labels: Record<string, string>): string {
-  return labels[columnId] ?? columnId
-}
-
-export function isObligationQueueRowControlClick(
-  target: EventTarget | null,
-  rowElement: HTMLElement | null,
-): boolean {
-  if (!(target instanceof Element)) return false
-  const closestControl = target.closest<HTMLElement>(OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR)
-  return closestControl !== null && closestControl !== rowElement
-}
-
-function scrollObligationRowIntoView(rowId: string | null): void {
-  if (!rowId || typeof document === 'undefined') return
-  window.requestAnimationFrame(() => {
-    const escapedRowId =
-      typeof CSS !== 'undefined' && typeof CSS.escape === 'function'
-        ? CSS.escape(rowId)
-        : rowId.replace(/["\\]/g, '\\$&')
-    const node = document.querySelector<HTMLElement>(`[data-row-id="${escapedRowId}"]`)
-    node?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-  })
-}
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
-type AuthorityRejectionDraft = {
-  rejectedAt: string
-  authority: string
-  reference: string
-  reason: string
-  nextStep: ObligationFiledRejectionNextStep
-}
-
-type AuthorityRejectionAuditDetails = {
-  rejectedAt: string | null
-  authority: string | null
-  reference: string | null
-  reason: string | null
-  nextStep: ObligationFiledRejectionNextStep | null
-}
-
-const AUTHORITY_REJECTION_NEXT_STEPS: ReadonlySet<string> = new Set([
-  'correct_resubmit',
-  'request_client_input',
-  'paper_file',
-])
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function isAuthorityRejectionNextStep(value: unknown): value is ObligationFiledRejectionNextStep {
-  return typeof value === 'string' && AUTHORITY_REJECTION_NEXT_STEPS.has(value)
-}
-
-function cleanOptionalText(value: string): string | undefined {
-  const cleaned = value.trim()
-  return cleaned ? cleaned : undefined
-}
-
-function defaultAuthorityRejectionDraft(row: ObligationQueueRow): AuthorityRejectionDraft {
-  return {
-    rejectedAt: todayIsoDate(),
-    authority: row.authority?.trim() || 'IRS',
-    reference: '',
-    reason: '',
-    nextStep: 'correct_resubmit',
-  }
-}
-
-function latestAuthorityRejectionAudit(
-  auditEvents: readonly AuditEventPublic[],
-): AuthorityRejectionAuditDetails | null {
-  const event = auditEvents
-    .filter((candidate) => candidate.action === 'obligation.efile.rejected')
-    .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
-  if (!event) return null
-
-  const after = isPlainObject(event.afterJson) ? event.afterJson : {}
-  const rejectedAt = typeof after.efileRejectedAt === 'string' ? after.efileRejectedAt : null
-  const authority = typeof after.authority === 'string' && after.authority ? after.authority : null
-  const reference = typeof after.reference === 'string' && after.reference ? after.reference : null
-  const reason =
-    typeof after.reason === 'string' && after.reason
-      ? after.reason
-      : event.reason && event.reason.trim()
-        ? event.reason
-        : null
-  const nextStep = isAuthorityRejectionNextStep(after.nextStep) ? after.nextStep : null
-
-  return { rejectedAt, authority, reference, reason, nextStep }
-}
-
-function diffIsoDateDays(fromIso: string, toIso: string): number {
-  return Math.round(
-    (Date.parse(`${toIso}T00:00:00.000Z`) - Date.parse(`${fromIso}T00:00:00.000Z`)) / DAY_MS,
-  )
-}
-
-function exportQueryFromListInput(
-  input: ObligationQueueListInputWithoutCursor,
-): ObligationQueueExportQuery {
-  const { limit: _limit, ...query } = input
-  return query
-}
-
-function downloadBase64File(input: {
-  fileName: string
-  contentType: string
-  contentBase64: string
-}) {
-  const binary = atob(input.contentBase64)
-  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
-  const url = URL.createObjectURL(new Blob([bytes], { type: input.contentType }))
-  const link = document.createElement('a')
-  link.href = url
-  link.download = input.fileName
-  link.click()
-  URL.revokeObjectURL(url)
-}
-
-function facetOptionToFilterOption(option: ObligationQueueFacetOption): FilterOption {
-  return {
-    value: option.value,
-    label: option.label,
-    count: option.count,
-  }
-}
-
-// Compute the next row-selection state when shift-clicking a checkbox.
-// Selects every id in `orderedIds` between `anchorId` and `targetId` inclusive.
-// If `anchorId` is missing or not in the list, falls back to a single-row toggle.
-export function rangeSelectionUpdate({
-  current,
-  orderedIds,
-  anchorId,
-  targetId,
-  nextChecked,
-}: {
-  current: RowSelectionState
-  orderedIds: readonly string[]
-  anchorId: string | null
-  targetId: string
-  nextChecked: boolean
-}): RowSelectionState {
-  const targetIndex = orderedIds.indexOf(targetId)
-  if (targetIndex === -1) return current
-  const anchorIndex = anchorId ? orderedIds.indexOf(anchorId) : -1
-  if (anchorIndex === -1) {
-    const next = { ...current }
-    if (nextChecked) next[targetId] = true
-    else delete next[targetId]
-    return next
-  }
-  const [start, end] =
-    anchorIndex <= targetIndex ? [anchorIndex, targetIndex] : [targetIndex, anchorIndex]
-  const next = { ...current }
-  for (let i = start; i <= end; i += 1) {
-    const id = orderedIds[i]
-    if (!id) continue
-    if (nextChecked) next[id] = true
-    else delete next[id]
-  }
-  return next
-}
-
-export function selectionHeaderState(
-  selection: RowSelectionState,
-  orderedIds: readonly string[],
-): 'none' | 'all' | 'partial' {
-  if (orderedIds.length === 0) return 'none'
-  let selectedCount = 0
-  for (const id of orderedIds) {
-    if (selection[id]) selectedCount += 1
-  }
-  if (selectedCount === 0) return 'none'
-  if (selectedCount === orderedIds.length) return 'all'
-  return 'partial'
-}
-
-function dueDaysTone(days: number): DueDaysTone {
-  // Calmer color ladder. The previous tone used a solid white-on-red
-  // pill for *any* past-due row, which made every late filing scream
-  // and stripped urgency hierarchy from the queue. We now stay in soft
-  // tints and reserve the loudest red for rows that are both late AND
-  // imminent — the warning amber band carries everything else past
-  // due, and the future band stays neutral so the eye lands on
-  // genuinely urgent rows.
-  if (days < -7) return { variant: 'destructive', dot: 'error' }
-  if (days < 0) return { variant: 'warning', dot: 'error' }
-  if (days <= 2) return { variant: 'warning', dot: 'warning' }
-  if (days <= 7) return { variant: 'outline', dot: 'warning' }
-  return { variant: 'outline', dot: 'normal' }
 }
 
 export function ObligationQueueRoute() {
@@ -5272,41 +4472,6 @@ function AssigneeQuickPicker({
 // tab saves an internal target and the detail strip still shows that
 // target as active date context, so the queue cell must not collapse
 // to an em dash just because the row has an extension plan.
-const DUE_DAYS_TERMINAL_STATUSES: ReadonlySet<ObligationStatus> = new Set([
-  'done',
-  'paid',
-  'completed',
-  'not_applicable',
-])
-
-export function isDueDaysSuppressedForStatus(status: ObligationStatus): boolean {
-  return DUE_DAYS_TERMINAL_STATUSES.has(status)
-}
-
-export function effectiveInternalDueDate(
-  row: Pick<ObligationQueueRow, 'currentDueDate' | 'extensionInternalTargetDate'>,
-): string {
-  return row.extensionInternalTargetDate ?? row.currentDueDate
-}
-
-export function daysUntilEffectiveInternalDueDate(
-  row: Pick<ObligationQueueRow, 'currentDueDate' | 'daysUntilDue' | 'extensionInternalTargetDate'>,
-  today = todayIsoDate(),
-): number {
-  const internalDueDate = effectiveInternalDueDate(row)
-  if (internalDueDate === row.currentDueDate) return row.daysUntilDue
-  const ms = new Date(internalDueDate).getTime() - new Date(today).getTime()
-  return Math.round(ms / DAY_MS)
-}
-
-// 2026-05-24 (re-critique): stages whose `isPastInternalDue` red
-// ring should be suppressed in the milestone timeline. Lateness on
-// a Filed/Completed row is a quality stat, not an active urgency —
-// the dates panel shows the red Internal due value, that's the
-// surface for "was this filed on time?". Hoisted from inside
-// `PathToFilingSummary` so we don't allocate the Set every render.
-const TIMELINE_TERMINAL_STAGE_KEYS: ReadonlySet<string> = new Set(['done', 'completed'])
-
 function DueDaysPill({ days, status }: { days: number; status: ObligationStatus }) {
   if (isDueDaysSuppressedForStatus(status)) {
     // Quality stat, not active urgency. Skip the dot, drop the
@@ -5417,10 +4582,6 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
 // ({{client_name}} / {{form}} / {{tax_year}}); the server substitutes it per
 // recipient on send, so one edited template still personalizes each email. A
 // live preview shows how the current template resolves for one sample client.
-type SignatureReminderTarget =
-  | { mode: 'single'; obligationId: string | null }
-  | { mode: 'bulk'; ids: string[] }
-
 function SignatureReminderDialog({
   open,
   onOpenChange,
@@ -9458,28 +8619,6 @@ function AlertPanel({ children }: { children: ReactNode }) {
   )
 }
 
-type ObligationQueueEvidenceItem = {
-  id: string
-  sourceType: string
-  sourceUrl: string | null
-  rawValue: string | null
-  normalizedValue: string | null
-  appliedAt: string
-}
-
-type ReadinessResponseEvidenceItem = {
-  itemId: string
-  status: 'ready' | 'not_yet' | 'need_help'
-  note: string | null
-  etaDate: string | null
-}
-
-type AuditSummaryRow = {
-  id: string
-  label: ReactNode
-  value: ReactNode
-}
-
 function readJsonRecord(value: string | null): Record<string, unknown> | null {
   if (!value) return null
   try {
@@ -10067,27 +9206,6 @@ function ReadinessOverview({
 // Format a tax-period span. Full calendar years collapse to just
 // the year ("2026"); fiscal / short / quarterly periods keep the
 // explicit start–end range.
-function formatTaxPeriod(start: string | null | undefined, end: string | null | undefined): string {
-  if (!start || !end) return '—'
-  const startIso = start.slice(0, 10)
-  const endIso = end.slice(0, 10)
-  const startYear = startIso.slice(0, 4)
-  const endYear = endIso.slice(0, 4)
-  if (startYear === endYear && startIso.endsWith('-01-01') && endIso.endsWith('-12-31')) {
-    return startYear
-  }
-  return `${formatDate(startIso)} – ${formatDate(endIso)}`
-}
-
-// PrimaryDeadlineStrip — three-column row at the top of the snapshot
-// (2026-05-23). The three dates the CPA reaches for first — Internal,
-// Filing, Payment — promoted out of the bottom dates panel so they're
-// answer-at-a-glance instead of buried under "Reference dates". Each
-// column shows: small uppercase label / date in tabular-num / a small
-// state tag (MISSED in red when the date is in the past, otherwise
-// blank to keep the row quiet). Internal due is the primary CPA-
-// internal deadline; Filing is the statutory; Payment is the
-// authority-payment due.
 function PrimaryDeadlineStrip({ row }: { row: ObligationQueueRow }) {
   const { i18n, t } = useLingui()
   const todayIso = todayIsoDate()
@@ -11010,241 +10128,6 @@ function AuthorityResponsePanel({
 }
 
 // Stage keys, in strip order. Indexed by `timelineIndexForStatus`.
-const TIMELINE_STAGE_KEYS = [
-  'pending',
-  'waiting_on_client',
-  'blocked',
-  'review',
-  'done',
-  'completed',
-] as const
-
-type TimelineStageKey = (typeof TIMELINE_STAGE_KEYS)[number]
-
-// Maps each strip-stage key back to the full set of lifecycle statuses
-// it absorbs (e.g., the "Filed" milestone covers both `done` and `paid`).
-// Used to filter the audit-event log to events that happened WHILE the
-// row was sitting in this stage.
-const STAGE_STATUS_GROUPS: Record<TimelineStageKey, ReadonlySet<ObligationStatus>> = {
-  pending: new Set(['pending', 'not_applicable'] as const),
-  waiting_on_client: new Set(['waiting_on_client'] as const),
-  blocked: new Set(['blocked'] as const),
-  review: new Set(['in_progress', 'review', 'extended'] as const),
-  done: new Set(['done', 'paid'] as const),
-  completed: new Set(['completed'] as const),
-}
-
-// `StageTask` and `StageActions` (the render component) live in
-// `@/features/obligations/StageActions`. The flavor system + rendering
-// rules are documented there. ActiveStageDetailCard's useMemo below
-// builds the per-stage task list.
-//
-// Note: task labels are populated INSIDE ActiveStageDetailCard via
-// useLingui's `t` (see useMemo below). Earlier we factored this out
-// to a standalone `canonicalTasksForStage(stageKey, row, t)` helper,
-// but Lingui's `@lingui/react/macro` only transforms `t\`...\``
-// patterns when `t` is in scope from `useLingui()` or imported from
-// the macro module — passing `t` as a function PARAMETER caused the
-// macro to skip transformation, and the labels rendered empty.
-// Keeping the logic inline trades a little verbosity for guaranteed
-// macro coverage.
-
-// Humanize an audit-event action string for the "Done this stage"
-// list. The action vocabulary is server-defined; until we have a
-// proper label map this is a best-effort de-snake. Prototype only.
-function humanizeAuditAction(action: string): string {
-  const cleaned = action
-    .replace(/^obligation\./, '')
-    .replace(/[._-]/g, ' ')
-    .trim()
-  return cleaned ? cleaned.charAt(0).toUpperCase() + cleaned.slice(1) : action
-}
-
-// Past-stage entry = a contiguous span the row spent in one stage,
-// bookended by audit events. Used by the "Previous stages" collapsible
-// list below the active card so the CPA can see (and drill into) what
-// happened in earlier stages without leaving the panel.
-type PastStageEntry = {
-  stageKey: TimelineStageKey
-  entryAt: string
-  exitAt: string
-  events: AuditEventPublic[]
-}
-
-function computePastStageEntries(auditEvents: readonly AuditEventPublic[]): PastStageEntry[] {
-  if (auditEvents.length === 0) return []
-  // Sort oldest → newest so spans accumulate forward in time
-  const sorted = [...auditEvents].toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
-  // Tag each event with the stage it lands the row in (drop events
-  // that don't carry a status transition)
-  type EventWithStage = { event: AuditEventPublic; stageKey: TimelineStageKey }
-  const tagged: EventWithStage[] = []
-  for (const event of sorted) {
-    if (typeof event.afterJson !== 'object' || event.afterJson === null) continue
-    const status = (event.afterJson as { status?: unknown }).status
-    if (typeof status !== 'string') continue
-    const stageIdx = timelineIndexForStatus(status)
-    const stageKey = TIMELINE_STAGE_KEYS[stageIdx]
-    if (!stageKey) continue
-    tagged.push({ event, stageKey })
-  }
-  if (tagged.length === 0) return []
-  // Group consecutive events with the same stage into one span. Each
-  // new stage closes the previous span's exitAt at the new entry.
-  type Span = {
-    stageKey: TimelineStageKey
-    entryAt: string
-    exitAt: string | null
-    events: AuditEventPublic[]
-  }
-  const spans: Span[] = []
-  for (const { event, stageKey } of tagged) {
-    const last = spans[spans.length - 1]
-    if (last && last.stageKey === stageKey) {
-      last.events.push(event)
-    } else {
-      if (last) last.exitAt = event.createdAt
-      spans.push({ stageKey, entryAt: event.createdAt, exitAt: null, events: [event] })
-    }
-  }
-  // Past = every span EXCEPT the latest (which is the active stage
-  // the row is still sitting in)
-  const past = spans.slice(0, -1)
-  return past.map((span) => ({
-    stageKey: span.stageKey,
-    entryAt: span.entryAt,
-    exitAt: span.exitAt ?? span.entryAt,
-    events: span.events,
-  }))
-}
-
-// Canonical e-file sub-status pipeline. Linear path the row walks
-// from the moment we ask for 8879 authorization through to delivering
-// the final package. Branch states (rejected, corrected_resubmitted,
-// paper_filed) render inline as alternative current-step labels
-// rather than full extra rows, to keep the strip compact.
-const EFILE_PIPELINE_KEYS = [
-  'authorization_requested',
-  'authorization_signed',
-  'ready_to_submit',
-  'submitted',
-  'accepted',
-  'final_package_delivered',
-] as const
-
-const PAYMENT_PIPELINE_KEYS = [
-  'estimate_needed',
-  'client_approval_needed',
-  'scheduled',
-  'confirmed',
-] as const
-
-// In-Review workflow shown to CPAs. The database keeps finer-grained
-// prep/review columns for auditability, but the drawer should not
-// expose every internal flag as a separate "step" — it made freshly
-// generated review rows look like they had already jumped to step 4.
-// Collapse the work into the three business states a preparer expects:
-// prepare the return, review the return, then file it.
-const REVIEW_PIPELINE_KEYS = ['preparing_return', 'reviewing_return', 'ready_to_file'] as const
-type ReviewPipelineKey = (typeof REVIEW_PIPELINE_KEYS)[number]
-
-export function reviewPipelineCurrent(
-  row: Pick<ObligationQueueRow, 'prepStage' | 'reviewStage'>,
-): ReviewPipelineKey {
-  if (row.reviewStage === 'approved') return 'ready_to_file'
-  if (row.prepStage === 'in_prep' && row.reviewStage !== 'in_review') return 'preparing_return'
-  if (
-    row.reviewStage === 'in_review' ||
-    row.reviewStage === 'notes_open' ||
-    row.prepStage === 'prepared' ||
-    row.prepStage === 'ready_for_prep'
-  ) {
-    return 'reviewing_return'
-  }
-  return 'preparing_return'
-}
-
-export function countOutstandingReadinessDocuments(
-  checklist: readonly Pick<ReadinessDocumentChecklistItemPublic, 'status'>[],
-): number {
-  return checklist.filter((item) => item.status !== 'received').length
-}
-
-export function willReadinessChecklistBeFullyReceived(
-  checklist: readonly Pick<ReadinessDocumentChecklistItemPublic, 'id' | 'status'>[],
-  receivedItemIds: ReadonlySet<string>,
-): boolean {
-  return (
-    checklist.length > 0 &&
-    checklist.every((item) => item.status === 'received' || receivedItemIds.has(item.id))
-  )
-}
-
-function normalizeMaterialsReferenceValue(value: string | null | undefined): string {
-  return (value ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '_')
-}
-
-function materialsReferenceSearchValue(
-  row: Pick<ObligationQueueRow, 'taxType' | 'formName' | 'obligationType'>,
-): string {
-  return [row.taxType, row.formName, row.obligationType]
-    .map(normalizeMaterialsReferenceValue)
-    .filter(Boolean)
-    .join('_')
-}
-
-function matchesMaterialsReference(value: string, fragments: readonly string[]): boolean {
-  return fragments.some((fragment) => value.includes(fragment))
-}
-
-export function materialsChecklistReference(
-  row: Pick<ObligationQueueRow, 'taxType' | 'formName' | 'obligationType'>,
-): string | null {
-  const value = materialsReferenceSearchValue(row)
-  if (
-    matchesMaterialsReference(value, ['1040_es', '1040_estimated_tax', 'individual_estimated_tax'])
-  ) {
-    return row.formName?.trim() || 'Form 1040-ES'
-  }
-  if (
-    matchesMaterialsReference(value, [
-      '1040',
-      'individual_income_tax',
-      'state_individual_income_tax',
-      'schedule_c',
-      'sch_c',
-    ])
-  ) {
-    return 'Form 1040'
-  }
-  return null
-}
-
-// Resolve the pipeline position of a step relative to where the row
-// currently sits. Returns 'done' for steps the row has already
-// passed, 'current' for the active step, 'upcoming' for steps still
-// ahead. If the row has no sub-status set, EVERY step reads as
-// 'upcoming' (the row hasn't entered the pipeline).
-function pipelineStateOf<T extends string>(
-  stepKey: T,
-  current: T | null | undefined,
-  pipeline: readonly T[],
-): 'done' | 'current' | 'upcoming' {
-  if (!current) return 'upcoming'
-  const currentIdx = pipeline.indexOf(current)
-  if (currentIdx === -1) return 'upcoming'
-  const stepIdx = pipeline.indexOf(stepKey)
-  if (stepIdx < currentIdx) return 'done'
-  if (stepIdx === currentIdx) return 'current'
-  return 'upcoming'
-}
-
-// 2026-05-23: WaitingOutstandingDocs component retired with Option D.
-// The full panel (count header + bullet list of doc names + routing
-// button) duplicated content from the Client readiness tab. Replaced
-// inline in ActiveStageDetailCard with a one-line signal that links
-// to the tab; the tab owns the actual document inventory.
-
 function ActiveStageDetailCard({
   row,
   auditEvents,
@@ -12503,104 +11386,6 @@ function ActiveStageDetailCard({
 // happening here" follow-up vocabulary; surfacing it on the timeline
 // turns "In review" into "In review · Partner sign-off" so a senior
 // CPA knows whether to escalate or wait.
-function subStatusForActiveStage(
-  row: ObligationQueueRow,
-  t: (strings: TemplateStringsArray, ...keys: unknown[]) => string,
-): string | null {
-  switch (row.status) {
-    case 'waiting_on_client': {
-      if (row.prepStage === 'waiting_on_client') return t`Documents from client`
-      if (row.prepStage === 'waiting_on_third_party') return t`Third-party docs`
-      if (row.prepStage === 'bookkeeping_cleanup') return t`Bookkeeping cleanup`
-      if (row.prepStage === 'ready_for_prep') return t`Ready for prep`
-      return null
-    }
-    case 'blocked': {
-      if (row.blockedByObligationInstanceId) return t`Upstream deadline`
-      return null
-    }
-    case 'review':
-    case 'in_progress': {
-      if (row.reviewStage === 'notes_open') return t`Notes open`
-      if (reviewPipelineCurrent(row) === 'ready_to_file') return t`Ready to file`
-      if (reviewPipelineCurrent(row) === 'reviewing_return') return t`Reviewing`
-      return t`Preparing`
-    }
-    case 'done':
-    case 'paid': {
-      if (row.efileState === 'accepted') return t`Accepted by authority`
-      if (row.efileState === 'rejected') return t`Rejected — unwind to In review`
-      if (row.efileState === 'submitted') return t`Awaiting acceptance`
-      if (row.efileState === 'paper_filed') return t`Paper filed`
-      if (row.efileState === 'corrected_resubmitted') return t`Corrected & resubmitted`
-      if (row.efileState === 'final_package_delivered') return t`Package delivered`
-      return null
-    }
-    case 'extended': {
-      return t`Extension active`
-    }
-    default:
-      return null
-  }
-}
-
-function timelineIndexForStatus(status: string): number {
-  switch (status) {
-    case 'pending':
-    case 'not_applicable':
-      return 0
-    case 'waiting_on_client':
-      return 1
-    case 'blocked':
-      return 2
-    case 'in_progress':
-    case 'review':
-    case 'extended':
-      return 3
-    case 'done':
-    case 'paid':
-      return 4
-    case 'completed':
-      return 5
-    default:
-      return 0
-  }
-}
-
-// Number of distinct stages in the milestone timeline — pending,
-// waiting_on_client, blocked, review, done, completed. Used to size
-// the result array of `mineTimelineTimestamps` so the indices line up
-// with `timelineIndexForStatus`.
-const TIMELINE_STAGE_COUNT = 6
-
-// Earliest audit-event timestamp per timeline stage. The lifecycle is
-// not strictly linear (a row can ping-pong between waiting_on_client
-// and blocked, or come back to in_review after a rejection), so we
-// stamp each stage at its FIRST entry rather than the latest.
-//
-// 2026-05-24 (re-critique): the previous shape took a `stageKeys`
-// param that looked like it controlled matching, but actually only
-// sized the array — matching was driven by `timelineIndexForStatus`.
-// Dropped the misleading argument; the array length is now an
-// explicit module constant aligned with the index function above.
-function mineTimelineTimestamps(auditEvents: readonly AuditEventPublic[]): (string | null)[] {
-  const sorted = [...auditEvents].toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
-  const stamps: (string | null)[] = Array.from({ length: TIMELINE_STAGE_COUNT }, () => null)
-  for (const event of sorted) {
-    if (typeof event.afterJson !== 'object' || event.afterJson === null) continue
-    const afterStatus = (event.afterJson as { status?: unknown }).status
-    if (typeof afterStatus !== 'string') continue
-    const idx = timelineIndexForStatus(afterStatus)
-    if (stamps[idx] === null) stamps[idx] = event.createdAt
-  }
-  return stamps
-}
-
-// `PathToFilingChevron` removed 2026-05-21 — at 440px panel width the
-// 5 × 4 = 20 text/icon elements were unreadable. `PathToFilingSummary`
-// replaces it in the snapshot block; full stage-by-stage history lives
-// on the Timeline tab via `ObligationTimeline`.
-
 function PenaltyInputDialog({
   row,
   onClose,
@@ -12725,30 +11510,6 @@ function PenaltyInputDialog({
   )
 }
 
-function parseMoneyCents(value: string): number | null {
-  const normalized = value.trim().replace(/[$,\s]/g, '')
-  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null
-  const parsed = Number(normalized)
-  return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed * 100) : null
-}
-
-function parseOwnerCount(value: string): number | null {
-  const normalized = value.trim()
-  if (!/^\d+$/.test(normalized)) return null
-  const parsed = Number(normalized)
-  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
-}
-
-// Scope tab — borderless, inline count, active state is a 2px accent
-// underline that overlaps the parent's bottom hairline (via -mb-px on
-// the parent and border-b-2 here). The count is a sibling tabular span,
-// not a nested pill — pill-inside-pill was visual stutter.
-//
-// Collapsible search control — magnifier icon at rest, expands into
-// an inline Input when clicked OR when the user presses `/` (the
-// global hotkey focuses `inputRef`, which auto-opens via the
-// Input's own onFocus). Stays open while a query value is present
-// so the user always sees what they're filtering by.
 function ObligationQueueSearchControl({
   inputRef,
   value,

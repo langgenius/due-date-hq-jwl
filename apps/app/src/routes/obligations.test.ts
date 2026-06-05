@@ -20,7 +20,7 @@ import {
   reviewPipelineCurrent,
   selectionHeaderState,
   willReadinessChecklistBeFullyReceived,
-} from './obligations'
+} from '@/features/obligations/queue/helpers'
 
 describe('obligations quick filters', () => {
   const defaultDetailSearchState = {
