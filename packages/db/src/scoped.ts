@@ -5,6 +5,7 @@ import { makeAuditRepo } from './repo/audit'
 import { makeCalendarRepo } from './repo/calendar'
 import { makeClientFilingProfilesRepo } from './repo/client-filing-profiles'
 import { makeClientsRepo } from './repo/clients'
+import { makeClientTaxYearProfilesRepo } from './repo/client-tax-year-profiles'
 import { makeDashboardRepo } from './repo/dashboard'
 import { makeEvidenceRepo } from './repo/evidence'
 import { makeMigrationRepo } from './repo/migration'
@@ -45,6 +46,7 @@ export function scoped(db: Db, firmId: string): ScopedRepo {
     calendar: makeCalendarRepo(db, firmId),
     filingProfiles: makeClientFilingProfilesRepo(db, firmId),
     clients: makeClientsRepo(db, firmId),
+    clientTaxYearProfiles: makeClientTaxYearProfilesRepo(db, firmId),
     dashboard: makeDashboardRepo(db, firmId),
     obligations: makeObligationsRepo(db, firmId),
     obligationQueue: makeObligationQueueRepo(db, firmId),

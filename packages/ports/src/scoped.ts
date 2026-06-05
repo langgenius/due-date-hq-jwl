@@ -4,6 +4,7 @@ import type { CalendarRepo } from './calendar'
 import type { AuditRepo } from './audit'
 import type { ClientFilingProfilesRepo } from './client-filing-profiles'
 import type { ClientsRepo } from './clients'
+import type { ClientTaxYearProfilesRepo } from './client-tax-year-profile'
 import type { DashboardRepo } from './dashboard'
 import type { EvidenceRepo } from './evidence'
 import type { MigrationRepo } from './migration'
@@ -26,6 +27,7 @@ export interface ScopedRepo {
   readonly calendar: CalendarRepo
   readonly filingProfiles: ClientFilingProfilesRepo
   readonly clients: ClientsRepo
+  readonly clientTaxYearProfiles: ClientTaxYearProfilesRepo
   readonly dashboard: DashboardRepo
   readonly obligations: ObligationsRepo
   readonly obligationQueue: ObligationQueueRepo
