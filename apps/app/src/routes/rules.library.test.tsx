@@ -81,6 +81,17 @@ vi.mock('@/lib/rpc', () => ({
       facets: { key: () => ['obligations', 'facets'] },
       list: { key: () => ['obligations', 'list'] },
     },
+    // RuleDetailInline lazily queries pulse.listAlertsForRule for the
+    // "proposed change" block. Stub it with no matches so the drawer
+    // renders (the rule-detail tests assert other sections).
+    pulse: {
+      listAlertsForRule: {
+        queryOptions: ({ input }: { input: unknown }) => ({
+          queryKey: ['pulse', 'listAlertsForRule', input],
+          queryFn: async () => ({ matches: [] }),
+        }),
+      },
+    },
     rules: {
       key: () => ['rules'],
       coverage: {

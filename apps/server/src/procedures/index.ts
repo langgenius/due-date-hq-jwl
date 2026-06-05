@@ -130,6 +130,10 @@ export const router = os.router({
     load: workloadHandlers.load,
   },
   pulse: {
+    // Key order mirrors pulseContract (see contracts/src/pulse.ts) — the
+    // procedure-router parity test deep-equals Object.keys(router.pulse)
+    // against Object.keys(pulseContract), so listAlertsForRule stays first.
+    listAlertsForRule: pulseHandlers.listAlertsForRule,
     listAlerts: pulseHandlers.listAlerts,
     activeCount: pulseHandlers.activeCount,
     listHistory: pulseHandlers.listHistory,
@@ -137,7 +141,6 @@ export const router = os.router({
     listAlertSourceCoverage: pulseHandlers.listAlertSourceCoverage,
     retrySourceHealth: pulseHandlers.retrySourceHealth,
     getDetail: pulseHandlers.getDetail,
-    listAlertsForRule: pulseHandlers.listAlertsForRule,
     getDetailsBatch: pulseHandlers.getDetailsBatch,
     listPriorityQueue: pulseHandlers.listPriorityQueue,
     reviewPriorityMatches: pulseHandlers.reviewPriorityMatches,
