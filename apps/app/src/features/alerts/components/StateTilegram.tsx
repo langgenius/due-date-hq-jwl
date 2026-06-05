@@ -3,7 +3,7 @@ import { useLingui } from '@lingui/react/macro'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
- * StateTilegram — clickable US-state filter map for `/alerts`.
+ * StateTilegram — clickable jurisdiction filter map for `/alerts`.
  *
  * 2026-05-25 (Yuqi Alerts #9 — SVG US-map filter): replaces the
  * flat chip strip with a tilegram-style US map. Each state sits at
@@ -23,16 +23,20 @@ import { cn } from '@duedatehq/ui/lib/utils'
  *   - Future work can swap the layout to a geographic SVG with
  *     the same prop signature — `<StateTilegram counts={...}
  *     activeState={...} onSelect={...} />` is the contract.
+ *   - Federal-scoped alerts use jurisdiction `FED`; they share the
+ *     same tile treatment and sit beside HI because they do not belong
+ *     on a physical state tile.
  */
 
 // 13-column × 8-row tilegram layout. Each entry: [col, row].
 // Origin (0,0) is top-left. Roughly mirrors the continental US
 // geographic shape; AK + HI pinned to the bottom-left corner per
-// USPS/NPR tilegram convention.
+// USPS/NPR tilegram convention. FED is intentionally adjacent to HI:
+// not geographic, but visually part of the same compact filter grid.
 //
 // Sources cross-referenced: NPR's tilegrams (Pitch Interactive),
 // Wikipedia's "Cartogram of the United States" tile layout.
-const STATE_TILES: Record<string, [number, number]> = {
+const JURISDICTION_TILES: Record<string, [number, number]> = {
   // Row 0 — Pacific Northwest / New England
   WA: [1, 0],
   ME: [11, 0],
@@ -92,6 +96,7 @@ const STATE_TILES: Record<string, [number, number]> = {
   // Row 7 — Alaska / Hawaii
   AK: [0, 7],
   HI: [1, 7],
+  FED: [2, 7],
 }
 
 const GRID_COLS = 13
@@ -100,11 +105,11 @@ const CELL_SIZE = 36 // px — comfortable click target
 const CELL_GAP = 2 // px — light separation
 
 interface StateTilegramProps {
-  /** Counts keyed by 2-letter state code. Missing states render dim. */
+  /** Counts keyed by jurisdiction code. Missing states render dim. */
   counts: Map<string, number>
-  /** Currently-selected state code, or null when no state filter active. */
+  /** Currently-selected jurisdiction code, or null when no filter is active. */
   activeState: string | null
-  /** Toggle handler — called with the clicked state code. */
+  /** Toggle handler — called with the clicked jurisdiction code. */
   onSelect: (stateCode: string) => void
   className?: string
 }
@@ -121,7 +126,7 @@ export function StateTilegram({ counts, activeState, onSelect, className }: Stat
       className={cn('relative overflow-visible', className)}
       style={{ width, height }}
     >
-      {Object.entries(STATE_TILES).map(([code, [col, row]]) => {
+      {Object.entries(JURISDICTION_TILES).map(([code, [col, row]]) => {
         const count = counts.get(code) ?? 0
         const active = activeState === code
         const hasCount = count > 0
