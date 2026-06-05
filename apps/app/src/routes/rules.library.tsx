@@ -88,7 +88,20 @@ import {
   RuleDetailCompact,
   RuleDetailInline,
 } from '@/features/rules/rule-detail-drawer'
-import { jurisdictionLabel } from '@/features/rules/rules-console-model'
+import {
+  ENTITY_KEYS,
+  ENTITY_LABELS,
+  STATUS_LABEL_SHORT,
+  STATUS_TONE,
+  jurisdictionLabel,
+  stripJurisdictionPrefix,
+  type EntityKey,
+} from '@/features/rules/rules-console-model'
+import { JurisdictionRail, type RailJurisdiction } from '@/features/rules/states-rail'
+import {
+  JurisdictionRuleTable,
+  JurisdictionStatusChips,
+} from '@/features/rules/jurisdiction-rule-table'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { orpc } from '@/lib/rpc'
 
@@ -126,27 +139,9 @@ import { orpc } from '@/lib/rpc'
 // Entity coverage dots
 // ---------------------------------------------------------------------------
 
-type EntityKey = keyof RuleCoverageRow['entityCoverage']
-
-const ENTITY_KEYS: readonly EntityKey[] = [
-  'llc',
-  'partnership',
-  's_corp',
-  'c_corp',
-  'sole_prop',
-  'individual',
-  'trust',
-] as const
-
-const ENTITY_LABELS: Record<EntityKey, string> = {
-  llc: 'LLC',
-  partnership: 'Partnership',
-  s_corp: 'S-Corp',
-  c_corp: 'C-Corp',
-  sole_prop: 'Sole prop',
-  individual: 'Individual',
-  trust: 'Trust',
-}
+// EntityKey / ENTITY_KEYS / ENTITY_LABELS live in rules-console-model
+// (shared with the states rail + per-jurisdiction table feature
+// components). Imported above.
 
 // 2026-05-28 (Yuqi /rules/library polish #5 — "hover显示全称"):
 // the per-entity column headers are abbreviated to fit the dense
@@ -560,19 +555,8 @@ function RuleStatusBar({ rules }: { rules: ObligationRule[] }) {
 // per row, making the rule column hard to scan. Drop the prefix
 // (and any leading separator), capitalize the first letter so
 // "individual income tax" reads as a sentence start.
-function stripJurisdictionPrefix(title: string, jurisLabel: string): string {
-  const trimmedTitle = title.trim()
-  const label = jurisLabel.trim()
-  if (!label) return trimmedTitle
-  const lcTitle = trimmedTitle.toLowerCase()
-  const lcLabel = label.toLowerCase()
-  if (!lcTitle.startsWith(lcLabel)) return trimmedTitle
-  let stripped = trimmedTitle.slice(label.length).trimStart()
-  // Drop a leading separator if present (em-dash, dash, colon).
-  stripped = stripped.replace(/^[-:·—]+\s*/, '')
-  if (!stripped) return trimmedTitle
-  return stripped.charAt(0).toUpperCase() + stripped.slice(1)
-}
+// stripJurisdictionPrefix lives in rules-console-model (shared with
+// the per-jurisdiction table). Imported above.
 
 // Form-cell renderer. Shows the form code (or the canonical em-dash
 // placeholder when no form is set) in regular sans-serif text.
@@ -764,39 +748,8 @@ function useRuleTierLabels(): Record<RuleTier, string> {
   )
 }
 
-// Status tone palette — `review` is its own tone (accent blue), NOT
-// reused with `warning`. Amber/warning is reserved for true caution
-// states (paused sources, expiring auth) so the eye learns one
-// signal = one meaning. Pre-2026-05-21 we shared amber for both,
-// which conflated "in-progress work" with "needs caution."
-const STATUS_TONE: Record<RuleStatus, 'success' | 'review' | 'destructive' | 'muted'> = {
-  active: 'success',
-  verified: 'success',
-  pending_review: 'review',
-  candidate: 'review',
-  rejected: 'destructive',
-  archived: 'muted',
-  deprecated: 'muted',
-}
-
-// 2026-05-26 (Yuqi follow-up — "hovering onto the row currently
-// just changes the background — but can actually expand the
-// green dot/blue dot to a word explanation of what is happening
-// at the entity"): single-word label per status, rendered next to
-// the leading status dot on row hover. Sits ASIDE the dot rather
-// than replacing it so the dot remains the resting affordance and
-// the word reveals on demand. Kept short (1-2 words) so the hover-
-// expand doesn't shift the title further than the row width can
-// absorb.
-const STATUS_LABEL_SHORT: Record<RuleStatus, string> = {
-  active: 'Active',
-  verified: 'Verified',
-  pending_review: 'Needs review',
-  candidate: 'Candidate',
-  rejected: 'Rejected',
-  archived: 'Archived',
-  deprecated: 'Deprecated',
-}
+// STATUS_TONE / STATUS_LABEL_SHORT live in rules-console-model
+// (shared with the per-jurisdiction table). Imported above.
 
 // ---------------------------------------------------------------------------
 // Main route
@@ -837,13 +790,17 @@ export function RulesLibraryRoute() {
   // round-trips for marginal gain and break the in-memory search /
   // jurisdiction-grouping flow this page already runs.
   const [visibleGroupCount, setVisibleGroupCount] = useState(PAGE_SIZE)
+  // 2026-06-04 (Yuqi rule-library master–detail pivot, Pencil HR6mK):
+  // the selected jurisdiction drives the right-pane flat table. URL-
+  // bound so a state deep-links; null / unknown code = the All overview.
+  const [jurisdictionParam, setJurisdiction] = useQueryState('jurisdiction', parseAsString)
   // 2026-05-26 (Yuqi /rules/library critique P0): scope tabs above
   // the table. URL-bound so the active scope deep-links. Default is
   // 'all'. `null` from nuqs maps back to 'all' for the activeScope
   // computation so the chip is always one of the four known states.
   const [scope, setScope] = useQueryState(
     'scope',
-    parseAsStringLiteral(['all', 'active', 'review', 'missing'] as const),
+    parseAsStringLiteral(['all', 'active', 'review', 'archived', 'missing'] as const),
   )
   const activeScope = scope ?? 'all'
   const isSearching = (search ?? '').trim().length > 0
@@ -898,6 +855,8 @@ export function RulesLibraryRoute() {
       result = result.filter((r) => r.status === 'active' || r.status === 'verified')
     } else if (activeScope === 'review') {
       result = result.filter((r) => statusGroupOf(r.status) === 'needs_review')
+    } else if (activeScope === 'archived') {
+      result = result.filter((r) => statusGroupOf(r.status) === 'archived')
     }
     // For 'missing' scope, the rules array stays — we still need rule
     // data to identify which entity columns have a rule. Group-level
@@ -1009,6 +968,106 @@ export function RulesLibraryRoute() {
     }
     return out
   }, [rules, coverageRows])
+  const totalArchived = statusCounts.archived + statusCounts.deprecated
+
+  // 2026-06-04 (Yuqi rule-library master–detail pivot): the states rail
+  // + per-jurisdiction detail pane. `unfilteredGroups` powers stable
+  // per-jurisdiction totals (rail counts + review dots + the selected
+  // group's header chips / scoped progress + entity stats), independent
+  // of the active scope/entity filter.
+  const tierLabels = useRuleTierLabels()
+  const unfilteredGroups = useMemo(() => buildGroups(rules, coverageRows), [rules, coverageRows])
+  const railItems = useMemo<RailJurisdiction[]>(
+    () =>
+      unfilteredGroups.map((g) => ({
+        jurisdiction: g.jurisdiction,
+        label: g.label,
+        ruleCount: g.ruleCount,
+        reviewCount: g.pendingReviewCount,
+      })),
+    [unfilteredGroups],
+  )
+  const [railSearch, setRailSearch] = useState('')
+  // Validate the URL param against real jurisdictions — an unknown
+  // code falls back to the All overview rather than an empty pane.
+  const activeJurisdiction = useMemo(
+    () =>
+      jurisdictionParam && unfilteredGroups.some((g) => g.jurisdiction === jurisdictionParam)
+        ? jurisdictionParam
+        : null,
+    [jurisdictionParam, unfilteredGroups],
+  )
+  const selectedGroup = useMemo(
+    () => unfilteredGroups.find((g) => g.jurisdiction === activeJurisdiction) ?? null,
+    [unfilteredGroups, activeJurisdiction],
+  )
+  // Rules for the selected jurisdiction's flat table — filtered by the
+  // active scope (active/review/archived) + entity + rule search.
+  // 'missing' scope shows gap rows only (handled in the render).
+  const jurisdictionTableRules = useMemo(() => {
+    if (!selectedGroup || activeScope === 'missing') return []
+    let result = selectedGroup.rules
+    if (activeEntity) result = result.filter((r) => r.entityApplicability.includes(activeEntity))
+    if (activeScope === 'active') {
+      result = result.filter((r) => r.status === 'active' || r.status === 'verified')
+    } else if (activeScope === 'review') {
+      result = result.filter((r) => statusGroupOf(r.status) === 'needs_review')
+    } else if (activeScope === 'archived') {
+      result = result.filter((r) => statusGroupOf(r.status) === 'archived')
+    }
+    const q = (search ?? '').trim().toLowerCase()
+    if (q) {
+      result = result.filter(
+        (r) =>
+          r.title.toLowerCase().includes(q) ||
+          r.formName.toLowerCase().includes(q) ||
+          r.taxType.toLowerCase().includes(q),
+      )
+    }
+    return result
+  }, [selectedGroup, activeScope, activeEntity, search])
+  // Scoped progress-bar status counts for the selected jurisdiction.
+  const jurisdictionStatusCounts = useMemo<Record<RuleStatus, number> | null>(() => {
+    if (!selectedGroup) return null
+    const counts: Record<RuleStatus, number> = {
+      active: 0,
+      verified: 0,
+      pending_review: 0,
+      candidate: 0,
+      rejected: 0,
+      archived: 0,
+      deprecated: 0,
+    }
+    for (const rule of selectedGroup.rules) counts[rule.status] += 1
+    return counts
+  }, [selectedGroup])
+  // Scoped entity-chip stats for the selected jurisdiction. gap/review
+  // collapse to 0/1 since there's exactly one jurisdiction in scope.
+  const jurisdictionEntityStats = useMemo(() => {
+    if (!selectedGroup) return []
+    return ENTITY_KEYS.map((entity) => {
+      const cov = selectedGroup.coverage
+      const srcCov = selectedGroup.sourceCoverage
+      let gapCount = 0
+      let reviewCount = 0
+      if (cov && srcCov?.[entity] !== 'not_applicable') {
+        if (cov[entity] === 'none') gapCount = 1
+        else if (cov[entity] === 'review') reviewCount = 1
+      }
+      return { entity, count: selectedGroup.entityCounts[entity], gapCount, reviewCount }
+    })
+  }, [selectedGroup])
+  // Per-jurisdiction scope-tab counts (stable across tab toggles).
+  const jurisdictionTabCounts = useMemo(() => {
+    if (!selectedGroup || !jurisdictionStatusCounts) return null
+    return {
+      all: selectedGroup.ruleCount,
+      active: jurisdictionStatusCounts.active + jurisdictionStatusCounts.verified,
+      review: selectedGroup.pendingReviewCount,
+      archived: jurisdictionStatusCounts.archived + jurisdictionStatusCounts.deprecated,
+      missing: selectedGroup.gapEntities.length,
+    }
+  }, [selectedGroup, jurisdictionStatusCounts])
 
   // Expansion state — local to the page. Start collapsed and reset to
   // collapsed when the available jurisdiction set changes.
@@ -1639,171 +1698,198 @@ export function RulesLibraryRoute() {
     // bar + scope tabs + search + entity chips stay pinned above; only
     // the rule grid scrolls. `max-w-[1440px]` cap preserved so the
     // jurisdiction + entity matrix has room to breathe at desktop.
+    // 2026-06-04 (Yuqi rule-library master–detail pivot, Pencil HR6mK):
+    // two-pane layout — a left States rail (the navigation axis) drives
+    // a right detail pane. When a jurisdiction is selected the right
+    // pane shows a flat per-state table + scoped header chips / progress
+    // / entity stats; the "All jurisdictions" overview keeps today's
+    // grouped + paginated table. The rail is lg+ only — narrow viewports
+    // fall back to the overview pane full-width.
     <div
       className={cn(
-        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-8 pb-0 md:px-6 md:pb-0',
+        'mx-auto flex w-full max-w-page-expanded flex-col px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
         'xl:h-screen xl:overflow-hidden',
       )}
     >
-      {/* 2026-05-28 (Yuqi /rules/library polish — pill into header):
-          the "N rules need review" callout used to sit on its own
-          row below the title alongside the description paragraph.
-          Moved INTO the PageHeader title slot, inline with the
-          "N rules" count pill, so the two pieces of state
-          information ("total catalog size" + "queue waiting") read
-          as one phrase at the page anchor. Frees the strip below
-          to just carry the framing description. */}
-      <PageHeader
-        title={
-          <span className="inline-flex items-center gap-2">
-            <Trans>Rule library</Trans>
-            {!rulesQuery.isLoading ? (
-              // 2026-06-01: swapped hand-rolled count pill for Badge
-              // (variant="secondary" size="lg") — canonical
-              // PageHeader-title count chip.
-              <Badge variant="secondary" size="lg" className="tabular-nums">
-                <Plural value={totalRules} one="# rule" other="# rules" />
-              </Badge>
-            ) : null}
-            {!statsLoading && totalPendingReview > 0 ? (
-              <button
-                type="button"
-                onClick={() => void setScope('review')}
-                aria-label={t`Show rules needing review`}
-                className={cn(
-                  'inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium outline-none transition-colors focus-visible:ring-2',
-                  REVIEW_BORDER_CLS,
-                  REVIEW_BG_SOFT_CLS,
-                  REVIEW_TEXT_CLS,
-                  'hover:bg-[var(--color-util-colors-orange-100)] focus-visible:ring-[var(--color-util-colors-orange-200)]',
-                )}
-              >
-                <span aria-hidden className={cn('size-1.5 rounded-full', REVIEW_DOT_CLS)} />
-                <Plural
-                  value={totalPendingReview}
-                  one="# rule needs review"
-                  other="# rules need review"
-                />
-              </button>
-            ) : null}
-          </span>
-        }
-        actions={headerActions}
-      />
-
-      <p className="max-w-[720px] text-description leading-5 text-text-secondary">
-        <Trans>
-          These are the deadline rules that drive your client deadlines. Review and approve new
-          rules before they trigger reminders.
-        </Trans>
-      </p>
-
-      {/* Progress bar — completion meter (active LEFT / needs-review
-          RIGHT). Yuqi explicitly asked for this to stay at the top
-          ("把进度条放回来"). */}
-      <RuleReviewProgressBar
-        {...(statsLoading ? ({ loading: true } as const) : ({ statusCounts } as const))}
-      />
-
-      {/* Scope tabs — primary navigation axis. All / Active / Needs
-          review / Missing. Tab counts are pinned to the unfiltered
-          rules + groupsAll so badges stay stable as the user toggles
-          scopes (each tab is honest about what it'll show). */}
-      <ScopeTabBand
-        activeScope={activeScope}
-        totalAll={totalRules}
-        totalActive={totalActive}
-        totalReview={totalPendingReview}
-        totalMissing={totalGapEntities}
-        onChange={(next) => void setScope(next === 'all' ? null : next)}
-      />
-
-      {/* Filter row — entity-filter chips + collapsible search.
-          2026-05-26 (Yuqi follow-up): chips and search now share a
-          single row (`justify-between`). Search starts as a ghost
-          icon button and expands inline when clicked or `/` is
-          pressed. Matches /deadlines' compact filter band. */}
-      <div className="flex shrink-0 items-center justify-between gap-3">
-        {statsLoading ? (
-          <EntityChipRowSkeleton />
-        ) : (
-          <EntityChipRow
-            entityStats={entityStats}
-            activeEntity={activeEntity}
-            onSelect={(entity) => void setEntityFilter(entity)}
-            onClear={() => void setEntityFilter(null)}
-          />
-        )}
-        <RuleSearchControl
-          inputRef={searchInputRef}
-          value={search ?? ''}
-          open={searchOpen}
-          onOpenChange={setSearchOpen}
-          onChange={(next) => void setSearch(next || null)}
+      <div className="flex min-h-0 flex-1 gap-4">
+        <JurisdictionRail
+          items={railItems}
+          totalRuleCount={totalRules}
+          selected={activeJurisdiction}
+          onSelect={(jur) => void setJurisdiction(jur)}
+          search={railSearch}
+          onSearchChange={setRailSearch}
+          className="hidden lg:flex"
         />
-      </div>
 
-      {/* 2026-05-26 (Yuqi follow-up — move the visible card chrome
-          DOWN onto the table-container itself):
-            - Outer flex wrapper: lost its `rounded-md`, `border`,
-              `border-divider-subtle`. Now a plain `flex-1` shell;
-              the bordered card lives one level below.
-            - Inner rows-area: lost its `bg-background-default`.
-              No longer paints white; the table-container does that.
-            - Table primitive: gained `[&_[data-slot=table-container]]:`
-              chrome (rounded-md, border, bg) so the actual visible
-              card boundary now coincides with the table edge. This
-              avoids the layer-mismatch that was producing rounded-
-              corner white slivers above the thead.
-          The thead's `!bg-background-default-dimmed` sits inside
-          this new card. */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          {rulesQuery.isLoading || coverageQuery.isLoading ? (
-            <LoadingState />
-          ) : isSearching ? (
-            <SearchResultsTable
-              activeRuleId={ruleId}
-              rules={matchedRules}
-              query={searchLower}
-              onRuleClick={handleRuleClick}
-              focusedRowId={focusedRowId}
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          {selectedGroup ? (
+            <PageHeader
+              breadcrumbs={[{ label: t`Rule library`, to: '/rules/library' }]}
+              title={
+                <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                  <span>{selectedGroup.label}</span>
+                  <JurisdictionStatusChips
+                    reviewCount={selectedGroup.pendingReviewCount}
+                    activeCount={
+                      (jurisdictionStatusCounts?.active ?? 0) +
+                      (jurisdictionStatusCounts?.verified ?? 0)
+                    }
+                    sourcesHealthy
+                  />
+                </span>
+              }
+              actions={headerActions}
             />
-          ) : groups.length === 0 ? (
-            // 2026-05-26 (Yuqi rule library deferred batch — /clarify):
-            // first-time empty state hoisted OUT of the table chrome.
-            // Previously a bare "No rules and no coverage data yet."
-            // row sat inside the TableBody; CPAs landing here saw a
-            // sad empty table. Now we render the canonical EmptyState
-            // primitive (used by /deadlines, /clients, /alerts) with
-            // an icon, title, description, and two CTAs — Import from
-            // sources (primary, the federal/state catalog we maintain)
-            // + New rule (outline, manual entry).
-            activeScope === 'missing' ? (
-              <MissingRulesEmptyState onViewAll={() => void setScope(null)} />
-            ) : (
-              <RulesLibraryEmptyState onNewRule={openNewRule} />
-            )
           ) : (
-            <GroupedRulesTable
-              activeScope={activeScope}
-              activeRuleId={ruleId}
-              groups={groups}
-              expanded={expanded}
-              onToggle={toggleGroup}
-              onExpandAll={expandAll}
-              onCollapseAll={collapseAll}
-              onRuleClick={handleRuleClick}
-              onAddRule={handleAddRule}
-              selectedRuleIds={selectedRuleIds}
-              onToggleRuleSelection={toggleRuleSelection}
-              onToggleRulesSelection={toggleRulesSelection}
-              focusedRowId={focusedRowId}
-              totalGroupCount={totalGroupCount}
-              hasMoreGroups={hasMoreGroups}
-              onLoadMore={loadMoreGroups}
-            />
+            <>
+              <PageHeader
+                title={
+                  <span className="inline-flex items-center gap-2">
+                    <Trans>Rule library</Trans>
+                    {!rulesQuery.isLoading ? (
+                      <Badge variant="secondary" size="lg" className="tabular-nums">
+                        <Plural value={totalRules} one="# rule" other="# rules" />
+                      </Badge>
+                    ) : null}
+                    {!statsLoading && totalPendingReview > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => void setScope('review')}
+                        aria-label={t`Show rules needing review`}
+                        className={cn(
+                          'inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium outline-none transition-colors focus-visible:ring-2',
+                          REVIEW_BORDER_CLS,
+                          REVIEW_BG_SOFT_CLS,
+                          REVIEW_TEXT_CLS,
+                          'hover:bg-[var(--color-util-colors-orange-100)] focus-visible:ring-[var(--color-util-colors-orange-200)]',
+                        )}
+                      >
+                        <span aria-hidden className={cn('size-1.5 rounded-full', REVIEW_DOT_CLS)} />
+                        <Plural
+                          value={totalPendingReview}
+                          one="# rule needs review"
+                          other="# rules need review"
+                        />
+                      </button>
+                    ) : null}
+                  </span>
+                }
+                actions={headerActions}
+              />
+              <p className="max-w-[720px] text-description leading-5 text-text-secondary">
+                <Trans>
+                  These are the deadline rules that drive your client deadlines. Review and approve
+                  new rules before they trigger reminders.
+                </Trans>
+              </p>
+            </>
           )}
+
+          {/* Progress bar — completion meter. Scoped to the selected
+              jurisdiction when one is active. Yuqi explicitly asked for
+              this to stay ("把进度条放回来"). */}
+          <RuleReviewProgressBar
+            {...(statsLoading
+              ? ({ loading: true } as const)
+              : ({ statusCounts: jurisdictionStatusCounts ?? statusCounts } as const))}
+          />
+
+          {/* Scope tabs — All / Active / Requires review / Archive /
+              Missing. Counts scope to the selected jurisdiction when
+              one is active; otherwise pinned to the unfiltered catalog. */}
+          <ScopeTabBand
+            activeScope={activeScope}
+            totalAll={jurisdictionTabCounts ? jurisdictionTabCounts.all : totalRules}
+            totalActive={jurisdictionTabCounts ? jurisdictionTabCounts.active : totalActive}
+            totalReview={jurisdictionTabCounts ? jurisdictionTabCounts.review : totalPendingReview}
+            totalArchived={jurisdictionTabCounts ? jurisdictionTabCounts.archived : totalArchived}
+            totalMissing={jurisdictionTabCounts ? jurisdictionTabCounts.missing : totalGapEntities}
+            onChange={(next) => void setScope(next === 'all' ? null : next)}
+          />
+
+          {/* Filter row — entity-filter chips + collapsible search.
+              Chips scope to the selected jurisdiction when one is
+              active. */}
+          <div className="flex shrink-0 items-center justify-between gap-3">
+            {statsLoading ? (
+              <EntityChipRowSkeleton />
+            ) : (
+              <EntityChipRow
+                entityStats={selectedGroup ? jurisdictionEntityStats : entityStats}
+                activeEntity={activeEntity}
+                onSelect={(entity) => void setEntityFilter(entity)}
+                onClear={() => void setEntityFilter(null)}
+              />
+            )}
+            <RuleSearchControl
+              inputRef={searchInputRef}
+              value={search ?? ''}
+              open={searchOpen}
+              onOpenChange={setSearchOpen}
+              onChange={(next) => void setSearch(next || null)}
+            />
+          </div>
+
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+              {rulesQuery.isLoading || coverageQuery.isLoading ? (
+                <LoadingState />
+              ) : selectedGroup ? (
+                // Selected jurisdiction → flat per-state table.
+                <JurisdictionRuleTable
+                  rules={jurisdictionTableRules}
+                  jurisdictionLabel={selectedGroup.label}
+                  gapEntities={selectedGroup.gapEntities}
+                  showGaps={activeScope === 'missing'}
+                  tierLabels={tierLabels}
+                  selectedRuleIds={selectedRuleIds}
+                  onToggleRuleSelection={toggleRuleSelection}
+                  onToggleRulesSelection={toggleRulesSelection}
+                  focusedRowId={focusedRowId}
+                  onRuleClick={handleRuleClick}
+                  onAddRule={(entity) =>
+                    setNewRuleSeed({ jurisdiction: selectedGroup.jurisdiction, entity })
+                  }
+                />
+              ) : isSearching ? (
+                // All overview + active rule search → flat global results.
+                <SearchResultsTable
+                  activeRuleId={ruleId}
+                  rules={matchedRules}
+                  query={searchLower}
+                  onRuleClick={handleRuleClick}
+                  focusedRowId={focusedRowId}
+                />
+              ) : groups.length === 0 ? (
+                activeScope === 'missing' ? (
+                  <MissingRulesEmptyState onViewAll={() => void setScope(null)} />
+                ) : (
+                  <RulesLibraryEmptyState onNewRule={openNewRule} />
+                )
+              ) : (
+                // All overview → grouped jurisdiction table (infinite scroll).
+                <GroupedRulesTable
+                  activeScope={activeScope}
+                  activeRuleId={ruleId}
+                  groups={groups}
+                  expanded={expanded}
+                  onToggle={toggleGroup}
+                  onExpandAll={expandAll}
+                  onCollapseAll={collapseAll}
+                  onRuleClick={handleRuleClick}
+                  onAddRule={handleAddRule}
+                  selectedRuleIds={selectedRuleIds}
+                  onToggleRuleSelection={toggleRuleSelection}
+                  onToggleRulesSelection={toggleRulesSelection}
+                  focusedRowId={focusedRowId}
+                  totalGroupCount={totalGroupCount}
+                  hasMoreGroups={hasMoreGroups}
+                  onLoadMore={loadMoreGroups}
+                />
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1874,13 +1960,14 @@ export function RulesLibraryRoute() {
 // retired StatsBar; the multi-color treatment is preserved by
 // re-applying it to `RuleReviewProgressBar` (which now consumes
 // `statusCounts` directly — see the bar implementation below).
-type ScopeKey = 'all' | 'active' | 'review' | 'missing'
+type ScopeKey = 'all' | 'active' | 'review' | 'archived' | 'missing'
 
 function ScopeTabBand({
   activeScope,
   totalAll,
   totalActive,
   totalReview,
+  totalArchived,
   totalMissing,
   onChange,
 }: {
@@ -1888,14 +1975,19 @@ function ScopeTabBand({
   totalAll: number
   totalActive: number
   totalReview: number
+  totalArchived: number
   totalMissing: number
   onChange: (scope: ScopeKey) => void
 }) {
   const { t } = useLingui()
+  // 2026-06-04 (Yuqi master–detail pivot, Pencil HR6mK): added the
+  // Archive tab so the band reads All · Active · Requires review ·
+  // Archive · Missing, matching the design's per-jurisdiction tabs.
   const tabs: Array<{ key: ScopeKey; label: string; count: number }> = [
     { key: 'all', label: t`All`, count: totalAll },
     { key: 'active', label: t`Active`, count: totalActive },
-    { key: 'review', label: t`Needs review`, count: totalReview },
+    { key: 'review', label: t`Requires review`, count: totalReview },
+    { key: 'archived', label: t`Archive`, count: totalArchived },
     { key: 'missing', label: t`Missing`, count: totalMissing },
   ]
   // 2026-05-26 (Yuqi follow-up — "Deadlines's Status scopes
