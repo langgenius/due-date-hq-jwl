@@ -1918,6 +1918,10 @@ msgid "All systems operational"
 msgstr "所有系统运行正常"
 
 #: src/features/alerts/AlertsListPage.tsx
+msgid "All tax areas"
+msgstr "全部税务领域"
+
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 msgid "All time"
 msgstr "全部时间"
@@ -2515,6 +2519,10 @@ msgstr "批量审核操作"
 #: src/features/opportunities/opportunities-page.tsx
 msgid "Business guidance queue"
 msgstr "业务提示队列"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Business income"
+msgstr "企业所得税"
 
 #: src/routes/login.tsx
 msgid "By signing in you agree to the <termsLink>Terms</termsLink> and <privacyLink>Privacy Policy</privacyLink>."
@@ -5549,6 +5557,10 @@ msgid "Filter by state"
 msgstr "按州筛选"
 
 #: src/features/alerts/AlertsListPage.tsx
+msgid "Filter by tax area"
+msgstr "按税务领域筛选"
+
+#: src/features/alerts/AlertsListPage.tsx
 msgid "Filter by time range"
 msgstr "按时间范围筛选"
 
@@ -5784,6 +5796,10 @@ msgstr "表单目录"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Forms the rule library can add without a new deadline"
 msgstr "规则库可在不新增截止日期的情况下添加的表单"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Franchise & fees"
+msgstr "特许经营税与规费"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Free text"
@@ -6188,6 +6204,14 @@ msgstr "包含联邦"
 msgid "Individual"
 msgstr "个人"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Individual income"
+msgstr "个人所得税"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Information"
+msgstr "信息申报"
+
 #: src/features/obligations/obligation-type.ts
 msgid "Information return"
 msgstr "信息申报"
@@ -6564,10 +6588,15 @@ msgstr "LLC"
 msgid "Load"
 msgstr "负载"
 
+#: src/features/alerts/AlertsListPage.tsx
 #: src/routes/rules.library.tsx
 #, fuzzy
 msgid "Load more"
 msgstr "负载"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Load more alerts"
+msgstr "加载更多提醒"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Loading alerts…"
@@ -6657,6 +6686,7 @@ msgid "loading…"
 msgstr "加载中…"
 
 #: src/components/patterns/alerts-notifications-bell.tsx
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 msgid "Loading…"
 msgstr "加载中…"
@@ -8939,6 +8969,10 @@ msgstr "付款仍需在原始截止日前完成"
 msgid "Payments and credits"
 msgstr "付款和抵免"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Payroll"
+msgstr "薪资预扣"
+
 #: src/routes/obligations.tsx
 msgid "PDF report"
 msgstr "PDF 报告"
@@ -10671,6 +10705,10 @@ msgstr "S 公司"
 msgid "S Corporation"
 msgstr "S 型公司"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Sales & use"
+msgstr "销售与使用税"
+
 #: src/routes/billing.tsx
 msgid "Same AI capability as Pro"
 msgstr "与 Pro 相同的 AI 能力"
@@ -12011,6 +12049,10 @@ msgstr "系统通知"
 #: src/features/audit/audit-log-labels.ts
 msgid "Target filing year"
 msgstr "目标申报年度"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Tax area"
+msgstr "税务领域"
 
 #: src/features/obligations/queue/components/panels.tsx
 msgid "Tax period"
@@ -13537,39 +13579,3 @@ msgstr "邮编"
 #: src/features/migration/Step1Intake.tsx
 msgid "ZIP or CSV"
 msgstr "ZIP 或 CSV"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Tax area"
-msgstr "税务领域"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "All tax areas"
-msgstr "全部税务领域"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Individual income"
-msgstr "个人所得税"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Business income"
-msgstr "企业所得税"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Sales & use"
-msgstr "销售与使用税"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Payroll"
-msgstr "薪资预扣"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Franchise & fees"
-msgstr "特许经营税与规费"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Information"
-msgstr "信息申报"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Filter by tax area"
-msgstr "按税务领域筛选"
