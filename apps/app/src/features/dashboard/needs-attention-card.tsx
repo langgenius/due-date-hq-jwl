@@ -236,7 +236,7 @@ function NeedsAttentionCard({
                   the same h-6. Soft gray fill gives the pill
                   presence without eating internal space — both
                   pills now read as equal-weight colored chips. */}
-          <span className="inline-flex h-6 shrink-0 items-center gap-1 rounded-[4px] bg-background-section px-1.5">
+          <span className="inline-flex h-6 shrink-0 cursor-pointer items-center gap-1 rounded-[4px] bg-background-section px-1.5">
             <StateBadge code={alert.jurisdiction} size="xs" />
             <span className="text-[10px] font-semibold tracking-[0.4px] text-text-secondary uppercase">
               {alert.jurisdiction}
