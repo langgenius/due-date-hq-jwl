@@ -19,26 +19,10 @@ import {
   rangeSelectionUpdate,
   reviewPipelineCurrent,
   selectionHeaderState,
+  urgencyBandOf,
+  URGENCY_BAND_ORDER,
   willReadinessChecklistBeFullyReceived,
-} from '@/features/obligations/queue/helpers'
-
-// 2026-06-05 (merge with origin/main): origin/main's queue extraction
-// dropped `urgencyBandOf` and `URGENCY_BAND_ORDER` from the public
-// `queue/helpers` API — the band logic now lives inline inside the
-// queue rendering code. The `urgency band derivation` describe block
-// below is `describe.skip`'d because its helpers are no longer
-// importable. Keep the block (rather than deleting) so a future
-// engineer restoring band tests can see exactly the boundary
-// contract the urgency-band table cherry-pick (3f4940cd → 77979882)
-// shipped. The throwing stubs below let TypeScript typecheck the
-// skipped body without resolving the missing helpers.
-const urgencyBandOf: (
-  row: { currentDueDate: string; daysUntilDue: number; extensionInternalTargetDate: string | null },
-  asOf: string,
-) => 'overdue' | 'this_week' | 'upcoming' = () => {
-  throw new Error('urgencyBandOf was removed by origin/main queue extraction')
-}
-const URGENCY_BAND_ORDER: readonly ('overdue' | 'this_week' | 'upcoming')[] = []
+} from './obligations'
 
 describe('obligations quick filters', () => {
   const defaultDetailSearchState = {
@@ -61,21 +45,18 @@ describe('obligations quick filters', () => {
     daysMin: null,
     daysMax: null,
     asOf: null,
-    // 2026-06-05 (merge with origin/main): origin/main's queue
-    // extraction repinned the canonical defaults — `DEFAULT_SORT` is
-    // back to `'smart_priority'` (queue/constants.ts:49),
-    // `DEFAULT_GROUP` is `'due'` (line 71), and
-    // `DEFAULT_HIDDEN_COLUMN_IDS` restored `'clientState'` to the
-    // hidden set (line 153) because state-column duty moved
-    // elsewhere. The contract these tests verify — helpers DROP
-    // defaults from the URL — still holds; the seed has to match
-    // *current* defaults exactly.
-    sort: 'smart_priority' as const,
+    // 2026-06-05 (post-merge regression fix): the urgency-band table
+    // recreation (3f4940cd → 77979882) repinned the queue defaults to
+    // due_asc / urgency / a leaner hidden-column set (no clientState,
+    // since STATE is now a primary column). Keeping the test seed in
+    // sync with `DEFAULT_SORT` / `DEFAULT_GROUP` / `DEFAULT_HIDDEN_COLUMN_IDS`
+    // in obligations.tsx is the whole point — these tests verify that
+    // helpers DROP defaults from the URL.
+    sort: 'due_asc' as const,
     density: 'comfortable' as const,
-    group: 'due' as const,
+    group: 'urgency' as const,
     hide: [
       'smartPriority',
-      'clientState',
       'clientCounty',
       'dueDateExact',
       'daysUntilDue',
@@ -341,7 +322,7 @@ describe('internal due date queue display', () => {
   })
 })
 
-describe.skip('urgency band derivation', () => {
+describe('urgency band derivation', () => {
   // 2026-06-04 (Yuqi h4bQ2): bands group the /deadlines table by the
   // INTERNAL (effective) due date. Boundaries: <0 overdue, 0..7 this
   // week, >7 upcoming.

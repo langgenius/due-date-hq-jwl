@@ -1,6 +1,6 @@
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 
-import { alertImpactLevel, type ImpactLevel } from '../lib/impact-level'
+import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
 /**
  * # Canonical TABLE / LIST chrome guideline
@@ -73,27 +73,58 @@ import { alertImpactLevel, type ImpactLevel } from '../lib/impact-level'
  */
 
 /**
- * Impact badge for the card's top-left meta row. The id is the REAL
- * client-impact level (`alertImpactLevel` — how many obligations the
- * firm has riding on this Pulse), NOT AI confidence. Colors: high
- * impact → destructive red, medium → amber, low / none → success
- * green.
+ * Map the AI confidence score to a severity tier. PulseAlertPublic
+ * doesn't carry an explicit severity field, so the confidence ladder
+ * (canonical `aiConfidenceTier` helper) drives it: low confidence
+ * surfaces as HIGH IMPACT urgency (the model is unsure, so a CPA
+ * should review), high confidence is LOW IMPACT (the model is
+ * confident, no urgency), medium sits between.
  *
- * 2026-06-05: replaced `severityFromConfidence`. The old helper mapped
- * INVERTED AI confidence onto an "IMPACT" label (low confidence →
- * "HIGH IMPACT"), conflating model uncertainty with client impact.
- * Impact now means impact; confidence keeps its own surfaces (the
- * pulsing-dot tone, the drawer confidence pill, the low-confidence
- * banner). Colors mirror Pencil's `l6Xgs` amber (#FEF3C7 / #92400E)
- * plus the canonical destructive (red) and success (green) pairs.
+ * Colors mirror Pencil's `l6Xgs` amber (#FEF3C7 / #92400E) plus
+ * the canonical destructive (red) and success (green) pairs from
+ * the same palette family.
  */
-export type SeverityId = ImpactLevel
+export type SeverityId = 'low' | 'medium' | 'high'
+export function severityFromConfidence(confidence: number): {
+  id: SeverityId
+  bg: string
+  text: string
+} {
+  const tier = aiConfidenceTier(confidence)
+  // 2026-06-04 round 47 (Yuqi — "low impact we don't need green
+  // indicator. only high impact needs"): only HIGH IMPACT keeps a
+  // color-fill indicator. MEDIUM/LOW stay neutral gray.
+  //
+  // 2026-06-04 round 58 (Yuqi Pencil X3j4nt — "update today's alert
+  // card to X3j4nt"): HIGH IMPACT color flipped from destructive
+  // red (`#FEE4E2` / `#9F1239`) to X3j4nt's amber (`#ffe3d6` /
+  // `#92400E`). Reads as "watch out" without crossing into the
+  // destructive register reserved for errors / overdue states.
+  if (tier === 'low') return { id: 'high', bg: '#ffe3d6', text: '#92400E' }
+  if (tier === 'medium') return { id: 'medium', bg: '#f2f4f7', text: '#475467' }
+  return { id: 'low', bg: '#f2f4f7', text: '#475467' }
+}
+
+/**
+ * 2026-06-05 (merge with origin/main): origin/main introduced a
+ * count-based variant (`impactBadgeFromAlert`) that derives the tier
+ * from `matchedCount + needsReviewCount` rather than AI confidence.
+ * `AlertCard` and `PulseFormRevisedCard` consume the count-based
+ * variant; the rounds 70-85 surfaces (NeedsAttentionCard,
+ * PulseAlertRow, AlertDetailDrawer) stay on the confidence-based
+ * `severityFromConfidence` because that's what shipped with the
+ * round 58 X3j4nt amber palette + round 68 HIGH-only gate.
+ *
+ * Both helpers return the same `{ id, bg, text }` shape so a future
+ * consolidation pass can pick one — keeping both side-by-side until
+ * the user decides which model wins.
+ */
 export function impactBadgeFromAlert(
   alert: Pick<PulseAlertPublic, 'matchedCount' | 'needsReviewCount'>,
 ): { id: SeverityId; bg: string; text: string } {
-  const level = alertImpactLevel(alert)
-  if (level === 'high') return { id: 'high', bg: '#FEE4E2', text: '#9F1239' }
-  if (level === 'medium') return { id: 'medium', bg: '#FEF3C7', text: '#92400E' }
+  const total = alert.matchedCount + alert.needsReviewCount
+  if (total >= 25) return { id: 'high', bg: '#FEE4E2', text: '#9F1239' }
+  if (total >= 5) return { id: 'medium', bg: '#FEF3C7', text: '#92400E' }
   return { id: 'low', bg: '#D1FADF', text: '#054F31' }
 }
 

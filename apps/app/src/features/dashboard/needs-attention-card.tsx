@@ -8,17 +8,10 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { alertTone } from '@/features/alerts/alert-tone'
-// 2026-06-05 (merge with origin/main): origin/main re-added the
-// PulseSourceMeta import here because main's needs-attention-card
-// still rendered the canonical source row. Our round 81 retired
-// `<PulseSourceMeta>` in favor of an inline source treatment in
-// the subject block (`<ExternalLinkIcon>` + truncated label with
-// the URL on tooltip hover). We keep the inline treatment — the
-// JSX below does not call `<PulseSourceMeta>`, so the import is
-// intentionally omitted to keep `pnpm typecheck` from flagging it
-// as unused. If a future revision re-enables the canonical source
-// row, restore the `PulseSourceMeta` import along with it.
-import { impactBadgeFromAlert } from '@/features/alerts/components/pulse-alert-chrome'
+// PulseSourceMeta was retired from this card in round 81 — source
+// now renders inline in the subject block via `<ExternalLinkIcon>` +
+// truncated label with the URL on tooltip hover.
+import { severityFromConfidence } from '@/features/alerts/components/pulse-alert-chrome'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatRelativeTime } from '@/lib/utils'
@@ -180,17 +173,9 @@ function NeedsAttentionCard({
   // "has severity pill and state badge please"): mirror the
   // AlertCard severity-pill + StateBadge vocabulary so the
   // dashboard summary and the alerts list speak the same visual
-  // language. `impactBadgeFromAlert` is the shared helper from
+  // language. `severityFromConfidence` is the shared helper from
   // pulse-alert-chrome so the tier mapping stays canonical.
-  // 2026-06-05 (merge with origin/main): main switched the impact
-  // tier from confidence-based (`severityFromConfidence`) to
-  // count-based (`impactBadgeFromAlert(alert)`). New canonical
-  // direction — impact reflects actual matched + needs-review
-  // client counts, not how confident the model is. The colors
-  // round 58 specified for the HIGH tier (X3j4nt amber) were
-  // dropped in main's version too; keeping main's palette
-  // (`#FEE4E2` / `#9F1239`) so /today and /alerts agree.
-  const severity = impactBadgeFromAlert(alert)
+  const severity = severityFromConfidence(alert.confidence)
   // Pencil X3j4nt SeverityPill uses the BARE tier word ("HIGH"),
   // not the full "HIGH IMPACT" phrase. Drops 6 characters from a
   // 22px-tall pill, which makes a real visual difference at the
