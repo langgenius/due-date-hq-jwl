@@ -1,4 +1,4 @@
-import { ObligationQueueDetailDrawer } from '@/routes/obligations'
+import { ObligationQueueDetailDrawer } from '@/features/obligations/queue/ObligationQueueDetailDrawer'
 import type { ObligationQueueRow, ObligationQueueDetailTab } from '@duedatehq/contracts'
 
 /**
