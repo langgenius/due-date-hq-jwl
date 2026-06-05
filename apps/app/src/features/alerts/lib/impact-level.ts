@@ -7,11 +7,9 @@ import type { PulseAlertPublic } from '@duedatehq/contracts'
  * priority scorer uses for its `high_impact` reason, see
  * `scorePulsePriority` in @duedatehq/db.)
  *
- * This is the SINGLE SOURCE OF TRUTH for impact across:
- *   • the card badge (`impactBadgeFromAlert` in pulse-alert-chrome.ts)
- *   • the "highest impact" sort (AlertsListPage)
- *   • the Impact filter below
- * so all three always agree.
+ * Single source of truth for impact across the card badge
+ * (`impactBadgeFromAlert` in pulse-alert-chrome.ts) and the
+ * "highest impact" sort (AlertsListPage), so the two always agree.
  *
  * 2026-06-05: replaces the old confidence-derived "severity" badge,
  * which mislabeled INVERTED AI confidence as IMPACT (low confidence →
@@ -33,19 +31,4 @@ export function alertImpactLevel(
   if (impacted >= 5) return 'high'
   if (impacted >= 2) return 'medium'
   return 'low'
-}
-
-export const ALERT_IMPACT_LEVEL_FILTER_OPTIONS = ['all', 'low', 'medium', 'high'] as const
-export type AlertImpactLevelFilter = (typeof ALERT_IMPACT_LEVEL_FILTER_OPTIONS)[number]
-
-export function isAlertImpactLevelFilter(value: string): value is AlertImpactLevelFilter {
-  return ALERT_IMPACT_LEVEL_FILTER_OPTIONS.some((option) => option === value)
-}
-
-export function matchesAlertImpactLevelFilter(
-  alert: Pick<PulseAlertPublic, 'matchedCount' | 'needsReviewCount'>,
-  filter: AlertImpactLevelFilter,
-): boolean {
-  if (filter === 'all') return true
-  return alertImpactLevel(alert) === filter
 }

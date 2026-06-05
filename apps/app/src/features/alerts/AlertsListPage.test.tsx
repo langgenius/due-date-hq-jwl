@@ -334,19 +334,8 @@ describe('AlertsListPage tax area filter', () => {
   })
 })
 
-describe('AlertsListPage impact filter', () => {
-  it('exposes the Impact (low/medium/high) filter on the active surface', async () => {
-    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [listAlert()], nextCursor: null })
-
-    await render(<AlertsListPage embedded />)
-
-    await waitForText('Seeded CA relief')
-    expect(document.querySelector('[aria-label="Filter by impact level"]')).not.toBeNull()
-  })
-})
-
 describe('AlertsListPage status filter scope', () => {
-  it('hides Status on the active surface (now covered by Severity + Impact)', async () => {
+  it('hides Status on the active surface (redundant with Severity)', async () => {
     rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [listAlert()], nextCursor: null })
 
     await render(<AlertsListPage embedded />)

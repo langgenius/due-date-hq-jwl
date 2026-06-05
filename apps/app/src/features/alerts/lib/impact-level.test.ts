@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 
-import { alertImpactLevel, matchesAlertImpactLevelFilter } from './impact-level-filter'
+import { alertImpactLevel } from './impact-level'
 
 function alert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic {
   return {
@@ -52,19 +52,5 @@ describe('alertImpactLevel', () => {
     expect(
       alertImpactLevel(alert({ confidence: 0.99, matchedCount: 9, needsReviewCount: 0 })),
     ).toBe('high')
-  })
-})
-
-describe('matchesAlertImpactLevelFilter', () => {
-  it('passes everything through when set to all', () => {
-    expect(matchesAlertImpactLevelFilter(alert({ matchedCount: 0 }), 'all')).toBe(true)
-    expect(matchesAlertImpactLevelFilter(alert({ matchedCount: 9 }), 'all')).toBe(true)
-  })
-
-  it('keeps only alerts whose computed level matches the pick', () => {
-    expect(matchesAlertImpactLevelFilter(alert({ matchedCount: 1 }), 'low')).toBe(true)
-    expect(matchesAlertImpactLevelFilter(alert({ matchedCount: 1 }), 'high')).toBe(false)
-    expect(matchesAlertImpactLevelFilter(alert({ matchedCount: 3 }), 'medium')).toBe(true)
-    expect(matchesAlertImpactLevelFilter(alert({ matchedCount: 6 }), 'high')).toBe(true)
   })
 })

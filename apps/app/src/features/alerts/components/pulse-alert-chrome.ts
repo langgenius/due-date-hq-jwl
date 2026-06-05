@@ -1,6 +1,6 @@
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 
-import { alertImpactLevel, type ImpactLevel } from '../lib/impact-level-filter'
+import { alertImpactLevel, type ImpactLevel } from '../lib/impact-level'
 
 /**
  * Shared chrome helpers for `PulseAlertCard` + `PulseFormRevisedCard`
