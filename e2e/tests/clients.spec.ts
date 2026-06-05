@@ -108,7 +108,15 @@ test.describe('seeded client facts', () => {
     await expect(
       authenticatedPage.getByRole('button', { name: 'Change owner — currently unassigned' }),
     ).toBeVisible()
-    await expect(authenticatedPage.getByText(/1 open filing/)).toBeVisible()
+    // The open-filing count surfaces on the detail header chip — a button
+    // labelled "View open filings for this client" whose visible text is
+    // "1 Open filing". (The Filing-plan year-group badge reads "1 projected
+    // filing" for the upcoming 2026 group under the e2e date anchor, so it is
+    // not the right target.) Scope to the button by its stable accessible name
+    // and assert the count text with flexible whitespace + case.
+    await expect(
+      authenticatedPage.getByRole('button', { name: 'View open filings for this client' }),
+    ).toContainText(/1\s*open filing/i)
     // IA redesign renamed the four detail tabs (URL keys unchanged):
     //   work → "Filing plan", info → "Setup",
     //   opportunities → "Opportunities", activity → "History"

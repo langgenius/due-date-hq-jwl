@@ -71,6 +71,7 @@ export interface FirmBillingSubscriptionRow {
 function normalizeRole(value: string): FirmRole {
   switch (value) {
     case 'owner':
+    case 'partner':
     case 'manager':
     case 'preparer':
     case 'coordinator':
