@@ -15,12 +15,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-import type {
-  PulseAffectedClient,
-  PulseAlertPublic,
-  PulseChangeKind,
-  PulseSourceHealth,
-} from '@duedatehq/contracts'
+import type { PulseAffectedClient, PulseAlertPublic, PulseSourceHealth } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -77,6 +72,7 @@ import {
   HISTORY_STATUS_FILTER_OPTIONS,
   isChangeKindFilter,
   isStatusFilter,
+  matchesChangeKindFilter,
   matchesStatusFilter,
   sourceLabel,
   type AlertChangeKindFilter,
@@ -248,7 +244,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       (alert) =>
         matchesAlertImpactFilter(alert, impactFilter) &&
         matchesStatusFilter(alert.status, effectiveStatusFilter) &&
-        (changeKindFilter === 'all' || alert.changeKind === changeKindFilter) &&
+        matchesChangeKindFilter(alert.changeKind, changeKindFilter) &&
         (sourceFilter === 'all' || alert.source === sourceFilter) &&
         (jurisdictionFilter === null || alert.jurisdiction === jurisdictionFilter) &&
         (cutoffMs === null || new Date(alert.publishedAt).getTime() >= cutoffMs) &&
@@ -1224,20 +1220,14 @@ function statusFilterLabel(filter: AlertStatusFilter, historyMode: boolean): Rea
   )
 }
 
+// Filter dropdown labels. These name the four collapsed buckets defined by
+// `CHANGE_KIND_FILTER_GROUP_MEMBERS`, not the nine underlying kinds — the
+// per-card chip (`PulseChangeKindChip`) still names the precise kind.
 function changeKindFilterLabel(filter: AlertChangeKindFilter): React.ReactNode {
   if (filter === 'all') return <Trans>All change types</Trans>
-  return changeKindLabel(filter)
-}
-
-function changeKindLabel(kind: PulseChangeKind): React.ReactNode {
-  if (kind === 'deadline_shift') return <Trans>Deadline shifts</Trans>
-  if (kind === 'filing_requirement') return <Trans>Filing requirements</Trans>
-  if (kind === 'applicability_scope') return <Trans>Applicability scope</Trans>
-  if (kind === 'form_instruction') return <Trans>Forms and instructions</Trans>
-  if (kind === 'source_status') return <Trans>Source status</Trans>
-  if (kind === 'rule_source_drift') return <Trans>Source changed — re-verify</Trans>
-  if (kind === 'new_obligation') return <Trans>New deadlines</Trans>
-  if (kind === 'threshold_advisory') return <Trans>Threshold advisories</Trans>
+  if (filter === 'deadlines') return <Trans>Deadlines</Trans>
+  if (filter === 'rules') return <Trans>Rules & forms</Trans>
+  if (filter === 'source') return <Trans>Source updates</Trans>
   return <Trans>Other changes</Trans>
 }
 
