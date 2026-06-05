@@ -1,6 +1,6 @@
 import { AlertCircleIcon, PlusIcon, RotateCwIcon, UploadIcon } from 'lucide-react'
 import { useMemo } from 'react'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
 import { useNavigate } from 'react-router'
@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { formatRelativeTime } from '@/lib/utils'
 
 import type {
+  DashboardBriefScope,
   DashboardDueBucket,
   DashboardEvidenceFilter,
   DashboardLoadInput,
@@ -21,6 +22,7 @@ import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { DashboardActionsList } from '@/features/dashboard/actions-list'
+import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
 // 2026-05-27 (Yuqi feedback round 1): import retained but commented out
 // alongside the section mount. Restore both when ChangesSinceLastSection
 // is brought back.
@@ -77,6 +79,12 @@ const dashboardSearchParamsParsers = {
   evidence: parseAsArrayOf(parseAsStringLiteral(DASHBOARD_EVIDENCE_FILTERS))
     .withDefault([])
     .withOptions(REPLACE_HISTORY_OPTIONS),
+  // Daily-brief scope. `firm` (whole practice) is the default; `me`
+  // narrows the AI brief to the current user's obligations. Persisted in
+  // the URL so the choice survives refresh and is shareable.
+  brief: parseAsStringLiteral(['firm', 'me'] as const satisfies readonly DashboardBriefScope[])
+    .withDefault('firm')
+    .withOptions(REPLACE_HISTORY_OPTIONS),
 } as const
 
 function cleanStringFilters(values: readonly string[]): string[] {
@@ -106,8 +114,11 @@ export function DashboardRoute() {
   // canonical workspace; dashboard's job is to send you there with
   // the right obligation already selected.
   const { openDrawer: openObligationDrawer } = useObligationDrawer()
-  const [{ asOfDate, client, taxType, due, status: statusFilter, severity, evidence }] =
-    useQueryStates(dashboardSearchParamsParsers)
+  const [
+    { asOfDate, client, taxType, due, status: statusFilter, severity, evidence, brief: briefScope },
+    setDashboardParams,
+  ] = useQueryStates(dashboardSearchParamsParsers)
+  const queryClient = useQueryClient()
   const dashboardAsOfDate = ISO_DATE_RE.test(asOfDate) ? asOfDate : null
   const clientQuery = useMemo(() => cleanEntityIdFilters(client), [client])
   const taxTypeQuery = useMemo(() => cleanStringFilters(taxType), [taxType])
@@ -121,13 +132,36 @@ export function DashboardRoute() {
       ...(statusFilter.length > 0 ? { status: statusFilter } : {}),
       ...(severity.length > 0 ? { severity } : {}),
       ...(evidence.length > 0 ? { evidence } : {}),
+      briefScope,
     }),
-    [clientQuery, dashboardAsOfDate, due, evidence, severity, statusFilter, taxTypeQuery],
+    [
+      briefScope,
+      clientQuery,
+      dashboardAsOfDate,
+      due,
+      evidence,
+      severity,
+      statusFilter,
+      taxTypeQuery,
+    ],
   )
   const dashboardQuery = useQuery({
     ...orpc.dashboard.load.queryOptions({ input: dashboardTableInput }),
     placeholderData: keepPreviousData,
+    // Poll while the AI brief is still generating so the card flips from
+    // "Generating…" to the narrative without a manual refresh.
+    refetchInterval: (query) => (query.state.data?.brief?.status === 'pending' ? 4000 : false),
   })
+  const requestBriefRefresh = useMutation(
+    orpc.dashboard.requestBriefRefresh.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
+      },
+      onError: (error) => {
+        toast.error(rpcErrorMessage(error) ?? t`Couldn't regenerate the brief. Try again.`)
+      },
+    }),
+  )
   // 2026-05-29 (Yuqi /today follow-up — "empty state: no clients vs no
   // deadlines"): a `totalOpen === 0` page used to render a single
   // "No deadlines yet, import clients" CTA. That copy was right for
@@ -438,6 +472,19 @@ export function DashboardRoute() {
           file kept (changes-since-last-section.tsx) for future
           revisit. Restore by uncommenting the line below. */}
       {/* <ChangesSinceLastSection /> */}
+
+      {/* Daily brief — server-generated AI narrative of the day with
+          citations that deep-link each claim back to its obligation.
+          `dashboard.load` already returns `brief`; the card renders
+          null when none exists (feature-off firms). */}
+      <DailyBriefCard
+        brief={data?.brief ?? null}
+        scope={briefScope}
+        onScopeChange={(scope) => void setDashboardParams({ brief: scope })}
+        onRefresh={() => requestBriefRefresh.mutate({ scope: briefScope })}
+        refreshing={requestBriefRefresh.isPending}
+        onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
+      />
 
       <NeedsAttentionSection />
 
