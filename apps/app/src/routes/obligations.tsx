@@ -3365,14 +3365,17 @@ export function ObligationQueueRoute() {
         // 16px of dead space below the drawer's sticky footer + the
         // table pagination — neither the drawer nor the table footer
         // could pin to the actual viewport bottom. Now flush.
-        // 2026-05-26 (Yuqi seventy-fourth pass — canonical
-        // container padding): aligned `md:px-5` → `md:px-6` to
-        // match /today + /clients + /alerts + /rules/library.
-        // `pb-0` retained — /deadlines has a sticky pagination
-        // footer that needs to ride flush to the viewport bottom.
-        // `gap-4` retained too: dense table page intentionally
-        // tighter than the gap-6 used by header-heavy pages.
-        'mx-auto flex w-full max-w-page-expanded flex-col gap-4 px-4 pt-8 pb-0 md:px-6 md:pb-0',
+        // 2026-06-05 (Yuqi DS alignment — "page wrapper should be the
+        // same" as /today + /alerts): wrapper realigned to /today's
+        // exact pattern — `gap-8 pt-6 md:px-16 md:pt-6` (was
+        // `gap-4 pt-8 md:px-6`). The earlier "dense table needs
+        // tighter gap-4" intentional deviation is dropped. `pb-12`
+        // / `md:pb-12` matches /today's vertical breathing room at
+        // standard viewport heights. The `xl:` overrides below keep
+        // the legacy sticky-pagination behavior at xl+ widths
+        // intact: `xl:pb-0` so the pagination footer rides flush at
+        // tall viewports where the queue fills the screen.
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-6 pb-12 md:px-16 md:pt-6 md:pb-12',
         'xl:h-screen xl:overflow-hidden xl:pb-0',
       )}
     >
@@ -4252,7 +4255,15 @@ export function ObligationQueueRoute() {
                     kept because /deadlines columns carry longer
                     multi-word content (client name, why-now) that
                     benefits from wrapping. */}
-                <Table className="rounded-none border-0 [&_th]:!whitespace-normal [&_td]:!whitespace-normal [&_td]:!align-middle [&_td]:break-words">
+                {/* 2026-06-05 (Yuqi DS alignment — "row text size should
+                    be the same" as /today's 13px ActionsTable body):
+                    add `[&_td]:text-[13px]` to the cell prefix so every
+                    body cell renders at the same 13px scale as
+                    /today's ActionsTable + /alerts' AlertCard body
+                    text. The earlier "14px for dense queue" intentional
+                    deviation is dropped — design-system consistency
+                    wins over per-row density bias. */}
+                <Table className="rounded-none border-0 [&_th]:!whitespace-normal [&_td]:!whitespace-normal [&_td]:!align-middle [&_td]:break-words [&_td]:text-[13px]">
                   {/* 2026-06-04 (Yuqi infinite scroll): header pinned to
                       the top of the scroll container so column labels stay
                       visible as the buffer scrolls. `bg-background-section`
