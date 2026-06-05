@@ -108,8 +108,25 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
               ? t`Partially applied`
               : t`Reverted`
 
+  const handleCardKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onReview()
+    }
+  }
+
   return (
+    // Whole-card click parity with AlertCard — this form_instruction
+    // variant renders in place of AlertCard, so it must carry the same
+    // button semantics (role / tabIndex / onClick / keyboard). Without
+    // them only the small "Review →" link is reachable and the card body
+    // reads as clickable but isn't.
     <article
+      role="button"
+      tabIndex={0}
+      aria-label={t`Alert: ${alert.title}`}
+      onClick={onReview}
+      onKeyDown={handleCardKeyDown}
       className={cn(
         // Outer chrome — Pencil ZkXFr exactly.
         //   • cornerRadius 16 → rounded-2xl
@@ -117,7 +134,8 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
         //   • outer gap 8 → gap-2 between c4OFh / eMmjH / iKzA1
         //   • stroke disabled → no border
         //   • bg #ffffff → bg-background-default
-        'flex flex-col gap-2 overflow-hidden rounded-2xl bg-background-default p-5',
+        'flex cursor-pointer flex-col gap-2 overflow-hidden rounded-2xl bg-background-default p-5',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
         className,
       )}
     >
@@ -285,7 +303,12 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
           </div>
           <button
             type="button"
-            onClick={onReview}
+            onClick={(event) => {
+              // Card-level onClick already calls onReview; stop the
+              // bubble so the button doesn't fire it a second time.
+              event.stopPropagation()
+              onReview()
+            }}
             className="text-xs font-semibold text-text-accent outline-none transition-colors hover:underline focus-visible:underline"
           >
             <Trans>Review →</Trans>
