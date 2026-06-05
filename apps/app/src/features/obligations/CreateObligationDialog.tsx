@@ -655,8 +655,14 @@ function SuggestionMultiSelect<TOption extends SuggestionOption>({
                           key={option.value}
                           value={[option.label, option.description ?? ''].join(' ')}
                           onSelect={() => toggleValue(option.value)}
-                          className="grid-cols-[minmax(0,1fr)_auto]"
+                          className="grid-cols-[auto_minmax(0,1fr)] items-start"
                         >
+                          <Checkbox
+                            checked={selected}
+                            tabIndex={-1}
+                            aria-hidden
+                            className="pointer-events-none mt-0.5"
+                          />
                           <span className="min-w-0">
                             <span className="block truncate text-sm font-medium text-text-primary">
                               {option.label}
@@ -667,13 +673,6 @@ function SuggestionMultiSelect<TOption extends SuggestionOption>({
                               </span>
                             ) : null}
                           </span>
-                          <CheckIcon
-                            className={cn(
-                              'size-4 text-text-accent',
-                              selected ? 'opacity-100' : 'opacity-0',
-                            )}
-                            aria-hidden
-                          />
                         </CommandItem>
                       )
                     })}
