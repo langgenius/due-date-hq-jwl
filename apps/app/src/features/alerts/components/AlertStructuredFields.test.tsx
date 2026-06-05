@@ -53,6 +53,7 @@ function reviewOnlyDetail(overrides: Partial<PulseDetail> = {}): PulseDetail {
       isSample: true,
       jurisdiction: 'NY',
       taxAreas: ['income_business'],
+      forms: ['IT-204', 'CT-3'],
     },
     jurisdiction: 'NY',
     counties: [],

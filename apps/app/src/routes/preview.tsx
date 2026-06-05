@@ -354,6 +354,7 @@ const MOCK_PULSE_ALERT: PulseAlertPublic = {
   isSample: true,
   jurisdiction: 'CA',
   taxAreas: ['income_individual'],
+  forms: ['1040-ES'],
 }
 
 const MOCK_PULSE_ALERT_LOW_CONF: PulseAlertPublic = {

@@ -535,6 +535,10 @@ msgstr "{action}: {count} rows"
 msgid "{activeCount, plural, one {# alert} other {# alerts}}"
 msgstr "{activeCount, plural, one {# alert} other {# alerts}}"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "{activeCount} Active"
+msgstr "{activeCount} Active"
+
 #: src/routes/billing.tsx
 msgid "{activeFirmCount} active · {activeFirmLimitLabel} on this plan"
 msgstr "{activeFirmCount} active · {activeFirmLimitLabel} on this plan"
@@ -882,6 +886,10 @@ msgstr "{recentlyRemindedCount, plural, one {Skip # client reminded in the last 
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "{reservedCount} reserved"
 msgstr "{reservedCount} reserved"
+
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "{reviewCount} Requires review"
+msgstr "{reviewCount} Requires review"
 
 #. placeholder {0}: firm.seatLimit
 #: src/components/patterns/app-shell-nav.tsx
@@ -1297,6 +1305,7 @@ msgid "Action mode"
 msgstr "Action mode"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Actions"
 msgstr "Actions"
 
@@ -1500,6 +1509,7 @@ msgstr "Add notes"
 msgid "Add practice"
 msgstr "Add practice"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
 #: src/routes/rules.library.tsx
 msgid "Add rule"
 msgstr "Add rule"
@@ -1850,6 +1860,7 @@ msgid "all"
 msgstr "all"
 
 #: src/features/rules/sources-tab.tsx
+#: src/features/rules/states-rail.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
@@ -1945,6 +1956,10 @@ msgstr "All impact"
 #: src/routes/obligations.tsx
 msgid "All items received."
 msgstr "All items received."
+
+#: src/features/rules/states-rail.tsx
+msgid "All jurisdictions"
+msgstr "All jurisdictions"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "all matched"
@@ -2156,6 +2171,7 @@ msgid "Approve return"
 msgstr "Approve return"
 
 #: src/features/alerts/components/PulseAlertActionsRow.tsx
+#: src/routes/rules.library.tsx
 msgid "Archive"
 msgstr "Archive"
 
@@ -4941,6 +4957,7 @@ msgstr "Due ↓"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/features/rules/generation-preview-tab.tsx
+#: src/features/rules/jurisdiction-rule-table.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
 msgid "Due date"
@@ -5277,6 +5294,7 @@ msgid "Enterprise plan changes require sales support."
 msgstr "Enterprise plan changes require sales support."
 
 #: src/features/rules/coverage-tab.tsx
+#: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Entities"
 msgstr "Entities"
 
@@ -5965,10 +5983,6 @@ msgstr "Firm"
 msgid "Firm-branded client-facing PDFs grouped by client."
 msgstr "Firm-branded client-facing PDFs grouped by client."
 
-#: src/features/alerts/components/AlertCard.tsx
-msgid "First application"
-msgstr "First application"
-
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "FIRST YEAR"
 msgstr "FIRST YEAR"
@@ -6078,6 +6092,7 @@ msgstr "For US CPA practices"
 #: src/features/alerts/components/PulseRelevanceMatrix.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientWorkPlanPanel.tsx
+#: src/features/rules/jurisdiction-rule-table.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/features/rules/sources-tab.tsx
 #: src/routes/rules.library.tsx
@@ -6761,6 +6776,7 @@ msgid "Jurisdiction"
 msgstr "Jurisdiction"
 
 #: src/features/rules/coverage-tab.tsx
+#: src/features/rules/states-rail.tsx
 msgid "Jurisdictions"
 msgstr "Jurisdictions"
 
@@ -8245,6 +8261,10 @@ msgstr "No forms or vouchers match."
 msgid "No import batches yet"
 msgstr "No import batches yet"
 
+#: src/features/rules/states-rail.tsx
+msgid "No jurisdictions match \"{search}\""
+msgstr "No jurisdictions match \"{search}\""
+
 #: src/features/rules/coverage-tab.tsx
 msgid "No jurisdictions match this filter."
 msgstr "No jurisdictions match this filter."
@@ -8409,10 +8429,18 @@ msgstr "No rule bound"
 msgid "No rule defined for this entity in {0}"
 msgstr "No rule defined for this entity in {0}"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "No rule defined for this entity in {jurisLabel}"
+msgstr "No rule defined for this entity in {jurisLabel}"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "No rule extension or unknown"
 msgstr "No rule extension or unknown"
+
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "No rules in {jurisdictionLabel} for this view."
+msgstr "No rules in {jurisdictionLabel} for this view."
 
 #: src/routes/rules.library.tsx
 msgid "No rules match \"{query}\"."
@@ -9633,6 +9661,7 @@ msgid "Pick state"
 msgstr "Pick state"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/rules/states-rail.tsx
 msgid "Pinned"
 msgstr "Pinned"
 
@@ -10073,6 +10102,7 @@ msgid "Publication"
 msgstr "Publication"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/components/AlertCard.tsx
 msgid "Published"
 msgstr "Published"
 
@@ -10647,6 +10677,7 @@ msgid "Required: {requiredRoleText}"
 msgstr "Required: {requiredRoleText}"
 
 #: src/features/concepts/concept-help.tsx
+#: src/routes/rules.library.tsx
 msgid "Requires review"
 msgstr "Requires review"
 
@@ -11144,6 +11175,7 @@ msgstr "Rows that will create review deadlines because the active practice rule 
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
+#: src/features/rules/jurisdiction-rule-table.tsx
 #: src/routes/rules.library.tsx
 msgid "Rule"
 msgstr "Rule"
@@ -11567,6 +11599,14 @@ msgstr "Search deadlines"
 msgid "Search forms and vouchers…"
 msgstr "Search forms and vouchers…"
 
+#: src/features/rules/states-rail.tsx
+msgid "Search jurisdiction"
+msgstr "Search jurisdiction"
+
+#: src/features/rules/states-rail.tsx
+msgid "Search jurisdiction…"
+msgstr "Search jurisdiction…"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Search states"
 msgstr "Search states"
@@ -11651,6 +11691,10 @@ msgstr "Select all eligible deadlines"
 #: src/routes/obligations.tsx
 msgid "Select all received items"
 msgstr "Select all received items"
+
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Select all rules needing review"
+msgstr "Select all rules needing review"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "Select all states"
@@ -12006,6 +12050,11 @@ msgstr "Showing {firstItemNumber}-{lastItemNumber} of {loadedCount} loaded event
 #: src/features/rules/rules-console-primitives.tsx
 msgid "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
 msgstr "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
+
+#. placeholder {0}: items.length
+#: src/features/rules/states-rail.tsx
+msgid "Showing {shownCount} of {0}"
+msgstr "Showing {shownCount} of {0}"
 
 #: src/components/patterns/table-header-filter.tsx
 msgid "Showing first {maxSelections} selections — refine the list to add more."
@@ -12431,6 +12480,14 @@ msgstr "Source-defined rules are skipped from bulk accept. Generate and review t
 msgid "Sources"
 msgstr "Sources"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Sources all working"
+msgstr "Sources all working"
+
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Sources need attention"
+msgstr "Sources need attention"
+
 #: src/routes/obligations.tsx
 msgid "Specific client"
 msgstr "Specific client"
@@ -12492,12 +12549,17 @@ msgstr "State rule coverage"
 msgid "States"
 msgstr "States"
 
+#: src/features/rules/states-rail.tsx
+msgid "States · A–Z"
+msgstr "States · A–Z"
+
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/generation-preview-tab.tsx
+#: src/features/rules/jurisdiction-rule-table.tsx
 #: src/routes/obligations.tsx
 msgid "Status"
 msgstr "Status"
@@ -13430,10 +13492,6 @@ msgstr "Top deadlines by risk"
 #: src/routes/practice.tsx
 msgid "Total"
 msgstr "Total"
-
-#: src/features/alerts/components/AlertCard.tsx
-msgid "Transition"
-msgstr "Transition"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"

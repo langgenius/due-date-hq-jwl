@@ -172,6 +172,7 @@ const MATCHED_ALERT: PulseAlertPublic = {
   // 2026-06-05 (Tax area filter): wildfire relief spans 1040/1041 (individual)
   // and 1065/1120-S (business).
   taxAreas: ['income_individual', 'income_business'],
+  forms: ['1040', '1065', '1120-S', '1041'],
 }
 
 const MATCHED_DETAIL: PulseDetail = {
@@ -219,6 +220,7 @@ const NEEDS_DETAILS_ALERT: PulseAlertPublic = {
   jurisdiction: 'AZ',
   // 2026-06-05 (Tax area filter): scope still unknown → uncategorized.
   taxAreas: [],
+  forms: [],
 }
 
 const NEEDS_DETAILS_AFFECTED: PulseAffectedClient[] = [
@@ -333,6 +335,7 @@ const APPLIED_ALERT: PulseAlertPublic = {
   jurisdiction: 'CA',
   // 2026-06-05 (Tax area filter): franchise-tax notice on 100S/568 entities.
   taxAreas: ['income_business', 'franchise'],
+  forms: ['100S', '568'],
 }
 
 const APPLIED_DETAIL: PulseDetail = {
@@ -380,6 +383,7 @@ const DISMISSED_ALERT: PulseAlertPublic = {
   jurisdiction: 'NY',
   // 2026-06-05 (Tax area filter): NY PTE / IT-204 / CT-3 → business income.
   taxAreas: ['income_business'],
+  forms: ['IT-204', 'CT-3'],
 }
 
 const DISMISSED_DETAIL: PulseDetail = {
@@ -429,6 +433,7 @@ const VERY_LOW_ALERT: PulseAlertPublic = {
   jurisdiction: 'FL',
   // 2026-06-05 (Tax area filter): FL F-1120 corporate income.
   taxAreas: ['income_business'],
+  forms: ['F-1120'],
 }
 
 const VERY_LOW_DETAIL: PulseDetail = {
@@ -479,6 +484,7 @@ const THRESHOLD_ALERT: PulseAlertPublic = {
   jurisdiction: 'FED',
   // 2026-06-05 (Tax area filter): cross-cutting inflation advisory → uncategorized.
   taxAreas: [],
+  forms: [],
 }
 
 const THRESHOLD_DETAIL: PulseDetail = {

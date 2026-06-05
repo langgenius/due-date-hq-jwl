@@ -44,6 +44,7 @@ function baseAlert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic 
     isSample: false,
     jurisdiction: 'CA',
     taxAreas: [],
+    forms: [],
     ...overrides,
   }
 }
@@ -181,5 +182,13 @@ describe('AlertCard readiness', () => {
 
     expect(document.body.textContent).toContain('Acme Holdings')
     expect(document.body.textContent).toContain('Beta Partners')
+  })
+
+  it('renders the Affecting forms with an "N more" overflow (not "+N")', () => {
+    renderCard(baseAlert({ forms: ['1040', '1065', '1120-S'] }))
+
+    const text = document.body.textContent ?? ''
+    expect(text).toContain('(2 more)')
+    expect(text).not.toContain('+2')
   })
 })

@@ -24,6 +24,7 @@ function alert(overrides: Partial<PulseAlertPublic> = {}): PulseAlertPublic {
     isSample: false,
     jurisdiction: 'CA',
     taxAreas: [],
+    forms: [],
     ...overrides,
   }
 }

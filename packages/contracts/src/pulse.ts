@@ -163,6 +163,11 @@ export const PulseAlertPublicSchema = z.object({
   // alert touches, derived server-side in the db repo's toAlert. Empty array
   // means uncategorized — the alert then only appears under "All tax areas".
   taxAreas: z.array(TaxAreaSchema),
+  // 2026-06-05 (Affecting facts cell): AI-parsed tax forms this alert touches
+  // (mirrors PulseDetail.forms / pulse.parsedForms). Surfaced on the list-item
+  // so the alert card's "Affecting" cell renders without a per-card detail
+  // fetch. Empty = no specific form scope.
+  forms: z.array(z.string()),
 })
 export type PulseAlertPublic = z.infer<typeof PulseAlertPublicSchema>
 

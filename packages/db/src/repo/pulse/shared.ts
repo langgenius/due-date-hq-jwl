@@ -83,6 +83,10 @@ export interface PulseAlertRow {
   // touches, derived from its reverify-rule citations (+ parsedForms fallback)
   // in toAlert. Empty = uncategorized.
   taxAreas: TaxArea[]
+  // 2026-06-05 (Affecting facts cell): AI-parsed forms (mirrors
+  // pulse.parsedForms), passed through to the public row so the alert card's
+  // "Affecting" cell renders without a per-card detail fetch.
+  forms: string[]
 }
 
 export interface PulseAffectedClientRow {
@@ -672,6 +676,9 @@ export function toAlert(row: AlertJoinedRow): PulseAlertRow {
     // buckets from its deterministic reverify-rule citations, falling back to
     // the AI-parsed forms. See @duedatehq/core/tax-area.
     taxAreas: taxAreasForAlert(row),
+    // 2026-06-05 (Affecting facts cell): pass the AI-parsed forms through so the
+    // alert card's "Affecting" cell renders without a per-card detail fetch.
+    forms: row.parsedForms,
   }
 }
 

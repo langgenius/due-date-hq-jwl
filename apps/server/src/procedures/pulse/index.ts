@@ -56,6 +56,9 @@ interface PulseAlertRow {
   // 2026-06-05 (Tax area filter): mirrors the repo's PulseAlertRow.taxAreas —
   // server-derived service-line buckets. Same structural-twin caveat as above.
   taxAreas: PulseAlertPublic['taxAreas']
+  // 2026-06-05 (Affecting facts cell): mirrors the repo PulseAlertRow.forms —
+  // AI-parsed forms surfaced for the card's "Affecting" cell.
+  forms: PulseAlertPublic['forms']
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -206,6 +209,9 @@ function toAlertPublic(row: PulseAlertRow): PulseAlertPublic {
     // the repo's toAlert from reverify-rule citations). Surfaced so the alerts
     // list can filter by practice area; raw rule ids stay server-side.
     taxAreas: row.taxAreas,
+    // 2026-06-05 (Affecting facts cell): surface AI-parsed forms so the card's
+    // "Affecting" cell renders from the list payload (no per-card detail fetch).
+    forms: row.forms,
   }
 }
 

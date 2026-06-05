@@ -57,6 +57,9 @@ export interface PulseAlertRow {
     | 'franchise'
     | 'info_compliance'
   >
+  // 2026-06-05 (Affecting facts cell): AI-parsed forms the alert touches.
+  // Structural twin of the repo PulseAlertRow.forms (same caveat as above).
+  forms: string[]
 }
 
 export interface PulseAffectedClientRow {
