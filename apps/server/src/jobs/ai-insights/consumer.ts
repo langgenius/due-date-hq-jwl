@@ -214,7 +214,11 @@ async function buildClientHistorySnapshot(
       label: `${event.label} · ${event.at}`,
       facts: event,
       evidence: {
-        id: `audit-${ref}`,
+        // No real EntityId for an audit-event citation; id must be a UUID
+        // or null (EntityIdSchema = z.uuid()), so keep it null — the chip
+        // label comes from sourceId. A non-UUID here would throw in
+        // citationsFromSources and fail the whole insight.
+        id: null,
         sourceType: 'audit_event',
         sourceId: `${event.label} · ${event.at}`,
         sourceUrl: null,
