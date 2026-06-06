@@ -242,6 +242,13 @@ function statusGroupOf(status: RuleStatus): StatusGroupKey {
   return 'other'
 }
 
+function compareByStatusGroupPriority(a: ObligationRule, b: ObligationRule): number {
+  return (
+    STATUS_GROUP_ORDER.indexOf(statusGroupOf(a.status)) -
+    STATUS_GROUP_ORDER.indexOf(statusGroupOf(b.status))
+  )
+}
+
 type RuleConcreteDraftTarget = {
   ruleId: string
   sourceId: string
@@ -1024,7 +1031,7 @@ export function RulesLibraryRoute() {
           r.taxType.toLowerCase().includes(q),
       )
     }
-    return result
+    return result.toSorted(compareByStatusGroupPriority)
   }, [selectedGroup, activeScope, activeEntity, search])
   // Scoped progress-bar status counts for the selected jurisdiction.
   const jurisdictionStatusCounts = useMemo<Record<RuleStatus, number> | null>(() => {
@@ -1722,7 +1729,7 @@ export function RulesLibraryRoute() {
           className="hidden lg:flex"
         />
 
-        <div className="flex min-w-0 flex-1 flex-col gap-4">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
           {selectedGroup ? (
             <PageHeader
               breadcrumbs={[{ label: t`Rule library`, to: '/rules/library' }]}

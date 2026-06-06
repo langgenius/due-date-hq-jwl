@@ -39,10 +39,12 @@ const nuqsMocks = vi.hoisted(() => ({
   search: '',
   rule: null as string | null,
   entity: null as string | null,
+  jurisdiction: null as string | null,
   scope: null as 'all' | 'active' | 'review' | 'missing' | null,
   setSearch: vi.fn(),
   setRule: vi.fn(),
   setEntity: vi.fn(),
+  setJurisdiction: vi.fn(),
   setScope: vi.fn(),
 }))
 
@@ -178,6 +180,7 @@ vi.mock('nuqs', async (importOriginal) => {
       if (key === 'q') return [nuqsMocks.search, nuqsMocks.setSearch]
       if (key === 'rule') return [nuqsMocks.rule, nuqsMocks.setRule]
       if (key === 'entity') return [nuqsMocks.entity, nuqsMocks.setEntity]
+      if (key === 'jurisdiction') return [nuqsMocks.jurisdiction, nuqsMocks.setJurisdiction]
       if (key === 'scope') return [nuqsMocks.scope, nuqsMocks.setScope]
       return [null, vi.fn()]
     },
@@ -499,10 +502,12 @@ beforeEach(() => {
   nuqsMocks.search = ''
   nuqsMocks.rule = null
   nuqsMocks.entity = null
+  nuqsMocks.jurisdiction = null
   nuqsMocks.scope = null
   nuqsMocks.setSearch.mockReset()
   nuqsMocks.setRule.mockReset()
   nuqsMocks.setEntity.mockReset()
+  nuqsMocks.setJurisdiction.mockReset()
   nuqsMocks.setScope.mockReset()
 })
 
@@ -590,6 +595,75 @@ describe('RulesLibraryRoute', () => {
     })
 
     await waitForText('Federal Row Form')
+  })
+
+  it('keeps the selected jurisdiction table in a scrollable flex pane', async () => {
+    nuqsMocks.jurisdiction = 'FED'
+    const federalRule = obligationRule({
+      id: 'fed.1040.return.active.2026',
+      title: 'Federal individual income tax return',
+      jurisdiction: 'FED',
+      formName: 'Form 1040',
+      status: 'active',
+    })
+    rpcMocks.listRulesQueryFn.mockResolvedValue([federalRule])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('Form 1040')
+
+    const rightPane = Array.from(document.querySelectorAll('div')).find(
+      (el) =>
+        typeof el.className === 'string' &&
+        el.className.includes('min-h-0 min-w-0 flex-1 flex-col') &&
+        el.textContent?.includes('Federal'),
+    )
+    let tableFrame = document.querySelector('table')?.parentElement ?? null
+    while (
+      tableFrame &&
+      typeof tableFrame.className === 'string' &&
+      !tableFrame.className.includes('border-divider-subtle')
+    ) {
+      tableFrame = tableFrame.parentElement
+    }
+
+    expect(rightPane?.className).toContain('min-h-0')
+    expect(tableFrame?.className).toContain('min-h-0')
+    expect(tableFrame?.className).toContain('flex-1')
+    expect(tableFrame?.className).toContain('overflow-y-auto')
+  })
+
+  it('orders selected jurisdiction rules needing review before active rules', async () => {
+    nuqsMocks.jurisdiction = 'FED'
+    const activeRule = obligationRule({
+      id: 'fed.1040.return.active.2026',
+      title: 'Federal individual income tax return',
+      jurisdiction: 'FED',
+      formName: 'Form 1040',
+      status: 'active',
+    })
+    const reviewRule = obligationRule({
+      id: 'fed.disaster_relief.candidate.2026',
+      title: 'Federal disaster tax relief candidate watch',
+      jurisdiction: 'FED',
+      formName: 'IRS disaster relief notice',
+      status: 'candidate',
+    })
+    rpcMocks.listRulesQueryFn.mockResolvedValue([activeRule, reviewRule])
+
+    await render(<RulesLibraryRoute />)
+    await waitForText('Disaster tax relief candidate watch')
+
+    const rowTexts = Array.from(document.querySelectorAll('tbody tr')).map(
+      (row) => row.textContent ?? '',
+    )
+    const reviewIndex = rowTexts.findIndex((text) =>
+      text.includes('Disaster tax relief candidate watch'),
+    )
+    const activeIndex = rowTexts.findIndex((text) => text.includes('Individual income tax return'))
+
+    expect(reviewIndex).toBeGreaterThanOrEqual(0)
+    expect(activeIndex).toBeGreaterThanOrEqual(0)
+    expect(reviewIndex).toBeLessThan(activeIndex)
   })
 
   it('sorts fully active state groups ahead of jurisdictions that still need review', async () => {

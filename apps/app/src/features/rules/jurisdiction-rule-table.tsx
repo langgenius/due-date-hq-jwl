@@ -113,7 +113,7 @@ export function JurisdictionRuleTable({
   const isEmpty = rules.length === 0 && !(showGaps && gapEntities.length > 0)
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-md border border-divider-subtle">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-md border border-divider-subtle">
       {/* table-fixed so long Form / Due-logic text clamps inside its
           column instead of blowing the table wider than the pane (which
           pushed Status + ⋯ off-screen). Only this instance is fixed; the
