@@ -284,6 +284,7 @@ function makeContext(input: {
     updateNotes: null!,
     updateTaxYearProfile: null!,
     updateAssigneeMany: null!,
+    updateClassification: null!,
     softDelete: null!,
     deleteByBatch: null!,
   }
@@ -319,6 +320,7 @@ function makeContext(input: {
   const obligations: ScopedRepo['obligations'] = {
     firmId: FIRM_ID,
     confirmByIds: null!,
+    supersedeByIds: null!,
     listReprojectionCandidates: null!,
     listAffectedClientsByRules: null!,
     updateProjectedDueDates: null!,
@@ -396,6 +398,7 @@ function makeContext(input: {
     calendar: null!,
     filingProfiles,
     clients,
+    clientTaxYearProfiles: null!,
     dashboard: null!,
     obligations,
     obligationQueue: null!,

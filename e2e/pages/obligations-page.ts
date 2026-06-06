@@ -2,9 +2,7 @@ import type { Locator, Page } from '@playwright/test'
 
 export class ObligationQueuePage {
   readonly heading: Locator
-  readonly searchButton: Locator
   readonly searchInput: Locator
-  readonly clearSearchButton: Locator
   readonly dueSortButton: Locator
   readonly statusFilterTrigger: Locator
   // Calendar sync is now an in-place popover button on the Deadlines page
@@ -15,9 +13,12 @@ export class ObligationQueuePage {
 
   constructor(readonly page: Page) {
     this.heading = page.getByRole('heading', { name: 'Deadlines' })
-    this.searchButton = page.getByRole('button', { name: 'Filter deadlines' })
-    this.searchInput = page.locator('input[aria-label="Filter deadlines"]')
-    this.clearSearchButton = page.getByRole('button', { name: 'Clear search' })
+    // 2026-06-05 (page-feedback #5): the collapsible "Filter deadlines"
+    // icon-button was removed — the toolbar now renders a single fixed
+    // search field (`<input type="search" aria-label="Search deadlines">`)
+    // in the filter row above the table. It's always visible, so there is
+    // no expand button and no dedicated "Clear search" button anymore.
+    this.searchInput = page.getByRole('searchbox', { name: 'Search deadlines' })
     this.dueSortButton = page.getByRole('button', { name: 'Sort Internal Due' })
     this.statusFilterTrigger = page.getByRole('button', { name: /^Status(?:\s+\d+)?$/ })
     this.calendarSyncButton = page.getByRole('button', { name: 'Calendar sync' })
@@ -29,10 +30,14 @@ export class ObligationQueuePage {
   }
 
   async search(query: string) {
-    if (!(await this.searchInput.isVisible({ timeout: 250 }).catch(() => false))) {
-      await this.searchButton.click()
-    }
+    // Fixed search field — always visible; fill() auto-waits for it.
     await this.searchInput.fill(query)
+  }
+
+  async clearSearch() {
+    // No dedicated clear button on this field — emptying it drops the
+    // `?q=` param (obligations.tsx onChange sets `q: value || null`).
+    await this.searchInput.fill('')
   }
 
   async openStatusFilter() {

@@ -78,8 +78,10 @@ test('AC: E2E-CONFIRM-DIALOG-SHAPE calendar "Disable feed" gates the destructive
 
   // Pre-condition: the demo seed starts with no active feed. Enable
   // one so Disable is reachable. (This also exercises the Enable
-  // happy path implicitly.)
-  await page.getByRole('button', { name: 'Enable redacted feed' }).click()
+  // happy path implicitly.) The page now renders two scope cards
+  // ("My deadlines" + "Practice deadlines"), each with its own Enable
+  // button — target the first (the personal feed) to disambiguate.
+  await page.getByRole('button', { name: 'Enable redacted feed' }).first().click()
   await expect(page.getByRole('button', { name: 'Disable' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Disable' }).click()
@@ -103,8 +105,9 @@ test('AC: E2E-CONFIRM-DIALOG-SHAPE calendar "Regenerate URL" gates the destructi
   const page = authenticatedPage
   await page.goto('/deadlines/calendar')
 
-  // Enable a feed first so Regenerate is reachable.
-  await page.getByRole('button', { name: 'Enable redacted feed' }).click()
+  // Enable a feed first so Regenerate is reachable. Two scope cards each
+  // expose an Enable button — scope to the first (the "My deadlines" feed).
+  await page.getByRole('button', { name: 'Enable redacted feed' }).first().click()
   await expect(page.getByRole('button', { name: 'Regenerate URL' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Regenerate URL' }).click()

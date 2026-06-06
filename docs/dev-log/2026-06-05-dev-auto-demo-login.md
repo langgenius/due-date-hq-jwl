@@ -20,7 +20,7 @@ instead of routing to `/login`:
 
 ```ts
 window.location.assign(
-  `/api/e2e/demo-login?account=plan-pro&redirectTo=${encodeURIComponent(target)}`
+  `/api/e2e/demo-login?account=plan-pro&redirectTo=${encodeURIComponent(target)}`,
 )
 ```
 
@@ -28,7 +28,7 @@ The `/api/e2e/demo-login` route (server-side, dev-only via
 `hasE2ESeedAccess` — `c.env.ENV === 'development'` short-circuits the
 gate) signs you in as the Pro Plan demo CPA, sets the session cookie,
 and bounces back to `redirectTo`. `redirectTo` defaults to `/` (which
-is where Today lives — *not* `/today`, that route doesn't exist).
+is where Today lives — _not_ `/today`, that route doesn't exist).
 
 In production (`!import.meta.env.DEV`), nothing changes. The original
 `/login` redirect path runs untouched, so real users still get the

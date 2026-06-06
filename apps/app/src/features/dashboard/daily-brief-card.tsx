@@ -157,7 +157,6 @@ function ScopeButton({
 }
 
 function BriefFreshnessChip({ brief, pending }: { brief: DashboardBriefPublic; pending: boolean }) {
-  const { t } = useLingui()
   if (pending) {
     return (
       <Badge variant="secondary" size="sm" className="gap-1">

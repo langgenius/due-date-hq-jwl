@@ -55,7 +55,7 @@ test('AC: E2E-CLIENTS-CREATE creates a manual client through oRPC', async ({
   // accessible name when the client still has gaps (line 1063-1072).
   await authenticatedPage.getByRole('tab', { name: 'Setup' }).click()
   await expect(clientsPage.detailSection('Filing jurisdictions')).toBeVisible()
-  await expect(clientsPage.detailSection('Onboarding state')).toBeVisible()
+  await expect(clientsPage.detailSection('Compliance posture')).toBeVisible()
 })
 
 test.describe('seeded client facts', () => {
@@ -125,7 +125,7 @@ test.describe('seeded client facts', () => {
     await authenticatedPage.getByRole('tab', { name: 'Setup' }).click()
     await expect(clientsPage.detailSection('Filing jurisdictions')).toBeVisible()
     await expect(authenticatedPage.getByText('Entity type')).toBeVisible()
-    await expect(authenticatedPage.getByText('EIN', { exact: true })).toBeVisible()
+    await expect(authenticatedPage.getByText('Federal EIN')).toBeVisible()
     await expect(authenticatedPage).toHaveURL(/\/clients\/[^?]+/)
   })
 

@@ -62,7 +62,7 @@ test.describe('seeded obligations', () => {
     await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeVisible()
     await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeHidden()
 
-    await obligationQueuePage.clearSearchButton.click()
+    await obligationQueuePage.clearSearch()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
     await obligationQueuePage.openStatusFilter()
     await obligationQueuePage.statusFilterOption('In review').click()

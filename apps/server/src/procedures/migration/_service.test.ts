@@ -238,6 +238,7 @@ function buildScopedRepo(
     async updateJurisdiction() {},
     async updateRiskProfile() {},
     async updateSourceDetails() {},
+    async updateClassification() {},
     async updateNotes() {},
     async updateTaxYearProfile() {},
     async updateAssigneeMany() {},
@@ -251,6 +252,9 @@ function buildScopedRepo(
     firmId,
     async confirmByIds() {
       return { confirmedIds: [] }
+    },
+    async supersedeByIds() {
+      return { supersededIds: [] }
     },
     async listReprojectionCandidates() {
       return []
@@ -684,6 +688,16 @@ function buildScopedRepo(
   const repo: ScopedRepo = {
     firmId,
     filingProfiles: unusedFilingProfilesRepo(firmId),
+    clientTaxYearProfiles: {
+      firmId,
+      async listByClient() {
+        return []
+      },
+      async listByClients() {
+        return new Map()
+      },
+      async upsert() {},
+    },
     ai: {
       firmId,
       async findSuccessfulRun() {
