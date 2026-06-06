@@ -239,12 +239,6 @@ msgstr "{0, plural, one {逾期 # 天} other {逾期 # 天}}"
 msgid "{0, plural, one {client imported} other {clients imported}}"
 msgstr "{0, plural, one {个客户已导入} other {个客户已导入}}"
 
-#. placeholder {0}: Math.abs(days)
-#: src/features/obligations/queue/components/primitives.tsx
-#: src/routes/obligations.tsx
-#~ msgid "{0, plural, one {Filed # day late} other {Filed # days late}}"
-#~ msgstr "{0, plural, one {晚提交 # 天} other {晚提交 # 天}}"
-
 #. placeholder {0}: -days
 #: src/components/primitives/due-date-label.tsx
 msgid "{0, plural, one {filed #d late} other {filed #d late}}"
@@ -680,11 +674,6 @@ msgstr "{days, plural, one {提前 # 天} other {提前 # 天}}"
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, other {# 天}}"
 
-#: src/features/obligations/queue/components/primitives.tsx
-#: src/routes/obligations.tsx
-#~ msgid "{days, plural, one {Filed # day early} other {Filed # days early}}"
-#~ msgstr "{days, plural, one {提前 # 天提交} other {提前 # 天提交}}"
-
 #: src/components/primitives/due-date-label.tsx
 msgid "{days, plural, one {filed #d early} other {filed #d early}}"
 msgstr "{days, plural, one {提前 # 天提交} other {提前 # 天提交}}"
@@ -1100,10 +1089,6 @@ msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · 
 msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · all matched"
 msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · all matched"
 
-#: src/routes/obligations.tsx
-#~ msgid "≈12D AVG · ≈$11,840 PENALTY EXPOSURE"
-#~ msgstr "平均 ≈12 天 · 罚款敞口 ≈$11,840"
-
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "0"
 msgstr "0"
@@ -1459,10 +1444,6 @@ msgstr "活动日志"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Activity summary"
 msgstr "活动摘要"
-
-#: src/features/clients/ClientDetailWorkspace.tsx
-#~ msgid "Activity summary (AI)"
-#~ msgstr "活动摘要（AI）"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -3460,10 +3441,6 @@ msgstr "验证码已发送至"
 msgid "Collapse {0}"
 msgstr "收起 {0}"
 
-#: src/routes/obligations.tsx
-#~ msgid "Collapse {bandLabel}"
-#~ msgstr "折叠 {bandLabel}"
-
 #: src/routes/rules.library.tsx
 msgid "Collapse all"
 msgstr "全部折叠"
@@ -4549,10 +4526,6 @@ msgstr "天后"
 msgid "days sooner"
 msgstr "天前"
 
-#: src/routes/obligations.tsx
-#~ msgid "deadline"
-#~ msgstr "截止日期"
-
 #: src/features/audit/audit-log-labels.ts
 #: src/features/audit/audit-log-page.tsx
 #: src/features/concepts/concept-help.tsx
@@ -5555,10 +5528,6 @@ msgstr "退出复核 · Esc"
 #: src/routes/obligations.tsx
 msgid "Expand {0}"
 msgstr "展开 {0}"
-
-#: src/routes/obligations.tsx
-#~ msgid "Expand {bandLabel}"
-#~ msgstr "展开 {bandLabel}"
 
 #: src/routes/rules.library.tsx
 msgid "Expand all"
@@ -13935,10 +13904,6 @@ msgstr "上传 ZIP 或解压后的 CSV，以便将 accounts 与 contacts 匹配�
 #: src/routes/obligations.tsx
 msgid "Upstream return also blocking — client flagged items separately."
 msgstr "上游申报也在阻塞 — 客户单独标记了需协助的项目。"
-
-#: src/routes/obligations.tsx
-#~ msgid "Urgency"
-#~ msgstr "紧急程度"
 
 #: src/features/concepts/concept-help.tsx
 #: src/routes/practice.tsx

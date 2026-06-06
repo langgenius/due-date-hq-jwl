@@ -236,12 +236,6 @@ msgstr "{0, plural, one {#d late} other {#d late}}"
 msgid "{0, plural, one {client imported} other {clients imported}}"
 msgstr "{0, plural, one {client imported} other {clients imported}}"
 
-#. placeholder {0}: Math.abs(days)
-#: src/features/obligations/queue/components/primitives.tsx
-#: src/routes/obligations.tsx
-#~ msgid "{0, plural, one {Filed # day late} other {Filed # days late}}"
-#~ msgstr "{0, plural, one {Filed # day late} other {Filed # days late}}"
-
 #. placeholder {0}: -days
 #: src/components/primitives/due-date-label.tsx
 msgid "{0, plural, one {filed #d late} other {filed #d late}}"
@@ -672,11 +666,6 @@ msgstr "{days, plural, one {# day early} other {# days early}}"
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, one {# day} other {# days}}"
 
-#: src/features/obligations/queue/components/primitives.tsx
-#: src/routes/obligations.tsx
-#~ msgid "{days, plural, one {Filed # day early} other {Filed # days early}}"
-#~ msgstr "{days, plural, one {Filed # day early} other {Filed # days early}}"
-
 #: src/components/primitives/due-date-label.tsx
 msgid "{days, plural, one {filed #d early} other {filed #d early}}"
 msgstr "{days, plural, one {filed #d early} other {filed #d early}}"
@@ -1081,10 +1070,6 @@ msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · 
 msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · all matched"
 msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · all matched"
 
-#: src/routes/obligations.tsx
-#~ msgid "≈12D AVG · ≈$11,840 PENALTY EXPOSURE"
-#~ msgstr "≈12D AVG · ≈$11,840 PENALTY EXPOSURE"
-
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "0"
 msgstr "0"
@@ -1436,10 +1421,6 @@ msgstr "Activity log"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Activity summary"
 msgstr "Activity summary"
-
-#: src/features/clients/ClientDetailWorkspace.tsx
-#~ msgid "Activity summary (AI)"
-#~ msgstr "Activity summary (AI)"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -3426,10 +3407,6 @@ msgstr "Code sent to"
 msgid "Collapse {0}"
 msgstr "Collapse {0}"
 
-#: src/routes/obligations.tsx
-#~ msgid "Collapse {bandLabel}"
-#~ msgstr "Collapse {bandLabel}"
-
 #: src/routes/rules.library.tsx
 msgid "Collapse all"
 msgstr "Collapse all"
@@ -4507,10 +4484,6 @@ msgstr "days later"
 msgid "days sooner"
 msgstr "days sooner"
 
-#: src/routes/obligations.tsx
-#~ msgid "deadline"
-#~ msgstr "deadline"
-
 #: src/features/audit/audit-log-labels.ts
 #: src/features/audit/audit-log-page.tsx
 #: src/features/concepts/concept-help.tsx
@@ -5509,10 +5482,6 @@ msgstr "Exit review · Esc"
 #: src/routes/obligations.tsx
 msgid "Expand {0}"
 msgstr "Expand {0}"
-
-#: src/routes/obligations.tsx
-#~ msgid "Expand {bandLabel}"
-#~ msgstr "Expand {bandLabel}"
 
 #: src/routes/rules.library.tsx
 msgid "Expand all"
@@ -13826,10 +13795,6 @@ msgstr "Upload the ZIPs or extracted CSVs so accounts can be matched to contacts
 #: src/routes/obligations.tsx
 msgid "Upstream return also blocking — client flagged items separately."
 msgstr "Upstream return also blocking — client flagged items separately."
-
-#: src/routes/obligations.tsx
-#~ msgid "Urgency"
-#~ msgstr "Urgency"
 
 #: src/features/concepts/concept-help.tsx
 #: src/routes/practice.tsx
