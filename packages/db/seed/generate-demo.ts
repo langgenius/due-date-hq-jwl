@@ -1702,6 +1702,116 @@ for (const f of FIRMS) {
   const i = FIRMS.indexOf(f)
   const aiOutId = sid('50', i, 1)
 
+  // Migration Copilot AI trace — column mappings, value normalizations, and a
+  // skipped-row error, all tied to this firm's applied migration_batch. Powers
+  // the import-history detail (mapping confidence, normalization, errors).
+  const migrationBatchId = uuid('30', i * 100 + 1)
+  add(
+    'migration_mapping',
+    row(
+      s(sid('31', i, 1)),
+      s(migrationBatchId),
+      s('Client'),
+      s('client.name'),
+      0.99,
+      s('Column contains business names.'),
+      0,
+      s('openai/gpt-5-mini'),
+      s('mapper@v1'),
+      ts('2026-05-18 09:05:00'),
+    ),
+    row(
+      s(sid('31', i, 2)),
+      s(migrationBatchId),
+      s('State'),
+      s('client.state'),
+      0.98,
+      s('Two-letter jurisdiction values.'),
+      0,
+      s('openai/gpt-5-mini'),
+      s('mapper@v1'),
+      ts('2026-05-18 09:05:00'),
+    ),
+    row(
+      s(sid('31', i, 3)),
+      s(migrationBatchId),
+      s('Entity'),
+      s('client.entity_type'),
+      0.96,
+      s('Entity labels map to DueDateHQ taxonomy.'),
+      0,
+      s('openai/gpt-5-mini'),
+      s('mapper@v1'),
+      ts('2026-05-18 09:05:00'),
+    ),
+    row(
+      s(sid('31', i, 4)),
+      s(migrationBatchId),
+      s('Tax types'),
+      s('client.tax_types'),
+      0.95,
+      s('Mixed federal and state obligation hints.'),
+      1,
+      s('openai/gpt-5-mini'),
+      s('mapper@v1'),
+      ts('2026-05-18 09:06:00'),
+    ),
+  )
+  add(
+    'migration_normalization',
+    row(
+      s(sid('32', i, 1)),
+      s(migrationBatchId),
+      s('entity_type'),
+      s('S Corporation'),
+      s('s_corp'),
+      0.98,
+      s('openai/gpt-5-mini'),
+      s('normalizer-entity@v1'),
+      s('Common S corporation synonym.'),
+      0,
+      ts('2026-05-18 09:08:00'),
+    ),
+    row(
+      s(sid('32', i, 2)),
+      s(migrationBatchId),
+      s('state'),
+      s('Texas'),
+      s('TX'),
+      0.99,
+      s('openai/gpt-5-mini'),
+      s('normalizer-tax-types@v1'),
+      s('State name normalized to postal code.'),
+      0,
+      ts('2026-05-18 09:08:00'),
+    ),
+    row(
+      s(sid('32', i, 3)),
+      s(migrationBatchId),
+      s('tax_types'),
+      s('1065, NY CT-3-S'),
+      s('["federal_1065","ny_ct3s"]'),
+      0.93,
+      s('openai/gpt-5-mini'),
+      s('normalizer-tax-types@v1'),
+      s('Tax type dictionary match.'),
+      1,
+      ts('2026-05-18 09:09:00'),
+    ),
+  )
+  add(
+    'migration_error',
+    row(
+      s(sid('33', i, 1)),
+      s(migrationBatchId),
+      4,
+      s('{"Client":"Draft Riverbend","State":"","Entity":"LLC"}'),
+      s('STATE_REQUIRED'),
+      s('State is required before default matrix can generate state obligations.'),
+      ts('2026-05-18 09:12:00'),
+    ),
+  )
+
   // notification_preference — one per member.
   for (const [mi, m] of f.members.entries()) {
     add(
@@ -2262,6 +2372,9 @@ emit(
 
 // Flush supporting tables in FK-safe order.
 const SUPPORT_ORDER = [
+  'migration_mapping',
+  'migration_normalization',
+  'migration_error',
   'notification_preference',
   'ai_output',
   'dashboard_brief',
@@ -2281,6 +2394,40 @@ const SUPPORT_ORDER = [
   'pulse_firm_alert',
 ]
 const SUPPORT_COLS: Record<string, string[]> = {
+  migration_mapping: [
+    'id',
+    'batch_id',
+    'source_header',
+    'target_field',
+    'confidence',
+    'reasoning',
+    'user_overridden',
+    'model',
+    'prompt_version',
+    'created_at',
+  ],
+  migration_normalization: [
+    'id',
+    'batch_id',
+    'field',
+    'raw_value',
+    'normalized_value',
+    'confidence',
+    'model',
+    'prompt_version',
+    'reasoning',
+    'user_overridden',
+    'created_at',
+  ],
+  migration_error: [
+    'id',
+    'batch_id',
+    'row_index',
+    'raw_row_json',
+    'error_code',
+    'error_message',
+    'created_at',
+  ],
   notification_preference: [
     'id',
     'firm_id',
