@@ -238,6 +238,22 @@ async function waitForText(text: string, attempts = 100): Promise<void> {
   throw new Error(`Expected text not found: ${text}; body=${document.body.textContent ?? ''}`)
 }
 
+// Polls an assertion until it stops throwing, advancing React effects/timers
+// the same way `waitForText` does. Use for state that settles in an async
+// effect after the visible render (e.g. post-render query-cache seeding).
+async function waitFor(assertion: () => void, attempts = 100): Promise<void> {
+  try {
+    assertion()
+    return
+  } catch (err) {
+    if (attempts <= 0) throw err
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10))
+    })
+    return waitFor(assertion, attempts - 1)
+  }
+}
+
 beforeEach(() => {
   bootstrapI18n()
   rpcMocks.listAlertsQueryFn.mockReset()
@@ -324,8 +340,14 @@ describe('AlertsListPage affected-client batching', () => {
     expect(rpcMocks.getDetailsBatchQueryFn).toHaveBeenCalledTimes(1)
 
     // The drawer's per-alert getDetail cache is pre-seeded from the batch, so
-    // opening the drawer is a cache hit instead of a re-fetch.
-    expect(client.getQueryData(['pulse', 'getDetail', { alertId: SEED_ALERT_ID }])).toEqual(detail)
+    // opening the drawer is a cache hit instead of a re-fetch. The seeding runs
+    // in an async effect that can flush after "Affects 1 client" renders, so
+    // poll the cache rather than reading it once (avoids an intermittent null).
+    await waitFor(() =>
+      expect(client.getQueryData(['pulse', 'getDetail', { alertId: SEED_ALERT_ID }])).toEqual(
+        detail,
+      ),
+    )
   })
 })
 
