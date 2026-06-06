@@ -17,7 +17,6 @@ import {
   RssIcon,
   ScaleIcon,
   SettingsIcon,
-  SparklesIcon,
   UploadCloudIcon,
   UsersIcon,
 } from 'lucide-react'
@@ -114,14 +113,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         group: 'navigate',
         icon: UsersIcon,
         onSelect: () => navigate('/clients'),
-      },
-      {
-        id: 'opportunities',
-        label: t`Opportunities`,
-        description: t`Review lightweight client business cues.`,
-        group: 'navigate',
-        icon: SparklesIcon,
-        onSelect: () => navigate('/opportunities'),
       },
       {
         id: 'firm',

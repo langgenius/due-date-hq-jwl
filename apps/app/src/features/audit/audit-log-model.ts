@@ -17,7 +17,6 @@ export const AUDIT_CATEGORY_OPTIONS = [
   'auth',
   'team',
   'pulse',
-  'opportunity',
   'export',
   'calendar',
   'reminder',
@@ -142,9 +141,6 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'obligation.input_requested': 'obligationInputRequested',
   'obligation.readiness.updated': 'obligationReadinessUpdated',
   'obligation.signature.reminded': 'obligationSignatureReminded',
-  'opportunity.dismissed': 'opportunityDismissed',
-  'opportunity.restored': 'opportunityRestored',
-  'opportunity.snoozed': 'opportunitySnoozed',
   'penalty.override': 'penaltyOverride',
   'pulse.apply': 'pulseApply',
   'pulse.approve': 'pulseApprove',
@@ -238,7 +234,6 @@ export type AuditEntityTypeLabels = {
   ruleSource: string
   obligationQueueExport: string
   obligationQueueSavedView: string
-  opportunity: string
 }
 
 const AUDIT_ENTITY_TYPE_LABEL_KEYS = {
@@ -263,7 +258,6 @@ const AUDIT_ENTITY_TYPE_LABEL_KEYS = {
   rule_source: 'ruleSource',
   obligations_export: 'obligationQueueExport',
   obligation_saved_view: 'obligationQueueSavedView',
-  opportunity: 'opportunity',
 } as const satisfies Record<string, keyof AuditEntityTypeLabels>
 
 type KnownAuditEntityType = keyof typeof AUDIT_ENTITY_TYPE_LABEL_KEYS

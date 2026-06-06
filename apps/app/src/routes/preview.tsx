@@ -196,11 +196,6 @@ import { SummaryMetric } from '@/features/migration/SummaryMetric'
 import { FirmTimezoneSelect } from '@/features/firm/timezone-select'
 import { AuditLogTable } from '@/features/audit/audit-log-table'
 import {
-  OpportunityKindBadge,
-  OpportunitySeverityBadge,
-  OpportunityTimingBadge,
-} from '@/features/opportunities/opportunity-ui'
-import {
   SectionFrame,
   SectionLabel,
   FilterChips,
@@ -319,7 +314,6 @@ const TOC: Array<{ id: string; label: string }> = [
   { id: 'oblig-bits', label: 'Obligations — chips' },
   { id: 'oblig-blocks', label: 'Obligations — blocks' },
   { id: 'rules-console', label: 'Rules console primitives' },
-  { id: 'opportunity', label: 'Opportunity badges' },
   { id: 'migration-bits', label: 'Migration primitives' },
   { id: 'audit-table', label: 'Audit log table' },
   { id: 'firm-bits', label: 'Firm primitives' },
@@ -2126,29 +2120,6 @@ export function PreviewRoute() {
             </Row>
           </Section>
 
-          {/* Opportunity badges */}
-          <Section
-            id="opportunity"
-            title="Opportunity badges"
-            subtitle="The classification chips from /opportunities and the client-detail opportunity card."
-          >
-            <Row label="OpportunityKindBadge" mono="features/opportunities/opportunity-ui">
-              <OpportunityKindBadge kind="scope_review" />
-              <OpportunityKindBadge kind="retention_check_in" />
-              <OpportunityKindBadge kind="advisory_conversation" />
-            </Row>
-            <Row label="OpportunitySeverityBadge">
-              <OpportunitySeverityBadge severity="low" />
-              <OpportunitySeverityBadge severity="medium" />
-              <OpportunitySeverityBadge severity="high" />
-            </Row>
-            <Row label="OpportunityTimingBadge">
-              <OpportunityTimingBadge timing="now" />
-              <OpportunityTimingBadge timing="next_30_days" />
-              <OpportunityTimingBadge timing="next_quarter" />
-            </Row>
-          </Section>
-
           {/* Migration primitives */}
           <Section
             id="migration-bits"
@@ -2270,9 +2241,8 @@ export function PreviewRoute() {
             <code className="font-mono">notifications-page</code>,{' '}
             <code className="font-mono">reminders-page</code>,{' '}
             <code className="font-mono">workload-page</code>,{' '}
-            <code className="font-mono">members-page</code>,{' '}
-            <code className="font-mono">opportunities-page</code> → their own routes · all
-            DrawerProvider components — they're React context providers, not visible UI.
+            <code className="font-mono">members-page</code> → their own routes · all DrawerProvider
+            components — they're React context providers, not visible UI.
           </p>
         </main>
       </div>

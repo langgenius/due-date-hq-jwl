@@ -27,7 +27,6 @@ export const routeSummaries = {
   reminders: { eyebrow: msg`Operations`, title: msg`Reminders` },
   clients: { eyebrow: msg`Clients`, title: msg`Clients` },
   clientDetail: { eyebrow: msg`Clients`, title: msg`Client detail` },
-  opportunities: { eyebrow: msg`Clients`, title: msg`Opportunities` },
   audit: { eyebrow: msg`Practice`, title: msg`Audit log` },
   practice: { eyebrow: msg`Practice`, title: msg`Practice profile` },
   members: { eyebrow: msg`Practice`, title: msg`Members` },

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { Link, useNavigate } from 'react-router'
 import { parseAsStringLiteral, useQueryState } from 'nuqs'
-import { Plural, Trans, useLingui } from '@lingui/react/macro'
+import { Trans, useLingui } from '@lingui/react/macro'
 import {
   ActivityIcon,
   AlertTriangleIcon,
@@ -22,7 +22,6 @@ import {
   RefreshCwIcon,
   ScrollTextIcon,
   SettingsIcon,
-  SparklesIcon,
   Trash2Icon,
   UserRoundIcon,
 } from 'lucide-react'
@@ -33,7 +32,6 @@ import type {
   ClientPublic,
   MemberAssigneeOption,
   ObligationInstancePublic,
-  ObligationRule,
 } from '@duedatehq/contracts'
 import {
   AlertDialog,
@@ -57,7 +55,6 @@ import {
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@duedatehq/ui/components/ui/tabs'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
@@ -79,7 +76,6 @@ import {
 } from '@/features/obligations/status-control'
 import { useFirmAsOfDate } from '@/features/firm/use-firm-as-of-date'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
-import { ClientOpportunitiesCard } from '@/features/opportunities/client-opportunities-card'
 import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 
@@ -351,21 +347,18 @@ export function ClientDetailWorkspace({
   //     once at the top of the workspace tree.
   const [notesOpen, setNotesOpen] = useState(false)
   const hasClientNotes = (client.notes?.trim().length ?? 0) > 0
-  // Body is now a 4-tab structure (Work / Client info / Discover /
-  // Activity) — see docs/Design/client-page-information-architecture.md
-  // updated 2026-05-22. URL-bound so deep links land on the right tab.
+  // Body is a 3-tab structure (Work / Client info / Activity) — see
+  // docs/Design/client-page-information-architecture.md updated
+  // 2026-05-22. URL-bound so deep links land on the right tab.
   // Work is the daily driver (filing plan), Client info carries the
   // configuration surfaces (compliance posture + jurisdictions + risk +
-  // onboarding + import source), Discover is reference-only (suggested
-  // forms + future business cues), Activity is lazy-loaded history.
+  // onboarding + import source), Activity is lazy-loaded history.
   const [activeTab, setActiveTab] = useQueryState(
     'tab',
-    parseAsStringLiteral(['work', 'info', 'opportunities', 'activity'] as const).withDefault(
-      'work',
-    ),
+    parseAsStringLiteral(['work', 'info', 'activity'] as const).withDefault('work'),
   )
-  // 2026-05-26 (Yuqi tab-body follow-ups, Task 1): wire 1/2/3/4 as
-  // hotkeys for the four tabs. Mirrors the J/K cycle pattern in
+  // 2026-05-26 (Yuqi tab-body follow-ups, Task 1): wire 1/2/3 as
+  // hotkeys for the three tabs. Mirrors the J/K cycle pattern in
   // ClientCycleArrows — uses `useAppHotkey` (the project's canonical
   // hotkey primitive), gates on `useKeyboardShortcutsBlocked` so the
   // shortcuts stay quiet inside text inputs / dialogs / drawers, and
@@ -377,9 +370,9 @@ export function ClientDetailWorkspace({
   // synced with the tab-label rename. The `?` Keyboard Shortcuts
   // dialog and any other surface that reads `meta.name` /
   // `meta.description` from the hotkey registry now show the new
-  // tab labels (Filing plan / Setup / Opportunities / History) and
-  // accurate descriptions (Activity → History no longer mentions
-  // "notes" because Notes moved to a slide-in panel).
+  // tab labels (Filing plan / Setup / History) and accurate
+  // descriptions (Activity → History no longer mentions "notes"
+  // because Notes moved to a slide-in panel).
   useAppHotkey('1', () => void setActiveTab('work'), {
     enabled: !shortcutsBlocked,
     meta: {
@@ -400,17 +393,7 @@ export function ClientDetailWorkspace({
       scope: 'route',
     },
   })
-  useAppHotkey('3', () => void setActiveTab('opportunities'), {
-    enabled: !shortcutsBlocked,
-    meta: {
-      id: 'clients.tab.opportunities',
-      name: 'Opportunities tab',
-      description: 'Switch to the Opportunities tab (suggested forms + future business cues).',
-      category: 'navigate',
-      scope: 'route',
-    },
-  })
-  useAppHotkey('4', () => void setActiveTab('activity'), {
+  useAppHotkey('3', () => void setActiveTab('activity'), {
     enabled: !shortcutsBlocked,
     meta: {
       id: 'clients.tab.activity',
@@ -970,20 +953,14 @@ export function ClientDetailWorkspace({
                 content grew past the point where a flat list of
                 collapsibles reads cleanly, and "compliance posture"
                 turned out to be client info (identity facts), not
-                daily work. Tabs separate the four jobs cleanly:
+                daily work. Tabs separate the three jobs cleanly:
                   • Work       — what do they owe right now?
                   • Client info — who is this client?
-                  • Discover   — what else could they file?
                   • Activity   — what happened recently? (lazy) */}
             <Tabs
               value={activeTab}
               onValueChange={(value) => {
-                if (
-                  value === 'work' ||
-                  value === 'info' ||
-                  value === 'opportunities' ||
-                  value === 'activity'
-                ) {
+                if (value === 'work' || value === 'info' || value === 'activity') {
                   void setActiveTab(value)
                 }
               }}
@@ -1054,10 +1031,6 @@ export function ClientDetailWorkspace({
                       • info          → "Setup"
                           (was "Client info" — 5 sections of
                           tax-setup data, not contact info)
-                      • opportunities → "Opportunities"
-                          (was "Suggested forms" — umbrella that
-                          honestly covers both "Suggested forms" AND
-                          "Future business cues" sub-sections)
                       • activity      → "History"
                           (was "Activity" — read-mode history once
                           Notes moves out to a slide-in panel)
@@ -1096,25 +1069,6 @@ export function ClientDetailWorkspace({
                       {readiness.missingRequiredFacts.length}
                     </Badge>
                   ) : null}
-                </ClientDetailTabTrigger>
-                <ClientDetailTabTrigger
-                  value="opportunities"
-                  activeTab={activeTab}
-                  compact={panelOpen}
-                >
-                  <SparklesIcon className="size-3.5" aria-hidden />
-                  <span data-tab-label>
-                    {/* 2026-06-01 (Yuqi /clients/[id] critique — IA):
-                        promoted from "Suggested forms" → "Opportunities"
-                        so the tab honestly covers both sub-sections
-                        ("Suggested forms" catalog + "Future business
-                        cues"). The audit L7 collision concern with the
-                        firm-wide /opportunities sidebar surface is
-                        moot — the tab lives nested inside a client
-                        detail context, never reads as the firm-wide
-                        page. URL key stays `opportunities`. */}
-                    <Trans>Opportunities</Trans>
-                  </span>
                 </ClientDetailTabTrigger>
                 <ClientDetailTabTrigger value="activity" activeTab={activeTab} compact={panelOpen}>
                   <ActivityIcon className="size-3.5" aria-hidden />
@@ -1249,36 +1203,6 @@ export function ClientDetailWorkspace({
                       onSave={(input) => updateSourceDetailsMutation.mutate(input)}
                     />
                   </div>
-                </TabSection>
-              </TabsContent>
-
-              <TabsContent
-                value="opportunities"
-                className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pt-4 pb-6"
-              >
-                <TabSection
-                  title={t`Suggested forms`}
-                  summary={t`Forms the rule library can add without a new deadline`}
-                >
-                  {/* 2026-05-26 (Yuqi tab-body follow-ups, Task 3):
-                      drop the wrapper frame here — SuggestedFormsCatalogPanel
-                      renders its own canonical-shape frame plus its own
-                      "Forms catalog · N applicable" header bar, so the
-                      outer p-4 wrapper double-framed and added wasted
-                      padding. Matches how Future business cues below
-                      lets ClientOpportunitiesCard stand alone. */}
-                  <SuggestedFormsCatalogPanel client={client} existingObligations={obligations} />
-                </TabSection>
-
-                <TabSection
-                  title={t`Future business cues`}
-                  summary={t`Advisory, scope, and retention opportunities`}
-                >
-                  {/* ClientOpportunitiesCard renders its own <Card>
-                      chrome (frame + internal title). We let it stand
-                      alone — wrapping it in another frame doubled the
-                      border + duplicated the heading. */}
-                  <ClientOpportunitiesCard clientId={client.id} />
                 </TabSection>
               </TabsContent>
 
@@ -1512,11 +1436,11 @@ export function ClientDetailWorkspace({
   )
 }
 
-type ClientDetailTabKey = 'work' | 'info' | 'opportunities' | 'activity'
+type ClientDetailTabKey = 'work' | 'info' | 'activity'
 
 // ClientDetailTabTrigger — adopts the canonical /deadlines
-// ObligationQueueScopeTab visual contract for the four detail-page
-// tabs (Work / Client info / Opportunities / Activity).
+// ObligationQueueScopeTab visual contract for the three detail-page
+// tabs (Work / Client info / Activity).
 //   - text-base label, px-3 py-1.5 padding
 //   - Active = `font-medium text-text-primary`; underline carries the
 //     active signal (no accent-purple text)
@@ -2143,304 +2067,3 @@ function ClientContactMetaItem({ item }: { item: ClientHeaderContactItem }) {
 
   return <span className="inline-flex min-w-0 max-w-full items-center gap-1">{content}</span>
 }
-
-// ─── Suggested-forms catalog (wired to rule catalog) ──────────────────
-// PDF §3.3 "Classification": what could this client owe that we haven't
-// scheduled yet? We query `rules.listRules` for all active firm rules,
-// filter to those whose entityApplicability matches the client's
-// entityType and whose jurisdiction matches federal-or-client-state, and
-// subtract anything the client already has a generated obligation for
-// (matched by ruleId). The "+ Add deadline" button calls
-// `obligations.createFromRule`; the server resolves the selected rule into
-// concrete due dates and rejects review-only rules instead of accepting
-// client-side placeholder dates.
-type SuggestedRule = {
-  rule: ObligationRule
-}
-
-// Map our client.entityType to the rule's EntityApplicability vocabulary.
-// The rule schema uses 'any_business', 'any_entity', etc. as wildcards;
-// our client.entityType uses concrete values. A rule matches a client if
-// its applicability set contains the client's entityType OR a wildcard.
-function ruleAppliesToEntity(
-  rule: ObligationRule,
-  clientEntityType: ClientPublic['entityType'],
-): boolean {
-  return rule.entityApplicability.some((a) => a === clientEntityType || a === 'any_business')
-}
-
-function ruleAppliesToJurisdiction(rule: ObligationRule, clientStates: Set<string>): boolean {
-  // Rule jurisdiction is 'FED' for federal, or a state code for state rules.
-  if (rule.jurisdiction === 'FED') return true
-  return clientStates.has(rule.jurisdiction)
-}
-
-function suggestedRulesForClient(
-  allRules: readonly ObligationRule[],
-  client: ClientPublic,
-  existingObligations: readonly ObligationInstancePublic[],
-): SuggestedRule[] {
-  const clientStates = new Set<string>(client.filingProfiles.map((p) => p.state))
-  const scheduledRuleIds = new Set(existingObligations.flatMap((o) => (o.ruleId ? [o.ruleId] : [])))
-  return allRules
-    .filter((rule) => rule.status === 'active')
-    .filter((rule) => !scheduledRuleIds.has(rule.id))
-    .filter((rule) => ruleAppliesToJurisdiction(rule, clientStates))
-    .filter((rule) => ruleAppliesToEntity(rule, client.entityType))
-    .map((rule) => ({ rule }))
-}
-
-function SuggestedFormsCatalogPanel({
-  client,
-  existingObligations,
-}: {
-  client: ClientPublic
-  existingObligations: readonly ObligationInstancePublic[]
-}) {
-  const { t } = useLingui()
-  const queryClient = useQueryClient()
-  const [hidden, setHidden] = useState(false)
-  const [pendingRuleId, setPendingRuleId] = useState<string | null>(null)
-
-  const rulesQuery = useQuery(orpc.rules.listRules.queryOptions({ input: { status: 'active' } }))
-  const createMutation = useMutation(
-    orpc.obligations.createFromRule.mutationOptions({
-      onMutate: (variables) => {
-        setPendingRuleId(variables.ruleId)
-      },
-      onSuccess: (result) => {
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.listByClient.key() })
-        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
-        toast.success(t`Deadline added`, {
-          description: t`${result.obligations.length} deadline created from the rule catalog.`,
-        })
-        setPendingRuleId(null)
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't add deadline`, {
-          description:
-            rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
-        })
-        setPendingRuleId(null)
-      },
-    }),
-  )
-
-  const allRules = rulesQuery.data ?? EMPTY_RULES
-  const applicable = useMemo(() => {
-    const clientStates = new Set<string>(client.filingProfiles.map((p) => p.state))
-    return allRules.filter(
-      (rule) =>
-        rule.status === 'active' &&
-        ruleAppliesToJurisdiction(rule, clientStates) &&
-        ruleAppliesToEntity(rule, client.entityType),
-    )
-  }, [allRules, client.entityType, client.filingProfiles])
-  const suggested = useMemo(
-    () => suggestedRulesForClient(allRules, client, existingObligations),
-    [allRules, client, existingObligations],
-  )
-
-  if (rulesQuery.isLoading) {
-    // 2026-05-26 (Yuqi tab-body follow-ups, Task 3): loading
-    // skeleton frame snapped to canonical `border-divider-regular`
-    // so it reads at the same weight as the panel's resolved frame
-    // below.
-    return (
-      <div className="rounded-md border border-divider-regular bg-background-default p-4">
-        <Skeleton className="mb-2 h-4 w-40" />
-        <Skeleton className="h-3 w-72" />
-      </div>
-    )
-  }
-  if (applicable.length === 0) {
-    // 2026-05-26 (Yuqi tab-body follow-ups, Task 2 / Fix #10):
-    // previously `return null` left the surrounding TabSection
-    // ("Suggested forms") with no body — the heading floated alone
-    // and a CPA couldn't tell whether the panel was loading, broken,
-    // or genuinely empty. Now we render the canonical EmptyState so
-    // the section reads cleanly as "nothing here yet, here's why."
-    return (
-      <EmptyState
-        icon={ClipboardCheckIcon}
-        title={<Trans>No applicable forms for this client</Trans>}
-        description={
-          <Trans>
-            No active rule in the catalog matches this client's entity type and filing jurisdiction.
-            Add a jurisdiction or check back after rule updates.
-          </Trans>
-        }
-      />
-    )
-  }
-
-  function addDeadline(suggestion: SuggestedRule) {
-    createMutation.mutate({
-      clientId: client.id,
-      ruleId: suggestion.rule.id,
-    })
-  }
-
-  return (
-    // 2026-05-26 (Yuqi tab-body follow-ups, Task 3): outer frame
-    // border snapped from `border-divider-subtle` to the canonical
-    // `border-divider-regular` so the panel reads at the same
-    // tonal weight as the other section frames on this page
-    // (Filing plan year sections, Compliance posture, Risk profile,
-    // AI summary). page-family-canonical §9.
-    <div className="rounded-md border border-divider-regular bg-background-default">
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-sm font-medium text-text-primary">
-            <Trans>Forms catalog</Trans>
-          </span>
-          <span className="inline-flex items-center gap-2 truncate text-xs text-text-tertiary">
-            <span>
-              <Plural
-                value={applicable.length}
-                one="# applicable form"
-                other="# applicable forms"
-              />{' '}
-              · {client.name}
-            </span>
-            {/* D-6e (2026-05-23): the gap count is now a tooltip-
-                anchored chip. Hover reveals the actual form list so
-                the CPA can scan what's missing without opening the
-                accordion. Inert (no click target) — Tooltip is the
-                right primitive per Dify's overlay rules.
-                2026-05-27 (audit L12): "# gap" was opaque and
-                grammatically broken (singular and plural both read
-                "# gap"). Switched to "# not yet scheduled" which
-                names the actual product state — these are applicable
-                forms that don't have a deadline row yet. */}
-            {suggested.length > 0 ? (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Badge variant="warning" className="cursor-default rounded-sm text-xs">
-                      <Plural
-                        value={suggested.length}
-                        one="# not yet scheduled"
-                        other="# not yet scheduled"
-                      />
-                    </Badge>
-                  }
-                />
-                <TooltipContent className="max-w-sm whitespace-normal text-left">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs font-medium text-text-secondary">
-                      <Trans>Missing from this client</Trans>
-                    </span>
-                    <ul className="flex flex-col gap-0.5">
-                      {suggested.slice(0, 6).map((s) => (
-                        <li key={s.rule.id} className="flex items-baseline gap-1.5">
-                          <span className="font-mono uppercase tabular-nums opacity-70">
-                            {s.rule.jurisdiction}
-                          </span>
-                          <span className="truncate">{s.rule.formName}</span>
-                        </li>
-                      ))}
-                      {suggested.length > 6 ? (
-                        <li className="opacity-70">
-                          <Trans>+ {suggested.length - 6} more</Trans>
-                        </li>
-                      ) : null}
-                    </ul>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ) : null}
-          </span>
-        </div>
-        <Button variant="ghost" size="sm" onClick={() => setHidden((v) => !v)}>
-          {hidden ? <Trans>Show</Trans> : <Trans>Hide</Trans>}
-        </Button>
-      </div>
-      {hidden ? null : suggested.length === 0 ? (
-        <div className="border-t border-divider-subtle px-4 py-3">
-          <EmptyState
-            icon={CheckCircle2Icon}
-            title={<Trans>All applicable rules scheduled</Trans>}
-            description={
-              <Trans>
-                Every active rule the catalog matches to this client already has a generated
-                deadline.
-              </Trans>
-            }
-          />
-        </div>
-      ) : (
-        <>
-          <div className="border-t border-state-warning-border bg-state-warning-hover/50 px-4 py-2">
-            {/* 2026-05-26 (Yuqi macro→micro audit, Fix #7 / §3.3):
-                retired uppercase kicker; sentence-case sm-semibold
-                matches the canonical section-heading scale. */}
-            <p className="text-sm font-semibold text-text-warning">
-              <Trans>Suggested</Trans>
-              {' · '}
-              <Plural value={suggested.length} one="# rule" other="# rules" />
-            </p>
-            <p className="mt-0.5 text-caption font-normal tracking-normal text-text-secondary normal-case">
-              <Trans>Applicable rules with no deadline scheduled yet.</Trans>
-            </p>
-          </div>
-          <div className="grid divide-y divide-divider-subtle">
-            {suggested.map((suggestion) => {
-              const isPending = pendingRuleId === suggestion.rule.id && createMutation.isPending
-              const needsRuleReview =
-                suggestion.rule.dueDateLogic.kind === 'source_defined_calendar'
-              return (
-                <div
-                  key={suggestion.rule.id}
-                  className="grid gap-1 px-4 py-3 sm:grid-cols-[1fr_auto] sm:items-center"
-                >
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-baseline gap-2">
-                      <p className="text-sm font-medium text-text-primary">
-                        {suggestion.rule.formName}
-                      </p>
-                      <span className="text-xs font-medium tracking-eyebrow text-text-tertiary uppercase">
-                        {suggestion.rule.jurisdiction}
-                      </span>
-                    </div>
-                    <p className="text-xs leading-snug text-text-tertiary">
-                      {suggestion.rule.title}
-                      {needsRuleReview ? (
-                        <>
-                          {' · '}
-                          <Trans>Rule review required before this can create a deadline.</Trans>
-                        </>
-                      ) : null}
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => addDeadline(suggestion)}
-                    disabled={createMutation.isPending || needsRuleReview}
-                  >
-                    {needsRuleReview ? (
-                      <AlertTriangleIcon data-icon="inline-start" />
-                    ) : isPending ? (
-                      <RefreshCwIcon data-icon="inline-start" className="animate-spin" />
-                    ) : (
-                      <PlusIcon data-icon="inline-start" />
-                    )}
-                    {needsRuleReview ? (
-                      <Trans>Rule review required</Trans>
-                    ) : (
-                      <Trans>Add deadline</Trans>
-                    )}
-                  </Button>
-                </div>
-              )
-            })}
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
-const EMPTY_RULES: readonly ObligationRule[] = []

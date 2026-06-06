@@ -16,8 +16,6 @@ DELETE FROM email_outbox WHERE firm_id IN (SELECT id FROM firm_profile WHERE own
 
 DELETE FROM notification_preference WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
 
-DELETE FROM opportunity_dismissal WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
-
 DELETE FROM dashboard_brief WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
 
 DELETE FROM ai_insight_cache WHERE firm_id IN (SELECT id FROM firm_profile WHERE owner_user_id LIKE 'mock_user_%');
@@ -99,8 +97,6 @@ DELETE FROM notification_digest_run WHERE firm_id IN ('mock_firm_brightline', 'm
 DELETE FROM email_outbox WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 
 DELETE FROM notification_preference WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
-
-DELETE FROM opportunity_dismissal WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 
 DELETE FROM dashboard_brief WHERE firm_id IN ('mock_firm_brightline', 'mock_firm_solo', 'mock_firm_plan_solo', 'mock_firm_plan_pro', 'mock_firm_plan_team');
 

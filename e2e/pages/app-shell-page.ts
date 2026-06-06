@@ -5,7 +5,6 @@ export class AppShellPage {
   readonly todayLink: Locator
   readonly obligationQueueLink: Locator
   readonly clientsLink: Locator
-  readonly opportunitiesLink: Locator
   readonly rulesLink: Locator
   readonly importClientsButton: Locator
   readonly commandDialog: Locator
@@ -17,7 +16,6 @@ export class AppShellPage {
     this.todayLink = page.getByRole('link', { name: /^Today$/ })
     this.obligationQueueLink = page.getByRole('link', { name: /Deadlines/ })
     this.clientsLink = page.getByRole('link', { name: 'Clients' })
-    this.opportunitiesLink = page.getByRole('link', { name: 'Opportunities' })
     this.rulesLink = page.getByRole('link', { name: /^Rule library(?:\s+\d+)?$/ })
     this.importClientsButton = page
       .getByRole('button', {

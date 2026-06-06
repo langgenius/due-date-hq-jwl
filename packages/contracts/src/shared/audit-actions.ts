@@ -118,12 +118,6 @@ export const FirmAuditActions = [
   'firm.deleted',
 ] as const
 
-export const OpportunityAuditActions = [
-  'opportunity.dismissed',
-  'opportunity.snoozed',
-  'opportunity.restored',
-] as const
-
 // Calendar feed (ICS) subscriptions — token mint / rotate / revoke controls
 // who can pull firm deadline data out via an unauthenticated URL.
 export const CalendarAuditActions = [
@@ -172,7 +166,6 @@ export const AuditActions = [
   ...ClientAuditActions,
   ...MemberAuditActions,
   ...FirmAuditActions,
-  ...OpportunityAuditActions,
   ...CalendarAuditActions,
   ...ReminderAuditActions,
   ...AuthAuditActions,
@@ -205,9 +198,6 @@ export type MemberAuditAction = z.infer<typeof MemberAuditActionSchema>
 
 export const FirmAuditActionSchema = z.enum(FirmAuditActions)
 export type FirmAuditAction = z.infer<typeof FirmAuditActionSchema>
-
-export const OpportunityAuditActionSchema = z.enum(OpportunityAuditActions)
-export type OpportunityAuditAction = z.infer<typeof OpportunityAuditActionSchema>
 
 export const CalendarAuditActionSchema = z.enum(CalendarAuditActions)
 export type CalendarAuditAction = z.infer<typeof CalendarAuditActionSchema>

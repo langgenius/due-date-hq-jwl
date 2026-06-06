@@ -30,7 +30,6 @@ import {
   EyeIcon,
   LinkIcon,
   SearchIcon,
-  SparklesIcon,
   UsersRoundIcon,
 } from 'lucide-react'
 
@@ -115,7 +114,6 @@ type ClientFactsWorkspaceProps = {
   ownerFilter: readonly string[]
   alertMatchesByClient: ReadonlyMap<string, readonly ClientAlertMatch[]>
   obligationSummariesByClient: ReadonlyMap<string, ClientObligationListSummary>
-  opportunityCountByClient: ReadonlyMap<string, number>
   onClientFilterChange: (value: string[]) => void
   onEntityFilterChange: (value: string[]) => void
   onStateFilterChange: (value: string[]) => void
@@ -155,7 +153,6 @@ const CLIENTS_COL_WIDTH = {
   open: 'w-[130px]',
   done: 'w-[80px]',
   assignee: 'w-[80px]',
-  opportunities: 'w-[80px]',
 } as const
 
 function computeClientsResponsivePageSize(containerHeight: number): number {
@@ -478,7 +475,6 @@ export function ClientFactsWorkspace({
   entityFilter,
   alertMatchesByClient,
   obligationSummariesByClient,
-  opportunityCountByClient,
   onClientFilterChange,
   onEntityFilterChange,
   onStateFilterChange,
@@ -576,7 +572,7 @@ export function ClientFactsWorkspace({
   //
   //   Client · States (primary + others inline) ·
   //   Next due (date + form + readiness) ·
-  //   # Services · # Open · Owner (avatar) · Opportunities
+  //   # Services · # Open · Owner (avatar)
   //
   // Source column was dropped — provenance trivia, not a reason to
   // pick a row. The filter param + filter pipeline are still wired
@@ -1026,26 +1022,6 @@ export function ClientFactsWorkspace({
         },
       },
       {
-        // 2026-05-23: abbreviated header from "Opportunities" → "Opp."
-        // per design mock. Full label preserved in the cell's tooltip
-        // (via ClientOpportunityCountBadge) and the column-toggle UI.
-        // Tighter header frees room for the new ENTITY + DONE columns
-        // without overflowing the 1100px page cap.
-        id: 'opportunities',
-        header: t`Opp.`,
-        cell: ({ row }) => {
-          const count = opportunityCountByClient.get(row.original.id) ?? 0
-          if (count === 0) {
-            return <EmptyCellMark label={t`No opportunities tracked`} />
-          }
-          return <ClientOpportunityCountBadge count={count} />
-        },
-        meta: {
-          headerClassName: CLIENTS_COL_WIDTH.opportunities,
-          cellClassName: CLIENTS_COL_WIDTH.opportunities,
-        },
-      },
-      {
         // 2026-05-26 (Stripe Phase B — per-row ⋯): canonical row-action
         // menu lives at the trailing edge of every row, mirroring how
         // Stripe's Transactions table exposes per-row affordances.
@@ -1102,7 +1078,6 @@ export function ClientFactsWorkspace({
       handleOpenClientDetail,
       obligationSummariesByClient,
       openClientDrawer,
-      opportunityCountByClient,
       alertMatchesByClient,
       t,
     ],
@@ -1147,12 +1122,6 @@ export function ClientFactsWorkspace({
         // not a default directory scan dimension. Keep it available
         // for CPAs who opt into filed/completed volume review.
         doneObligations: false,
-        // 2026-05-26 (Yuqi /clients directory pivot brief): `Opp.`
-        // demoted to hidden-by-default. The directory's primary job
-        // is find-and-open; an opportunity count earns its visual
-        // weight only when surfaced via the column-toggle UI for
-        // the rare CPA who actively triages opportunities here.
-        opportunities: false,
         // `servicesCount` stays hidden by default per its prior
         // behavior — the cell renders "—" for typical firms that
         // haven't fully populated filing profiles, but the column
@@ -1793,7 +1762,6 @@ function ClientTableSkeleton() {
       header: 'w-12',
       cell: 'w-6 rounded-full',
     },
-    { id: 'opp', className: CLIENTS_COL_WIDTH.opportunities, header: 'w-10', cell: 'w-8' },
   ] as const
   return (
     // 2026-05-26 (Yuqi cross-page audit): skeleton matches the live
@@ -1904,16 +1872,6 @@ function MissingFactsLabel({ readiness }: { readiness: ClientReadiness }) {
   }
   return <Trans>Needs facts</Trans>
 }
-function ClientOpportunityCountBadge({ count }: { count: number }) {
-  const { t } = useLingui()
-  return (
-    <Badge variant="secondary" className="text-xs" aria-label={t`${count} opportunity match(es)`}>
-      <SparklesIcon data-icon="inline-start" aria-hidden />
-      {count}
-    </Badge>
-  )
-}
-
 function ClientAlertMatchBadge({ matches }: { matches: readonly ClientAlertMatch[] }) {
   const { t } = useLingui()
   const count = matches.length

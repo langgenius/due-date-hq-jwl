@@ -566,16 +566,6 @@ export function createAppRouter() {
               },
             },
             {
-              path: 'opportunities',
-              handle: routeHandle(routeSummaries.opportunities),
-              HydrateFallback: RouteHydrateFallback,
-              lazy: async () => {
-                const { OpportunitiesRoute } = await import('@/routes/opportunities')
-
-                return { Component: OpportunitiesRoute }
-              },
-            },
-            {
               path: 'imports',
               HydrateFallback: RouteHydrateFallback,
               loader: importsAliasLoader,

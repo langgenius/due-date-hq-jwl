@@ -343,13 +343,6 @@ export const FIRM_AUDIT_ACTIONS = [
 ] as const
 export type FirmAuditAction = (typeof FIRM_AUDIT_ACTIONS)[number]
 
-export const OPPORTUNITY_AUDIT_ACTIONS = [
-  'opportunity.dismissed',
-  'opportunity.snoozed',
-  'opportunity.restored',
-] as const
-export type OpportunityAuditAction = (typeof OPPORTUNITY_AUDIT_ACTIONS)[number]
-
 export const CALENDAR_AUDIT_ACTIONS = [
   'calendar.subscription.created',
   'calendar.subscription.regenerated',
@@ -412,7 +405,6 @@ export const AUDIT_ACTIONS = [
   ...CLIENT_AUDIT_ACTIONS,
   ...MEMBER_AUDIT_ACTIONS,
   ...FIRM_AUDIT_ACTIONS,
-  ...OPPORTUNITY_AUDIT_ACTIONS,
   ...CALENDAR_AUDIT_ACTIONS,
   ...REMINDER_AUDIT_ACTIONS,
   ...AUTH_AUDIT_ACTIONS,

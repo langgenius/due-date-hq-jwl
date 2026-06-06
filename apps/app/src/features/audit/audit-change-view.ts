@@ -175,9 +175,6 @@ export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresen
   'obligation.status.updated': obligationStatusPresenter,
   'obligation.status.auto_unblocked': obligationStatusPresenter,
   'obligation.tax_year_profile.updated': genericPresenter,
-  'opportunity.dismissed': opportunityDismissedPresenter,
-  'opportunity.restored': opportunityRestoredPresenter,
-  'opportunity.snoozed': opportunitySnoozedPresenter,
   // η pass — F-008 / F-023: readiness checklist item lifecycle. The
   // ai_overridden variant gets its own action so the audit drawer can
   // filter to "Andy overrode an AI value" without parsing payloads.
@@ -593,40 +590,6 @@ function alertDueDatePresenter(context: AuditChangeContext): AuditChangeView {
     rows,
     appendGenericNotes(context, rows),
   )
-}
-
-// 2026-05-24 (critique /polish): genericPresenter for opportunity
-// events surfaced "File kind changed from Not set to Dismissed" —
-// technically truthful but not what a reviewer wants to read. These
-// presenters lean on the action label ("Opportunity dismissed",
-// "Opportunity restored", "Opportunity snoozed") for the headline
-// and add a single human-readable detail line carrying the
-// snoozeUntil date when applicable.
-function opportunityDismissedPresenter(context: AuditChangeContext): AuditChangeView {
-  return view(context.actionLabel, [], appendGenericNotes(context, []))
-}
-
-function opportunityRestoredPresenter(context: AuditChangeContext): AuditChangeView {
-  return view(context.actionLabel, [], appendGenericNotes(context, []))
-}
-
-function opportunitySnoozedPresenter(context: AuditChangeContext): AuditChangeView {
-  const after = context.after
-  const snoozeUntil =
-    typeof after === 'object' && after !== null && 'snoozeUntil' in after
-      ? (after as { snoozeUntil?: unknown }).snoozeUntil
-      : null
-  const rows: AuditChangeRow[] =
-    typeof snoozeUntil === 'string'
-      ? [
-          {
-            field: context.labels.fields.snoozedUntil ?? 'Snoozed until',
-            previous: context.labels.values.notSet,
-            next: formatDate(snoozeUntil.slice(0, 10)),
-          },
-        ]
-      : []
-  return view(context.actionLabel, rows, appendGenericNotes(context, rows))
 }
 
 function penaltyPresenter(context: AuditChangeContext): AuditChangeView {

@@ -117,16 +117,9 @@ test.describe('seeded client facts', () => {
     await expect(
       authenticatedPage.getByRole('button', { name: 'View open filings for this client' }),
     ).toContainText(/1\s*open filing/i)
-    // IA redesign renamed the four detail tabs (URL keys unchanged):
-    //   work → "Filing plan", info → "Setup",
-    //   opportunities → "Opportunities", activity → "History"
-    // (apps/app/src/features/clients/ClientDetailWorkspace.tsx:1042-1102).
-    // The `opportunities` tab now umbrellas both the Suggested-forms
-    // catalog and the Future-business-cues section, so "Future business
-    // cues" (a TabSection <h2>, line 1250) lives under the Opportunities
-    // tab.
-    await authenticatedPage.getByRole('tab', { name: 'Opportunities' }).click()
-    await expect(clientsPage.detailSection('Future business cues')).toBeVisible()
+    // IA redesign renamed the three detail tabs (URL keys unchanged):
+    //   work → "Filing plan", info → "Setup", activity → "History"
+    // (apps/app/src/features/clients/ClientDetailWorkspace.tsx).
     await authenticatedPage.getByRole('tab', { name: 'Filing plan' }).click()
     await expect(clientsPage.detailSection('Filing plan')).toBeVisible()
     await authenticatedPage.getByRole('tab', { name: 'Setup' }).click()

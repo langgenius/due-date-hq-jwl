@@ -79,9 +79,6 @@ export function useAuditActionLabels(): AuditActionLabels {
       obligationSignatureReminded: t`Signature reminder sent`,
       obligationStatusUpdated: t`Deadline status changed`,
       obligationTaxYearProfileUpdated: t`Deadline tax year changed`,
-      opportunityDismissed: t`Opportunity dismissed`,
-      opportunityRestored: t`Opportunity restored`,
-      opportunitySnoozed: t`Opportunity snoozed`,
       penaltyOverride: t`Penalty inputs changed`,
       pulseApply: t`Alert applied`,
       pulseApprove: t`Alert approved`,
@@ -148,7 +145,6 @@ export function useAuditEntityTypeLabels(): AuditEntityTypeLabels {
       ruleSource: t`Rule source`,
       obligationQueueExport: t`Deadlines export`,
       obligationQueueSavedView: t`Saved deadline view`,
-      opportunity: t`Opportunity`,
     }),
     [t],
   )

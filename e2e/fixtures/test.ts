@@ -16,7 +16,6 @@ import { MembersPage } from '../pages/members-page'
 import { MigrationWizardPage } from '../pages/migration-wizard-page'
 import { RulesConsolePage } from '../pages/rules-console-page'
 import { ObligationQueuePage } from '../pages/obligations-page'
-import { OpportunitiesPage } from '../pages/opportunities-page'
 import { WorkloadPage } from '../pages/workload-page'
 
 type AuthSeedMode =
@@ -74,7 +73,6 @@ type DueDateFixtures = {
   migrationWizardPage: MigrationWizardPage
   rulesConsolePage: RulesConsolePage
   obligationQueuePage: ObligationQueuePage
-  opportunitiesPage: OpportunitiesPage
   workloadPage: WorkloadPage
 }
 
@@ -116,10 +114,6 @@ export const test = base.extend<DueDateFixtures>({
 
   obligationQueuePage: async ({ authenticatedPage }, use) => {
     await use(new ObligationQueuePage(authenticatedPage))
-  },
-
-  opportunitiesPage: async ({ authenticatedPage }, use) => {
-    await use(new OpportunitiesPage(authenticatedPage))
   },
 
   workloadPage: async ({ authenticatedPage }, use) => {

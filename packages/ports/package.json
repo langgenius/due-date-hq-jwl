@@ -20,7 +20,6 @@
     "./migration": "./src/migration.ts",
     "./notifications": "./src/notifications.ts",
     "./obligations": "./src/obligations.ts",
-    "./opportunities": "./src/opportunities.ts",
     "./priority": "./src/priority.ts",
     "./pulse": "./src/pulse.ts",
     "./readiness": "./src/readiness.ts",

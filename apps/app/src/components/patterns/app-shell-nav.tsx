@@ -14,7 +14,6 @@ import {
   PlusIcon,
   ScrollTextIcon,
   SettingsIcon,
-  SparklesIcon,
   SquareChartGanttIcon,
   UsersIcon,
   type LucideIcon,
@@ -708,12 +707,6 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
                 }
               : {}),
           },
-          {
-            href: '/opportunities',
-            label: t`Opportunities`,
-            icon: SparklesIcon,
-            end: false,
-          },
         ],
         footer: [
           // 2026-05-25 (Yuqi sidebar polish): "Alerts archive" was
@@ -772,7 +765,6 @@ function useNavItems(firm: FirmPublic, navV2: boolean): NavConfig {
               }
             : {}),
         },
-        { href: '/opportunities', label: t`Opportunities`, icon: SparklesIcon, end: false },
       ],
       // Preview-integration adjustment: surface Coverage alongside
       // Rule library in the legacy nav so the Coverage rebuild is

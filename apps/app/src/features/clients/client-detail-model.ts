@@ -2,7 +2,6 @@ import type {
   ClientPublic,
   ObligationInstancePublic,
   ObligationQueueRow,
-  OpportunityPublic,
   PulseAffectedClient,
   PulseDetail,
 } from '@duedatehq/contracts'
@@ -363,16 +362,6 @@ export function buildClientObligationListSummaries(
     }
   }
   return byClient
-}
-
-export function buildOpportunityCountByClient(
-  opportunities: readonly OpportunityPublic[],
-): Map<string, number> {
-  const counts = new Map<string, number>()
-  for (const opportunity of opportunities) {
-    counts.set(opportunity.client.id, (counts.get(opportunity.client.id) ?? 0) + 1)
-  }
-  return counts
 }
 
 export function buildClientContactPlan(client: ClientPublic): ClientContactPlan {

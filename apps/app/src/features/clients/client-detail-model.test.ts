@@ -3,7 +3,6 @@ import type {
   ClientPublic,
   ObligationInstancePublic,
   ObligationQueueRow,
-  OpportunityPublic,
   PulseDetail,
 } from '@duedatehq/contracts'
 
@@ -13,7 +12,6 @@ import {
   buildClientObligationListSummaries,
   buildClientAlertMatches,
   buildClientWorkPlanSummary,
-  buildOpportunityCountByClient,
   buildAlertMatchesByClient,
   findExtensionWithoutPaymentObligations,
 } from './client-detail-model'
@@ -137,26 +135,6 @@ function client(overrides: Partial<ClientPublic> = {}): ClientPublic {
     updatedAt: '2026-04-01T00:00:00.000Z',
     deletedAt: null,
     ...overrides,
-  }
-}
-
-function makeOpportunity(id: string, clientId: string): OpportunityPublic {
-  return {
-    id,
-    kind: 'advisory_conversation',
-    client: {
-      id: clientId,
-      name: clientId,
-      entityType: 'llc',
-      state: 'CA',
-      assigneeName: null,
-    },
-    title: 'Title',
-    summary: 'Summary',
-    timing: 'now',
-    severity: 'medium',
-    evidence: [{ label: 'l', value: 'v' }],
-    primaryAction: { label: 'Act', href: '/x' },
   }
 }
 
@@ -529,18 +507,6 @@ describe('client detail model', () => {
       nextDueStatus: 'in_progress',
       doneCount: 0,
     })
-  })
-
-  it('counts opportunities per client', () => {
-    const counts = buildOpportunityCountByClient([
-      makeOpportunity('1', 'client_a'),
-      makeOpportunity('2', 'client_a'),
-      makeOpportunity('3', 'client_b'),
-    ])
-
-    expect(counts.get('client_a')).toBe(2)
-    expect(counts.get('client_b')).toBe(1)
-    expect(counts.get('client_c')).toBeUndefined()
   })
 
   it('groups active pulse matches by client and ignores resolved or reverted matches', () => {

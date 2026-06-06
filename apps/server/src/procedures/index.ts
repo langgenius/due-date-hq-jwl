@@ -9,7 +9,6 @@ import { membersHandlers } from './members'
 import { notificationsHandlers } from './notifications'
 import { obligationQueueHandlers } from './obligation-queue'
 import { obligationsHandlers } from './obligations'
-import { opportunitiesHandlers } from './opportunities'
 import { pulseHandlers } from './pulse'
 import { readinessHandlers } from './readiness'
 import { remindersHandlers } from './reminders'
@@ -111,13 +110,6 @@ export const router = os.router({
     listByClient: obligationsHandlers.listByClient,
     getDeadlineTip: obligationsHandlers.getDeadlineTip,
     requestDeadlineTipRefresh: obligationsHandlers.requestDeadlineTipRefresh,
-  },
-  opportunities: {
-    list: opportunitiesHandlers.list,
-    dismiss: opportunitiesHandlers.dismiss,
-    snooze: opportunitiesHandlers.snooze,
-    restore: opportunitiesHandlers.restore,
-    listDismissed: opportunitiesHandlers.listDismissed,
   },
   dashboard: {
     load: dashboardHandlers.load,

@@ -20,7 +20,6 @@ type AuditActionCategory =
   | 'auth'
   | 'team'
   | 'pulse'
-  | 'opportunity'
   | 'export'
   | 'calendar'
   | 'reminder'
@@ -83,12 +82,6 @@ const CATEGORY_PREFIXES: Record<
   auth: ['auth.'],
   team: ['team.', 'member.', 'firm.'],
   pulse: ['pulse.'],
-  // 2026-05-24 (re-critique): `opportunity.*` events (dismiss /
-  // snooze / restore) used to fall through into the "system" bucket
-  // when a reviewer filtered by category — visible in the log itself
-  // but invisible to the filter. Now they have their own first-class
-  // category alongside `pulse`.
-  opportunity: ['opportunity.'],
   export: ['export.', 'ics.'],
   calendar: ['calendar.'],
   reminder: ['reminder.'],

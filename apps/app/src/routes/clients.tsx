@@ -21,7 +21,6 @@ import { clientDetailPath } from '@/features/clients/client-url'
 import { ClientsCreateSplitButton } from '@/features/clients/ClientsCreateSplitButton'
 import {
   buildClientObligationListSummaries,
-  buildOpportunityCountByClient,
   buildAlertMatchesByClient,
 } from '@/features/clients/client-detail-model'
 import {
@@ -50,7 +49,6 @@ const EMPTY_CLIENTS: ClientPublic[] = []
 const EMPTY_AFFECTED_CLIENT_IDS: ReadonlySet<string> = new Set()
 const ALERT_HISTORY_LIMIT = 50
 const OBLIGATION_LIST_LIMIT = 100
-const OPPORTUNITY_LIST_LIMIT = 50
 const OPEN_OBLIGATION_STATUSES: ObligationStatus[] = [
   'pending',
   'in_progress',
@@ -75,7 +73,6 @@ const OBLIGATIONS_LIST_INPUT = {
   sort: 'due_asc' as const,
   limit: OBLIGATION_LIST_LIMIT,
 }
-const OPPORTUNITIES_LIST_INPUT = { limit: OPPORTUNITY_LIST_LIMIT }
 const ALERT_HISTORY_INPUT = { limit: ALERT_HISTORY_LIMIT }
 const CLIENTS_LIST_INPUT = { limit: CLIENT_LIST_LIMIT }
 
@@ -160,14 +157,6 @@ export function ClientsRoute() {
     () => buildClientObligationListSummaries(obligationListRows ?? []),
     [obligationListRows],
   )
-  const opportunitiesQuery = useQuery(
-    orpc.opportunities.list.queryOptions({ input: OPPORTUNITIES_LIST_INPUT }),
-  )
-  const opportunitiesList = opportunitiesQuery.data?.opportunities
-  const opportunityCountByClient = useMemo(
-    () => buildOpportunityCountByClient(opportunitiesList ?? []),
-    [opportunitiesList],
-  )
   const alertHistoryQuery = useQuery(
     orpc.pulse.listHistory.queryOptions({ input: ALERT_HISTORY_INPUT }),
   )
@@ -226,7 +215,6 @@ export function ClientsRoute() {
   const clientWorkspaceLoading =
     clientsQuery.isLoading ||
     obligationsListQuery.isLoading ||
-    opportunitiesQuery.isLoading ||
     alertHistoryQuery.isLoading ||
     alertDetailsLoading
 
@@ -486,7 +474,6 @@ export function ClientsRoute() {
         ownerFilter={filters.ownerFilters}
         alertMatchesByClient={alertMatchesByClient}
         obligationSummariesByClient={obligationSummariesByClient}
-        opportunityCountByClient={opportunityCountByClient}
         onClientFilterChange={handleClientFilterChange}
         onEntityFilterChange={handleEntityFilterChange}
         onStateFilterChange={handleStateFilterChange}

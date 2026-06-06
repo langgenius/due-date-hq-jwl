@@ -110,7 +110,6 @@ function useAuditCategoryLabels(): Record<AuditCategoryOption, string> {
     auth: t`Auth`,
     team: t`Team`,
     pulse: t`Alerts`,
-    opportunity: t`Opportunity`,
     export: t`Export`,
     calendar: t`Calendar`,
     reminder: t`Reminders`,

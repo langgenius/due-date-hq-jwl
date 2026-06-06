@@ -9,7 +9,6 @@ import * as migrationSchema from './schema/migration'
 import * as mutationLockSchema from './schema/mutation-lock'
 import * as notificationsSchema from './schema/notifications'
 import * as obligationsSchema from './schema/obligations'
-import * as opportunitiesSchema from './schema/opportunities'
 import * as overlaySchema from './schema/overlay'
 import * as pulseSchema from './schema/pulse'
 import * as readinessSchema from './schema/readiness'
@@ -27,7 +26,6 @@ const schema = {
   ...mutationLockSchema,
   ...notificationsSchema,
   ...obligationsSchema,
-  ...opportunitiesSchema,
   ...overlaySchema,
   ...pulseSchema,
   ...readinessSchema,

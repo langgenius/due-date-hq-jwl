@@ -12,7 +12,6 @@ import { makeMigrationRepo } from './repo/migration'
 import { makeMutationLockRepo } from './repo/mutation-lock'
 import { makeNotificationsRepo } from './repo/notifications'
 import { makeObligationsRepo } from './repo/obligations'
-import { makeOpportunityDismissalsRepo } from './repo/opportunities'
 import { makePulseRepo } from './repo/pulse'
 import { makeReadinessRepo } from './repo/readiness'
 import { makeRuleConcreteDraftRepo } from './repo/rule-concrete-drafts'
@@ -50,7 +49,6 @@ export function scoped(db: Db, firmId: string): ScopedRepo {
     dashboard: makeDashboardRepo(db, firmId),
     obligations: makeObligationsRepo(db, firmId),
     obligationQueue: makeObligationQueueRepo(db, firmId),
-    opportunityDismissals: makeOpportunityDismissalsRepo(db, firmId),
     workload: makeWorkloadRepo(db, firmId),
     pulse: makePulseRepo(db, firmId),
     readiness: makeReadinessRepo(db, firmId),

@@ -9,7 +9,6 @@ import { auditContract } from './audit'
 import { calendarContract } from './calendar'
 import { clientsContract } from './clients'
 import { obligationsContract } from './obligations'
-import { opportunitiesContract } from './opportunities'
 import { dashboardContract } from './dashboard'
 import { evidenceContract } from './evidence'
 import { firmsContract } from './firms'
@@ -29,7 +28,6 @@ export const appContract = oc.router({
   firms: firmsContract,
   clients: clientsContract,
   obligations: obligationsContract,
-  opportunities: opportunitiesContract,
   dashboard: dashboardContract,
   evidence: evidenceContract,
   workload: workloadContract,
@@ -247,45 +245,6 @@ export {
   ClientTaxYearProfileUpdateSchema,
   clientsContract,
 } from './clients'
-
-export type {
-  OpportunitiesContract,
-  OpportunityClient,
-  OpportunityDismissalRow,
-  OpportunityDismissInput,
-  OpportunityEvidence,
-  OpportunityKind,
-  OpportunityListDismissedOutput,
-  OpportunityListInput,
-  OpportunityListOutput,
-  OpportunityMutationOutput,
-  OpportunityPublic,
-  OpportunityRestoreInput,
-  OpportunityRestoreOutput,
-  OpportunitySeverity,
-  OpportunitySnoozeInput,
-  OpportunitySummary,
-  OpportunityTiming,
-} from './opportunities'
-export {
-  opportunitiesContract,
-  OpportunityClientSchema,
-  OpportunityDismissalRowSchema,
-  OpportunityDismissInputSchema,
-  OpportunityEvidenceSchema,
-  OpportunityKindSchema,
-  OpportunityListDismissedOutputSchema,
-  OpportunityListInputSchema,
-  OpportunityListOutputSchema,
-  OpportunityMutationOutputSchema,
-  OpportunityPublicSchema,
-  OpportunityRestoreInputSchema,
-  OpportunityRestoreOutputSchema,
-  OpportunitySeveritySchema,
-  OpportunitySnoozeInputSchema,
-  OpportunitySummarySchema,
-  OpportunityTimingSchema,
-} from './opportunities'
 
 export type {
   AnnualRolloverDisposition,
@@ -984,8 +943,6 @@ export {
   MemberAuditActionSchema,
   FirmAuditActions,
   FirmAuditActionSchema,
-  OpportunityAuditActions,
-  OpportunityAuditActionSchema,
   CalendarAuditActions,
   CalendarAuditActionSchema,
   ReminderAuditActions,
@@ -1009,7 +966,6 @@ export type {
   ReadinessAuditAction,
   MemberAuditAction,
   FirmAuditAction,
-  OpportunityAuditAction,
   CalendarAuditAction,
   ReminderAuditAction,
   AuthAuditAction,

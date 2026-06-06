@@ -134,7 +134,6 @@ describe('categoryForAction (bucketing)', () => {
     expect(categoryForAction('obligation.status.updated')).toBe('obligation')
     expect(categoryForAction('member.invited')).toBe('team')
     expect(categoryForAction('pulse.apply')).toBe('pulse')
-    expect(categoryForAction('opportunity.dismissed')).toBe('opportunity')
     expect(categoryForAction('calendar.subscription.created')).toBe('calendar')
     expect(categoryForAction('reminder.template.updated')).toBe('reminder')
     expect(categoryForAction('export.audit_package.ready')).toBe('export')
