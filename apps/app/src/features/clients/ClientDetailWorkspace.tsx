@@ -93,7 +93,6 @@ import { ClientSummaryStrip } from './ClientSummaryStrip'
 import { ClientWorkPlanPanel } from './ClientWorkPlanPanel'
 import {
   ClientClassificationPanel,
-  ClientFactChecklist,
   ClientJurisdictionPanel,
   ClientRiskInputsPanel,
   ClientRiskSummaryPanel,
@@ -1168,33 +1167,23 @@ export function ClientDetailWorkspace({
                     "work" in progress; the CPA edits / verifies these
                     quarterly, not daily. Panel renders its own grid
                     inside; TabSection owns the section heading. */}
+                {/* Client profile — compliance identity facts (EIN / tax
+                    year / owners / client-since) AND the onboarding readiness
+                    checklist in ONE card. The checklist rows derive live from
+                    `client` + `readiness`, so filling a missing fact (filing
+                    jurisdiction, entity type, assignee…) flips the row as soon
+                    as the mutation invalidates clients.get. The wrapper keeps
+                    id="client-onboarding-state" for the missing-facts deep-link. */}
                 <TabSection
-                  title={t`Compliance posture`}
+                  title={t`Client profile`}
                   summary={
                     readiness && readiness.missingRequiredFacts.length > 0
                       ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
                       : t`Identity facts that drive the deadline generator`
                   }
                 >
-                  <div className="grid gap-4">
-                    <ClientCompliancePosturePanel client={client} />
-                    {/* Onboarding readiness — merged in from the former
-                        standalone "Onboarding state" section so the identity
-                        facts and their completeness read together. Every row's
-                        status is derived live from `client` + `readiness`, so
-                        filling a missing fact (filing jurisdiction, entity type,
-                        assignee…) flips it as soon as the mutation invalidates
-                        clients.get. Keeps id="client-onboarding-state" so the
-                        missing-facts deep-link still targets the checklist. */}
-                    <div
-                      id="client-onboarding-state"
-                      className="scroll-mt-20 rounded-md border border-divider-regular bg-background-default p-4"
-                    >
-                      <h4 className="mb-2 text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
-                        {t`Onboarding readiness`}
-                      </h4>
-                      <ClientFactChecklist client={client} readiness={readiness} />
-                    </div>
+                  <div id="client-onboarding-state" className="scroll-mt-20">
+                    <ClientCompliancePosturePanel client={client} readiness={readiness} />
                   </div>
                 </TabSection>
 
