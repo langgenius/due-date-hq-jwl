@@ -26,6 +26,28 @@ describe('parseTabular', () => {
     expect(result.rowCount).toBe(2)
   })
 
+  it('recovers rows when an unbalanced quote in the header would swallow the file', () => {
+    // A stray opening quote in the header (malformed export) used to open a
+    // quoted field that ran to EOF, absorbing every data row into the header
+    // cell and reporting 0 data rows. PRD §0.3 铁律 2: one bad quote MUST NOT
+    // block every good row — we re-parse leniently and keep the rows.
+    const csv = 'Name,"Address\nAcme,123 Main St\nBeta,456 Oak Ave'
+    const result = parseTabular(csv, { kind: 'paste' })
+    expect(result.headers).toEqual(['Name', '"Address'])
+    expect(result.rowCount).toBe(2)
+    expect(result.rows).toEqual([
+      ['Acme', '123 Main St'],
+      ['Beta', '456 Oak Ave'],
+    ])
+  })
+
+  it('recovers rows when an unbalanced quote appears mid-file', () => {
+    const csv = 'Name,Note\nAcme,"oops\nBeta,fine\nGamma,ok'
+    const result = parseTabular(csv, { kind: 'paste' })
+    expect(result.headers).toEqual(['Name', 'Note'])
+    expect(result.rowCount).toBe(3)
+  })
+
   it('treats the first line with content as the header even when blank lines lead', () => {
     const csv = '\n\nname,ein\nAcme LLC,12-3456789\n'
     const result = parseTabular(csv)

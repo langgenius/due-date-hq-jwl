@@ -17,6 +17,12 @@
  *     deterministic-checks layer flags them via migration_error so good rows
  *     stay non-blocked
  *   - First non-empty line is treated as the header
+ *   - An unbalanced/unterminated double-quote does NOT swallow the rest of the
+ *     file. A well-formed file is parsed with RFC 4180 quoting; if a quoted
+ *     field runs to EOF without a closing quote (a malformed export), the whole
+ *     input is re-parsed with quotes treated as literal characters so the good
+ *     rows are recovered instead of collapsing into a single header record.
+ *     (PRD §0.3 铁律 2 — one bad quote MUST NOT block every good row.)
  *
  * NOTE: zero IO, zero infrastructure deps — packages/core invariant.
  */
@@ -78,12 +84,21 @@ function pickDelimiter(headerLine: string): ',' | '\t' {
  * consumed so the outer loop can step over multi-line quoted fields. We
  * intentionally avoid splitting on `\n` first because a quoted cell may
  * legally contain CRLF.
+ *
+ * When `quotesAsLiteral` is true the tokenizer ignores quoting entirely and
+ * treats `"` as an ordinary character — the recovery mode used after a
+ * malformed (unterminated) quote is detected on the first pass.
+ *
+ * `unterminated` is set when the record ended at EOF while still inside an
+ * open quoted field. That is the signature of a stray/unbalanced quote that
+ * would otherwise swallow every following row into one cell.
  */
 function tokenizeRecord(
   source: string,
   start: number,
   delimiter: ',' | '\t',
-): { cells: string[]; nextIndex: number } {
+  quotesAsLiteral: boolean,
+): { cells: string[]; nextIndex: number; unterminated: boolean } {
   const cells: string[] = []
   let i = start
   let cell = ''
@@ -109,7 +124,7 @@ function tokenizeRecord(
       continue
     }
 
-    if (ch === '"' && cell === '') {
+    if (!quotesAsLiteral && ch === '"' && cell === '') {
       quoted = true
       i += 1
       continue
@@ -127,7 +142,7 @@ function tokenizeRecord(
       cells.push(cell)
       let next = i + 1
       if (ch === '\r' && source[next] === '\n') next += 1
-      return { cells, nextIndex: next }
+      return { cells, nextIndex: next, unterminated: false }
     }
 
     cell += ch
@@ -135,11 +150,32 @@ function tokenizeRecord(
   }
 
   cells.push(cell)
-  return { cells, nextIndex: i }
+  return { cells, nextIndex: i, unterminated: quoted }
 }
 
 function isEmptyRecord(cells: string[]): boolean {
   return cells.every((c) => c.trim() === '')
+}
+
+interface TokenizedRecords {
+  records: string[][]
+  /** True when any record ended at EOF inside an open quoted field. */
+  unterminated: boolean
+}
+
+function tokenizeAll(text: string, delimiter: ',' | '\t', quotesAsLiteral: boolean): TokenizedRecords {
+  let cursor = 0
+  const records: string[][] = []
+  let unterminated = false
+
+  while (cursor < text.length) {
+    const record = tokenizeRecord(text, cursor, delimiter, quotesAsLiteral)
+    cursor = record.nextIndex
+    if (record.unterminated) unterminated = true
+    if (!isEmptyRecord(record.cells)) records.push(record.cells)
+  }
+
+  return { records, unterminated }
 }
 
 function parseDelimited(text: string, maxRows: number): ParsedTabular {
@@ -152,18 +188,21 @@ function parseDelimited(text: string, maxRows: number): ParsedTabular {
   const headerProbe = firstLineEnd === -1 ? text : text.slice(0, firstLineEnd)
   const delimiter = pickDelimiter(headerProbe)
 
-  let cursor = 0
+  // First pass honors RFC 4180 quoting. If a quoted field runs to EOF without
+  // a closing quote, a stray/unbalanced quote has swallowed the rest of the
+  // file into one record — re-parse with quotes treated as literal text so the
+  // good rows survive instead of collapsing into a single header cell.
+  let { records, unterminated } = tokenizeAll(text, delimiter, false)
+  if (unterminated) {
+    records = tokenizeAll(text, delimiter, true).records
+  }
+
   let headers: string[] | null = null
   const rows: string[][] = []
   let rowCount = 0
   let truncated = false
 
-  while (cursor < text.length) {
-    const { cells, nextIndex } = tokenizeRecord(text, cursor, delimiter)
-    cursor = nextIndex
-
-    if (isEmptyRecord(cells)) continue
-
+  for (const cells of records) {
     if (!headers) {
       headers = cells.map((c) => c.trim())
       continue
