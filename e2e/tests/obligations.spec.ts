@@ -177,7 +177,10 @@ test.describe('seeded obligations', () => {
     await obligationQueuePage.selectRow('Northstar Dental Group').click()
     await expect(bulkActions).toContainText('2 deadlines selected')
 
-    await bulkActions.getByRole('button', { name: 'Export' }).click()
+    // "Export" moved into the bulk bar's "More" overflow menu (page-feedback
+    // #12) and reads "Export selected" there.
+    await bulkActions.getByRole('button', { name: 'More bulk actions' }).click()
+    await authenticatedPage.getByRole('menuitem', { name: 'Export selected' }).click()
     let exportDialog = authenticatedPage.getByRole('dialog', { name: 'Export deadlines' })
     await exportDialog.getByRole('radio', { name: /CSV/ }).click()
     const [csvDownload] = await Promise.all([
@@ -186,7 +189,8 @@ test.describe('seeded obligations', () => {
     ])
     expect(csvDownload.suggestedFilename()).toMatch(/^obligations-\d{4}-\d{2}-\d{2}\.csv$/)
 
-    await bulkActions.getByRole('button', { name: 'Export' }).click()
+    await bulkActions.getByRole('button', { name: 'More bulk actions' }).click()
+    await authenticatedPage.getByRole('menuitem', { name: 'Export selected' }).click()
     exportDialog = authenticatedPage.getByRole('dialog', { name: 'Export deadlines' })
     await exportDialog.getByRole('radio', { name: /PDF report/ }).click()
     const [zipDownload] = await Promise.all([
