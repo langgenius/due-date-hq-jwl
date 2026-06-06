@@ -5,6 +5,7 @@ import type {
 } from '@duedatehq/contracts'
 import type { ObligationRule } from '@duedatehq/core/rules'
 import { inferTaxTypes } from '@duedatehq/core/default-matrix'
+import { isOpenObligationStatus } from '@duedatehq/core/obligation-workflow'
 import type { ClientRow } from '@duedatehq/ports/clients'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import {
@@ -96,6 +97,8 @@ export interface ClassificationRecomputeOutcome {
    * contract field doc). Surfaced in preview; ignored on apply.
    */
   expectedTaxTypes: string[]
+  /** Count of the client's currently-open deadlines (preview gate). */
+  openDeadlineCount: number
   addedObligationIds: string[]
   supersededObligationIds: string[]
   /** classification.updated audit id in apply mode; null in preview. */
@@ -211,11 +214,16 @@ export async function runClassificationRecompute(input: {
     (taxType) => taxType !== 'federal' && !taxType.startsWith('_'),
   )
 
+  // The client's live deadlines (open/outstanding statuses) — the dialog warns
+  // and gates Apply on an explicit acknowledgment when there are any.
+  const openDeadlineCount = existing.filter((o) => isOpenObligationStatus(o.status)).length
+
   if (mode === 'preview') {
     return {
       summary,
       rows,
       expectedTaxTypes,
+      openDeadlineCount,
       addedObligationIds: [],
       supersededObligationIds: [],
       auditId: null,
@@ -304,6 +312,7 @@ export async function runClassificationRecompute(input: {
     summary,
     rows,
     expectedTaxTypes,
+    openDeadlineCount,
     addedObligationIds,
     supersededObligationIds: supersededIds,
     auditId: classificationAuditId,

@@ -342,6 +342,11 @@ export const ClassificationRecomputePreviewOutputSchema = z.object({
   // a 1040). The dialog surfaces the full expected set for every entity type so
   // the CPA can reconcile the client's tax types by hand.
   expectedTaxTypes: z.array(z.string()),
+  // Count of the client's currently-open deadlines (the app's "outstanding"
+  // status set). The dialog warns the CPA and gates Apply on an explicit
+  // acknowledgment when this is > 0, so reclassifying never silently sidesteps
+  // live work.
+  openDeadlineCount: z.number().int().min(0),
 })
 export type ClassificationRecomputePreviewOutput = z.infer<
   typeof ClassificationRecomputePreviewOutputSchema

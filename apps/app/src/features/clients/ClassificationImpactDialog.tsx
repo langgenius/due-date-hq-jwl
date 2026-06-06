@@ -112,6 +112,9 @@ export function ClassificationImpactDialog({
   // its children (the dialog content unmounts on close), but we also
   // clear on a fresh open to be safe against any retained state.
   const [confirmedOrphanIds, setConfirmedOrphanIds] = useState<ReadonlySet<string>>(new Set())
+  // The CPA must explicitly acknowledge a client's existing open deadlines
+  // before reclassifying — Apply is gated on this when there are any.
+  const [acknowledgedDeadlines, setAcknowledgedDeadlines] = useState(false)
 
   const previewQuery = useQuery({
     ...orpc.clients.previewClassificationRecompute.queryOptions({
@@ -131,6 +134,7 @@ export function ClassificationImpactDialog({
   // full expected set for every entity type so the CPA can reconcile the
   // client's tax types by hand.
   const expectedTaxTypes = previewQuery.data?.expectedTaxTypes ?? []
+  const openDeadlineCount = previewQuery.data?.openDeadlineCount ?? 0
   const newEntityLabel = entityLabels[candidate.entityType ?? client.entityType]
   const expectedTaxTypesLabel = expectedTaxTypes.map((code) => formatTaxCode(code)).join(', ')
   const orphanSafeRows = useMemo(
@@ -195,6 +199,7 @@ export function ClassificationImpactDialog({
           // Drop any opt-in selections so the next open starts from a
           // clean, deliberately-unchecked state.
           setConfirmedOrphanIds(new Set())
+          setAcknowledgedDeadlines(false)
         }
         onOpenChange(nextOpen)
       }}
@@ -241,24 +246,56 @@ export function ClassificationImpactDialog({
             </Alert>
           ) : (
             <>
-              {expectedTaxTypes.length > 0 ? (
-                <Alert variant="info">
-                  <InfoIcon />
+              {openDeadlineCount > 0 ? (
+                <Alert variant="warning">
+                  <AlertCircleIcon />
                   <AlertTitle>
-                    <Trans>Typical filings for this entity type</Trans>
+                    <Plural
+                      value={openDeadlineCount}
+                      one="This client still has # open deadline"
+                      other="This client still has # open deadlines"
+                    />
                   </AlertTitle>
                   <AlertDescription>
-                    {/* Reclassify can't create these on its own — a client's
-                        filings come from their tax types, not the entity type
-                        alone. Surface the full expected set so the CPA can
-                        reconcile by hand instead of us silently leaving a gap. */}
-                    <Trans>
-                      A {newEntityLabel} typically files {expectedTaxTypesLabel}. DueDateHQ won't
-                      create these automatically — add any that apply to this client's tax types.
-                    </Trans>
+                    <label className="mt-1 flex cursor-pointer items-start gap-2">
+                      <Checkbox
+                        checked={acknowledgedDeadlines}
+                        onCheckedChange={() => setAcknowledgedDeadlines((value) => !value)}
+                        className="mt-0.5"
+                      />
+                      <span className="text-sm text-text-primary">
+                        <Trans>
+                          I've reviewed this client's existing deadlines before reclassifying.
+                        </Trans>
+                      </span>
+                    </label>
                   </AlertDescription>
                 </Alert>
               ) : null}
+
+              <Alert variant="info">
+                <InfoIcon />
+                <AlertTitle>
+                  <Trans>Deadlines aren't added automatically</Trans>
+                </AlertTitle>
+                <AlertDescription>
+                  {/* Reclassify can't create deadlines on its own — a client's
+                      filings come from their tax types, not the entity type
+                      alone. Tell the CPA to add what's needed by hand. */}
+                  {expectedTaxTypes.length > 0 ? (
+                    <Trans>
+                      Changing the entity type won't create new deadlines. A {newEntityLabel}{' '}
+                      typically files {expectedTaxTypesLabel} — add any that apply to this client
+                      manually.
+                    </Trans>
+                  ) : (
+                    <Trans>
+                      Changing the entity type won't create new deadlines — add any this client
+                      needs manually.
+                    </Trans>
+                  )}
+                </AlertDescription>
+              </Alert>
 
               {orphanConfirmRows.length > 0 ? (
                 <ImpactSection
@@ -379,7 +416,12 @@ export function ClassificationImpactDialog({
           <Button
             type="button"
             onClick={handleApply}
-            disabled={applyMutation.isPending || previewQuery.isLoading || previewQuery.isError}
+            disabled={
+              applyMutation.isPending ||
+              previewQuery.isLoading ||
+              previewQuery.isError ||
+              (openDeadlineCount > 0 && !acknowledgedDeadlines)
+            }
             aria-busy={applyMutation.isPending || undefined}
           >
             {applyMutation.isPending ? (

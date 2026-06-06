@@ -804,6 +804,10 @@ msgstr "提前 {offsetDays} 天"
 msgid "{openCount} open deadlines"
 msgstr "{openCount} 个未完成截止日期"
 
+#: src/features/clients/ClassificationImpactDialog.tsx
+msgid "{openDeadlineCount, plural, one {This client still has # open deadline} other {This client still has # open deadlines}}"
+msgstr "{openDeadlineCount, plural, one {该客户还有 # 个未结截止事项} other {该客户还有 # 个未结截止事项}}"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "{outstanding, plural, one {{receivedCount} received; # item still waiting on the client.} other {{receivedCount} received; # items still waiting on the client.}}"
@@ -1178,10 +1182,6 @@ msgstr "7+"
 #: src/routes/obligations.tsx
 msgid "8879 sent to client for signature"
 msgstr "8879 已发给客户签字"
-
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "A {newEntityLabel} typically files {expectedTaxTypesLabel}. DueDateHQ won't create these automatically — add any that apply to this client's tax types."
-msgstr "{newEntityLabel} 通常需要申报 {expectedTaxTypesLabel}。DueDateHQ 不会自动创建这些；如有适用项，请添加到该客户的税种中。"
 
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/concepts/concept-help.tsx
@@ -2909,6 +2909,14 @@ msgstr "Changes since last visit"
 #: src/features/dashboard/changes-since-last-section.tsx
 msgid "Changes since your last visit"
 msgstr "Changes since your last visit"
+
+#: src/features/clients/ClassificationImpactDialog.tsx
+msgid "Changing the entity type won't create new deadlines — add any this client needs manually."
+msgstr "更改实体类型不会自动新增截止事项 —— 请按需手动添加。"
+
+#: src/features/clients/ClassificationImpactDialog.tsx
+msgid "Changing the entity type won't create new deadlines. A {newEntityLabel} typically files {expectedTaxTypesLabel} — add any that apply to this client manually."
+msgstr "更改实体类型不会自动新增截止事项。{newEntityLabel} 通常需要申报 {expectedTaxTypesLabel} —— 如适用，请手动添加到该客户。"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Changing this recomputes which forms this client owes"
@@ -4664,6 +4672,10 @@ msgstr "截止日"
 msgid "Deadlines actually created after Generate runs. Preview results show zero here until generation succeeds."
 msgstr "生成运行后实际创建的截止日期。预览结果在生成成功前显示为零。"
 
+#: src/features/clients/ClassificationImpactDialog.tsx
+msgid "Deadlines aren't added automatically"
+msgstr "不会自动新增截止事项"
+
 #: src/routes/obligations.tsx
 msgid "Deadlines bulk owner change"
 msgstr "批量更改截止事项负责人"
@@ -6411,6 +6423,10 @@ msgstr "人工核实"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "I have read the official source and verified the new deadline date."
 msgstr "我已阅读官方来源并核实了新的截止日期。"
+
+#: src/features/clients/ClassificationImpactDialog.tsx
+msgid "I've reviewed this client's existing deadlines before reclassifying."
+msgstr "我已在重新分类前确认了该客户现有的截止事项。"
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "I've saved these recovery codes somewhere safe. I know they won't be shown again."
@@ -13699,10 +13715,6 @@ msgstr "类型"
 #: src/routes/practice.tsx
 msgid "Type <0>{0}</0> to confirm"
 msgstr "Type <0>{0}</0> to confirm"
-
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "Typical filings for this entity type"
-msgstr "此实体类型的常见申报"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "UI wage report count"

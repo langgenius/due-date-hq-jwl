@@ -44,6 +44,18 @@ const NY_PROFILE = {
   taxTypes: ['federal_990', 'ny_it204'],
 } as unknown as ClientFilingProfileRow
 
+function obligation(taxType: string, status = 'pending'): OblRow {
+  // ruleId null keeps it out of the orphan diff; only `status` (drives the
+  // open-deadline count) and `taxType` matter to these assertions.
+  return {
+    id: `obl_${taxType}`,
+    clientId: 'client_harbor',
+    taxType,
+    status,
+    ruleId: null,
+  } as unknown as OblRow
+}
+
 function previewSwitchTo(entityType: ClientRow['entityType'], existing: OblRow[] = []) {
   return runClassificationRecompute({
     scoped: {
@@ -70,5 +82,14 @@ describe('runClassificationRecompute — expected tax types for the new entity',
   it('works for every entity type, not just individual (s_corp → 1120-S)', async () => {
     const outcome = await previewSwitchTo('s_corp')
     expect(outcome.expectedTaxTypes).toContain('federal_1120s')
+  })
+
+  it('counts only the open deadlines for the confirmation gate', async () => {
+    const outcome = await previewSwitchTo('individual', [
+      obligation('federal_990', 'pending'),
+      obligation('ny_it204', 'pending'),
+      obligation('federal_1099_nec', 'completed'),
+    ])
+    expect(outcome.openDeadlineCount).toBe(2)
   })
 })

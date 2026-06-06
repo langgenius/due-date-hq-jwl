@@ -863,6 +863,7 @@ const previewClassificationRecompute = os.clients.previewClassificationRecompute
       summary: outcome.summary,
       rows: outcome.rows,
       expectedTaxTypes: outcome.expectedTaxTypes,
+      openDeadlineCount: outcome.openDeadlineCount,
     }
   },
 )
