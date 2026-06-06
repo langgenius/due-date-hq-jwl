@@ -8,11 +8,7 @@ import type {
   ClientPublic,
   ClientSourceDetailsUpdateInput,
 } from '@duedatehq/contracts'
-import type {
-  ClientClassificationCandidate,
-  ClientClassificationReason,
-} from '@duedatehq/contracts/clients'
-import type { ClientTaxClassification } from '@duedatehq/contracts/shared/enums'
+import type { ClientClassificationReason } from '@duedatehq/contracts/clients'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
@@ -30,7 +26,7 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 
 import { EmptyState } from '@/components/patterns/empty-state'
-import { useEntityLabels, useTaxClassificationLabels } from '@/routes/clients'
+import { useEntityLabels } from '@/routes/clients'
 
 import { ClassificationImpactDialog } from './ClassificationImpactDialog'
 import {
@@ -638,23 +634,6 @@ function FactCheckRow({
   )
 }
 
-// All 10 federal tax-classification values, in the same order the
-// contract enum declares them. `satisfies` makes the compiler reject
-// this list if it ever drifts from the enum (missing/extra value), so
-// the Select never silently omits an option the backend accepts.
-const TAX_CLASSIFICATION_VALUES = [
-  'individual',
-  'disregarded_entity',
-  'partnership',
-  's_corp',
-  'c_corp',
-  'trust',
-  'estate',
-  'nonprofit',
-  'foreign_reporting_company',
-  'unknown',
-] as const satisfies readonly ClientTaxClassification[]
-
 const CLASSIFICATION_REASON_KINDS = ['correction', 'reclassification'] as const
 type ClassificationReasonKind = (typeof CLASSIFICATION_REASON_KINDS)[number]
 
@@ -681,14 +660,15 @@ function useReasonEventLabels(): Record<ClassificationReasonEvent, string> {
 }
 
 /**
- * `ClientClassificationPanel` — edits the two facts that decide which
- * federal forms the deadline generator emits: the entity's legal
- * `entityType` and its federal `taxClassification`.
+ * `ClientClassificationPanel` — edits the client's `entityType`, the fact
+ * that decides which federal forms the deadline generator emits. Tax
+ * classification is intentionally NOT surfaced here: the operational tax
+ * type is chosen per deadline, so entity type alone drives the recompute.
  *
- * Deliberately has NO transition restrictions — every entity type and
- * every tax classification is always selectable regardless of the
- * current value. The impact preview + reason are the safety net, not
- * input limits. The primary button is "Review impact…" (not "Save"):
+ * Deliberately has NO transition restrictions — every entity type is
+ * always selectable regardless of the current value. The impact preview +
+ * reason are the safety net, not input limits. The primary button is
+ * "Review impact…" (not "Save"):
  * it opens `ClassificationImpactDialog`, which previews the add/remove
  * fan-out and performs the atomic apply. This panel never mutates.
  */
@@ -701,14 +681,10 @@ export function ClientClassificationPanel({
 }) {
   const { t } = useLingui()
   const entityLabels = useEntityLabels()
-  const taxClassificationLabels = useTaxClassificationLabels()
   const reasonEventLabels = useReasonEventLabels()
   const currentYear = new Date().getFullYear()
 
   const [entityType, setEntityType] = useState<ClientPublic['entityType']>(client.entityType)
-  const [taxClassification, setTaxClassification] = useState<ClientTaxClassification>(
-    client.taxClassification,
-  )
   const [reasonKind, setReasonKind] = useState<ClassificationReasonKind>('correction')
   const [reasonEvent, setReasonEvent] = useState<ClassificationReasonEvent | ''>('')
   const [effectiveYear, setEffectiveYear] = useState(String(currentYear))
@@ -723,13 +699,9 @@ export function ClientClassificationPanel({
       effectiveYearNumber < 2000 ||
       effectiveYearNumber > 2100)
   const noteOverLimit = note.length > NOTE_MAX_LENGTH
-  const hasChanges =
-    entityType !== client.entityType || taxClassification !== client.taxClassification
+  const hasChanges = entityType !== client.entityType
 
-  const candidate: ClientClassificationCandidate = {
-    entityType,
-    taxClassification,
-  }
+  const candidate = { entityType }
   const reason: ClientClassificationReason = {
     kind: reasonKind,
     ...(isReclassification && reasonEvent ? { event: reasonEvent } : {}),
@@ -743,7 +715,6 @@ export function ClientClassificationPanel({
 
   const reset = () => {
     setEntityType(client.entityType)
-    setTaxClassification(client.taxClassification)
     setReasonKind('correction')
     setReasonEvent('')
     setEffectiveYear(String(currentYear))
@@ -760,7 +731,6 @@ export function ClientClassificationPanel({
     // panel reflects the new truth and "Review impact…" disables again
     // until the next edit.
     setEntityType(result.client.entityType)
-    setTaxClassification(result.client.taxClassification)
     setReasonKind('correction')
     setReasonEvent('')
     setEffectiveYear(String(currentYear))
@@ -769,56 +739,30 @@ export function ClientClassificationPanel({
 
   return (
     <div className="grid gap-3">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field>
-          <FieldLabel>
-            <Trans>Entity type</Trans>
-          </FieldLabel>
-          <Select
-            value={entityType}
-            onValueChange={(value) => {
-              if (value) setEntityType(value as ClientPublic['entityType'])
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue>{entityLabels[entityType]}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {CLIENT_ENTITY_TYPES.map((entity) => (
-                  <SelectItem key={entity} value={entity}>
-                    {entityLabels[entity]}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field>
-          <FieldLabel>
-            <Trans>Tax classification</Trans>
-          </FieldLabel>
-          <Select
-            value={taxClassification}
-            onValueChange={(value) => {
-              if (value) setTaxClassification(value as ClientTaxClassification)
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue>{taxClassificationLabels[taxClassification]}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {TAX_CLASSIFICATION_VALUES.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {taxClassificationLabels[value]}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
+      <Field>
+        <FieldLabel>
+          <Trans>Entity type</Trans>
+        </FieldLabel>
+        <Select
+          value={entityType}
+          onValueChange={(value) => {
+            if (value) setEntityType(value)
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue>{entityLabels[entityType]}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {CLIENT_ENTITY_TYPES.map((entity) => (
+                <SelectItem key={entity} value={entity}>
+                  {entityLabels[entity]}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </Field>
 
       <Field>
         <FieldLabel>
@@ -833,7 +777,7 @@ export function ClientClassificationPanel({
           <SelectTrigger className="w-full">
             <SelectValue>
               {reasonKind === 'reclassification' ? (
-                <Trans>Reclassification (S-election, revocation, conversion)</Trans>
+                <Trans>Reclassification (the entity changed type, effective a tax year)</Trans>
               ) : (
                 <Trans>Correction (fix a data-entry error)</Trans>
               )}
@@ -845,7 +789,7 @@ export function ClientClassificationPanel({
                 <Trans>Correction (fix a data-entry error)</Trans>
               </SelectItem>
               <SelectItem value="reclassification">
-                <Trans>Reclassification (S-election, revocation, conversion)</Trans>
+                <Trans>Reclassification (the entity changed type, effective a tax year)</Trans>
               </SelectItem>
             </SelectGroup>
           </SelectContent>

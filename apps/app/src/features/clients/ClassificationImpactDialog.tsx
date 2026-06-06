@@ -95,7 +95,10 @@ export function ClassificationImpactDialog({
   clientId: string
   candidate: ClientClassificationCandidate
   reason: ClientClassificationReason
-  effectiveFromTaxYear?: number
+  // `| undefined` (not just `?:`) so callers may pass an explicit undefined
+  // under exactOptionalPropertyTypes — the panel always passes the value,
+  // which is undefined for corrections (recompute the whole horizon).
+  effectiveFromTaxYear?: number | undefined
   client: ClientPublic
   open: boolean
   onOpenChange: (open: boolean) => void
