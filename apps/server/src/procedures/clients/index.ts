@@ -836,30 +836,40 @@ function reclassificationReasonText(reason: ClientClassificationReason): string 
 // would be added / removed (and which removals need confirmation). No writes.
 const previewClassificationRecompute = os.clients.previewClassificationRecompute.handler(
   async ({ input, context }) => {
-    await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
-    const { scoped, tenant, userId } = requireTenant(context)
-    const client = await scoped.clients.findById(input.clientId)
-    if (!client) {
-      throw new ORPCError('NOT_FOUND', {
-        message: `Client ${input.clientId} not found in current firm.`,
+    // TEMP DEBUG (revert): surface the real error + stack in the response so the
+    // impact dialog shows it — the orpc onError logger isn't reaching the console.
+    try {
+      await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
+      const { scoped, tenant, userId } = requireTenant(context)
+      const client = await scoped.clients.findById(input.clientId)
+      if (!client) {
+        throw new ORPCError('NOT_FOUND', {
+          message: `Client ${input.clientId} not found in current firm.`,
+        })
+      }
+      const rules = await listActiveCoreRules(scoped)
+      const outcome = await runClassificationRecompute({
+        scoped,
+        userId,
+        client,
+        candidate: input.candidate,
+        rules,
+        internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+        ...(tenant.monitoringStartDate ? { monitoringStartDate: tenant.monitoringStartDate } : {}),
+        now: new Date(),
+        mode: 'preview',
+        ...(input.effectiveFromTaxYear !== undefined
+          ? { effectiveFromTaxYear: input.effectiveFromTaxYear }
+          : {}),
       })
+      return { summary: outcome.summary, rows: outcome.rows }
+    } catch (err) {
+      if (err instanceof ORPCError) throw err
+      const detail =
+        err instanceof Error ? `${err.name}: ${err.message} | ${err.stack ?? ''}` : String(err)
+      console.error('[previewClassificationRecompute DEBUG]', detail)
+      throw new ORPCError('INTERNAL_SERVER_ERROR', { message: `DEBUG ${detail}`.slice(0, 1800) })
     }
-    const rules = await listActiveCoreRules(scoped)
-    const outcome = await runClassificationRecompute({
-      scoped,
-      userId,
-      client,
-      candidate: input.candidate,
-      rules,
-      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
-      ...(tenant.monitoringStartDate ? { monitoringStartDate: tenant.monitoringStartDate } : {}),
-      now: new Date(),
-      mode: 'preview',
-      ...(input.effectiveFromTaxYear !== undefined
-        ? { effectiveFromTaxYear: input.effectiveFromTaxYear }
-        : {}),
-    })
-    return { summary: outcome.summary, rows: outcome.rows }
   },
 )
 
