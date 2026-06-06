@@ -23,9 +23,9 @@ callers receive 200 JSON instead. The endpoint self-heals the minimum demo
 identity rows required to sign in; run the seed first for the full clients,
 deadlines, Pulse, billing, audit, and notification dataset.
 
-The browser handoff also appends `mockPulse=1` to the app URL so the dev-only
-five-card Pulse mock appears only from the demo/e2e entrypoint. Normal app
-loads in development use the database-backed Pulse rows instead.
+All demo data — including the Alerts/Pulse rows — is database-backed: there is
+no client-side Pulse mock and no `mockPulse` URL flag. What you see after
+demo-login is exactly what the seed wrote.
 
 ## Archive Solo Pulse Supplement
 
@@ -45,9 +45,11 @@ least one client, and the CA Pulse includes one missing-county row that requires
 - Dashboard: open obligations, due-this-week counts, exposure states, evidence gaps, and an AI brief.
 - Obligations: pending, in-progress, review, waiting, done, overdue, unassigned, and missing-evidence rows.
 - Team workload: Pro-plan firm with assigned and unassigned owner load.
-- Alerts/Pulse: one apply-ready IRS alert, one applied CA FTB overlay, one low-confidence NY DTF
-  advisory, one sub-50% FL DOR bulletin, source health, and snapshots. The seeded alerts
-  cover the `AI XX%` badge tones plus a very-low-confidence example.
+- Alerts/Pulse: an apply-ready IRS overlay (active), an applied CA FTB overlay (history), a
+  low-confidence NY DTF PTET advisory, a sub-50% FL DOR bulletin, a deterministic IRS
+  threshold advisory (review-only), and a dismissed AZ DOR storm notice (history). The seeded
+  alerts cover the `AI XX%` badge tones, a very-low-confidence example, the review-only
+  threshold-advisory state, and the dismissed/history view.
 - Clients: manual, imported, ready, incomplete, multi-state, and missing-contact records.
 - Imports: applied and reverted migration batches with mapper, normalizer, and validation rows.
 - Members: owner, manager, preparer, coordinator, and pending invitations.

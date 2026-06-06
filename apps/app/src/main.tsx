@@ -15,15 +15,6 @@ const queryClient = new QueryClient({
   },
 })
 
-async function installDevMocks(): Promise<void> {
-  if (!import.meta.env.DEV) return
-  if (typeof window === 'undefined') return
-  if (new URLSearchParams(window.location.search).get('mockPulse') !== '1') return
-
-  const { installMockPulse } = await import('@/features/alerts/__dev__/mock-alerts')
-  installMockPulse(queryClient)
-}
-
 const rootEl = document.getElementById('root')
 if (!rootEl) {
   throw new Error('Root element #root not found')
@@ -33,8 +24,6 @@ const appRoot = rootEl
 void startApp()
 
 async function startApp() {
-  await installDevMocks()
-
   bootstrapI18n()
   const router = createAppRouter()
 
