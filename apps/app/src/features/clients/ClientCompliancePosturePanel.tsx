@@ -6,9 +6,6 @@ import type { ClientPublic } from '@duedatehq/contracts'
 import { Card, CardContent } from '@duedatehq/ui/components/ui/card'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { ClientFactChecklist } from './ClientFactPanels'
-import type { ClientReadiness } from './client-readiness'
-
 /**
  * `ClientCompliancePosturePanel` — surfaces the client-level data the
  * schema already carries but the page didn't render until now.
@@ -30,10 +27,6 @@ import type { ClientReadiness } from './client-readiness'
 
 interface ClientCompliancePosturePanelProps {
   client: ClientPublic
-  // When provided, the onboarding readiness checklist renders inside the same
-  // card, below the identity facts — so "who this client is" and "is it ready"
-  // read as one card. Omitted (e.g. the preview gallery) → identity facts only.
-  readiness?: ClientReadiness | undefined
 }
 
 function formatFiscalYearEnd(month: number, day: number): string {
@@ -55,10 +48,7 @@ function formatClientSince(iso: string): string {
   }).format(new Date(parsed))
 }
 
-export function ClientCompliancePosturePanel({
-  client,
-  readiness,
-}: ClientCompliancePosturePanelProps) {
+export function ClientCompliancePosturePanel({ client }: ClientCompliancePosturePanelProps) {
   const { t } = useLingui()
 
   const taxYearLabel = useMemo(() => {
@@ -151,11 +141,6 @@ export function ClientCompliancePosturePanel({
             }
           />
         </dl>
-        {readiness ? (
-          <div className="mt-4 border-t border-divider-subtle pt-4">
-            <ClientFactChecklist client={client} readiness={readiness} />
-          </div>
-        ) : null}
       </CardContent>
     </Card>
   )

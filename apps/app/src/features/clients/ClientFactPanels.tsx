@@ -1,6 +1,6 @@
 import { type ReactNode, useState } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, CheckCircle2Icon, CircleHelpIcon, SparklesIcon } from 'lucide-react'
+import { CircleHelpIcon, SparklesIcon } from 'lucide-react'
 
 import type {
   AiInsightPublic,
@@ -29,11 +29,7 @@ import { EmptyState } from '@/components/patterns/empty-state'
 import { useEntityLabels } from '@/routes/clients'
 
 import { ClassificationImpactDialog } from './ClassificationImpactDialog'
-import {
-  CLIENT_ENTITY_TYPES,
-  getClientFilingStates,
-  type ClientReadiness,
-} from './client-readiness'
+import { CLIENT_ENTITY_TYPES, getClientFilingStates } from './client-readiness'
 
 const STATE_CODE_RE = /^[A-Z]{2}$/
 
@@ -429,39 +425,6 @@ function InsightSourceChip({ citation }: { citation: AiInsightPublic['citations'
   )
 }
 
-export function ClientFactChecklist({
-  client,
-  readiness,
-}: {
-  client: ClientPublic
-  readiness: ClientReadiness | undefined
-}) {
-  return (
-    <div className="grid gap-2">
-      <FactCheckRow
-        isComplete={!readiness?.missingRequiredFacts.includes('state')}
-        label={<Trans>Filing jurisdiction</Trans>}
-        detail={<Trans>Required for rules and alert matching.</Trans>}
-      />
-      <FactCheckRow
-        isComplete={!readiness?.missingRequiredFacts.includes('entityType')}
-        label={<Trans>Entity type</Trans>}
-        detail={<Trans>Required for rule applicability.</Trans>}
-      />
-      <FactCheckRow
-        isComplete={Boolean(client.ein)}
-        label={<Trans>EIN</Trans>}
-        detail={<Trans>Improves identity matching and audit review.</Trans>}
-      />
-      <FactCheckRow
-        isComplete={Boolean(client.assigneeName)}
-        label={<Trans>Assignee</Trans>}
-        detail={<Trans>Keeps deadline follow-up accountable.</Trans>}
-      />
-    </div>
-  )
-}
-
 export function ClientSourceDetailsPanel({
   client,
   showSourceFields,
@@ -607,30 +570,6 @@ function ClientSourceDetailsField({
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <Input id={id} type={type} value={value} onChange={(event) => onChange(event.target.value)} />
     </Field>
-  )
-}
-
-function FactCheckRow({
-  isComplete,
-  label,
-  detail,
-}: {
-  isComplete: boolean
-  label: ReactNode
-  detail: ReactNode
-}) {
-  return (
-    <div className="grid grid-cols-[20px_minmax(0,1fr)] gap-2">
-      {isComplete ? (
-        <CheckCircle2Icon className="mt-0.5 size-4 text-text-success" aria-hidden />
-      ) : (
-        <AlertTriangleIcon className="mt-0.5 size-4 text-text-warning" aria-hidden />
-      )}
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-text-primary">{label}</p>
-        <p className="text-xs text-text-tertiary">{detail}</p>
-      </div>
-    </div>
   )
 }
 

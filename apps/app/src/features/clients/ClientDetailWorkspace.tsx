@@ -1167,24 +1167,16 @@ export function ClientDetailWorkspace({
                     "work" in progress; the CPA edits / verifies these
                     quarterly, not daily. Panel renders its own grid
                     inside; TabSection owns the section heading. */}
-                {/* Client profile — compliance identity facts (EIN / tax
-                    year / owners / client-since) AND the onboarding readiness
-                    checklist in ONE card. The checklist rows derive live from
-                    `client` + `readiness`, so filling a missing fact (filing
-                    jurisdiction, entity type, assignee…) flips the row as soon
-                    as the mutation invalidates clients.get. The wrapper keeps
-                    id="client-onboarding-state" for the missing-facts deep-link. */}
+                {/* Compliance posture — EIN + tax year + owners +
+                    activity-scope flags. Client identity facts, not
+                    "work" in progress; the CPA edits / verifies these
+                    quarterly, not daily. Panel renders its own grid
+                    inside; TabSection owns the section heading. */}
                 <TabSection
-                  title={t`Client profile`}
-                  summary={
-                    readiness && readiness.missingRequiredFacts.length > 0
-                      ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
-                      : t`Identity facts that drive the deadline generator`
-                  }
+                  title={t`Compliance posture`}
+                  summary={t`Identity facts that drive the deadline generator`}
                 >
-                  <div id="client-onboarding-state" className="scroll-mt-20">
-                    <ClientCompliancePosturePanel client={client} readiness={readiness} />
-                  </div>
+                  <ClientCompliancePosturePanel client={client} />
                 </TabSection>
 
                 {/* Tax classification — the entity-type + federal
