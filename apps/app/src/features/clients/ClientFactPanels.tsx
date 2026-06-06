@@ -324,15 +324,15 @@ export function ClientRiskSummaryPanel({
         // what to expect.
         <EmptyState
           icon={SparklesIcon}
-          title={<Trans>No client summary yet</Trans>}
+          title={<Trans>No activity summary yet</Trans>}
           description={
             canRefresh ? (
               <Trans>
-                Run the AI summary to surface penalty exposure, recent activity, and tax-attribute
-                flags in one paragraph.
+                Generate a plain-English recap of this client's recent recorded changes and where
+                the record stands.
               </Trans>
             ) : (
-              <Trans>Upgrade to Practice AI to surface a one-paragraph client summary.</Trans>
+              <Trans>Upgrade to Practice AI for an AI recap of recent client activity.</Trans>
             )
           }
         />

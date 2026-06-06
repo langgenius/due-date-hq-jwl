@@ -104,7 +104,30 @@ async function loadFirmContext(
   return firm ?? null
 }
 
-async function buildClientRiskSnapshot(
+const HISTORY_EVENT_LIMIT = 8
+const HISTORY_OBLIGATION_SCAN = 5
+
+// Compact, drift-free humanization of an audit action key for a citation
+// chip, e.g. 'obligation.extension.decided' -> 'Extension decided'. The
+// model gets the raw action too; this is just the short source label.
+function humanizeAuditAction(action: string): string {
+  const tail = action.split('.').slice(1).join(' ').replace(/[._]/g, ' ').trim() || action
+  return tail.charAt(0).toUpperCase() + tail.slice(1)
+}
+
+function statusOf(value: unknown): string | null {
+  if (value && typeof value === 'object' && 'status' in value) {
+    const status = (value as { status: unknown }).status
+    return typeof status === 'string' ? status : null
+  }
+  return null
+}
+
+// Client History tab summary. Repurposed from the old risk snapshot: it now
+// narrates the client's recent recorded activity (audit events) plus where
+// the record stands, instead of assessing risk. Kept under the
+// `client_risk_summary` kind / prompt id to avoid churning the pipeline.
+async function buildClientHistorySnapshot(
   repos: ScopedRepos,
   clientId: string,
   asOfDate: string,
@@ -113,57 +136,120 @@ async function buildClientRiskSnapshot(
   if (!client) return null
 
   const obligations = await repos.obligations.listByClient(clientId)
-  const obligationQueueRows = await repos.obligationQueue.listByIds(
-    obligations.map((obligation) => obligation.id),
-    { asOfDate },
+  const obligationIds = obligations.map((obligation) => obligation.id)
+  const queueRows = await repos.obligationQueue.listByIds(obligationIds, { asOfDate })
+  const openDeadlines = queueRows.slice(0, 3)
+
+  // Recent recorded changes = client-record events + the client's
+  // obligation events. range:'all' + a small limit (not a time window):
+  // seed/demo data is dated independently of wall-clock, and a "recent
+  // activity" recap just wants the newest N regardless of absolute date.
+  const clientEvents = (
+    await repos.audit.list({
+      entityType: 'client',
+      entityId: clientId,
+      range: 'all',
+      limit: HISTORY_EVENT_LIMIT,
+    })
+  ).rows
+  const obligationEventRows = await Promise.all(
+    obligationIds
+      .slice(0, HISTORY_OBLIGATION_SCAN)
+      .map((id) =>
+        repos.audit
+          .list({ entityType: 'obligation_instance', entityId: id, range: 'all', limit: 4 })
+          .then((result) => result.rows),
+      ),
   )
-  const topRows = obligationQueueRows.slice(0, 5)
-  const evidenceRows = await Promise.all(
-    topRows.map((row) => repos.evidence.listByObligation(row.id)),
-  )
+  const events = [...clientEvents, ...obligationEventRows.flat()]
+    .toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, HISTORY_EVENT_LIMIT)
+
+  const recentEvents = events.map((event) => {
+    const from = statusOf(event.beforeJson)
+    const to = statusOf(event.afterJson)
+    return {
+      label: humanizeAuditAction(event.action),
+      action: event.action,
+      at: toDateOnly(event.createdAt),
+      actor: event.actorLabel ?? null,
+      reason: event.reason ?? null,
+      statusChange: from && to ? `${from} → ${to}` : (to ?? null),
+    }
+  })
+
+  const clientFacts = {
+    id: client.id,
+    name: client.name,
+    state: client.state,
+    county: client.county,
+    entityType: client.entityType,
+    lateFilingCountLast12mo: client.lateFilingCountLast12mo,
+  }
+  const deadlineFacts = openDeadlines.map((row) => ({
+    id: row.id,
+    taxType: row.taxType,
+    currentDueDate: toDateOnly(row.currentDueDate),
+    status: row.status,
+    readiness: row.readiness,
+  }))
 
   const snapshot = {
     asOfDate,
-    client: {
-      id: client.id,
-      name: client.name,
-      state: client.state,
-      county: client.county,
-      entityType: client.entityType,
-      importanceWeight: client.importanceWeight,
-      lateFilingCountLast12mo: client.lateFilingCountLast12mo,
-      estimatedTaxLiabilityCents: client.estimatedTaxLiabilityCents,
-      equityOwnerCount: client.equityOwnerCount,
-    },
-    obligations: topRows.map((row) => ({
-      id: row.id,
-      taxType: row.taxType,
-      currentDueDate: toDateOnly(row.currentDueDate),
-      status: row.status,
-      readiness: row.readiness,
-      evidenceCount: row.evidenceCount,
-      smartPriority: row.smartPriority,
-    })),
+    client: clientFacts,
+    recentEvents,
+    openDeadlines: deadlineFacts,
   }
 
-  const sources: InsightSource[] = [
-    {
-      ref: 1,
+  // Sources: one per recent event, then the client profile, then each open
+  // deadline. Every source carries synthesized `evidence` whose `sourceId`
+  // is the chip label, so InsightSourceChip renders a readable chip — these
+  // history refs have no external sourceUrl to link to.
+  const sources: InsightSource[] = []
+  let ref = 1
+  for (const event of recentEvents) {
+    sources.push({
+      ref,
       obligationId: null,
-      label: 'Client risk profile',
-      facts: snapshot.client,
-      evidence: null,
+      label: `${event.label} · ${event.at}`,
+      facts: event,
+      evidence: {
+        id: `audit-${ref}`,
+        sourceType: 'audit_event',
+        sourceId: `${event.label} · ${event.at}`,
+        sourceUrl: null,
+      },
+    })
+    ref += 1
+  }
+  sources.push({
+    ref,
+    obligationId: null,
+    label: 'Client profile',
+    facts: clientFacts,
+    evidence: {
+      id: client.id,
+      sourceType: 'client_profile',
+      sourceId: 'Client profile',
+      sourceUrl: null,
     },
-    ...topRows.map(
-      (row, index): InsightSource => ({
-        ref: index + 2,
-        obligationId: row.id,
-        label: `${row.taxType} deadline`,
-        facts: snapshot.obligations[index] ?? {},
-        evidence: citationEvidence(evidenceRows[index]?.[0] ?? null),
-      }),
-    ),
-  ]
+  })
+  ref += 1
+  for (const deadline of deadlineFacts) {
+    sources.push({
+      ref,
+      obligationId: deadline.id,
+      label: `${deadline.taxType} deadline`,
+      facts: deadline,
+      evidence: {
+        id: deadline.id,
+        sourceType: 'deadline',
+        sourceId: `${deadline.taxType} · due ${deadline.currentDueDate}`,
+        sourceUrl: null,
+      },
+    })
+    ref += 1
+  }
 
   return { snapshot, sources }
 }
@@ -262,7 +348,8 @@ function aiRunKind(kind: AiInsightKind): 'summary' | 'tip' {
 }
 
 function expectedSectionKeys(kind: AiInsightKind): string[] {
-  return kind === 'deadline_tip' ? ['what', 'why', 'prepare'] : ['risk', 'drivers', 'next_step']
+  // client_risk_summary now drives the History tab activity recap.
+  return kind === 'deadline_tip' ? ['what', 'why', 'prepare'] : ['recap', 'standing']
 }
 
 function normalizeSections(kind: AiInsightKind, output: InsightOutput): AiInsightSection[] {
@@ -286,7 +373,7 @@ async function refreshAiInsight(message: AiInsightRefreshMessage, env: Env): Pro
   const repos = scoped(db, message.firmId)
   const built =
     message.kind === 'client_risk_summary'
-      ? await buildClientRiskSnapshot(repos, message.subjectId, asOfDate)
+      ? await buildClientHistorySnapshot(repos, message.subjectId, asOfDate)
       : await buildDeadlineTipSnapshot(repos, message.subjectId, asOfDate)
   if (!built) return
 

@@ -1,5 +1,9 @@
 import { ORPCError } from '@orpc/server'
-import type { ClientClassificationReason, ClientFilingProfileInput } from '@duedatehq/contracts'
+import type {
+  AiInsightSection,
+  ClientClassificationReason,
+  ClientFilingProfileInput,
+} from '@duedatehq/contracts'
 import type {
   ClientFilingProfileInput as ClientFilingProfileRepoInput,
   ClientFilingProfileReplaceInput as ClientFilingProfileRepoReplaceInput,
@@ -1000,26 +1004,67 @@ const updateNotes = os.clients.updateNotes.handler(async ({ input, context }) =>
   }
 })
 
-function clientRiskFallback() {
+type ClientHistoryScope = ReturnType<typeof requireTenant>['scoped']
+
+// Compact, drift-free humanization of an audit action key, e.g.
+// 'obligation.extension.decided' -> 'Extension decided'.
+function humanizeAuditAction(action: string): string {
+  const tail = action.split('.').slice(1).join(' ').replace(/[._]/g, ' ').trim() || action
+  return tail.charAt(0).toUpperCase() + tail.slice(1)
+}
+
+// Data-driven activity recap for the client History tab summary, used
+// whenever there is no ready AI insight yet (or no Practice AI). Instead of
+// a static "summary is pending" placeholder it surfaces the latest recorded
+// changes plus where the record stands, straight from the audit log — so the
+// panel always reads as real information, never filler.
+async function clientHistoryFallback(
+  scoped: ClientHistoryScope,
+  client: ClientRow,
+): Promise<AiInsightSection[]> {
+  const obligations = await scoped.obligations.listByClient(client.id)
+  const clientEvents = (
+    await scoped.audit.list({ entityType: 'client', entityId: client.id, range: 'all', limit: 5 })
+  ).rows
+  const obligationEventRows = await Promise.all(
+    obligations
+      .slice(0, 3)
+      .map((obligation) =>
+        scoped.audit
+          .list({
+            entityType: 'obligation_instance',
+            entityId: obligation.id,
+            range: 'all',
+            limit: 3,
+          })
+          .then((result) => result.rows),
+      ),
+  )
+  const events = [...clientEvents, ...obligationEventRows.flat()]
+    .toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, 3)
+
+  const recapText =
+    events.length > 0
+      ? `Latest: ${events
+          .map(
+            (event) =>
+              `${humanizeAuditAction(event.action)} (${event.createdAt.toISOString().slice(0, 10)})`,
+          )
+          .join('; ')}.`
+      : 'No recorded changes in the recent activity window.'
+
+  const entity = client.entityType ?? 'unclassified'
+  const lateCount = client.lateFilingCountLast12mo ?? 0
+  const lateNote =
+    lateCount > 0
+      ? `, ${lateCount} late filing${lateCount === 1 ? '' : 's'} in the last 12 months`
+      : ''
+  const standingText = `Entity: ${entity}${lateNote}. See the activity log below for the full record.`
+
   return [
-    {
-      key: 'risk',
-      label: 'Risk',
-      text: 'Cached risk summary is pending. Review the deterministic risk inputs and open deadlines meanwhile.',
-      citationRefs: [],
-    },
-    {
-      key: 'drivers',
-      label: 'Drivers',
-      text: 'Smart Priority uses urgency, client importance, late filing history, and readiness signals.',
-      citationRefs: [],
-    },
-    {
-      key: 'next_step',
-      label: 'Next step',
-      text: 'Request a refresh after updating risk inputs.',
-      citationRefs: [],
-    },
+    { key: 'recap', label: 'Recent activity', text: recapText, citationRefs: [] },
+    { key: 'standing', label: 'Where it stands', text: standingText, citationRefs: [] },
   ]
 }
 
@@ -1041,7 +1086,7 @@ const getRiskSummary = os.clients.getRiskSummary.handler(async ({ input, context
   return toAiInsightPublic(insight, {
     kind: 'client_risk_summary',
     subjectId: input.clientId,
-    sections: clientRiskFallback(),
+    sections: insight?.output ? [] : await clientHistoryFallback(scoped, client),
   })
 })
 
@@ -1074,7 +1119,7 @@ const requestRiskSummaryRefresh = os.clients.requestRiskSummaryRefresh.handler(
       insight: toAiInsightPublic(insight, {
         kind: 'client_risk_summary',
         subjectId: input.clientId,
-        sections: clientRiskFallback(),
+        sections: insight?.output ? [] : await clientHistoryFallback(scoped, client),
       }),
     }
   },

@@ -1290,11 +1290,11 @@ export function ClientDetailWorkspace({
                     active one — the surrounding TabsContent gates the
                     AI summary + audit log queries that fire inside. */}
                 <TabSection
-                  title={t`Client summary (AI)`}
+                  title={t`Activity summary (AI)`}
                   summary={
                     riskSummaryQuery.data?.generatedAt
                       ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
-                      : t`No summary yet`
+                      : t`Auto-drafted from recent activity`
                   }
                   // 2026-05-26 (Yuqi /clients/[id] feedback #6+#7 —
                   // "pull this out and put with the Client Summary
@@ -1309,7 +1309,13 @@ export function ClientDetailWorkspace({
                   // renders that header strip).
                   actions={
                     <>
-                      {riskSummaryQuery.data ? (
+                      {/* Only badge a real generated insight (or a failure).
+                          The data-driven auto-draft shown before generation
+                          has no generatedAt — a "Pending" chip next to a
+                          populated recap would read as broken. */}
+                      {riskSummaryQuery.data &&
+                      (riskSummaryQuery.data.generatedAt ||
+                        riskSummaryQuery.data.status === 'failed') ? (
                         <InsightStatusBadge status={riskSummaryQuery.data.status} />
                       ) : null}
                       {practiceAiEnabled ? (

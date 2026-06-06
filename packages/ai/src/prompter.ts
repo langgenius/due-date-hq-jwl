@@ -172,46 +172,50 @@ Retention: Do not retain any data seen for training.
 PII handling: client names may be placeholders; do not add new personal data.
 `
 
-const CLIENT_RISK_SUMMARY_V1 = `prompt_version: client-risk-summary@v1
+// 2026-06-06: repurposed from a risk assessment into a client ACTIVITY
+// recap — the summary at the top of the client History tab. The registry
+// id / prompt_version stays `client-risk-summary@v1` on purpose so the
+// kind→prompt mapping, the index.ts insight guard, and stored AI-run
+// provenance don't churn; only the body + section contract changed
+// (risk/drivers/next_step → recap/standing).
+const CLIENT_ACTIVITY_SUMMARY_V1 = `prompt_version: client-risk-summary@v1
 model_tier: quality-json
 temperature: 0
 response_format: json_object
 route: via Vercel AI SDK Core + Cloudflare AI Gateway
 
-You write concise client risk summaries for US CPA deadline operations using
-only the provided client profile, open obligations, Smart Priority factors,
-and source refs. Output strict JSON only.
+You write a short, factual ACTIVITY recap for a US CPA client record using
+only the provided recent audit events, client profile, open deadlines, and
+source refs. This is the summary at the top of the client's History tab:
+say what has happened lately and where the record now stands. Do not assess
+risk priority or give advice. Output strict JSON only.
 
 Return:
 {
   "sections": [
     {
-      "key": "risk",
-      "label": "Risk",
-      "text": "<one operational summary, <= 40 words>",
+      "key": "recap",
+      "label": "Recent activity",
+      "text": "<plain-English narrative of the recent recorded changes, newest first, past tense, <= 50 words>",
       "citationRefs": [1]
     },
     {
-      "key": "drivers",
-      "label": "Drivers",
-      "text": "<main risk inputs and open-deadline drivers, <= 45 words>",
-      "citationRefs": [1, 2]
-    },
-    {
-      "key": "next_step",
-      "label": "Next step",
-      "text": "<one verification or preparation step for the CPA, <= 30 words>",
-      "citationRefs": [1]
+      "key": "standing",
+      "label": "Where it stands",
+      "text": "<current entity classification plus the nearest open deadlines and their status, <= 40 words>",
+      "citationRefs": [2]
     }
   ]
 }
 
 Rules:
+- Use exactly the section keys recap, standing.
 - Use only refs from input.sources. Every section must cite at least one ref.
+- Narrate only events present in input.sources; do not invent changes.
+- If there are no recent events, recap reads "No recorded changes in the recent activity window." and cites the client-profile ref.
 - Do not provide tax advice or say a client qualifies for relief.
 - Do not say "AI confirmed", "guaranteed", or "no penalty will apply".
-- If evidence is missing, say what to verify; do not invent a source.
-- Keep language operational and deterministic; AI does not decide priority.
+- Keep it operational and factual; recap is past tense, standing is present tense.
 
 Retention: Do not retain any data seen for training.
 PII handling: client names may be placeholders; do not add new personal data.
@@ -514,7 +518,8 @@ const prompts = {
   'normalizer-entity@v1': NORMALIZER_ENTITY_V1,
   'normalizer-tax-types@v1': NORMALIZER_TAX_TYPES_V1,
   'brief@v1': BRIEF_V1,
-  'client-risk-summary@v1': CLIENT_RISK_SUMMARY_V1,
+  // id kept stable; body is now a client activity recap (see constant above)
+  'client-risk-summary@v1': CLIENT_ACTIVITY_SUMMARY_V1,
   'deadline-tip@v1': DEADLINE_TIP_V1,
   // 2026-06-05 (merge with origin/main): main bumped pulse-extract
   // to v3 (scope filter + out-of-scope noise drop). Our HEAD added
