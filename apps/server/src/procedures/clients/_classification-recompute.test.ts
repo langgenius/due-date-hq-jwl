@@ -12,16 +12,18 @@ import { runClassificationRecompute } from './_classification-recompute'
 
 // Regression guard for the reclassify impact dialog: changing a client's
 // entity type can only ever *remove* obligations, never conjure the new
-// entity's federal return — generation is gated by the filing profile's tax
-// types, which the recompute holds constant. So the new return surfaces as an
-// advisory `suggestedFederalForms` hint instead. (User report: Harbor Lights
-// Nonprofit → individual showed the 990 removal but no 1040 to confirm.)
+// entity's filings — generation is gated by the filing profile's tax types,
+// which the recompute holds constant. So the preview exposes `expectedTaxTypes`
+// (the full federal + state set the new classification typically files, from
+// the default-matrix) as an advisory hint the dialog shows for every client and
+// every entity type. (User report: the hint must be universal, not 990→1040 /
+// individual-only.)
 
 type OblRow = Awaited<ReturnType<ScopedRepo['obligations']['listByClient']>>[number]
 
 // Harbor Lights Nonprofit, as seeded: entity_type 'other', no tax
-// classification, NY, files federal_990 + ny_it204. Only the fields the
-// generator + suggestion path read are meaningful; the rest are filler.
+// classification, NY. Only the fields inferTaxTypes + the generator read are
+// meaningful; the rest are filler.
 const HARBOR_LIGHTS = {
   id: 'client_harbor',
   entityType: 'other',
@@ -42,20 +44,7 @@ const NY_PROFILE = {
   taxTypes: ['federal_990', 'ny_it204'],
 } as unknown as ClientFilingProfileRow
 
-function obligation(taxType: string): OblRow {
-  // ruleId null keeps it out of the orphan/baseline diff; the suggestion path
-  // reads only `taxType`, which is all we exercise here.
-  return {
-    id: `obl_${taxType}`,
-    clientId: 'client_harbor',
-    taxType,
-    ruleId: null,
-    taxYear: null,
-    rulePeriod: null,
-  } as unknown as OblRow
-}
-
-function previewSwitchToIndividual(existing: OblRow[]) {
+function previewSwitchTo(entityType: ClientRow['entityType'], existing: OblRow[] = []) {
   return runClassificationRecompute({
     scoped: {
       filingProfiles: { listByClient: async () => [NY_PROFILE] },
@@ -63,7 +52,7 @@ function previewSwitchToIndividual(existing: OblRow[]) {
     } as unknown as ScopedRepo,
     userId: 'user_1',
     client: HARBOR_LIGHTS,
-    candidate: { entityType: 'individual' },
+    candidate: { entityType },
     rules: OBLIGATION_RULES,
     internalDeadlineOffsetDays: 0,
     now: new Date('2026-04-26T00:00:00.000Z'),
@@ -71,17 +60,15 @@ function previewSwitchToIndividual(existing: OblRow[]) {
   })
 }
 
-describe('runClassificationRecompute — suggested federal forms', () => {
-  it("suggests the new entity's federal return when the client lacks it", async () => {
-    const outcome = await previewSwitchToIndividual([obligation('federal_990')])
-    expect(outcome.suggestedFederalForms).toContain('federal_1040')
+describe('runClassificationRecompute — expected tax types for the new entity', () => {
+  it('lists the new entity’s federal + state filings (individual → 1040 + NY IT-201)', async () => {
+    const outcome = await previewSwitchTo('individual')
+    expect(outcome.expectedTaxTypes).toContain('federal_1040')
+    expect(outcome.expectedTaxTypes).toContain('ny_it201')
   })
 
-  it('does not suggest a federal return the client already has', async () => {
-    const outcome = await previewSwitchToIndividual([
-      obligation('federal_1040'),
-      obligation('ny_it204'),
-    ])
-    expect(outcome.suggestedFederalForms).not.toContain('federal_1040')
+  it('works for every entity type, not just individual (s_corp → 1120-S)', async () => {
+    const outcome = await previewSwitchTo('s_corp')
+    expect(outcome.expectedTaxTypes).toContain('federal_1120s')
   })
 })

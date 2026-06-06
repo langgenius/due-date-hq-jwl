@@ -335,13 +335,13 @@ export type ClassificationRecomputePreviewInput = z.infer<
 export const ClassificationRecomputePreviewOutputSchema = z.object({
   summary: ClassificationRecomputeSummarySchema,
   rows: z.array(ClassificationRecomputeRowSchema),
-  // Federal return form codes the NEW classification typically files but the
-  // client has no obligation for yet. Advisory ONLY — these are NOT auto-created.
+  // Tax type codes the NEW classification typically files — federal + state,
+  // from the default-matrix. Advisory ONLY: these are NOT auto-created.
   // Obligation generation is gated by the filing profile's tax types, so a
-  // reclassify can never conjure a form the profile doesn't list (e.g.
-  // nonprofit→individual can't add a 1040 on its own). The dialog surfaces these
-  // so the CPA knows which federal return to add to the client's tax types.
-  suggestedFederalForms: z.array(z.string()),
+  // reclassify never adds forms on its own (e.g. nonprofit→individual can't add
+  // a 1040). The dialog surfaces the full expected set for every entity type so
+  // the CPA can reconcile the client's tax types by hand.
+  expectedTaxTypes: z.array(z.string()),
 })
 export type ClassificationRecomputePreviewOutput = z.infer<
   typeof ClassificationRecomputePreviewOutputSchema

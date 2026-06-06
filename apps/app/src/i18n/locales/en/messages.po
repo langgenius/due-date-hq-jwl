@@ -986,10 +986,6 @@ msgstr "{totalPending} rules"
 msgid "{totalPendingReview, plural, one {# rule needs review} other {# rules need review}}"
 msgstr "{totalPendingReview, plural, one {# rule needs review} other {# rules need review}}"
 
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "{totalRemoveCount, plural, one {Replaces # obligation — deadlines shift} other {Replaces # obligations — deadlines shift}}"
-msgstr "{totalRemoveCount, plural, one {Replaces # obligation — deadlines shift} other {Replaces # obligations — deadlines shift}}"
-
 #: src/routes/rules.library.tsx
 msgid "{totalRules, plural, one {# rule} other {# rules}}"
 msgstr "{totalRules, plural, one {# rule} other {# rules}}"
@@ -1165,8 +1161,8 @@ msgid "8879 sent to client for signature"
 msgstr "8879 sent to client for signature"
 
 #: src/features/clients/ClassificationImpactDialog.tsx
-msgid "A {newEntityLabel} typically files {suggestedFormsLabel}. DueDateHQ won't add these automatically — add them to this client's tax types if they apply."
-msgstr "A {newEntityLabel} typically files {suggestedFormsLabel}. DueDateHQ won't add these automatically — add them to this client's tax types if they apply."
+msgid "A {newEntityLabel} typically files {expectedTaxTypesLabel}. DueDateHQ won't create these automatically — add any that apply to this client's tax types."
+msgstr "A {newEntityLabel} typically files {expectedTaxTypesLabel}. DueDateHQ won't create these automatically — add any that apply to this client's tax types."
 
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/concepts/concept-help.tsx
@@ -2911,8 +2907,8 @@ msgstr "Check the selected rows and try again."
 
 #. placeholder {0}: client.name
 #: src/features/clients/ClassificationImpactDialog.tsx
-msgid "Check which deadlines DueDateHQ will add and remove for {0} before applying."
-msgstr "Check which deadlines DueDateHQ will add and remove for {0} before applying."
+msgid "Check what changes for {0} before applying."
+msgstr "Check what changes for {0} before applying."
 
 #: src/routes/obligations.tsx
 msgid "Check your network and try again."
@@ -8332,10 +8328,6 @@ msgstr "No missing rules"
 msgid "No morning digests have run yet."
 msgstr "No morning digests have run yet."
 
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "No new deadlines."
-msgstr "No new deadlines."
-
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "No new Tax Year {targetTaxYear} deadlines to create from completed Tax Year {sourceTaxYear} returns."
@@ -13601,6 +13593,10 @@ msgstr "TYPE"
 msgid "Type <0>{0}</0> to confirm"
 msgstr "Type <0>{0}</0> to confirm"
 
+#: src/features/clients/ClassificationImpactDialog.tsx
+msgid "Typical filings for this entity type"
+msgstr "Typical filings for this entity type"
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "UI wage report count"
 msgstr "UI wage report count"
@@ -14218,10 +14214,6 @@ msgstr "Why it failed"
 msgid "Why now:"
 msgstr "Why now:"
 
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "Will add"
-msgstr "Will add"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Will create"
 msgstr "Will create"
@@ -14344,10 +14336,6 @@ msgstr "You don't have permission to perform this action."
 #: src/lib/i18n-error.ts
 msgid "You don't have permission to use this practice feature."
 msgstr "You don't have permission to use this practice feature."
-
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "You may need to add a federal return"
-msgstr "You may need to add a federal return"
 
 #: src/lib/i18n-error.ts
 msgid "You need to sign in to continue."

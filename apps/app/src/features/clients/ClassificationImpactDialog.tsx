@@ -3,12 +3,10 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   AlertCircleIcon,
-  ArrowRightLeftIcon,
   CheckCircle2Icon,
   InfoIcon,
   Loader2Icon,
   MinusCircleIcon,
-  PlusCircleIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -37,7 +35,6 @@ import {
 } from '@duedatehq/ui/components/ui/dialog'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 
-import { formatDatePretty } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatTaxCode } from '@/lib/tax-codes'
@@ -128,13 +125,14 @@ export function ClassificationImpactDialog({
     [previewQuery.data],
   )
   const summary = previewQuery.data?.summary
-  // Federal returns the new classification typically files but the client lacks.
-  // Advisory only — the server never auto-creates these (generation is gated by
-  // the filing profile's tax types), so we tell the CPA to add them by hand.
-  const suggestedFederalForms = previewQuery.data?.suggestedFederalForms ?? []
+  // What the NEW classification typically files (federal + state), from the
+  // default-matrix. Advisory only — the server never auto-creates these
+  // (generation is gated by the filing profile's tax types); we surface the
+  // full expected set for every entity type so the CPA can reconcile the
+  // client's tax types by hand.
+  const expectedTaxTypes = previewQuery.data?.expectedTaxTypes ?? []
   const newEntityLabel = entityLabels[candidate.entityType ?? client.entityType]
-  const suggestedFormsLabel = suggestedFederalForms.map((code) => formatTaxCode(code)).join(', ')
-  const willAddRows = useMemo(() => rows.filter((row) => row.disposition === 'will_add'), [rows])
+  const expectedTaxTypesLabel = expectedTaxTypes.map((code) => formatTaxCode(code)).join(', ')
   const orphanSafeRows = useMemo(
     () => rows.filter((row) => row.disposition === 'orphan_safe'),
     [rows],
@@ -143,8 +141,6 @@ export function ClassificationImpactDialog({
     () => rows.filter((row) => row.disposition === 'orphan_needs_confirmation'),
     [rows],
   )
-  const totalRemoveCount = orphanSafeRows.length + orphanConfirmRows.length
-  const hasMovement = willAddRows.length > 0 && totalRemoveCount > 0
 
   const applyMutation = useMutation(
     orpc.clients.applyClassificationRecompute.mutationOptions({
@@ -210,11 +206,9 @@ export function ClassificationImpactDialog({
           </DialogTitle>
           <DialogDescription>
             {/* Bridges the abstract "reclassification" to the concrete
-                consequence the CPA cares about: which deadlines appear
-                and which disappear. */}
-            <Trans>
-              Check which deadlines DueDateHQ will add and remove for {client.name} before applying.
-            </Trans>
+                consequence the CPA cares about: what the new type files and
+                which existing deadlines fall away. */}
+            <Trans>Check what changes for {client.name} before applying.</Trans>
           </DialogDescription>
         </DialogHeader>
 
@@ -247,60 +241,20 @@ export function ClassificationImpactDialog({
             </Alert>
           ) : (
             <>
-              {hasMovement ? (
-                <div className="flex items-center gap-2 rounded-md border border-divider-regular bg-background-subtle px-3 py-2 text-sm text-text-secondary">
-                  <ArrowRightLeftIcon className="size-4 shrink-0 text-text-tertiary" aria-hidden />
-                  <span>
-                    <Plural
-                      value={totalRemoveCount}
-                      one="Replaces # obligation — deadlines shift"
-                      other="Replaces # obligations — deadlines shift"
-                    />
-                  </span>
-                </div>
-              ) : null}
-
-              <ImpactSection
-                icon={<PlusCircleIcon className="size-4 text-text-success" aria-hidden />}
-                title={<Trans>Will add</Trans>}
-                count={willAddRows.length}
-              >
-                {willAddRows.length > 0 ? (
-                  <ul className="grid gap-1.5">
-                    {willAddRows.map((row) => (
-                      <li
-                        key={`${row.taxType}:${row.formName ?? ''}:${row.jurisdiction ?? ''}:${row.taxYear ?? ''}`}
-                        className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-sm"
-                      >
-                        <span className="text-text-primary">{formatRowLine(row)}</span>
-                        <span className="inline-flex items-center gap-2 text-xs tabular-nums text-text-tertiary">
-                          {row.taxYear ? <span>{row.taxYear}</span> : null}
-                          {row.dueDate ? <span>{formatDatePretty(row.dueDate)}</span> : null}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-text-tertiary">
-                    <Trans>No new deadlines.</Trans>
-                  </p>
-                )}
-              </ImpactSection>
-
-              {suggestedFederalForms.length > 0 ? (
+              {expectedTaxTypes.length > 0 ? (
                 <Alert variant="info">
                   <InfoIcon />
                   <AlertTitle>
-                    <Trans>You may need to add a federal return</Trans>
+                    <Trans>Typical filings for this entity type</Trans>
                   </AlertTitle>
                   <AlertDescription>
-                    {/* The recompute can't create these on its own — federal
-                        returns come from the client's tax types, not the entity
-                        type alone. Point the CPA at the manual step instead of
-                        silently leaving a gap. */}
+                    {/* Reclassify can't create these on its own — a client's
+                        filings come from their tax types, not the entity type
+                        alone. Surface the full expected set so the CPA can
+                        reconcile by hand instead of us silently leaving a gap. */}
                     <Trans>
-                      A {newEntityLabel} typically files {suggestedFormsLabel}. DueDateHQ won't add
-                      these automatically — add them to this client's tax types if they apply.
+                      A {newEntityLabel} typically files {expectedTaxTypesLabel}. DueDateHQ won't
+                      create these automatically — add any that apply to this client's tax types.
                     </Trans>
                   </AlertDescription>
                 </Alert>

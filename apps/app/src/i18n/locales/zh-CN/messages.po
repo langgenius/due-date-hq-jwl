@@ -1001,10 +1001,6 @@ msgstr "{totalPending} 条规则"
 msgid "{totalPendingReview, plural, one {# rule needs review} other {# rules need review}}"
 msgstr "{0, plural, other {# 行需要复核}}"
 
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "{totalRemoveCount, plural, one {Replaces # obligation — deadlines shift} other {Replaces # obligations — deadlines shift}}"
-msgstr "{totalRemoveCount, plural, one {替换 # 个截止事项 — 截止日期顺延} other {替换 # 个截止事项 — 截止日期顺延}}"
-
 #: src/routes/rules.library.tsx
 msgid "{totalRules, plural, one {# rule} other {# rules}}"
 msgstr "{totalRules, plural, other {# 条规则}}"
@@ -1184,8 +1180,8 @@ msgid "8879 sent to client for signature"
 msgstr "8879 已发给客户签字"
 
 #: src/features/clients/ClassificationImpactDialog.tsx
-msgid "A {newEntityLabel} typically files {suggestedFormsLabel}. DueDateHQ won't add these automatically — add them to this client's tax types if they apply."
-msgstr "{newEntityLabel} 通常需要申报 {suggestedFormsLabel}。DueDateHQ 不会自动添加这些申报表；如适用，请将其添加到该客户的税种中。"
+msgid "A {newEntityLabel} typically files {expectedTaxTypesLabel}. DueDateHQ won't create these automatically — add any that apply to this client's tax types."
+msgstr "{newEntityLabel} 通常需要申报 {expectedTaxTypesLabel}。DueDateHQ 不会自动创建这些；如有适用项，请添加到该客户的税种中。"
 
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/concepts/concept-help.tsx
@@ -2942,8 +2938,8 @@ msgstr "请检查所选行后重试。"
 
 #. placeholder {0}: client.name
 #: src/features/clients/ClassificationImpactDialog.tsx
-msgid "Check which deadlines DueDateHQ will add and remove for {0} before applying."
-msgstr "应用前请检查 DueDateHQ 将为 {0} 新增和移除哪些截止日期。"
+msgid "Check what changes for {0} before applying."
+msgstr "应用前请查看 {0} 会发生哪些变化。"
 
 #: src/routes/obligations.tsx
 msgid "Check your network and try again."
@@ -8396,10 +8392,6 @@ msgstr "没有缺失规则"
 msgid "No morning digests have run yet."
 msgstr "还没有 morning digest 运行记录。"
 
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "No new deadlines."
-msgstr "没有新的截止日期。"
-
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "No new Tax Year {targetTaxYear} deadlines to create from completed Tax Year {sourceTaxYear} returns."
@@ -13708,6 +13700,10 @@ msgstr "类型"
 msgid "Type <0>{0}</0> to confirm"
 msgstr "Type <0>{0}</0> to confirm"
 
+#: src/features/clients/ClassificationImpactDialog.tsx
+msgid "Typical filings for this entity type"
+msgstr "此实体类型的常见申报"
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "UI wage report count"
 msgstr "UI 工资报告数量"
@@ -14330,10 +14326,6 @@ msgstr "失败原因"
 msgid "Why now:"
 msgstr "为何是现在："
 
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "Will add"
-msgstr "将新增"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Will create"
 msgstr "将创建"
@@ -14456,10 +14448,6 @@ msgstr "您没有执行该操作的权限。"
 #: src/lib/i18n-error.ts
 msgid "You don't have permission to use this practice feature."
 msgstr "你没有权限使用该事务所功能。"
-
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "You may need to add a federal return"
-msgstr "可能需要添加联邦申报表"
 
 #: src/lib/i18n-error.ts
 msgid "You need to sign in to continue."

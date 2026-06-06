@@ -862,7 +862,7 @@ const previewClassificationRecompute = os.clients.previewClassificationRecompute
     return {
       summary: outcome.summary,
       rows: outcome.rows,
-      suggestedFederalForms: outcome.suggestedFederalForms,
+      expectedTaxTypes: outcome.expectedTaxTypes,
     }
   },
 )

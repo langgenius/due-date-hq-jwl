@@ -4,7 +4,7 @@ import type {
   ClientClassificationCandidate,
 } from '@duedatehq/contracts'
 import type { ObligationRule } from '@duedatehq/core/rules'
-import { federalOverlayForTaxClassification } from '@duedatehq/core/default-matrix'
+import { inferTaxTypes } from '@duedatehq/core/default-matrix'
 import type { ClientRow } from '@duedatehq/ports/clients'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import {
@@ -91,11 +91,11 @@ export interface ClassificationRecomputeOutcome {
   summary: ClassificationRecomputeSummary
   rows: ClassificationRecomputeRow[]
   /**
-   * Federal return form codes the candidate classification typically files that
-   * the client has no obligation for yet — advisory only, never auto-created
-   * (see the contract field doc). Surfaced in preview; ignored on apply.
+   * Tax types the candidate classification typically files (federal + state),
+   * from the default-matrix — advisory only, never auto-created (see the
+   * contract field doc). Surfaced in preview; ignored on apply.
    */
-  suggestedFederalForms: string[]
+  expectedTaxTypes: string[]
   addedObligationIds: string[]
   supersededObligationIds: string[]
   /** classification.updated audit id in apply mode; null in preview. */
@@ -196,30 +196,26 @@ export async function runClassificationRecompute(input: {
     orphanNeedsConfirmationCount: orphans.length - orphanSafeCount,
   }
 
-  // Federal returns the NEW classification typically files but the client lacks.
-  // These are NOT in `toAdd` — generation is gated by the filing profile's tax
-  // types, so a reclassify (which holds the profile constant) can never add a
-  // form the profile omits. We surface them as a hint so the CPA can add the
-  // form by hand. Skip anything the client already has (existing obligation or a
-  // genuine add) and the bare `federal` placeholder for entity_type 'other',
-  // which has no canonical return.
-  const existingTaxTypes = new Set(existing.map((o) => o.taxType))
-  const addedTaxTypes = new Set(toAdd.map((i) => i.createInput.taxType))
-  const suggestedFederalForms = federalOverlayForTaxClassification(
-    candidateClient.entityType,
-    candidateClient.taxClassification,
-  ).filter(
-    (taxType) =>
-      taxType.startsWith('federal_') &&
-      !existingTaxTypes.has(taxType) &&
-      !addedTaxTypes.has(taxType),
+  // The full set of filings the NEW classification typically has — federal +
+  // state, from the default-matrix (the same inference used at client intake).
+  // Advisory only: reclassify never auto-creates these (generation is gated by
+  // the filing profile's tax types, which we hold constant), so we surface the
+  // complete expected set for every client/entity and let the CPA reconcile the
+  // tax types by hand.
+  const expectedTaxTypes = inferTaxTypes(candidateClient.entityType, candidateClient.state ?? '', {
+    taxClassification: candidateClient.taxClassification,
+  }).taxTypes.filter(
+    // Drop the bare `federal` placeholder (entity_type 'other') and the
+    // `_state_*` codes inferTaxTypes emits when the client has no state — both
+    // are non-forms with no canonical return.
+    (taxType) => taxType !== 'federal' && !taxType.startsWith('_'),
   )
 
   if (mode === 'preview') {
     return {
       summary,
       rows,
-      suggestedFederalForms,
+      expectedTaxTypes,
       addedObligationIds: [],
       supersededObligationIds: [],
       auditId: null,
@@ -307,7 +303,7 @@ export async function runClassificationRecompute(input: {
   return {
     summary,
     rows,
-    suggestedFederalForms,
+    expectedTaxTypes,
     addedObligationIds,
     supersededObligationIds: supersededIds,
     auditId: classificationAuditId,
