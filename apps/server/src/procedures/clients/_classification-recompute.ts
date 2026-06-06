@@ -4,6 +4,7 @@ import type {
   ClientClassificationCandidate,
 } from '@duedatehq/contracts'
 import type { ObligationRule } from '@duedatehq/core/rules'
+import { federalOverlayForTaxClassification } from '@duedatehq/core/default-matrix'
 import type { ClientRow } from '@duedatehq/ports/clients'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import {
@@ -89,6 +90,12 @@ function orphanRow(o: ObligationRow, flags: string[]): ClassificationRecomputeRo
 export interface ClassificationRecomputeOutcome {
   summary: ClassificationRecomputeSummary
   rows: ClassificationRecomputeRow[]
+  /**
+   * Federal return form codes the candidate classification typically files that
+   * the client has no obligation for yet — advisory only, never auto-created
+   * (see the contract field doc). Surfaced in preview; ignored on apply.
+   */
+  suggestedFederalForms: string[]
   addedObligationIds: string[]
   supersededObligationIds: string[]
   /** classification.updated audit id in apply mode; null in preview. */
@@ -189,8 +196,34 @@ export async function runClassificationRecompute(input: {
     orphanNeedsConfirmationCount: orphans.length - orphanSafeCount,
   }
 
+  // Federal returns the NEW classification typically files but the client lacks.
+  // These are NOT in `toAdd` — generation is gated by the filing profile's tax
+  // types, so a reclassify (which holds the profile constant) can never add a
+  // form the profile omits. We surface them as a hint so the CPA can add the
+  // form by hand. Skip anything the client already has (existing obligation or a
+  // genuine add) and the bare `federal` placeholder for entity_type 'other',
+  // which has no canonical return.
+  const existingTaxTypes = new Set(existing.map((o) => o.taxType))
+  const addedTaxTypes = new Set(toAdd.map((i) => i.createInput.taxType))
+  const suggestedFederalForms = federalOverlayForTaxClassification(
+    candidateClient.entityType,
+    candidateClient.taxClassification,
+  ).filter(
+    (taxType) =>
+      taxType.startsWith('federal_') &&
+      !existingTaxTypes.has(taxType) &&
+      !addedTaxTypes.has(taxType),
+  )
+
   if (mode === 'preview') {
-    return { summary, rows, addedObligationIds: [], supersededObligationIds: [], auditId: null }
+    return {
+      summary,
+      rows,
+      suggestedFederalForms,
+      addedObligationIds: [],
+      supersededObligationIds: [],
+      auditId: null,
+    }
   }
 
   // --- apply: write classification, add new, supersede removed, audit --------
@@ -274,6 +307,7 @@ export async function runClassificationRecompute(input: {
   return {
     summary,
     rows,
+    suggestedFederalForms,
     addedObligationIds,
     supersededObligationIds: supersededIds,
     auditId: classificationAuditId,

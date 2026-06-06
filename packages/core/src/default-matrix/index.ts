@@ -233,7 +233,7 @@ const FEDERAL_OVERLAY: Record<EntityType, readonly string[]> = {
   other: ['federal'],
 }
 
-function federalOverlayForTaxClassification(
+export function federalOverlayForTaxClassification(
   entityType: EntityType,
   taxClassification?: TaxClassification | null,
 ): readonly string[] {

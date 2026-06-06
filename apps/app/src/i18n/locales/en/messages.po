@@ -1164,6 +1164,10 @@ msgstr "7+"
 msgid "8879 sent to client for signature"
 msgstr "8879 sent to client for signature"
 
+#: src/features/clients/ClassificationImpactDialog.tsx
+msgid "A {newEntityLabel} typically files {suggestedFormsLabel}. DueDateHQ won't add these automatically — add them to this client's tax types if they apply."
+msgstr "A {newEntityLabel} typically files {suggestedFormsLabel}. DueDateHQ won't add these automatically — add them to this client's tax types if they apply."
+
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/concepts/concept-help.tsx
 msgid "A deadline rule accepted by {0} at this practice. It can generate client-facing reminders when it matches a client."
@@ -14340,6 +14344,10 @@ msgstr "You don't have permission to perform this action."
 #: src/lib/i18n-error.ts
 msgid "You don't have permission to use this practice feature."
 msgstr "You don't have permission to use this practice feature."
+
+#: src/features/clients/ClassificationImpactDialog.tsx
+msgid "You may need to add a federal return"
+msgstr "You may need to add a federal return"
 
 #: src/lib/i18n-error.ts
 msgid "You need to sign in to continue."

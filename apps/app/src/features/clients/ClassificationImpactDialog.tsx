@@ -5,6 +5,7 @@ import {
   AlertCircleIcon,
   ArrowRightLeftIcon,
   CheckCircle2Icon,
+  InfoIcon,
   Loader2Icon,
   MinusCircleIcon,
   PlusCircleIcon,
@@ -40,6 +41,7 @@ import { formatDatePretty } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatTaxCode } from '@/lib/tax-codes'
+import { useEntityLabels } from '@/routes/clients'
 
 // Maps the server's `workflowFlags` strings into localized, human-
 // readable badge labels for the "Needs your confirmation" rows. The
@@ -106,6 +108,7 @@ export function ClassificationImpactDialog({
 }) {
   const { t } = useLingui()
   const workflowFlagLabel = useWorkflowFlagLabel()
+  const entityLabels = useEntityLabels()
   // Confirmed orphan ids start empty every time the dialog opens — the
   // CPA must explicitly opt in to removing an obligation that already
   // has work on it. Reset is keyed off `open` via the Dialog remount of
@@ -125,6 +128,12 @@ export function ClassificationImpactDialog({
     [previewQuery.data],
   )
   const summary = previewQuery.data?.summary
+  // Federal returns the new classification typically files but the client lacks.
+  // Advisory only — the server never auto-creates these (generation is gated by
+  // the filing profile's tax types), so we tell the CPA to add them by hand.
+  const suggestedFederalForms = previewQuery.data?.suggestedFederalForms ?? []
+  const newEntityLabel = entityLabels[candidate.entityType ?? client.entityType]
+  const suggestedFormsLabel = suggestedFederalForms.map((code) => formatTaxCode(code)).join(', ')
   const willAddRows = useMemo(() => rows.filter((row) => row.disposition === 'will_add'), [rows])
   const orphanSafeRows = useMemo(
     () => rows.filter((row) => row.disposition === 'orphan_safe'),
@@ -277,6 +286,25 @@ export function ClassificationImpactDialog({
                   </p>
                 )}
               </ImpactSection>
+
+              {suggestedFederalForms.length > 0 ? (
+                <Alert variant="info">
+                  <InfoIcon />
+                  <AlertTitle>
+                    <Trans>You may need to add a federal return</Trans>
+                  </AlertTitle>
+                  <AlertDescription>
+                    {/* The recompute can't create these on its own — federal
+                        returns come from the client's tax types, not the entity
+                        type alone. Point the CPA at the manual step instead of
+                        silently leaving a gap. */}
+                    <Trans>
+                      A {newEntityLabel} typically files {suggestedFormsLabel}. DueDateHQ won't add
+                      these automatically — add them to this client's tax types if they apply.
+                    </Trans>
+                  </AlertDescription>
+                </Alert>
+              ) : null}
 
               {orphanConfirmRows.length > 0 ? (
                 <ImpactSection

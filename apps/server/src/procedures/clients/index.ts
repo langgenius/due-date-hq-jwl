@@ -859,7 +859,11 @@ const previewClassificationRecompute = os.clients.previewClassificationRecompute
         ? { effectiveFromTaxYear: input.effectiveFromTaxYear }
         : {}),
     })
-    return { summary: outcome.summary, rows: outcome.rows }
+    return {
+      summary: outcome.summary,
+      rows: outcome.rows,
+      suggestedFederalForms: outcome.suggestedFederalForms,
+    }
   },
 )
 

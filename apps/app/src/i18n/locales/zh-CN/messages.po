@@ -1183,6 +1183,10 @@ msgstr "7+"
 msgid "8879 sent to client for signature"
 msgstr "8879 已发给客户签字"
 
+#: src/features/clients/ClassificationImpactDialog.tsx
+msgid "A {newEntityLabel} typically files {suggestedFormsLabel}. DueDateHQ won't add these automatically — add them to this client's tax types if they apply."
+msgstr "{newEntityLabel} 通常需要申报 {suggestedFormsLabel}。DueDateHQ 不会自动添加这些申报表；如适用，请将其添加到该客户的税种中。"
+
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/concepts/concept-help.tsx
 #, fuzzy
@@ -14452,6 +14456,10 @@ msgstr "您没有执行该操作的权限。"
 #: src/lib/i18n-error.ts
 msgid "You don't have permission to use this practice feature."
 msgstr "你没有权限使用该事务所功能。"
+
+#: src/features/clients/ClassificationImpactDialog.tsx
+msgid "You may need to add a federal return"
+msgstr "可能需要添加联邦申报表"
 
 #: src/lib/i18n-error.ts
 msgid "You need to sign in to continue."
