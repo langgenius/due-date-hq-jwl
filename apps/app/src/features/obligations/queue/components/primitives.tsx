@@ -47,27 +47,23 @@ export function DueDaysPill({ days, status }: { days: number; status: Obligation
     // row landed exactly on its deadline — no signal there.
     //
     // 2026-05-27 (Agent X3 milestone audit M-08): `not_applicable`
-    // is a closed state where the "Filed N days late/early" phrasing
-    // doesn't apply because the obligation never applied. Render a
-    // quiet em-dash so the column still reserves its baseline without
-    // claiming a filing event that didn't happen.
+    // is a closed state where lateness/earliness doesn't apply because
+    // the obligation never applied. Render a quiet em-dash so the column
+    // still reserves its baseline without claiming a filing event.
     if (status === 'not_applicable' || days === 0) {
       // 2026-06-01: canonical EmptyCellMark replaces hand-rolled em-dash —
       // shares the same accessible "No data" label as other empty cells.
       return <EmptyCellMark />
     }
     return (
-      // 2026-05-26 (Yuqi fifty-fourth pass — terminal pill larger):
-      // "Filed N days late/early" was text-xs (12px), which read as
-      // caption-tier next to the row's text-sm content. Bumped to
-      // text-sm so the terminal stat (a meaningful CPA outcome —
-      // "we filed this 3 days late") sits at body-tier where it
-      // belongs.
+      // 2026-06-06 (Yuqi): this column compares only against the
+      // internal due date. Do not prefix terminal rows with "Filed";
+      // that mixes the status/action vocabulary into a due-date metric.
       <span className="text-sm text-text-tertiary tabular-nums">
         {days < 0 ? (
-          <Plural value={Math.abs(days)} one="Filed # day late" other="Filed # days late" />
+          <Plural value={Math.abs(days)} one="# day late" other="# days late" />
         ) : (
-          <Plural value={days} one="Filed # day early" other="Filed # days early" />
+          <Plural value={days} one="# day early" other="# days early" />
         )}
       </span>
     )

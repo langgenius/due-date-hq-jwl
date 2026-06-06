@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   canSaveInternalExtensionPlan,
+  compareObligationQueueRowsForSort,
   countOutstandingReadinessDocuments,
   deadlineDetailSearchFromQueueState,
   daysUntilEffectiveInternalDueDate,
@@ -24,6 +25,13 @@ import {
   willReadinessChecklistBeFullyReceived,
 } from './obligations'
 
+const smartPriorityBreakdown = (score: number) => ({
+  version: 'smart-priority-v1' as const,
+  score,
+  rank: null,
+  factors: [],
+})
+
 describe('obligations quick filters', () => {
   const defaultDetailSearchState = {
     q: '',
@@ -45,16 +53,12 @@ describe('obligations quick filters', () => {
     daysMin: null,
     daysMax: null,
     asOf: null,
-    // 2026-06-05 (post-merge regression fix): the urgency-band table
-    // recreation (3f4940cd → 77979882) repinned the queue defaults to
-    // due_asc / urgency / a leaner hidden-column set (no clientState,
-    // since STATE is now a primary column). Keeping the test seed in
-    // sync with `DEFAULT_SORT` / `DEFAULT_GROUP` / `DEFAULT_HIDDEN_COLUMN_IDS`
-    // in obligations.tsx is the whole point — these tests verify that
+    // Keep the test seed in sync with `DEFAULT_SORT` / `DEFAULT_GROUP` /
+    // `DEFAULT_HIDDEN_COLUMN_IDS` in obligations.tsx. These tests verify that
     // helpers DROP defaults from the URL.
     sort: 'due_asc' as const,
     density: 'comfortable' as const,
-    group: 'urgency' as const,
+    group: 'due' as const,
     hide: ['smartPriority', 'clientCounty', 'dueDateExact', 'daysUntilDue', 'evidenceCount'],
   } satisfies Parameters<typeof deadlineDetailSearchFromQueueState>[1]
 
@@ -112,6 +116,27 @@ describe('obligations quick filters', () => {
 })
 
 describe('obligation queue header sort', () => {
+  const sortRows = [
+    {
+      id: 'deadline_a',
+      currentDueDate: '2026-06-01',
+      updatedAt: '2026-05-01T00:00:00.000Z',
+      smartPriority: smartPriorityBreakdown(10),
+    },
+    {
+      id: 'deadline_b',
+      currentDueDate: '2026-08-01',
+      updatedAt: '2026-05-03T00:00:00.000Z',
+      smartPriority: smartPriorityBreakdown(20),
+    },
+    {
+      id: 'deadline_c',
+      currentDueDate: '2026-07-01',
+      updatedAt: '2026-05-02T00:00:00.000Z',
+      smartPriority: smartPriorityBreakdown(30),
+    },
+  ]
+
   it('toggles Internal Due between ascending and descending without clearing to Smart Priority', () => {
     expect(
       nextHeaderSort({
@@ -139,6 +164,20 @@ describe('obligation queue header sort', () => {
         firstSort: 'due_asc',
       }),
     ).toBe('due_asc')
+  })
+
+  it('sorts the loaded buffer by internal due date immediately', () => {
+    expect(
+      [...sortRows]
+        .toSorted((a, b) => compareObligationQueueRowsForSort(a, b, 'due_asc'))
+        .map((row) => row.id),
+    ).toEqual(['deadline_a', 'deadline_c', 'deadline_b'])
+
+    expect(
+      [...sortRows]
+        .toSorted((a, b) => compareObligationQueueRowsForSort(a, b, 'due_desc'))
+        .map((row) => row.id),
+    ).toEqual(['deadline_b', 'deadline_c', 'deadline_a'])
   })
 })
 

@@ -103,6 +103,7 @@ import {
 } from '@duedatehq/contracts'
 import { renderTemplate, SIGNATURE_REMINDER_THROTTLE_DAYS } from '@duedatehq/core/email-template'
 import { computeExtendedFilingDeadline } from '@duedatehq/core/date-logic'
+import { compareSmartPriority } from '@duedatehq/core/priority'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
 import {
   AlertDialog,
@@ -114,7 +115,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@duedatehq/ui/components/ui/alert-dialog'
-import { Badge, BadgeStatusDot } from '@duedatehq/ui/components/ui/badge'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button, buttonVariants } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
@@ -276,31 +277,20 @@ const DENSITY_OPTIONS = [
 ] as const satisfies readonly ObligationQueueDensity[]
 // 2026-06-04 (Yuqi /deadlines h4bQ2): the production design opens the
 // queue sorted by INTERNAL due date ascending (most-overdue first),
-// with the blue active-sort arrow on that column. This pairs with the
-// urgency-band grouping below.
+// with the blue active-sort arrow on that column.
 const DEFAULT_SORT: ObligationQueueSort = 'due_asc'
 const DEFAULT_DENSITY: ObligationQueueDensity = 'comfortable'
 // 2026-05-26 (Yuqi /deadlines #2): explicit "Group by" mode. Default
 // `due` keeps the chronological flat list the current product
 // optimises for. `client` clusters rows under client section
-// headers (with aggregate metadata). `status` clusters by status
-// (Blocked / Waiting on client / In review / Filed / Not started).
-// 2026-05-26 (Yuqi follow-up — "remove group by status, since there
-// is already the top tab switch between status"): Status is no
-// longer a Group-by option. The scope-tab band above the table
-// already filters by status (All / Past due / This week / Not started
-// / Waiting on client / Blocked / In review / Filed), so adding it
-// as a grouping axis was a redundant control. Group-by now offers
-// only "Due date" (default flat list) and "Client" (per-client
-// cluster headers). Legacy URLs with `?group=status` fall back to
-// the default `due` via nuqs's `parseAsStringLiteral` rejection.
-// 2026-06-04 (Yuqi /deadlines h4bQ2): added `urgency` — clusters rows
-// under urgency-band headers (Overdue / Due this week / Upcoming) keyed
-// off the internal due date. This is the new default per the production
-// design; `due` (flat) and `client` (per-client clusters) remain.
-const GROUP_OPTIONS = ['due', 'client', 'urgency'] as const
+// headers (with aggregate metadata). `filing` clusters rows under
+// filing-type section headers.
+// 2026-06-06 (Yuqi feedback): remove `urgency` as a grouping dimension.
+// Group-by now exposes Due date, Client, and Filing; legacy URLs with
+// `?group=urgency` fall back to the default `due`.
+const GROUP_OPTIONS = ['due', 'client', 'filing'] as const
 type ObligationQueueGroup = (typeof GROUP_OPTIONS)[number]
-const DEFAULT_GROUP: ObligationQueueGroup = 'urgency'
+const DEFAULT_GROUP: ObligationQueueGroup = 'due'
 const DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS = 3_000
 const DEADLINE_TIP_REFRESH_TIMEOUT_MS = 60_000
 const EMPTY_OBLIGATION_QUEUE_ROWS: ObligationQueueRow[] = []
@@ -965,11 +955,57 @@ function isObligationStatus(value: string): value is ObligationStatus {
   return ALL_STATUSES.some((status) => status === value)
 }
 
+function isObligationQueueSort(value: string | null): value is ObligationQueueSort {
+  return ALL_SORTS.some((sort) => sort === value)
+}
+
+function sortFromSearch(search: string): ObligationQueueSort | null {
+  const value = new URLSearchParams(search).get('sort')
+  return isObligationQueueSort(value) ? value : null
+}
+
 function getSortingState(sort: ObligationQueueSort): SortingState {
   if (sort === 'smart_priority') return [{ id: 'smartPriority', desc: true }]
   if (sort === 'due_desc') return [{ id: 'currentDueDate', desc: true }]
   if (sort === 'updated_desc') return [{ id: 'updatedAt', desc: true }]
   return [{ id: 'currentDueDate', desc: false }]
+}
+
+type SortableObligationQueueRow = Pick<
+  ObligationQueueRow,
+  'currentDueDate' | 'id' | 'smartPriority' | 'updatedAt'
+>
+
+export function compareObligationQueueRowsForSort(
+  a: SortableObligationQueueRow,
+  b: SortableObligationQueueRow,
+  sort: ObligationQueueSort,
+): number {
+  if (sort === 'smart_priority') {
+    return compareSmartPriority(
+      {
+        obligationId: a.id,
+        currentDueDate: a.currentDueDate,
+        smartPriority: a.smartPriority,
+      },
+      {
+        obligationId: b.id,
+        currentDueDate: b.currentDueDate,
+        smartPriority: b.smartPriority,
+      },
+    )
+  }
+
+  if (sort === 'updated_desc') {
+    const updatedDelta = b.updatedAt.localeCompare(a.updatedAt)
+    if (updatedDelta !== 0) return updatedDelta
+    return b.id.localeCompare(a.id)
+  }
+
+  const direction = sort === 'due_desc' ? -1 : 1
+  const dueDelta = a.currentDueDate.localeCompare(b.currentDueDate)
+  if (dueDelta !== 0) return dueDelta * direction
+  return a.id.localeCompare(b.id) * direction
 }
 
 function withDefaultSortCleared(sort: ObligationQueueSort): ObligationQueueSort | null {
@@ -1323,6 +1359,8 @@ export function ObligationQueueRoute() {
   ] = useQueryStates(obligationQueueSearchParamsParsers)
   const liveLocationSearch =
     typeof window === 'undefined' ? location.search : window.location.search
+  const locationSort = useMemo(() => sortFromSearch(liveLocationSearch), [liveLocationSearch])
+  const [optimisticSort, setOptimisticSort] = useState<ObligationQueueSort | null>(null)
   const deadlineDetailSearch = useMemo(
     () =>
       deadlineDetailSearchFromQueueState(liveLocationSearch, {
@@ -1382,11 +1420,21 @@ export function ObligationQueueRoute() {
   // Smart Priority. Smart Priority remains in the sort dropdown — it's
   // just no longer the implicit ranking. Reinforces "Dashboard
   // curates, Deadlines sorts" per the design brief.
+  //
+  // 2026-06-06 (Yuqi browser feedback): clicking the Internal due date
+  // header could update the address bar to `sort=due_desc` while the
+  // current render still read the previous nuqs state, leaving rows in
+  // ascending order until a reload. Treat the real URL search as the
+  // authoritative explicit sort, and let header/dropdown interactions set
+  // a matching optimistic sort so the table flips immediately.
   const sort: ObligationQueueSort = useMemo(() => {
-    if (!lifecycleV2) return urlSort
-    const hasExplicitSort = new URLSearchParams(location.search).has('sort')
-    return hasExplicitSort ? urlSort : 'due_asc'
-  }, [urlSort, lifecycleV2, location.search])
+    const urlDrivenSort = locationSort ?? (lifecycleV2 ? DEFAULT_SORT : urlSort)
+    const optimisticMatchesUrl =
+      optimisticSort !== null &&
+      (locationSort === optimisticSort ||
+        (locationSort === null && optimisticSort === DEFAULT_SORT))
+    return optimisticMatchesUrl ? optimisticSort : urlDrivenSort
+  }, [locationSort, lifecycleV2, optimisticSort, urlSort])
   const [penaltyRow, setPenaltyRow] = useState<ObligationQueueRow | null>(null)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   // 2026-06-04 (Yuqi "infinite scroll, not pagination"): the queue now
@@ -1459,10 +1507,11 @@ export function ObligationQueueRoute() {
   // This stops short of full section-headers + collapse (the
   // ~200-line port from design/deadlines-drawer-rework). What it
   // delivers: the dropdown is no longer a lie — picking Client
-  // or Status visibly regroups the rows.
+  // or Filing visibly regroups the rows.
   const sorting = useMemo<SortingState>(() => {
     const baseSort = getSortingState(sort)
     if (group === 'client') return [{ id: 'clientName', desc: false }, ...baseSort]
+    if (group === 'filing') return [{ id: 'taxType', desc: false }, ...baseSort]
     return baseSort
   }, [sort, group])
   // When the user intends to open the detail panel (short route ref,
@@ -1877,6 +1926,25 @@ export function ObligationQueueRoute() {
   const isInitialLoading = listQuery.isLoading
   const isError = listQuery.isError
   const keyboardEnabled = rows.length > 0 && !shortcutsBlocked
+  // TanStack is in manualSorting mode, and React Query keeps the previous
+  // result as placeholder data while a new sort is fetching. Re-sort the
+  // currently loaded buffer by the active sort so a header click has an
+  // immediate visible effect; the server response still supplies the complete
+  // keyset-ordered page once it arrives. For visual Group by modes, group key
+  // stays primary and the active sort orders rows inside each group.
+  const orderedRows = useMemo(() => {
+    const groupSortKeyOf = (obligationQueueRow: ObligationQueueRow) =>
+      group === 'due'
+        ? ''
+        : group === 'filing'
+          ? formatTaxCode(obligationQueueRow.taxType).toLocaleLowerCase()
+          : `${obligationQueueRow.clientName.toLocaleLowerCase()}\u0000${obligationQueueRow.clientId}`
+    return rows.toSorted((a, b) => {
+      const groupDelta = groupSortKeyOf(a).localeCompare(groupSortKeyOf(b))
+      if (groupDelta !== 0) return groupDelta
+      return compareObligationQueueRowsForSort(a, b, sort)
+    })
+  }, [rows, group, sort])
 
   // Pure adjacency-based grouping (NO reordering): when the active
   // sort naturally places a client's obligations next to each other,
@@ -1893,50 +1961,43 @@ export function ObligationQueueRoute() {
   const continuationRowIds = useMemo(() => {
     const set = new Set<string>()
     if (group !== 'client') return set
-    for (let i = 1; i < rows.length; i++) {
-      if (rows[i]!.clientId === rows[i - 1]!.clientId) set.add(rows[i]!.id)
+    for (let i = 1; i < orderedRows.length; i++) {
+      if (orderedRows[i]!.clientId === orderedRows[i - 1]!.clientId) {
+        set.add(orderedRows[i]!.id)
+      }
     }
     return set
-  }, [rows, group])
+  }, [orderedRows, group])
   // "Within-group" = this row is NOT the last in its client group, i.e.
   // the NEXT row is a continuation (same client). Within-group rows
   // drop their bottom border so the group reads as a single visual
   // block. Group boundaries keep the border so the eye can find them.
   const withinGroupRowIds = useMemo(() => {
     const set = new Set<string>()
-    for (let i = 0; i < rows.length - 1; i++) {
-      if (continuationRowIds.has(rows[i + 1]!.id)) set.add(rows[i]!.id)
+    for (let i = 0; i < orderedRows.length - 1; i++) {
+      if (continuationRowIds.has(orderedRows[i + 1]!.id)) set.add(orderedRows[i]!.id)
     }
     return set
-  }, [rows, continuationRowIds])
-  // Group-by section-header map. Each mode has different header semantics
-  // (per the Group-by wireframes):
+  }, [orderedRows, continuationRowIds])
+  // Group-by section-header map:
   //
-  //   • Status mode → header at EVERY status boundary, simple
-  //     "<Label> <count>" treatment ("Blocked 2", "Waiting on client 1").
-  //   • Client mode → header at EVERY client boundary, richer
-  //     "<Name> <N deadlines · next [date]> [N late]" treatment that
-  //     surfaces the next-due date + a small late-count pill so the
-  //     CPA can triage at scan distance.
-  //   • Due-date mode → NO section headers. Flat chronological list
-  //     (Filed entries first, then most-late first).
+  //   • Client mode → header at EVERY client boundary.
+  //   • Filing mode → header at EVERY filing-type boundary.
+  //   • Due-date mode → NO section headers. Flat chronological list.
   //
-  // Keyed by the FIRST row's id in each cluster. `lateCount` is computed
-  // in client mode for the late-pill. `earliestDueDate` carries the
-  // "next due" semantics. Computed from `rows` (not `pagedRows`) so
-  // counts reflect the full result set, not just the visible page —
-  // same pattern as continuationRowIds / withinGroupRowIds above.
+  // Keyed by the FIRST row's id in each cluster. `lateCount` powers
+  // the late-pill, while `earliestDueDate` carries the "next due"
+  // semantics. Computed from `orderedRows` so counts reflect
+  // the full result set, not just the visible page.
   const groupHeadersByFirstRowId = useMemo(() => {
     const map = new Map<
       string,
       {
         groupKey: string
         count: number
-        // Urgency-band mode carries `band`; client mode carries the
-        // client identity + aggregate fields. Both share groupKey/count.
-        band?: UrgencyBand
+        label: string
+        kind: 'client' | 'filing'
         clientId?: string
-        clientName?: string
         lateCount?: number
         earliestDueDate?: string
       }
@@ -1949,39 +2010,24 @@ export function ObligationQueueRoute() {
       // chronological run.
       return map
     }
-    if (group === 'urgency') {
-      // 2026-06-04 (Yuqi h4bQ2): emit a header at each urgency-band
-      // boundary. Rows arrive server-ordered by internal due date
-      // ascending (DEFAULT_SORT = due_asc), so bands fall out
-      // contiguously: overdue → this week → upcoming. If the user
-      // re-sorts, a band may fragment into multiple headers — acceptable;
-      // the default view is due_asc and reads as three clean sections.
-      let i = 0
-      while (i < rows.length) {
-        const start = rows[i]!
-        const band = urgencyBandOf(start)
-        let j = i + 1
-        while (j < rows.length && urgencyBandOf(rows[j]!) === band) j++
-        map.set(start.id, { groupKey: band, band, count: j - i })
-        i = j
-      }
-      return map
-    }
-    // group=client — emit a header at EVERY client boundary, including
-    // single-row clients. The rows are already sorted with clientName
-    // as primary sort (see `sorting` useMemo earlier), so adjacent
-    // rows of the same client cluster naturally.
-    const groupKeyOf = (r: ObligationQueueRow) => r.clientId
+    // Emit a header at EVERY group boundary, including single-row
+    // groups. The rows are already sorted with the relevant group key
+    // as primary sort (see `sorting` useMemo earlier), so adjacent rows
+    // of the same group cluster naturally.
+    const groupKeyOf = (r: ObligationQueueRow) =>
+      group === 'filing' ? formatTaxCode(r.taxType) : r.clientId
+    const groupLabelOf = (r: ObligationQueueRow) =>
+      group === 'filing' ? formatTaxCode(r.taxType) : r.clientName
     let i = 0
-    while (i < rows.length) {
-      const start = rows[i]!
+    while (i < orderedRows.length) {
+      const start = orderedRows[i]!
       const startKey = groupKeyOf(start)
       let j = i + 1
-      while (j < rows.length && groupKeyOf(rows[j]!) === startKey) j++
+      while (j < orderedRows.length && groupKeyOf(orderedRows[j]!) === startKey) j++
       let earliest = start.currentDueDate
       let lateCount = 0
       for (let k = i; k < j; k++) {
-        const r = rows[k]!
+        const r = orderedRows[k]!
         if (r.currentDueDate < earliest) earliest = r.currentDueDate
         // "Late" = past internal due AND non-terminal (still actionable).
         if (r.daysUntilDue < 0 && r.status !== 'done' && r.status !== 'completed') {
@@ -1990,8 +2036,9 @@ export function ObligationQueueRoute() {
       }
       map.set(start.id, {
         groupKey: startKey,
-        clientId: start.clientId,
-        clientName: start.clientName,
+        label: groupLabelOf(start),
+        kind: group === 'filing' ? 'filing' : 'client',
+        ...(group === 'client' ? { clientId: start.clientId } : {}),
         count: j - i,
         lateCount,
         earliestDueDate: earliest,
@@ -1999,23 +2046,18 @@ export function ObligationQueueRoute() {
       i = j
     }
     return map
-  }, [rows, group])
-  // 2026-05-25 (Yuqi /deadlines fourth pass #6): collapsible
-  // client-deadline grouping. State is local + transient — not
-  // URL-bound — because expand/collapse is a per-view scroll-state
-  // preference, not a deep-linkable filter. Default is "all
-  // expanded" (the current behaviour); user can click any group
-  // header to collapse that cluster down to just its summary line.
-  // Key is clientId so collapse state survives the row-id changes
-  // that happen when paginating or sorting (the same client's
-  // rows on page 2 still collapse if the user collapsed them on
-  // page 1).
-  const [collapsedClientGroups, setCollapsedClientGroups] = useState<Set<string>>(() => new Set())
-  const toggleClientGroupCollapse = useCallback((clientId: string) => {
-    setCollapsedClientGroups((current) => {
+  }, [orderedRows, group])
+  // 2026-05-25 (Yuqi /deadlines fourth pass #6): collapsible grouping.
+  // State is local + transient — not URL-bound — because expand/collapse
+  // is a per-view scroll-state preference, not a deep-linkable filter.
+  // Key is the active group key: clientId for Client mode, taxType for
+  // Filing mode.
+  const [collapsedQueueGroups, setCollapsedQueueGroups] = useState<Set<string>>(() => new Set())
+  const toggleQueueGroupCollapse = useCallback((groupKey: string) => {
+    setCollapsedQueueGroups((current) => {
       const next = new Set(current)
-      if (next.has(clientId)) next.delete(clientId)
-      else next.add(clientId)
+      if (next.has(groupKey)) next.delete(groupKey)
+      else next.add(groupKey)
       return next
     })
   }, [])
@@ -2128,6 +2170,7 @@ export function ObligationQueueRoute() {
       // A new sort re-keys the infinite query → the buffer resets to the
       // first page; jump the scroll container back to the top so the
       // user sees the new top row, not a mid-scroll position.
+      setOptimisticSort(nextSort)
       scrollContainerRef.current?.scrollTo({ top: 0 })
       void setObligationQueueQuery({
         sort: withDefaultSortCleared(nextSort),
@@ -2545,7 +2588,7 @@ export function ObligationQueueRoute() {
         // rule carries no statutory filing date.
         accessorKey: 'filingDueDate',
         id: 'filingDueDate',
-        header: () => <span>{t`Official due date`}</span>,
+        header: () => <span className="whitespace-nowrap">{t`Official due date`}</span>,
         cell: (info) => {
           const value = info.getValue<string | null>()
           if (!value) return <EmptyCellMark />
@@ -2553,7 +2596,10 @@ export function ObligationQueueRoute() {
             <span className="text-xs tabular-nums text-text-secondary">{formatDate(value)}</span>
           )
         },
-        meta: { cellClassName: 'w-[180px] tabular-nums' },
+        meta: {
+          headerClassName: 'w-[210px] min-w-[210px] !whitespace-nowrap',
+          cellClassName: 'w-[210px] min-w-[210px] tabular-nums',
+        },
       },
       {
         // "Due date (exact)" — addable column for people who do need
@@ -2848,7 +2894,7 @@ export function ObligationQueueRoute() {
   // The prev/next page window + client-side slice is gone; the bottom
   // IntersectionObserver sentinel grows the buffer via `fetchNextPage`.
   const table = useReactTable({
-    data: rows,
+    data: orderedRows,
     columns,
     state: {
       columnOrder: DEFAULT_COLUMN_ORDER as unknown as string[],
@@ -3663,18 +3709,12 @@ export function ObligationQueueRoute() {
             {panelOpenIntent ? null : (
               <>
                 <DropdownMenu>
-                  {/* 2026-06-05 (page-feedback #6 — "what does the Sort
-                      by Due and this Group by Urgency do? aren't they
-                      the same?"): they're orthogonal — Group sets the
-                      band/cluster axis, Sort orders rows WITHIN each
-                      band. The previous "Sort by · Due ↑" copy
-                      collapsed the answer to a directional arrow,
-                      which read like the Group label. Now the trigger
-                      always prefixes the verb ("Sort"), spells the
-                      dimension and direction out longhand ("Due date
-                      (earliest first)"), and the dropdown options
-                      match — so the user can see at a glance that
-                      Group and Sort are different controls. */}
+                  {/* 2026-06-05 (page-feedback #6): the previous
+                      "Sort by · Due ↑" copy read like another Group-by
+                      value. The trigger now prefixes the verb ("Sort"),
+                      spells the dimension and direction out longhand
+                      ("Due date (earliest first)"), and the dropdown
+                      options match. */}
                   <DropdownMenuTrigger
                     render={
                       <FilterTrigger
@@ -3701,12 +3741,8 @@ export function ObligationQueueRoute() {
                     <DropdownMenuRadioGroup
                       value={sort}
                       onValueChange={(next) => {
-                        if (typeof next === 'string') {
-                          void setObligationQueueQuery({
-                            sort: ALL_SORTS.includes(next as ObligationQueueSort)
-                              ? (next as ObligationQueueSort)
-                              : null,
-                          })
+                        if (isObligationQueueSort(next)) {
+                          changeSort(next)
                         }
                       }}
                     >
@@ -3870,14 +3906,10 @@ export function ObligationQueueRoute() {
                 its own × to dismiss. The breadcrumb was reading the
                 same state twice. */}
                 {/* 2026-05-26 (Yuqi /deadlines redesign): Group by
-                  switcher. Three modes — Due date (default flat
-                  chronological), Client (clusters by client),
-                  Status (clusters by status). The selected mode
-                  drives the row sort key so groupings cluster
-                  visually even before the full section-header
-                  rendering lands. The full grouped UI with sticky
-                  collapsible section headers + aggregate pills is
-                  in a separate spawned task per PRD. */}
+                  switcher. Three modes — Due date (flat chronological),
+                  Client (clusters by client), and Filing (clusters by
+                  filing type). The selected mode drives the primary row
+                  sort key so groupings cluster visually. */}
                 {/* 2026-05-26 (Yuqi inset-followups D): Sort by converted
                   from Base UI Select → DropdownMenu w/ RadioGroup.
                   Base UI Select had different click + keyboard
@@ -3911,8 +3943,8 @@ export function ObligationQueueRoute() {
                         <span>
                           {group === 'client' ? (
                             <Trans>Client</Trans>
-                          ) : group === 'urgency' ? (
-                            <Trans>Urgency</Trans>
+                          ) : group === 'filing' ? (
+                            <Trans>Filing</Trans>
                           ) : (
                             <Trans>Due date</Trans>
                           )}
@@ -3926,24 +3958,25 @@ export function ObligationQueueRoute() {
                       between status"): Status option dropped. The
                       scope-tab band above the table already filters by
                       status, so a Group-by option was a redundant
-                      control. Just Due date (default flat list) and
-                      Client (per-client cluster headers) remain. */}
+                      control. Just Due date (default flat list), Client
+                      (per-client cluster headers), and Filing (per-form
+                      cluster headers) remain. */}
                     <DropdownMenuRadioGroup
                       value={group}
                       onValueChange={(next) => {
-                        if (next === 'due' || next === 'client' || next === 'urgency') {
+                        if (next === 'due' || next === 'client' || next === 'filing') {
                           void setObligationQueueQuery({ group: next })
                         }
                       }}
                     >
-                      <DropdownMenuRadioItem value="urgency">
-                        <Trans>Urgency</Trans>
-                      </DropdownMenuRadioItem>
                       <DropdownMenuRadioItem value="due">
                         <Trans>Due date</Trans>
                       </DropdownMenuRadioItem>
                       <DropdownMenuRadioItem value="client">
                         <Trans>Client</Trans>
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="filing">
+                        <Trans>Filing</Trans>
                       </DropdownMenuRadioItem>
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
@@ -4216,9 +4249,7 @@ export function ObligationQueueRoute() {
                     <Trans>Export selected</Trans>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    disabled={
-                      !canUpdateObligationStatus || bulkRemindSignatureMutation.isPending
-                    }
+                    disabled={!canUpdateObligationStatus || bulkRemindSignatureMutation.isPending}
                     title={
                       canUpdateObligationStatus
                         ? t`Email selected clients a Form 8879 signature reminder`
@@ -4230,9 +4261,7 @@ export function ObligationQueueRoute() {
                     <Trans>Remind to sign</Trans>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    disabled={
-                      !canUpdateObligationStatus || bulkDecideExtensionMutation.isPending
-                    }
+                    disabled={!canUpdateObligationStatus || bulkDecideExtensionMutation.isPending}
                     title={
                       canUpdateObligationStatus
                         ? t`Apply an internal extension plan to the selected deadlines`
@@ -4428,7 +4457,17 @@ export function ObligationQueueRoute() {
                           return (
                             <TableHead
                               key={header.id}
-                              className={cn(meta?.headerClassName)}
+                              // 2026-06-06 (Yuqi browser feedback):
+                              // Deadline column labels should read as
+                              // sentence case ("Assignee", "Official due
+                              // date"), not the global TableHead uppercase
+                              // eyebrow treatment. Keep this route-local so
+                              // other table surfaces keep their current
+                              // primitive default.
+                              className={cn(
+                                'text-sm font-medium normal-case tracking-normal text-text-secondary',
+                                meta?.headerClassName,
+                              )}
                               colSpan={header.colSpan}
                               aria-sort={obligationQueueColumnAriaSort(header.column.id, sort)}
                             >
@@ -4528,49 +4567,30 @@ export function ObligationQueueRoute() {
                       tableRows.map((tableRow) => {
                         // 2026-05-26 (Yuqi Group-by wireframes — Sort by
                         // Status / Client / Due date): section headers
-                        // are back, wired to the real map. The prior
-                        // `undefined` hardcode is gone. Headers render
-                        // ONLY when `group === 'client' || 'status'`;
-                        // due-date mode is a flat list (the map is
-                        // empty in that mode — see groupHeadersByFirstRowId
-                        // above). Each header style varies per mode (see
-                        // the render block below).
+                        // are back, wired to the real map. Headers render
+                        // when `group === 'client' || group === 'filing'`;
+                        // due-date mode is a flat list (the map is empty
+                        // in that mode — see groupHeadersByFirstRowId above).
                         const groupHeader = groupHeadersByFirstRowId.get(tableRow.original.id)
                         // 2026-05-26 (Yuqi sixty-second pass — generalized
-                        // collapse): collapse Set is keyed by `groupKey`.
-                        // 2026-06-04 (Yuqi h4bQ2): in urgency-band mode the
-                        // key is the band; in client mode it's the clientId.
+                        // collapse): collapse Set is keyed by groupKey.
                         const rowGroupKey =
-                          group === 'urgency'
-                            ? urgencyBandOf(tableRow.original)
+                          group === 'filing'
+                            ? formatTaxCode(tableRow.original.taxType)
                             : tableRow.original.clientId
                         const headerCollapsed = groupHeader
-                          ? collapsedClientGroups.has(groupHeader.groupKey)
+                          ? collapsedQueueGroups.has(groupHeader.groupKey)
                           : false
-                        // Hidden-row logic. Client/due mode: a continuation
-                        // row (adjacent same-client) hides when its cluster
-                        // is collapsed. Urgency mode has no continuation
-                        // weld, so a collapsed band hides every row in the
-                        // band EXCEPT the one carrying the band header (that
-                        // row's leaf is suppressed separately below, leaving
-                        // just the band bar).
+                        // Hidden-row logic. Client mode uses continuation
+                        // rows; Filing mode hides every non-header row in
+                        // the collapsed filing cluster.
                         const isHiddenContinuation =
-                          group === 'urgency'
-                            ? !groupHeader && collapsedClientGroups.has(rowGroupKey)
+                          group === 'filing'
+                            ? !groupHeader && collapsedQueueGroups.has(rowGroupKey)
                             : continuationRowIds.has(tableRow.original.id) &&
-                              collapsedClientGroups.has(rowGroupKey)
+                              collapsedQueueGroups.has(rowGroupKey)
                         if (isHiddenContinuation) return null
                         const suppressLeafRow = groupHeader && headerCollapsed
-                        // 2026-06-04 (Yuqi h4bQ2): translated band name for
-                        // the urgency-band header label + aria-label.
-                        const bandLabel =
-                          groupHeader?.band === 'overdue'
-                            ? t`Overdue`
-                            : groupHeader?.band === 'this_week'
-                              ? t`Due this week`
-                              : groupHeader?.band === 'upcoming'
-                                ? t`Upcoming`
-                                : ''
                         // 2026-06-04 (Yuqi table sweep): on the group
                         // header TableRow below, `border-b`,
                         // `border-divider-subtle`, `hover:bg-state-base-hover`
@@ -4580,132 +4600,25 @@ export function ObligationQueueRoute() {
                         // the canonical body.
                         return (
                           <Fragment key={tableRow.id}>
-                            {groupHeader && groupHeader.band ? (
-                              // 2026-06-04 (Yuqi h4bQ2): urgency-band header
-                              // — collapse chevron + colored dot + uppercase
-                              // band label + count pill on the left; a static
-                              // muted caption on the right (overdue only, per
-                              // the production design). Band-header surface is
-                              // bg-background-section (#f9fafb).
-                              // 2026-06-05 (Yuqi DS alignment — "match
-                              // Deadline's table and overall design to
-                              // Today + Alert"): urgency-band header
-                              // surface and typography aligned to the
-                              // canonical subgroup-divider tokens used by
-                              // /today's ActionsTable + /alerts'
-                              // PulseAlertList day-group:
-                              //   - bg-background-section (gray-50) →
-                              //     bg-background-subtle (gray-100) so
-                              //     the band reads at the same weight as
-                              //     subgroup dividers on the other two
-                              //     surfaces.
-                              //   - py-2.5 → py-2 (canonical vertical).
-                              //   - 13/primary/0.4px tracking →
-                              //     12/secondary/0.5px tracking
-                              //     (canonical eyebrow scale). The chrome
-                              //     — collapse chevron + BadgeStatusDot +
-                              //     count Badge + overdue summary —
-                              //     stays; only the bg / type tokens
-                              //     align.
-                              <TableRow className="bg-background-subtle hover:!bg-background-subtle">
-                                <TableCell colSpan={visibleColumnCount} className="px-5 py-2">
-                                  <div className="flex items-center justify-between gap-3">
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        toggleClientGroupCollapse(groupHeader.groupKey)
-                                      }
-                                      aria-expanded={!headerCollapsed}
-                                      aria-controls={`group-${groupHeader.groupKey}`}
-                                      aria-label={
-                                        headerCollapsed
-                                          ? t`Expand ${bandLabel}`
-                                          : t`Collapse ${bandLabel}`
-                                      }
-                                      className="inline-flex items-center gap-2.5 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                                    >
-                                      <ChevronRightIcon
-                                        className={cn(
-                                          'size-3.5 shrink-0 text-text-tertiary transition-transform duration-100 ease-out',
-                                          !headerCollapsed && 'rotate-90',
-                                        )}
-                                        aria-hidden
-                                      />
-                                      <BadgeStatusDot
-                                        tone={URGENCY_BAND_DOT_TONE[groupHeader.band]}
-                                      />
-                                      <span className="text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase">
-                                        {bandLabel}
-                                      </span>
-                                      {/* 2026-06-05 (page-feedback #7/#8 —
-                                          "different sub-category header from
-                                          Alerts. Please align them"): right-
-                                          side count was a filled Badge pill;
-                                          /alerts' dispatch divider renders
-                                          counts as plain uppercase text
-                                          ("3 DISPATCHES") sharing the same
-                                          12/0.5px/uppercase eyebrow type as
-                                          the left label. Switched to that
-                                          treatment so the urgency band reads
-                                          as the same primitive — the count
-                                          is part of the eyebrow, not a chip
-                                          competing with it. */}
-                                      <span className="text-[12px] font-semibold tracking-[0.5px] text-text-muted uppercase tabular-nums">
-                                        <Trans>
-                                          {groupHeader.count}{' '}
-                                          {groupHeader.count === 1 ? t`deadline` : t`deadlines`}
-                                        </Trans>
-                                      </span>
-                                    </button>
-                                    {groupHeader.band === 'overdue' ? (
-                                      // STATIC placeholder. `estimatedExposureCents`
-                                      // is omitted from ObligationQueueRow, so no
-                                      // real penalty total exists to compute yet.
-                                      <span className="text-[12px] font-semibold tracking-[0.5px] text-text-muted uppercase tabular-nums">
-                                        <Trans>≈12D AVG · ≈$11,840 PENALTY EXPOSURE</Trans>
-                                      </span>
-                                    ) : null}
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            ) : groupHeader ? (
-                              // 2026-06-05 (Yuqi DS alignment): client-
-                              // group header surface bumped from
+                            {groupHeader ? (
+                              // 2026-06-05 (Yuqi DS alignment): group
+                              // header surface bumped from
                               // bg-background-subtle/60 to fully opaque
                               // bg-background-subtle, and padding bumped
                               // from py-2 pl-3 pr-4 → px-5 py-2 so the
                               // surface matches the canonical subgroup
-                              // divider on /today + /alerts. The inner
-                              // content (client name + meta + late pill)
-                              // is intentionally different from the
-                              // urgency-band content above — client
-                              // grouping is a logical cluster start, not
-                              // a categorical eyebrow — so the text scale
-                              // stays at 14/semibold/primary rather than
-                              // the 12/secondary eyebrow.
+                              // divider on /today + /alerts.
                               <TableRow className="bg-background-subtle">
                                 <TableCell colSpan={visibleColumnCount} className="px-5 py-2">
-                                  {/* 2026-05-26 (Yuqi Group-by wireframes,
-                                      follow-up — Status option removed):
-                                      Client-mode is now the only group
-                                      surface. Header renders the bold
-                                      client name + secondary meta line
-                                      ("N deadlines · next [date]") + a
-                                      small destructive-toned late pill
-                                      when any deadlines in the cluster
-                                      are past the internal target.
-                                      Matches the wireframe's
-                                      "Arbor & Vine LLC  2 deadlines ·
-                                      next May 2  [2 late]" pattern. */}
                                   <button
                                     type="button"
-                                    onClick={() => toggleClientGroupCollapse(groupHeader.groupKey)}
+                                    onClick={() => toggleQueueGroupCollapse(groupHeader.groupKey)}
                                     aria-expanded={!headerCollapsed}
                                     aria-controls={`group-${groupHeader.groupKey}`}
                                     aria-label={
                                       headerCollapsed
-                                        ? t`Expand ${groupHeader.clientName ?? ''}`
-                                        : t`Collapse ${groupHeader.clientName ?? ''}`
+                                        ? t`Expand ${groupHeader.label}`
+                                        : t`Collapse ${groupHeader.label}`
                                     }
                                     className="inline-flex w-full items-center gap-2 rounded-sm py-0.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                                   >
@@ -4716,12 +4629,9 @@ export function ObligationQueueRoute() {
                                       )}
                                       aria-hidden
                                     />
-                                    {/* Client-mode header content. Bold
-                                        client name + secondary meta line
-                                        + optional late pill. */}
                                     <>
                                       <span className="text-sm font-semibold text-text-primary">
-                                        {groupHeader.clientName}
+                                        {groupHeader.label}
                                       </span>
                                       <span className="text-xs text-text-tertiary">
                                         <Plural
@@ -4741,7 +4651,11 @@ export function ObligationQueueRoute() {
                                         <Badge
                                           variant="destructive"
                                           className="h-5 px-1.5 text-caption-xs"
-                                          title={t`${groupHeader.lateCount ?? 0} of this client's deadlines are past the internal target`}
+                                          title={
+                                            groupHeader.kind === 'client'
+                                              ? t`${groupHeader.lateCount ?? 0} of this client's deadlines are past the internal target`
+                                              : t`${groupHeader.lateCount ?? 0} of this filing type's deadlines are past the internal target`
+                                          }
                                         >
                                           <Plural
                                             value={groupHeader.lateCount ?? 0}
@@ -5590,11 +5504,11 @@ function AssigneeQuickPicker({
 // lateness as live debt. Once a row is `done` ("Filed"), `paid`
 // ("Filed" on payment-track rows), or `completed`, the row is
 // closed — "18 days late" alongside a "Filed" / "Completed" pill
-// reads as if there's still work to do. We render a muted
-// "Filed N days late" / "Filed N days early" stat instead —
-// quality signal, not active red. Mirrors the same three statuses
-// that `features/obligations/status-control.tsx` displays as
-// "Filed" / "Completed".
+// reads as if there's still work to do. We render a muted internal-
+// due stat ("N days late" / "N days early") instead — quality signal,
+// not active red. Mirrors the same three statuses that
+// `features/obligations/status-control.tsx` displays as "Filed" /
+// "Completed".
 //
 // 2026-05-29: `extended` stays out of this terminal set. The Extension
 // tab saves an internal target and the detail strip still shows that
@@ -5627,10 +5541,11 @@ export function daysUntilEffectiveInternalDueDate(
   return Math.round(ms / DAY_MS)
 }
 
-// 2026-06-04 (Yuqi h4bQ2): urgency-band grouping for the queue. Bands are
-// derived from the INTERNAL (effective) due date so they honor extension
-// target dates exactly like the Internal-due cell pill. Thresholds match
-// the toolbar chip semantics: Past due = days < 0, Due this week = 0..7.
+// Urgency buckets are derived from the INTERNAL (effective) due date so
+// they honor extension target dates exactly like the Internal-due cell pill.
+// `urgency` is no longer a Group-by option; keep this helper scoped to due-date
+// urgency semantics. Thresholds match the toolbar chip semantics: Past due =
+// days < 0, Due this week = 0..7.
 export type UrgencyBand = 'overdue' | 'this_week' | 'upcoming'
 export const URGENCY_BAND_ORDER = ['overdue', 'this_week', 'upcoming'] as const
 export function urgencyBandOf(
@@ -5642,27 +5557,12 @@ export function urgencyBandOf(
   if (days <= 7) return 'this_week'
   return 'upcoming'
 }
-// Band → Badge variant for the count pill, and → BadgeStatusDot tone for
-// the leading dot. Mirrors the Today severity tiers
-// (severity-section.tsx TIER_CHIP_VARIANT): overdue=destructive,
-// this_week=warning, upcoming=outline/normal.
-const URGENCY_BAND_BADGE_VARIANT: Record<UrgencyBand, 'destructive' | 'warning' | 'outline'> = {
-  overdue: 'destructive',
-  this_week: 'warning',
-  upcoming: 'outline',
-}
-const URGENCY_BAND_DOT_TONE: Record<UrgencyBand, 'error' | 'warning' | 'normal'> = {
-  overdue: 'error',
-  this_week: 'warning',
-  upcoming: 'normal',
-}
-
 // 2026-05-24 (re-critique): stages whose `isPastInternalDue` red
 // ring should be suppressed in the milestone timeline. Lateness on
-// a Filed/Completed row is a quality stat, not an active urgency —
-// the dates panel shows the red Internal due value, that's the
-// surface for "was this filed on time?". Hoisted from inside
-// `PathToFilingSummary` so we don't allocate the Set every render.
+// a Filed/Completed row is a quality stat, not active urgency.
+// Keep the Internal due date column framed only as "relative to the
+// internal target", not "when the authority filing happened." Hoisted
+// from inside `PathToFilingSummary` so we don't allocate the Set every render.
 const TIMELINE_TERMINAL_STAGE_KEYS: ReadonlySet<string> = new Set(['done', 'completed'])
 
 function DueDaysPill({ days, status }: { days: number; status: ObligationStatus }) {
@@ -5672,27 +5572,23 @@ function DueDaysPill({ days, status }: { days: number; status: ObligationStatus 
     // row landed exactly on its deadline — no signal there.
     //
     // 2026-05-27 (Agent X3 milestone audit M-08): `not_applicable`
-    // is a closed state where the "Filed N days late/early" phrasing
-    // doesn't apply because the obligation never applied. Render a
-    // quiet em-dash so the column still reserves its baseline without
-    // claiming a filing event that didn't happen.
+    // is a closed state where lateness/earliness doesn't apply because
+    // the obligation never applied. Render a quiet em-dash so the column
+    // still reserves its baseline without claiming a filing event.
     if (status === 'not_applicable' || days === 0) {
       // 2026-06-01: canonical EmptyCellMark replaces hand-rolled em-dash —
       // shares the same accessible "No data" label as other empty cells.
       return <EmptyCellMark />
     }
     return (
-      // 2026-05-26 (Yuqi fifty-fourth pass — terminal pill larger):
-      // "Filed N days late/early" was text-xs (12px), which read as
-      // caption-tier next to the row's text-sm content. Bumped to
-      // text-sm so the terminal stat (a meaningful CPA outcome —
-      // "we filed this 3 days late") sits at body-tier where it
-      // belongs.
+      // 2026-06-06 (Yuqi): this column compares only against the
+      // internal due date. Do not prefix terminal rows with "Filed";
+      // that mixes the status/action vocabulary into a due-date metric.
       <span className="text-sm text-text-tertiary tabular-nums">
         {days < 0 ? (
-          <Plural value={Math.abs(days)} one="Filed # day late" other="Filed # days late" />
+          <Plural value={Math.abs(days)} one="# day late" other="# days late" />
         ) : (
-          <Plural value={days} one="Filed # day early" other="Filed # days early" />
+          <Plural value={days} one="# day early" other="# days early" />
         )}
       </span>
     )
@@ -12337,8 +12233,8 @@ function ActiveStageDetailCard({
   // "Blocked" sees the missed-deadline context next to the
   // actions, not only on the milestone strip above. Terminal
   // stages (Filed / Completed) don't get the banner — by then
-  // the work is closed and "Filed N days late" is the right
-  // surface for the lateness story.
+  // the work is closed and the Internal due date cell carries the
+  // historical lateness stat.
   const isPastInternalDue = row.daysUntilDue < 0
   const showOverdueBanner = isPastInternalDue && !TIMELINE_TERMINAL_STAGE_KEYS.has(stageKey)
   const daysPastDeadline = Math.abs(row.daysUntilDue)
