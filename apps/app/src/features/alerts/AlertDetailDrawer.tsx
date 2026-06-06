@@ -56,7 +56,7 @@ import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
 import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
-import { severityFromConfidence, actionPillFromAlert } from './components/pulse-alert-chrome'
+import { impactBadgeFromAlert, actionPillFromAlert } from './components/pulse-alert-chrome'
 import { AffectedClientsTable } from './components/AffectedClientsTable'
 // Step 9 retired `AlertConfidencePill` in favor of the canonical
 // 2026-06-05 (pre-CI green-up): the four pill imports below
@@ -536,7 +536,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
           <DetailHeaderSkeleton />
         ) : (
           (() => {
-            const severity = severityFromConfidence(detail.alert.confidence)
+            const severity = impactBadgeFromAlert(detail.alert)
             // 2026-06-04 round 68 (Yuqi "No Low impact or medium
             // impact"): gate the impact pill to HIGH only — same
             // rule applied to NeedsAttentionCard / PulseAlertRow /

@@ -13,7 +13,7 @@ import { alertTone } from '@/features/alerts/alert-tone'
 // PulseSourceMeta was retired from this card in round 81 — source
 // now renders inline in the subject block via `<ExternalLinkIcon>` +
 // truncated label with the URL on tooltip hover.
-import { severityFromConfidence } from '@/features/alerts/components/pulse-alert-chrome'
+import { impactBadgeFromAlert } from '@/features/alerts/components/pulse-alert-chrome'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatRelativeTime } from '@/lib/utils'
@@ -176,9 +176,12 @@ function NeedsAttentionCard({
   // "has severity pill and state badge please"): mirror the
   // AlertCard severity-pill + StateBadge vocabulary so the
   // dashboard summary and the alerts list speak the same visual
-  // language. `severityFromConfidence` is the shared helper from
+  // language. `impactBadgeFromAlert` is the shared helper from
   // pulse-alert-chrome so the tier mapping stays canonical.
-  const severity = severityFromConfidence(alert.confidence)
+  // 2026-06-06: tier now reflects REAL client impact
+  // (matchedCount + needsReviewCount) instead of inverted AI
+  // confidence — same swap applied across every alert badge.
+  const severity = impactBadgeFromAlert(alert)
   // Pencil X3j4nt SeverityPill uses the BARE tier word ("HIGH"),
   // not the full "HIGH IMPACT" phrase. Drops 6 characters from a
   // 22px-tall pill, which makes a real visual difference at the
@@ -349,7 +352,7 @@ function NeedsAttentionCard({
               it. */}
           <div className="flex min-w-0 items-center gap-3">
             {/* SEVERITY PILL — HIGH only. Padding [5, 8], mono 10/700
-                uppercase, amber colors from severityFromConfidence. */}
+                uppercase, amber colors from impactBadgeFromAlert. */}
             {severity.id === 'high' ? (
               // 2026-06-04 round 68 (Yuqi #2 "those two badges
               // should be the same height. fix"): severity pill

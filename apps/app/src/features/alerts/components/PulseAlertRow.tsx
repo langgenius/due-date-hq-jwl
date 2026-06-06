@@ -23,7 +23,7 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { formatRelativeTime } from '@/lib/utils'
 
 import { useAlertDetailQueryOptions } from '../api'
-import { severityFromConfidence } from './pulse-alert-chrome'
+import { impactBadgeFromAlert } from './pulse-alert-chrome'
 import { changeKindLabel } from './PulseChangeKindChip'
 
 /**
@@ -52,7 +52,8 @@ import { changeKindLabel } from './PulseChangeKindChip'
  *   - "14:32"   → `alert.publishedAt` formatted to HH:mm in the
  *                 firm's timezone
  *   - "2h ago"  → `formatRelativeTime(alert.publishedAt)`
- *   - HIGH/MED/LOW → `severityFromConfidence(alert.confidence)`
+ *   - HIGH/MED/LOW → `impactBadgeFromAlert(alert)` (real client
+ *                    impact: matchedCount + needsReviewCount)
  *   - State pill   → `alert.jurisdiction` (kept the encapsulated
  *                    StateBadge style per the user's earlier ask)
  *   - Type tag     → `changeKindLabel(alert.changeKind)` + icon
@@ -182,7 +183,7 @@ function PulseAlertRow({
   }).format(new Date(alert.publishedAt))
   const relativeTime = formatRelativeTime(alert.publishedAt)
 
-  const severity = severityFromConfidence(alert.confidence)
+  const severity = impactBadgeFromAlert(alert)
   const severityLabel = SEVERITY_LABEL[severity.id]
 
   const confidencePct = Math.round(alert.confidence * 100)

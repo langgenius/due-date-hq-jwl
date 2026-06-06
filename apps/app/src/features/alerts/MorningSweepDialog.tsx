@@ -6,8 +6,8 @@ import { ArrowRightIcon, CoffeeIcon, SparklesIcon, XIcon } from 'lucide-react'
 import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 
-import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { useAlertsListQueryOptions, useAlertsMorningSweepQueryOptions } from './api'
+import { alertImpactLevel } from './lib/impact-level'
 import { useMorningSweep } from './MorningSweepContext'
 
 /**
@@ -59,13 +59,14 @@ type Briefing = {
  * test + swap-to-server later.
  *
  * Ranking heuristic for "top 3":
- *   1. HIGH IMPACT (low confidence) first
+ *   1. HIGH IMPACT (5+ impacted obligations) first
  *   2. Then MEDIUM IMPACT
  *   3. Within tier: descending by client-impact count
  *
- * Mirrors `severityFromConfidence` + the impact pill ranking used
- * on the card. When Phase 2 server LLM lands, the ranking moves
- * into the prompt and this client-side mock becomes a fallback.
+ * Mirrors `alertImpactLevel` + the impact pill ranking used on the
+ * card — REAL client impact (matchedCount + needsReviewCount), not
+ * inverted AI confidence. When Phase 2 server LLM lands, the ranking
+ * moves into the prompt and this client-side mock becomes a fallback.
  */
 function composeBriefing(alerts: PulseAlertPublic[], firmName: string | null): Briefing {
   const now = Date.now()
@@ -73,9 +74,9 @@ function composeBriefing(alerts: PulseAlertPublic[], firmName: string | null): B
     (a) => now - new Date(a.publishedAt).getTime() <= TWENTY_FOUR_HOURS_MS,
   )
   const tierRank = (a: PulseAlertPublic): number => {
-    const tier = aiConfidenceTier(a.confidence)
-    if (tier === 'low') return 3 // HIGH IMPACT
-    if (tier === 'medium') return 2
+    const level = alertImpactLevel(a)
+    if (level === 'high') return 3
+    if (level === 'medium') return 2
     return 1
   }
   const ranked = [...windowAlerts].toSorted((a, b) => {
@@ -89,9 +90,7 @@ function composeBriefing(alerts: PulseAlertPublic[], firmName: string | null): B
 
   // Aggregate counts for the prose.
   const total = windowAlerts.length
-  const highImpactCount = windowAlerts.filter(
-    (a) => aiConfidenceTier(a.confidence) === 'low',
-  ).length
+  const highImpactCount = windowAlerts.filter((a) => alertImpactLevel(a) === 'high').length
   const withClientImpact = windowAlerts.filter(
     (a) => a.matchedCount + a.needsReviewCount > 0,
   ).length
@@ -211,13 +210,7 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
         paragraphs: [briefing.headline, ...briefing.bullets],
         topActions: briefing.topActions.map((a): RenderAction => {
           const fullAlert = alerts.find((al) => al.id === a.alertId)
-          const tier = fullAlert
-            ? aiConfidenceTier(fullAlert.confidence) === 'low'
-              ? ('high' as const)
-              : aiConfidenceTier(fullAlert.confidence) === 'medium'
-                ? ('medium' as const)
-                : ('low' as const)
-            : ('medium' as const)
+          const tier = fullAlert ? alertImpactLevel(fullAlert) : ('medium' as const)
           return {
             alertId: a.alertId,
             title: a.title,
@@ -235,12 +228,11 @@ function MorningSweepDialogBody({ onClose }: { onClose: () => void }) {
     : {
         paragraphs: clientFallback.paragraphs,
         topActions: clientFallback.topActions.map((a): RenderAction => {
-          const t = aiConfidenceTier(a.confidence)
           return {
             alertId: a.id,
             title: a.title,
             jurisdiction: a.jurisdiction,
-            tier: t === 'low' ? 'high' : t === 'medium' ? 'medium' : 'low',
+            tier: alertImpactLevel(a),
             impacted: a.matchedCount + a.needsReviewCount,
             whyNow: null,
             clientMentions: [],
