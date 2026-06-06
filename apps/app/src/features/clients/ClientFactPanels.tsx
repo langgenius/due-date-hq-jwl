@@ -576,24 +576,36 @@ function ClientSourceDetailsField({
 const CLASSIFICATION_REASON_KINDS = ['correction', 'reclassification'] as const
 type ClassificationReasonKind = (typeof CLASSIFICATION_REASON_KINDS)[number]
 
+// Reclassification mechanisms, kept general across entity types (not
+// S-corp-specific): `tax_election` covers Form 2553 / 8832 elections for any
+// entity, the rest cover statutory conversions, M&A, and member-count changes.
 const CLASSIFICATION_REASON_EVENTS = [
-  's_election',
-  's_election_revocation',
-  'check_the_box_8832',
+  'tax_election',
   'legal_conversion',
+  'merger_or_reorganization',
+  'ownership_change',
   'other',
 ] as const
 type ClassificationReasonEvent = (typeof CLASSIFICATION_REASON_EVENTS)[number]
 
 const NOTE_MAX_LENGTH = 280
 
+// Effective-from-tax-year options for a reclassification, mirroring the
+// "Add deadline" tax-year picker: six years starting at the prior calendar
+// year (e.g. 2025–2030 in 2026) so a recently-effective change is selectable.
+const EFFECTIVE_YEAR_OPTION_COUNT = 6
+function buildEffectiveYearOptions(today = new Date()): string[] {
+  const start = today.getFullYear() - 1
+  return Array.from({ length: EFFECTIVE_YEAR_OPTION_COUNT }, (_, index) => String(start + index))
+}
+
 function useReasonEventLabels(): Record<ClassificationReasonEvent, string> {
   const { t } = useLingui()
   return {
-    s_election: t`S election`,
-    s_election_revocation: t`S-election revocation`,
-    check_the_box_8832: t`Check-the-box (8832)`,
+    tax_election: t`Tax election (2553 / 8832)`,
     legal_conversion: t`Legal conversion`,
+    merger_or_reorganization: t`Merger or reorganization`,
+    ownership_change: t`Ownership change`,
     other: t`Other`,
   }
 }
@@ -622,6 +634,7 @@ export function ClientClassificationPanel({
   const entityLabels = useEntityLabels()
   const reasonEventLabels = useReasonEventLabels()
   const currentYear = new Date().getFullYear()
+  const effectiveYearOptions = buildEffectiveYearOptions()
 
   const [entityType, setEntityType] = useState<ClientPublic['entityType']>(client.entityType)
   const [reasonKind, setReasonKind] = useState<ClassificationReasonKind>('correction')
@@ -632,11 +645,6 @@ export function ClientClassificationPanel({
 
   const isReclassification = reasonKind === 'reclassification'
   const effectiveYearNumber = Number(effectiveYear)
-  const effectiveYearInvalid =
-    isReclassification &&
-    (!/^\d{4}$/.test(effectiveYear.trim()) ||
-      effectiveYearNumber < 2000 ||
-      effectiveYearNumber > 2100)
   const noteOverLimit = note.length > NOTE_MAX_LENGTH
   const hasChanges = entityType !== client.entityType
 
@@ -769,19 +777,25 @@ export function ClientClassificationPanel({
             <FieldLabel htmlFor="classification-effective-year">
               <Trans>Effective from tax year</Trans>
             </FieldLabel>
-            <Input
-              id="classification-effective-year"
-              type="number"
-              min={2000}
-              max={2100}
-              className="tabular-nums"
+            <Select
               value={effectiveYear}
-              aria-invalid={effectiveYearInvalid}
-              onChange={(event) => setEffectiveYear(event.target.value)}
-            />
-            {effectiveYearInvalid ? (
-              <FieldError>{t`Enter a tax year between 2000 and 2100`}</FieldError>
-            ) : null}
+              onValueChange={(value) => {
+                if (value) setEffectiveYear(value)
+              }}
+            >
+              <SelectTrigger id="classification-effective-year" className="w-full tabular-nums">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="start">
+                <SelectGroup>
+                  {effectiveYearOptions.map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </Field>
         </div>
       ) : null}
@@ -818,7 +832,7 @@ export function ClientClassificationPanel({
         <Button
           type="button"
           size="sm"
-          disabled={!hasChanges || effectiveYearInvalid || noteOverLimit}
+          disabled={!hasChanges || noteOverLimit}
           onClick={() => setDialogOpen(true)}
         >
           <Trans>Review impact…</Trans>

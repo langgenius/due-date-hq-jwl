@@ -270,10 +270,10 @@ export const ClientClassificationReasonSchema = z.object({
   kind: z.enum(['correction', 'reclassification']),
   event: z
     .enum([
-      's_election',
-      's_election_revocation',
-      'check_the_box_8832',
+      'tax_election',
       'legal_conversion',
+      'merger_or_reorganization',
+      'ownership_change',
       'other',
     ])
     .optional(),
