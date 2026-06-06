@@ -866,9 +866,31 @@ const previewClassificationRecompute = os.clients.previewClassificationRecompute
     } catch (err) {
       if (err instanceof ORPCError) throw err
       const detail =
-        err instanceof Error ? `${err.name}: ${err.message} | ${err.stack ?? ''}` : String(err)
-      console.error('[previewClassificationRecompute DEBUG]', detail)
-      throw new ORPCError('INTERNAL_SERVER_ERROR', { message: `DEBUG ${detail}`.slice(0, 1800) })
+        err instanceof Error
+          ? `${err.name}: ${err.message} || ${(err.stack ?? '').split('\n').slice(1, 8).join('  <<  ')}`
+          : String(err)
+      // TEMP: orpc sanitizes 500 messages, so return the real error as a visible
+      // "Will add" row (200) instead of throwing.
+      return {
+        summary: {
+          willAddCount: 1,
+          unchangedCount: 0,
+          orphanSafeCount: 0,
+          orphanNeedsConfirmationCount: 0,
+        },
+        rows: [
+          {
+            disposition: 'will_add' as const,
+            obligationId: null,
+            taxType: 'DEBUG',
+            formName: detail.slice(0, 1800),
+            jurisdiction: null,
+            taxYear: null,
+            dueDate: null,
+            workflowFlags: [],
+          },
+        ],
+      }
     }
   },
 )
