@@ -488,6 +488,10 @@ export function ClientDetailWorkspace({
   const updateRiskProfileMutation = useMutation(
     orpc.clients.updateRiskProfile.mutationOptions({
       onSuccess: (result) => {
+        // clients.get drives the live `client` the detail page derives
+        // readiness + compliance posture from — invalidate it so the
+        // late-filing flag / onboarding checklist re-render after a save.
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.get.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
@@ -507,6 +511,10 @@ export function ClientDetailWorkspace({
   const replaceFilingProfilesMutation = useMutation(
     orpc.clients.replaceFilingProfiles.mutationOptions({
       onSuccess: (result) => {
+        // clients.get carries client.filingProfiles, which feeds the
+        // onboarding "Filing jurisdiction" readiness row — invalidate it so
+        // adding the missing jurisdiction flips that row immediately.
+        void queryClient.invalidateQueries({ queryKey: orpc.clients.get.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.clients.listByFirm.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.dashboard.load.key() })
         void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
@@ -1162,9 +1170,32 @@ export function ClientDetailWorkspace({
                     inside; TabSection owns the section heading. */}
                 <TabSection
                   title={t`Compliance posture`}
-                  summary={t`Identity facts that drive the deadline generator`}
+                  summary={
+                    readiness && readiness.missingRequiredFacts.length > 0
+                      ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
+                      : t`Identity facts that drive the deadline generator`
+                  }
                 >
-                  <ClientCompliancePosturePanel client={client} />
+                  <div className="grid gap-4">
+                    <ClientCompliancePosturePanel client={client} />
+                    {/* Onboarding readiness — merged in from the former
+                        standalone "Onboarding state" section so the identity
+                        facts and their completeness read together. Every row's
+                        status is derived live from `client` + `readiness`, so
+                        filling a missing fact (filing jurisdiction, entity type,
+                        assignee…) flips it as soon as the mutation invalidates
+                        clients.get. Keeps id="client-onboarding-state" so the
+                        missing-facts deep-link still targets the checklist. */}
+                    <div
+                      id="client-onboarding-state"
+                      className="scroll-mt-20 rounded-md border border-divider-regular bg-background-default p-4"
+                    >
+                      <h4 className="mb-2 text-xs font-medium uppercase tracking-eyebrow text-text-tertiary">
+                        {t`Onboarding readiness`}
+                      </h4>
+                      <ClientFactChecklist client={client} readiness={readiness} />
+                    </div>
+                  </div>
                 </TabSection>
 
                 {/* Tax classification — the entity-type + federal
@@ -1221,33 +1252,6 @@ export function ClientDetailWorkspace({
                       isSaving={updateRiskProfileMutation.isPending}
                       onSave={(input) => updateRiskProfileMutation.mutate(input)}
                     />
-                  </div>
-                </TabSection>
-
-                {/* 2026-06-01 (Yuqi /clients/[id] critique — IA,
-                    Avery persona): missing-facts chip can now deep-
-                    link to this section. The wrapper div carries
-                    `id="client-onboarding-state"` + `scroll-mt-20`
-                    so the existing scrollIntoView pattern (used by
-                    `client-filing-jurisdictions` above) works for
-                    the onboarding-state target too. When the count
-                    chip on the Setup tab is clicked we switch to the
-                    `info` tab + RAF-scroll here so the actionable
-                    checklist lands in view, instead of leaving the
-                    preparer to scroll past 4 sections. */}
-                <TabSection
-                  title={t`Onboarding state`}
-                  summary={
-                    readiness && readiness.missingRequiredFacts.length > 0
-                      ? t`${readiness.missingRequiredFacts.length} required fact(s) missing`
-                      : t`All required facts present`
-                  }
-                >
-                  <div
-                    id="client-onboarding-state"
-                    className="scroll-mt-20 rounded-md border border-divider-regular bg-background-default p-4"
-                  >
-                    <ClientFactChecklist client={client} readiness={readiness} />
                   </div>
                 </TabSection>
 
