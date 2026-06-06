@@ -38,7 +38,6 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatTaxCode } from '@/lib/tax-codes'
-import { useEntityLabels } from '@/routes/clients'
 
 // Maps the server's `workflowFlags` strings into localized, human-
 // readable badge labels for the "Needs your confirmation" rows. The
@@ -105,7 +104,6 @@ export function ClassificationImpactDialog({
 }) {
   const { t } = useLingui()
   const workflowFlagLabel = useWorkflowFlagLabel()
-  const entityLabels = useEntityLabels()
   // Confirmed orphan ids start empty every time the dialog opens — the
   // CPA must explicitly opt in to removing an obligation that already
   // has work on it. Reset is keyed off `open` via the Dialog remount of
@@ -128,15 +126,7 @@ export function ClassificationImpactDialog({
     [previewQuery.data],
   )
   const summary = previewQuery.data?.summary
-  // What the NEW classification typically files (federal + state), from the
-  // default-matrix. Advisory only — the server never auto-creates these
-  // (generation is gated by the filing profile's tax types); we surface the
-  // full expected set for every entity type so the CPA can reconcile the
-  // client's tax types by hand.
-  const expectedTaxTypes = previewQuery.data?.expectedTaxTypes ?? []
   const openDeadlineCount = previewQuery.data?.openDeadlineCount ?? 0
-  const newEntityLabel = entityLabels[candidate.entityType ?? client.entityType]
-  const expectedTaxTypesLabel = expectedTaxTypes.map((code) => formatTaxCode(code)).join(', ')
   const orphanSafeRows = useMemo(
     () => rows.filter((row) => row.disposition === 'orphan_safe'),
     [rows],
@@ -279,21 +269,10 @@ export function ClassificationImpactDialog({
                   <Trans>Deadlines aren't added automatically</Trans>
                 </AlertTitle>
                 <AlertDescription>
-                  {/* Reclassify can't create deadlines on its own — a client's
-                      filings come from their tax types, not the entity type
-                      alone. Tell the CPA to add what's needed by hand. */}
-                  {expectedTaxTypes.length > 0 ? (
-                    <Trans>
-                      Changing the entity type won't create new deadlines. A {newEntityLabel}{' '}
-                      typically files {expectedTaxTypesLabel} — add any that apply to this client
-                      manually.
-                    </Trans>
-                  ) : (
-                    <Trans>
-                      Changing the entity type won't create new deadlines — add any this client
-                      needs manually.
-                    </Trans>
-                  )}
+                  <Trans>
+                    Changing the entity type won't create new deadlines. Add any that apply to this
+                    client manually.
+                  </Trans>
                 </AlertDescription>
               </Alert>
 

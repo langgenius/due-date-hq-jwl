@@ -2880,12 +2880,8 @@ msgid "Changes since your last visit"
 msgstr "Changes since your last visit"
 
 #: src/features/clients/ClassificationImpactDialog.tsx
-msgid "Changing the entity type won't create new deadlines — add any this client needs manually."
-msgstr "Changing the entity type won't create new deadlines — add any this client needs manually."
-
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "Changing the entity type won't create new deadlines. A {newEntityLabel} typically files {expectedTaxTypesLabel} — add any that apply to this client manually."
-msgstr "Changing the entity type won't create new deadlines. A {newEntityLabel} typically files {expectedTaxTypesLabel} — add any that apply to this client manually."
+msgid "Changing the entity type won't create new deadlines. Add any that apply to this client manually."
+msgstr "Changing the entity type won't create new deadlines. Add any that apply to this client manually."
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Changing this recomputes which forms this client owes"

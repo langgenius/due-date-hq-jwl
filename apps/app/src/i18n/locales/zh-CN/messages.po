@@ -2911,12 +2911,8 @@ msgid "Changes since your last visit"
 msgstr "Changes since your last visit"
 
 #: src/features/clients/ClassificationImpactDialog.tsx
-msgid "Changing the entity type won't create new deadlines — add any this client needs manually."
-msgstr "更改实体类型不会自动新增截止事项 —— 请按需手动添加。"
-
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "Changing the entity type won't create new deadlines. A {newEntityLabel} typically files {expectedTaxTypesLabel} — add any that apply to this client manually."
-msgstr "更改实体类型不会自动新增截止事项。{newEntityLabel} 通常需要申报 {expectedTaxTypesLabel} —— 如适用，请手动添加到该客户。"
+msgid "Changing the entity type won't create new deadlines. Add any that apply to this client manually."
+msgstr "更改实体类型不会自动新增截止事项。如适用，请手动添加到该客户。"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Changing this recomputes which forms this client owes"
