@@ -1214,7 +1214,7 @@ export function ClientDetailWorkspace({
                     active one — the surrounding TabsContent gates the
                     AI summary + audit log queries that fire inside. */}
                 <TabSection
-                  title={t`Activity summary (AI)`}
+                  title={t`Activity summary`}
                   summary={
                     riskSummaryQuery.data?.generatedAt
                       ? t`Refreshed ${formatDateTimeWithTimezone(riskSummaryQuery.data.generatedAt, firmTimezone)}`
