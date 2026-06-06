@@ -17,17 +17,12 @@ export function makeClientTaxYearProfilesRepo(db: Db, firmId: string) {
         .select()
         .from(clientTaxYearProfile)
         .where(
-          and(
-            eq(clientTaxYearProfile.firmId, firmId),
-            eq(clientTaxYearProfile.clientId, clientId),
-          ),
+          and(eq(clientTaxYearProfile.firmId, firmId), eq(clientTaxYearProfile.clientId, clientId)),
         )
         .orderBy(asc(clientTaxYearProfile.taxYear))
     },
 
-    async listByClients(
-      clientIds: string[],
-    ): Promise<Map<string, ClientTaxYearProfileRow[]>> {
+    async listByClients(clientIds: string[]): Promise<Map<string, ClientTaxYearProfileRow[]>> {
       const result = new Map<string, ClientTaxYearProfileRow[]>()
       const unique = [...new Set(clientIds)]
       for (const id of unique) result.set(id, [])

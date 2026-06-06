@@ -205,6 +205,21 @@ export async function runClassificationRecompute(input: {
     ...(candidate.legalEntity !== undefined ? { legalEntity: candidate.legalEntity } : {}),
   })
 
+  // Reclassification (effective-dated) records a per-(client, tax year) row so
+  // the change keeps an accurate historical boundary ("S corp from 2025"). This
+  // is a HISTORY record — generation still reads the scalar (per-year threading
+  // is deliberately out of scope). Corrections (no effective year) just rewrite
+  // the scalar and skip this.
+  if (effectiveFromTaxYear !== undefined) {
+    await scoped.clientTaxYearProfiles.upsert({
+      clientId: client.id,
+      taxYear: effectiveFromTaxYear,
+      entityType: candidateClient.entityType,
+      taxClassification: candidateClient.taxClassification,
+      source: 'reclassification',
+    })
+  }
+
   const { id: classificationAuditId } = await scoped.audit.write({
     actorId: input.userId,
     entityType: 'client',
