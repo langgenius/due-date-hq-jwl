@@ -43,6 +43,7 @@ import {
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
 import {
   buildAllIgnoreMappings,
+  buildHeuristicMappings,
   buildPresetMappings,
   isPresetId,
   PRESET_VERSION,
@@ -425,8 +426,18 @@ export class MigrationService {
         aiMappings = buildPresetMappings(batch.presetUsed, headers, batchId)
         fallback = 'preset'
       } else {
-        aiMappings = buildAllIgnoreMappings(headers, batchId)
-        fallback = 'all_ignore'
+        // No AI, no preset: try the deterministic name-matcher before giving
+        // up. If it recognises at least one column, the user gets a reviewable
+        // draft instead of an all-IGNORE dead-end; only when nothing matches
+        // do we fall to all_ignore.
+        const heuristic = buildHeuristicMappings(headers, batchId)
+        if (heuristic.some((m) => m.targetField !== 'IGNORE')) {
+          aiMappings = heuristic
+          fallback = 'heuristic'
+        } else {
+          aiMappings = buildAllIgnoreMappings(headers, batchId)
+          fallback = 'all_ignore'
+        }
       }
     }
 

@@ -118,7 +118,11 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
               one notch down so the master title wins the visual
               weight and the step h2 reads as a sub-section. */}
           <h2 className="text-base font-semibold text-text-primary">
-            <Trans>AI prepared your columns</Trans>
+            {mapping.status === 'fallback' ? (
+              <Trans>Review your column mappings</Trans>
+            ) : (
+              <Trans>AI prepared your columns</Trans>
+            )}
           </h2>
           <MappingCapabilityBadge mapping={mapping} />
         </div>
@@ -149,7 +153,23 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
         </div>
       </div>
 
-      {mapping.status === 'fallback' ? (
+      {mapping.status === 'fallback' && mapping.fallback === 'heuristic' ? (
+        // AI was unavailable and no preset was picked, but the deterministic
+        // name-matcher recognised columns by their header names. This is a
+        // working draft, not a dead-end — calm `info` tone, and the rows below
+        // are pre-flagged for review (HEURISTIC_CONFIDENCE < review threshold).
+        <Alert variant="info" role="status" aria-live="polite">
+          <AlertTitle>
+            <Trans>Matched your columns by name</Trans>
+          </AlertTitle>
+          <AlertDescription>
+            <Trans>
+              AI wasn&apos;t available, so we matched your columns to DueDateHQ fields by their
+              names. Review the matches below — and fix any that look off — before continuing.
+            </Trans>
+          </AlertDescription>
+        </Alert>
+      ) : mapping.status === 'fallback' ? (
         <Alert variant="destructive" role="alert" aria-live="assertive">
           {/* 2026-05-25 (Wizard #40 copy polish): alert titles
               should be punchy — the AlertDescription below
@@ -606,6 +626,26 @@ function MappingCapabilityBadge({ mapping }: { mapping: MapperState }) {
   // variant: AI success → outline (calm, not destructive),
   // template-fallback → outline (informational), all-ignore
   // (manual) → destructive (genuine warning, action required).
+
+  if (mapping.status === 'fallback' && mapping.fallback === 'heuristic') {
+    return (
+      <MappingCapabilityHelp
+        label={t`Explain name matching`}
+        title={t`Name matching means AI was unavailable, so columns were matched to fields by their header names.`}
+        badge={
+          <Badge variant="outline">
+            <ListChecksIcon data-icon="inline-start" />
+            <Trans>Matched by name</Trans>
+          </Badge>
+        }
+      >
+        <Trans>
+          Name matching means AI was unavailable, so columns were matched to fields by their header
+          names. Review each match before continuing.
+        </Trans>
+      </MappingCapabilityHelp>
+    )
+  }
 
   if (mapping.status === 'fallback' && mapping.fallback === 'preset') {
     return (

@@ -1638,13 +1638,38 @@ describe('MigrationService.uploadRaw + runMapper happy path', () => {
     ).toBe(true)
   })
 
-  it('falls back to all_ignore when AI is unavailable and no preset is selected', async () => {
+  it('falls back to the name-matcher when AI is unavailable and no preset is selected', async () => {
     const { repo } = buildScopedRepo(FIRM)
     const ai = buildAi()
     const service = new MigrationService({ scoped: repo, ai, userId: USER })
 
     const batch = await service.createBatch({ source: 'paste' })
     await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: SAMPLE_CSV })
+
+    // SAMPLE_CSV's headers (Client Name / Tax ID / State / Entity Type / Email)
+    // are all recognised by the generic dictionary, so a plain paste with no
+    // AI and no preset still yields a reviewable draft instead of all-IGNORE.
+    const result = await service.runMapper(batch.id)
+    expect(result.meta?.fallback).toBe('heuristic')
+    const byHeader = Object.fromEntries(result.mappings.map((m) => [m.sourceHeader, m.targetField]))
+    expect(byHeader['Client Name']).toBe('client.name')
+    expect(byHeader['Tax ID']).toBe('client.ein')
+    expect(byHeader['State']).toBe('client.state')
+    expect(byHeader['Email']).toBe('client.email')
+    // Name-matched rows are flagged for review (confidence below the 0.8 bar).
+    expect(result.mappings.find((m) => m.sourceHeader === 'Client Name')?.confidence).toBeLessThan(
+      0.8,
+    )
+  })
+
+  it('falls back to all_ignore when AI is unavailable, no preset, and no header is recognised', async () => {
+    const { repo } = buildScopedRepo(FIRM)
+    const ai = buildAi()
+    const service = new MigrationService({ scoped: repo, ai, userId: USER })
+
+    const unknownCsv = `Col A,Col B,Col C\nfoo,bar,baz\nqux,quux,corge`
+    const batch = await service.createBatch({ source: 'paste' })
+    await service.uploadRaw({ batchId: batch.id, kind: 'paste', text: unknownCsv })
 
     const result = await service.runMapper(batch.id)
     expect(result.meta?.fallback).toBe('all_ignore')
@@ -1905,7 +1930,10 @@ describe('MigrationService fixture golden tests', () => {
       text: readFixture('messy-excel-agent-demo.csv'),
     })
     const mapper = await service.runMapper(batch.id)
-    expect(mapper.meta?.fallback).toBe('all_ignore')
+    // The generic name-matcher recognises some of the messy fixture's headers,
+    // so the no-AI/no-preset path now yields a 'heuristic' draft. The expected
+    // mappings are fully overridden below, so the bad-row count is unchanged.
+    expect(mapper.meta?.fallback).toBe('heuristic')
 
     const manualMappings = overrideFixtureMappings(mapper.mappings, MESSY_EXPECTED_MAPPINGS)
     await service.confirmMapping(batch.id, manualMappings)

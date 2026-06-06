@@ -163,7 +163,11 @@ interface TokenizedRecords {
   unterminated: boolean
 }
 
-function tokenizeAll(text: string, delimiter: ',' | '\t', quotesAsLiteral: boolean): TokenizedRecords {
+function tokenizeAll(
+  text: string,
+  delimiter: ',' | '\t',
+  quotesAsLiteral: boolean,
+): TokenizedRecords {
   let cursor = 0
   const records: string[][] = []
   let unterminated = false

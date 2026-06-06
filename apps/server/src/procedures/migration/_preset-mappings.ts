@@ -276,9 +276,123 @@ export function buildPresetMappings(
   })
 }
 
+export const HEURISTIC_VERSION = 'heuristic@v1'
+// Below LOW_MAPPING_CONFIDENCE (0.8) so every name-matched column surfaces as
+// "needs review" in Step 2 — these are header-name guesses, not AI judgments.
+export const HEURISTIC_CONFIDENCE = 0.7
+
 /**
- * "All IGNORE" fallback when AI is unavailable AND no preset is picked.
- * Forces the user to override at least one column manually before Continue.
+ * Generic, source-agnostic header dictionary used when the AI Mapper is
+ * unavailable AND the user did NOT pick a preset. It recognises the common,
+ * unambiguous column names that recur across every tax/practice tool so a
+ * plain CSV still maps something instead of dead-ending at all-IGNORE.
+ *
+ * Curated (not auto-merged from PRESET_MAPPINGS) so genuinely ambiguous
+ * headers — e.g. "return type" (entity vs tax type), "contact name" (client
+ * vs primary contact), "email address" (client vs primary-contact email) —
+ * stay out and fall to IGNORE for the user to resolve. Keep entries here only
+ * when the target is the same across the tools that use the header.
+ */
+const GENERIC_HEADER_MAPPINGS: Record<string, MappingTarget> = {
+  // Name
+  'client name': 'client.name',
+  name: 'client.name',
+  'company name': 'client.name',
+  'organization name': 'client.name',
+  'legal name': 'client.name',
+  'business name': 'client.name',
+  'display name': 'client.name',
+  'account name': 'client.name',
+  'sort name': 'client.name',
+  'taxpayer name': 'client.name',
+  customer: 'client.name',
+  'customer name': 'client.name',
+  // Tax IDs
+  ein: 'client.ein',
+  fein: 'client.ein',
+  'tax id': 'client.ein',
+  'tax id number': 'client.ein',
+  'federal id': 'client.ein',
+  'federal ein': 'client.ein',
+  'ssn/ein': 'client.ein',
+  // External / source client id
+  'client id': 'client.external_client_id',
+  'client number': 'client.external_client_id',
+  'client sub-id': 'client.external_client_id',
+  // Location
+  state: 'client.state',
+  'billing state': 'client.state',
+  county: 'client.county',
+  city: 'client.city',
+  'client city': 'client.city',
+  zip: 'client.postal_code',
+  zipcode: 'client.postal_code',
+  'zip code': 'client.postal_code',
+  'postal code': 'client.postal_code',
+  'client zip': 'client.postal_code',
+  'street address': 'client.address_line_1',
+  'address 1': 'client.address_line_1',
+  'address line 1': 'client.address_line_1',
+  // Filing jurisdictions
+  states: 'client.filing_states',
+  jurisdictions: 'client.filing_states',
+  'filing states': 'client.filing_states',
+  'filing jurisdictions': 'client.filing_states',
+  // Classification
+  'entity type': 'client.entity_type',
+  'tax return type': 'client.tax_types',
+  'tax year type': 'client.tax_year_type',
+  'fiscal year end': 'client.fiscal_year_end',
+  fye: 'client.fiscal_year_end',
+  // Contact
+  email: 'client.email',
+  'email address': 'client.email',
+  'e-mail address': 'client.email',
+  'primary contact': 'client.primary_contact_name',
+  'primary contact name': 'client.primary_contact_name',
+  'primary contact email': 'client.primary_contact_email',
+  phone: 'client.primary_phone',
+  'phone number': 'client.primary_phone',
+  // Workflow
+  preparer: 'client.assignee_name',
+  status: 'client.source_status',
+  'client status': 'client.source_status',
+  notes: 'client.notes',
+  note: 'client.notes',
+}
+
+/**
+ * Deterministic name-matcher fallback. Maps each header through the generic
+ * dictionary; unrecognised headers fall to IGNORE. Returns rows tagged at
+ * HEURISTIC_CONFIDENCE so the UI flags them for review.
+ */
+export function buildHeuristicMappings(headers: readonly string[], batchId: string): MappingRow[] {
+  const now = new Date().toISOString()
+  return headers.map((header) => {
+    const target =
+      GENERIC_HEADER_MAPPINGS[normalizePresetHeader(header)] ?? ('IGNORE' as MappingTarget)
+    const isHit = target !== 'IGNORE'
+    return {
+      id: crypto.randomUUID(),
+      batchId,
+      sourceHeader: header,
+      targetField: target,
+      confidence: isHit ? HEURISTIC_CONFIDENCE : null,
+      reasoning: isHit
+        ? 'Matched by column name (AI unavailable, no preset selected) — please review.'
+        : 'No name match — please map manually.',
+      userOverridden: false,
+      model: null,
+      promptVersion: HEURISTIC_VERSION,
+      createdAt: now,
+    }
+  })
+}
+
+/**
+ * "All IGNORE" fallback when AI is unavailable, no preset is picked, AND the
+ * name-matcher recognised nothing. Forces the user to override at least one
+ * column manually before Continue.
  */
 export function buildAllIgnoreMappings(headers: readonly string[], batchId: string): MappingRow[] {
   const now = new Date().toISOString()

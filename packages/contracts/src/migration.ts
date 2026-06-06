@@ -283,15 +283,22 @@ export type MigrationListErrorsInput = z.infer<typeof MigrationListErrorsInputSc
  * - `null` → AI returned a structured response, mappings reflect AI output.
  * - `'preset'` → AI was unavailable but the user picked a Preset Profile;
  *   mappings come from the preset template (no AI cost incurred).
- * - `'all_ignore'` → AI was unavailable and no Preset was picked;
- *   every column defaults to IGNORE, the user must override manually
- *   before Step 2 will accept Continue.
+ * - `'heuristic'` → AI was unavailable and no Preset was picked, but the
+ *   deterministic name-matcher recognised at least one column by its header
+ *   name; mappings come from the generic dictionary (no AI cost). The user
+ *   should review the name-based guesses before Continue.
+ * - `'all_ignore'` → AI was unavailable, no Preset was picked, AND the
+ *   name-matcher recognised nothing; every column defaults to IGNORE and the
+ *   user must override manually before Step 2 will accept Continue.
  *
  * Surfaced on `runMapper` / `confirmMapping` outputs so the UI fallback
  * banner ([02-ux §5.4]) and PostHog cost dashboards can react without
  * inspecting trace data.
  */
-export const MapperFallbackSchema = z.enum(['preset', 'all_ignore']).nullable().optional()
+export const MapperFallbackSchema = z
+  .enum(['preset', 'all_ignore', 'heuristic'])
+  .nullable()
+  .optional()
 export type MapperFallback = z.infer<typeof MapperFallbackSchema>
 
 export const MapperRunOutputSchema = z.object({
