@@ -4,7 +4,7 @@
  * standard pattern for testing react-router loader signatures without
  * pulling in the real router runtime.
  */
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getSession = vi.hoisted(() => vi.fn())
 const listMineCall = vi.hoisted(() => vi.fn())
@@ -231,6 +231,15 @@ describe('route metadata', () => {
 describe('protectedLoader', () => {
   beforeEach(() => {
     getSession.mockReset()
+    // The unauthenticated cases below assert the production `/login`
+    // redirect. Under Vitest `import.meta.env.DEV` is true, so
+    // protectedLoader would instead bootstrap a demo session via
+    // `/api/e2e/demo-login` and park on a never-resolving promise — which
+    // hangs the test. Force prod mode so the `/login` redirect path runs.
+    vi.stubEnv('DEV', false)
+  })
+  afterEach(() => {
+    vi.unstubAllEnvs()
   })
 
   it('redirects to /login with redirectTo when no session', async () => {
