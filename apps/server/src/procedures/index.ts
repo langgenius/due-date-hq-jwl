@@ -65,6 +65,8 @@ export const router = os.router({
     updatePenaltyInputs: clientsHandlers.updatePenaltyInputs,
     updateRiskProfile: clientsHandlers.updateRiskProfile,
     updateSourceDetails: clientsHandlers.updateSourceDetails,
+    previewClassificationRecompute: clientsHandlers.previewClassificationRecompute,
+    applyClassificationRecompute: clientsHandlers.applyClassificationRecompute,
     updateNotes: clientsHandlers.updateNotes,
     getRiskSummary: clientsHandlers.getRiskSummary,
     requestRiskSummaryRefresh: clientsHandlers.requestRiskSummaryRefresh,

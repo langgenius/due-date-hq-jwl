@@ -188,8 +188,12 @@ export {
 // Re-export domain types so consumers can `import type { ... } from '@duedatehq/contracts'`
 // without reaching into subpaths. Keeps the public surface stable + tree-shake-friendly.
 export type {
+  ClassificationRecomputeRow,
+  ClassificationRecomputeSummary,
   ClientBulkAssigneeUpdateInput,
   ClientBulkAssigneeUpdateOutput,
+  ClientClassificationCandidate,
+  ClientClassificationReason,
   ClientCreateInput,
   ClientFilingProfileInput,
   ClientFilingProfilePublic,

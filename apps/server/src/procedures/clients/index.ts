@@ -836,62 +836,30 @@ function reclassificationReasonText(reason: ClientClassificationReason): string 
 // would be added / removed (and which removals need confirmation). No writes.
 const previewClassificationRecompute = os.clients.previewClassificationRecompute.handler(
   async ({ input, context }) => {
-    // TEMP DEBUG (revert): surface the real error + stack in the response so the
-    // impact dialog shows it — the orpc onError logger isn't reaching the console.
-    try {
-      await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
-      const { scoped, tenant, userId } = requireTenant(context)
-      const client = await scoped.clients.findById(input.clientId)
-      if (!client) {
-        throw new ORPCError('NOT_FOUND', {
-          message: `Client ${input.clientId} not found in current firm.`,
-        })
-      }
-      const rules = await listActiveCoreRules(scoped)
-      const outcome = await runClassificationRecompute({
-        scoped,
-        userId,
-        client,
-        candidate: input.candidate,
-        rules,
-        internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
-        ...(tenant.monitoringStartDate ? { monitoringStartDate: tenant.monitoringStartDate } : {}),
-        now: new Date(),
-        mode: 'preview',
-        ...(input.effectiveFromTaxYear !== undefined
-          ? { effectiveFromTaxYear: input.effectiveFromTaxYear }
-          : {}),
+    await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
+    const { scoped, tenant, userId } = requireTenant(context)
+    const client = await scoped.clients.findById(input.clientId)
+    if (!client) {
+      throw new ORPCError('NOT_FOUND', {
+        message: `Client ${input.clientId} not found in current firm.`,
       })
-      return { summary: outcome.summary, rows: outcome.rows }
-    } catch (err) {
-      if (err instanceof ORPCError) throw err
-      const detail =
-        err instanceof Error
-          ? `${err.name}: ${err.message} || ${(err.stack ?? '').split('\n').slice(1, 8).join('  <<  ')}`
-          : String(err)
-      // TEMP: orpc sanitizes 500 messages, so return the real error as a visible
-      // "Will add" row (200) instead of throwing.
-      return {
-        summary: {
-          willAddCount: 1,
-          unchangedCount: 0,
-          orphanSafeCount: 0,
-          orphanNeedsConfirmationCount: 0,
-        },
-        rows: [
-          {
-            disposition: 'will_add' as const,
-            obligationId: null,
-            taxType: 'DEBUG',
-            formName: detail.slice(0, 1800),
-            jurisdiction: null,
-            taxYear: null,
-            dueDate: null,
-            workflowFlags: [],
-          },
-        ],
-      }
     }
+    const rules = await listActiveCoreRules(scoped)
+    const outcome = await runClassificationRecompute({
+      scoped,
+      userId,
+      client,
+      candidate: input.candidate,
+      rules,
+      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
+      ...(tenant.monitoringStartDate ? { monitoringStartDate: tenant.monitoringStartDate } : {}),
+      now: new Date(),
+      mode: 'preview',
+      ...(input.effectiveFromTaxYear !== undefined
+        ? { effectiveFromTaxYear: input.effectiveFromTaxYear }
+        : {}),
+    })
+    return { summary: outcome.summary, rows: outcome.rows }
   },
 )
 
@@ -1059,18 +1027,16 @@ async function clientHistoryFallback(
     await scoped.audit.list({ entityType: 'client', entityId: client.id, range: 'all', limit: 5 })
   ).rows
   const obligationEventRows = await Promise.all(
-    obligations
-      .slice(0, 3)
-      .map((obligation) =>
-        scoped.audit
-          .list({
-            entityType: 'obligation_instance',
-            entityId: obligation.id,
-            range: 'all',
-            limit: 3,
-          })
-          .then((result) => result.rows),
-      ),
+    obligations.slice(0, 3).map((obligation) =>
+      scoped.audit
+        .list({
+          entityType: 'obligation_instance',
+          entityId: obligation.id,
+          range: 'all',
+          limit: 3,
+        })
+        .then((result) => result.rows),
+    ),
   )
   const events = [...clientEvents, ...obligationEventRows.flat()]
     .toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
