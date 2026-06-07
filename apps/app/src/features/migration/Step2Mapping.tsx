@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import {
   Astroid,
   ChevronDownIcon,
+  CircleAlertIcon,
+  CircleCheckIcon,
   CircleHelpIcon,
   ListChecksIcon,
   RefreshCwIcon,
@@ -230,26 +232,48 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           <Skeleton className="h-14 w-3/4" />
         </div>
       ) : (
-        // TODO(pixel-exact): design AQoBE renders a strict 4-column table
-        // (YOUR COLUMN / DUEDATEHQ FIELD / SAMPLE / CONFIDENCE). We keep the
-        // expandable banner rows (deliberate prior redesign asserted by
-        // Step2Mapping.test.tsx) and only adopt the count chips + toned
-        // confidence pills. Full table restructure deferred.
-        <ul
-          aria-label={t`Column mappings`}
-          className="flex flex-col gap-1.5"
-          data-slot="step2-mapping-rows"
-        >
-          {orderedRows.map(({ row, idx }) => (
-            <MappingBannerRow
-              key={row.sourceHeader}
-              row={row}
-              sample={sampleByHeader[row.sourceHeader] ?? null}
-              targetLabels={targetLabels}
-              onChange={(target) => updateRow(idx, { targetField: target })}
-            />
-          ))}
-        </ul>
+        // 2026-06-07 (Cluster 3 — design WVwAX): strict 4-column aligned
+        // layout (YOUR COLUMN / DUEDATEHQ FIELD / SAMPLE (FIRST ROW) /
+        // CONFIDENCE) inside a single bordered table card with a sticky-style
+        // header row. We keep the expandable banner-row interaction
+        // (aria-expanded toggle, inline Change link, expand-for-detail) that
+        // Step2Mapping.test.tsx asserts — the columns are now grid-aligned to
+        // the header so the table reads as one strict 4-col surface.
+        <div className="overflow-hidden rounded-lg border border-divider-regular bg-background-surface">
+          <div
+            aria-hidden
+            className="hidden items-center gap-3 border-b border-divider-regular bg-background-subtle px-4 py-2.5 sm:flex"
+          >
+            <span className="w-[170px] shrink-0 text-caption-xs font-bold uppercase tracking-eyebrow text-text-muted">
+              <Trans>Source column</Trans>
+            </span>
+            <span className="w-7 shrink-0" />
+            <span className="w-[200px] shrink-0 text-caption-xs font-bold uppercase tracking-eyebrow text-text-muted">
+              <Trans>DueDateHQ field</Trans>
+            </span>
+            <span className="min-w-0 flex-1 text-caption-xs font-bold uppercase tracking-eyebrow text-text-muted">
+              <Trans>Sample (first row)</Trans>
+            </span>
+            <span className="w-[140px] shrink-0 text-right text-caption-xs font-bold uppercase tracking-eyebrow text-text-muted">
+              <Trans>Confidence</Trans>
+            </span>
+          </div>
+          <ul
+            aria-label={t`Column mappings`}
+            className="flex flex-col"
+            data-slot="step2-mapping-rows"
+          >
+            {orderedRows.map(({ row, idx }) => (
+              <MappingBannerRow
+                key={row.sourceHeader}
+                row={row}
+                sample={sampleByHeader[row.sourceHeader] ?? null}
+                targetLabels={targetLabels}
+                onChange={(target) => updateRow(idx, { targetField: target })}
+              />
+            ))}
+          </ul>
+        </div>
       )}
 
       {/* 2026-06-07 (Cluster 3 — design J8kNo): "nothing applies until
@@ -369,27 +393,38 @@ function MappingBannerRow({
   return (
     <li
       className={cn(
-        'overflow-hidden rounded-lg border border-divider-regular bg-background-surface transition-colors',
-        needsAttention && 'border-divider-strong bg-background-section',
+        'border-b border-divider-regular bg-background-surface transition-colors last:border-b-0',
+        needsAttention && 'bg-components-badge-bg-warning-soft',
       )}
     >
+      {/* 2026-06-07 (Cluster 3 — design WVwAX row): the row header is a
+          strict 4-column grid aligned to the table head — source column
+          (170px), arrow gutter (28px), monospace destination field (200px),
+          flexible in-row first-row sample, right-aligned confidence pill —
+          followed by the chevron. The destination + sample are stacked under
+          the source column at mobile widths (sm: switches to the grid). */}
       <button
         type="button"
         aria-expanded={expanded}
         onClick={() => setExpanded((v) => !v)}
-        className="flex w-full min-h-14 items-center gap-3 px-3 py-2 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        className="flex w-full min-h-14 flex-col items-stretch gap-2 px-4 py-3 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:ring-inset sm:flex-row sm:items-center sm:gap-3"
       >
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
+        <span className="truncate text-sm font-medium text-text-primary sm:w-[170px] sm:shrink-0">
           {row.sourceHeader}
         </span>
-        <span aria-hidden className="text-sm text-text-tertiary">
+        <span
+          aria-hidden
+          className="hidden w-7 shrink-0 justify-center text-text-muted sm:flex"
+        >
           →
         </span>
-        <span className="flex min-w-0 flex-1 items-center gap-2">
+        <span className="flex min-w-0 items-center gap-2 sm:w-[200px] sm:shrink-0">
           {row.targetField === 'IGNORE' ? (
-            <span className="truncate text-sm italic text-text-tertiary">{destinationLabel}</span>
+            <span className="truncate font-mono text-xs italic text-text-muted">
+              {destinationLabel}
+            </span>
           ) : (
-            <span className="truncate text-sm font-medium text-text-primary">
+            <span className="truncate font-mono text-xs font-medium text-text-accent">
               {destinationLabel}
             </span>
           )}
@@ -401,14 +436,25 @@ function MappingBannerRow({
             onChange={onChange}
           />
         </span>
-        <ConfidenceText row={row} tier={tier} />
-        <ChevronDownIcon
-          aria-hidden
-          className={cn(
-            'size-4 shrink-0 text-text-tertiary transition-transform',
-            expanded && 'rotate-180',
+        <span className="min-w-0 flex-1 truncate text-xs text-text-secondary">
+          {sample ? (
+            sample
+          ) : (
+            <span className="text-text-tertiary">
+              <Trans>No sample</Trans>
+            </span>
           )}
-        />
+        </span>
+        <span className="flex shrink-0 items-center justify-end gap-2 sm:w-[140px]">
+          <ConfidenceText row={row} tier={tier} />
+          <ChevronDownIcon
+            aria-hidden
+            className={cn(
+              'size-4 shrink-0 text-text-tertiary transition-transform',
+              expanded && 'rotate-180',
+            )}
+          />
+        </span>
       </button>
       <AnimatePresence initial={false}>
         {expanded ? (
@@ -561,12 +607,14 @@ function ConfidenceText({ row, tier }: { row: MappingRow; tier: Tier }) {
   if (tier === 'low') {
     return (
       <Badge variant="warning" className="shrink-0 tabular-nums">
+        <CircleAlertIcon data-icon="inline-start" />
         <Trans>Low match · {pct}%</Trans>
       </Badge>
     )
   }
   return (
     <Badge variant="success" className="shrink-0 tabular-nums">
+      <CircleCheckIcon data-icon="inline-start" />
       <Trans>Auto-mapped · {pct}%</Trans>
     </Badge>
   )
