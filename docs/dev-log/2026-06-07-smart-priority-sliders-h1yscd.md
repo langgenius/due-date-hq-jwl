@@ -8,24 +8,28 @@ add the contract field for the preview "Driver", and adopt the design.
 ## What shipped
 
 ### New `@ui` Slider primitive
+
 `packages/ui/src/components/ui/slider.tsx` — single-thumb slider on Base UI.
 Track + indicator reuse the Progress tokens (`bg-background-subtle` /
 `bg-state-accent-solid`); thumb is a 16px white disc with a 2px accent ring.
 Scalar `value`/`onValueChange` API (range/two-thumb intentionally not exposed).
 
 ### `topDriver` on Smart Priority preview rows
+
 The scorer already computes per-factor `contribution`
 (`SmartPriorityBreakdown.factors`). We now surface the dominant factor
-(largest contribution) on each preview row so the table can show *why* a
+(largest contribution) on each preview row so the table can show _why_ a
 deadline moved.
+
 - `packages/contracts/src/firms.ts` — `topDriver: { factor, contribution } | null`
 - `packages/ports/src/tenants.ts` — matching port type
 - `packages/db/src/repo/firms.ts` — reduce over `smartPriority.factors`
 - No DB migration (preview is computed, not stored).
 
 ### `/practice` Smart Priority redesign (`apps/app/src/routes/practice.tsx`)
+
 - Factor weights moved from number inputs to **Sliders** (name + one-line hint
-  + live value + 0–100 scale per row).
+  - live value + 0–100 scale per row).
 - **KPI strip** (responsive 1→3): Top-ranked clients / Avg score / Needs review.
   All three derive straight from the live preview rows — no extra round-trip.
 - **Preview impact table** redesigned to the canvas columns: Deadline · Client /
@@ -35,6 +39,7 @@ deadline moved.
   count and Revert / Save weights when the profile is dirty.
 
 ## Decisions / compromises
+
 - Kept the page within the existing `/practice` settings card (the responsive,
   single-column form of the full-width canvas) rather than a brand-new
   full-width route — same components, lower risk, no routing/auth duplication.
@@ -47,6 +52,7 @@ deadline moved.
 - Verdant canvas theme not ported (mapped onto existing tokens).
 
 ## Verify
+
 - `npx tsgo --noEmit -p apps/app` → 0 errors; ui/contracts/ports/db/server → 0
 - contracts 29/29, db 140/140, server firms 7/7
 - `npx vp check` → 0 errors
