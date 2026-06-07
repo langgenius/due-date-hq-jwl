@@ -35,6 +35,7 @@ content + the design's dot / mono-label / colour vocabulary.
 ## Per-tab matches / divergences
 
 ### Summary (`d4YrtC`)
+
 - ADDED a condensed read-only "What's left to do" list mirroring the materials
   checklist (`xOO3r`): accent-filled box + strikethrough for received rows,
   "received <date>" sub, "N of M complete" header, "Manage in Materials →" link
@@ -47,6 +48,7 @@ content + the design's dot / mono-label / colour vocabulary.
   no data and the drawer has no room for a 320px rail).
 
 ### Extension (`Ls3vb`)
+
 - ADDED the amber `PaymentStillDueCallout` ("Extension defers filing, not
   payment") when `row.paymentDueDate` is set — the design's twice-repeated
   payment warning, surfaced once.
@@ -57,6 +59,7 @@ content + the design's dot / mono-label / colour vocabulary.
 - Extension history table: NOT added (no prior-year history data).
 
 ### Materials (`AYpfU`, code value `readiness`)
+
 - ADDED `MaterialsProgressLegend` (progress bar + 3-dot legend) under
   `ReadinessOverview`. received = `received`; outstanding = everything else.
 - Waived bucket renders 0 — no `waived` checklist status in the contract today.
@@ -65,6 +68,7 @@ content + the design's dot / mono-label / colour vocabulary.
   the large, already-shipped checklist render + send-request flow.
 
 ### Evidence (`KsbdI`)
+
 - ADDED the 1/4 artefact-checks hero (`EvidenceArtifactStatusGrid`): WORKPAPERS /
   FILED RETURN / E-FILE ACK / FORM 8879, all derived from EXISTING fields
   (`detail.evidence` count, `row.status`, `row.efileState` pipeline) — no
