@@ -40,6 +40,13 @@ vi.mock('@/lib/rpc', () => ({
     // requiring a real firm.
     firms: {
       listMine: {
+        // 2026-06-07 (Pencil g5kKJQ bulk-selection): the page now
+        // calls `useAlertPermissions`, which reads the firm list out
+        // of the query cache via `orpc.firms.listMine.queryKey(...)`.
+        // Stub the key fn so the permission hook resolves to the
+        // anonymous (no-firm) role — which keeps the priority-queue
+        // query disabled in tests.
+        queryKey: () => ['firms', 'listMine'],
         queryOptions: () => ({
           queryKey: ['firms', 'listMine'],
           queryFn: async () => [],
@@ -108,6 +115,17 @@ vi.mock('@/lib/rpc', () => ({
       },
       snooze: {
         mutationOptions: () => ({ mutationFn: vi.fn() }),
+      },
+      // 2026-06-07 (Pencil g5kKJQ `IciLB PriorityReasons`): the page
+      // seeds the per-row smart-priority inset from the priority
+      // queue. The query is disabled without `canViewPriorityQueue`,
+      // but `useQuery` still evaluates `queryOptions(...)` at render,
+      // so the stub must exist.
+      listPriorityQueue: {
+        queryOptions: (args: { input: unknown }) => ({
+          queryKey: ['pulse', 'listPriorityQueue', args.input],
+          queryFn: async () => ({ items: [] }),
+        }),
       },
     },
   },
@@ -412,6 +430,66 @@ describe('AlertsListPage tax area filter', () => {
     await waitForText('Affects 1 client')
     // …and the single-select Tax area filter control is present in the row.
     expect(document.body.textContent).toContain('Tax area')
+  })
+})
+
+// 2026-06-07 (Pencil g5kKJQ): the active /alerts list grows a
+// bulk-select strip + per-row checkboxes + a floating bulk-action
+// bar. History rows are already-handled, so they are NOT selectable
+// (mirrors the existing history-mode snooze/dismiss suppression).
+describe('AlertsListPage bulk selection (Pencil g5kKJQ)', () => {
+  it('renders the Select all strip + a per-row checkbox on the active surface', async () => {
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [listAlert()], nextCursor: null })
+
+    await render(<AlertsListPage embedded />)
+
+    await waitForText('Seeded CA relief')
+    // BulkSelectStrip (`TAamJ`): "Select all" + dispatch count.
+    expect(document.body.textContent).toContain('Select all')
+    // Select-all checkbox + at least one per-row checkbox.
+    expect(document.querySelector('[aria-label="Select all alerts"]')).not.toBeNull()
+    expect(document.querySelector('[aria-label="Select alert: Seeded CA relief"]')).not.toBeNull()
+  })
+
+  it('reveals the floating bulk-action bar once a row is selected', async () => {
+    rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [listAlert()], nextCursor: null })
+
+    await render(<AlertsListPage embedded />)
+
+    await waitForText('Seeded CA relief')
+    // No bar at rest.
+    expect(document.querySelector('[aria-label="Bulk actions"]')).toBeNull()
+
+    const rowCheckbox = document.querySelector<HTMLElement>(
+      '[aria-label="Select alert: Seeded CA relief"]',
+    )
+    expect(rowCheckbox).not.toBeNull()
+    await act(async () => {
+      rowCheckbox?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+
+    // The BulkActionBar (`saDv7`) appears with the selection read-out
+    // and the wired Snooze + Dismiss actions.
+    await waitFor(() =>
+      expect(document.querySelector('[aria-label="Bulk actions"]')).not.toBeNull(),
+    )
+    const bar = document.querySelector('[aria-label="Bulk actions"]')
+    expect(bar?.textContent).toContain('1 selected')
+    expect(bar?.textContent).toContain('Snooze')
+    expect(bar?.textContent).toContain('Dismiss')
+  })
+
+  it('does not make history rows selectable', async () => {
+    rpcMocks.listHistoryQueryFn.mockResolvedValue({
+      alerts: [listAlert({ status: 'applied' })],
+      nextCursor: null,
+    })
+
+    await render(<AlertsListPage embedded historyMode />, '/alerts/history')
+
+    await waitForText('Seeded CA relief')
+    expect(document.querySelector('[aria-label="Select all alerts"]')).toBeNull()
+    expect(document.querySelector('[aria-label="Select alert: Seeded CA relief"]')).toBeNull()
   })
 })
 

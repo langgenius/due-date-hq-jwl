@@ -11,8 +11,12 @@ import { AnimatePresence, motion } from 'motion/react'
 import {
   AlarmClockIcon,
   AlertCircleIcon,
+  ArchiveIcon,
+  BellOffIcon,
+  CheckIcon,
   CircleCheckIcon,
   Clock3Icon,
+  DownloadIcon,
   HistoryIcon,
   ListIcon,
   MapIcon,
@@ -21,6 +25,7 @@ import {
   SearchIcon,
   Settings2Icon,
   Undo2Icon,
+  UserPlusIcon,
   XIcon,
   type LucideIcon,
 } from 'lucide-react'
@@ -31,6 +36,7 @@ import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,7 +78,10 @@ import {
   useAlertsHistoryQueryOptions,
   useAlertSourceHealthQueryOptions,
   useAlertsAffectedClients,
+  useAlertsPriorityQueueQueryOptions,
 } from './api'
+import { useAlertPermissions } from './lib/alert-permissions'
+import type { AlertPriorityInfo } from './components/PulseAlertRow'
 import { AlertCard } from './components/AlertCard'
 import { PulseAlertList } from './components/PulseAlertRow'
 import { PulseFormRevisedCard } from './components/PulseFormRevisedCard'
@@ -208,6 +217,14 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // list; clicking a state tile sets the jurisdiction filter.
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
 
+  // 2026-06-07 (Pencil g5kKJQ — bulk selection): local selection set
+  // of alert ids. Drives the per-row checkboxes, the BulkSelectStrip's
+  // tri-state "Select all", and the floating BulkActionBar. Selection
+  // is a LIST-mode + active-surface affordance only — history rows are
+  // already-handled and the map view has its own compact rows.
+  const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(() => new Set())
+  const selectionEnabled = !historyMode && viewMode === 'list'
+
   // 2026-06-04 round 77 (Yuqi "wire to real"): row-level Snooze +
   // Dismiss buttons in PulseAlertRow flow through `setReasonState`
   // which opens the reason dialog (rendered below) and on confirm
@@ -264,8 +281,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       },
     }),
   )
-  void dismissAlertMutation
-  void snoozeAlertMutation
 
   // 2026-06-05 (Yuqi post-merge call — "flat list, not Load More"):
   // back to a flat 50-item query per surface. Client-side filters +
@@ -288,6 +303,25 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // — dropping it would lose the prefetch — but don't bind the
   // return value.
   useAlertsAffectedClients(alertIds)
+
+  // 2026-06-07 (Pencil g5kKJQ `IciLB PriorityReasons`): smart-priority
+  // inset data per row comes from the real priority queue. Gated on
+  // `canViewPriorityQueue` so firms without the permission (and tests
+  // that don't mock the endpoint) never fire it. The map keys each
+  // alert id to its score + reasons; rows without a queue entry simply
+  // hide the inset + the "Why?" pill.
+  const permissions = useAlertPermissions()
+  const priorityQueueQuery = useQuery(
+    useAlertsPriorityQueueQueryOptions(100, permissions.canViewPriorityQueue && !historyMode),
+  )
+  const priorityById = useMemo(() => {
+    const map = new Map<string, AlertPriorityInfo>()
+    for (const item of priorityQueueQuery.data?.items ?? []) {
+      map.set(item.alert.id, { score: item.priorityScore, reasons: item.priorityReasons })
+    }
+    return map
+  }, [priorityQueueQuery.data])
+
   const statusFilterOptions = historyMode
     ? HISTORY_STATUS_FILTER_OPTIONS
     : ACTIVE_STATUS_FILTER_OPTIONS
@@ -372,6 +406,51 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     }
     return next
   }, [filteredAlerts, sortOrder])
+  // 2026-06-07 (Pencil g5kKJQ — bulk selection plumbing). Selection
+  // is pruned to the currently-loaded alert ids so a filter change
+  // that hides a selected row also drops it from the action bar.
+  const selectedCount = useMemo(
+    () => sortedAlerts.reduce((count, alert) => count + (selectedIds.has(alert.id) ? 1 : 0), 0),
+    [sortedAlerts, selectedIds],
+  )
+  const clearSelection = () => setSelectedIds(new Set())
+  const toggleSelected = (alertId: string, next: boolean) => {
+    setSelectedIds((current) => {
+      const updated = new Set(current)
+      if (next) updated.add(alertId)
+      else updated.delete(alertId)
+      return updated
+    })
+  }
+  const toggleSelectAll = (next: boolean) => {
+    setSelectedIds(next ? new Set(sortedAlerts.map((alert) => alert.id)) : new Set())
+  }
+
+  // 2026-06-07 (Pencil g5kKJQ `BulkActionBar`): there is no bulk RPC
+  // in the pulse contract today, so the wired bulk actions LOOP the
+  // existing per-alert mutations. Snooze + Dismiss have clean,
+  // side-effect-light per-alert mutations (`orpc.pulse.snooze` /
+  // `orpc.pulse.dismiss`) and are wired here. The mutations'
+  // onSuccess already toasts + invalidates per call; we fire them in
+  // parallel and clear the selection optimistically.
+  // TODO(data): add a true batch endpoint
+  // (`orpc.pulse.bulkSnooze` / `bulkDismiss` / `bulkMarkRead`) so N
+  // selected alerts resolve in one round-trip + one toast instead of
+  // N. "Apply all", "Mark read", "Assign", and "Export" from the
+  // Pencil bar are NOT wired: Apply requires per-alert
+  // source-verification (the highest-liability path — see
+  // AlertDetailDrawer F-041 gate) and the other three have no
+  // contract surface at all.
+  const bulkSnooze = () => {
+    const until = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    for (const alertId of selectedIds) snoozeAlertMutation.mutate({ alertId, until })
+    clearSelection()
+  }
+  const bulkDismiss = () => {
+    for (const alertId of selectedIds) dismissAlertMutation.mutate({ alertId })
+    clearSelection()
+  }
+
   const isEmpty = !alertsQuery.isLoading && alerts.length === 0
   const isFilteredEmpty = !alertsQuery.isLoading && alerts.length > 0 && filteredAlerts.length === 0
   const filtersActive =
@@ -1306,6 +1385,15 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   alerts={sortedAlerts}
                   openAlertId={openAlertId}
                   onReview={openDrawerAndCollapseSidebar}
+                  // 2026-06-07 (Pencil g5kKJQ): bulk-selection +
+                  // smart-priority insets. Selection is active-surface
+                  // + list-view only; priority insets come from the
+                  // real priority queue.
+                  selectable={selectionEnabled}
+                  selectedIds={selectedIds}
+                  onToggleSelected={toggleSelected}
+                  onSelectAll={toggleSelectAll}
+                  priorityById={priorityById}
                   // 2026-06-04 round 77 (Yuqi "wire to real"):
                   // hover-only Snooze + Dismiss buttons in each
                   // PulseAlertRow route through the same
@@ -1386,7 +1474,151 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
           ) : null}
         </AnimatePresence>
       </div>
+
+      {/* Floating BulkActionBar (Pencil g5kKJQ `saDv7`) — dark pill
+          anchored to the bottom-center of the viewport while one or
+          more alerts are selected. "N selected / of M dispatches"
+          read-out, then the action cluster. Snooze + Dismiss are
+          wired to the looped per-alert mutations; Apply all / Mark
+          read / Assign / Export are present per the design but
+          disabled with a TODO(data) flag (no bulk RPC + Apply needs
+          per-alert verification). */}
+      {selectionEnabled && selectedCount > 0 ? (
+        <BulkActionBar
+          selectedCount={selectedCount}
+          totalCount={sortedAlerts.length}
+          onSnooze={bulkSnooze}
+          onDismiss={bulkDismiss}
+          onClear={clearSelection}
+        />
+      ) : null}
     </div>
+  )
+}
+
+// Floating dark action bar shown while alerts are selected (Pencil
+// g5kKJQ `saDv7`). Fixed to the bottom-center of the viewport with a
+// slide-up entrance. Snooze + Dismiss fire the looped per-alert
+// mutations passed from the page; the remaining design actions are
+// rendered disabled because no bulk RPC backs them yet.
+function BulkActionBar({
+  selectedCount,
+  totalCount,
+  onSnooze,
+  onDismiss,
+  onClear,
+}: {
+  selectedCount: number
+  totalCount: number
+  onSnooze: () => void
+  onDismiss: () => void
+  onClear: () => void
+}) {
+  const { t } = useLingui()
+  return (
+    <motion.div
+      role="region"
+      aria-label={t`Bulk actions`}
+      initial={{ y: 24, opacity: 0 }}
+      animate={{ y: 0, opacity: 1, transition: { duration: 0.22, ease: [0.32, 0.72, 0, 1] } }}
+      exit={{ y: 24, opacity: 0 }}
+      className="fixed bottom-6 left-1/2 z-50 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-3.5 rounded-2xl bg-text-primary py-3 pr-3.5 pl-[18px] shadow-lg"
+    >
+      {/* Selection read-out */}
+      <div className="flex items-center gap-2.5">
+        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-md bg-state-accent-solid">
+          <CheckIcon className="size-3.5 text-white" aria-hidden />
+        </span>
+        <div className="flex flex-col leading-tight">
+          <span className="text-[14px] font-semibold text-white">
+            <Plural value={selectedCount} one="# selected" other="# selected" />
+          </span>
+          <span className="text-[12px] text-white/50">
+            <Trans>of {totalCount} dispatches</Trans>
+          </span>
+        </div>
+      </div>
+
+      <span className="h-8 w-px shrink-0 bg-white/20" aria-hidden />
+
+      {/* Action cluster */}
+      <div className="flex items-center gap-1.5">
+        {/* Apply all — present per design but unwired: a true bulk
+            apply needs per-alert source-verification (F-041). */}
+        <Tooltip>
+          <TooltipTrigger
+            render={(props) => (
+              <span {...props} className="inline-flex">
+                <button
+                  type="button"
+                  disabled
+                  className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg bg-state-accent-solid/50 px-3 py-2 text-[13px] font-semibold text-white/70 outline-none"
+                >
+                  <CheckIcon className="size-3.5" aria-hidden />
+                  <Trans>Apply all</Trans>
+                </button>
+              </span>
+            )}
+          />
+          <TooltipContent>
+            <Trans>Apply each alert from its detail panel to verify the change first.</Trans>
+          </TooltipContent>
+        </Tooltip>
+
+        <button
+          type="button"
+          onClick={onSnooze}
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-white/70 outline-none transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40"
+        >
+          <BellOffIcon className="size-3.5" aria-hidden />
+          <Trans>Snooze</Trans>
+        </button>
+
+        {/* Dismiss — wired to the looped per-alert dismiss mutation.
+            (Pencil labels this slot "Mark read"; the closest wired
+            per-alert action is Dismiss, so the bar exposes Dismiss
+            with the same archive semantics the row hover-action
+            uses.) */}
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-white/70 outline-none transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40"
+        >
+          <ArchiveIcon className="size-3.5" aria-hidden />
+          <Trans>Dismiss</Trans>
+        </button>
+
+        {/* Assign + Export — present per design, unwired (no contract
+            surface yet). */}
+        <button
+          type="button"
+          disabled
+          className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-white/40 outline-none"
+        >
+          <UserPlusIcon className="size-3.5" aria-hidden />
+          <Trans>Assign</Trans>
+        </button>
+        <button
+          type="button"
+          disabled
+          className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-white/40 outline-none"
+        >
+          <DownloadIcon className="size-3.5" aria-hidden />
+          <Trans>Export</Trans>
+        </button>
+      </div>
+
+      <span className="h-8 w-px shrink-0 bg-white/20" aria-hidden />
+
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label={t`Clear selection`}
+        className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-white/60 outline-none transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40"
+      >
+        <XIcon className="size-3.5" aria-hidden />
+      </button>
+    </motion.div>
   )
 }
 
