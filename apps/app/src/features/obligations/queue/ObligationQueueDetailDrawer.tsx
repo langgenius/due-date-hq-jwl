@@ -9,7 +9,17 @@ import {
   ReadinessOverview,
   StatutoryDatesPanel,
 } from './components/panels'
-import { AlertPanel, DetailRow, DropdownTriggerButton, EmptyPanel } from './components/primitives'
+import {
+  AlertPanel,
+  type ArtifactStatusCell,
+  AuthorityFactStrip,
+  DetailRow,
+  DropdownTriggerButton,
+  EmptyPanel,
+  EvidenceArtifactStatusGrid,
+  MaterialsProgressLegend,
+  PaymentStillDueCallout,
+} from './components/primitives'
 import {
   DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS,
   DEADLINE_TIP_REFRESH_TIMEOUT_MS,
@@ -1873,6 +1883,75 @@ export function ObligationQueueDetailDrawer({
                       stage card pushing them below the fold. */}
                 <div className="grid gap-3">
                   <PathToFilingSummary row={row} auditEvents={detail.auditEvents} />
+                  {/* Cluster 2 (Summary design `d4YrtC > xOO3r`): a condensed
+                      "What's left to do" mirror of the materials checklist.
+                      Read-only here — the full editable checklist lives on
+                      the Materials tab. Received rows use a filled accent
+                      box + muted text; outstanding rows an empty box. The
+                      "Manage in Materials →" link routes the user to the
+                      tab that owns the source of truth instead of
+                      duplicating the editor. */}
+                  {checklist.length > 0 && row.status !== 'done' && row.status !== 'completed' ? (
+                    <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
+                          <Trans>What's left to do</Trans>
+                        </h3>
+                        <span className="text-caption text-text-secondary">
+                          <Trans>
+                            {checklist.filter((item) => item.status === 'received').length} of{' '}
+                            {checklist.length} complete
+                          </Trans>
+                        </span>
+                      </div>
+                      <ul className="grid gap-2.5">
+                        {checklist.slice(0, 6).map((item) => {
+                          const isDone = item.status === 'received'
+                          return (
+                            <li key={item.id} className="flex items-start gap-3">
+                              <span
+                                className={cn(
+                                  'mt-px flex size-[18px] shrink-0 items-center justify-center rounded-[5px] border',
+                                  isDone
+                                    ? 'border-state-accent-solid bg-state-accent-solid text-text-inverted'
+                                    : 'border-divider-regular bg-background-default',
+                                )}
+                                aria-hidden
+                              >
+                                {isDone ? <CheckIcon className="size-3" /> : null}
+                              </span>
+                              <span className="grid min-w-0 gap-0.5">
+                                <span
+                                  className={cn(
+                                    'text-sm leading-tight',
+                                    isDone
+                                      ? 'text-text-secondary line-through decoration-text-tertiary/40'
+                                      : 'text-text-primary',
+                                  )}
+                                >
+                                  {item.label}
+                                </span>
+                                {isDone && item.receivedAt ? (
+                                  <span className="text-caption-xs text-text-tertiary">
+                                    <Trans>
+                                      received {formatDate(item.receivedAt.slice(0, 10))}
+                                    </Trans>
+                                  </span>
+                                ) : null}
+                              </span>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                      <button
+                        type="button"
+                        onClick={() => onTabChange('readiness')}
+                        className="w-fit text-caption font-medium text-text-accent hover:underline"
+                      >
+                        <Trans>Manage in Materials →</Trans>
+                      </button>
+                    </section>
+                  ) : null}
                   <AuthorityResponsePanel
                     row={row}
                     auditEvents={detail.auditEvents}
@@ -1988,6 +2067,21 @@ export function ObligationQueueDetailDrawer({
                     checklistCount={checklist.length}
                     receivedCount={checklist.filter((item) => item.status === 'received').length}
                   />
+                  {/* Cluster 2 (Materials design `AYpfU` MatHeader): progress
+                      bar + 3-dot legend. received = `received`; outstanding =
+                      `missing` + `needs_review`. There is no "waived"
+                      checklist status in the contract today, so that bucket
+                      renders 0 until one lands.
+                      // TODO(data): `waived` checklist item status + per-row Waive action. */}
+                  {checklist.length > 0 ? (
+                    <MaterialsProgressLegend
+                      counts={{
+                        received: checklist.filter((item) => item.status === 'received').length,
+                        outstanding: checklist.filter((item) => item.status !== 'received').length,
+                        waived: 0,
+                      }}
+                    />
+                  ) : null}
                   {/* Three-class deadline display (PRD §7.2 + §3.2):
                         client-action chip when a readiness request is
                         outstanding. The other two classes (statutory,
@@ -2796,6 +2890,22 @@ export function ObligationQueueDetailDrawer({
                       />
                     </div>
                   </section>
+                  {/* Cluster 2 (Extension design `Ls3vb`): the design
+                      surfaces the "extension defers filing, not payment"
+                      warning twice (warn-note + payment-due card). The
+                      drawer carries it once, as a single amber callout,
+                      when a distinct payment date is on file. Filing
+                      Form 7004 buys time to FILE, never time to PAY. */}
+                  {row.paymentDueDate ? (
+                    <PaymentStillDueCallout
+                      title={<Trans>Extension defers filing, not payment</Trans>}
+                    >
+                      <Trans>
+                        Filing for an extension does not extend the time to pay. Estimated tax is
+                        still due {formatDate(row.paymentDueDate)} to avoid interest and penalties.
+                      </Trans>
+                    </PaymentStillDueCallout>
+                  ) : null}
                   {extensionNeedsManualDeadline ? (
                     <div className="flex flex-col gap-1">
                       <span className="text-caption-xs text-text-tertiary">
@@ -2888,6 +2998,85 @@ export function ObligationQueueDetailDrawer({
                   which forced users to scroll past authority citations
                   to find the workpapers they actually wanted. */}
                 <div className="grid gap-4">
+                  {/* Cluster 2 (Evidence design `KsbdI > H3xJg`): the 1/4
+                      artefact-checks hero. The four artefacts that prove a
+                      return is filed, accepted, and signed off are derived
+                      from EXISTING fields — workpaper count, row.status,
+                      and the e-file pipeline state (`row.efileState`) — so
+                      no new contract field is invented. */}
+                  {(() => {
+                    const efile = row.efileState ?? 'not_applicable'
+                    const isFiled =
+                      row.status === 'done' ||
+                      row.status === 'completed' ||
+                      ['submitted', 'accepted', 'rejected', 'corrected_resubmitted'].includes(efile)
+                    const isAccepted = efile === 'accepted'
+                    const isSigned = [
+                      'authorization_signed',
+                      'ready_to_submit',
+                      'submitted',
+                      'accepted',
+                      'rejected',
+                      'corrected_resubmitted',
+                    ].includes(efile)
+                    const hasWorkpapers = detail.evidence.length > 0
+                    const cells: ArtifactStatusCell[] = [
+                      {
+                        id: 'workpapers',
+                        label: <Trans>Workpapers</Trans>,
+                        value: hasWorkpapers ? (
+                          <Plural
+                            value={detail.evidence.length}
+                            one="# attached"
+                            other="# attached"
+                          />
+                        ) : (
+                          <Trans>None yet</Trans>
+                        ),
+                        tone: hasWorkpapers ? 'success' : 'warning',
+                      },
+                      {
+                        id: 'filed-return',
+                        label: <Trans>Filed return</Trans>,
+                        value: isFiled ? <Trans>Filed</Trans> : <Trans>Awaiting</Trans>,
+                        tone: isFiled ? 'success' : 'pending',
+                      },
+                      {
+                        id: 'efile-ack',
+                        label: <Trans>E-file ack.</Trans>,
+                        value: isAccepted ? <Trans>Accepted</Trans> : <Trans>Awaiting</Trans>,
+                        tone: isAccepted ? 'success' : 'pending',
+                      },
+                      {
+                        id: 'form-8879',
+                        label: <Trans>Form 8879</Trans>,
+                        value: isSigned ? <Trans>Signed</Trans> : <Trans>Not signed</Trans>,
+                        tone: isSigned ? 'success' : 'pending',
+                      },
+                    ]
+                    const complete = cells.filter((c) => c.tone === 'success').length
+                    return (
+                      <section className="flex flex-col gap-3.5">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="grid gap-0.5">
+                            <p className="text-sm font-semibold text-text-primary">
+                              <Trans>Evidence to close out filing</Trans>
+                            </p>
+                            <p className="text-caption text-text-secondary">
+                              <Trans>
+                                Four artefacts confirm the return is filed, accepted, and signed
+                                off.
+                              </Trans>
+                            </p>
+                          </div>
+                          <span className="font-mono text-sm font-semibold tabular-nums text-text-secondary">
+                            {complete} / {cells.length}
+                          </span>
+                        </div>
+                        <EvidenceArtifactStatusGrid cells={cells} />
+                      </section>
+                    )
+                  })()}
                   {/* 2026-05-26 (Yuqi sixty-sixth pass — cross-tab
                       section heading unify): workpapers heading was
                       `text-xs uppercase tracking-wider text-text-
@@ -2946,6 +3135,48 @@ export function ObligationQueueDetailDrawer({
                       </EmptyPanel>
                     )}
                   </section>
+
+                  {/* Cluster 2 (Evidence design `KsbdI > FXD1b`): promote the
+                      headline authority facts to an always-visible quiet
+                      strip. The verbose per-source excerpts stay folded in
+                      the <details> below. PRIOR YEAR is design-only — no
+                      prior-year filing record on the obligation today.
+                      // TODO(data): prior-year filing date for the authority strip. */}
+                  {detail.matchedRule ? (
+                    <AuthorityFactStrip
+                      facts={[
+                        ...(row.authority
+                          ? [
+                              {
+                                id: 'authority',
+                                label: <Trans>Authority</Trans>,
+                                value: row.authority,
+                              },
+                            ]
+                          : []),
+                        {
+                          id: 'rule',
+                          label: <Trans>Rule</Trans>,
+                          value: row.ruleVersion
+                            ? `${detail.matchedRule.id} · v${row.ruleVersion}`
+                            : detail.matchedRule.id,
+                        },
+                        {
+                          id: 'due',
+                          label: <Trans>Due</Trans>,
+                          value: formatDate(row.currentDueDate),
+                        },
+                      ]}
+                      action={
+                        <Link
+                          to={`/rules/library?rule=${encodeURIComponent(detail.matchedRule.id)}`}
+                          className="text-xs font-semibold text-text-accent hover:underline"
+                        >
+                          <Trans>Open rule reference →</Trans>
+                        </Link>
+                      }
+                    />
+                  ) : null}
 
                   <details className="group rounded-lg border border-divider-subtle">
                     <summary className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
