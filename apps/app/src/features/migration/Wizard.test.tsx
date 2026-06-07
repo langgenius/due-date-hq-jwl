@@ -227,7 +227,11 @@ describe('Migration Wizard RPC flow', () => {
     renderWizard()
     await pasteRows('Client Name\tEntity Type\nAcme Advisory LLC\tL.L.C.\n')
     await clickButton('Continue')
-    await waitForText('AI prepared your columns')
+    // 2026-06-06 (name-matcher fallback): when the mapper falls back, Step 2's
+    // heading is "Review your column mappings", not "AI prepared your columns"
+    // (which is reserved for the AI-success path). The all_ignore branch keeps
+    // the destructive "AI mapping unavailable" banner + "Manual mapping" badge.
+    await waitForText('Review your column mappings')
 
     expect(document.body.textContent).toContain('Manual mapping')
     expect(getButton('Continue').disabled).toBe(true)

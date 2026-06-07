@@ -11,7 +11,14 @@ import { msg } from '@lingui/core/macro'
 import { type MessageDescriptor } from '@lingui/core'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
-import { FileCheck2Icon, LoaderCircleIcon, LockIcon, UploadCloudIcon } from 'lucide-react'
+import {
+  FileCheck2Icon,
+  LoaderCircleIcon,
+  LockIcon,
+  OctagonAlertIcon,
+  ShuffleIcon,
+  UploadCloudIcon,
+} from 'lucide-react'
 import type { MigrationSourceManifest } from '@duedatehq/contracts'
 
 import { parseTabular, TabularParseError } from '@duedatehq/core/csv-parser'
@@ -500,6 +507,16 @@ export function Step1Intake({
               // empty-state dropzone — see the always-mounted <input>
               // below.
               onReupload={() => fileInputRef.current?.click()}
+              // 2026-06-07 (Cluster 3 — design Ni54l): "Use Generic CSV
+              // instead" recovery on the reject state. Clears any selected
+              // import preset and re-opens the picker so the file is
+              // re-attempted as a plain CSV/Excel parse.
+              onUseGenericCsv={() => {
+                onPreset(null)
+                onParseError(null)
+                fileInputRef.current?.click()
+              }}
+              hasPreset={selectedPreset !== null}
               compact={compact}
             />
           </motion.div>
@@ -825,6 +842,9 @@ interface DetectionHeroProps {
   // picker; parent owns the hidden <input> ref so the same picker
   // serves both empty and uploaded states.
   onReupload: () => void
+  // 2026-06-07 (Cluster 3 — design Ni54l): reject-state recovery.
+  onUseGenericCsv: () => void
+  hasPreset: boolean
   compact: boolean
 }
 
@@ -859,12 +879,24 @@ function DetectionHero({
   parseError,
   onRemove,
   onReupload,
+  onUseGenericCsv,
+  hasPreset,
   compact,
 }: DetectionHeroProps) {
   const { t } = useLingui()
   const fileSizeLabel = useMemo(() => formatBytes(sizeBytes), [sizeBytes])
 
   if (parseError) {
+    // 2026-06-07 (Cluster 3 — design Ni54l "file rejected"): the generic
+    // parse-error Alert was restyled to the design's reject callout —
+    // OctagonAlert icon + "Source format unrecognized" framing + a
+    // "Use Generic CSV instead" recovery action.
+    // TODO(data): the design also shows a structured "MISSING REQUIRED
+    // COLUMNS (10 of 14)" panel listing each missing column. The parser
+    // (packages/core csv-parser) only throws a generic message and does
+    // not expose which required columns are missing, so the per-column
+    // list can't be built UI-only — it needs parser/contract changes.
+    // Flagged in the report.
     return (
       <div className="flex flex-col gap-3">
         <FileSummaryRow
@@ -875,10 +907,28 @@ function DetectionHero({
           onRemove={onRemove}
         />
         <Alert variant="destructive" role="alert" aria-live="assertive">
+          <OctagonAlertIcon />
           <AlertTitle>
-            <Trans>Couldn&apos;t read your data</Trans>
+            {hasPreset ? (
+              <Trans>Source format unrecognized</Trans>
+            ) : (
+              <Trans>Couldn&apos;t read your data</Trans>
+            )}
           </AlertTitle>
-          <AlertDescription>{parseError}</AlertDescription>
+          <AlertDescription className="flex flex-col gap-3">
+            <span>{parseError}</span>
+            {hasPreset ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-fit"
+                onClick={onUseGenericCsv}
+              >
+                <ShuffleIcon data-icon="inline-start" />
+                <Trans>Use Generic CSV instead</Trans>
+              </Button>
+            ) : null}
+          </AlertDescription>
         </Alert>
       </div>
     )

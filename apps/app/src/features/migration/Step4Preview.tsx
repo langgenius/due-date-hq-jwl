@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui
 import { Button } from '@duedatehq/ui/components/ui/button'
 
 import { formatMigrationErrorMessage, useMappingTargetLabels } from './mapping-target-labels'
+import { SummaryMetric } from './SummaryMetric'
 
 interface Step4Props {
   summary: DryRunSummary | null
@@ -19,6 +20,18 @@ interface Step4Props {
  *
  * The Import CTA is rendered in the WizardShell footer; this body owns the
  * counts, skipped-row visibility, and safety checks before `migration.apply`.
+ *
+ * TODO(pixel-exact): design YcJR4 uses a gray (#f2f4f7) modal body with
+ * white cards. We keep the white wizard body and only restyle the hero to
+ * a metric grid.
+ * TODO(data) / net-new: the Applied-success surface (design uoNwI) — a full
+ * SuccessModal with 4 stats (clients / rules active / upcoming-30-days /
+ * emails sent), a 24h undo countdown banner, and a "what to do next" list —
+ * is NOT built here. The undo capability exists (toast → AlertDialog →
+ * revertMutation in Wizard.tsx); the rich success surface, the live
+ * countdown, and the extra stats (rules active, upcoming-30-days, emails
+ * sent) need additional data from the apply result + dashboard. Flagged in
+ * the report.
  */
 export function Step4Preview({
   summary,
@@ -45,45 +58,42 @@ export function Step4Preview({
 
   return (
     <div className="flex flex-col gap-4 py-5">
-      <div className="flex flex-col gap-1">
-        {/* 2026-05-29 (Yuqi — wizard title hierarchy): step h2 from
-            text-lg → text-base; the wizard frame title "Import
-            clients" is now text-lg (master), and step h2s sit one
-            notch down as sub-sections. See Step 2 + WizardShell for
-            the same rationale. */}
-        <h2 className="text-base font-semibold text-text-primary">
-          <Trans>Ready to import</Trans>
-        </h2>
-        {/* 2026-05-25 (Wizard #40 copy polish): added terminal
-            colon — sentence was trailing off into the list below
-            with no punctuation. */}
-        <p className="text-sm text-text-secondary">
-          <Trans>You&apos;re about to create:</Trans>
-        </p>
+      {/* 2026-06-07 (Cluster 3 — design xotna): hero "READY TO IMPORT"
+          eyebrow + a 3-cell metric grid (clients to create / already in
+          list / deadlines to generate) reusing SummaryMetric, replacing
+          the plain PlayIcon list for the headline counts. The secondary
+          skipped/historical/rolled-forward rows stay as a quiet list
+          below. */}
+      <div className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-surface p-4">
+        <div className="flex flex-col gap-1">
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium tracking-eyebrow text-text-success uppercase">
+            <span aria-hidden className="size-1.5 rounded-full bg-state-success-solid" />
+            <Trans>Ready to import</Trans>
+          </span>
+          <p className="text-sm text-text-secondary">
+            <Trans>You&apos;re about to create:</Trans>
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <SummaryMetric
+            label={<Trans>Clients to create</Trans>}
+            value={<span className="tabular-nums">{clientCount}</span>}
+          />
+          <SummaryMetric
+            label={<Trans>Already in your list</Trans>}
+            value={<span className="tabular-nums">{conflicts.length}</span>}
+          />
+          <SummaryMetric
+            label={<Trans>Deadlines to generate</Trans>}
+            value={<span className="tabular-nums">{obligationCount}</span>}
+          />
+        </div>
       </div>
 
-      {/* 2026-05-26 (Step 7 onboarding audit F6-19): the list
-          was `font-mono tabular-nums` on the whole item, so the
-          "X clients" / "X deadlines" copy read as a build log.
-          Step 4 is the user's commit moment — they want a
-          human-readable summary, not terminal output. Kept
-          `tabular-nums` for the numeral itself (alignment) but
-          dropped `font-mono` from the row so the surrounding
-          words look like prose. Step 1-5 reaudit canonicalized
-          `text-md` → `text-base` (same 14px). */}
-      <ul className="flex flex-col gap-1.5 text-base">
-        <li className="flex items-center gap-2 tabular-nums">
-          <PlayIcon className="size-3 text-text-accent" aria-hidden />
-          <Plural value={clientCount} one="# client" other="# clients" />
-        </li>
-        <li className="flex items-center gap-2 tabular-nums">
-          <PlayIcon className="size-3 text-text-accent" aria-hidden />
-          <Plural
-            value={obligationCount}
-            one="# deadline to monitor"
-            other="# deadlines to monitor"
-          />
-        </li>
+      {/* 2026-05-26 (Step 7 onboarding audit F6-19): secondary
+          import facts (skipped / historical / rolled-forward) stay
+          a quiet list below the hero metric grid. */}
+      <ul className="flex flex-col gap-1.5 text-base empty:hidden">
         {skipped > 0 ? (
           <li className="flex items-center gap-2 text-text-tertiary">
             <PlayIcon className="size-3" aria-hidden />
@@ -201,6 +211,9 @@ export function Step4Preview({
               </li>
             ))}
           </ul>
+          {/* TODO(pixel-exact): design xV6gf draws a segmented control
+              [Skip duplicates | Import as new]; we keep the canonical
+              Button pair (default/outline) — strings already match. */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <Button
               size="sm"
