@@ -75,7 +75,11 @@ export function Stepper({ current }: { current: StepIndex }) {
             : 'bg-background-section text-text-tertiary'
 
         return (
-          <li key={step.key} className="flex items-center gap-2" aria-current={isActive ? 'step' : undefined}>
+          <li
+            key={step.key}
+            className="flex items-center gap-2"
+            aria-current={isActive ? 'step' : undefined}
+          >
             <div
               className={cn(
                 'flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm transition-colors',

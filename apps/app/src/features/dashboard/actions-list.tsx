@@ -459,7 +459,7 @@ function ActionsTableRow({
                 // makes the rank legible instead of a bare number.
                 <div className="flex flex-col gap-0.5">
                   {[...row.smartPriority.factors]
-                    .sort((a, b) => b.contribution - a.contribution)
+                    .toSorted((a, b) => b.contribution - a.contribution)
                     .slice(0, 4)
                     .map((factor) => (
                       <span key={factor.key} className="text-text-secondary">

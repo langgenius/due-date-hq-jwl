@@ -159,9 +159,7 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           MappingHeadline above stays for the test assertions + tabular
           readout; these colored chips give the at-a-glance split the
           canvas calls for. */}
-      {mapping.status !== 'loading' ? (
-        <MappingPillStrip summary={summary} />
-      ) : null}
+      {mapping.status !== 'loading' ? <MappingPillStrip summary={summary} /> : null}
 
       {mapping.status === 'fallback' && mapping.fallback === 'heuristic' ? (
         // AI was unavailable and no preset was picked, but the deterministic
@@ -276,7 +274,9 @@ function MappingPillStrip({ summary }: { summary: ReturnType<typeof buildMapping
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Badge variant="success" className="tabular-nums">
-        <Trans>Auto-mapped · {Math.max(0, summary.mappedColumns - summary.lowConfidenceColumns)}</Trans>
+        <Trans>
+          Auto-mapped · {Math.max(0, summary.mappedColumns - summary.lowConfidenceColumns)}
+        </Trans>
       </Badge>
       <Badge
         variant={summary.lowConfidenceColumns > 0 ? 'warning' : 'outline'}

@@ -149,7 +149,8 @@ export function Step3Normalize({
             <NormalizePillStrip
               autoNormalized={Math.max(
                 0,
-                countTotalValues(normalizationSummary.groups) - normalizationSummary.exceptionGroups,
+                countTotalValues(normalizationSummary.groups) -
+                  normalizationSummary.exceptionGroups,
               )}
               confirm={normalizationSummary.exceptionGroups}
               defaultMatrix={matrixSummary.enabledCells}

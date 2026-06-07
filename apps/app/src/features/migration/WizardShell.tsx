@@ -210,24 +210,24 @@ function WizardFrame({
               {/* 2026-06-01: route hand-rolled `<kbd>` + label span through the
                 canonical KbdHint pattern. The sm:inline-flex breakpoint
                 continues to gate the hint on wider viewports. */}
-            <KbdHint
-              className="hidden sm:inline-flex"
-              items={[
-                {
-                  keys: ['Esc'],
-                  label: busy ? t`Working…` : (closeShortcutLabel ?? t`Close`),
-                },
-              ]}
-            />
-            <Button
-              variant="ghost"
-              size={closeLabel ? 'sm' : 'icon-sm'}
-              aria-label={t`Close wizard`}
-              disabled={busy}
-              onClick={onRequestClose}
-            >
-              {closeLabel ?? <XIcon />}
-            </Button>
+              <KbdHint
+                className="hidden sm:inline-flex"
+                items={[
+                  {
+                    keys: ['Esc'],
+                    label: busy ? t`Working…` : (closeShortcutLabel ?? t`Close`),
+                  },
+                ]}
+              />
+              <Button
+                variant="ghost"
+                size={closeLabel ? 'sm' : 'icon-sm'}
+                aria-label={t`Close wizard`}
+                disabled={busy}
+                onClick={onRequestClose}
+              >
+                {closeLabel ?? <XIcon />}
+              </Button>
             </>
           ) : null}
         </div>

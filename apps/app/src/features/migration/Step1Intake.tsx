@@ -918,12 +918,7 @@ function DetectionHero({
           <AlertDescription className="flex flex-col gap-3">
             <span>{parseError}</span>
             {hasPreset ? (
-              <Button
-                variant="secondary"
-                size="sm"
-                className="w-fit"
-                onClick={onUseGenericCsv}
-              >
+              <Button variant="secondary" size="sm" className="w-fit" onClick={onUseGenericCsv}>
                 <ShuffleIcon data-icon="inline-start" />
                 <Trans>Use Generic CSV instead</Trans>
               </Button>
