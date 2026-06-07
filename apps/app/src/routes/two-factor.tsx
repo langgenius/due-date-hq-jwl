@@ -75,9 +75,7 @@ export function TwoFactorRoute() {
             <Trans>Enter your 2FA code</Trans>
           </CardTitle>
           <CardDescription>
-            <Trans>
-              Open your authenticator app and enter the 6 digits you see for DueDateHQ.
-            </Trans>
+            <Trans>Open your authenticator app and enter the 6 digits you see for DueDateHQ.</Trans>
           </CardDescription>
         </CardHeader>
         <CardContent>
