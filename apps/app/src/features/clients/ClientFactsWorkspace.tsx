@@ -30,7 +30,6 @@ import {
   EyeIcon,
   LinkIcon,
   SearchIcon,
-  UsersRoundIcon,
 } from 'lucide-react'
 
 import type { ClientPublic } from '@duedatehq/contracts'
@@ -52,7 +51,6 @@ import {
   type TableFilterOption,
 } from '@/components/patterns/table-header-filter'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
-import { EmptyState } from '@/components/patterns/empty-state'
 import { useAppHotkey, useKeyboardShortcutsBlocked } from '@/components/patterns/keyboard-shell'
 import { RowActionsMenu, type RowActionsMenuItem } from '@/components/patterns/row-actions-menu'
 import { SearchInput } from '@/components/primitives/search-input'
@@ -63,6 +61,7 @@ import { useCurrentUserName } from '@/lib/use-current-user-name'
 import { AssigneeAvatar } from '@/features/obligations/AssigneeAvatar'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
 
+import { ClientsEmptyState } from './ClientsEmptyState'
 import { useClientDrawer } from './ClientDrawerProvider'
 import { ClientPeekHoverCard } from './ClientPeekHoverCard'
 import { FixNeedsFactsSheet } from './FixNeedsFactsSheet'
@@ -120,6 +119,12 @@ type ClientFactsWorkspaceProps = {
   onOwnerFilterChange: (value: string[]) => void
   onImport: () => void
   canImport: boolean
+  // 2026-06-07 (design replication, Pencil jQFBx/T4eNmw): the prominent
+  // empty-state hero offers an "Add one manually" CTA alongside Import.
+  // Optional so callers that don't wire a create flow fall back to the
+  // import-only hero.
+  onCreateClient?: (() => void) | undefined
+  canCreate?: boolean | undefined
 }
 
 // 2026-05-26 (Yuqi macro→micro audit, Fix #6 / §3.4): /clients adopts
@@ -486,6 +491,8 @@ export function ClientFactsWorkspace({
   // route's `handleAlertFilterChange` retires too.
   onImport,
   canImport,
+  onCreateClient,
+  canCreate,
 }: ClientFactsWorkspaceProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -1207,15 +1214,15 @@ export function ClientFactsWorkspace({
           ClientTableEmptyRow doesn't sit inside a doubly-bordered
           shell. */}
       {clients.length === 0 && !isLoading ? (
-        <EmptyState
-          icon={UsersRoundIcon}
-          title={<Trans>No clients yet</Trans>}
-          description={<Trans>Import a CSV or create the first manual client record.</Trans>}
-          cta={
-            <Button size="sm" onClick={onImport} disabled={!canImport}>
-              <Trans>Import clients</Trans>
-            </Button>
-          }
+        // 2026-06-07 (design replication, Pencil jQFBx + T4eNmw): the quiet
+        // inline EmptyState is replaced by the prominent full-surface hero
+        // — integration-logo strip, headline, Import/Add CTAs, outcomes
+        // strip, and the sample-data tour chip.
+        <ClientsEmptyState
+          onImport={onImport}
+          canImport={canImport}
+          onCreate={onCreateClient}
+          canCreate={canCreate}
         />
       ) : (
         // 2026-05-26 (Yuqi cross-table chrome unify): canonical

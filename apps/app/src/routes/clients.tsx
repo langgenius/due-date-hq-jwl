@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { AlertCircleIcon, HistoryIcon, LightbulbIcon } from 'lucide-react'
@@ -17,6 +17,7 @@ import { InfoBanner } from '@/components/patterns/info-banner'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ClientFactsWorkspace } from '@/features/clients/ClientFactsWorkspace'
+import { CreateClientDialog } from '@/features/clients/CreateClientDialog'
 import { clientDetailPath } from '@/features/clients/client-url'
 import { ClientsCreateSplitButton } from '@/features/clients/ClientsCreateSplitButton'
 import {
@@ -130,6 +131,10 @@ export function ClientsRoute() {
   // of a dialog that 403s on submit. Server already enforces the
   // mutation; this is the missing UI affordance.
   const canCreateClient = permission.can('client.write')
+  // 2026-06-07 (design replication): the empty-state hero's "Add one
+  // manually" CTA opens the create dialog programmatically (hidden
+  // trigger). Controlled here so the hero can drive it.
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const entityLabels = useEntityLabels()
   const [
     {
@@ -480,6 +485,21 @@ export function ClientsRoute() {
         onOwnerFilterChange={handleOwnerFilterChange}
         onImport={openWizard}
         canImport={canRunMigration}
+        onCreateClient={canCreateClient ? () => setCreateDialogOpen(true) : undefined}
+        canCreate={canCreateClient}
+      />
+
+      {/* 2026-06-07 (design replication): controlled create dialog driven by
+          the empty-state hero's "Add one manually" CTA. Trigger is hidden —
+          the directory's primary "+ New client" affordance still lives in
+          the ClientsCreateSplitButton in the page header. */}
+      <CreateClientDialog
+        entityLabels={entityLabels}
+        isPending={createMutation.isPending}
+        onCreate={handleCreateClient}
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        hideTrigger
       />
     </div>
   )
