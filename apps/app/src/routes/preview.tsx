@@ -19,6 +19,9 @@ import {
   CircleCheckIcon,
   CircleAlertIcon,
   ChevronDownIcon,
+  CalendarClockIcon,
+  MegaphoneIcon,
+  HistoryIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -1613,6 +1616,66 @@ export function PreviewRoute() {
                 }
                 className="w-full max-w-2xl"
               />
+            </Row>
+            <Row label="EmptyState — prominent" mono="patterns/empty-state · variant=prominent">
+              {/* Full-surface empty states (design replication). Responsive:
+                  cards fill width and wrap on narrow viewports. */}
+              <div className="flex w-full flex-col gap-4">
+                <EmptyState
+                  variant="prominent"
+                  icon={CalendarClockIcon}
+                  title="No deadlines yet"
+                  description="Import your client book or add deadlines manually. We'll generate them automatically from the rules you activated."
+                  cta={
+                    <Button variant="outline" size="sm">
+                      Import clients
+                    </Button>
+                  }
+                  className="w-full"
+                />
+                <EmptyState
+                  variant="prominent"
+                  icon={MegaphoneIcon}
+                  title="No alerts — you're caught up"
+                  description="When CA FTB, IRS, or another monitored source publishes a change, it will land here."
+                  cta={
+                    <Button variant="link" size="sm">
+                      Configure sources
+                    </Button>
+                  }
+                  className="w-full"
+                />
+                <EmptyState
+                  variant="prominent"
+                  icon={HistoryIcon}
+                  title="No history yet"
+                  description="Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record."
+                  cta={
+                    <Button variant="outline" size="sm">
+                      Go to alerts
+                    </Button>
+                  }
+                  footer={
+                    <div className="flex flex-col items-center gap-2">
+                      <p className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                        What gets recorded
+                      </p>
+                      <div className="flex flex-wrap items-center justify-center gap-2">
+                        {['Apply', 'Dismiss', 'Snooze', 'Revert'].map((label) => (
+                          <span
+                            key={label}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary"
+                          >
+                            <CircleCheckIcon className="size-3.5 text-text-tertiary" aria-hidden />
+                            {label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  }
+                  className="w-full"
+                />
+              </div>
             </Row>
             <Row label="EmptyCellMark" mono="patterns/empty-cell-mark">
               <span className="text-sm">
