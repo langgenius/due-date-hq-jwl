@@ -18,6 +18,7 @@ export const routeSummaries = {
   acceptInvite: { eyebrow: msg`Entry`, title: msg`Accept invitation` },
   onboarding: { eyebrow: msg`Entry`, title: msg`Create practice` },
   dashboard: { eyebrow: msg`Operations`, title: msg`Today` },
+  splash: { eyebrow: msg`Operations`, title: msg`Welcome back` },
   migrationNew: { eyebrow: msg`Setup`, title: msg`Import clients` },
   deadlines: { eyebrow: msg`Operations`, title: msg`Deadlines` },
   calendarSync: { eyebrow: msg`Deadlines`, title: msg`Calendar` },

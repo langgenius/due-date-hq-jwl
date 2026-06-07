@@ -413,6 +413,26 @@ export function createAppRouter() {
             return { Component: PreviewRoute }
           },
         },
+        // Post-login welcome screen (Pencil QGZta). Auth-gated via the
+        // shared protectedLoader but rendered STANDALONE — it owns the
+        // full viewport with its own centered layout, no dashboard shell
+        // chrome (no sidebar). It is NOT a child of RootLayout for that
+        // reason.
+        // TODO(wire): nothing redirects here yet. Making /splash the real
+        // first-of-the-day landing surface needs a "since last visit"
+        // server signal (lastDashboardVisitAt + recap aggregate) that
+        // doesn't exist; the post-login redirect still targets `/`. See
+        // the SplashRoute docblock + TODO(data) markers.
+        {
+          path: '/splash',
+          loader: protectedLoader,
+          handle: routeHandle(routeSummaries.splash),
+          HydrateFallback: RouteHydrateFallback,
+          lazy: async () => {
+            const { SplashRoute } = await import('@/routes/splash')
+            return { Component: SplashRoute }
+          },
+        },
         {
           id: PROTECTED_ROUTE_ID,
           path: '/',
