@@ -873,6 +873,10 @@ msgstr "{missingSourceCount} source gaps"
 msgid "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
 msgstr "{needsFactsCount, plural, one {# client is missing state or entity type — the rule library is skipping it.} other {# clients are missing state or entity type — the rule library is skipping them.}}"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "{needsFactsCount} need setup"
+msgstr "{needsFactsCount} need setup"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "{needsManualCount, plural, one {# selected deadline has no fixed extension length — decide it individually.} other {# selected deadlines have no fixed extension length — decide them individually.}}"
@@ -1189,6 +1193,10 @@ msgstr "+{hasMore} more"
 msgid "+{hiddenCount} more in Alerts"
 msgstr "+{hiddenCount} more in Alerts"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "+18% YoY"
+msgstr "+18% YoY"
+
 #: src/features/migration/Step3Normalize.tsx
 msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · <2>{needsReview}</2> need review ({affectedClients, plural, one {# client} other {# clients}} affected)"
 msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · <2>{needsReview}</2> need review ({affectedClients, plural, one {# client} other {# clients}} affected)"
@@ -1200,6 +1208,10 @@ msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · 
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "~5 minutes of focused work"
 msgstr "~5 minutes of focused work"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "$12,000 / year"
+msgstr "$12,000 / year"
 
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "0"
@@ -1461,6 +1473,10 @@ msgstr "Account"
 msgid "Account menu for {0}"
 msgstr "Account menu for {0}"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "across {statesCovered} jurisdictions"
+msgstr "across {statesCovered} jurisdictions"
+
 #: src/routes/practice.tsx
 msgid "Across the previewed queue"
 msgstr "Across the previewed queue"
@@ -1535,6 +1551,10 @@ msgstr "Active alerts waiting for review"
 #: src/features/members/members-page.tsx
 msgid "Active members"
 msgstr "Active members"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "ACTIVE OBLIGATIONS"
+msgstr "ACTIVE OBLIGATIONS"
 
 #: src/routes/settings.tsx
 msgid "Active plan, seat usage, and subscription portal."
@@ -2144,6 +2164,10 @@ msgstr "All received"
 msgid "All seats are in use. Upgrade to invite more, or suspend an active member to free a seat."
 msgstr "All seats are in use. Upgrade to invite more, or suspend an active member to free a seat."
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "All set up"
+msgstr "All set up"
+
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
@@ -2456,6 +2480,10 @@ msgstr "At least one item flagged by client — review their portal responses."
 #: src/features/dashboard/at-a-glance-section.tsx
 msgid "At risk"
 msgstr "At risk"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "AT RISK"
+msgstr "AT RISK"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "Attach the source document"
@@ -2862,6 +2890,10 @@ msgstr "Blocked by: {label}"
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
 msgstr "Body"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Bookkeeper"
+msgstr "Bookkeeper"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Bounced or rejected sends"
@@ -3904,6 +3936,10 @@ msgstr "Contact sales"
 msgid "Contact your CPA to request a new link. They can re-send the readiness check from their workbench."
 msgstr "Contact your CPA to request a new link. They can re-send the readiness check from their workbench."
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "CONTACTS"
+msgstr "CONTACTS"
+
 #: src/features/clients/ClientNotesPanel.tsx
 msgid "Context the next preparer should read first — preferred call window, sensitivities, history. Travels with the client across all surfaces."
 msgstr "Context the next preparer should read first — preferred call window, sensitivities, history. Travels with the client across all surfaces."
@@ -3942,6 +3978,10 @@ msgstr "Contract coverage and audit controls"
 #: src/routes/billing.tsx
 msgid "Contract-level model routing, custom coverage, and audit-grade AI controls."
 msgstr "Contract-level model routing, custom coverage, and audit-grade AI controls."
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Controller"
+msgstr "Controller"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -5242,6 +5282,10 @@ msgstr "Do not use File > Client File Maintenance > Copy/Backup for this import;
 msgid "Docs {attached}/{total}"
 msgstr "Docs {attached}/{total}"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "docs pending"
+msgstr "docs pending"
+
 #. placeholder {0}: item.label
 #: src/features/obligations/ChecklistItemRow.tsx
 msgid "Document {0} already received"
@@ -5673,6 +5717,14 @@ msgstr "Encrypted · 7-day session · SSO-ready"
 #: src/routes/obligations.tsx
 msgid "End date must be on or after the start date."
 msgstr "End date must be on or after the start date."
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "ENGAGEMENT"
+msgstr "ENGAGEMENT"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Engagement letter signed"
+msgstr "Engagement letter signed"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Enter a valid email address"
@@ -6304,6 +6356,10 @@ msgstr "Filed return"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Filed without extension"
 msgstr "Filed without extension"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Filed YTD"
+msgstr "Filed YTD"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
@@ -7467,6 +7523,10 @@ msgstr "Last decided {0}"
 msgid "Last error: {0}"
 msgstr "Last error: {0}"
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Last filed"
+msgstr "Last filed"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Last reminded · {days} days ago"
@@ -8479,6 +8539,10 @@ msgstr "Navigate."
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Navigate…"
 msgstr "Navigate…"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "need attention"
+msgstr "need attention"
 
 #: src/features/obligations/queue/components/evidence.tsx
 #: src/routes/obligations.tsx
@@ -9502,9 +9566,17 @@ msgstr "oldest {oldestRelative}"
 msgid "Oldest first"
 msgstr "Oldest first"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "on track"
+msgstr "on track"
+
 #: src/features/dashboard/severity-section.tsx
 msgid "On your radar — not urgent yet"
 msgstr "On your radar — not urgent yet"
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "ONBOARDING"
+msgstr "ONBOARDING"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding rules activated"
@@ -9662,6 +9734,7 @@ msgid "Open deadline"
 msgstr "Open deadline"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/members/members-page.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/billing.tsx
@@ -9956,6 +10029,10 @@ msgstr "outstanding"
 msgid "Outstanding"
 msgstr "Outstanding"
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Outstanding tasks"
+msgstr "Outstanding tasks"
+
 #: src/features/notifications/notifications-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/workload/workload-page.tsx
@@ -10119,6 +10196,7 @@ msgstr "Partially applied"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
+#: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/permissions/permission-gate.tsx
 #: src/lib/required-roles-label.ts
@@ -10788,6 +10866,10 @@ msgstr "Previous stages"
 msgid "Previous years"
 msgstr "Previous years"
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Primary contact"
+msgstr "Primary contact"
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "Primary contact email"
 msgstr "Primary contact email"
@@ -11442,6 +11524,10 @@ msgstr "Removing this member will commit these changes"
 msgid "Removing…"
 msgstr "Removing…"
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Renews"
+msgstr "Renews"
+
 #. placeholder {0}: formatDate(activeSubscription.periodEnd)
 #: src/routes/billing.tsx
 msgid "Renews {0}"
@@ -11588,6 +11674,10 @@ msgstr "Resume your in-progress import?"
 #: src/routes/obligations.tsx
 msgid "Resumed from blocked on {0} after the upstream deadline was completed."
 msgstr "Resumed from blocked on {0} after the upstream deadline was completed."
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Retainer"
+msgstr "Retainer"
 
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Retracted"
@@ -13151,6 +13241,10 @@ msgstr "Smart Priority {0} · rank #{rank}"
 msgid "Smart Priority saved"
 msgstr "Smart Priority saved"
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "SNAPSHOT"
+msgstr "SNAPSHOT"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
@@ -13759,6 +13853,10 @@ msgstr "Target filing year must be exactly one year after the source filing year
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Target filing year must be the next year after source filing year."
 msgstr "Target filing year must be the next year after source filing year."
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Tax + bookkeeping"
+msgstr "Tax + bookkeeping"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Tax area"
@@ -14487,6 +14585,10 @@ msgstr "Top-ranked clients"
 msgid "Total"
 msgstr "Total"
 
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "TOTAL CLIENTS"
+msgstr "TOTAL CLIENTS"
+
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"
 msgstr "TRANSITION"
@@ -15086,6 +15188,10 @@ msgstr "View deadlines due this week"
 msgid "View deadlines due today"
 msgstr "View deadlines due today"
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "View engagement letter"
+msgstr "View engagement letter"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "View history"
 msgstr "View history"
@@ -15609,6 +15715,10 @@ msgstr "Your top 10 deadlines due this week, ranked by Smart Priority and bucket
 #: src/features/migration/Step3Normalize.tsx
 msgid "Your uploaded file stays unchanged — this clean draft is used only after you import."
 msgstr "Your uploaded file stays unchanged — this clean draft is used only after you import."
+
+#: src/features/clients/ClientFactsWorkspace.tsx
+msgid "YTD REVENUE"
+msgstr "YTD REVENUE"
 
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/migration/mapping-target-labels.ts
