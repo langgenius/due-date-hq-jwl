@@ -49,6 +49,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatRelativeTime } from '@/lib/utils'
+import { BulkConfirmDialog, BulkConfirmList } from '@/components/patterns/bulk-confirm-dialog'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
@@ -224,6 +225,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // already-handled and the map view has its own compact rows.
   const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(() => new Set())
   const selectionEnabled = !historyMode && viewMode === 'list'
+  // 2026-06-07 (Pencil X4t2E — bulk confirm modal family): the floating
+  // bar's Dismiss now routes through the standardized confirmation
+  // dialog (BulkConfirmDialog) instead of firing the batch mutation
+  // straight away. Dismiss archives N alerts off the active board, so a
+  // one-step "are you sure + here's what you're dismissing" preview is
+  // the right guard — the same modal family /deadlines + /rules use.
+  const [dismissConfirmOpen, setDismissConfirmOpen] = useState(false)
 
   // 2026-06-04 round 77 (Yuqi "wire to real"): row-level Snooze +
   // Dismiss buttons in PulseAlertRow flow through `setReasonState`
@@ -475,11 +483,22 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     bulkSnoozeMutation.mutate({ alertIds: [...selectedIds], until })
     clearSelection()
   }
-  const bulkDismiss = () => {
+  // Opens the confirmation modal instead of dismissing immediately.
+  const requestBulkDismiss = () => {
+    if (selectedIds.size === 0) return
+    setDismissConfirmOpen(true)
+  }
+  const confirmBulkDismiss = () => {
     if (selectedIds.size === 0) return
     bulkDismissMutation.mutate({ alertIds: [...selectedIds] })
     clearSelection()
   }
+  // Alerts currently selected, resolved to their display rows so the
+  // confirmation modal can preview titles (capped at 5 + "N more").
+  const selectedAlerts = useMemo(
+    () => sortedAlerts.filter((alert) => selectedIds.has(alert.id)),
+    [sortedAlerts, selectedIds],
+  )
 
   const isEmpty = !alertsQuery.isLoading && alerts.length === 0
   const isFilteredEmpty = !alertsQuery.isLoading && alerts.length > 0 && filteredAlerts.length === 0
@@ -1520,10 +1539,35 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
           selectedCount={selectedCount}
           totalCount={sortedAlerts.length}
           onSnooze={bulkSnooze}
-          onDismiss={bulkDismiss}
+          onDismiss={requestBulkDismiss}
           onClear={clearSelection}
         />
       ) : null}
+
+      {/* Bulk dismiss confirmation (Pencil X4t2E — destructive
+          pattern). Previews the alerts being archived so the CPA can
+          double-check the selection before it leaves the active board. */}
+      <BulkConfirmDialog
+        open={dismissConfirmOpen}
+        onOpenChange={setDismissConfirmOpen}
+        tone="destructive"
+        icon={ArchiveIcon}
+        title={<Trans>Dismiss {selectedCount} alerts?</Trans>}
+        description={
+          <Trans>
+            Dismissed alerts move off the active board into history. You can reopen them from the
+            History tab.
+          </Trans>
+        }
+        confirmLabel={<Trans>Dismiss alerts</Trans>}
+        confirmDisabled={bulkDismissMutation.isPending}
+        onConfirm={confirmBulkDismiss}
+      >
+        <BulkConfirmList
+          label={<Trans>Selected ({selectedCount})</Trans>}
+          items={selectedAlerts.map((alert) => ({ id: alert.id, primary: alert.title }))}
+        />
+      </BulkConfirmDialog>
     </div>
   )
 }
