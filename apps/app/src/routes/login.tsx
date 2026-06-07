@@ -1,4 +1,4 @@
-import { useState, useTransition } from 'react'
+import { useState, useTransition, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -7,6 +7,7 @@ import { Loader2Icon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { EmailOtpSignInForm } from '@/features/auth/email-otp-sign-in-form'
+import { EntryBetaPill, EntryBrandLockup } from '@/features/auth/entry-brand-lockup'
 import { authCapabilities } from '@/lib/auth-capabilities'
 import { signInWithGoogle, signInWithMicrosoft, startGoogleOneTap } from '@/lib/auth'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -152,7 +153,23 @@ export function LoginRoute() {
   }
 
   return (
-    <div className="flex w-full max-w-[400px] flex-col">
+    <div className="flex w-full max-w-[400px] flex-col items-center">
+      {/* 2026-06-07 (Cluster 6 auth canvas, node pW6pK): the canvas
+          anchors /login with a centered brand lockup + beta pill
+          above the heading, so a first-time visitor arriving from a
+          referral confirms the product *before* reading any copy.
+          The route previously opened straight on a left-aligned H1
+          with no brand mark. Brought the lockup + "PRIVATE BETA"
+          pill in and centred the column to match. */}
+      <EntryBrandLockup
+        className="mb-5"
+        pill={
+          <EntryBetaPill>
+            <Trans>PRIVATE BETA · JUN 2026</Trans>
+          </EntryBetaPill>
+        }
+      />
+
       {/* 2026-05-26 (Step 7 onboarding audit F1-01): "Welcome to
           the workbench" was decoration-first — no product noun,
           no "this is DueDateHQ" anchor, so first-time visitors
@@ -162,11 +179,11 @@ export function LoginRoute() {
           line and tightened the sub-headline to a single
           sentence with the verbs the user actually does
           ("sign in", "open your practice"). */}
-      <h1 className="whitespace-pre-line text-[26px] font-semibold leading-[1.15] tracking-tight text-text-primary">
+      <h1 className="text-center text-[26px] font-semibold leading-[1.15] tracking-tight text-text-primary">
         <Trans>Welcome to DueDateHQ.</Trans>
       </h1>
 
-      <p className="mt-2 text-description leading-6 text-text-secondary">
+      <p className="mt-2 text-center text-description leading-6 text-text-secondary">
         <Trans>
           Sign in to open your practice&apos;s deadline workbench with evidence-backed
           recommendations.
@@ -268,7 +285,7 @@ export function LoginRoute() {
           2026-05-27 (F1-03 drain): trust pill that used to sit
           above this support line moved up next to the sub-headline
           — see comment above the SSO buttons. */}
-      <p className="mt-5 text-sm leading-relaxed text-text-secondary">
+      <p className="mt-5 w-full text-center text-sm leading-relaxed text-text-secondary">
         <Trans>
           Trouble signing in? Email{' '}
           <a
@@ -282,7 +299,7 @@ export function LoginRoute() {
         </Trans>
       </p>
 
-      <p className="mt-2 text-caption leading-relaxed text-text-muted">
+      <p className="mt-2 w-full text-center text-caption leading-relaxed text-text-muted">
         <Trans>
           By signing in you agree to the{' '}
           <a
@@ -303,6 +320,58 @@ export function LoginRoute() {
           .
         </Trans>
       </p>
+
+      {/* 2026-06-07 (Cluster 6 auth canvas, node pW6pK): the canvas
+          closes /login with a trust strip — "TRUSTED BY 480+ TAX
+          PRACTICES" over a row of firm chips and a SOC-2 / scale
+          stat row. It is social proof for the referral visitor who
+          hasn't decided to type their email yet. Rendered wider than
+          the sign-in column (canvas trust strip is 720px vs the
+          520px card) and allowed to wrap on narrow viewports. */}
+      <LoginTrustStrip />
+    </div>
+  )
+}
+
+const TRUST_FIRMS = [
+  'Brightline CPA',
+  'Mason & Park',
+  'Northbridge Tax',
+  'Hudson Advisors',
+  'Riverstone CPA',
+]
+
+function LoginTrustStrip() {
+  return (
+    <div className="mt-10 flex w-full flex-col items-center gap-3.5 border-t border-divider-subtle pt-6">
+      <p className="font-mono text-caption tracking-wide text-text-muted">
+        <Trans>TRUSTED BY 480+ TAX PRACTICES</Trans>
+      </p>
+      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+        {TRUST_FIRMS.map((firm) => (
+          <span key={firm} className="text-sm font-medium text-text-secondary">
+            {firm}
+          </span>
+        ))}
+      </div>
+      <div className="mt-1 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+        <TrustStat value="12,400" label={<Trans>DEADLINES TRACKED</Trans>} />
+        <span aria-hidden className="h-8 w-px bg-divider-subtle max-sm:hidden" />
+        <TrustStat value="23 SEC" label={<Trans>AVG ALERT TRIAGE</Trans>} />
+        <span aria-hidden className="h-8 w-px bg-divider-subtle max-sm:hidden" />
+        <TrustStat value="99.98%" label={<Trans>SOC 2 UPTIME</Trans>} />
+      </div>
+    </div>
+  )
+}
+
+function TrustStat({ value, label }: { value: string; label: ReactNode }) {
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      <span className="font-mono text-base font-semibold tabular-nums text-text-primary">
+        {value}
+      </span>
+      <span className="font-mono text-[10px] tracking-wide text-text-muted">{label}</span>
     </div>
   )
 }
