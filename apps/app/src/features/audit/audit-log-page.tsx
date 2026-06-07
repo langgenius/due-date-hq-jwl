@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
@@ -70,6 +70,7 @@ import {
   shortenAuditId,
   type AuditCategoryOption,
 } from './audit-log-model'
+import { getAuditTimelineType, type AuditTimelineType } from './audit-timeline-model'
 
 const EMPTY_EVENTS: AuditEventPublic[] = []
 const INITIAL_CURSOR: string | null = null
@@ -227,6 +228,69 @@ function AuditFilterSelect({
         ))}
       </SelectContent>
     </Select>
+  )
+}
+
+// KPI strip (Pencil RqOJw): a single bordered card split into columns by
+// vertical rules. Each column is a mono uppercase label, a large value,
+// and a small caption. TODO(data): the contract has no firm-wide
+// category aggregate — `audit.list` only returns the paginated event
+// window — so these counts describe the *loaded* events, not the whole
+// ledger. A dedicated `audit.stats` procedure would let this strip show
+// true totals across the selected range.
+function AuditKpiStrip({
+  totalLoaded,
+  countsByType,
+}: {
+  totalLoaded: number
+  countsByType: Record<AuditTimelineType, number>
+}) {
+  const columns: Array<{ key: string; label: ReactNode; value: number; caption: ReactNode }> = [
+    {
+      key: 'total',
+      label: <Trans>Total loaded</Trans>,
+      value: totalLoaded,
+      caption: <Trans>in current view</Trans>,
+    },
+    {
+      key: 'filing',
+      label: <Trans>Filings</Trans>,
+      value: countsByType.filing,
+      caption: <Trans>filed / e-file</Trans>,
+    },
+    {
+      key: 'amendment',
+      label: <Trans>Amendments</Trans>,
+      value: countsByType.amendment,
+      caption: <Trans>with reason</Trans>,
+    },
+    {
+      key: 'access',
+      label: <Trans>Access</Trans>,
+      value: countsByType.access,
+      caption: <Trans>auth / export</Trans>,
+    },
+    {
+      key: 'system',
+      label: <Trans>System</Trans>,
+      value: countsByType.system + countsByType.decision,
+      caption: <Trans>automated + decisions</Trans>,
+    },
+  ]
+  return (
+    <div className="flex flex-col divide-y divide-divider-subtle rounded-xl border border-divider-subtle bg-background-default px-2 py-4 sm:flex-row sm:divide-x sm:divide-y-0">
+      {columns.map((column) => (
+        <div key={column.key} className="grid flex-1 gap-1 px-5 py-1">
+          <span className="font-mono text-caption-xs font-bold tracking-wide text-text-tertiary uppercase">
+            {column.label}
+          </span>
+          <span className="text-2xl font-semibold tracking-tight text-text-primary tabular-nums">
+            {column.value.toLocaleString()}
+          </span>
+          <span className="font-mono text-caption-xs text-text-tertiary">{column.caption}</span>
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -557,6 +621,21 @@ export function AuditLogPage() {
       return haystack.includes(trimmedSearch)
     })
   }, [events, trimmedSearch])
+  // Category counts for the KPI strip, derived from the filtered set so
+  // the strip moves in lockstep with the active filters. (See
+  // AuditKpiStrip's TODO(data) note — these are loaded-window counts,
+  // not firm-wide totals.)
+  const countsByType = useMemo(() => {
+    const counts: Record<AuditTimelineType, number> = {
+      filing: 0,
+      amendment: 0,
+      decision: 0,
+      access: 0,
+      system: 0,
+    }
+    for (const event of filteredEvents) counts[getAuditTimelineType(event)] += 1
+    return counts
+  }, [filteredEvents])
   const loadedPageCount = Math.max(1, Math.ceil(filteredEvents.length / TABLE_PAGE_SIZE))
   const currentPageIndex = Math.min(pageIndex, loadedPageCount - 1)
   const currentPageStart = currentPageIndex * TABLE_PAGE_SIZE
@@ -682,6 +761,8 @@ export function AuditLogPage() {
           </div>
         }
       />
+
+      <AuditKpiStrip totalLoaded={filteredEvents.length} countsByType={countsByType} />
 
       <Card>
         <CardHeader>
