@@ -292,6 +292,10 @@ describe('AlertsListPage source health display', () => {
     await waitForText('No history yet')
     expect(rpcMocks.listHistoryQueryFn).toHaveBeenCalled()
     expect(rpcMocks.listAlertsQueryFn).not.toHaveBeenCalled()
+    // Pencil rR9X1: history empty offers a "Go to alerts" return path and the
+    // "what gets recorded" legend.
+    expect(document.body.textContent).toContain('Go to alerts')
+    expect(document.body.textContent).toContain('What gets recorded')
   })
 
   it('keeps legacy degraded and failing source health out of the CPA Pulse surface', async () => {

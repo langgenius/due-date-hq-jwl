@@ -1673,16 +1673,22 @@ function AlertsEmptyState({
     return (
       <EmptyState
         variant="prominent"
+        // Pencil rR9X1: history empty uses the quieter gray icon-circle
+        // (72px #f9fafb + #98a2b2 icon) and a 22px title, distinct from the
+        // active surface's blue circle. `fill` makes the card own the area.
+        iconTone="neutral"
+        fill
         icon={HistoryIcon}
         title={<Trans>No history yet</Trans>}
         description={
           <Trans>
             Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an
-            immutable record. The last 60 days of activity appear automatically.
+            immutable record. Last 60 days of activity will appear automatically.
           </Trans>
         }
         cta={
-          <Button variant="outline" size="sm" render={<Link to="/alerts" />}>
+          // Pencil rR9X1: dark filled "Go to alerts" primary (not outline).
+          <Button render={<Link to="/alerts" />}>
             <MegaphoneIcon data-icon="inline-start" />
             <Trans>Go to alerts</Trans>
           </Button>
@@ -1698,13 +1704,16 @@ function AlertsEmptyState({
   return (
     <EmptyState
       variant="prominent"
+      // Pencil O3s4ie: the active empty card owns the whole content area
+      // (canvas frame is 600px tall, vertically centered).
+      fill
       icon={MegaphoneIcon}
       title={<Trans>No alerts — you're caught up</Trans>}
       description={
         lastChecked ? (
           <Trans>
             When CA FTB, IRS, or another monitored source publishes a change, it will land here.
-            Last check {formatRelativeTime(lastChecked)}.
+            Last check: {formatRelativeTime(lastChecked)}.
           </Trans>
         ) : (
           <Trans>
@@ -1730,17 +1739,20 @@ function AlertsHistoryRecordLegend() {
     { key: 'revert', icon: Undo2Icon, label: <Trans>Revert</Trans> },
   ]
   return (
+    // Pencil rR9X1 `Steps`: heading + gray pill row. The EmptyState footer
+    // wrapper (gap-6 column + mt-2) already supplies the separation from the
+    // CTA above, so no extra padding-top here.
     <div className="flex flex-col items-center gap-2">
-      <p className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+      <p className="text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
         <Trans>What gets recorded</Trans>
       </p>
       <div className="flex flex-wrap items-center justify-center gap-2">
         {items.map(({ key, icon: ChipIcon, label }) => (
           <span
             key={key}
-            className="inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary"
+            className="inline-flex items-center gap-1.5 rounded-full bg-background-section px-3 py-1.5 text-xs font-medium text-text-secondary"
           >
-            <ChipIcon className="size-3.5 text-text-tertiary" aria-hidden />
+            <ChipIcon className="size-3 text-text-secondary" aria-hidden />
             {label}
           </span>
         ))}

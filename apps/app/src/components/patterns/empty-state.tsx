@@ -31,6 +31,8 @@ export function EmptyState({
   className,
   density = 'default',
   variant = 'default',
+  iconTone = 'accent',
+  fill = false,
 }: {
   icon?: LucideIcon
   title: ReactNode
@@ -48,6 +50,16 @@ export function EmptyState({
   // list). `default` stays the quiet inline treatment used app-wide; `compact`
   // drops the card chrome for table-cell / drawer embeds.
   variant?: 'default' | 'prominent'
+  // 2026-06-07 (design replication O3s4ie / rR9X1): prominent icon-circle tone.
+  // `accent` is the blue tint (Pencil active /alerts empty — 88px #eff4ff circle,
+  // #155aef icon); `neutral` is the quieter gray tint (Pencil /alerts/history
+  // empty — 72px #f9fafb circle, #98a2b2 icon). Ignored outside `prominent`.
+  iconTone?: 'accent' | 'neutral'
+  // 2026-06-07: when true the prominent card stretches to fill its parent's
+  // height and vertically centers its column — matches the canvas cards which
+  // own the whole content area (fixed 600px on the canvas; `min-h` here so it
+  // never collapses below the design height but can grow with the viewport).
+  fill?: boolean
 }) {
   const isCompact = density === 'compact'
   const isProminent = variant === 'prominent'
@@ -63,13 +75,30 @@ export function EmptyState({
           'gap-3 rounded-lg border border-dashed border-divider-regular bg-background-default px-6 py-10',
         isProminent &&
           'gap-6 rounded-xl border border-divider-regular bg-background-default px-10 py-20',
+        // 2026-06-07: `fill` makes the prominent card own the whole content
+        // area (canvas cards are 600px tall, vertically centered). `min-h`
+        // keeps the design height as a floor; `justify-center` centers the
+        // column the way the canvas frame does.
+        isProminent && fill && 'min-h-[600px] flex-1 justify-center',
         className,
       )}
     >
       {Icon ? (
         isProminent ? (
-          <div className="flex size-[88px] items-center justify-center rounded-full bg-state-accent-hover">
-            <Icon className="size-9 text-text-accent" aria-hidden />
+          <div
+            className={cn(
+              'flex items-center justify-center rounded-full',
+              iconTone === 'neutral'
+                ? 'size-[72px] bg-background-section'
+                : 'size-[88px] bg-state-accent-hover',
+            )}
+          >
+            <Icon
+              className={cn(
+                iconTone === 'neutral' ? 'size-8 text-text-muted' : 'size-9 text-text-accent',
+              )}
+              aria-hidden
+            />
           </div>
         ) : (
           <Icon className="size-5 text-text-tertiary" aria-hidden />
@@ -78,7 +107,9 @@ export function EmptyState({
       <p
         className={cn(
           'font-semibold text-text-primary',
-          isProminent ? 'text-xl tracking-tight' : 'text-sm',
+          isProminent
+            ? cn('tracking-tight', iconTone === 'neutral' ? 'text-[22px]' : 'text-xl')
+            : 'text-sm',
         )}
       >
         {title}
@@ -88,7 +119,7 @@ export function EmptyState({
           className={cn(
             'text-text-secondary',
             isProminent
-              ? 'max-w-[520px] text-sm leading-relaxed'
+              ? 'max-w-[560px] text-sm leading-relaxed'
               : 'max-w-[42ch] text-description leading-5',
           )}
         >
