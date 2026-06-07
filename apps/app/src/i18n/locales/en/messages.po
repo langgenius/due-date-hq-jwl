@@ -324,6 +324,11 @@ msgstr "{0} at {1} has been notified. You can close this page."
 msgid "{0} available seats"
 msgstr "{0} available seats"
 
+#. placeholder {0}: item.blockedCount
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "{0} blocked"
+msgstr "{0} blocked"
+
 #. placeholder {0}: result.obligations.length
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "{0} deadline created from the rule library."
@@ -474,6 +479,11 @@ msgstr "{0} ready · {1} estimated deadline matches"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "{0} required fact(s) missing"
 msgstr "{0} required fact(s) missing"
+
+#. placeholder {0}: item.rulesActivated
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "{0} rules activated"
+msgstr "{0} rules activated"
 
 #. placeholder {0}: currentFirm.seatLimit
 #: src/routes/billing.tsx
@@ -904,9 +914,18 @@ msgstr "{recentlyRemindedCount, plural, one {Skip # client reminded in the last 
 msgid "{reservedCount} reserved"
 msgstr "{reservedCount} reserved"
 
+#. placeholder {0}: reviewCount === 1 ? '' : 's'
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "{reviewCount} jurisdiction{0} need a quick review"
+msgstr "{reviewCount} jurisdiction{0} need a quick review"
+
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "{reviewCount} Requires review"
 msgstr "{reviewCount} Requires review"
+
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "{reviewCount} to review · {blockedTotal} deadlines blocked"
+msgstr "{reviewCount} to review · {blockedTotal} deadlines blocked"
 
 #. placeholder {0}: firm.seatLimit
 #: src/components/patterns/app-shell-nav.tsx
@@ -2054,9 +2073,16 @@ msgstr "Annual report no-tax-due flag"
 msgid "Annual rolling"
 msgstr "Annual rolling"
 
+#: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Annual rollover"
 msgstr "Annual rollover"
+
+#. placeholder {0}: preview.fromTaxYear
+#. placeholder {1}: preview.toTaxYear
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Annual rollover · tax year {0} → {1}"
+msgstr "Annual rollover · tax year {0} → {1}"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Annual rollover created"
@@ -2128,8 +2154,14 @@ msgstr "Applies to {0} in <0/>"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "Apply"
 msgstr "Apply"
+
+#. placeholder {0}: preview.willUpdateCount
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Apply {0} safe items only"
+msgstr "Apply {0} safe items only"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -2482,6 +2514,7 @@ msgid "Awaiting sources"
 msgstr "Awaiting sources"
 
 #: src/features/migration/WizardShell.tsx
+#: src/features/onboarding/rule-review-prompt.tsx
 #: src/routes/migration.new.tsx
 msgid "Back"
 msgstr "Back"
@@ -2807,6 +2840,7 @@ msgstr "Calendar year"
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
+#: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/features/obligations/queue/dialogs.tsx
@@ -3197,6 +3231,10 @@ msgstr "Client"
 msgid "CLIENT"
 msgstr "CLIENT"
 
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Client · Form"
+msgstr "Client · Form"
+
 #: src/features/obligations/obligation-type.ts
 msgid "Client action"
 msgstr "Client action"
@@ -3393,6 +3431,7 @@ msgstr "Clients to create"
 #: src/features/clients/ClientNotesPanel.tsx
 #: src/features/clients/FixNeedsFactsSheet.tsx
 #: src/features/migration/WizardShell.tsx
+#: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Close"
@@ -4889,6 +4928,10 @@ msgstr "dispatch"
 msgid "dispatches"
 msgstr "dispatches"
 
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Disposition"
+msgstr "Disposition"
+
 #: src/routes/clients.tsx
 msgid "Disregarded entity"
 msgstr "Disregarded entity"
@@ -6183,6 +6226,10 @@ msgstr "For deadline history, export Work separately from the Work page cloud ic
 msgid "For Desktop IIF, use File > Utilities > Export > Lists to IIF Files and select Customer List."
 msgstr "For Desktop IIF, use File > Utilities > Export > Lists to IIF Files and select Customer List."
 
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "For each obligation we look up the matching rule for next year. Items where the rule changed get flagged for your review."
+msgstr "For each obligation we look up the matching rule for next year. Items where the rule changed get flagged for your review."
+
 #: src/features/migration/Step1Intake.tsx
 msgid "For existing tasks or due dates, use Tools > Display Task View in Excel."
 msgstr "For existing tasks or due dates, use Tools > Display Task View in Excel."
@@ -6931,6 +6978,10 @@ msgstr "Jurisdiction"
 #: src/features/rules/states-rail.tsx
 msgid "Jurisdictions"
 msgstr "Jurisdictions"
+
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "Jurisdictions awaiting calendar review"
+msgstr "Jurisdictions awaiting calendar review"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Karbon columns vary by firm setup, so keep the header row in the file."
@@ -8721,6 +8772,10 @@ msgstr "No user-facing field change was recorded."
 msgid "No values needed cleanup for this import."
 msgstr "No values needed cleanup for this import."
 
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "No verified rule"
+msgstr "No verified rule"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "No workpapers attached to this deadline yet."
@@ -10093,6 +10148,7 @@ msgstr "Press Escape to close the review queue."
 msgid "prev"
 msgstr "prev"
 
+#: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Preview"
@@ -10904,6 +10960,7 @@ msgid "Required: {requiredRoleText}"
 msgstr "Required: {requiredRoleText}"
 
 #: src/features/concepts/concept-help.tsx
+#: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/routes/rules.library.tsx
 msgid "Requires review"
 msgstr "Requires review"
@@ -11059,12 +11116,17 @@ msgstr "review"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
+#: src/features/onboarding/rule-review-prompt.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/features/rules/matched-pulse-block.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Review"
 msgstr "Review"
+
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "Review {codeList} now"
+msgstr "Review {codeList} now"
 
 #: src/routes/rules.library.tsx
 msgid "Review {count}"
@@ -11338,6 +11400,12 @@ msgstr "Role"
 msgid "Roll forward"
 msgstr "Roll forward"
 
+#. placeholder {0}: preview.totalCount
+#. placeholder {1}: preview.requiresReviewCount
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Roll over all {0} (review {1})"
+msgstr "Roll over all {0} (review {1})"
+
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Rolling deadlines forward requires owner, partner, manager, or preparer access."
@@ -11428,6 +11496,14 @@ msgstr "Rule catalog breakdown — {breakdown}"
 msgid "Rule cells"
 msgstr "Rule cells"
 
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Rule change"
+msgstr "Rule change"
+
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Rule changed — your eyes needed"
+msgstr "Rule changed — your eyes needed"
+
 #: src/routes/rules.library.tsx
 msgid "Rule created"
 msgstr "Rule created"
@@ -11486,6 +11562,10 @@ msgstr "Rule source"
 #: src/features/audit/audit-log-labels.ts
 msgid "Rule source changed"
 msgstr "Rule source changed"
+
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Rule unchanged · safe to roll"
+msgstr "Rule unchanged · safe to roll"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 #: src/features/obligations/queue/components/evidence.tsx
@@ -12378,6 +12458,10 @@ msgstr "Skip · j"
 msgid "Skip ahead to drafting (docs already in hand)"
 msgstr "Skip ahead to drafting (docs already in hand)"
 
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "Skip and import clients first"
+msgstr "Skip and import clients first"
+
 #: src/features/migration/Step4Preview.tsx
 msgid "Skip duplicates"
 msgstr "Skip duplicates"
@@ -12405,6 +12489,11 @@ msgstr "Skip to drafting"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Skipped"
 msgstr "Skipped"
+
+#. placeholder {0}: preview.toTaxYear
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Skipped — no rule for {0} yet"
+msgstr "Skipped — no rule for {0} yet"
 
 #. placeholder {0}: summary.ignoredColumns
 #: src/features/migration/Step2Mapping.tsx
@@ -13815,6 +13904,12 @@ msgstr "TXT, CSV, or Excel"
 msgid "TY {0}"
 msgstr "TY {0}"
 
+#. placeholder {0}: preview.fromTaxYear
+#. placeholder {0}: preview.toTaxYear
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "TY {0} due"
+msgstr "TY {0} due"
+
 #: src/routes/rules.library.tsx
 msgid "Type"
 msgstr "Type"
@@ -13860,6 +13955,10 @@ msgstr "Unassigned risk"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Unassigned work"
 msgstr "Unassigned work"
+
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "unchanged"
+msgstr "unchanged"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Unchanged"
@@ -14482,6 +14581,10 @@ msgstr "Will create"
 msgid "Will remove"
 msgstr "Will remove"
 
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Will update"
+msgstr "Will update"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Window"
 msgstr "Window"
@@ -14577,6 +14680,14 @@ msgstr "YESTERDAY"
 msgid "You"
 msgstr "You"
 
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "You activated {totalRulesActivated} rules. For {codeList}, our source-defined calendars need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
+msgstr "You activated {totalRulesActivated} rules. For {codeList}, our source-defined calendars need your eyes before they generate deadlines for your clients. A few minutes here saves filing-day surprises later."
+
+#: src/features/onboarding/rule-review-prompt.tsx
+msgid "You can also skip this for now and review rules later from the Rule Library."
+msgstr "You can also skip this for now and review rules later from the Rule Library."
+
 #: src/routes/migration.new.tsx
 msgid "You can import later from Today, Clients, or the Command Palette (⌘K)."
 msgstr "You can import later from Today, Clients, or the Command Palette (⌘K)."
@@ -14617,6 +14728,13 @@ msgstr "You'll be redirected to Stripe to enter payment details."
 #: src/features/migration/Step4Preview.tsx
 msgid "You're about to create:"
 msgstr "You're about to create:"
+
+#. placeholder {0}: preview.totalCount
+#. placeholder {1}: preview.fromTaxYear
+#. placeholder {2}: preview.toTaxYear
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "You're rolling over {0} obligations from tax year {1} into {2}."
+msgstr "You're rolling over {0} obligations from tax year {1} into {2}."
 
 #: src/routes/accept-invite.tsx
 msgid "You've been invited to a firm"
