@@ -795,9 +795,9 @@ function DashboardActionsList({
           <div className="flex flex-col items-center justify-center gap-4 px-6 py-12 text-center sm:px-10 sm:py-14">
             <p className="max-w-[540px] text-sm leading-relaxed text-text-secondary">
               <Trans>
-                When something gets at-risk — a stalled evidence request, a rejected filing, a
-                5-day client silence — Smart Priority will surface it here. Right now everything is
-                on track.
+                When something gets at-risk — a stalled evidence request, a rejected filing, a 5-day
+                client silence — Smart Priority will surface it here. Right now everything is on
+                track.
               </Trans>
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2">
