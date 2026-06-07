@@ -29,6 +29,7 @@ export function EmptyState({
   cta,
   className,
   density = 'default',
+  variant = 'default',
 }: {
   icon?: LucideIcon
   title: ReactNode
@@ -36,31 +37,61 @@ export function EmptyState({
   cta?: ReactNode
   className?: string
   density?: 'default' | 'compact'
+  // 2026-06-07 (design replication): `variant="prominent"` is the full-surface
+  // empty state from the canvas — a solid-border card with a tinted icon-circle,
+  // a larger title, wider supporting copy, and room for one or more CTAs. Used
+  // when the empty state OWNS the surface (e.g. an empty /deadlines or /alerts
+  // list). `default` stays the quiet inline treatment used app-wide; `compact`
+  // drops the card chrome for table-cell / drawer embeds.
+  variant?: 'default' | 'prominent'
 }) {
-  // 2026-06-01: `density="compact"` drops the section-frame chrome
-  // (dashed border, lg radius, default padding) so the empty state
-  // can be embedded inside a TableCell colSpan or a drawer slot.
-  // Used by sources-tab/temporary-rules-tab empty rows and
-  // ImportHistoryDrawer. Keeps icon + title + optional description so
-  // the message hierarchy stays the same.
   const isCompact = density === 'compact'
+  const isProminent = variant === 'prominent'
   return (
     <div
       data-density={density}
+      data-variant={variant}
       className={cn(
-        'flex flex-col items-center gap-3 text-center',
-        isCompact
-          ? 'px-4 py-10'
-          : 'rounded-lg border border-dashed border-divider-regular bg-background-default px-6 py-10',
+        'flex flex-col items-center text-center',
+        isCompact && 'gap-3 px-4 py-10',
+        !isCompact &&
+          !isProminent &&
+          'gap-3 rounded-lg border border-dashed border-divider-regular bg-background-default px-6 py-10',
+        isProminent &&
+          'gap-6 rounded-xl border border-divider-regular bg-background-default px-10 py-20',
         className,
       )}
     >
-      {Icon ? <Icon className="size-5 text-text-tertiary" aria-hidden /> : null}
-      <p className="text-sm font-semibold text-text-primary">{title}</p>
-      {description ? (
-        <p className="max-w-[42ch] text-description leading-5 text-text-secondary">{description}</p>
+      {Icon ? (
+        isProminent ? (
+          <div className="flex size-[88px] items-center justify-center rounded-full bg-state-accent-hover">
+            <Icon className="size-9 text-text-accent" aria-hidden />
+          </div>
+        ) : (
+          <Icon className="size-5 text-text-tertiary" aria-hidden />
+        )
       ) : null}
-      {cta ? <div className="mt-1">{cta}</div> : null}
+      <p
+        className={cn(
+          'font-semibold text-text-primary',
+          isProminent ? 'text-xl tracking-tight' : 'text-sm',
+        )}
+      >
+        {title}
+      </p>
+      {description ? (
+        <p
+          className={cn(
+            'text-text-secondary',
+            isProminent
+              ? 'max-w-[520px] text-sm leading-relaxed'
+              : 'max-w-[42ch] text-description leading-5',
+          )}
+        >
+          {description}
+        </p>
+      ) : null}
+      {cta ? <div className={isProminent ? 'mt-2' : 'mt-1'}>{cta}</div> : null}
     </div>
   )
 }

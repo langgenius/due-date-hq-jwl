@@ -6530,6 +6530,10 @@ msgstr "Import template suggestions mean AI was unavailable and the selected imp
 msgid "Import undone"
 msgstr "Import undone"
 
+#: src/routes/obligations.tsx
+msgid "Import your client book or add deadlines manually. We'll generate them automatically from the rules you activated."
+msgstr "Import your client book or add deadlines manually. We'll generate them automatically from the rules you activated."
+
 #: src/routes/migration.new.tsx
 msgid "Import your client list to generate deadlines and unlock the first Today risk view."
 msgstr "Import your client list to generate deadlines and unlock the first Today risk view."
@@ -6539,7 +6543,6 @@ msgid "Import your client list to start tracking deadlines."
 msgstr "Import your client list to start tracking deadlines."
 
 #: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
 msgid "Import your client list to start tracking filing deadlines."
 msgstr "Import your client list to start tracking filing deadlines."
 

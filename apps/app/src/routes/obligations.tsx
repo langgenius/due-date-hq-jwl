@@ -13272,8 +13272,15 @@ function ObligationQueueEmptyState({
     // icon at top + split title/description + outline CTA. Dify Blue
     // primary stays reserved for the one next action per surface, so
     // the empty-state CTA renders as a quieter secondary button.
+    // 2026-06-07 (design replication, node mWn3M): the genuinely-empty queue now
+    // owns the surface with the prominent empty state (tinted calendar-clock
+    // icon-circle + larger title + wider copy). The CTA stays a quiet outline
+    // per the "Dify Blue reserved for the one next action" decision — the canvas
+    // dark-primary button is intentionally NOT adopted. The filtered case keeps
+    // the inline default treatment (data exists, just hidden).
     <EmptyState
-      icon={CalendarDaysIcon}
+      variant={hasActiveFilters ? 'default' : 'prominent'}
+      icon={hasActiveFilters ? CalendarDaysIcon : CalendarClockIcon}
       title={
         hasActiveFilters ? (
           <Trans>No deadlines match these filters.</Trans>
@@ -13287,7 +13294,10 @@ function ObligationQueueEmptyState({
             Try a different filter combination, or clear all filters to see the full queue.
           </Trans>
         ) : (
-          <Trans>Import your client list to start tracking filing deadlines.</Trans>
+          <Trans>
+            Import your client book or add deadlines manually. We'll generate them automatically
+            from the rules you activated.
+          </Trans>
         )
       }
       cta={
