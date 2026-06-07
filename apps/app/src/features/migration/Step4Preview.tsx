@@ -78,7 +78,11 @@ export function Step4Preview({
           </p>
         </div>
         <div className="grid grid-cols-3 divide-x divide-divider-regular">
-          <HeroMetric value={clientCount} unit={<Trans>Clients</Trans>} sub={<Trans>to create</Trans>} />
+          <HeroMetric
+            value={clientCount}
+            unit={<Trans>Clients</Trans>}
+            sub={<Trans>to create</Trans>}
+          />
           <HeroMetric
             value={conflicts.length}
             unit={<Trans>Already</Trans>}

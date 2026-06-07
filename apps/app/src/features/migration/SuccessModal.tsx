@@ -286,7 +286,7 @@ function useUndoCountdown(revertibleUntil: string, open: boolean): string {
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
-    if (!open) return
+    if (!open) return undefined
     setNow(Date.now())
     const id = window.setInterval(() => setNow(Date.now()), 60_000)
     return () => window.clearInterval(id)

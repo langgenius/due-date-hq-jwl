@@ -412,10 +412,7 @@ function MappingBannerRow({
         <span className="truncate text-sm font-medium text-text-primary sm:w-[170px] sm:shrink-0">
           {row.sourceHeader}
         </span>
-        <span
-          aria-hidden
-          className="hidden w-7 shrink-0 justify-center text-text-muted sm:flex"
-        >
+        <span aria-hidden className="hidden w-7 shrink-0 justify-center text-text-muted sm:flex">
           →
         </span>
         <span className="flex min-w-0 items-center gap-2 sm:w-[200px] sm:shrink-0">

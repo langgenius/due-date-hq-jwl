@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Plural, Trans } from '@lingui/react/macro'
 import { ArrowLeftIcon, CheckCircle2Icon, FileSpreadsheetIcon, GaugeIcon } from 'lucide-react'
 import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
@@ -9,6 +10,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
+import { OnboardingSkipModal } from '@/features/migration/OnboardingSkipModal'
 import { Wizard } from '@/features/migration/Wizard'
 import { PermissionGate, useFirmPermission } from '@/features/permissions/permission-gate'
 import type { AuthUser } from '@/lib/auth'
@@ -100,21 +102,63 @@ export function MigrationNewRoute() {
 
   return (
     <HotkeysProvider>
+      <ActivationWizard
+        isOnboardingSource={isOnboardingSource}
+        onReviewRules={reviewRules}
+        ruleReviewCount={ruleReviewCount}
+        onBack={showBack ? goBack : undefined}
+        onSkipToDashboard={skipToDashboard}
+      />
+    </HotkeysProvider>
+  )
+}
+
+function ActivationWizard({
+  isOnboardingSource,
+  onReviewRules,
+  ruleReviewCount,
+  onBack,
+  onSkipToDashboard,
+}: {
+  isOnboardingSource: boolean
+  onReviewRules: () => void
+  ruleReviewCount: number
+  onBack?: (() => void) | undefined
+  onSkipToDashboard: () => void
+}) {
+  // 2026-06-07 (Cluster 3 — design iAJhJ): in the onboarding chain, "Skip
+  // for now" opens the comparison skip-confirmation modal instead of leaving
+  // immediately. Outside onboarding the wizard's own discard prompt handles
+  // the close.
+  const [skipModalOpen, setSkipModalOpen] = useState(false)
+
+  return (
+    <>
       <Wizard
         open
         variant="route"
         intro={({ onSkip }) => (
           <MigrationActivationIntro
-            onSkip={onSkip}
-            onReviewRules={reviewRules}
+            onSkip={isOnboardingSource ? () => setSkipModalOpen(true) : onSkip}
+            onReviewRules={onReviewRules}
             showRuleReviewAction={!isOnboardingSource}
             ruleReviewCount={ruleReviewCount}
-            onBack={showBack ? goBack : undefined}
+            onBack={onBack}
           />
         )}
-        onClose={skipToDashboard}
+        onClose={onSkipToDashboard}
       />
-    </HotkeysProvider>
+      {isOnboardingSource ? (
+        <OnboardingSkipModal
+          open={skipModalOpen}
+          onOpenChange={setSkipModalOpen}
+          onConfirmSkip={() => {
+            setSkipModalOpen(false)
+            onSkipToDashboard()
+          }}
+        />
+      ) : null}
+    </>
   )
 }
 

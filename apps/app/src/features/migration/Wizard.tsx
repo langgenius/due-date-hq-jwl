@@ -528,7 +528,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
         },
       },
     )
-  }, [applyMutation, duplicateHandling, i18n, navigate, resetAndClose, state.batchId, t])
+  }, [applyMutation, duplicateHandling, state.batchId, t])
 
   const handleDuplicateHandlingChange = useCallback(
     (next: DuplicateHandling) => {

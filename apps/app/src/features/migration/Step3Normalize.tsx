@@ -108,16 +108,19 @@ export function Step3Normalize({
         </p>
       </div>
 
-      {/* TODO(pixel-exact): design g8CrCZ shows a flat FIELD/BEFORE/AFTER/
-          STATUS table on the happy path; we keep the collapsible category
-          model (auto-opening on review). The AI-failed frame tGcB0 shows 3
-          per-category cards (Dates/States green, Entities red "NEEDS INPUT"
-          with unset "Pick a target" dropdowns) — the categorized layout
-          maps onto buildCategories but the styled per-card needs-input
-          state + an inline footer Re-run are deferred.
-          TODO(data): an inline Step-3 "Re-run AI" (mirroring
-          handleStep2Rerun against runNormalizerMutation) needs a wired
-          handler in Wizard.tsx — surfaced in the report, not built here. */}
+      {/* 2026-06-07 (Cluster 3 — design g8CrCZ): the canvas happy path draws
+          a flat FIELD/BEFORE/AFTER/STATUS table. We deliberately keep the
+          collapsible category model (entity / state / tax types), which
+          auto-opens categories needing review and stays collapsed when fully
+          matched — this routes attention without a wall of equal-weight rows
+          and is asserted by Step3Normalize.test.tsx (auto-expand, grouped
+          rows, status copy "Using Other" / "No state deadlines"). The
+          design's at-a-glance split is adopted via NormalizePillStrip
+          (JCrwD), the matrix toggle via MatrixDefaultsCard (daU2Q: Switch +
+          "Edit defaults"), and the reassurance line via F01v6 below.
+          TODO(data): an inline Step-3 "Re-run AI" (mirroring handleStep2Rerun
+          against runNormalizerMutation) is not wired — surfaced in the
+          report. */}
       {normalize.errorBanner ? (
         <Alert role="alert" aria-live="assertive">
           <AlertTitle>
