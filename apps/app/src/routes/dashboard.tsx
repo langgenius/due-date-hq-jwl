@@ -21,7 +21,8 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
-import { DashboardActionsList } from '@/features/dashboard/actions-list'
+import { DashboardActionsList, daysUntilDueFromAsOf } from '@/features/dashboard/actions-list'
+import { DashboardAtAGlance } from '@/features/dashboard/at-a-glance-section'
 import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
 // 2026-05-27 (Yuqi feedback round 1): import retained but commented out
 // alongside the section mount. Restore both when ChangesSinceLastSection
@@ -188,6 +189,20 @@ export function DashboardRoute() {
 
   const triageTabs = data?.triageTabs ?? []
   const facets = data?.facets
+
+  // Deadlines due today that still need work — derived from the
+  // server's topRows so the "AT A GLANCE → Today" tile counts the
+  // same rows the action list surfaces, with no extra round-trip.
+  // Filed / completed rows are excluded; those no longer "need
+  // attention before EOD."
+  const TERMINAL_STATUSES = new Set(['done', 'completed', 'paid', 'not_applicable'])
+  const dueTodayCount = data?.topRows
+    ? data.topRows.filter(
+        (row) =>
+          daysUntilDueFromAsOf(row.currentDueDate, data.asOfDate) <= 0 &&
+          !TERMINAL_STATUSES.has(row.status),
+      ).length
+    : undefined
 
   return (
     // 2026-05-25 (GitHub-density direction): page rhythm tightened
@@ -484,6 +499,18 @@ export function DashboardRoute() {
         onRefresh={() => requestBriefRefresh.mutate({ scope: briefScope })}
         refreshing={requestBriefRefresh.isPending}
         onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
+      />
+
+      {/* 2026-06-07 (Pencil bAULB — /today "AT A GLANCE" tile row):
+          four equal-width summary tiles (At risk / Today / Morning
+          sweep / Needs you) sourced from the dashboard.load summary
+          (no contract change) + the shared alerts-list cache. Sits
+          between the daily brief and the Alerts hero row, matching
+          the design's section order. */}
+      <DashboardAtAGlance
+        summary={data?.summary}
+        dueTodayCount={dueTodayCount}
+        isLoading={dashboardQuery.isLoading}
       />
 
       <NeedsAttentionSection />
