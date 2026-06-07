@@ -6,11 +6,13 @@ import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
 import {
   ArrowUpRightIcon,
+  CalendarClock,
   Check,
   ChevronRightIcon,
   Circle,
   CircleCheck,
   CircleSlash,
+  ShieldCheck,
   ExternalLinkIcon,
   LibraryIcon,
   LinkIcon,
@@ -4202,9 +4204,15 @@ function RuleDetailPanel({
           the header bg bleeds to the inner edge of the border, so
           the corners look subtly square against the rounded
           border. */}
+      {/* 2026-06-07 (Yuqi /rules detail pixel pass, Pencil DvLC9):
+          widened 640 → 960 to match the canvas rule-detail frame. The
+          content sections (header meta row, effective-date banner, body,
+          sticky footer) are restyled to the canvas; all wired data and
+          the CandidateReviewSection accept/reject/edit actions are
+          preserved. */}
       <DialogContent
         showCloseButton
-        className="flex max-h-[85vh] max-w-[640px] flex-col gap-0 overflow-hidden p-0"
+        className="flex max-h-[85vh] w-[min(960px,calc(100vw-2rem))] max-w-[960px] flex-col gap-0 overflow-hidden p-0"
       >
         {/* 2026-05-25 (Yuqi rule library fourth pass #8, #10):
             third-pass tweaks weren't enough — Yuqi still flagged
@@ -4227,6 +4235,11 @@ function RuleDetailPanel({
           </DialogTitle>
           <RuleDetailKicker rule={rule} />
         </DialogHeader>
+        {/* Effective-date banner (Pencil DvLC9 DecisionBanner) — an
+            amber callout shown when this rule's effective date is still
+            in the future, so a CPA sees a scheduled change before
+            acting. Derived from the wired `verifiedAt` date. */}
+        <RuleEffectiveBanner rule={rule} />
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           <RuleDetailInline rule={rule} />
         </div>
@@ -4241,7 +4254,14 @@ function RuleDetailPanel({
             visual zone without a competing rounded card chrome
             (`chrome="flat"` on the section). */}
         {(rule.status === 'candidate' || rule.status === 'pending_review') && (
-          <div className="shrink-0 border-t border-divider-subtle bg-background-subtle px-5 py-4">
+          <div className="flex shrink-0 flex-col gap-3 border-t border-divider-subtle bg-background-default px-5 py-4">
+            {/* Audit-ledger eyebrow (Pencil DvLC9 StickyFooter) — every
+                review decision is written to the firm audit ledger;
+                surface that reassurance next to the action buttons. */}
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-muted">
+              <ShieldCheck aria-hidden className="size-3" />
+              <Trans>Decisions are logged to the audit ledger</Trans>
+            </span>
             <CandidateReviewSection
               key={rule.id}
               rule={rule}
@@ -4273,14 +4293,16 @@ function RuleDetailKicker({ rule }: { rule: ObligationRule }) {
     // jurisdiction" instead of two parallel ones. The 2-letter
     // code text follows the SVG so the chip remains keyboard-
     // typable and the kicker reads at a glance.
+    // 2026-06-07 (Yuqi /rules detail pixel pass, Pencil DvLC9 Hero
+    // meta row): jurisdiction + impact pills lead the row, then the
+    // form/year context and the status marker. The jurisdiction is a
+    // soft-fill mono pill, the risk level an impact pill (high reads
+    // destructive, medium warning, low quiet) — matching the canvas.
     <div className="flex flex-wrap items-center gap-2 text-xs text-text-tertiary">
-      {/* 2026-05-29 (Yuqi /clients round 1 — "remove the state icon
-          everywhere"): SVG StateBadge dropped; the uppercase code
-          alone carries the jurisdiction identity in this kicker row. */}
-      <span className="inline-flex items-center text-caption-xs uppercase tracking-wider text-text-secondary">
+      <span className="inline-flex items-center rounded-full bg-background-subtle px-2.5 py-0.5 text-caption-xs font-semibold tracking-wider text-text-secondary uppercase">
         {rule.jurisdiction}
       </span>
-      <span aria-hidden>·</span>
+      <RuleImpactPill riskLevel={rule.riskLevel} />
       <span className="font-medium text-text-secondary">{rule.formName}</span>
       <span aria-hidden>·</span>
       <span className="tabular-nums">
@@ -4326,6 +4348,61 @@ function RuleStatusKicker({ status }: { status: ObligationRule['status'] }) {
         <Trans>Active</Trans>
       </span>
     </span>
+  )
+}
+
+// Impact pill for the rule-detail header meta row (Pencil DvLC9 Hero —
+// "HIGH IMPACT"). Reads the wired `riskLevel`: high → destructive tint,
+// medium → warning tint, low → quiet neutral.
+function RuleImpactPill({ riskLevel }: { riskLevel: ObligationRule['riskLevel'] }) {
+  if (riskLevel === 'high') {
+    return (
+      <span className="inline-flex items-center rounded-full bg-state-destructive-hover px-2.5 py-0.5 text-[10px] font-bold tracking-eyebrow text-text-destructive uppercase">
+        <Trans>High impact</Trans>
+      </span>
+    )
+  }
+  if (riskLevel === 'med') {
+    return (
+      <span className="inline-flex items-center rounded-full bg-state-warning-hover px-2.5 py-0.5 text-[10px] font-bold tracking-eyebrow text-text-warning uppercase">
+        <Trans>Medium impact</Trans>
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center rounded-full bg-background-subtle px-2.5 py-0.5 text-[10px] font-bold tracking-eyebrow text-text-tertiary uppercase">
+      <Trans>Low impact</Trans>
+    </span>
+  )
+}
+
+// Effective-date banner (Pencil DvLC9 DecisionBanner). Renders only when
+// the rule's effective date (`verifiedAt`) is still in the future — a
+// scheduled change the CPA should see before acting. Amber surface with a
+// destructive left rail, matching the canvas.
+function RuleEffectiveBanner({ rule }: { rule: ObligationRule }) {
+  const effective = Date.parse(rule.verifiedAt)
+  if (Number.isNaN(effective)) return null
+  const now = Date.now()
+  if (effective <= now) return null
+  const days = Math.max(1, Math.ceil((effective - now) / (24 * 60 * 60 * 1000)))
+  const effectiveLabel = new Date(effective).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+  return (
+    <div className="flex shrink-0 items-center gap-3 border-l-[3px] border-state-warning-solid bg-state-warning-hover px-5 py-3">
+      <CalendarClock aria-hidden className="size-3.5 shrink-0 text-text-warning" />
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <span className="text-[13px] font-semibold text-text-warning">
+          <Plural value={days} one="Effective in # day" other="Effective in # days" />
+        </span>
+        <span className="text-xs font-medium text-text-secondary">
+          <Trans>This change takes effect {effectiveLabel}.</Trans>
+        </span>
+      </div>
+    </div>
   )
 }
 
