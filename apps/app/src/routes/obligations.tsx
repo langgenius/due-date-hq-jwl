@@ -213,6 +213,7 @@ import {
 } from '@/features/obligations/status-control'
 import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocked-by-chip'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
+import { AnnualRolloverDialog } from '@/features/obligations/AnnualRolloverDialog'
 import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import {
   DEADLINE_DETAIL_TABS,
@@ -3498,6 +3499,10 @@ export function ObligationQueueRoute() {
               <Trans>Export</Trans>
             </Button>
             <CalendarSyncPopover />
+            {/* Pencil c7xPK — annual rollover. Net-new surface; preview
+                data + apply actions are stubbed (see AnnualRolloverDialog
+                TODO(data) flags) until the rollover contract lands. */}
+            <AnnualRolloverDialog />
             {/* 2026-05-26 (audit P0 #8 — Q1): the /deadlines queue
                 had no labeled primary CTA — the most common CPA
                 mid-day task ("I just learned client X owes a thing,
