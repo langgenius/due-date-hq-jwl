@@ -336,6 +336,11 @@ msgstr "{0, plural, other {共 # 行，我们仅读取了前 1000 行。请拆�
 msgid "{0, plural, one {You have # deadline due this week} other {You have # deadlines due this week}}"
 msgstr "{0, plural, other {您本周有 # 个截止日期到期}}"
 
+#. placeholder {0}: client.name
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "{0} — a quick update from your CPA"
+msgstr "{0} — 来自您 CPA 的快速更新"
+
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
 #. placeholder {1}: isExpanded ? 'collapse' : 'expand'
 #: src/features/rules/coverage-tab.tsx
@@ -473,6 +478,11 @@ msgstr "已发送邮件 {0} 封"
 #: src/routes/obligations.tsx
 msgid "{0} emailed · {1} not awaiting signature · {2} without an email on file"
 msgstr "已发送邮件 {0} 封 · {1} 个未在等待签名 · {2} 个无存档邮箱"
+
+#. placeholder {0}: day.events.length
+#: src/features/audit/audit-log-table.tsx
+msgid "{0} events"
+msgstr "{0} 个事件"
 
 #. placeholder {0}: group.extendedCount
 #: src/features/clients/ClientWorkPlanPanel.tsx
@@ -1247,6 +1257,10 @@ msgstr "© {0} DueDateHQ Inc."
 msgid "← Upload a file instead"
 msgstr "上传文件"
 
+#: src/components/patterns/bulk-confirm-dialog.tsx
+msgid "+ {remaining} more"
+msgstr "+ 另外 {remaining} 个"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "+ Add file"
 msgstr "+ 添加文件"
@@ -1549,6 +1563,11 @@ msgstr "接受后，此规则会针对 {0} 的 {entitySummary} 客户申报启�
 msgid "Accepting rule…"
 msgstr "正在接受规则…"
 
+#: src/features/audit/audit-log-page.tsx
+#: src/features/audit/audit-log-table.tsx
+msgid "Access"
+msgstr "访问"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Access denied"
 msgstr "访问被拒绝"
@@ -1584,7 +1603,6 @@ msgstr "今天就处理，否则可能错过截止日期"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/audit/audit-log-table.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Action"
 msgstr "操作"
@@ -1725,7 +1743,6 @@ msgstr "活动摘要"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/audit/audit-log-table.tsx
 msgid "Actor"
 msgstr "执行人"
 
@@ -1756,6 +1773,10 @@ msgstr "请添加审核说明后重试。"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Add a state to at least one client before running deadline preview."
 msgstr "运行截止事项预览前，请至少为一个客户添加州。"
+
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Add a subject"
+msgstr "添加主题"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -2167,6 +2188,7 @@ msgstr "提醒归档"
 msgid "all"
 msgstr "全部"
 
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/rules/sources-tab.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
@@ -2326,6 +2348,14 @@ msgstr "已在您的客户列表中"
 #: src/features/migration/Step1Intake.tsx
 msgid "Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid."
 msgstr "备选路径：在 Return Manager 中将 Quick Search 过滤器设为 All 并运行，然后使用 Home > Export Grid。"
+
+#: src/features/audit/audit-log-table.tsx
+msgid "Amendment"
+msgstr "修正"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Amendments"
+msgstr "修正"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "An active practice rule supports this deadline."
@@ -2608,6 +2638,11 @@ msgstr "存在风险"
 msgid "Attach the source document"
 msgstr "附上来源文档"
 
+#. placeholder {0}: attachments.length
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Attachments · {0}"
+msgstr "附件 · {0}"
+
 #. placeholder {0}: result.auditId.slice(0, 8)
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -2627,6 +2662,10 @@ msgstr "审计访问受角色限制"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Audit detail"
 msgstr "审计详情"
+
+#: src/features/audit/audit-log-table.tsx
+msgid "Audit event timeline"
+msgstr "审计事件时间线"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Audit evidence package"
@@ -2705,6 +2744,10 @@ msgstr "客户、规则、状态与团队变更的审计追踪。"
 msgid "Auth"
 msgstr "认证"
 
+#: src/features/audit/audit-log-page.tsx
+msgid "auth / export"
+msgstr "认证 / 导出"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Authentication"
 msgstr "认证"
@@ -2781,6 +2824,10 @@ msgstr "Auto-mapped · {pct}%"
 #: src/features/migration/Step3Normalize.tsx
 msgid "Auto-normalized · {autoNormalized}"
 msgstr "自动规范化 · {autoNormalized}"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "automated + decisions"
+msgstr "自动化 + 决策"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Automatic field matching is unavailable. We used the selected import template and kept the import draft editable."
@@ -3208,6 +3255,7 @@ msgid "Calendar year"
 msgstr "日历年"
 
 #: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/bulk-confirm-dialog.tsx
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AffectedClientsTable.tsx
 #: src/features/calendar/calendar-page.tsx
@@ -3283,7 +3331,10 @@ msgstr "记录背景、敏感事项或历史…"
 msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "卡号和发票支付详情不会进入应用数据库。"
 
-#: src/features/audit/audit-log-table.tsx
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Cc · Bcc"
+msgstr "抄送 · 密送"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/routes/settings.profile.tsx
 msgid "Change"
@@ -3613,6 +3664,7 @@ msgstr "点击刷新"
 msgid "client"
 msgstr "客户"
 
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/components/AffectedClientsTable.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/audit/audit-log-page.tsx
@@ -3846,8 +3898,13 @@ msgstr "待创建的客户"
 msgid "Clients with the most due-soon weight"
 msgstr "即将到期权重最高的客户"
 
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "close"
+msgstr "关闭"
+
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/ClientNotesPanel.tsx
+#: src/features/clients/EmailComposeDialog.tsx
 #: src/features/clients/FixNeedsFactsSheet.tsx
 #: src/features/migration/WizardShell.tsx
 #: src/features/obligations/AnnualRolloverDialog.tsx
@@ -3972,6 +4029,14 @@ msgstr "合规状态"
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "compliant"
 msgstr "合规"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Compose email"
+msgstr "撰写邮件"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Compose email to {name}"
+msgstr "撰写邮件给 {name}"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "conf {confidencePct}%"
@@ -4132,6 +4197,10 @@ msgstr "请联系您的注册会计师以获取新链接。他们可以从工作
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "CONTACTS"
 msgstr "联系人"
+
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Context"
+msgstr "上下文"
 
 #: src/features/clients/ClientNotesPanel.tsx
 msgid "Context the next preparer should read first — preferred call window, sensitivities, history. Travels with the client across all surfaces."
@@ -5291,6 +5360,10 @@ msgstr "为所选截止日期确定延期"
 msgid "Decide extensions"
 msgstr "确定延期"
 
+#: src/features/audit/audit-log-table.tsx
+msgid "Decision"
+msgstr "决策"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -5388,10 +5461,6 @@ msgstr "取消选中"
 msgid "Deselect document {0}"
 msgstr "取消选中文件 {0}"
 
-#: src/features/audit/audit-log-table.tsx
-msgid "Detail"
-msgstr "详情"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Details updated"
 msgstr "详情已更新"
@@ -5441,6 +5510,7 @@ msgstr "停用后会提交这些更改"
 msgid "Disabling…"
 msgstr "正在停用…"
 
+#: src/features/clients/EmailComposeDialog.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/routes/settings.permissions.tsx
 msgid "Discard"
@@ -5473,6 +5543,10 @@ msgstr "放弃此草稿将提交这些更改"
 msgid "Dismiss"
 msgstr "忽略"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Dismiss {selectedCount} alerts?"
+msgstr "忽略 {selectedCount} 条提醒？"
+
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Dismiss alert"
 msgstr "关闭提醒"
@@ -5480,6 +5554,10 @@ msgstr "关闭提醒"
 #: src/features/alerts/components/PulseAlertActionsRow.tsx
 msgid "Dismiss alert: {alertTitle}"
 msgstr "忽略提醒：{alertTitle}"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Dismiss alerts"
+msgstr "忽略提醒"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/AlertCard.tsx
@@ -5499,6 +5577,10 @@ msgstr "已忽略 {0} 条 · {1} 条无法忽略"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Dismissed {0} alerts"
 msgstr "已忽略 {0} 条提醒"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Dismissed alerts move off the active board into history. You can reopen them from the History tab."
+msgstr "已忽略的提醒将从活动看板移至历史记录。您可以从历史记录标签页重新打开它们。"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "dispatch"
@@ -6045,10 +6127,6 @@ msgstr "请输入有效的邮箱地址"
 msgid "Enter below"
 msgstr "在下方输入"
 
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Enter execute · Esc close · {commandShortcut} toggle"
-msgstr "Enter 执行 · Esc 关闭 · {commandShortcut} 切换"
-
 #: src/routes/practice.tsx
 msgid "Enter filed returns into the signature loop"
 msgstr "将已申报的报税表纳入签字流程"
@@ -6104,7 +6182,6 @@ msgstr "实体"
 
 #: src/features/alerts/components/PulseRelevanceMatrix.tsx
 #: src/features/audit/audit-event-drawer.tsx
-#: src/features/audit/audit-log-table.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Entity"
 msgstr "实体"
@@ -6648,6 +6725,10 @@ msgstr "文件上传即将推出"
 msgid "Filed"
 msgstr "已申报"
 
+#: src/features/audit/audit-log-page.tsx
+msgid "filed / e-file"
+msgstr "已申报 / 电子申报"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Filed by"
 msgstr "申报人"
@@ -6692,6 +6773,7 @@ msgstr "文件"
 msgid "Files"
 msgstr "文件"
 
+#: src/features/audit/audit-log-table.tsx
 #: src/routes/obligations.tsx
 msgid "Filing"
 msgstr "申报"
@@ -6774,6 +6856,10 @@ msgstr "申报年度"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Filing year end"
 msgstr "申报年度结束"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Filings"
+msgstr "申报"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Filter by alert status"
@@ -7174,6 +7260,10 @@ msgstr "正在生成截止事项…"
 msgid "Generating…"
 msgstr "正在生成…"
 
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Global search · {commandShortcut}"
+msgstr "全局搜索 · {commandShortcut}"
+
 #: src/routes/not-found.tsx
 msgid "Go back"
 msgstr "返回"
@@ -7503,6 +7593,10 @@ msgstr "导入客户需要 {0} 权限。"
 msgid "Importing…"
 msgstr "正在导入…"
 
+#: src/features/audit/audit-log-page.tsx
+msgid "in current view"
+msgstr "在当前视图中"
+
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "In force today"
 msgstr "今日生效"
@@ -7593,6 +7687,7 @@ msgstr "已向 {latestInputRequestRecipient} 请求输入：{0}"
 msgid "Input tokens"
 msgstr "Input tokens"
 
+#: src/features/clients/EmailComposeDialog.tsx
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Insert variable"
 msgstr "插入变量"
@@ -8033,6 +8128,10 @@ msgstr "仅链接"
 #: src/routes/readiness.tsx
 msgid "Link unavailable"
 msgstr "链接不可用"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Linked to"
+msgstr "关联至"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "List"
@@ -8700,6 +8799,10 @@ msgstr "合并或重组"
 msgid "Message"
 msgstr "消息"
 
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Message body"
+msgstr "邮件正文"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Message body changed"
 msgstr "消息正文已更改"
@@ -8948,16 +9051,8 @@ msgid "National policy watch"
 msgstr "全国政策监测"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Navigate"
+msgid "navigate"
 msgstr "导航"
-
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Navigate."
-msgstr "导航。"
-
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Navigate…"
-msgstr "导航…"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "need attention"
@@ -9125,6 +9220,10 @@ msgstr "新截止日"
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "New form version"
 msgstr "新表单版本"
+
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "New message"
+msgstr "新邮件"
 
 #: src/routes/rules.library.tsx
 msgid "New rule"
@@ -9366,10 +9465,6 @@ msgstr "还没有客户"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No closed source-year deadlines matched this rollover preview."
 msgstr "本次结转预览未匹配到已关闭的源年度截止日期。"
-
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "No commands found."
-msgstr "未找到命令。"
 
 #: src/features/alerts/components/AlertReadinessStatus.tsx
 msgid "No current match"
@@ -9627,6 +9722,10 @@ msgstr "无替代分配或记录"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "No replacement client or deadline records"
 msgstr "无替代客户或截止事项记录"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "No results found."
+msgstr "未找到结果。"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -10108,6 +10207,10 @@ msgstr "只有事务所负责人可以导出审计证据包。"
 #: src/routes/billing.checkout.tsx
 msgid "Only the practice owner can start or change a subscription."
 msgstr "只有当前事务所 Owner 可以创建或变更订阅。"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "open"
+msgstr "打开"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AlertCard.tsx
@@ -10659,6 +10762,10 @@ msgstr "第 {pageNumber} 页，共 {pageCount} 页"
 #: src/routes/not-found.tsx
 msgid "Page not found"
 msgstr "未找到页面"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Pages"
+msgstr "页面"
 
 #: src/features/obligations/status-control.tsx
 msgid "Paid"
@@ -12611,6 +12718,10 @@ msgstr "已撤销"
 msgid "Revoking…"
 msgstr "正在撤销…"
 
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Rich-text formatting isn't available yet."
+msgstr "富文本格式尚不可用。"
+
 #: src/features/concepts/concept-help.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Risk"
@@ -12855,6 +12966,7 @@ msgid "Rule watch"
 msgstr "规则监控"
 
 #: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
@@ -12978,6 +13090,10 @@ msgstr "每年省 $96"
 #: src/routes/billing.tsx
 msgid "Save about 20%"
 msgstr "约省 20%"
+
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Save as draft"
+msgstr "保存为草稿"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -13122,6 +13238,10 @@ msgstr "扫描二维码"
 msgid "Scanned {0} filed returns."
 msgstr "已扫描 {0} 份已申报的报税表。"
 
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Schedule send"
+msgstr "定时发送"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Schedule the payment with the authority"
@@ -13174,6 +13294,14 @@ msgstr "按操作者、实体、操作或原因搜索——或按时间范围、
 #: src/routes/obligations.tsx
 msgid "Search clients"
 msgstr "搜索客户"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Search clients and navigate."
+msgstr "搜索客户并导航。"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Search clients, navigate…"
+msgstr "搜索客户、导航…"
 
 #: src/features/clients/ClientCombobox.tsx
 #: src/features/clients/ClientTitleSwitcher.tsx
@@ -13409,6 +13537,10 @@ msgstr "选择税年、截止事项类别、司法管辖区、表单以及是否
 msgid "Select visible batch-ready rules"
 msgstr "选择可见的可批量规则"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Selected ({selectedCount})"
+msgstr "已选择（{selectedCount}）"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Selected deadline"
 msgstr "已选截止事项"
@@ -13462,6 +13594,10 @@ msgstr "发送时间"
 msgid "Send invite"
 msgstr "发送邀请"
 
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Send now"
+msgstr "立即发送"
+
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Send preview now"
 msgstr "立即发送预览"
@@ -13501,6 +13637,10 @@ msgstr "发送给客户"
 #: src/routes/obligations.tsx
 msgid "Send to review"
 msgstr "送交复核"
+
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Sending isn't available yet — no email backend is wired."
+msgstr "发送功能尚不可用 — 未接入邮件后端。"
 
 #. placeholder {0}: bulkQuery.data?.skippedCount ?? 0
 #. placeholder {1}: bulkQuery.data?.noEmailCount ?? 0
@@ -14310,6 +14450,7 @@ msgstr "仍在等待确认"
 msgid "Stops"
 msgstr "停止"
 
+#: src/features/clients/EmailComposeDialog.tsx
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/obligations.tsx
@@ -15106,6 +15247,10 @@ msgstr "这看起来像 UltraTax CS 客户数据文件。请导出 Client Listin
 msgid "This member is no longer on the team"
 msgstr "此成员已不在团队中"
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "This message is sent via DueDateHQ and logged to the audit ledger."
+msgstr "此邮件通过 DueDateHQ 发送并记录到审计台账。"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "This obligation type has no fixed extension length — enter the extended filing deadline."
@@ -15206,10 +15351,6 @@ msgstr "此模板用于 Materials 发送 checklist 收集请求。变量：clien
 msgid "This week"
 msgstr "本周"
 
-#: src/features/audit/audit-log-table.tsx
-msgid "Time"
-msgstr "时间"
-
 #: src/routes/settings.profile.tsx
 msgid "Time format"
 msgstr "时间格式"
@@ -15238,6 +15379,10 @@ msgstr "时区"
 msgid "Title"
 msgstr "标题"
 
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "To"
+msgstr "收件人"
+
 #: src/features/migration/Step4Preview.tsx
 msgid "to create"
 msgstr "待创建"
@@ -15256,6 +15401,7 @@ msgstr "今天"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/audit/audit-log-table.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/at-a-glance-section.tsx
 #: src/features/obligations/deadlines-at-a-glance.tsx
@@ -15298,6 +15444,10 @@ msgstr "合计"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "TOTAL CLIENTS"
 msgstr "客户总数"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Total loaded"
+msgstr "已加载总数"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"
@@ -15436,6 +15586,10 @@ msgstr "类型"
 #: src/routes/practice.tsx
 msgid "Type <0>{0}</0> to confirm"
 msgstr "Type <0>{0}</0> to confirm"
+
+#: src/components/patterns/bulk-confirm-dialog.tsx
+msgid "Type <0>{confirmPhrase}</0> to confirm"
+msgstr "输入 <0>{confirmPhrase}</0> 以确认"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "UI wage report count"
@@ -15790,6 +15944,10 @@ msgstr "按 Other 导入"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "UTC time"
 msgstr "UTC 时间"
+
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Variable insertion isn't available yet."
+msgstr "变量插入尚不可用。"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Variables: client_name, tax_type, due_date, offset_days, obligation_url, and unsubscribe_url."
@@ -16244,6 +16402,10 @@ msgstr "将更新"
 msgid "Window"
 msgstr "窗口"
 
+#: src/features/audit/audit-log-page.tsx
+msgid "with reason"
+msgstr "附原因"
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "Withholding report count"
 msgstr "预扣税报告数量"
@@ -16302,6 +16464,10 @@ msgstr "工作区事件历史与导出"
 msgid "Workspace settings"
 msgstr "工作区设置"
 
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Write your message…"
+msgstr "撰写您的邮件…"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "XLS or DIF"
 msgstr "XLS 或 DIF"
@@ -16338,6 +16504,10 @@ msgstr "是"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Yes / no"
 msgstr "Yes / no"
+
+#: src/features/audit/audit-log-table.tsx
+msgid "Yesterday"
+msgstr "昨天"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "YESTERDAY"

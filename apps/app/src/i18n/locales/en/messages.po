@@ -333,6 +333,11 @@ msgstr "{0, plural, one {We imported the first 1000 of # row. Split your file to
 msgid "{0, plural, one {You have # deadline due this week} other {You have # deadlines due this week}}"
 msgstr "{0, plural, one {You have # deadline due this week} other {You have # deadlines due this week}}"
 
+#. placeholder {0}: client.name
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "{0} — a quick update from your CPA"
+msgstr "{0} — a quick update from your CPA"
+
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
 #. placeholder {1}: isExpanded ? 'collapse' : 'expand'
 #: src/features/rules/coverage-tab.tsx
@@ -469,6 +474,11 @@ msgstr "{0} emailed"
 #: src/routes/obligations.tsx
 msgid "{0} emailed · {1} not awaiting signature · {2} without an email on file"
 msgstr "{0} emailed · {1} not awaiting signature · {2} without an email on file"
+
+#. placeholder {0}: day.events.length
+#: src/features/audit/audit-log-table.tsx
+msgid "{0} events"
+msgstr "{0} events"
 
 #. placeholder {0}: group.extendedCount
 #: src/features/clients/ClientWorkPlanPanel.tsx
@@ -1228,6 +1238,10 @@ msgstr "© {0} DueDateHQ Inc."
 msgid "← Upload a file instead"
 msgstr "← Upload a file instead"
 
+#: src/components/patterns/bulk-confirm-dialog.tsx
+msgid "+ {remaining} more"
+msgstr "+ {remaining} more"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "+ Add file"
 msgstr "+ Add file"
@@ -1528,6 +1542,11 @@ msgstr "Accepting activates this rule for client filings in {0} for {entitySumma
 msgid "Accepting rule…"
 msgstr "Accepting rule…"
 
+#: src/features/audit/audit-log-page.tsx
+#: src/features/audit/audit-log-table.tsx
+msgid "Access"
+msgstr "Access"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Access denied"
 msgstr "Access denied"
@@ -1563,7 +1582,6 @@ msgstr "Act today or risk missing the deadline"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/audit/audit-log-table.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Action"
 msgstr "Action"
@@ -1702,7 +1720,6 @@ msgstr "Activity summary"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-page.tsx
-#: src/features/audit/audit-log-table.tsx
 msgid "Actor"
 msgstr "Actor"
 
@@ -1731,6 +1748,10 @@ msgstr "Add a review note and try again."
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Add a state to at least one client before running deadline preview."
 msgstr "Add a state to at least one client before running deadline preview."
+
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Add a subject"
+msgstr "Add a subject"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -2141,6 +2162,7 @@ msgstr "Alerts archive"
 msgid "all"
 msgstr "all"
 
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/rules/sources-tab.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
@@ -2299,6 +2321,14 @@ msgstr "Already in your client list"
 #: src/features/migration/Step1Intake.tsx
 msgid "Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid."
 msgstr "Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid."
+
+#: src/features/audit/audit-log-table.tsx
+msgid "Amendment"
+msgstr "Amendment"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Amendments"
+msgstr "Amendments"
 
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "An active practice rule supports this deadline."
@@ -2580,6 +2610,11 @@ msgstr "AT RISK"
 msgid "Attach the source document"
 msgstr "Attach the source document"
 
+#. placeholder {0}: attachments.length
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Attachments · {0}"
+msgstr "Attachments · {0}"
+
 #. placeholder {0}: result.auditId.slice(0, 8)
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -2599,6 +2634,10 @@ msgstr "Audit access is role-gated"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Audit detail"
 msgstr "Audit detail"
+
+#: src/features/audit/audit-log-table.tsx
+msgid "Audit event timeline"
+msgstr "Audit event timeline"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Audit evidence package"
@@ -2677,6 +2716,10 @@ msgstr "Audit trail for client, rule, status, and team changes."
 msgid "Auth"
 msgstr "Auth"
 
+#: src/features/audit/audit-log-page.tsx
+msgid "auth / export"
+msgstr "auth / export"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Authentication"
 msgstr "Authentication"
@@ -2753,6 +2796,10 @@ msgstr "Auto-mapped · {pct}%"
 #: src/features/migration/Step3Normalize.tsx
 msgid "Auto-normalized · {autoNormalized}"
 msgstr "Auto-normalized · {autoNormalized}"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "automated + decisions"
+msgstr "automated + decisions"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Automatic field matching is unavailable. We used the selected import template and kept the import draft editable."
@@ -3179,6 +3226,7 @@ msgid "Calendar year"
 msgstr "Calendar year"
 
 #: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/bulk-confirm-dialog.tsx
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AffectedClientsTable.tsx
 #: src/features/calendar/calendar-page.tsx
@@ -3253,7 +3301,10 @@ msgstr "Capture context, sensitivities, or history…"
 msgid "Card numbers and invoice payment details never enter the app database."
 msgstr "Card numbers and invoice payment details never enter the app database."
 
-#: src/features/audit/audit-log-table.tsx
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Cc · Bcc"
+msgstr "Cc · Bcc"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/routes/settings.profile.tsx
 msgid "Change"
@@ -3580,6 +3631,7 @@ msgstr "Click to refresh"
 msgid "client"
 msgstr "client"
 
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/components/AffectedClientsTable.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/audit/audit-log-page.tsx
@@ -3812,8 +3864,13 @@ msgstr "Clients to create"
 msgid "Clients with the most due-soon weight"
 msgstr "Clients with the most due-soon weight"
 
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "close"
+msgstr "close"
+
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/ClientNotesPanel.tsx
+#: src/features/clients/EmailComposeDialog.tsx
 #: src/features/clients/FixNeedsFactsSheet.tsx
 #: src/features/migration/WizardShell.tsx
 #: src/features/obligations/AnnualRolloverDialog.tsx
@@ -3937,6 +3994,14 @@ msgstr "Compliance posture"
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "compliant"
 msgstr "compliant"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Compose email"
+msgstr "Compose email"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Compose email to {name}"
+msgstr "Compose email to {name}"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "conf {confidencePct}%"
@@ -4095,6 +4160,10 @@ msgstr "Contact your CPA to request a new link. They can re-send the readiness c
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "CONTACTS"
 msgstr "CONTACTS"
+
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Context"
+msgstr "Context"
 
 #: src/features/clients/ClientNotesPanel.tsx
 msgid "Context the next preparer should read first — preferred call window, sensitivities, history. Travels with the client across all surfaces."
@@ -5249,6 +5318,10 @@ msgstr "Decide extension for selected deadlines"
 msgid "Decide extensions"
 msgstr "Decide extensions"
 
+#: src/features/audit/audit-log-table.tsx
+msgid "Decision"
+msgstr "Decision"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -5344,10 +5417,6 @@ msgstr "Deselect"
 msgid "Deselect document {0}"
 msgstr "Deselect document {0}"
 
-#: src/features/audit/audit-log-table.tsx
-msgid "Detail"
-msgstr "Detail"
-
 #: src/features/audit/audit-log-labels.ts
 msgid "Details updated"
 msgstr "Details updated"
@@ -5397,6 +5466,7 @@ msgstr "Disabling commits these changes"
 msgid "Disabling…"
 msgstr "Disabling…"
 
+#: src/features/clients/EmailComposeDialog.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/routes/settings.permissions.tsx
 msgid "Discard"
@@ -5429,6 +5499,10 @@ msgstr "Discarding this draft will commit these changes"
 msgid "Dismiss"
 msgstr "Dismiss"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Dismiss {selectedCount} alerts?"
+msgstr "Dismiss {selectedCount} alerts?"
+
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Dismiss alert"
 msgstr "Dismiss alert"
@@ -5436,6 +5510,10 @@ msgstr "Dismiss alert"
 #: src/features/alerts/components/PulseAlertActionsRow.tsx
 msgid "Dismiss alert: {alertTitle}"
 msgstr "Dismiss alert: {alertTitle}"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Dismiss alerts"
+msgstr "Dismiss alerts"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/AlertCard.tsx
@@ -5455,6 +5533,10 @@ msgstr "Dismissed {0} · {1} couldn't be dismissed"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Dismissed {0} alerts"
 msgstr "Dismissed {0} alerts"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Dismissed alerts move off the active board into history. You can reopen them from the History tab."
+msgstr "Dismissed alerts move off the active board into history. You can reopen them from the History tab."
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "dispatch"
@@ -6001,10 +6083,6 @@ msgstr "Enter a valid email address"
 msgid "Enter below"
 msgstr "Enter below"
 
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Enter execute · Esc close · {commandShortcut} toggle"
-msgstr "Enter execute · Esc close · {commandShortcut} toggle"
-
 #: src/routes/practice.tsx
 msgid "Enter filed returns into the signature loop"
 msgstr "Enter filed returns into the signature loop"
@@ -6060,7 +6138,6 @@ msgstr "Entities"
 
 #: src/features/alerts/components/PulseRelevanceMatrix.tsx
 #: src/features/audit/audit-event-drawer.tsx
-#: src/features/audit/audit-log-table.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Entity"
 msgstr "Entity"
@@ -6602,6 +6679,10 @@ msgstr "File upload is coming soon"
 msgid "Filed"
 msgstr "Filed"
 
+#: src/features/audit/audit-log-page.tsx
+msgid "filed / e-file"
+msgstr "filed / e-file"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Filed by"
 msgstr "Filed by"
@@ -6646,6 +6727,7 @@ msgstr "files"
 msgid "Files"
 msgstr "Files"
 
+#: src/features/audit/audit-log-table.tsx
 #: src/routes/obligations.tsx
 msgid "Filing"
 msgstr "Filing"
@@ -6728,6 +6810,10 @@ msgstr "Filing year"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Filing year end"
 msgstr "Filing year end"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Filings"
+msgstr "Filings"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Filter by alert status"
@@ -7123,6 +7209,10 @@ msgstr "Generating deadlines…"
 msgid "Generating…"
 msgstr "Generating…"
 
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Global search · {commandShortcut}"
+msgstr "Global search · {commandShortcut}"
+
 #: src/routes/not-found.tsx
 msgid "Go back"
 msgstr "Go back"
@@ -7450,6 +7540,10 @@ msgstr "Importing clients requires {0} access."
 msgid "Importing…"
 msgstr "Importing…"
 
+#: src/features/audit/audit-log-page.tsx
+msgid "in current view"
+msgstr "in current view"
+
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "In force today"
 msgstr "In force today"
@@ -7540,6 +7634,7 @@ msgstr "Input requested from {latestInputRequestRecipient} on {0}"
 msgid "Input tokens"
 msgstr "Input tokens"
 
+#: src/features/clients/EmailComposeDialog.tsx
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Insert variable"
 msgstr "Insert variable"
@@ -7978,6 +8073,10 @@ msgstr "Link only"
 #: src/routes/readiness.tsx
 msgid "Link unavailable"
 msgstr "Link unavailable"
+
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "Linked to"
+msgstr "Linked to"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "List"
@@ -8637,6 +8736,10 @@ msgstr "Merger or reorganization"
 msgid "Message"
 msgstr "Message"
 
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Message body"
+msgstr "Message body"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Message body changed"
 msgstr "Message body changed"
@@ -8885,16 +8988,8 @@ msgid "National policy watch"
 msgstr "National policy watch"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Navigate"
-msgstr "Navigate"
-
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Navigate."
-msgstr "Navigate."
-
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "Navigate…"
-msgstr "Navigate…"
+msgid "navigate"
+msgstr "navigate"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "need attention"
@@ -9061,6 +9156,10 @@ msgstr "New due date"
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "New form version"
 msgstr "New form version"
+
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "New message"
+msgstr "New message"
 
 #: src/routes/rules.library.tsx
 msgid "New rule"
@@ -9302,10 +9401,6 @@ msgstr "No clients yet"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No closed source-year deadlines matched this rollover preview."
 msgstr "No closed source-year deadlines matched this rollover preview."
-
-#: src/components/patterns/keyboard-shell/CommandPalette.tsx
-msgid "No commands found."
-msgstr "No commands found."
 
 #: src/features/alerts/components/AlertReadinessStatus.tsx
 msgid "No current match"
@@ -9561,6 +9656,10 @@ msgstr "No replacement assignments or records"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "No replacement client or deadline records"
 msgstr "No replacement client or deadline records"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "No results found."
+msgstr "No results found."
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -10035,6 +10134,10 @@ msgstr "Only the practice owner can export audit evidence packages."
 #: src/routes/billing.checkout.tsx
 msgid "Only the practice owner can start or change a subscription."
 msgstr "Only the practice owner can start or change a subscription."
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "open"
+msgstr "open"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AlertCard.tsx
@@ -10582,6 +10685,10 @@ msgstr "Page {pageNumber} of {pageCount}"
 #: src/routes/not-found.tsx
 msgid "Page not found"
 msgstr "Page not found"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Pages"
+msgstr "Pages"
 
 #: src/features/obligations/status-control.tsx
 msgid "Paid"
@@ -12516,6 +12623,10 @@ msgstr "Revoked"
 msgid "Revoking…"
 msgstr "Revoking…"
 
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Rich-text formatting isn't available yet."
+msgstr "Rich-text formatting isn't available yet."
+
 #: src/features/concepts/concept-help.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Risk"
@@ -12760,6 +12871,7 @@ msgid "Rule watch"
 msgstr "Rule watch"
 
 #: src/components/patterns/app-shell-nav.tsx
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
@@ -12882,6 +12994,10 @@ msgstr "Save $96/year"
 #: src/routes/billing.tsx
 msgid "Save about 20%"
 msgstr "Save about 20%"
+
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Save as draft"
+msgstr "Save as draft"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -13025,6 +13141,10 @@ msgstr "Scan the QR code"
 msgid "Scanned {0} filed returns."
 msgstr "Scanned {0} filed returns."
 
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Schedule send"
+msgstr "Schedule send"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Schedule the payment with the authority"
@@ -13077,6 +13197,14 @@ msgstr "Search by actor, entity, action, or reason — or narrow by time range, 
 #: src/routes/obligations.tsx
 msgid "Search clients"
 msgstr "Search clients"
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Search clients and navigate."
+msgstr "Search clients and navigate."
+
+#: src/components/patterns/keyboard-shell/CommandPalette.tsx
+msgid "Search clients, navigate…"
+msgstr "Search clients, navigate…"
 
 #: src/features/clients/ClientCombobox.tsx
 #: src/features/clients/ClientTitleSwitcher.tsx
@@ -13309,6 +13437,10 @@ msgstr "Select the tax year, deadline category, jurisdiction, forms, and whether
 msgid "Select visible batch-ready rules"
 msgstr "Select visible batch-ready rules"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Selected ({selectedCount})"
+msgstr "Selected ({selectedCount})"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Selected deadline"
 msgstr "Selected deadline"
@@ -13362,6 +13494,10 @@ msgstr "Send hour"
 msgid "Send invite"
 msgstr "Send invite"
 
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Send now"
+msgstr "Send now"
+
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Send preview now"
 msgstr "Send preview now"
@@ -13401,6 +13537,10 @@ msgstr "Send to client"
 #: src/routes/obligations.tsx
 msgid "Send to review"
 msgstr "Send to review"
+
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Sending isn't available yet — no email backend is wired."
+msgstr "Sending isn't available yet — no email backend is wired."
 
 #. placeholder {0}: bulkQuery.data?.skippedCount ?? 0
 #. placeholder {1}: bulkQuery.data?.noEmailCount ?? 0
@@ -14206,6 +14346,7 @@ msgstr "Still waiting on confirmation"
 msgid "Stops"
 msgstr "Stops"
 
+#: src/features/clients/EmailComposeDialog.tsx
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/obligations.tsx
@@ -15000,6 +15141,10 @@ msgstr "This looks like an UltraTax CS client data file. Export a Client Listing
 msgid "This member is no longer on the team"
 msgstr "This member is no longer on the team"
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "This message is sent via DueDateHQ and logged to the audit ledger."
+msgstr "This message is sent via DueDateHQ and logged to the audit ledger."
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "This obligation type has no fixed extension length — enter the extended filing deadline."
@@ -15100,10 +15245,6 @@ msgstr "This template is used when Materials sends a checklist collection reques
 msgid "This week"
 msgstr "This week"
 
-#: src/features/audit/audit-log-table.tsx
-msgid "Time"
-msgstr "Time"
-
 #: src/routes/settings.profile.tsx
 msgid "Time format"
 msgstr "Time format"
@@ -15132,6 +15273,10 @@ msgstr "Timezone"
 msgid "Title"
 msgstr "Title"
 
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "To"
+msgstr "To"
+
 #: src/features/migration/Step4Preview.tsx
 msgid "to create"
 msgstr "to create"
@@ -15150,6 +15295,7 @@ msgstr "today"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/audit/audit-log-table.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/at-a-glance-section.tsx
 #: src/features/obligations/deadlines-at-a-glance.tsx
@@ -15192,6 +15338,10 @@ msgstr "Total"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "TOTAL CLIENTS"
 msgstr "TOTAL CLIENTS"
+
+#: src/features/audit/audit-log-page.tsx
+msgid "Total loaded"
+msgstr "Total loaded"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"
@@ -15329,6 +15479,10 @@ msgstr "TYPE"
 #: src/routes/practice.tsx
 msgid "Type <0>{0}</0> to confirm"
 msgstr "Type <0>{0}</0> to confirm"
+
+#: src/components/patterns/bulk-confirm-dialog.tsx
+msgid "Type <0>{confirmPhrase}</0> to confirm"
+msgstr "Type <0>{confirmPhrase}</0> to confirm"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "UI wage report count"
@@ -15681,6 +15835,10 @@ msgstr "Using Other"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "UTC time"
 msgstr "UTC time"
+
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Variable insertion isn't available yet."
+msgstr "Variable insertion isn't available yet."
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Variables: client_name, tax_type, due_date, offset_days, obligation_url, and unsubscribe_url."
@@ -16132,6 +16290,10 @@ msgstr "Will update"
 msgid "Window"
 msgstr "Window"
 
+#: src/features/audit/audit-log-page.tsx
+msgid "with reason"
+msgstr "with reason"
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "Withholding report count"
 msgstr "Withholding report count"
@@ -16190,6 +16352,10 @@ msgstr "Workspace event history and exports"
 msgid "Workspace settings"
 msgstr "Workspace settings"
 
+#: src/features/clients/EmailComposeDialog.tsx
+msgid "Write your message…"
+msgstr "Write your message…"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "XLS or DIF"
 msgstr "XLS or DIF"
@@ -16226,6 +16392,10 @@ msgstr "Yes"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Yes / no"
 msgstr "Yes / no"
+
+#: src/features/audit/audit-log-table.tsx
+msgid "Yesterday"
+msgstr "Yesterday"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "YESTERDAY"
