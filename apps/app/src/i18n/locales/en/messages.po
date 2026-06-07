@@ -13,6 +13,10 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "· anchor point"
+msgstr "· anchor point"
+
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "· current tax year"
 msgstr "· current tax year"
@@ -21,6 +25,10 @@ msgstr "· current tax year"
 #: src/routes/obligations.tsx
 msgid "· firm-set deadline for this materials request"
 msgstr "· firm-set deadline for this materials request"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "· how often this fires"
+msgstr "· how often this fires"
 
 #. placeholder {0}: formatDatePretty(latestRequest.firstOpenedAt.slice(0, 10))
 #. placeholder {0}: formatDatePretty(request.firstOpenedAt.slice(0, 10))
@@ -37,6 +45,14 @@ msgstr "· projected"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "· responded {0}"
 msgstr "· responded {0}"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "· shown in inbox previews"
+msgstr "· shown in inbox previews"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "· supports markdown"
+msgstr "· supports markdown"
 
 #: src/routes/rules.library.tsx
 msgid "({gapCount} jurisdiction missing a rule)"
@@ -1189,6 +1205,10 @@ msgstr "{visibleSelectableCount} batch-ready · {visibleSingleReviewCount} need 
 msgid "{year} (current tax year)"
 msgstr "{year} (current tax year)"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "@Mentions"
+msgstr "@Mentions"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "/ mo"
@@ -1383,6 +1403,10 @@ msgstr "8879 sent to client for signature"
 msgid "94 KB · uploaded Mar 1"
 msgstr "94 KB · uploaded Mar 1"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "A client replied in the portal"
+msgstr "A client replied in the portal"
+
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/concepts/concept-help.tsx
 msgid "A deadline rule accepted by {0} at this practice. It can generate client-facing reminders when it matches a client."
@@ -1410,6 +1434,14 @@ msgstr "A materials link will be created only."
 #: src/features/concepts/concept-help.tsx
 msgid "A model confidence signal for extracted or matched information. Low confidence means the source should be reviewed before applying changes."
 msgstr "A model confidence signal for extracted or matched information. Low confidence means the source should be reviewed before applying changes."
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "A new high-impact alert needs attention"
+msgstr "A new high-impact alert needs attention"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "A new normal-priority alert was raised"
+msgstr "A new normal-priority alert was raised"
 
 #: src/routes/practice.tsx
 msgid "A one-time pass for returns marked filed before e-signature tracking existed. It moves eligible filed returns (those needing a Form 8879 signature) into “Awaiting signature” so you can track and remind. Safe to run more than once."
@@ -1572,6 +1604,8 @@ msgstr "active"
 #: src/features/audit/audit-log-labels.ts
 #: src/features/calendar/calendar-page.tsx
 #: src/features/members/members-page.tsx
+#: src/features/notifications/notification-preferences-page.tsx
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/temporary-rules-tab.tsx
@@ -1591,6 +1625,10 @@ msgstr "Active alerts for this client"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Active alerts waiting for review"
 msgstr "Active alerts waiting for review"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Active days"
+msgstr "Active days"
 
 #: src/features/members/members-page.tsx
 msgid "Active members"
@@ -2074,7 +2112,6 @@ msgstr "Alert: {tooltip}"
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/concepts/concept-help.tsx
 #: src/features/dashboard/needs-attention-section.tsx
-#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/alerts.history.tsx
 #: src/routes/alerts.tsx
 #: src/routes/route-summary.ts
@@ -2512,6 +2549,10 @@ msgstr "Assigned to you ({name})"
 msgid "Assignee"
 msgstr "Assignee"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Assignments"
+msgstr "Assignments"
+
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Assigns every deadline for {clientName}."
@@ -2721,6 +2762,10 @@ msgstr "Automatic field matching is unavailable. We used the selected import tem
 msgid "Automation"
 msgstr "Automation"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Available variables:"
+msgstr "Available variables:"
+
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "average import"
 msgstr "average import"
@@ -2847,6 +2892,10 @@ msgstr "Before you import"
 msgid "Best match"
 msgstr "Best match"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Bi-weekly"
+msgstr "Bi-weekly"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "Billed yearly"
@@ -2946,9 +2995,14 @@ msgstr "Blocked by upstream return AND awaiting client materials."
 msgid "Blocked by: {label}"
 msgstr "Blocked by: {label}"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
 msgstr "Body"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Bold"
+msgstr "Bold"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Bookkeeper"
@@ -2984,6 +3038,10 @@ msgstr "Bulk actions"
 msgid "Bulk review actions"
 msgstr "Bulk review actions"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Bulleted list"
+msgstr "Bulleted list"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Business income"
 msgstr "Business income"
@@ -3007,6 +3065,11 @@ msgstr "CA state withholding"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "CA, NY, TX…"
 msgstr "CA, NY, TX…"
+
+#: src/features/notifications/notification-preferences-page.tsx
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Cadence"
+msgstr "Cadence"
 
 #: src/features/rules/sources-tab.tsx
 msgid "CADENCE"
@@ -3252,6 +3315,10 @@ msgstr "Changing the entity type won't create new deadlines. Add any that apply 
 msgid "Changing this recomputes which forms this client owes"
 msgstr "Changing this recomputes which forms this client owes"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Channels"
+msgstr "Channels"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Check materials"
@@ -3279,6 +3346,7 @@ msgstr "Check the selected rows and try again."
 msgid "Check what changes for {0} before applying."
 msgstr "Check what changes for {0} before applying."
 
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/routes/obligations.tsx
 msgid "Check your network and try again."
 msgstr "Check your network and try again."
@@ -3304,6 +3372,8 @@ msgstr "Check your network and try again."
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+#: src/features/reminders/reminder-template-editor-page.tsx
+#: src/features/reminders/reminder-templates-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/accept-invite.tsx
@@ -3397,6 +3467,10 @@ msgstr "Choose deadlines to apply this date to"
 #: src/features/migration/Step1Intake.tsx
 msgid "Choose Export client data files, select Export to CSV for a spreadsheet-friendly file, then Continue."
 msgstr "Choose Export client data files, select Export to CSV for a spreadsheet-friendly file, then Continue."
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Choose how you hear from us. You can override per-deadline from any drawer."
+msgstr "Choose how you hear from us. You can override per-deadline from any drawer."
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -3556,6 +3630,10 @@ msgstr "Client batch created"
 msgid "Client created"
 msgstr "Client created"
 
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Client deadline"
+msgstr "Client deadline"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Client deleted"
@@ -3602,6 +3680,10 @@ msgstr "Client importance"
 #: src/routes/obligations.tsx
 msgid "Client materials response"
 msgstr "Client materials response"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Client message received"
+msgstr "Client message received"
 
 #: src/routes/migration.new.tsx
 msgid "Client migration changes practice data, evidence, and audit records. Contact a practice owner if you need access."
@@ -3990,6 +4072,14 @@ msgstr "Confirming requires owner, partner, manager, or preparer access."
 msgid "Confirming subscription"
 msgstr "Confirming subscription"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Connect Slack"
+msgstr "Connect Slack"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Connect your Slack workspace to receive @mentions and digests there."
+msgstr "Connect your Slack workspace to receive @mentions and digests there."
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Contact details"
 msgstr "Contact details"
@@ -4337,6 +4427,10 @@ msgstr "Couldn't load notifications"
 msgid "Couldn't load reminder overview"
 msgstr "Couldn't load reminder overview"
 
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Couldn't load reminder templates"
+msgstr "Couldn't load reminder templates"
+
 #: src/features/rules/sources-tab.tsx
 msgid "Couldn't load rule sources"
 msgstr "Couldn't load rule sources"
@@ -4369,6 +4463,10 @@ msgstr "Couldn't load this client"
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Couldn't load this client."
 msgstr "Couldn't load this client."
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Couldn't load this reminder template"
+msgstr "Couldn't load this reminder template"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Couldn't map columns"
@@ -4635,6 +4733,7 @@ msgstr "Couldn't update owners"
 msgid "Couldn't update practice"
 msgstr "Couldn't update practice"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Couldn't update reminder template"
 msgstr "Couldn't update reminder template"
@@ -4889,6 +4988,10 @@ msgstr "Customise reminder templates"
 msgid "Cycle time"
 msgstr "Cycle time"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Daily digest"
+msgstr "Daily digest"
+
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "Daily sweep of IRS + 50 states + DC tax authority sources for new rules, extended deadlines, rate changes, and form revisions. Matches against your clients' obligations and surfaces what actually affects you."
 msgstr "Daily sweep of IRS + 50 states + DC tax authority sources for new rules, extended deadlines, rate changes, and form revisions. Matches against your clients' obligations and surfaces what actually affects you."
@@ -4926,10 +5029,22 @@ msgstr "Dates"
 msgid "Day-to-day client work"
 msgstr "Day-to-day client work"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "days"
+msgstr "days"
+
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/obligations.tsx
 msgid "Days"
 msgstr "Days"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Days after start"
+msgstr "Days after start"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Days before due"
+msgstr "Days before due"
 
 #: src/routes/onboarding.tsx
 msgid "days before the official due date"
@@ -4987,6 +5102,14 @@ msgstr "Deadline change confirmed"
 msgid "Deadline detail"
 msgstr "Deadline detail"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Deadline due in 24h"
+msgstr "Deadline due in 24h"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Deadline due in 7d"
+msgstr "Deadline due in 7d"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Deadline evidence"
 msgstr "Deadline evidence"
@@ -5006,12 +5129,9 @@ msgid "Deadline Preview"
 msgstr "Deadline Preview"
 
 #: src/features/notifications/notifications-page.tsx
+#: src/features/reminders/reminder-templates-page.tsx
 msgid "Deadline reminder"
 msgstr "Deadline reminder"
-
-#: src/features/notifications/notification-preferences-page.tsx
-msgid "Deadline reminders"
-msgstr "Deadline reminders"
 
 #: src/features/alerts/components/AlertReadinessStatus.tsx
 msgid "Deadline selection confirmed"
@@ -5182,6 +5302,10 @@ msgstr "Delete practice"
 msgid "Delete practice (owner access required)"
 msgstr "Delete practice (owner access required)"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Delete template"
+msgstr "Delete template"
+
 #: src/routes/practice.tsx
 msgid "Delete this practice?"
 msgstr "Delete this practice?"
@@ -5255,6 +5379,10 @@ msgstr "Disable MFA"
 msgid "Disable two-factor authentication?"
 msgstr "Disable two-factor authentication?"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Disabled"
+msgstr "Disabled"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Disabled cells"
 msgstr "Disabled cells"
@@ -5273,6 +5401,10 @@ msgstr "Disabling…"
 #: src/routes/settings.permissions.tsx
 msgid "Discard"
 msgstr "Discard"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Discard changes"
+msgstr "Discard changes"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Discard draft"
@@ -5561,6 +5693,10 @@ msgstr "DueDateHQ does not store card numbers or invoice payment data."
 msgid "DueDateHQ field"
 msgstr "DueDateHQ field"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "DueDateHQ for iOS · 2 devices registered"
+msgstr "DueDateHQ for iOS · 2 devices registered"
+
 #: src/routes/practice.tsx
 msgid "DueDateHQ only auto-generates active filing plans from statutory deadlines on or after this date."
 msgstr "DueDateHQ only auto-generates active filing plans from statutory deadlines on or after this date."
@@ -5596,6 +5732,10 @@ msgstr "Duplicates will be created as new clients."
 #: src/features/migration/Step4Preview.tsx
 msgid "Duplicates won't be imported."
 msgstr "Duplicates won't be imported."
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "During quiet hours we hold non-urgent items until your next active period."
+msgstr "During quiet hours we hold non-urgent items until your next active period."
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "E-file ack."
@@ -5665,7 +5805,12 @@ msgstr "Each row will receive a status-change audit entry. You can move them bac
 msgid "Early alert"
 msgstr "Early alert"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Early countdown before a filing is due"
+msgstr "Early countdown before a filing is due"
+
 #: src/features/clients/ClientNotesStrip.tsx
+#: src/features/reminders/reminder-templates-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/settings.permissions.tsx
 msgid "Edit"
@@ -5679,6 +5824,10 @@ msgstr "Edit defaults"
 #: src/features/clients/ClientNotesStrip.tsx
 msgid "Edit notes for {0}"
 msgstr "Edit notes for {0}"
+
+#: src/routes/route-summary.ts
+msgid "Edit reminder template"
+msgstr "Edit reminder template"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -5746,6 +5895,10 @@ msgstr "Eligible"
 msgid "Email"
 msgstr "Email"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Email ·"
+msgstr "Email ·"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/features/migration/Step2Mapping.tsx
 msgid "Email address"
@@ -5806,6 +5959,7 @@ msgstr "Enable redacted feed"
 msgid "Enable subscription"
 msgstr "Enable subscription"
 
+#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/settings.profile.tsx
 msgid "Enabled"
 msgstr "Enabled"
@@ -6664,6 +6818,10 @@ msgstr "Filter rules…"
 msgid "Filter the rule table by entity"
 msgstr "Filter the rule table by entity"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Final countdown before a filing is due"
+msgstr "Final countdown before a filing is due"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Final package sent to client"
@@ -6672,6 +6830,10 @@ msgstr "Final package sent to client"
 #: src/features/dashboard/actions-list.tsx
 msgid "Final-check owner, source, and cutoff date"
 msgstr "Final-check owner, source, and cutoff date"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Fine-tune which events reach you and how."
+msgstr "Fine-tune which events reach you and how."
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -7015,6 +7177,10 @@ msgstr "Guard status"
 msgid "Guidance notices"
 msgstr "Guidance notices"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Hawthorn CPA · 412 Oak St, Brooklyn NY"
+msgstr "Hawthorn CPA · 412 Oak St, Brooklyn NY"
+
 #: src/features/dashboard/changes-since-last-section.tsx
 msgid "Hide"
 msgstr "Hide"
@@ -7043,6 +7209,10 @@ msgstr "High impact"
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "HIGH IMPACT"
 msgstr "HIGH IMPACT"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "High-impact alerts and same-day deadlines bypass quiet hours so nothing critical waits until morning."
+msgstr "High-impact alerts and same-day deadlines bypass quiet hours so nothing critical waits until morning."
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Highest impact"
@@ -7321,6 +7491,10 @@ msgstr "Inactive"
 msgid "Inbox"
 msgstr "Inbox"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Inbox bell badge + notification center"
+msgstr "Inbox bell badge + notification center"
+
 #: src/components/patterns/alerts-notifications-bell.tsx
 msgid "Inbox, {unreadCount} unread"
 msgstr "Inbox, {unreadCount} unread"
@@ -7366,6 +7540,10 @@ msgstr "Input requested from {latestInputRequestRecipient} on {0}"
 msgid "Input tokens"
 msgstr "Input tokens"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Insert variable"
+msgstr "Insert variable"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Inspect official sources and their watcher health."
 msgstr "Inspect official sources and their watcher health."
@@ -7373,6 +7551,10 @@ msgstr "Inspect official sources and their watcher health."
 #: src/features/migration/mapping-target-labels.ts
 msgid "Installments"
 msgstr "Installments"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Instant"
+msgstr "Instant"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Instructions"
@@ -7532,6 +7714,10 @@ msgstr "Issued"
 msgid "Issues"
 msgstr "Issues"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Italic"
+msgstr "Italic"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Items"
 msgstr "Items"
@@ -7544,6 +7730,10 @@ msgstr "Joining as {0}"
 #: src/routes/settings.profile.tsx
 msgid "JPG or PNG, at least 256×256"
 msgstr "JPG or PNG, at least 256×256"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Jules Rivera · Hawthorn CPA"
+msgstr "Jules Rivera · Hawthorn CPA"
 
 #: src/features/rules/sources-tab.tsx
 msgid "JUR"
@@ -7771,6 +7961,10 @@ msgstr "Length"
 msgid "Light"
 msgstr "Light"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Link"
+msgstr "Link"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Link copied"
@@ -7797,6 +7991,10 @@ msgstr "List of US state codes"
 #: src/features/migration/SuccessModal.tsx
 msgid "Live on your dashboard. {0, plural, one {# deadline is now scheduled} other {# deadlines are now scheduled}}. Nothing will email a client until you turn the matching rule on."
 msgstr "Live on your dashboard. {0, plural, one {# deadline is now scheduled} other {# deadlines are now scheduled}}. Nothing will email a client until you turn the matching rule on."
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Live preview"
+msgstr "Live preview"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
@@ -8281,6 +8479,10 @@ msgstr "Materials pressure"
 msgid "Materials received"
 msgstr "Materials received"
 
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Materials request"
+msgstr "Materials request"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -8505,6 +8707,10 @@ msgstr "Model"
 msgid "Model is confident — review and apply when ready."
 msgstr "Model is confident — review and apply when ready."
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Mon 9:00 AM"
+msgstr "Mon 9:00 AM"
+
 #: src/routes/settings.profile.tsx
 msgid "Monday"
 msgstr "Monday"
@@ -8532,6 +8738,7 @@ msgstr "Monitoring start date cannot be in the future."
 msgid "Monitoring: Federal · 50 States · DC"
 msgstr "Monitoring: Federal · 50 States · DC"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "Monthly"
@@ -8574,10 +8781,6 @@ msgstr "Morning digest"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Morning digest preview queued"
 msgstr "Morning digest preview queued"
-
-#: src/features/notifications/notification-preferences-page.tsx
-msgid "Morning digest schedule and the channels DueDateHQ uses to reach you."
-msgstr "Morning digest schedule and the channels DueDateHQ uses to reach you."
 
 #: src/features/dashboard/at-a-glance-section.tsx
 msgid "Morning sweep"
@@ -8826,6 +9029,14 @@ msgstr "New"
 msgid "NEW"
 msgstr "NEW"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "New alerts · high impact"
+msgstr "New alerts · high impact"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "New alerts · normal"
+msgstr "New alerts · normal"
+
 #: src/features/clients/ClientsCreateSplitButton.tsx
 #: src/features/clients/CreateClientDialog.tsx
 msgid "New client"
@@ -8868,6 +9079,10 @@ msgstr "New rule for {0} · {1}"
 #: src/routes/billing.checkout.tsx
 msgid "New seat limit"
 msgstr "New seat limit"
+
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "New template"
+msgstr "New template"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Newest"
@@ -9335,6 +9550,10 @@ msgstr "no reminder"
 msgid "No reminder deliveries have been recorded yet."
 msgstr "No reminder deliveries have been recorded yet."
 
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "No reminder templates yet."
+msgstr "No reminder templates yet."
+
 #: src/features/members/members-page.tsx
 msgid "No replacement assignments or records"
 msgstr "No replacement assignments or records"
@@ -9420,6 +9639,10 @@ msgstr "No state deadlines"
 #: src/routes/obligations.tsx
 msgid "No states"
 msgstr "No states"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "No subject"
+msgstr "No subject"
 
 #: src/routes/billing.cancel.tsx
 msgid "No subscription changes were made. You can restart checkout when ready."
@@ -9661,6 +9884,10 @@ msgstr "Nothing's changed since {0}."
 msgid "Notification preferences"
 msgstr "Notification preferences"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Notification types"
+msgstr "Notification types"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
@@ -9671,6 +9898,10 @@ msgstr "Notifications"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Notifications queued for {0}."
 msgstr "Notifications queued for {0}."
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Numbered list"
+msgstr "Numbered list"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "NY PTET election made"
@@ -9688,6 +9919,7 @@ msgstr "Obligation status, filings, internal due dates"
 msgid "of {totalCount} dispatches"
 msgstr "of {totalCount} dispatches"
 
+#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/settings.profile.tsx
 msgid "Off"
 msgstr "Off"
@@ -9748,6 +9980,11 @@ msgstr "ONBOARDING"
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding rules activated"
 msgstr "Onboarding rules activated"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Once"
+msgstr "Once"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record. Last 60 days of activity will appear automatically."
@@ -10006,6 +10243,10 @@ msgstr "Open rule details for {displayTitle}"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Open rule reference →"
 msgstr "Open rule reference →"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Open secure portal"
+msgstr "Open secure portal"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/dashboard/needs-attention-card.tsx
@@ -10424,6 +10665,8 @@ msgstr "Paste here — any shape, we'll figure it out. Include the header row if
 msgid "Paste or upload to continue."
 msgstr "Paste or upload to continue."
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+#: src/features/reminders/reminder-templates-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/features/rules/sources-tab.tsx
@@ -10878,6 +11121,10 @@ msgstr "Practice-level delivery copy"
 msgid "Practice-managed reminder template."
 msgstr "Practice-managed reminder template."
 
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Practice-managed template"
+msgstr "Practice-managed template"
+
 #. placeholder {0}: requiredRolesLabel('audit.read')
 #: src/features/audit/audit-log-page.tsx
 msgid "Practice-wide audit events are available to {0}. Contact the practice owner if you need audit access."
@@ -10895,7 +11142,6 @@ msgstr "Practices"
 msgid "Precedent"
 msgstr "Precedent"
 
-#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/settings.profile.tsx
 msgid "Preferences"
 msgstr "Preferences"
@@ -11134,6 +11380,10 @@ msgstr "PRIVATE BETA · JUN 2026"
 msgid "Pro"
 msgstr "Pro"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Product and maintenance notices"
+msgstr "Product and maintenance notices"
+
 #: src/features/alerts/lib/error-mapping.ts
 msgid "Production alert actions require Pro or above."
 msgstr "Production alert actions require Pro or above."
@@ -11182,6 +11432,10 @@ msgstr "Published"
 msgid "Pulse alerts, reminders, calendar sync"
 msgstr "Pulse alerts, reminders, calendar sync"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Push"
+msgstr "Push"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Quarantined"
 msgstr "Quarantined"
@@ -11215,6 +11469,10 @@ msgstr "QuickBooks Desktop: open Customer Center, then use Excel > Export Custom
 #: src/features/migration/Step1Intake.tsx
 msgid "QuickBooks Online: export from Customers with the Export to Excel icon, or use Reports > Sales and Customers > Customer Contact List."
 msgstr "QuickBooks Online: export from Customers with the Export to Excel icon, or use Reports > Sales and Customers > Customer Contact List."
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Quiet hours"
+msgstr "Quiet hours"
 
 #: src/routes/obligations.tsx
 msgid "Raw data for spreadsheets and portability."
@@ -11667,6 +11925,7 @@ msgid "Reminder sent"
 msgstr "Reminder sent"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Reminder template"
 msgstr "Reminder template"
 
@@ -11674,11 +11933,14 @@ msgstr "Reminder template"
 msgid "Reminder template edited"
 msgstr "Reminder template edited"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Reminder template updated"
 msgstr "Reminder template updated"
 
+#: src/features/reminders/reminder-templates-page.tsx
 #: src/features/reminders/reminders-page.tsx
+#: src/routes/route-summary.ts
 msgid "Reminder templates"
 msgstr "Reminder templates"
 
@@ -11688,6 +11950,7 @@ msgstr "Reminder-ready"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
+#: src/features/reminders/reminder-templates-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
@@ -11756,6 +12019,10 @@ msgstr "Reopen the return for drafting"
 #: src/features/migration/Step1Intake.tsx
 msgid "Replace this file"
 msgstr "Replace this file"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Reply STOP to unsubscribe from reminders"
+msgstr "Reply STOP to unsubscribe from reminders"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
@@ -11924,6 +12191,10 @@ msgstr "Return to Today"
 #: src/features/obligations/rejection-chip.tsx
 msgid "Returned from filed status — IRS/state rejected the submission."
 msgstr "Returned from filed status — IRS/state rejected the submission."
+
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Reusable messages we send for you. Edit per tax type or per client tier."
+msgstr "Reusable messages we send for you. Edit per tax type or per client tier."
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/routes/practice.tsx
@@ -12586,6 +12857,10 @@ msgstr "Sample data on your dashboard"
 msgid "Sample values"
 msgstr "Sample values"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "sample: Maya Chen"
+msgstr "sample: Maya Chen"
+
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -12651,6 +12926,10 @@ msgstr "Save organized values"
 msgid "Save permissions"
 msgstr "Save permissions"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Save preferences"
+msgstr "Save preferences"
+
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Save risk profile"
 msgstr "Save risk profile"
@@ -12663,6 +12942,7 @@ msgstr "Save Smart Priority"
 msgid "Save state"
 msgstr "Save state"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Save template"
 msgstr "Save template"
@@ -12749,6 +13029,10 @@ msgstr "Scanned {0} filed returns."
 #: src/routes/obligations.tsx
 msgid "Schedule the payment with the authority"
 msgstr "Schedule the payment with the authority"
+
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Scheduled"
+msgstr "Scheduled"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Scheduled to send today"
@@ -13054,10 +13338,6 @@ msgstr "Selected states activate with federal rules. Skip to use federal rules o
 msgid "Send a 7-day magic link to add a member to this practice."
 msgstr "Send a 7-day magic link to add a member to this practice."
 
-#: src/features/notifications/notification-preferences-page.tsx
-msgid "Send a morning digest"
-msgstr "Send a morning digest"
-
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Send an internal request to an owner or partner for this deadline."
@@ -13178,6 +13458,11 @@ msgstr "Sent to clients 30 days before the deadline as the early countdown email
 msgid "Sent to clients 7 days before the deadline as the final countdown email."
 msgstr "Sent to clients 7 days before the deadline as the final countdown email."
 
+#. placeholder {0}: template.usageCount
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Sent to: {0} active clients"
+msgstr "Sent to: {0} active clients"
+
 #: src/features/alerts/components/PulseRelevanceMatrix.tsx
 msgid "Service"
 msgstr "Service"
@@ -13223,6 +13508,7 @@ msgstr "Setting up your practice…"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/members/members-page.tsx
 #: src/features/notifications/notification-preferences-page.tsx
+#: src/features/reminders/reminder-templates-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/settings/settings-sub-nav.tsx
 #: src/routes/account.security.tsx
@@ -13472,6 +13758,10 @@ msgstr "Skipped quiet day"
 #: src/features/audit/audit-log-labels.ts
 msgid "Skipped rows"
 msgstr "Skipped rows"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Slack"
+msgstr "Slack"
 
 #: src/routes/obligations.tsx
 msgid "Smart priority"
@@ -13922,6 +14212,15 @@ msgstr "Stops"
 msgid "Subject"
 msgstr "Subject"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Subject line"
+msgstr "Subject line"
+
+#. placeholder {0}: template.subject
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Subject: {0}"
+msgstr "Subject: {0}"
+
 #: src/routes/readiness.tsx
 msgid "Submit readiness response"
 msgstr "Submit readiness response"
@@ -14096,6 +14395,10 @@ msgstr "System (cron / queue)"
 msgid "System notification"
 msgstr "System notification"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "System updates"
+msgstr "System updates"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Target"
 msgstr "Target"
@@ -14267,6 +14570,22 @@ msgstr "Template"
 #: src/features/reminders/reminders-page.tsx
 msgid "Template active"
 msgstr "Template active"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Template name"
+msgstr "Template name"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Template not found"
+msgstr "Template not found"
+
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Templates"
+msgstr "Templates"
+
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Templates appear here once your practice has reminder messages configured."
+msgstr "Templates appear here once your practice has reminder messages configured."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/route-summary.ts
@@ -14702,6 +15021,10 @@ msgstr "This practice already has the selected plan."
 msgid "This readiness link is expired, revoked, or invalid."
 msgstr "This readiness link is expired, revoked, or invalid."
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "This reminder template no longer exists. Return to the template library."
+msgstr "This reminder template no longer exists. Return to the template library."
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "This removes every client and deadline created by this import. Use Clients to edit individual records instead."
 msgstr "This removes every client and deadline created by this import. Use Clients to edit individual records instead."
@@ -14765,6 +15088,10 @@ msgstr "This stage hasn't been reached yet. We only project the Filed date (usin
 msgid "This stage was skipped — no date applies."
 msgstr "This stage was skipped — no date applies."
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "This template applies to clients matched by your reminder rules with an active engagement and an open document request."
+msgstr "This template applies to clients matched by your reminder rules with an active engagement and an open document request."
+
 #: src/features/reminders/reminders-page.tsx
 msgid "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
 msgstr "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
@@ -14782,6 +15109,7 @@ msgid "Time format"
 msgstr "Time format"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/features/notifications/notification-preferences-page.tsx
 msgid "Time range"
 msgstr "Time range"
 
@@ -14811,6 +15139,10 @@ msgstr "to create"
 #: src/features/migration/Step4Preview.tsx
 msgid "to generate"
 msgstr "to generate"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "to maya.chen@example.com"
+msgstr "to maya.chen@example.com"
 
 #: src/components/primitives/due-date-label.tsx
 msgid "today"
@@ -14873,6 +15205,10 @@ msgstr "Triage source-backed government changes affecting clients."
 #: src/routes/billing.tsx
 msgid "Trial ends {0}"
 msgstr "Trial ends {0}"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Trigger"
+msgstr "Trigger"
 
 #: src/routes/login.tsx
 msgid "Trouble signing in? Email <supportLink>support@duedatehq.com</supportLink>."
@@ -14980,6 +15316,7 @@ msgstr "TY {headerFrom} due"
 msgid "TY {headerTo} due"
 msgstr "TY {headerTo} due"
 
+#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/rules.library.tsx
 msgid "Type"
 msgstr "Type"
@@ -15025,10 +15362,6 @@ msgstr "Unassigned"
 #: src/features/workload/workload-page.tsx
 msgid "Unassigned risk"
 msgstr "Unassigned risk"
-
-#: src/features/notifications/notification-preferences-page.tsx
-msgid "Unassigned work"
-msgstr "Unassigned work"
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "unchanged"
@@ -15230,6 +15563,10 @@ msgstr "Urgency window"
 msgid "urgent"
 msgstr "urgent"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Urgent overrides still come through"
+msgstr "Urgent overrides still come through"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "US state code · 2 letters"
 msgstr "US state code · 2 letters"
@@ -15320,6 +15657,11 @@ msgstr "Use Utilities > Client Listing Reports."
 msgid "Use when another return, notice, or issue is stopping this deadline."
 msgstr "Use when another return, notice, or issue is stopping this deadline."
 
+#. placeholder {0}: template.usageCount
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "used {0} times"
+msgstr "used {0} times"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Used from Send to client to collect the current checklist from the client."
 msgstr "Used from Send to client to collect the current checklist from the client."
@@ -15355,6 +15697,7 @@ msgid "verified"
 msgstr "verified"
 
 #: src/features/migration/Step3Normalize.tsx
+#: src/features/notifications/notification-preferences-page.tsx
 msgid "Verified"
 msgstr "Verified"
 
@@ -15488,6 +15831,10 @@ msgstr "View in Deadlines"
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "View items needing your review"
 msgstr "View items needing your review"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "View list"
+msgstr "View list"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "View mode"
@@ -15633,6 +15980,14 @@ msgstr "We'll let you attach source documents here as soon as ingest lands."
 msgid "Week starts on"
 msgstr "Week starts on"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Weekly"
+msgstr "Weekly"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Weekly digest"
+msgstr "Weekly digest"
+
 #: src/routes/route-summary.ts
 #: src/routes/splash.tsx
 msgid "Welcome back"
@@ -15714,6 +16069,10 @@ msgstr "When it's due"
 msgid "When something gets at-risk — a stalled evidence request, a rejected filing, a 5-day client silence — Smart Priority will surface it here. Right now everything is on track."
 msgstr "When something gets at-risk — a stalled evidence request, a rejected filing, a 5-day client silence — Smart Priority will surface it here. Right now everything is on track."
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Where DueDateHQ can reach you. Per-type rules below override these."
+msgstr "Where DueDateHQ can reach you. Per-type rules below override these."
+
 #: src/features/rules/sources-tab.tsx
 msgid "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
 msgstr "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
@@ -15780,6 +16139,10 @@ msgstr "Withholding report count"
 #: src/features/migration/Stepper.tsx
 msgid "Wizard steps"
 msgstr "Wizard steps"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Work assigned to or unassigned from you"
+msgstr "Work assigned to or unassigned from you"
 
 #: src/features/members/members-page.tsx
 msgid "Work email"
@@ -15932,6 +16295,10 @@ msgstr "You're rolling over {totalCount} obligations from tax year {headerFrom} 
 #: src/routes/settings.profile.tsx
 msgid "You're signed in on these devices"
 msgstr "You're signed in on these devices"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "You're tagged in a comment or task"
+msgstr "You're tagged in a comment or task"
 
 #: src/routes/accept-invite.tsx
 msgid "You've been invited to a firm"

@@ -13,6 +13,10 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Plural-Forms: \n"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "· anchor point"
+msgstr "· 锚点"
+
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "· current tax year"
 msgstr "· 当前纳税年度"
@@ -21,6 +25,10 @@ msgstr "· 当前纳税年度"
 #: src/routes/obligations.tsx
 msgid "· firm-set deadline for this materials request"
 msgstr "· 事务所为此材料请求设定的截止日期"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "· how often this fires"
+msgstr "· 触发频率"
 
 #. placeholder {0}: formatDatePretty(latestRequest.firstOpenedAt.slice(0, 10))
 #. placeholder {0}: formatDatePretty(request.firstOpenedAt.slice(0, 10))
@@ -37,6 +45,14 @@ msgstr "· 预计"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "· responded {0}"
 msgstr "· 已回复 {0}"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "· shown in inbox previews"
+msgstr "· 显示在收件箱预览中"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "· supports markdown"
+msgstr "· 支持 markdown"
 
 #: src/routes/rules.library.tsx
 msgid "({gapCount} jurisdiction missing a rule)"
@@ -1207,6 +1223,10 @@ msgstr "{visibleSelectableCount} 条可批量 · {visibleSingleReviewCount} 条�
 msgid "{year} (current tax year)"
 msgstr "{year}（当前纳税年度）"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "@Mentions"
+msgstr "@提及"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "/ mo"
@@ -1402,6 +1422,10 @@ msgstr "8879 已发给客户签字"
 msgid "94 KB · uploaded Mar 1"
 msgstr "94 KB · 3 月 1 日上传"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "A client replied in the portal"
+msgstr "客户在门户中回复了"
+
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/concepts/concept-help.tsx
 #, fuzzy
@@ -1430,6 +1454,14 @@ msgstr "只会创建材料链接。"
 #: src/features/concepts/concept-help.tsx
 msgid "A model confidence signal for extracted or matched information. Low confidence means the source should be reviewed before applying changes."
 msgstr "模型对抽取或匹配结果的置信信号。置信度低表示应用前应先复核来源。"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "A new high-impact alert needs attention"
+msgstr "有新的高影响提醒需要关注"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "A new normal-priority alert was raised"
+msgstr "触发了一条新的普通优先级提醒"
 
 #: src/routes/practice.tsx
 msgid "A one-time pass for returns marked filed before e-signature tracking existed. It moves eligible filed returns (those needing a Form 8879 signature) into “Awaiting signature” so you can track and remind. Safe to run more than once."
@@ -1594,6 +1626,8 @@ msgstr "未生效"
 #: src/features/audit/audit-log-labels.ts
 #: src/features/calendar/calendar-page.tsx
 #: src/features/members/members-page.tsx
+#: src/features/notifications/notification-preferences-page.tsx
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/temporary-rules-tab.tsx
@@ -1613,6 +1647,10 @@ msgstr "此客户的活跃提醒"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Active alerts waiting for review"
 msgstr "等待复核的活跃提醒"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Active days"
+msgstr "活跃天数"
 
 #: src/features/members/members-page.tsx
 msgid "Active members"
@@ -2100,7 +2138,6 @@ msgstr "提醒：{tooltip}"
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/concepts/concept-help.tsx
 #: src/features/dashboard/needs-attention-section.tsx
-#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/alerts.history.tsx
 #: src/routes/alerts.tsx
 #: src/routes/route-summary.ts
@@ -2540,6 +2577,10 @@ msgstr "已指派给您 ({name})"
 msgid "Assignee"
 msgstr "经办人"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Assignments"
+msgstr "任务分配"
+
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Assigns every deadline for {clientName}."
@@ -2749,6 +2790,10 @@ msgstr "自动字段匹配不可用。我们已使用所选导入模板，并保
 msgid "Automation"
 msgstr "自动化"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Available variables:"
+msgstr "可用变量："
+
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "average import"
 msgstr "平均导入时间"
@@ -2875,6 +2920,10 @@ msgstr "导入前确认"
 msgid "Best match"
 msgstr "采用最佳匹配"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Bi-weekly"
+msgstr "每两周"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "Billed yearly"
@@ -2975,9 +3024,14 @@ msgstr "被上游申报阻塞，同时也在等待客户材料。"
 msgid "Blocked by: {label}"
 msgstr "受阻于：{label}"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Body"
 msgstr "正文"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Bold"
+msgstr "加粗"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Bookkeeper"
@@ -3013,6 +3067,10 @@ msgstr "批量操作"
 msgid "Bulk review actions"
 msgstr "批量审核操作"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Bulleted list"
+msgstr "项目符号列表"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Business income"
 msgstr "企业所得税"
@@ -3036,6 +3094,11 @@ msgstr "加州州预扣"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "CA, NY, TX…"
 msgstr "CA、NY、TX…"
+
+#: src/features/notifications/notification-preferences-page.tsx
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Cadence"
+msgstr "频率"
 
 #: src/features/rules/sources-tab.tsx
 msgid "CADENCE"
@@ -3283,6 +3346,10 @@ msgstr "更改实体类型不会自动新增截止事项。如适用，请手动
 msgid "Changing this recomputes which forms this client owes"
 msgstr "更改此项将重新计算该客户应申报的表单"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Channels"
+msgstr "渠道"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Check materials"
@@ -3310,6 +3377,7 @@ msgstr "请检查所选行后重试。"
 msgid "Check what changes for {0} before applying."
 msgstr "应用前请查看 {0} 会发生哪些变化。"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/routes/obligations.tsx
 msgid "Check your network and try again."
 msgstr "请检查网络后重试。"
@@ -3335,6 +3403,8 @@ msgstr "请检查网络后重试。"
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+#: src/features/reminders/reminder-template-editor-page.tsx
+#: src/features/reminders/reminder-templates-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/accept-invite.tsx
@@ -3429,6 +3499,10 @@ msgstr "选择要应用此日期的截止事项"
 #: src/features/migration/Step1Intake.tsx
 msgid "Choose Export client data files, select Export to CSV for a spreadsheet-friendly file, then Continue."
 msgstr "选择 Export client data files，勾选 Export to CSV 以生成便于表格处理的文件，然后点击 Continue。"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Choose how you hear from us. You can override per-deadline from any drawer."
+msgstr "选择您接收通知的方式。您可以在任意抽屉中按截止日期单独覆盖。"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -3589,6 +3663,10 @@ msgstr "客户批次已创建"
 msgid "Client created"
 msgstr "客户已创建"
 
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Client deadline"
+msgstr "客户截止日期"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Client deleted"
@@ -3635,6 +3713,10 @@ msgstr "客户重要性"
 #: src/routes/obligations.tsx
 msgid "Client materials response"
 msgstr "客户材料回复"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Client message received"
+msgstr "已收到客户消息"
 
 #: src/routes/migration.new.tsx
 #, fuzzy
@@ -4027,6 +4109,14 @@ msgstr "确认需要负责人、合伙人、管理员或经办人访问权限。
 msgid "Confirming subscription"
 msgstr "正在确认订阅"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Connect Slack"
+msgstr "连接 Slack"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Connect your Slack workspace to receive @mentions and digests there."
+msgstr "连接您的 Slack 工作区，在那里接收 @提及和摘要。"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Contact details"
 msgstr "联系信息"
@@ -4376,6 +4466,10 @@ msgstr "无法加载通知"
 msgid "Couldn't load reminder overview"
 msgstr "无法加载提醒概览"
 
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Couldn't load reminder templates"
+msgstr "无法加载提醒模板"
+
 #: src/features/rules/sources-tab.tsx
 msgid "Couldn't load rule sources"
 msgstr "无法加载规则来源"
@@ -4408,6 +4502,10 @@ msgstr "无法加载此客户"
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Couldn't load this client."
 msgstr "无法加载该客户。"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Couldn't load this reminder template"
+msgstr "无法加载此提醒模板"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Couldn't map columns"
@@ -4675,6 +4773,7 @@ msgstr "无法更新负责人"
 msgid "Couldn't update practice"
 msgstr "无法更新事务所"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Couldn't update reminder template"
 msgstr "无法更新提醒模板"
@@ -4930,6 +5029,10 @@ msgstr "自定义提醒模板"
 msgid "Cycle time"
 msgstr "处理周期"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Daily digest"
+msgstr "每日摘要"
+
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "Daily sweep of IRS + 50 states + DC tax authority sources for new rules, extended deadlines, rate changes, and form revisions. Matches against your clients' obligations and surfaces what actually affects you."
 msgstr "每日扫描 IRS + 50 个州 + DC 税务机关来源，查找新规则、延长的截止日期、费率变更和表单修订。与你客户的申报义务进行匹配，并呈现真正影响到你的内容。"
@@ -4968,10 +5071,22 @@ msgstr "日期"
 msgid "Day-to-day client work"
 msgstr "日常客户工作"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "days"
+msgstr "天"
+
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/obligations.tsx
 msgid "Days"
 msgstr "天数"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Days after start"
+msgstr "开始后天数"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Days before due"
+msgstr "到期前天数"
 
 #: src/routes/onboarding.tsx
 msgid "days before the official due date"
@@ -5029,6 +5144,14 @@ msgstr "截止日变更已确认"
 msgid "Deadline detail"
 msgstr "截止事项详情"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Deadline due in 24h"
+msgstr "截止日期 24 小时内到期"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Deadline due in 7d"
+msgstr "截止日期 7 天内到期"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Deadline evidence"
 msgstr "截止事项证据"
@@ -5048,11 +5171,8 @@ msgid "Deadline Preview"
 msgstr "截止事项预览"
 
 #: src/features/notifications/notifications-page.tsx
+#: src/features/reminders/reminder-templates-page.tsx
 msgid "Deadline reminder"
-msgstr "截止日提醒"
-
-#: src/features/notifications/notification-preferences-page.tsx
-msgid "Deadline reminders"
 msgstr "截止日提醒"
 
 #: src/features/alerts/components/AlertReadinessStatus.tsx
@@ -5225,6 +5345,10 @@ msgstr "删除事务所"
 msgid "Delete practice (owner access required)"
 msgstr "导入客户（需要所有者或经理权限）"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Delete template"
+msgstr "删除模板"
+
 #: src/routes/practice.tsx
 msgid "Delete this practice?"
 msgstr "删除这个事务所？"
@@ -5299,6 +5423,10 @@ msgstr "停用 MFA"
 msgid "Disable two-factor authentication?"
 msgstr "要停用双重验证吗？"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Disabled"
+msgstr "已禁用"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Disabled cells"
 msgstr "已停用单元格"
@@ -5317,6 +5445,10 @@ msgstr "正在停用…"
 #: src/routes/settings.permissions.tsx
 msgid "Discard"
 msgstr "放弃"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Discard changes"
+msgstr "放弃更改"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Discard draft"
@@ -5605,6 +5737,10 @@ msgstr "DueDateHQ 不保存卡号或发票支付数据。"
 msgid "DueDateHQ field"
 msgstr "DueDateHQ 字段"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "DueDateHQ for iOS · 2 devices registered"
+msgstr "DueDateHQ iOS 版 · 已注册 2 台设备"
+
 #: src/routes/practice.tsx
 msgid "DueDateHQ only auto-generates active filing plans from statutory deadlines on or after this date."
 msgstr "DueDateHQ 只会从该日期当天或之后的法定截止日开始自动生成活跃申报计划。"
@@ -5640,6 +5776,10 @@ msgstr "重复项将作为新客户创建。"
 #: src/features/migration/Step4Preview.tsx
 msgid "Duplicates won't be imported."
 msgstr "重复项不会被导入。"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "During quiet hours we hold non-urgent items until your next active period."
+msgstr "在免打扰时段，我们会将非紧急项目保留到您下一个活跃时段。"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "E-file ack."
@@ -5709,7 +5849,12 @@ msgstr "每一行都会记录一条状态变更审计记录。如果这不是预
 msgid "Early alert"
 msgstr "早期提醒"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Early countdown before a filing is due"
+msgstr "申报到期前的早期倒计时"
+
 #: src/features/clients/ClientNotesStrip.tsx
+#: src/features/reminders/reminder-templates-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/settings.permissions.tsx
 msgid "Edit"
@@ -5723,6 +5868,10 @@ msgstr "编辑默认值"
 #: src/features/clients/ClientNotesStrip.tsx
 msgid "Edit notes for {0}"
 msgstr "编辑 {0} 的备注"
+
+#: src/routes/route-summary.ts
+msgid "Edit reminder template"
+msgstr "编辑提醒模板"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -5790,6 +5939,10 @@ msgstr "可应用"
 msgid "Email"
 msgstr "邮箱"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Email ·"
+msgstr "电子邮件 ·"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/features/migration/Step2Mapping.tsx
 msgid "Email address"
@@ -5850,6 +6003,7 @@ msgstr "启用脱敏订阅源"
 msgid "Enable subscription"
 msgstr "启用订阅"
 
+#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/settings.profile.tsx
 msgid "Enabled"
 msgstr "已启用"
@@ -6713,6 +6867,10 @@ msgstr "筛选规则…"
 msgid "Filter the rule table by entity"
 msgstr "按实体筛选规则表"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Final countdown before a filing is due"
+msgstr "申报到期前的最终倒计时"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Final package sent to client"
@@ -6721,6 +6879,10 @@ msgstr "最终材料已寄给客户"
 #: src/features/dashboard/actions-list.tsx
 msgid "Final-check owner, source, and cutoff date"
 msgstr "最终核对负责人、来源和截止日期"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Fine-tune which events reach you and how."
+msgstr "精细调整哪些事件以何种方式通知您。"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -7067,6 +7229,10 @@ msgstr "来源状态"
 msgid "Guidance notices"
 msgstr "指引通知"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Hawthorn CPA · 412 Oak St, Brooklyn NY"
+msgstr "Hawthorn CPA · 412 Oak St, Brooklyn NY"
+
 #: src/features/dashboard/changes-since-last-section.tsx
 msgid "Hide"
 msgstr "隐藏"
@@ -7095,6 +7261,10 @@ msgstr "高影响"
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "HIGH IMPACT"
 msgstr "高影响"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "High-impact alerts and same-day deadlines bypass quiet hours so nothing critical waits until morning."
+msgstr "高影响提醒和当日截止日期会绕过免打扰时段，确保紧急事项不会拖到次日早晨。"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Highest impact"
@@ -7374,6 +7544,10 @@ msgstr "未生效"
 msgid "Inbox"
 msgstr "收件箱"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Inbox bell badge + notification center"
+msgstr "收件箱铃铛标记 + 通知中心"
+
 #: src/components/patterns/alerts-notifications-bell.tsx
 msgid "Inbox, {unreadCount} unread"
 msgstr "收件箱，{unreadCount} 条未读"
@@ -7419,6 +7593,10 @@ msgstr "已向 {latestInputRequestRecipient} 请求输入：{0}"
 msgid "Input tokens"
 msgstr "Input tokens"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Insert variable"
+msgstr "插入变量"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Inspect official sources and their watcher health."
 msgstr "查看官方来源及其监视器健康状况。"
@@ -7426,6 +7604,10 @@ msgstr "查看官方来源及其监视器健康状况。"
 #: src/features/migration/mapping-target-labels.ts
 msgid "Installments"
 msgstr "分期付款"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Instant"
+msgstr "即时"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Instructions"
@@ -7586,6 +7768,10 @@ msgstr "发布"
 msgid "Issues"
 msgstr "问题"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Italic"
+msgstr "斜体"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Items"
 msgstr "项目"
@@ -7598,6 +7784,10 @@ msgstr "以 {0} 身份加入"
 #: src/routes/settings.profile.tsx
 msgid "JPG or PNG, at least 256×256"
 msgstr "JPG 或 PNG，至少 256×256"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Jules Rivera · Hawthorn CPA"
+msgstr "Jules Rivera · Hawthorn CPA"
 
 #: src/features/rules/sources-tab.tsx
 msgid "JUR"
@@ -7826,6 +8016,10 @@ msgstr "时长"
 msgid "Light"
 msgstr "浅色"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Link"
+msgstr "链接"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Link copied"
@@ -7853,6 +8047,10 @@ msgstr "使用 2 位州代码"
 #: src/features/migration/SuccessModal.tsx
 msgid "Live on your dashboard. {0, plural, one {# deadline is now scheduled} other {# deadlines are now scheduled}}. Nothing will email a client until you turn the matching rule on."
 msgstr "已在您的仪表板上线。{0, plural, other {现已安排 # 个截止日期}}。在您启用匹配规则之前，不会向客户发送任何邮件。"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Live preview"
+msgstr "实时预览"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
@@ -8344,6 +8542,10 @@ msgstr "材料紧迫度"
 msgid "Materials received"
 msgstr "已收到材料"
 
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Materials request"
+msgstr "材料请求"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -8568,6 +8770,10 @@ msgstr "Model"
 msgid "Model is confident — review and apply when ready."
 msgstr "模型置信度较高 — 准备好后请审查并应用。"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Mon 9:00 AM"
+msgstr "周一 上午 9:00"
+
 #: src/routes/settings.profile.tsx
 msgid "Monday"
 msgstr "星期一"
@@ -8595,6 +8801,7 @@ msgstr "监控起始日期不能是未来日期。"
 msgid "Monitoring: Federal · 50 States · DC"
 msgstr "监控范围：联邦 · 50 个州 · DC"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "Monthly"
@@ -8637,10 +8844,6 @@ msgstr "晨间摘要"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Morning digest preview queued"
 msgstr "Morning digest 预览已排队"
-
-#: src/features/notifications/notification-preferences-page.tsx
-msgid "Morning digest schedule and the channels DueDateHQ uses to reach you."
-msgstr "早间摘要的发送时间，以及 DueDateHQ 用来联系你的渠道。"
 
 #: src/features/dashboard/at-a-glance-section.tsx
 msgid "Morning sweep"
@@ -8890,6 +9093,14 @@ msgstr "新"
 msgid "NEW"
 msgstr "新"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "New alerts · high impact"
+msgstr "新提醒 · 高影响"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "New alerts · normal"
+msgstr "新提醒 · 普通"
+
 #: src/features/clients/ClientsCreateSplitButton.tsx
 #: src/features/clients/CreateClientDialog.tsx
 msgid "New client"
@@ -8932,6 +9143,10 @@ msgstr "为 {0} · {1} 新建规则"
 #: src/routes/billing.checkout.tsx
 msgid "New seat limit"
 msgstr "新席位上限"
+
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "New template"
+msgstr "新建模板"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Newest"
@@ -9401,6 +9616,10 @@ msgstr "无提醒"
 msgid "No reminder deliveries have been recorded yet."
 msgstr "尚未记录提醒投递。"
 
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "No reminder templates yet."
+msgstr "尚无提醒模板。"
+
 #: src/features/members/members-page.tsx
 msgid "No replacement assignments or records"
 msgstr "无替代分配或记录"
@@ -9488,6 +9707,10 @@ msgstr "不生成州级截止日"
 #: src/routes/obligations.tsx
 msgid "No states"
 msgstr "没有州"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "No subject"
+msgstr "无主题"
 
 #: src/routes/billing.cancel.tsx
 msgid "No subscription changes were made. You can restart checkout when ready."
@@ -9732,6 +9955,10 @@ msgstr "状态已变更为 {0}"
 msgid "Notification preferences"
 msgstr "通知偏好"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Notification types"
+msgstr "通知类型"
+
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
@@ -9743,6 +9970,10 @@ msgstr "通知"
 #, fuzzy
 msgid "Notifications queued for {0}."
 msgstr "已为所有者和经理排队发送通知。"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Numbered list"
+msgstr "编号列表"
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "NY PTET election made"
@@ -9760,6 +9991,7 @@ msgstr "义务状态、申报、内部截止日期"
 msgid "of {totalCount} dispatches"
 msgstr "共 {totalCount} 条派发"
 
+#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/settings.profile.tsx
 msgid "Off"
 msgstr "关闭"
@@ -9820,6 +10052,11 @@ msgstr "入驻"
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding rules activated"
 msgstr "引导规则已激活"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Once"
+msgstr "一次"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record. Last 60 days of activity will appear automatically."
@@ -10081,6 +10318,10 @@ msgstr "打开 {0} 的客户详情"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Open rule reference →"
 msgstr "打开规则参考 →"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Open secure portal"
+msgstr "打开安全门户"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/dashboard/needs-attention-card.tsx
@@ -10503,6 +10744,8 @@ msgstr "粘贴到这里 —— 任何格式都行，我们会自动识别。如�
 msgid "Paste or upload to continue."
 msgstr "粘贴或上传以继续。"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+#: src/features/reminders/reminder-templates-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/rules-console-primitives.tsx
 #: src/features/rules/sources-tab.tsx
@@ -10965,6 +11208,10 @@ msgstr "事务所级投递文案"
 msgid "Practice-managed reminder template."
 msgstr "事务所统一管理的提醒模板。"
 
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Practice-managed template"
+msgstr "事务所管理的模板"
+
 #. placeholder {0}: requiredRolesLabel('audit.read')
 #: src/features/audit/audit-log-page.tsx
 #, fuzzy
@@ -10984,7 +11231,6 @@ msgstr "事务所"
 msgid "Precedent"
 msgstr "判例"
 
-#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/settings.profile.tsx
 msgid "Preferences"
 msgstr "偏好设置"
@@ -11224,6 +11470,10 @@ msgstr "内测 · 2026 年 6 月"
 msgid "Pro"
 msgstr "Pro"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Product and maintenance notices"
+msgstr "产品和维护通知"
+
 #: src/features/alerts/lib/error-mapping.ts
 msgid "Production alert actions require Pro or above."
 msgstr "正式提醒操作需要 Pro 及以上权限。"
@@ -11272,6 +11522,10 @@ msgstr "发布日期"
 msgid "Pulse alerts, reminders, calendar sync"
 msgstr "Pulse 提醒、提醒事项、日历同步"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Push"
+msgstr "推送"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Quarantined"
 msgstr "已隔离"
@@ -11305,6 +11559,10 @@ msgstr "QuickBooks Desktop：打开 Customer Center，然后使用 Excel > Expor
 #: src/features/migration/Step1Intake.tsx
 msgid "QuickBooks Online: export from Customers with the Export to Excel icon, or use Reports > Sales and Customers > Customer Contact List."
 msgstr "QuickBooks Online：在 Customers 中使用 Export to Excel 图标导出，或使用 Reports > Sales and Customers > Customer Contact List。"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Quiet hours"
+msgstr "免打扰时段"
 
 #: src/routes/obligations.tsx
 msgid "Raw data for spreadsheets and portability."
@@ -11759,6 +12017,7 @@ msgid "Reminder sent"
 msgstr "提醒已发送"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Reminder template"
 msgstr "提醒模板"
 
@@ -11766,11 +12025,14 @@ msgstr "提醒模板"
 msgid "Reminder template edited"
 msgstr "提醒模板已编辑"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Reminder template updated"
 msgstr "提醒模板已更新"
 
+#: src/features/reminders/reminder-templates-page.tsx
 #: src/features/reminders/reminders-page.tsx
+#: src/routes/route-summary.ts
 msgid "Reminder templates"
 msgstr "提醒模板"
 
@@ -11780,6 +12042,7 @@ msgstr "提醒就绪"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
+#: src/features/reminders/reminder-templates-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
@@ -11848,6 +12111,10 @@ msgstr "重新打开该申报继续起草"
 #: src/features/migration/Step1Intake.tsx
 msgid "Replace this file"
 msgstr "替换此文件"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Reply STOP to unsubscribe from reminders"
+msgstr "回复 STOP 以取消订阅提醒"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Reporting CSV covers only supported e-filed federal returns; Intuit Link document ZIPs are not a primary client list."
@@ -12016,6 +12283,10 @@ msgstr "返回今天"
 #: src/features/obligations/rejection-chip.tsx
 msgid "Returned from filed status — IRS/state rejected the submission."
 msgstr "已从已申报状态退回 — IRS/州政府已拒绝该提交。"
+
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Reusable messages we send for you. Edit per tax type or per client tier."
+msgstr "我们代您发送的可复用消息。可按税种或客户层级编辑。"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/routes/practice.tsx
@@ -12682,6 +12953,10 @@ msgstr "仪表板上的示例数据"
 msgid "Sample values"
 msgstr "多个值"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "sample: Maya Chen"
+msgstr "示例：Maya Chen"
+
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -12747,6 +13022,10 @@ msgstr "保存整理后的值"
 msgid "Save permissions"
 msgstr "保存权限"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Save preferences"
+msgstr "保存偏好设置"
+
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Save risk profile"
 msgstr "保存风险档案"
@@ -12759,6 +13038,7 @@ msgstr "保存 Smart Priority"
 msgid "Save state"
 msgstr "保存州"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
 #: src/features/reminders/reminders-page.tsx
 msgid "Save template"
 msgstr "保存模板"
@@ -12846,6 +13126,10 @@ msgstr "已扫描 {0} 份已申报的报税表。"
 #: src/routes/obligations.tsx
 msgid "Schedule the payment with the authority"
 msgstr "向税务机关安排付款"
+
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Scheduled"
+msgstr "已排程"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Scheduled to send today"
@@ -13154,10 +13438,6 @@ msgstr "已选州将与联邦规则一同启用。如仅需联邦规则可跳过
 msgid "Send a 7-day magic link to add a member to this practice."
 msgstr "发送 7 天有效的 magic link，将成员添加到该事务所。"
 
-#: src/features/notifications/notification-preferences-page.tsx
-msgid "Send a morning digest"
-msgstr "发送 morning digest"
-
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Send an internal request to an owner or partner for this deadline."
@@ -13278,6 +13558,11 @@ msgstr "在截止日前 30 天发送给客户，作为早期倒计时邮件。"
 msgid "Sent to clients 7 days before the deadline as the final countdown email."
 msgstr "在截止日前 7 天发送给客户，作为最终倒计时邮件。"
 
+#. placeholder {0}: template.usageCount
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Sent to: {0} active clients"
+msgstr "已发送给：{0} 名活跃客户"
+
 #: src/features/alerts/components/PulseRelevanceMatrix.tsx
 msgid "Service"
 msgstr "服务"
@@ -13323,6 +13608,7 @@ msgstr "正在设置你的事务所…"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/members/members-page.tsx
 #: src/features/notifications/notification-preferences-page.tsx
+#: src/features/reminders/reminder-templates-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/settings/settings-sub-nav.tsx
 #: src/routes/account.security.tsx
@@ -13574,6 +13860,10 @@ msgstr "安静日已跳过"
 #: src/features/audit/audit-log-labels.ts
 msgid "Skipped rows"
 msgstr "已跳过行"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Slack"
+msgstr "Slack"
 
 #: src/routes/obligations.tsx
 msgid "Smart priority"
@@ -14026,6 +14316,15 @@ msgstr "停止"
 msgid "Subject"
 msgstr "主题"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Subject line"
+msgstr "主题行"
+
+#. placeholder {0}: template.subject
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Subject: {0}"
+msgstr "主题：{0}"
+
 #: src/routes/readiness.tsx
 msgid "Submit readiness response"
 msgstr "提交准备状态回复"
@@ -14201,6 +14500,10 @@ msgstr "System (cron / queue)"
 msgid "System notification"
 msgstr "系统通知"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "System updates"
+msgstr "系统更新"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Target"
 msgstr "目标"
@@ -14373,6 +14676,22 @@ msgstr "模板"
 #: src/features/reminders/reminders-page.tsx
 msgid "Template active"
 msgstr "启用模板"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Template name"
+msgstr "模板名称"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Template not found"
+msgstr "未找到模板"
+
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Templates"
+msgstr "模板"
+
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "Templates appear here once your practice has reminder messages configured."
+msgstr "当您的事务所配置了提醒消息后，模板将显示在此处。"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/routes/route-summary.ts
@@ -14808,6 +15127,10 @@ msgstr "此事务所已经是所选计划。"
 msgid "This readiness link is expired, revoked, or invalid."
 msgstr "此准备状态链接已过期、已撤销或无效。"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "This reminder template no longer exists. Return to the template library."
+msgstr "此提醒模板已不存在。请返回模板库。"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "This removes every client and deadline created by this import. Use Clients to edit individual records instead."
 msgstr "这会移除此导入创建的所有客户和截止日。请改用“客户”来编辑单条记录。"
@@ -14871,6 +15194,10 @@ msgstr "尚未到达此阶段。我们仅预估「已申报」日期（使用内
 msgid "This stage was skipped — no date applies."
 msgstr "此阶段已跳过 — 无适用日期。"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "This template applies to clients matched by your reminder rules with an active engagement and an open document request."
+msgstr "此模板适用于由您的提醒规则匹配、具有活跃业务约定和未完成文档请求的客户。"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
 msgstr "此模板用于 Materials 发送 checklist 收集请求。变量：client_name、tax_type、due_date、request_url、outstanding_checklist 和 received_checklist。"
@@ -14888,6 +15215,7 @@ msgid "Time format"
 msgstr "时间格式"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/features/notifications/notification-preferences-page.tsx
 msgid "Time range"
 msgstr "时间范围"
 
@@ -14917,6 +15245,10 @@ msgstr "待创建"
 #: src/features/migration/Step4Preview.tsx
 msgid "to generate"
 msgstr "待生成"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "to maya.chen@example.com"
+msgstr "发送至 maya.chen@example.com"
 
 #: src/components/primitives/due-date-label.tsx
 msgid "today"
@@ -14979,6 +15311,10 @@ msgstr "分流来自官方、影响客户的政府变更。"
 #: src/routes/billing.tsx
 msgid "Trial ends {0}"
 msgstr "试用期 {0} 结束"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Trigger"
+msgstr "触发条件"
 
 #: src/routes/login.tsx
 msgid "Trouble signing in? Email <supportLink>support@duedatehq.com</supportLink>."
@@ -15087,6 +15423,7 @@ msgstr "TY {headerFrom} 到期"
 msgid "TY {headerTo} due"
 msgstr "TY {headerTo} 到期"
 
+#: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/rules.library.tsx
 msgid "Type"
 msgstr "类型"
@@ -15132,10 +15469,6 @@ msgstr "未分配"
 #: src/features/workload/workload-page.tsx
 msgid "Unassigned risk"
 msgstr "未分配风险"
-
-#: src/features/notifications/notification-preferences-page.tsx
-msgid "Unassigned work"
-msgstr "未分配工作"
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "unchanged"
@@ -15339,6 +15672,10 @@ msgstr "紧急窗口"
 msgid "urgent"
 msgstr "紧急"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Urgent overrides still come through"
+msgstr "紧急覆盖仍会送达"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "US state code · 2 letters"
 msgstr "US state code · 2 letters"
@@ -15429,6 +15766,11 @@ msgstr "使用 Utilities > Client Listing Reports。"
 msgid "Use when another return, notice, or issue is stopping this deadline."
 msgstr "当另一份申报、通知或问题阻止该截止日推进时使用。"
 
+#. placeholder {0}: template.usageCount
+#: src/features/reminders/reminder-templates-page.tsx
+msgid "used {0} times"
+msgstr "已使用 {0} 次"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Used from Send to client to collect the current checklist from the client."
 msgstr "从 Send to client 使用，用于向客户收集当前 checklist。"
@@ -15465,6 +15807,7 @@ msgid "verified"
 msgstr "已核验"
 
 #: src/features/migration/Step3Normalize.tsx
+#: src/features/notifications/notification-preferences-page.tsx
 msgid "Verified"
 msgstr "已核验"
 
@@ -15598,6 +15941,10 @@ msgstr "在截止日期中查看"
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "View items needing your review"
 msgstr "查看需要您审核的项目"
+
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "View list"
+msgstr "查看列表"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "View mode"
@@ -15743,6 +16090,14 @@ msgstr "导入功能上线后，您即可在此处附加源文档。"
 msgid "Week starts on"
 msgstr "每周开始于"
 
+#: src/features/reminders/reminder-template-editor-page.tsx
+msgid "Weekly"
+msgstr "每周"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Weekly digest"
+msgstr "每周摘要"
+
 #: src/routes/route-summary.ts
 #: src/routes/splash.tsx
 msgid "Welcome back"
@@ -15825,6 +16180,10 @@ msgstr "到期时间"
 msgid "When something gets at-risk — a stalled evidence request, a rejected filing, a 5-day client silence — Smart Priority will surface it here. Right now everything is on track."
 msgstr "当出现风险时——停滞的证据请求、被拒的申报、客户 5 天未回应——智能优先级会在此处提示。目前一切正常。"
 
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Where DueDateHQ can reach you. Per-type rules below override these."
+msgstr "DueDateHQ 可联系您的方式。下方的按类型规则会覆盖这些设置。"
+
 #: src/features/rules/sources-tab.tsx
 msgid "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
 msgstr "各管辖范围已配置的监控角色。存在缺口意味着可能漏掉变更。"
@@ -15892,6 +16251,10 @@ msgstr "预扣税报告数量"
 #: src/features/migration/Stepper.tsx
 msgid "Wizard steps"
 msgstr "向导步骤"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "Work assigned to or unassigned from you"
+msgstr "分配给您或取消分配给您的工作"
 
 #: src/features/members/members-page.tsx
 msgid "Work email"
@@ -16044,6 +16407,10 @@ msgstr "您正在将 {totalCount} 项义务从纳税年度 {headerFrom} 结转�
 #: src/routes/settings.profile.tsx
 msgid "You're signed in on these devices"
 msgstr "您已在这些设备上登录"
+
+#: src/features/notifications/notification-preferences-page.tsx
+msgid "You're tagged in a comment or task"
+msgstr "您在评论或任务中被标记"
 
 #: src/routes/accept-invite.tsx
 msgid "You've been invited to a firm"
