@@ -756,6 +756,16 @@ export function createAppRouter() {
               },
             },
             {
+              path: 'settings/permissions',
+              handle: routeHandle(routeSummaries.settingsPermissions),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { SettingsPermissionsRoute } = await import('@/routes/settings.permissions')
+
+                return { Component: SettingsPermissionsRoute }
+              },
+            },
+            {
               path: 'account/security',
               handle: routeHandle(routeSummaries.accountSecurity),
               HydrateFallback: RouteHydrateFallback,
