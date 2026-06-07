@@ -1,12 +1,19 @@
+import type { ReactNode } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, CheckCircle2Icon, PlayIcon, ShieldCheckIcon } from 'lucide-react'
+import {
+  AlertTriangleIcon,
+  CheckCircle2Icon,
+  CopyIcon,
+  Link2Icon,
+  PlayIcon,
+  ShieldCheckIcon,
+} from 'lucide-react'
 
 import type { DryRunSummary, DuplicateHandling } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
-import { Button } from '@duedatehq/ui/components/ui/button'
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import { formatMigrationErrorMessage, useMappingTargetLabels } from './mapping-target-labels'
-import { SummaryMetric } from './SummaryMetric'
 
 interface Step4Props {
   summary: DryRunSummary | null
@@ -21,17 +28,13 @@ interface Step4Props {
  * The Import CTA is rendered in the WizardShell footer; this body owns the
  * counts, skipped-row visibility, and safety checks before `migration.apply`.
  *
- * TODO(pixel-exact): design YcJR4 uses a gray (#f2f4f7) modal body with
- * white cards. We keep the white wizard body and only restyle the hero to
- * a metric grid.
- * TODO(data) / net-new: the Applied-success surface (design uoNwI) — a full
- * SuccessModal with 4 stats (clients / rules active / upcoming-30-days /
- * emails sent), a 24h undo countdown banner, and a "what to do next" list —
- * is NOT built here. The undo capability exists (toast → AlertDialog →
- * revertMutation in Wizard.tsx); the rich success surface, the live
- * countdown, and the extra stats (rules active, upcoming-30-days, emails
- * sent) need additional data from the apply result + dashboard. Flagged in
- * the report.
+ * 2026-06-07 (Cluster 3 — design YcJR4): the dry-run modal body uses a gray
+ * (#f2f4f7 → bg-background-section) surface with white cards. The step root
+ * full-bleeds a section-gray background over the wizard body and renders each
+ * group as a white bordered card. The hero uses an inline divided 3-metric
+ * grid; the dedup control is a segmented pill (Skip duplicates / Import as
+ * new). The Applied-success surface (design uoNwI) is built in Wizard.tsx as
+ * `SuccessModal` (see Wizard.tsx).
  */
 export function Step4Preview({
   summary,
@@ -57,35 +60,35 @@ export function Step4Preview({
   const conflicts = summary?.clientConflicts ?? []
 
   return (
-    <div className="flex flex-col gap-4 py-5">
+    // 2026-06-07 (Cluster 3 — design YcJR4): full-bleed the section-gray
+    // body over the wizard's px-4 body padding so the dry-run step reads as
+    // a gray surface with white cards (matching the canvas Modal body fill).
+    <div className="-mx-4 flex min-h-full flex-col gap-3.5 bg-background-section px-4 py-5">
       {/* 2026-06-07 (Cluster 3 — design xotna): hero "READY TO IMPORT"
-          eyebrow + a 3-cell metric grid (clients to create / already in
-          list / deadlines to generate) reusing SummaryMetric, replacing
-          the plain PlayIcon list for the headline counts. The secondary
-          skipped/historical/rolled-forward rows stay as a quiet list
-          below. */}
-      <div className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-surface p-4">
-        <div className="flex flex-col gap-1">
-          <span className="inline-flex items-center gap-1.5 text-xs font-medium tracking-eyebrow text-text-success uppercase">
+          eyebrow + an inline divided 3-metric grid (clients to create /
+          already in list / deadlines to generate). */}
+      <div className="flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-5">
+        <div className="flex flex-col gap-2">
+          <span className="inline-flex items-center gap-1.5 text-caption-xs font-bold tracking-eyebrow text-text-success uppercase">
             <span aria-hidden className="size-1.5 rounded-full bg-state-success-solid" />
             <Trans>Ready to import</Trans>
           </span>
-          <p className="text-sm text-text-secondary">
+          <p className="text-[15px] font-semibold text-text-primary">
             <Trans>You&apos;re about to create:</Trans>
           </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <SummaryMetric
-            label={<Trans>Clients to create</Trans>}
-            value={<span className="tabular-nums">{clientCount}</span>}
+        <div className="grid grid-cols-3 divide-x divide-divider-regular">
+          <HeroMetric value={clientCount} unit={<Trans>Clients</Trans>} sub={<Trans>to create</Trans>} />
+          <HeroMetric
+            value={conflicts.length}
+            unit={<Trans>Already</Trans>}
+            sub={<Trans>in your client list</Trans>}
+            muted
           />
-          <SummaryMetric
-            label={<Trans>Already in your list</Trans>}
-            value={<span className="tabular-nums">{conflicts.length}</span>}
-          />
-          <SummaryMetric
-            label={<Trans>Deadlines to generate</Trans>}
-            value={<span className="tabular-nums">{obligationCount}</span>}
+          <HeroMetric
+            value={obligationCount}
+            unit={<Trans>Deadlines</Trans>}
+            sub={<Trans>to generate</Trans>}
           />
         </div>
       </div>
@@ -134,7 +137,7 @@ export function Step4Preview({
       {clientsPreview.length > 0 ? (
         <section
           aria-label={t`Clients to create`}
-          className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-section p-3"
+          className="flex flex-col gap-2 rounded-xl border border-divider-regular bg-background-default p-4"
         >
           <h3 className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
             <Trans>Clients to create</Trans>
@@ -183,24 +186,29 @@ export function Step4Preview({
       {conflicts.length > 0 ? (
         <section
           aria-label={t`Clients already in your list`}
-          className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-section p-3"
+          className="flex flex-col gap-2.5 rounded-xl border border-divider-regular bg-background-default p-4"
         >
-          <h3 className="text-xs font-medium tracking-eyebrow text-text-secondary uppercase">
-            <Trans>Already in your client list</Trans>
-          </h3>
-          <p className="text-sm text-text-secondary">
-            <Plural
-              value={conflicts.length}
-              one="# imported client matches an existing client by EIN."
-              other="# imported clients match existing clients by EIN."
+          {/* 2026-06-07 (Cluster 3 — design xV6gf): header row pairs the
+              "Duplicates · N detected" title (copy icon) with the segmented
+              dedup control on the trailing edge. */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="flex items-center gap-1.5 text-sm font-semibold text-text-primary">
+              <CopyIcon className="size-3.5 text-text-secondary" aria-hidden />
+              <Trans>Already in your client list</Trans>
+            </h3>
+            <DuplicateSegmentedControl
+              value={duplicateHandling}
+              disabled={isUpdatingPreview}
+              onChange={onDuplicateHandlingChange}
             />
-          </p>
-          <ul className="flex flex-col divide-y divide-divider-subtle text-sm">
+          </div>
+          <ul className="flex flex-col gap-1.5 text-sm">
             {conflicts.map((conflict) => (
               <li
                 key={conflict.ein || conflict.incomingName}
-                className="flex flex-wrap items-baseline gap-x-2 py-1.5"
+                className="flex flex-wrap items-center gap-1.5"
               >
+                <Link2Icon className="size-3 shrink-0 text-text-tertiary" aria-hidden />
                 <span className="font-medium text-text-primary">{conflict.incomingName}</span>
                 {conflict.ein ? (
                   <span className="font-mono text-text-tertiary tabular-nums">{conflict.ein}</span>
@@ -211,34 +219,13 @@ export function Step4Preview({
               </li>
             ))}
           </ul>
-          {/* TODO(pixel-exact): design xV6gf draws a segmented control
-              [Skip duplicates | Import as new]; we keep the canonical
-              Button pair (default/outline) — strings already match. */}
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <Button
-              size="sm"
-              variant={duplicateHandling === 'skip' ? undefined : 'outline'}
-              disabled={isUpdatingPreview}
-              onClick={() => onDuplicateHandlingChange('skip')}
-            >
-              <Trans>Skip duplicates</Trans>
-            </Button>
-            <Button
-              size="sm"
-              variant={duplicateHandling === 'import_as_new' ? undefined : 'outline'}
-              disabled={isUpdatingPreview}
-              onClick={() => onDuplicateHandlingChange('import_as_new')}
-            >
-              <Trans>Import as new</Trans>
-            </Button>
-            <span className="text-xs text-text-tertiary">
-              {duplicateHandling === 'skip' ? (
-                <Trans>Duplicates won&apos;t be imported.</Trans>
-              ) : (
-                <Trans>Duplicates will be created as new clients.</Trans>
-              )}
-            </span>
-          </div>
+          <span className="text-xs italic text-text-tertiary">
+            {duplicateHandling === 'skip' ? (
+              <Trans>Duplicates won&apos;t be imported.</Trans>
+            ) : (
+              <Trans>Duplicates will be created as new clients.</Trans>
+            )}
+          </span>
         </section>
       ) : null}
 
@@ -251,7 +238,7 @@ export function Step4Preview({
           rather than as a generic safety footer. */}
       <section
         aria-label={t`Before you import`}
-        className="flex flex-col gap-2 rounded-lg border border-divider-regular bg-background-section p-3"
+        className="flex flex-col gap-2 rounded-xl border border-divider-regular bg-background-default p-4"
       >
         {/* Step 7 onboarding F6-20: heading copy from "Safety" →
             "Before you import" so the bullets land as preconditions,
@@ -421,6 +408,89 @@ export function Step4Preview({
           </AlertDescription>
         </Alert>
       ) : null}
+    </div>
+  )
+}
+
+/**
+ * Inline hero metric (design xotna grid cell): big tabular value, uppercase
+ * unit key, and a quiet supporting sub-label. Cells sit in a 3-col grid with
+ * vertical dividers between them.
+ */
+function HeroMetric({
+  value,
+  unit,
+  sub,
+  muted = false,
+}: {
+  value: number
+  unit: ReactNode
+  sub: ReactNode
+  muted?: boolean
+}) {
+  return (
+    <div className="flex flex-col gap-0.5 px-4 first:pl-0 last:pr-0">
+      <span
+        className={cn(
+          'text-[26px] font-bold leading-none tracking-tight tabular-nums',
+          muted ? 'text-text-secondary' : 'text-text-primary',
+        )}
+      >
+        {value}
+      </span>
+      <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
+        {unit}
+      </span>
+      <span className="text-caption font-medium text-text-secondary">{sub}</span>
+    </div>
+  )
+}
+
+/**
+ * Segmented dedup control (design xV6gf): a pill group on a subtle track,
+ * with the active option as a raised white pill. Replaces the prior Button
+ * pair; the option strings ("Skip duplicates" / "Import as new") are
+ * unchanged so Step4Preview.test.tsx still matches.
+ */
+function DuplicateSegmentedControl({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: DuplicateHandling
+  disabled: boolean
+  onChange: (next: DuplicateHandling) => void
+}) {
+  const options: { key: DuplicateHandling; label: ReactNode }[] = [
+    { key: 'skip', label: <Trans>Skip duplicates</Trans> },
+    { key: 'import_as_new', label: <Trans>Import as new</Trans> },
+  ]
+  return (
+    <div
+      role="radiogroup"
+      className="inline-flex items-center gap-0.5 rounded-full border border-divider-subtle bg-background-subtle p-0.5"
+    >
+      {options.map((option) => {
+        const active = value === option.key
+        return (
+          <button
+            key={option.key}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            disabled={disabled}
+            onClick={() => onChange(option.key)}
+            className={cn(
+              'rounded-full px-2.5 py-1 text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-60',
+              active
+                ? 'bg-background-default font-semibold text-text-primary shadow-xs'
+                : 'font-medium text-text-secondary hover:text-text-primary',
+            )}
+          >
+            {option.label}
+          </button>
+        )
+      })}
     </div>
   )
 }
