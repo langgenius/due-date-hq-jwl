@@ -75,6 +75,12 @@ export function LoginRoute() {
   const navigate = useNavigate()
   const redirectToParam = search.get('redirectTo')
   const redirectTo = isInAppPath(redirectToParam) ? redirectToParam : '/'
+  // Email deep link (`/login?email=&code=`): hand these to the OTP form so it
+  // auto-fills and submits the verify step. Their presence also suppresses Google
+  // One Tap so the auto-verify isn't interrupted by a competing prompt.
+  const linkEmail = search.get('email')
+  const linkCode = search.get('code')
+  const hasEmailLink = Boolean(linkEmail && linkCode)
   const { t } = useLingui()
   const capabilitiesQuery = useQuery({
     queryKey: ['auth-capabilities'],
@@ -86,7 +92,7 @@ export function LoginRoute() {
   const googleClientId = capabilitiesQuery.data?.publicClientIds?.google
 
   const [submittingProvider, setSubmittingProvider] = useState<'google' | 'microsoft' | null>(null)
-  const [emailFlowActive, setEmailFlowActive] = useState(false)
+  const [emailFlowActive, setEmailFlowActive] = useState(hasEmailLink)
   const [emailBusy, setEmailBusy] = useState(false)
   const [, startTransition] = useTransition()
   const socialDisabled = submittingProvider !== null || emailBusy
@@ -241,6 +247,8 @@ export function LoginRoute() {
           </div>
           <EmailOtpSignInForm
             disabled={submittingProvider !== null}
+            initialEmail={linkEmail ?? undefined}
+            initialCode={linkCode ?? undefined}
             onInteraction={() => setEmailFlowActive(true)}
             onPendingChange={setEmailBusy}
             onSignedIn={() => navigate(redirectTo, { replace: true })}

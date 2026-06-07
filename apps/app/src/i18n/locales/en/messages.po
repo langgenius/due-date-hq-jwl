@@ -5287,6 +5287,10 @@ msgid "Enter filed returns into the signature loop"
 msgstr "Enter filed returns into the signature loop"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
+msgid "Enter the 6-digit code we emailed you — or just tap the link in the email."
+msgstr "Enter the 6-digit code we emailed you — or just tap the link in the email."
+
+#: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Enter the 6-digit code."
 msgstr "Enter the 6-digit code."
 
@@ -13034,10 +13038,6 @@ msgstr "The client import flow that maps columns, normalizes values, previews de
 #: src/features/rules/generation-preview-tab.tsx
 msgid "The client whose closed source-year deadline is being considered for next-year generation."
 msgstr "The client whose closed source-year deadline is being considered for next-year generation."
-
-#: src/features/auth/email-otp-sign-in-form.tsx
-msgid "The code expires in 5 minutes."
-msgstr "The code expires in 5 minutes."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "The concrete due date calculated from the active target-year practice rule. A dash means nothing will be created."

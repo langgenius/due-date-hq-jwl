@@ -9,6 +9,7 @@ type MessageKey =
   | 'invitation.cta'
   | 'signInOtp.subject'
   | 'signInOtp.body'
+  | 'signInOtp.cta'
 
 type MessageTable = Record<MessageKey, string>
 
@@ -20,6 +21,7 @@ const CATALOGS: Record<Locale, MessageTable> = {
     'signInOtp.subject': 'Your DueDateHQ sign-in code',
     'signInOtp.body':
       'Your DueDateHQ sign-in code is {otp}. It expires in {expiresInMinutes} minutes.',
+    'signInOtp.cta': 'Sign in to DueDateHQ',
   },
   'zh-CN': {
     'invitation.subject': '加入 {organizationName} 的 DueDateHQ 工作区',
@@ -28,6 +30,7 @@ const CATALOGS: Record<Locale, MessageTable> = {
     'signInOtp.subject': '您的 DueDateHQ 登录验证码',
     'signInOtp.body':
       '您的 DueDateHQ 登录验证码是 {otp}。验证码将在 {expiresInMinutes} 分钟后过期。',
+    'signInOtp.cta': '登录 DueDateHQ',
   },
 }
 

@@ -86,10 +86,20 @@ function createEmailSender(env: ServerEnv): AuthEmailSender {
         otp: escapeHtml(message.otp),
         expiresInMinutes: String(message.expiresInMinutes),
       })
+      const cta = translate(locale, 'signInOtp.cta')
+      // Hybrid sign-in: the body carries the 6-digit code (type it in), and this
+      // button is a deep link back to /login pre-loaded with the same email+code
+      // so a tap auto-fills and submits the verify step. No password, no separate
+      // magic-link token — the link just replays the OTP the user already received.
+      const signInUrl = absoluteUrl(
+        env,
+        `/login?email=${encodeURIComponent(message.to)}&code=${encodeURIComponent(message.otp)}`,
+      )
+      const button = `<p><a href="${escapeHtml(signInUrl)}" style="display:inline-block;padding:10px 18px;background:#111827;color:#ffffff;border-radius:8px;text-decoration:none;font-weight:600;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif">${escapeHtml(cta)}</a></p>`
       await sendEmail({
         to: message.to,
         subject,
-        html: `<p>${body}</p>`,
+        html: `<p>${body}</p>${button}`,
       })
     },
   }

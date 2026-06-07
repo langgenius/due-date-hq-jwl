@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { Loader2Icon, MailIcon } from 'lucide-react'
 
@@ -15,6 +15,12 @@ type PendingAction = 'send' | 'resend' | 'verify'
 interface EmailOtpSignInFormProps {
   className?: string
   disabled?: boolean
+  // Seed values from the email deep link (`/login?email=&code=`). When both are
+  // a valid email + 6-digit code, the form auto-submits the verify step on mount.
+  // `| undefined` is explicit so callers may pass through `searchParams.get()`
+  // results under exactOptionalPropertyTypes.
+  initialEmail?: string | undefined
+  initialCode?: string | undefined
   onInteraction?: () => void
   onPendingChange?: (pending: boolean) => void
   onSignedIn: () => void | Promise<void>
@@ -37,16 +43,24 @@ function readErrorMessage(error: unknown, fallback: string): string {
 export function EmailOtpSignInForm({
   className,
   disabled = false,
+  initialEmail,
+  initialCode,
   onInteraction,
   onPendingChange,
   onSignedIn,
 }: EmailOtpSignInFormProps) {
   const { t } = useLingui()
-  const [email, setEmail] = useState('')
-  const [sentEmail, setSentEmail] = useState<string | null>(null)
-  const [code, setCode] = useState('')
+  // Seed from the email deep link: land directly in the code-entry view with the
+  // email pre-filled. The auto-submit effect below verifies when a valid code is
+  // also present; on failure the email stays pre-filled so Resend works.
+  const seededEmail = (initialEmail ?? '').trim().toLowerCase()
+  const hasSeededEmail = isValidEmail(seededEmail)
+  const [email, setEmail] = useState(hasSeededEmail ? seededEmail : '')
+  const [sentEmail, setSentEmail] = useState<string | null>(hasSeededEmail ? seededEmail : null)
+  const [code, setCode] = useState(normalizeCode(initialCode ?? '').slice(0, 6))
   const [error, setError] = useState<string | null>(null)
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
+  const autoSubmittedRef = useRef(false)
 
   const codeSent = sentEmail !== null
   const busy = pendingAction !== null
@@ -60,6 +74,40 @@ export function EmailOtpSignInForm({
   function noteInteraction() {
     onInteraction?.()
   }
+
+  // Verify a code against an email — shared by the manual submit and the deep-link
+  // auto-submit. No password is ever involved; the link just replays the OTP.
+  function verifyCode(targetEmail: string, otp: string) {
+    setError(null)
+    if (!/^\d{6}$/.test(otp)) {
+      setError(t`Enter the 6-digit code.`)
+      return
+    }
+    setPending('verify')
+    void signInWithEmailCode({
+      email: targetEmail,
+      otp,
+      name: displayNameFromEmail(targetEmail),
+    })
+      .then(() => onSignedIn())
+      .catch((err: unknown) => {
+        setError(readErrorMessage(err, t`Couldn't verify the code`))
+      })
+      .finally(() => setPending(null))
+  }
+
+  // Auto-submit once when arriving from the email deep link with a valid
+  // email + 6-digit code. On an expired/invalid code, verifyCode surfaces the
+  // error while the email stays pre-filled (Resend requests a fresh code).
+  useEffect(() => {
+    if (autoSubmittedRef.current) return
+    const otp = normalizeCode(initialCode ?? '')
+    if (!hasSeededEmail || !/^\d{6}$/.test(otp)) return
+    autoSubmittedRef.current = true
+    noteInteraction()
+    verifyCode(seededEmail, otp)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, [])
 
   async function sendCode(action: Extract<PendingAction, 'send' | 'resend'>) {
     noteInteraction()
@@ -93,25 +141,7 @@ export function EmailOtpSignInForm({
     event.preventDefault()
     if (busy || !sentEmail) return
     noteInteraction()
-    setError(null)
-
-    const otp = normalizeCode(code)
-    if (!/^\d{6}$/.test(otp)) {
-      setError(t`Enter the 6-digit code.`)
-      return
-    }
-
-    setPending('verify')
-    void signInWithEmailCode({
-      email: sentEmail,
-      otp,
-      name: displayNameFromEmail(sentEmail),
-    })
-      .then(() => onSignedIn())
-      .catch((err: unknown) => {
-        setError(readErrorMessage(err, t`Couldn't verify the code`))
-      })
-      .finally(() => setPending(null))
+    verifyCode(sentEmail, normalizeCode(code))
   }
 
   if (codeSent) {
@@ -166,7 +196,9 @@ export function EmailOtpSignInForm({
             }}
           />
           <FieldDescription>
-            <Trans>The code expires in 5 minutes.</Trans>
+            <Trans>
+              Enter the 6-digit code we emailed you — or just tap the link in the email.
+            </Trans>
           </FieldDescription>
           <FieldError>{error}</FieldError>
         </Field>

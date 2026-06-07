@@ -5331,6 +5331,10 @@ msgid "Enter filed returns into the signature loop"
 msgstr "将已申报的报税表纳入签字流程"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
+msgid "Enter the 6-digit code we emailed you — or just tap the link in the email."
+msgstr "请输入我们发送到您邮箱的 6 位验证码，或直接点击邮件中的链接。"
+
+#: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Enter the 6-digit code."
 msgstr "请输入 6 位验证码。"
 
@@ -13140,10 +13144,6 @@ msgstr "客户导入流程会映射列、整理字段值、预览截止日，并
 #: src/features/rules/generation-preview-tab.tsx
 msgid "The client whose closed source-year deadline is being considered for next-year generation."
 msgstr "其已关闭源年度截止日期正被考虑用于次年生成的客户。"
-
-#: src/features/auth/email-otp-sign-in-form.tsx
-msgid "The code expires in 5 minutes."
-msgstr "验证码将在 5 分钟后过期。"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "The concrete due date calculated from the active target-year practice rule. A dash means nothing will be created."
