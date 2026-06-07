@@ -54,6 +54,7 @@ import { Step1Intake } from './Step1Intake'
 import { Step2Mapping } from './Step2Mapping'
 import { Step3Normalize } from './Step3Normalize'
 import { Step4Preview } from './Step4Preview'
+import { SuccessModal, type SuccessModalData } from './SuccessModal'
 import { WizardRouteShell, WizardShell, type WizardTransitionState } from './WizardShell'
 import {
   INITIAL_STATE,
@@ -101,6 +102,10 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
     clientCount: number
     obligationCount: number
   } | null>(null)
+  // 2026-06-07 (Cluster 3 — design uoNwI): the Applied success surface.
+  // Set on apply success; renders the full SuccessModal (hero + stats +
+  // 24h undo countdown + what-next) in place of the prior toast-only path.
+  const [successData, setSuccessData] = useState<SuccessModalData | null>(null)
   // Step 4 re-import dedup choice; default 'skip' matches the server default.
   const [duplicateHandling, setDuplicateHandling] = useState<DuplicateHandling>('skip')
   // 2026-06-07 (Cluster 3 — design SLw8Q/dCUv7): the "Import history"
@@ -242,9 +247,19 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
   const resetAndClose = useCallback(() => {
     dispatch({ type: 'RESET' })
     setDuplicateHandling('skip')
+    setSuccessData(null)
     hydratedBatchIdRef.current = null
     onClose()
   }, [onClose])
+
+  // "Import another file" from the success modal: reset the wizard back to a
+  // clean Step 1 in place (route variant) without leaving the surface.
+  const handleImportAnother = useCallback(() => {
+    dispatch({ type: 'RESET' })
+    setDuplicateHandling('skip')
+    setSuccessData(null)
+    hydratedBatchIdRef.current = null
+  }, [])
 
   // Hydrate the wizard from a resumed batch exactly once (ref-guarded so later
   // edits in the resumed session aren't overwritten by a refetch).
@@ -477,31 +492,6 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
           })
         },
         onSuccess: (result) => {
-          // 2026-05-25 (Wizard #40 — plural fix): "clients" and
-          // "deadlines" were baked into the English template
-          // and never pluralised. `plural()` macro extracts both
-          // forms so n=1 renders "1 client" / "1 deadline".
-          const clientPart = i18n._(
-            plural(result.clientCount, { one: '# client', other: '# clients' }),
-          )
-          const obligationPart = i18n._(
-            plural(result.obligationCount, {
-              one: '# deadline',
-              other: '# deadlines',
-            }),
-          )
-          toast.success(t`Import complete`, {
-            description: t`${clientPart}, ${obligationPart} created`,
-            action: {
-              label: t`Undo import`,
-              onClick: () =>
-                setPendingRevert({
-                  batchId: result.batchId,
-                  clientCount: result.clientCount,
-                  obligationCount: result.obligationCount,
-                }),
-            },
-          })
           window.dispatchEvent(
             new CustomEvent('migration.genesis.started', {
               detail: {
@@ -515,12 +505,22 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
             clientCount: result.clientCount,
             obligationCount: result.obligationCount,
           })
+          // 2026-06-07 (Cluster 3 — design uoNwI): keep the brief genesis
+          // pulse as the "wow" beat, then reveal the full success modal
+          // instead of auto-navigating to the dashboard. The modal owns
+          // the next-step navigation (Open dashboard / Import another /
+          // Revert batch). The genesis.completed event still fires so any
+          // app-shell listeners can react.
           const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
           window.setTimeout(
             () => {
               setGenesis(null)
-              resetAndClose()
-              void navigate('/')
+              setSuccessData({
+                batchId: result.batchId,
+                clientCount: result.clientCount,
+                obligationCount: result.obligationCount,
+                revertibleUntil: result.revertibleUntil,
+              })
               window.dispatchEvent(new CustomEvent('migration.genesis.completed'))
             },
             reduced ? 200 : 1200,
@@ -656,6 +656,8 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
             description: t`${undoClientPart} · ${undoObligationPart} removed`,
           })
           setPendingRevert(null)
+          // Reverting from the success modal also dismisses it before we leave.
+          setSuccessData(null)
           void navigate('/deadlines')
         },
       },
@@ -797,6 +799,33 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
         </AlertDialogContent>
       </AlertDialog>
       <LiveGenesisOverlay genesis={genesis} />
+
+      {/* 2026-06-07 (Cluster 3 — design uoNwI): full Applied success surface,
+          shown once apply resolves. Owns the post-import navigation choices. */}
+      {successData ? (
+        <SuccessModal
+          open
+          data={successData}
+          reverting={revertMutation.isPending}
+          onRevert={() =>
+            setPendingRevert({
+              batchId: successData.batchId,
+              clientCount: successData.clientCount,
+              obligationCount: successData.obligationCount,
+            })
+          }
+          onImportAnother={handleImportAnother}
+          onOpenDashboard={() => {
+            resetAndClose()
+            void navigate('/')
+          }}
+          onViewAuditLog={() => {
+            resetAndClose()
+            void navigate('/audit')
+          }}
+        />
+      ) : null}
+
       {/* 2026-06-07 (Cluster 3): mount the drawer only while open. The
           drawer's own hooks (useMigrationWizard, usePracticeTimezone)
           assume the wider app providers; gating the mount keeps the
