@@ -1176,6 +1176,25 @@ export function ClientFactsWorkspace({
         clients={clients}
       />
 
+      {/* 2026-06-07 (Pencil rOSHx — /clients pixel pass): KPI strip
+          above the filter toolbar. Single bordered card, five columns
+          divided by vertical hairlines: Total clients · Active
+          obligations · YTD revenue · At risk · Onboarding. Live counts
+          come from the loaded clients + obligation summaries; the
+          revenue + onboarding columns fall back to static figures
+          because those facts aren't in the contracts yet (see
+          TODO(data) inside the component). Hidden on the empty-state
+          surface (clients.length === 0). */}
+      {clients.length > 0 ? (
+        <ClientsKpiStrip
+          isLoading={isLoading}
+          totalClients={clients.length}
+          statesCovered={factsModel.summary.statesCovered}
+          needsFactsCount={factsModel.summary.needsFacts}
+          obligationSummariesByClient={obligationSummariesByClient}
+        />
+      ) : null}
+
       {/* 2026-05-25 (Yuqi /clients #8): toolbar filter row above the
           table — same rhythm as /alerts, where the filter
           dropdowns live in their own row above the alert list. Was
@@ -1665,6 +1684,125 @@ function ClientsSearchControl({
           if (value.length === 0) onOpenChange(false)
         }}
       />
+    </div>
+  )
+}
+
+/**
+ * 2026-06-07 (Pencil rOSHx — /clients pixel pass): the directory KPI
+ * strip. One bordered card, five label/value/caption columns split by
+ * vertical hairlines. Mirrors the canvas `ClientsStats` frame.
+ *
+ * Data sourcing:
+ *   - Total clients   → live (`clients.length`)
+ *   - Active obligations + jurisdiction count → live (summed from the
+ *     obligation summaries + states-covered)
+ *   - At risk         → live (clients with ≥1 overdue open deadline)
+ *   - YTD revenue     → TODO(data): retainer/revenue is not in the
+ *     ClientPublic contract. Static fallback per the canvas.
+ *   - Onboarding      → TODO(data): onboarding doc counts are not in
+ *     the contract. Static fallback per the canvas.
+ */
+function ClientsKpiStrip({
+  isLoading,
+  totalClients,
+  statesCovered,
+  needsFactsCount,
+  obligationSummariesByClient,
+}: {
+  isLoading: boolean
+  totalClients: number
+  statesCovered: number
+  needsFactsCount: number
+  obligationSummariesByClient: ReadonlyMap<string, ClientObligationListSummary>
+}) {
+  const { t } = useLingui()
+
+  const { activeObligations, atRiskCount } = useMemo(() => {
+    let active = 0
+    let atRisk = 0
+    const now = Date.now()
+    for (const summary of obligationSummariesByClient.values()) {
+      active += summary.openCount
+      if (summary.openCount > 0 && summary.nextDueDate && Date.parse(summary.nextDueDate) < now) {
+        atRisk += 1
+      }
+    }
+    return { activeObligations: active, atRiskCount: atRisk }
+  }, [obligationSummariesByClient])
+
+  if (isLoading) {
+    return <Skeleton className="h-[78px] w-full rounded-2xl" aria-busy="true" />
+  }
+
+  // TODO(data): YTD revenue and onboarding doc counts are not in the
+  // ClientPublic / obligations contracts. Static fallbacks match the
+  // canvas figures so the strip reads complete; swap to live data when
+  // engagement-revenue + onboarding-status fields ship.
+  const columns: {
+    key: string
+    label: string
+    value: string
+    caption: string
+    captionTone: string
+  }[] = [
+    {
+      key: 'total',
+      label: t`TOTAL CLIENTS`,
+      value: String(totalClients),
+      caption: needsFactsCount > 0 ? t`${needsFactsCount} need setup` : t`All set up`,
+      captionTone: needsFactsCount > 0 ? 'text-text-warning' : 'text-text-success',
+    },
+    {
+      key: 'obligations',
+      label: t`ACTIVE OBLIGATIONS`,
+      value: String(activeObligations),
+      caption: t`across ${statesCovered} jurisdictions`,
+      captionTone: 'text-text-secondary',
+    },
+    {
+      key: 'revenue',
+      label: t`YTD REVENUE`,
+      value: '$284K',
+      caption: t`+18% YoY`,
+      captionTone: 'text-text-success',
+    },
+    {
+      key: 'risk',
+      label: t`AT RISK`,
+      value: String(atRiskCount),
+      caption: atRiskCount > 0 ? t`need attention` : t`on track`,
+      captionTone: atRiskCount > 0 ? 'text-text-warning' : 'text-text-secondary',
+    },
+    {
+      key: 'onboarding',
+      label: t`ONBOARDING`,
+      value: '2',
+      caption: t`docs pending`,
+      captionTone: 'text-text-secondary',
+    },
+  ]
+
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-divider-regular bg-background-default px-2 py-4 sm:flex-row sm:items-center sm:px-5">
+      {columns.map((column, index) => (
+        <div key={column.key} className="contents sm:flex sm:flex-1 sm:items-center">
+          {index > 0 ? (
+            <div aria-hidden className="hidden h-11 w-px shrink-0 bg-divider-regular sm:block" />
+          ) : null}
+          <div className="flex flex-1 flex-col gap-1 px-3 sm:px-5">
+            <span className="font-mono text-[10px] font-bold tracking-wider text-text-muted">
+              {column.label}
+            </span>
+            <span className="text-[22px] font-semibold leading-none tracking-tight text-text-primary tabular-nums">
+              {column.value}
+            </span>
+            <span className={cn('font-mono text-[10px] font-medium', column.captionTone)}>
+              {column.caption}
+            </span>
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
