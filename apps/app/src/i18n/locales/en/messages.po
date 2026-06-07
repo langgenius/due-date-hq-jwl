@@ -144,6 +144,11 @@ msgstr "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 msgid "{0, plural, one {# deadline} other {# deadlines}}"
 msgstr "{0, plural, one {# deadline} other {# deadlines}}"
 
+#. placeholder {0}: alerts.length
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "{0, plural, one {# dispatch} other {# dispatches}}"
+msgstr "{0, plural, one {# dispatch} other {# dispatches}}"
+
 #. placeholder {0}: summary.needsReviewCount
 #: src/features/dashboard/at-a-glance-section.tsx
 msgid "{0, plural, one {# item awaiting you} other {# items awaiting you}}"
@@ -231,6 +236,11 @@ msgstr "{0, plural, one {# seat} other {# seats}}"
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# selected deadline} other {# selected deadlines}}"
 msgstr "{0, plural, one {# selected deadline} other {# selected deadlines}}"
+
+#. placeholder {0}: priority.reasons.length
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "{0, plural, one {# signal} other {# signals}}"
+msgstr "{0, plural, one {# signal} other {# signals}}"
 
 #. placeholder {0}: detail.alert.duplicateSourceSnapshotCount
 #: src/features/alerts/components/AlertStructuredFields.tsx
@@ -1010,6 +1020,10 @@ msgstr "{ruleReviewCount} rules pending review"
 #: src/routes/obligations.tsx
 msgid "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
 msgstr "{selectedChecklistItemCount, plural, one {# item selected} other {# items selected}}"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "{selectedCount, plural, one {# selected} other {# selected}}"
+msgstr "{selectedCount, plural, one {# selected} other {# selected}}"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{selectedCount} selected"
@@ -2259,6 +2273,10 @@ msgstr "Apply"
 msgid "Apply {0} safe items only"
 msgstr "Apply {0} safe items only"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Apply all"
+msgstr "Apply all"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Apply an internal extension plan to every eligible selected deadline. Each filing deadline moves to its statutory extended date; payment stays due on the original date. The target date is capped at the earliest extended deadline; deadlines already extended are skipped."
@@ -2275,6 +2293,10 @@ msgstr "Apply Deadline Exception"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Apply deadline shift"
 msgstr "Apply deadline shift"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Apply each alert from its detail panel to verify the change first."
+msgstr "Apply each alert from its detail panel to verify the change first."
 
 #: src/features/clients/ClassificationImpactDialog.tsx
 msgid "Apply reclassification"
@@ -2335,6 +2357,10 @@ msgstr "Ask an owner or manager to review and apply this alert. This does not ch
 #: src/routes/accept-invite.tsx
 msgid "Ask the practice owner to send a new invitation."
 msgstr "Ask the practice owner to send a new invitation."
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Assign"
+msgstr "Assign"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -2810,6 +2836,7 @@ msgstr "Browse your first deadlines"
 msgid "Building the import preview"
 msgstr "Building the import preview"
 
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/routes/obligations.tsx
 msgid "Bulk actions"
@@ -3306,6 +3333,7 @@ msgstr "Clear search"
 msgid "Clear search or filters to return to the full practice directory."
 msgstr "Clear search or filters to return to the full practice directory."
 
+#: src/features/alerts/AlertsListPage.tsx
 #: src/routes/obligations.tsx
 msgid "Clear selection"
 msgstr "Clear selection"
@@ -5859,6 +5887,7 @@ msgstr "Explain rank"
 msgid "Explain Risk profile"
 msgstr "Explain Risk profile"
 
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/obligations.tsx
 msgid "Export"
@@ -7702,6 +7731,7 @@ msgid "Mark 8879 signed"
 msgstr "Mark 8879 signed"
 
 #: src/components/patterns/alerts-notifications-bell.tsx
+#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/notifications/notifications-page.tsx
 msgid "Mark all read"
 msgstr "Mark all read"
@@ -9293,6 +9323,10 @@ msgstr "NY PTET election made"
 #: src/features/migration/mapping-target-labels.ts
 msgid "NY PTET payments"
 msgstr "NY PTET payments"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "of {totalCount} dispatches"
+msgstr "of {totalCount} dispatches"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP files for tax-software conversion, not DueDateHQ import."
@@ -12370,6 +12404,12 @@ msgstr "Select {displayTitle} for batch review"
 msgid "Select AI draft rule {0}"
 msgstr "Select AI draft rule {0}"
 
+#. placeholder {0}: alert.title
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "Select alert: {0}"
+msgstr "Select alert: {0}"
+
+#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/onboarding/state-rule-activation-selector.tsx
 #: src/routes/obligations.tsx
@@ -12383,6 +12423,10 @@ msgstr "Select all {count} rules in {label}"
 #: src/routes/rules.library.tsx
 msgid "Select all {totalPending}"
 msgstr "Select all {totalPending}"
+
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "Select all alerts"
+msgstr "Select all alerts"
 
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "Select all deadlines in this year"
@@ -15101,9 +15145,18 @@ msgstr "Why it failed"
 msgid "Why now:"
 msgstr "Why now:"
 
+#. placeholder {0}: priority.score
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "Why this is urgent · priority {0}"
+msgstr "Why this is urgent · priority {0}"
+
 #: src/routes/practice.tsx
 msgid "Why this rank?"
 msgstr "Why this rank?"
+
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "Why?"
+msgstr "Why?"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Will create"
