@@ -9,8 +9,8 @@ When the AI Mapper is unreachable (e.g. no AI gateway key in local dev, or
 `AI_BUDGET_EXCEEDED`/`AI_GATEWAY_ERROR` in prod) **and** the user did not pick a
 source-tool preset in Step 1, the mapper used to fall straight to
 `buildAllIgnoreMappings` — every column set to IGNORE. That blocked Continue and
-showed *"We couldn't reach AI and no preset was selected. Please map columns
-manually… N columns are currently ignored."* — a dead-end for any plain CSV,
+showed _"We couldn't reach AI and no preset was selected. Please map columns
+manually… N columns are currently ignored."_ — a dead-end for any plain CSV,
 even one with obviously-named columns. It also contradicted the wizard's "any
 shape works, we'll figure out the columns" promise.
 
@@ -29,7 +29,7 @@ still produces a reviewable draft without AI and without a preset.
   `0.7` (below the 0.8 review bar) so they surface as "needs review".
 - `runMapper` (`apps/server/src/procedures/migration/_service.ts`): on the
   no-AI/no-preset path it now tries the name-matcher first; only when it
-  recognises *nothing* does it fall to `all_ignore`.
+  recognises _nothing_ does it fall to `all_ignore`.
 - Step 2 UI (`apps/app/src/features/migration/Step2Mapping.tsx`): the
   `heuristic` state renders a calm `info` banner ("Matched your columns by name
   — review before continuing"), a "Matched by name" capability badge, and an
