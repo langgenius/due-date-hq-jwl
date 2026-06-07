@@ -441,6 +441,19 @@ export function createAppRouter() {
               },
             },
             {
+              // /today renders the dashboard ("Today") in place — the index
+              // route is the canonical home, and this gives the surface a
+              // speakable, bookmarkable URL without a redirect bounce.
+              path: 'today',
+              handle: routeHandle(routeSummaries.dashboard),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { DashboardRoute } = await import('@/routes/dashboard')
+
+                return { Component: DashboardRoute }
+              },
+            },
+            {
               path: 'dashboard',
               loader: dashboardAliasLoader,
               Component: RedirectOnlyRoute,
