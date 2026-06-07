@@ -1,14 +1,21 @@
-import { useState, type SyntheticEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { useState, type ReactNode, type SyntheticEvent } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import {
   AlertCircleIcon,
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ArrowUpRightIcon,
   Building2Icon,
   CalculatorIcon,
+  CircleAlertIcon,
+  GaugeIcon,
+  MinusIcon,
   RotateCcwIcon,
   SlidersHorizontalIcon,
   Trash2Icon,
+  UsersIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -44,7 +51,9 @@ import {
 import { Field, FieldDescription, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
+import { Progress } from '@duedatehq/ui/components/ui/progress'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { Slider } from '@duedatehq/ui/components/ui/slider'
 import {
   Table,
   TableBody,
@@ -53,6 +62,7 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { PageHeader } from '@/components/patterns/page-header'
 import { ConceptHelp, ConceptLabel } from '@/features/concepts/concept-help'
@@ -327,8 +337,7 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     updateMutation.mutate({ name: trimmed, timezone, internalDeadlineOffsetDays })
   }
 
-  function updatePriorityWeight(key: SmartPriorityFactorKey, value: string) {
-    const weight = parseWholeNumber(value)
+  function setPriorityWeight(key: SmartPriorityFactorKey, weight: number) {
     setPriorityPreview(null)
     setPriorityProfile((current) => ({
       ...current,
@@ -420,6 +429,35 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
     history: t`Late filing history`,
     readiness: t`Materials pressure`,
   }
+  // 2026-06-07 (Pencil H1YSCd): one-line "why this factor" hints shown
+  // beside each weight slider so the tuner reads without a separate
+  // legend. Mirrors the canvas copy.
+  const priorityFactorHints: Record<SmartPriorityFactorKey, string> = {
+    urgency: t`Distance from the due date`,
+    importance: t`Penalty / regulatory weight of the task`,
+    history: t`Past missed deadlines for this client`,
+    readiness: t`How much client info is already gathered`,
+  }
+
+  // KPI strip + footer figures, derived from the live preview (Pencil
+  // H1YSCd). All three read straight off the preview rows — no extra
+  // round-trip. `topRanked` counts distinct clients holding a top-3
+  // preview rank; `needsReview` flags deadlines whose rank shifts more
+  // than 5 places; `reorderCount` drives the unsaved-changes footer.
+  const previewRows = priorityPreview?.rows ?? []
+  const avgPreviewScore =
+    previewRows.length === 0
+      ? null
+      : Math.round(previewRows.reduce((sum, row) => sum + row.previewScore, 0) / previewRows.length)
+  const topRankedClientCount = new Set(
+    previewRows.filter((row) => row.previewRank <= 3).map((row) => row.clientName),
+  ).size
+  const needsReviewCount = previewRows.filter(
+    (row) => row.rankDelta !== null && Math.abs(row.rankDelta) > 5,
+  ).length
+  const reorderCount = previewRows.filter(
+    (row) => row.rankDelta !== null && row.rankDelta !== 0,
+  ).length
 
   return (
     // 2026-05-26 (86th pass, audit §16.1 P1): migrated custom
@@ -643,23 +681,49 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                     )}
                   </p>
                 ) : null}
-                <div className="grid gap-3 md:grid-cols-4">
+                {/* 2026-06-07 (Pencil H1YSCd): weights moved from number
+                    inputs to draggable sliders. Each row carries the
+                    factor name, a one-line "why" hint, and the live value;
+                    the slider sits on a 0–100 scale. The number-keyboard
+                    affordance is preserved via the Slider's built-in
+                    arrow-key + Home/End handling, and the value readout
+                    stays as a focusable hidden input for screen readers. */}
+                <div className="grid gap-5">
                   {PRIORITY_FACTOR_KEYS.map((key) => (
-                    <Field key={key}>
-                      <FieldLabel htmlFor={`priority-weight-${key}`}>
-                        {priorityFactorLabels[key]}
-                      </FieldLabel>
-                      <Input
+                    <div key={key} className="grid gap-2.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="grid min-w-0 gap-0.5">
+                          <Label
+                            htmlFor={`priority-weight-${key}`}
+                            className="text-sm font-medium text-text-primary"
+                          >
+                            {priorityFactorLabels[key]}
+                          </Label>
+                          <span className="text-xs leading-4 text-text-tertiary">
+                            {priorityFactorHints[key]}
+                          </span>
+                        </div>
+                        <span className="shrink-0 text-sm font-semibold tabular-nums text-text-primary">
+                          {priorityProfile.weights[key]}
+                        </span>
+                      </div>
+                      <Slider
                         id={`priority-weight-${key}`}
-                        type="number"
+                        aria-label={priorityFactorLabels[key]}
                         min={0}
                         max={100}
+                        step={1}
                         value={priorityProfile.weights[key]}
-                        onChange={(event) => updatePriorityWeight(key, event.target.value)}
+                        onValueChange={(value) =>
+                          setPriorityWeight(key, Array.isArray(value) ? (value[0] ?? 0) : value)
+                        }
                         disabled={priorityUpdateMutation.isPending}
-                        className="tabular-nums"
                       />
-                    </Field>
+                      <div className="flex justify-between text-[10px] font-medium tabular-nums text-text-muted">
+                        <span>0</span>
+                        <span>100</span>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -767,7 +831,81 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
                 </div>
               </div>
 
-              {priorityPreview ? <PriorityPreviewTable preview={priorityPreview} /> : null}
+              {priorityPreview ? (
+                <div className="grid gap-4">
+                  {/* KPI strip (Pencil H1YSCd) — three at-a-glance figures
+                      derived from the live preview. Responsive 1→3 cols. */}
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <PriorityKpiTile
+                      icon={<UsersIcon className="size-4" aria-hidden />}
+                      label={t`Top-ranked clients`}
+                      value={topRankedClientCount}
+                      hint={t`Clients with the most due-soon weight`}
+                    />
+                    <PriorityKpiTile
+                      icon={<GaugeIcon className="size-4" aria-hidden />}
+                      label={t`Avg score`}
+                      value={avgPreviewScore ?? 0}
+                      hint={t`Across the previewed queue`}
+                    />
+                    <PriorityKpiTile
+                      icon={<CircleAlertIcon className="size-4" aria-hidden />}
+                      label={t`Needs review`}
+                      value={needsReviewCount}
+                      hint={t`Deadlines whose rank shifts > 5 places`}
+                    />
+                  </div>
+                  <PriorityPreviewTable
+                    preview={priorityPreview}
+                    factorLabels={priorityFactorLabels}
+                  />
+                </div>
+              ) : null}
+
+              {/* Unsaved-changes footer (Pencil H1YSCd): mirrors the
+                  canvas action bar — surfaces the reorder impact and the
+                  same Reset / Save affordances when weights are dirty. */}
+              {priorityDirty ? (
+                <div className="flex flex-col gap-3 rounded-lg border border-divider-regular bg-background-section px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-2 text-xs font-medium text-text-secondary">
+                    <CircleAlertIcon className="size-3.5 shrink-0 text-text-warning" aria-hidden />
+                    {priorityPreview ? (
+                      <Trans>Unsaved changes · {reorderCount} deadlines will reorder</Trans>
+                    ) : (
+                      <Trans>Unsaved changes · calculate a preview to see the impact</Trans>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={resetPriorityProfile}
+                      disabled={priorityUpdateMutation.isPending}
+                    >
+                      <RotateCcwIcon className="size-4" aria-hidden />
+                      <Trans>Revert</Trans>
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={savePriorityProfile}
+                      disabled={
+                        !priorityValid ||
+                        !priorityDirty ||
+                        !internalDeadlineOffsetDaysValid ||
+                        priorityUpdateMutation.isPending
+                      }
+                    >
+                      {priorityUpdateMutation.isPending ? (
+                        <Trans>Saving…</Trans>
+                      ) : (
+                        <Trans>Save weights</Trans>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </PermissionObscuredContent>
         </CardContent>
@@ -902,7 +1040,52 @@ function PracticeProfileForm({ firm }: { firm: FirmPublic }) {
   )
 }
 
-function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOutput }) {
+// KPI tile for the Smart Priority preview strip (Pencil H1YSCd): a
+// tone-tinted icon chip, caps label, large value, and a one-line hint.
+function PriorityKpiTile({
+  icon,
+  label,
+  value,
+  hint,
+}: {
+  icon: ReactNode
+  label: string
+  value: number
+  hint: string
+}) {
+  return (
+    <div className="grid gap-1.5 rounded-xl border border-divider-regular bg-background-default px-4 py-3.5">
+      <div className="flex items-center gap-2">
+        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-state-accent-hover text-text-accent">
+          {icon}
+        </span>
+        <span className="text-[10px] font-bold tracking-wide text-text-muted uppercase">
+          {label}
+        </span>
+      </div>
+      <span className="text-3xl font-semibold tabular-nums text-text-primary">{value}</span>
+      <span className="text-xs leading-4 text-text-tertiary">{hint}</span>
+    </div>
+  )
+}
+
+// Maps each Smart Priority factor to the closest Progress tone for the
+// "Driver" mini bar. Progress only ships accent/warning/destructive, so
+// readiness reuses accent (the canvas green has no token equivalent).
+const PRIORITY_DRIVER_TONE: Record<SmartPriorityFactorKey, 'accent' | 'warning' | 'destructive'> = {
+  urgency: 'accent',
+  importance: 'warning',
+  history: 'destructive',
+  readiness: 'accent',
+}
+
+function PriorityPreviewTable({
+  preview,
+  factorLabels,
+}: {
+  preview: FirmSmartPriorityPreviewOutput
+  factorLabels: Record<SmartPriorityFactorKey, string>
+}) {
   if (preview.rows.length === 0) {
     return (
       <div className="rounded-md border border-divider-subtle bg-background-section px-3 py-2 text-sm text-text-secondary">
@@ -914,57 +1097,108 @@ function PriorityPreviewTable({ preview }: { preview: FirmSmartPriorityPreviewOu
   return (
     <div className="grid gap-2">
       <div className="text-xs text-text-tertiary">
-        <Trans>Preview as of {preview.asOfDate}</Trans>
+        <Trans>Preview impact as of {preview.asOfDate}</Trans>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>
-              <Trans>Deadline</Trans>
+              <Trans>Deadline · Client</Trans>
+            </TableHead>
+            <TableHead className="text-right">
+              <Trans>Current</Trans>
+            </TableHead>
+            <TableHead className="text-right">
+              <Trans>New</Trans>
+            </TableHead>
+            <TableHead className="text-right">
+              <Trans>Δ</Trans>
             </TableHead>
             <TableHead>
-              <Trans>Due</Trans>
+              <Trans>Driver</Trans>
             </TableHead>
             <TableHead className="text-right">
-              <Trans>Score</Trans>
-            </TableHead>
-            <TableHead className="text-right">
-              <Trans>Rank</Trans>
+              <span className="sr-only">
+                <Trans>Explain rank</Trans>
+              </span>
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {preview.rows.map((row) => (
-            <TableRow key={row.obligationId}>
-              <TableCell>
-                <div className="grid gap-0.5">
-                  <span className="font-medium text-text-primary">{row.clientName}</span>
-                  <span className="text-text-tertiary">
-                    <TaxCodeLabel code={row.taxType} />
-                  </span>
-                </div>
-              </TableCell>
-              {/* 2026-05-25 (Yuqi Today #9 date format audit): was
-                  rendering raw ISO `row.currentDueDate` while every
-                  other table in the app routes through `formatDate`.
-                  Now uses the canonical helper so the Smart Priority
-                  preview table reads at the same date density as
-                  /deadlines, /clients, audit log, etc. */}
-              <TableCell className="tabular-nums text-text-secondary">
-                {formatDate(row.currentDueDate)}
-              </TableCell>
-              <TableCell className="text-right tabular-nums">
-                {row.previewScore.toFixed(1)}
-                <span className="ml-2 text-text-tertiary">({formatSigned(row.scoreDelta)})</span>
-              </TableCell>
-              <TableCell className="text-right tabular-nums">
-                #{row.previewRank}
-                {row.rankDelta === null ? null : (
-                  <span className="ml-2 text-text-tertiary">({formatSigned(row.rankDelta)})</span>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
+          {preview.rows.map((row) => {
+            const changed = row.rankDelta !== null && row.rankDelta !== 0
+            const driverPct =
+              row.topDriver && row.previewScore > 0
+                ? Math.min(100, Math.round((row.topDriver.contribution / row.previewScore) * 100))
+                : 0
+            return (
+              <TableRow key={row.obligationId}>
+                <TableCell>
+                  <div className="grid gap-0.5">
+                    <span className="font-medium text-text-primary">
+                      <TaxCodeLabel code={row.taxType} /> — {row.clientName}
+                    </span>
+                    {/* 2026-05-25 (date format audit): route ISO dates
+                        through the canonical formatDate helper. */}
+                    <span className="text-xs text-text-tertiary">
+                      {formatDate(row.currentDueDate)}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-right tabular-nums text-text-secondary">
+                  {row.currentRank === null ? '—' : `#${row.currentRank}`}
+                </TableCell>
+                <TableCell className="text-right font-semibold tabular-nums text-text-primary">
+                  #{row.previewRank}
+                </TableCell>
+                <TableCell className="text-right">
+                  {!changed ? (
+                    <span className="inline-flex items-center justify-end gap-1 tabular-nums text-text-muted">
+                      <MinusIcon className="size-3" aria-hidden />—
+                    </span>
+                  ) : row.rankDelta! > 0 ? (
+                    <span className="inline-flex items-center justify-end gap-1 font-semibold tabular-nums text-text-success">
+                      <ArrowUpIcon className="size-3" aria-hidden />
+                      {formatSigned(row.rankDelta!)}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center justify-end gap-1 font-semibold tabular-nums text-text-destructive">
+                      <ArrowDownIcon className="size-3" aria-hidden />
+                      {row.rankDelta}
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {changed && row.topDriver ? (
+                    <div className="grid max-w-[140px] gap-1">
+                      <span className="text-xs font-medium text-text-secondary">
+                        {factorLabels[row.topDriver.factor]}
+                      </span>
+                      <Progress
+                        value={driverPct}
+                        size="hairline"
+                        tone={PRIORITY_DRIVER_TONE[row.topDriver.factor]}
+                      />
+                    </div>
+                  ) : (
+                    <span className="text-xs text-text-muted">
+                      <Trans>No change</Trans>
+                    </span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <TextLink
+                    variant="accent"
+                    render={<Link to={`/deadlines/${row.obligationId}`} />}
+                    className="inline-flex items-center gap-1 text-xs"
+                  >
+                    <Trans>Why this rank?</Trans>
+                    <ArrowUpRightIcon className="size-3" aria-hidden />
+                  </TextLink>
+                </TableCell>
+              </TableRow>
+            )
+          })}
         </TableBody>
       </Table>
     </div>

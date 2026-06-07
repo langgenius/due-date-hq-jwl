@@ -1339,6 +1339,10 @@ msgstr "Account"
 msgid "Account menu for {0}"
 msgstr "Account menu for {0}"
 
+#: src/routes/practice.tsx
+msgid "Across the previewed queue"
+msgstr "Across the previewed queue"
+
 #: src/features/dashboard/severity-section.tsx
 msgid "Act today or risk missing the deadline"
 msgstr "Act today or risk missing the deadline"
@@ -2498,6 +2502,10 @@ msgstr "Automation"
 msgid "AVG ALERT TRIAGE"
 msgstr "AVG ALERT TRIAGE"
 
+#: src/routes/practice.tsx
+msgid "Avg score"
+msgstr "Avg score"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Avoid document archives; they are not client account or contact lists."
 msgstr "Avoid document archives; they are not client account or contact lists."
@@ -3454,6 +3462,10 @@ msgstr "Clients already in your list"
 #: src/features/migration/Step4Preview.tsx
 msgid "Clients to create"
 msgstr "Clients to create"
+
+#: src/routes/practice.tsx
+msgid "Clients with the most due-soon weight"
+msgstr "Clients with the most due-soon weight"
 
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/ClientNotesPanel.tsx
@@ -4508,6 +4520,7 @@ msgstr "current"
 #: src/features/clients/ClientTitleSwitcher.tsx
 #: src/features/obligations/timeline.tsx
 #: src/routes/account.security.tsx
+#: src/routes/practice.tsx
 msgid "Current"
 msgstr "Current"
 
@@ -4612,9 +4625,12 @@ msgstr "days sooner"
 #: src/features/audit/audit-log-page.tsx
 #: src/features/concepts/concept-help.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
-#: src/routes/practice.tsx
 msgid "Deadline"
 msgstr "Deadline"
+
+#: src/routes/practice.tsx
+msgid "Deadline · Client"
+msgstr "Deadline · Client"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Deadline added"
@@ -4773,6 +4789,10 @@ msgstr "Deadlines to generate"
 #: src/routes/login.tsx
 msgid "DEADLINES TRACKED"
 msgstr "DEADLINES TRACKED"
+
+#: src/routes/practice.tsx
+msgid "Deadlines whose rank shifts > 5 places"
+msgstr "Deadlines whose rank shifts > 5 places"
 
 #: src/routes/obligations.tsx
 msgid "Decide extension"
@@ -4967,6 +4987,10 @@ msgstr "Disposition"
 msgid "Disregarded entity"
 msgstr "Disregarded entity"
 
+#: src/routes/practice.tsx
+msgid "Distance from the due date"
+msgstr "Distance from the due date"
+
 #: src/routes/settings.tsx
 msgid "Distribution of prep work across the team."
 msgstr "Distribution of prep work across the team."
@@ -5079,6 +5103,10 @@ msgstr "Drafting in progress with everything the client provided."
 msgid "Drafting started without all client materials in hand."
 msgstr "Drafting started without all client materials in hand."
 
+#: src/routes/practice.tsx
+msgid "Driver"
+msgstr "Driver"
+
 #: src/routes/onboarding.tsx
 msgid "drives when alerts and digests send"
 msgstr "drives when alerts and digests send"
@@ -5093,7 +5121,6 @@ msgstr "Dry run"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/reminders/reminders-page.tsx
-#: src/routes/practice.tsx
 msgid "Due"
 msgstr "Due"
 
@@ -5695,6 +5722,10 @@ msgstr "Explain Manual mapping"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Explain name matching"
 msgstr "Explain name matching"
+
+#: src/routes/practice.tsx
+msgid "Explain rank"
+msgstr "Explain rank"
 
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Explain Risk profile"
@@ -6558,6 +6589,10 @@ msgstr "HomeBase contacts CSV"
 #: src/routes/settings.tsx
 msgid "How DueDateHQ reaches your team, your clients, and your calendars."
 msgstr "How DueDateHQ reaches your team, your clients, and your calendars."
+
+#: src/routes/practice.tsx
+msgid "How much client info is already gathered"
+msgstr "How much client info is already gathered"
 
 #: src/features/alerts/components/PulseAIBoundaryChip.tsx
 msgid "Human verifies"
@@ -8169,6 +8204,7 @@ msgstr "Needs help"
 #: src/features/migration/Step3Normalize.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/rules/coverage-tab.tsx
+#: src/routes/practice.tsx
 #: src/routes/rules.library.tsx
 msgid "Needs review"
 msgstr "Needs review"
@@ -8201,6 +8237,7 @@ msgid "Never"
 msgstr "Never"
 
 #: src/features/audit/audit-event-drawer.tsx
+#: src/routes/practice.tsx
 msgid "New"
 msgstr "New"
 
@@ -8419,6 +8456,10 @@ msgstr "No batch-ready rules"
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "No brief for this view yet."
 msgstr "No brief for this view yet."
+
+#: src/routes/practice.tsx
+msgid "No change"
+msgstr "No change"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -9685,6 +9726,10 @@ msgstr "Past deadline"
 msgid "Past due"
 msgstr "Past due"
 
+#: src/routes/practice.tsx
+msgid "Past missed deadlines for this client"
+msgstr "Past missed deadlines for this client"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Paste a list instead →"
 msgstr "Paste a list instead →"
@@ -9815,6 +9860,10 @@ msgstr "Peek client details"
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Peek details (without leaving the list)"
 msgstr "Peek details (without leaving the list)"
+
+#: src/routes/practice.tsx
+msgid "Penalty / regulatory weight of the task"
+msgstr "Penalty / regulatory weight of the task"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Penalty exposure and tax-attribute flags"
@@ -10213,11 +10262,6 @@ msgstr "PREVIEW"
 msgid "Preview & approve"
 msgstr "Preview & approve"
 
-#. placeholder {0}: preview.asOfDate
-#: src/routes/practice.tsx
-msgid "Preview as of {0}"
-msgstr "Preview as of {0}"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Preview closed source-year deadlines, then create next-year deadlines from active practice rules."
 msgstr "Preview closed source-year deadlines, then create next-year deadlines from active practice rules."
@@ -10227,6 +10271,11 @@ msgstr "Preview closed source-year deadlines, then create next-year deadlines fr
 #: src/routes/obligations.tsx
 msgid "Preview for {0}"
 msgstr "Preview for {0}"
+
+#. placeholder {0}: preview.asOfDate
+#: src/routes/practice.tsx
+msgid "Preview impact as of {0}"
+msgstr "Preview impact as of {0}"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -10427,10 +10476,6 @@ msgstr "QuickBooks Desktop: open Customer Center, then use Excel > Export Custom
 #: src/features/migration/Step1Intake.tsx
 msgid "QuickBooks Online: export from Customers with the Export to Excel icon, or use Reports > Sales and Customers > Customer Contact List."
 msgstr "QuickBooks Online: export from Customers with the Export to Excel icon, or use Reports > Sales and Customers > Customer Contact List."
-
-#: src/routes/practice.tsx
-msgid "Rank"
-msgstr "Rank"
 
 #: src/routes/obligations.tsx
 msgid "Raw data for spreadsheets and portability."
@@ -11119,6 +11164,7 @@ msgid "Returned from filed status — IRS/state rejected the submission."
 msgstr "Returned from filed status — IRS/state rejected the submission."
 
 #: src/features/alerts/AlertsListPage.tsx
+#: src/routes/practice.tsx
 msgid "Revert"
 msgstr "Revert"
 
@@ -11824,6 +11870,10 @@ msgstr "Save the reviewed client set before applying when a Pulse has low confid
 msgid "Save these recovery codes now"
 msgstr "Save these recovery codes now"
 
+#: src/routes/practice.tsx
+msgid "Save weights"
+msgstr "Save weights"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Saved"
 msgstr "Saved"
@@ -11903,10 +11953,6 @@ msgstr "Scope"
 #: src/features/alerts/components/PulseChangeKindChip.tsx
 msgid "Scope changed"
 msgstr "Scope changed"
-
-#: src/routes/practice.tsx
-msgid "Score"
-msgstr "Score"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Search actor, entity, action, reason"
@@ -13869,6 +13915,10 @@ msgid "Top deadlines by risk"
 msgstr "Top deadlines by risk"
 
 #: src/routes/practice.tsx
+msgid "Top-ranked clients"
+msgstr "Top-ranked clients"
+
+#: src/routes/practice.tsx
 msgid "Total"
 msgstr "Total"
 
@@ -14127,6 +14177,14 @@ msgstr "Unmapped"
 #: src/features/notifications/notifications-page.tsx
 msgid "Unread: {0}"
 msgstr "Unread: {0}"
+
+#: src/routes/practice.tsx
+msgid "Unsaved changes · {reorderCount} deadlines will reorder"
+msgstr "Unsaved changes · {reorderCount} deadlines will reorder"
+
+#: src/routes/practice.tsx
+msgid "Unsaved changes · calculate a preview to see the impact"
+msgstr "Unsaved changes · calculate a preview to see the impact"
 
 #: src/features/dashboard/severity-section.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -14650,6 +14708,10 @@ msgstr "Why it failed"
 msgid "Why now:"
 msgstr "Why now:"
 
+#: src/routes/practice.tsx
+msgid "Why this rank?"
+msgstr "Why this rank?"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Will create"
 msgstr "Will create"
@@ -14890,3 +14952,7 @@ msgstr "ZIP / postal code"
 #: src/features/migration/Step1Intake.tsx
 msgid "ZIP or CSV"
 msgstr "ZIP or CSV"
+
+#: src/routes/practice.tsx
+msgid "Δ"
+msgstr "Δ"
