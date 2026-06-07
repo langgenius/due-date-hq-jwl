@@ -1929,10 +1929,6 @@ msgstr "全部完成"
 msgid "All change types"
 msgstr "所有变更类型"
 
-#: src/features/alerts/AlertsListPage.tsx
-msgid "All clear. New matches will appear here."
-msgstr "全部正常。新的匹配会显示在这里。"
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "All clients"
 msgstr "所有客户"
@@ -2139,6 +2135,7 @@ msgid "Applies to {0} in <0/>"
 msgstr "适用于 <0/> 中的 {0}"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/AlertsListPage.tsx
 msgid "Apply"
 msgstr "应用"
 
@@ -3512,6 +3509,10 @@ msgstr "置信度 {confidencePct}%"
 msgid "Confidence"
 msgstr "置信度"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Configure sources"
+msgstr "配置来源"
+
 #: src/features/alerts/components/AffectedClientsTable.tsx
 msgid "Confirm"
 msgstr "确认"
@@ -4845,6 +4846,7 @@ msgid "Discarding this draft will commit these changes"
 msgstr "放弃此草稿将提交这些更改"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/PulseAlertActionsRow.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Dismiss"
@@ -6335,6 +6337,10 @@ msgstr "正在生成…"
 #: src/routes/not-found.tsx
 msgid "Go back"
 msgstr "返回"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Go to alerts"
+msgstr "前往提醒"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Go to Clients > Accounts, click the export icon, then download the emailed zipped CSV."
@@ -8215,6 +8221,10 @@ msgid "No activity summary yet"
 msgstr "暂无活动摘要"
 
 #: src/features/alerts/AlertsListPage.tsx
+msgid "No alerts — you're caught up"
+msgstr "暂无提醒 —— 您都已处理完毕"
+
+#: src/features/alerts/AlertsListPage.tsx
 msgid "No alerts match these filters."
 msgstr "没有提醒匹配这些筛选条件。"
 
@@ -8385,6 +8395,10 @@ msgstr "没有表单"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "No forms or vouchers match."
 msgstr "没有匹配的表单或凭单。"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "No history yet"
+msgstr "暂无历史记录"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "No import batches yet"
@@ -8883,6 +8897,10 @@ msgstr "需留意 — 暂不紧急"
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding rules activated"
 msgstr "引导规则已激活"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record. The last 60 days of activity appear automatically."
+msgstr "当您对提醒做出处理（应用 / 忽略 / 暂停）后，它们会作为不可更改的记录显示在这里。最近 60 天的活动会自动出现。"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "One unfinished draft import"
@@ -10932,6 +10950,10 @@ msgstr "返回今天"
 msgid "Returned from filed status — IRS/state rejected the submission."
 msgstr "已从已申报状态退回 — IRS/州政府已拒绝该提交。"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Revert"
+msgstr "撤销"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Revert batch"
 msgstr "撤销批次"
@@ -12364,6 +12386,7 @@ msgid "Smart Priority saved"
 msgstr "Smart Priority 已保存"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/routes/obligations.tsx
 msgid "Snooze"
@@ -14319,6 +14342,10 @@ msgstr "变更内容"
 msgid "What changes"
 msgstr "变更内容"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "What gets recorded"
+msgstr "记录哪些内容"
+
 #: src/routes/billing.tsx
 msgid "What stays in DueDateHQ"
 msgstr "DueDateHQ 保留什么"
@@ -14330,6 +14357,15 @@ msgstr "此证据说明了什么"
 #: src/features/dashboard/actions-list.tsx
 msgid "What's in this list"
 msgstr "此列表包含的内容"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "When CA FTB, IRS, or another monitored source publishes a change, it will land here."
+msgstr "当 CA FTB、IRS 或其他受监控来源发布变更时，会显示在这里。"
+
+#. placeholder {0}: formatRelativeTime(lastChecked)
+#: src/features/alerts/AlertsListPage.tsx
+msgid "When CA FTB, IRS, or another monitored source publishes a change, it will land here. Last check {0}."
+msgstr "当 CA FTB、IRS 或其他受监控来源发布变更时，会显示在这里。上次检查：{0}。"
 
 #: src/routes/rules.library.tsx
 msgid "When is it due?"

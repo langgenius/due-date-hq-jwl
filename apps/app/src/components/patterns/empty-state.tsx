@@ -27,6 +27,7 @@ export function EmptyState({
   title,
   description,
   cta,
+  footer,
   className,
   density = 'default',
   variant = 'default',
@@ -35,6 +36,9 @@ export function EmptyState({
   title: ReactNode
   description?: ReactNode
   cta?: ReactNode
+  // 2026-06-07: optional content below the CTA — e.g. the "what gets recorded"
+  // chip strip on the /alerts/history empty state. Prominent variant only.
+  footer?: ReactNode
   className?: string
   density?: 'default' | 'compact'
   // 2026-06-07 (design replication): `variant="prominent"` is the full-surface
@@ -92,6 +96,7 @@ export function EmptyState({
         </p>
       ) : null}
       {cta ? <div className={isProminent ? 'mt-2' : 'mt-1'}>{cta}</div> : null}
+      {footer && isProminent ? <div className="mt-2">{footer}</div> : null}
     </div>
   )
 }

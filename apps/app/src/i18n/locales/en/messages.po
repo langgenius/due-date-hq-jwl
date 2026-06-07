@@ -1903,10 +1903,6 @@ msgstr "All caught up"
 msgid "All change types"
 msgstr "All change types"
 
-#: src/features/alerts/AlertsListPage.tsx
-msgid "All clear. New matches will appear here."
-msgstr "All clear. New matches will appear here."
-
 #: src/features/rules/generation-preview-tab.tsx
 msgid "All clients"
 msgstr "All clients"
@@ -2112,6 +2108,7 @@ msgid "Applies to {0} in <0/>"
 msgstr "Applies to {0} in <0/>"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/AlertsListPage.tsx
 msgid "Apply"
 msgstr "Apply"
 
@@ -3477,6 +3474,10 @@ msgstr "conf {confidencePct}%"
 msgid "Confidence"
 msgstr "Confidence"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Configure sources"
+msgstr "Configure sources"
+
 #: src/features/alerts/components/AffectedClientsTable.tsx
 msgid "Confirm"
 msgstr "Confirm"
@@ -4801,6 +4802,7 @@ msgid "Discarding this draft will commit these changes"
 msgstr "Discarding this draft will commit these changes"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/PulseAlertActionsRow.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "Dismiss"
@@ -6284,6 +6286,10 @@ msgstr "Generating…"
 #: src/routes/not-found.tsx
 msgid "Go back"
 msgstr "Go back"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Go to alerts"
+msgstr "Go to alerts"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Go to Clients > Accounts, click the export icon, then download the emailed zipped CSV."
@@ -8151,6 +8157,10 @@ msgid "No activity summary yet"
 msgstr "No activity summary yet"
 
 #: src/features/alerts/AlertsListPage.tsx
+msgid "No alerts — you're caught up"
+msgstr "No alerts — you're caught up"
+
+#: src/features/alerts/AlertsListPage.tsx
 msgid "No alerts match these filters."
 msgstr "No alerts match these filters."
 
@@ -8321,6 +8331,10 @@ msgstr "No forms"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "No forms or vouchers match."
 msgstr "No forms or vouchers match."
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "No history yet"
+msgstr "No history yet"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "No import batches yet"
@@ -8811,6 +8825,10 @@ msgstr "On your radar — not urgent yet"
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding rules activated"
 msgstr "Onboarding rules activated"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record. The last 60 days of activity appear automatically."
+msgstr "Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record. The last 60 days of activity appear automatically."
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "One unfinished draft import"
@@ -10840,6 +10858,10 @@ msgstr "Return to Today"
 msgid "Returned from filed status — IRS/state rejected the submission."
 msgstr "Returned from filed status — IRS/state rejected the submission."
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Revert"
+msgstr "Revert"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Revert batch"
 msgstr "Revert batch"
@@ -12262,6 +12284,7 @@ msgid "Smart Priority saved"
 msgstr "Smart Priority saved"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/routes/obligations.tsx
 msgid "Snooze"
@@ -14208,6 +14231,10 @@ msgstr "WHAT CHANGED"
 msgid "What changes"
 msgstr "What changes"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "What gets recorded"
+msgstr "What gets recorded"
+
 #: src/routes/billing.tsx
 msgid "What stays in DueDateHQ"
 msgstr "What stays in DueDateHQ"
@@ -14219,6 +14246,15 @@ msgstr "What this evidence says"
 #: src/features/dashboard/actions-list.tsx
 msgid "What's in this list"
 msgstr "What's in this list"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "When CA FTB, IRS, or another monitored source publishes a change, it will land here."
+msgstr "When CA FTB, IRS, or another monitored source publishes a change, it will land here."
+
+#. placeholder {0}: formatRelativeTime(lastChecked)
+#: src/features/alerts/AlertsListPage.tsx
+msgid "When CA FTB, IRS, or another monitored source publishes a change, it will land here. Last check {0}."
+msgstr "When CA FTB, IRS, or another monitored source publishes a change, it will land here. Last check {0}."
 
 #: src/routes/rules.library.tsx
 msgid "When is it due?"

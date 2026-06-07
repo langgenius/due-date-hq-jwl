@@ -9,13 +9,19 @@ import { toast } from 'sonner'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 import {
+  AlarmClockIcon,
   AlertCircleIcon,
+  CircleCheckIcon,
   Clock3Icon,
   HistoryIcon,
   ListIcon,
   MapIcon,
+  MegaphoneIcon,
   SatelliteDishIcon,
   SearchIcon,
+  Settings2Icon,
+  Undo2Icon,
+  XIcon,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -36,6 +42,8 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { formatRelativeTime } from '@/lib/utils'
+import { EmptyState } from '@/components/patterns/empty-state'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { PageHeader } from '@/components/patterns/page-header'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
@@ -1268,10 +1276,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   </div>
                 </div>
               ) : isEmpty ? (
-                // Round 56: empty banner sits BELOW the filter row,
-                // not in its place. Same chrome a populated firm
-                // sees.
-                <AlertsAllClearBanner sources={sourceHealth} />
+                // 2026-06-07 (design replication O3s4ie / rR9X1): the genuinely
+                // empty alerts surface now owns the area with the prominent
+                // empty state (was a one-line status banner). History mode gets
+                // its own copy + "what gets recorded" legend.
+                <AlertsEmptyState historyMode={historyMode} sources={sourceHealth} />
               ) : isFilteredEmpty ? (
                 <FilteredEmptyState />
               ) : (
@@ -1649,11 +1658,93 @@ function SkeletonAlertRow() {
 // 2026-05-27 (Yuqi cross-route consistency): inline className lifted
 // into the shared `StatusBanner` primitive at
 // `apps/app/src/components/patterns/status-banner.tsx`.
-function AlertsAllClearBanner({ sources }: { sources: readonly PulseSourceHealth[] }) {
-  void sources
+// 2026-06-07 (design replication O3s4ie / rR9X1): prominent empty state for the
+// genuinely-empty alerts + history surfaces. Replaces the prior one-line
+// AlertsAllClearBanner. Active mode derives the freshest source check for the
+// sub copy; history mode adds the "what gets recorded" legend.
+function AlertsEmptyState({
+  historyMode,
+  sources,
+}: {
+  historyMode: boolean
+  sources: readonly PulseSourceHealth[]
+}) {
+  if (historyMode) {
+    return (
+      <EmptyState
+        variant="prominent"
+        icon={HistoryIcon}
+        title={<Trans>No history yet</Trans>}
+        description={
+          <Trans>
+            Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an
+            immutable record. The last 60 days of activity appear automatically.
+          </Trans>
+        }
+        cta={
+          <Button variant="outline" size="sm" render={<Link to="/alerts" />}>
+            <MegaphoneIcon data-icon="inline-start" />
+            <Trans>Go to alerts</Trans>
+          </Button>
+        }
+        footer={<AlertsHistoryRecordLegend />}
+      />
+    )
+  }
+  const lastChecked = sources.reduce<string | null>((latest, source) => {
+    if (!source.lastCheckedAt) return latest
+    return !latest || source.lastCheckedAt > latest ? source.lastCheckedAt : latest
+  }, null)
   return (
-    <StatusBanner indicator={<PulsingDot tone="success" active />}>
-      <Trans>All clear. New matches will appear here.</Trans>
-    </StatusBanner>
+    <EmptyState
+      variant="prominent"
+      icon={MegaphoneIcon}
+      title={<Trans>No alerts — you're caught up</Trans>}
+      description={
+        lastChecked ? (
+          <Trans>
+            When CA FTB, IRS, or another monitored source publishes a change, it will land here.
+            Last check {formatRelativeTime(lastChecked)}.
+          </Trans>
+        ) : (
+          <Trans>
+            When CA FTB, IRS, or another monitored source publishes a change, it will land here.
+          </Trans>
+        )
+      }
+      cta={
+        <Button variant="link" size="sm" render={<Link to="/rules/sources" />}>
+          <Settings2Icon data-icon="inline-start" />
+          <Trans>Configure sources</Trans>
+        </Button>
+      }
+    />
+  )
+}
+
+function AlertsHistoryRecordLegend() {
+  const items = [
+    { key: 'apply', icon: CircleCheckIcon, label: <Trans>Apply</Trans> },
+    { key: 'dismiss', icon: XIcon, label: <Trans>Dismiss</Trans> },
+    { key: 'snooze', icon: AlarmClockIcon, label: <Trans>Snooze</Trans> },
+    { key: 'revert', icon: Undo2Icon, label: <Trans>Revert</Trans> },
+  ]
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <p className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+        <Trans>What gets recorded</Trans>
+      </p>
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {items.map(({ key, icon: ChipIcon, label }) => (
+          <span
+            key={key}
+            className="inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary"
+          >
+            <ChipIcon className="size-3.5 text-text-tertiary" aria-hidden />
+            {label}
+          </span>
+        ))}
+      </div>
+    </div>
   )
 }
