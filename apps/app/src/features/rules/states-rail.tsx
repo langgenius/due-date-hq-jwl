@@ -1,14 +1,20 @@
+import type { ReactNode } from 'react'
 import { useMemo } from 'react'
+import { Link } from 'react-router'
 import {
   LandmarkIcon,
   LayoutDashboardIcon,
   ListFilterIcon,
   MapPinIcon,
+  RssIcon,
   SearchIcon,
+  TimerIcon,
 } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 
 import { cn } from '@duedatehq/ui/lib/utils'
+
+import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 
 /**
  * `JurisdictionRail` — the left master pane of the Rule Library
@@ -50,6 +56,8 @@ export function JurisdictionRail({
   onSelect,
   search,
   onSearchChange,
+  sources,
+  temporary,
   className,
 }: {
   items: readonly RailJurisdiction[]
@@ -59,6 +67,13 @@ export function JurisdictionRail({
   onSelect: (jurisdiction: string | null) => void
   search: string
   onSearchChange: (next: string) => void
+  /**
+   * Library-section nav rows (Pencil `O0pyRO` — Sources / Temporary
+   * rules sit between Overview and the jurisdictions). Each links to its
+   * standalone route. Omitted while their data is still loading.
+   */
+  sources?: { count: number; healthy: boolean } | undefined
+  temporary?: { activeCount: number; obligationCount: number } | undefined
   className?: string
 }) {
   const { t } = useLingui()
@@ -131,15 +146,51 @@ export function JurisdictionRail({
         <div className="flex flex-col gap-0.5">
           {/* Overview — the All-jurisdictions surface, always first. */}
           {!query ? (
-            <RailRow
-              icon={LayoutDashboardIcon}
-              label={t`Overview`}
-              count={totalRuleCount}
-              reviewCount={0}
-              tone="overview"
-              selected={selected === null}
-              onSelect={() => onSelect(null)}
-            />
+            <>
+              <RailRow
+                icon={LayoutDashboardIcon}
+                label={t`Overview`}
+                count={totalRuleCount}
+                reviewCount={0}
+                tone="overview"
+                selected={selected === null}
+                onSelect={() => onSelect(null)}
+              />
+              {sources ? (
+                <RailNavRow
+                  icon={RssIcon}
+                  label={t`Sources`}
+                  href="/rules/sources"
+                  trailing={
+                    <span className="flex shrink-0 items-center gap-1.5">
+                      <PulsingDot
+                        tone={sources.healthy ? 'success' : 'warning'}
+                        active={false}
+                        label={
+                          sources.healthy ? t`All sources healthy` : t`Some sources need attention`
+                        }
+                      />
+                      <span className="font-mono text-[11px] font-semibold text-text-muted tabular-nums">
+                        {sources.count}
+                      </span>
+                    </span>
+                  }
+                />
+              ) : null}
+              {temporary && temporary.activeCount > 0 ? (
+                <RailNavRow
+                  icon={TimerIcon}
+                  label={t`Temporary rules`}
+                  href="/rules/temporary"
+                  inlineMeta={
+                    <span className="shrink-0 text-[11px] font-semibold whitespace-nowrap text-text-warning">
+                      {t`${temporary.activeCount} active`}
+                    </span>
+                  }
+                  subtext={t`Applied to ${temporary.obligationCount} obligations`}
+                />
+              ) : null}
+            </>
           ) : null}
 
           {federalVisible ? (
@@ -200,6 +251,51 @@ function RailSectionLabel({ children }: { children: React.ReactNode }) {
         {children}
       </span>
     </div>
+  )
+}
+
+/**
+ * `RailNavRow` — a library-section row that LINKS to a sibling route
+ * (Sources, Temporary rules), as opposed to `RailRow` which selects a
+ * jurisdiction in place. Mirrors the row chrome (icon · label · trailing)
+ * and adds an optional inline meta (after the label) + a second subtext
+ * line, matching the Pencil Temporary-rules row.
+ */
+function RailNavRow({
+  icon: Icon,
+  label,
+  href,
+  inlineMeta,
+  trailing,
+  subtext,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  href: string
+  inlineMeta?: ReactNode
+  trailing?: ReactNode
+  subtext?: ReactNode
+}) {
+  return (
+    <Link
+      to={href}
+      className="flex w-full flex-col gap-1 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-state-base-hover"
+    >
+      <span className="flex items-center gap-2.5">
+        <Icon className="size-[15px] shrink-0 text-text-secondary" aria-hidden />
+        <span className="min-w-0 truncate text-[13px] font-medium text-text-secondary">
+          {label}
+        </span>
+        {inlineMeta}
+        <span className="flex-1" />
+        {trailing}
+      </span>
+      {subtext ? (
+        <span className="truncate pl-[25px] text-[11px] font-medium text-text-tertiary">
+          {subtext}
+        </span>
+      ) : null}
+    </Link>
   )
 }
 

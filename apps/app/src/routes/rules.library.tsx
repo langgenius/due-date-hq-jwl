@@ -5,6 +5,7 @@ import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import { useLingui, Trans, Plural } from '@lingui/react/macro'
 import {
+  ArrowDownToLineIcon,
   ArrowUpRightIcon,
   CalendarClock,
   Check,
@@ -38,7 +39,6 @@ import type {
 // `RuleTier` isn't re-exported from the contracts package today —
 // infer it from the same union literal the schema uses.
 type RuleTier = ObligationRule['ruleTier']
-import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
@@ -99,11 +99,13 @@ import {
   stripJurisdictionPrefix,
   type EntityKey,
 } from '@/features/rules/rules-console-model'
+import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 import { JurisdictionRail, type RailJurisdiction } from '@/features/rules/states-rail'
 import {
   JurisdictionKpiStrip,
   JurisdictionRuleTable,
   JurisdictionStatusChips,
+  KpiStrip,
 } from '@/features/rules/jurisdiction-rule-table'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { formatRelativeTime } from '@/lib/utils'
@@ -219,9 +221,7 @@ const RULES_TABLE_COLUMN_COUNT = 3 + ENTITY_KEYS.length
 // dot stay yellow-700/600 because those hues are already brown
 // enough at saturated strength.
 const REVIEW_TEXT_CLS = 'text-[var(--color-util-colors-yellow-700)]'
-const REVIEW_BG_SOFT_CLS = 'bg-[var(--color-util-colors-orange-50)]'
 const REVIEW_BG_TINT_CLS = 'bg-[var(--color-util-colors-orange-100)]'
-const REVIEW_BORDER_CLS = 'border-[var(--color-util-colors-orange-200)]'
 const REVIEW_DOT_CLS = 'bg-[var(--color-util-colors-yellow-600)]'
 
 // Status sub-grouping inside an expanded jurisdiction. Rules are
@@ -837,14 +837,28 @@ function useRuleChangeKindLabels(): Record<RuleChangeKind, string> {
 function OverviewActionHero({
   reviewCount,
   oldestRelative,
+  riskBreakdown,
   onOpenReview,
+  onRemindLater,
 }: {
   reviewCount: number
   oldestRelative: string | null
+  riskBreakdown: { high: number; med: number; low: number }
   onOpenReview: () => void
+  onRemindLater?: () => void
 }) {
+  const { t } = useLingui()
+  // Subline impact breakdown (Pencil "3 high-impact · 2 medium · 1 low")
+  // — derived from the wired `riskLevel` of the rules awaiting review.
+  // Only buckets with a count appear, so a queue that's all-high reads
+  // "5 high-impact" rather than padding with "· 0 medium · 0 low".
+  const impactParts = [
+    riskBreakdown.high > 0 ? t`${riskBreakdown.high} high-impact` : null,
+    riskBreakdown.med > 0 ? t`${riskBreakdown.med} medium` : null,
+    riskBreakdown.low > 0 ? t`${riskBreakdown.low} low` : null,
+  ].filter(Boolean)
   return (
-    <div className="flex shrink-0 flex-col gap-3 rounded-2xl border border-state-accent-solid bg-state-accent-hover p-[18px] sm:flex-row sm:items-center sm:gap-[18px] sm:px-[22px]">
+    <div className="flex shrink-0 flex-col gap-3 rounded-2xl border border-state-accent-solid bg-state-accent-hover p-[18px] xl:flex-row xl:items-center xl:gap-[18px] xl:px-[22px]">
       <span
         aria-hidden
         className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-state-accent-solid text-xl font-bold tracking-tight text-background-default tabular-nums"
@@ -868,15 +882,32 @@ function OverviewActionHero({
           ) : null}
         </span>
         <span className="text-[13px] font-medium text-text-secondary">
+          {impactParts.length > 0 ? (
+            <>
+              <span className="text-text-primary">{impactParts.join(' · ')}</span>
+              {'. '}
+            </>
+          ) : null}
           <Trans>
             Reviewing now keeps client deadlines accurate and unblocks downstream obligations.
           </Trans>
         </span>
       </div>
-      <Button size="sm" className="shrink-0" onClick={onOpenReview}>
-        <Trans>Open review queue</Trans>
-        <ArrowUpRightIcon data-icon="inline-end" />
-      </Button>
+      <div className="flex shrink-0 items-center gap-3">
+        <Button size="sm" onClick={onOpenReview}>
+          <Trans>Open review queue</Trans>
+          <ArrowUpRightIcon data-icon="inline-end" />
+        </Button>
+        {onRemindLater ? (
+          <button
+            type="button"
+            onClick={onRemindLater}
+            className="shrink-0 rounded-md text-xs font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <Trans>Remind me Friday</Trans>
+          </button>
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -1057,6 +1088,20 @@ function OverviewRecentChangesCard({
 // Main route
 // ---------------------------------------------------------------------------
 
+const HERO_SNOOZE_KEY = 'ddhq.rules.heroSnoozeUntil'
+
+// Timestamp for upcoming Friday end-of-day — backs the ActionHero
+// "Remind me Friday" snooze. Returns this Friday if today is before
+// Friday, else next week's Friday.
+function nextFridayTs(now: number): number {
+  const d = new Date(now)
+  const day = d.getDay() // 0=Sun … 5=Fri
+  const delta = (5 - day + 7) % 7 || 7
+  d.setDate(d.getDate() + delta)
+  d.setHours(23, 59, 59, 999)
+  return d.getTime()
+}
+
 export function RulesLibraryRoute() {
   const { t } = useLingui()
   const queryClient = useQueryClient()
@@ -1092,6 +1137,21 @@ export function RulesLibraryRoute() {
   // round-trips for marginal gain and break the in-memory search /
   // jurisdiction-grouping flow this page already runs.
   const [visibleGroupCount, setVisibleGroupCount] = useState(PAGE_SIZE)
+  // ActionHero "Remind me Friday" snooze — persisted so the review
+  // nudge stays hidden across reloads until the chosen Friday passes.
+  const [heroSnoozeUntil, setHeroSnoozeUntil] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0
+    const raw = window.localStorage.getItem(HERO_SNOOZE_KEY)
+    return raw ? Number(raw) || 0 : 0
+  })
+  const remindHeroLater = useCallback(() => {
+    const until = nextFridayTs(Date.now())
+    setHeroSnoozeUntil(until)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(HERO_SNOOZE_KEY, String(until))
+    }
+  }, [])
+  const heroSnoozed = heroSnoozeUntil > Date.now()
   // 2026-06-04 (Yuqi rule-library master–detail pivot, Pencil HR6mK):
   // the selected jurisdiction drives the right-pane flat table. URL-
   // bound so a state deep-links; null / unknown code = the All overview.
@@ -1135,6 +1195,7 @@ export function RulesLibraryRoute() {
   )
   const coverageQuery = useQuery(orpc.rules.coverage.queryOptions({ input: undefined }))
   const sourcesQuery = useQuery(orpc.rules.listSources.queryOptions({ input: undefined }))
+  const temporaryQuery = useQuery(orpc.rules.listTemporaryRules.queryOptions({ input: undefined }))
 
   const rules = useMemo(() => rulesQuery.data ?? [], [rulesQuery.data])
   const rulesById = useMemo(() => new Map(rules.map((rule) => [rule.id, rule])), [rules])
@@ -1295,6 +1356,52 @@ export function RulesLibraryRoute() {
     }
     if (!Number.isFinite(oldest)) return null
     return formatRelativeTime(new Date(oldest).toISOString())
+  }, [rules])
+
+  // Overview KPI-strip + eyebrow inputs (Pencil O0pyRO KPI Strip /
+  // eyebrow). All derived from already-wired queries — no extra fetch.
+  //   jurisdictionCount / stateCount — one coverage row per jurisdiction
+  //   activeSources                  — sources reporting a healthy feed
+  //   changedLast30                  — rules touched in the trailing 30d
+  //   pendingRisk                    — high/med/low split of the review queue
+  const jurisdictionCount = coverageRows.length
+  const stateCount = useMemo(
+    () => coverageRows.filter((row) => row.jurisdiction !== 'FED').length,
+    [coverageRows],
+  )
+  const activeSources = useMemo(
+    () => (sourcesQuery.data ?? []).filter((s) => s.healthStatus === 'healthy').length,
+    [sourcesQuery.data],
+  )
+  // Rail library-section rows (Pencil O0pyRO — Sources / Temporary rules).
+  const railSources = useMemo(() => {
+    const data = sourcesQuery.data
+    if (!data) return undefined
+    return { count: data.length, healthy: data.every((s) => s.healthStatus === 'healthy') }
+  }, [sourcesQuery.data])
+  const railTemporary = useMemo(() => {
+    const data = temporaryQuery.data
+    if (!data) return undefined
+    const active = data.filter((rule) => rule.status === 'active')
+    return {
+      activeCount: active.length,
+      obligationCount: active.reduce((acc, rule) => acc + rule.activeObligationCount, 0),
+    }
+  }, [temporaryQuery.data])
+  const changedLast30 = useMemo(() => {
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
+    return rules.filter((rule) => {
+      const changed = ruleChangedAt(rule)
+      return changed !== null && changed >= cutoff
+    }).length
+  }, [rules])
+  const pendingRisk = useMemo(() => {
+    const out = { high: 0, med: 0, low: 0 }
+    for (const rule of rules) {
+      if (statusGroupOf(rule.status) !== 'needs_review') continue
+      out[rule.riskLevel] += 1
+    }
+    return out
   }, [rules])
 
   // 2026-06-04 (Yuqi rule-library master–detail pivot): the states rail
@@ -1786,6 +1893,24 @@ export function RulesLibraryRoute() {
     </>
   )
 
+  // Overview header actions (Pencil O0pyRO): pared down to Export +
+  // Add new rule. The all-jurisdictions overview promotes the catalog
+  // export (was buried in the ⋯ menu) and the create flow; review lives
+  // in the ActionHero, sources in the rail. The fuller `headerActions`
+  // set still drives the per-jurisdiction detail header.
+  const overviewHeaderActions = (
+    <>
+      <Button variant="outline" size="sm" onClick={handleExport}>
+        <ArrowDownToLineIcon data-icon="inline-start" />
+        <Trans>Export</Trans>
+      </Button>
+      <Button size="sm" onClick={openNewRule}>
+        <PlusIcon data-icon="inline-start" />
+        <Trans>Add new rule</Trans>
+      </Button>
+    </>
+  )
+
   // 2026-05-26 (Yuqi rule library deferred batch — /adapt):
   // keyboard navigation across the rule grid. Power users running 476
   // rules need J/K row nav + Enter/Esc/e for the same muscle memory
@@ -2046,6 +2171,8 @@ export function RulesLibraryRoute() {
           onSelect={(jur) => void setJurisdiction(jur)}
           search={railSearch}
           onSearchChange={setRailSearch}
+          sources={railSources}
+          temporary={railTemporary}
           className="hidden lg:flex"
         />
 
@@ -2069,48 +2196,37 @@ export function RulesLibraryRoute() {
               actions={headerActions}
             />
           ) : (
-            <>
-              <PageHeader
-                title={
-                  <span className="inline-flex items-center gap-2">
-                    <Trans>Rule library</Trans>
-                    {!rulesQuery.isLoading ? (
-                      <Badge variant="secondary" size="lg" className="tabular-nums">
-                        <Plural value={totalRules} one="# rule" other="# rules" />
-                      </Badge>
-                    ) : null}
-                    {!statsLoading && totalPendingReview > 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => void setScope('review')}
-                        aria-label={t`Show rules needing review`}
-                        className={cn(
-                          'inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-medium outline-none transition-colors focus-visible:ring-2',
-                          REVIEW_BORDER_CLS,
-                          REVIEW_BG_SOFT_CLS,
-                          REVIEW_TEXT_CLS,
-                          'hover:bg-[var(--color-util-colors-orange-100)] focus-visible:ring-[var(--color-util-colors-orange-200)]',
-                        )}
-                      >
-                        <span aria-hidden className={cn('size-1.5 rounded-full', REVIEW_DOT_CLS)} />
-                        <Plural
-                          value={totalPendingReview}
-                          one="# rule needs review"
-                          other="# rules need review"
-                        />
-                      </button>
-                    ) : null}
+            // Overview header (Pencil O0pyRO): a sentence-case status
+            // eyebrow with a green sync dot, the "Rule library overview"
+            // title, and a lean two-button action cluster (Export +
+            // Add new rule). The catalog totals live in the KPI strip
+            // and status-coverage card below, so the title no longer
+            // carries count/review badges; "Start review" lives in the
+            // ActionHero and "Sources" in the jurisdiction rail.
+            <PageHeader
+              eyebrow={
+                !statsLoading ? (
+                  <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 tracking-normal normal-case">
+                    <PulsingDot tone="success" label={t`Library in sync`} />
+                    <span className="text-[13px] font-medium text-text-tertiary">
+                      <Trans>Federal + {stateCount} states</Trans>
+                    </span>
+                    <span aria-hidden className="text-text-muted">
+                      ·
+                    </span>
+                    <span className="text-[13px] font-medium text-text-tertiary">
+                      <Plural
+                        value={activeSources}
+                        one="# source active"
+                        other="# sources active"
+                      />
+                    </span>
                   </span>
-                }
-                actions={headerActions}
-              />
-              <p className="max-w-[720px] text-description leading-5 text-text-secondary">
-                <Trans>
-                  These are the deadline rules that drive your client deadlines. Review and approve
-                  new rules before they trigger reminders.
-                </Trans>
-              </p>
-            </>
+                ) : undefined
+              }
+              title={<Trans>Rule library overview</Trans>}
+              actions={overviewHeaderActions}
+            />
           )}
 
           {/* Overview summary surfaces (Pencil O0pyRO) — ActionHero
@@ -2123,13 +2239,50 @@ export function RulesLibraryRoute() {
               for the catalog. */}
           {!selectedGroup && !isSearching && !statsLoading ? (
             <>
-              {totalPendingReview > 0 ? (
+              {totalPendingReview > 0 && !heroSnoozed ? (
                 <OverviewActionHero
                   reviewCount={totalPendingReview}
                   oldestRelative={oldestReviewRelative}
+                  riskBreakdown={pendingRisk}
                   onOpenReview={startReviewAll}
+                  onRemindLater={remindHeroLater}
                 />
               ) : null}
+              {/* Overview KPI band (Pencil O0pyRO KPI Strip) — catalog-wide
+                  Total / Jurisdictions / Changed 30d / Pending review,
+                  built on the shared KpiStrip. */}
+              <KpiStrip
+                stats={[
+                  {
+                    key: 'total',
+                    label: t`Total rules`,
+                    value: totalRules,
+                    sub: t`${totalActive} active`,
+                    subClass: 'text-text-success',
+                  },
+                  {
+                    key: 'jurisdictions',
+                    label: t`Jurisdictions`,
+                    value: jurisdictionCount,
+                    sub: t`Federal + ${stateCount} states`,
+                    subClass: 'text-text-tertiary',
+                  },
+                  {
+                    key: 'changed',
+                    label: t`Changed 30 days`,
+                    value: changedLast30,
+                    sub: t`Last 30 days`,
+                    subClass: 'text-text-tertiary',
+                  },
+                  {
+                    key: 'pending',
+                    label: t`Pending review`,
+                    value: totalPendingReview,
+                    sub: oldestReviewRelative ? t`oldest ${oldestReviewRelative}` : t`All clear`,
+                    subClass: totalPendingReview > 0 ? 'text-text-warning' : 'text-text-success',
+                  },
+                ]}
+              />
               <OverviewStatusCoverageCard
                 total={totalRules}
                 active={totalActive}
@@ -3129,7 +3282,7 @@ function GroupedRulesTable({
                 <TableHead
                   key={entity}
                   title={ENTITY_FULL_LABELS[entity]}
-                  className="w-12 text-center"
+                  className="w-12 px-2 text-center"
                 >
                   {ENTITY_COLUMN_LABELS[entity]}
                 </TableHead>
@@ -3435,7 +3588,7 @@ function GroupHeaderRow({
         const isNA = group.sourceCoverage?.[entity] === 'not_applicable'
         const state: CoverageState = isNA ? 'not_applicable' : (group.coverage?.[entity] ?? 'none')
         return (
-          <TableCell key={entity} className="py-2 text-center">
+          <TableCell key={entity} className="py-2 px-2 text-center">
             <EntityStateCell
               count={group.entityCounts[entity]}
               pendingReviewCount={group.entityPendingReviewCounts[entity]}
@@ -3708,7 +3861,7 @@ function RuleTableRow({
           tinted when the rule applies to that entity, faint
           placeholder otherwise. */}
       {ENTITY_KEYS.map((entity) => (
-        <TableCell key={entity} className="py-2 text-center">
+        <TableCell key={entity} className="py-2 px-2 text-center">
           <EntityApplicabilityCell applies={applicabilitySet.has(entity)} status={rule.status} />
         </TableCell>
       ))}
@@ -4009,7 +4162,7 @@ function SearchResultsTable({
               <TableHead
                 key={entity}
                 title={ENTITY_FULL_LABELS[entity]}
-                className="w-12 text-center text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-tertiary"
+                className="w-12 px-2 text-center text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-tertiary"
               >
                 {ENTITY_COLUMN_LABELS[entity]}
               </TableHead>
@@ -4090,7 +4243,7 @@ function SearchResultsTable({
                     <FormCell formName={rule.formName} taxType={rule.taxType} />
                   </TableCell>
                   {ENTITY_KEYS.map((entity) => (
-                    <TableCell key={entity} className="py-2 text-center">
+                    <TableCell key={entity} className="py-2 px-2 text-center">
                       <EntityApplicabilityCell
                         applies={rule.entityApplicability.includes(entity)}
                         status={rule.status}

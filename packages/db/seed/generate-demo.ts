@@ -2297,6 +2297,42 @@ for (const f of FIRMS) {
       ),
     ),
   )
+
+  // pulse_priority_review — a preparer flagged these alerts for review.
+  // The presence of `requested_by` is what `listPriorityQueue` reads as
+  // the `preparer_requested` (+30) scoring signal (see repo/pulse/scoped
+  // `listPriorityQueue`), so marking the already-impactful matched alerts
+  // (n=1 hero, n=8, n=12) lifts them into the HIGH/URGENT tiers and gives
+  // the alert row its smart-priority "Why?" inset (Pencil g5kKJQ `IciLB`)
+  // real reasons to show. The queue recomputes score/level/reasons live,
+  // so the stored `priority_score` / reasons here are just a cache. Only
+  // matched/partially_applied alerts qualify for the queue. The preparer
+  // is the firm's preparer member when it has one, else the owner.
+  const preparer = f.members[1]?.id ?? f.owner
+  const reviewRequestedAlerts = firmAlerts.filter((a) => [1, 8, 12].includes(a.n))
+  add(
+    'pulse_priority_review',
+    ...reviewRequestedAlerts.map((a) =>
+      row(
+        s(sid('42', i, a.n)),
+        s(f.id),
+        s(sid('41', i, a.n)),
+        s(uuid('40', a.n)),
+        s('open'),
+        0,
+        s('[]'),
+        s('[]'),
+        s('[]'),
+        s('[]'),
+        s('A preparer asked about this client.'),
+        s(preparer),
+        'NULL',
+        'NULL',
+        ts(a.at),
+        ts(a.at),
+      ),
+    ),
+  )
 }
 
 // Brightline-only overlay demo: an exception rule applied to its CA 568 row.
@@ -2392,6 +2428,8 @@ const SUPPORT_ORDER = [
   'client_email_suppression',
   'llm_log',
   'pulse_firm_alert',
+  // FK-safe: references pulse_firm_alert.id + pulse.id, both emitted above.
+  'pulse_priority_review',
 ]
 const SUPPORT_COLS: Record<string, string[]> = {
   migration_mapping: [
@@ -2675,6 +2713,24 @@ const SUPPORT_COLS: Record<string, string[]> = {
     'dismissed_by',
     'dismissed_at',
     'snoozed_until',
+    'created_at',
+    'updated_at',
+  ],
+  pulse_priority_review: [
+    'id',
+    'firm_id',
+    'alert_id',
+    'pulse_id',
+    'status',
+    'priority_score',
+    'priority_reasons_json',
+    'selected_obligation_ids_json',
+    'confirmed_obligation_ids_json',
+    'excluded_obligation_ids_json',
+    'note',
+    'requested_by',
+    'reviewed_by',
+    'reviewed_at',
     'created_at',
     'updated_at',
   ],

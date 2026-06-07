@@ -1,6 +1,6 @@
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { Building2, ExternalLinkIcon, Plus } from 'lucide-react'
+import { Building2, Clock3, ExternalLinkIcon, Plus } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -14,7 +14,7 @@ import { alertTone } from '@/features/alerts/alert-tone'
 // now renders inline in the subject block via `<ExternalLinkIcon>` +
 // truncated label with the URL on tooltip hover.
 import { impactBadgeFromAlert } from '@/features/alerts/components/pulse-alert-chrome'
-import { StateBadge } from '@/components/primitives/state-badge'
+import { changeKindLabel } from '@/features/alerts/components/PulseChangeKindChip'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { formatRelativeTime } from '@/lib/utils'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -52,6 +52,16 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 // resulting card is shorter than this floor, the empty-state /
 // chip row pushes to the bottom edge via the parent's `justify-between`.
 const CARD_MIN_HEIGHT_CLASS = 'min-h-[160px]'
+
+// Affected-client avatar tones (Pencil VxRyF bottom-meta stack). The
+// canvas uses decorative pastel hexes with no token equivalent, so we
+// rotate through existing state-hover token pairs — meaning, not exact
+// color, is what matters (overlapping initials of the matched clients).
+const AVATAR_TONES = [
+  'bg-state-accent-hover text-text-accent',
+  'bg-state-warning-hover text-text-warning',
+  'bg-state-success-hover text-text-success',
+] as const
 
 // 2026-06-04 round 19 (Yuqi Pencil vMnz5 — "for the clients
 // — and hover will show the exact client in tooltip"): this now
@@ -161,11 +171,20 @@ function NeedsAttentionCard({
   // TaxCodeBadge in the bottom row still renders without an extra
   // round-trip. Drops to null when no clients are matched.
   const firstForm = affectedClients[0]?.taxType ?? null
-  // Round 85 (post-merge): origin/main passes batched clients via
-  // prop, no loading state per-card. `clientsLoading` and `hasData`
-  // collapse to constants the render uses below.
-  const clientsLoading = false
-  const hasData = true
+  // VxRyF bottom-meta data: confidence %, the alert's own form code, and
+  // overlapping initial-avatars of the matched clients.
+  const confidencePct = Math.round(alert.confidence * 100)
+  const alertForm = alert.forms[0] ?? firstForm
+  const avatars = allNames.slice(0, 3).map((name, index) => ({
+    name,
+    initials: name
+      .split(/\s+/)
+      .map((word) => word[0] ?? '')
+      .join('')
+      .slice(0, 2)
+      .toUpperCase(),
+    tone: AVATAR_TONES[index % AVATAR_TONES.length] ?? AVATAR_TONES[0],
+  }))
   // 2026-06-05 (pre-CI green-up): `confidencePct` + `confidenceToneCls`
   // went unused after the round 81 inline source treatment.
   // Deleted (rather than prefixed with `_`) because this project's
@@ -181,13 +200,8 @@ function NeedsAttentionCard({
   // 2026-06-06: tier now reflects REAL client impact
   // (matchedCount + needsReviewCount) instead of inverted AI
   // confidence — same swap applied across every alert badge.
+  // Only the high-impact tier renders a (red) severity pill, per VxRyF.
   const severity = impactBadgeFromAlert(alert)
-  // Pencil X3j4nt SeverityPill uses the BARE tier word ("HIGH"),
-  // not the full "HIGH IMPACT" phrase. Drops 6 characters from a
-  // 22px-tall pill, which makes a real visual difference at the
-  // mono 10/700 type scale used here.
-  const severityLabel =
-    severity.id === 'high' ? t`HIGH` : severity.id === 'medium' ? t`MED` : t`LOW`
 
   // Pencil X3j4nt TimeColumn shows "2h ago" + an absolute "14:32"
   // in mono. Resolve the firm's timezone so the absolute time
@@ -355,58 +369,44 @@ function NeedsAttentionCard({
               padding, the badges no longer have their own
               breathing room — the inter-pill gap has to carry
               it. */}
-          <div className="flex min-w-0 items-center gap-3">
-            {/* SEVERITY PILL — HIGH only. Padding [5, 8], mono 10/700
-                uppercase, amber colors from impactBadgeFromAlert. */}
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            {/* HIGH IMPACT — Pencil VxRyF red pill (#FEE4E2 bg / #B42318
+                text → destructive tokens). Full words "High impact", not
+                the abbreviated "HIGH". Only renders for high-impact alerts. */}
             {severity.id === 'high' ? (
-              // 2026-06-04 round 68 (Yuqi #2 "those two badges
-              // should be the same height. fix"): severity pill
-              // dropped `py-[5px]` and adopted `h-[22px]` so it
-              // matches the State pill's fixed height pixel-for-
-              // pixel. Both pills now sit on the same baseline
-              // and align without the optical wobble.
-              <span
-                className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-[11px] font-bold tracking-[0.7px] uppercase"
-                style={{ backgroundColor: severity.bg, color: severity.text }}
-              >
-                {severityLabel}
+              <span className="inline-flex shrink-0 items-center rounded-[4px] bg-state-destructive-hover px-2 py-[3px] text-[10px] font-bold tracking-[0.7px] text-text-destructive uppercase">
+                <Trans>High impact</Trans>
               </span>
             ) : null}
 
-            {/* STATE — round 73 (Yuqi "nope, with state name"):
-                restored the state code alongside the circular
-                badge. Round 72's interpretation of "small circular
-                badge" as motif-only dropped the textual identifier;
-                user wants BOTH the circle and the code visible.
-                Tooltip preserves the full state name on hover. */}
-            {/* State — round 80 (Yuqi #2 "bigger gap"): gap
-                between the circular motif and the code text
-                bumped 1 → 1.5 (4 → 6px). Adds visual separation
-                so the badge and the code don't visually merge.
-                Also bumped the StateBadge motif from 16 → 18px
-                to fix the optical imbalance between the motif
-                width and the 12px code text width. */}
+            {/* STATE — Pencil VxRyF: a bordered mono code pill (no fill,
+                no motif), consistent with the Form badge beside it.
+                Tooltip preserves the full jurisdiction on hover. */}
             <Tooltip>
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="inline-flex h-[22px] shrink-0 cursor-help items-center gap-1.5 outline-none"
+                    className="inline-flex shrink-0 cursor-help items-center rounded-md border border-divider-regular px-2 py-[2px] font-mono text-[11px] font-semibold text-text-secondary outline-none"
                     {...props}
                   >
-                    {/* Round 81 (Yuqi #5 "1px or 2px bigger text
-                        size"): state code 12 → 14px. The eyebrow
-                        scale was reading too quiet at 12px next
-                        to the 18px state-badge circle. 14px aligns
-                        the code's optical weight with the motif. */}
-                    <StateBadge code={alert.jurisdiction} size="xs" />
-                    <span className="font-mono text-[14px] font-bold tracking-[0.7px] text-text-secondary uppercase">
-                      {alert.jurisdiction}
-                    </span>
+                    {alert.jurisdiction}
                   </span>
                 )}
               />
               <TooltipContent>{alert.jurisdiction}</TooltipContent>
             </Tooltip>
+
+            {/* FORM badge — Pencil VxRyF top-row position (was wrongly
+                moved to the bottom row in a prior pass). Reuses the
+                canonical TaxCodeBadge mono pill. */}
+            {alertForm ? <TaxCodeBadge code={alertForm} /> : null}
+
+            {/* CHANGE KIND — Pencil VxRyF: e.g. "DEADLINE SHIFTED", mono
+                accent, plain text (no pill). Reuses the shared
+                changeKindLabel helper from the alerts feature. */}
+            <span className="shrink-0 font-mono text-[10px] font-bold tracking-[0.5px] text-text-accent uppercase">
+              {changeKindLabel(alert.changeKind)}
+            </span>
           </div>
 
           {/* RIGHT cluster — round 81 (Yuqi #1 "remove time here"):
@@ -418,9 +418,10 @@ function NeedsAttentionCard({
             <TooltipTrigger
               render={(props) => (
                 <span
-                  className="shrink-0 cursor-help whitespace-nowrap text-[12px] font-medium text-text-tertiary tabular-nums outline-none"
+                  className="inline-flex shrink-0 cursor-help items-center gap-1 whitespace-nowrap text-[12px] font-medium text-text-muted tabular-nums outline-none"
                   {...props}
                 >
+                  <Clock3 className="size-3 shrink-0" aria-hidden />
                   {formatRelativeTime(alert.publishedAt)}
                 </span>
               )}
@@ -442,172 +443,90 @@ function NeedsAttentionCard({
             stopPropagation so the card's onReview doesn't also
             fire. */}
         <div className="flex min-w-0 flex-col gap-1">
-          {/* 2026-06-04 round 67 (Yuqi #1 title "medium"): weight
-              dropped semibold (600) → medium (500). The card body
-              now has fewer competing weights — only the action
-              CTAs (if any) carry 600 elsewhere; the title at 500
-              reads as a calm scan target rather than a shout.
-              2026-06-04 round 72 (Yuqi #5 "tighter letter spacing.
-              tighter line height"): added `tracking-[-0.25px]` +
-              dropped leading from 1.35 → 1.25. At 15px medium
-              weight the looser leading + neutral tracking read as
-              loose ad-copy; tightened both so the title looks
-              like a deliberate UI label, not body prose. */}
-          {/* Title — round 81 (Yuqi #4 "avoid writing the source
-              e.g. FL DOR again"): strip a leading source-name
-              prefix from the title so the source line below
-              doesn't echo the same text. Defensive: only strips
-              when the title actually starts with the source
-              string (case-insensitive), followed by an optional
-              separator. Falls back to the raw title for any
-              non-matching shape. */}
+          {/* Title — Pencil VxRyF 16/600 (kept at 15px for small-screen
+              density). `dedupeTitleSource` still strips a leading source
+              prefix so the bottom source link doesn't echo it. */}
           <h3
-            className="line-clamp-2 min-w-0 text-[15px] font-medium leading-[1.25] tracking-[-0.25px] text-text-primary"
+            className="line-clamp-2 min-w-0 text-[15px] font-semibold leading-[1.3] text-text-primary"
             title={alert.title}
           >
             {dedupeTitleSource(alert.title, alert.source)}
           </h3>
-          {alert.sourceUrl ? (
-            <Tooltip>
-              <TooltipTrigger
-                render={(props) => (
-                  <span
-                    // Round 81 (Yuqi #2 "add a link infront of
-                    // the text. align with the client"): leading
-                    // `<ExternalLinkIcon>` so the affordance is
-                    // visible even at rest. The whole span sits
-                    // at the same left edge as the head row + the
-                    // bottom Building2 row (all share the card's
-                    // px-5 padding), so it aligns with the client
-                    // line directly below in the flex column.
-                    className="inline-flex min-w-0 cursor-pointer items-center gap-1 text-[12px] font-medium tracking-[-0.1px] text-text-tertiary outline-none transition-colors hover:text-text-secondary hover:underline"
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
-                    }}
-                    {...props}
-                  >
-                    <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
-                    <span className="truncate">{alert.source}</span>
-                  </span>
-                )}
-              />
-              <TooltipContent>
-                <div className="flex max-w-[320px] flex-col gap-0.5 text-left">
-                  <span className="font-semibold">
-                    <Trans>Open source</Trans>
-                  </span>
-                  <span className="break-all text-text-secondary">{alert.sourceUrl}</span>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <span className="inline-flex min-w-0 items-center gap-1 text-[12px] font-medium tracking-[-0.1px] text-text-tertiary">
-              <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
-              <span className="truncate">{alert.source}</span>
-            </span>
-          )}
+          {/* SUMMARY — Pencil VxRyF body line (was missing entirely).
+              Two-line clamp, secondary tone (#676f83). */}
+          <p className="line-clamp-2 min-w-0 text-[13px] leading-[1.5] text-text-secondary">
+            {alert.summary}
+          </p>
         </div>
       </div>
 
-      {/* `QzvZa` — bottom clients line. Building icon + N Clients
-          (or "No clients matched") in Geist 13/normal. No CLIENT
-          EFFECT inset card on vi3aw — just this single quiet row.
-          2026-06-04 round 65 (Yuqi #2 — STILL mismatched after
-          round 64): the previous attempt set icon explicitly to
-          `text-text-secondary` + `strokeWidth={1.75}`, but the
-          stroke override made the icon visually LIGHTER than the
-          filled glyphs of the label at 13/500 — and worse, the
-          loading / no-clients branches forced the inner span to
-          `text-text-tertiary` while the icon stayed
-          `text-text-secondary`, so in those states the two were
-          genuinely different shades. Fix:
-            • Drop the strokeWidth override — default stroke (2)
-              gives the icon visual weight that matches the
-              13/500 sans-serif glyphs alongside it.
-            • Strip every `text-text-tertiary` override on the
-              inner spans so they all inherit the parent's
-              `text-text-secondary`. Icon + label now share ONE
-              color class via parent inheritance in every state. */}
-      {/* 2026-06-04 round 67 (Yuqi #4 "should be the same as the
-          below form name in the Actions this week table. move it
-          besides the client affected"): form pill moved from the
-          head row down here, rendered via `<TaxCodeBadge>` so it
-          shares the exact chrome + label format the
-          ActionsTable FORM column uses
-          (`bg-background-subtle`, `font-mono font-medium
-          rounded-[5px]`, `describeTaxCode` for the label). One
-          canonical form-code primitive on /today now, used in
-          BOTH the alerts card and the actions table — no more
-          two-shapes-for-the-same-thing inconsistency. */}
-      {/* 2026-06-04 round 72 (Yuqi "why you can't change the colour
-          to the same colour as No clients Matched, the light gray"):
-          bottom row text + icon both step to `text-text-muted`
-          (the same light gray No-clients-matched uses). The row
-          is now uniformly the quietest signal on the card —
-          neither icon nor count out-shouts the other. */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] text-text-muted">
-        <span className="inline-flex items-center gap-1">
-          <Building2 className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+      {/* Bottom meta — Pencil VxRyF `skQVb`: top hairline divider, then
+          "Affects N client" + overlapping client-initial avatars · conf%
+          — spacer — source link. Wraps on narrow screens (no overflow). */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-t border-divider-subtle pt-3 text-[12px]">
+        <span className="inline-flex items-center gap-1 text-text-secondary">
+          <Building2 className="size-3 shrink-0 text-text-muted" aria-hidden />
           {impacted > 0 ? (
-            clientsLoading || !hasData ? (
-              <span>
-                <Plural value={impacted} one="# Client" other="# Clients" />
-              </span>
-            ) : (
-              <Tooltip>
-                <TooltipTrigger
-                  render={(props) => (
-                    <span
-                      className="cursor-help outline-none transition-colors hover:text-text-primary"
-                      onClick={(event) => event.stopPropagation()}
-                      {...props}
-                    >
-                      <Plural value={impacted} one="# Client" other="# Clients" />
-                    </span>
-                  )}
-                />
-                <TooltipContent>
-                  <div className="flex max-w-[260px] flex-col gap-0.5 text-left">
-                    <span className="font-semibold">
-                      <Trans>Affected clients</Trans>
-                    </span>
-                    {allNames.length > 0 ? (
-                      allNames.map((name) => (
-                        <span key={name} className="text-text-secondary">
-                          {name}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-text-tertiary">
-                        <Trans>Resolving roster…</Trans>
-                      </span>
-                    )}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            )
-          ) : hasData ? (
-            // 2026-06-04 round 72: the parent now sits at 12px
-            // text-text-muted already (Building2 unification), so
-            // this span just inherits.
-            <span>
-              <Trans>No clients matched</Trans>
-            </span>
-          ) : null}
+            <Plural value={impacted} one="Affects # client" other="Affects # clients" />
+          ) : (
+            <Trans>No clients matched</Trans>
+          )}
         </span>
 
-        {/* Form pill — same primitive Actions this week uses,
-            but tinted softer when it appears INSIDE an alert
-            card (round 73 Yuqi "when the form appears in alert
-            card, make it more subtle, change the text to a light
-            gray"). Chrome stays canonical (bg-subtle / divider
-            border / rounded-5 / font-mono medium) so the chip
-            footprint matches the table; only the foreground color
-            steps down `text-text-secondary` → `text-text-muted` to
-            mute the form code so the card's title and clients
-            line lead the eye instead. */}
-        {firstForm ? <TaxCodeBadge code={firstForm} className="text-text-muted" /> : null}
+        {avatars.length > 0 ? (
+          <span className="flex items-center pl-0.5">
+            {avatars.map((avatar, index) => (
+              <span
+                key={avatar.name}
+                title={avatar.name}
+                className={cn(
+                  'inline-flex size-5 items-center justify-center rounded-full font-mono text-[8px] font-bold ring-[1.5px] ring-background-section',
+                  avatar.tone,
+                  index > 0 && '-ml-1.5',
+                )}
+              >
+                {avatar.initials}
+              </span>
+            ))}
+          </span>
+        ) : null}
+
+        <span aria-hidden className="text-text-muted">
+          ·
+        </span>
+        <span className="font-mono text-[12px] font-semibold tabular-nums text-text-success">
+          <Trans>conf {confidencePct}%</Trans>
+        </span>
+
+        <span className="flex-1" />
+
+        {/* Source link — Pencil VxRyF bottom-right. Opens the authority
+            page; URL on tooltip hover. */}
+        <Tooltip>
+          <TooltipTrigger
+            render={(props) => (
+              <span
+                className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-[13px] font-medium text-text-secondary outline-none transition-colors hover:text-text-primary hover:underline"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
+                }}
+                {...props}
+              >
+                <span className="max-w-[160px] truncate">{alert.source}</span>
+                <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+              </span>
+            )}
+          />
+          <TooltipContent>
+            <div className="flex max-w-[320px] flex-col gap-0.5 text-left">
+              <span className="font-semibold">
+                <Trans>Open source</Trans>
+              </span>
+              <span className="break-all text-text-secondary">{alert.sourceUrl}</span>
+            </div>
+          </TooltipContent>
+        </Tooltip>
       </div>
     </button>
   )

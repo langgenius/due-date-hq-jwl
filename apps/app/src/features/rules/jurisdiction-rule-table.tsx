@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from 'react'
+import { Fragment, useMemo, type ReactNode } from 'react'
 import {
   ArrowUpRightIcon,
   ChevronRightIcon,
@@ -459,15 +459,75 @@ function GapRow({
 }
 
 /**
+ * A single KPI column descriptor.
+ *  - `valueClass` tones the large number (default text-primary).
+ *  - `subClass` tones the sub caption (default text-secondary). The
+ *    overview strip colors the *sub* (success/warning) while keeping the
+ *    value neutral; the per-jurisdiction strip colors the *value*.
+ */
+export interface KpiStat {
+  key: string
+  label: string
+  value: ReactNode
+  sub: ReactNode
+  valueClass?: string
+  subClass?: string
+}
+
+/**
+ * `KpiStrip` — a horizontal band of stat columns split by vertical
+ * hairlines (Pencil `O0pyRO` KPI Strip). One white rounded card; each
+ * column is eyebrow (10/700 caps) + value (24/600) + sub caption.
+ *
+ * Shared by the all-jurisdictions overview (`Total rules · Jurisdictions
+ * · Changed 30 days · Pending review`) and the per-jurisdiction detail
+ * pane (`JurisdictionKpiStrip` below). On narrow viewports the columns
+ * wrap to a 2-up grid so the values never crush together or force the
+ * card to scroll horizontally.
+ */
+export function KpiStrip({ stats }: { stats: KpiStat[] }) {
+  return (
+    <div className="grid shrink-0 grid-cols-2 gap-y-4 rounded-xl border border-divider-subtle bg-background-default px-2 py-[18px] sm:flex sm:items-center sm:gap-y-0">
+      {stats.map((stat, index) => (
+        <Fragment key={stat.key}>
+          {index > 0 ? (
+            <span className="hidden h-11 w-px shrink-0 bg-divider-subtle sm:block" aria-hidden />
+          ) : null}
+          <div className="flex min-w-0 flex-1 flex-col gap-1 px-4">
+            <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
+              {stat.label}
+            </span>
+            <span
+              className={cn(
+                'text-2xl font-semibold tabular-nums',
+                stat.valueClass ?? 'text-text-primary',
+              )}
+            >
+              {stat.value}
+            </span>
+            <span
+              className={cn(
+                'truncate text-[11px] font-medium',
+                stat.subClass ?? 'text-text-secondary',
+              )}
+            >
+              {stat.sub}
+            </span>
+          </div>
+        </Fragment>
+      ))}
+    </div>
+  )
+}
+
+/**
  * `JurisdictionKpiStrip` — the 4-stat KPI band above the selected
  * jurisdiction's rule table (Pencil `O0pyRO`/`G6P12y` KPI Strip).
  *
- * One white rounded card, four columns separated by vertical hairlines:
- * TOTAL (all rules) · EFFECTIVE (in force, success-green) · PENDING
- * (awaiting review, warning-brown) · DEPRECATED (superseded, muted).
- * Each column is eyebrow (10/700 caps) + value (24/600, tone-colored) +
- * sub caption. Counts are derived in the route from the selected
- * jurisdiction's status breakdown.
+ * Four columns: TOTAL (all rules) · EFFECTIVE (in force, success-green) ·
+ * PENDING (awaiting review, warning-brown) · DEPRECATED (superseded,
+ * muted). Counts are derived in the route from the selected
+ * jurisdiction's status breakdown. Built on the shared `KpiStrip`.
  */
 export function JurisdictionKpiStrip({
   total,
@@ -483,13 +543,7 @@ export function JurisdictionKpiStrip({
   jurisdictionLabel: string
 }) {
   const { t } = useLingui()
-  const stats: Array<{
-    key: string
-    label: string
-    value: number
-    sub: string
-    valueClass: string
-  }> = [
+  const stats: KpiStat[] = [
     {
       key: 'total',
       label: t`Total`,
@@ -519,24 +573,7 @@ export function JurisdictionKpiStrip({
       valueClass: 'text-text-muted',
     },
   ]
-  return (
-    <div className="flex shrink-0 items-center rounded-xl border border-divider-subtle bg-background-default px-2 py-[18px]">
-      {stats.map((stat, index) => (
-        <Fragment key={stat.key}>
-          {index > 0 ? <span className="h-11 w-px shrink-0 bg-divider-subtle" aria-hidden /> : null}
-          <div className="flex min-w-0 flex-1 flex-col gap-1 px-4">
-            <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
-              {stat.label}
-            </span>
-            <span className={cn('text-2xl font-semibold tabular-nums', stat.valueClass)}>
-              {stat.value}
-            </span>
-            <span className="truncate text-[11px] font-medium text-text-secondary">{stat.sub}</span>
-          </div>
-        </Fragment>
-      ))}
-    </div>
-  )
+  return <KpiStrip stats={stats} />
 }
 
 /**

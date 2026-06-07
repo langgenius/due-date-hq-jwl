@@ -15,13 +15,16 @@ import {
   SunIcon,
 } from 'lucide-react'
 
-import type { PulseAlertPublic, PulsePriorityReason } from '@duedatehq/contracts'
+import type {
+  PulseAlertPublic,
+  PulsePriorityLevel,
+  PulsePriorityReason,
+} from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -29,7 +32,6 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 import { formatRelativeTime } from '@/lib/utils'
 
 import { useAlertDetailQueryOptions } from '../api'
-import { impactBadgeFromAlert } from './pulse-alert-chrome'
 import { changeKindLabel } from './PulseChangeKindChip'
 
 /**
@@ -85,10 +87,22 @@ import { changeKindLabel } from './PulseChangeKindChip'
  *     changeKind enum.
  */
 
-const SEVERITY_LABEL: Record<'high' | 'medium' | 'low', string> = {
-  high: 'HIGH',
-  medium: 'MED',
-  low: 'LOW',
+/**
+ * 2026-06-07 (Pencil g5kKJQ `Rrafe` levelPill): the leading meta pill
+ * is the smart-priority TIER (urgent/high/normal) from the priority
+ * queue — not client-impact. URGENT is destructive-red, HIGH is
+ * warning-amber, NORMAL is a neutral subtle chip. Geist 10/700,
+ * 0.6px tracking, 4px radius, hairline border. Exact hexes are taken
+ * straight from the Pencil pills (Rrafe / P3itk / lZ9h8) so the chips
+ * match the design 1:1 rather than approximating via tokens.
+ */
+const LEVEL_PILL: Record<
+  PulsePriorityLevel,
+  { label: string; bg: string; border: string; text: string }
+> = {
+  urgent: { label: 'URGENT', bg: '#FEE4E2', border: '#FCA5A5', text: '#D92D20' },
+  high: { label: 'HIGH', bg: '#FFF4E5', border: '#FDBA74', text: '#B9501A' },
+  normal: { label: 'NORMAL', bg: '#F9FAFB', border: '#1018281F', text: '#354052' },
 }
 
 // Round 67: change-kind icon map dropped — ZkXFr's HeadRow doesn't
@@ -137,6 +151,20 @@ function formatMonthDay(iso: string | null): string | null {
   }).format(date)
 }
 
+/**
+ * 2026-06-07 (Pencil g5kKJQ `y3rBWp` time rail): the rail stacks three
+ * lines — date ("May 18"), wall-clock time ("02:30"), and a duration-
+ * relative line ("18 days ago"). This returns the signed whole-day
+ * delta from now (positive = in the past) that the component formats
+ * into line 3. Unlike `formatRelativeTime` (which switches to an
+ * absolute date past one week), the rail keeps the duration form
+ * because the absolute date already sits on line 1.
+ */
+function wholeDaysAgo(iso: string, now: Date): number {
+  const diffMs = now.getTime() - new Date(iso).getTime()
+  return Math.floor(diffMs / (24 * 60 * 60 * 1000))
+}
+
 function daysBetweenIso(a: string | null, b: string | null): number | null {
   if (!a || !b) return null
   const aMs = new Date(`${a}T00:00:00.000Z`).getTime()
@@ -154,6 +182,9 @@ function daysBetweenIso(a: string | null, b: string | null): number | null {
  * reason.
  */
 export interface AlertPriorityInfo {
+  /** Priority tier (urgent/high/normal) driving the leading level pill
+   *  (Pencil g5kKJQ `Rrafe`). */
+  level: PulsePriorityLevel
   score: number
   reasons: readonly PulsePriorityReason[]
 }
@@ -218,25 +249,38 @@ function PulseAlertRow({
 
   const { currentFirm } = useCurrentFirm()
   const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
+  const publishedDate = new Date(alert.publishedAt)
   const absoluteTime = new Intl.DateTimeFormat('en-US', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
     timeZone: firmTimezone,
-  }).format(new Date(alert.publishedAt))
+  }).format(publishedDate)
+  // Line 1 of the time rail — "May 18" (month + day in firm tz).
+  const railDate = new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: firmTimezone,
+  }).format(publishedDate)
   const relativeTime = formatRelativeTime(alert.publishedAt)
+  // Line 3 of the rail — duration-relative ("18 days ago").
+  const daysAgo = wholeDaysAgo(alert.publishedAt, new Date())
+  const railRelative =
+    daysAgo <= 0 ? relativeTime : daysAgo === 1 ? t`yesterday` : t`${daysAgo} days ago`
 
-  const severity = impactBadgeFromAlert(alert)
-  const severityLabel = SEVERITY_LABEL[severity.id]
+  // 2026-06-07 (Pencil g5kKJQ `Rrafe`): leading pill = priority tier.
+  // Only rendered when the alert actually carries priority-queue data
+  // (the smart-priority feature is plan- + flag-gated). When the queue
+  // is unavailable the pill is omitted entirely rather than defaulting
+  // to a misleading NORMAL on every row.
+  const levelPill = priority ? LEVEL_PILL[priority.level] : null
+  // "confirmed by N sources" / "N sources" — real corroboration count
+  // (`duplicateSourceSnapshotCount`), surfaced both in the meta strip
+  // and the bottom confidence pill (Pencil `kdiMz` / `WZi5X`).
+  const confirmingSources = alert.duplicateSourceSnapshotCount
 
   const confidencePct = Math.round(alert.confidence * 100)
   const confidenceTier = aiConfidenceTier(alert.confidence)
-  const confidenceColor =
-    confidenceTier === 'high'
-      ? 'text-text-success'
-      : confidenceTier === 'medium'
-        ? 'text-text-tertiary'
-        : 'text-text-destructive'
 
   const impacted = alert.matchedCount + alert.needsReviewCount
 
@@ -333,24 +377,20 @@ function PulseAlertRow({
         </div>
       ) : null}
 
-      {/* Time rail RZfzU (100×40, vertical, gap 6). UFxh6 "14:32"
-          Geist 14/600 text-primary letterSpacing -0.1; uaDak
-          "2h ago" Geist 12/500 text-tertiary.
-          2026-06-04 round 74 (Yuqi "when right panel is open, hide
-          the time and date, to leave more space for the alert
-          list"): rail entirely unmounted in `compact` mode. The
-          panel-open layout already gives the list column ~40% of
-          the viewport — every 100px we can reclaim from the rail
-          is real estate the main column gets back. The relative
-          time still surfaces in the head-row right cluster
-          (below) so the user doesn't lose the "when did this
-          drop" signal. */}
+      {/* Time rail (Pencil g5kKJQ `y3rBWp`, 90px). Three stacked
+          lines: date "May 18" (Geist 13/500 text-primary), wall-clock
+          "02:30" (Geist 11/500 text-tertiary, -0.1px tracking), and a
+          duration-relative "18 days ago" (Geist 11/normal text-muted).
+          2026-06-04 round 74 (Yuqi "when right panel is open, hide the
+          time and date"): rail unmounted in `compact` mode; the
+          relative time relocates to the head-row right cluster. */}
       {!compact ? (
-        <div className="flex w-[100px] shrink-0 flex-col gap-1.5">
-          <span className="text-[14px] font-semibold tracking-[-0.1px] text-text-primary tabular-nums">
+        <div className="flex w-[90px] shrink-0 flex-col gap-1">
+          <span className="text-[13px] font-medium text-text-primary">{railDate}</span>
+          <span className="text-[11px] font-medium tracking-[-0.1px] text-text-tertiary tabular-nums">
             {absoluteTime}
           </span>
-          <span className="text-[12px] font-medium text-text-tertiary">{relativeTime}</span>
+          <span className="text-[11px] text-text-muted">{railRelative}</span>
         </div>
       ) : null}
 
@@ -359,62 +399,59 @@ function PulseAlertRow({
           between the head row, subject, KeyChange, and bottom
           row so the four blocks read as distinct. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
-        {/* HeadRow o1cLe — gap 8. Pill order per ZkXFr:
-            severity → form → state → spacer → source · sub. */}
+        {/* HeadRow (Pencil g5kKJQ `iMPxe`) — gap 8. Pill order:
+            level → state → form → change-kind (text) · sources →
+            spacer → source link → why. */}
         <div className="flex min-w-0 items-center gap-2">
-          {severity.id === 'high' ? (
+          {/* Level pill (Pencil `Rrafe`) — smart-priority tier. Only
+              when the alert is in the priority queue. */}
+          {levelPill ? (
             <span
-              className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-[11px] font-bold tracking-[0.7px] uppercase"
-              style={{ backgroundColor: severity.bg, color: severity.text }}
+              className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] border px-2 text-[10px] font-bold tracking-[0.6px] uppercase"
+              style={{
+                backgroundColor: levelPill.bg,
+                borderColor: levelPill.border,
+                color: levelPill.text,
+              }}
             >
-              {severityLabel}
+              {levelPill.label}
             </span>
           ) : null}
 
-          {/* STATE — round 75 (Yuqi #4 "move it forward before
-              the form"): reordered BEFORE the form pill. Plus #2
-              "smaller" — circular motif 20 → 16px via inline
-              style override. Plus #3 "bigger 1px. apply
-              everywhere" — code text 11 → 12px. */}
+          {/* STATE (Pencil `R0fHR sp`) — bordered mono code chip,
+              no fill. */}
           <Tooltip>
             <TooltipTrigger
               render={(props) => (
                 <span
-                  className="inline-flex h-[22px] shrink-0 cursor-help items-center gap-1 outline-none"
+                  className="inline-flex h-[22px] shrink-0 cursor-help items-center rounded-[6px] border border-divider-regular px-2 font-mono text-[11px] font-semibold text-text-secondary uppercase outline-none"
                   {...props}
                 >
-                  <StateBadge
-                    code={alert.jurisdiction}
-                    size="xs"
-                    style={{ width: 16, height: 16 }}
-                  />
-                  <span className="font-mono text-[12px] font-bold tracking-[0.7px] text-text-secondary uppercase">
-                    {alert.jurisdiction}
-                  </span>
+                  {alert.jurisdiction}
                 </span>
               )}
             />
             <TooltipContent>{alert.jurisdiction}</TooltipContent>
           </Tooltip>
 
-          {/* SOURCE STATUS pill (change kind) — round 83 (Yuqi
-              #12 "put this change type between state badge and the
-              form"): change-kind pill relocated from the head-
-              right cluster (next to source name) to the head-left
-              slot between state badge and form pill. Reads as
-              part of the meta strip now, not as a sub-id on the
-              source. */}
-          <span className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] bg-state-accent-hover px-2 font-mono text-[11px] font-bold tracking-[0.7px] text-text-accent uppercase">
-            {changeKindLabel(alert.changeKind)}
-          </span>
-
-          {/* FORM PILL — round 75 (Yuqi #1 "when on alert page,
-              it is normal form, with the normal (darker) text
-              colour"): dropped the round-73 muted text override.
-              On /alerts the form pill reads at canonical
-              text-secondary; only /today card keeps the muted
-              treatment. */}
+          {/* FORM PILL (Pencil `RuScV formBadge`) — shared
+              TaxCodeBadge primitive (bg-subtle mono code chip). */}
           {formLabel ? <TaxCodeBadge code={formLabel} /> : null}
+
+          {/* CHANGE KIND (Pencil `wMx1M`) — plain mono text, no
+              fill, accent-toned. Followed by the real source-
+              corroboration count (`kdiMz`) in success green when the
+              same change was seen across multiple source snapshots. */}
+          <span className="inline-flex min-w-0 shrink-0 items-center gap-1.5">
+            <span className="font-mono text-[10px] font-bold tracking-[0.5px] text-text-accent uppercase">
+              {changeKindLabel(alert.changeKind)}
+            </span>
+            {confirmingSources > 1 ? (
+              <span className="text-[11px] font-semibold text-text-success">
+                <Trans>· confirmed by {confirmingSources} sources</Trans>
+              </span>
+            ) : null}
+          </span>
 
           {/* Spacer NdGpw (fill_container) */}
           <span className="flex-1" aria-hidden />
@@ -492,7 +529,15 @@ function PulseAlertRow({
                 setWhyOpen((open) => !open)
               }}
               aria-expanded={whyOpen}
-              className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded-md border border-state-accent-border bg-state-accent-hover px-2 text-[11px] font-semibold text-text-accent outline-none transition-colors hover:bg-state-accent-hover-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              className={cn(
+                'inline-flex h-[22px] shrink-0 items-center gap-1 rounded-[6px] border px-2 text-[11px] font-semibold text-text-accent outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                // Pencil `X6enpJ`: expanded = accent fill + accent
+                // border; collapsed = transparent with a hairline
+                // border that tints to the accent wash on hover.
+                whyOpen
+                  ? 'border-[#155aef33] bg-state-accent-hover'
+                  : 'border-divider-subtle bg-transparent hover:bg-state-accent-hover',
+              )}
             >
               <Trans>Why?</Trans>
               {whyOpen ? (
@@ -578,11 +623,11 @@ function PulseAlertRow({
               <div className="flex items-center gap-1.5">
                 <CornerDownRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
                 <div
-                  className="inline-flex items-center gap-2 self-start rounded-md px-[10px] py-[4px]"
+                  className="inline-flex items-center gap-2 self-start rounded-[4px] px-3 py-1"
                   style={{ backgroundColor: '#FFFBEB' }}
                 >
                   <span
-                    className="text-[10px] font-bold tracking-[0.7px] uppercase"
+                    className="text-[11px] font-bold tracking-[0.7px] uppercase"
                     style={{ color: '#92400E' }}
                   >
                     <Trans>Action</Trans>
@@ -603,7 +648,7 @@ function PulseAlertRow({
             this client"). All values come from the real priority
             queue; nothing is hardcoded. */}
         {showPriority && whyOpen && priority ? (
-          <div className="flex flex-col gap-2 rounded-[10px] border border-divider-subtle bg-background-section px-[14px] py-3">
+          <div className="flex flex-col gap-2 rounded-[10px] border border-divider-subtle bg-[#fafbfc] px-[14px] py-3">
             <div className="flex items-center gap-2">
               <SparklesIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
               <span className="text-[11px] font-bold tracking-[0.3px] text-text-secondary">
@@ -656,24 +701,44 @@ function PulseAlertRow({
                   archive mutations lives in the drawer). */}
         {/* Round 79 (Yuqi #5 "closer?"): dropped the `mt-1` push
             on the bottom row too — same reason as #4. */}
-        <div className="flex items-center gap-1.5 border-t border-divider-subtle pt-2 text-[12px] text-text-muted">
+        <div className="flex items-center gap-2 border-t border-divider-subtle pt-2 text-[12px] text-text-muted">
           <Building2 className="size-3.5 shrink-0" aria-hidden />
           <span>
             {impacted > 0 ? (
-              <Trans>Affects {impacted} clients</Trans>
+              <Plural value={impacted} one="Affects # client" other="Affects # clients" />
             ) : (
               <Trans>No matching clients</Trans>
             )}
           </span>
-          <span className="text-divider-regular" aria-hidden>
-            ·
-          </span>
-          {/* Round 83 (Yuqi #10 "in san serif"): dropped
-              `font-mono` so conf reads in Geist like the rest of
-              the bottom row. tracking dropped to 0 since mono was
-              the reason for the explicit 0.3 letter-spacing. */}
-          <span className={cn('text-[12px] font-semibold tabular-nums', confidenceColor)}>
-            <Trans>conf {confidencePct}%</Trans>
+          {/* 2026-06-07 (Pencil g5kKJQ `WZi5X sourcesConf`): confidence
+              promoted from bare inline text to a rounded pill (radius
+              999, py-0.5 px-2) so it reads as a discrete signal chip,
+              matching the design's bottom-meta anatomy. When the change
+              was corroborated by more than one source snapshot, the pill
+              leads with that real count ("3 sources · 94% conf",
+              `duplicateSourceSnapshotCount`). Tier-colored so it stays
+              honest — green/checked only at high AI confidence, neutral
+              at medium, destructive-tinted at low. */}
+          <span
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold tabular-nums',
+              confidenceTier === 'high'
+                ? 'border-[#17b26a40] bg-[#e8f5ee] text-text-success'
+                : confidenceTier === 'medium'
+                  ? 'border-divider-regular bg-background-section text-text-tertiary'
+                  : 'border-[#f0443840] bg-state-destructive-hover text-text-destructive',
+            )}
+          >
+            {confidenceTier === 'high' ? (
+              <CheckCheckIcon className="size-2.5 shrink-0" aria-hidden />
+            ) : null}
+            {confirmingSources > 1 ? (
+              <Trans>
+                {confirmingSources} sources · {confidencePct}% conf
+              </Trans>
+            ) : (
+              <Trans>{confidencePct}% conf</Trans>
+            )}
           </span>
 
           {/* Hover-only action cluster — Snooze / Archive / Review.

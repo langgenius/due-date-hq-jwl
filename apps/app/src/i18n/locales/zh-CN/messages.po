@@ -17,6 +17,10 @@ msgstr ""
 msgid "· anchor point"
 msgstr "· 锚点"
 
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "· confirmed by {confirmingSources} sources"
+msgstr "· 由 {confirmingSources} 个来源确认"
+
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "· current tax year"
 msgstr "· 当前纳税年度"
@@ -373,6 +377,8 @@ msgid "{0} / 5,000 characters"
 msgstr "{0} / 5,000 个字符"
 
 #. placeholder {0}: counts.active
+#. placeholder {0}: temporary.activeCount
+#: src/features/rules/states-rail.tsx
 #: src/routes/rules.library.tsx
 #, fuzzy
 msgid "{0} active"
@@ -489,6 +495,11 @@ msgstr "{0} 个已延期"
 msgid "{0} filings extended — payment is NOT extended"
 msgstr "{0} 项申报已延期 — 缴款不延期"
 
+#. placeholder {0}: riskBreakdown.high
+#: src/routes/rules.library.tsx
+msgid "{0} high-impact"
+msgstr "{0} 个高影响"
+
 #. placeholder {0}: data.importedByEmail
 #: src/features/migration/SuccessModal.tsx
 msgid "{0} imported"
@@ -528,6 +539,16 @@ msgstr "{0} 项"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "{0} items recorded"
 msgstr "已记录 {0} 项"
+
+#. placeholder {0}: riskBreakdown.low
+#: src/routes/rules.library.tsx
+msgid "{0} low"
+msgstr "{0} 个低"
+
+#. placeholder {0}: riskBreakdown.med
+#: src/routes/rules.library.tsx
+msgid "{0} medium"
+msgstr "{0} 个中"
 
 #. placeholder {0}: memberCounts[role] ?? 0
 #: src/routes/settings.permissions.tsx
@@ -723,6 +744,10 @@ msgstr "当前方案：{activeFirmCount} 个活跃 · 上限 {activeFirmLimitLab
 msgid "{activeFirmCount} of {activeFirmLimitLabel} active practices"
 msgstr "{activeFirmCount} / {activeFirmLimitLabel} 个 active 事务所"
 
+#: src/routes/rules.library.tsx
+msgid "{activeSources, plural, one {# source active} other {# sources active}}"
+msgstr "{activeSources, plural, other {# 个来源活跃}}"
+
 #: src/features/migration/Step4Preview.tsx
 msgid "{affectedReviewClients, plural, one {# client has state deadlines that need reviewed practice rules first.} other {# clients have state deadlines that need reviewed practice rules first.}}"
 msgstr "{affectedReviewClients, plural, other {# 个客户的州级截止日需要先审核事务所规则。}}"
@@ -753,6 +778,14 @@ msgstr "{clientsCount} 个活跃客户"
 #: src/features/alerts/components/StateTilegram.tsx
 msgid "{code}: {count} {0}"
 msgstr "{code}：{count} {0}"
+
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "{confidencePct}% conf"
+msgstr "{confidencePct}% 置信度"
+
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "{confirmingSources} sources · {confidencePct}% conf"
+msgstr "{confirmingSources} 个来源 · {confidencePct}% 置信度"
 
 #: src/routes/rules.library.tsx
 msgid "{count, plural, one {# rule selected} other {# rules selected}}"
@@ -838,6 +871,10 @@ msgstr "{days, plural, one {# 天后} other {# 天后}}"
 msgid "{daysAbs}d late"
 msgstr "逾期 {daysAbs} 天"
 
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "{daysAgo} days ago"
+msgstr "{daysAgo} 天前"
+
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "{duplicateCount} already rolled forward · {skippedCount} skipped (no verified Tax Year {targetTaxYear} rule)"
@@ -907,9 +944,10 @@ msgstr "{historicalDeadlinesSkipped, plural, one {# 个历史截止日期无法�
 msgid "{ignored, plural, =0 {0 ignored} one {# ignored} other {# ignored}}"
 msgstr "{0, plural, =0 {无} one {# 项} other {# 项}}"
 
+#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/dashboard/needs-attention-card.tsx
-msgid "{impacted, plural, one {# Client} other {# Clients}}"
-msgstr "{impacted, plural, other {# 位客户}}"
+msgid "{impacted, plural, one {Affects # client} other {Affects # clients}}"
+msgstr "{impacted, plural, other {影响 # 个客户}}"
 
 #: src/features/alerts/components/AlertCard.tsx
 msgid "{impacted} clients may be affected"
@@ -1160,6 +1198,10 @@ msgstr "归档时有 {total} 个检查清单项未单独勾选。"
 msgid "{total} rules · {active} active · {review} awaiting review"
 msgstr "{total} 条规则 · {active} 条生效 · {review} 条待审核"
 
+#: src/routes/rules.library.tsx
+msgid "{totalActive} active"
+msgstr "{totalActive} 个活跃"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "{totalActive} rules"
 msgstr "{totalActive} 条规则"
@@ -1179,15 +1221,6 @@ msgstr "{totalOpen, plural, other {查看 # 个进行中的截止事项}}"
 #: src/features/rules/coverage-tab.tsx
 msgid "{totalPending} rules"
 msgstr "{totalPending} 条规则"
-
-#: src/routes/rules.library.tsx
-#, fuzzy
-msgid "{totalPendingReview, plural, one {# rule needs review} other {# rules need review}}"
-msgstr "{0, plural, other {# 行需要复核}}"
-
-#: src/routes/rules.library.tsx
-msgid "{totalRules, plural, one {# rule} other {# rules}}"
-msgstr "{totalRules, plural, other {# 条规则}}"
 
 #: src/features/migration/Step3Normalize.tsx
 #, fuzzy
@@ -1821,6 +1854,10 @@ msgstr "添加项目"
 msgid "Add item manually"
 msgstr "手动添加项"
 
+#: src/routes/rules.library.tsx
+msgid "Add new rule"
+msgstr "新增规则"
+
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Add notes"
 msgstr "添加备注"
@@ -1886,7 +1923,6 @@ msgid "Adjust tax type defaults"
 msgstr "调整税种默认值"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-#: src/features/dashboard/needs-attention-card.tsx
 msgid "Affected clients"
 msgstr "受影响客户"
 
@@ -1897,10 +1933,6 @@ msgstr "影响范围"
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "AFFECTING"
 msgstr "影响范围"
-
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "Affects {impacted} clients"
-msgstr "影响 {impacted} 位客户"
 
 #: src/features/workload/workload-page.tsx
 msgid "Aggregated from open deadlines and client owner labels. Open any row in Deadlines to triage the underlying deadlines."
@@ -2239,6 +2271,10 @@ msgstr "全部完成"
 msgid "All change types"
 msgstr "所有变更类型"
 
+#: src/routes/rules.library.tsx
+msgid "All clear"
+msgstr "一切正常"
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "All clients"
 msgstr "所有客户"
@@ -2294,6 +2330,10 @@ msgstr "所有席位都已占用。升级以邀请更多成员，或暂停一名
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "All set up"
 msgstr "已全部设置"
+
+#: src/features/rules/states-rail.tsx
+msgid "All sources healthy"
+msgstr "所有来源正常"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
@@ -2455,6 +2495,11 @@ msgstr "已将已审核集合应用至 {0} 个客户"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Applied to {0} clients"
 msgstr "已应用至 {0} 个客户"
+
+#. placeholder {0}: temporary.obligationCount
+#: src/features/rules/states-rail.tsx
+msgid "Applied to {0} obligations"
+msgstr "已应用于 {0} 项义务"
 
 #. placeholder {0}: formatEntityApplicability(rule.entityApplicability)
 #: src/features/rules/rule-detail-drawer.tsx
@@ -3365,6 +3410,10 @@ msgstr "修改 {0} 的状态"
 msgid "Change types"
 msgstr "变更类型"
 
+#: src/routes/rules.library.tsx
+msgid "Changed 30 days"
+msgstr "近 30 天变更"
+
 #. placeholder {0}: before.node
 #. placeholder {1}: after.node
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -4033,7 +4082,7 @@ msgstr "撰写邮件"
 msgid "Compose email to {name}"
 msgstr "撰写邮件给 {name}"
 
-#: src/features/alerts/components/PulseAlertRow.tsx
+#: src/features/dashboard/needs-attention-card.tsx
 msgid "conf {confidencePct}%"
 msgstr "置信度 {confidencePct}%"
 
@@ -6417,6 +6466,7 @@ msgstr "解释风险档案"
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/obligations.tsx
+#: src/routes/rules.library.tsx
 #: src/routes/settings.permissions.tsx
 msgid "Export"
 msgstr "导出"
@@ -6650,6 +6700,10 @@ msgstr "兜底文件清单已就绪"
 #: src/features/rules/states-rail.tsx
 msgid "Federal"
 msgstr "联邦"
+
+#: src/routes/rules.library.tsx
+msgid "Federal + {stateCount} states"
+msgstr "联邦 + {stateCount} 个州"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "Federal deadlines and state deadlines with active rules will still be generated."
@@ -7331,7 +7385,6 @@ msgid "High"
 msgstr "高"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-#: src/features/dashboard/needs-attention-card.tsx
 msgid "HIGH"
 msgstr "高"
 
@@ -7339,6 +7392,7 @@ msgstr "高"
 msgid "High confidence"
 msgstr "高置信度"
 
+#: src/features/dashboard/needs-attention-card.tsx
 #: src/routes/rules.library.tsx
 msgid "High impact"
 msgstr "高影响"
@@ -7898,6 +7952,7 @@ msgstr "辖区规则、迁移、优先级权重"
 
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/states-rail.tsx
+#: src/routes/rules.library.tsx
 msgid "Jurisdictions"
 msgstr "辖区"
 
@@ -8103,6 +8158,10 @@ msgstr "图例"
 msgid "Length"
 msgstr "时长"
 
+#: src/routes/rules.library.tsx
+msgid "Library in sync"
+msgstr "规则库已同步"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Light"
 msgstr "浅色"
@@ -8290,7 +8349,6 @@ msgid "Low"
 msgstr "低"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-#: src/features/dashboard/needs-attention-card.tsx
 msgid "LOW"
 msgstr "低"
 
@@ -8678,10 +8736,6 @@ msgstr "仍有材料未收齐"
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Me"
 msgstr "我"
-
-#: src/features/dashboard/needs-attention-card.tsx
-msgid "MED"
-msgstr "中"
 
 #: src/features/alerts/components/AlertConfidencePill.tsx
 #: src/features/clients/ClientFactPanels.tsx
@@ -10128,6 +10182,10 @@ msgstr "最早"
 msgid "oldest {oldestRelative}"
 msgstr "最早 {oldestRelative}"
 
+#: src/routes/rules.library.tsx
+msgid "oldest {oldestReviewRelative}"
+msgstr "最早 {oldestReviewRelative}"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Oldest first"
 msgstr "最早优先"
@@ -11032,6 +11090,10 @@ msgstr "待处理邀请"
 #: src/features/rules/matched-pulse-block.tsx
 msgid "Pending regulatory change for this rule"
 msgstr "该规则有待处理的监管变更"
+
+#: src/routes/rules.library.tsx
+msgid "Pending review"
+msgstr "待审核"
 
 #: src/features/rules/coverage-tab.tsx
 #, fuzzy
@@ -12086,6 +12148,10 @@ msgstr "提醒客户签字 8879"
 msgid "Remind clients to sign Form 8879"
 msgstr "提醒客户签署 Form 8879"
 
+#: src/routes/rules.library.tsx
+msgid "Remind me Friday"
+msgstr "周五提醒我"
+
 #: src/routes/obligations.tsx
 msgid "Remind to sign"
 msgstr "提醒签署"
@@ -12311,10 +12377,6 @@ msgstr "重置筛选"
 #: src/routes/practice.tsx
 msgid "Reset to default"
 msgstr "恢复默认"
-
-#: src/features/dashboard/needs-attention-card.tsx
-msgid "Resolving roster…"
-msgstr "正在解析名单……"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Responses"
@@ -12889,6 +12951,10 @@ msgstr "规则问题已报告"
 #: src/routes/rules.preview.tsx
 msgid "Rule library"
 msgstr "规则库"
+
+#: src/routes/rules.library.tsx
+msgid "Rule library overview"
+msgstr "规则库概览"
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "Rule Library review required."
@@ -13806,11 +13872,6 @@ msgstr "全部显示"
 msgid "Show me"
 msgstr "显示"
 
-#: src/routes/rules.library.tsx
-#, fuzzy
-msgid "Show rules needing review"
-msgstr "此客户需要复核"
-
 #: src/components/patterns/app-shell-nav.tsx
 #, fuzzy
 msgid "Show work as due this many days before the statutory deadline."
@@ -14124,6 +14185,10 @@ msgstr "Solo、Pro 和 Team 各适用于 1 个活跃事务所。Enterprise 按�
 msgid "Some deadlines have changed since you opened this alert. Refresh to load the latest list."
 msgstr "自您打开此提醒后，部分截止事项已发生变化。刷新以加载最新列表。"
 
+#: src/features/rules/states-rail.tsx
+msgid "Some sources need attention"
+msgstr "部分来源需要关注"
+
 #: src/features/migration/Step4Preview.tsx
 msgid "Some state deadlines need rule review"
 msgstr "部分州级截止日需要先审核规则"
@@ -14286,6 +14351,7 @@ msgstr "来源定义规则会跳过批量接受。请逐条生成并审核其 AI
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertsListPage.tsx
+#: src/features/rules/states-rail.tsx
 #: src/routes/alerts.history.tsx
 #: src/routes/alerts.tsx
 #: src/routes/route-summary.ts
@@ -14831,6 +14897,7 @@ msgid "Templates appear here once your practice has reminder messages configured
 msgstr "当您的事务所配置了提醒消息后，模板将显示在此处。"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/rules/states-rail.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.temporary.tsx
 msgid "Temporary rules"
@@ -15082,10 +15149,6 @@ msgstr "主题"
 #: src/components/patterns/keyboard-shell/ShortcutHelpDialog.tsx
 msgid "then"
 msgstr "然后"
-
-#: src/routes/rules.library.tsx
-msgid "These are the deadline rules that drive your client deadlines. Review and approve new rules before they trigger reminders."
-msgstr "These are the deadline rules that drive your client deadlines. Review and approve new rules before they trigger reminders."
 
 #: src/features/clients/ClassificationImpactDialog.tsx
 msgid "These current-year deadlines will be removed. Check each one before applying."
@@ -15444,6 +15507,10 @@ msgstr "客户总数"
 #: src/features/audit/audit-log-page.tsx
 msgid "Total loaded"
 msgstr "已加载总数"
+
+#: src/routes/rules.library.tsx
+msgid "Total rules"
+msgstr "规则总数"
 
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "TRANSITION"
@@ -16500,6 +16567,10 @@ msgstr "是"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Yes / no"
 msgstr "Yes / no"
+
+#: src/features/alerts/components/PulseAlertRow.tsx
+msgid "yesterday"
+msgstr "昨天"
 
 #: src/features/audit/audit-log-table.tsx
 msgid "Yesterday"

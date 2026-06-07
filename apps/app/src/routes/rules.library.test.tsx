@@ -25,6 +25,7 @@ import { RulesLibraryRoute } from './rules.library'
 const rpcMocks = vi.hoisted(() => ({
   coverageQueryFn: vi.fn(),
   listSourcesQueryFn: vi.fn(),
+  listTemporaryRulesQueryFn: vi.fn(),
   listRulesQueryFn: vi.fn(),
   listConcreteDraftsQueryFn: vi.fn(),
   draftConcreteRuleMutationFn: vi.fn(),
@@ -106,6 +107,12 @@ vi.mock('@/lib/rpc', () => ({
         queryOptions: () => ({
           queryKey: ['rules', 'listSources'],
           queryFn: rpcMocks.listSourcesQueryFn,
+        }),
+      },
+      listTemporaryRules: {
+        queryOptions: () => ({
+          queryKey: ['rules', 'listTemporaryRules'],
+          queryFn: rpcMocks.listTemporaryRulesQueryFn,
         }),
       },
       listRules: {
@@ -469,6 +476,8 @@ beforeEach(() => {
   rpcMocks.coverageQueryFn.mockResolvedValue(coverageRows)
   rpcMocks.listSourcesQueryFn.mockReset()
   rpcMocks.listSourcesQueryFn.mockResolvedValue([])
+  rpcMocks.listTemporaryRulesQueryFn.mockReset()
+  rpcMocks.listTemporaryRulesQueryFn.mockResolvedValue([])
   rpcMocks.listRulesQueryFn.mockReset()
   rpcMocks.listRulesQueryFn.mockResolvedValue([])
   rpcMocks.listConcreteDraftsQueryFn.mockReset()
@@ -778,9 +787,9 @@ describe('RulesLibraryRoute', () => {
       ])
 
     await render(<RulesLibraryRoute />)
-    await waitForButton('Start review 1')
+    await waitForButton('Open review queue')
 
-    await clickButton('Start review 1')
+    await clickButton('Open review queue')
     await waitForText('1 / 1')
     await waitForText(alaskaFinalRule.title)
 
@@ -1117,9 +1126,9 @@ describe('RulesLibraryRoute', () => {
       .mockResolvedValue([activeFirstRule, secondRule])
 
     await render(<RulesLibraryRoute />)
-    await waitForButton('Start review 2')
+    await waitForButton('Open review queue')
 
-    await clickButton('Start review 2')
+    await clickButton('Open review queue')
     await waitForText('1 / 2')
     await waitForText(firstRule.title)
 
@@ -1149,9 +1158,9 @@ describe('RulesLibraryRoute', () => {
     rpcMocks.acceptTemplateMutationFn.mockReturnValueOnce(acceptRequest.promise)
 
     await render(<RulesLibraryRoute />)
-    await waitForButton('Start review 1')
+    await waitForButton('Open review queue')
 
-    await clickButton('Start review 1')
+    await clickButton('Open review queue')
     await waitForText(rule.title)
 
     await clickButton('Accept rule')
@@ -1216,9 +1225,9 @@ describe('RulesLibraryRoute', () => {
     rpcMocks.listRulesQueryFn.mockResolvedValue([firstRule, secondRule])
 
     await render(<RulesLibraryRoute />)
-    await waitForButton('Start review 2')
+    await waitForButton('Open review queue')
 
-    await clickButton('Start review 2')
+    await clickButton('Open review queue')
     await waitForText('1 / 2')
 
     await clickButton('Skip')

@@ -360,7 +360,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   const priorityById = useMemo(() => {
     const map = new Map<string, AlertPriorityInfo>()
     for (const item of priorityQueueQuery.data?.items ?? []) {
-      map.set(item.alert.id, { score: item.priorityScore, reasons: item.priorityReasons })
+      map.set(item.alert.id, {
+        level: item.level,
+        score: item.priorityScore,
+        reasons: item.priorityReasons,
+      })
     }
     return map
   }, [priorityQueueQuery.data])
