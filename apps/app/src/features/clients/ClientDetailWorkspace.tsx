@@ -22,6 +22,7 @@ import {
   RefreshCwIcon,
   ScrollTextIcon,
   SettingsIcon,
+  SquarePenIcon,
   Trash2Icon,
   UserRoundIcon,
 } from 'lucide-react'
@@ -80,6 +81,7 @@ import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 
 import { ClientCycleArrows } from './ClientCycleArrows'
+import { EmailComposeDialog } from './EmailComposeDialog'
 import { ClientNotesPanel } from './ClientNotesPanel'
 import { ClientNotesStrip } from './ClientNotesStrip'
 import { ClientTitleSwitcher } from './ClientTitleSwitcher'
@@ -1463,6 +1465,10 @@ function ClientDetailRail({ client, openCount }: { client: ClientPublic; openCou
   const contactItems = useMemo(() => buildClientHeaderContactItems(client), [client])
   const primaryContactName = contactItems.find((item) => item.kind === 'contact')?.value ?? null
   const primaryContactEmail = contactItems.find((item) => item.kind === 'email')?.value ?? null
+  // Compose modal (Pencil W7onE). Opening it from a contact prefills the
+  // recipient + client context; sending is gated behind a future
+  // email-send RPC (the modal flags this — see EmailComposeDialog).
+  const [composeFor, setComposeFor] = useState<{ name: string; email: string } | null>(null)
 
   // TODO(data): the engagement plan, retainer, last-filed event, and
   // YTD/outstanding counts are not in the contracts. Static fallbacks
@@ -1552,11 +1558,65 @@ function ClientDetailRail({ client, openCount }: { client: ClientPublic; openCou
                   </span>
                 ) : null}
               </div>
+              {contact.email ? (
+                <ComposeContactButton
+                  name={contact.name}
+                  email={contact.email}
+                  onCompose={setComposeFor}
+                />
+              ) : null}
             </div>
           ))}
         </div>
       </section>
+
+      <EmailComposeDialog
+        open={composeFor !== null}
+        onOpenChange={(next) => {
+          if (!next) setComposeFor(null)
+        }}
+        recipientName={composeFor?.name ?? ''}
+        recipientEmail={composeFor?.email ?? null}
+        defaultSubject={t`${client.name} — a quick update from your CPA`}
+        contextRows={[
+          { id: 'linked', label: <Trans>Linked to</Trans>, value: client.name },
+          {
+            id: 'open',
+            label: <Trans>Open deadlines</Trans>,
+            value: <span className="tabular-nums">{openCount}</span>,
+          },
+        ]}
+        senderNote={
+          <Trans>This message is sent via DueDateHQ and logged to the audit ledger.</Trans>
+        }
+      />
     </div>
+  )
+}
+
+// Per-contact compose trigger. Takes `email` as a non-null string so
+// the recipient payload needs no type assertion at the call site.
+function ComposeContactButton({
+  name,
+  email,
+  onCompose,
+}: {
+  name: string
+  email: string
+  onCompose: (recipient: { name: string; email: string }) => void
+}) {
+  const { t } = useLingui()
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      className="ml-auto shrink-0"
+      aria-label={t`Compose email to ${name}`}
+      title={t`Compose email`}
+      onClick={() => onCompose({ name, email })}
+    >
+      <SquarePenIcon />
+    </Button>
   )
 }
 

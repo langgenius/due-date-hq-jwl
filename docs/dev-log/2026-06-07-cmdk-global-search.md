@@ -15,9 +15,9 @@ hint footer) and wires the first real entity source: **clients**.
     palette honestly called itself a navigator because typing a client name
     returned "No commands found"; that gap is now closed for clients.
   - **Filter pills** (All / Clients / Deadlines / Alerts / Rules / Pages). All
-    + Pages show everything; Clients shows entity rows; Deadlines / Alerts /
-    Rules narrow the Pages list to that area (no entity backend wired for
-    those here — see TODO).
+    - Pages show everything; Clients shows entity rows; Deadlines / Alerts /
+      Rules narrow the Pages list to that area (no entity backend wired for
+      those here — see TODO).
   - **Matched-substring highlight** — the part of a client name matching the
     query renders in `text-text-accent`, the rest in `text-text-primary`.
   - **Footer** with keyboard hints (↑↓ navigate · ↵ open · esc close) + the
