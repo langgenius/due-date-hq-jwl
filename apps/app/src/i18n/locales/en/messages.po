@@ -125,8 +125,9 @@ msgid "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 msgstr "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 
 #. placeholder {0}: client.obligationCount
+#. placeholder {0}: dueTodayCount ?? 0
 #. placeholder {0}: groupHeader.count
-#. placeholder {0}: pendingRevert.obligationCount
+#: src/features/dashboard/at-a-glance-section.tsx
 #: src/features/migration/Step4Preview.tsx
 #: src/features/migration/Wizard.tsx
 #: src/routes/obligations.tsx
@@ -137,6 +138,11 @@ msgstr "{0, plural, one {# deadline} other {# deadlines}}"
 #: src/features/migration/Step4Preview.tsx
 msgid "{0, plural, one {# imported client matches an existing client by EIN.} other {# imported clients match existing clients by EIN.}}"
 msgstr "{0, plural, one {# imported client matches an existing client by EIN.} other {# imported clients match existing clients by EIN.}}"
+
+#. placeholder {0}: summary.needsReviewCount
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "{0, plural, one {# item awaiting you} other {# items awaiting you}}"
+msgstr "{0, plural, one {# item awaiting you} other {# items awaiting you}}"
 
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
@@ -230,6 +236,11 @@ msgstr "{0, plural, one {# similar source update was merged into this alert.} ot
 #: src/features/migration/Step4Preview.tsx
 msgid "{0, plural, one {# state rule type} other {# state rule types}}"
 msgstr "{0, plural, one {# state rule type} other {# state rule types}}"
+
+#. placeholder {0}: summary?.evidenceGapCount ?? 0
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "{0, plural, one {# with an evidence gap} other {# with evidence gaps}}"
+msgstr "{0, plural, one {# with an evidence gap} other {# with evidence gaps}}"
 
 #. placeholder {0}: -days
 #: src/components/primitives/due-date-label.tsx
@@ -570,6 +581,10 @@ msgstr "{action}: {count} fields changed"
 msgid "{action}: {count} rows"
 msgstr "{action}: {count} rows"
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "{activeAlertCount, plural, one {# regulatory change} other {# regulatory changes}}"
+msgstr "{activeAlertCount, plural, one {# regulatory change} other {# regulatory changes}}"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "{activeCount, plural, one {# alert} other {# alerts}}"
 msgstr "{activeCount, plural, one {# alert} other {# alerts}}"
@@ -884,6 +899,10 @@ msgstr "{previewMoreCount, plural, one {+ # more client} other {+ # more clients
 #: src/features/migration/Step1Intake.tsx
 msgid "{productLabel} export"
 msgstr "{productLabel} export"
+
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "{readyCount} ready · {needInputCount} need inputs"
+msgstr "{readyCount} ready · {needInputCount} need inputs"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -2282,10 +2301,18 @@ msgstr "Assignee"
 msgid "Assigns every deadline for {clientName}."
 msgstr "Assigns every deadline for {clientName}."
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "At a glance"
+msgstr "At a glance"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "At least one item flagged by client — review their portal responses."
 msgstr "At least one item flagged by client — review their portal responses."
+
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "At risk"
+msgstr "At risk"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "Attach the source document"
@@ -7574,6 +7601,10 @@ msgstr "Match {matched}/{total}"
 msgid "Matched"
 msgstr "Matched"
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "matched against your clients today"
+msgstr "matched against your clients today"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Matched an imported column to DueDateHQ."
 msgstr "Matched an imported column to DueDateHQ."
@@ -7932,6 +7963,10 @@ msgstr "Morning digest preview queued"
 msgid "Morning digest schedule and the channels DueDateHQ uses to reach you."
 msgstr "Morning digest schedule and the channels DueDateHQ uses to reach you."
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "Morning sweep"
+msgstr "Morning sweep"
+
 #. placeholder {0}: pendingBulkStatus.ids.length
 #. placeholder {1}: v2StatusLabels[pendingBulkStatus.status]
 #: src/features/clients/ClientWorkPlanPanel.tsx
@@ -8137,6 +8172,10 @@ msgstr "Needs review · {0}"
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Needs state"
 msgstr "Needs state"
+
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "Needs you"
+msgstr "Needs you"
 
 #: src/features/clients/ClassificationImpactDialog.tsx
 msgid "Needs your confirmation"
@@ -11274,6 +11313,10 @@ msgstr "Review the source change and confirm this firm has no affected open dead
 msgid "Review these states in Rule Library to unlock the remaining deadlines."
 msgstr "Review these states in Rule Library to unlock the remaining deadlines."
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "Review today's regulatory changes"
+msgstr "Review today's regulatory changes"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Review workspace"
 msgstr "Review workspace"
@@ -13277,6 +13320,10 @@ msgstr "That deadline already exists for this client and tax year."
 msgid "That file has no data rows. Add a header and at least one row, then re-upload."
 msgstr "That file has no data rows. Add a header and at least one row, then re-upload."
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "that need your attention before EOD"
+msgstr "that need your attention before EOD"
+
 #: src/lib/i18n-error.ts
 msgid "That resource belongs to a different practice."
 msgstr "That resource belongs to a different practice."
@@ -13772,6 +13819,7 @@ msgstr "today"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/dashboard/at-a-glance-section.tsx
 #: src/features/obligations/queue/components/primitives.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
@@ -14334,6 +14382,10 @@ msgstr "View all in Inbox"
 msgid "View all rules"
 msgstr "View all rules"
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "View at-risk deadlines"
+msgstr "View at-risk deadlines"
+
 #: src/features/audit/audit-log-table.tsx
 msgid "View audit detail"
 msgstr "View audit detail"
@@ -14355,6 +14407,10 @@ msgstr "View blocked deadlines"
 msgid "View deadlines"
 msgstr "View deadlines"
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "View deadlines due today"
+msgstr "View deadlines due today"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "View history"
 msgstr "View history"
@@ -14362,6 +14418,10 @@ msgstr "View history"
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "View in Deadlines"
 msgstr "View in Deadlines"
+
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "View items needing your review"
+msgstr "View items needing your review"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "View mode"

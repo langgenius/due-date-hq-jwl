@@ -126,8 +126,9 @@ msgid "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 msgstr "{0, plural, one {已选择 # 个截止日期} other {已选择 # 个截止日期}}"
 
 #. placeholder {0}: client.obligationCount
+#. placeholder {0}: dueTodayCount ?? 0
 #. placeholder {0}: groupHeader.count
-#. placeholder {0}: pendingRevert.obligationCount
+#: src/features/dashboard/at-a-glance-section.tsx
 #: src/features/migration/Step4Preview.tsx
 #: src/features/migration/Wizard.tsx
 #: src/routes/obligations.tsx
@@ -138,6 +139,11 @@ msgstr "{0, plural, other {# 个截止事项}}"
 #: src/features/migration/Step4Preview.tsx
 msgid "{0, plural, one {# imported client matches an existing client by EIN.} other {# imported clients match existing clients by EIN.}}"
 msgstr "{0, plural, one {# 个导入客户按 EIN 匹配到现有客户。} other {# 个导入客户按 EIN 匹配到现有客户。}}"
+
+#. placeholder {0}: summary.needsReviewCount
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "{0, plural, one {# item awaiting you} other {# items awaiting you}}"
+msgstr "{0, plural, other {# 项待处理}}"
 
 #. placeholder {0}: groups.length
 #: src/routes/rules.library.tsx
@@ -233,6 +239,11 @@ msgstr "{0, plural, one {# 条相似来源更新已合并到此提醒。} other 
 #: src/features/migration/Step4Preview.tsx
 msgid "{0, plural, one {# state rule type} other {# state rule types}}"
 msgstr "{0, plural, other {# 类州规则}}"
+
+#. placeholder {0}: summary?.evidenceGapCount ?? 0
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "{0, plural, one {# with an evidence gap} other {# with evidence gaps}}"
+msgstr "{0, plural, other {# 项存在证据缺口}}"
 
 #. placeholder {0}: -days
 #: src/components/primitives/due-date-label.tsx
@@ -577,6 +588,10 @@ msgstr "{action}：{count} 个字段已变更"
 msgid "{action}: {count} rows"
 msgstr "{action}：{count} 行"
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "{activeAlertCount, plural, one {# regulatory change} other {# regulatory changes}}"
+msgstr "{activeAlertCount, plural, other {# 项监管变更}}"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "{activeCount, plural, one {# alert} other {# alerts}}"
 msgstr "{activeCount, plural, other {# 条提醒}}"
@@ -896,6 +911,10 @@ msgstr "{previewMoreCount, plural, one {+ 另外 # 个客户} other {+ 另外 # 
 #: src/features/migration/Step1Intake.tsx
 msgid "{productLabel} export"
 msgstr "{productLabel} export"
+
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "{readyCount} ready · {needInputCount} need inputs"
+msgstr "{readyCount} 项就绪 · {needInputCount} 项待补充"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -2310,10 +2329,18 @@ msgstr "经办人"
 msgid "Assigns every deadline for {clientName}."
 msgstr "分配 {clientName} 的所有截止事项。"
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "At a glance"
+msgstr "概览"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "At least one item flagged by client — review their portal responses."
 msgstr "客户已就至少一项标记需要协助 — 请查看其门户回复。"
+
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "At risk"
+msgstr "存在风险"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "Attach the source document"
@@ -7633,6 +7660,10 @@ msgstr "匹配 {matched}/{total}"
 msgid "Matched"
 msgstr "已匹配"
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "matched against your clients today"
+msgstr "今日已与您的客户匹配"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Matched an imported column to DueDateHQ."
 msgstr "已将导入列匹配到 DueDateHQ。"
@@ -7995,6 +8026,10 @@ msgstr "Morning digest 预览已排队"
 msgid "Morning digest schedule and the channels DueDateHQ uses to reach you."
 msgstr "早间摘要的发送时间，以及 DueDateHQ 用来联系你的渠道。"
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "Morning sweep"
+msgstr "晨间扫描"
+
 #. placeholder {0}: pendingBulkStatus.ids.length
 #. placeholder {1}: v2StatusLabels[pendingBulkStatus.status]
 #: src/features/clients/ClientWorkPlanPanel.tsx
@@ -8201,6 +8236,10 @@ msgstr "需复核 · {0}"
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Needs state"
 msgstr "需要申报州"
+
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "Needs you"
+msgstr "需要您处理"
 
 #: src/features/clients/ClassificationImpactDialog.tsx
 msgid "Needs your confirmation"
@@ -11368,6 +11407,10 @@ msgstr "复核来源变更，并确认该事务所没有受影响的未完成截
 msgid "Review these states in Rule Library to unlock the remaining deadlines."
 msgstr "稍后在规则库审核这些州，即可生成剩余的州级截止日。"
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "Review today's regulatory changes"
+msgstr "查看今日监管变更"
+
 #: src/features/rules/coverage-tab.tsx
 #, fuzzy
 msgid "Review workspace"
@@ -13383,6 +13426,10 @@ msgstr "该客户和税年已经有这个截止日期。"
 msgid "That file has no data rows. Add a header and at least one row, then re-upload."
 msgstr "该文件没有数据行。请添加表头和至少一行数据，然后重新上传。"
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "that need your attention before EOD"
+msgstr "需在今日结束前处理"
+
 #: src/lib/i18n-error.ts
 msgid "That resource belongs to a different practice."
 msgstr "该资源属于其他事务所。"
@@ -13878,6 +13925,7 @@ msgstr "今天"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/dashboard/at-a-glance-section.tsx
 #: src/features/obligations/queue/components/primitives.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
@@ -14444,6 +14492,10 @@ msgstr "在收件箱中查看全部"
 msgid "View all rules"
 msgstr "查看所有规则"
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "View at-risk deadlines"
+msgstr "查看存在风险的截止日期"
+
 #: src/features/audit/audit-log-table.tsx
 msgid "View audit detail"
 msgstr "查看审计详情"
@@ -14465,6 +14517,10 @@ msgstr "查看已阻塞截止日"
 msgid "View deadlines"
 msgstr "查看截止日期"
 
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "View deadlines due today"
+msgstr "查看今日到期的截止日期"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "View history"
 msgstr "查看历史"
@@ -14472,6 +14528,10 @@ msgstr "查看历史"
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "View in Deadlines"
 msgstr "在截止日期中查看"
+
+#: src/features/dashboard/at-a-glance-section.tsx
+msgid "View items needing your review"
+msgstr "查看需要您审核的项目"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "View mode"
