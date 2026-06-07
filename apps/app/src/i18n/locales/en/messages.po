@@ -2015,7 +2015,6 @@ msgid "all"
 msgstr "all"
 
 #: src/features/rules/sources-tab.tsx
-#: src/features/rules/states-rail.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
@@ -2036,6 +2035,10 @@ msgstr "All {checklistCount} items in workpapers"
 #: src/routes/obligations.tsx
 msgid "All {checklistCount} items recorded as received."
 msgstr "All {checklistCount} items recorded as received."
+
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "All {jurisdictionLabel} rules"
+msgstr "All {jurisdictionLabel} rules"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -2103,10 +2106,6 @@ msgstr "All impact"
 #: src/routes/obligations.tsx
 msgid "All items received."
 msgstr "All items received."
-
-#: src/features/rules/states-rail.tsx
-msgid "All jurisdictions"
-msgstr "All jurisdictions"
 
 #: src/features/migration/Step3Normalize.tsx
 msgid "all matched"
@@ -2654,6 +2653,10 @@ msgstr "Awaiting client approval of estimate"
 #: src/routes/obligations.tsx
 msgid "Awaiting client response"
 msgstr "Awaiting client response"
+
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Awaiting review"
+msgstr "Awaiting review"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
@@ -5030,6 +5033,10 @@ msgstr "Deposit"
 msgid "deprecated"
 msgstr "deprecated"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Deprecated"
+msgstr "Deprecated"
+
 #: src/routes/rules.library.tsx
 msgid "Describe the due-date pattern in plain English. You can refine the calendar logic from the rule's detail view after creation."
 msgstr "Describe the due-date pattern in plain English. You can refine the calendar logic from the rule's detail view after creation."
@@ -5513,6 +5520,7 @@ msgid "Edits, version bumps, and review decisions for this rule will appear here
 msgstr "Edits, version bumps, and review decisions for this rule will appear here."
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
+#: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Effective"
 msgstr "Effective"
 
@@ -6155,6 +6163,7 @@ msgid "Fallback document list ready"
 msgstr "Fallback document list ready"
 
 #: src/features/obligations/CreateObligationDialog.tsx
+#: src/features/rules/states-rail.tsx
 msgid "Federal"
 msgstr "Federal"
 
@@ -7031,6 +7040,10 @@ msgstr "Importing clients requires {0} access."
 #: src/features/migration/WizardShell.tsx
 msgid "Importing…"
 msgstr "Importing…"
+
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "In force today"
+msgstr "In force today"
 
 #: src/features/obligations/status-control.tsx
 msgid "In progress"
@@ -9885,6 +9898,10 @@ msgstr "Overridden"
 msgid "Overrode AI suggestion"
 msgstr "Overrode AI suggestion"
 
+#: src/features/rules/states-rail.tsx
+msgid "Overview"
+msgstr "Overview"
+
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -10247,6 +10264,7 @@ msgstr "Penalty waiver"
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/coverage-tab.tsx
+#: src/features/rules/jurisdiction-rule-table.tsx
 #: src/routes/obligations.tsx
 msgid "Pending"
 msgstr "Pending"
@@ -10337,7 +10355,6 @@ msgid "Pick state"
 msgstr "Pick state"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/rules/states-rail.tsx
 msgid "Pinned"
 msgstr "Pinned"
 
@@ -11989,6 +12006,7 @@ msgstr "Rule issue reported"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/rules/states-rail.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.library.tsx
 #: src/routes/rules.preview.tsx
@@ -12381,12 +12399,8 @@ msgid "Search forms and vouchers…"
 msgstr "Search forms and vouchers…"
 
 #: src/features/rules/states-rail.tsx
-msgid "Search jurisdiction"
-msgstr "Search jurisdiction"
-
-#: src/features/rules/states-rail.tsx
-msgid "Search jurisdiction…"
-msgstr "Search jurisdiction…"
+msgid "Search jurisdictions"
+msgstr "Search jurisdictions"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Search states"
@@ -12862,10 +12876,10 @@ msgstr "Showing {firstItemNumber}-{lastItemNumber} of {loadedCount} loaded event
 msgid "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
 msgstr "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
 
-#. placeholder {0}: items.length
+#. placeholder {0}: states.length
 #: src/features/rules/states-rail.tsx
-msgid "Showing {shownCount} of {0}"
-msgstr "Showing {shownCount} of {0}"
+msgid "Showing {shownStateCount} of {0} states"
+msgstr "Showing {shownStateCount} of {0} states"
 
 #: src/components/patterns/table-header-filter.tsx
 msgid "Showing first {maxSelections} selections — refine the list to add more."
@@ -13376,12 +13390,9 @@ msgid "State rule coverage"
 msgstr "State rule coverage"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/rules/states-rail.tsx
 msgid "States"
 msgstr "States"
-
-#: src/features/rules/states-rail.tsx
-msgid "States · A–Z"
-msgstr "States · A–Z"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -13542,6 +13553,10 @@ msgstr "Summarize what the authority rejected and what needs correction."
 #: src/routes/obligations.tsx
 msgid "Summary"
 msgstr "Summary"
+
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Superseded"
+msgstr "Superseded"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Suppressed"
@@ -14362,6 +14377,7 @@ msgstr "Top deadlines by risk"
 msgid "Top-ranked clients"
 msgstr "Top-ranked clients"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
 #: src/routes/practice.tsx
 msgid "Total"
 msgstr "Total"

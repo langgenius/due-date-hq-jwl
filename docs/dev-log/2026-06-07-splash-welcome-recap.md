@@ -7,6 +7,7 @@ static, bookmarkable route. It now shows a real "since last visit" recap and
 auto-triggers once per calendar day on the dashboard.
 
 ## Persistence (new table + migration)
+
 - `packages/db/src/schema/dashboard.ts` — new app-owned `user_dashboard_visit`
   table (`userId`, `firmId`, `lastVisitAt`, unique on user+firm). App-owned on
   purpose: the better-auth `user` table is never hand-migrated.
@@ -15,6 +16,7 @@ auto-triggers once per calendar day on the dashboard.
   journal is unused at runtime). Applied with `pnpm db:migrate:local|remote`.
 
 ## Recap aggregate (real counts)
+
 - `packages/db/src/repo/dashboard.ts` — `welcomeRecap({ userId, now, weekAheadDays })`
   reads the user's last-visit stamp and counts firm activity **since** then with
   created-since-window table counts (real numbers, not audit tallies):
@@ -25,6 +27,7 @@ auto-triggers once per calendar day on the dashboard.
 - Ports: `DashboardRepo` gains both methods.
 
 ## Contract + handlers
+
 - `packages/contracts/src/dashboard.ts` — `welcomeRecap` (read-only, returns
   `shouldShow` + counts + `userName` + `lastSignIn{At,Ip}`) and
   `recordDashboardVisit` (write). `shouldShow` = last visit was an earlier
@@ -33,6 +36,7 @@ auto-triggers once per calendar day on the dashboard.
   session user, `lastSignIn*` from the current session row.
 
 ## Trigger + UI
+
 - `apps/app/src/router.tsx` — `welcomeGateLoader` on the dashboard index calls
   `orpc.dashboard.welcomeRecap.call()` (the sanctioned loader-redirect pattern);
   if `shouldShow`, redirect to /splash before render (no flash). Read-only — the
@@ -44,10 +48,12 @@ auto-triggers once per calendar day on the dashboard.
   `recordDashboardVisit` then navigates to /today.
 
 ## Notes
+
 - "Last sign-in" uses the current session's start + IP (better-auth exposes these
   on the session); a true prior-session lookup would need an auth-table query.
 
 ## Verify
+
 - tsgo (app + server + db + contracts + ports) → 0
 - contracts 29/29, server dashboard+procedures 271/271, db dashboard 5/5,
   app router 50/50, dashboard 14/15

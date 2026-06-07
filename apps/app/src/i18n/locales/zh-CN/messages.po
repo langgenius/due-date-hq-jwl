@@ -2041,7 +2041,6 @@ msgid "all"
 msgstr "全部"
 
 #: src/features/rules/sources-tab.tsx
-#: src/features/rules/states-rail.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
@@ -2062,6 +2061,10 @@ msgstr "{checklistCount} 项已全部入档"
 #: src/routes/obligations.tsx
 msgid "All {checklistCount} items recorded as received."
 msgstr "已记录收到全部 {checklistCount} 项。"
+
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "All {jurisdictionLabel} rules"
+msgstr "所有 {jurisdictionLabel} 规则"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -2129,10 +2132,6 @@ msgstr "全部影响"
 #: src/routes/obligations.tsx
 msgid "All items received."
 msgstr "已收到全部项目。"
-
-#: src/features/rules/states-rail.tsx
-msgid "All jurisdictions"
-msgstr "所有辖区"
 
 #: src/features/migration/Step3Normalize.tsx
 #, fuzzy
@@ -2682,6 +2681,10 @@ msgstr "等待客户批准预估金额"
 #: src/routes/obligations.tsx
 msgid "Awaiting client response"
 msgstr "等待客户回复"
+
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Awaiting review"
+msgstr "等待审核"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
@@ -5074,6 +5077,10 @@ msgstr "缴款"
 msgid "deprecated"
 msgstr "创建时间"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Deprecated"
+msgstr "已弃用"
+
 #: src/routes/rules.library.tsx
 msgid "Describe the due-date pattern in plain English. You can refine the calendar logic from the rule's detail view after creation."
 msgstr "请用通俗语言描述截止日规律。创建后可在规则详情中细化日历逻辑。"
@@ -5557,6 +5564,7 @@ msgid "Edits, version bumps, and review decisions for this rule will appear here
 msgstr "此规则的编辑、版本更新和查看决定将显示在此处。"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
+#: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Effective"
 msgstr "生效"
 
@@ -6201,6 +6209,7 @@ msgid "Fallback document list ready"
 msgstr "兜底文件清单已就绪"
 
 #: src/features/obligations/CreateObligationDialog.tsx
+#: src/features/rules/states-rail.tsx
 msgid "Federal"
 msgstr "联邦"
 
@@ -7084,6 +7093,10 @@ msgstr "导入客户需要 {0} 权限。"
 #: src/features/migration/WizardShell.tsx
 msgid "Importing…"
 msgstr "正在导入…"
+
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "In force today"
+msgstr "今日生效"
 
 #: src/features/obligations/status-control.tsx
 msgid "In progress"
@@ -9960,6 +9973,10 @@ msgstr "已覆盖"
 msgid "Overrode AI suggestion"
 msgstr "Overrode AI suggestion"
 
+#: src/features/rules/states-rail.tsx
+msgid "Overview"
+msgstr "概览"
+
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -10329,6 +10346,7 @@ msgstr "罚金豁免"
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/coverage-tab.tsx
+#: src/features/rules/jurisdiction-rule-table.tsx
 #: src/routes/obligations.tsx
 msgid "Pending"
 msgstr "待处理"
@@ -10424,7 +10442,6 @@ msgid "Pick state"
 msgstr "选择州"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/rules/states-rail.tsx
 msgid "Pinned"
 msgstr "已置顶"
 
@@ -12084,6 +12101,7 @@ msgstr "规则问题已报告"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/rules/states-rail.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.library.tsx
 #: src/routes/rules.preview.tsx
@@ -12478,12 +12496,8 @@ msgid "Search forms and vouchers…"
 msgstr "搜索表单和凭单…"
 
 #: src/features/rules/states-rail.tsx
-msgid "Search jurisdiction"
+msgid "Search jurisdictions"
 msgstr "搜索辖区"
-
-#: src/features/rules/states-rail.tsx
-msgid "Search jurisdiction…"
-msgstr "搜索辖区…"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Search states"
@@ -12964,10 +12978,10 @@ msgstr "显示 {firstItemNumber}-{lastItemNumber}，共加载 {loadedCount} 条�
 msgid "Showing {firstItemNumber}-{lastItemNumber} of {totalCount}"
 msgstr "显示 {firstItemNumber}-{lastItemNumber}，共 {totalCount} 条"
 
-#. placeholder {0}: items.length
+#. placeholder {0}: states.length
 #: src/features/rules/states-rail.tsx
-msgid "Showing {shownCount} of {0}"
-msgstr "显示 {shownCount} / {0}"
+msgid "Showing {shownStateCount} of {0} states"
+msgstr "显示 {0} 个州中的 {shownStateCount} 个"
 
 #: src/components/patterns/table-header-filter.tsx
 msgid "Showing first {maxSelections} selections — refine the list to add more."
@@ -13480,12 +13494,9 @@ msgid "State rule coverage"
 msgstr "州规则覆盖范围"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/rules/states-rail.tsx
 msgid "States"
 msgstr "州"
-
-#: src/features/rules/states-rail.tsx
-msgid "States · A–Z"
-msgstr "州 · A–Z"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -13646,6 +13657,10 @@ msgstr "概述 Authority 拒绝了什么，以及需要修正什么。"
 #: src/routes/obligations.tsx
 msgid "Summary"
 msgstr "摘要"
+
+#: src/features/rules/jurisdiction-rule-table.tsx
+msgid "Superseded"
+msgstr "已被取代"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Suppressed"
@@ -14468,6 +14483,7 @@ msgstr "按风险排序的重点截止事项"
 msgid "Top-ranked clients"
 msgstr "排名靠前的客户"
 
+#: src/features/rules/jurisdiction-rule-table.tsx
 #: src/routes/practice.tsx
 msgid "Total"
 msgstr "合计"
