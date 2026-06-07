@@ -1090,6 +1090,10 @@ msgstr "© {0} DueDateHQ Inc."
 msgid "← Upload a file instead"
 msgstr "← Upload a file instead"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "+ Add file"
+msgstr "+ Add file"
+
 #. placeholder {0}: sources.length - 6
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
@@ -1114,6 +1118,10 @@ msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · 
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "0"
 msgstr "0"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "0 items"
+msgstr "0 items"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "0 ongoing"
@@ -1161,6 +1169,10 @@ msgstr "1 practice workspace"
 msgid "1 production practice"
 msgstr "1 production practice"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "1.2 MB · uploaded Jan 12"
+msgstr "1.2 MB · uploaded Jan 12"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "10 seats included"
@@ -1175,6 +1187,10 @@ msgstr "10+ seats"
 msgid "2-3"
 msgstr "2-3"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "218 KB · uploaded Feb 14"
+msgstr "218 KB · uploaded Feb 14"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "3 seats included"
@@ -1184,6 +1200,14 @@ msgstr "3 seats included"
 msgid "30 / 7 days and overdue"
 msgstr "30 / 7 days and overdue"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "312 KB · updated Mar 4"
+msgstr "312 KB · updated Mar 4"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "4 attached"
+msgstr "4 attached"
+
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "4-6"
 msgstr "4-6"
@@ -1191,6 +1215,10 @@ msgstr "4-6"
 #: src/routes/not-found.tsx
 msgid "404"
 msgstr "404"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "6 mo"
+msgstr "6 mo"
 
 #: src/routes/two-factor.tsx
 msgid "6-digit code from your authenticator app (Google Authenticator, 1Password, Authy, or similar)."
@@ -1204,6 +1232,10 @@ msgstr "7+"
 #: src/routes/obligations.tsx
 msgid "8879 sent to client for signature"
 msgstr "8879 sent to client for signature"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "94 KB · uploaded Mar 1"
+msgstr "94 KB · uploaded Mar 1"
 
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/concepts/concept-help.tsx
@@ -2751,6 +2783,10 @@ msgstr "C corp"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "C Corporation"
 msgstr "C Corporation"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "CA state withholding"
+msgstr "CA state withholding"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "CA, NY, TX…"
@@ -5047,6 +5083,10 @@ msgstr "Document item removed"
 msgid "Document list generated"
 msgstr "Document list generated"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Document previews open here once ingest lands."
+msgstr "Document previews open here once ingest lands."
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Dollars and cents."
@@ -5551,6 +5591,14 @@ msgstr "Entry"
 msgid "Estate"
 msgstr "Estate"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "estimate · not yet reconciled"
+msgstr "estimate · not yet reconciled"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Estimated tax credit"
+msgstr "Estimated tax credit"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Estimated tax due"
@@ -5683,6 +5731,10 @@ msgstr "Expand all"
 #: src/routes/obligations.tsx
 msgid "Expected"
 msgstr "Expected"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Expected refund"
+msgstr "Expected refund"
 
 #: src/features/members/members-page.tsx
 msgid "Expired"
@@ -5839,6 +5891,10 @@ msgstr "Extended filing deadline"
 msgid "Extended filing deadline must be after the original deadline."
 msgstr "Extended filing deadline must be after the original deadline."
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Extended to"
+msgstr "Extended to"
+
 #. placeholder {0}: query.data?.alreadyExtendedCount ?? 0
 #. placeholder {1}: query.data?.skippedCount ?? 0
 #: src/features/obligations/queue/dialogs.tsx
@@ -5876,6 +5932,10 @@ msgstr "Extension defers filing, not payment"
 #: src/routes/obligations.tsx
 msgid "Extension filed — new due date in effect"
 msgstr "Extension filed — new due date in effect"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Extension history"
+msgstr "Extension history"
 
 #: src/features/clients/ClassificationImpactDialog.tsx
 msgid "Extension in progress"
@@ -5961,6 +6021,10 @@ msgstr "Federal EIN"
 msgid "Federal only"
 msgstr "Federal only"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Federal withholding"
+msgstr "Federal withholding"
+
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "Fetching client detail."
 msgstr "Fetching client detail."
@@ -5993,6 +6057,10 @@ msgstr "File size"
 msgid "File type"
 msgstr "File type"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "File upload is coming soon"
+msgstr "File upload is coming soon"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/CompletedKeyDates.tsx
@@ -6002,6 +6070,10 @@ msgstr "File type"
 #: src/routes/obligations.tsx
 msgid "Filed"
 msgstr "Filed"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Filed by"
+msgstr "Filed by"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -6015,8 +6087,16 @@ msgid "Filed on {0}"
 msgstr "Filed on {0}"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Filed on time"
+msgstr "Filed on time"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Filed return"
 msgstr "Filed return"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Filed without extension"
+msgstr "Filed without extension"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
@@ -6351,6 +6431,7 @@ msgstr "Foreign reporting company"
 #: src/features/alerts/components/PulseRelevanceMatrix.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientWorkPlanPanel.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/features/rules/sources-tab.tsx
@@ -7228,6 +7309,10 @@ msgstr "Legal conversion"
 msgid "Legend"
 msgstr "Legend"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Length"
+msgstr "Length"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Light"
 msgstr "Light"
@@ -7515,6 +7600,10 @@ msgstr "Mark 8879 signed"
 #: src/features/notifications/notifications-page.tsx
 msgid "Mark all read"
 msgstr "Mark all read"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Mark an outstanding doc as waived when it doesn't apply this year."
+msgstr "Mark an outstanding doc as waived when it doesn't apply this year."
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -8597,6 +8686,10 @@ msgstr "No history yet"
 msgid "No import batches yet"
 msgstr "No import batches yet"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "No items waived"
+msgstr "No items waived"
+
 #: src/features/rules/states-rail.tsx
 msgid "No jurisdictions match \"{search}\""
 msgstr "No jurisdictions match \"{search}\""
@@ -9462,6 +9555,10 @@ msgstr "or continue with SSO"
 msgid "or press <0>Enter</0>"
 msgstr "or press <0>Enter</0>"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Original"
+msgstr "Original"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Original due date"
 msgstr "Original due date"
@@ -10249,6 +10346,7 @@ msgid "prev"
 msgstr "prev"
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Preview"
@@ -10276,6 +10374,10 @@ msgstr "Preview for {0}"
 #: src/routes/practice.tsx
 msgid "Preview impact as of {0}"
 msgstr "Preview impact as of {0}"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Preview is coming soon"
+msgstr "Preview is coming soon"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -10376,6 +10478,10 @@ msgstr "Primary web"
 #: src/features/members/members-page.tsx
 msgid "Principal authority — billing, members, full sign-off."
 msgstr "Principal authority — billing, members, full sign-off."
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Prior year"
+msgstr "Prior year"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
@@ -11107,6 +11213,10 @@ msgstr "Responses"
 #: src/routes/billing.cancel.tsx
 msgid "Restart checkout"
 msgstr "Restart checkout"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Result"
+msgstr "Result"
 
 #: src/features/obligations/queue/components/evidence.tsx
 #: src/routes/obligations.tsx
@@ -12787,6 +12897,10 @@ msgstr "Source changed requires single-rule review"
 msgid "Source deadlines"
 msgstr "Source deadlines"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Source docs"
+msgstr "Source docs"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Source excerpt"
@@ -14449,6 +14563,10 @@ msgstr "View all"
 msgid "View all {totalAlertCount} alerts"
 msgstr "View all {totalAlertCount} alerts"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "View all client extensions →"
+msgstr "View all client extensions →"
+
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "View all deadlines"
 msgstr "View all deadlines"
@@ -14564,6 +14682,10 @@ msgstr "Waiting on upstream return to file"
 msgid "waived"
 msgstr "waived"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Waived"
+msgstr "Waived"
+
 #: src/features/rules/rules-console-primitives.tsx
 #: src/features/rules/sources-tab.tsx
 msgid "Watched"
@@ -14624,6 +14746,10 @@ msgstr "We store the plan and seat limit needed for app permissions."
 #: src/routes/obligations.tsx
 msgid "We'll let you attach PDFs and exports here as soon as ingest lands."
 msgstr "We'll let you attach PDFs and exports here as soon as ingest lands."
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "We'll let you attach source documents here as soon as ingest lands."
+msgstr "We'll let you attach source documents here as soon as ingest lands."
 
 #: src/routes/login.tsx
 msgid "Welcome to DueDateHQ."
@@ -14797,6 +14923,10 @@ msgstr "XLSX or CSV"
 #: src/features/migration/Step1Intake.tsx
 msgid "XLSX or IIF"
 msgstr "XLSX or IIF"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Year"
+msgstr "Year"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx

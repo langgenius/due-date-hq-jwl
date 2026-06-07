@@ -1109,6 +1109,10 @@ msgstr "© {0} DueDateHQ Inc."
 msgid "← Upload a file instead"
 msgstr "上传文件"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "+ Add file"
+msgstr "+ 添加文件"
+
 #. placeholder {0}: sources.length - 6
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
@@ -1133,6 +1137,10 @@ msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · 
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "0"
 msgstr "0"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "0 items"
+msgstr "0 项"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "0 ongoing"
@@ -1180,6 +1188,10 @@ msgstr "1 个事务所工作区"
 msgid "1 production practice"
 msgstr "1 个生产事务所"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "1.2 MB · uploaded Jan 12"
+msgstr "1.2 MB · 1 月 12 日上传"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "10 seats included"
@@ -1194,6 +1206,10 @@ msgstr "10+ 个席位"
 msgid "2-3"
 msgstr "2-3"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "218 KB · uploaded Feb 14"
+msgstr "218 KB · 2 月 14 日上传"
+
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "3 seats included"
@@ -1203,6 +1219,14 @@ msgstr "包含 3 个席位"
 msgid "30 / 7 days and overdue"
 msgstr "30 / 7 天和逾期"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "312 KB · updated Mar 4"
+msgstr "312 KB · 3 月 4 日更新"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "4 attached"
+msgstr "已附加 4 项"
+
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "4-6"
 msgstr "4-6"
@@ -1210,6 +1234,10 @@ msgstr "4-6"
 #: src/routes/not-found.tsx
 msgid "404"
 msgstr "404"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "6 mo"
+msgstr "6 个月"
 
 #: src/routes/two-factor.tsx
 msgid "6-digit code from your authenticator app (Google Authenticator, 1Password, Authy, or similar)."
@@ -1223,6 +1251,10 @@ msgstr "7+"
 #: src/routes/obligations.tsx
 msgid "8879 sent to client for signature"
 msgstr "8879 已发给客户签字"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "94 KB · uploaded Mar 1"
+msgstr "94 KB · 3 月 1 日上传"
 
 #. placeholder {0}: requiredRolesLabel('pulse.apply')
 #: src/features/concepts/concept-help.tsx
@@ -2780,6 +2812,10 @@ msgstr "C 公司"
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "C Corporation"
 msgstr "C 型公司"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "CA state withholding"
+msgstr "加州州预扣"
 
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "CA, NY, TX…"
@@ -5091,6 +5127,10 @@ msgstr "文件项已移除"
 msgid "Document list generated"
 msgstr "文件清单已生成"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Document previews open here once ingest lands."
+msgstr "文档导入后预览将在此处打开。"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Dollars and cents."
@@ -5596,6 +5636,14 @@ msgstr "入口"
 msgid "Estate"
 msgstr "遗产"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "estimate · not yet reconciled"
+msgstr "估算 · 尚未对账"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Estimated tax credit"
+msgstr "预计税收抵免"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "Estimated tax due"
@@ -5729,6 +5777,10 @@ msgstr "全部展开"
 #: src/routes/obligations.tsx
 msgid "Expected"
 msgstr "预期"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Expected refund"
+msgstr "预计退款"
 
 #: src/features/members/members-page.tsx
 msgid "Expired"
@@ -5885,6 +5937,10 @@ msgstr "延长后的申报截止日期"
 msgid "Extended filing deadline must be after the original deadline."
 msgstr "延长后的申报截止日期必须晚于原截止日期。"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Extended to"
+msgstr "延期至"
+
 #. placeholder {0}: query.data?.alreadyExtendedCount ?? 0
 #. placeholder {1}: query.data?.skippedCount ?? 0
 #: src/features/obligations/queue/dialogs.tsx
@@ -5922,6 +5978,10 @@ msgstr "延期仅延后申报，不延后缴款"
 #: src/routes/obligations.tsx
 msgid "Extension filed — new due date in effect"
 msgstr "已申请延期 — 新到期日生效"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Extension history"
+msgstr "延期历史"
 
 #: src/features/clients/ClassificationImpactDialog.tsx
 msgid "Extension in progress"
@@ -6007,6 +6067,10 @@ msgstr "联邦 EIN"
 msgid "Federal only"
 msgstr "仅联邦"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Federal withholding"
+msgstr "联邦预扣"
+
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "Fetching client detail."
 msgstr "正在获取客户详情。"
@@ -6039,6 +6103,10 @@ msgstr "文件大小"
 msgid "File type"
 msgstr "文件类型"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "File upload is coming soon"
+msgstr "文件上传即将推出"
+
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/CompletedKeyDates.tsx
@@ -6048,6 +6116,10 @@ msgstr "文件类型"
 #: src/routes/obligations.tsx
 msgid "Filed"
 msgstr "已申报"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Filed by"
+msgstr "申报人"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -6061,8 +6133,16 @@ msgid "Filed on {0}"
 msgstr "已于 {0} 申报"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Filed on time"
+msgstr "按时申报"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Filed return"
 msgstr "已申报表单"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Filed without extension"
+msgstr "未延期申报"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
@@ -6401,6 +6481,7 @@ msgstr "外国申报公司"
 #: src/features/alerts/components/PulseRelevanceMatrix.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientWorkPlanPanel.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/features/rules/sources-tab.tsx
@@ -7283,6 +7364,10 @@ msgstr "法律形式转换"
 msgid "Legend"
 msgstr "图例"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Length"
+msgstr "时长"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Light"
 msgstr "浅色"
@@ -7574,6 +7659,10 @@ msgstr "标记 8879 已签字"
 #: src/features/notifications/notifications-page.tsx
 msgid "Mark all read"
 msgstr "全部标记已读"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Mark an outstanding doc as waived when it doesn't apply this year."
+msgstr "当某项待办文档今年不适用时，可将其标记为豁免。"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -8661,6 +8750,10 @@ msgstr "暂无历史记录"
 msgid "No import batches yet"
 msgstr "尚无导入批次"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "No items waived"
+msgstr "无豁免项"
+
 #: src/features/rules/states-rail.tsx
 msgid "No jurisdictions match \"{search}\""
 msgstr "无与“{search}”匹配的辖区"
@@ -9537,6 +9630,10 @@ msgstr "或使用 SSO 继续"
 msgid "or press <0>Enter</0>"
 msgstr "or press <0>Enter</0>"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Original"
+msgstr "原始"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Original due date"
 msgstr "原截止日"
@@ -10339,6 +10436,7 @@ msgid "prev"
 msgstr "上一项"
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Preview"
@@ -10366,6 +10464,10 @@ msgstr "{0} 的预览"
 #: src/routes/practice.tsx
 msgid "Preview impact as of {0}"
 msgstr "截至 {0} 的影响预览"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Preview is coming soon"
+msgstr "预览即将推出"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -10466,6 +10568,10 @@ msgstr "主要网站"
 #: src/features/members/members-page.tsx
 msgid "Principal authority — billing, members, full sign-off."
 msgstr "Principal authority — billing, members, full sign-off."
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Prior year"
+msgstr "上一年度"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
@@ -11199,6 +11305,10 @@ msgstr "回复"
 #: src/routes/billing.cancel.tsx
 msgid "Restart checkout"
 msgstr "重新开始支付"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Result"
+msgstr "结果"
 
 #: src/features/obligations/queue/components/evidence.tsx
 #: src/routes/obligations.tsx
@@ -12890,6 +13000,10 @@ msgstr "来源变更需要单条审核"
 msgid "Source deadlines"
 msgstr "源截止日期"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Source docs"
+msgstr "源文档"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Source excerpt"
@@ -14559,6 +14673,10 @@ msgstr "查看全部"
 msgid "View all {totalAlertCount} alerts"
 msgstr "查看全部 {totalAlertCount} 项提醒"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "View all client extensions →"
+msgstr "查看该客户的所有延期 →"
+
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "View all deadlines"
 msgstr "查看所有截止日期"
@@ -14674,6 +14792,10 @@ msgstr "等待上游申报提交"
 msgid "waived"
 msgstr "已豁免"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Waived"
+msgstr "已豁免"
+
 #: src/features/rules/rules-console-primitives.tsx
 #: src/features/rules/sources-tab.tsx
 msgid "Watched"
@@ -14734,6 +14856,10 @@ msgstr "我们会保存应用权限所需的计划和席位上限。"
 #: src/routes/obligations.tsx
 msgid "We'll let you attach PDFs and exports here as soon as ingest lands."
 msgstr "导入功能上线后即可在此附加 PDF 与导出文件。"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "We'll let you attach source documents here as soon as ingest lands."
+msgstr "导入功能上线后，您即可在此处附加源文档。"
 
 #: src/routes/login.tsx
 msgid "Welcome to DueDateHQ."
@@ -14909,6 +15035,10 @@ msgstr "XLSX 或 CSV"
 #: src/features/migration/Step1Intake.tsx
 msgid "XLSX or IIF"
 msgstr "XLSX 或 IIF"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Year"
+msgstr "年度"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
