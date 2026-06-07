@@ -76,6 +76,11 @@ msgstr "(optional)"
 msgid "{0, plural, one {(# unverified)} other {(# unverified)}}"
 msgstr "{0, plural, one {(# unverified)} other {(# unverified)}}"
 
+#. placeholder {0}: detail.evidence.length
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "{0, plural, one {# attached} other {# attached}}"
+msgstr "{0, plural, one {# attached} other {# attached}}"
+
 #. placeholder {0}: summary.clientsCovered
 #: src/features/migration/Step3Normalize.tsx
 msgid "{0, plural, one {# client covered} other {# clients covered}}"
@@ -416,6 +421,12 @@ msgstr "{0} items recorded"
 #: src/routes/clients.tsx
 msgid "{0} of {1}"
 msgstr "{0} of {1}"
+
+#. placeholder {0}: checklist.filter((item) => item.status === 'received').length
+#. placeholder {1}: checklist.length
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "{0} of {1} complete"
+msgstr "{0} of {1} complete"
 
 #. placeholder {0}: counts.review
 #: src/routes/rules.library.tsx
@@ -1250,6 +1261,7 @@ msgid "Accept to join the firm's deadline workbench. No password to remember —
 msgstr "Accept to join the firm's deadline workbench. No password to remember — we'll email a sign-in link whenever you need to come back."
 
 #: src/features/obligations/queue/components/panels.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Accepted"
@@ -2323,6 +2335,10 @@ msgstr "Audit log"
 msgid "Audit log captures every AI decision"
 msgstr "Audit log captures every AI decision"
 
+#: src/features/migration/Step3Normalize.tsx
+msgid "Audit logged"
+msgstr "Audit logged"
+
 #: src/features/notifications/notifications-page.tsx
 msgid "Audit package"
 msgstr "Audit package"
@@ -2367,6 +2383,7 @@ msgstr "Authenticator setup started"
 #: src/features/alerts/components/AlertStructuredFields.tsx
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/obligations/queue/dialogs.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Authority"
 msgstr "Authority"
@@ -2401,9 +2418,18 @@ msgstr "Authority response"
 msgid "Auto-drafted from recent activity"
 msgstr "Auto-drafted from recent activity"
 
+#. placeholder {0}: Math.max(0, summary.mappedColumns - summary.lowConfidenceColumns)
+#: src/features/migration/Step2Mapping.tsx
+msgid "Auto-mapped · {0}"
+msgstr "Auto-mapped · {0}"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Auto-mapped · {pct}%"
 msgstr "Auto-mapped · {pct}%"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "Auto-normalized · {autoNormalized}"
+msgstr "Auto-normalized · {autoNormalized}"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Automatic field matching is unavailable. We used the selected import template and kept the import draft editable."
@@ -2420,6 +2446,10 @@ msgstr "AVG ALERT TRIAGE"
 #: src/features/migration/Step1Intake.tsx
 msgid "Avoid document archives; they are not client account or contact lists."
 msgstr "Avoid document archives; they are not client account or contact lists."
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Awaiting"
+msgstr "Awaiting"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -3496,6 +3526,10 @@ msgstr "Configure sources"
 #: src/features/alerts/components/AffectedClientsTable.tsx
 msgid "Confirm"
 msgstr "Confirm"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "Confirm · {confirm}"
+msgstr "Confirm · {confirm}"
 
 #. placeholder {0}: row.clientName
 #: src/features/alerts/components/AffectedClientsTable.tsx
@@ -4700,6 +4734,10 @@ msgstr "Decision memo (required)"
 msgid "Decision memo is required."
 msgstr "Decision memo is required."
 
+#: src/features/migration/Step3Normalize.tsx
+msgid "Default Matrix · {defaultMatrix}"
+msgstr "Default Matrix · {defaultMatrix}"
+
 #. placeholder {0}: client.name
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Delete {0}?"
@@ -4975,6 +5013,7 @@ msgstr "Drop a file or click to browse"
 msgid "Dry run"
 msgstr "Dry run"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/routes/practice.tsx
 msgid "Due"
@@ -5084,6 +5123,10 @@ msgstr "Duplicates will be created as new clients."
 msgid "Duplicates won't be imported."
 msgstr "Duplicates won't be imported."
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "E-file ack."
+msgstr "E-file ack."
+
 #: src/features/clients/ClassificationImpactDialog.tsx
 msgid "E-file in progress"
 msgstr "E-file in progress"
@@ -5149,6 +5192,10 @@ msgstr "Early alert"
 #: src/features/reminders/reminders-page.tsx
 msgid "Edit"
 msgstr "Edit"
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "Edit defaults"
+msgstr "Edit defaults"
 
 #. placeholder {0}: client.name
 #: src/features/clients/ClientNotesStrip.tsx
@@ -5486,6 +5533,10 @@ msgstr "Evidence for this deadline"
 msgid "Evidence gap"
 msgstr "Evidence gap"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Evidence to close out filing"
+msgstr "Evidence to close out filing"
+
 #: src/routes/rules.library.tsx
 msgid "Exception"
 msgstr "Exception"
@@ -5709,6 +5760,10 @@ msgstr "Extension decided"
 msgid "Extension decision"
 msgstr "Extension decision"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Extension defers filing, not payment"
+msgstr "Extension defers filing, not payment"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Extension filed — new due date in effect"
@@ -5834,6 +5889,7 @@ msgstr "File type"
 #: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/CompletedKeyDates.tsx
 #: src/features/obligations/queue/components/panels.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/obligations/status-control.tsx
 #: src/routes/obligations.tsx
 msgid "Filed"
@@ -5849,6 +5905,10 @@ msgstr "Filed means the return was submitted to the authority. Keep it open unti
 #: src/routes/obligations.tsx
 msgid "Filed on {0}"
 msgstr "Filed on {0}"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Filed return"
+msgstr "Filed return"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
@@ -5875,6 +5935,11 @@ msgstr "Filing and payment."
 #: src/routes/obligations.tsx
 msgid "Filing deadline"
 msgstr "Filing deadline"
+
+#. placeholder {0}: formatDate(row.paymentDueDate)
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Filing for an extension does not extend the time to pay. Estimated tax is still due {0} to avoid interest and penalties."
+msgstr "Filing for an extension does not extend the time to pay. Estimated tax is still due {0} to avoid interest and penalties."
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Filing frequency"
@@ -6181,6 +6246,10 @@ msgstr "Form"
 msgid "Form / voucher"
 msgstr "Form / voucher"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Form 8879"
+msgstr "Form 8879"
+
 #: src/routes/rules.library.tsx
 msgid "Form name"
 msgstr "Form name"
@@ -6207,6 +6276,10 @@ msgstr "Former teammate"
 #: src/features/rules/coverage-tab.tsx
 msgid "Forms"
 msgstr "Forms"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Four artefacts confirm the return is filed, accepted, and signed off."
+msgstr "Four artefacts confirm the return is filed, accepted, and signed off."
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Franchise & fees"
@@ -6523,6 +6596,7 @@ msgid "Import from the federal/state sources we maintain, or write your first ru
 msgstr "Import from the federal/state sources we maintain, or write your first rule from scratch."
 
 #: src/features/migration/ImportHistoryDrawer.tsx
+#: src/features/migration/WizardShell.tsx
 #: src/routes/clients.tsx
 msgid "Import history"
 msgstr "Import history"
@@ -7229,6 +7303,10 @@ msgstr "Manage deadline reminder templates and delivery status."
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Manage external deadline calendar feeds."
 msgstr "Manage external deadline calendar feeds."
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Manage in Materials →"
+msgstr "Manage in Materials →"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Manage practice seats, roles, and invitations."
@@ -8000,6 +8078,11 @@ msgstr "Needs review"
 msgid "Needs Review"
 msgstr "Needs Review"
 
+#. placeholder {0}: summary.lowConfidenceColumns
+#: src/features/migration/Step2Mapping.tsx
+msgid "Needs review · {0}"
+msgstr "Needs review · {0}"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Needs state"
 msgstr "Needs state"
@@ -8650,6 +8733,10 @@ msgstr "No workpapers attached to this deadline yet."
 msgid "None"
 msgstr "None"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "None yet"
+msgstr "None yet"
+
 #: src/routes/clients.tsx
 msgid "Nonprofit"
 msgstr "Nonprofit"
@@ -8699,6 +8786,10 @@ msgstr "Not recorded"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Not set"
 msgstr "Not set"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Not signed"
+msgstr "Not signed"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -8763,6 +8854,14 @@ msgstr "Notes saved"
 #: src/features/calendar/calendar-page.tsx
 msgid "Nothing — re-enabling later issues a brand-new URL"
 msgstr "Nothing — re-enabling later issues a brand-new URL"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Nothing applies until step 4. Every change is logged in the audit trail."
+msgstr "Nothing applies until step 4. Every change is logged in the audit trail."
+
+#: src/features/migration/Step3Normalize.tsx
+msgid "Nothing applies until step 4. Every normalization is logged and reversible for 24h."
+msgstr "Nothing applies until step 4. Every normalization is logged and reversible for 24h."
 
 #: src/features/dashboard/actions-list.tsx
 msgid "Nothing due this week."
@@ -9099,6 +9198,10 @@ msgstr "Open rule details for {0}"
 msgid "Open rule details for {displayTitle}"
 msgstr "Open rule details for {displayTitle}"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Open rule reference →"
+msgstr "Open rule reference →"
+
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/dashboard/needs-attention-card.tsx
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -9268,6 +9371,10 @@ msgstr "Outlook"
 #: src/features/audit/audit-event-drawer.tsx
 msgid "Output tokens"
 msgstr "Output tokens"
+
+#: src/features/obligations/queue/components/primitives.tsx
+msgid "outstanding"
+msgstr "outstanding"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -10382,6 +10489,10 @@ msgstr "Reason is required."
 msgid "Receipts band"
 msgstr "Receipts band"
 
+#: src/features/obligations/queue/components/primitives.tsx
+msgid "received"
+msgstr "received"
+
 #: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
@@ -10389,6 +10500,11 @@ msgstr "Receipts band"
 #: src/routes/obligations.tsx
 msgid "Received"
 msgstr "Received"
+
+#. placeholder {0}: formatDate(item.receivedAt.slice(0, 10))
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "received {0}"
+msgstr "received {0}"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Recent audited changes for this client record"
@@ -11284,6 +11400,7 @@ msgstr "Rows that will create review deadlines because the active practice rule 
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
 #: src/routes/rules.library.tsx
 msgid "Rule"
@@ -12226,6 +12343,10 @@ msgstr "Signature reminder sent"
 msgid "Signature reminders sent"
 msgstr "Signature reminders sent"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Signed"
+msgstr "Signed"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Signed in"
 msgstr "Signed in"
@@ -12284,6 +12405,11 @@ msgstr "Skip to drafting"
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Skipped"
 msgstr "Skipped"
+
+#. placeholder {0}: summary.ignoredColumns
+#: src/features/migration/Step2Mapping.tsx
+msgid "Skipped · {0}"
+msgstr "Skipped · {0}"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Skipped quiet day"
@@ -14188,6 +14314,10 @@ msgstr "Waiting on third party for K-1 / 1099"
 msgid "Waiting on upstream return to file"
 msgstr "Waiting on upstream return to file"
 
+#: src/features/obligations/queue/components/primitives.tsx
+msgid "waived"
+msgstr "waived"
+
 #: src/features/rules/rules-console-primitives.tsx
 #: src/features/rules/sources-tab.tsx
 msgid "Watched"
@@ -14289,6 +14419,10 @@ msgstr "What this evidence says"
 #: src/features/dashboard/actions-list.tsx
 msgid "What's in this list"
 msgstr "What's in this list"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "What's left to do"
+msgstr "What's left to do"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "When CA FTB, IRS, or another monitored source publishes a change, it will land here."
@@ -14438,6 +14572,10 @@ msgstr "You"
 #: src/routes/migration.new.tsx
 msgid "You can import later from Today, Clients, or the Command Palette (⌘K)."
 msgstr "You can import later from Today, Clients, or the Command Palette (⌘K)."
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "You can override any row"
+msgstr "You can override any row"
 
 #: src/features/obligations/status-control.tsx
 msgid "You can view status but only preparers, managers, partners, or owners can change it."
