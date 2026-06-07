@@ -734,6 +734,8 @@ export class MigrationService {
     obligationCount: number
     skippedCount: number
     revertibleUntil: string
+    rulesActiveCount: number
+    upcomingCount: number
   }> {
     const batch = await this.requireBatch(batchId)
     if (batch.status === 'applied') {
@@ -774,12 +776,22 @@ export class MigrationService {
 
     await this.deps.scoped.migration.commitImport(plan)
 
+    // SuccessModal stats (Pencil uoNwI): distinct rules behind the new
+    // obligations + how many fall due within 30 days of the apply moment.
+    const thirtyDaysOut = new Date(plan.appliedAt.getTime() + 30 * 24 * 60 * 60 * 1000)
+    const rulesActiveCount = new Set(plan.obligations.map((o) => o.ruleId)).size
+    const upcomingCount = plan.obligations.filter(
+      (o) => o.baseDueDate >= plan.appliedAt && o.baseDueDate <= thirtyDaysOut,
+    ).length
+
     return {
       batchId,
       clientCount: plan.clients.length,
       obligationCount: plan.obligations.length,
       skippedCount: plan.skippedCount,
       revertibleUntil: plan.revertExpiresAt.toISOString(),
+      rulesActiveCount,
+      upcomingCount,
     }
   }
 

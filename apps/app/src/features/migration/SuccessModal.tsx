@@ -23,6 +23,10 @@ export interface SuccessModalData {
   batchId: string
   clientCount: number
   obligationCount: number
+  /** Distinct rules behind the created obligations (apply result). */
+  rulesActiveCount: number
+  /** Created obligations falling due within the next 30 days (apply result). */
+  upcomingCount: number
   /** Server-provided ISO timestamp the import stays revertible until. Drives the live countdown. */
   revertibleUntil: string
   /** Optional contact email shown under the clients stat. Missing → omitted. */
@@ -97,8 +101,6 @@ export function SuccessModal({
               />
             </h2>
             <p className="max-w-[600px] text-sm leading-relaxed text-text-secondary">
-              {/* TODO(data): "rules now watching them" count is not in ApplyResult —
-                  fall back to the obligation count phrasing. */}
               <Trans>
                 Live on your dashboard.{' '}
                 <Plural
@@ -124,15 +126,19 @@ export function SuccessModal({
                 )
               }
             />
-            {/* TODO(data): rules-active count is not returned by apply; static fallback. */}
             <Stat
               value={data.obligationCount}
               label={<Trans>deadlines</Trans>}
-              sub={<Trans>generated from your rules</Trans>}
+              sub={
+                <Plural
+                  value={data.rulesActiveCount}
+                  one="from # active rule"
+                  other="from # active rules"
+                />
+              }
             />
-            {/* TODO(data): upcoming-30-days is not returned by apply; static fallback. */}
             <Stat
-              value={0}
+              value={data.upcomingCount}
               label={<Trans>upcoming · 30 days</Trans>}
               sub={<Trans>see them on Today</Trans>}
             />

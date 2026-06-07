@@ -519,6 +519,8 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
                 batchId: result.batchId,
                 clientCount: result.clientCount,
                 obligationCount: result.obligationCount,
+                rulesActiveCount: result.rulesActiveCount,
+                upcomingCount: result.upcomingCount,
                 revertibleUntil: result.revertibleUntil,
               })
               window.dispatchEvent(new CustomEvent('migration.genesis.completed'))

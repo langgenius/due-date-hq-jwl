@@ -317,6 +317,13 @@ export const ApplyResultSchema = z.object({
   obligationCount: z.number().int().min(0),
   skippedCount: z.number().int().min(0),
   revertibleUntil: z.iso.datetime(),
+  // 2026-06-07 (Pencil uoNwI SuccessModal): distinct rules behind the
+  // created obligations, and how many of those obligations fall due in
+  // the next 30 days. Derived from the commit plan at apply time — no
+  // extra query. Powers the success modal's "rules active" + "upcoming"
+  // stats (previously static fallbacks).
+  rulesActiveCount: z.number().int().min(0),
+  upcomingCount: z.number().int().min(0),
 })
 
 const BatchIdInput = z.object({ batchId: EntityIdSchema })

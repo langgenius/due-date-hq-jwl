@@ -10,6 +10,7 @@ buttons actually fire.
 ## What shipped
 
 ### `pulse.bulkDismiss` / `pulse.bulkSnooze` (no DB migration)
+
 - `packages/contracts/src/pulse.ts` — `PulseBulkDismissInputSchema`,
   `PulseBulkSnoozeInputSchema` (`alertIds` max 100), shared
   `PulseBulkActionOutputSchema` (`alerts`, `auditIds`, `failedIds`); registered
@@ -23,6 +24,7 @@ buttons actually fire.
 - `packages/contracts/src/contracts.test.ts` — froze the two new procedure keys.
 
 ### Client wiring (`apps/app/src/features/alerts/AlertsListPage.tsx`)
+
 - Bulk bar now calls `bulkSnooze`/`bulkDismiss` once (one round-trip + one
   toast, with a warning toast when `failedIds` is non-empty) instead of looping
   N per-alert mutations client-side.
@@ -33,11 +35,13 @@ buttons actually fire.
   `closeReasonDialog` / `ReasonAction` plumbing.
 
 ## Still unwired (no contract surface)
+
 - "Apply all" — must keep the per-alert source-verification gate (F-041), the
   highest-liability path; stays disabled with a tooltip.
 - "Mark all read" (needs a per-alert read-state column), "Assign", "Export".
 
 ## Verify
+
 - tsgo (app + server + contracts) → 0
 - alerts 72/73, server pulse 75/75, contracts 29/29
 - `vp check` → 0 errors

@@ -9,7 +9,8 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "WebFetch(domain:excise-tax-div.wyo.gov)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(awk 'NR>=85650 && NR<=85750' /Users/yuqi/Desktop/duedatehq_work.pen)"
     ]
   }
 }
