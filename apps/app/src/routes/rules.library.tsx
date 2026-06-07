@@ -99,6 +99,7 @@ import {
 } from '@/features/rules/rules-console-model'
 import { JurisdictionRail, type RailJurisdiction } from '@/features/rules/states-rail'
 import {
+  JurisdictionKpiStrip,
   JurisdictionRuleTable,
   JurisdictionStatusChips,
 } from '@/features/rules/jurisdiction-rule-table'
@@ -1792,6 +1793,20 @@ export function RulesLibraryRoute() {
               </p>
             </>
           )}
+
+          {/* KPI strip — 4-stat band (Total / Effective / Pending /
+              Deprecated) for the selected jurisdiction (Pencil O0pyRO
+              KPI Strip). Only rendered in the per-jurisdiction detail
+              pane; the All overview keeps the grouped table below. */}
+          {selectedGroup && jurisdictionStatusCounts ? (
+            <JurisdictionKpiStrip
+              total={selectedGroup.ruleCount}
+              effective={jurisdictionStatusCounts.active + jurisdictionStatusCounts.verified}
+              pending={selectedGroup.pendingReviewCount}
+              deprecated={jurisdictionStatusCounts.archived + jurisdictionStatusCounts.deprecated}
+              jurisdictionLabel={selectedGroup.label}
+            />
+          ) : null}
 
           {/* Progress bar — completion meter. Scoped to the selected
               jurisdiction when one is active. Yuqi explicitly asked for

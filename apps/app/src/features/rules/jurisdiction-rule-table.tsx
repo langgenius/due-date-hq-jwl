@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
 import {
   ArrowUpRightIcon,
   ChevronRightIcon,
@@ -426,6 +426,87 @@ function GapRow({
         </Button>
       </TableCell>
     </TableRow>
+  )
+}
+
+/**
+ * `JurisdictionKpiStrip` — the 4-stat KPI band above the selected
+ * jurisdiction's rule table (Pencil `O0pyRO`/`G6P12y` KPI Strip).
+ *
+ * One white rounded card, four columns separated by vertical hairlines:
+ * TOTAL (all rules) · EFFECTIVE (in force, success-green) · PENDING
+ * (awaiting review, warning-brown) · DEPRECATED (superseded, muted).
+ * Each column is eyebrow (10/700 caps) + value (24/600, tone-colored) +
+ * sub caption. Counts are derived in the route from the selected
+ * jurisdiction's status breakdown.
+ */
+export function JurisdictionKpiStrip({
+  total,
+  effective,
+  pending,
+  deprecated,
+  jurisdictionLabel,
+}: {
+  total: number
+  effective: number
+  pending: number
+  deprecated: number
+  jurisdictionLabel: string
+}) {
+  const { t } = useLingui()
+  const stats: Array<{
+    key: string
+    label: string
+    value: number
+    sub: string
+    valueClass: string
+  }> = [
+    {
+      key: 'total',
+      label: t`Total`,
+      value: total,
+      sub: t`All ${jurisdictionLabel} rules`,
+      valueClass: 'text-text-primary',
+    },
+    {
+      key: 'effective',
+      label: t`Effective`,
+      value: effective,
+      sub: t`In force today`,
+      valueClass: 'text-text-success',
+    },
+    {
+      key: 'pending',
+      label: t`Pending`,
+      value: pending,
+      sub: t`Awaiting review`,
+      valueClass: 'text-text-warning',
+    },
+    {
+      key: 'deprecated',
+      label: t`Deprecated`,
+      value: deprecated,
+      sub: t`Superseded`,
+      valueClass: 'text-text-muted',
+    },
+  ]
+  return (
+    <div className="flex shrink-0 items-center rounded-xl border border-divider-subtle bg-background-default px-2 py-[18px]">
+      {stats.map((stat, index) => (
+        <Fragment key={stat.key}>
+          {index > 0 ? <span className="h-11 w-px shrink-0 bg-divider-subtle" aria-hidden /> : null}
+          <div className="flex min-w-0 flex-1 flex-col gap-1 px-4">
+            <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
+              {stat.label}
+            </span>
+            <span className={cn('text-2xl font-semibold tabular-nums', stat.valueClass)}>
+              {stat.value}
+            </span>
+            <span className="truncate text-[11px] font-medium text-text-secondary">{stat.sub}</span>
+          </div>
+        </Fragment>
+      ))}
+    </div>
   )
 }
 
