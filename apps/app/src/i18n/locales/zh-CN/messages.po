@@ -1575,6 +1575,10 @@ msgstr "地址第 1 行"
 msgid "Adds"
 msgstr "新增"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "Adjust priority rules"
+msgstr "调整优先级规则"
+
 #: src/features/migration/Step3Normalize.tsx
 msgid "Adjust tax type defaults"
 msgstr "调整税种默认值"
@@ -11808,6 +11812,10 @@ msgstr "安全"
 msgid "Security settings couldn't load"
 msgstr "无法加载安全设置"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "See full deadline list"
+msgstr "查看完整截止日列表"
+
 #. placeholder {0}: formatTaxCode(obligation.taxType)
 #. placeholder {0}: row.clientName
 #. placeholder {0}: tableRow.original.clientName
@@ -14376,6 +14384,10 @@ msgstr "何时到期?"
 msgid "When it's due"
 msgstr "到期时间"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "When something gets at-risk — a stalled evidence request, a rejected filing, a 5-day client silence — Smart Priority will surface it here. Right now everything is on track."
+msgstr "当出现风险时——停滞的证据请求、被拒的申报、客户 5 天未回应——智能优先级会在此处提示。目前一切正常。"
+
 #: src/features/rules/sources-tab.tsx
 msgid "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
 msgstr "各管辖范围已配置的监控角色。存在缺口意味着可能漏掉变更。"
@@ -14536,10 +14548,6 @@ msgstr "您将被重定向至 Stripe 输入付款详情。"
 #: src/features/migration/Step4Preview.tsx
 msgid "You're about to create:"
 msgstr "您即将创建："
-
-#: src/features/dashboard/actions-list.tsx
-msgid "You're caught up. The next deadline appears here when it's within a week."
-msgstr "您已处理完所有事项。下一个一周内的截止日期将显示在此处。"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "you@yourpractice.com"

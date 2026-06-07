@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
+  ArrowRightIcon,
   ArrowUpRightIcon,
   CalendarIcon,
   CircleCheckIcon,
@@ -9,6 +10,7 @@ import {
   HourglassIcon,
   LoaderIcon,
   MessageSquareTextIcon,
+  SlidersHorizontalIcon,
   SparklesIcon,
 } from 'lucide-react'
 import { Link } from 'react-router'
@@ -786,13 +788,29 @@ function DashboardActionsList({
             />
           )
         ) : (
-          <p className="rounded-md border border-divider-subtle p-4 text-center text-sm text-text-secondary">
-            {/* 2026-05-26 (Step 7 onboarding audit F9-08):
-                "Next deadline appears here when one's within a
-                week" used an awkward "one's" contraction.
-                Rewrote with "it's" for natural read. */}
-            <Trans>You're caught up. The next deadline appears here when it's within a week.</Trans>
-          </p>
+          // 2026-06-07 (design replication WDQea — /today empty / "caught up"):
+          // a calm centered block (no icon-circle) that reassures Smart Priority
+          // is watching, with a quiet ghost CTA to tune it + a link to the full
+          // list. Responsive: copy capped + centered, CTA row wraps.
+          <div className="flex flex-col items-center justify-center gap-4 px-6 py-12 text-center sm:px-10 sm:py-14">
+            <p className="max-w-[540px] text-sm leading-relaxed text-text-secondary">
+              <Trans>
+                When something gets at-risk — a stalled evidence request, a rejected filing, a
+                5-day client silence — Smart Priority will surface it here. Right now everything is
+                on track.
+              </Trans>
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Button variant="outline" size="sm" render={<Link to="/practice" />}>
+                <SlidersHorizontalIcon data-icon="inline-start" />
+                <Trans>Adjust priority rules</Trans>
+              </Button>
+              <Button variant="link" size="sm" onClick={onOpenAllObligations}>
+                <Trans>See full deadline list</Trans>
+                <ArrowRightIcon data-icon="inline-end" />
+              </Button>
+            </div>
+          </div>
         )}
       </section>
     )

@@ -1549,6 +1549,10 @@ msgstr "Address line 1"
 msgid "Adds"
 msgstr "Adds"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "Adjust priority rules"
+msgstr "Adjust priority rules"
+
 #: src/features/migration/Step3Normalize.tsx
 msgid "Adjust tax type defaults"
 msgstr "Adjust tax type defaults"
@@ -11710,6 +11714,10 @@ msgstr "Security"
 msgid "Security settings couldn't load"
 msgstr "Security settings couldn't load"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "See full deadline list"
+msgstr "See full deadline list"
+
 #. placeholder {0}: formatTaxCode(obligation.taxType)
 #. placeholder {0}: row.clientName
 #. placeholder {0}: tableRow.original.clientName
@@ -14265,6 +14273,10 @@ msgstr "When is it due?"
 msgid "When it's due"
 msgstr "When it's due"
 
+#: src/features/dashboard/actions-list.tsx
+msgid "When something gets at-risk — a stalled evidence request, a rejected filing, a 5-day client silence — Smart Priority will surface it here. Right now everything is on track."
+msgstr "When something gets at-risk — a stalled evidence request, a rejected filing, a 5-day client silence — Smart Priority will surface it here. Right now everything is on track."
+
 #: src/features/rules/sources-tab.tsx
 msgid "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
 msgstr "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
@@ -14424,10 +14436,6 @@ msgstr "You'll be redirected to Stripe to enter payment details."
 #: src/features/migration/Step4Preview.tsx
 msgid "You're about to create:"
 msgstr "You're about to create:"
-
-#: src/features/dashboard/actions-list.tsx
-msgid "You're caught up. The next deadline appears here when it's within a week."
-msgstr "You're caught up. The next deadline appears here when it's within a week."
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "you@yourpractice.com"
