@@ -61,13 +61,23 @@ export function TwoFactorRoute() {
   return (
     <div className="flex w-full max-w-[400px] flex-col">
       <Card>
-        <CardHeader>
+        {/* 2026-06-07 (Cluster 6 auth canvas, node uu9SI): the canvas
+            centres the 2FA header and names the product in the sub
+            ("…6 digits you see for DueDateHQ") so the user is sure the
+            code in their authenticator belongs to this app. Header
+            centred + copy aligned to the canvas; the input control
+            and auto-submit behaviour are unchanged. The canvas's
+            recovery-code branch stays deferred (see F3-01) — the
+            "Lost your authenticator?" mailto is the live escape. */}
+        <CardHeader className="items-center text-center">
           <CardTitle className="flex items-center gap-2">
             <ShieldCheckIcon className="size-4" aria-hidden />
-            <Trans>Two-factor verification</Trans>
+            <Trans>Enter your 2FA code</Trans>
           </CardTitle>
           <CardDescription>
-            <Trans>Enter the code from your authenticator app.</Trans>
+            <Trans>
+              Open your authenticator app and enter the 6 digits you see for DueDateHQ.
+            </Trans>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -114,7 +124,11 @@ export function TwoFactorRoute() {
                   "Verifying…" while pending — matches the verb
                   pattern used by every other submit-pending button in
                   the app ("Saving…", "Creating…"). */}
-              {verifyMutation.isPending ? <Trans>Verifying…</Trans> : <Trans>Verify</Trans>}
+              {verifyMutation.isPending ? (
+                <Trans>Verifying…</Trans>
+              ) : (
+                <Trans>Verify and continue</Trans>
+              )}
             </Button>
             {/* 2026-05-26 (Step 7 onboarding audit F3-02): the
                 challenge UI offered only the TOTP input — no
