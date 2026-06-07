@@ -549,12 +549,32 @@ Frames: `zKPm2` → `YcJR4` (dry run), `OBKVs` → `uoNwI` (applied success + un
 
 ## Summary of error/success-state coverage
 
-| State                     | Frame   | In code?                                                                                             |
-| ------------------------- | ------- | ---------------------------------------------------------------------------------------------------- |
-| S1 file rejected          | `Ni54l` | **No** — only generic parse-error Alert; missing-columns panel + "Use Generic CSV" recovery to build |
-| S2 AI failed              | `C1rGt` | **Yes** — fallback alerts + manual map + Re-run; align copy + unset-dropdown styling                 |
-| S3 AI failed              | `tGcB0` | **Partial** — generic errorBanner Alert; categorized per-card needs-input + inline Re-run to build   |
-| S4 applied success + undo | `uoNwI` | **Partial** — undo via toast+AlertDialog+revert works; full SuccessModal surface to build            |
+| State                     | Frame   | In code?                                                                                                                  |
+| ------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| S1 file rejected          | `Ni54l` | **No** — only generic parse-error Alert; missing-columns panel + "Use Generic CSV" recovery to build                      |
+| S2 AI failed              | `C1rGt` | **Yes** — fallback alerts + manual map + Re-run; align copy + unset-dropdown styling                                      |
+| S3 AI failed              | `tGcB0` | **Partial** — generic errorBanner Alert; categorized per-card needs-input + inline Re-run to build                        |
+| S4 applied success + undo | `uoNwI` | **Yes** (2026-06-07) — full `SuccessModal` with live 24h undo countdown; revert via existing AlertDialog → revertMutation |
+
+### Implementation status — 2026-06-07 (pixel-exact pass)
+
+Happy-path pixel TODOs closed:
+
+- **Step 2** `WVwAX`: strict 4-column aligned table (Source column / DueDateHQ
+  field / Sample / Confidence) with the test-asserted expandable banner rows
+  preserved.
+- **Step 4** `YcJR4`/`xotna`/`xV6gf`: gray body + white cards, inline divided
+  hero metric grid, segmented dedup control (`DuplicateSegmentedControl`).
+- **Applied** `uoNwI`: net-new `SuccessModal.tsx` (spec called it
+  `WizardSuccess`; shipped as `SuccessModal`) with the live 24h undo countdown
+  built inline (no separate `Countdown` primitive). Driven by
+  `ApplyResult.revertibleUntil`; rules-active / upcoming-30d / next-step detail
+  are static fallbacks (TODO(data)), emails-sent is always 0 by design.
+- **Onboarding skip** `iAJhJ`: net-new `OnboardingSkipModal.tsx`, shown only for
+  `source=onboarding` (wired in `migration.new.tsx`).
+- **Step 3** `g8CrCZ`: kept the collapsible category model (a deliberate,
+  test-driven divergence from the canvas flat table) — chips, matrix toggle, and
+  reassurance line already match.
 
 ## Files touched for replication
 
