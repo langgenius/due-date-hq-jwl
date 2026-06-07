@@ -1,7 +1,10 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CheckIcon, InfoIcon, RepeatIcon } from 'lucide-react'
+import { CheckIcon, InfoIcon, Loader2Icon, RepeatIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
+import type { AnnualRolloverDisposition, AnnualRolloverRow } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -20,106 +23,34 @@ import {
 } from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-// Maps the Pencil `c7xPK` — /deadlines annual rollover modal. This is a
-// NET-NEW surface: there is no `rollover` contract, RPC, or route in the
-// codebase today (verified by searching contracts/ for rollover/taxYear).
-// The dialog is rendered against a static fallback preview so the layout,
-// copy, and disposition taxonomy match the design exactly; every value that
-// the server would supply is flagged with TODO(data) below.
+import { orpc } from '@/lib/rpc'
+import { rpcErrorMessage } from '@/lib/rpc-error'
+import { formatDate } from '@/lib/utils'
 
-type RolloverDisposition = 'will_update' | 'requires_review' | 'no_verified_rule'
+// Pencil `c7xPK` — /deadlines annual rollover modal, wired to the real
+// rollover engine (`obligations.previewAnnualRollover` /
+// `createAnnualRollover`). Preview runs when the dialog opens; the apply
+// actions create next-year obligations (safe-only filters to clients whose
+// rows all map to a verified rule).
+//
+// TODO(data): the engine row exposes the NEW (target-year) due date +
+// review reasons but not the source obligation's due date, so the "TY {from}
+// due" reference cell renders an em-dash. Threading sourceDueDate through the
+// engine buckets would make it fully populated.
 
-// TODO(data): replace with the rollover preview row contract once it exists.
-// Shape mirrors what the engine would return per obligation: the matched
-// next-year rule lookup + disposition.
-interface RolloverPreviewRow {
-  obligationId: string
-  client: string
-  form: string
-  currentDue: string
-  nextDue: string
-  ruleChange: string | null
-  disposition: RolloverDisposition
+// Map the engine's six dispositions onto the three Pencil summary buckets.
+function dispositionBucket(
+  disposition: AnnualRolloverDisposition,
+): 'will_update' | 'requires_review' | 'skipped' {
+  if (disposition === 'will_create') return 'will_update'
+  if (disposition === 'review') return 'requires_review'
+  return 'skipped'
 }
 
-interface RolloverPreview {
-  fromTaxYear: number
-  toTaxYear: number
-  totalCount: number
-  willUpdateCount: number
-  requiresReviewCount: number
-  noVerifiedRuleCount: number
-  blockedCount: number
-  rows: readonly RolloverPreviewRow[]
-}
-
-// TODO(data): static fallback preview. Wire to
-// orpc.obligations.previewAnnualRollover (or similar) once the contract
-// lands. Counts + rows below come straight from the Pencil mock.
-const FALLBACK_PREVIEW: RolloverPreview = {
-  fromTaxYear: 2026,
-  toTaxYear: 2027,
-  totalCount: 142,
-  willUpdateCount: 128,
-  requiresReviewCount: 10,
-  noVerifiedRuleCount: 4,
-  blockedCount: 12,
-  rows: [
-    {
-      obligationId: 'hudson-wells-1040',
-      client: 'Hudson Wells',
-      form: 'Form 1040',
-      currentDue: 'Apr 15',
-      nextDue: 'Apr 15',
-      ruleChange: null,
-      disposition: 'will_update',
-    },
-    {
-      obligationId: 'aspen-capital-1065',
-      client: 'Aspen Capital',
-      form: 'Form 1065',
-      currentDue: 'Mar 17',
-      nextDue: 'Mar 16',
-      ruleChange: '§6072 amended',
-      disposition: 'requires_review',
-    },
-    {
-      obligationId: 'brightline-st100',
-      client: 'Brightline LLC',
-      form: 'ST-100',
-      currentDue: 'Apr 30',
-      nextDue: 'Apr 30',
-      ruleChange: null,
-      disposition: 'will_update',
-    },
-    {
-      obligationId: 'northstar-1120s',
-      client: 'Northstar',
-      form: 'Form 1120-S',
-      currentDue: 'Mar 17',
-      nextDue: 'Mar 16',
-      ruleChange: '§6072 amended',
-      disposition: 'requires_review',
-    },
-    {
-      obligationId: 'riverside-1099nec',
-      client: 'Riverside',
-      form: '1099-NEC',
-      currentDue: 'Jan 31',
-      nextDue: 'Feb 2',
-      ruleChange: null,
-      disposition: 'no_verified_rule',
-    },
-  ],
-}
-
-function DispositionBadge({ disposition }: { disposition: RolloverDisposition }) {
+function DispositionBadge({ disposition }: { disposition: AnnualRolloverDisposition }) {
+  const bucket = dispositionBucket(disposition)
   const variant =
-    disposition === 'will_update'
-      ? 'info'
-      : disposition === 'requires_review'
-        ? 'warning'
-        : 'secondary'
+    bucket === 'will_update' ? 'info' : bucket === 'requires_review' ? 'warning' : 'secondary'
   return (
     <Badge variant={variant} className="font-mono text-[10px] font-bold">
       {disposition}
@@ -133,7 +64,7 @@ function SummaryCard({
   caption,
   tone,
 }: {
-  value: ReactNode
+  value: number
   label: ReactNode
   caption: ReactNode
   tone: 'accent' | 'warning' | 'neutral'
@@ -172,15 +103,73 @@ function SummaryCard({
   )
 }
 
-interface AnnualRolloverDialogProps {
-  // TODO(data): preview will be fetched server-side; accept it as a prop so
-  // the trigger owner can pass a real preview once the contract exists.
-  preview?: RolloverPreview
+function ruleChangeText(row: AnnualRolloverRow): string | null {
+  const reasons = row.preview?.reviewReasons ?? []
+  return reasons.length > 0 ? reasons.join(' · ') : null
 }
 
-export function AnnualRolloverDialog({ preview = FALLBACK_PREVIEW }: AnnualRolloverDialogProps) {
+export function AnnualRolloverDialog({ sourceFilingYear }: { sourceFilingYear?: number }) {
   const { t } = useLingui()
+  const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
+
+  // Default to the just-completed filing year → next. The engine validates
+  // target === source + 1 and returns the authoritative years in the summary.
+  const fromYear = sourceFilingYear ?? new Date().getFullYear()
+  const toYear = fromYear + 1
+
+  const previewQuery = useQuery(
+    orpc.obligations.previewAnnualRollover.queryOptions({
+      input: { sourceFilingYear: fromYear, targetFilingYear: toYear },
+      enabled: open,
+      staleTime: 60_000,
+    }),
+  )
+
+  const createMutation = useMutation(
+    orpc.obligations.createAnnualRollover.mutationOptions({
+      onSuccess: (result) => {
+        toast.success(t`Rolled over ${result.summary.createdCount} deadlines into ${toYear}`)
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        void previewQuery.refetch()
+        setOpen(false)
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't roll over deadlines`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+
+  const data = previewQuery.data
+  const summary = data?.summary
+  const rows = useMemo(() => data?.rows ?? [], [data])
+
+  // Clients whose rows all map to a verified next-year rule — the "safe" set.
+  const safeClientIds = useMemo(() => {
+    if (rows.length === 0) return []
+    const byClient = new Map<string, boolean>()
+    for (const row of rows) {
+      const safe = row.disposition === 'will_create'
+      byClient.set(row.clientId, (byClient.get(row.clientId) ?? true) && safe)
+    }
+    return [...byClient.entries()].filter(([, safe]) => safe).map(([clientId]) => clientId)
+  }, [rows])
+
+  function formatDueDate(value: string | null | undefined): string {
+    return value ? formatDate(value) : '—'
+  }
+
+  const pending = createMutation.isPending
+  const totalCount = summary?.seedObligationCount ?? 0
+  const willUpdateCount = summary?.willCreateCount ?? 0
+  const requiresReviewCount = summary?.reviewCount ?? 0
+  const skippedCount = summary?.skippedCount ?? 0
+  const headerFrom = summary?.sourceFilingYear ?? fromYear
+  const headerTo = summary?.targetFilingYear ?? toYear
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -194,7 +183,6 @@ export function AnnualRolloverDialog({ preview = FALLBACK_PREVIEW }: AnnualRollo
       />
       <DialogContent
         showCloseButton={false}
-        // Pencil modal is 1040px wide; cap to the viewport on small screens.
         className="max-w-[min(1040px,calc(100vw-2rem))] gap-0 overflow-hidden p-0"
         aria-describedby={undefined}
       >
@@ -203,7 +191,7 @@ export function AnnualRolloverDialog({ preview = FALLBACK_PREVIEW }: AnnualRollo
           <RepeatIcon className="size-4 shrink-0 text-text-accent" aria-hidden />
           <h2 className="text-lg leading-none font-semibold text-text-primary">
             <Trans>
-              Annual rollover · tax year {preview.fromTaxYear} → {preview.toTaxYear}
+              Annual rollover · tax year {headerFrom} → {headerTo}
             </Trans>
           </h2>
           <div className="flex-1" />
@@ -226,105 +214,127 @@ export function AnnualRolloverDialog({ preview = FALLBACK_PREVIEW }: AnnualRollo
 
         {/* Body */}
         <div className="flex max-h-[min(680px,calc(100vh-16rem))] flex-col gap-3.5 overflow-y-auto bg-background-section px-6 py-5">
-          {/* Intro */}
-          <div className="flex items-start gap-2.5 rounded-[10px] bg-background-default p-4">
-            <InfoIcon className="mt-0.5 size-3.5 shrink-0 text-text-secondary" aria-hidden />
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <p className="text-description font-semibold text-text-primary">
-                <Trans>
-                  You're rolling over {preview.totalCount} obligations from tax year{' '}
-                  {preview.fromTaxYear} into {preview.toTaxYear}.
-                </Trans>
-              </p>
-              <p className="text-caption leading-relaxed text-text-tertiary">
-                <Trans>
-                  For each obligation we look up the matching rule for next year. Items where the
-                  rule changed get flagged for your review.
-                </Trans>
-              </p>
+          {previewQuery.isLoading ? (
+            <div className="flex items-center justify-center gap-2 py-16 text-sm text-text-secondary">
+              <Loader2Icon className="size-4 animate-spin" aria-hidden />
+              <Trans>Looking up next year's rules…</Trans>
             </div>
-          </div>
+          ) : previewQuery.isError ? (
+            <div className="rounded-[10px] bg-background-default p-4 text-sm text-text-destructive">
+              {rpcErrorMessage(previewQuery.error) ?? (
+                <Trans>Couldn't build the rollover preview.</Trans>
+              )}
+            </div>
+          ) : totalCount === 0 ? (
+            <div className="rounded-[10px] bg-background-default p-8 text-center text-sm text-text-secondary">
+              <Trans>
+                No filed {headerFrom} deadlines are eligible to roll into {headerTo} yet.
+              </Trans>
+            </div>
+          ) : (
+            <>
+              {/* Intro */}
+              <div className="flex items-start gap-2.5 rounded-[10px] bg-background-default p-4">
+                <InfoIcon className="mt-0.5 size-3.5 shrink-0 text-text-secondary" aria-hidden />
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <p className="text-description font-semibold text-text-primary">
+                    <Trans>
+                      You're rolling over {totalCount} obligations from tax year {headerFrom} into{' '}
+                      {headerTo}.
+                    </Trans>
+                  </p>
+                  <p className="text-caption leading-relaxed text-text-tertiary">
+                    <Trans>
+                      For each obligation we look up the matching rule for next year. Items where
+                      the rule changed get flagged for your review.
+                    </Trans>
+                  </p>
+                </div>
+              </div>
 
-          {/* Disposition summary */}
-          <div className="flex flex-col gap-2.5 sm:flex-row">
-            <SummaryCard
-              tone="accent"
-              value={preview.willUpdateCount}
-              label={<Trans>Will update</Trans>}
-              caption={<Trans>Rule unchanged · safe to roll</Trans>}
-            />
-            <SummaryCard
-              tone="warning"
-              value={preview.requiresReviewCount}
-              label={<Trans>Requires review</Trans>}
-              caption={<Trans>Rule changed — your eyes needed</Trans>}
-            />
-            <SummaryCard
-              tone="neutral"
-              value={preview.noVerifiedRuleCount}
-              label={<Trans>No verified rule</Trans>}
-              caption={<Trans>Skipped — no rule for {preview.toTaxYear} yet</Trans>}
-            />
-          </div>
+              {/* Disposition summary */}
+              <div className="flex flex-col gap-2.5 sm:flex-row">
+                <SummaryCard
+                  tone="accent"
+                  value={willUpdateCount}
+                  label={<Trans>Will update</Trans>}
+                  caption={<Trans>Rule unchanged · safe to roll</Trans>}
+                />
+                <SummaryCard
+                  tone="warning"
+                  value={requiresReviewCount}
+                  label={<Trans>Requires review</Trans>}
+                  caption={<Trans>Rule changed — your eyes needed</Trans>}
+                />
+                <SummaryCard
+                  tone="neutral"
+                  value={skippedCount}
+                  label={<Trans>No verified rule</Trans>}
+                  caption={<Trans>Skipped — no rule for {headerTo} yet</Trans>}
+                />
+              </div>
 
-          {/* Per-obligation table */}
-          <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-background-section">
-                  <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
-                    <Trans>Client · Form</Trans>
-                  </TableHead>
-                  <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
-                    <Trans>TY {preview.fromTaxYear} due</Trans>
-                  </TableHead>
-                  <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
-                    <Trans>TY {preview.toTaxYear} due</Trans>
-                  </TableHead>
-                  <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
-                    <Trans>Rule change</Trans>
-                  </TableHead>
-                  <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
-                    <Trans>Disposition</Trans>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {preview.rows.map((row) => {
-                  const dateChanged = row.currentDue !== row.nextDue
-                  return (
-                    <TableRow key={row.obligationId}>
-                      <TableCell className="font-semibold text-text-primary">
-                        {row.client} · {row.form}
-                      </TableCell>
-                      <TableCell className="text-caption tabular-nums text-text-tertiary">
-                        {row.currentDue}
-                      </TableCell>
-                      <TableCell
-                        className={cn(
-                          'text-caption tabular-nums',
-                          dateChanged ? 'font-bold text-text-warning' : 'text-text-primary',
-                        )}
-                      >
-                        {row.nextDue}
-                      </TableCell>
-                      <TableCell
-                        className={cn(
-                          'text-caption',
-                          row.ruleChange ? 'text-text-warning' : 'text-text-tertiary italic',
-                        )}
-                      >
-                        {row.ruleChange ?? <Trans>unchanged</Trans>}
-                      </TableCell>
-                      <TableCell>
-                        <DispositionBadge disposition={row.disposition} />
-                      </TableCell>
+              {/* Per-obligation table */}
+              <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-background-section">
+                      <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
+                        <Trans>Client · Form</Trans>
+                      </TableHead>
+                      <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
+                        <Trans>TY {headerFrom} due</Trans>
+                      </TableHead>
+                      <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
+                        <Trans>TY {headerTo} due</Trans>
+                      </TableHead>
+                      <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
+                        <Trans>Rule change</Trans>
+                      </TableHead>
+                      <TableHead className="text-[10px] font-bold tracking-wider text-text-muted uppercase">
+                        <Trans>Disposition</Trans>
+                      </TableHead>
                     </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {rows.map((row, index) => {
+                      const ruleChange = ruleChangeText(row)
+                      const form = row.preview?.formName ?? row.taxType
+                      return (
+                        <TableRow key={`${row.clientId}:${row.taxType}:${index}`}>
+                          <TableCell className="font-semibold text-text-primary">
+                            {row.clientName} · {form}
+                          </TableCell>
+                          <TableCell className="text-caption tabular-nums text-text-tertiary">
+                            {/* TODO(data): source-year due not in the engine row. */}—
+                          </TableCell>
+                          <TableCell
+                            className={cn(
+                              'text-caption tabular-nums',
+                              ruleChange ? 'font-bold text-text-warning' : 'text-text-primary',
+                            )}
+                          >
+                            {formatDueDate(row.preview?.dueDate)}
+                          </TableCell>
+                          <TableCell
+                            className={cn(
+                              'text-caption',
+                              ruleChange ? 'text-text-warning' : 'text-text-tertiary italic',
+                            )}
+                          >
+                            {ruleChange ?? <Trans>unchanged</Trans>}
+                          </TableCell>
+                          <TableCell>
+                            <DispositionBadge disposition={row.disposition} />
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Footer */}
@@ -333,16 +343,37 @@ export function AnnualRolloverDialog({ preview = FALLBACK_PREVIEW }: AnnualRollo
             <Trans>Cancel</Trans>
           </DialogClose>
           <div className="flex-1" />
-          {/* TODO(data): both actions are no-ops until the rollover mutation
-              exists. "Apply safe items only" rolls the will_update set;
-              "Roll over all" also opens the review queue for the changed rules. */}
-          <Button variant="outline" size="sm">
-            <Trans>Apply {preview.willUpdateCount} safe items only</Trans>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={pending || willUpdateCount === 0 || safeClientIds.length === 0}
+            onClick={() =>
+              createMutation.mutate({
+                sourceFilingYear: headerFrom,
+                targetFilingYear: headerTo,
+                clientIds: safeClientIds,
+              })
+            }
+          >
+            <Trans>Apply {willUpdateCount} safe items only</Trans>
           </Button>
-          <Button size="sm">
-            <CheckIcon data-icon="inline-start" />
+          <Button
+            size="sm"
+            disabled={pending || totalCount === 0}
+            onClick={() =>
+              createMutation.mutate({
+                sourceFilingYear: headerFrom,
+                targetFilingYear: headerTo,
+              })
+            }
+          >
+            {pending ? (
+              <Loader2Icon data-icon="inline-start" className="animate-spin" />
+            ) : (
+              <CheckIcon data-icon="inline-start" />
+            )}
             <Trans>
-              Roll over all {preview.totalCount} (review {preview.requiresReviewCount})
+              Roll over all {totalCount} (review {requiresReviewCount})
             </Trans>
           </Button>
         </div>

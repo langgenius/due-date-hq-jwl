@@ -3500,9 +3500,8 @@ export function ObligationQueueRoute() {
               <Trans>Export</Trans>
             </Button>
             <CalendarSyncPopover />
-            {/* Pencil c7xPK — annual rollover. Net-new surface; preview
-                data + apply actions are stubbed (see AnnualRolloverDialog
-                TODO(data) flags) until the rollover contract lands. */}
+            {/* Pencil c7xPK — annual rollover. Wired to the real engine
+                (obligations.previewAnnualRollover / createAnnualRollover). */}
             <AnnualRolloverDialog />
             {/* 2026-05-26 (audit P0 #8 — Q1): the /deadlines queue
                 had no labeled primary CTA — the most common CPA

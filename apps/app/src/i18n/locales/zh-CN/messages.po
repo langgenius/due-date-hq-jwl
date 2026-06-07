@@ -2217,11 +2217,9 @@ msgstr "年度滚动"
 msgid "Annual rollover"
 msgstr "年度结转"
 
-#. placeholder {0}: preview.fromTaxYear
-#. placeholder {1}: preview.toTaxYear
 #: src/features/obligations/AnnualRolloverDialog.tsx
-msgid "Annual rollover · tax year {0} → {1}"
-msgstr "年度结转 · 纳税年度 {0} → {1}"
+msgid "Annual rollover · tax year {headerFrom} → {headerTo}"
+msgstr "年度结转 · 纳税年度 {headerFrom} → {headerTo}"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Annual rollover created"
@@ -2297,10 +2295,9 @@ msgstr "适用于 <0/> 中的 {0}"
 msgid "Apply"
 msgstr "应用"
 
-#. placeholder {0}: preview.willUpdateCount
 #: src/features/obligations/AnnualRolloverDialog.tsx
-msgid "Apply {0} safe items only"
-msgstr "仅应用 {0} 个安全项"
+msgid "Apply {willUpdateCount} safe items only"
+msgstr "仅应用 {willUpdateCount} 个安全项"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Apply all"
@@ -3192,6 +3189,7 @@ msgstr "请检查网络后重试。"
 #: src/features/migration/Wizard.tsx
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/features/notifications/notifications-page.tsx
+#: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/features/obligations/queue/dialogs.tsx
@@ -4052,6 +4050,10 @@ msgstr "无法应用已审核集合"
 msgid "Couldn't apply tax type suggestions"
 msgstr "无法应用税种建议"
 
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Couldn't build the rollover preview."
+msgstr "无法生成结转预览。"
+
 #: src/routes/practice.tsx
 msgid "Couldn't calculate preview"
 msgstr "无法计算预览"
@@ -4346,6 +4348,10 @@ msgstr "无法撤销会话"
 #: src/routes/obligations.tsx
 msgid "Couldn't roll deadlines forward"
 msgstr "无法顺延截止日期"
+
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Couldn't roll over deadlines"
+msgstr "无法结转截止日期"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Couldn't run annual rollover preview"
@@ -7674,6 +7680,10 @@ msgstr "已锁定该客户,因为您是从该客户页面打开的。"
 msgid "Logged to audit trail"
 msgstr "已写入审计日志"
 
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Looking up next year's rules…"
+msgstr "正在查找下一年度的规则…"
+
 #: src/routes/two-factor.tsx
 msgid "Lost your authenticator? <link>Email support</link> to reset 2FA."
 msgstr "丢失了身份验证器？<link>发邮件联系支持</link>以重置双重认证。"
@@ -8898,6 +8908,10 @@ msgstr "尚未关联证据"
 #: src/features/audit/audit-log-page.tsx
 msgid "No export packages yet."
 msgstr "暂无导出包。"
+
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "No filed {headerFrom} deadlines are eligible to roll into {headerTo} yet."
+msgstr "尚无已申报的 {headerFrom} 年度截止日期可结转至 {headerTo} 年度。"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No filing state"
@@ -11933,11 +11947,14 @@ msgstr "可在 24 小时内无条件回滚此次导入"
 msgid "Roll forward"
 msgstr "年度滚动"
 
-#. placeholder {0}: preview.totalCount
-#. placeholder {1}: preview.requiresReviewCount
 #: src/features/obligations/AnnualRolloverDialog.tsx
-msgid "Roll over all {0} (review {1})"
-msgstr "结转全部 {0} 项（审核 {1} 项）"
+msgid "Roll over all {totalCount} (review {requiresReviewCount})"
+msgstr "结转全部 {totalCount} 项（审核 {requiresReviewCount} 项）"
+
+#. placeholder {0}: result.summary.createdCount
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Rolled over {0} deadlines into {toYear}"
+msgstr "已将 {0} 个截止日期结转至 {toYear} 年度"
 
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
@@ -13070,10 +13087,9 @@ msgstr "跳到起草"
 msgid "Skipped"
 msgstr "已跳过"
 
-#. placeholder {0}: preview.toTaxYear
 #: src/features/obligations/AnnualRolloverDialog.tsx
-msgid "Skipped — no rule for {0} yet"
-msgstr "已跳过 — 尚无 {0} 的规则"
+msgid "Skipped — no rule for {headerTo} yet"
+msgstr "已跳过 — 尚无 {headerTo} 年度的规则"
 
 #. placeholder {0}: summary.ignoredColumns
 #: src/features/migration/Step2Mapping.tsx
@@ -14542,11 +14558,13 @@ msgstr "TXT、CSV 或 Excel"
 msgid "TY {0}"
 msgstr "税年 {0}"
 
-#. placeholder {0}: preview.fromTaxYear
-#. placeholder {0}: preview.toTaxYear
 #: src/features/obligations/AnnualRolloverDialog.tsx
-msgid "TY {0} due"
-msgstr "TY {0} 到期"
+msgid "TY {headerFrom} due"
+msgstr "TY {headerFrom} 到期"
+
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "TY {headerTo} due"
+msgstr "TY {headerTo} 到期"
 
 #: src/routes/rules.library.tsx
 msgid "Type"
@@ -15475,12 +15493,9 @@ msgstr "您将被重定向至 Stripe 输入付款详情。"
 msgid "You're about to create:"
 msgstr "您即将创建："
 
-#. placeholder {0}: preview.totalCount
-#. placeholder {1}: preview.fromTaxYear
-#. placeholder {2}: preview.toTaxYear
 #: src/features/obligations/AnnualRolloverDialog.tsx
-msgid "You're rolling over {0} obligations from tax year {1} into {2}."
-msgstr "您正在将 {0} 项义务从纳税年度 {1} 结转至 {2}。"
+msgid "You're rolling over {totalCount} obligations from tax year {headerFrom} into {headerTo}."
+msgstr "您正在将 {totalCount} 项义务从纳税年度 {headerFrom} 结转至 {headerTo}。"
 
 #: src/routes/accept-invite.tsx
 msgid "You've been invited to a firm"

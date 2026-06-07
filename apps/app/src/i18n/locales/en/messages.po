@@ -2190,11 +2190,9 @@ msgstr "Annual rolling"
 msgid "Annual rollover"
 msgstr "Annual rollover"
 
-#. placeholder {0}: preview.fromTaxYear
-#. placeholder {1}: preview.toTaxYear
 #: src/features/obligations/AnnualRolloverDialog.tsx
-msgid "Annual rollover · tax year {0} → {1}"
-msgstr "Annual rollover · tax year {0} → {1}"
+msgid "Annual rollover · tax year {headerFrom} → {headerTo}"
+msgstr "Annual rollover · tax year {headerFrom} → {headerTo}"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Annual rollover created"
@@ -2270,10 +2268,9 @@ msgstr "Applies to {0} in <0/>"
 msgid "Apply"
 msgstr "Apply"
 
-#. placeholder {0}: preview.willUpdateCount
 #: src/features/obligations/AnnualRolloverDialog.tsx
-msgid "Apply {0} safe items only"
-msgstr "Apply {0} safe items only"
+msgid "Apply {willUpdateCount} safe items only"
+msgstr "Apply {willUpdateCount} safe items only"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Apply all"
@@ -3161,6 +3158,7 @@ msgstr "Check your network and try again."
 #: src/features/migration/Wizard.tsx
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/features/notifications/notifications-page.tsx
+#: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/features/obligations/queue/dialogs.tsx
@@ -4014,6 +4012,10 @@ msgstr "Couldn't apply reviewed set"
 msgid "Couldn't apply tax type suggestions"
 msgstr "Couldn't apply tax type suggestions"
 
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Couldn't build the rollover preview."
+msgstr "Couldn't build the rollover preview."
+
 #: src/routes/practice.tsx
 msgid "Couldn't calculate preview"
 msgstr "Couldn't calculate preview"
@@ -4307,6 +4309,10 @@ msgstr "Couldn't revoke session"
 #: src/routes/obligations.tsx
 msgid "Couldn't roll deadlines forward"
 msgstr "Couldn't roll deadlines forward"
+
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Couldn't roll over deadlines"
+msgstr "Couldn't roll over deadlines"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Couldn't run annual rollover preview"
@@ -7616,6 +7622,10 @@ msgstr "Locked to this client because you opened from their page."
 msgid "Logged to audit trail"
 msgstr "Logged to audit trail"
 
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Looking up next year's rules…"
+msgstr "Looking up next year's rules…"
+
 #: src/routes/two-factor.tsx
 msgid "Lost your authenticator? <link>Email support</link> to reset 2FA."
 msgstr "Lost your authenticator? <link>Email support</link> to reset 2FA."
@@ -8834,6 +8844,10 @@ msgstr "No evidence linked yet"
 #: src/features/audit/audit-log-page.tsx
 msgid "No export packages yet."
 msgstr "No export packages yet."
+
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "No filed {headerFrom} deadlines are eligible to roll into {headerTo} yet."
+msgstr "No filed {headerFrom} deadlines are eligible to roll into {headerTo} yet."
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No filing state"
@@ -11838,11 +11852,14 @@ msgstr "Roll back this import within 24 hours, no questions asked"
 msgid "Roll forward"
 msgstr "Roll forward"
 
-#. placeholder {0}: preview.totalCount
-#. placeholder {1}: preview.requiresReviewCount
 #: src/features/obligations/AnnualRolloverDialog.tsx
-msgid "Roll over all {0} (review {1})"
-msgstr "Roll over all {0} (review {1})"
+msgid "Roll over all {totalCount} (review {requiresReviewCount})"
+msgstr "Roll over all {totalCount} (review {requiresReviewCount})"
+
+#. placeholder {0}: result.summary.createdCount
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "Rolled over {0} deadlines into {toYear}"
+msgstr "Rolled over {0} deadlines into {toYear}"
 
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
@@ -12968,10 +12985,9 @@ msgstr "Skip to drafting"
 msgid "Skipped"
 msgstr "Skipped"
 
-#. placeholder {0}: preview.toTaxYear
 #: src/features/obligations/AnnualRolloverDialog.tsx
-msgid "Skipped — no rule for {0} yet"
-msgstr "Skipped — no rule for {0} yet"
+msgid "Skipped — no rule for {headerTo} yet"
+msgstr "Skipped — no rule for {headerTo} yet"
 
 #. placeholder {0}: summary.ignoredColumns
 #: src/features/migration/Step2Mapping.tsx
@@ -14435,11 +14451,13 @@ msgstr "TXT, CSV, or Excel"
 msgid "TY {0}"
 msgstr "TY {0}"
 
-#. placeholder {0}: preview.fromTaxYear
-#. placeholder {0}: preview.toTaxYear
 #: src/features/obligations/AnnualRolloverDialog.tsx
-msgid "TY {0} due"
-msgstr "TY {0} due"
+msgid "TY {headerFrom} due"
+msgstr "TY {headerFrom} due"
+
+#: src/features/obligations/AnnualRolloverDialog.tsx
+msgid "TY {headerTo} due"
+msgstr "TY {headerTo} due"
 
 #: src/routes/rules.library.tsx
 msgid "Type"
@@ -15363,12 +15381,9 @@ msgstr "You'll be redirected to Stripe to enter payment details."
 msgid "You're about to create:"
 msgstr "You're about to create:"
 
-#. placeholder {0}: preview.totalCount
-#. placeholder {1}: preview.fromTaxYear
-#. placeholder {2}: preview.toTaxYear
 #: src/features/obligations/AnnualRolloverDialog.tsx
-msgid "You're rolling over {0} obligations from tax year {1} into {2}."
-msgstr "You're rolling over {0} obligations from tax year {1} into {2}."
+msgid "You're rolling over {totalCount} obligations from tax year {headerFrom} into {headerTo}."
+msgstr "You're rolling over {totalCount} obligations from tax year {headerFrom} into {headerTo}."
 
 #: src/routes/accept-invite.tsx
 msgid "You've been invited to a firm"
