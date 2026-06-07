@@ -1250,10 +1250,13 @@ msgstr "由客户事实和当前事务所已生效规则生成的具体合规截
 msgid "About Actions this week"
 msgstr "关于本周事项"
 
-#: src/routes/accept-invite.tsx
 #: src/routes/route-summary.ts
 msgid "Accept invitation"
 msgstr "接受邀请"
+
+#: src/routes/accept-invite.tsx
+msgid "Accept invite & continue"
+msgstr "接受邀请并继续"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accept rule"
@@ -1262,6 +1265,10 @@ msgstr "接受规则"
 #: src/features/rules/coverage-tab.tsx
 msgid "Accept selected"
 msgstr "接受所选"
+
+#: src/routes/accept-invite.tsx
+msgid "Accept to join the firm's deadline workbench. No password to remember — we'll email a sign-in link whenever you need to come back."
+msgstr "接受即可加入该事务所的截止日工作台。无需记住密码——我们会通过邮件向您发送登录链接。"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
@@ -2433,6 +2440,10 @@ msgstr "自动字段匹配不可用。我们已使用所选导入模板，并保
 #: src/routes/settings.tsx
 msgid "Automation"
 msgstr "自动化"
+
+#: src/routes/login.tsx
+msgid "AVG ALERT TRIAGE"
+msgstr "平均提醒分诊"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Avoid document archives; they are not client account or contact lists."
@@ -4697,6 +4708,10 @@ msgstr "导出截止事项"
 msgid "Deadlines exported"
 msgstr "截止事项已导出"
 
+#: src/routes/login.tsx
+msgid "DEADLINES TRACKED"
+msgstr "已跟踪的截止日"
+
 #: src/routes/obligations.tsx
 msgid "Decide extension"
 msgstr "确定延期"
@@ -5344,14 +5359,14 @@ msgstr "请输入我们发送到您邮箱的 6 位验证码，或直接点击邮
 msgid "Enter the 6-digit code."
 msgstr "请输入 6 位验证码。"
 
-#: src/routes/two-factor.tsx
-msgid "Enter the code from your authenticator app."
-msgstr "输入身份验证器应用中的代码。"
-
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Enter the extended filing deadline."
 msgstr "输入延长后的申报截止日期。"
+
+#: src/routes/two-factor.tsx
+msgid "Enter your 2FA code"
+msgstr "输入您的双重验证码"
 
 #. placeholder {0}: formatDatePretty(stageEnteredAt.slice(0, 10))
 #: src/features/obligations/queue/components/panels.tsx
@@ -6082,6 +6097,10 @@ msgstr "完成客户账目整理"
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Firm"
 msgstr "事务所"
+
+#: src/routes/accept-invite.tsx
+msgid "Firm invitation"
+msgstr "事务所邀请"
 
 #: src/routes/obligations.tsx
 msgid "Firm-branded client-facing PDFs grouped by client."
@@ -6870,6 +6889,11 @@ msgstr "问题"
 #: src/features/audit/audit-log-labels.ts
 msgid "Items"
 msgstr "项目"
+
+#. placeholder {0}: formatRole(inviteQuery.data.role)
+#: src/routes/accept-invite.tsx
+msgid "Joining as {0}"
+msgstr "以 {0} 身份加入"
 
 #: src/features/rules/sources-tab.tsx
 msgid "JUR"
@@ -9183,6 +9207,10 @@ msgstr "打开正在阻塞当前行的关联截止日期。"
 msgid "Open the Migration Copilot wizard."
 msgstr "打开 Migration Copilot 向导。"
 
+#: src/routes/two-factor.tsx
+msgid "Open your authenticator app and enter the 6 digits you see for DueDateHQ."
+msgstr "打开您的身份验证器应用，输入其中显示的 DueDateHQ 6 位验证码。"
+
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Open your authenticator app, add a new account, then scan this code. Use the setup URI if scanning is not available."
 msgstr "打开你的身份验证器应用，添加新账户，然后扫描此二维码。如果无法扫码，请使用设置 URI。"
@@ -9881,10 +9909,6 @@ msgstr "事务所截止日期"
 msgid "Practice deleted"
 msgstr "事务所已删除"
 
-#: src/routes/accept-invite.tsx
-msgid "Practice invitation"
-msgstr "事务所邀请"
-
 #: src/routes/billing.checkout.tsx
 msgid "Practice limit"
 msgstr "事务所限制"
@@ -10201,6 +10225,10 @@ msgstr "隐私"
 #: src/features/calendar/calendar-page.tsx
 msgid "Privacy mode"
 msgstr "隐私模式"
+
+#: src/routes/login.tsx
+msgid "PRIVATE BETA · JUN 2026"
+msgstr "内测 · 2026 年 6 月"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -12433,6 +12461,10 @@ msgstr "已暂缓"
 msgid "Snoozed until"
 msgstr "暂缓至"
 
+#: src/routes/login.tsx
+msgid "SOC 2 UPTIME"
+msgstr "SOC 2 在线率"
+
 #: src/routes/clients.tsx
 msgid "Sole prop"
 msgstr "个体经营"
@@ -13680,6 +13712,10 @@ msgstr "登录遇到问题？请发送邮件至 <supportLink>support@duedatehq.c
 msgid "Trust"
 msgstr "信托"
 
+#: src/routes/login.tsx
+msgid "TRUSTED BY 480+ TAX PRACTICES"
+msgstr "480+ 家税务事务所信赖"
+
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Try a different filter combination, or clear all filters to see the full queue."
@@ -13728,7 +13764,6 @@ msgid "Two-factor setup started"
 msgstr "两步验证设置已开始"
 
 #: src/routes/route-summary.ts
-#: src/routes/two-factor.tsx
 msgid "Two-factor verification"
 msgstr "两步验证"
 
@@ -14106,8 +14141,8 @@ msgid "Verified"
 msgstr "已核验"
 
 #: src/routes/two-factor.tsx
-msgid "Verify"
-msgstr "验证"
+msgid "Verify and continue"
+msgstr "验证并继续"
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Verify and enable"
@@ -14548,6 +14583,10 @@ msgstr "您将被重定向至 Stripe 输入付款详情。"
 #: src/features/migration/Step4Preview.tsx
 msgid "You're about to create:"
 msgstr "您即将创建："
+
+#: src/routes/accept-invite.tsx
+msgid "You've been invited to a firm"
+msgstr "您已被邀请加入一家事务所"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "you@yourpractice.com"

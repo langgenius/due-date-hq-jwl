@@ -1229,10 +1229,13 @@ msgstr "A specific compliance deadline generated from client facts and active pr
 msgid "About Actions this week"
 msgstr "About Actions this week"
 
-#: src/routes/accept-invite.tsx
 #: src/routes/route-summary.ts
 msgid "Accept invitation"
 msgstr "Accept invitation"
+
+#: src/routes/accept-invite.tsx
+msgid "Accept invite & continue"
+msgstr "Accept invite & continue"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Accept rule"
@@ -1241,6 +1244,10 @@ msgstr "Accept rule"
 #: src/features/rules/coverage-tab.tsx
 msgid "Accept selected"
 msgstr "Accept selected"
+
+#: src/routes/accept-invite.tsx
+msgid "Accept to join the firm's deadline workbench. No password to remember — we'll email a sign-in link whenever you need to come back."
+msgstr "Accept to join the firm's deadline workbench. No password to remember — we'll email a sign-in link whenever you need to come back."
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
@@ -2405,6 +2412,10 @@ msgstr "Automatic field matching is unavailable. We used the selected import tem
 #: src/routes/settings.tsx
 msgid "Automation"
 msgstr "Automation"
+
+#: src/routes/login.tsx
+msgid "AVG ALERT TRIAGE"
+msgstr "AVG ALERT TRIAGE"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Avoid document archives; they are not client account or contact lists."
@@ -4655,6 +4666,10 @@ msgstr "Deadlines export"
 msgid "Deadlines exported"
 msgstr "Deadlines exported"
 
+#: src/routes/login.tsx
+msgid "DEADLINES TRACKED"
+msgstr "DEADLINES TRACKED"
+
 #: src/routes/obligations.tsx
 msgid "Decide extension"
 msgstr "Decide extension"
@@ -5300,14 +5315,14 @@ msgstr "Enter the 6-digit code we emailed you — or just tap the link in the em
 msgid "Enter the 6-digit code."
 msgstr "Enter the 6-digit code."
 
-#: src/routes/two-factor.tsx
-msgid "Enter the code from your authenticator app."
-msgstr "Enter the code from your authenticator app."
-
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Enter the extended filing deadline."
 msgstr "Enter the extended filing deadline."
+
+#: src/routes/two-factor.tsx
+msgid "Enter your 2FA code"
+msgstr "Enter your 2FA code"
 
 #. placeholder {0}: formatDatePretty(stageEnteredAt.slice(0, 10))
 #: src/features/obligations/queue/components/panels.tsx
@@ -6033,6 +6048,10 @@ msgstr "Finish cleaning up the client's books"
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Firm"
 msgstr "Firm"
+
+#: src/routes/accept-invite.tsx
+msgid "Firm invitation"
+msgstr "Firm invitation"
 
 #: src/routes/obligations.tsx
 msgid "Firm-branded client-facing PDFs grouped by client."
@@ -6816,6 +6835,11 @@ msgstr "Issues"
 #: src/features/audit/audit-log-labels.ts
 msgid "Items"
 msgstr "Items"
+
+#. placeholder {0}: formatRole(inviteQuery.data.role)
+#: src/routes/accept-invite.tsx
+msgid "Joining as {0}"
+msgstr "Joining as {0}"
 
 #: src/features/rules/sources-tab.tsx
 msgid "JUR"
@@ -9108,6 +9132,10 @@ msgstr "Open the linked deadline that's blocking this row."
 msgid "Open the Migration Copilot wizard."
 msgstr "Open the Migration Copilot wizard."
 
+#: src/routes/two-factor.tsx
+msgid "Open your authenticator app and enter the 6 digits you see for DueDateHQ."
+msgstr "Open your authenticator app and enter the 6 digits you see for DueDateHQ."
+
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Open your authenticator app, add a new account, then scan this code. Use the setup URI if scanning is not available."
 msgstr "Open your authenticator app, add a new account, then scan this code. Use the setup URI if scanning is not available."
@@ -9794,10 +9822,6 @@ msgstr "Practice deadlines"
 msgid "Practice deleted"
 msgstr "Practice deleted"
 
-#: src/routes/accept-invite.tsx
-msgid "Practice invitation"
-msgstr "Practice invitation"
-
 #: src/routes/billing.checkout.tsx
 msgid "Practice limit"
 msgstr "Practice limit"
@@ -10111,6 +10135,10 @@ msgstr "Privacy"
 #: src/features/calendar/calendar-page.tsx
 msgid "Privacy mode"
 msgstr "Privacy mode"
+
+#: src/routes/login.tsx
+msgid "PRIVATE BETA · JUN 2026"
+msgstr "PRIVATE BETA · JUN 2026"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
@@ -12331,6 +12359,10 @@ msgstr "Snoozed"
 msgid "Snoozed until"
 msgstr "Snoozed until"
 
+#: src/routes/login.tsx
+msgid "SOC 2 UPTIME"
+msgstr "SOC 2 UPTIME"
+
 #: src/routes/clients.tsx
 msgid "Sole prop"
 msgstr "Sole prop"
@@ -13574,6 +13606,10 @@ msgstr "Trouble signing in? Email <supportLink>support@duedatehq.com</supportLin
 msgid "Trust"
 msgstr "Trust"
 
+#: src/routes/login.tsx
+msgid "TRUSTED BY 480+ TAX PRACTICES"
+msgstr "TRUSTED BY 480+ TAX PRACTICES"
+
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Try a different filter combination, or clear all filters to see the full queue."
@@ -13621,7 +13657,6 @@ msgid "Two-factor setup started"
 msgstr "Two-factor setup started"
 
 #: src/routes/route-summary.ts
-#: src/routes/two-factor.tsx
 msgid "Two-factor verification"
 msgstr "Two-factor verification"
 
@@ -13996,8 +14031,8 @@ msgid "Verified"
 msgstr "Verified"
 
 #: src/routes/two-factor.tsx
-msgid "Verify"
-msgstr "Verify"
+msgid "Verify and continue"
+msgstr "Verify and continue"
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Verify and enable"
@@ -14436,6 +14471,10 @@ msgstr "You'll be redirected to Stripe to enter payment details."
 #: src/features/migration/Step4Preview.tsx
 msgid "You're about to create:"
 msgstr "You're about to create:"
+
+#: src/routes/accept-invite.tsx
+msgid "You've been invited to a firm"
+msgstr "You've been invited to a firm"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "you@yourpractice.com"
