@@ -3,7 +3,7 @@ import { useLoaderData, useNavigate, useSearchParams } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ChevronRightIcon, Loader2Icon } from 'lucide-react'
+import { ArrowRightIcon, Loader2Icon } from 'lucide-react'
 
 import { derivePracticeName } from '@duedatehq/core/practice-name'
 import {
@@ -13,9 +13,11 @@ import {
   type RuleGenerationState,
 } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
-import { Field, FieldDescription, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@duedatehq/ui/components/ui/field'
 import { Input } from '@duedatehq/ui/components/ui/input'
+import { cn } from '@duedatehq/ui/lib/utils'
 import { StateRuleActivationSelector } from '@/features/onboarding/state-rule-activation-selector'
+import { FirmTimezoneSelect, resolveUSFirmTimezone } from '@/features/firm/timezone-select'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { type AuthUser } from '@/lib/auth'
 import { orpc } from '@/lib/rpc'
@@ -25,6 +27,13 @@ const MIN_NAME_LENGTH = 2
 const DEFAULT_FIRM_TIMEZONE = 'America/New_York'
 
 type OnboardingLoaderData = { user: AuthUser }
+
+// The redesign (Pencil E76U6Q) frames firm setup as step 1 of a three-beat
+// flow (Practice → Rules → Clients). Steps 2 and 3 are the migration importer
+// at /migration/new, which `handleSubmit` already navigates to once the firm is
+// created — so the indicator is a true progress affordance, not decoration.
+const ONBOARDING_STEPS = ['Practice', 'Rules', 'Clients'] as const
+const ACTIVE_STEP_INDEX = 0
 
 function isInAppPath(value: string | null): value is string {
   return !!value && value.startsWith('/') && !value.startsWith('//')
@@ -49,6 +58,76 @@ function todayInTimezone(timezone: string, date = new Date()): string {
   return `${year}-${month}-${day}`
 }
 
+function StepIndicator({
+  steps,
+  activeIndex,
+}: {
+  steps: readonly (typeof ONBOARDING_STEPS)[number][]
+  activeIndex: number
+}) {
+  const { t } = useLingui()
+  const stepLabels: Record<(typeof ONBOARDING_STEPS)[number], string> = {
+    Practice: t`Practice`,
+    Rules: t`Rules`,
+    Clients: t`Clients`,
+  }
+  return (
+    <ol className="flex shrink-0 items-center gap-2">
+      {steps.map((step, index) => {
+        const active = index === activeIndex
+        return (
+          <li key={step} className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className={cn(
+                  'flex size-[18px] items-center justify-center rounded-full border font-mono text-[10px] font-bold tabular-nums',
+                  active
+                    ? 'border-state-accent-solid bg-state-accent-solid text-text-inverted'
+                    : 'border-divider-regular bg-background-default text-text-muted',
+                )}
+              >
+                {index + 1}
+              </span>
+              <span
+                className={cn(
+                  'text-caption',
+                  active ? 'font-semibold text-text-primary' : 'font-medium text-text-muted',
+                )}
+              >
+                {stepLabels[step]}
+              </span>
+            </div>
+            {index < steps.length - 1 ? (
+              <span aria-hidden className="h-px w-6 shrink-0 bg-divider-regular" />
+            ) : null}
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
+function FieldHeaderRow({
+  label,
+  hint,
+  htmlFor,
+}: {
+  label: string
+  hint: string
+  htmlFor: string
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <FieldLabel htmlFor={htmlFor} className="text-[13px] font-semibold text-text-primary">
+        {label}
+      </FieldLabel>
+      <span aria-hidden className="h-px flex-1" />
+      <span className="shrink-0 text-caption font-medium text-text-muted">{hint}</span>
+    </div>
+  )
+}
+
 export function OnboardingRoute() {
   const { user } = useLoaderData<OnboardingLoaderData>()
   const { t } = useLingui()
@@ -69,10 +148,11 @@ export function OnboardingRoute() {
     [user.name, user.email, fallback],
   )
   const [name, setName] = useState(defaultName)
+  const [timezone, setTimezone] = useState(() => resolveUSFirmTimezone(DEFAULT_FIRM_TIMEZONE))
   const [internalDeadlineOffsetDays, setInternalDeadlineOffsetDays] = useState(
     DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
   )
-  const today = todayInTimezone(DEFAULT_FIRM_TIMEZONE)
+  const today = todayInTimezone(timezone)
   const [monitoringStartDate, setMonitoringStartDate] = useState(today)
   const [selectedRuleStates, setSelectedRuleStates] = useState<RuleGenerationState[]>([])
   const monitoringStartDateInvalid =
@@ -80,6 +160,8 @@ export function OnboardingRoute() {
 
   const redirectToParam = params.get('redirectTo')
   const redirectTo = isInAppPath(redirectToParam) ? redirectToParam : '/'
+
+  const submitting = isSubmitting || activateRulesMutation.isPending
 
   function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -105,6 +187,7 @@ export function OnboardingRoute() {
     setIsSubmitting(true)
     void activateOrCreateOnboardingFirm({
       name: trimmed,
+      timezone,
       internalDeadlineOffsetDays,
       monitoringStartDate,
       gateway: {
@@ -133,181 +216,145 @@ export function OnboardingRoute() {
   }
 
   return (
-    // 2026-05-29 (R4 onboarding polish #9): max-w stays at 400px. The
-    // state grid (11 cols × 28px tile + 4px gap × 10 + 24px wrapper
-    // pad ≈ 372px) is the natural width floor; everything else (input,
-    // CTA, copy) reads comfortably at 400. Wider would push the tile
-    // grid off-center and start to feel like a marketing splash.
-    <div className="flex w-full max-w-[400px] flex-col">
-      <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent-tint px-2.5 py-1 font-mono text-caption tracking-[0.16em] text-accent-text">
-        <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-accent-default" />
-        <Trans>PRACTICE PROFILE</Trans>
-      </span>
+    <div className="flex w-full max-w-[680px] flex-col gap-6">
+      <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-3">
+        <div className="flex items-center gap-2.5">
+          <span
+            aria-hidden
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-text-primary font-mono text-[11px] font-bold text-text-inverted"
+          >
+            DDHQ
+          </span>
+          <span className="text-sm font-semibold text-text-primary">DueDateHQ</span>
+        </div>
+        <div className="ms-auto">
+          <StepIndicator steps={ONBOARDING_STEPS} activeIndex={ACTIVE_STEP_INDEX} />
+        </div>
+      </div>
 
-      {/* 2026-05-29 (R4 onboarding polish #1): hierarchy flip. The old
-          H1 ("Set up your practice.") restated the eyebrow pill
-          ("PRACTICE PROFILE") and pushed the actual informative copy
-          ("we pre-filled a name…") into a smaller secondary line. The
-          pre-fill explanation IS the page's purpose — it tells the
-          user why they're seeing an editable field and what the system
-          already did for them. Promoted to H1; the redundant
-          action-framing headline is dropped. The "change it later"
-          half of the original copy was demoted to the input's helper
-          text (#3) so the H1 stays one sentence. */}
-      <h1 className="mt-5 text-2xl font-semibold leading-[1.15] tracking-tight text-text-primary">
-        <Trans>We pre-filled a name from your account.</Trans>
-      </h1>
+      <div className="flex flex-col items-center gap-2 text-center">
+        <h1 className="text-[28px] font-semibold leading-tight tracking-[-0.5px] text-text-primary">
+          <Trans>Set up your practice</Trans>
+        </h1>
+        <p className="max-w-prose text-sm font-medium leading-relaxed text-text-tertiary">
+          <Trans>
+            Five fields the engine needs before it can schedule anything. Edit anytime in Settings.
+          </Trans>
+        </p>
+      </div>
 
       <form onSubmit={handleSubmit} noValidate className="contents">
-        {/* 2026-05-29 (R4 onboarding polish #7): the practice-name
-            field used to sit at mt-8 from the trust pill. With the
-            pill moved down (#2) and the secondary paragraph removed
-            (#1), mt-7 keeps proportional breathing room from H1 →
-            input without feeling marketing-loose. */}
-        {/* 2026-06-01: practice-name now uses Field + FieldLabel +
-            FieldError/FieldDescription so the helper/error toggle and
-            describedby wiring come from the primitive. */}
-        <Field className="mt-7">
-          <FieldLabel htmlFor="practice-name">
-            <Trans>Practice name</Trans>
-          </FieldLabel>
-          <Input
-            id="practice-name"
-            name="name"
-            autoFocus
-            autoComplete="organization"
-            required
-            minLength={MIN_NAME_LENGTH}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder={t`e.g. Bright CPA Practice`}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? 'practice-name-error' : 'practice-name-helper'}
-          />
-          {error ? (
-            <FieldError id="practice-name-error">{error}</FieldError>
-          ) : (
-            // 2026-05-29 (R4 onboarding polish #3): added "You can
-            // change it later" to absorb the "change it now or anytime
-            // in Practice profile" copy that used to live in the
-            // sub-headline. Helper text is the right home for
-            // reversibility reassurance — it sits next to the field
-            // the user is deciding about.
-            <FieldDescription id="practice-name-helper">
-              <Trans>This is what your team and clients will see. You can change it later.</Trans>
-            </FieldDescription>
-          )}
-        </Field>
+        <div className="flex flex-col gap-4 rounded-[14px] border border-divider-subtle bg-background-default p-5 sm:px-7 sm:py-[22px]">
+          <Field>
+            <FieldHeaderRow
+              htmlFor="practice-name"
+              label={t`Practice name`}
+              hint={t`required, 2+ characters`}
+            />
+            <Input
+              id="practice-name"
+              name="name"
+              autoFocus
+              autoComplete="organization"
+              required
+              minLength={MIN_NAME_LENGTH}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder={t`e.g. Brightline CPA`}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? 'practice-name-error' : undefined}
+            />
+            {error ? <FieldError id="practice-name-error">{error}</FieldError> : null}
+          </Field>
 
-        <StateRuleActivationSelector
-          selected={selectedRuleStates}
-          onChange={setSelectedRuleStates}
-        />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field>
+              <FieldHeaderRow
+                htmlFor="monitoring-start-date"
+                label={t`Monitoring start date`}
+                hint={t`ISO date`}
+              />
+              <IsoDatePicker
+                id="monitoring-start-date"
+                value={monitoringStartDate}
+                maxIsoDate={today}
+                invalid={monitoringStartDateInvalid}
+                ariaLabel={t`Select monitoring start date`}
+                onValueChange={setMonitoringStartDate}
+              />
+              {monitoringStartDateInvalid ? (
+                <FieldError>
+                  <Trans>Monitoring start date cannot be in the future.</Trans>
+                </FieldError>
+              ) : null}
+            </Field>
 
-        <Field className="mt-5">
-          <FieldLabel htmlFor="monitoring-start-date">
-            <Trans>Monitoring start date</Trans>
-          </FieldLabel>
-          <IsoDatePicker
-            id="monitoring-start-date"
-            value={monitoringStartDate}
-            maxIsoDate={today}
-            invalid={monitoringStartDateInvalid}
-            ariaLabel={t`Select monitoring start date`}
-            onValueChange={setMonitoringStartDate}
+            <Field>
+              <FieldHeaderRow
+                htmlFor="internal-deadline-offset"
+                label={t`Internal deadline offset`}
+                hint={t`days before the official due date`}
+              />
+              <Input
+                id="internal-deadline-offset"
+                name="internalDeadlineOffsetDays"
+                type="number"
+                min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
+                max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
+                step={1}
+                value={internalDeadlineOffsetDays}
+                onChange={(event) =>
+                  setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
+                }
+              />
+            </Field>
+          </div>
+
+          <Field>
+            <FieldHeaderRow
+              htmlFor="firm-timezone"
+              label={t`Time zone`}
+              hint={t`drives when alerts and digests send`}
+            />
+            <FirmTimezoneSelect id="firm-timezone" value={timezone} onValueChange={setTimezone} />
+          </Field>
+
+          <StateRuleActivationSelector
+            selected={selectedRuleStates}
+            onChange={setSelectedRuleStates}
           />
-          {monitoringStartDateInvalid ? (
-            <FieldError>
-              <Trans>Monitoring start date cannot be in the future.</Trans>
-            </FieldError>
-          ) : null}
-          <FieldDescription>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-caption font-medium text-text-muted">
             <Trans>
-              DueDateHQ will create filing plans from the first applicable deadline on or after this
-              date. Earlier statutory deadlines will not be added to your active overdue queue.
+              DueDateHQ will create filing plans from the first applicable deadline on or after your
+              monitoring start date. By continuing you agree to the Terms and Privacy Policy.
             </Trans>
-          </FieldDescription>
-        </Field>
-
-        <Field className="mt-5">
-          {/* 2026-05-26 (Step 7 onboarding audit F5-04 + F5-05 +
-              F5-01 + F7-02): the field had three independent
-              issues. (1) label "Internal deadline" is jargon for
-              a first-run user; (2) input shows a bare number
-              with no unit; (3) helper text didn't anchor the
-              default or hint at "most practices use…" — every
-              user had to research what was a sensible value.
-              Renamed label to "Internal deadline lead time"
-              (slight expansion teaches the concept), and
-              rewrote the helper to lead with the unit, name the
-              default, and call out the recalc-on-change
-              consequence that the /practice page already
-              mentions. The field still reads as one number, but
-              now the user knows what they're choosing. */}
-          <FieldLabel htmlFor="internal-deadline-offset">
-            <Trans>Internal deadline lead time</Trans>
-          </FieldLabel>
-          <Input
-            id="internal-deadline-offset"
-            name="internalDeadlineOffsetDays"
-            type="number"
-            min={MIN_INTERNAL_DEADLINE_OFFSET_DAYS}
-            max={MAX_INTERNAL_DEADLINE_OFFSET_DAYS}
-            step={1}
-            value={internalDeadlineOffsetDays}
-            onChange={(event) =>
-              setInternalDeadlineOffsetDays(Number.parseInt(event.target.value || '0', 10))
-            }
-            aria-describedby="internal-deadline-offset-helper"
-          />
-          <FieldDescription id="internal-deadline-offset-helper">
-            <Trans>
-              Days before each statutory deadline that work shows as due. Most practices use 5–14
-              days. Changing this later recalculates current deadlines.
-            </Trans>
-          </FieldDescription>
-        </Field>
-
-        <Button
-          type="submit"
-          className="mt-5 w-full justify-center gap-2"
-          disabled={isSubmitting || activateRulesMutation.isPending || monitoringStartDateInvalid}
-          aria-busy={isSubmitting || activateRulesMutation.isPending}
-        >
-          {isSubmitting || activateRulesMutation.isPending ? (
-            <>
-              <Loader2Icon className="size-4 animate-spin" aria-hidden />
-              <span>
-                <Trans>Setting up your practice…</Trans>
-              </span>
-            </>
-          ) : (
-            <>
-              <span>
-                <Trans>Continue</Trans>
-              </span>
-              <ChevronRightIcon className="size-4" aria-hidden />
-            </>
-          )}
-        </Button>
-
-        {/* 2026-05-26 (Step 6 UX audit #20): "Auto-saves" was a lie —
-            the form only saves on Continue.
-            2026-05-29 (R4 onboarding polish #2): pill returns to live
-            with the Continue button. The F5-13 rationale (place
-            reassurance *before* the CTA so the user reads it during
-            decision time) was sound in isolation, but with the
-            hierarchy flip (#1) the top of the page is now packed
-            (eyebrow + H1 + input + state grid + offset field). The
-            pill became one more thing competing for the user's eyes
-            in the orientation zone. Co-locating with the CTA makes
-            the literal claim "Saves on continue" map to the literal
-            button being clicked — the phrase is now read AS the
-            button's footnote, which is what it always meant. */}
-        <p className="mt-3 inline-flex items-center gap-2 font-mono text-caption text-text-muted">
-          <span aria-hidden className="block h-1.5 w-1.5 rounded-full bg-status-done" />
-          <Trans>Encrypted · Saves on continue · Renamable later</Trans>
-        </p>
+          </p>
+          <Button
+            type="submit"
+            className="shrink-0 gap-1.5 px-7"
+            disabled={submitting || monitoringStartDateInvalid}
+            aria-busy={submitting}
+          >
+            {submitting ? (
+              <>
+                <Loader2Icon className="size-4 animate-spin" aria-hidden />
+                <span>
+                  <Trans>Setting up your practice…</Trans>
+                </span>
+              </>
+            ) : (
+              <>
+                <span>
+                  <Trans>Create practice · activate jurisdictions</Trans>
+                </span>
+                <ArrowRightIcon className="size-3.5" aria-hidden />
+              </>
+            )}
+          </Button>
+        </div>
       </form>
     </div>
   )
