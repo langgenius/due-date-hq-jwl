@@ -315,7 +315,12 @@ function NeedsAttentionCard({
         //                      doesn't match any client
         // Hover unifies to `bg-background-subtle` either way so
         // the affordance still reads in both cases.
-        'group flex h-full w-full min-w-0 flex-col gap-4 rounded-xl px-5 py-4 text-left',
+        // 2026-06-07 (Yuqi audit "cards blend into the background"): added
+        // a hairline border so the alert card has a visible edge on the
+        // lighter page wash — at rest the white/section fill alone sat too
+        // close to the body tone. Border, not shadow, per the standing
+        // "no shadows" preference.
+        'group flex h-full w-full min-w-0 flex-col gap-4 rounded-xl border border-divider-regular px-5 py-4 text-left',
         impacted > 0 ? 'bg-background-section' : 'bg-background-default',
         'transition-colors duration-200 hover:bg-background-subtle',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',

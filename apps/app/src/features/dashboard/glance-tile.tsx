@@ -97,8 +97,14 @@ export function GlanceTile({
     </>
   )
 
+  // 2026-06-07 (Yuqi audit "cards blend into the background"): the
+  // lighter page wash brought the old `bg-background-subtle` tiles to
+  // near-parity with the body. Switched to a crisp white surface + a
+  // visible hairline border so each tile reads as a distinct card on
+  // the light page. Border (not shadow) per the standing "no shadows"
+  // preference on these surfaces.
   const shell = cn(
-    'flex min-w-0 items-start gap-3 rounded-2xl bg-background-subtle px-[18px] py-3.5',
+    'flex min-w-0 items-start gap-3 rounded-2xl border border-divider-regular bg-background-default px-[18px] py-3.5',
   )
 
   if (href) {

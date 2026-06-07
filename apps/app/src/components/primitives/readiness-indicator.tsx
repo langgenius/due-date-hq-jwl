@@ -63,13 +63,14 @@ function ReadinessIndicator({
   //     warning yellow was claiming more weight than a "partial"
   //     state warrants in a scan. Quieter gray lets the row's
   //     other signals (due-date, status, action verb) lead.
-  //   • Empty    (attached === 0)      → destructive (red) — kept
-  //     because "no docs attached at all" is a real urgency state.
-  const toneClass = complete
-    ? 'text-text-success'
-    : attached > 0
-      ? 'text-text-tertiary'
-      : 'text-text-destructive'
+  //   • Empty    (attached === 0)      → tertiary (gray) — 2026-06-07
+  //     (Yuqi audit: "don't have Docs 0/3 in red"). The Pencil VJbaH
+  //     readiness cell renders the count in muted gray (#98a2b2) at
+  //     every fill level, never red — the AlertCircle trailing icon +
+  //     the count itself ("0/3") already name the gap. Red here piled
+  //     onto the due-countdown red and over-saturated the row. The
+  //     due-date column carries the row's single intentional red.
+  const toneClass = complete ? 'text-text-success' : 'text-text-tertiary'
   return (
     <span
       className={cn(

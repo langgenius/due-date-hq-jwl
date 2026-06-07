@@ -316,11 +316,6 @@ msgstr "{0, plural, other {来自 # 条活动规则}}"
 msgid "{0, plural, one {Merged # similar source update} other {Merged # similar source updates}}"
 msgstr "{0, plural, one {已合并 # 条相似来源更新} other {已合并 # 条相似来源更新}}"
 
-#. placeholder {0}: paymentOverdueDays(row.paymentDueDate, asOfDate)
-#: src/features/dashboard/actions-list.tsx
-msgid "{0, plural, one {Pay #d late} other {Pay #d late}}"
-msgstr "{0, plural, one {付款逾期 #d} other {付款逾期 #d}}"
-
 #. placeholder {0}: data.remindersSentCount
 #: src/routes/splash.tsx
 msgid "{0, plural, one {Reminder went out to # client} other {Reminders went out to # clients}}"

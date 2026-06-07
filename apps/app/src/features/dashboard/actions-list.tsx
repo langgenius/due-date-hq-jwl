@@ -29,7 +29,6 @@ import { ReadinessIndicator } from '@/components/primitives/readiness-indicator'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { EmptyState as SharedEmptyState } from '@/components/patterns/empty-state'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
-import { isPaymentOverdue, paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import { ExtensionChip } from './extension-chip'
 import { LifecycleStripCell } from './lifecycle-strip-cell'
 import { severityToTier, type SeverityTier } from './severity-section'
@@ -563,19 +562,16 @@ function ActionsTableRow({
           </span>
         </div>
       </TableCell>
+      {/* 2026-06-07 (Yuqi audit "be aware of red"): the status cell's
+          duplicate red "Pay #d late" caption was removed. Payment-overdue
+          is already carried (once, in red) by the DUE cell via
+          DueDateLabel's payment-late branch; repeating it here in red
+          double-counted the row's red weight. The status pill stays
+          neutral, matching the Pencil VJbaH status column. */}
       <TableCell>
         <div className="flex flex-wrap items-center gap-2">
           <ObligationStatusReadBadge status={row.status} className="h-6 text-xs" />
           {row.status === 'extended' ? <ExtensionChip /> : null}
-          {isPaymentOverdue(row.paymentDueDate, asOfDate) ? (
-            <span className="text-[11px] font-semibold tabular-nums text-text-destructive">
-              <Plural
-                value={paymentOverdueDays(row.paymentDueDate, asOfDate)}
-                one="Pay #d late"
-                other="Pay #d late"
-              />
-            </span>
-          ) : null}
         </div>
       </TableCell>
       {/* Chevron cell dropped (Yuqi round 4): hover-to-expand isn't
