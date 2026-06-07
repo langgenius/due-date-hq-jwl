@@ -28,7 +28,10 @@ function deriveReadinessFromDocumentChecklist(input: {
 }): ObligationReadiness {
   if (isClosedObligationStatus(input.status)) return 'ready'
   if (input.checklistStatuses.some((status) => status === 'needs_review')) return 'needs_review'
-  if (input.checklistStatuses.every((status) => status === 'received')) return 'ready'
+  // A waived item no longer applies this year, so it counts as satisfied
+  // for readiness (alongside received). All items received-or-waived → ready.
+  if (input.checklistStatuses.every((status) => status === 'received' || status === 'waived'))
+    return 'ready'
   return 'waiting'
 }
 

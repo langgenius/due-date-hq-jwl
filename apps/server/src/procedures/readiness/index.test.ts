@@ -56,7 +56,7 @@ type RepoChecklistItemFixture = Omit<
   ReturnType<typeof repoChecklistItem>,
   'status' | 'receivedAt'
 > & {
-  status: 'missing' | 'received' | 'needs_review'
+  status: 'missing' | 'received' | 'needs_review' | 'waived'
   receivedAt: Date | null
 }
 
@@ -320,7 +320,7 @@ describe('readiness procedure helpers', () => {
     interface UpdateInput {
       label?: string
       description?: string | null
-      status?: 'missing' | 'received' | 'needs_review'
+      status?: 'missing' | 'received' | 'needs_review' | 'waived'
       note?: string | null
       receivedByUserId?: string | null
       dropsAiOrigin?: boolean

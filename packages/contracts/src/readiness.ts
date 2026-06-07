@@ -29,6 +29,10 @@ export const ReadinessDocumentChecklistItemStatusSchema = z.enum([
   'missing',
   'received',
   'needs_review',
+  // 2026-06-07 (Pencil AYpfU Materials tab): a CPA can waive an
+  // outstanding document when it doesn't apply this filing year. Stored
+  // like any other status (plain text column, no CHECK) — no migration.
+  'waived',
 ])
 export type ReadinessDocumentChecklistItemStatus = z.infer<
   typeof ReadinessDocumentChecklistItemStatusSchema

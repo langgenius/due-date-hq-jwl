@@ -548,7 +548,9 @@ export function ObligationQueueDetailDrawer({
     storedChecklist.length === 0,
   )
   const checklistItemsForSelection = checklist.filter((item) =>
-    correctionMaterialsMode ? item.status === 'received' : item.status !== 'received',
+    correctionMaterialsMode
+      ? item.status === 'received'
+      : item.status !== 'received' && item.status !== 'waived',
   )
   const checklistItemIdsForSelection = checklistItemsForSelection.map((item) => item.id)
   const selectedChecklistItemIdsForAction =
@@ -965,7 +967,12 @@ export function ObligationQueueDetailDrawer({
     if (!row) return
     const item = checklist.find((entry) => entry.id === itemId)
     if (!item) return
-    if (correctionMaterialsMode ? item.status !== 'received' : item.status === 'received') return
+    if (
+      correctionMaterialsMode
+        ? item.status !== 'received'
+        : item.status === 'received' || item.status === 'waived'
+    )
+      return
     setMaterialsSelection((current) => {
       const next = new Set(current.itemIds)
       if (next.has(itemId)) next.delete(itemId)
@@ -1721,7 +1728,9 @@ export function ObligationQueueDetailDrawer({
                   to `flex-1` so the four tabs distribute full-width
                   across the drawer. */}
               {(() => {
-                const outstandingMaterials = checklist.filter((i) => i.status !== 'received').length
+                const outstandingMaterials = checklist.filter(
+                  (i) => i.status !== 'received' && i.status !== 'waived',
+                ).length
                 const allMaterialsReceived = checklist.length > 0 && outstandingMaterials === 0
                 const extensionSaved = Boolean(row?.extensionDecidedAt)
                 const evidenceCount = detail?.evidence.length ?? 0
@@ -2181,16 +2190,16 @@ export function ObligationQueueDetailDrawer({
                   />
                   {/* Cluster 2 (Materials design `AYpfU` MatHeader): progress
                       bar + 3-dot legend. received = `received`; outstanding =
-                      `missing` + `needs_review`. There is no "waived"
-                      checklist status in the contract today, so that bucket
-                      renders 0 until one lands.
-                      // TODO(data): `waived` checklist item status + per-row Waive action. */}
+                      `missing` + `needs_review`; waived = `waived` (CPA marked
+                      not-applicable this year). */}
                   {checklist.length > 0 ? (
                     <MaterialsProgressLegend
                       counts={{
                         received: checklist.filter((item) => item.status === 'received').length,
-                        outstanding: checklist.filter((item) => item.status !== 'received').length,
-                        waived: 0,
+                        outstanding: checklist.filter(
+                          (item) => item.status !== 'received' && item.status !== 'waived',
+                        ).length,
+                        waived: checklist.filter((item) => item.status === 'waived').length,
                       }}
                     />
                   ) : null}
@@ -2460,15 +2469,18 @@ export function ObligationQueueDetailDrawer({
                         the split is purely organizational, no new
                         renderer needed. */}
                         {(() => {
-                          const outstandingItems = checklist.filter((i) => i.status !== 'received')
+                          const outstandingItems = checklist.filter(
+                            (i) => i.status !== 'received' && i.status !== 'waived',
+                          )
                           const receivedItems = checklist.filter((i) => i.status === 'received')
+                          const waivedItems = checklist.filter((i) => i.status === 'waived')
                           function renderRow(item: (typeof checklist)[number]) {
                             const response =
                               latestRequest?.responses.find((r) => r.itemId === item.id) ?? null
                             const received = item.status === 'received'
                             const selectable = correctionMaterialsMode
                               ? received
-                              : item.status !== 'received'
+                              : item.status !== 'received' && item.status !== 'waived'
                             const isSelected = selectable && materialsSelection.itemIds.has(item.id)
                             return (
                               <ChecklistItemRow
@@ -2579,16 +2591,10 @@ export function ObligationQueueDetailDrawer({
                                 </section>
                               ) : null}
                               {/* Cluster 2 (Materials design `AYpfU > BGLC4`):
-                                  Waived sub-section. There is no `waived`
-                                  checklist-item status in the contract today
-                                  (item.status is missing / needs_review /
-                                  received), so this always renders its empty
-                                  state — a quiet "doesn't apply this year"
-                                  affordance matching the canvas. Drop the
-                                  static guard and map real waived rows once
-                                  the status exists.
-                                  // TODO(data): `waived` checklist item status
-                                  // + per-row Waive action. */}
+                                  Waived sub-section — items the CPA marked as
+                                  not-applicable this filing year. Renders the
+                                  real waived rows; falls back to the quiet
+                                  empty state when none are waived. */}
                               {!isTerminalRow ? (
                                 <section className="flex flex-col gap-1.5">
                                   <header className="flex items-baseline gap-1.5">
@@ -2596,27 +2602,31 @@ export function ObligationQueueDetailDrawer({
                                       <Trans>Waived</Trans>
                                     </h4>
                                     <span
-                                      aria-label={t`0 items`}
+                                      aria-label={t`${waivedItems.length} items`}
                                       className="text-caption-xs font-medium tabular-nums text-text-tertiary"
                                     >
-                                      0
+                                      {waivedItems.length}
                                     </span>
                                   </header>
-                                  <div className="flex flex-col items-center gap-1 rounded-md border border-divider-subtle px-4 py-5 text-center">
-                                    <CircleOffIcon
-                                      className="size-4 text-text-tertiary"
-                                      aria-hidden
-                                    />
-                                    <p className="text-sm font-medium text-text-secondary">
-                                      <Trans>No items waived</Trans>
-                                    </p>
-                                    <p className="text-caption-xs text-text-tertiary">
-                                      <Trans>
-                                        Mark an outstanding doc as waived when it doesn't apply this
-                                        year.
-                                      </Trans>
-                                    </p>
-                                  </div>
+                                  {waivedItems.length > 0 ? (
+                                    <div className="grid gap-1.5">{waivedItems.map(renderRow)}</div>
+                                  ) : (
+                                    <div className="flex flex-col items-center gap-1 rounded-md border border-divider-subtle px-4 py-5 text-center">
+                                      <CircleOffIcon
+                                        className="size-4 text-text-tertiary"
+                                        aria-hidden
+                                      />
+                                      <p className="text-sm font-medium text-text-secondary">
+                                        <Trans>No items waived</Trans>
+                                      </p>
+                                      <p className="text-caption-xs text-text-tertiary">
+                                        <Trans>
+                                          Mark an outstanding doc as waived when it doesn't apply
+                                          this year.
+                                        </Trans>
+                                      </p>
+                                    </div>
+                                  )}
                                 </section>
                               ) : null}
                             </div>

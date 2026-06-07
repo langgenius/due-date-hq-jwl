@@ -11489,7 +11489,11 @@ export function willReadinessChecklistBeFullyReceived(
 ): boolean {
   return (
     checklist.length > 0 &&
-    checklist.every((item) => item.status === 'received' || receivedItemIds.has(item.id))
+    // Waived items count as satisfied alongside received ones.
+    checklist.every(
+      (item) =>
+        item.status === 'received' || item.status === 'waived' || receivedItemIds.has(item.id),
+    )
   )
 }
 

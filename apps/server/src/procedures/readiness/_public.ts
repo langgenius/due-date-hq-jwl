@@ -14,7 +14,7 @@ interface DocumentChecklistItemRow {
   origin: 'ai' | 'manual'
   aiGeneratedAt: Date | null
   userEditedAt: Date | null
-  status: 'missing' | 'received' | 'needs_review'
+  status: 'missing' | 'received' | 'needs_review' | 'waived'
   sortOrder: number
   note: string | null
   receivedAt: Date | null

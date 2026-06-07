@@ -57,7 +57,7 @@ interface FakeReadinessResponse {
 
 interface FakeReadinessChecklistItem {
   obligationInstanceId: string
-  status: 'missing' | 'received' | 'needs_review'
+  status: 'missing' | 'received' | 'needs_review' | 'waived'
 }
 
 /**

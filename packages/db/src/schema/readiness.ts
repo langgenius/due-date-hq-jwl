@@ -36,6 +36,9 @@ export const READINESS_DOCUMENT_CHECKLIST_ITEM_STATUSES = [
   'missing',
   'received',
   'needs_review',
+  // 2026-06-07 (Pencil AYpfU): waived = CPA marked an outstanding doc as
+  // not-applicable this year. Plain text column (no CHECK) → no migration.
+  'waived',
 ] as const
 export type ReadinessDocumentChecklistItemStatus =
   (typeof READINESS_DOCUMENT_CHECKLIST_ITEM_STATUSES)[number]

@@ -6,6 +6,7 @@ Backend data pass, item 2. The Applied SuccessModal (Pencil uoNwI) showed two
 static-zero stats; both are now computed from the commit plan at apply time.
 
 ## What shipped (no DB migration)
+
 - `packages/contracts/src/migration.ts` — `ApplyResultSchema` gains
   `rulesActiveCount` + `upcomingCount`.
 - `apps/server/src/procedures/migration/_service.ts` — `apply()` derives them
@@ -21,6 +22,7 @@ static-zero stats; both are now computed from the commit plan at apply time.
 is turned on).
 
 ## Verify
+
 - tsgo (app + server + contracts) → 0
 - migration: app 66/66, server 59/59; contracts 29/29
 - `vp check` → 0 errors

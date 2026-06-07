@@ -767,7 +767,12 @@ export function willReadinessChecklistBeFullyReceived(
 ): boolean {
   return (
     checklist.length > 0 &&
-    checklist.every((item) => item.status === 'received' || receivedItemIds.has(item.id))
+    // A waived item no longer applies this year, so it counts as satisfied
+    // alongside received items when deciding "is the checklist complete?".
+    checklist.every(
+      (item) =>
+        item.status === 'received' || item.status === 'waived' || receivedItemIds.has(item.id),
+    )
   )
 }
 

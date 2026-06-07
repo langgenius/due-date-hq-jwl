@@ -1,5 +1,12 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, CheckCircle2Icon, EllipsisVerticalIcon, Trash2Icon } from 'lucide-react'
+import {
+  AlertTriangleIcon,
+  CheckCircle2Icon,
+  CircleOffIcon,
+  EllipsisVerticalIcon,
+  RotateCcwIcon,
+  Trash2Icon,
+} from 'lucide-react'
 
 import type {
   ClientReadinessResponsePublic,
@@ -64,6 +71,7 @@ export function ChecklistItemRow({
   const { t } = useLingui()
   const received = item.status === 'received'
   const needsReview = item.status === 'needs_review'
+  const waived = item.status === 'waived'
   const responseBadge = response
     ? (() => {
         switch (response.status) {
@@ -145,6 +153,11 @@ export function ChecklistItemRow({
                 <AlertTriangleIcon className="size-3" aria-hidden />
                 {correctionMode ? <Trans>Needs correction</Trans> : <Trans>Needs review</Trans>}
               </Badge>
+            ) : waived ? (
+              <Badge variant="secondary" className="text-caption-xs uppercase tracking-wide">
+                <CircleOffIcon className="size-3" aria-hidden />
+                <Trans>Waived</Trans>
+              </Badge>
             ) : null}
             {responseBadge ? (
               <Badge
@@ -215,6 +228,23 @@ export function ChecklistItemRow({
                 </span>
               </DropdownMenuItem>
             ) : null}
+            {/* 2026-06-07 (Pencil AYpfU): waive an outstanding doc that
+                doesn't apply this filing year (or restore it). */}
+            {waived ? (
+              <DropdownMenuItem onClick={() => onStatusChange('missing')} disabled={pending}>
+                <RotateCcwIcon className="size-4" aria-hidden />
+                <span>
+                  <Trans>Un-waive</Trans>
+                </span>
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={() => onStatusChange('waived')} disabled={pending}>
+                <CircleOffIcon className="size-4" aria-hidden />
+                <span>
+                  <Trans>Waive — doesn't apply</Trans>
+                </span>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={onRemove} variant="destructive">
               <Trash2Icon className="size-4" aria-hidden />
               <span>

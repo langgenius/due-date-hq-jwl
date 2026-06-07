@@ -462,6 +462,7 @@ msgstr "{0} 已启用 {expectedPlanName}"
 
 #. placeholder {0}: outstandingItems.length
 #. placeholder {0}: receivedItems.length
+#. placeholder {0}: waivedItems.length
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "{0} items"
@@ -1185,10 +1186,6 @@ msgstr "约 5 分钟的专注工作"
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "0"
 msgstr "0"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "0 items"
-msgstr "0 项"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "0 ongoing"
@@ -14572,6 +14569,10 @@ msgstr "UI 工资报告数量"
 msgid "UltraTax DIF files are not supported yet. Export a Client Listing Report and re-save it as CSV or XLSX."
 msgstr "尚不支持 UltraTax DIF 文件。请导出 Client Listing Report 并另存为 CSV 或 XLSX。"
 
+#: src/features/obligations/ChecklistItemRow.tsx
+msgid "Un-waive"
+msgstr "取消豁免"
+
 #: src/routes/login.tsx
 msgid "Unable to start Google sign-in"
 msgstr "无法启动 Google 登录"
@@ -15106,10 +15107,15 @@ msgstr "等待第三方提供 K-1 / 1099"
 msgid "Waiting on upstream return to file"
 msgstr "等待上游申报提交"
 
+#: src/features/obligations/ChecklistItemRow.tsx
+msgid "Waive — doesn't apply"
+msgstr "豁免 — 不适用"
+
 #: src/features/obligations/queue/components/primitives.tsx
 msgid "waived"
 msgstr "已豁免"
 
+#: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Waived"
 msgstr "已豁免"

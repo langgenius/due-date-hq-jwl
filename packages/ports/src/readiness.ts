@@ -4,7 +4,11 @@ export type ReadinessDocumentChecklistItemSource = 'template' | 'custom'
 // η pass — F-008: AI-provenance axis. 'manual' default is the safe backfill
 // assumption — see schema comment in packages/db/src/schema/readiness.ts.
 export type ReadinessDocumentChecklistItemOrigin = 'ai' | 'manual'
-export type ReadinessDocumentChecklistItemStatus = 'missing' | 'received' | 'needs_review'
+export type ReadinessDocumentChecklistItemStatus =
+  | 'missing'
+  | 'received'
+  | 'needs_review'
+  | 'waived'
 
 export interface ReadinessChecklistItemRow {
   id: string

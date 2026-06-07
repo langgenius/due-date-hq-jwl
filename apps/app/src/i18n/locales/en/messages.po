@@ -458,6 +458,7 @@ msgstr "{0} is on {expectedPlanName}"
 
 #. placeholder {0}: outstandingItems.length
 #. placeholder {0}: receivedItems.length
+#. placeholder {0}: waivedItems.length
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "{0} items"
@@ -1166,10 +1167,6 @@ msgstr "~5 minutes of focused work"
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "0"
 msgstr "0"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "0 items"
-msgstr "0 items"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "0 ongoing"
@@ -14465,6 +14462,10 @@ msgstr "UI wage report count"
 msgid "UltraTax DIF files are not supported yet. Export a Client Listing Report and re-save it as CSV or XLSX."
 msgstr "UltraTax DIF files are not supported yet. Export a Client Listing Report and re-save it as CSV or XLSX."
 
+#: src/features/obligations/ChecklistItemRow.tsx
+msgid "Un-waive"
+msgstr "Un-waive"
+
 #: src/routes/login.tsx
 msgid "Unable to start Google sign-in"
 msgstr "Unable to start Google sign-in"
@@ -14996,10 +14997,15 @@ msgstr "Waiting on third party for K-1 / 1099"
 msgid "Waiting on upstream return to file"
 msgstr "Waiting on upstream return to file"
 
+#: src/features/obligations/ChecklistItemRow.tsx
+msgid "Waive — doesn't apply"
+msgstr "Waive — doesn't apply"
+
 #: src/features/obligations/queue/components/primitives.tsx
 msgid "waived"
 msgstr "waived"
 
+#: src/features/obligations/ChecklistItemRow.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Waived"
 msgstr "Waived"
