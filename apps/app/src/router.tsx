@@ -598,6 +598,27 @@ export function createAppRouter() {
               },
             },
             {
+              path: 'settings/reminders/templates',
+              handle: routeHandle(routeSummaries.reminderTemplates),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { ReminderTemplatesRoute } = await import('@/routes/reminders.templates')
+
+                return { Component: ReminderTemplatesRoute }
+              },
+            },
+            {
+              path: 'settings/reminders/templates/edit',
+              handle: routeHandle(routeSummaries.reminderTemplateEdit),
+              HydrateFallback: RouteHydrateFallback,
+              lazy: async () => {
+                const { ReminderTemplateEditRoute } =
+                  await import('@/routes/reminders.templates.edit')
+
+                return { Component: ReminderTemplateEditRoute }
+              },
+            },
+            {
               path: 'clients',
               handle: routeHandle(routeSummaries.clients),
               HydrateFallback: RouteHydrateFallback,
