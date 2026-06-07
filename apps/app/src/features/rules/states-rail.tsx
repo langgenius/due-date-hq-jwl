@@ -1,22 +1,33 @@
 import { useMemo } from 'react'
-import { SearchIcon } from 'lucide-react'
-import { useLingui } from '@lingui/react/macro'
+import {
+  LandmarkIcon,
+  LayoutDashboardIcon,
+  ListFilterIcon,
+  MapPinIcon,
+  SearchIcon,
+} from 'lucide-react'
+import { Trans, useLingui } from '@lingui/react/macro'
 
 import { cn } from '@duedatehq/ui/lib/utils'
 
 /**
  * `JurisdictionRail` — the left master pane of the Rule Library
- * (2026-06-04, Yuqi rule-library master–detail pivot, Pencil `HR6mK`).
+ * (2026-06-04, Yuqi rule-library master–detail pivot; restyled
+ * 2026-06-07 to the canonical Pencil `O0pyRO` PH-SecondarySidebar).
  *
- * Renders a searchable jurisdiction list: an "All jurisdictions" entry,
- * a pinned Federal entry, then the states A–Z. Each row carries its rule
- * count and a quiet amber "needs review" dot when the jurisdiction has
+ * Renders a searchable jurisdiction list: an "Overview" entry (the All
+ * jurisdictions surface), a pinned FEDERAL section, then the states A–Z
+ * under a STATES section label. Each row carries a leading lucide icon
+ * (layout-dashboard / landmark / map-pin), its rule count in a mono
+ * count, and a quiet amber "needs review" dot when the jurisdiction has
  * pending-review rules. The selected jurisdiction drives the flat rule
  * table in the right pane.
  *
- * Style follows the app's design-system tokens (not the Pencil's raw
- * hex / Geist): selected = accent-tinted bg + 2px accent left rail +
- * semibold, matching the "respect the Today-page style" brief.
+ * Style maps the Pencil's raw hex onto design-system tokens (per repo
+ * rule — no new theme colors): the active Overview row reads accent
+ * (bg-state-accent-hover + text-text-accent), a selected state reads as
+ * a quiet gray fill (bg-background-subtle). Section labels + eyebrow use
+ * the muted caption scale.
  *
  * Decoupled from the route's private `JurisdictionGroup` type on
  * purpose — it takes a plain `RailJurisdiction[]` the route maps from
@@ -69,153 +80,181 @@ export function JurisdictionRail({
 
   const federalVisible = federal && matches(federal) ? federal : null
   const visibleStates = states.filter(matches)
-  const shownCount = (federalVisible ? 1 : 0) + visibleStates.length
+  const shownStateCount = visibleStates.length
 
   return (
     <aside
       className={cn(
-        'flex w-72 shrink-0 flex-col overflow-hidden rounded-xl border border-divider-regular bg-background-default',
+        'flex w-72 shrink-0 flex-col overflow-hidden border-r border-divider-regular bg-background-default',
         className,
       )}
       aria-label={t`Jurisdictions`}
     >
-      {/* Search header — pinned above the scrolling list. */}
-      <div className="shrink-0 border-b border-divider-subtle p-3">
-        <div className="flex h-9 items-center gap-2 rounded-lg border border-divider-regular bg-background-default px-3 focus-within:border-accent-default focus-within:ring-2 focus-within:ring-state-accent-active-alt">
-          <SearchIcon className="size-4 shrink-0 text-text-muted" aria-hidden />
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-            placeholder={t`Search jurisdiction…`}
-            aria-label={t`Search jurisdiction`}
-            className="min-w-0 flex-1 bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted"
-          />
+      {/* Header — eyebrow + title row + search pill. */}
+      <div className="shrink-0 px-3.5 pt-1">
+        <div className="flex flex-col gap-2.5 pb-4">
+          <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
+            <Trans>Rule library</Trans>
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-base font-semibold text-text-primary">
+              <Trans>Jurisdictions</Trans>
+            </span>
+            <span className="flex-1" />
+            <span
+              className="inline-flex size-[22px] items-center justify-center rounded-md text-text-secondary"
+              aria-hidden
+            >
+              <ListFilterIcon className="size-3.5" />
+            </span>
+          </div>
+        </div>
+        <div className="pb-3">
+          <div className="flex h-8 items-center gap-2 rounded-lg bg-background-subtle px-3 focus-within:ring-2 focus-within:ring-state-accent-active-alt">
+            <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder={t`Search jurisdictions`}
+              aria-label={t`Search jurisdictions`}
+              className="min-w-0 flex-1 bg-transparent text-xs font-medium text-text-primary outline-none placeholder:text-text-muted"
+            />
+          </div>
         </div>
       </div>
 
+      <div className="h-px shrink-0 bg-divider-subtle" aria-hidden />
+
       {/* Scrolling jurisdiction list. */}
-      <div className="min-h-0 flex-1 overflow-y-auto py-1">
-        {/* All jurisdictions — overview entry, always first. */}
-        {!query ? (
-          <RailRow
-            code={t`All`}
-            label={t`All jurisdictions`}
-            count={totalRuleCount}
-            reviewCount={0}
-            selected={selected === null}
-            onSelect={() => onSelect(null)}
-          />
-        ) : null}
-
-        {federalVisible ? (
-          <>
-            <RailSectionLabel>{t`Pinned`}</RailSectionLabel>
+      <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+        <div className="flex flex-col gap-0.5">
+          {/* Overview — the All-jurisdictions surface, always first. */}
+          {!query ? (
             <RailRow
-              code="FED"
-              label={federalVisible.label}
-              count={federalVisible.ruleCount}
-              reviewCount={federalVisible.reviewCount}
-              selected={selected === 'FED'}
-              onSelect={() => onSelect('FED')}
+              icon={LayoutDashboardIcon}
+              label={t`Overview`}
+              count={totalRuleCount}
+              reviewCount={0}
+              tone="overview"
+              selected={selected === null}
+              onSelect={() => onSelect(null)}
             />
-          </>
-        ) : null}
+          ) : null}
 
-        {visibleStates.length > 0 ? (
-          <>
-            <RailSectionLabel withRule>{t`States · A–Z`}</RailSectionLabel>
-            {visibleStates.map((it) => (
+          {federalVisible ? (
+            <>
+              <RailSectionLabel>{t`Federal`}</RailSectionLabel>
               <RailRow
-                key={it.jurisdiction}
-                code={it.jurisdiction}
-                label={it.label}
-                count={it.ruleCount}
-                reviewCount={it.reviewCount}
-                selected={selected === it.jurisdiction}
-                onSelect={() => onSelect(it.jurisdiction)}
+                icon={LandmarkIcon}
+                label={federalVisible.label}
+                count={federalVisible.ruleCount}
+                reviewCount={federalVisible.reviewCount}
+                tone="default"
+                selected={selected === 'FED'}
+                onSelect={() => onSelect('FED')}
               />
-            ))}
-          </>
-        ) : null}
+            </>
+          ) : null}
 
-        {query && shownCount === 0 ? (
-          <p className="px-5 py-6 text-center text-xs text-text-tertiary">
-            {t`No jurisdictions match "${search}"`}
-          </p>
-        ) : null}
-      </div>
+          {visibleStates.length > 0 ? (
+            <>
+              <RailSectionLabel>{t`States`}</RailSectionLabel>
+              {visibleStates.map((it) => (
+                <RailRow
+                  key={it.jurisdiction}
+                  icon={MapPinIcon}
+                  label={it.label}
+                  count={it.ruleCount}
+                  reviewCount={it.reviewCount}
+                  tone="default"
+                  selected={selected === it.jurisdiction}
+                  onSelect={() => onSelect(it.jurisdiction)}
+                />
+              ))}
+            </>
+          ) : null}
 
-      {/* Footer — "Showing N of M". */}
-      <div className="shrink-0 border-t border-divider-subtle px-5 py-2.5 text-center text-xs text-text-tertiary tabular-nums">
-        {t`Showing ${shownCount} of ${items.length}`}
+          {query && shownStateCount === 0 && !federalVisible ? (
+            <p className="px-3 py-6 text-center text-xs text-text-tertiary">
+              {t`No jurisdictions match "${search}"`}
+            </p>
+          ) : null}
+        </div>
+      </nav>
+
+      {/* Footer hint strip — "Showing N of M states". */}
+      <div className="shrink-0 px-3.5 py-3">
+        <div className="rounded-lg bg-background-subtle px-3 py-2.5 text-center text-[11px] font-medium text-text-muted tabular-nums">
+          {t`Showing ${shownStateCount} of ${states.length} states`}
+        </div>
       </div>
     </aside>
   )
 }
 
-function RailSectionLabel({
-  children,
-  withRule = false,
-}: {
-  children: React.ReactNode
-  withRule?: boolean
-}) {
+function RailSectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2 px-5 pt-4 pb-1.5">
-      <span className="text-caption-xs font-semibold tracking-eyebrow text-text-muted uppercase">
+    <div className="px-3 pt-3 pb-1">
+      <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
         {children}
       </span>
-      {withRule ? <span className="h-px flex-1 bg-divider-subtle" aria-hidden /> : null}
     </div>
   )
 }
 
 function RailRow({
-  code,
+  icon: Icon,
   label,
   count,
   reviewCount,
+  tone,
   selected,
   onSelect,
 }: {
-  code: string
+  icon: React.ComponentType<{ className?: string }>
   label: string
   count: number
   reviewCount: number
+  /** `overview` reads accent when selected; `default` reads quiet gray. */
+  tone: 'overview' | 'default'
   selected: boolean
   onSelect: () => void
 }) {
+  // The Overview row is the only row that reads in accent-blue when
+  // active — it's the "home" surface. Jurisdiction rows read as a quiet
+  // gray fill so the eye distinguishes "you're on the catalog" from
+  // "you've drilled into one state."
+  const accentSelected = tone === 'overview' && selected
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-current={selected ? 'true' : undefined}
       className={cn(
-        'flex w-full items-center gap-2.5 border-l-2 px-[18px] py-2 text-left transition-colors',
-        selected
-          ? 'border-l-accent-default bg-state-accent-hover'
-          : 'border-l-transparent hover:bg-state-base-hover',
+        'flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-colors',
+        accentSelected
+          ? 'bg-state-accent-hover'
+          : selected
+            ? 'bg-background-subtle'
+            : 'hover:bg-state-base-hover',
       )}
     >
-      {/* 2-letter jurisdiction badge. */}
-      <span
+      <Icon
         className={cn(
-          'inline-flex h-[18px] min-w-[26px] shrink-0 items-center justify-center rounded px-1 text-[11px] font-semibold tabular-nums',
-          selected
-            ? 'bg-accent-default text-text-inverted'
-            : code === 'FED'
-              ? 'bg-text-primary text-text-inverted'
-              : 'bg-background-subtle text-text-secondary',
+          'size-[15px] shrink-0',
+          accentSelected ? 'text-text-accent' : 'text-text-secondary',
         )}
         aria-hidden
-      >
-        {code}
-      </span>
+      />
       <span
         className={cn(
-          'min-w-0 flex-1 truncate text-sm',
-          selected ? 'font-semibold text-text-primary' : 'font-medium text-text-secondary',
+          'min-w-0 flex-1 truncate text-[13px]',
+          accentSelected
+            ? 'font-bold text-text-accent'
+            : selected
+              ? 'font-semibold text-text-primary'
+              : 'font-medium text-text-secondary',
         )}
       >
         {label}
@@ -228,7 +267,14 @@ function RailRow({
           aria-label={`${reviewCount} rules need review`}
         />
       ) : null}
-      <span className="shrink-0 text-xs text-text-tertiary tabular-nums">{count}</span>
+      <span
+        className={cn(
+          'shrink-0 font-mono text-[11px] font-semibold tabular-nums',
+          accentSelected ? 'text-text-accent' : 'text-text-muted',
+        )}
+      >
+        {count}
+      </span>
     </button>
   )
 }
