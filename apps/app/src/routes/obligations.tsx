@@ -186,6 +186,7 @@ import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
 import { PageHeader } from '@/components/patterns/page-header'
+import { DeadlinesAtAGlance } from '@/features/obligations/deadlines-at-a-glance'
 import { FilterTrigger } from '@/components/patterns/filter-trigger'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -3521,6 +3522,34 @@ export function ObligationQueueRoute() {
           </>
         }
       />
+
+      {/* AT A GLANCE narrative tile row (Pencil u3nNA). Three derived
+          tiles — most-overdue / due-this-week / needs-review — sourced
+          from the loaded queue rows + the review facet count (no extra
+          round-trip). Hidden while a detail panel is open so the split
+          view keeps its vertical budget for the table (matches Pencil
+          Y12Dht, which omits the row in the split state). Each tile
+          drills into the matching filtered scope. */}
+      {!panelOpenIntent ? (
+        <DeadlinesAtAGlance
+          rows={rows}
+          reviewCount={statusFacetCounts.get('review') ?? 0}
+          isLoading={isInitialLoading}
+          onOpenScope={(scope) => {
+            if (scope === 'overdue') {
+              void setObligationQueueQuery({ due: 'overdue', daysMin: null, daysMax: null })
+            } else if (scope === 'this_week') {
+              void setObligationQueueQuery({
+                due: null,
+                daysMin: null,
+                daysMax: THIS_WEEK_MAX_DAYS,
+              })
+            } else {
+              void setObligationQueueQuery({ status: ['review'] })
+            }
+          }}
+        />
+      ) : null}
 
       {/* When a row is selected, this section becomes a 2-column flex:
           queue on the left (shrinks), detail panel on the right (fixed
