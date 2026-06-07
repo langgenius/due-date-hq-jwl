@@ -86,6 +86,11 @@ msgstr "{0, plural, one {# attached} other {# attached}}"
 msgid "{0, plural, one {# client covered} other {# clients covered}}"
 msgstr "{0, plural, one {# client covered} other {# clients covered}}"
 
+#. placeholder {0}: data.clientCount
+#: src/features/migration/SuccessModal.tsx
+msgid "{0, plural, one {# client imported.} other {# clients imported.}}"
+msgstr "{0, plural, one {# client imported.} other {# clients imported.}}"
+
 #. placeholder {0}: cell.appliedClientCount
 #. placeholder {0}: group.affectedClientCount
 #. placeholder {0}: pendingRevert.clientCount
@@ -138,11 +143,6 @@ msgstr "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 #: src/routes/obligations.tsx
 msgid "{0, plural, one {# deadline} other {# deadlines}}"
 msgstr "{0, plural, one {# deadline} other {# deadlines}}"
-
-#. placeholder {0}: conflicts.length
-#: src/features/migration/Step4Preview.tsx
-msgid "{0, plural, one {# imported client matches an existing client by EIN.} other {# imported clients match existing clients by EIN.}}"
-msgstr "{0, plural, one {# imported client matches an existing client by EIN.} other {# imported clients match existing clients by EIN.}}"
 
 #. placeholder {0}: summary.needsReviewCount
 #: src/features/dashboard/at-a-glance-section.tsx
@@ -414,6 +414,11 @@ msgstr "{0} extended"
 msgid "{0} filings extended — payment is NOT extended"
 msgstr "{0} filings extended — payment is NOT extended"
 
+#. placeholder {0}: data.importedByEmail
+#: src/features/migration/SuccessModal.tsx
+msgid "{0} imported"
+msgstr "{0} imported"
+
 #. placeholder {0}: pendingBatch?.successCount ?? 0
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "{0} imported clients and their generated deadlines"
@@ -638,10 +643,6 @@ msgstr "{checklistCount, plural, one {No client materials received yet; # item i
 #: src/routes/obligations.tsx
 msgid "{checklistCount} checklist items weren't individually ticked during filing."
 msgstr "{checklistCount} checklist items weren't individually ticked during filing."
-
-#: src/features/migration/Wizard.tsx
-msgid "{clientPart}, {obligationPart} created"
-msgstr "{clientPart}, {obligationPart} created"
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{clientsCount} active clients"
@@ -1138,6 +1139,10 @@ msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · 
 #: src/features/migration/Step3Normalize.tsx
 msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · all matched"
 msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · all matched"
+
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "~5 minutes of focused work"
+msgstr "~5 minutes of focused work"
 
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "0"
@@ -1650,6 +1655,10 @@ msgstr "Add workpaper"
 msgid "Added evidence to this deadline."
 msgstr "Added evidence to this deadline."
 
+#: src/features/migration/SuccessModal.tsx
+msgid "added to your client list"
+msgstr "added to your client list"
+
 #: src/features/obligations/CreateObligationDialog.tsx
 msgid "Adding…"
 msgstr "Adding…"
@@ -2107,6 +2116,10 @@ msgstr "All types"
 msgid "Allowed"
 msgstr "Allowed"
 
+#: src/features/migration/Step4Preview.tsx
+msgid "Already"
+msgstr "Already"
+
 #: src/features/rules/coverage-tab.tsx
 #: src/routes/billing.checkout.tsx
 msgid "Already active"
@@ -2119,10 +2132,6 @@ msgstr "Already applied"
 #: src/features/migration/Step4Preview.tsx
 msgid "Already in your client list"
 msgstr "Already in your client list"
-
-#: src/features/migration/Step4Preview.tsx
-msgid "Already in your list"
-msgstr "Already in your list"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid."
@@ -2655,6 +2664,11 @@ msgstr "Basic"
 msgid "Basic AI"
 msgstr "Basic AI"
 
+#. placeholder {0}: shortBatchId(data.batchId)
+#: src/features/migration/SuccessModal.tsx
+msgid "Batch #{0} · countdown: {countdown} · single-client undo also available from any client page"
+msgstr "Batch #{0} · countdown: {countdown} · single-client undo also available from any client page"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "BATCH REVIEW NOTE"
 msgstr "BATCH REVIEW NOTE"
@@ -2787,6 +2801,10 @@ msgstr "Brewing your briefing…"
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Brief scope"
 msgstr "Brief scope"
+
+#: src/features/migration/SuccessModal.tsx
+msgid "Browse your first deadlines"
+msgstr "Browse your first deadlines"
 
 #: src/features/migration/WizardShell.tsx
 msgid "Building the import preview"
@@ -3506,6 +3524,7 @@ msgid "Client unsubscribed"
 msgstr "Client unsubscribed"
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/migration/SuccessModal.tsx
 msgid "clients"
 msgstr "clients"
 
@@ -3513,6 +3532,7 @@ msgstr "clients"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/clients/ClientDetailWorkspace.tsx
+#: src/features/migration/Step4Preview.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/routes/clients.tsx
 #: src/routes/onboarding.tsx
@@ -3613,6 +3633,10 @@ msgstr "Column mappings"
 msgid "Columns — {visibleHideableCount} of {totalHideableCount} visible"
 msgstr "Columns — {visibleHideableCount} of {totalHideableCount} visible"
 
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "Come back from Clients → Import any time"
+msgstr "Come back from Clients → Import any time"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Coming from a specific tool? (Optional — we auto-detect from uploaded files.)"
 msgstr "Coming from a specific tool? (Optional — we auto-detect from uploaded files.)"
@@ -3659,6 +3683,7 @@ msgid "conf {confidencePct}%"
 msgstr "conf {confidencePct}%"
 
 #: src/features/audit/audit-event-drawer.tsx
+#: src/features/migration/Step2Mapping.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Confidence"
 msgstr "Confidence"
@@ -3745,6 +3770,10 @@ msgstr "Confirm projected"
 #: src/routes/obligations.tsx
 msgid "Confirm projected deadlines so they enter the reminder pipeline"
 msgstr "Confirm projected deadlines so they enter the reminder pipeline"
+
+#: src/features/migration/SuccessModal.tsx
+msgid "Confirm state calendars before their deadlines fan out"
+msgstr "Confirm state calendars before their deadlines fan out"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Confirm the new date and deadlines before applying"
@@ -4640,6 +4669,10 @@ msgstr "Custom rule created"
 msgid "Custom rules currently need to be created from a missing-rule row in the table below so the jurisdiction and entity are unambiguous. Close this dialog and click \"+ Add rule\" on the row you want to fill in."
 msgstr "Custom rules currently need to be created from a missing-rule row in the table below so the jurisdiction and entity are unambiguous. Close this dialog and click \"+ Add rule\" on the row you want to fill in."
 
+#: src/features/migration/SuccessModal.tsx
+msgid "Customise reminder templates"
+msgstr "Customise reminder templates"
+
 #: src/features/obligations/CompletedKeyDates.tsx
 msgid "Cycle time"
 msgstr "Cycle time"
@@ -4812,6 +4845,7 @@ msgid "Deadline workflow detail panel."
 msgstr "Deadline workflow detail panel."
 
 #: src/features/audit/audit-log-labels.ts
+#: src/features/migration/SuccessModal.tsx
 msgid "deadlines"
 msgstr "deadlines"
 
@@ -4820,6 +4854,7 @@ msgstr "deadlines"
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/concepts/concept-help.tsx
+#: src/features/migration/Step4Preview.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
@@ -4850,10 +4885,6 @@ msgstr "Deadlines export"
 #: src/features/audit/audit-log-labels.ts
 msgid "Deadlines exported"
 msgstr "Deadlines exported"
-
-#: src/features/migration/Step4Preview.tsx
-msgid "Deadlines to generate"
-msgstr "Deadlines to generate"
 
 #: src/routes/login.tsx
 msgid "DEADLINES TRACKED"
@@ -5265,6 +5296,10 @@ msgstr "Due-date extension"
 msgid "DueDateHQ does not store card numbers or invoice payment data."
 msgstr "DueDateHQ does not store card numbers or invoice payment data."
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "DueDateHQ field"
+msgstr "DueDateHQ field"
+
 #: src/routes/practice.tsx
 msgid "DueDateHQ only auto-generates active filing plans from statutory deadlines on or after this date."
 msgstr "DueDateHQ only auto-generates active filing plans from statutory deadlines on or after this date."
@@ -5456,6 +5491,10 @@ msgstr "Email address"
 msgid "Email body"
 msgstr "Email body"
 
+#: src/features/migration/SuccessModal.tsx
+msgid "Email copy + reply-to before turning rules on"
+msgstr "Email copy + reply-to before turning rules on"
+
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Email me a code"
 msgstr "Email me a code"
@@ -5480,6 +5519,10 @@ msgstr "Email updates"
 #: src/routes/obligations.tsx
 msgid "Email will be queued"
 msgstr "Email will be queued"
+
+#: src/features/migration/SuccessModal.tsx
+msgid "emails sent"
+msgstr "emails sent"
 
 #: src/routes/rules.library.tsx
 msgid "Empty rule catalog"
@@ -6599,6 +6642,10 @@ msgstr "Generate Tax Year {targetTaxYear} deadlines?"
 msgid "Generated by AI"
 msgstr "Generated by AI"
 
+#: src/features/migration/SuccessModal.tsx
+msgid "generated from your rules"
+msgstr "generated from your rules"
+
 #: src/features/migration/WizardShell.tsx
 msgid "Generating deadlines…"
 msgstr "Generating deadlines…"
@@ -6732,6 +6779,14 @@ msgstr "Identity facts that drive the deadline generator"
 msgid "Identity, team, and capacity for this practice workspace."
 msgstr "Identity, team, and capacity for this practice workspace."
 
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "If you import now"
+msgstr "If you import now"
+
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "If you skip"
+msgstr "If you skip"
+
 #: src/features/migration/mapping-target-labels.ts
 msgid "Ignore this column"
 msgstr "Ignore this column"
@@ -6760,6 +6815,10 @@ msgstr "Import & Generate creates the clients, deadlines, evidence, and audit re
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Import a CSV or create the first manual client record."
 msgstr "Import a CSV or create the first manual client record."
+
+#: src/features/migration/SuccessModal.tsx
+msgid "Import another file"
+msgstr "Import another file"
 
 #: src/features/migration/Step4Preview.tsx
 msgid "Import as new"
@@ -6798,7 +6857,7 @@ msgstr "Import clients (requires {0} access)"
 msgid "Import clients from CSV to populate the directory faster."
 msgstr "Import clients from CSV to populate the directory faster."
 
-#: src/features/migration/Wizard.tsx
+#: src/features/migration/SuccessModal.tsx
 msgid "Import complete"
 msgstr "Import complete"
 
@@ -6923,6 +6982,10 @@ msgstr "In the client export/report screen, select the clients and fields to exp
 #: src/features/migration/Step1Intake.tsx
 msgid "In the Clients tab, highlight the clients to export."
 msgstr "In the Clients tab, highlight the clients to export."
+
+#: src/features/migration/Step4Preview.tsx
+msgid "in your client list"
+msgstr "in your client list"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "In-app"
@@ -7375,6 +7438,11 @@ msgstr "List"
 #: src/features/migration/Step2Mapping.tsx
 msgid "List of US state codes"
 msgstr "List of US state codes"
+
+#. placeholder {0}: data.obligationCount
+#: src/features/migration/SuccessModal.tsx
+msgid "Live on your dashboard. {0, plural, one {# deadline is now scheduled} other {# deadlines are now scheduled}}. Nothing will email a client until you turn the matching rule on."
+msgstr "Live on your dashboard. {0, plural, one {# deadline is now scheduled} other {# deadlines are now scheduled}}. Nothing will email a client until you turn the matching rule on."
 
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
@@ -8147,6 +8215,10 @@ msgstr "Morning digest schedule and the channels DueDateHQ uses to reach you."
 msgid "Morning sweep"
 msgstr "Morning sweep"
 
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "Most firms come back to import within 3 days — we'll send you a reminder."
+msgstr "Most firms come back to import within 3 days — we'll send you a reminder."
+
 #. placeholder {0}: formatDueDate(mostOverdue.currentDueDate)
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "Most overdue open deadline · due {0}"
@@ -8871,6 +8943,10 @@ msgstr "No practice selected"
 msgid "No previous client"
 msgstr "No previous client"
 
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "No problem — you can import your clients any time from Clients → Import. Here's what changes if you skip now:"
+msgstr "No problem — you can import your clients any time from Clients → Import. Here's what changes if you skip now:"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "No production records"
 msgstr "No production records"
@@ -8922,6 +8998,10 @@ msgstr "No rules match \"{query}\"."
 #: src/routes/rules.library.tsx
 msgid "No rules yet for {0}."
 msgstr "No rules yet for {0}."
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "No sample"
+msgstr "No sample"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "No sample values available."
@@ -9401,6 +9481,10 @@ msgstr "Open client to fix entity"
 #: src/features/migration/Step1Intake.tsx
 msgid "Open Contacts and select the cloud export icon; Admin access may be required."
 msgstr "Open Contacts and select the cloud export icon; Admin access may be required."
+
+#: src/features/migration/SuccessModal.tsx
+msgid "Open dashboard"
+msgstr "Open dashboard"
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Open deadline"
@@ -10125,6 +10209,10 @@ msgstr "Personal inbox"
 #: src/routes/settings.tsx
 msgid "Personal morning digest preferences and types."
 msgstr "Personal morning digest preferences and types."
+
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "Personalised digest tomorrow morning"
+msgstr "Personalised digest tomorrow morning"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Phone number"
@@ -11354,6 +11442,7 @@ msgid "Revert"
 msgstr "Revert"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
+#: src/features/migration/SuccessModal.tsx
 msgid "Revert batch"
 msgstr "Revert batch"
 
@@ -11572,6 +11661,10 @@ msgstr "Review workspace"
 msgid "Review your column mappings"
 msgstr "Review your column mappings"
 
+#: src/features/migration/SuccessModal.tsx
+msgid "Review your jurisdictions"
+msgstr "Review your jurisdictions"
+
 #: src/features/concepts/concept-help.tsx
 msgid "Review-only rule"
 msgstr "Review-only rule"
@@ -11684,6 +11777,10 @@ msgstr "Risk view"
 #: src/features/members/members-page.tsx
 msgid "Role"
 msgstr "Role"
+
+#: src/features/migration/SuccessModal.tsx
+msgid "Roll back this import within 24 hours, no questions asked"
+msgstr "Roll back this import within 24 hours, no questions asked"
 
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
@@ -11901,6 +11998,10 @@ msgstr "Rules accepted"
 msgid "Rules accepted in bulk"
 msgstr "Rules accepted in bulk"
 
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "Rules are watching but no deadlines yet"
+msgstr "Rules are watching but no deadlines yet"
+
 #: src/features/alerts/components/ReverifyRulesSection.tsx
 msgid "Rules to re-verify"
 msgstr "Rules to re-verify"
@@ -11957,6 +12058,14 @@ msgstr "same day"
 #: src/routes/billing.tsx
 msgid "Same Practice AI as Pro"
 msgstr "Same Practice AI as Pro"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Sample (first row)"
+msgstr "Sample (first row)"
+
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "Sample data on your dashboard"
+msgstr "Sample data on your dashboard"
 
 #: src/features/migration/Step2Mapping.tsx
 msgid "Sample values"
@@ -12233,6 +12342,14 @@ msgstr "Security settings couldn't load"
 #: src/features/dashboard/actions-list.tsx
 msgid "See full deadline list"
 msgstr "See full deadline list"
+
+#: src/features/migration/SuccessModal.tsx
+msgid "see them on Today"
+msgstr "see them on Today"
+
+#: src/features/migration/SuccessModal.tsx
+msgid "See what's due next on Today"
+msgstr "See what's due next on Today"
 
 #. placeholder {0}: formatTaxCode(obligation.taxType)
 #. placeholder {0}: row.clientName
@@ -12761,9 +12878,14 @@ msgstr "Skip and import clients first"
 msgid "Skip duplicates"
 msgstr "Skip duplicates"
 
+#: src/features/migration/OnboardingSkipModal.tsx
 #: src/routes/migration.new.tsx
 msgid "Skip for now"
 msgstr "Skip for now"
+
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "Skip importing for now?"
+msgstr "Skip importing for now?"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -12967,6 +13089,10 @@ msgstr "Source #{0} · retrieved {1}"
 #: src/features/rules/coverage-tab.tsx
 msgid "Source changed requires single-rule review"
 msgstr "Source changed requires single-rule review"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Source column"
+msgstr "Source column"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Source deadlines"
@@ -13195,6 +13321,10 @@ msgstr "Status: {value}"
 #: src/routes/obligations.tsx
 msgid "Statutory deadline"
 msgstr "Statutory deadline"
+
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "Stay and import"
+msgstr "Stay and import"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -14076,6 +14206,14 @@ msgstr "Timezone"
 msgid "Title"
 msgstr "Title"
 
+#: src/features/migration/Step4Preview.tsx
+msgid "to create"
+msgstr "to create"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "to generate"
+msgstr "to generate"
+
 #: src/components/primitives/due-date-label.tsx
 msgid "today"
 msgstr "today"
@@ -14393,6 +14531,10 @@ msgstr "Unsaved changes · calculate a preview to see the impact"
 msgid "Upcoming"
 msgstr "Upcoming"
 
+#: src/features/migration/SuccessModal.tsx
+msgid "upcoming · 30 days"
+msgstr "upcoming · 30 days"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Upcoming schedule"
 msgstr "Upcoming schedule"
@@ -14680,6 +14822,10 @@ msgstr "View audit detail"
 msgid "View audit log"
 msgstr "View audit log"
 
+#: src/features/migration/SuccessModal.tsx
+msgid "View audit log entry"
+msgstr "View audit log entry"
+
 #: src/routes/billing.checkout.tsx
 msgid "View billing"
 msgstr "View billing"
@@ -14889,6 +15035,10 @@ msgstr "What stays in DueDateHQ"
 msgid "What this evidence says"
 msgstr "What this evidence says"
 
+#: src/features/migration/SuccessModal.tsx
+msgid "What to do next"
+msgstr "What to do next"
+
 #: src/features/dashboard/actions-list.tsx
 msgid "What's in this list"
 msgstr "What's in this list"
@@ -15090,6 +15240,10 @@ msgstr "You can view status but only preparers, managers, partners, or owners ca
 msgid "You changed this mapping."
 msgstr "You changed this mapping."
 
+#: src/features/migration/SuccessModal.tsx
+msgid "you control when"
+msgstr "you control when"
+
 #: src/lib/i18n-error.ts
 msgid "You don't have permission to perform this action."
 msgstr "You don't have permission to perform this action."
@@ -15138,6 +15292,10 @@ msgstr "you@yourpractice.com"
 msgid "Your account isn't linked to a practice yet."
 msgstr "Your account isn't linked to a practice yet."
 
+#: src/features/migration/SuccessModal.tsx
+msgid "Your clients and deadlines were created. You can undo this import within 24 hours."
+msgstr "Your clients and deadlines were created. You can undo this import within 24 hours."
+
 #: src/features/dashboard/actions-list.tsx
 msgid "Your clients are imported, but no future deadlines have been generated. Check client filing profiles or Rule Library for what's pending."
 msgstr "Your clients are imported, but no future deadlines have been generated. Check client filing profiles or Rule Library for what's pending."
@@ -15177,6 +15335,10 @@ msgstr "Your practice is suspended. Contact support to restore access."
 #: src/routes/billing.success.tsx
 msgid "Your practice plan is ready."
 msgstr "Your practice plan is ready."
+
+#: src/features/migration/OnboardingSkipModal.tsx
+msgid "Your real clients on day one"
+msgstr "Your real clients on day one"
 
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "Your review queue is empty"
