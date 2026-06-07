@@ -82,24 +82,28 @@ function createEmailSender(env: ServerEnv): AuthEmailSender {
     async sendSignInOtpEmail(message) {
       const locale = getRequestLocale()
       const subject = translate(locale, 'signInOtp.subject')
+      // Body no longer inlines the code — the code renders large below, so the
+      // body is just the supporting instruction + expiry.
       const body = translate(locale, 'signInOtp.body', {
-        otp: escapeHtml(message.otp),
         expiresInMinutes: String(message.expiresInMinutes),
       })
       const cta = translate(locale, 'signInOtp.cta')
-      // Hybrid sign-in: the body carries the 6-digit code (type it in), and this
-      // button is a deep link back to /login pre-loaded with the same email+code
-      // so a tap auto-fills and submits the verify step. No password, no separate
-      // magic-link token — the link just replays the OTP the user already received.
+      // The 6-digit code in large, readable text (type it in)…
+      const codeBlock = `<p style="margin:0 0 12px;font-size:32px;font-weight:700;letter-spacing:0.18em;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace">${escapeHtml(message.otp)}</p>`
+      // …plus a deep link back to /login pre-loaded with the same email + code so
+      // a tap auto-fills and submits the verify step. No password, no separate
+      // magic-link token — the link just replays the OTP the user received.
+      // `continue` is the post-sign-in target; OTP send has no redirect context,
+      // so it's empty here and /login falls back to `/` on success.
       const signInUrl = absoluteUrl(
         env,
-        `/login?email=${encodeURIComponent(message.to)}&code=${encodeURIComponent(message.otp)}`,
+        `/login?email=${encodeURIComponent(message.to)}&code=${encodeURIComponent(message.otp)}&continue=`,
       )
       const button = `<p><a href="${escapeHtml(signInUrl)}" style="display:inline-block;padding:10px 18px;background:#111827;color:#ffffff;border-radius:8px;text-decoration:none;font-weight:600;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif">${escapeHtml(cta)}</a></p>`
       await sendEmail({
         to: message.to,
         subject,
-        html: `<p>${body}</p>${button}`,
+        html: `${codeBlock}<p>${body}</p>${button}`,
       })
     },
   }

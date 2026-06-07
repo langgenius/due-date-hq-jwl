@@ -75,12 +75,16 @@ export function LoginRoute() {
   const navigate = useNavigate()
   const redirectToParam = search.get('redirectTo')
   const redirectTo = isInAppPath(redirectToParam) ? redirectToParam : '/'
-  // Email deep link (`/login?email=&code=`): hand these to the OTP form so it
-  // auto-fills and submits the verify step. Their presence also suppresses Google
-  // One Tap so the auto-verify isn't interrupted by a competing prompt.
+  // Email deep link (`/login?email=&code=&continue=`): hand the email + code to
+  // the OTP form so it auto-fills and submits the verify step. Their presence also
+  // suppresses Google One Tap so the auto-verify isn't interrupted by a competing
+  // prompt. `continue` is the post-sign-in target from the link; prefer it (when
+  // in-app) over the page's own `redirectTo`, falling back to `/`.
   const linkEmail = search.get('email')
   const linkCode = search.get('code')
+  const continueParam = search.get('continue')
   const hasEmailLink = Boolean(linkEmail && linkCode)
+  const postSignInTarget = isInAppPath(continueParam) ? continueParam : redirectTo
   const { t } = useLingui()
   const capabilitiesQuery = useQuery({
     queryKey: ['auth-capabilities'],
@@ -251,7 +255,7 @@ export function LoginRoute() {
             initialCode={linkCode ?? undefined}
             onInteraction={() => setEmailFlowActive(true)}
             onPendingChange={setEmailBusy}
-            onSignedIn={() => navigate(redirectTo, { replace: true })}
+            onSignedIn={() => navigate(postSignInTarget, { replace: true })}
           />
         </>
       ) : null}

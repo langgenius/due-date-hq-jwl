@@ -19,8 +19,7 @@ const CATALOGS: Record<Locale, MessageTable> = {
     'invitation.body': '{inviterName} invited you to join {organizationName} as {role}.',
     'invitation.cta': 'Accept invitation',
     'signInOtp.subject': 'Your DueDateHQ sign-in code',
-    'signInOtp.body':
-      'Your DueDateHQ sign-in code is {otp}. It expires in {expiresInMinutes} minutes.',
+    'signInOtp.body': 'Enter this code to sign in. It expires in {expiresInMinutes} minutes.',
     'signInOtp.cta': 'Sign in to DueDateHQ',
   },
   'zh-CN': {
@@ -28,8 +27,7 @@ const CATALOGS: Record<Locale, MessageTable> = {
     'invitation.body': '{inviterName} 邀请您以 {role} 身份加入 {organizationName}。',
     'invitation.cta': '接受邀请',
     'signInOtp.subject': '您的 DueDateHQ 登录验证码',
-    'signInOtp.body':
-      '您的 DueDateHQ 登录验证码是 {otp}。验证码将在 {expiresInMinutes} 分钟后过期。',
+    'signInOtp.body': '输入此验证码即可登录，验证码将在 {expiresInMinutes} 分钟后过期。',
     'signInOtp.cta': '登录 DueDateHQ',
   },
 }
