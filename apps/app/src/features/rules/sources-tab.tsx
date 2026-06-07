@@ -1,9 +1,11 @@
-import { useCallback, useMemo, useState } from 'react'
+import { Fragment, useCallback, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon, RefreshCwIcon } from 'lucide-react'
 import { toast } from 'sonner'
+
+import { cn } from '@duedatehq/ui/lib/utils'
 
 import type { PulseAlertSourceCoverage, PulseSourceHealth, RuleSource } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -91,8 +93,33 @@ export function SourcesTab() {
     ? (retryMutation.variables?.sourceId ?? null)
     : null
 
+  // Rule catalog size powers the "Rules derived" KPI (Pencil bf6Ni KPI
+  // strip). Reuses the same `listRules` payload the library already
+  // fetches, so it's a warm cache hit in practice.
+  const rulesQuery = useQuery(
+    orpc.rules.listRules.queryOptions({ input: { includeCandidates: true } }),
+  )
+
   const rows = useMemo(() => sourcesQuery.data ?? EMPTY_SOURCE_ROWS, [sourcesQuery.data])
   const counts = useMemo(() => countSourcesByHealth(rows), [rows])
+  // KPI strip stats (Pencil bf6Ni). Derived from the wired source +
+  // health + rule payloads — no new query.
+  const kpiStats = useMemo(() => {
+    const healthEntries = sourceHealthQuery.data?.sources ?? []
+    const dayAgo = Date.now() - 24 * 60 * 60 * 1000
+    let fetched24h = 0
+    let failed = 0
+    for (const entry of healthEntries) {
+      if (entry.lastCheckedAt && new Date(entry.lastCheckedAt).getTime() >= dayAgo) fetched24h += 1
+      if (entry.consecutiveFailures > 0 || entry.lastError) failed += 1
+    }
+    return {
+      feedsMonitored: rows.length,
+      rulesDerived: rulesQuery.data?.length ?? null,
+      fetched24h,
+      failed,
+    }
+  }, [rows.length, rulesQuery.data, sourceHealthQuery.data])
   const sourceTypeLabels = useMemo<SourceTypeLabelMap>(
     () => ({
       calendar: t`Calendar`,
@@ -176,7 +203,17 @@ export function SourcesTab() {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
+      {/* KPI strip (Pencil bf6Ni) — feed health at a glance. Four stats
+          in one bordered card, mono values, vertical hairline dividers.
+          Mirrors the JurisdictionKpiStrip family already shipped on the
+          library overview. */}
+      <SourcesKpiStrip
+        feedsMonitored={kpiStats.feedsMonitored}
+        rulesDerived={kpiStats.rulesDerived}
+        fetched24h={kpiStats.fetched24h}
+        failed={kpiStats.failed}
+      />
       <div className="flex items-center gap-4">
         <FilterChips
           options={filterOptions}
@@ -302,6 +339,75 @@ export function SourcesTab() {
       </SectionFrame>
 
       <SourceCoverageSection />
+    </div>
+  )
+}
+
+/**
+ * SourcesKpiStrip — the 4-stat band above the Sources table (Pencil
+ * bf6Ni KPI Strip): FEEDS MONITORED · RULES DERIVED · FETCHED LAST 24H ·
+ * FAILED FETCHES. One bordered card, mono values, vertical hairline
+ * dividers, tone-colored "failed" value (success-green at 0, destructive
+ * otherwise). Same visual contract as the library overview's KPI strip.
+ */
+function SourcesKpiStrip({
+  feedsMonitored,
+  rulesDerived,
+  fetched24h,
+  failed,
+}: {
+  feedsMonitored: number
+  rulesDerived: number | null
+  fetched24h: number
+  failed: number
+}) {
+  const { t } = useLingui()
+  const stats: Array<{ key: string; label: string; value: string; valueClass: string }> = [
+    {
+      key: 'feeds',
+      label: t`Feeds monitored`,
+      value: String(feedsMonitored),
+      valueClass: 'text-text-primary',
+    },
+    {
+      key: 'rules',
+      label: t`Rules derived`,
+      // TODO(data): no per-source derived-rule count in the RuleSource
+      // contract — falls back to the total rule-catalog size, and to an
+      // em-dash while that query is in flight.
+      value: rulesDerived === null ? '—' : String(rulesDerived),
+      valueClass: 'text-text-primary',
+    },
+    {
+      key: 'fetched',
+      label: t`Fetched last 24h`,
+      value: String(fetched24h),
+      valueClass: 'text-text-primary',
+    },
+    {
+      key: 'failed',
+      label: t`Failed fetches`,
+      value: String(failed),
+      valueClass: failed > 0 ? 'text-text-destructive' : 'text-text-success',
+    },
+  ]
+  return (
+    <div className="flex shrink-0 items-center rounded-xl border border-divider-subtle bg-background-default px-2 py-[18px]">
+      {stats.map((stat, index) => (
+        <Fragment key={stat.key}>
+          {index > 0 ? (
+            <span className="h-[42px] w-px shrink-0 bg-divider-subtle" aria-hidden />
+          ) : null}
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5 px-[22px]">
+            <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
+              {stat.label}
+            </span>
+            <span className={cn('font-mono text-2xl font-semibold tabular-nums', stat.valueClass)}>
+              {stat.value}
+            </span>
+          </div>
+        </Fragment>
+      ))}
     </div>
   )
 }
@@ -511,10 +617,17 @@ function SourceRow({
         </a>
       </TableCell>
       <TableCell className="px-0 py-1.5">
-        <JurisdictionCode code={source.jurisdiction} />
+        {/* Accent-tinted jurisdiction pill (Pencil bf6Ni) — mono code on
+            a soft accent fill, matching the canvas Sources table. */}
+        <span className="inline-flex items-center rounded-full bg-state-accent-hover px-2 py-0.5 font-mono text-xs font-semibold text-text-accent">
+          {source.jurisdiction}
+        </span>
       </TableCell>
-      <TableCell className="px-2 py-1.5 text-xs text-text-secondary">
-        {sourceTypeLabel(source.sourceType, sourceTypeLabels)}
+      <TableCell className="px-2 py-1.5">
+        {/* Subtle type pill (Pencil bf6Ni). */}
+        <span className="inline-flex items-center rounded-full bg-background-subtle px-2 py-0.5 text-xs font-medium text-text-secondary">
+          {sourceTypeLabel(source.sourceType, sourceTypeLabels)}
+        </span>
       </TableCell>
       <TableCell className="px-2 py-1.5 text-xs text-text-secondary">
         {source.cadence.replace('_', '-')}
