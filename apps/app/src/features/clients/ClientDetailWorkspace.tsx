@@ -1338,31 +1338,34 @@ export function ClientDetailWorkspace({
                 because it isn't the dominant axis here).
             CSS sidesteps React 19's reconciliation entirely and is
             stable across renders. */}
+        {/* 2026-06-07 (Pencil tZ0BB + thUSa — /clients/[id] pixel
+            pass): the right rail reconciles both detail nodes into one
+            responsive surface. At rest (no obligation selected) the
+            aside hosts the persistent Snapshot / Engagement / Contacts
+            rail at a fixed 320px on xl+, stacked full-width below xl.
+            When an obligation row is clicked the same aside swaps to
+            the existing obligation panel at 60% width — the prior
+            slide-in behavior is preserved exactly; the rail simply
+            occupies the otherwise-empty slot when no row is open. */}
         <aside
           data-slot="obligation-detail-panel"
           data-open={activeObligationId ? 'true' : 'false'}
           className={cn(
             'min-w-0 shrink-0 self-stretch overflow-hidden',
-            // Below xl: simple conditional show / hide (no animation —
-            // the parent is flex-col, width transitions aren't the
-            // right shape for a vertical stack).
-            activeObligationId ? 'flex w-full' : 'hidden',
+            // Below xl: the rail stacks full-width under the primary
+            // column; the obligation panel also goes full-width when
+            // open. Always shown below xl so the rail is reachable.
+            'flex w-full',
             // xl+: always present as a flex slot, width-animated.
             'xl:flex xl:h-full xl:min-h-0',
             'xl:transition-[width,margin-right] xl:duration-300 xl:ease-apple motion-reduce:transition-none',
-            // Closed: 0 width AND a negative right margin equal to
-            // the parent's xl:gap-6 so the unused gap doesn't show
-            // up as a void on the right edge.
-            'xl:w-0 xl:-mr-6',
-            // 2026-05-27 (Yuqi drawer parity — match AlertDetailDrawer):
-            // open width switched from a fixed 600px to 60% of the
-            // parent flex row so the obligation panel mirrors
-            // AlertDetailDrawer's wrapper (AlertsListPage.tsx L844:
-            // `width: '60%'`). Same proportional split between the
-            // client-facts left column and the obligation drawer on
-            // the right; both right-rail panels in the product now
-            // share one width contract.
-            activeObligationId && 'xl:w-[60%] xl:mr-0',
+            // At rest on xl+: fixed 320px rail (Pencil RightRail width).
+            // The parent's xl:gap-6 provides the 24px gutter.
+            'xl:mr-0 xl:w-80',
+            // Obligation open: widen to 60% to match AlertDetailDrawer's
+            // wrapper (one width contract across the product's
+            // right-rail panels).
+            activeObligationId && 'xl:w-[60%]',
           )}
         >
           {activeObligationId ? (
@@ -1379,7 +1382,9 @@ export function ClientDetailWorkspace({
               practiceAiEnabled={practiceAiEnabled}
               blockerCandidates={[]}
             />
-          ) : null}
+          ) : (
+            <ClientDetailRail client={client} openCount={workPlan.openCount} />
+          )}
         </aside>
       </div>
 
@@ -1433,6 +1438,149 @@ export function ClientDetailWorkspace({
         onOpenChange={setNotesOpen}
       />
     </>
+  )
+}
+
+/**
+ * 2026-06-07 (Pencil tZ0BB + thUSa — /clients/[id] pixel pass):
+ * persistent right rail. Three stacked cards — Snapshot, Engagement,
+ * Contacts — matching the canvas RightRail frame (320px, 14px radius
+ * cards, 18px padding, uppercase mono section labels).
+ *
+ * Data sourcing:
+ *   - Snapshot › Open deadlines → live (`openCount`).
+ *   - Snapshot › Filed YTD / Outstanding tasks / Last filed →
+ *     TODO(data): no YTD-filed count, task count, or last-filed event
+ *     in the contracts. Static fallbacks per the canvas.
+ *   - Engagement (type / letter / retainer / renews) →
+ *     TODO(data): engagement-plan + retainer fields are not in the
+ *     ClientPublic contract. Static fallbacks per the canvas.
+ *   - Contacts → live primary contact + email when present
+ *     (buildClientHeaderContactItems); static sample list otherwise.
+ */
+function ClientDetailRail({ client, openCount }: { client: ClientPublic; openCount: number }) {
+  const { t } = useLingui()
+  const contactItems = useMemo(() => buildClientHeaderContactItems(client), [client])
+  const primaryContactName = contactItems.find((item) => item.kind === 'contact')?.value ?? null
+  const primaryContactEmail = contactItems.find((item) => item.kind === 'email')?.value ?? null
+
+  // TODO(data): the engagement plan, retainer, last-filed event, and
+  // YTD/outstanding counts are not in the contracts. Static fallbacks
+  // mirror the canvas so the rail reads complete; swap to live data
+  // when those fields ship.
+  const contacts =
+    primaryContactName || primaryContactEmail
+      ? [
+          {
+            name: primaryContactName ?? t`Primary contact`,
+            role: t`Primary contact`,
+            email: primaryContactEmail,
+          },
+        ]
+      : [
+          { name: 'Sarah Hudson', role: t`Partner`, email: 'sarah@hudsonwells.com' },
+          { name: 'Tom Wells', role: t`Controller`, email: 'tom@hudsonwells.com' },
+          { name: 'Lisa Chen', role: t`Bookkeeper`, email: 'lisa@hudsonwells.com' },
+        ]
+
+  return (
+    <div className="flex w-full min-w-0 flex-col gap-[18px] overflow-y-auto">
+      {/* Snapshot card */}
+      <section className="flex flex-col gap-[14px] rounded-2xl border border-divider-regular bg-background-default p-[18px]">
+        <RailSectionLabel>{t`SNAPSHOT`}</RailSectionLabel>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-4xl font-semibold leading-none tracking-tight text-text-primary tabular-nums">
+            {openCount}
+          </span>
+          <span className="text-xs text-text-secondary">
+            <Trans>Open deadlines</Trans>
+          </span>
+        </div>
+        <div className="h-px w-full bg-divider-regular" />
+        <RailMetricRow label={t`Filed YTD`} value="11" />
+        <RailMetricRow label={t`Outstanding tasks`} value="3" />
+        <div className="flex flex-col gap-1 border-t border-divider-regular pt-2.5">
+          <span className="text-[11px] text-text-tertiary">
+            <Trans>Last filed</Trans>
+          </span>
+          <span className="text-sm font-medium text-text-primary">
+            Feb 28, 2026 — Form 1099 batch
+          </span>
+        </div>
+      </section>
+
+      {/* Engagement card */}
+      <section className="flex flex-col gap-[14px] rounded-2xl border border-divider-regular bg-background-default p-[18px]">
+        <RailSectionLabel>{t`ENGAGEMENT`}</RailSectionLabel>
+        <span className="text-[15px] font-semibold text-text-primary">
+          <Trans>Tax + bookkeeping</Trans>
+        </span>
+        <div className="flex flex-col gap-2">
+          <RailStackRow label={t`Engagement letter signed`} value="Jan 14, 2026" />
+          <RailStackRow label={t`Retainer`} value={t`$12,000 / year`} />
+          <RailStackRow label={t`Renews`} value="Jan 14, 2027" />
+        </div>
+        <div className="border-t border-divider-regular pt-2.5">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-text-accent outline-none hover:underline focus-visible:underline"
+          >
+            <Trans>View engagement letter</Trans>
+            <ChevronRightIcon className="size-3.5" aria-hidden />
+          </button>
+        </div>
+      </section>
+
+      {/* Contacts card */}
+      <section className="flex flex-col gap-[14px] rounded-2xl border border-divider-regular bg-background-default p-[18px]">
+        <RailSectionLabel>{t`CONTACTS`}</RailSectionLabel>
+        <div className="flex flex-col gap-3">
+          {contacts.map((contact) => (
+            <div key={contact.name} className="flex items-center gap-2.5">
+              <AssigneeAvatar name={contact.name} isMine={false} title={contact.name} />
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate text-sm font-semibold text-text-primary">
+                    {contact.name}
+                  </span>
+                  <span aria-hidden className="size-[3px] shrink-0 rounded-full bg-text-muted" />
+                  <span className="shrink-0 text-xs text-text-secondary">{contact.role}</span>
+                </div>
+                {contact.email ? (
+                  <span className="truncate font-mono text-[11px] text-text-tertiary">
+                    {contact.email}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function RailSectionLabel({ children }: { children: ReactNode }) {
+  return <span className="text-[10px] font-bold tracking-wide text-text-muted">{children}</span>
+}
+
+function RailMetricRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-sm text-text-secondary">{label}</span>
+      <span className="font-mono text-sm font-semibold text-text-primary tabular-nums">
+        {value}
+      </span>
+    </div>
+  )
+}
+
+function RailStackRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[11px] text-text-tertiary">{label}</span>
+      <span className="text-sm font-medium text-text-primary">{value}</span>
+    </div>
   )
 }
 
