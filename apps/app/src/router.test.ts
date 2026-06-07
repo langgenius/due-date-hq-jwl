@@ -82,7 +82,11 @@ function makeArgs(url: string) {
   return { request: new Request(url) } as unknown as Parameters<typeof protectedLoader>[0]
 }
 
-async function expectRedirectTo(promise: Promise<unknown>, expected: string): Promise<void> {
+async function expectRedirectTo(
+  promise: Promise<unknown>,
+  expected: string,
+  expectedStatus = 302,
+): Promise<void> {
   let thrown: unknown
   try {
     await promise
@@ -91,7 +95,7 @@ async function expectRedirectTo(promise: Promise<unknown>, expected: string): Pr
   }
   expect(thrown).toBeInstanceOf(Response)
   const res = thrown as Response
-  expect(res.status).toBe(302)
+  expect(res.status).toBe(expectedStatus)
   expect(res.headers.get('Location')).toBe(expected)
 }
 
@@ -186,12 +190,13 @@ describe('calendarAliasLoader', () => {
 })
 
 describe('legacy obligations alias loaders', () => {
-  it('redirects /obligations to the Deadlines page while preserving query', async () => {
+  it('permanently (301) redirects /obligations to the Deadlines page while preserving query', async () => {
     await expectRedirectTo(
       Promise.resolve().then(() =>
         legacyObligationsAliasLoader(makeArgs('http://localhost/obligations?status=review')),
       ),
       '/deadlines?status=review',
+      301,
     )
   })
 

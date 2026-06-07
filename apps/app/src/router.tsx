@@ -113,13 +113,15 @@ function importsAliasLoader() {
   throw redirect('/clients?importHistory=open')
 }
 
-function redirectToPathPreservingRequest(request: Request, pathname: string): never {
+function redirectToPathPreservingRequest(request: Request, pathname: string, status = 302): never {
   const url = new URL(request.url)
-  throw redirect(`${pathname}${url.search}${url.hash}`)
+  throw redirect(`${pathname}${url.search}${url.hash}`, status)
 }
 
 function legacyObligationsAliasLoader({ request }: LoaderFunctionArgs) {
-  redirectToPathPreservingRequest(request, '/deadlines')
+  // 301 (permanent): /obligations was renamed to /deadlines for good, so signal
+  // a permanent move for bookmarks and crawlers while preserving query + hash.
+  redirectToPathPreservingRequest(request, '/deadlines', 301)
 }
 
 function legacyObligationsCalendarAliasLoader({ request }: LoaderFunctionArgs) {
@@ -461,7 +463,7 @@ export function createAppRouter() {
             },
             {
               path: 'deadlines',
-              handle: routeHandle(routeSummaries.obligations),
+              handle: routeHandle(routeSummaries.deadlines),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
                 const { ObligationQueueRoute } = await import('@/routes/obligations')
@@ -481,7 +483,7 @@ export function createAppRouter() {
             },
             {
               path: 'deadlines/:obligationRef',
-              handle: routeHandle(routeSummaries.obligations),
+              handle: routeHandle(routeSummaries.deadlines),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
                 const { ObligationQueueRoute } = await import('@/routes/obligations')
@@ -491,7 +493,7 @@ export function createAppRouter() {
             },
             {
               path: 'deadlines/:obligationRef/:detailTab',
-              handle: routeHandle(routeSummaries.obligations),
+              handle: routeHandle(routeSummaries.deadlines),
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
                 const { ObligationQueueRoute } = await import('@/routes/obligations')
