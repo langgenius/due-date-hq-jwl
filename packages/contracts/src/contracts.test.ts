@@ -1213,6 +1213,8 @@ describe('@duedatehq/contracts', () => {
       'apply',
       'dismiss',
       'snooze',
+      'bulkDismiss',
+      'bulkSnooze',
       'markReviewed',
       'revert',
       'reactivate',

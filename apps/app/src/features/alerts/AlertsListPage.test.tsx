@@ -116,6 +116,12 @@ vi.mock('@/lib/rpc', () => ({
       snooze: {
         mutationOptions: () => ({ mutationFn: vi.fn() }),
       },
+      bulkDismiss: {
+        mutationOptions: () => ({ mutationFn: vi.fn() }),
+      },
+      bulkSnooze: {
+        mutationOptions: () => ({ mutationFn: vi.fn() }),
+      },
       // 2026-06-07 (Pencil g5kKJQ `IciLB PriorityReasons`): the page
       // seeds the per-row smart-priority inset from the priority
       // queue. The query is disabled without `canViewPriorityQueue`,

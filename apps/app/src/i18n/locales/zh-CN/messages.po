@@ -4133,6 +4133,10 @@ msgstr "无法丢弃导入草稿"
 msgid "Couldn't dismiss alert"
 msgstr "无法关闭提醒"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Couldn't dismiss alerts"
+msgstr "无法忽略提醒"
+
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't enable calendar subscription"
@@ -4429,6 +4433,10 @@ msgstr "无法发送验证码"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Couldn't snooze alert"
+msgstr "无法暂缓提醒"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Couldn't snooze alerts"
 msgstr "无法暂缓提醒"
 
 #: src/routes/account.security.tsx
@@ -5142,6 +5150,17 @@ msgstr "忽略提醒：{alertTitle}"
 #: src/features/audit/audit-log-labels.ts
 msgid "Dismissed"
 msgstr "已忽略"
+
+#. placeholder {0}: result.alerts.length
+#. placeholder {1}: result.failedIds.length
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Dismissed {0} · {1} couldn't be dismissed"
+msgstr "已忽略 {0} 条 · {1} 条无法忽略"
+
+#. placeholder {0}: result.alerts.length
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Dismissed {0} alerts"
+msgstr "已忽略 {0} 条提醒"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "dispatch"
@@ -13132,6 +13151,17 @@ msgstr "暂缓所选截止事项（即将推出）"
 #: src/features/audit/audit-log-labels.ts
 msgid "Snoozed"
 msgstr "已暂缓"
+
+#. placeholder {0}: result.alerts.length
+#. placeholder {1}: result.failedIds.length
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Snoozed {0} · {1} couldn't be snoozed"
+msgstr "已暂缓 {0} 条 · {1} 条无法暂缓"
+
+#. placeholder {0}: result.alerts.length
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Snoozed {0} alerts for 24h"
+msgstr "已暂缓 {0} 条提醒 24 小时"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Snoozed until"

@@ -4094,6 +4094,10 @@ msgstr "Couldn't discard draft import"
 msgid "Couldn't dismiss alert"
 msgstr "Couldn't dismiss alert"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Couldn't dismiss alerts"
+msgstr "Couldn't dismiss alerts"
+
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't enable calendar subscription"
@@ -4391,6 +4395,10 @@ msgstr "Couldn't send the code"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Couldn't snooze alert"
 msgstr "Couldn't snooze alert"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Couldn't snooze alerts"
+msgstr "Couldn't snooze alerts"
 
 #: src/routes/account.security.tsx
 msgid "Couldn't start authenticator setup"
@@ -5098,6 +5106,17 @@ msgstr "Dismiss alert: {alertTitle}"
 #: src/features/audit/audit-log-labels.ts
 msgid "Dismissed"
 msgstr "Dismissed"
+
+#. placeholder {0}: result.alerts.length
+#. placeholder {1}: result.failedIds.length
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Dismissed {0} · {1} couldn't be dismissed"
+msgstr "Dismissed {0} · {1} couldn't be dismissed"
+
+#. placeholder {0}: result.alerts.length
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Dismissed {0} alerts"
+msgstr "Dismissed {0} alerts"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "dispatch"
@@ -13030,6 +13049,17 @@ msgstr "Snooze selected deadlines (coming soon)"
 #: src/features/audit/audit-log-labels.ts
 msgid "Snoozed"
 msgstr "Snoozed"
+
+#. placeholder {0}: result.alerts.length
+#. placeholder {1}: result.failedIds.length
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Snoozed {0} · {1} couldn't be snoozed"
+msgstr "Snoozed {0} · {1} couldn't be snoozed"
+
+#. placeholder {0}: result.alerts.length
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Snoozed {0} alerts for 24h"
+msgstr "Snoozed {0} alerts for 24h"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Snoozed until"

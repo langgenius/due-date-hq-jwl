@@ -237,24 +237,15 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   //
   // 2026-06-05 (merge with origin/main): invalidation now resets
   // both infinite queries' first pages — the canonical recovery
-  // path after a snooze / dismiss. `closeReasonDialog` retired
-  // the inline reason dialog scaffold and kept the direct-fire
-  // 24h snooze / no-reason dismiss; the drawer carries the full
+  // path after a snooze / dismiss. Per-row Snooze/Dismiss direct-fire
+  // (24h snooze / no-reason dismiss); the drawer carries the full
   // reason-prompt flow if a CPA wants it.
-  type ReasonAction = 'snooze' | 'dismiss'
-  const [reasonState, setReasonState] = useState<{
-    action: ReasonAction
-    alertId: string
-  } | null>(null)
-  void reasonState // referenced in render
   const invalidateAlerts = useAlertsInvalidation()
-  const closeReasonDialog = () => setReasonState(null)
   const dismissAlertMutation = useMutation(
     orpc.pulse.dismiss.mutationOptions({
       onSuccess: () => {
         toast.success(t`Alert dismissed`)
         invalidateAlerts()
-        closeReasonDialog()
       },
       onError: (err) => {
         toast.error(t`Couldn't dismiss alert`, {
@@ -270,10 +261,54 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       onSuccess: () => {
         toast.success(t`Alert snoozed for 24h`)
         invalidateAlerts()
-        closeReasonDialog()
       },
       onError: (err) => {
         toast.error(t`Couldn't snooze alert`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  // 2026-06-07: true batch endpoints — one round-trip + one toast for N
+  // selected alerts (replaces the earlier per-alert client loop). The
+  // server reports any alerts it couldn't action in `failedIds`.
+  const bulkDismissMutation = useMutation(
+    orpc.pulse.bulkDismiss.mutationOptions({
+      onSuccess: (result) => {
+        if (result.failedIds.length > 0) {
+          toast.warning(
+            t`Dismissed ${result.alerts.length} · ${result.failedIds.length} couldn't be dismissed`,
+          )
+        } else {
+          toast.success(t`Dismissed ${result.alerts.length} alerts`)
+        }
+        invalidateAlerts()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't dismiss alerts`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  const bulkSnoozeMutation = useMutation(
+    orpc.pulse.bulkSnooze.mutationOptions({
+      onSuccess: (result) => {
+        if (result.failedIds.length > 0) {
+          toast.warning(
+            t`Snoozed ${result.alerts.length} · ${result.failedIds.length} couldn't be snoozed`,
+          )
+        } else {
+          toast.success(t`Snoozed ${result.alerts.length} alerts for 24h`)
+        }
+        invalidateAlerts()
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't snooze alerts`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -426,28 +461,23 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     setSelectedIds(next ? new Set(sortedAlerts.map((alert) => alert.id)) : new Set())
   }
 
-  // 2026-06-07 (Pencil g5kKJQ `BulkActionBar`): there is no bulk RPC
-  // in the pulse contract today, so the wired bulk actions LOOP the
-  // existing per-alert mutations. Snooze + Dismiss have clean,
-  // side-effect-light per-alert mutations (`orpc.pulse.snooze` /
-  // `orpc.pulse.dismiss`) and are wired here. The mutations'
-  // onSuccess already toasts + invalidates per call; we fire them in
-  // parallel and clear the selection optimistically.
-  // TODO(data): add a true batch endpoint
-  // (`orpc.pulse.bulkSnooze` / `bulkDismiss` / `bulkMarkRead`) so N
-  // selected alerts resolve in one round-trip + one toast instead of
-  // N. "Apply all", "Mark read", "Assign", and "Export" from the
-  // Pencil bar are NOT wired: Apply requires per-alert
-  // source-verification (the highest-liability path — see
-  // AlertDetailDrawer F-041 gate) and the other three have no
-  // contract surface at all.
+  // 2026-06-07 (Pencil g5kKJQ `BulkActionBar`): Snooze + Dismiss call
+  // the real batch endpoints (`orpc.pulse.bulkSnooze` / `bulkDismiss`) —
+  // N selected alerts resolve in one round-trip + one toast, with any
+  // un-actionable alerts reported back in `failedIds`. "Apply all",
+  // "Mark read", "Assign", and "Export" from the Pencil bar remain
+  // unwired: Apply requires per-alert source-verification (the
+  // highest-liability path — see AlertDetailDrawer F-041 gate) and the
+  // other three have no contract surface yet.
   const bulkSnooze = () => {
+    if (selectedIds.size === 0) return
     const until = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-    for (const alertId of selectedIds) snoozeAlertMutation.mutate({ alertId, until })
+    bulkSnoozeMutation.mutate({ alertIds: [...selectedIds], until })
     clearSelection()
   }
   const bulkDismiss = () => {
-    for (const alertId of selectedIds) dismissAlertMutation.mutate({ alertId })
+    if (selectedIds.size === 0) return
+    bulkDismissMutation.mutate({ alertIds: [...selectedIds] })
     clearSelection()
   }
 
@@ -1415,9 +1445,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   {...(!historyMode
                     ? {
                         onSnooze: (alertId: string) =>
-                          setReasonState({ action: 'snooze', alertId }),
-                        onDismiss: (alertId: string) =>
-                          setReasonState({ action: 'dismiss', alertId }),
+                          snoozeAlertMutation.mutate({
+                            alertId,
+                            until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                          }),
+                        onDismiss: (alertId: string) => dismissAlertMutation.mutate({ alertId }),
                       }
                     : {})}
                 />
