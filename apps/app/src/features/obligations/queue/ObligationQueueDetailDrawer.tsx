@@ -17,6 +17,7 @@ import {
   DropdownTriggerButton,
   EmptyPanel,
   EvidenceArtifactStatusGrid,
+  FileArtifactRow,
   MaterialsProgressLegend,
   PaymentStillDueCallout,
 } from './components/primitives'
@@ -99,10 +100,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AlertTriangleIcon,
   ArrowUpRightIcon,
+  BookOpenIcon,
   CalendarClockIcon,
   CheckCircle2Icon,
   CheckIcon,
   ChevronDownIcon,
+  CircleOffIcon,
   CopyIcon,
   ExternalLinkIcon,
   FileTextIcon,
@@ -1952,6 +1955,115 @@ export function ObligationQueueDetailDrawer({
                       </button>
                     </section>
                   ) : null}
+                  {/* Cluster 2 (Summary design `d4YrtC > w9bXOk`):
+                      Expected refund card — a green headline total + a
+                      3-row component breakdown. The contract has no
+                      refund/withholding fields today (getDetail carries
+                      status, checklist, audit + rule evidence, none of
+                      which is a dollar projection), so the figures are a
+                      static design placeholder rendered behind an
+                      explicit "estimate" caption. Pixel chrome matches
+                      the canvas (kicker, success total, ruled key/value
+                      rows).
+                      // TODO(data): expected-refund total + per-component
+                      // withholding breakdown on the obligation detail. */}
+                  <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle p-4">
+                    <div className="flex items-end justify-between gap-2">
+                      <div className="grid gap-0.5">
+                        <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
+                          <Trans>Expected refund</Trans>
+                        </h3>
+                        <span className="text-2xl font-semibold leading-none tracking-tight text-text-success tabular-nums">
+                          $4,210
+                        </span>
+                        <span className="text-caption text-text-secondary">
+                          <Trans>estimate · not yet reconciled</Trans>
+                        </span>
+                      </div>
+                    </div>
+                    <dl className="grid gap-0 border-t border-divider-subtle pt-1.5">
+                      {[
+                        { label: t`Federal withholding`, value: '$12,400' },
+                        { label: t`CA state withholding`, value: '$3,100' },
+                        { label: t`Estimated tax credit`, value: '$2,210' },
+                      ].map((entry, index, rows) => (
+                        <div
+                          key={entry.label}
+                          className={cn(
+                            'flex items-center justify-between gap-3 py-1.5',
+                            index < rows.length - 1 && 'border-b border-divider-subtle',
+                          )}
+                        >
+                          <dt className="text-sm font-medium text-text-secondary">{entry.label}</dt>
+                          <dd className="text-sm font-semibold tabular-nums text-text-primary">
+                            {entry.value}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </section>
+                  {/* Cluster 2 (Summary design `d4YrtC > D9cnC`):
+                      Source docs card — the attached source files with a
+                      Preview action per row. The contract's `evidence`
+                      array is rule/extraction evidence (sourceType,
+                      verbatimQuote …), not file artifacts with filenames
+                      + byte sizes, so there's no real attachment list to
+                      bind to. Rendered as a static design placeholder so
+                      the Summary tab matches the canvas; Preview is a
+                      stub toast until the upload/ingest pipeline lands.
+                      // TODO(data): source-document attachments (filename,
+                      // size, uploadedAt) on the obligation detail. */}
+                  <section className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle p-4">
+                    <div className="flex items-center gap-2 pb-1">
+                      <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
+                        <Trans>Source docs</Trans>
+                      </h3>
+                      <Badge
+                        variant="outline"
+                        className="h-[18px] rounded-full px-2 text-caption-xs font-semibold text-text-secondary"
+                      >
+                        <Trans>4 attached</Trans>
+                      </Badge>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          toast.info(t`File upload is coming soon`, {
+                            description: t`We'll let you attach source documents here as soon as ingest lands.`,
+                          })
+                        }
+                        className="ml-auto text-caption font-medium text-text-accent hover:underline"
+                      >
+                        <Trans>+ Add file</Trans>
+                      </button>
+                    </div>
+                    {[
+                      { name: 'W2-hudsonwells-2026.pdf', meta: t`218 KB · uploaded Feb 14` },
+                      { name: '1099-NEC-atlas.pdf', meta: t`94 KB · uploaded Mar 1` },
+                      { name: 'schedule-c-deductions.xlsx', meta: t`312 KB · updated Mar 4` },
+                      { name: 'prior-year-1040.pdf', meta: t`1.2 MB · uploaded Jan 12` },
+                    ].map((file) => (
+                      <FileArtifactRow
+                        key={file.name}
+                        icon={<FileTextIcon className="size-4" aria-hidden />}
+                        name={file.name}
+                        meta={file.meta}
+                        actions={
+                          <Button
+                            type="button"
+                            size="xs"
+                            variant="outline"
+                            onClick={() =>
+                              toast.info(t`Preview is coming soon`, {
+                                description: t`Document previews open here once ingest lands.`,
+                              })
+                            }
+                          >
+                            <Trans>Preview</Trans>
+                          </Button>
+                        }
+                      />
+                    ))}
+                  </section>
                   <AuthorityResponsePanel
                     row={row}
                     auditEvents={detail.auditEvents}
@@ -2466,6 +2578,47 @@ export function ObligationQueueDetailDrawer({
                                   <div className="grid gap-1.5">{receivedItems.map(renderRow)}</div>
                                 </section>
                               ) : null}
+                              {/* Cluster 2 (Materials design `AYpfU > BGLC4`):
+                                  Waived sub-section. There is no `waived`
+                                  checklist-item status in the contract today
+                                  (item.status is missing / needs_review /
+                                  received), so this always renders its empty
+                                  state — a quiet "doesn't apply this year"
+                                  affordance matching the canvas. Drop the
+                                  static guard and map real waived rows once
+                                  the status exists.
+                                  // TODO(data): `waived` checklist item status
+                                  // + per-row Waive action. */}
+                              {!isTerminalRow ? (
+                                <section className="flex flex-col gap-1.5">
+                                  <header className="flex items-baseline gap-1.5">
+                                    <h4 className="text-caption-xs font-medium uppercase tracking-wider text-text-tertiary">
+                                      <Trans>Waived</Trans>
+                                    </h4>
+                                    <span
+                                      aria-label={t`0 items`}
+                                      className="text-caption-xs font-medium tabular-nums text-text-tertiary"
+                                    >
+                                      0
+                                    </span>
+                                  </header>
+                                  <div className="flex flex-col items-center gap-1 rounded-md border border-divider-subtle px-4 py-5 text-center">
+                                    <CircleOffIcon
+                                      className="size-4 text-text-tertiary"
+                                      aria-hidden
+                                    />
+                                    <p className="text-sm font-medium text-text-secondary">
+                                      <Trans>No items waived</Trans>
+                                    </p>
+                                    <p className="text-caption-xs text-text-tertiary">
+                                      <Trans>
+                                        Mark an outstanding doc as waived when it doesn't apply this
+                                        year.
+                                      </Trans>
+                                    </p>
+                                  </div>
+                                </section>
+                              ) : null}
                             </div>
                           )
                         })()}
@@ -2974,6 +3127,135 @@ export function ObligationQueueDetailDrawer({
                       </span>
                     ) : null}
                   </div>
+                  {/* Cluster 2 (Extension design `Ls3vb > muzOr`):
+                      prior-year extension history table. The obligation
+                      detail carries this year's extension decision only —
+                      there's no cross-year filing-history collection on
+                      the payload — so the rows are a static design
+                      placeholder behind a "sample" caption. Pixel chrome
+                      (mono uppercase column heads on a section-tinted
+                      strip, ruled rows, tone-dot result) matches the
+                      canvas; collapses to stacked rows on mobile.
+                      // TODO(data): prior-year extension/filing history
+                      // (year, form, length, original, extended-to, filed
+                      // by, result) on the obligation detail. */}
+                  <section className="flex flex-col gap-2 pt-1">
+                    <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                      <h3 className="text-sm font-semibold text-text-primary">
+                        <Trans>Extension history</Trans>
+                      </h3>
+                      <span className="text-caption-xs text-text-tertiary">
+                        {row.clientName}
+                        {row.taxType ? ` · ${row.taxType}` : ''}
+                      </span>
+                      <Link
+                        to="/deadlines"
+                        className="ml-auto text-caption font-semibold text-text-accent hover:underline"
+                      >
+                        <Trans>View all client extensions →</Trans>
+                      </Link>
+                    </header>
+                    <div className="overflow-hidden rounded-lg border border-divider-subtle">
+                      <div className="hidden grid-cols-[64px_72px_64px_110px_110px_1fr_auto] gap-3 border-b border-divider-subtle bg-background-section px-4 py-2.5 sm:grid">
+                        {[
+                          t`Year`,
+                          t`Form`,
+                          t`Length`,
+                          t`Original`,
+                          t`Extended to`,
+                          t`Filed by`,
+                          t`Result`,
+                        ].map((heading) => (
+                          <span
+                            key={heading}
+                            className="font-mono text-caption-xs font-bold uppercase tracking-wider text-text-tertiary"
+                          >
+                            {heading}
+                          </span>
+                        ))}
+                      </div>
+                      {[
+                        {
+                          year: '2024',
+                          form: '7004',
+                          length: t`6 mo`,
+                          original: 'Mar 17, 2025',
+                          extended: 'Sep 15, 2025',
+                          filedBy: 'Jules Rivera',
+                          result: t`Filed on time`,
+                          tone: 'success' as const,
+                        },
+                        {
+                          year: '2023',
+                          form: '7004',
+                          length: t`6 mo`,
+                          original: 'Mar 15, 2024',
+                          extended: 'Sep 16, 2024',
+                          filedBy: 'Anika Vázquez',
+                          result: t`Filed on time`,
+                          tone: 'success' as const,
+                        },
+                        {
+                          year: '2022',
+                          form: '—',
+                          length: '—',
+                          original: 'Mar 15, 2023',
+                          extended: '—',
+                          filedBy: 'Anika Vázquez',
+                          result: t`Filed without extension`,
+                          tone: 'neutral' as const,
+                        },
+                      ].map((entry, index) => (
+                        <div
+                          key={entry.year}
+                          className={cn(
+                            'flex flex-col gap-1.5 px-4 py-3 sm:grid sm:grid-cols-[64px_72px_64px_110px_110px_1fr_auto] sm:items-center sm:gap-3',
+                            index > 0 && 'border-t border-divider-subtle',
+                          )}
+                        >
+                          <span className="font-mono text-sm font-semibold tabular-nums text-text-primary">
+                            {entry.year}
+                          </span>
+                          <span className="text-xs font-medium text-text-secondary">
+                            {entry.form}
+                          </span>
+                          <span className="text-xs font-medium text-text-secondary">
+                            {entry.length}
+                          </span>
+                          <span className="font-mono text-caption-xs font-medium tabular-nums text-text-secondary">
+                            {entry.original}
+                          </span>
+                          <span className="font-mono text-caption-xs font-medium tabular-nums text-text-secondary">
+                            {entry.extended}
+                          </span>
+                          <span className="text-xs font-medium text-text-secondary">
+                            {entry.filedBy}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5">
+                            <span
+                              className={cn(
+                                'size-1.5 shrink-0 rounded-full',
+                                entry.tone === 'success'
+                                  ? 'bg-state-success-solid'
+                                  : 'bg-text-tertiary',
+                              )}
+                              aria-hidden
+                            />
+                            <span
+                              className={cn(
+                                'text-xs font-semibold',
+                                entry.tone === 'success'
+                                  ? 'text-text-success'
+                                  : 'text-text-secondary',
+                              )}
+                            >
+                              {entry.result}
+                            </span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
                 </div>
               </motion.div>
             </TabsContent>
@@ -3151,6 +3433,7 @@ export function ObligationQueueDetailDrawer({
                                 id: 'authority',
                                 label: <Trans>Authority</Trans>,
                                 value: row.authority,
+                                icon: <BookOpenIcon className="size-3.5" aria-hidden />,
                               },
                             ]
                           : []),
@@ -3165,6 +3448,14 @@ export function ObligationQueueDetailDrawer({
                           id: 'due',
                           label: <Trans>Due</Trans>,
                           value: formatDate(row.currentDueDate),
+                        },
+                        {
+                          id: 'prior-year',
+                          label: <Trans>Prior year</Trans>,
+                          // Design-only — there's no prior-year filing record
+                          // on the obligation detail today.
+                          // TODO(data): prior-year filing date.
+                          value: <span className="text-text-tertiary">—</span>,
                         },
                       ]}
                       action={

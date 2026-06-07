@@ -369,10 +369,13 @@ export type AuthorityFact = {
   id: string
   label: ReactNode
   value: ReactNode
+  icon?: ReactNode
 }
 
 // Evidence authority strip (design `FXD1b`): a quiet f9fafb strip of
-// mono-labelled facts + an optional trailing link. Wraps fluidly.
+// mono-labelled facts separated by thin vertical dividers, + an
+// optional trailing link. Wraps fluidly; dividers hide on the wrapped
+// leading edge of each row via flex.
 export function AuthorityFactStrip({
   facts,
   action,
@@ -382,9 +385,17 @@ export function AuthorityFactStrip({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-divider-subtle bg-background-section px-4 py-3">
-      {facts.map((fact) => (
+      {facts.map((fact, index) => (
         <span key={fact.id} className="inline-flex items-center gap-2">
-          <span className="text-caption-xs font-bold uppercase tracking-wide text-text-tertiary">
+          {index > 0 ? (
+            <span className="h-3.5 w-px shrink-0 bg-divider-regular" aria-hidden />
+          ) : null}
+          {fact.icon ? (
+            <span className="shrink-0 text-text-secondary" aria-hidden>
+              {fact.icon}
+            </span>
+          ) : null}
+          <span className="font-mono text-caption-xs font-bold uppercase tracking-wide text-text-tertiary">
             {fact.label}
           </span>
           <span className="text-xs font-medium text-text-secondary">{fact.value}</span>
