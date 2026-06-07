@@ -12219,8 +12219,8 @@ msgid "Sign-in succeeded"
 msgstr "登录成功"
 
 #: src/routes/account.security.tsx
-msgid "Sign-in will only require your password until you re-enable MFA. Owners need MFA before sensitive production actions — disabling now blocks those flows."
-msgstr "在重新启用 MFA 之前，登录只需要密码。所有者执行敏感生产操作前需要 MFA；现在停用会阻止这些流程。"
+msgid "Sign-in will only require the link we email you until you re-enable MFA. Owners need MFA before sensitive production actions — disabling now blocks those flows."
+msgstr "在重新启用 MFA 之前，登录只需要我们邮件发送给你的链接。所有者执行敏感生产操作前需要 MFA；现在停用会阻止这些流程。"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx

@@ -12117,8 +12117,8 @@ msgid "Sign-in succeeded"
 msgstr "Sign-in succeeded"
 
 #: src/routes/account.security.tsx
-msgid "Sign-in will only require your password until you re-enable MFA. Owners need MFA before sensitive production actions — disabling now blocks those flows."
-msgstr "Sign-in will only require your password until you re-enable MFA. Owners need MFA before sensitive production actions — disabling now blocks those flows."
+msgid "Sign-in will only require the link we email you until you re-enable MFA. Owners need MFA before sensitive production actions — disabling now blocks those flows."
+msgstr "Sign-in will only require the link we email you until you re-enable MFA. Owners need MFA before sensitive production actions — disabling now blocks those flows."
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx

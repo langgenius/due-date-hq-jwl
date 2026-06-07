@@ -87,7 +87,7 @@ describe('AlertDialog focus landing', () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Disable two-factor authentication?</AlertDialogTitle>
             <AlertDialogDescription>
-              Sign-in will only require your password until you re-enable MFA.
+              Sign-in will only require the link we email you until you re-enable MFA.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

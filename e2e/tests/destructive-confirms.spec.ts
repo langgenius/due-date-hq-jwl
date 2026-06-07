@@ -209,7 +209,7 @@ test.describe('with MFA enabled and verified', () => {
     await page.getByRole('button', { name: 'Disable MFA' }).click()
     const dialog = page.getByRole('alertdialog', { name: 'Disable two-factor authentication?' })
     await expect(dialog).toBeVisible()
-    await expect(dialog).toContainText('Sign-in will only require your password')
+    await expect(dialog).toContainText('Sign-in will only require the link we email you')
     await expect(dialog.getByRole('button', { name: 'Keep enabled' })).toBeVisible()
     await expect(dialog.getByRole('button', { name: 'Disable MFA' })).toBeVisible()
 

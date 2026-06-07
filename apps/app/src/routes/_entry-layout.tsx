@@ -11,8 +11,9 @@ import { LocaleSwitcher } from '@/components/primitives/locale-switcher'
 // Today that means `/login`, `/two-factor`, `/accept-invite`, `/onboarding`,
 // `/migration/new`, and public readiness links. Each child owns the loader
 // that decides whether the current session state may see that surface.
-// Future entries (magic link landing, SSO consent, email verification,
-// password reset) belong here too.
+// Future entries (magic link landing, SSO consent, email verification)
+// belong here too — sign-in is link-only, so there is no password-reset
+// surface to plan for.
 //
 // We deliberately don't call this "_auth-layout" — `/onboarding` runs *after*
 // authentication and only blocks until the user provisions a practice, so an

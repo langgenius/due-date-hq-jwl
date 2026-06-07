@@ -356,8 +356,8 @@ export function AccountSecurityRoute() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               <Trans>
-                Sign-in will only require your password until you re-enable MFA. Owners need MFA
-                before sensitive production actions — disabling now blocks those flows.
+                Sign-in will only require the link we email you until you re-enable MFA. Owners
+                need MFA before sensitive production actions — disabling now blocks those flows.
               </Trans>
             </AlertDialogDescription>
           </AlertDialogHeader>
