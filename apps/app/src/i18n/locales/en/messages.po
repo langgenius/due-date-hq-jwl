@@ -598,10 +598,6 @@ msgstr "{checklistCount, plural, one {No client materials received yet; # item i
 msgid "{checklistCount} checklist items weren't individually ticked during filing."
 msgstr "{checklistCount} checklist items weren't individually ticked during filing."
 
-#: src/features/migration/Step4Preview.tsx
-msgid "{clientCount, plural, one {# client} other {# clients}}"
-msgstr "{clientCount, plural, one {# client} other {# clients}}"
-
 #: src/features/migration/Wizard.tsx
 msgid "{clientPart}, {obligationPart} created"
 msgstr "{clientPart}, {obligationPart} created"
@@ -794,10 +790,6 @@ msgstr "{needsManualCount, plural, one {# selected deadline has no fixed extensi
 #: src/features/migration/Step2Mapping.tsx
 msgid "{needsReview, plural, =0 {0 need review} one {# needs review} other {# need review}}"
 msgstr "{needsReview, plural, =0 {0 need review} one {# needs review} other {# need review}}"
-
-#: src/features/migration/Step4Preview.tsx
-msgid "{obligationCount, plural, one {# deadline to monitor} other {# deadlines to monitor}}"
-msgstr "{obligationCount, plural, one {# deadline to monitor} other {# deadlines to monitor}}"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "{offsetDays} days before"
@@ -2021,6 +2013,10 @@ msgstr "Already applied"
 #: src/features/migration/Step4Preview.tsx
 msgid "Already in your client list"
 msgstr "Already in your client list"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "Already in your list"
+msgstr "Already in your list"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Alternative: in Return Manager, run Quick Search with filters set to All, then use Home > Export Grid."
@@ -4699,6 +4695,10 @@ msgstr "Deadlines export"
 #: src/features/audit/audit-log-labels.ts
 msgid "Deadlines exported"
 msgstr "Deadlines exported"
+
+#: src/features/migration/Step4Preview.tsx
+msgid "Deadlines to generate"
+msgstr "Deadlines to generate"
 
 #: src/routes/login.tsx
 msgid "DEADLINES TRACKED"
@@ -12609,6 +12609,10 @@ msgstr "Source filing year"
 msgid "SOURCE FILING YEAR"
 msgstr "SOURCE FILING YEAR"
 
+#: src/features/migration/Step1Intake.tsx
+msgid "Source format unrecognized"
+msgstr "Source format unrecognized"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Source only"
 msgstr "Source only"
@@ -14082,6 +14086,10 @@ msgstr "Use Dashboard > Application Links > Utilities > Create client list for P
 #: src/routes/obligations.tsx
 msgid "Use Evidence to track the paper filing packet."
 msgstr "Use Evidence to track the paper filing packet."
+
+#: src/features/migration/Step1Intake.tsx
+msgid "Use Generic CSV instead"
+msgstr "Use Generic CSV instead"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Use HomeBase > Export Contacts, then upload the exported contacts CSV; the file name can be anything."
