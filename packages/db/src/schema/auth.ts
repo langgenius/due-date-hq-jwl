@@ -60,6 +60,10 @@ export const account = sqliteTable(
       mode: 'timestamp_ms',
     }),
     scope: text('scope'),
+    // Part of better-auth's standard adapter schema. Intentionally dormant: this
+    // app enables only emailOTP + OAuth (no password sign-in), so it's never
+    // written. Kept because dropping it would force a custom auth adapter — do not
+    // remove it as "unused".
     password: text('password'),
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
