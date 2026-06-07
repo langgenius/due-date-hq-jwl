@@ -3,33 +3,18 @@ import type {
   ClassificationRecomputeSummary,
   ClientClassificationCandidate,
 } from '@duedatehq/contracts'
-import type { ObligationRule } from '@duedatehq/core/rules'
 import { inferTaxTypes } from '@duedatehq/core/default-matrix'
-import { isOpenObligationStatus } from '@duedatehq/core/obligation-workflow'
 import type { ClientRow } from '@duedatehq/ports/clients'
 import type { ScopedRepo } from '@duedatehq/ports/scoped'
-import {
-  computeClientGeneratedObligations,
-  keyForGenerated,
-  persistGeneratedObligations,
-  type RuleBackedCreateInput,
-} from '../rules/_obligation-generation'
 
 /**
- * Safe-to-remove obligation recompute on a client reclassification.
+ * Deadline cleanup on a client classification change.
  *
- * The diff is computed against TWO generations of the rule engine:
- *   - `baseline` = what the client's ORIGINAL classification generates. An
- *     existing obligation is only ever orphaned if its key is in this set, so
- *     manual / out-of-horizon / prior-year obligations are never touched.
- *   - `candidate` = what the NEW classification generates. Its keys not already
- *     present become adds.
- *
- * Orphan removal is conservative: an orphan is auto-superseded only if it is
- * pristine (no workflow progress); otherwise it is surfaced for explicit
- * confirmation and removed only if its id is in `confirmedOrphanObligationIds`.
- * Apply re-evaluates safety from fresh state, so an orphan that gained workflow
- * state after the preview is left alone unless explicitly confirmed.
+ * Changing the entity type invalidates the active filing plan for this client.
+ * The apply step therefore writes the new classification, supersedes every
+ * active deadline that existed before the apply, and creates no replacement
+ * deadlines. Current-tax-year removals are gated by explicit confirmation in
+ * the dialog; projected removals are informational and do not block apply.
  */
 
 type ObligationRow = Awaited<ReturnType<ScopedRepo['obligations']['listByClient']>>[number]
@@ -38,8 +23,8 @@ const SAFE_PAYMENT_STATES = new Set<string>(['not_applicable', 'estimate_needed'
 const SAFE_EXTENSION_STATES = new Set<string>(['not_started', 'not_applicable'])
 
 /**
- * Human-readable reasons an orphaned obligation is NOT pristine. Empty array =
- * safe to auto-remove. The strings power the confirmation-dialog badges.
+ * Human-readable workflow state on a deadline being removed. Empty array means
+ * no visible workflow progress; non-empty strings power the dialog badges.
  */
 export function orphanWorkflowFlags(o: ObligationRow): string[] {
   const flags: string[] = []
@@ -53,31 +38,20 @@ export function orphanWorkflowFlags(o: ObligationRow): string[] {
   return flags
 }
 
-function isOrphanSafe(o: ObligationRow): boolean {
-  return orphanWorkflowFlags(o).length === 0
+function isCurrentOrProjectedDeadline(taxYear: number | null, currentTaxYear: number): boolean {
+  return taxYear === null || taxYear >= currentTaxYear
 }
 
-function withinScope(taxYear: number | null, effectiveFromTaxYear: number | undefined): boolean {
-  if (effectiveFromTaxYear === undefined) return true
-  return taxYear !== null && taxYear >= effectiveFromTaxYear
+function requiresRemovalConfirmation(o: ObligationRow, currentTaxYear: number): boolean {
+  return o.taxYear === currentTaxYear
 }
 
-function addRow(createInput: RuleBackedCreateInput): ClassificationRecomputeRow {
+function removalRow(o: ObligationRow, currentTaxYear: number): ClassificationRecomputeRow {
+  const flags = orphanWorkflowFlags(o)
   return {
-    disposition: 'will_add',
-    obligationId: null,
-    taxType: createInput.taxType,
-    formName: createInput.formName ?? null,
-    jurisdiction: createInput.jurisdiction ?? null,
-    taxYear: createInput.taxYear ?? null,
-    dueDate: createInput.baseDueDate.toISOString(),
-    workflowFlags: [],
-  }
-}
-
-function orphanRow(o: ObligationRow, flags: string[]): ClassificationRecomputeRow {
-  return {
-    disposition: flags.length === 0 ? 'orphan_safe' : 'orphan_needs_confirmation',
+    disposition: requiresRemovalConfirmation(o, currentTaxYear)
+      ? 'orphan_needs_confirmation'
+      : 'orphan_safe',
     obligationId: o.id,
     taxType: o.taxType,
     formName: o.formName ?? null,
@@ -97,8 +71,8 @@ export interface ClassificationRecomputeOutcome {
    * contract field doc). Surfaced in preview; ignored on apply.
    */
   expectedTaxTypes: string[]
-  /** Count of the client's currently-open deadlines (preview gate). */
-  openDeadlineCount: number
+  /** Count of the client's current/projected existing deadlines (preview note). */
+  existingDeadlineCount: number
   addedObligationIds: string[]
   supersededObligationIds: string[]
   /** classification.updated audit id in apply mode; null in preview. */
@@ -108,20 +82,17 @@ export interface ClassificationRecomputeOutcome {
 export async function runClassificationRecompute(input: {
   scoped: ScopedRepo
   userId: string
-  /** The client row BEFORE any classification write (the baseline source). */
+  /** The client row before any classification write. */
   client: ClientRow
   candidate: ClientClassificationCandidate
-  rules: readonly ObligationRule[]
-  internalDeadlineOffsetDays: number
-  monitoringStartDate?: string
   now: Date
   mode: 'preview' | 'apply'
-  /** Reclassification effective year; omitted recomputes the whole horizon. */
+  /** Reclassification effective year for the client tax-year history row. */
   effectiveFromTaxYear?: number
   confirmedOrphanObligationIds?: readonly string[]
   reason?: string
 }): Promise<ClassificationRecomputeOutcome> {
-  const { scoped, client, candidate, rules, mode, effectiveFromTaxYear } = input
+  const { scoped, client, candidate, mode, effectiveFromTaxYear } = input
 
   const candidateClient: ClientRow = {
     ...client,
@@ -130,81 +101,33 @@ export async function runClassificationRecompute(input: {
     ...(candidate.legalEntity !== undefined ? { legalEntity: candidate.legalEntity } : {}),
   }
 
-  const [profiles, existing] = await Promise.all([
-    scoped.filingProfiles.listByClient(client.id),
-    scoped.obligations.listByClient(client.id),
-  ])
-  const existingWithKeys = existing
-    .filter((o) => o.ruleId !== null && o.taxYear !== null && o.rulePeriod !== null)
-    .map((o) => ({
-      row: o,
-      key: keyForGenerated({
-        clientId: o.clientId,
-        jurisdiction: o.jurisdiction,
-        ruleId: o.ruleId as string,
-        taxYear: o.taxYear,
-        rulePeriod: o.rulePeriod as string,
-      }),
-    }))
-  const existingByKey = new Map(existingWithKeys.map((e) => [e.key, e.row]))
+  const existing = await scoped.obligations.listByClient(client.id)
 
-  const baseConfig = {
-    profiles,
-    rules,
-    internalDeadlineOffsetDays: input.internalDeadlineOffsetDays,
-    ...(input.monitoringStartDate ? { monitoringStartDate: input.monitoringStartDate } : {}),
-    now: input.now,
-  }
-  const baseline = computeClientGeneratedObligations({
-    ...baseConfig,
-    client,
-    seenGeneratedKeys: new Set<string>(),
-  })
-  const candidateTarget = computeClientGeneratedObligations({
-    ...baseConfig,
-    client: candidateClient,
-    seenGeneratedKeys: new Set<string>(),
-  })
-  const baselineKeys = new Set(baseline.items.map((i) => i.key))
-  const candidateKeys = new Set(candidateTarget.items.map((i) => i.key))
+  // The dialog's existing-deadline note should match the filing-plan horizon:
+  // current tax year plus projected future years. It deliberately ignores
+  // status/confirmed so closed current-year rows and unconfirmed projected rows
+  // are both counted.
+  const currentTaxYear = input.now.getFullYear() - 1
+  const existingDeadlineCount = existing.filter((o) =>
+    isCurrentOrProjectedDeadline(o.taxYear, currentTaxYear),
+  ).length
 
-  // Adds: candidate obligations not already present, within the effective scope.
-  const toAdd = candidateTarget.items.filter(
-    (i) =>
-      !existingByKey.has(i.key) && withinScope(i.createInput.taxYear ?? null, effectiveFromTaxYear),
-  )
-  // Orphans: existing obligations the OLD classification justified (key in
-  // baseline) but the new one does not — bounded to the generation horizon so
-  // manual + prior-year obligations are never touched.
-  const orphans = existingWithKeys
-    .filter(
-      (e) =>
-        baselineKeys.has(e.key) &&
-        !candidateKeys.has(e.key) &&
-        withinScope(e.row.taxYear, effectiveFromTaxYear),
-    )
-    .map((e) => e.row)
-  const unchangedCount = existingWithKeys.filter((e) => candidateKeys.has(e.key)).length
-
-  const orphanRows = orphans.map((o) => orphanRow(o, orphanWorkflowFlags(o)))
-  const rows: ClassificationRecomputeRow[] = [
-    ...toAdd.map((i) => addRow(i.createInput)),
-    ...orphanRows,
-  ]
-  const orphanSafeCount = orphans.filter((o) => isOrphanSafe(o)).length
+  const rows = existing.map((o) => removalRow(o, currentTaxYear))
+  const orphanNeedsConfirmationCount = rows.filter(
+    (row) => row.disposition === 'orphan_needs_confirmation',
+  ).length
   const summary: ClassificationRecomputeSummary = {
-    willAddCount: toAdd.length,
-    unchangedCount,
-    orphanSafeCount,
-    orphanNeedsConfirmationCount: orphans.length - orphanSafeCount,
+    willAddCount: 0,
+    unchangedCount: 0,
+    orphanSafeCount: rows.length - orphanNeedsConfirmationCount,
+    orphanNeedsConfirmationCount,
   }
 
   // The full set of filings the NEW classification typically has — federal +
   // state, from the default-matrix (the same inference used at client intake).
-  // Advisory only: reclassify never auto-creates these (generation is gated by
-  // the filing profile's tax types, which we hold constant), so we surface the
-  // complete expected set for every client/entity and let the CPA reconcile the
-  // tax types by hand.
+  // Advisory only: reclassify never auto-creates these. We surface the complete
+  // expected set for every client/entity and let the CPA reconcile the tax
+  // types by hand.
   const expectedTaxTypes = inferTaxTypes(candidateClient.entityType, candidateClient.state ?? '', {
     taxClassification: candidateClient.taxClassification,
   }).taxTypes.filter(
@@ -214,25 +137,29 @@ export async function runClassificationRecompute(input: {
     (taxType) => taxType !== 'federal' && !taxType.startsWith('_'),
   )
 
-  // The client's live deadlines (open/outstanding statuses) — the dialog warns
-  // and gates Apply on an explicit acknowledgment when there are any.
-  const openDeadlineCount = existing.filter((o) => isOpenObligationStatus(o.status)).length
-
   if (mode === 'preview') {
     return {
       summary,
       rows,
       expectedTaxTypes,
-      openDeadlineCount,
+      existingDeadlineCount,
       addedObligationIds: [],
       supersededObligationIds: [],
       auditId: null,
     }
   }
 
-  // --- apply: write classification, add new, supersede removed, audit --------
+  // --- apply: write classification, supersede existing deadlines, audit ------
   const confirmedSet = new Set(input.confirmedOrphanObligationIds ?? [])
-  const toRemove = orphans.filter((o) => isOrphanSafe(o) || confirmedSet.has(o.id))
+  const unconfirmedCurrentYear = existing.find(
+    (o) => requiresRemovalConfirmation(o, currentTaxYear) && !confirmedSet.has(o.id),
+  )
+  if (unconfirmedCurrentYear) {
+    throw new Error(
+      'Current-tax-year deadlines require confirmation before reclassification apply.',
+    )
+  }
+  const toRemove = existing
 
   await scoped.clients.updateClassification(client.id, {
     ...(candidate.entityType !== undefined ? { entityType: candidate.entityType } : {}),
@@ -243,10 +170,8 @@ export async function runClassificationRecompute(input: {
   })
 
   // Reclassification (effective-dated) records a per-(client, tax year) row so
-  // the change keeps an accurate historical boundary ("S corp from 2025"). This
-  // is a HISTORY record — generation still reads the scalar (per-year threading
-  // is deliberately out of scope). Corrections (no effective year) just rewrite
-  // the scalar and skip this.
+  // the change keeps an accurate historical boundary ("S corp from 2025").
+  // Corrections (no effective year) just rewrite the scalar and skip this.
   if (effectiveFromTaxYear !== undefined) {
     await scoped.clientTaxYearProfiles.upsert({
       clientId: client.id,
@@ -275,13 +200,7 @@ export async function runClassificationRecompute(input: {
     ...(input.reason !== undefined ? { reason: input.reason } : {}),
   })
 
-  const { ids: addedObligationIds } = await persistGeneratedObligations({
-    scoped,
-    userId: input.userId,
-    createInputs: toAdd.map((i) => i.createInput),
-    readinessInputs: toAdd.map((i) => ({ obligation: i.createInput, client: candidateClient })),
-    now: input.now,
-  })
+  const addedObligationIds: string[] = []
 
   const { id: reclassifiedAuditId } = await scoped.audit.write({
     actorId: input.userId,
@@ -312,7 +231,7 @@ export async function runClassificationRecompute(input: {
     summary,
     rows,
     expectedTaxTypes,
-    openDeadlineCount,
+    existingDeadlineCount,
     addedObligationIds,
     supersededObligationIds: supersededIds,
     auditId: classificationAuditId,

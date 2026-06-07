@@ -705,6 +705,10 @@ msgstr "{estimatedObligations, plural, one {Generates ~# deadline across your cu
 msgid "{evidenceCount} workpapers"
 msgstr "{evidenceCount} workpapers"
 
+#: src/features/clients/ClassificationImpactDialog.tsx
+msgid "{existingDeadlineCount, plural, one {This client has # existing deadline across the current and projected tax years.} other {This client has # existing deadlines across the current and projected tax years.}}"
+msgstr "{existingDeadlineCount, plural, one {This client has # existing deadline across the current and projected tax years.} other {This client has # existing deadlines across the current and projected tax years.}}"
+
 #: src/features/members/members-page.tsx
 msgid "{expiredCount} expired needs resend"
 msgstr "{expiredCount} expired needs resend"
@@ -792,10 +796,6 @@ msgstr "{offsetDays} days before"
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "{openCount} open deadlines"
 msgstr "{openCount} open deadlines"
-
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "{openDeadlineCount, plural, one {This client still has # open deadline} other {This client still has # open deadlines}}"
-msgstr "{openDeadlineCount, plural, one {This client still has # open deadline} other {This client still has # open deadlines}}"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -6367,10 +6367,6 @@ msgstr "Human verifies"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "I have read the official source and verified the new deadline date."
 msgstr "I have read the official source and verified the new deadline date."
-
-#: src/features/clients/ClassificationImpactDialog.tsx
-msgid "I've reviewed this client's existing deadlines before reclassifying."
-msgstr "I've reviewed this client's existing deadlines before reclassifying."
 
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "I've saved these recovery codes somewhere safe. I know they won't be shown again."
@@ -13195,8 +13191,8 @@ msgid "These are the deadline rules that drive your client deadlines. Review and
 msgstr "These are the deadline rules that drive your client deadlines. Review and approve new rules before they trigger reminders."
 
 #: src/features/clients/ClassificationImpactDialog.tsx
-msgid "These deadlines already have work on them. Check the ones you want removed; the rest stay untouched."
-msgstr "These deadlines already have work on them. Check the ones you want removed; the rest stay untouched."
+msgid "These current-year deadlines will be removed. Check each one before applying."
+msgstr "These current-year deadlines will be removed. Check each one before applying."
 
 #: src/features/onboarding/state-rule-activation-selector.tsx
 msgid "These states publish their deadlines through the state's own calendar. After your practice is created, you'll see those rules in Rule Library marked for review — deadlines activate once you approve the rules."
@@ -14227,8 +14223,8 @@ msgid "Will create"
 msgstr "Will create"
 
 #: src/features/clients/ClassificationImpactDialog.tsx
-msgid "Will remove — no work done"
-msgstr "Will remove — no work done"
+msgid "Will remove"
+msgstr "Will remove"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Window"

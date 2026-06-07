@@ -258,13 +258,13 @@ export type ClientSourceDetailsUpdateOutput = z.infer<typeof ClientSourceDetails
 // --- Tax classification editing + obligation recompute --------------------
 //
 // Changing a client's entity type / tax classification (S election, revocation,
-// check-the-box, conversion). Two procedures, mirroring the repo's existing
-// preview/apply pairs (annual rollover, reprojection): a read-only PREVIEW that
-// shows the obligation impact, and an APPLY that writes the classification AND
-// recomputes obligations atomically — closing the stale window a classification-
-// only write would leave. NO transition restrictions: every entityType /
-// taxClassification is always selectable; the impact preview + the structured
-// reason are the safety net, not input limits.
+// check-the-box, conversion). Two procedures: a read-only PREVIEW that shows
+// which existing deadlines will be removed, and an APPLY that writes the
+// classification and supersedes the client's pre-existing active deadlines
+// atomically. It does not create replacement deadlines automatically. NO
+// transition restrictions: every entityType / taxClassification is always
+// selectable; the impact preview + the structured reason are the safety net,
+// not input limits.
 
 export const ClientClassificationReasonSchema = z.object({
   kind: z.enum(['correction', 'reclassification']),
@@ -300,15 +300,16 @@ export type ClassificationRecomputeDisposition = z.infer<
 
 export const ClassificationRecomputeRowSchema = z.object({
   disposition: ClassificationRecomputeDispositionSchema,
-  // null for will_add (not yet created); the existing obligation id otherwise.
+  // null for legacy will_add rows (not currently emitted); the existing
+  // obligation id otherwise.
   obligationId: EntityIdSchema.nullable(),
   taxType: z.string(),
   formName: z.string().nullable(),
   jurisdiction: z.string().nullable(),
   taxYear: z.number().int().nullable(),
   dueDate: z.iso.datetime().nullable(),
-  // For orphan_needs_confirmation: human-readable reasons (status, e-file in
-  // progress, has review notes, …) powering the dialog badges.
+  // Human-readable workflow flags (status, e-file in progress, has review
+  // notes, ...) powering the dialog badges.
   workflowFlags: z.array(z.string()),
 })
 export type ClassificationRecomputeRow = z.infer<typeof ClassificationRecomputeRowSchema>
@@ -324,8 +325,8 @@ export type ClassificationRecomputeSummary = z.infer<typeof ClassificationRecomp
 export const ClassificationRecomputePreviewInputSchema = z.object({
   clientId: EntityIdSchema,
   candidate: ClientClassificationCandidateSchema,
-  // Reclassification effective tax year — recompute touches only years >= this.
-  // Omitted (correction) recomputes all monitored years (history rewrite).
+  // Reclassification effective tax year — records the historical boundary.
+  // Omitted for correction-style history rewrites.
   effectiveFromTaxYear: z.number().int().min(2000).max(2100).optional(),
 })
 export type ClassificationRecomputePreviewInput = z.infer<
@@ -337,16 +338,14 @@ export const ClassificationRecomputePreviewOutputSchema = z.object({
   rows: z.array(ClassificationRecomputeRowSchema),
   // Tax type codes the NEW classification typically files — federal + state,
   // from the default-matrix. Advisory ONLY: these are NOT auto-created.
-  // Obligation generation is gated by the filing profile's tax types, so a
-  // reclassify never adds forms on its own (e.g. nonprofit→individual can't add
-  // a 1040). The dialog surfaces the full expected set for every entity type so
-  // the CPA can reconcile the client's tax types by hand.
+  // Classification apply ignores this field for writes; the dialog surfaces
+  // the full expected set for every entity type so the CPA can reconcile the
+  // client's tax types by hand.
   expectedTaxTypes: z.array(z.string()),
-  // Count of the client's currently-open deadlines (the app's "outstanding"
-  // status set). The dialog warns the CPA and gates Apply on an explicit
-  // acknowledgment when this is > 0, so reclassifying never silently sidesteps
-  // live work.
-  openDeadlineCount: z.number().int().min(0),
+  // Count of the client's current/projected existing deadlines, regardless of
+  // workflow status or projected confirmation state. Informational only; the
+  // per-deadline list below owns current-tax-year destructive confirmation.
+  existingDeadlineCount: z.number().int().min(0),
 })
 export type ClassificationRecomputePreviewOutput = z.infer<
   typeof ClassificationRecomputePreviewOutputSchema
@@ -358,7 +357,7 @@ export const ClassificationRecomputeApplyInputSchema = z
     candidate: ClientClassificationCandidateSchema,
     reason: ClientClassificationReasonSchema,
     effectiveFromTaxYear: z.number().int().min(2000).max(2100).optional(),
-    // Orphans with workflow state are removed only if explicitly confirmed here.
+    // Current-tax-year deadlines are removed only if explicitly confirmed here.
     confirmedOrphanObligationIds: z.array(EntityIdSchema).max(1000).optional(),
   })
   .superRefine((value, ctx) => {

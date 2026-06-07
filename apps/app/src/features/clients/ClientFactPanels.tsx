@@ -654,10 +654,9 @@ export function ClientClassificationPanel({
     ...(isReclassification && reasonEvent ? { event: reasonEvent } : {}),
     ...(note.trim().length > 0 ? { note: note.trim() } : {}),
   }
-  // Reclassification recompute touches only years >= this effective
-  // year; corrections rewrite all monitored years, so the field is
-  // omitted entirely (and required-validated server-side only for
-  // reclassification).
+  // Reclassification effective year records the historical boundary. Deadline
+  // cleanup itself clears the old active filing plan instead of scoping by year;
+  // corrections omit the field entirely.
   const effectiveFromTaxYear = isReclassification ? effectiveYearNumber : undefined
 
   const reset = () => {

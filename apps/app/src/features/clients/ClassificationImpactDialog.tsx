@@ -1,13 +1,7 @@
 import { type ReactNode, useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import {
-  AlertCircleIcon,
-  CheckCircle2Icon,
-  InfoIcon,
-  Loader2Icon,
-  MinusCircleIcon,
-} from 'lucide-react'
+import { AlertCircleIcon, CheckCircle2Icon, Loader2Icon, MinusCircleIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { ClientPublic } from '@duedatehq/contracts'
@@ -38,6 +32,11 @@ import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { formatTaxCode } from '@/lib/tax-codes'
+
+import {
+  currentTaxYearForDate,
+  hasUnconfirmedCurrentTaxYearConfirmations,
+} from './classification-impact-dialog-model'
 
 // Maps the server's `workflowFlags` strings into localized, human-
 // readable badge labels for the "Needs your confirmation" rows. The
@@ -104,16 +103,12 @@ export function ClassificationImpactDialog({
 }) {
   const { t } = useLingui()
   const workflowFlagLabel = useWorkflowFlagLabel()
-  // Confirmed orphan ids start empty every time the dialog opens — the
-  // CPA must explicitly opt in to removing an obligation that already
-  // has work on it. Reset is keyed off `open` via the Dialog remount of
-  // its children (the dialog content unmounts on close), but we also
-  // clear on a fresh open to be safe against any retained state.
+  // Confirmed deadline ids start empty every time the dialog opens — the
+  // CPA must explicitly opt in before removing current-tax-year deadlines.
+  // Reset is keyed off `open` via the Dialog remount of its children (the
+  // dialog content unmounts on close), but we also clear on a fresh open
+  // to be safe against any retained state.
   const [confirmedOrphanIds, setConfirmedOrphanIds] = useState<ReadonlySet<string>>(new Set())
-  // The CPA must explicitly acknowledge a client's existing open deadlines
-  // before reclassifying — Apply is gated on this when there are any.
-  const [acknowledgedDeadlines, setAcknowledgedDeadlines] = useState(false)
-
   const previewQuery = useQuery({
     ...orpc.clients.previewClassificationRecompute.queryOptions({
       input: { clientId, candidate, effectiveFromTaxYear },
@@ -126,7 +121,7 @@ export function ClassificationImpactDialog({
     [previewQuery.data],
   )
   const summary = previewQuery.data?.summary
-  const openDeadlineCount = previewQuery.data?.openDeadlineCount ?? 0
+  const existingDeadlineCount = previewQuery.data?.existingDeadlineCount ?? 0
   const orphanSafeRows = useMemo(
     () => rows.filter((row) => row.disposition === 'orphan_safe'),
     [rows],
@@ -135,6 +130,12 @@ export function ClassificationImpactDialog({
     () => rows.filter((row) => row.disposition === 'orphan_needs_confirmation'),
     [rows],
   )
+  const currentTaxYear = currentTaxYearForDate()
+  const applyRequiresCurrentYearConfirmation = hasUnconfirmedCurrentTaxYearConfirmations({
+    rows: orphanConfirmRows,
+    confirmedOrphanIds,
+    currentTaxYear,
+  })
 
   const applyMutation = useMutation(
     orpc.clients.applyClassificationRecompute.mutationOptions({
@@ -189,7 +190,6 @@ export function ClassificationImpactDialog({
           // Drop any opt-in selections so the next open starts from a
           // clean, deliberately-unchecked state.
           setConfirmedOrphanIds(new Set())
-          setAcknowledgedDeadlines(false)
         }
         onOpenChange(nextOpen)
       }}
@@ -236,56 +236,24 @@ export function ClassificationImpactDialog({
             </Alert>
           ) : (
             <>
-              {openDeadlineCount > 0 ? (
-                <Alert variant="warning">
-                  <AlertCircleIcon />
-                  <AlertTitle>
-                    <Plural
-                      value={openDeadlineCount}
-                      one="This client still has # open deadline"
-                      other="This client still has # open deadlines"
-                    />
-                  </AlertTitle>
-                  <AlertDescription>
-                    <label className="mt-1 flex cursor-pointer items-start gap-2">
-                      <Checkbox
-                        checked={acknowledgedDeadlines}
-                        onCheckedChange={() => setAcknowledgedDeadlines((value) => !value)}
-                        className="mt-0.5"
-                      />
-                      <span className="text-sm text-text-primary">
-                        <Trans>
-                          I've reviewed this client's existing deadlines before reclassifying.
-                        </Trans>
-                      </span>
-                    </label>
-                  </AlertDescription>
-                </Alert>
+              {existingDeadlineCount > 0 ? (
+                <p className="text-sm text-text-secondary">
+                  <Plural
+                    value={existingDeadlineCount}
+                    one="This client has # existing deadline across the current and projected tax years."
+                    other="This client has # existing deadlines across the current and projected tax years."
+                  />
+                </p>
               ) : null}
-
-              <Alert variant="info">
-                <InfoIcon />
-                <AlertTitle>
-                  <Trans>Deadlines aren't added automatically</Trans>
-                </AlertTitle>
-                <AlertDescription>
-                  <Trans>
-                    Changing the entity type won't create new deadlines. Add any that apply to this
-                    client manually.
-                  </Trans>
-                </AlertDescription>
-              </Alert>
 
               {orphanConfirmRows.length > 0 ? (
                 <ImpactSection
                   icon={<AlertCircleIcon className="size-4 text-text-warning" aria-hidden />}
                   title={<Trans>Needs your confirmation</Trans>}
-                  count={orphanConfirmRows.length}
                 >
                   <p className="text-xs text-text-tertiary">
                     <Trans>
-                      These deadlines already have work on them. Check the ones you want removed;
-                      the rest stay untouched.
+                      These current-year deadlines will be removed. Check each one before applying.
                     </Trans>
                   </p>
                   <ul className="grid gap-2">
@@ -334,6 +302,18 @@ export function ClassificationImpactDialog({
                 </ImpactSection>
               ) : null}
 
+              <Alert variant="info">
+                <AlertTitle>
+                  <Trans>Deadlines aren't added automatically</Trans>
+                </AlertTitle>
+                <AlertDescription>
+                  <Trans>
+                    Changing the entity type won't create new deadlines. Add any that apply to this
+                    client manually.
+                  </Trans>
+                </AlertDescription>
+              </Alert>
+
               {orphanSafeRows.length > 0 ? (
                 <Collapsible>
                   <div className="rounded-md border border-divider-regular">
@@ -345,7 +325,7 @@ export function ClassificationImpactDialog({
                         >
                           <MinusCircleIcon className="size-4 text-text-tertiary" aria-hidden />
                           <span className="font-medium text-text-primary">
-                            <Trans>Will remove — no work done</Trans>
+                            <Trans>Will remove</Trans>
                           </span>
                           <Badge variant="secondary" size="sm" className="tabular-nums">
                             {orphanSafeRows.length}
@@ -399,7 +379,7 @@ export function ClassificationImpactDialog({
               applyMutation.isPending ||
               previewQuery.isLoading ||
               previewQuery.isError ||
-              (openDeadlineCount > 0 && !acknowledgedDeadlines)
+              applyRequiresCurrentYearConfirmation
             }
             aria-busy={applyMutation.isPending || undefined}
           >
@@ -417,12 +397,10 @@ export function ClassificationImpactDialog({
 function ImpactSection({
   icon,
   title,
-  count,
   children,
 }: {
   icon: ReactNode
   title: ReactNode
-  count: number
   children: ReactNode
 }) {
   return (
@@ -430,9 +408,6 @@ function ImpactSection({
       <div className="flex items-center gap-2">
         {icon}
         <h3 className="text-sm font-medium text-text-primary">{title}</h3>
-        <Badge variant="secondary" size="sm" className="tabular-nums">
-          {count}
-        </Badge>
       </div>
       {children}
     </section>

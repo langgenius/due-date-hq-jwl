@@ -17,7 +17,6 @@ import { os } from '../_root'
 import { dateInTimezone, toAiInsightPublic } from '../_ai-insights'
 import { enqueueAiInsightRefresh } from '../../jobs/ai-insights/enqueue'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
-import { listActiveCoreRules } from '../rules'
 import { runClassificationRecompute } from './_classification-recompute'
 import {
   toClientPublic,
@@ -832,27 +831,24 @@ function reclassificationReasonText(reason: ClientClassificationReason): string 
   return parts.join(' — ')
 }
 
-// Read-only impact preview for a tax-classification change: what obligations
-// would be added / removed (and which removals need confirmation). No writes.
+// Read-only impact preview for a tax-classification change: which existing
+// deadlines will be removed, and which current-tax-year removals need
+// confirmation. No writes.
 const previewClassificationRecompute = os.clients.previewClassificationRecompute.handler(
   async ({ input, context }) => {
     await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
-    const { scoped, tenant, userId } = requireTenant(context)
+    const { scoped, userId } = requireTenant(context)
     const client = await scoped.clients.findById(input.clientId)
     if (!client) {
       throw new ORPCError('NOT_FOUND', {
         message: `Client ${input.clientId} not found in current firm.`,
       })
     }
-    const rules = await listActiveCoreRules(scoped)
     const outcome = await runClassificationRecompute({
       scoped,
       userId,
       client,
       candidate: input.candidate,
-      rules,
-      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
-      ...(tenant.monitoringStartDate ? { monitoringStartDate: tenant.monitoringStartDate } : {}),
       now: new Date(),
       mode: 'preview',
       ...(input.effectiveFromTaxYear !== undefined
@@ -863,16 +859,16 @@ const previewClassificationRecompute = os.clients.previewClassificationRecompute
       summary: outcome.summary,
       rows: outcome.rows,
       expectedTaxTypes: outcome.expectedTaxTypes,
-      openDeadlineCount: outcome.openDeadlineCount,
+      existingDeadlineCount: outcome.existingDeadlineCount,
     }
   },
 )
 
-// Atomic classification write + obligation recompute. Writes the new
-// classification, adds the newly-applicable obligations, supersedes the
-// orphaned ones (pristine automatically; stateful only when confirmed), and
-// audits the change. This is the only classification write path — there is no
-// field-only update, so a client can never be left with stale obligations.
+// Atomic classification write + deadline cleanup. Writes the new
+// classification, supersedes all active deadlines that existed before apply,
+// and audits the change. It never auto-creates replacement deadlines. This is
+// the only classification write path — there is no field-only update, so a
+// client can never be left with stale obligations.
 const applyClassificationRecompute = os.clients.applyClassificationRecompute.handler(
   async ({ input, context }) => {
     await requireCurrentFirmRole(context, CLIENT_WRITE_ROLES)
@@ -883,15 +879,11 @@ const applyClassificationRecompute = os.clients.applyClassificationRecompute.han
         message: `Client ${input.clientId} not found in current firm.`,
       })
     }
-    const rules = await listActiveCoreRules(scoped)
     const outcome = await runClassificationRecompute({
       scoped,
       userId,
       client,
       candidate: input.candidate,
-      rules,
-      internalDeadlineOffsetDays: tenant.internalDeadlineOffsetDays,
-      ...(tenant.monitoringStartDate ? { monitoringStartDate: tenant.monitoringStartDate } : {}),
       now: new Date(),
       mode: 'apply',
       reason: reclassificationReasonText(input.reason),
