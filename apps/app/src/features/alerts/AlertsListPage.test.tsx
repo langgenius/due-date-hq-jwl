@@ -281,7 +281,7 @@ describe('AlertsListPage source health display', () => {
   it('uses the active alert query on the active alerts surface', async () => {
     await render(<AlertsListPage embedded />)
 
-    await waitForText('All clear')
+    await waitForText('caught up')
     expect(rpcMocks.listAlertsQueryFn).toHaveBeenCalled()
     expect(rpcMocks.listHistoryQueryFn).not.toHaveBeenCalled()
   })
@@ -289,7 +289,7 @@ describe('AlertsListPage source health display', () => {
   it('uses the handled history query on the history surface', async () => {
     await render(<AlertsListPage embedded historyMode />)
 
-    await waitForText('All clear')
+    await waitForText('No history yet')
     expect(rpcMocks.listHistoryQueryFn).toHaveBeenCalled()
     expect(rpcMocks.listAlertsQueryFn).not.toHaveBeenCalled()
   })
@@ -309,7 +309,7 @@ describe('AlertsListPage source health display', () => {
 
     await render(<AlertsListPage embedded />)
 
-    await waitForText('All clear')
+    await waitForText('caught up')
     expect(document.body.textContent).not.toContain('Pulse source needs attention')
     expect(document.body.textContent).not.toContain('IRS Disaster Relief')
     expect(document.body.textContent).not.toContain('Review sources')
