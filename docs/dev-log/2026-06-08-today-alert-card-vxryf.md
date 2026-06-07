@@ -7,6 +7,7 @@ far from Pencil `VxRyF` through many prior iterations. Rebuilt the render to mat
 the node exactly, using real `PulseAlertPublic` fields (no contract change).
 
 ## Fixed against VxRyF
+
 - **Severity pill**: amber "HIGH" → red **"High impact"** (`#FEE4E2`/`#B42318` →
   `bg-state-destructive-hover` / `text-text-destructive`), high-impact only.
 - **Form badge** moved back to the **top** meta row (a prior pass wrongly moved it
@@ -22,6 +23,7 @@ the node exactly, using real `PulseAlertPublic` fields (no contract change).
   **source link** (moved here from under the title) with external-link icon.
 
 ## Reuse / new
+
 - Reused: `TaxCodeBadge`, `changeKindLabel`, `Tooltip`, `impactBadgeFromAlert`,
   `formatRelativeTime`. Dropped the now-unused `StateBadge` import + dead
   `severityLabel`/`clientsLoading`/`hasData`.
@@ -29,13 +31,16 @@ the node exactly, using real `PulseAlertPublic` fields (no contract change).
   pastel hexes have no token equivalent — decorative, meaning-via-initials).
 
 ## Responsive
+
 - Left meta cluster `flex-wrap`; bottom meta `flex-wrap`; source label truncates.
   No fixed widths — reads on narrow screens.
 
 ## Surface note
+
 - VxRyF card fill is `#f9fafb` on a white page with no border. Until the page-level
   surface-model pass lands, the card keeps its hairline border so it stays visible
   on the current lighter page wash (documented deviation).
 
 ## Verify
+
 - tsgo 0; dashboard tests 14/15; `vp check` 0 errors; strict i18n compile passes.
