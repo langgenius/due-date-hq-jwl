@@ -34,7 +34,13 @@
   --text-inverted: #ffffff;
 
   /* ===== Background ===================================================== */
-  --background-body: var(--color-util-colors-gray-100);
+  /* 2026-06-07 (Yuqi "lighter background"): page canvas lightened a clear
+     step from gray-100 (#f2f4f7) → #f7f9fc, kept in sync with the inset
+     work-surface below. Held short of near-white (#f9fafb/#fafafa) on
+     purpose — that range previously collapsed the contrast against white
+     cards (see the inset note below). ~3% off white preserves the
+     surface-vs-card layering, especially with bordered cards. */
+  --background-body: #f7f9fc;
   /*
    * 2026-05-26 (Yuqi twenty-first pass): canonical SidebarInset
    * surface tone. Set once here; consumed by `bg-background-inset`
@@ -54,7 +60,7 @@
    * was the whole point of the inset-surface pattern. The lighter
    * shade was an overcorrection.
    */
-  --background-inset: #f4f4f4;
+  --background-inset: #f7f9fc;
   --background-default: #ffffff;
   --background-default-subtle: var(--color-util-colors-gray-25);
   --background-default-hover: var(--color-util-colors-gray-50);
