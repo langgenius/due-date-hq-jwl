@@ -49,6 +49,7 @@ import { orpc } from '@/lib/rpc'
 import { formatRelativeTime } from '@/lib/utils'
 
 import { canContinueNormalization } from './continue-rules'
+import { ImportHistoryDrawer } from './ImportHistoryDrawer'
 import { Step1Intake } from './Step1Intake'
 import { Step2Mapping } from './Step2Mapping'
 import { Step3Normalize } from './Step3Normalize'
@@ -102,6 +103,9 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
   } | null>(null)
   // Step 4 re-import dedup choice; default 'skip' matches the server default.
   const [duplicateHandling, setDuplicateHandling] = useState<DuplicateHandling>('skip')
+  // 2026-06-07 (Cluster 3 — design SLw8Q/dCUv7): the "Import history"
+  // header button opens the existing drawer in-place over the wizard.
+  const [importHistoryOpen, setImportHistoryOpen] = useState(false)
   // Guards one-time HYDRATE per resumed batch so user edits aren't clobbered.
   const hydratedBatchIdRef = useRef<string | null>(null)
 
@@ -668,6 +672,7 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
     onBack,
     onClose: resetAndClose,
     confirmOnClose: hasDiscardableWizardWork(state),
+    onOpenImportHistory: () => setImportHistoryOpen(true),
     children: (
       <>
         {state.step === 1 && resumableImport ? (
@@ -792,6 +797,15 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
         </AlertDialogContent>
       </AlertDialog>
       <LiveGenesisOverlay genesis={genesis} />
+      <ImportHistoryDrawer
+        open={importHistoryOpen}
+        onOpenChange={setImportHistoryOpen}
+        onViewClient={(clientId) => {
+          setImportHistoryOpen(false)
+          resetAndClose()
+          void navigate(`/clients/${clientId}`)
+        }}
+      />
     </>
   )
 }

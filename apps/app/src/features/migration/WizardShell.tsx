@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ArrowRightIcon, CheckIcon, LoaderCircleIcon, XIcon } from 'lucide-react'
+import { ArrowRightIcon, CheckIcon, HistoryIcon, LoaderCircleIcon, XIcon } from 'lucide-react'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
 import {
@@ -47,6 +47,12 @@ interface WizardFrameProps {
   onContinue: () => void
   onRequestClose: () => void
   showCloseControl?: boolean | undefined
+  /**
+   * Opens the Import history surface from the header (design SLw8Q/dCUv7
+   * "Import history" ghost button). When omitted, the header button is
+   * not rendered.
+   */
+  onOpenImportHistory?: (() => void) | undefined
   closeLabel?: ReactNode | undefined
   closeShortcutLabel?: string | undefined
   hotkeysEnabled?: boolean | undefined
@@ -77,6 +83,7 @@ function WizardFrame({
   onContinue,
   onRequestClose,
   showCloseControl = true,
+  onOpenImportHistory,
   closeLabel,
   closeShortcutLabel,
   hotkeysEnabled = true,
@@ -181,9 +188,26 @@ function WizardFrame({
             <Trans>Import clients</Trans>
           </ConceptLabel>
         </h2>
-        {showCloseControl ? (
-          <div className="flex items-center gap-2">
-            {/* 2026-06-01: route hand-rolled `<kbd>` + label span through the
+        <div className="flex items-center gap-2">
+          {/* 2026-06-07 (Cluster 3 — design SLw8Q/dCUv7): "Import history"
+              ghost button present in every migration frame's header.
+              Opens the existing ImportHistoryDrawer when the parent
+              supplies a handler. */}
+          {onOpenImportHistory ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-text-muted"
+              disabled={busy}
+              onClick={onOpenImportHistory}
+            >
+              <HistoryIcon data-icon="inline-start" />
+              <Trans>Import history</Trans>
+            </Button>
+          ) : null}
+          {showCloseControl ? (
+            <>
+              {/* 2026-06-01: route hand-rolled `<kbd>` + label span through the
                 canonical KbdHint pattern. The sm:inline-flex breakpoint
                 continues to gate the hint on wider viewports. */}
             <KbdHint
@@ -204,8 +228,9 @@ function WizardFrame({
             >
               {closeLabel ?? <XIcon />}
             </Button>
-          </div>
-        ) : null}
+            </>
+          ) : null}
+        </div>
       </header>
 
       <Stepper current={step} />

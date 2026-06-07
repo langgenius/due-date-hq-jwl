@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { CheckIcon } from 'lucide-react'
+import { CheckIcon, ChevronRightIcon } from 'lucide-react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { cn } from '@duedatehq/ui/lib/utils'
 import type { StepIndex } from './state'
@@ -50,36 +50,52 @@ export function Stepper({ current }: { current: StepIndex }) {
       // step pill, the header title, and the dropzone all share the
       // same left edge — see feedback #5 ("alignment between the
       // title, the progress bar, and the drop zone").
-      className="flex h-12 items-center justify-between gap-3 px-4"
+      // 2026-06-07 (Cluster 3 — pill stepper, design SLw8Q/dCUv7): the
+      // bordered rounded-md chips + flex connector rail were restyled
+      // to rounded-full pills with numbered circles + ChevronRight
+      // separators, matching the canvas. Active = filled accent pill;
+      // completed = green-tint pill with a check; pending = quiet
+      // hairline pill. Still display-only (no click-to-jump).
+      className="flex h-12 items-center gap-2 px-4"
     >
       {STEP_LABELS.map((step, idx) => {
         const isDone = step.index < current
         const isActive = step.index === current
-        const tone = isActive
-          ? 'border-state-accent-active bg-state-accent-hover-alt text-text-accent'
+
+        const pillTone = isActive
+          ? 'bg-state-accent-solid text-text-primary-on-surface'
           : isDone
-            ? 'border-transparent bg-transparent text-text-success'
-            : 'border-transparent bg-transparent text-text-tertiary'
+            ? 'border border-state-success-border bg-state-success-hover text-text-success'
+            : 'border border-divider-subtle bg-components-panel-bg text-text-secondary'
+
+        const circleTone = isActive
+          ? 'bg-white/20 text-text-primary-on-surface'
+          : isDone
+            ? 'bg-state-success-solid text-text-primary-on-surface'
+            : 'bg-background-section text-text-tertiary'
 
         return (
-          <li
-            key={step.key}
-            className={cn('flex items-center gap-3', idx < STEP_LABELS.length - 1 && 'flex-1')}
-            aria-current={isActive ? 'step' : undefined}
-          >
+          <li key={step.key} className="flex items-center gap-2" aria-current={isActive ? 'step' : undefined}>
             <div
               className={cn(
-                'flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-3 text-sm transition-colors',
-                isActive && 'font-medium',
-                tone,
+                'flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm transition-colors',
+                isActive ? 'font-medium' : null,
+                pillTone,
               )}
             >
-              <span className="tabular-nums">{step.index}</span>
-              {isDone ? <CheckIcon className="size-3.5" aria-hidden /> : null}
+              <span
+                aria-hidden
+                className={cn(
+                  'grid size-4 shrink-0 place-items-center rounded-full text-[11px] font-medium tabular-nums',
+                  circleTone,
+                )}
+              >
+                {isDone ? <CheckIcon className="size-3" aria-hidden /> : step.index}
+              </span>
               <span>{step.label}</span>
             </div>
             {idx < STEP_LABELS.length - 1 ? (
-              <span aria-hidden className="h-px flex-1 bg-divider-regular" />
+              <ChevronRightIcon aria-hidden className="size-3.5 shrink-0 text-text-tertiary" />
             ) : null}
           </li>
         )
