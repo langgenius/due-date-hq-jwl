@@ -1,5 +1,4 @@
 import { Plural, Trans } from '@lingui/react/macro'
-import { AlertCircleIcon, CheckIcon } from 'lucide-react'
 
 import type { ObligationType } from '@duedatehq/contracts/shared/enums'
 import { cn } from '@duedatehq/ui/lib/utils'
@@ -52,7 +51,6 @@ function ReadinessIndicator({
   if (total === 0) {
     return null
   }
-  const missing = Math.max(total - attached, 0)
   const complete = attached >= total
   // Tone follows readiness:
   //   • Complete (attached === total)  → success (green)
@@ -74,19 +72,29 @@ function ReadinessIndicator({
   return (
     <span
       className={cn(
-        'inline-flex min-w-0 items-baseline gap-1.5 text-xs font-medium tabular-nums',
+        'inline-flex min-w-0 items-center gap-1.5 text-xs font-medium tabular-nums',
         className,
       )}
     >
-      <span className={cn('inline-flex items-center gap-1', toneClass)}>
+      {/* Pencil VJbaH readiness dots: one dot per expected doc, filled =
+          attached, hollow = outstanding. The dots are the state signal
+          (replacing the louder check/alert icons), keeping the row calm. */}
+      <span className="inline-flex shrink-0 items-center gap-1" aria-hidden>
+        {Array.from({ length: total }).map((_, index) => (
+          <span
+            // eslint-disable-next-line react/no-array-index-key
+            key={index}
+            className={cn(
+              'size-1.5 rounded-full',
+              index < attached ? 'bg-text-secondary' : 'border border-divider-regular',
+            )}
+          />
+        ))}
+      </span>
+      <span className={cn('inline-flex items-center', toneClass)}>
         <Trans>
           Docs {attached}/{total}
         </Trans>
-        {complete ? (
-          <CheckIcon className="size-3 shrink-0" aria-hidden />
-        ) : missing > 0 ? (
-          <AlertCircleIcon className="size-3 shrink-0" aria-hidden />
-        ) : null}
       </span>
       {/* 2026-06-04 round 3 (Yuqi feedback #10 "Docs 1/3 still
           showing missing 2? we know it is 1/3 and missing 2"):
