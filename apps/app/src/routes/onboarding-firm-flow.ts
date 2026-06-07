@@ -5,6 +5,7 @@ import {
   type RuleGenerationState,
   type RuleOnboardingActivationInput,
   type RuleOnboardingActivationOutput,
+  type USFirmTimezone,
 } from '@duedatehq/contracts'
 
 const DEFAULT_FIRM_TIMEZONE = 'America/New_York'
@@ -30,6 +31,7 @@ type OnboardingFirmActivationResult =
 export async function activateOrCreateOnboardingFirm(input: {
   gateway: OnboardingFirmGateway
   name: string
+  timezone?: USFirmTimezone | undefined
   internalDeadlineOffsetDays?: number
   monitoringStartDate?: string
   selectedRuleStates?: RuleGenerationState[]
@@ -44,7 +46,7 @@ export async function activateOrCreateOnboardingFirm(input: {
 
   const firm = await input.gateway.create({
     name: input.name,
-    timezone: DEFAULT_FIRM_TIMEZONE,
+    timezone: input.timezone ?? DEFAULT_FIRM_TIMEZONE,
     internalDeadlineOffsetDays:
       input.internalDeadlineOffsetDays ?? DEFAULT_INTERNAL_DEADLINE_OFFSET_DAYS,
     ...(input.monitoringStartDate ? { monitoringStartDate: input.monitoringStartDate } : {}),
