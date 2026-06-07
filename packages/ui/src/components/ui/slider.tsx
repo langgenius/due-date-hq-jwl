@@ -17,16 +17,9 @@ import { cn } from '@duedatehq/ui/lib/utils'
 // callers pass a scalar `value`/`onValueChange`. Base UI's array form
 // is hidden behind the scalar API to keep call sites simple.
 
-function Slider({
-  className,
-  ...props
-}: Omit<SliderPrimitive.Root.Props<number>, 'render'>) {
+function Slider({ className, ...props }: Omit<SliderPrimitive.Root.Props<number>, 'render'>) {
   return (
-    <SliderPrimitive.Root
-      data-slot="slider"
-      className={cn('w-full', className)}
-      {...props}
-    >
+    <SliderPrimitive.Root data-slot="slider" className={cn('w-full', className)} {...props}>
       <SliderPrimitive.Control
         data-slot="slider-control"
         className="flex w-full touch-none items-center py-1.5 select-none"

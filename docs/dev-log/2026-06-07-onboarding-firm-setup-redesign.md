@@ -22,7 +22,7 @@ visuals only — all submit/mutation wiring, validation, and the
   connector lines. Steps 2/3 reflect the real continuation: `handleSubmit` already
   navigates to `/migration/new` (the importer) after firm creation.
 - **Centered heading block**: "Set up your practice" (28px/600, -0.5px tracking)
-  + tertiary subtitle, per the canvas copy.
+  - tertiary subtitle, per the canvas copy.
 - **Form card**: white `rounded-[14px]` surface, `border-divider-subtle`, responsive
   padding (`p-5 sm:px-7 sm:py-[22px]`), `gap-4`. Each field uses a new `FieldHeaderRow`
   (label 13px/600 on the lead edge, muted 11px hint on the trailing edge) mirroring
