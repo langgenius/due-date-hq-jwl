@@ -3438,6 +3438,7 @@ msgstr "clients"
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/routes/clients.tsx
+#: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
 msgid "Clients"
 msgstr "Clients"
@@ -3718,7 +3719,6 @@ msgid "Context the next preparer should read first — preferred call window, se
 msgstr "Context the next preparer should read first — preferred call window, sensitivities, history. Travels with the client across all surfaces."
 
 #: src/features/migration/WizardShell.tsx
-#: src/routes/onboarding.tsx
 msgid "Continue"
 msgstr "Continue"
 
@@ -4424,6 +4424,10 @@ msgstr "Create or select a practice before starting checkout."
 msgid "Create practice"
 msgstr "Create practice"
 
+#: src/routes/onboarding.tsx
+msgid "Create practice · activate jurisdictions"
+msgstr "Create practice · activate jurisdictions"
+
 #: src/routes/rules.library.tsx
 msgid "Create rule"
 msgstr "Create rule"
@@ -4593,8 +4597,8 @@ msgid "Days"
 msgstr "Days"
 
 #: src/routes/onboarding.tsx
-msgid "Days before each statutory deadline that work shows as due. Most practices use 5–14 days. Changing this later recalculates current deadlines."
-msgstr "Days before each statutory deadline that work shows as due. Most practices use 5–14 days. Changing this later recalculates current deadlines."
+msgid "days before the official due date"
+msgstr "days before the official due date"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "days later"
@@ -5075,6 +5079,10 @@ msgstr "Drafting in progress with everything the client provided."
 msgid "Drafting started without all client materials in hand."
 msgstr "Drafting started without all client materials in hand."
 
+#: src/routes/onboarding.tsx
+msgid "drives when alerts and digests send"
+msgstr "drives when alerts and digests send"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Drop a file or click to browse"
 msgstr "Drop a file or click to browse"
@@ -5170,8 +5178,8 @@ msgid "DueDateHQ shows work as due this many days before each statutory base dea
 msgstr "DueDateHQ shows work as due this many days before each statutory base deadline. Changing this recalculates current deadline dates."
 
 #: src/routes/onboarding.tsx
-msgid "DueDateHQ will create filing plans from the first applicable deadline on or after this date. Earlier statutory deadlines will not be added to your active overdue queue."
-msgstr "DueDateHQ will create filing plans from the first applicable deadline on or after this date. Earlier statutory deadlines will not be added to your active overdue queue."
+msgid "DueDateHQ will create filing plans from the first applicable deadline on or after your monitoring start date. By continuing you agree to the Terms and Privacy Policy."
+msgstr "DueDateHQ will create filing plans from the first applicable deadline on or after your monitoring start date. By continuing you agree to the Terms and Privacy Policy."
 
 #: src/features/concepts/concept-help.tsx
 msgid "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and materials pressure."
@@ -5230,9 +5238,12 @@ msgid "e.g. 2"
 msgstr "e.g. 2"
 
 #: src/components/patterns/app-shell-nav.tsx
-#: src/routes/onboarding.tsx
 msgid "e.g. Bright CPA Practice"
 msgstr "e.g. Bright CPA Practice"
+
+#: src/routes/onboarding.tsx
+msgid "e.g. Brightline CPA"
+msgstr "e.g. Brightline CPA"
 
 #: src/routes/obligations.tsx
 msgid "e.g. Filed Form 7004 — client confirmed by phone"
@@ -5398,10 +5409,6 @@ msgstr "Encrypted · 2FA-protected"
 #: src/routes/login.tsx
 msgid "Encrypted · 7-day session · SSO-ready"
 msgstr "Encrypted · 7-day session · SSO-ready"
-
-#: src/routes/onboarding.tsx
-msgid "Encrypted · Saves on continue · Renamable later"
-msgstr "Encrypted · Saves on continue · Renamable later"
 
 #: src/routes/obligations.tsx
 msgid "End date must be on or after the start date."
@@ -6220,6 +6227,10 @@ msgstr "Fiscal year end"
 msgid "Fiscal-year deadlines require a year end."
 msgstr "Fiscal-year deadlines require a year end."
 
+#: src/routes/onboarding.tsx
+msgid "Five fields the engine needs before it can schedule anything. Edit anytime in Settings."
+msgstr "Five fields the engine needs before it can schedule anything. Edit anytime in Settings."
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Fix missing facts"
 msgstr "Fix missing facts"
@@ -6855,8 +6866,8 @@ msgid "Internal deadline changed from {previous} to {next}"
 msgstr "Internal deadline changed from {previous} to {next}"
 
 #: src/routes/onboarding.tsx
-msgid "Internal deadline lead time"
-msgstr "Internal deadline lead time"
+msgid "Internal deadline offset"
+msgstr "Internal deadline offset"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
@@ -6968,6 +6979,10 @@ msgstr "IP hash"
 #: src/routes/obligations.tsx
 msgid "IRS / CA FTB"
 msgstr "IRS / CA FTB"
+
+#: src/routes/onboarding.tsx
+msgid "ISO date"
+msgstr "ISO date"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AlertStructuredFields.tsx
@@ -9985,6 +10000,7 @@ msgstr "Positive whole number."
 #: src/features/audit/audit-log-labels.ts
 #: src/features/concepts/concept-help.tsx
 #: src/routes/billing.checkout.tsx
+#: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
 msgid "Practice"
@@ -10047,10 +10063,6 @@ msgstr "Practice name, timezone, internal deadline policy, smart priority weight
 #: src/routes/settings.tsx
 msgid "Practice profile"
 msgstr "Practice profile"
-
-#: src/routes/onboarding.tsx
-msgid "PRACTICE PROFILE"
-msgstr "PRACTICE PROFILE"
 
 #: src/routes/practice.tsx
 msgid "Practice profile applies only to the active practice."
@@ -10994,6 +11006,10 @@ msgstr "Request review"
 msgid "Requested from client"
 msgstr "Requested from client"
 
+#: src/routes/onboarding.tsx
+msgid "required, 2+ characters"
+msgstr "required, 2+ characters"
+
 #: src/features/permissions/permission-gate.tsx
 msgid "Required: {requiredRoleText}"
 msgstr "Required: {requiredRoleText}"
@@ -11636,6 +11652,7 @@ msgstr "Rule watch"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-page.tsx
+#: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
 msgid "Rules"
 msgstr "Rules"
@@ -12312,6 +12329,10 @@ msgstr "Set to {after}"
 #: src/routes/account.security.tsx
 msgid "Set up authenticator"
 msgstr "Set up authenticator"
+
+#: src/routes/onboarding.tsx
+msgid "Set up your practice"
+msgstr "Set up your practice"
 
 #: src/routes/onboarding.tsx
 msgid "Setting up your practice…"
@@ -13649,10 +13670,6 @@ msgstr "This is the 30-day client countdown email. Variables: client_name, tax_t
 msgid "This is the 7-day client countdown email. Variables: client_name, tax_type, due_date, offset_days, obligation_url, and unsubscribe_url."
 msgstr "This is the 7-day client countdown email. Variables: client_name, tax_type, due_date, offset_days, obligation_url, and unsubscribe_url."
 
-#: src/routes/onboarding.tsx
-msgid "This is what your team and clients will see. You can change it later."
-msgstr "This is what your team and clients will see. You can change it later."
-
 #: src/routes/account.security.tsx
 msgid "This is your current session — revoking it will sign you out and send you to the login screen."
 msgstr "This is your current session — revoking it will sign you out and send you to the login screen."
@@ -13797,6 +13814,10 @@ msgstr "Time"
 #: src/features/audit/audit-log-page.tsx
 msgid "Time range"
 msgstr "Time range"
+
+#: src/routes/onboarding.tsx
+msgid "Time zone"
+msgstr "Time zone"
 
 #: src/routes/settings.tsx
 msgid "Timestamped event log across the workspace."
@@ -14536,10 +14557,6 @@ msgstr "We couldn't refresh billing status yet. This page will keep checking."
 #: src/features/migration/Step1Intake.tsx
 msgid "We found a header, but no data rows. Add at least one client row to continue."
 msgstr "We found a header, but no data rows. Add at least one client row to continue."
-
-#: src/routes/onboarding.tsx
-msgid "We pre-filled a name from your account."
-msgstr "We pre-filled a name from your account."
 
 #: src/routes/billing.tsx
 msgid "We store the plan and seat limit needed for app permissions."

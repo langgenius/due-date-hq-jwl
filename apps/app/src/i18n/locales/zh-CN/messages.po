@@ -3472,6 +3472,7 @@ msgstr "客户"
 #: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/routes/clients.tsx
+#: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
 msgid "Clients"
 msgstr "客户"
@@ -3755,7 +3756,6 @@ msgid "Context the next preparer should read first — preferred call window, se
 msgstr "下一位经办人应首先阅读的背景 —— 偏好的致电时段、敏感事项、历史记录。随客户在所有界面中同步。"
 
 #: src/features/migration/WizardShell.tsx
-#: src/routes/onboarding.tsx
 msgid "Continue"
 msgstr "继续"
 
@@ -4464,6 +4464,10 @@ msgstr "开始 checkout 前请先创建或选择事务所。"
 msgid "Create practice"
 msgstr "创建事务所"
 
+#: src/routes/onboarding.tsx
+msgid "Create practice · activate jurisdictions"
+msgstr "创建事务所 · 激活辖区"
+
 #: src/routes/rules.library.tsx
 msgid "Create rule"
 msgstr "创建规则"
@@ -4635,8 +4639,8 @@ msgid "Days"
 msgstr "天数"
 
 #: src/routes/onboarding.tsx
-msgid "Days before each statutory deadline that work shows as due. Most practices use 5–14 days. Changing this later recalculates current deadlines."
-msgstr "各法定截止日期前显示为待办的天数。大多数事务所使用 5–14 天。后续修改将重新计算当前截止日期。"
+msgid "days before the official due date"
+msgstr "在正式截止日期之前的天数"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "days later"
@@ -5119,6 +5123,10 @@ msgstr "客户已交齐全部材料，起草进行中。"
 msgid "Drafting started without all client materials in hand."
 msgstr "已开始起草，但客户材料尚未收齐。"
 
+#: src/routes/onboarding.tsx
+msgid "drives when alerts and digests send"
+msgstr "决定提醒和摘要的发送时间"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Drop a file or click to browse"
 msgstr "Drop a file or click to browse"
@@ -5214,8 +5222,8 @@ msgid "DueDateHQ shows work as due this many days before each statutory base dea
 msgstr "DueDateHQ 会在每个法定基准截止日期前的这些天数显示为待办。修改此值会重新计算当前的截止日期。"
 
 #: src/routes/onboarding.tsx
-msgid "DueDateHQ will create filing plans from the first applicable deadline on or after this date. Earlier statutory deadlines will not be added to your active overdue queue."
-msgstr "DueDateHQ 会从该日期当天或之后第一个适用的截止日开始创建申报计划。更早的法定截止日不会加入你的活跃逾期队列。"
+msgid "DueDateHQ will create filing plans from the first applicable deadline on or after your monitoring start date. By continuing you agree to the Terms and Privacy Policy."
+msgstr "DueDateHQ 将从您监控起始日期当天或之后的第一个适用截止日期开始创建申报计划。继续即表示您同意服务条款和隐私政策。"
 
 #: src/features/concepts/concept-help.tsx
 msgid "DueDateHQ's deterministic ordering score for deadline work. It combines urgency, client importance, late filing history, and materials pressure."
@@ -5274,9 +5282,12 @@ msgid "e.g. 2"
 msgstr "例如 2"
 
 #: src/components/patterns/app-shell-nav.tsx
-#: src/routes/onboarding.tsx
 msgid "e.g. Bright CPA Practice"
 msgstr "例如：Bright CPA Practice"
+
+#: src/routes/onboarding.tsx
+msgid "e.g. Brightline CPA"
+msgstr "例如 Brightline CPA"
 
 #: src/routes/obligations.tsx
 msgid "e.g. Filed Form 7004 — client confirmed by phone"
@@ -5442,10 +5453,6 @@ msgstr "已加密 · 双重认证保护"
 #: src/routes/login.tsx
 msgid "Encrypted · 7-day session · SSO-ready"
 msgstr "全程加密 · 7 天会话 · 支持 SSO"
-
-#: src/routes/onboarding.tsx
-msgid "Encrypted · Saves on continue · Renamable later"
-msgstr "已加密 · 继续时保存 · 可后续重命名"
 
 #: src/routes/obligations.tsx
 msgid "End date must be on or after the start date."
@@ -6269,6 +6276,10 @@ msgstr "财政年度结束日"
 msgid "Fiscal-year deadlines require a year end."
 msgstr "会计年度截止事项需要年度结束日期。"
 
+#: src/routes/onboarding.tsx
+msgid "Five fields the engine needs before it can schedule anything. Edit anytime in Settings."
+msgstr "引擎在排程前需要的五个字段。可随时在设置中编辑。"
+
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Fix missing facts"
 msgstr "补充缺失信息"
@@ -6908,8 +6919,8 @@ msgid "Internal deadline changed from {previous} to {next}"
 msgstr "内部截止日从 {previous} 改为 {next}"
 
 #: src/routes/onboarding.tsx
-msgid "Internal deadline lead time"
-msgstr "内部截止日期提前量"
+msgid "Internal deadline offset"
+msgstr "内部截止日期偏移"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
@@ -7022,6 +7033,10 @@ msgstr "IP 哈希"
 #: src/routes/obligations.tsx
 msgid "IRS / CA FTB"
 msgstr "IRS / CA FTB"
+
+#: src/routes/onboarding.tsx
+msgid "ISO date"
+msgstr "ISO 日期"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AlertStructuredFields.tsx
@@ -10072,6 +10087,7 @@ msgstr "正整数。"
 #: src/features/audit/audit-log-labels.ts
 #: src/features/concepts/concept-help.tsx
 #: src/routes/billing.checkout.tsx
+#: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
 msgid "Practice"
@@ -10133,10 +10149,6 @@ msgstr "事务所名称、时区、内部截止日期政策、智能优先级权
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
 msgid "Practice profile"
-msgstr "事务所资料"
-
-#: src/routes/onboarding.tsx
-msgid "PRACTICE PROFILE"
 msgstr "事务所资料"
 
 #: src/routes/practice.tsx
@@ -11086,6 +11098,10 @@ msgstr "请求审核"
 msgid "Requested from client"
 msgstr "已向客户索取"
 
+#: src/routes/onboarding.tsx
+msgid "required, 2+ characters"
+msgstr "必填，至少 2 个字符"
+
 #: src/features/permissions/permission-gate.tsx
 msgid "Required: {requiredRoleText}"
 msgstr "需要：{requiredRoleText}"
@@ -11731,6 +11747,7 @@ msgstr "规则监控"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-page.tsx
+#: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
 msgid "Rules"
 msgstr "规则"
@@ -12412,6 +12429,10 @@ msgstr "设置为 {after}"
 #: src/routes/account.security.tsx
 msgid "Set up authenticator"
 msgstr "设置身份验证器"
+
+#: src/routes/onboarding.tsx
+msgid "Set up your practice"
+msgstr "设置您的事务所"
 
 #: src/routes/onboarding.tsx
 msgid "Setting up your practice…"
@@ -13755,10 +13776,6 @@ msgstr "这是发送给客户的 30 天倒计时邮件。变量：client_name、
 msgid "This is the 7-day client countdown email. Variables: client_name, tax_type, due_date, offset_days, obligation_url, and unsubscribe_url."
 msgstr "这是发送给客户的 7 天倒计时邮件。变量：client_name、tax_type、due_date、offset_days、obligation_url 和 unsubscribe_url。"
 
-#: src/routes/onboarding.tsx
-msgid "This is what your team and clients will see. You can change it later."
-msgstr "这是您的团队和客户将看到的名称。您可以稍后更改。"
-
 #: src/routes/account.security.tsx
 msgid "This is your current session — revoking it will sign you out and send you to the login screen."
 msgstr "这是你的当前会话；撤销后会退出登录并跳转到登录页。"
@@ -13903,6 +13920,10 @@ msgstr "时间"
 #: src/features/audit/audit-log-page.tsx
 msgid "Time range"
 msgstr "时间范围"
+
+#: src/routes/onboarding.tsx
+msgid "Time zone"
+msgstr "时区"
 
 #: src/routes/settings.tsx
 msgid "Timestamped event log across the workspace."
@@ -14646,10 +14667,6 @@ msgstr "我们暂时无法刷新账单状态。此页面会继续检查。"
 #: src/features/migration/Step1Intake.tsx
 msgid "We found a header, but no data rows. Add at least one client row to continue."
 msgstr "找到了表头，但没有数据行。请至少添加一条客户记录后继续。"
-
-#: src/routes/onboarding.tsx
-msgid "We pre-filled a name from your account."
-msgstr "我们已根据您的账户预填了名称。"
 
 #: src/routes/billing.tsx
 msgid "We store the plan and seat limit needed for app permissions."
