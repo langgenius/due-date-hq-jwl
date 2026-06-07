@@ -537,6 +537,12 @@ function buildScoped(firmId: string, rows: Row[]) {
       async load() {
         return unused('dashboard.load')
       },
+      async welcomeRecap() {
+        return unused('dashboard.welcomeRecap')
+      },
+      async recordDashboardVisit() {
+        return unused('dashboard.recordDashboardVisit')
+      },
       async findLatestBrief() {
         return unused('dashboard.findLatestBrief')
       },

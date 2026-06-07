@@ -187,6 +187,16 @@ export interface DashboardBriefFailedInput {
 export interface DashboardRepo {
   readonly firmId: string
   load(input: DashboardLoadInput): Promise<DashboardLoadResult>
+  // Pencil QGZta /splash — last-visit-aware "while you were away" recap.
+  welcomeRecap(input: { userId: string; now: Date; weekAheadDays: number }): Promise<{
+    lastVisitAt: Date | null
+    deadlinesSyncedCount: number
+    newAlertCount: number
+    remindersSentCount: number
+    clientsImportedCount: number
+    dueThisWeekCount: number
+  }>
+  recordDashboardVisit(input: { userId: string; now: Date }): Promise<Date>
   findLatestBrief(input: {
     scope: DashboardBriefScope
     asOfDate: string

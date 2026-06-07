@@ -203,10 +203,39 @@ export type DashboardRequestBriefRefreshOutput = z.infer<
   typeof DashboardRequestBriefRefreshOutputSchema
 >
 
+// 2026-06-07 (Pencil QGZta /splash): the post-login "while you were away"
+// recap. `shouldShow` is true when the user last opened the dashboard on an
+// earlier day (drives the once-a-day auto-redirect). The counts are firm
+// activity since `sinceLastVisit` (audit-derived); `dueThisWeekCount` mirrors
+// the dashboard summary. lastSignIn* describe the PRIOR session for the footer.
+export const DashboardWelcomeRecapOutputSchema = z.object({
+  shouldShow: z.boolean(),
+  sinceLastVisit: z.iso.datetime().nullable(),
+  userName: z.string().nullable(),
+  dueThisWeekCount: z.number().int().min(0),
+  deadlinesSyncedCount: z.number().int().min(0),
+  newAlertCount: z.number().int().min(0),
+  remindersSentCount: z.number().int().min(0),
+  clientsImportedCount: z.number().int().min(0),
+  lastSignInAt: z.iso.datetime().nullable(),
+  lastSignInIp: z.string().nullable(),
+})
+export type DashboardWelcomeRecapOutput = z.infer<typeof DashboardWelcomeRecapOutputSchema>
+
+export const DashboardRecordVisitOutputSchema = z.object({
+  recordedAt: z.iso.datetime(),
+})
+export type DashboardRecordVisitOutput = z.infer<typeof DashboardRecordVisitOutputSchema>
+
 export const dashboardContract = oc.router({
   load: oc.input(DashboardLoadInputSchema).output(DashboardLoadOutputSchema),
   requestBriefRefresh: oc
     .input(DashboardRequestBriefRefreshInputSchema)
     .output(DashboardRequestBriefRefreshOutputSchema),
+  // Read-only: compute the recap + whether to show the splash. Does NOT record
+  // the visit (so it's safe to call from both the dashboard gate + /splash).
+  welcomeRecap: oc.output(DashboardWelcomeRecapOutputSchema),
+  // Write: stamp "visited now" so the splash won't re-trigger today.
+  recordDashboardVisit: oc.output(DashboardRecordVisitOutputSchema),
 })
 export type DashboardContract = typeof dashboardContract

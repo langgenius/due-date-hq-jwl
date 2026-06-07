@@ -6,7 +6,7 @@ import {
 } from '@duedatehq/contracts'
 import type { DashboardBriefRow } from '@duedatehq/ports/dashboard'
 import { enqueueDashboardBriefRefresh } from '../../jobs/dashboard-brief/enqueue'
-import { requireTenant } from '../_context'
+import { requireSession, requireTenant } from '../_context'
 import { requirePracticeAiWorkflow } from '../_plan-gates'
 import { os } from '../_root'
 
@@ -192,4 +192,39 @@ const requestBriefRefresh = os.dashboard.requestBriefRefresh.handler(async ({ in
   return { queued, brief: toBriefPublic(brief) }
 })
 
-export const dashboardHandlers = { load, requestBriefRefresh }
+// Pencil QGZta /splash — read-only recap + shouldShow gate. Computes whether
+// the user last opened the dashboard on an earlier calendar day (firm tz).
+const welcomeRecap = os.dashboard.welcomeRecap.handler(async ({ context }) => {
+  const { scoped, tenant, userId } = requireTenant(context)
+  const { user, session } = requireSession(context)
+  const now = new Date()
+  const recap = await scoped.dashboard.welcomeRecap({ userId, now, weekAheadDays: 7 })
+  const shouldShow =
+    recap.lastVisitAt !== null &&
+    dateInTimezone(tenant.timezone, recap.lastVisitAt) !== dateInTimezone(tenant.timezone, now)
+  return {
+    shouldShow,
+    sinceLastVisit: recap.lastVisitAt ? recap.lastVisitAt.toISOString() : null,
+    userName: user.name ?? null,
+    dueThisWeekCount: recap.dueThisWeekCount,
+    deadlinesSyncedCount: recap.deadlinesSyncedCount,
+    newAlertCount: recap.newAlertCount,
+    remindersSentCount: recap.remindersSentCount,
+    clientsImportedCount: recap.clientsImportedCount,
+    lastSignInAt: session.createdAt ? new Date(session.createdAt).toISOString() : null,
+    lastSignInIp: session.ipAddress ?? null,
+  }
+})
+
+const recordDashboardVisit = os.dashboard.recordDashboardVisit.handler(async ({ context }) => {
+  const { scoped, userId } = requireTenant(context)
+  const recordedAt = await scoped.dashboard.recordDashboardVisit({ userId, now: new Date() })
+  return { recordedAt: recordedAt.toISOString() }
+})
+
+export const dashboardHandlers = {
+  load,
+  requestBriefRefresh,
+  welcomeRecap,
+  recordDashboardVisit,
+}

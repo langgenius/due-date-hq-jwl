@@ -109,6 +109,22 @@ function dashboardAliasLoader() {
   throw redirect('/')
 }
 
+// Pencil QGZta /splash — once-a-day "welcome back" gate. Runs on the dashboard
+// index; if the user last opened the dashboard on an earlier calendar day,
+// redirect to /splash before render (no flash). Read-only — the visit is
+// recorded when the user leaves /splash via "Open dashboard". Any failure
+// (no tenant yet, network) falls through to the dashboard.
+async function welcomeGateLoader() {
+  let recap: Awaited<ReturnType<typeof orpc.dashboard.welcomeRecap.call>> | null = null
+  try {
+    recap = await orpc.dashboard.welcomeRecap.call()
+  } catch {
+    return null
+  }
+  if (recap.shouldShow) throw redirect('/splash')
+  return null
+}
+
 function importsAliasLoader() {
   throw redirect('/clients?importHistory=open')
 }
@@ -455,6 +471,7 @@ export function createAppRouter() {
             {
               index: true,
               handle: routeHandle(routeSummaries.dashboard),
+              loader: welcomeGateLoader,
               HydrateFallback: RouteHydrateFallback,
               lazy: async () => {
                 const { DashboardRoute } = await import('@/routes/dashboard')

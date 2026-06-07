@@ -1,4 +1,4 @@
-import { asc, and, desc, eq, inArray, isNull } from 'drizzle-orm'
+import { asc, and, count, desc, eq, gte, inArray, isNull, lte } from 'drizzle-orm'
 import type {
   DashboardBriefCreatePendingInput,
   DashboardBriefFailedInput,
@@ -25,9 +25,11 @@ import type { SmartPriorityBreakdown } from '@duedatehq/ports/priority'
 import type { Db } from '../client'
 import { evidenceLink } from '../schema/audit'
 import { client } from '../schema/clients'
-import { dashboardBrief } from '../schema/dashboard'
+import { dashboardBrief, userDashboardVisit } from '../schema/dashboard'
 import { firmProfile } from '../schema/firm'
+import { reminder } from '../schema/notifications'
 import { obligationInstance, type ObligationStatus } from '../schema/obligations'
+import { pulseFirmAlert } from '../schema/pulse'
 import { listActiveOverlayDueDateSet } from './overlay'
 import { toSmartPriorityProfile } from './priority-profile'
 
@@ -607,6 +609,111 @@ export function makeDashboardRepo(db: Db, firmId: string) {
 
   return {
     firmId,
+
+    // Pencil QGZta /splash. Reads the user's last dashboard-visit stamp and
+    // counts firm activity since then (created-since-window table counts —
+    // real numbers, not audit-event tallies). Does NOT record the visit.
+    async welcomeRecap(input: { userId: string; now: Date; weekAheadDays: number }): Promise<{
+      lastVisitAt: Date | null
+      deadlinesSyncedCount: number
+      newAlertCount: number
+      remindersSentCount: number
+      clientsImportedCount: number
+      dueThisWeekCount: number
+    }> {
+      const [visit] = await db
+        .select({ lastVisitAt: userDashboardVisit.lastVisitAt })
+        .from(userDashboardVisit)
+        .where(
+          and(eq(userDashboardVisit.firmId, firmId), eq(userDashboardVisit.userId, input.userId)),
+        )
+        .limit(1)
+      const lastVisitAt = visit?.lastVisitAt ?? null
+      // Window: since last visit, or the trailing 24h on a first-ever open.
+      const since = lastVisitAt ?? new Date(input.now.getTime() - DAY_MS)
+      const weekEnd = new Date(input.now.getTime() + input.weekAheadDays * DAY_MS)
+
+      const [[deadlines], [clients], [alerts], [reminders], [dueThisWeek]] = await Promise.all([
+        db
+          .select({ value: count() })
+          .from(obligationInstance)
+          .where(
+            and(
+              eq(obligationInstance.firmId, firmId),
+              isNull(obligationInstance.supersededAt),
+              gte(obligationInstance.createdAt, since),
+            ),
+          ),
+        db
+          .select({ value: count() })
+          .from(client)
+          .where(
+            and(eq(client.firmId, firmId), isNull(client.deletedAt), gte(client.createdAt, since)),
+          ),
+        db
+          .select({ value: count() })
+          .from(pulseFirmAlert)
+          .where(and(eq(pulseFirmAlert.firmId, firmId), gte(pulseFirmAlert.createdAt, since))),
+        db
+          .select({ value: count() })
+          .from(reminder)
+          .where(
+            and(
+              eq(reminder.firmId, firmId),
+              eq(reminder.status, 'sent'),
+              gte(reminder.sentAt, since),
+            ),
+          ),
+        db
+          .select({ value: count() })
+          .from(obligationInstance)
+          .innerJoin(
+            client,
+            and(
+              eq(client.id, obligationInstance.clientId),
+              eq(client.firmId, obligationInstance.firmId),
+            ),
+          )
+          .where(
+            and(
+              eq(obligationInstance.firmId, firmId),
+              isNull(obligationInstance.supersededAt),
+              isNull(client.deletedAt),
+              inArray(obligationInstance.status, OPEN_STATUSES),
+              gte(obligationInstance.currentDueDate, input.now),
+              lte(obligationInstance.currentDueDate, weekEnd),
+            ),
+          ),
+      ])
+
+      return {
+        lastVisitAt,
+        deadlinesSyncedCount: deadlines?.value ?? 0,
+        newAlertCount: alerts?.value ?? 0,
+        remindersSentCount: reminders?.value ?? 0,
+        clientsImportedCount: clients?.value ?? 0,
+        dueThisWeekCount: dueThisWeek?.value ?? 0,
+      }
+    },
+
+    // Upsert the "visited now" stamp so the splash won't re-trigger today.
+    async recordDashboardVisit(input: { userId: string; now: Date }): Promise<Date> {
+      await db
+        .insert(userDashboardVisit)
+        .values({
+          id: crypto.randomUUID(),
+          firmId,
+          userId: input.userId,
+          lastVisitAt: input.now,
+          createdAt: input.now,
+          updatedAt: input.now,
+        })
+        .onConflictDoUpdate({
+          target: [userDashboardVisit.userId, userDashboardVisit.firmId],
+          set: { lastVisitAt: input.now, updatedAt: input.now },
+        })
+      return input.now
+    },
 
     async load(input: DashboardLoadInput): Promise<DashboardLoadResult> {
       const rows = await db

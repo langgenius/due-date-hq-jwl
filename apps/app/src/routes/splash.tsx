@@ -1,56 +1,98 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowRightIcon, CheckCircle2Icon } from 'lucide-react'
-import { Link } from 'react-router'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { useNavigate } from 'react-router'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 
 import brandMark from '@duedatehq/ui/assets/brand/brand-favicon.svg?url'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+
+import { orpc } from '@/lib/rpc'
+import { formatRelativeTime } from '@/lib/utils'
 
 /**
- * SplashRoute — the net-new post-login welcome screen (Pencil node
- * `QGZta`). A centered, single-column "you just signed in" surface that
- * recaps what changed while the CPA was away before dropping them into
- * the Today workbench.
+ * SplashRoute — the post-login "welcome back" surface (Pencil node `QGZta`),
+ * reached via the once-a-day welcome gate on the dashboard index
+ * (`welcomeGateLoader` in router.tsx). It recaps firm activity since the user's
+ * last dashboard visit, then drops them into the Today workbench.
  *
- * Anatomy (top → bottom, centered in a 720px column):
- *   • Brand lockup — the dark rounded mark + "DueDateHQ" wordmark.
- *   • Greeting — a big "Welcome back, {name}" H1 + the current date.
- *   • "While you were away" card — a success-eyebrow + a stacked list of
- *     check-marked recap lines (synced deadlines, new alerts, reminders
- *     sent, migration imports).
- *   • Warning strip — an amber "N deadlines due this week" nudge.
- *   • Primary CTA — "Open your dashboard" → `/today`.
- *   • Ghost links — quiet "Quick tour" / "What's new" secondary links.
- *   • Footer — a quiet last-sign-in stamp pinned to the bottom.
- *
- * The Pencil "Verdant" canvas hexes are intentionally mapped onto the
- * existing semantic token system — no new theme colors:
- *   - card surface → `bg-background-default` + `border-divider-regular`
- *   - success tones → `text-text-success` / `bg-state-success-hover`
- *   - warning strip → `bg-state-warning-hover` / `text-text-warning`
- *   - accent CTA → the canonical primary `<Button>`
- *
- * TODO(wire): this route renders standalone today. Triggering it as the
- * real first-of-the-day landing surface needs server/session signals we
- * don't have yet — `lastDashboardVisitAt` / last-sign-in IP on the user
- * model + a "while you were away" aggregate (synced count, new alert
- * count, reminders sent, migration imports since last visit). Until that
- * contract lands, the recap figures below are static fallbacks and the
- * post-login redirect in `router.tsx` still goes straight to `/`. See
- * the TODO(data) markers on each recap line.
+ * Data comes from `dashboard.welcomeRecap` (read-only). "Open your dashboard"
+ * stamps the visit (`recordDashboardVisit`) so the gate won't re-trigger today,
+ * then navigates to /today.
  */
 export function SplashRoute() {
   const { t } = useLingui()
+  const navigate = useNavigate()
 
-  // TODO(data): all recap figures are static placeholders. They should
-  // come from a "since last visit" aggregate keyed off the user's
-  // lastDashboardVisitAt (no such contract today).
-  const recapLines: ReactNode[] = [
-    <Trans key="synced">12 deadlines synced from the IRS calendar</Trans>,
-    <Trans key="alerts">3 new alerts (1 high-impact — CA FTB franchise extension)</Trans>,
-    <Trans key="reminders">Reminders went out to 8 clients</Trans>,
-    <Trans key="migration">Migration import completed (28 clients added)</Trans>,
-  ]
+  const recapQuery = useQuery(orpc.dashboard.welcomeRecap.queryOptions({ staleTime: 0 }))
+  const recordVisit = useMutation(orpc.dashboard.recordDashboardVisit.mutationOptions())
+
+  const data = recapQuery.data
+
+  function openDashboard() {
+    recordVisit.mutate(undefined, {
+      onSettled: () => navigate('/today', { replace: true }),
+    })
+  }
+
+  // Real recap lines — only render the activity that actually happened.
+  const recapLines = useMemo<ReactNode[]>(() => {
+    if (!data) return []
+    const lines: ReactNode[] = []
+    if (data.deadlinesSyncedCount > 0) {
+      lines.push(
+        <Plural
+          key="synced"
+          value={data.deadlinesSyncedCount}
+          one="# deadline synced from your rules"
+          other="# deadlines synced from your rules"
+        />,
+      )
+    }
+    if (data.newAlertCount > 0) {
+      lines.push(
+        <Plural
+          key="alerts"
+          value={data.newAlertCount}
+          one="# new regulatory alert"
+          other="# new regulatory alerts"
+        />,
+      )
+    }
+    if (data.remindersSentCount > 0) {
+      lines.push(
+        <Plural
+          key="reminders"
+          value={data.remindersSentCount}
+          one="Reminder went out to # client"
+          other="Reminders went out to # clients"
+        />,
+      )
+    }
+    if (data.clientsImportedCount > 0) {
+      lines.push(
+        <Plural
+          key="clients"
+          value={data.clientsImportedCount}
+          one="# new client added"
+          other="# new clients added"
+        />,
+      )
+    }
+    return lines
+  }, [data])
+
+  const todayLabel = useMemo(
+    () =>
+      new Date().toLocaleDateString(undefined, {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    [],
+  )
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background-section">
@@ -74,16 +116,13 @@ export function SplashRoute() {
           {/* Greeting */}
           <div className="flex w-full flex-col items-center gap-2.5">
             <h1 className="text-center text-[clamp(2rem,5vw,2.75rem)] font-semibold leading-[1.1] tracking-tight text-text-primary">
-              {/* TODO(data): first name comes from the session user; the
-                  splash route is standalone so it can't read the
-                  PROTECTED_ROUTE_ID loader yet. Static fallback shown. */}
-              <Trans>Welcome back, Jules</Trans>
+              {data?.userName ? (
+                <Trans>Welcome back, {data.userName}</Trans>
+              ) : (
+                <Trans>Welcome back</Trans>
+              )}
             </h1>
-            <p className="text-center text-base font-medium text-text-tertiary">
-              {/* TODO(data): the date should be "today" from the same
-                  server clock the dashboard uses. */}
-              <Trans>Tuesday · March 11, 2026</Trans>
-            </p>
+            <p className="text-center text-base font-medium text-text-tertiary">{todayLabel}</p>
           </div>
 
           {/* "While you were away" recap card */}
@@ -94,35 +133,62 @@ export function SplashRoute() {
             <div className="flex items-center gap-2">
               <span aria-hidden className="block size-1.5 rounded-full bg-state-success-solid" />
               <span className="text-[11px] font-bold tracking-eyebrow text-text-muted uppercase">
-                <Trans>While you were away · since Fri 6:14 PM</Trans>
+                {data?.sinceLastVisit ? (
+                  <Trans>
+                    While you were away · since {formatRelativeTime(data.sinceLastVisit)}
+                  </Trans>
+                ) : (
+                  <Trans>While you were away</Trans>
+                )}
               </span>
             </div>
-            <ul className="flex flex-col gap-2.5">
-              {recapLines.map((line, index) => (
-                <li
-                  // eslint-disable-next-line react/no-array-index-key
-                  key={index}
-                  className="flex items-center gap-2.5 text-sm font-medium text-text-primary"
-                >
-                  <CheckCircle2Icon className="size-4 shrink-0 text-text-success" aria-hidden />
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
+            {recapQuery.isLoading ? (
+              <div className="flex flex-col gap-2.5">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-5 w-2/3" />
+                <Skeleton className="h-5 w-1/2" />
+              </div>
+            ) : recapLines.length > 0 ? (
+              <ul className="flex flex-col gap-2.5">
+                {recapLines.map((line, index) => (
+                  <li
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={index}
+                    className="flex items-center gap-2.5 text-sm font-medium text-text-primary"
+                  >
+                    <CheckCircle2Icon className="size-4 shrink-0 text-text-success" aria-hidden />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm font-medium text-text-tertiary">
+                <Trans>Nothing changed while you were away — you're all caught up.</Trans>
+              </p>
+            )}
           </section>
 
-          {/* Warning strip */}
-          <div className="flex w-full items-center gap-2.5 rounded-[10px] bg-state-warning-hover px-3.5 py-2.5">
-            <span aria-hidden className="block size-2 rounded-full bg-state-warning-solid" />
-            <span className="text-sm font-semibold text-text-warning">
-              {/* TODO(data): "3" should be the real count of deadlines due
-                  in the next 7 days for this firm. */}
-              <Trans>You have 3 deadlines due this week</Trans>
-            </span>
-          </div>
+          {/* Warning strip — real due-this-week count (only when > 0) */}
+          {data && data.dueThisWeekCount > 0 ? (
+            <div className="flex w-full items-center gap-2.5 rounded-[10px] bg-state-warning-hover px-3.5 py-2.5">
+              <span aria-hidden className="block size-2 rounded-full bg-state-warning-solid" />
+              <span className="text-sm font-semibold text-text-warning">
+                <Plural
+                  value={data.dueThisWeekCount}
+                  one="You have # deadline due this week"
+                  other="You have # deadlines due this week"
+                />
+              </span>
+            </div>
+          ) : null}
 
           {/* Primary CTA */}
-          <Button size="lg" className="h-12 w-full max-w-[260px]" render={<Link to="/today" />}>
+          <Button
+            size="lg"
+            className="h-12 w-full max-w-[260px]"
+            onClick={openDashboard}
+            disabled={recordVisit.isPending}
+          >
             <Trans>Open your dashboard</Trans>
             <ArrowRightIcon data-icon="inline-end" />
           </Button>
@@ -146,13 +212,19 @@ export function SplashRoute() {
         </div>
       </main>
 
-      {/* Footer — quiet last-sign-in stamp */}
+      {/* Footer — last sign-in stamp from the session */}
       <footer className="px-4 pb-6 text-center md:pb-10">
-        {/* TODO(data): last sign-in time + IP come from the session /
-            audit log; static fallback shown. */}
-        <p className="text-[11px] font-medium text-text-muted">
-          <Trans>Last sign-in: 2 days ago from 192.168.0.42</Trans>
-        </p>
+        {data?.lastSignInAt ? (
+          <p className="text-[11px] font-medium text-text-muted">
+            {data.lastSignInIp ? (
+              <Trans>
+                Last sign-in: {formatRelativeTime(data.lastSignInAt)} from {data.lastSignInIp}
+              </Trans>
+            ) : (
+              <Trans>Last sign-in: {formatRelativeTime(data.lastSignInAt)}</Trans>
+            )}
+          </p>
+        ) : null}
       </footer>
     </div>
   )

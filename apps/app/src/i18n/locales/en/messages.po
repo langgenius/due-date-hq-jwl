@@ -134,6 +134,11 @@ msgstr "{0, plural, one {# deadline generated} other {# deadlines generated}}"
 msgid "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 msgstr "{0, plural, one {# deadline selected} other {# deadlines selected}}"
 
+#. placeholder {0}: data.deadlinesSyncedCount
+#: src/routes/splash.tsx
+msgid "{0, plural, one {# deadline synced from your rules} other {# deadlines synced from your rules}}"
+msgstr "{0, plural, one {# deadline synced from your rules} other {# deadlines synced from your rules}}"
+
 #. placeholder {0}: client.obligationCount
 #. placeholder {0}: dueTodayCount ?? 0
 #. placeholder {0}: groupHeader.count
@@ -186,6 +191,16 @@ msgstr "{0, plural, one {# more in the audit log} other {# more in the audit log
 #: src/routes/rules.library.tsx
 msgid "{0, plural, one {# needs review} other {# need review}}"
 msgstr "{0, plural, one {# needs review} other {# need review}}"
+
+#. placeholder {0}: data.clientsImportedCount
+#: src/routes/splash.tsx
+msgid "{0, plural, one {# new client added} other {# new clients added}}"
+msgstr "{0, plural, one {# new client added} other {# new clients added}}"
+
+#. placeholder {0}: data.newAlertCount
+#: src/routes/splash.tsx
+msgid "{0, plural, one {# new regulatory alert} other {# new regulatory alerts}}"
+msgstr "{0, plural, one {# new regulatory alert} other {# new regulatory alerts}}"
 
 #. placeholder {0}: summary.unchangedCount
 #: src/features/clients/ClassificationImpactDialog.tsx
@@ -287,10 +302,20 @@ msgstr "{0, plural, one {Merged # similar source update} other {Merged # similar
 msgid "{0, plural, one {Pay #d late} other {Pay #d late}}"
 msgstr "{0, plural, one {Pay #d late} other {Pay #d late}}"
 
+#. placeholder {0}: data.remindersSentCount
+#: src/routes/splash.tsx
+msgid "{0, plural, one {Reminder went out to # client} other {Reminders went out to # clients}}"
+msgstr "{0, plural, one {Reminder went out to # client} other {Reminders went out to # clients}}"
+
 #. placeholder {0}: intake.rowCount
 #: src/features/migration/Step1Intake.tsx
 msgid "{0, plural, one {We imported the first 1000 of # row. Split your file to import more.} other {We imported the first 1000 of # rows. Split your file to import more.}}"
 msgstr "{0, plural, one {We imported the first 1000 of # row. Split your file to import more.} other {We imported the first 1000 of # rows. Split your file to import more.}}"
+
+#. placeholder {0}: data.dueThisWeekCount
+#: src/routes/splash.tsx
+msgid "{0, plural, one {You have # deadline due this week} other {You have # deadlines due this week}}"
+msgstr "{0, plural, one {You have # deadline due this week} other {You have # deadlines due this week}}"
 
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
 #. placeholder {1}: isExpanded ? 'collapse' : 'expand'
@@ -1228,10 +1253,6 @@ msgstr "10 seats included"
 msgid "10+ seats"
 msgstr "10+ seats"
 
-#: src/routes/splash.tsx
-msgid "12 deadlines synced from the IRS calendar"
-msgstr "12 deadlines synced from the IRS calendar"
-
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "2-3"
 msgstr "2-3"
@@ -1239,10 +1260,6 @@ msgstr "2-3"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "218 KB · uploaded Feb 14"
 msgstr "218 KB · uploaded Feb 14"
-
-#: src/routes/splash.tsx
-msgid "3 new alerts (1 high-impact — CA FTB franchise extension)"
-msgstr "3 new alerts (1 high-impact — CA FTB franchise extension)"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -7395,9 +7412,16 @@ msgstr "Last reminded · 1 day ago"
 msgid "Last reminded today"
 msgstr "Last reminded today"
 
+#. placeholder {0}: formatRelativeTime(data.lastSignInAt)
 #: src/routes/splash.tsx
-msgid "Last sign-in: 2 days ago from 192.168.0.42"
-msgstr "Last sign-in: 2 days ago from 192.168.0.42"
+msgid "Last sign-in: {0}"
+msgstr "Last sign-in: {0}"
+
+#. placeholder {0}: formatRelativeTime(data.lastSignInAt)
+#. placeholder {1}: data.lastSignInIp
+#: src/routes/splash.tsx
+msgid "Last sign-in: {0} from {1}"
+msgstr "Last sign-in: {0} from {1}"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -8156,10 +8180,6 @@ msgstr "Migration Copilot"
 #: src/features/migration/WizardShell.tsx
 msgid "Migration Copilot wizard — paste or upload your client roster, review the AI mapping, normalize values, and preview the import before committing."
 msgstr "Migration Copilot wizard — paste or upload your client roster, review the AI mapping, normalize values, and preview the import before committing."
-
-#: src/routes/splash.tsx
-msgid "Migration import completed (28 clients added)"
-msgstr "Migration import completed (28 clients added)"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -9301,6 +9321,10 @@ msgstr "Nothing applies until step 4. Every change is logged in the audit trail.
 #: src/features/migration/Step3Normalize.tsx
 msgid "Nothing applies until step 4. Every normalization is logged and reversible for 24h."
 msgstr "Nothing applies until step 4. Every normalization is logged and reversible for 24h."
+
+#: src/routes/splash.tsx
+msgid "Nothing changed while you were away — you're all caught up."
+msgstr "Nothing changed while you were away — you're all caught up."
 
 #: src/features/dashboard/actions-list.tsx
 msgid "Nothing due this week."
@@ -11280,10 +11304,6 @@ msgstr "Reminder-ready"
 #: src/routes/settings.tsx
 msgid "Reminders"
 msgstr "Reminders"
-
-#: src/routes/splash.tsx
-msgid "Reminders went out to 8 clients"
-msgstr "Reminders went out to 8 clients"
 
 #: src/features/migration/Step1Intake.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
@@ -14398,10 +14418,6 @@ msgstr "Try previewing again before generating."
 msgid "TSV"
 msgstr "TSV"
 
-#: src/routes/splash.tsx
-msgid "Tuesday · March 11, 2026"
-msgstr "Tuesday · March 11, 2026"
-
 #: src/routes/account.security.tsx
 msgid "Two-factor authentication disabled"
 msgstr "Two-factor authentication disabled"
@@ -15094,12 +15110,14 @@ msgid "We'll let you attach source documents here as soon as ingest lands."
 msgstr "We'll let you attach source documents here as soon as ingest lands."
 
 #: src/routes/route-summary.ts
+#: src/routes/splash.tsx
 msgid "Welcome back"
 msgstr "Welcome back"
 
+#. placeholder {0}: data.userName
 #: src/routes/splash.tsx
-msgid "Welcome back, Jules"
-msgstr "Welcome back, Jules"
+msgid "Welcome back, {0}"
+msgstr "Welcome back, {0}"
 
 #: src/routes/login.tsx
 msgid "Welcome to DueDateHQ."
@@ -15180,9 +15198,10 @@ msgstr "Which watcher roles are in place per jurisdiction. Gaps mean a change co
 msgid "While you were away"
 msgstr "While you were away"
 
+#. placeholder {0}: formatRelativeTime(data.sinceLastVisit)
 #: src/routes/splash.tsx
-msgid "While you were away · since Fri 6:14 PM"
-msgstr "While you were away · since Fri 6:14 PM"
+msgid "While you were away · since {0}"
+msgstr "While you were away · since {0}"
 
 #: src/routes/account.security.tsx
 msgid "Whoever is signed in on this browser will lose access immediately. They'll need to re-authenticate next time."
@@ -15359,10 +15378,6 @@ msgstr "You don't have permission to perform this action."
 #: src/lib/i18n-error.ts
 msgid "You don't have permission to use this practice feature."
 msgstr "You don't have permission to use this practice feature."
-
-#: src/routes/splash.tsx
-msgid "You have 3 deadlines due this week"
-msgstr "You have 3 deadlines due this week"
 
 #: src/lib/i18n-error.ts
 msgid "You need to sign in to continue."

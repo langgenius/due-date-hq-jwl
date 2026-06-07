@@ -765,6 +765,12 @@ function buildScopedRepo(
       async load() {
         return unexpectedRepoCall('dashboard.load')
       },
+      async welcomeRecap() {
+        return unexpectedRepoCall('dashboard.welcomeRecap')
+      },
+      async recordDashboardVisit() {
+        return unexpectedRepoCall('dashboard.recordDashboardVisit')
+      },
       async findLatestBrief() {
         return unexpectedRepoCall('dashboard.findLatestBrief')
       },

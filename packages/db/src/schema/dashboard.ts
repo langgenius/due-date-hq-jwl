@@ -68,3 +68,32 @@ export const dashboardBriefRelations = relations(dashboardBrief, ({ one }) => ({
 
 export type DashboardBrief = typeof dashboardBrief.$inferSelect
 export type NewDashboardBrief = typeof dashboardBrief.$inferInsert
+
+// 2026-06-07 (Pencil QGZta /splash): per-user-per-firm "last opened the
+// dashboard" stamp. Drives the once-a-day post-login welcome trigger and the
+// "while you were away" recap window. App-owned (the better-auth `user` table
+// is never hand-migrated), keyed by (user, firm) so the recap is firm-scoped.
+export const userDashboardVisit = sqliteTable(
+  'user_dashboard_visit',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    firmId: text('firm_id')
+      .notNull()
+      .references(() => firmProfile.id, { onDelete: 'cascade' }),
+    lastVisitAt: integer('last_visit_at', { mode: 'timestamp_ms' }).notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [uniqueIndex('uq_user_dashboard_visit').on(table.userId, table.firmId)],
+)
+
+export type UserDashboardVisit = typeof userDashboardVisit.$inferSelect
+export type NewUserDashboardVisit = typeof userDashboardVisit.$inferInsert

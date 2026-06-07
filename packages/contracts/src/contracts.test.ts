@@ -1415,7 +1415,12 @@ describe('@duedatehq/contracts', () => {
   })
 
   it('freezes dashboard.load activation slice shape', () => {
-    expect(Object.keys(dashboardContract)).toEqual(['load', 'requestBriefRefresh'])
+    expect(Object.keys(dashboardContract)).toEqual([
+      'load',
+      'requestBriefRefresh',
+      'welcomeRecap',
+      'recordDashboardVisit',
+    ])
     expect(DashboardSeveritySchema.options).toEqual(['critical', 'high', 'medium', 'neutral'])
     expect(DashboardTriageTabKeySchema.options).toEqual(['this_week', 'this_month', 'long_term'])
     expect(DashboardDueBucketSchema.options).toEqual([
