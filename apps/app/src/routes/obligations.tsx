@@ -4294,14 +4294,39 @@ export function ObligationQueueRoute() {
             // Step 6 cont Q1.1/Q1.3: skeleton rows match the rest
             // of the app's loading rhythm; role=status + aria-live
             // for SR announce.
+            // 2026-06-07 (design replication VaJ5G): table-shaped skeleton — a
+            // header row + column-spaced body rows + trailing status pill — so
+            // the loading state mirrors the real deadlines table instead of
+            // generic bars. Responsive: a flex spacer absorbs the slack and
+            // fixed cells shrink-0 so the shape holds across widths.
             <div
               role="status"
               aria-live="polite"
               aria-label={t`Loading deadlines`}
-              className="grid gap-2 rounded-md border border-divider-subtle bg-background-default p-3"
+              className="overflow-hidden rounded-md border border-divider-subtle bg-background-default"
             >
-              {Array.from({ length: 12 }, (_, i) => `deadlines-skel-${i}`).map((key) => (
-                <Skeleton key={key} className="h-8 w-full" />
+              <div className="flex items-center gap-4 border-b border-divider-subtle px-4 py-3">
+                <Skeleton className="size-4 shrink-0 rounded" />
+                <Skeleton className="h-3.5 w-32" />
+                <Skeleton className="h-3.5 w-12 shrink-0" />
+                <Skeleton className="h-3.5 w-24 shrink-0" />
+                <Skeleton className="h-3.5 w-20 shrink-0" />
+                <div className="flex-1" />
+                <Skeleton className="h-3.5 w-16 shrink-0" />
+              </div>
+              {Array.from({ length: 8 }, (_, i) => `deadlines-skel-${i}`).map((key) => (
+                <div
+                  key={key}
+                  className="flex items-center gap-4 border-b border-divider-subtle px-4 py-3.5 last:border-b-0"
+                >
+                  <Skeleton className="size-4 shrink-0 rounded" />
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-12 shrink-0" />
+                  <Skeleton className="h-4 w-24 shrink-0" />
+                  <Skeleton className="h-4 w-20 shrink-0" />
+                  <div className="flex-1" />
+                  <Skeleton className="h-6 w-20 shrink-0 rounded-full" />
+                </div>
               ))}
             </div>
           ) : isError ? (
