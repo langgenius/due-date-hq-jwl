@@ -1695,6 +1695,10 @@ msgstr "AI summarisation unavailable."
 msgid "AI trace"
 msgstr "AI trace"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "AI wasn't available, so we matched your columns to DueDateHQ fields by their names. Review the matches below — and fix any that look off — before continuing."
+msgstr "AI wasn't available, so we matched your columns to DueDateHQ fields by their names. Review the matches below — and fix any that look off — before continuing."
+
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-table.tsx
 msgid "AI-assisted"
@@ -5535,6 +5539,10 @@ msgstr "Explain import template suggestions"
 msgid "Explain Manual mapping"
 msgstr "Explain Manual mapping"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Explain name matching"
+msgstr "Explain name matching"
+
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Explain Risk profile"
 msgstr "Explain Risk profile"
@@ -7400,9 +7408,17 @@ msgstr "Matched"
 msgid "Matched an imported column to DueDateHQ."
 msgstr "Matched an imported column to DueDateHQ."
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Matched by name"
+msgstr "Matched by name"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Matched clients"
 msgstr "Matched clients"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Matched your columns by name"
+msgstr "Matched your columns by name"
 
 #. placeholder {0}: conflict.existingClientName
 #: src/features/migration/Step4Preview.tsx
@@ -7822,6 +7838,14 @@ msgstr "My Practice"
 #: src/features/audit/audit-log-labels.ts
 msgid "Name"
 msgstr "Name"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Name matching means AI was unavailable, so columns were matched to fields by their header names."
+msgstr "Name matching means AI was unavailable, so columns were matched to fields by their header names."
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Name matching means AI was unavailable, so columns were matched to fields by their header names. Review each match before continuing."
+msgstr "Name matching means AI was unavailable, so columns were matched to fields by their header names. Review each match before continuing."
 
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "National policy watch"
@@ -11014,6 +11038,10 @@ msgstr "Review these states in Rule Library to unlock the remaining deadlines."
 #: src/features/rules/coverage-tab.tsx
 msgid "Review workspace"
 msgstr "Review workspace"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Review your column mappings"
+msgstr "Review your column mappings"
 
 #: src/features/concepts/concept-help.tsx
 msgid "Review-only rule"

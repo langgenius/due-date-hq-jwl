@@ -1721,6 +1721,10 @@ msgstr "AI 摘要暂不可用。"
 msgid "AI trace"
 msgstr "AI trace"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "AI wasn't available, so we matched your columns to DueDateHQ fields by their names. Review the matches below — and fix any that look off — before continuing."
+msgstr "AI 暂不可用，因此我们按列名将您的列匹配到了 DueDateHQ 字段。请在继续前复查下方的匹配结果，并修正任何看起来不对的项。"
+
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/audit/audit-log-table.tsx
 msgid "AI-assisted"
@@ -5581,6 +5585,10 @@ msgstr "解释导入模板建议"
 msgid "Explain Manual mapping"
 msgstr "解释 Manual mapping"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Explain name matching"
+msgstr "解释按名称匹配"
+
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Explain Risk profile"
 msgstr "解释风险档案"
@@ -7459,9 +7467,17 @@ msgstr "已匹配"
 msgid "Matched an imported column to DueDateHQ."
 msgstr "已将导入列匹配到 DueDateHQ。"
 
+#: src/features/migration/Step2Mapping.tsx
+msgid "Matched by name"
+msgstr "按名称匹配"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Matched clients"
 msgstr "已匹配客户"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Matched your columns by name"
+msgstr "已按名称匹配您的列"
 
 #. placeholder {0}: conflict.existingClientName
 #: src/features/migration/Step4Preview.tsx
@@ -7885,6 +7901,14 @@ msgstr "我的事务所"
 #: src/features/audit/audit-log-labels.ts
 msgid "Name"
 msgstr "名称"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Name matching means AI was unavailable, so columns were matched to fields by their header names."
+msgstr "按名称匹配表示 AI 不可用，因此系统按表头名称将列匹配到了字段。"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Name matching means AI was unavailable, so columns were matched to fields by their header names. Review each match before continuing."
+msgstr "按名称匹配表示 AI 不可用，因此系统按表头名称将列匹配到了字段。请在继续前复查每一项匹配。"
 
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "National policy watch"
@@ -11109,6 +11133,10 @@ msgstr "稍后在规则库审核这些州，即可生成剩余的州级截止日
 #, fuzzy
 msgid "Review workspace"
 msgstr "事务所工作区"
+
+#: src/features/migration/Step2Mapping.tsx
+msgid "Review your column mappings"
+msgstr "复查您的列映射"
 
 #: src/features/concepts/concept-help.tsx
 msgid "Review-only rule"
