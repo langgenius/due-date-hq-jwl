@@ -3,6 +3,7 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 import {
   AlertTriangleIcon,
+  ArrowUpRightIcon,
   CheckCircle2Icon,
   ChevronDownIcon,
   LockIcon,
@@ -11,7 +12,8 @@ import {
 
 import type { MappingRow } from '@duedatehq/contracts'
 import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui/alert'
-import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
+import { Badge } from '@duedatehq/ui/components/ui/badge'
+import { Switch } from '@duedatehq/ui/components/ui/switch'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -106,6 +108,16 @@ export function Step3Normalize({
         </p>
       </div>
 
+      {/* TODO(pixel-exact): design g8CrCZ shows a flat FIELD/BEFORE/AFTER/
+          STATUS table on the happy path; we keep the collapsible category
+          model (auto-opening on review). The AI-failed frame tGcB0 shows 3
+          per-category cards (Dates/States green, Entities red "NEEDS INPUT"
+          with unset "Pick a target" dropdowns) — the categorized layout
+          maps onto buildCategories but the styled per-card needs-input
+          state + an inline footer Re-run are deferred.
+          TODO(data): an inline Step-3 "Re-run AI" (mirroring
+          handleStep2Rerun against runNormalizerMutation) needs a wired
+          handler in Wizard.tsx — surfaced in the report, not built here. */}
       {normalize.errorBanner ? (
         <Alert role="alert" aria-live="assertive">
           <AlertTitle>
@@ -129,6 +141,21 @@ export function Step3Normalize({
             affectedClients={normalizationSummary.affectedExceptionClients}
           />
 
+          {/* 2026-06-07 (Cluster 3 — design JCrwD): count chips —
+              Auto-normalized / Confirm / Default Matrix + "Audit logged".
+              The prose SummaryReadout above stays for the detailed
+              readout; these chips give the at-a-glance split. */}
+          {categories.length > 0 || matrixSummary.enabledCells > 0 ? (
+            <NormalizePillStrip
+              autoNormalized={Math.max(
+                0,
+                countTotalValues(normalizationSummary.groups) - normalizationSummary.exceptionGroups,
+              )}
+              confirm={normalizationSummary.exceptionGroups}
+              defaultMatrix={matrixSummary.enabledCells}
+            />
+          ) : null}
+
           <CategoryList categories={categories} />
 
           <MatrixDefaultsCard
@@ -137,8 +164,49 @@ export function Step3Normalize({
             applyToAll={normalize.applyToAll}
             onToggleApplyToAll={onToggleApplyToAll}
           />
+
+          {/* 2026-06-07 (Cluster 3 — design F01v6): "nothing applies until
+              step 4" reassurance line, green shield. */}
+          <p className="inline-flex w-fit items-center gap-1.5 text-sm text-text-tertiary">
+            <ShieldCheckIcon className="size-3.5 shrink-0 text-text-success" aria-hidden />
+            <Trans>
+              Nothing applies until step 4. Every normalization is logged and reversible for 24h.
+            </Trans>
+          </p>
         </>
       )}
+    </div>
+  )
+}
+
+/**
+ * Count chips per design JCrwD — Auto-normalized / Confirm / Default
+ * Matrix split + "Audit logged" hint. Reuses Badge (success / warning /
+ * outline) so tone is carried by canonical tokens.
+ */
+function NormalizePillStrip({
+  autoNormalized,
+  confirm,
+  defaultMatrix,
+}: {
+  autoNormalized: number
+  confirm: number
+  defaultMatrix: number
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Badge variant="success" className="tabular-nums">
+        <Trans>Auto-normalized · {autoNormalized}</Trans>
+      </Badge>
+      <Badge variant={confirm > 0 ? 'warning' : 'outline'} className="tabular-nums">
+        <Trans>Confirm · {confirm}</Trans>
+      </Badge>
+      <Badge variant="outline" className="tabular-nums">
+        <Trans>Default Matrix · {defaultMatrix}</Trans>
+      </Badge>
+      <span className="text-xs text-text-tertiary">
+        <Trans>Audit logged</Trans>
+      </span>
     </div>
   )
 }
@@ -451,13 +519,26 @@ function MatrixDefaultsCard({
             </span>
           </div>
         </div>
-        <ChevronDownIcon
-          className={cn(
-            'size-4 shrink-0 text-text-tertiary transition-transform duration-200',
-            expanded && 'rotate-180',
-          )}
-          aria-hidden
-        />
+        <div className="flex shrink-0 items-center gap-2">
+          {/* 2026-06-07 (Cluster 3 — design daU2Q): "Edit defaults" link to
+              the firm's default-matrix settings. stopPropagation so the
+              click doesn't toggle the card's expanded state. */}
+          <a
+            href="/settings"
+            onClick={(event) => event.stopPropagation()}
+            className="inline-flex items-center gap-0.5 rounded-sm text-xs font-medium text-text-accent outline-none transition-colors hover:underline focus-visible:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <Trans>Edit defaults</Trans>
+            <ArrowUpRightIcon className="size-3" aria-hidden />
+          </a>
+          <ChevronDownIcon
+            className={cn(
+              'size-4 text-text-tertiary transition-transform duration-200',
+              expanded && 'rotate-180',
+            )}
+            aria-hidden
+          />
+        </div>
       </div>
 
       <AnimatePresence initial={false}>
@@ -555,7 +636,9 @@ function MatrixControls({
                   aria-keyshortcuts="A"
                   title={t`Uncheck to skip these tax-type defaults. You'll need to add deadlines manually for these clients.`}
                 >
-                  <Checkbox checked={checked} onCheckedChange={(value) => onToggle(key, value)} />
+                  {/* 2026-06-07 (Cluster 3 — design daU2Q): pill switch
+                      replaces the checkbox for the per-group apply toggle. */}
+                  <Switch checked={checked} onCheckedChange={(value) => onToggle(key, value)} />
                   <Trans>Use suggested filings</Trans>
                 </label>
               </div>

@@ -797,15 +797,22 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
         </AlertDialogContent>
       </AlertDialog>
       <LiveGenesisOverlay genesis={genesis} />
-      <ImportHistoryDrawer
-        open={importHistoryOpen}
-        onOpenChange={setImportHistoryOpen}
-        onViewClient={(clientId) => {
-          setImportHistoryOpen(false)
-          resetAndClose()
-          void navigate(`/clients/${clientId}`)
-        }}
-      />
+      {/* 2026-06-07 (Cluster 3): mount the drawer only while open. The
+          drawer's own hooks (useMigrationWizard, usePracticeTimezone)
+          assume the wider app providers; gating the mount keeps the
+          wizard renderable in isolation (tests mount <Wizard> directly,
+          without MigrationWizardProvider). */}
+      {importHistoryOpen ? (
+        <ImportHistoryDrawer
+          open={importHistoryOpen}
+          onOpenChange={setImportHistoryOpen}
+          onViewClient={(clientId) => {
+            setImportHistoryOpen(false)
+            resetAndClose()
+            void navigate(`/clients/${clientId}`)
+          }}
+        />
+      ) : null}
     </>
   )
 }

@@ -7,6 +7,7 @@ import {
   CircleHelpIcon,
   ListChecksIcon,
   RefreshCwIcon,
+  ShieldCheckIcon,
 } from 'lucide-react'
 
 import {
@@ -153,6 +154,15 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
         </div>
       </div>
 
+      {/* 2026-06-07 (Cluster 3 — design CDjph): count chips ("Auto-mapped /
+          Needs review / Skipped") + override hint. The single-sentence
+          MappingHeadline above stays for the test assertions + tabular
+          readout; these colored chips give the at-a-glance split the
+          canvas calls for. */}
+      {mapping.status !== 'loading' ? (
+        <MappingPillStrip summary={summary} />
+      ) : null}
+
       {mapping.status === 'fallback' && mapping.fallback === 'heuristic' ? (
         // AI was unavailable and no preset was picked, but the deterministic
         // name-matcher recognised columns by their header names. This is a
@@ -222,6 +232,11 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           <Skeleton className="h-14 w-3/4" />
         </div>
       ) : (
+        // TODO(pixel-exact): design AQoBE renders a strict 4-column table
+        // (YOUR COLUMN / DUEDATEHQ FIELD / SAMPLE / CONFIDENCE). We keep the
+        // expandable banner rows (deliberate prior redesign asserted by
+        // Step2Mapping.test.tsx) and only adopt the count chips + toned
+        // confidence pills. Full table restructure deferred.
         <ul
           aria-label={t`Column mappings`}
           className="flex flex-col gap-1.5"
@@ -238,6 +253,43 @@ export function Step2Mapping({ mapping, sampleByHeader, errors, onUserEdit, onRe
           ))}
         </ul>
       )}
+
+      {/* 2026-06-07 (Cluster 3 — design J8kNo): "nothing applies until
+          step 4" reassurance line. Quiet inline note, green shield. */}
+      {mapping.status !== 'loading' ? (
+        <p className="inline-flex w-fit items-center gap-1.5 text-sm text-text-tertiary">
+          <ShieldCheckIcon className="size-3.5 shrink-0 text-text-success" aria-hidden />
+          <Trans>Nothing applies until step 4. Every change is logged in the audit trail.</Trans>
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+/**
+ * Count chips per design CDjph — the at-a-glance split of how many
+ * columns auto-mapped, need review, or were skipped. Reuses the Badge
+ * primitive (success / warning / outline variants) so tone is carried
+ * by the canonical badge tokens.
+ */
+function MappingPillStrip({ summary }: { summary: ReturnType<typeof buildMappingSummary> }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Badge variant="success" className="tabular-nums">
+        <Trans>Auto-mapped · {Math.max(0, summary.mappedColumns - summary.lowConfidenceColumns)}</Trans>
+      </Badge>
+      <Badge
+        variant={summary.lowConfidenceColumns > 0 ? 'warning' : 'outline'}
+        className="tabular-nums"
+      >
+        <Trans>Needs review · {summary.lowConfidenceColumns}</Trans>
+      </Badge>
+      <Badge variant="outline" className="tabular-nums">
+        <Trans>Skipped · {summary.ignoredColumns}</Trans>
+      </Badge>
+      <span className="text-xs text-text-tertiary">
+        <Trans>You can override any row</Trans>
+      </span>
     </div>
   )
 }
@@ -477,46 +529,46 @@ function ChangeDestinationLink({
 }
 
 /**
- * Confidence rendered as PLAIN TEXT — no dot, no traffic-light badge.
- * "Auto-mapped · 95%" / "Low match · 62%" / "Overridden" / "Ignored".
- *
- * Tone is carried by `text-text-tertiary` vs `text-text-primary`, never
- * by a colored chip.
+ * Confidence rendered as a small toned pill (design hLFWZ): green
+ * "Auto-mapped · N%", amber "Low match · N%", neutral Overridden /
+ * Ignored / Unmapped. The label STRINGS are unchanged (tests assert
+ * "Auto-mapped · 92%" / "Low match · 71%") — only the chrome is now a
+ * Badge-toned pill instead of plain text.
  */
 function ConfidenceText({ row, tier }: { row: MappingRow; tier: Tier }) {
   if (row.userOverridden) {
     return (
-      <span className="shrink-0 text-xs text-text-accent tabular-nums">
+      <Badge variant="outline" className="shrink-0 tabular-nums">
         <Trans>Overridden</Trans>
-      </span>
+      </Badge>
     )
   }
   if (row.targetField === 'IGNORE') {
     return (
-      <span className="shrink-0 text-xs text-text-tertiary">
+      <Badge variant="outline" className="shrink-0">
         <Trans>Ignored</Trans>
-      </span>
+      </Badge>
     )
   }
   if (row.confidence === null) {
     return (
-      <span className="shrink-0 text-xs text-text-tertiary">
+      <Badge variant="warning" className="shrink-0">
         <Trans>Unmapped</Trans>
-      </span>
+      </Badge>
     )
   }
   const pct = Math.round(row.confidence * 100)
   if (tier === 'low') {
     return (
-      <span className="shrink-0 text-xs text-text-primary tabular-nums">
+      <Badge variant="warning" className="shrink-0 tabular-nums">
         <Trans>Low match · {pct}%</Trans>
-      </span>
+      </Badge>
     )
   }
   return (
-    <span className="shrink-0 text-xs text-text-tertiary tabular-nums">
+    <Badge variant="success" className="shrink-0 tabular-nums">
       <Trans>Auto-mapped · {pct}%</Trans>
-    </span>
+    </Badge>
   )
 }
 
