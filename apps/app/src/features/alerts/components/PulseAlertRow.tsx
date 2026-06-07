@@ -1,17 +1,23 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
   ArchiveIcon,
   Building2,
+  CheckCheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   ClockIcon,
   CornerDownRightIcon,
   ExternalLinkIcon,
+  SparklesIcon,
   SunIcon,
 } from 'lucide-react'
 
-import type { PulseAlertPublic } from '@duedatehq/contracts'
+import type { PulseAlertPublic, PulsePriorityReason } from '@duedatehq/contracts'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -138,6 +144,20 @@ function daysBetweenIso(a: string | null, b: string | null): number | null {
   return Math.round((bMs - aMs) / (24 * 60 * 60 * 1000))
 }
 
+/**
+ * 2026-06-07 (Pencil g5kKJQ list-row anatomy): the smart-priority
+ * inset (`IciLB PriorityReasons`) — "Why this is urgent · priority N"
+ * with a chip per scoring signal. Sourced from the real priority
+ * queue (`PulsePriorityQueueItem.priorityScore` + `priorityReasons`),
+ * not hardcoded; the row only renders it when the firm can view the
+ * priority queue AND the alert is in the queue with at least one
+ * reason.
+ */
+export interface AlertPriorityInfo {
+  score: number
+  reasons: readonly PulsePriorityReason[]
+}
+
 function PulseAlertRow({
   alert,
   active,
@@ -145,6 +165,10 @@ function PulseAlertRow({
   onSnooze,
   onDismiss,
   compact = false,
+  selectable = false,
+  selected = false,
+  onToggleSelected,
+  priority,
 }: {
   alert: PulseAlertPublic
   active: boolean
@@ -156,6 +180,18 @@ function PulseAlertRow({
   /** Real dismiss/archive handler — opens the reason dialog
    *  which fires `orpc.pulse.dismiss` on confirm. */
   onDismiss?: () => void
+  /**
+   * 2026-06-07 (Pencil g5kKJQ): bulk-selection affordance. When
+   * `selectable`, the 18px leading checkbox (Pencil `gT3zO chk`)
+   * renders ahead of the time rail; toggling it feeds the parent's
+   * selection set + the floating bulk-action bar.
+   */
+  selectable?: boolean
+  selected?: boolean
+  onToggleSelected?: (next: boolean) => void
+  /** Smart-priority inset data (Pencil `IciLB`). Undefined hides the
+   *  inset + the "Why?" toggle entirely. */
+  priority?: AlertPriorityInfo | undefined
   /**
    * 2026-06-04 round 74 (Yuqi "when right panel is open, hide
    * the time and date, to leave more space for the alert list"):
@@ -172,6 +208,13 @@ function PulseAlertRow({
   const { t } = useLingui()
   const detailQuery = useQuery(useAlertDetailQueryOptions(alert.id))
   const detail = detailQuery.data
+
+  // 2026-06-07 (Pencil g5kKJQ `X6enpJ whyAff` toggle): the
+  // smart-priority inset is collapsed by default; the "Why?" pill in
+  // the meta strip expands it. Only meaningful when `priority` data
+  // is present.
+  const [whyOpen, setWhyOpen] = useState(false)
+  const showPriority = !!priority && priority.reasons.length > 0
 
   const { currentFirm } = useCurrentFirm()
   const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
@@ -271,6 +314,25 @@ function PulseAlertRow({
             : 'bg-background-default hover:bg-state-base-hover',
       )}
     >
+      {/* Bulk-select checkbox (Pencil g5kKJQ `gT3zO chk`, 18px).
+          Sits ahead of the time rail. Click is isolated with
+          stopPropagation so ticking a row doesn't also open the
+          drawer. Aligned to the top of the row (the metaRow / title)
+          rather than centered, matching the design. */}
+      {selectable ? (
+        <div
+          className="flex shrink-0 items-start pt-0.5"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <Checkbox
+            checked={selected}
+            onCheckedChange={(next) => onToggleSelected?.(next)}
+            aria-label={t`Select alert: ${alert.title}`}
+            className="size-[18px] rounded-[4px]"
+          />
+        </div>
+      ) : null}
+
       {/* Time rail RZfzU (100×40, vertical, gap 6). UFxh6 "14:32"
           Geist 14/600 text-primary letterSpacing -0.1; uaDak
           "2h ago" Geist 12/500 text-tertiary.
@@ -418,6 +480,28 @@ function PulseAlertRow({
               <span className="truncate">{alert.source}</span>
             </span>
           )}
+
+          {/* "Why?" toggle (Pencil g5kKJQ `X6enpJ whyAff`) — expands
+              the smart-priority reason inset below. Only renders when
+              the alert carries priority-queue reasons. */}
+          {showPriority ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation()
+                setWhyOpen((open) => !open)
+              }}
+              aria-expanded={whyOpen}
+              className="inline-flex h-[22px] shrink-0 items-center gap-1 rounded-md border border-state-accent-border bg-state-accent-hover px-2 text-[11px] font-semibold text-text-accent outline-none transition-colors hover:bg-state-accent-hover-alt focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <Trans>Why?</Trans>
+              {whyOpen ? (
+                <ChevronUpIcon className="size-3" aria-hidden />
+              ) : (
+                <ChevronDownIcon className="size-3" aria-hidden />
+              )}
+            </button>
+          ) : null}
         </div>
 
         {/* Subject IVBgx — title 16/600 + dek 13/normal.
@@ -509,6 +593,42 @@ function PulseAlertRow({
                 </div>
               </div>
             ) : null}
+          </div>
+        ) : null}
+
+        {/* Smart-priority inset (Pencil g5kKJQ `IciLB PriorityReasons`)
+            — collapsed until the "Why?" pill is clicked. Header line
+            "Why this is urgent · priority N" + "N signals", then one
+            chip per scoring reason ("+30 · A preparer asked about
+            this client"). All values come from the real priority
+            queue; nothing is hardcoded. */}
+        {showPriority && whyOpen && priority ? (
+          <div className="flex flex-col gap-2 rounded-[10px] border border-divider-subtle bg-background-section px-[14px] py-3">
+            <div className="flex items-center gap-2">
+              <SparklesIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
+              <span className="text-[11px] font-bold tracking-[0.3px] text-text-secondary">
+                <Trans>Why this is urgent · priority {priority.score}</Trans>
+              </span>
+              <span className="flex-1" aria-hidden />
+              <span className="text-[11px] font-medium text-text-muted tabular-nums">
+                <Plural value={priority.reasons.length} one="# signal" other="# signals" />
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {priority.reasons.map((reason) => (
+                <span
+                  key={reason.key}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-divider-subtle bg-background-default px-2 py-1"
+                >
+                  <span className="text-[11px] font-bold text-text-accent tabular-nums">
+                    +{reason.points}
+                  </span>
+                  <span className="text-[11px] font-semibold text-text-secondary">
+                    {reason.label}
+                  </span>
+                </span>
+              ))}
+            </div>
           </div>
         ) : null}
 
@@ -670,12 +790,31 @@ function PulseAlertList({
   onReview,
   onSnooze,
   onDismiss,
+  selectable = false,
+  selectedIds,
+  onToggleSelected,
+  onSelectAll,
+  onMarkAllRead,
+  priorityById,
 }: {
   alerts: readonly PulseAlertPublic[]
   openAlertId: string | null
   onReview: (alertId: string) => void
   onSnooze?: (alertId: string) => void
   onDismiss?: (alertId: string) => void
+  /**
+   * 2026-06-07 (Pencil g5kKJQ): bulk-selection wiring. When
+   * `selectable`, every row grows a leading checkbox and the list
+   * renders the "Select all · N dispatches · Mark all read"
+   * BulkSelectStrip (`TAamJ`) above the day groups.
+   */
+  selectable?: boolean
+  selectedIds?: ReadonlySet<string>
+  onToggleSelected?: (alertId: string, next: boolean) => void
+  onSelectAll?: (next: boolean) => void
+  onMarkAllRead?: () => void
+  /** Smart-priority inset data keyed by alert id (Pencil `IciLB`). */
+  priorityById?: ReadonlyMap<string, AlertPriorityInfo>
 }) {
   const { t } = useLingui()
   const { currentFirm } = useCurrentFirm()
@@ -687,6 +826,16 @@ function PulseAlertList({
   // renders in `compact` mode — the 100px time rail is hidden
   // and the relative time relocates to an inline tooltip slot.
   const panelOpen = openAlertId !== null
+
+  // Tri-state for the BulkSelectStrip's "Select all" checkbox:
+  // unchecked when nothing is selected, checked when every alert is
+  // selected, indeterminate in between.
+  const selectedCount = alerts.reduce(
+    (count, alert) => count + (selectedIds?.has(alert.id) ? 1 : 0),
+    0,
+  )
+  const allSelected = alerts.length > 0 && selectedCount === alerts.length
+  const someSelected = selectedCount > 0 && !allSelected
 
   // Group alerts by firm-local date, preserving the (already
   // sort-ordered) array order. Map preserves insertion order so
@@ -717,6 +866,42 @@ function PulseAlertList({
     // rounded radius + inner row borders carry the visual
     // boundary on their own; the clip wasn't earning its keep.
     <div className="flex flex-col rounded-[12px] border border-divider-regular bg-background-default">
+      {/* BulkSelectStrip (Pencil g5kKJQ `TAamJ`) — "Select all"
+          tri-state checkbox + dispatch count + "Mark all read".
+          Only renders in selectable (active) mode; history rows
+          aren't bulk-actionable. */}
+      {selectable ? (
+        <div className="flex items-center gap-3 border-b border-divider-subtle bg-background-subtle px-6 py-3">
+          <Checkbox
+            checked={allSelected}
+            indeterminate={someSelected}
+            onCheckedChange={(next) => onSelectAll?.(next)}
+            aria-label={t`Select all alerts`}
+            className="size-[18px] rounded-[4px]"
+          />
+          <span className="text-[13px] font-medium text-text-secondary">
+            <Trans>Select all</Trans>
+          </span>
+          <span className="text-divider-regular" aria-hidden>
+            ·
+          </span>
+          <span className="text-[13px] font-medium text-text-muted tabular-nums">
+            <Plural value={alerts.length} one="# dispatch" other="# dispatches" />
+          </span>
+          <span className="flex-1" aria-hidden />
+          {onMarkAllRead ? (
+            <button
+              type="button"
+              onClick={onMarkAllRead}
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] font-medium text-text-secondary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <CheckCheckIcon className="size-3" aria-hidden />
+              <Trans>Mark all read</Trans>
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
       {Array.from(groups.entries()).map(([dayKey, dayAlerts]) => {
         const { label, isToday } = formatDayHeader(dayKey, firmTimezone, todayKey)
         const yesterdayKey = (() => {
@@ -782,6 +967,12 @@ function PulseAlertList({
                 {...(onSnooze ? { onSnooze: () => onSnooze(alert.id) } : {})}
                 {...(onDismiss ? { onDismiss: () => onDismiss(alert.id) } : {})}
                 compact={panelOpen}
+                selectable={selectable}
+                selected={selectedIds?.has(alert.id) ?? false}
+                {...(onToggleSelected
+                  ? { onToggleSelected: (next: boolean) => onToggleSelected(alert.id, next) }
+                  : {})}
+                priority={priorityById?.get(alert.id)}
               />
             ))}
           </div>
