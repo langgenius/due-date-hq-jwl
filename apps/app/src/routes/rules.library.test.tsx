@@ -582,8 +582,14 @@ describe('RulesLibraryRoute', () => {
     await waitForText('Federal')
     await waitForText('Arizona')
 
-    expect(document.body.textContent).not.toContain('Federal Row Form')
-    expect(document.body.textContent).not.toContain('Arizona Row Form')
+    // Form codes for collapsed groups must not render inside the rule
+    // TABLE (the grouped rows stay collapsed). They can legitimately
+    // appear elsewhere — e.g. the Overview "Recent changes" card surfaces
+    // the form code in each row's meta line — so scope this assertion to
+    // the table body rather than the whole document.
+    const tableText = document.querySelector('table')?.textContent ?? ''
+    expect(tableText).not.toContain('Federal Row Form')
+    expect(tableText).not.toContain('Arizona Row Form')
 
     const federalRow = Array.from(document.querySelectorAll('tbody tr')).find((row) =>
       row.textContent?.includes('Federal'),

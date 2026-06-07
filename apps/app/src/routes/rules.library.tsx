@@ -104,6 +104,7 @@ import {
   JurisdictionStatusChips,
 } from '@/features/rules/jurisdiction-rule-table'
 import { formatTaxCode } from '@/lib/tax-codes'
+import { formatRelativeTime } from '@/lib/utils'
 import { orpc } from '@/lib/rpc'
 
 /**
@@ -760,6 +761,297 @@ function useRuleTierLabels(): Record<RuleTier, string> {
 // (shared with the per-jurisdiction table). Imported above.
 
 // ---------------------------------------------------------------------------
+// Overview summary surfaces (Pencil O0pyRO)
+//
+// The "All jurisdictions" overview keeps the wired GroupedRulesTable
+// (infinite scroll + batch review + gap rows). Per Pencil O0pyRO, the
+// design surrounds that table with three summary blocks ABOVE it:
+//   1. ActionHero    — blue review-queue callout (count tile + body +
+//                      "Open review queue" CTA), shown only when there
+//                      are rules awaiting review.
+//   2. Status coverage card — segmented active/review/draft bar + chips.
+//   3. Recent changes card  — the most-recently-touched rules with a
+//                      jurisdiction pill, change-kind pill, and relative
+//                      timestamp.
+// All three read from the SAME wired data the table consumes (rules +
+// statusCounts), so no functionality is dropped — they are an additive
+// scannable header for the catalog.
+// ---------------------------------------------------------------------------
+
+// Jurisdiction pill tones for the recent-changes rows. Mapped onto the
+// existing token palette (no new theme colors): Federal reads as a
+// dark slate chip, states cycle through the util-color tints already
+// shipped in the theme. Pencil uses bespoke per-state hex; we collapse
+// to a small set of semantic-ish tints keyed by jurisdiction so the
+// rows stay legible without inventing tokens.
+function jurisdictionPillClass(jurisdiction: string): string {
+  if (jurisdiction === 'FED') {
+    return 'bg-text-primary text-background-default'
+  }
+  return 'bg-background-subtle text-text-secondary'
+}
+
+// Change-kind classification for a rule, derived from its wired fields.
+// `version === 1` (never re-versioned) reads as NEW; a rule whose
+// effective/verified date is still in the future reads as EFFECTIVE
+// (a scheduled change); everything else is an UPDATED revision.
+type RuleChangeKind = 'new' | 'updated' | 'effective'
+
+function ruleChangeKind(rule: ObligationRule, now: number): RuleChangeKind {
+  const effective = Date.parse(rule.verifiedAt)
+  if (!Number.isNaN(effective) && effective > now) return 'effective'
+  if (rule.version <= 1) return 'new'
+  return 'updated'
+}
+
+// Timestamp a rule was last touched — reviewedAt (ISO datetime) wins,
+// falling back to verifiedAt (date-only). Returns epoch ms or null.
+function ruleChangedAt(rule: ObligationRule): number | null {
+  const reviewed = rule.reviewedAt ? Date.parse(rule.reviewedAt) : Number.NaN
+  if (!Number.isNaN(reviewed)) return reviewed
+  const verified = Date.parse(rule.verifiedAt)
+  return Number.isNaN(verified) ? null : verified
+}
+
+function useRuleChangeKindLabels(): Record<RuleChangeKind, string> {
+  const { t } = useLingui()
+  return useMemo(
+    () => ({
+      new: t`New`,
+      updated: t`Updated`,
+      effective: t`Effective`,
+    }),
+    [t],
+  )
+}
+
+/**
+ * ActionHero — the blue review-queue callout (Pencil O0pyRO `g4pVe7`).
+ * A count tile, a headline + "oldest Nd" chip, a one-line summary, and
+ * a primary "Open review queue" CTA that runs the same batch-review
+ * entry point as the header's Start review. Only rendered when there
+ * are rules awaiting review.
+ */
+function OverviewActionHero({
+  reviewCount,
+  oldestRelative,
+  onOpenReview,
+}: {
+  reviewCount: number
+  oldestRelative: string | null
+  onOpenReview: () => void
+}) {
+  return (
+    <div className="flex shrink-0 flex-col gap-3 rounded-2xl border border-state-accent-solid bg-state-accent-hover p-[18px] sm:flex-row sm:items-center sm:gap-[18px] sm:px-[22px]">
+      <span
+        aria-hidden
+        className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-state-accent-solid text-xl font-bold tracking-tight text-background-default tabular-nums"
+      >
+        {reviewCount}
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="text-base font-semibold tracking-tight text-text-primary">
+            <Plural
+              value={reviewCount}
+              one="# rule change is waiting on you"
+              other="# rule changes are waiting on you"
+            />
+          </span>
+          {oldestRelative ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2 py-0.5 text-[11px] font-semibold text-text-warning">
+              <Loader2 aria-hidden className="size-2.5" />
+              <Trans>oldest {oldestRelative}</Trans>
+            </span>
+          ) : null}
+        </span>
+        <span className="text-[13px] font-medium text-text-secondary">
+          <Trans>
+            Reviewing now keeps client deadlines accurate and unblocks downstream obligations.
+          </Trans>
+        </span>
+      </div>
+      <Button size="sm" className="shrink-0" onClick={onOpenReview}>
+        <Trans>Open review queue</Trans>
+        <ArrowUpRightIcon data-icon="inline-end" />
+      </Button>
+    </div>
+  )
+}
+
+/**
+ * OverviewStatusCoverageCard — segmented active/review/draft bar + chips
+ * (Pencil O0pyRO `tFXYw`). Reads the catalog-wide status counts. The
+ * segment bar widths are proportional to each bucket's share.
+ */
+function OverviewStatusCoverageCard({
+  total,
+  active,
+  review,
+  draft,
+}: {
+  total: number
+  active: number
+  review: number
+  draft: number
+}) {
+  const segments = [
+    { key: 'active', flex: active, barClass: 'bg-state-success-solid' },
+    { key: 'review', flex: review, barClass: 'bg-state-warning-solid' },
+    { key: 'draft', flex: draft, barClass: 'bg-state-accent-solid' },
+  ].filter((seg) => seg.flex > 0)
+  const chips: Array<{ key: string; label: string; count: number; dotClass: string }> = [
+    { key: 'active', label: 'Active', count: active, dotClass: 'bg-state-success-solid' },
+    {
+      key: 'review',
+      label: 'Awaiting review',
+      count: review,
+      dotClass: 'bg-state-warning-solid',
+    },
+    { key: 'draft', label: 'Draft', count: draft, dotClass: 'bg-state-accent-solid' },
+  ]
+  return (
+    <div className="flex shrink-0 flex-col gap-3.5 rounded-xl border border-divider-subtle bg-background-default px-[22px] py-5">
+      <div className="flex flex-col gap-0.5">
+        <span className="text-base font-semibold text-text-primary">
+          <Trans>Status coverage</Trans>
+        </span>
+        <span className="text-xs font-medium text-text-tertiary">
+          <Trans>
+            {total} rules · {active} active · {review} awaiting review
+          </Trans>
+        </span>
+      </div>
+      <div
+        className="flex h-2 w-full gap-0.5 overflow-hidden rounded-full bg-background-subtle"
+        role="presentation"
+      >
+        {segments.map((seg) => (
+          <span key={seg.key} className={cn('block', seg.barClass)} style={{ flex: seg.flex }} />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {chips.map((chip) => (
+          <span
+            key={chip.key}
+            className="inline-flex items-center gap-1.5 rounded-full bg-background-subtle px-2 py-1"
+          >
+            <span aria-hidden className={cn('size-1.5 rounded-full', chip.dotClass)} />
+            <span className="text-[11px] font-medium text-text-secondary">{chip.label}</span>
+            <span className="text-[11px] font-semibold tabular-nums text-text-primary">
+              {chip.count}
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * OverviewRecentChangesCard — the most-recently-touched rules (Pencil
+ * O0pyRO `lDTO0`). Each row: jurisdiction pill · title + meta · change
+ * pill · relative timestamp · chevron. Clicking a row opens that rule's
+ * detail panel (same `?rule=` deep-link the table rows use). Derived
+ * from the wired rules — no separate query needed.
+ */
+function OverviewRecentChangesCard({
+  rules,
+  onRuleClick,
+  onViewAll,
+}: {
+  rules: ObligationRule[]
+  onRuleClick: (rule: ObligationRule) => void
+  onViewAll: () => void
+}) {
+  const changeKindLabels = useRuleChangeKindLabels()
+  const now = Date.now()
+  if (rules.length === 0) return null
+  return (
+    <div className="flex shrink-0 flex-col gap-3.5 rounded-xl border border-divider-subtle bg-background-default px-[22px] py-5">
+      <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-base font-semibold text-text-primary">
+            <Trans>Recent changes</Trans>
+          </span>
+          <span className="text-xs font-medium text-text-tertiary">
+            <Trans>Last 30 days</Trans>
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onViewAll}
+          className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-md text-xs font-medium text-text-accent outline-none hover:underline focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+        >
+          <Trans>View all</Trans>
+          <ArrowUpRightIcon aria-hidden className="size-3" />
+        </button>
+      </div>
+      <ul className="flex flex-col">
+        {rules.map((rule, index) => {
+          const kind = ruleChangeKind(rule, now)
+          const changedAt = ruleChangedAt(rule)
+          const relative = changedAt ? formatRelativeTime(new Date(changedAt).toISOString()) : null
+          // `reviewedByName` is a real display name; `verifiedBy` is a
+          // seed-placeholder slug (e.g. `practice.template_seed`) that the
+          // rest of the library deliberately never surfaces — so the meta
+          // line shows the form code + reviewer name only when a real
+          // reviewer name exists.
+          const metaParts = [rule.formName, rule.reviewedByName ?? null].filter(Boolean)
+          return (
+            <li key={rule.id}>
+              <button
+                type="button"
+                onClick={() => onRuleClick(rule)}
+                className={cn(
+                  'flex w-full items-center gap-3 py-3.5 text-left outline-none transition-colors hover:bg-state-base-hover focus-visible:bg-state-base-hover',
+                  index > 0 && 'border-t border-divider-subtle',
+                )}
+              >
+                <span
+                  className={cn(
+                    'inline-flex shrink-0 items-center rounded-md px-2 py-[3px] text-[11px] font-bold',
+                    jurisdictionPillClass(rule.jurisdiction),
+                  )}
+                >
+                  {rule.jurisdiction}
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="truncate text-[13px] font-semibold text-text-primary">
+                    {rule.title}
+                  </span>
+                  {metaParts.length > 0 ? (
+                    <span className="truncate text-[11px] font-medium text-text-tertiary">
+                      {metaParts.join(' · ')}
+                    </span>
+                  ) : null}
+                </span>
+                <span
+                  className={cn(
+                    'shrink-0 rounded-full px-2 py-[3px] text-[10px] font-bold tracking-eyebrow uppercase',
+                    kind === 'new' && 'bg-state-success-hover text-text-success',
+                    kind === 'updated' && 'bg-state-accent-hover text-text-accent',
+                    kind === 'effective' && 'bg-state-warning-hover text-text-warning',
+                  )}
+                >
+                  {changeKindLabels[kind]}
+                </span>
+                {relative ? (
+                  <span className="shrink-0 text-xs font-medium text-text-muted tabular-nums">
+                    {relative}
+                  </span>
+                ) : null}
+                <ChevronRightIcon aria-hidden className="size-3.5 shrink-0 text-text-muted" />
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Main route
 // ---------------------------------------------------------------------------
 
@@ -977,6 +1269,31 @@ export function RulesLibraryRoute() {
     return out
   }, [rules, coverageRows])
   const totalArchived = statusCounts.archived + statusCounts.deprecated
+  const totalDraft = statusCounts.candidate
+
+  // 2026-06-07 (Yuqi /rules Overview pixel pass, Pencil O0pyRO): the
+  // overview summary surfaces read from the SAME wired `rules` the
+  // grouped table consumes — no new query. `recentChanges` is the
+  // 5 most-recently-touched rules (by reviewedAt → verifiedAt) for the
+  // Recent Changes card; `oldestReviewRelative` is the age of the
+  // longest-waiting pending-review rule for the ActionHero "oldest Nd"
+  // chip.
+  const recentChanges = useMemo(() => {
+    return rules
+      .filter((rule) => ruleChangedAt(rule) !== null)
+      .toSorted((a, b) => (ruleChangedAt(b) ?? 0) - (ruleChangedAt(a) ?? 0))
+      .slice(0, 5)
+  }, [rules])
+  const oldestReviewRelative = useMemo(() => {
+    let oldest = Number.POSITIVE_INFINITY
+    for (const rule of rules) {
+      if (statusGroupOf(rule.status) !== 'needs_review') continue
+      const changed = ruleChangedAt(rule)
+      if (changed !== null && changed < oldest) oldest = changed
+    }
+    if (!Number.isFinite(oldest)) return null
+    return formatRelativeTime(new Date(oldest).toISOString())
+  }, [rules])
 
   // 2026-06-04 (Yuqi rule-library master–detail pivot): the states rail
   // + per-jurisdiction detail pane. `unfilteredGroups` powers stable
@@ -1793,6 +2110,37 @@ export function RulesLibraryRoute() {
               </p>
             </>
           )}
+
+          {/* Overview summary surfaces (Pencil O0pyRO) — ActionHero
+              review callout + Status coverage card + Recent changes
+              card. Rendered only on the "All jurisdictions" overview
+              (no jurisdiction selected, not mid-search). They read from
+              the same wired `rules` the grouped table below consumes, so
+              the table's behavior (infinite scroll / batch review / gap
+              rows) is untouched — these are an additive scannable header
+              for the catalog. */}
+          {!selectedGroup && !isSearching && !statsLoading ? (
+            <>
+              {totalPendingReview > 0 ? (
+                <OverviewActionHero
+                  reviewCount={totalPendingReview}
+                  oldestRelative={oldestReviewRelative}
+                  onOpenReview={startReviewAll}
+                />
+              ) : null}
+              <OverviewStatusCoverageCard
+                total={totalRules}
+                active={totalActive}
+                review={totalPendingReview}
+                draft={totalDraft}
+              />
+              <OverviewRecentChangesCard
+                rules={recentChanges}
+                onRuleClick={handleRuleClick}
+                onViewAll={() => void setScope('review')}
+              />
+            </>
+          ) : null}
 
           {/* KPI strip — 4-stat band (Total / Effective / Pending /
               Deprecated) for the selected jurisdiction (Pencil O0pyRO
