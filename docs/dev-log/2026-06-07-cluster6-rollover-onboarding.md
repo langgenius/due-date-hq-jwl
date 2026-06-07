@@ -7,6 +7,7 @@ Two **net-new** surfaces from the Pencil design refresh, plus two flagged confli
 ## Shipped
 
 ### `c7xPK` — Annual rollover preview modal
+
 - New `apps/app/src/features/obligations/AnnualRolloverDialog.tsx`, built on canonical
   `Dialog` + `Badge` + `Table` primitives (no new `@ui` components).
 - Header (`repeat` icon, "tax year N → N+1"), Preview/Apply step pills, intro callout,
@@ -19,12 +20,14 @@ Two **net-new** surfaces from the Pencil design refresh, plus two flagged confli
   `min(1040px, 100vw-2rem)`; body scrolls.
 
 ### `U8eGg` — Onboarding rule-review prompt
+
 - New `apps/app/src/features/onboarding/rule-review-prompt.tsx`. Presentational
   `RuleReviewPrompt` reusing `jurisdictionLabel` from the rules console model.
 - Centered 720px layout; per-jurisdiction rows (warning tile, name · rule count ·
   blocked badge, authority detail, Review CTA); info footer; Skip / Back / Review row.
 
 ## TODO(data) — flagged, not built
+
 - **Rollover:** no `rollover`/`taxYear` contract, RPC, or route exists. Dialog renders a
   static `FALLBACK_PREVIEW`. Needs: preview fetch (`previewAnnualRollover`), row contract
   shape, two apply mutations (currently no-ops).
@@ -33,6 +36,7 @@ Two **net-new** surfaces from the Pencil design refresh, plus two flagged confli
   Component takes these as props.
 
 ## Conflicts — deferred to design review (NOT silently reimplemented)
+
 - **`E76U6Q`** (onboarding firm setup): proposes a 680px multi-step (Practice → Rules →
   Clients) form with two-column field row, timezone field, calendar widget. The live
   `/onboarding` is a deliberately single-page **400px** form whose width, hierarchy flip,
@@ -46,12 +50,14 @@ Two **net-new** surfaces from the Pencil design refresh, plus two flagged confli
   changes.
 
 ## Pixel-exact compromises
+
 - Verdant canvas theme intentionally not ported (brief); mapped to existing tokens.
 - Rollover modal uses Dialog default `rounded-lg` (Pencil shows 16px) for consistency.
 - Disposition badges use `info` / `warning` / `secondary` Badge variants (closest token
   match to the mock's blue/amber/grey pills).
 
 ## Verify
+
 - `npx tsgo --noEmit -p apps/app` → 0 errors
 - `pnpm --dir apps/app test -- src/routes/obligations --run` → 55/55
 - `npx vp check` → 0 errors
