@@ -210,6 +210,238 @@ export function DetailRow({ label, value }: { label: ReactNode; value: ReactNode
   )
 }
 
+// ── Cluster 2 (deadline detail tabs) reusables ──────────────────────
+// Extracted from the Pencil detail-tab designs (d4YrtC / Ls3vb /
+// AYpfU / KsbdI). All map the design hexes to existing tokens:
+//   #155aef → accent, #17b26a/#079455 → success, #b9501a → warning,
+//   #98a2b2 → text-tertiary, #354052/#676f83 → text-secondary.
+// Card chrome in the designs (rounded-14, #10182814 border, white fill)
+// is intentionally NOT replicated 1:1 inside the drawer — the drawer
+// uses flat sections; these primitives carry the INNER content + the
+// design's signature dot/mono/colour vocabulary.
+
+type MilestoneTone = 'active' | 'done' | 'pending'
+
+// Summary strip chip (design `Z6n7Z5 > WTa7O`): dot + label + sub-state
+// caption inside a pill. `active` = blue dot + blue text on accent-hover
+// tint; `done` = success; `pending` = muted on section bg.
+export function MilestoneChip({
+  label,
+  caption,
+  tone,
+}: {
+  label: ReactNode
+  caption?: ReactNode
+  tone: MilestoneTone
+}) {
+  const dotClass =
+    tone === 'active'
+      ? 'bg-state-accent-solid'
+      : tone === 'done'
+        ? 'bg-state-success-solid'
+        : 'bg-text-tertiary'
+  const pillClass =
+    tone === 'active'
+      ? 'bg-state-accent-hover-alt'
+      : tone === 'done'
+        ? 'bg-state-success-hover'
+        : 'bg-background-section'
+  const labelClass =
+    tone === 'active'
+      ? 'text-text-accent'
+      : tone === 'done'
+        ? 'text-state-success-solid'
+        : 'text-text-secondary'
+  const captionClass = tone === 'active' ? 'text-text-accent' : 'text-text-tertiary'
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-2 rounded-full px-3.5 py-2 leading-none',
+        pillClass,
+      )}
+    >
+      <span className={cn('size-2 shrink-0 rounded-full', dotClass)} aria-hidden />
+      <span className={cn('text-xs font-semibold', labelClass)}>{label}</span>
+      {caption ? (
+        <span className={cn('text-caption-xs font-semibold uppercase tracking-wide', captionClass)}>
+          {caption}
+        </span>
+      ) : null}
+    </span>
+  )
+}
+
+// Extension amber callout (design `Ls3vb` warn-note + payment-due card).
+// Reuses the AlertPanel chrome; carries a title + body so it reads as a
+// distinct "filing ≠ payment" warning rather than a generic note.
+export function PaymentStillDueCallout({
+  title,
+  children,
+}: {
+  title: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <div className="flex gap-2 rounded-lg border border-state-warning-hover-alt bg-state-warning-hover p-3 text-sm">
+      <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
+      <div className="grid gap-0.5">
+        <p className="font-medium text-text-warning">{title}</p>
+        <p className="text-text-secondary">{children}</p>
+      </div>
+    </div>
+  )
+}
+
+// Shared file row (design Summary `SourceDocs` + Evidence `Workpapers`):
+// f9fafb icon tile + mono filename + meta sub + trailing actions.
+export function FileArtifactRow({
+  icon,
+  name,
+  meta,
+  actions,
+}: {
+  icon: ReactNode
+  name: ReactNode
+  meta?: ReactNode
+  actions?: ReactNode
+}) {
+  return (
+    <div className="flex items-center gap-3 border-b border-divider-subtle py-2 last:border-0">
+      <span
+        className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-background-section text-text-secondary"
+        aria-hidden
+      >
+        {icon}
+      </span>
+      <div className="grid min-w-0 flex-1 gap-0.5">
+        <span className="truncate font-mono text-xs font-medium text-text-primary">{name}</span>
+        {meta ? <span className="truncate text-caption-xs text-text-tertiary">{meta}</span> : null}
+      </div>
+      {actions ? <div className="flex shrink-0 items-center gap-1.5">{actions}</div> : null}
+    </div>
+  )
+}
+
+type ArtifactCellTone = 'success' | 'warning' | 'pending'
+
+export type ArtifactStatusCell = {
+  id: string
+  label: ReactNode
+  value: ReactNode
+  tone: ArtifactCellTone
+}
+
+// Evidence hero checks grid (design `H3xJg > zdni4`): a bordered N-cell
+// grid, each cell = mono uppercase label + colored dot + value. Wraps to
+// a single column on narrow widths.
+export function EvidenceArtifactStatusGrid({ cells }: { cells: ArtifactStatusCell[] }) {
+  return (
+    <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-divider-subtle sm:grid-cols-4">
+      {cells.map((cell) => (
+        <div
+          key={cell.id}
+          className="flex flex-col gap-2 border-b border-r border-divider-subtle p-3 last:border-r-0 [&:nth-child(2n)]:border-r-0 sm:border-b-0 sm:[&:nth-child(2n)]:border-r"
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                'size-2 shrink-0 rounded-full',
+                cell.tone === 'success'
+                  ? 'bg-state-success-solid'
+                  : cell.tone === 'warning'
+                    ? 'bg-state-destructive-solid'
+                    : 'bg-text-tertiary',
+              )}
+              aria-hidden
+            />
+            <span className="text-caption-xs font-bold uppercase tracking-wide text-text-tertiary">
+              {cell.label}
+            </span>
+          </div>
+          <span className="text-sm font-semibold text-text-primary">{cell.value}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export type AuthorityFact = {
+  id: string
+  label: ReactNode
+  value: ReactNode
+}
+
+// Evidence authority strip (design `FXD1b`): a quiet f9fafb strip of
+// mono-labelled facts + an optional trailing link. Wraps fluidly.
+export function AuthorityFactStrip({
+  facts,
+  action,
+}: {
+  facts: AuthorityFact[]
+  action?: ReactNode
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-divider-subtle bg-background-section px-4 py-3">
+      {facts.map((fact) => (
+        <span key={fact.id} className="inline-flex items-center gap-2">
+          <span className="text-caption-xs font-bold uppercase tracking-wide text-text-tertiary">
+            {fact.label}
+          </span>
+          <span className="text-xs font-medium text-text-secondary">{fact.value}</span>
+        </span>
+      ))}
+      {action ? <span className="ml-auto">{action}</span> : null}
+    </div>
+  )
+}
+
+type MaterialsLegendCounts = {
+  received: number
+  outstanding: number
+  waived: number
+}
+
+// Materials progress + 3-dot legend (design `AYpfU` MatHeader kQkqL +
+// legend). Green/red/grey dots map to received/outstanding/waived.
+export function MaterialsProgressLegend({
+  counts,
+  lastUpdated,
+}: {
+  counts: MaterialsLegendCounts
+  lastUpdated?: ReactNode
+}) {
+  const total = counts.received + counts.outstanding + counts.waived
+  const pct = total > 0 ? Math.round((counts.received / total) * 100) : 0
+  return (
+    <div className="grid gap-2">
+      <div className="h-2 w-full overflow-hidden rounded-sm bg-background-subtle">
+        <div
+          className="h-full rounded-sm bg-state-success-solid transition-[width] duration-200 ease-out"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-caption-xs text-text-tertiary">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="size-2 rounded-full bg-state-success-solid" aria-hidden />
+          <span className="tabular-nums text-text-secondary">{counts.received}</span>
+          <Trans>received</Trans>
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="size-2 rounded-full bg-state-destructive-solid" aria-hidden />
+          <span className="tabular-nums text-text-secondary">{counts.outstanding}</span>
+          <Trans>outstanding</Trans>
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="size-2 rounded-full bg-text-tertiary" aria-hidden />
+          <span className="tabular-nums text-text-secondary">{counts.waived}</span>
+          <Trans>waived</Trans>
+        </span>
+        {lastUpdated ? <span className="ml-auto">{lastUpdated}</span> : null}
+      </div>
+    </div>
+  )
+}
+
 // `ObligationForwardingPanel` + `obligationForwardingAddress`
 // retired 2026-05-21 with the inbound-routing Phase-2 stub. Restore
 // when the email-thread-to-task pipeline actually ships.
