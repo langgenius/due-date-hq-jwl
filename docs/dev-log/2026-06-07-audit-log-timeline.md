@@ -10,7 +10,7 @@ the row → drawer behavior are all unchanged — only presentation moved.
 ## What shipped (NO contract/DB change)
 
 - `apps/app/src/features/audit/audit-timeline-model.ts` (new)
-  - Derives a coarse timeline *type* per event from the `action` prefix
+  - Derives a coarse timeline _type_ per event from the `action` prefix
     (FILING / AMENDMENT / DECISION / ACCESS / SYSTEM) — the contract has no
     per-event category (it's a server-side filter input only). Each type maps
     to a lucide icon + a tint built from existing
