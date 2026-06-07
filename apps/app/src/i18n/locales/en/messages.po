@@ -114,6 +114,11 @@ msgstr "{0, plural, one {# day ago} other {# days ago}}"
 msgid "{0, plural, one {# day late} other {# days late}}"
 msgstr "{0, plural, one {# day late} other {# days late}}"
 
+#. placeholder {0}: thisWeekRows.length
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "{0, plural, one {# deadline due in the next 7 days} other {# deadlines due in the next 7 days}}"
+msgstr "{0, plural, one {# deadline due in the next 7 days} other {# deadlines due in the next 7 days}}"
+
 #. placeholder {0}: genesis.obligationCount
 #: src/features/migration/Wizard.tsx
 msgid "{0, plural, one {# deadline generated} other {# deadlines generated}}"
@@ -324,6 +329,11 @@ msgstr "{0} added, {1} removed"
 msgid "{0} and its imported deadlines"
 msgstr "{0} and its imported deadlines"
 
+#. placeholder {0}: formatClientList(thisWeekRows.map((row) => row.clientName))
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "{0} are filing soon"
+msgstr "{0} are filing soon"
+
 #. placeholder {0}: portal.senderName
 #. placeholder {1}: portal.firmName
 #: src/routes/readiness.tsx
@@ -414,6 +424,12 @@ msgstr "{0} imported clients and their generated deadlines"
 #: src/routes/accept-invite.tsx
 msgid "{0} invited you to {1}."
 msgstr "{0} invited you to {1}."
+
+#. placeholder {0}: mostOverdue.clientName
+#. placeholder {1}: Math.abs(mostOverdue.daysUntilDue)
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "{0} is {1} days overdue — highest exposure"
+msgstr "{0} is {1} days overdue — highest exposure"
 
 #. placeholder {0}: currentFirm?.name
 #: src/routes/billing.success.tsx
@@ -724,6 +740,10 @@ msgstr "{duplicateCount} already rolled forward · {skippedCount} skipped (no ve
 msgid "{durationMonths, plural, one {# month} other {# months}}"
 msgstr "{durationMonths, plural, one {# month} other {# months}}"
 
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "{effectiveReviewCount, plural, one {# item awaiting your eyes} other {# items awaiting your eyes}}"
+msgstr "{effectiveReviewCount, plural, one {# item awaiting your eyes} other {# items awaiting your eyes}}"
+
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "{equity} equity owners"
 msgstr "{equity} equity owners"
@@ -945,6 +965,10 @@ msgstr "{reviewCount} Requires review"
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount} to review · {blockedTotal} deadlines blocked"
 msgstr "{reviewCount} to review · {blockedTotal} deadlines blocked"
+
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "{reviewHeadlineClient} is waiting on your review"
+msgstr "{reviewHeadlineClient} is waiting on your review"
 
 #. placeholder {0}: firm.seatLimit
 #: src/components/patterns/app-shell-nav.tsx
@@ -1183,6 +1207,10 @@ msgstr "10 seats included"
 msgid "10+ seats"
 msgstr "10+ seats"
 
+#: src/routes/splash.tsx
+msgid "12 deadlines synced from the IRS calendar"
+msgstr "12 deadlines synced from the IRS calendar"
+
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "2-3"
 msgstr "2-3"
@@ -1190,6 +1218,10 @@ msgstr "2-3"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "218 KB · uploaded Feb 14"
 msgstr "218 KB · uploaded Feb 14"
+
+#: src/routes/splash.tsx
+msgid "3 new alerts (1 high-impact — CA FTB franchise extension)"
+msgstr "3 new alerts (1 high-impact — CA FTB franchise extension)"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -2338,6 +2370,7 @@ msgid "Assigns every deadline for {clientName}."
 msgstr "Assigns every deadline for {clientName}."
 
 #: src/features/dashboard/at-a-glance-section.tsx
+#: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "At a glance"
 msgstr "At a glance"
 
@@ -7247,6 +7280,10 @@ msgstr "Last reminded · 1 day ago"
 msgid "Last reminded today"
 msgstr "Last reminded today"
 
+#: src/routes/splash.tsx
+msgid "Last sign-in: 2 days ago from 192.168.0.42"
+msgstr "Last sign-in: 2 days ago from 192.168.0.42"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Last touched"
@@ -7995,6 +8032,10 @@ msgstr "Migration Copilot"
 msgid "Migration Copilot wizard — paste or upload your client roster, review the AI mapping, normalize values, and preview the import before committing."
 msgstr "Migration Copilot wizard — paste or upload your client roster, review the AI mapping, normalize values, and preview the import before committing."
 
+#: src/routes/splash.tsx
+msgid "Migration import completed (28 clients added)"
+msgstr "Migration import completed (28 clients added)"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Milestone timeline"
@@ -8105,6 +8146,11 @@ msgstr "Morning digest schedule and the channels DueDateHQ uses to reach you."
 #: src/features/dashboard/at-a-glance-section.tsx
 msgid "Morning sweep"
 msgstr "Morning sweep"
+
+#. placeholder {0}: formatDueDate(mostOverdue.currentDueDate)
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "Most overdue open deadline · due {0}"
+msgstr "Most overdue open deadline · due {0}"
 
 #. placeholder {0}: pendingBulkStatus.ids.length
 #. placeholder {1}: v2StatusLabels[pendingBulkStatus.status]
@@ -8314,6 +8360,7 @@ msgid "Needs state"
 msgstr "Needs state"
 
 #: src/features/dashboard/at-a-glance-section.tsx
+#: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "Needs you"
 msgstr "Needs you"
 
@@ -8613,6 +8660,10 @@ msgstr "No deadline categories match."
 msgid "No deadline overlay will be applied"
 msgstr "No deadline overlay will be applied"
 
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "No deadlines due in the next 7 days"
+msgstr "No deadlines due in the next 7 days"
+
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "No deadlines match these filters."
@@ -8755,6 +8806,10 @@ msgstr "No notifications yet."
 #: src/features/rules/coverage-tab.tsx
 msgid "No official source registered"
 msgstr "No official source registered"
+
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "No open deadline has slipped past its due date"
+msgstr "No open deadline has slipped past its due date"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
@@ -9114,9 +9169,17 @@ msgstr "Nothing due this week."
 msgid "Nothing here."
 msgstr "Nothing here."
 
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "Nothing is waiting on your review"
+msgstr "Nothing is waiting on your review"
+
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "nothing needs your review"
 msgstr "nothing needs your review"
+
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "Nothing overdue — you're clear"
+msgstr "Nothing overdue — you're clear"
 
 #: src/features/clients/FixNeedsFactsSheet.tsx
 msgid "Nothing to fix"
@@ -9485,6 +9548,10 @@ msgstr "Open your authenticator app and enter the 6 digits you see for DueDateHQ
 #: src/routes/account-security-two-factor-setup.tsx
 msgid "Open your authenticator app, add a new account, then scan this code. Use the setup URI if scanning is not available."
 msgstr "Open your authenticator app, add a new account, then scan this code. Use the setup URI if scanning is not available."
+
+#: src/routes/splash.tsx
+msgid "Open your dashboard"
+msgstr "Open your dashboard"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Open your personal notification inbox."
@@ -10571,6 +10638,10 @@ msgstr "Queued today"
 msgid "Quick peek"
 msgstr "Quick peek"
 
+#: src/routes/splash.tsx
+msgid "Quick tour (90 sec)"
+msgstr "Quick tour (90 sec)"
+
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Quick-confirm the extracted fields look right."
 msgstr "Quick-confirm the extracted fields look right."
@@ -11056,6 +11127,10 @@ msgstr "Reminder-ready"
 #: src/routes/settings.tsx
 msgid "Reminders"
 msgstr "Reminders"
+
+#: src/routes/splash.tsx
+msgid "Reminders went out to 8 clients"
+msgstr "Reminders went out to 8 clients"
 
 #: src/features/migration/Step1Intake.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
@@ -13719,6 +13794,10 @@ msgstr "The tax form or deadline type carried forward from the source-year seed 
 msgid "The template is paused in Reminders, so no email will be queued."
 msgstr "The template is paused in Reminders, so no email will be queued."
 
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "The week ahead is clear"
+msgstr "The week ahead is clear"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Theme"
 msgstr "Theme"
@@ -13967,6 +14046,10 @@ msgstr "This stage was skipped — no date applies."
 msgid "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
 msgstr "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
 
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "This week"
+msgstr "This week"
+
 #: src/features/audit/audit-log-table.tsx
 msgid "Time"
 msgstr "Time"
@@ -14001,6 +14084,7 @@ msgstr "today"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/at-a-glance-section.tsx
+#: src/features/obligations/deadlines-at-a-glance.tsx
 #: src/features/obligations/queue/components/primitives.tsx
 #: src/routes/dashboard.tsx
 #: src/routes/obligations.tsx
@@ -14087,6 +14171,10 @@ msgstr "Try previewing again before generating."
 #: src/features/audit/audit-log-labels.ts
 msgid "TSV"
 msgstr "TSV"
+
+#: src/routes/splash.tsx
+msgid "Tuesday · March 11, 2026"
+msgstr "Tuesday · March 11, 2026"
 
 #: src/routes/account.security.tsx
 msgid "Two-factor authentication disabled"
@@ -14604,6 +14692,10 @@ msgstr "View blocked deadlines"
 msgid "View deadlines"
 msgstr "View deadlines"
 
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "View deadlines due this week"
+msgstr "View deadlines due this week"
+
 #: src/features/dashboard/at-a-glance-section.tsx
 msgid "View deadlines due today"
 msgstr "View deadlines due today"
@@ -14617,6 +14709,7 @@ msgid "View in Deadlines"
 msgstr "View in Deadlines"
 
 #: src/features/dashboard/at-a-glance-section.tsx
+#: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "View items needing your review"
 msgstr "View items needing your review"
 
@@ -14627,6 +14720,10 @@ msgstr "View mode"
 #: src/features/clients/ClientSummaryStrip.tsx
 msgid "View open filings for this client"
 msgstr "View open filings for this client"
+
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "View overdue deadlines"
+msgstr "View overdue deadlines"
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "View source"
@@ -14751,6 +14848,14 @@ msgstr "We'll let you attach PDFs and exports here as soon as ingest lands."
 msgid "We'll let you attach source documents here as soon as ingest lands."
 msgstr "We'll let you attach source documents here as soon as ingest lands."
 
+#: src/routes/route-summary.ts
+msgid "Welcome back"
+msgstr "Welcome back"
+
+#: src/routes/splash.tsx
+msgid "Welcome back, Jules"
+msgstr "Welcome back, Jules"
+
 #: src/routes/login.tsx
 msgid "Welcome to DueDateHQ."
 msgstr "Welcome to DueDateHQ."
@@ -14792,6 +14897,10 @@ msgstr "What's in this list"
 msgid "What's left to do"
 msgstr "What's left to do"
 
+#: src/routes/splash.tsx
+msgid "What's new in 6.7"
+msgstr "What's new in 6.7"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "When CA FTB, IRS, or another monitored source publishes a change, it will land here."
 msgstr "When CA FTB, IRS, or another monitored source publishes a change, it will land here."
@@ -14817,6 +14926,14 @@ msgstr "When something gets at-risk — a stalled evidence request, a rejected f
 #: src/features/rules/sources-tab.tsx
 msgid "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
 msgstr "Which watcher roles are in place per jurisdiction. Gaps mean a change could be missed."
+
+#: src/routes/splash.tsx
+msgid "While you were away"
+msgstr "While you were away"
+
+#: src/routes/splash.tsx
+msgid "While you were away · since Fri 6:14 PM"
+msgstr "While you were away · since Fri 6:14 PM"
 
 #: src/routes/account.security.tsx
 msgid "Whoever is signed in on this browser will lose access immediately. They'll need to re-authenticate next time."
@@ -14981,6 +15098,10 @@ msgstr "You don't have permission to perform this action."
 msgid "You don't have permission to use this practice feature."
 msgstr "You don't have permission to use this practice feature."
 
+#: src/routes/splash.tsx
+msgid "You have 3 deadlines due this week"
+msgstr "You have 3 deadlines due this week"
+
 #: src/lib/i18n-error.ts
 msgid "You need to sign in to continue."
 msgstr "You need to sign in to continue."
@@ -15056,6 +15177,10 @@ msgstr "Your practice is suspended. Contact support to restore access."
 #: src/routes/billing.success.tsx
 msgid "Your practice plan is ready."
 msgstr "Your practice plan is ready."
+
+#: src/features/obligations/deadlines-at-a-glance.tsx
+msgid "Your review queue is empty"
+msgstr "Your review queue is empty"
 
 #: src/routes/rules.library.tsx
 msgid "Your rule catalog is empty."
