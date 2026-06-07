@@ -764,6 +764,10 @@ msgstr "{days, plural, one {提前 # 天} other {提前 # 天}}"
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, other {# 天}}"
 
+#: src/routes/rules.library.tsx
+msgid "{days, plural, one {Effective in # day} other {Effective in # days}}"
+msgstr "{days, plural, other {# 天后生效}}"
+
 #: src/components/primitives/due-date-label.tsx
 msgid "{days, plural, one {filed #d early} other {filed #d early}}"
 msgstr "{days, plural, one {提前 # 天提交} other {提前 # 天提交}}"
@@ -1007,6 +1011,10 @@ msgstr "{recentlyRemindedCount, plural, one {跳过最近几天已提醒过的 #
 msgid "{reservedCount} reserved"
 msgstr "{reservedCount} 个保留"
 
+#: src/routes/rules.library.tsx
+msgid "{reviewCount, plural, one {# rule change is waiting on you} other {# rule changes are waiting on you}}"
+msgstr "{reviewCount, plural, other {# 项规则变更等待您处理}}"
+
 #. placeholder {0}: reviewCount === 1 ? '' : 's'
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount} jurisdiction{0} need a quick review"
@@ -1090,6 +1098,10 @@ msgstr "跳过 {skipped} 个（已关闭）"
 #: src/routes/obligations.tsx
 msgid "{total} checklist items weren't individually ticked during filing."
 msgstr "归档时有 {total} 个检查清单项未单独勾选。"
+
+#: src/routes/rules.library.tsx
+msgid "{total} rules · {active} active · {review} awaiting review"
+msgstr "{total} 条规则 · {active} 条生效 · {review} 条待审核"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{totalActive} rules"
@@ -5050,6 +5062,10 @@ msgstr "决策备注（必填）"
 msgid "Decision memo is required."
 msgstr "必须填写决策备注。"
 
+#: src/routes/rules.library.tsx
+msgid "Decisions are logged to the audit ledger"
+msgstr "决策已记录到审计台账"
+
 #: src/features/migration/Step3Normalize.tsx
 msgid "Default Matrix · {defaultMatrix}"
 msgstr "默认矩阵 · {defaultMatrix}"
@@ -5585,6 +5601,7 @@ msgstr "此规则的编辑、版本更新和查看决定将显示在此处。"
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
+#: src/routes/rules.library.tsx
 msgid "Effective"
 msgstr "生效"
 
@@ -6219,6 +6236,10 @@ msgstr "因子权重"
 msgid "Failed"
 msgstr "失败"
 
+#: src/features/rules/sources-tab.tsx
+msgid "Failed fetches"
+msgstr "抓取失败"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Failed last 7 days"
 msgstr "过去 7 天失败"
@@ -6248,6 +6269,14 @@ msgstr "仅联邦"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Federal withholding"
 msgstr "联邦预扣"
+
+#: src/features/rules/sources-tab.tsx
+msgid "Feeds monitored"
+msgstr "监控的源"
+
+#: src/features/rules/sources-tab.tsx
+msgid "Fetched last 24h"
+msgstr "过去 24 小时已抓取"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "Fetching client detail."
@@ -6880,6 +6909,10 @@ msgstr "高"
 msgid "High confidence"
 msgstr "高置信度"
 
+#: src/routes/rules.library.tsx
+msgid "High impact"
+msgstr "高影响"
+
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "HIGH IMPACT"
@@ -7452,6 +7485,10 @@ msgstr "过去 24 小时"
 msgid "Last 24h"
 msgstr "最近 24 小时"
 
+#: src/routes/rules.library.tsx
+msgid "Last 30 days"
+msgstr "最近 30 天"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Last 30d"
 msgstr "最近 30 天"
@@ -7759,6 +7796,10 @@ msgstr "低"
 #: src/components/primitives/low-confidence-badge.tsx
 msgid "Low confidence"
 msgstr "低置信度"
+
+#: src/routes/rules.library.tsx
+msgid "Low impact"
+msgstr "低影响"
 
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
@@ -8146,6 +8187,10 @@ msgstr "中"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "MEDIUM"
 msgstr "中"
+
+#: src/routes/rules.library.tsx
+msgid "Medium impact"
+msgstr "中影响"
 
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
@@ -8620,6 +8665,7 @@ msgstr "从未"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/routes/practice.tsx
+#: src/routes/rules.library.tsx
 msgid "New"
 msgstr "新"
 
@@ -9520,6 +9566,10 @@ msgstr "官方来源 — 待处理规则"
 msgid "Oldest"
 msgstr "最早"
 
+#: src/routes/rules.library.tsx
+msgid "oldest {oldestRelative}"
+msgstr "最早 {oldestRelative}"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Oldest first"
 msgstr "最早优先"
@@ -9772,6 +9822,10 @@ msgstr "打开 Pulse 提醒详情：{0}"
 #: src/routes/obligations.tsx
 msgid "Open Readiness after the rejection is recorded."
 msgstr "记录拒绝后打开 Readiness。"
+
+#: src/routes/rules.library.tsx
+msgid "Open review queue"
+msgstr "打开审核队列"
 
 #. placeholder {0}: rule.title
 #: src/routes/rules.library.tsx
@@ -11146,6 +11200,10 @@ msgstr "已收到 {0}"
 msgid "Recent audited changes for this client record"
 msgstr "此客户记录的最近审计变更"
 
+#: src/routes/rules.library.tsx
+msgid "Recent changes"
+msgstr "近期变更"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Recent delivery"
 msgstr "最近投递"
@@ -11922,6 +11980,10 @@ msgid "Reviewing {0} of {1}"
 msgstr "正在复核第 {0} / {1} 项"
 
 #: src/routes/rules.library.tsx
+msgid "Reviewing now keeps client deadlines accurate and unblocks downstream obligations."
+msgstr "立即审核可保持客户截止日期准确，并解除下游义务的阻塞。"
+
+#: src/routes/rules.library.tsx
 msgid "Reviewing pending rules"
 msgstr "正在审核待审规则"
 
@@ -12225,6 +12287,10 @@ msgstr "规则已批量接受"
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "Rules are watching but no deadlines yet"
 msgstr "规则正在监控，但暂无截止日期"
+
+#: src/features/rules/sources-tab.tsx
+msgid "Rules derived"
+msgstr "派生的规则"
 
 #: src/features/alerts/components/ReverifyRulesSection.tsx
 msgid "Rules to re-verify"
@@ -13554,6 +13620,10 @@ msgstr "状态已变更为 {0}"
 msgid "Status changes require owner, partner, manager, or preparer access."
 msgstr "Status changes require owner, partner, manager, or preparer access."
 
+#: src/routes/rules.library.tsx
+msgid "Status coverage"
+msgstr "状态覆盖"
+
 #: src/routes/obligations.tsx
 msgid "Status scopes"
 msgstr "状态范围"
@@ -14250,6 +14320,10 @@ msgstr "该提醒已不可用。"
 msgid "This alert is review-only and does not apply due-date overlays."
 msgstr "此提醒仅供查看，不会应用到期日叠加。"
 
+#: src/routes/rules.library.tsx
+msgid "This change takes effect {effectiveLabel}."
+msgstr "此变更将于 {effectiveLabel} 生效。"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "This clears the unfinished draft so you can start a new import. No clients or deadlines have been created yet."
 msgstr "这会清除未完成的草稿，方便你开始新的导入。目前还没有创建任何客户或截止日。"
@@ -14813,6 +14887,10 @@ msgstr "即将触发排期"
 msgid "Update the active practice's name and timezone."
 msgstr "更新当前事务所的名称和时区。"
 
+#: src/routes/rules.library.tsx
+msgid "Updated"
+msgstr "已更新"
+
 #. placeholder {0}: formatRelativeTime(brief.generatedAt)
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Updated {0}"
@@ -15057,6 +15135,7 @@ msgstr "查看提醒"
 
 #: src/features/dashboard/actions-list.tsx
 #: src/features/dashboard/needs-attention-section.tsx
+#: src/routes/rules.library.tsx
 msgid "View all"
 msgstr "查看全部"
 

@@ -756,6 +756,10 @@ msgstr "{days, plural, one {# day early} other {# days early}}"
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, one {# day} other {# days}}"
 
+#: src/routes/rules.library.tsx
+msgid "{days, plural, one {Effective in # day} other {Effective in # days}}"
+msgstr "{days, plural, one {Effective in # day} other {Effective in # days}}"
+
 #: src/components/primitives/due-date-label.tsx
 msgid "{days, plural, one {filed #d early} other {filed #d early}}"
 msgstr "{days, plural, one {filed #d early} other {filed #d early}}"
@@ -995,6 +999,10 @@ msgstr "{recentlyRemindedCount, plural, one {Skip # client reminded in the last 
 msgid "{reservedCount} reserved"
 msgstr "{reservedCount} reserved"
 
+#: src/routes/rules.library.tsx
+msgid "{reviewCount, plural, one {# rule change is waiting on you} other {# rule changes are waiting on you}}"
+msgstr "{reviewCount, plural, one {# rule change is waiting on you} other {# rule changes are waiting on you}}"
+
 #. placeholder {0}: reviewCount === 1 ? '' : 's'
 #: src/features/onboarding/rule-review-prompt.tsx
 msgid "{reviewCount} jurisdiction{0} need a quick review"
@@ -1076,6 +1084,10 @@ msgstr "{skipped} skipped (already closed)"
 #: src/routes/obligations.tsx
 msgid "{total} checklist items weren't individually ticked during filing."
 msgstr "{total} checklist items weren't individually ticked during filing."
+
+#: src/routes/rules.library.tsx
+msgid "{total} rules · {active} active · {review} awaiting review"
+msgstr "{total} rules · {active} active · {review} awaiting review"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{totalActive} rules"
@@ -5008,6 +5020,10 @@ msgstr "Decision memo (required)"
 msgid "Decision memo is required."
 msgstr "Decision memo is required."
 
+#: src/routes/rules.library.tsx
+msgid "Decisions are logged to the audit ledger"
+msgstr "Decisions are logged to the audit ledger"
+
 #: src/features/migration/Step3Normalize.tsx
 msgid "Default Matrix · {defaultMatrix}"
 msgstr "Default Matrix · {defaultMatrix}"
@@ -5541,6 +5557,7 @@ msgstr "Edits, version bumps, and review decisions for this rule will appear her
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
 #: src/features/rules/jurisdiction-rule-table.tsx
+#: src/routes/rules.library.tsx
 msgid "Effective"
 msgstr "Effective"
 
@@ -6173,6 +6190,10 @@ msgstr "Factor weights"
 msgid "Failed"
 msgstr "Failed"
 
+#: src/features/rules/sources-tab.tsx
+msgid "Failed fetches"
+msgstr "Failed fetches"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Failed last 7 days"
 msgstr "Failed last 7 days"
@@ -6202,6 +6223,14 @@ msgstr "Federal only"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Federal withholding"
 msgstr "Federal withholding"
+
+#: src/features/rules/sources-tab.tsx
+msgid "Feeds monitored"
+msgstr "Feeds monitored"
+
+#: src/features/rules/sources-tab.tsx
+msgid "Fetched last 24h"
+msgstr "Fetched last 24h"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 msgid "Fetching client detail."
@@ -6828,6 +6857,10 @@ msgstr "HIGH"
 msgid "High confidence"
 msgstr "High confidence"
 
+#: src/routes/rules.library.tsx
+msgid "High impact"
+msgstr "High impact"
+
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "HIGH IMPACT"
@@ -7398,6 +7431,10 @@ msgstr "Last 24 hours"
 msgid "Last 24h"
 msgstr "Last 24h"
 
+#: src/routes/rules.library.tsx
+msgid "Last 30 days"
+msgstr "Last 30 days"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Last 30d"
 msgstr "Last 30d"
@@ -7701,6 +7738,10 @@ msgstr "LOW"
 #: src/components/primitives/low-confidence-badge.tsx
 msgid "Low confidence"
 msgstr "Low confidence"
+
+#: src/routes/rules.library.tsx
+msgid "Low impact"
+msgstr "Low impact"
 
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
@@ -8083,6 +8124,10 @@ msgstr "Medium"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "MEDIUM"
 msgstr "MEDIUM"
+
+#: src/routes/rules.library.tsx
+msgid "Medium impact"
+msgstr "Medium impact"
 
 #: src/features/alerts/components/AlertCard.tsx
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
@@ -8556,6 +8601,7 @@ msgstr "Never"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/routes/practice.tsx
+#: src/routes/rules.library.tsx
 msgid "New"
 msgstr "New"
 
@@ -9448,6 +9494,10 @@ msgstr "Official sources — pending rules"
 msgid "Oldest"
 msgstr "Oldest"
 
+#: src/routes/rules.library.tsx
+msgid "oldest {oldestRelative}"
+msgstr "oldest {oldestRelative}"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Oldest first"
 msgstr "Oldest first"
@@ -9699,6 +9749,10 @@ msgstr "Open Pulse alert details: {0}"
 #: src/routes/obligations.tsx
 msgid "Open Readiness after the rejection is recorded."
 msgstr "Open Readiness after the rejection is recorded."
+
+#: src/routes/rules.library.tsx
+msgid "Open review queue"
+msgstr "Open review queue"
 
 #. placeholder {0}: rule.title
 #: src/routes/rules.library.tsx
@@ -11056,6 +11110,10 @@ msgstr "received {0}"
 msgid "Recent audited changes for this client record"
 msgstr "Recent audited changes for this client record"
 
+#: src/routes/rules.library.tsx
+msgid "Recent changes"
+msgstr "Recent changes"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Recent delivery"
 msgstr "Recent delivery"
@@ -11827,6 +11885,10 @@ msgid "Reviewing {0} of {1}"
 msgstr "Reviewing {0} of {1}"
 
 #: src/routes/rules.library.tsx
+msgid "Reviewing now keeps client deadlines accurate and unblocks downstream obligations."
+msgstr "Reviewing now keeps client deadlines accurate and unblocks downstream obligations."
+
+#: src/routes/rules.library.tsx
 msgid "Reviewing pending rules"
 msgstr "Reviewing pending rules"
 
@@ -12130,6 +12192,10 @@ msgstr "Rules accepted in bulk"
 #: src/features/migration/OnboardingSkipModal.tsx
 msgid "Rules are watching but no deadlines yet"
 msgstr "Rules are watching but no deadlines yet"
+
+#: src/features/rules/sources-tab.tsx
+msgid "Rules derived"
+msgstr "Rules derived"
 
 #: src/features/alerts/components/ReverifyRulesSection.tsx
 msgid "Rules to re-verify"
@@ -13450,6 +13516,10 @@ msgstr "Status changed to {0}"
 msgid "Status changes require owner, partner, manager, or preparer access."
 msgstr "Status changes require owner, partner, manager, or preparer access."
 
+#: src/routes/rules.library.tsx
+msgid "Status coverage"
+msgstr "Status coverage"
+
 #: src/routes/obligations.tsx
 msgid "Status scopes"
 msgstr "Status scopes"
@@ -14144,6 +14214,10 @@ msgstr "This alert is no longer available."
 msgid "This alert is review-only and does not apply due-date overlays."
 msgstr "This alert is review-only and does not apply due-date overlays."
 
+#: src/routes/rules.library.tsx
+msgid "This change takes effect {effectiveLabel}."
+msgstr "This change takes effect {effectiveLabel}."
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "This clears the unfinished draft so you can start a new import. No clients or deadlines have been created yet."
 msgstr "This clears the unfinished draft so you can start a new import. No clients or deadlines have been created yet."
@@ -14704,6 +14778,10 @@ msgstr "Upcoming schedule"
 msgid "Update the active practice's name and timezone."
 msgstr "Update the active practice's name and timezone."
 
+#: src/routes/rules.library.tsx
+msgid "Updated"
+msgstr "Updated"
+
 #. placeholder {0}: formatRelativeTime(brief.generatedAt)
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "Updated {0}"
@@ -14947,6 +15025,7 @@ msgstr "View alert"
 
 #: src/features/dashboard/actions-list.tsx
 #: src/features/dashboard/needs-attention-section.tsx
+#: src/routes/rules.library.tsx
 msgid "View all"
 msgstr "View all"
 
