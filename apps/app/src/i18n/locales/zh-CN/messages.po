@@ -2714,6 +2714,7 @@ msgstr "正在计算…"
 
 #: src/features/audit/audit-log-page.tsx
 #: src/features/rules/sources-tab.tsx
+#: src/routes/route-summary.ts
 msgid "Calendar"
 msgstr "日历"
 
@@ -2754,7 +2755,6 @@ msgstr "日历订阅已更新"
 #: src/features/calendar/calendar-page.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
-#: src/routes/route-summary.ts
 #: src/routes/settings.tsx
 msgid "Calendar sync"
 msgstr "日历同步"
