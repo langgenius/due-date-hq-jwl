@@ -340,6 +340,7 @@ describe('@duedatehq/contracts', () => {
             currentRank: 2,
             previewRank: 1,
             rankDelta: 1,
+            topDriver: { factor: 'urgency', contribution: 28.4 },
           },
         ],
       }).rows[0]?.previewRank,

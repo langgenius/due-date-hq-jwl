@@ -1,6 +1,6 @@
 import { oc } from '@orpc/contract'
 import * as z from 'zod'
-import { SmartPriorityProfileSchema } from './priority'
+import { SmartPriorityFactorKeySchema, SmartPriorityProfileSchema } from './priority'
 import { TenantIdSchema } from './shared/ids'
 
 export const FirmPlanSchema = z.enum(['solo', 'pro', 'team', 'firm'])
@@ -157,6 +157,17 @@ export const FirmSmartPriorityPreviewRowSchema = z.object({
   currentRank: z.number().int().positive().nullable(),
   previewRank: z.number().int().positive(),
   rankDelta: z.number().int().nullable(),
+  // 2026-06-07 (Pencil H1YSCd): the dominant factor behind this row's
+  // preview score — the single factor with the largest contribution in
+  // the breakdown. Surfaced as the preview table's "Driver" column so
+  // the user can see *why* a deadline moved when they tune weights.
+  // Null only when every factor contributes zero (e.g. all weights 0).
+  topDriver: z
+    .object({
+      factor: SmartPriorityFactorKeySchema,
+      contribution: z.number().min(0),
+    })
+    .nullable(),
 })
 
 export const FirmSmartPriorityPreviewOutputSchema = z.object({

@@ -1,6 +1,6 @@
 import type { FirmPlan, FirmRole, FirmStatus, InvitationStatus, MemberStatus } from './shared'
 import type { AuditEventInput } from './audit'
-import type { SmartPriorityProfile } from './priority'
+import type { SmartPriorityFactorKey, SmartPriorityProfile } from './priority'
 
 export interface TenantContext {
   readonly firmId: string
@@ -61,6 +61,9 @@ export interface FirmSmartPriorityPreviewRow {
   currentRank: number | null
   previewRank: number
   rankDelta: number | null
+  // 2026-06-07 (Pencil H1YSCd): dominant factor behind the preview score
+  // (largest contribution). Null when every factor contributes zero.
+  topDriver: { factor: SmartPriorityFactorKey; contribution: number } | null
 }
 
 export interface FirmSmartPriorityPreviewOutput {

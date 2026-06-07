@@ -399,6 +399,16 @@ export function makeFirmsRepo(db: Db) {
           const current = currentById.get(row.obligationId)
           const currentRank = current?.rank ?? null
           const previewRank = smartPriority.rank!
+          // 2026-06-07 (Pencil H1YSCd): surface the dominant factor for
+          // the preview table's "Driver" column. Pick the factor with the
+          // largest contribution; null when every factor contributes zero.
+          const dominant = smartPriority.factors.reduce<(typeof smartPriority.factors)[number] | null>(
+            (best, factor) =>
+              factor.contribution > 0 && (best === null || factor.contribution > best.contribution)
+                ? factor
+                : best,
+            null,
+          )
           return {
             obligationId: row.obligationId,
             clientName: row.clientName,
@@ -410,6 +420,10 @@ export function makeFirmsRepo(db: Db) {
             currentRank,
             previewRank,
             rankDelta: currentRank === null ? null : currentRank - previewRank,
+            topDriver:
+              dominant === null
+                ? null
+                : { factor: dominant.key, contribution: dominant.contribution },
           }
         }),
       }
