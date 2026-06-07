@@ -56,6 +56,14 @@ async function acceptInvitation(id: string): Promise<void> {
   }
 }
 
+// The invitation preview carries `role` as a free string; title-case it for
+// the "Joining as …" accept-row rather than pulling in the typed member
+// roleLabel map (which would narrow the type and couple two features).
+function formatRole(role: string): string {
+  if (!role) return role
+  return role.charAt(0).toUpperCase() + role.slice(1)
+}
+
 export function AcceptInviteRoute() {
   const { user } = useLoaderData<AcceptInviteLoaderData>()
   const { t } = useLingui()
@@ -150,28 +158,47 @@ export function AcceptInviteRoute() {
   return (
     <div className="flex w-full max-w-[420px] flex-col">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MailIcon className="size-4" aria-hidden />
-            <Trans>Practice invitation</Trans>
-          </CardTitle>
-          <CardDescription>
-            {!signedIn ? (
-              <Trans>Sign in to accept this invitation.</Trans>
-            ) : inviteQuery.isLoading ? (
-              // 2026-05-26 (Step 7 onboarding audit F2-05): the
-              // invite-preview skeleton had no role/label, so a
-              // blind user saw no progress event while the
-              // preview loaded. Wrapped with role="status" +
-              // sr-only label so AT announces "Loading
-              // invitation" while the skeleton is on-screen.
-              <span role="status" aria-live="polite">
-                <span className="sr-only">{t`Loading invitation`}</span>
-                <Skeleton className="h-5 w-56" />
-              </span>
-            ) : inviteQuery.data ? (
+        {/* 2026-06-07 (Cluster 6 auth canvas, node e3FyUB): the canvas
+            leads with a "Firm invitation" pill and promotes the
+            inviter→firm line to the headline so the recipient sees
+            *who* invited them and *where* before anything else. The
+            route previously buried that line in the muted card
+            description. Restructured the header to match. Per the
+            product decision the canvas's name input is intentionally
+            dropped — the display name comes from the SSO provider /
+            email, so there is no name field or user.update here. */}
+        <CardHeader className="gap-3">
+          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-state-accent-hover-alt px-2.5 py-1 font-mono text-[11px] font-semibold tracking-wide text-text-accent">
+            <MailIcon className="size-3" aria-hidden />
+            <Trans>Firm invitation</Trans>
+          </span>
+          {inviteQuery.isLoading ? (
+            // 2026-05-26 (Step 7 onboarding audit F2-05): the
+            // invite-preview skeleton had no role/label, so a
+            // blind user saw no progress event while the
+            // preview loaded. Wrapped with role="status" +
+            // sr-only label so AT announces "Loading
+            // invitation" while the skeleton is on-screen.
+            <span role="status" aria-live="polite">
+              <span className="sr-only">{t`Loading invitation`}</span>
+              <Skeleton className="h-6 w-64" />
+            </span>
+          ) : inviteQuery.data ? (
+            <CardTitle className="text-[22px] leading-snug tracking-tight">
               <Trans>
                 {inviteQuery.data.inviterEmail} invited you to {inviteQuery.data.organizationName}.
+              </Trans>
+            </CardTitle>
+          ) : (
+            <CardTitle className="text-[22px] leading-snug tracking-tight">
+              <Trans>You&apos;ve been invited to a firm</Trans>
+            </CardTitle>
+          )}
+          <CardDescription>
+            {signedIn ? (
+              <Trans>
+                Accept to join the firm&apos;s deadline workbench. No password to remember —
+                we&apos;ll email a sign-in link whenever you need to come back.
               </Trans>
             ) : (
               <Trans>Sign in to accept this invitation.</Trans>
@@ -231,15 +258,40 @@ export function AcceptInviteRoute() {
               ) : null}
             </div>
           ) : (
-            <Button
-              onClick={handleAccept}
-              disabled={submitting !== null || inviteQuery.isLoading || inviteQuery.isError}
-            >
-              {submitting === 'accept' ? (
-                <Loader2Icon className="size-4 animate-spin" aria-hidden />
+            <>
+              {/* 2026-06-07 (Cluster 6 auth canvas, node e3FyUB): the
+                  canvas shows an "accept row" — the inviter avatar +
+                  the role you'll join as — so the recipient confirms
+                  the access level before committing. Role comes from
+                  the existing invitation preview; the canvas's
+                  per-client portfolio line has no field in the
+                  invitation contract, so it is omitted.
+                  TODO(data): expose the assigned client portfolio on
+                  the invitation preview to render the canvas's
+                  "Hudson Wells · Brightline LLC · …" sub-line. */}
+              {inviteQuery.data ? (
+                <div className="flex items-center gap-2.5 rounded-[10px] border border-divider-subtle bg-background-section px-3.5 py-3">
+                  <span
+                    aria-hidden
+                    className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent-default font-mono text-[11px] font-semibold text-white"
+                  >
+                    {inviteQuery.data.inviterEmail.slice(0, 2).toUpperCase()}
+                  </span>
+                  <span className="text-sm font-medium text-text-primary">
+                    <Trans>Joining as {formatRole(inviteQuery.data.role)}</Trans>
+                  </span>
+                </div>
               ) : null}
-              <Trans>Accept invitation</Trans>
-            </Button>
+              <Button
+                onClick={handleAccept}
+                disabled={submitting !== null || inviteQuery.isLoading || inviteQuery.isError}
+              >
+                {submitting === 'accept' ? (
+                  <Loader2Icon className="size-4 animate-spin" aria-hidden />
+                ) : null}
+                <Trans>Accept invite &amp; continue</Trans>
+              </Button>
+            </>
           )}
         </CardContent>
       </Card>
