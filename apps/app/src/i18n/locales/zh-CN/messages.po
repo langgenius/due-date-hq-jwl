@@ -373,6 +373,16 @@ msgstr "新增 {0} 个，移除 {1} 个"
 msgid "{0} and its imported deadlines"
 msgstr "{0} 及其导入的截止事项"
 
+#. placeholder {0}: roleLabel(selectedRole, i18n)
+#: src/routes/settings.permissions.tsx
+msgid "{0} applies to {selectedRoleMembers} active members."
+msgstr "{0} 适用于 {selectedRoleMembers} 名活跃成员。"
+
+#. placeholder {0}: roleLabel(selectedRole, i18n)
+#: src/routes/settings.permissions.tsx
+msgid "{0} applies to 1 active member."
+msgstr "{0} 适用于 1 名活跃成员。"
+
 #. placeholder {0}: formatClientList(thisWeekRows.map((row) => row.clientName))
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "{0} are filing soon"
@@ -498,6 +508,11 @@ msgstr "{0} 项"
 msgid "{0} items recorded"
 msgstr "已记录 {0} 项"
 
+#. placeholder {0}: memberCounts[role] ?? 0
+#: src/routes/settings.permissions.tsx
+msgid "{0} members"
+msgstr "{0} 名成员"
+
 #. placeholder {0}: filteredClients.length
 #. placeholder {1}: clients.length
 #: src/routes/clients.tsx
@@ -542,6 +557,11 @@ msgstr "{0} 个未结截止事项"
 #, fuzzy
 msgid "{0} other"
 msgstr "{0} 项"
+
+#. placeholder {0}: roleLabel(selectedRole, i18n)
+#: src/routes/settings.permissions.tsx
+msgid "{0} permissions are set by the product"
+msgstr "{0} 权限由产品设定"
 
 #. placeholder {0}: result.summary.createdCount
 #: src/features/obligations/queue/components/toolbar.tsx
@@ -649,6 +669,18 @@ msgstr "{action}：{count} 个字段已变更"
 #: src/features/audit/audit-log-labels.ts
 msgid "{action}: {count} rows"
 msgstr "{action}：{count} 行"
+
+#: src/routes/settings.permissions.tsx
+msgid "{actionLabel} on {scopeLabel}: allowed"
+msgstr "{scopeLabel} 的{actionLabel}：允许"
+
+#: src/routes/settings.permissions.tsx
+msgid "{actionLabel} on {scopeLabel}: not allowed"
+msgstr "{scopeLabel} 的{actionLabel}：不允许"
+
+#: src/routes/settings.permissions.tsx
+msgid "{actionLabel} on {scopeLabel}: not applicable"
+msgstr "{scopeLabel} 的{actionLabel}：不适用"
 
 #: src/features/dashboard/at-a-glance-section.tsx
 msgid "{activeAlertCount, plural, one {# regulatory change} other {# regulatory changes}}"
@@ -1264,6 +1296,10 @@ msgstr "该客户已有 1 个已申报或已完成的截止事项"
 msgid "1 filing extended — payment is NOT extended"
 msgstr "1 项申报已延期 — 缴款不延期"
 
+#: src/routes/settings.permissions.tsx
+msgid "1 member"
+msgstr "1 名成员"
+
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "1 open deadline"
@@ -1300,6 +1336,10 @@ msgstr "10+ 个席位"
 msgid "11 tools"
 msgstr "11 个工具"
 
+#: src/routes/settings.profile.tsx
+msgid "12h"
+msgstr "12 小时制"
+
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "2-3"
 msgstr "2-3"
@@ -1307,6 +1347,10 @@ msgstr "2-3"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "218 KB · uploaded Feb 14"
 msgstr "218 KB · 2 月 14 日上传"
+
+#: src/routes/settings.profile.tsx
+msgid "24h"
+msgstr "24 小时制"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -1620,6 +1664,7 @@ msgid "Active rules"
 msgstr "已激活规则"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Active sessions"
 msgstr "活跃会话"
 
@@ -2060,6 +2105,7 @@ msgstr "提醒：{tooltip}"
 #: src/routes/alerts.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.sources.tsx
+#: src/routes/settings.permissions.tsx
 msgid "Alerts"
 msgstr "提醒"
 
@@ -2405,6 +2451,10 @@ msgstr "应用税种建议"
 msgid "Applying…"
 msgstr "正在应用…"
 
+#: src/routes/settings.permissions.tsx
+msgid "Approve"
+msgstr "批准"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Approve corrected return"
@@ -2581,6 +2631,7 @@ msgstr "保留审计历史以备合规"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
 #: src/routes/settings.tsx
 msgid "Audit log"
 msgstr "审计日志"
@@ -2621,6 +2672,10 @@ msgstr "认证"
 msgid "Authenticator app"
 msgstr "身份验证器应用"
 
+#: src/routes/settings.profile.tsx
+msgid "Authenticator app is active on this account."
+msgstr "此账户已启用身份验证器应用。"
+
 #: src/routes/account.security.tsx
 msgid "Authenticator is active on this account."
 msgstr "此账号已启用身份验证器。"
@@ -2630,6 +2685,7 @@ msgid "Authenticator setup QR code"
 msgstr "身份验证器设置二维码"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Authenticator setup started"
 msgstr "身份验证器设置已开始"
 
@@ -2778,6 +2834,7 @@ msgid "Back to Deadlines"
 msgstr "返回截止日期"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Backup codes copied"
 msgstr "备用码已复制"
 
@@ -2836,10 +2893,12 @@ msgid "Billed yearly · Save $96/year"
 msgstr "按年支付 · 每年省 $96"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
 #: src/routes/settings.tsx
 msgid "Billing"
 msgstr "账单"
@@ -3106,6 +3165,7 @@ msgstr "日历年"
 #: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 #: src/routes/rules.library.tsx
+#: src/routes/settings.profile.tsx
 msgid "Cancel"
 msgstr "取消"
 
@@ -3162,6 +3222,7 @@ msgstr "卡号和发票支付详情不会进入应用数据库。"
 
 #: src/features/audit/audit-log-table.tsx
 #: src/features/auth/email-otp-sign-in-form.tsx
+#: src/routes/settings.profile.tsx
 msgid "Change"
 msgstr "变更"
 
@@ -3616,6 +3677,10 @@ msgstr "客户记录缺失"
 msgid "Client record missing — deadline may be orphaned"
 msgstr "客户记录缺失 — 该截止事项可能已成孤项"
 
+#: src/routes/settings.permissions.tsx
+msgid "Client records, contacts, engagement letters"
+msgstr "客户记录、联系人、业务约定书"
+
 #: src/features/notifications/notifications-page.tsx
 msgid "Client reminder"
 msgstr "客户提醒"
@@ -3679,6 +3744,7 @@ msgstr "客户"
 #: src/routes/clients.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
 msgid "Clients"
 msgstr "客户"
 
@@ -4180,6 +4246,7 @@ msgid "Couldn't copy source excerpt"
 msgstr "无法复制原文摘录"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Couldn't copy to clipboard"
 msgstr "无法复制到剪贴板"
 
@@ -4218,6 +4285,7 @@ msgid "Couldn't disable calendar subscription"
 msgstr "无法停用日历订阅"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Couldn't disable two-factor authentication"
 msgstr "无法停用两步验证"
 
@@ -4424,6 +4492,7 @@ msgid "Couldn't revert import"
 msgstr "无法回滚导入"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Couldn't revoke other sessions"
 msgstr "无法撤销其他会话"
 
@@ -4433,6 +4502,7 @@ msgid "Couldn't revoke request"
 msgstr "无法撤销请求"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Couldn't revoke session"
 msgstr "无法撤销会话"
 
@@ -4540,6 +4610,7 @@ msgid "Couldn't snooze alerts"
 msgstr "无法暂缓提醒"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Couldn't start authenticator setup"
 msgstr "无法开始身份验证器设置"
 
@@ -4632,6 +4703,7 @@ msgstr "无法更新导入预览"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 #: src/routes/two-factor.tsx
 msgid "Couldn't verify the code"
 msgstr "无法验证代码"
@@ -4671,6 +4743,10 @@ msgstr "按管辖范围的覆盖情况"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Covers"
 msgstr "覆盖"
+
+#: src/routes/settings.permissions.tsx
+msgid "Create"
+msgstr "创建"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Create a client before running deadline preview."
@@ -4858,6 +4934,10 @@ msgstr "处理周期"
 msgid "Daily sweep of IRS + 50 states + DC tax authority sources for new rules, extended deadlines, rate changes, and form revisions. Matches against your clients' obligations and surfaces what actually affects you."
 msgstr "每日扫描 IRS + 50 个州 + DC 税务机关来源，查找新规则、延长的截止日期、费率变更和表单修订。与你客户的申报义务进行匹配，并呈现真正影响到你的内容。"
 
+#: src/routes/settings.profile.tsx
+msgid "Danger zone"
+msgstr "危险区域"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Dark"
 msgstr "深色"
@@ -4874,6 +4954,10 @@ msgstr "Date · MM-DD"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Date · YYYY-MM-DD"
 msgstr "Date · YYYY-MM-DD"
+
+#: src/routes/settings.profile.tsx
+msgid "Date format"
+msgstr "日期格式"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -5037,6 +5121,7 @@ msgstr "截止日"
 #: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
 msgid "Deadlines"
 msgstr "截止日"
 
@@ -5110,6 +5195,10 @@ msgstr "决策已记录到审计台账"
 msgid "Default Matrix · {defaultMatrix}"
 msgstr "默认矩阵 · {defaultMatrix}"
 
+#: src/routes/settings.permissions.tsx
+msgid "Delete"
+msgstr "删除"
+
 #. placeholder {0}: client.name
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Delete {0}?"
@@ -5118,6 +5207,10 @@ msgstr "删除 {0}？"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Delete {clientName}"
 msgstr "删除 {clientName}"
+
+#: src/routes/settings.profile.tsx
+msgid "Delete account"
+msgstr "删除账户"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Delete client"
@@ -5184,6 +5277,7 @@ msgid "Different source detected"
 msgstr "Different source detected"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/settings.profile.tsx
 msgid "Disable"
 msgstr "停用"
 
@@ -5196,10 +5290,12 @@ msgid "Disable feed"
 msgstr "停用 feed"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Disable MFA"
 msgstr "停用 MFA"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Disable two-factor authentication?"
 msgstr "要停用双重验证吗？"
 
@@ -5213,10 +5309,12 @@ msgstr "停用后会提交这些更改"
 
 #: src/features/calendar/calendar-page.tsx
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Disabling…"
 msgstr "正在停用…"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
+#: src/routes/settings.permissions.tsx
 msgid "Discard"
 msgstr "放弃"
 
@@ -5387,6 +5485,10 @@ msgstr "正在降低权限…"
 #: src/routes/obligations.tsx
 msgid "Download"
 msgstr "下载"
+
+#: src/routes/settings.profile.tsx
+msgid "Download a JSON archive of clients, deadlines, rules, and audit log"
+msgstr "下载客户、截止日期、规则和审计日志的 JSON 存档"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Download latest"
@@ -5609,6 +5711,7 @@ msgstr "早期提醒"
 
 #: src/features/clients/ClientNotesStrip.tsx
 #: src/features/reminders/reminders-page.tsx
+#: src/routes/settings.permissions.tsx
 msgid "Edit"
 msgstr "编辑"
 
@@ -5683,6 +5786,7 @@ msgstr "可应用"
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/migration/mapping-target-labels.ts
 #: src/features/notifications/notification-preferences-page.tsx
+#: src/routes/settings.profile.tsx
 msgid "Email"
 msgstr "邮箱"
 
@@ -5746,6 +5850,10 @@ msgstr "启用脱敏订阅源"
 msgid "Enable subscription"
 msgstr "启用订阅"
 
+#: src/routes/settings.profile.tsx
+msgid "Enabled"
+msgstr "已启用"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Enabled cells"
 msgstr "已启用单元格"
@@ -5769,6 +5877,10 @@ msgstr "业务约定"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Engagement letter signed"
 msgstr "业务约定书已签署"
+
+#: src/routes/settings.profile.tsx
+msgid "English (United States)"
+msgstr "英语（美国）"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Enter a valid email address"
@@ -5953,6 +6065,7 @@ msgid "Every selected jurisdiction needs an active rule-backed deadline."
 msgstr "每个选中的辖区都需要有一条已激活且由规则支持的截止日。"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Every signed-in browser and device EXCEPT this one will lose access immediately. Each one will need to re-authenticate next time it's used."
 msgstr "除当前设备外，所有已登录的浏览器和设备都会立即失去访问权限。下次使用时需要重新认证。"
 
@@ -6077,8 +6190,13 @@ msgstr "解释风险档案"
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/obligations.tsx
+#: src/routes/settings.permissions.tsx
 msgid "Export"
 msgstr "导出"
+
+#: src/routes/settings.profile.tsx
+msgid "Export all my data"
+msgstr "导出我的所有数据"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Export CCH Axcess clients"
@@ -6822,6 +6940,10 @@ msgstr "来自匹配的规则"
 msgid "Full client names"
 msgstr "显示完整客户名"
 
+#: src/routes/settings.profile.tsx
+msgid "Full name"
+msgstr "全名"
+
 #: src/routes/billing.tsx
 msgid "Full practice AI workflows"
 msgstr "完整事务所 AI 工作流"
@@ -6993,6 +7115,14 @@ msgstr "DueDateHQ 如何触达您的团队、客户与日历。"
 #: src/routes/practice.tsx
 msgid "How much client info is already gathered"
 msgstr "已收集的客户信息量"
+
+#: src/routes/settings.profile.tsx
+msgid "How the product feels for you"
+msgstr "产品对您的呈现方式"
+
+#: src/routes/settings.profile.tsx
+msgid "How your name and details appear across the app"
+msgstr "您的姓名和详细信息在应用中的显示方式"
 
 #: src/features/alerts/components/PulseAIBoundaryChip.tsx
 msgid "Human verifies"
@@ -7428,6 +7558,10 @@ msgstr "邀请团队成员并管理角色。"
 msgid "Invite teammates from Settings → Members to assign work"
 msgstr "请从设置 → 成员邀请团队成员后再分配工作"
 
+#: src/routes/settings.permissions.tsx
+msgid "Invite teammates, change roles, suspend access"
+msgstr "邀请团队成员、变更角色、暂停访问"
+
 #: src/features/audit/audit-event-drawer.tsx
 msgid "IP hash"
 msgstr "IP 哈希"
@@ -7461,6 +7595,10 @@ msgstr "项目"
 msgid "Joining as {0}"
 msgstr "以 {0} 身份加入"
 
+#: src/routes/settings.profile.tsx
+msgid "JPG or PNG, at least 256×256"
+msgstr "JPG 或 PNG，至少 256×256"
+
 #: src/features/rules/sources-tab.tsx
 msgid "JUR"
 msgstr "辖区"
@@ -7472,6 +7610,10 @@ msgstr "辖区"
 #: src/routes/rules.library.tsx
 msgid "Jurisdiction"
 msgstr "管辖范围"
+
+#: src/routes/settings.permissions.tsx
+msgid "Jurisdiction rules, migrations, priority weighting"
+msgstr "辖区规则、迁移、优先级权重"
 
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/states-rail.tsx
@@ -7491,6 +7633,7 @@ msgid "Keep editing"
 msgstr "继续编辑"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Keep enabled"
 msgstr "保持启用"
 
@@ -7506,6 +7649,10 @@ msgstr "保留邀请"
 #: src/routes/obligations.tsx
 msgid "Keep this deadline in the In review workflow."
 msgstr "将此 deadline 保留在 In review 流程中。"
+
+#: src/routes/settings.profile.tsx
+msgid "Keep your account safe with strong sign-in"
+msgstr "使用强登录方式保护您的账户安全"
 
 #: src/features/calendar/calendar-page.tsx
 #: src/features/members/members-page.tsx
@@ -7530,6 +7677,7 @@ msgstr "快捷键"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/components/primitives/locale-switcher.tsx
+#: src/routes/settings.profile.tsx
 msgid "Language"
 msgstr "语言"
 
@@ -8316,6 +8464,7 @@ msgstr "member@example.com"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/members/members-page.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
 #: src/routes/settings.tsx
 msgid "Members"
 msgstr "成员"
@@ -8418,6 +8567,10 @@ msgstr "Model"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Model is confident — review and apply when ready."
 msgstr "模型置信度较高 — 准备好后请审查并应用。"
+
+#: src/routes/settings.profile.tsx
+msgid "Monday"
+msgstr "星期一"
 
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "Monitoring Federal + 50 states + DC"
@@ -9428,6 +9581,10 @@ msgstr "不允许。"
 msgid "Not applicable"
 msgstr "不适用"
 
+#: src/routes/settings.profile.tsx
+msgid "Not available yet"
+msgstr "尚不可用"
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Not enabled"
 msgstr "未启用"
@@ -9454,6 +9611,7 @@ msgstr "未记录"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/EvidenceDrawerProvider.tsx
+#: src/routes/settings.profile.tsx
 msgid "Not set"
 msgstr "未设置"
 
@@ -9575,6 +9733,7 @@ msgid "Notification preferences"
 msgstr "通知偏好"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
 msgid "Notifications"
 msgstr "通知"
@@ -9593,9 +9752,17 @@ msgstr "NY PTET 已选择"
 msgid "NY PTET payments"
 msgstr "NY PTET 付款"
 
+#: src/routes/settings.permissions.tsx
+msgid "Obligation status, filings, internal due dates"
+msgstr "义务状态、申报、内部截止日期"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "of {totalCount} dispatches"
 msgstr "共 {totalCount} 条派发"
+
+#: src/routes/settings.profile.tsx
+msgid "Off"
+msgstr "关闭"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP files for tax-software conversion, not DueDateHQ import."
@@ -10070,6 +10237,7 @@ msgid "Other changes"
 msgstr "其他变更"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Other sessions revoked"
 msgstr "其他会话已撤销"
 
@@ -10171,6 +10339,10 @@ msgstr "负责人已清除"
 msgid "Owner count"
 msgstr "所有者数量"
 
+#: src/routes/settings.permissions.tsx
+msgid "Owner has every permission"
+msgstr "所有者拥有全部权限"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "owner or partner"
@@ -10207,6 +10379,7 @@ msgid "Owners"
 msgstr "所有者"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Owners need MFA before sensitive production actions."
 msgstr "Owner 在执行敏感生产操作前需要启用 MFA。"
 
@@ -10539,13 +10712,31 @@ msgstr "期间结束"
 msgid "Period start"
 msgstr "期间开始"
 
+#: src/routes/settings.profile.tsx
+msgid "Permanent actions on your account data"
+msgstr "对您账户数据的永久性操作"
+
 #: src/features/permissions/permission-gate.tsx
 msgid "Permission required"
 msgstr "需要权限"
 
+#: src/features/settings/settings-sub-nav.tsx
+#: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
+msgid "Permissions"
+msgstr "权限"
+
+#: src/routes/settings.profile.tsx
+msgid "Personal details, security, and how the product looks for you."
+msgstr "个人详细信息、安全性，以及产品对您的呈现方式。"
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Personal inbox"
 msgstr "个人收件箱"
+
+#: src/routes/settings.profile.tsx
+msgid "Personal info"
+msgstr "个人信息"
 
 #: src/routes/settings.tsx
 msgid "Personal morning digest preferences and types."
@@ -10620,6 +10811,10 @@ msgstr "计划摘要"
 #: src/routes/settings.tsx
 msgid "Plan, seats, and invoices."
 msgstr "计划、席位与发票。"
+
+#: src/routes/settings.permissions.tsx
+msgid "Plan, seats, invoices, payment portal"
+msgstr "套餐、席位、发票、支付门户"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
@@ -10790,6 +10985,7 @@ msgid "Precedent"
 msgstr "判例"
 
 #: src/features/notifications/notification-preferences-page.tsx
+#: src/routes/settings.profile.tsx
 msgid "Preferences"
 msgstr "偏好设置"
 
@@ -11032,6 +11228,15 @@ msgstr "Pro"
 msgid "Production alert actions require Pro or above."
 msgstr "正式提醒操作需要 Pro 及以上权限。"
 
+#: src/features/settings/settings-sub-nav.tsx
+#: src/routes/settings.profile.tsx
+msgid "Profile"
+msgstr "个人资料"
+
+#: src/routes/settings.profile.tsx
+msgid "Profile photo"
+msgstr "头像"
+
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Projected"
@@ -11062,6 +11267,10 @@ msgstr "出版物"
 #: src/features/alerts/components/AlertCard.tsx
 msgid "Published"
 msgstr "发布日期"
+
+#: src/routes/settings.permissions.tsx
+msgid "Pulse alerts, reminders, calendar sync"
+msgstr "Pulse 提醒、提醒事项、日历同步"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Quarantined"
@@ -11572,6 +11781,7 @@ msgstr "提醒就绪"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
 msgid "Reminders"
@@ -11579,6 +11789,7 @@ msgstr "提醒"
 
 #: src/features/migration/Step1Intake.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
+#: src/routes/settings.profile.tsx
 msgid "Remove"
 msgstr "移除"
 
@@ -11607,6 +11818,10 @@ msgstr "移除成员？"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Removes"
 msgstr "移除"
+
+#: src/routes/settings.profile.tsx
+msgid "Removes your access. Firm data stays for 30 days, then is permanently destroyed."
+msgstr "移除您的访问权限。事务所数据保留 30 天，之后将被永久销毁。"
 
 #: src/features/members/members-page.tsx
 msgid "Removing this member will commit these changes"
@@ -11659,6 +11874,7 @@ msgid "Request documents from client"
 msgstr "向客户索要文件"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/routes/settings.profile.tsx
 msgid "Request export"
 msgstr "请求导出"
 
@@ -12020,6 +12236,10 @@ msgstr "稍后在规则库审核这些州，即可生成剩余的州级截止日
 msgid "Review today's regulatory changes"
 msgstr "查看今日监管变更"
 
+#: src/routes/settings.permissions.tsx
+msgid "Review what each role can do across the workspace. Owner permissions are fixed and shown for reference."
+msgstr "查看每个角色在工作区中可执行的操作。所有者权限是固定的，仅供参考。"
+
 #: src/features/rules/coverage-tab.tsx
 #, fuzzy
 msgid "Review workspace"
@@ -12093,10 +12313,12 @@ msgstr "Reviews work and signs off on prepared filings."
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/account.security.tsx
 #: src/routes/obligations.tsx
+#: src/routes/settings.profile.tsx
 msgid "Revoke"
 msgstr "撤销"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Revoke session"
 msgstr "撤销会话"
 
@@ -12105,6 +12327,7 @@ msgid "Revoke this session and sign out?"
 msgstr "要撤销当前会话并退出登录吗？"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Revoke this session?"
 msgstr "要撤销这个会话吗？"
 
@@ -12113,6 +12336,7 @@ msgid "Revoked"
 msgstr "已撤销"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Revoking…"
 msgstr "正在撤销…"
 
@@ -12147,8 +12371,13 @@ msgstr "风险视图"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/members/members-page.tsx
+#: src/routes/settings.permissions.tsx
 msgid "Role"
 msgstr "角色"
+
+#: src/routes/settings.permissions.tsx
+msgid "Roles map to a fixed permission model. Changes here would need a per-role override store, which isn't available yet — this view is read-only."
+msgstr "角色映射到固定的权限模型。此处的更改需要按角色的覆盖存储，目前尚不可用 — 此视图为只读。"
 
 #: src/features/migration/SuccessModal.tsx
 msgid "Roll back this import within 24 hours, no questions asked"
@@ -12358,6 +12587,7 @@ msgstr "规则监控"
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
 msgid "Rules"
 msgstr "规则"
 
@@ -12513,6 +12743,10 @@ msgstr "保存备注"
 msgid "Save organized values"
 msgstr "保存整理后的值"
 
+#: src/routes/settings.permissions.tsx
+msgid "Save permissions"
+msgstr "保存权限"
+
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Save risk profile"
 msgstr "保存风险档案"
@@ -12623,6 +12857,7 @@ msgstr "Schedules work and handles client intake — no preparation rights."
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
 #: src/features/audit/audit-log-labels.ts
+#: src/routes/settings.permissions.tsx
 msgid "Scope"
 msgstr "范围"
 
@@ -12711,12 +12946,17 @@ msgstr "安全支付"
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/account.security.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.profile.tsx
 msgid "Security"
 msgstr "安全"
 
 #: src/routes/account.security.tsx
 msgid "Security settings couldn't load"
 msgstr "无法加载安全设置"
+
+#: src/routes/settings.profile.tsx
+msgid "Security settings couldn't load."
+msgstr "无法加载安全设置。"
 
 #: src/features/dashboard/actions-list.tsx
 msgid "See full deadline list"
@@ -13048,6 +13288,7 @@ msgstr "服务"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Session revoked"
 msgstr "会话已撤销"
 
@@ -13066,6 +13307,7 @@ msgid "Set to {after}"
 msgstr "设置为 {after}"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Set up authenticator"
 msgstr "设置身份验证器"
 
@@ -13082,13 +13324,20 @@ msgstr "正在设置你的事务所…"
 #: src/features/members/members-page.tsx
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/features/reminders/reminders-page.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/account.security.tsx
 #: src/routes/billing.tsx
 #: src/routes/practice.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
+#: src/routes/settings.profile.tsx
 #: src/routes/settings.tsx
 msgid "Settings"
 msgstr "设置"
+
+#: src/features/settings/settings-sub-nav.tsx
+msgid "Settings sections"
+msgstr "设置分区"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
@@ -13102,6 +13351,7 @@ msgid "Setup URI"
 msgstr "设置 URI"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Setup URI copied"
 msgstr "设置 URI 已复制"
 
@@ -13191,15 +13441,21 @@ msgstr "登录以打开您事务所的截止日期工作台，获取证据支持
 msgid "Sign out"
 msgstr "退出登录"
 
+#: src/routes/settings.profile.tsx
+msgid "Sign out everywhere"
+msgstr "在所有设备登出"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Sign out failed"
 msgstr "退出登录失败"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Sign out other sessions"
 msgstr "登出其他会话"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Sign out other sessions?"
 msgstr "要退出其它会话吗？"
 
@@ -13212,6 +13468,7 @@ msgid "Sign-in succeeded"
 msgstr "登录成功"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Sign-in will only require the link we email you until you re-enable MFA. Owners need MFA before sensitive production actions — disabling now blocks those flows."
 msgstr "在重新启用 MFA 之前，登录只需要我们邮件发送给你的链接。所有者执行敏感生产操作前需要 MFA；现在停用会阻止这些流程。"
 
@@ -13238,6 +13495,7 @@ msgstr "已登录"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Signing out…"
 msgstr "正在退出…"
 
@@ -13849,6 +14107,10 @@ msgstr "概述 Authority 拒绝了什么，以及需要修正什么。"
 msgid "Summary"
 msgstr "摘要"
 
+#: src/routes/settings.profile.tsx
+msgid "Sunday"
+msgstr "星期日"
+
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Superseded"
 msgstr "已被取代"
@@ -14064,6 +14326,7 @@ msgstr "税种来源"
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
@@ -14447,6 +14710,10 @@ msgstr "此截止事项来自已生效的事务所规则，可触发 30 天和 7
 msgid "This deadline isn't bound to a rule. Deadlines without a source citation can't be defended in audit — bind it before relying on the date."
 msgstr "此截止事项未绑定规则。没有来源引用的截止事项无法在审计中得到辩护 — 请在依赖该日期前先绑定。"
 
+#: src/routes/settings.profile.tsx
+msgid "This device"
+msgstr "此设备"
+
 #: src/features/members/members-page.tsx
 msgid "This downgrade commits the following changes"
 msgstr "这次降级会提交以下更改"
@@ -14616,6 +14883,10 @@ msgstr "本周"
 msgid "Time"
 msgstr "时间"
 
+#: src/routes/settings.profile.tsx
+msgid "Time format"
+msgstr "时间格式"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Time range"
 msgstr "时间范围"
@@ -14631,6 +14902,7 @@ msgstr "工作区内带时间戳的事件日志。"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/routes/practice.tsx
+#: src/routes/settings.profile.tsx
 msgid "Timezone"
 msgstr "时区"
 
@@ -14752,11 +15024,17 @@ msgstr "请在生成前重新预览。"
 msgid "TSV"
 msgstr "TSV"
 
+#: src/routes/settings.profile.tsx
+msgid "Two-factor authentication"
+msgstr "双重身份验证"
+
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Two-factor authentication disabled"
 msgstr "两步验证已停用"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Two-factor authentication enabled"
 msgstr "两步验证已启用"
 
@@ -14948,6 +15226,7 @@ msgid "Unknown"
 msgstr "未知"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Unknown browser"
 msgstr "未知浏览器"
 
@@ -15021,6 +15300,10 @@ msgstr "升级到 Pro"
 #: src/routes/billing.tsx
 msgid "Upgrade to Team"
 msgstr "升级到 Team"
+
+#: src/routes/settings.profile.tsx
+msgid "Upload"
+msgstr "上传"
 
 #: src/features/migration/intake-files.ts
 msgid "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
@@ -15219,6 +15502,7 @@ msgstr "版本历史"
 
 #: src/features/dashboard/needs-attention-section.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
+#: src/routes/settings.permissions.tsx
 msgid "View"
 msgstr "查看"
 
@@ -15455,6 +15739,10 @@ msgstr "导入功能上线后即可在此附加 PDF 与导出文件。"
 msgid "We'll let you attach source documents here as soon as ingest lands."
 msgstr "导入功能上线后，您即可在此处附加源文档。"
 
+#: src/routes/settings.profile.tsx
+msgid "Week starts on"
+msgstr "每周开始于"
+
 #: src/routes/route-summary.ts
 #: src/routes/splash.tsx
 msgid "Welcome back"
@@ -15551,6 +15839,7 @@ msgid "While you were away · since {0}"
 msgstr "您离开期间 · 自 {0}"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Whoever is signed in on this browser will lose access immediately. They'll need to re-authenticate next time."
 msgstr "当前浏览器中登录的用户会立即失去访问权限。下次需要重新认证。"
 
@@ -15641,6 +15930,10 @@ msgstr "该事务所的工作区配置：身份、团队、账单、合规和自
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Workspace configuration hub — Practice, team, billing, automation."
 msgstr "工作区配置中心——事务所、团队、账单、自动化。"
+
+#: src/routes/settings.permissions.tsx
+msgid "Workspace event history and exports"
+msgstr "工作区事件历史与导出"
 
 #: src/routes/route-summary.ts
 msgid "Workspace settings"
@@ -15748,6 +16041,10 @@ msgstr "您即将创建："
 msgid "You're rolling over {totalCount} obligations from tax year {headerFrom} into {headerTo}."
 msgstr "您正在将 {totalCount} 项义务从纳税年度 {headerFrom} 结转至 {headerTo}。"
 
+#: src/routes/settings.profile.tsx
+msgid "You're signed in on these devices"
+msgstr "您已在这些设备上登录"
+
 #: src/routes/accept-invite.tsx
 msgid "You've been invited to a firm"
 msgstr "您已被邀请加入一家事务所"
@@ -15755,6 +16052,11 @@ msgstr "您已被邀请加入一家事务所"
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "you@yourpractice.com"
 msgstr "you@yourpractice.com"
+
+#: src/routes/route-summary.ts
+#: src/routes/settings.profile.tsx
+msgid "Your account"
+msgstr "您的账户"
 
 #: src/lib/i18n-error.ts
 msgid "Your account isn't linked to a practice yet."

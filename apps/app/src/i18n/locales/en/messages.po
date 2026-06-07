@@ -369,6 +369,16 @@ msgstr "{0} added, {1} removed"
 msgid "{0} and its imported deadlines"
 msgstr "{0} and its imported deadlines"
 
+#. placeholder {0}: roleLabel(selectedRole, i18n)
+#: src/routes/settings.permissions.tsx
+msgid "{0} applies to {selectedRoleMembers} active members."
+msgstr "{0} applies to {selectedRoleMembers} active members."
+
+#. placeholder {0}: roleLabel(selectedRole, i18n)
+#: src/routes/settings.permissions.tsx
+msgid "{0} applies to 1 active member."
+msgstr "{0} applies to 1 active member."
+
 #. placeholder {0}: formatClientList(thisWeekRows.map((row) => row.clientName))
 #: src/features/obligations/deadlines-at-a-glance.tsx
 msgid "{0} are filing soon"
@@ -494,6 +504,11 @@ msgstr "{0} items"
 msgid "{0} items recorded"
 msgstr "{0} items recorded"
 
+#. placeholder {0}: memberCounts[role] ?? 0
+#: src/routes/settings.permissions.tsx
+msgid "{0} members"
+msgstr "{0} members"
+
 #. placeholder {0}: filteredClients.length
 #. placeholder {1}: clients.length
 #: src/routes/clients.tsx
@@ -535,6 +550,11 @@ msgstr "{0} open deadlines"
 #: src/routes/rules.library.tsx
 msgid "{0} other"
 msgstr "{0} other"
+
+#. placeholder {0}: roleLabel(selectedRole, i18n)
+#: src/routes/settings.permissions.tsx
+msgid "{0} permissions are set by the product"
+msgstr "{0} permissions are set by the product"
 
 #. placeholder {0}: result.summary.createdCount
 #: src/features/obligations/queue/components/toolbar.tsx
@@ -642,6 +662,18 @@ msgstr "{action}: {count} fields changed"
 #: src/features/audit/audit-log-labels.ts
 msgid "{action}: {count} rows"
 msgstr "{action}: {count} rows"
+
+#: src/routes/settings.permissions.tsx
+msgid "{actionLabel} on {scopeLabel}: allowed"
+msgstr "{actionLabel} on {scopeLabel}: allowed"
+
+#: src/routes/settings.permissions.tsx
+msgid "{actionLabel} on {scopeLabel}: not allowed"
+msgstr "{actionLabel} on {scopeLabel}: not allowed"
+
+#: src/routes/settings.permissions.tsx
+msgid "{actionLabel} on {scopeLabel}: not applicable"
+msgstr "{actionLabel} on {scopeLabel}: not applicable"
 
 #: src/features/dashboard/at-a-glance-section.tsx
 msgid "{activeAlertCount, plural, one {# regulatory change} other {# regulatory changes}}"
@@ -1245,6 +1277,10 @@ msgstr "1 filed or completed deadline for this client"
 msgid "1 filing extended — payment is NOT extended"
 msgstr "1 filing extended — payment is NOT extended"
 
+#: src/routes/settings.permissions.tsx
+msgid "1 member"
+msgstr "1 member"
+
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "1 open deadline"
@@ -1281,6 +1317,10 @@ msgstr "10+ seats"
 msgid "11 tools"
 msgstr "11 tools"
 
+#: src/routes/settings.profile.tsx
+msgid "12h"
+msgstr "12h"
+
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "2-3"
 msgstr "2-3"
@@ -1288,6 +1328,10 @@ msgstr "2-3"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "218 KB · uploaded Feb 14"
 msgstr "218 KB · uploaded Feb 14"
+
+#: src/routes/settings.profile.tsx
+msgid "24h"
+msgstr "24h"
 
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
@@ -1597,6 +1641,7 @@ msgid "Active rules"
 msgstr "Active rules"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Active sessions"
 msgstr "Active sessions"
 
@@ -2034,6 +2079,7 @@ msgstr "Alert: {tooltip}"
 #: src/routes/alerts.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.sources.tsx
+#: src/routes/settings.permissions.tsx
 msgid "Alerts"
 msgstr "Alerts"
 
@@ -2378,6 +2424,10 @@ msgstr "Apply tax type suggestions"
 msgid "Applying…"
 msgstr "Applying…"
 
+#: src/routes/settings.permissions.tsx
+msgid "Approve"
+msgstr "Approve"
+
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
 msgid "Approve corrected return"
@@ -2553,6 +2603,7 @@ msgstr "Audit history retained for compliance"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
 #: src/routes/settings.tsx
 msgid "Audit log"
 msgstr "Audit log"
@@ -2593,6 +2644,10 @@ msgstr "Authentication"
 msgid "Authenticator app"
 msgstr "Authenticator app"
 
+#: src/routes/settings.profile.tsx
+msgid "Authenticator app is active on this account."
+msgstr "Authenticator app is active on this account."
+
 #: src/routes/account.security.tsx
 msgid "Authenticator is active on this account."
 msgstr "Authenticator is active on this account."
@@ -2602,6 +2657,7 @@ msgid "Authenticator setup QR code"
 msgstr "Authenticator setup QR code"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Authenticator setup started"
 msgstr "Authenticator setup started"
 
@@ -2750,6 +2806,7 @@ msgid "Back to Deadlines"
 msgstr "Back to Deadlines"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Backup codes copied"
 msgstr "Backup codes copied"
 
@@ -2808,10 +2865,12 @@ msgid "Billed yearly · Save $96/year"
 msgstr "Billed yearly · Save $96/year"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
 #: src/routes/settings.tsx
 msgid "Billing"
 msgstr "Billing"
@@ -3077,6 +3136,7 @@ msgstr "Calendar year"
 #: src/routes/obligations.tsx
 #: src/routes/practice.tsx
 #: src/routes/rules.library.tsx
+#: src/routes/settings.profile.tsx
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -3132,6 +3192,7 @@ msgstr "Card numbers and invoice payment details never enter the app database."
 
 #: src/features/audit/audit-log-table.tsx
 #: src/features/auth/email-otp-sign-in-form.tsx
+#: src/routes/settings.profile.tsx
 msgid "Change"
 msgstr "Change"
 
@@ -3582,6 +3643,10 @@ msgstr "Client record missing"
 msgid "Client record missing — deadline may be orphaned"
 msgstr "Client record missing — deadline may be orphaned"
 
+#: src/routes/settings.permissions.tsx
+msgid "Client records, contacts, engagement letters"
+msgstr "Client records, contacts, engagement letters"
+
 #: src/features/notifications/notifications-page.tsx
 msgid "Client reminder"
 msgstr "Client reminder"
@@ -3645,6 +3710,7 @@ msgstr "clients"
 #: src/routes/clients.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
 msgid "Clients"
 msgstr "Clients"
 
@@ -4142,6 +4208,7 @@ msgid "Couldn't copy source excerpt"
 msgstr "Couldn't copy source excerpt"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Couldn't copy to clipboard"
 msgstr "Couldn't copy to clipboard"
 
@@ -4179,6 +4246,7 @@ msgid "Couldn't disable calendar subscription"
 msgstr "Couldn't disable calendar subscription"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Couldn't disable two-factor authentication"
 msgstr "Couldn't disable two-factor authentication"
 
@@ -4385,6 +4453,7 @@ msgid "Couldn't revert import"
 msgstr "Couldn't revert import"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Couldn't revoke other sessions"
 msgstr "Couldn't revoke other sessions"
 
@@ -4394,6 +4463,7 @@ msgid "Couldn't revoke request"
 msgstr "Couldn't revoke request"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Couldn't revoke session"
 msgstr "Couldn't revoke session"
 
@@ -4501,6 +4571,7 @@ msgid "Couldn't snooze alerts"
 msgstr "Couldn't snooze alerts"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Couldn't start authenticator setup"
 msgstr "Couldn't start authenticator setup"
 
@@ -4592,6 +4663,7 @@ msgstr "Couldn't update the import preview"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 #: src/routes/two-factor.tsx
 msgid "Couldn't verify the code"
 msgstr "Couldn't verify the code"
@@ -4631,6 +4703,10 @@ msgstr "Coverage by jurisdiction"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Covers"
 msgstr "Covers"
+
+#: src/routes/settings.permissions.tsx
+msgid "Create"
+msgstr "Create"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Create a client before running deadline preview."
@@ -4817,6 +4893,10 @@ msgstr "Cycle time"
 msgid "Daily sweep of IRS + 50 states + DC tax authority sources for new rules, extended deadlines, rate changes, and form revisions. Matches against your clients' obligations and surfaces what actually affects you."
 msgstr "Daily sweep of IRS + 50 states + DC tax authority sources for new rules, extended deadlines, rate changes, and form revisions. Matches against your clients' obligations and surfaces what actually affects you."
 
+#: src/routes/settings.profile.tsx
+msgid "Danger zone"
+msgstr "Danger zone"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Dark"
 msgstr "Dark"
@@ -4832,6 +4912,10 @@ msgstr "Date · MM-DD"
 #: src/features/migration/Step2Mapping.tsx
 msgid "Date · YYYY-MM-DD"
 msgstr "Date · YYYY-MM-DD"
+
+#: src/routes/settings.profile.tsx
+msgid "Date format"
+msgstr "Date format"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -4995,6 +5079,7 @@ msgstr "deadlines"
 #: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
 msgid "Deadlines"
 msgstr "Deadlines"
 
@@ -5068,6 +5153,10 @@ msgstr "Decisions are logged to the audit ledger"
 msgid "Default Matrix · {defaultMatrix}"
 msgstr "Default Matrix · {defaultMatrix}"
 
+#: src/routes/settings.permissions.tsx
+msgid "Delete"
+msgstr "Delete"
+
 #. placeholder {0}: client.name
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Delete {0}?"
@@ -5076,6 +5165,10 @@ msgstr "Delete {0}?"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Delete {clientName}"
 msgstr "Delete {clientName}"
+
+#: src/routes/settings.profile.tsx
+msgid "Delete account"
+msgstr "Delete account"
 
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Delete client"
@@ -5140,6 +5233,7 @@ msgid "Different source detected"
 msgstr "Different source detected"
 
 #: src/features/calendar/calendar-page.tsx
+#: src/routes/settings.profile.tsx
 msgid "Disable"
 msgstr "Disable"
 
@@ -5152,10 +5246,12 @@ msgid "Disable feed"
 msgstr "Disable feed"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Disable MFA"
 msgstr "Disable MFA"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Disable two-factor authentication?"
 msgstr "Disable two-factor authentication?"
 
@@ -5169,10 +5265,12 @@ msgstr "Disabling commits these changes"
 
 #: src/features/calendar/calendar-page.tsx
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Disabling…"
 msgstr "Disabling…"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
+#: src/routes/settings.permissions.tsx
 msgid "Discard"
 msgstr "Discard"
 
@@ -5343,6 +5441,10 @@ msgstr "Downgrading…"
 #: src/routes/obligations.tsx
 msgid "Download"
 msgstr "Download"
+
+#: src/routes/settings.profile.tsx
+msgid "Download a JSON archive of clients, deadlines, rules, and audit log"
+msgstr "Download a JSON archive of clients, deadlines, rules, and audit log"
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Download latest"
@@ -5565,6 +5667,7 @@ msgstr "Early alert"
 
 #: src/features/clients/ClientNotesStrip.tsx
 #: src/features/reminders/reminders-page.tsx
+#: src/routes/settings.permissions.tsx
 msgid "Edit"
 msgstr "Edit"
 
@@ -5639,6 +5742,7 @@ msgstr "Eligible"
 #: src/features/clients/CreateClientDialog.tsx
 #: src/features/migration/mapping-target-labels.ts
 #: src/features/notifications/notification-preferences-page.tsx
+#: src/routes/settings.profile.tsx
 msgid "Email"
 msgstr "Email"
 
@@ -5702,6 +5806,10 @@ msgstr "Enable redacted feed"
 msgid "Enable subscription"
 msgstr "Enable subscription"
 
+#: src/routes/settings.profile.tsx
+msgid "Enabled"
+msgstr "Enabled"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Enabled cells"
 msgstr "Enabled cells"
@@ -5725,6 +5833,10 @@ msgstr "ENGAGEMENT"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Engagement letter signed"
 msgstr "Engagement letter signed"
+
+#: src/routes/settings.profile.tsx
+msgid "English (United States)"
+msgstr "English (United States)"
 
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "Enter a valid email address"
@@ -5907,6 +6019,7 @@ msgid "Every selected jurisdiction needs an active rule-backed deadline."
 msgstr "Every selected jurisdiction needs an active rule-backed deadline."
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Every signed-in browser and device EXCEPT this one will lose access immediately. Each one will need to re-authenticate next time it's used."
 msgstr "Every signed-in browser and device EXCEPT this one will lose access immediately. Each one will need to re-authenticate next time it's used."
 
@@ -6031,8 +6144,13 @@ msgstr "Explain Risk profile"
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/obligations.tsx
+#: src/routes/settings.permissions.tsx
 msgid "Export"
 msgstr "Export"
+
+#: src/routes/settings.profile.tsx
+msgid "Export all my data"
+msgstr "Export all my data"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Export CCH Axcess clients"
@@ -6772,6 +6890,10 @@ msgstr "from matched rule"
 msgid "Full client names"
 msgstr "Full client names"
 
+#: src/routes/settings.profile.tsx
+msgid "Full name"
+msgstr "Full name"
+
 #: src/routes/billing.tsx
 msgid "Full practice AI workflows"
 msgstr "Full practice AI workflows"
@@ -6941,6 +7063,14 @@ msgstr "How DueDateHQ reaches your team, your clients, and your calendars."
 #: src/routes/practice.tsx
 msgid "How much client info is already gathered"
 msgstr "How much client info is already gathered"
+
+#: src/routes/settings.profile.tsx
+msgid "How the product feels for you"
+msgstr "How the product feels for you"
+
+#: src/routes/settings.profile.tsx
+msgid "How your name and details appear across the app"
+msgstr "How your name and details appear across the app"
 
 #: src/features/alerts/components/PulseAIBoundaryChip.tsx
 msgid "Human verifies"
@@ -7374,6 +7504,10 @@ msgstr "Invite teammates and manage roles."
 msgid "Invite teammates from Settings → Members to assign work"
 msgstr "Invite teammates from Settings → Members to assign work"
 
+#: src/routes/settings.permissions.tsx
+msgid "Invite teammates, change roles, suspend access"
+msgstr "Invite teammates, change roles, suspend access"
+
 #: src/features/audit/audit-event-drawer.tsx
 msgid "IP hash"
 msgstr "IP hash"
@@ -7407,6 +7541,10 @@ msgstr "Items"
 msgid "Joining as {0}"
 msgstr "Joining as {0}"
 
+#: src/routes/settings.profile.tsx
+msgid "JPG or PNG, at least 256×256"
+msgstr "JPG or PNG, at least 256×256"
+
 #: src/features/rules/sources-tab.tsx
 msgid "JUR"
 msgstr "JUR"
@@ -7418,6 +7556,10 @@ msgstr "JUR"
 #: src/routes/rules.library.tsx
 msgid "Jurisdiction"
 msgstr "Jurisdiction"
+
+#: src/routes/settings.permissions.tsx
+msgid "Jurisdiction rules, migrations, priority weighting"
+msgstr "Jurisdiction rules, migrations, priority weighting"
 
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/states-rail.tsx
@@ -7437,6 +7579,7 @@ msgid "Keep editing"
 msgstr "Keep editing"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Keep enabled"
 msgstr "Keep enabled"
 
@@ -7452,6 +7595,10 @@ msgstr "Keep invitation"
 #: src/routes/obligations.tsx
 msgid "Keep this deadline in the In review workflow."
 msgstr "Keep this deadline in the In review workflow."
+
+#: src/routes/settings.profile.tsx
+msgid "Keep your account safe with strong sign-in"
+msgstr "Keep your account safe with strong sign-in"
 
 #: src/features/calendar/calendar-page.tsx
 #: src/features/members/members-page.tsx
@@ -7476,6 +7623,7 @@ msgstr "Keyboard shortcuts"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/components/primitives/locale-switcher.tsx
+#: src/routes/settings.profile.tsx
 msgid "Language"
 msgstr "Language"
 
@@ -8253,6 +8401,7 @@ msgstr "member@example.com"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/members/members-page.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
 #: src/routes/settings.tsx
 msgid "Members"
 msgstr "Members"
@@ -8355,6 +8504,10 @@ msgstr "Model"
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Model is confident — review and apply when ready."
 msgstr "Model is confident — review and apply when ready."
+
+#: src/routes/settings.profile.tsx
+msgid "Monday"
+msgstr "Monday"
 
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "Monitoring Federal + 50 states + DC"
@@ -9359,6 +9512,10 @@ msgstr "Not allowed."
 msgid "Not applicable"
 msgstr "Not applicable"
 
+#: src/routes/settings.profile.tsx
+msgid "Not available yet"
+msgstr "Not available yet"
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Not enabled"
 msgstr "Not enabled"
@@ -9385,6 +9542,7 @@ msgstr "Not recorded"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/evidence/EvidenceDrawerProvider.tsx
+#: src/routes/settings.profile.tsx
 msgid "Not set"
 msgstr "Not set"
 
@@ -9504,6 +9662,7 @@ msgid "Notification preferences"
 msgstr "Notification preferences"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
 msgid "Notifications"
 msgstr "Notifications"
@@ -9521,9 +9680,17 @@ msgstr "NY PTET election made"
 msgid "NY PTET payments"
 msgstr "NY PTET payments"
 
+#: src/routes/settings.permissions.tsx
+msgid "Obligation status, filings, internal due dates"
+msgstr "Obligation status, filings, internal due dates"
+
 #: src/features/alerts/AlertsListPage.tsx
 msgid "of {totalCount} dispatches"
 msgstr "of {totalCount} dispatches"
+
+#: src/routes/settings.profile.tsx
+msgid "Off"
+msgstr "Off"
 
 #: src/features/migration/Step1Intake.tsx
 msgid "Office Manager > Backup Client Data creates CLNTBKUP and proprietary ZIP files for tax-software conversion, not DueDateHQ import."
@@ -9995,6 +10162,7 @@ msgid "Other changes"
 msgstr "Other changes"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Other sessions revoked"
 msgstr "Other sessions revoked"
 
@@ -10096,6 +10264,10 @@ msgstr "Owner cleared"
 msgid "Owner count"
 msgstr "Owner count"
 
+#: src/routes/settings.permissions.tsx
+msgid "Owner has every permission"
+msgstr "Owner has every permission"
+
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "owner or partner"
@@ -10131,6 +10303,7 @@ msgid "Owners"
 msgstr "Owners"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Owners need MFA before sensitive production actions."
 msgstr "Owners need MFA before sensitive production actions."
 
@@ -10456,13 +10629,31 @@ msgstr "Period end"
 msgid "Period start"
 msgstr "Period start"
 
+#: src/routes/settings.profile.tsx
+msgid "Permanent actions on your account data"
+msgstr "Permanent actions on your account data"
+
 #: src/features/permissions/permission-gate.tsx
 msgid "Permission required"
 msgstr "Permission required"
 
+#: src/features/settings/settings-sub-nav.tsx
+#: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
+msgid "Permissions"
+msgstr "Permissions"
+
+#: src/routes/settings.profile.tsx
+msgid "Personal details, security, and how the product looks for you."
+msgstr "Personal details, security, and how the product looks for you."
+
 #: src/features/reminders/reminders-page.tsx
 msgid "Personal inbox"
 msgstr "Personal inbox"
+
+#: src/routes/settings.profile.tsx
+msgid "Personal info"
+msgstr "Personal info"
 
 #: src/routes/settings.tsx
 msgid "Personal morning digest preferences and types."
@@ -10533,6 +10724,10 @@ msgstr "Plan summary"
 #: src/routes/settings.tsx
 msgid "Plan, seats, and invoices."
 msgstr "Plan, seats, and invoices."
+
+#: src/routes/settings.permissions.tsx
+msgid "Plan, seats, invoices, payment portal"
+msgstr "Plan, seats, invoices, payment portal"
 
 #: src/components/patterns/app-shell-nav.tsx
 #: src/routes/onboarding.tsx
@@ -10701,6 +10896,7 @@ msgid "Precedent"
 msgstr "Precedent"
 
 #: src/features/notifications/notification-preferences-page.tsx
+#: src/routes/settings.profile.tsx
 msgid "Preferences"
 msgstr "Preferences"
 
@@ -10942,6 +11138,15 @@ msgstr "Pro"
 msgid "Production alert actions require Pro or above."
 msgstr "Production alert actions require Pro or above."
 
+#: src/features/settings/settings-sub-nav.tsx
+#: src/routes/settings.profile.tsx
+msgid "Profile"
+msgstr "Profile"
+
+#: src/routes/settings.profile.tsx
+msgid "Profile photo"
+msgstr "Profile photo"
+
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Projected"
@@ -10972,6 +11177,10 @@ msgstr "Publication"
 #: src/features/alerts/components/AlertCard.tsx
 msgid "Published"
 msgstr "Published"
+
+#: src/routes/settings.permissions.tsx
+msgid "Pulse alerts, reminders, calendar sync"
+msgstr "Pulse alerts, reminders, calendar sync"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Quarantined"
@@ -11480,6 +11689,7 @@ msgstr "Reminder-ready"
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.tsx
 msgid "Reminders"
@@ -11487,6 +11697,7 @@ msgstr "Reminders"
 
 #: src/features/migration/Step1Intake.tsx
 #: src/features/obligations/ChecklistItemRow.tsx
+#: src/routes/settings.profile.tsx
 msgid "Remove"
 msgstr "Remove"
 
@@ -11515,6 +11726,10 @@ msgstr "Remove member?"
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Removes"
 msgstr "Removes"
+
+#: src/routes/settings.profile.tsx
+msgid "Removes your access. Firm data stays for 30 days, then is permanently destroyed."
+msgstr "Removes your access. Firm data stays for 30 days, then is permanently destroyed."
 
 #: src/features/members/members-page.tsx
 msgid "Removing this member will commit these changes"
@@ -11567,6 +11782,7 @@ msgid "Request documents from client"
 msgstr "Request documents from client"
 
 #: src/features/audit/audit-log-page.tsx
+#: src/routes/settings.profile.tsx
 msgid "Request export"
 msgstr "Request export"
 
@@ -11926,6 +12142,10 @@ msgstr "Review these states in Rule Library to unlock the remaining deadlines."
 msgid "Review today's regulatory changes"
 msgstr "Review today's regulatory changes"
 
+#: src/routes/settings.permissions.tsx
+msgid "Review what each role can do across the workspace. Owner permissions are fixed and shown for reference."
+msgstr "Review what each role can do across the workspace. Owner permissions are fixed and shown for reference."
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Review workspace"
 msgstr "Review workspace"
@@ -11998,10 +12218,12 @@ msgstr "Reviews work and signs off on prepared filings."
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/account.security.tsx
 #: src/routes/obligations.tsx
+#: src/routes/settings.profile.tsx
 msgid "Revoke"
 msgstr "Revoke"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Revoke session"
 msgstr "Revoke session"
 
@@ -12010,6 +12232,7 @@ msgid "Revoke this session and sign out?"
 msgstr "Revoke this session and sign out?"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Revoke this session?"
 msgstr "Revoke this session?"
 
@@ -12018,6 +12241,7 @@ msgid "Revoked"
 msgstr "Revoked"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Revoking…"
 msgstr "Revoking…"
 
@@ -12052,8 +12276,13 @@ msgstr "Risk view"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/members/members-page.tsx
+#: src/routes/settings.permissions.tsx
 msgid "Role"
 msgstr "Role"
+
+#: src/routes/settings.permissions.tsx
+msgid "Roles map to a fixed permission model. Changes here would need a per-role override store, which isn't available yet — this view is read-only."
+msgstr "Roles map to a fixed permission model. Changes here would need a per-role override store, which isn't available yet — this view is read-only."
 
 #: src/features/migration/SuccessModal.tsx
 msgid "Roll back this import within 24 hours, no questions asked"
@@ -12263,6 +12492,7 @@ msgstr "Rule watch"
 #: src/features/audit/audit-log-page.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
 msgid "Rules"
 msgstr "Rules"
 
@@ -12417,6 +12647,10 @@ msgstr "Save notes"
 msgid "Save organized values"
 msgstr "Save organized values"
 
+#: src/routes/settings.permissions.tsx
+msgid "Save permissions"
+msgstr "Save permissions"
+
 #: src/features/clients/ClientFactPanels.tsx
 msgid "Save risk profile"
 msgstr "Save risk profile"
@@ -12526,6 +12760,7 @@ msgstr "Schedules work and handles client intake — no preparation rights."
 
 #: src/features/alerts/components/AlertStructuredFields.tsx
 #: src/features/audit/audit-log-labels.ts
+#: src/routes/settings.permissions.tsx
 msgid "Scope"
 msgstr "Scope"
 
@@ -12613,12 +12848,17 @@ msgstr "Secure checkout"
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/account.security.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.profile.tsx
 msgid "Security"
 msgstr "Security"
 
 #: src/routes/account.security.tsx
 msgid "Security settings couldn't load"
 msgstr "Security settings couldn't load"
+
+#: src/routes/settings.profile.tsx
+msgid "Security settings couldn't load."
+msgstr "Security settings couldn't load."
 
 #: src/features/dashboard/actions-list.tsx
 msgid "See full deadline list"
@@ -12948,6 +13188,7 @@ msgstr "Services"
 
 #: src/features/audit/audit-log-labels.ts
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Session revoked"
 msgstr "Session revoked"
 
@@ -12966,6 +13207,7 @@ msgid "Set to {after}"
 msgstr "Set to {after}"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Set up authenticator"
 msgstr "Set up authenticator"
 
@@ -12982,13 +13224,20 @@ msgstr "Setting up your practice…"
 #: src/features/members/members-page.tsx
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/features/reminders/reminders-page.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/account.security.tsx
 #: src/routes/billing.tsx
 #: src/routes/practice.tsx
 #: src/routes/route-summary.ts
+#: src/routes/settings.permissions.tsx
+#: src/routes/settings.profile.tsx
 #: src/routes/settings.tsx
 msgid "Settings"
 msgstr "Settings"
+
+#: src/features/settings/settings-sub-nav.tsx
+msgid "Settings sections"
+msgstr "Settings sections"
 
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
@@ -13002,6 +13251,7 @@ msgid "Setup URI"
 msgstr "Setup URI"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Setup URI copied"
 msgstr "Setup URI copied"
 
@@ -13089,15 +13339,21 @@ msgstr "Sign in to open your practice's deadline workbench with evidence-backed 
 msgid "Sign out"
 msgstr "Sign out"
 
+#: src/routes/settings.profile.tsx
+msgid "Sign out everywhere"
+msgstr "Sign out everywhere"
+
 #: src/components/patterns/app-shell-user-menu.tsx
 msgid "Sign out failed"
 msgstr "Sign out failed"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Sign out other sessions"
 msgstr "Sign out other sessions"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Sign out other sessions?"
 msgstr "Sign out other sessions?"
 
@@ -13110,6 +13366,7 @@ msgid "Sign-in succeeded"
 msgstr "Sign-in succeeded"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Sign-in will only require the link we email you until you re-enable MFA. Owners need MFA before sensitive production actions — disabling now blocks those flows."
 msgstr "Sign-in will only require the link we email you until you re-enable MFA. Owners need MFA before sensitive production actions — disabling now blocks those flows."
 
@@ -13136,6 +13393,7 @@ msgstr "Signed in"
 
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Signing out…"
 msgstr "Signing out…"
 
@@ -13745,6 +14003,10 @@ msgstr "Summarize what the authority rejected and what needs correction."
 msgid "Summary"
 msgstr "Summary"
 
+#: src/routes/settings.profile.tsx
+msgid "Sunday"
+msgstr "Sunday"
+
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Superseded"
 msgstr "Superseded"
@@ -13958,6 +14220,7 @@ msgstr "Tax-type sources"
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/reminders/reminders-page.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.success.tsx
 #: src/routes/billing.tsx
@@ -14341,6 +14604,10 @@ msgstr "This deadline comes from an active practice rule and can trigger the 30-
 msgid "This deadline isn't bound to a rule. Deadlines without a source citation can't be defended in audit — bind it before relying on the date."
 msgstr "This deadline isn't bound to a rule. Deadlines without a source citation can't be defended in audit — bind it before relying on the date."
 
+#: src/routes/settings.profile.tsx
+msgid "This device"
+msgstr "This device"
+
 #: src/features/members/members-page.tsx
 msgid "This downgrade commits the following changes"
 msgstr "This downgrade commits the following changes"
@@ -14510,6 +14777,10 @@ msgstr "This week"
 msgid "Time"
 msgstr "Time"
 
+#: src/routes/settings.profile.tsx
+msgid "Time format"
+msgstr "Time format"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "Time range"
 msgstr "Time range"
@@ -14525,6 +14796,7 @@ msgstr "Timestamped event log across the workspace."
 #: src/components/patterns/app-shell-nav.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/routes/practice.tsx
+#: src/routes/settings.profile.tsx
 msgid "Timezone"
 msgstr "Timezone"
 
@@ -14645,11 +14917,17 @@ msgstr "Try previewing again before generating."
 msgid "TSV"
 msgstr "TSV"
 
+#: src/routes/settings.profile.tsx
+msgid "Two-factor authentication"
+msgstr "Two-factor authentication"
+
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Two-factor authentication disabled"
 msgstr "Two-factor authentication disabled"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Two-factor authentication enabled"
 msgstr "Two-factor authentication enabled"
 
@@ -14839,6 +15117,7 @@ msgid "Unknown"
 msgstr "Unknown"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Unknown browser"
 msgstr "Unknown browser"
 
@@ -14912,6 +15191,10 @@ msgstr "Upgrade to Pro"
 #: src/routes/billing.tsx
 msgid "Upgrade to Team"
 msgstr "Upgrade to Team"
+
+#: src/routes/settings.profile.tsx
+msgid "Upload"
+msgstr "Upload"
 
 #: src/features/migration/intake-files.ts
 msgid "Upload CSV, Excel .xlsx, ZIP, TXT/TSV, or IIF."
@@ -15109,6 +15392,7 @@ msgstr "Version history"
 
 #: src/features/dashboard/needs-attention-section.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
+#: src/routes/settings.permissions.tsx
 msgid "View"
 msgstr "View"
 
@@ -15345,6 +15629,10 @@ msgstr "We'll let you attach PDFs and exports here as soon as ingest lands."
 msgid "We'll let you attach source documents here as soon as ingest lands."
 msgstr "We'll let you attach source documents here as soon as ingest lands."
 
+#: src/routes/settings.profile.tsx
+msgid "Week starts on"
+msgstr "Week starts on"
+
 #: src/routes/route-summary.ts
 #: src/routes/splash.tsx
 msgid "Welcome back"
@@ -15440,6 +15728,7 @@ msgid "While you were away · since {0}"
 msgstr "While you were away · since {0}"
 
 #: src/routes/account.security.tsx
+#: src/routes/settings.profile.tsx
 msgid "Whoever is signed in on this browser will lose access immediately. They'll need to re-authenticate next time."
 msgstr "Whoever is signed in on this browser will lose access immediately. They'll need to re-authenticate next time."
 
@@ -15529,6 +15818,10 @@ msgstr "Workspace configuration for this practice — identity, team, billing, c
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Workspace configuration hub — Practice, team, billing, automation."
 msgstr "Workspace configuration hub — Practice, team, billing, automation."
+
+#: src/routes/settings.permissions.tsx
+msgid "Workspace event history and exports"
+msgstr "Workspace event history and exports"
 
 #: src/routes/route-summary.ts
 msgid "Workspace settings"
@@ -15636,6 +15929,10 @@ msgstr "You're about to create:"
 msgid "You're rolling over {totalCount} obligations from tax year {headerFrom} into {headerTo}."
 msgstr "You're rolling over {totalCount} obligations from tax year {headerFrom} into {headerTo}."
 
+#: src/routes/settings.profile.tsx
+msgid "You're signed in on these devices"
+msgstr "You're signed in on these devices"
+
 #: src/routes/accept-invite.tsx
 msgid "You've been invited to a firm"
 msgstr "You've been invited to a firm"
@@ -15643,6 +15940,11 @@ msgstr "You've been invited to a firm"
 #: src/features/auth/email-otp-sign-in-form.tsx
 msgid "you@yourpractice.com"
 msgstr "you@yourpractice.com"
+
+#: src/routes/route-summary.ts
+#: src/routes/settings.profile.tsx
+msgid "Your account"
+msgstr "Your account"
 
 #: src/lib/i18n-error.ts
 msgid "Your account isn't linked to a practice yet."
