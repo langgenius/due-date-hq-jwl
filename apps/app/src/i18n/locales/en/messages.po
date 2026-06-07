@@ -9104,8 +9104,8 @@ msgid "Onboarding rules activated"
 msgstr "Onboarding rules activated"
 
 #: src/features/alerts/AlertsListPage.tsx
-msgid "Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record. The last 60 days of activity appear automatically."
-msgstr "Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record. The last 60 days of activity appear automatically."
+msgid "Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record. Last 60 days of activity will appear automatically."
+msgstr "Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record. Last 60 days of activity will appear automatically."
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "One unfinished draft import"
@@ -14672,8 +14672,8 @@ msgstr "When CA FTB, IRS, or another monitored source publishes a change, it wil
 
 #. placeholder {0}: formatRelativeTime(lastChecked)
 #: src/features/alerts/AlertsListPage.tsx
-msgid "When CA FTB, IRS, or another monitored source publishes a change, it will land here. Last check {0}."
-msgstr "When CA FTB, IRS, or another monitored source publishes a change, it will land here. Last check {0}."
+msgid "When CA FTB, IRS, or another monitored source publishes a change, it will land here. Last check: {0}."
+msgstr "When CA FTB, IRS, or another monitored source publishes a change, it will land here. Last check: {0}."
 
 #: src/routes/rules.library.tsx
 msgid "When is it due?"
