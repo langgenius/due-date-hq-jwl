@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from '@duedatehq/ui/components/ui/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
@@ -36,7 +37,6 @@ import {
   type RuleTierLabels,
 } from '@/features/rules/rules-console-model'
 import { formatTaxCode } from '@/lib/tax-codes'
-import { formatRelativeTime } from '@/lib/utils'
 
 /**
  * `JurisdictionRuleTable` — the right detail pane of the Rule Library
@@ -146,7 +146,7 @@ export function JurisdictionRuleTable({
             <TableHead className="w-[124px]">
               <Trans>Entities</Trans>
             </TableHead>
-            <TableHead className="w-[168px]">
+            <TableHead className="w-[220px]">
               <Trans>Due date</Trans>
             </TableHead>
             <TableHead className="w-[116px]">
@@ -223,14 +223,13 @@ function JurisdictionRuleRow({
   const taxLabel = formatTaxCode(rule.taxType)
   const tone = STATUS_TONE[rule.status]
   // Honest "due" representation: a rule carries due-date LOGIC, not a
-  // single date. Show the humanized logic (truncated, full in tooltip)
-  // rather than fabricating a concrete date. The "updated" subline uses
-  // the rule's last review/verification timestamp.
+  // single date. Show the humanized logic rather than fabricating a
+  // concrete date. (2026-06-07, coworker feedback: the "updated NN ago"
+  // subline was dropped — that timestamp reflects when WE imported the
+  // rule, not a change to the rule itself, so it read as misleading.)
   // TODO(rules): if a concrete-draft computed date is wired through,
   // prefer it as the primary value here.
   const dueLogic = humanizeDueDateLogic(rule.dueDateLogic)
-  const updatedAt = rule.reviewedAt ?? rule.verifiedAt
-  const updatedRelative = updatedAt ? formatRelativeTime(updatedAt) : null
 
   return (
     <TableRow
@@ -295,41 +294,71 @@ function JurisdictionRuleRow({
       </TableCell>
 
       {/* Entities — compact applicability dots (filled = applies) + N/7.
-          Matches the dot language the All-overview table uses; stays on
-          one line where 7 text chips would wrap. */}
+          2026-06-07 (coworker feedback): one tooltip over the WHOLE
+          cluster (not a native title per 6px dot, which was almost
+          impossible to hover) — shows the full entity legend so it's
+          clear which dot is which and whether it applies. */}
       <TableCell className="py-2.5 align-top">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            {ENTITY_KEYS.map((entity) => {
-              const applies = applicabilitySet.has(entity)
-              return (
-                <span
-                  key={entity}
-                  title={`${ENTITY_LABELS[entity]}${applies ? '' : ' — n/a'}`}
-                  className={cn(
-                    'size-1.5 rounded-full',
-                    applies ? 'bg-text-secondary' : 'border border-divider-regular',
-                  )}
-                />
-              )
-            })}
-          </div>
-          <span className="shrink-0 text-xs text-text-tertiary tabular-nums">
-            {applicabilitySet.size}/{ENTITY_KEYS.length}
-          </span>
-        </div>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <div className="flex w-fit cursor-default items-center gap-2">
+                <div className="flex items-center gap-1">
+                  {ENTITY_KEYS.map((entity) => (
+                    <span
+                      key={entity}
+                      aria-hidden
+                      className={cn(
+                        'size-1.5 rounded-full',
+                        applicabilitySet.has(entity)
+                          ? 'bg-text-secondary'
+                          : 'border border-divider-regular',
+                      )}
+                    />
+                  ))}
+                </div>
+                <span className="shrink-0 text-xs text-text-tertiary tabular-nums">
+                  {applicabilitySet.size}/{ENTITY_KEYS.length}
+                </span>
+              </div>
+            }
+          />
+          <TooltipContent className="max-w-none">
+            <div className="flex flex-col gap-1">
+              <span className="text-[11px] font-semibold tracking-wide uppercase opacity-70">
+                <Trans>Entity types</Trans>
+              </span>
+              <div className="flex flex-col gap-0.5">
+                {ENTITY_KEYS.map((entity) => {
+                  const applies = applicabilitySet.has(entity)
+                  return (
+                    <span
+                      key={entity}
+                      className={cn('flex items-center gap-1.5 text-xs', !applies && 'opacity-50')}
+                    >
+                      <span
+                        className={cn(
+                          'size-1.5 shrink-0 rounded-full',
+                          applies ? 'bg-current' : 'border border-current',
+                        )}
+                      />
+                      {ENTITY_LABELS[entity]}
+                    </span>
+                  )
+                })}
+              </div>
+            </div>
+          </TooltipContent>
+        </Tooltip>
       </TableCell>
 
-      {/* Due date — humanized rule logic (clamped) + last-updated. */}
+      {/* Due date — humanized rule logic. Wider column (220px) + full
+          wrap so the last word isn't truncated; the misleading
+          import-time "updated" subline was removed (coworker feedback). */}
       <TableCell className="py-2.5 align-top">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <span className="line-clamp-2 text-xs text-text-secondary" title={dueLogic}>
-            {dueLogic}
-          </span>
-          {updatedRelative ? (
-            <span className="text-xs text-text-tertiary">{`updated ${updatedRelative}`}</span>
-          ) : null}
-        </div>
+        <span className="text-xs whitespace-normal text-text-secondary" title={dueLogic}>
+          {dueLogic}
+        </span>
       </TableCell>
 
       {/* Status. */}

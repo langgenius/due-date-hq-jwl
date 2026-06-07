@@ -6213,6 +6213,7 @@ msgstr "实体类型"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AlertStructuredFields.tsx
+#: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Entity types"
 msgstr "实体类型"
 

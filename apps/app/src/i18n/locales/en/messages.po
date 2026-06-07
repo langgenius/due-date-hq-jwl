@@ -6168,6 +6168,7 @@ msgstr "Entity type · enum"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/components/AlertStructuredFields.tsx
+#: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Entity types"
 msgstr "Entity types"
 
