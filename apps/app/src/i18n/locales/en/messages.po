@@ -1253,6 +1253,10 @@ msgstr "10 seats included"
 msgid "10+ seats"
 msgstr "10+ seats"
 
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "11 tools"
+msgstr "11 tools"
+
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "2-3"
 msgstr "2-3"
@@ -1277,6 +1281,10 @@ msgstr "312 KB · updated Mar 4"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "4 attached"
 msgstr "4 attached"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "4 min"
+msgstr "4 min"
 
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "4-6"
@@ -1660,6 +1668,10 @@ msgstr "Add item manually"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Add notes"
 msgstr "Add notes"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "Add one manually"
+msgstr "Add one manually"
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Add practice"
@@ -2612,6 +2624,10 @@ msgstr "Automatic field matching is unavailable. We used the selected import tem
 #: src/routes/settings.tsx
 msgid "Automation"
 msgstr "Automation"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "average import"
+msgstr "average import"
 
 #: src/routes/login.tsx
 msgid "AVG ALERT TRIAGE"
@@ -3725,6 +3741,10 @@ msgstr "Compliance"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Compliance posture"
 msgstr "Compliance posture"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "compliant"
+msgstr "compliant"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "conf {confidencePct}%"
@@ -6890,9 +6910,9 @@ msgstr "Import & Generate"
 msgid "Import & Generate creates the clients, deadlines, evidence, and audit records listed above."
 msgstr "Import & Generate creates the clients, deadlines, evidence, and audit records listed above."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Import a CSV or create the first manual client record."
-msgstr "Import a CSV or create the first manual client record."
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "Import a client list from TaxDome, Karbon, Drake, QuickBooks, UltraTax, Lacerte and 6 more. Every deadline shows up on its own — no manual mapping, no setup wizard."
+msgstr "Import a client list from TaxDome, Karbon, Drake, QuickBooks, UltraTax, Lacerte and 6 more. Every deadline shows up on its own — no manual mapping, no setup wizard."
 
 #: src/features/migration/SuccessModal.tsx
 msgid "Import another file"
@@ -6911,7 +6931,7 @@ msgid "Import batch created"
 msgstr "Import batch created"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientsEmptyState.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/migration/WizardShell.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
@@ -8797,7 +8817,6 @@ msgstr "No clients matched"
 msgid "No clients matched this alert's scope. You can dismiss it or wait — if a new client is added that matches the scope, the alert will reopen."
 msgstr "No clients matched this alert's scope. You can dismiss it or wait — if a new client is added that matches the scope, the alert will reopen."
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 msgid "No clients yet"
 msgstr "No clients yet"
@@ -10387,6 +10406,10 @@ msgstr "Plan, seats, and invoices."
 #: src/routes/onboarding.tsx
 msgid "Please enter at least 2 characters."
 msgstr "Please enter at least 2 characters."
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "Plug in your tools. Walk away with a triage list."
+msgstr "Plug in your tools. Walk away with a triage list."
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -13113,6 +13136,10 @@ msgstr "Snoozed {0} alerts for 24h"
 msgid "Snoozed until"
 msgstr "Snoozed until"
 
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "SOC 2"
+msgstr "SOC 2"
+
 #: src/routes/login.tsx
 msgid "SOC 2 UPTIME"
 msgstr "SOC 2 UPTIME"
@@ -13557,6 +13584,10 @@ msgstr "Summary"
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Superseded"
 msgstr "Superseded"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "supported"
+msgstr "supported"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Suppressed"
@@ -14407,6 +14438,10 @@ msgstr "Trust"
 #: src/routes/login.tsx
 msgid "TRUSTED BY 480+ TAX PRACTICES"
 msgstr "TRUSTED BY 480+ TAX PRACTICES"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "Try a 30-second tour with sample data"
+msgstr "Try a 30-second tour with sample data"
 
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx

@@ -1272,6 +1272,10 @@ msgstr "包含 10 个席位"
 msgid "10+ seats"
 msgstr "10+ 个席位"
 
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "11 tools"
+msgstr "11 个工具"
+
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "2-3"
 msgstr "2-3"
@@ -1296,6 +1300,10 @@ msgstr "312 KB · 3 月 4 日更新"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "4 attached"
 msgstr "已附加 4 项"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "4 min"
+msgstr "4 分钟"
 
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "4-6"
@@ -1685,6 +1693,10 @@ msgstr "手动添加项"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Add notes"
 msgstr "添加备注"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "Add one manually"
+msgstr "手动添加"
 
 #: src/components/patterns/app-shell-nav.tsx
 #, fuzzy
@@ -2640,6 +2652,10 @@ msgstr "自动字段匹配不可用。我们已使用所选导入模板，并保
 #: src/routes/settings.tsx
 msgid "Automation"
 msgstr "自动化"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "average import"
+msgstr "平均导入时间"
 
 #: src/routes/login.tsx
 msgid "AVG ALERT TRIAGE"
@@ -3760,6 +3776,10 @@ msgstr "合规"
 #: src/features/clients/ClientDetailWorkspace.tsx
 msgid "Compliance posture"
 msgstr "合规状态"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "compliant"
+msgstr "合规"
 
 #: src/features/alerts/components/PulseAlertRow.tsx
 msgid "conf {confidencePct}%"
@@ -6942,9 +6962,9 @@ msgstr "导入并生成"
 msgid "Import & Generate creates the clients, deadlines, evidence, and audit records listed above."
 msgstr "「导入并生成」会创建上方列出的客户、截止事项、证据和审计记录。"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "Import a CSV or create the first manual client record."
-msgstr "导入 CSV，或创建第一条手动客户记录。"
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "Import a client list from TaxDome, Karbon, Drake, QuickBooks, UltraTax, Lacerte and 6 more. Every deadline shows up on its own — no manual mapping, no setup wizard."
+msgstr "从 TaxDome、Karbon、Drake、QuickBooks、UltraTax、Lacerte 等 11 个工具导入客户列表。每个截止日期都会自动显示 — 无需手动映射，无需设置向导。"
 
 #: src/features/migration/SuccessModal.tsx
 msgid "Import another file"
@@ -6963,7 +6983,7 @@ msgid "Import batch created"
 msgstr "导入批次已创建"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
-#: src/features/clients/ClientFactsWorkspace.tsx
+#: src/features/clients/ClientsEmptyState.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/features/migration/WizardShell.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
@@ -8861,7 +8881,6 @@ msgstr "无匹配客户"
 msgid "No clients matched this alert's scope. You can dismiss it or wait — if a new client is added that matches the scope, the alert will reopen."
 msgstr "没有客户匹配此提醒的范围。您可以忽略它或等待 — 如有匹配范围的新客户加入，提醒会重新打开。"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/dashboard/actions-list.tsx
 msgid "No clients yet"
 msgstr "还没有客户"
@@ -10474,6 +10493,10 @@ msgstr "计划、席位与发票。"
 #: src/routes/onboarding.tsx
 msgid "Please enter at least 2 characters."
 msgstr "请至少输入 2 个字符。"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "Plug in your tools. Walk away with a triage list."
+msgstr "接入您的工具，即刻获得待办清单。"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -13215,6 +13238,10 @@ msgstr "已暂缓 {0} 条提醒 24 小时"
 msgid "Snoozed until"
 msgstr "暂缓至"
 
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "SOC 2"
+msgstr "SOC 2"
+
 #: src/routes/login.tsx
 msgid "SOC 2 UPTIME"
 msgstr "SOC 2 在线率"
@@ -13661,6 +13688,10 @@ msgstr "摘要"
 #: src/features/rules/jurisdiction-rule-table.tsx
 msgid "Superseded"
 msgstr "已被取代"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "supported"
+msgstr "已支持"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Suppressed"
@@ -14513,6 +14544,10 @@ msgstr "信托"
 #: src/routes/login.tsx
 msgid "TRUSTED BY 480+ TAX PRACTICES"
 msgstr "480+ 家税务事务所信赖"
+
+#: src/features/clients/ClientsEmptyState.tsx
+msgid "Try a 30-second tour with sample data"
+msgstr "使用示例数据进行 30 秒体验"
 
 #: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx

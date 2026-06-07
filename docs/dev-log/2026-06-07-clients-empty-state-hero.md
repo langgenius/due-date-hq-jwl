@@ -27,9 +27,9 @@ Full-surface "no clients yet" hero replacing the quiet inline shared
   (the latter renders only when a create handler is wired and the user
   can create).
 - **Outcomes strip** — 4 min · 11 tools · SOC 2, each an icon-chip + value
-  + label, divided by hairline rules. (Canvas had the "Nightly auto-sync"
-  variant on `T4eNmw`; the two empty frames are two treatments of the same
-  hero — we reconciled to one component using the `jQFBx` SOC 2 strip.)
+  - label, divided by hairline rules. (Canvas had the "Nightly auto-sync"
+    variant on `T4eNmw`; the two empty frames are two treatments of the same
+    hero — we reconciled to one component using the `jQFBx` SOC 2 strip.)
 - **Sample-data chip** — accent-tinted pill "Try a 30-second tour with
   sample data" (renders only when an `onSampleData` handler is supplied;
   none is wired today — see below).
