@@ -258,7 +258,7 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
       : getJurisdictionName(detail.jurisdiction)
 
   return (
-    <section className="flex flex-col gap-3 rounded-lg bg-background-subtle p-4">
+    <section className="flex flex-col gap-3 rounded-lg border border-divider-subtle bg-background-default p-4">
       <header className="flex items-center gap-1.5">
         <LightbulbIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
         <span className="text-[12px] font-semibold text-text-secondary">
@@ -1513,7 +1513,7 @@ export function AlertDetailDrawer({
                     </a>
                   ) : null}
                 </div>
-                <blockquote className="rounded-lg bg-background-subtle px-5 py-4 font-mono text-[13px] leading-[1.55] text-text-secondary">
+                <blockquote className="rounded-lg border border-divider-subtle bg-background-default px-5 py-4 font-mono text-[13px] leading-[1.55] text-text-secondary">
                   &ldquo;{detail.alert.summary}&rdquo;
                   <footer className="mt-2 font-sans text-[11px] font-medium text-text-muted">
                     {detail.alert.source}
@@ -1834,7 +1834,14 @@ export function AlertDetailDrawer({
           // border is dropped — the rail's own right border already separates
           // the detail column from the list, so the extra hairline read as a
           // redundant frame.
-          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-background-default shadow-subtle"
+          // 2026-06-09 (Yuqi /alerts D12 "give the detail pane a #f2f2f2
+          // background"): the panel root is now a soft gray surface (supersedes
+          // the 2026-06-08 #6 white decision). Flat sections that were tinted
+          // `bg-background-subtle` (source-extract quote, "What this means…"
+          // band) are nudged to white so they still read as distinct blocks on
+          // the gray; the header/footer chrome stays white and reads as pinned
+          // bars against the calmer body wash.
+          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-[#f2f2f2] shadow-subtle"
         >
           {/* 2026-06-08: the close affordance moved into the body's
               BackStrip top bar (with prev/next paging), so the
@@ -1947,7 +1954,11 @@ export function DrawerActions({
     // review + Apply / Apply reviewed — so the dominant decision sits flush
     // right. `justify-between` splits the two groups; `ml-auto` is no longer
     // needed because the right cluster is the trailing flex child.
-    <div className="flex flex-wrap items-center justify-between gap-2">
+    // 2026-06-09 (Yuqi /alerts D9 "fill the footer width"): `w-full` so the
+    // cluster spans the whole footer and `justify-between` actually pushes the
+    // secondary (left) and primary (right) groups to opposite edges instead of
+    // bunching at the cluster's natural content width.
+    <div className="flex w-full flex-wrap items-center justify-between gap-2">
       <div className="flex flex-wrap items-center gap-2">
         {showRevert ? (
           <Button

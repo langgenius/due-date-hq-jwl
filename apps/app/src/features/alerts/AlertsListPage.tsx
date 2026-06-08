@@ -13,7 +13,6 @@ import {
   ArchiveIcon,
   CheckIcon,
   CircleCheckIcon,
-  Clock3Icon,
   FileCheckIcon,
   HistoryIcon,
   ListIcon,
@@ -950,8 +949,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     Severity + ChangeType + Status + State + Sort
                     (right cluster). 2026-06-08: consolidated onto the
                     shared flat <Segmented> primitive. */}
+                    {/* 2026-06-09 (Yuqi /alerts L4 "match the h-9 search +
+                        filter siblings"): force the List/Map track to 36px tall
+                        and stretch its items to fill — the md Segmented is a
+                        32px track by default, which sat 4px short of the
+                        FilterTrigger / search siblings. */}
                     <Segmented
-                      className="shrink-0"
+                      className="h-9 shrink-0 [&>button]:h-8"
                       ariaLabel={t`View mode`}
                       value={viewMode}
                       onValueChange={setViewMode}
@@ -967,13 +971,26 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                         pushes the right cluster (All time · Filters · State ·
                         Sort by) to the end of the row. On narrow viewports the
                         wrap row reflows the right cluster onto a second line. */}
+                    {/* 2026-06-09 (Yuqi /alerts L5 "move the checkbox before the
+                        dropdown cluster"): the "Show suggested action" toggle now
+                        sits at the START of the right cluster — right after the
+                        spacer, ahead of Filters / State / Sort (was buried after
+                        State, beside Reset). */}
+                    <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-[13px] font-medium text-text-secondary select-none">
+                      <Checkbox
+                        checked={showSuggestedAction}
+                        onCheckedChange={(next) => setShowSuggestedAction(next)}
+                      />
+                      <Trans>Show suggested action</Trans>
+                    </label>
+
                     <span className="hidden flex-1 lg:block" aria-hidden />
 
                     {/* 2026-06-08 (Yuqi /alerts #2 "Sort … in the same row
                     as other filters"): the greedy `flex-1` spacer was
                     removed. In a `flex-wrap` row a growing spacer eats the
                     rest of line 1, forcing the whole dropdown cluster —
-                    Time / Severity / Change types / Tax area / State / Sort
+                    Severity / Change types / Tax area / State / Sort
                     — onto a second line, and on narrower viewports Sort wrapped
                     off onto a THIRD line by itself. Without the spacer the
                     controls flow left-to-right and Sort stays adjacent to its
@@ -985,59 +1002,18 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     above), so the filter bar reads as a defined toolbar with
                     a clean bottom edge against the scrolling list. */}
 
-                    {/* Last 24 hours — time-range filter */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <FilterTrigger
-                            active={timeRangeFilter !== 'all_time'}
-                            leadingIcon={Clock3Icon}
-                            aria-label={t`Filter by time range`}
-                          >
-                            <span>
-                              {timeRangeFilter === 'last_24h'
-                                ? t`Last 24 hours`
-                                : timeRangeFilter === 'last_7d'
-                                  ? t`Last 7 days`
-                                  : t`All time`}
-                            </span>
-                          </FilterTrigger>
-                        }
-                      />
-                      <DropdownMenuContent align="start" className="min-w-[180px]">
-                        <DropdownMenuRadioGroup
-                          value={timeRangeFilter}
-                          onValueChange={(value) => {
-                            if (
-                              value === 'all_time' ||
-                              value === 'last_24h' ||
-                              value === 'last_7d'
-                            ) {
-                              setTimeRangeFilter(value)
-                            }
-                          }}
-                        >
-                          <DropdownMenuRadioItem value="all_time">
-                            <Trans>All time</Trans>
-                          </DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="last_24h">
-                            <Trans>Last 24 hours</Trans>
-                          </DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="last_7d">
-                            <Trans>Last 7 days</Trans>
-                          </DropdownMenuRadioItem>
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
                     {/* 2026-06-08 (Yuqi "put severity, change types, tax
                         areas into filters to clean up the space"): the three
                         single-select dropdowns are consolidated into ONE
                         "Filters" popover (each as a labeled pill section).
-                        The trigger carries a count of how many of the three
-                        are active. Time range, State, and Sort stay separate
-                        as their own controls. */}
+                        2026-06-09 (Yuqi /alerts L6 "move the time filter into the
+                        Filters popover"): the standalone "All time" trigger is
+                        removed; Time is now a section inside this popover. The
+                        trigger count includes an active time filter. State and
+                        Sort stay separate as their own controls. */}
                     <AlertFiltersPopover
+                      timeRangeFilter={timeRangeFilter}
+                      onTimeRangeChange={setTimeRangeFilter}
                       impactFilter={impactFilter}
                       onImpactChange={setImpactFilter}
                       changeKindFilter={changeKindFilter}
@@ -1127,17 +1103,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                         }
                       />
                     ) : null}
-
-                    {/* 2026-06-08 (Yuqi /alerts "add an option checkbox 'show
-                        suggested action'"): toggles the per-row ACTION
-                        suggestion line across the list. Default on. */}
-                    <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-[13px] font-medium text-text-secondary select-none">
-                      <Checkbox
-                        checked={showSuggestedAction}
-                        onCheckedChange={(next) => setShowSuggestedAction(next)}
-                      />
-                      <Trans>Show suggested action</Trans>
-                    </label>
 
                     {/* Reset — 2026-06-04 round 42 (Yuqi list-2 #1 —
                     "reset is close to Any state dropdown, not
@@ -1717,7 +1682,12 @@ function FilteredEmptyState({ onClearFilters }: { onClearFilters: () => void }) 
  * a labeled pill row. Replaces the three separate dropdown chips so the
  * filter row reads as Search · List/Map · Filters · State · Sort.
  */
+type TimeRangeFilter = 'all_time' | 'last_24h' | 'last_7d'
+const TIME_RANGE_FILTER_OPTIONS: readonly TimeRangeFilter[] = ['all_time', 'last_24h', 'last_7d']
+
 function AlertFiltersPopover({
+  timeRangeFilter,
+  onTimeRangeChange,
   impactFilter,
   onImpactChange,
   changeKindFilter,
@@ -1725,6 +1695,8 @@ function AlertFiltersPopover({
   taxAreaFilter,
   onTaxAreaChange,
 }: {
+  timeRangeFilter: TimeRangeFilter
+  onTimeRangeChange: (value: TimeRangeFilter) => void
   impactFilter: AlertImpactFilter
   onImpactChange: (value: AlertImpactFilter) => void
   changeKindFilter: AlertChangeKindFilter
@@ -1733,7 +1705,10 @@ function AlertFiltersPopover({
   onTaxAreaChange: (value: AlertTaxAreaFilter) => void
 }) {
   const { t } = useLingui()
+  // 2026-06-09 (Yuqi /alerts L6): the active count now includes the time
+  // filter so the trigger badge reflects an applied "Last 24h / 7d" too.
   const activeCount =
+    (timeRangeFilter !== 'all_time' ? 1 : 0) +
     (impactFilter !== 'all' ? 1 : 0) +
     (changeKindFilter !== 'all' ? 1 : 0) +
     (taxAreaFilter !== 'all' ? 1 : 0)
@@ -1755,6 +1730,15 @@ function AlertFiltersPopover({
       />
       <PopoverContent align="start" className="w-[264px] p-3">
         <div className="flex flex-col gap-3.5">
+          {/* 2026-06-09 (Yuqi /alerts L6): the time-range filter, relocated
+              from a standalone toolbar trigger into this popover. */}
+          <FilterPillSection
+            label={t`Time`}
+            value={timeRangeFilter}
+            options={TIME_RANGE_FILTER_OPTIONS}
+            getLabel={timeRangeFilterLabel}
+            onSelect={onTimeRangeChange}
+          />
           <FilterPillSection
             label={t`Severity`}
             value={impactFilter}
@@ -1780,6 +1764,7 @@ function AlertFiltersPopover({
             <button
               type="button"
               onClick={() => {
+                onTimeRangeChange('all_time')
                 onImpactChange('all')
                 onChangeKindChange('all')
                 onTaxAreaChange('all')
@@ -1842,6 +1827,12 @@ function FilterPillSection<T extends string>({
       </div>
     </div>
   )
+}
+
+function timeRangeFilterLabel(filter: TimeRangeFilter): React.ReactNode {
+  if (filter === 'last_24h') return <Trans>Last 24 hours</Trans>
+  if (filter === 'last_7d') return <Trans>Last 7 days</Trans>
+  return <Trans>Any time</Trans>
 }
 
 function impactFilterLabel(filter: AlertImpactFilter): React.ReactNode {

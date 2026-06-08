@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { ChevronRightIcon, CoffeeIcon, DatabaseIcon, HistoryIcon } from 'lucide-react'
+import { ChevronRightIcon, CoffeeIcon, HistoryIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Button } from '@duedatehq/ui/components/ui/button'
@@ -12,6 +12,7 @@ import { CountPill } from '@/components/primitives/count-pill'
 import { AlertsListPage } from '@/features/alerts/AlertsListPage'
 import { useActiveAlertCount, useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
+import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 import { MorningSweepProvider, useMorningSweep } from '@/features/alerts/MorningSweepContext'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 
@@ -103,27 +104,27 @@ export function AlertsRoute() {
           <Plural value={alertCount} one="# active" other="# active" />
         </CountPill>
       ) : null}
-      {/* 2026-06-08 (Pencil g5kKJQ `kdHsZ`): the second title chip is
-          the blue Sources SELECTOR — database icon + "Sources · Federal
-          + 50 states + DC" + chevron, linking to /rules/sources — not a
-          passive gray "Monitoring" status chip. Consolidating the
-          source affordance here lets the standalone Sources action
-          button drop out of the cluster (it's now this chip). */}
+      {/* 2026-06-09 (Yuqi /alerts D8 "align with /today's Monitoring status"):
+          this Sources chip is converged onto the dashboard
+          NeedsAttentionSection's "Monitoring: Federal · 50 States · DC"
+          treatment — same label format (colon, middot separators, capital S),
+          same neutral text + leading success PulsingDot. It stays a Link to
+          /rules/sources (it's also the navigation affordance the standalone
+          Sources button collapsed into), so it keeps the trailing chevron;
+          the database-icon accent pill is dropped so the two surfaces read as
+          one monitoring-status vocabulary. */}
       {hasNationalMonitoringCoverage ? (
         <Tooltip>
           <TooltipTrigger
             render={
               <Link
                 to="/rules/sources"
-                className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[#155aef40] bg-state-accent-hover px-2.5 text-[13px] font-medium text-text-accent transition-colors hover:bg-state-accent-active-alt"
-                aria-label={t`Sources · Federal + 50 states + DC`}
+                className="inline-flex h-6 items-center gap-1.5 rounded-full px-1 text-[13px] font-medium text-text-secondary transition-colors hover:text-text-primary"
+                aria-label={t`Monitoring: Federal · 50 States · DC`}
               >
-                {/* 2026-06-08 (Yuqi /alerts): the leading health dot is
-                    dropped — the source-health signal lives in the tooltip
-                    copy below. The chip leads cleanly with the database icon. */}
-                <DatabaseIcon className="size-3 shrink-0" aria-hidden />
-                <Trans>Sources · Federal + 50 states + DC</Trans>
-                <ChevronRightIcon className="size-3 shrink-0" aria-hidden />
+                <PulsingDot tone="success" active />
+                <Trans>Monitoring: Federal · 50 States · DC</Trans>
+                <ChevronRightIcon className="size-3 shrink-0 text-text-tertiary" aria-hidden />
               </Link>
             }
           />

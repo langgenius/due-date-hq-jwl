@@ -435,7 +435,7 @@ function PulseAlertRow({
               red, NOT amber — amber is reserved for the ACTION pill below, so the
               two never read as the same signal. */}
           {highImpact ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center rounded-[6px] border border-[#fecdca] bg-[#fef3f2] px-1.5 text-[11px] font-semibold tracking-[0.3px] text-text-destructive uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center rounded-lg border border-[#fecdca] bg-[#fef3f2] px-1.5 text-[11px] font-semibold tracking-[0.3px] text-text-destructive uppercase">
               <Trans>High impact</Trans>
             </span>
           ) : null}
@@ -444,14 +444,17 @@ function PulseAlertRow({
               carries the canonical StateBadge seal + 2-letter code,
               matching the /today card + the AlertListRail (was a plain
               bordered mono code). */}
-          <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-[6px] border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
+          <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-lg border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
             <StateBadge code={alert.jurisdiction} size="xs" style={{ width: 12, height: 12 }} />
             {alert.jurisdiction}
           </span>
 
           {/* FORM PILL (Pencil `RuScV formBadge`) — shared
-              TaxCodeBadge primitive (bg-subtle mono code chip). */}
-          {formLabel ? <TaxCodeBadge code={formLabel} /> : null}
+              TaxCodeBadge primitive (bg-subtle mono code chip).
+              2026-06-09 (Yuqi /alerts L2 "softer chip corners"): bump the
+              row instance to rounded-lg (8px) via className override; the
+              shared primitive base stays rounded-[5px] for other surfaces. */}
+          {formLabel ? <TaxCodeBadge code={formLabel} className="rounded-lg" /> : null}
 
           {/* CHANGE KIND — 2026-06-08 (Yuqi /alerts #1+#3 "reuse Today's
               alert card, do not reinvent" / "hard to read, different from
@@ -516,7 +519,7 @@ function PulseAlertRow({
                     }}
                     {...props}
                   >
-                    <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+                    <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
                     <span className="truncate">{alert.source}</span>
                   </span>
                 )}
@@ -532,7 +535,7 @@ function PulseAlertRow({
             </Tooltip>
           ) : (
             <span className="inline-flex min-w-0 shrink items-center gap-1 truncate text-[12px] font-medium tracking-[-0.1px] text-text-tertiary">
-              <ExternalLinkIcon className="size-3 shrink-0" aria-hidden />
+              <ExternalLinkIcon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
               <span className="truncate">{alert.source}</span>
             </span>
           )}
@@ -581,7 +584,7 @@ function PulseAlertRow({
               the same medium-not-bold across both surfaces so the
               type families read in one zone. */}
           <h3
-            className="line-clamp-1 min-w-0 text-[15px] font-normal leading-[1.25] tracking-[-0.25px] text-text-secondary"
+            className="line-clamp-1 min-w-0 text-[15px] font-medium leading-[1.25] tracking-[-0.25px] text-text-secondary"
             title={alert.title}
           >
             {alert.title}
@@ -607,7 +610,11 @@ function PulseAlertRow({
                 <span className="font-mono text-[12px] font-medium tracking-[0.2px] text-text-muted line-through tabular-nums">
                   {oldDateLabel}
                 </span>
-                <ArrowRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
+                <ArrowRightIcon
+                  className="size-3 shrink-0 text-text-muted"
+                  strokeWidth={1.5}
+                  aria-hidden
+                />
                 <span className="font-mono text-[12px] font-bold tracking-[-0.2px] text-text-primary tabular-nums">
                   {newDateLabel}
                 </span>
@@ -1018,7 +1025,13 @@ function PulseAlertList({
     // square corners that poked past the rounded-12 frame at the
     // top/bottom. Tooltips/popovers inside rows portal to <body>, so
     // the clip no longer truncates them.
-    <div className="flex flex-col overflow-hidden rounded-[12px] border border-divider-regular bg-background-default">
+    // 2026-06-09 (Yuqi "i cannot scroll in the table"): `shrink-0` so the list
+    // frame keeps its full content height inside the overflow-y-auto list column.
+    // Without it, flex shrank the frame to fit and `overflow-hidden` clipped the
+    // rest, so the column never overflowed and nothing scrolled. overflow-hidden
+    // stays (clips the full-width day bands to the rounded corners); at full
+    // height there's no vertical clip.
+    <div className="flex shrink-0 flex-col overflow-hidden rounded-[12px] border border-divider-regular bg-background-default">
       {/* 2026-06-08 (Yuqi "remove"): the BulkSelectStrip ("Select all · N
           dispatches", Pencil `TAamJ`) is removed. Per-row checkboxes still
           drive bulk selection in selectable mode, and the floating

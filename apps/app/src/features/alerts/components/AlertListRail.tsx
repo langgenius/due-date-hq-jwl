@@ -46,6 +46,11 @@ export function AlertListRail({
 
   const [tab, setTab] = useState<RailTab>('all')
   const [search, setSearch] = useState('')
+  // 2026-06-09 (Yuqi /alerts D11): focusing the icon-only search expands it to
+  // fill the whole filter bar and hides the All/Unresolved Segmented. It
+  // collapses back only when blurred AND empty — a live query keeps it open.
+  const [searchFocused, setSearchFocused] = useState(false)
+  const searchExpanded = searchFocused || search.trim() !== ''
 
   // "N active" head count uses the SAME authoritative source as the sidebar
   // badge and the page-header pill (`pulse.activeCount` = matched +
@@ -95,27 +100,45 @@ export function AlertListRail({
         ) : null}
       </div>
 
-      {/* FilterRow — All / Unresolved segmented control + search. */}
+      {/* FilterRow — All / Unresolved segmented control + search.
+          2026-06-09 (Yuqi /alerts D11): when the search is active (focused or
+          carrying a query) it claims the full bar and the Segmented unmounts;
+          when blurred + empty the Segmented returns and the search collapses
+          back to its icon-only resting state. */}
       <div className="flex shrink-0 items-center gap-2 border-b border-divider-subtle px-4 py-2.5">
-        <Segmented
-          size="sm"
-          ariaLabel={t`Alert filter`}
-          value={tab}
-          onValueChange={setTab}
-          options={[
-            { value: 'all', label: <Trans>All</Trans> },
-            { value: 'unresolved', label: <Trans>Unresolved</Trans> },
-          ]}
-        />
+        {!searchExpanded ? (
+          <Segmented
+            size="sm"
+            ariaLabel={t`Alert filter`}
+            value={tab}
+            onValueChange={setTab}
+            options={[
+              { value: 'all', label: <Trans>All</Trans> },
+              { value: 'unresolved', label: <Trans>Unresolved</Trans> },
+            ]}
+          />
+        ) : null}
         <span className="flex-1" aria-hidden />
-        <label className="inline-flex size-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-state-base-hover focus-within:bg-state-base-hover">
+        <label
+          className={cn(
+            'inline-flex h-7 items-center gap-1.5 rounded-md text-text-muted transition-[width,background-color,padding] focus-within:bg-state-base-hover',
+            searchExpanded
+              ? 'w-full bg-state-base-hover px-2'
+              : 'w-7 justify-center px-0 hover:bg-state-base-hover',
+          )}
+        >
           <SearchIcon className="size-3.5 shrink-0" aria-hidden />
           <input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
             aria-label={t`Search alerts`}
-            className="w-0 bg-transparent outline-none focus:w-28"
+            className={cn(
+              'min-w-0 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-muted',
+              searchExpanded ? 'flex-1' : 'w-0',
+            )}
           />
         </label>
       </div>
