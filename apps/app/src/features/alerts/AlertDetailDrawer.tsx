@@ -255,17 +255,15 @@ function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
       ? { tone: 'success', title: <Trans>Applied to clients · logged to audit ledger</Trans> }
       : alert.status === 'dismissed'
         ? { tone: 'muted', title: <Trans>Dismissed</Trans> }
-        : alert.status === 'snoozed'
-          ? { tone: 'warning', title: <Trans>Snoozed</Trans> }
-          : alert.status === 'reverted'
-            ? { tone: 'destructive', title: <Trans>Reverted</Trans> }
-            : alert.status === 'reviewed'
-              ? { tone: 'success', title: <Trans>Marked reviewed</Trans> }
-              : {
-                  tone: 'warning',
-                  title: <Trans>Awaiting your decision</Trans>,
-                  meta: <Trans>Apply, snooze, or dismiss to resolve.</Trans>,
-                }
+        : alert.status === 'reverted'
+          ? { tone: 'destructive', title: <Trans>Reverted</Trans> }
+          : alert.status === 'reviewed'
+            ? { tone: 'success', title: <Trans>Marked reviewed</Trans> }
+            : {
+                tone: 'warning',
+                title: <Trans>Awaiting your decision</Trans>,
+                meta: <Trans>Apply, review, or dismiss to resolve.</Trans>,
+              }
   events.push({ id: 'current', ...current })
 
   const toneClass: Record<Tone, string> = {
@@ -943,9 +941,7 @@ export function AlertDetailDrawer({
                 ? t`Needs Action`
                 : actionPill.id === 'needs-review'
                   ? t`Needs Review`
-                  : actionPill.id === 'snoozed'
-                    ? t`Snoozed`
-                    : t`Closed`
+                  : t`Closed`
               : null
             return (
               // 2026-06-04 round 68 (Yuqi "please do not waste
@@ -1318,7 +1314,7 @@ export function AlertDetailDrawer({
                 <AlertDescription>
                   <Trans>
                     This source is no longer trusted. The historical alert remains visible, but new
-                    apply, dismiss, snooze, and undo actions are disabled.
+                    apply, review, dismiss, and undo actions are disabled.
                   </Trans>
                 </AlertDescription>
               </Alert>
@@ -1564,8 +1560,8 @@ export function AlertDetailDrawer({
           sticky action-strip across the app shares the same 16/24
           vertical rhythm. */}
       {/* 2026-06-04 round 48 (Yuqi push further — action shelf
-          rebuild per Pencil n9m9B): left cluster shows three
-          keyboard hints (`A` Apply / `S` Snooze / `D` Dismiss) +
+          rebuild per Pencil n9m9B): left cluster shows two
+          keyboard hints (`A` Apply / `D` Dismiss) +
           divider + ledger note ("Every decision captured to audit
           ledger") with a shield-check tone, mirroring n9m9B's
           left "qCySM" frame. Right cluster keeps the canonical
@@ -1581,12 +1577,6 @@ export function AlertDetailDrawer({
                 A
               </kbd>
               <Trans>Apply</Trans>
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
-              <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
-                S
-              </kbd>
-              <Trans>Snooze</Trans>
             </span>
             <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
               <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">

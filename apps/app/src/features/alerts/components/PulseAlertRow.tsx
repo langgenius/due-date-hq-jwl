@@ -8,7 +8,6 @@ import {
   CheckCheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  ClockIcon,
   CornerDownRightIcon,
   ExternalLinkIcon,
   SparklesIcon,
@@ -196,7 +195,6 @@ function PulseAlertRow({
   alert,
   active,
   onReview,
-  onSnooze,
   onDismiss,
   compact = false,
   selectable = false,
@@ -207,10 +205,6 @@ function PulseAlertRow({
   alert: PulseAlertPublic
   active: boolean
   onReview: () => void
-  /** 2026-06-04 round 77 (Yuqi "wire to real"): real snooze
-   *  handler — opens the reason dialog in the parent which
-   *  fires `orpc.pulse.snooze` on confirm. */
-  onSnooze?: () => void
   /** Real dismiss/archive handler — opens the reason dialog
    *  which fires `orpc.pulse.dismiss` on confirm. */
   onDismiss?: () => void
@@ -691,14 +685,11 @@ function PulseAlertRow({
                   Round 67 dropped it per Pencil disabled-stroke,
                   but the user wants the clear shelf line back to
                   divide the body from the meta row.
-              #8 "missing previous actions - snooze, archive,
-                  review": three hover-revealed buttons now —
-                  Snooze, Archive, Review — replacing the lone
-                  Review. Click each with stopPropagation so the
-                  card's onReview doesn't also fire. Snooze +
-                  Archive use the same Review handler for now
-                  (visual surface only — wiring to actual snooze /
-                  archive mutations lives in the drawer). */}
+              #8 "missing previous actions - archive, review":
+                  hover-revealed buttons now — Dismiss, Review —
+                  replacing the lone Review. Click each with
+                  stopPropagation so the card's onReview doesn't
+                  also fire. */}
         {/* Round 79 (Yuqi #5 "closer?"): dropped the `mt-1` push
             on the bottom row too — same reason as #4. */}
         {/* 2026-06-08 (Yuqi compact-column wrap bug): in panel-open
@@ -748,7 +739,7 @@ function PulseAlertRow({
             )}
           </span>
 
-          {/* Hover-only action cluster — Snooze / Archive / Review.
+          {/* Hover-only action cluster — Dismiss / Review.
               Fades in via group-hover so the row reads as a quiet
               shelf at rest. Each button stopPropagation so the
               row's onClick doesn't bubble. */}
@@ -756,20 +747,6 @@ function PulseAlertRow({
             className="ml-auto inline-flex items-center gap-1 opacity-0 transition-opacity group-hover/row:opacity-100"
             aria-hidden={!active}
           >
-            {onSnooze ? (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onSnooze()
-                }}
-                className="inline-flex items-center gap-1 rounded-md border border-divider-regular bg-background-default px-2 py-1 text-[12px] font-medium text-text-secondary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-                aria-label={t`Snooze alert`}
-              >
-                <ClockIcon className="size-3" aria-hidden />
-                <Trans>Snooze</Trans>
-              </button>
-            ) : null}
             {onDismiss ? (
               <button
                 type="button"
@@ -860,7 +837,6 @@ function PulseAlertList({
   alerts,
   openAlertId,
   onReview,
-  onSnooze,
   onDismiss,
   selectable = false,
   selectedIds,
@@ -871,7 +847,6 @@ function PulseAlertList({
   alerts: readonly PulseAlertPublic[]
   openAlertId: string | null
   onReview: (alertId: string) => void
-  onSnooze?: (alertId: string) => void
   onDismiss?: (alertId: string) => void
   /**
    * 2026-06-07 (Pencil g5kKJQ): bulk-selection wiring. When
@@ -1019,17 +994,16 @@ function PulseAlertList({
 
             {/* Alert rows for this day. Round 74: `compact` propagates
                 from whether the detail panel is up — see the
-                `panelOpen` computation below. Round 77: snooze +
-                dismiss handlers pass through from AlertsListPage
-                so the hover-revealed actions actually fire the
-                orpc mutations. */}
+                `panelOpen` computation below. Round 77: the dismiss
+                handler passes through from AlertsListPage so the
+                hover-revealed action actually fires the orpc
+                mutation. */}
             {dayAlerts.map((alert) => (
               <PulseAlertRow
                 key={alert.id}
                 alert={alert}
                 active={alert.id === openAlertId}
                 onReview={() => onReview(alert.id)}
-                {...(onSnooze ? { onSnooze: () => onSnooze(alert.id) } : {})}
                 {...(onDismiss ? { onDismiss: () => onDismiss(alert.id) } : {})}
                 compact={panelOpen}
                 selectable={selectable}

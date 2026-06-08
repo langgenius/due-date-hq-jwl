@@ -107,17 +107,15 @@ export function impactBadgeFromAlert(
 
 /**
  * Action-status pill at the top-right of the card.
- *   • Snoozed alerts                       → "Snoozed" (neutral gray)
  *   • Terminal (applied/dismissed/revert)  → "Closed"  (neutral gray)
  *   • needsReviewCount > 0                 → "Needs Review" (neutral)
  *   • matched / partially_applied          → "Needs Action" (destructive)
  *   • Otherwise                            → null (no pill rendered)
  */
-export type ActionPillId = 'needs-action' | 'needs-review' | 'closed' | 'snoozed'
+export type ActionPillId = 'needs-action' | 'needs-review' | 'closed'
 export function actionPillFromAlert(
   alert: PulseAlertPublic,
 ): { id: ActionPillId; bg: string; text: string } | null {
-  if (alert.status === 'snoozed') return { id: 'snoozed', bg: '#f2f4f7', text: '#354052' }
   if (alert.status === 'dismissed' || alert.status === 'applied' || alert.status === 'reverted') {
     return { id: 'closed', bg: '#f2f4f7', text: '#354052' }
   }
@@ -135,10 +133,9 @@ export function actionPillFromAlert(
  * as 20/500 `#98a2b2`. `matched` → "Open", everything else maps to
  * its workflow label.
  */
-export type OpenStatusId = 'open' | 'snoozed' | 'applied' | 'dismissed' | 'partial' | 'reverted'
+export type OpenStatusId = 'open' | 'applied' | 'dismissed' | 'partial' | 'reverted'
 export function openStatusFromAlert(status: PulseAlertPublic['status']): OpenStatusId {
   if (status === 'matched') return 'open'
-  if (status === 'snoozed') return 'snoozed'
   if (status === 'applied') return 'applied'
   if (status === 'dismissed') return 'dismissed'
   if (status === 'partially_applied') return 'partial'

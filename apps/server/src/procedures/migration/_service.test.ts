@@ -671,9 +671,6 @@ function buildScopedRepo(
     async dismiss() {
       return unexpectedRepoCall('pulse.dismiss')
     },
-    async snooze() {
-      return unexpectedRepoCall('pulse.snooze')
-    },
     async markReviewed() {
       return unexpectedRepoCall('pulse.markReviewed')
     },

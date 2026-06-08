@@ -91,22 +91,18 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
       ? t`Needs Action`
       : actionPill.id === 'needs-review'
         ? t`Needs Review`
-        : actionPill.id === 'snoozed'
-          ? t`Snoozed`
-          : t`Closed`
+        : t`Closed`
     : null
   const openLabel =
     openId === 'open'
       ? t`Open`
-      : openId === 'snoozed'
-        ? t`Snoozed`
-        : openId === 'applied'
-          ? t`Applied`
-          : openId === 'dismissed'
-            ? t`Dismissed`
-            : openId === 'partial'
-              ? t`Partially applied`
-              : t`Reverted`
+      : openId === 'applied'
+        ? t`Applied`
+        : openId === 'dismissed'
+          ? t`Dismissed`
+          : openId === 'partial'
+            ? t`Partially applied`
+            : t`Reverted`
 
   const handleCardKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {

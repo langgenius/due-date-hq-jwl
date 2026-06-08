@@ -8,7 +8,6 @@ import {
   isNotNull,
   isNull,
   lt,
-  lte,
   or,
 } from 'drizzle-orm'
 import type { BatchItem } from 'drizzle-orm/batch'
@@ -55,7 +54,6 @@ import {
   PULSE_DISMISS_DEFAULT_AUDIT_REASON,
   PULSE_HANDLED_ALERT_STATUSES,
   PULSE_MARK_REVIEWED_DEFAULT_AUDIT_REASON,
-  PULSE_SNOOZE_DEFAULT_AUDIT_REASON,
   PulseRepoError,
   REVERT_WINDOW_MS,
   applicationStatus,
@@ -1044,10 +1042,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           and(
             eq(pulseFirmAlert.firmId, firmId),
             eq(pulse.status, 'approved'),
-            or(
-              inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
-              and(eq(pulseFirmAlert.status, 'snoozed'), lte(pulseFirmAlert.snoozedUntil, now)),
-            ),
+            inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
             // Hide alerts whose actionable deadline has already passed (review_only
             // protective windows by actionDeadline; deadline shifts by new-due /
             // effective date), matching catch-up/sweep relevance so the active queue
@@ -1107,7 +1102,6 @@ export function makePulseRepo(db: Db, firmId: string) {
         (value): value is string => value !== null,
       )
       if (jurisdictions.length === 0) return
-      const now = new Date()
       const alertIdRows = await db
         .select({ id: pulseFirmAlert.id })
         .from(pulseFirmAlert)
@@ -1118,13 +1112,10 @@ export function makePulseRepo(db: Db, firmId: string) {
             eq(pulse.status, 'approved'),
             eq(pulse.actionMode, 'due_date_overlay'),
             inArray(pulse.parsedJurisdiction, jurisdictions),
-            or(
-              // `reviewed` is included so a no-match overlay alert that was
-              // acknowledged BEFORE the firm activated the matching rule can be
-              // re-awakened below once accept creates the matching obligations.
-              inArray(pulseFirmAlert.status, ['matched', 'partially_applied', 'reviewed']),
-              and(eq(pulseFirmAlert.status, 'snoozed'), lte(pulseFirmAlert.snoozedUntil, now)),
-            ),
+            // `reviewed` is included so a no-match overlay alert that was
+            // acknowledged BEFORE the firm activated the matching rule can be
+            // re-awakened below once accept creates the matching obligations.
+            inArray(pulseFirmAlert.status, ['matched', 'partially_applied', 'reviewed']),
           ),
         )
       await Promise.all(
@@ -1155,7 +1146,6 @@ export function makePulseRepo(db: Db, firmId: string) {
       taxType: string
       formName?: string | null
     }): Promise<PulseRuleMatchRow[]> {
-      const now = new Date()
       const alertIdRows = await db
         .select({ id: pulseFirmAlert.id })
         .from(pulseFirmAlert)
@@ -1165,10 +1155,7 @@ export function makePulseRepo(db: Db, firmId: string) {
             eq(pulseFirmAlert.firmId, firmId),
             eq(pulse.status, 'approved'),
             eq(pulse.parsedJurisdiction, input.jurisdiction),
-            or(
-              inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
-              and(eq(pulseFirmAlert.status, 'snoozed'), lte(pulseFirmAlert.snoozedUntil, now)),
-            ),
+            inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
           ),
         )
         .orderBy(desc(pulse.publishedAt))
@@ -1202,8 +1189,8 @@ export function makePulseRepo(db: Db, firmId: string) {
     },
 
     /**
-     * Count of currently-active (matched / partially_applied / expired-
-     * snooze) Pulse alerts for this firm. Used by the sidebar nav badge
+     * Count of currently-active (matched / partially_applied) Pulse alerts
+     * for this firm. Used by the sidebar nav badge
      * — the badge only needs a number, not the alert rows themselves, so
      * a dedicated COUNT(*) query avoids fetching N rows just to call
      * `.length` on the array.
@@ -1225,10 +1212,7 @@ export function makePulseRepo(db: Db, firmId: string) {
           and(
             eq(pulseFirmAlert.firmId, firmId),
             eq(pulse.status, 'approved'),
-            or(
-              inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
-              and(eq(pulseFirmAlert.status, 'snoozed'), lte(pulseFirmAlert.snoozedUntil, now)),
-            ),
+            inArray(pulseFirmAlert.status, ['matched', 'partially_applied']),
             // Mirror listAlerts: the sidebar badge must not count expired windows
             // the active list hides.
             ...pulseNotExpiredConditions(now),
@@ -1967,47 +1951,6 @@ export function makePulseRepo(db: Db, firmId: string) {
       return { alert: toAlert(updated), auditId }
     },
 
-    async snooze(input: {
-      alertId: string
-      userId: string
-      until: Date
-      reason?: string
-      now?: Date
-    }): Promise<PulseDismissResult> {
-      const alert = await getAlert(input.alertId)
-      const now = input.now ?? new Date()
-      if (input.until.getTime() <= now.getTime()) throw new PulseRepoError('conflict')
-      const auditId = crypto.randomUUID()
-      await db.batch([
-        db
-          .update(pulseFirmAlert)
-          .set({
-            status: 'snoozed',
-            snoozedUntil: input.until,
-          })
-          .where(and(eq(pulseFirmAlert.firmId, firmId), eq(pulseFirmAlert.id, input.alertId))),
-        db.insert(auditEvent).values({
-          id: auditId,
-          firmId,
-          actorId: input.userId,
-          entityType: 'pulse_firm_alert',
-          entityId: input.alertId,
-          action: 'pulse.snooze',
-          beforeJson: { status: alert.alertStatus },
-          afterJson: {
-            status: 'snoozed',
-            pulseId: alert.pulseId,
-            snoozedUntil: input.until.toISOString(),
-          },
-          reason: input.reason ?? PULSE_SNOOZE_DEFAULT_AUDIT_REASON,
-          ipHash: null,
-          userAgentHash: null,
-        }),
-      ])
-      const updated = await getAlert(input.alertId)
-      return { alert: toAlert(updated), auditId }
-    },
-
     async markReviewed(input: {
       alertId: string
       userId: string
@@ -2253,7 +2196,6 @@ export function makePulseRepo(db: Db, firmId: string) {
           .update(pulseFirmAlert)
           .set({
             status: 'matched',
-            snoozedUntil: null,
             dismissedBy: null,
             dismissedAt: null,
           })

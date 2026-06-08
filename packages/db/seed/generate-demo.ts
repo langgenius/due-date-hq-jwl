@@ -2351,7 +2351,7 @@ for (const f of FIRMS) {
 
   // pulse_firm_alert — link every approved shared alert to this firm so the
   // Alerts list + history + the PulseStatusBadge show full variety (matched /
-  // applied / partially_applied / reviewed / snoozed / dismissed) on each firm,
+  // applied / partially_applied / reviewed / dismissed) on each firm,
   // including the dev auto-login Pro Plan. The three pending_review pulses
   // (uuid 5/6/7) are intentionally NOT linked — they live in the review queue.
   const firmAlerts: Array<{
@@ -2359,7 +2359,6 @@ for (const f of FIRMS) {
     status: string
     matched: number
     needsReview: number
-    snoozedUntil?: string
     dismissed?: boolean
     at: string
   }> = [
@@ -2370,14 +2369,7 @@ for (const f of FIRMS) {
     { n: 8, status: 'matched', matched: 2, needsReview: 1, at: '2026-05-01 07:11:00' },
     { n: 9, status: 'partially_applied', matched: 1, needsReview: 1, at: '2026-04-27 13:01:00' },
     { n: 10, status: 'reviewed', matched: 1, needsReview: 0, at: '2026-04-25 11:01:00' },
-    {
-      n: 11,
-      status: 'snoozed',
-      matched: 0,
-      needsReview: 0,
-      snoozedUntil: '2026-06-20 00:00:00',
-      at: '2026-05-01 09:31:00',
-    },
+    { n: 11, status: 'matched', matched: 0, needsReview: 0, at: '2026-05-01 09:31:00' },
     { n: 12, status: 'matched', matched: 1, needsReview: 2, at: '2026-04-22 15:31:00' },
     { n: 13, status: 'matched', matched: 1, needsReview: 0, at: '2026-04-26 17:01:00' },
     { n: 14, status: 'matched', matched: 0, needsReview: 0, at: '2026-05-14 14:31:00' },
@@ -2408,7 +2400,6 @@ for (const f of FIRMS) {
         a.needsReview,
         a.dismissed ? s(f.owner) : 'NULL',
         a.dismissed ? ts(a.at) : 'NULL',
-        a.snoozedUntil ? ts(a.snoozedUntil) : 'NULL',
         ts(a.at),
         ts(a.at),
       ),
@@ -2829,7 +2820,6 @@ const SUPPORT_COLS: Record<string, string[]> = {
     'needs_review_count',
     'dismissed_by',
     'dismissed_at',
-    'snoozed_until',
     'created_at',
     'updated_at',
   ],

@@ -2180,14 +2180,6 @@ msgstr "Alert review requested"
 msgid "Alert reviewed"
 msgstr "Alert reviewed"
 
-#: src/features/audit/audit-log-labels.ts
-msgid "Alert snoozed"
-msgstr "Alert snoozed"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Alert snoozed for 24h"
-msgstr "Alert snoozed for 24h"
-
 #: src/features/alerts/components/PulseSourceMeta.tsx
 msgid "Alert source"
 msgstr "Alert source"
@@ -2613,8 +2605,8 @@ msgid "Apply tax type suggestions"
 msgstr "Apply tax type suggestions"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Apply, snooze, or dismiss to resolve."
-msgstr "Apply, snooze, or dismiss to resolve."
+msgid "Apply, review, or dismiss to resolve."
+msgstr "Apply, review, or dismiss to resolve."
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/clients/ClassificationImpactDialog.tsx
@@ -4904,14 +4896,6 @@ msgstr "Couldn't send reminders"
 msgid "Couldn't send the code"
 msgstr "Couldn't send the code"
 
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Couldn't snooze alert"
-msgstr "Couldn't snooze alert"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Couldn't snooze alerts"
-msgstr "Couldn't snooze alerts"
-
 #: src/routes/account.security.tsx
 #: src/routes/settings.profile.tsx
 msgid "Couldn't start authenticator setup"
@@ -5706,6 +5690,10 @@ msgstr "Dismiss alert: {alertTitle}"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Dismiss alerts"
 msgstr "Dismiss alerts"
+
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "Dismiss brief"
+msgstr "Dismiss brief"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertHistoryView.tsx
@@ -10341,8 +10329,8 @@ msgid "Once"
 msgstr "Once"
 
 #: src/features/alerts/AlertsListPage.tsx
-msgid "Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record. Last 60 days of activity will appear automatically."
-msgstr "Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record. Last 60 days of activity will appear automatically."
+msgid "Once you decide on alerts (apply / review / dismiss) they'll show up here as an immutable record. Last 60 days of activity will appear automatically."
+msgstr "Once you decide on alerts (apply / review / dismiss) they'll show up here as an immutable record. Last 60 days of activity will appear automatically."
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "One unfinished draft import"
@@ -12150,6 +12138,7 @@ msgstr "Reference dates"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
+#: src/features/dashboard/daily-brief-card.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Refresh"
 msgstr "Refresh"
@@ -12645,8 +12634,10 @@ msgstr "Reverting this batch will commit these changes"
 msgid "review"
 msgstr "review"
 
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
+#: src/features/dashboard/actions-list.tsx
 #: src/features/onboarding/rule-review-prompt.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/generation-preview-tab.tsx
@@ -14223,9 +14214,6 @@ msgstr "Smart Priority saved"
 msgid "SNAPSHOT"
 msgstr "SNAPSHOT"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-#: src/features/alerts/AlertsListPage.tsx
-#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/routes/obligations.tsx
 msgid "Snooze"
 msgstr "Snooze"
@@ -14234,46 +14222,9 @@ msgstr "Snooze"
 msgid "Snooze (coming soon)"
 msgstr "Snooze (coming soon)"
 
-#: src/features/alerts/components/PulseAlertActionsRow.tsx
-msgid "Snooze 24h"
-msgstr "Snooze 24h"
-
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "Snooze alert"
-msgstr "Snooze alert"
-
-#: src/features/alerts/components/PulseAlertActionsRow.tsx
-msgid "Snooze alert: {alertTitle}"
-msgstr "Snooze alert: {alertTitle}"
-
 #: src/routes/obligations.tsx
 msgid "Snooze selected deadlines (coming soon)"
 msgstr "Snooze selected deadlines (coming soon)"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-#: src/features/alerts/AlertHistoryView.tsx
-#: src/features/alerts/AlertsListPage.tsx
-#: src/features/alerts/components/AlertCard.tsx
-#: src/features/alerts/components/AlertStatusBadge.tsx
-#: src/features/alerts/components/PulseFormRevisedCard.tsx
-#: src/features/audit/audit-log-labels.ts
-msgid "Snoozed"
-msgstr "Snoozed"
-
-#. placeholder {0}: result.alerts.length
-#. placeholder {1}: result.failedIds.length
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Snoozed {0} · {1} couldn't be snoozed"
-msgstr "Snoozed {0} · {1} couldn't be snoozed"
-
-#. placeholder {0}: result.alerts.length
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Snoozed {0} alerts for 24h"
-msgstr "Snoozed {0} alerts for 24h"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Snoozed until"
-msgstr "Snoozed until"
 
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "SOC 2"
@@ -15346,6 +15297,10 @@ msgstr "This alert is review-only and does not apply due-date overlays."
 msgid "This alert points to the official IRS Revenue Procedure and asserts no specific threshold figures. Review the source before advising clients."
 msgstr "This alert points to the official IRS Revenue Procedure and asserts no specific threshold figures. Review the source before advising clients."
 
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "This brief is out of date — regenerate it"
+msgstr "This brief is out of date — regenerate it"
+
 #: src/routes/rules.library.tsx
 msgid "This change takes effect {effectiveLabel}."
 msgstr "This change takes effect {effectiveLabel}."
@@ -15527,8 +15482,8 @@ msgid "This saves the firm's internal extension plan for this deadline. The inte
 msgstr "This saves the firm's internal extension plan for this deadline. The internal target date must be on or before the filing deadline. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "This source is no longer trusted. The historical alert remains visible, but new apply, dismiss, snooze, and undo actions are disabled."
-msgstr "This source is no longer trusted. The historical alert remains visible, but new apply, dismiss, snooze, and undo actions are disabled."
+msgid "This source is no longer trusted. The historical alert remains visible, but new apply, review, dismiss, and undo actions are disabled."
+msgstr "This source is no longer trusted. The historical alert remains visible, but new apply, review, dismiss, and undo actions are disabled."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This source-defined rule is missing an official source."

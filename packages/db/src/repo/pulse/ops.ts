@@ -348,7 +348,7 @@ export function makePulseOpsRepo(db: Db) {
           .onConflictDoUpdate({
             target: [pulseFirmAlert.firmId, pulseFirmAlert.pulseId],
             // preserveStatus (catch-up / sweep): refresh the counts but never
-            // reset a firm's dismissed/snoozed alert back to 'matched'.
+            // reset a firm's dismissed alert back to 'matched'.
             set: opts?.preserveStatus
               ? {
                   matchedCount: count.matchedCount,
@@ -370,7 +370,7 @@ export function makePulseOpsRepo(db: Db) {
   // (protective-claim windows + unexpired deadline shifts), reusing the live
   // fan-out so counts are real instead of zero. Scope to one firm (opt-in
   // catch-up) or all active firms (periodic sweep). `preserveStatus` keeps a
-  // firm's dismissed/snoozed alert from being resurrected; deadline shifts only
+  // firm's dismissed alert from being resurrected; deadline shifts only
   // materialize where the firm has a matching obligation (`skipZeroImpact`).
   async function refreshStillOpenWindows(opts: { firmId?: string; now: Date }): Promise<number> {
     const candidates = await db
@@ -1181,7 +1181,7 @@ export function makePulseOpsRepo(db: Db) {
     /**
      * Periodic sweep: re-fan-out every still-open, high-value window to ALL active
      * firms. Reaches firms that joined after approval and refreshes counts as
-     * clients are added, without resurrecting dismissed/snoozed alerts. Driven
+     * clients are added, without resurrecting dismissed alerts. Driven
      * daily from the cron tick.
      */
     async refreshStillOpenWindowsForAllFirms(now: Date = new Date()): Promise<number> {

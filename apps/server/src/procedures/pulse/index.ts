@@ -810,32 +810,11 @@ const dismiss = os.pulse.dismiss.handler(async ({ input, context }) => {
   }
 })
 
-const snooze = os.pulse.snooze.handler(async ({ input, context }) => {
-  const { userId } = await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
-  const { scoped, tenant } = requireTenant(context)
-  requireProductionPulse(tenant.plan)
-  try {
-    const result = await scoped.pulse.snooze({
-      alertId: input.alertId,
-      userId,
-      until: new Date(input.until),
-      ...(input.reason ? { reason: input.reason } : {}),
-    })
-    await enqueueDashboardBriefRefresh(context.env, {
-      firmId: tenant.firmId,
-      reason: 'pulse_dismiss',
-    }).catch(() => false)
-    return { alert: toAlertPublic(result.alert), auditId: result.auditId }
-  } catch (error) {
-    return mapPulseError(error)
-  }
-})
-
-// 2026-06-07 (Pencil g5kKJQ): bulk dismiss/snooze for the alerts list
-// bulk-action bar. Loops the existing per-alert repo methods so every
-// alert keeps its own audit event, collects successes + failedIds, and
-// fires a single dashboard-brief refresh at the end. A failure on one
-// alert never aborts the batch.
+// 2026-06-07 (Pencil g5kKJQ): bulk dismiss for the alerts list bulk-action
+// bar. Loops the existing per-alert repo method so every alert keeps its own
+// audit event, collects successes + failedIds, and fires a single
+// dashboard-brief refresh at the end. A failure on one alert never aborts
+// the batch.
 const bulkDismiss = os.pulse.bulkDismiss.handler(async ({ input, context }) => {
   const { userId } = await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
   const { scoped, tenant } = requireTenant(context)
@@ -848,37 +827,6 @@ const bulkDismiss = os.pulse.bulkDismiss.handler(async ({ input, context }) => {
       const result = await scoped.pulse.dismiss({
         alertId,
         userId,
-        ...(input.reason ? { reason: input.reason } : {}),
-      })
-      alerts.push(toAlertPublic(result.alert))
-      auditIds.push(result.auditId)
-    } catch {
-      failedIds.push(alertId)
-    }
-  }
-  if (alerts.length > 0) {
-    await enqueueDashboardBriefRefresh(context.env, {
-      firmId: tenant.firmId,
-      reason: 'pulse_dismiss',
-    }).catch(() => false)
-  }
-  return { alerts, auditIds, failedIds }
-})
-
-const bulkSnooze = os.pulse.bulkSnooze.handler(async ({ input, context }) => {
-  const { userId } = await requireCurrentFirmRole(context, PULSE_REVIEW_ROLES)
-  const { scoped, tenant } = requireTenant(context)
-  requireProductionPulse(tenant.plan)
-  const until = new Date(input.until)
-  const alerts: ReturnType<typeof toAlertPublic>[] = []
-  const auditIds: string[] = []
-  const failedIds: string[] = []
-  for (const alertId of input.alertIds) {
-    try {
-      const result = await scoped.pulse.snooze({
-        alertId,
-        userId,
-        until,
         ...(input.reason ? { reason: input.reason } : {}),
       })
       alerts.push(toAlertPublic(result.alert))
@@ -1345,9 +1293,7 @@ export const pulseHandlers = {
   applyReviewed,
   apply,
   dismiss,
-  snooze,
   bulkDismiss,
-  bulkSnooze,
   markReviewed,
   revert,
   reactivate,

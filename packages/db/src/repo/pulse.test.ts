@@ -469,7 +469,6 @@ describe('makePulseRepo', () => {
     // rows — SQL is what bounds them to expired ones in production.
     const handledStatuses = [
       'dismissed',
-      'snoozed',
       'partially_applied',
       'applied',
       'reverted',
@@ -964,7 +963,7 @@ describe('makePulseRepo', () => {
     expect(batchStatements).toHaveLength(0)
   })
 
-  it('writes default audit reasons for direct dismiss and snooze actions', async () => {
+  it('writes a default audit reason for direct dismiss actions', async () => {
     const { db: dismissDb, batchStatements: dismissStatements } = fakeDb([
       [ALERT],
       [{ ...ALERT, alertStatus: 'dismissed' as const }],
@@ -985,30 +984,6 @@ describe('makePulseRepo', () => {
     expect(
       dismissStatements.some((statement) =>
         statementHasValue(statement, { reason: 'Dismissed from Pulse detail.' }),
-      ),
-    ).toBe(true)
-
-    const { db: snoozeDb, batchStatements: snoozeStatements } = fakeDb([
-      [ALERT],
-      [{ ...ALERT, alertStatus: 'snoozed' as const }],
-    ])
-    const snoozeRepo = makePulseRepo(snoozeDb, 'firm-1')
-
-    await snoozeRepo.snooze({
-      alertId: 'alert-1',
-      userId: 'user-1',
-      until: new Date('2026-04-16T19:00:00.000Z'),
-      now: new Date('2026-04-15T19:00:00.000Z'),
-    })
-
-    expect(
-      snoozeStatements.some((statement) =>
-        statementHasValue(statement, { action: 'pulse.snooze' }),
-      ),
-    ).toBe(true)
-    expect(
-      snoozeStatements.some((statement) =>
-        statementHasValue(statement, { reason: 'Snoozed for 24 hours from Pulse detail.' }),
       ),
     ).toBe(true)
   })

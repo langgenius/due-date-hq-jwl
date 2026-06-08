@@ -104,22 +104,15 @@ vi.mock('@/lib/rpc', () => ({
         }),
       },
       // 2026-06-05 (post-merge regression fix): rounds 70-85 wired
-      // hover-only Snooze + Dismiss buttons on each list row through
-      // `orpc.pulse.snooze` / `orpc.pulse.dismiss`. The component
-      // calls `mutationOptions(...)` at render time, so the mocks
-      // need to exist even though these tests don't exercise the
-      // mutations. Returning a benign mutationOptions shape keeps
-      // useMutation happy.
+      // a hover-only Dismiss button on each list row through
+      // `orpc.pulse.dismiss`. The component calls `mutationOptions(...)`
+      // at render time, so the mocks need to exist even though these
+      // tests don't exercise the mutations. Returning a benign
+      // mutationOptions shape keeps useMutation happy.
       dismiss: {
         mutationOptions: () => ({ mutationFn: vi.fn() }),
       },
-      snooze: {
-        mutationOptions: () => ({ mutationFn: vi.fn() }),
-      },
       bulkDismiss: {
-        mutationOptions: () => ({ mutationFn: vi.fn() }),
-      },
-      bulkSnooze: {
         mutationOptions: () => ({ mutationFn: vi.fn() }),
       },
       // 2026-06-07 (Pencil g5kKJQ `IciLB PriorityReasons`): the page
@@ -442,7 +435,7 @@ describe('AlertsListPage tax area filter', () => {
 // 2026-06-07 (Pencil g5kKJQ): the active /alerts list grows a
 // bulk-select strip + per-row checkboxes + a floating bulk-action
 // bar. History rows are already-handled, so they are NOT selectable
-// (mirrors the existing history-mode snooze/dismiss suppression).
+// (mirrors the existing history-mode dismiss suppression).
 describe('AlertsListPage bulk selection (Pencil g5kKJQ)', () => {
   it('renders the Select all strip + a per-row checkbox on the active surface', async () => {
     rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [listAlert()], nextCursor: null })
@@ -475,13 +468,12 @@ describe('AlertsListPage bulk selection (Pencil g5kKJQ)', () => {
     })
 
     // The BulkActionBar (`saDv7`) appears with the selection read-out
-    // and the wired Snooze + Dismiss actions.
+    // and the wired Dismiss action.
     await waitFor(() =>
       expect(document.querySelector('[aria-label="Bulk actions"]')).not.toBeNull(),
     )
     const bar = document.querySelector('[aria-label="Bulk actions"]')
     expect(bar?.textContent).toContain('1 selected')
-    expect(bar?.textContent).toContain('Snooze')
     expect(bar?.textContent).toContain('Dismiss')
   })
 

@@ -30,11 +30,9 @@ export const NOTIFICATION_BATCH_SIZE = Math.floor(100 / 10)
 export const REVERT_WINDOW_MS = 24 * 60 * 60 * 1000
 export const PULSE_DUPLICATE_WINDOW_MS = 45 * 24 * 60 * 60 * 1000
 export const PULSE_DISMISS_DEFAULT_AUDIT_REASON = 'Dismissed from Pulse detail.'
-export const PULSE_SNOOZE_DEFAULT_AUDIT_REASON = 'Snoozed for 24 hours from Pulse detail.'
 export const PULSE_MARK_REVIEWED_DEFAULT_AUDIT_REASON = 'Marked reviewed from Pulse detail.'
 export const PULSE_HANDLED_ALERT_STATUSES = [
   'dismissed',
-  'snoozed',
   'partially_applied',
   'applied',
   'reverted',

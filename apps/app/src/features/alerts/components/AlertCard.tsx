@@ -36,12 +36,11 @@ interface AlertCardProps {
    * so the card renders fine before the batch resolves (or in isolation).
    */
   affectedClients?: PulseAffectedClient[]
-  // 2026-06-04: Snooze/Archive/Dismiss handlers drive the hover-revealed
+  // 2026-06-04: Archive/Dismiss handlers drive the hover-revealed
   // PulseAlertActionsRow on the impact row. All optional — callers that only
   // need a read-only card (or rely on the drawer for actions) omit them and
   // the actions row simply renders nothing.
   onDismiss?: (() => void) | undefined
-  onSnooze?: (() => void) | undefined
   // 2026-05-26 (Yuqi /alerts sixth pass #1): "archive" action always
   // available even on terminal-state alerts — archive is the no-reason
   // move-to-history verb; when a card already lives in the history view this
@@ -91,7 +90,6 @@ export function AlertCard({
   onReview,
   affectedClients = [],
   onDismiss,
-  onSnooze,
   onArchive,
   compact = false,
   active = false,
@@ -226,22 +224,18 @@ export function AlertCard({
               ? t`Needs Action`
               : actionPill.id === 'needs-review'
                 ? t`Needs Review`
-                : actionPill.id === 'snoozed'
-                  ? t`Snoozed`
-                  : t`Closed`
+                : t`Closed`
             : null
           const openLabel =
             openId === 'open'
               ? t`Open`
-              : openId === 'snoozed'
-                ? t`Snoozed`
-                : openId === 'applied'
-                  ? t`Applied`
-                  : openId === 'dismissed'
-                    ? t`Dismissed`
-                    : openId === 'partial'
-                      ? t`Partially applied`
-                      : t`Reverted`
+              : openId === 'applied'
+                ? t`Applied`
+                : openId === 'dismissed'
+                  ? t`Dismissed`
+                  : openId === 'partial'
+                    ? t`Partially applied`
+                    : t`Reverted`
           return (
             <>
               {/* Top meta row — severity pill + source on the left,
@@ -481,7 +475,7 @@ export function AlertCard({
             confidence={lowConfidence ? 'low' : mediumConfidence ? 'medium' : 'high'}
           />
           <span className="flex-1" aria-hidden />
-          {/* Review + hover-revealed Snooze/Archive/Dismiss anchor the
+          {/* Review + hover-revealed Archive/Dismiss anchor the
               footer's right edge. Hover-revealed so the action chrome
               doesn't claim resting-state weight (visible when the card
               is active / focused-within for keyboard users). */}
@@ -512,7 +506,6 @@ export function AlertCard({
             >
               <PulseAlertActionsRow
                 alertTitle={alert.title}
-                onSnooze={onSnooze}
                 onArchive={onArchive}
                 onDismiss={onDismiss}
               />

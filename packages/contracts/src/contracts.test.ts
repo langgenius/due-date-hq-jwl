@@ -122,7 +122,6 @@ import {
   PulseReviewDueDateOverlayDetailsInputSchema,
   PulseRequestReviewInputSchema,
   PulseRequestReviewOutputSchema,
-  PulseSnoozeInputSchema,
   pulseContract,
 } from './pulse'
 import {
@@ -1178,7 +1177,6 @@ describe('@duedatehq/contracts', () => {
     expect(PulseAuditActionSchema.parse('pulse.dismiss')).toBe('pulse.dismiss')
     expect(PulseAuditActionSchema.parse('pulse.quarantine')).toBe('pulse.quarantine')
     expect(PulseAuditActionSchema.parse('pulse.source_revoked')).toBe('pulse.source_revoked')
-    expect(PulseAuditActionSchema.parse('pulse.snooze')).toBe('pulse.snooze')
     expect(AuditActionSchema.parse('pulse.revert')).toBe('pulse.revert')
     expect(AuditActionSchema.parse('pulse.reactivate')).toBe('pulse.reactivate')
     expect(AuditActionSchema.parse('pulse.review_requested')).toBe('pulse.review_requested')
@@ -1212,9 +1210,7 @@ describe('@duedatehq/contracts', () => {
       'applyReviewed',
       'apply',
       'dismiss',
-      'snooze',
       'bulkDismiss',
-      'bulkSnooze',
       'markReviewed',
       'revert',
       'reactivate',
@@ -1225,7 +1221,6 @@ describe('@duedatehq/contracts', () => {
     expect(PulseFirmAlertStatusSchema.options).toEqual([
       'matched',
       'dismissed',
-      'snoozed',
       'partially_applied',
       'applied',
       'reverted',
@@ -1233,7 +1228,6 @@ describe('@duedatehq/contracts', () => {
     ])
     expect(PulseHandledFirmAlertStatusSchema.options).toEqual([
       'dismissed',
-      'snoozed',
       'partially_applied',
       'applied',
       'reverted',
@@ -1244,9 +1238,9 @@ describe('@duedatehq/contracts', () => {
     expect(PulseListAlertsInputSchema.parse({ limit: 50 })).toEqual({ limit: 50 })
     expect(PulseListAlertsInputSchema.safeParse({ limit: 51 }).success).toBe(false)
     expect(PulseListHistoryInputSchema.safeParse({ status: 'matched' }).success).toBe(false)
-    expect(PulseListHistoryInputSchema.parse({ status: 'snoozed' })).toEqual({
+    expect(PulseListHistoryInputSchema.parse({ status: 'dismissed' })).toEqual({
       limit: 20,
-      status: 'snoozed',
+      status: 'dismissed',
     })
     // 2026-06-05 (Load more): both list inputs accept an optional keyset
     // cursor. Absent leaves the shape unchanged (asserted above); present
@@ -1256,9 +1250,9 @@ describe('@duedatehq/contracts', () => {
       cursor: null,
     })
     expect(PulseListAlertsInputSchema.parse({ cursor: 'eyJjIjoxfQ' })?.cursor).toBe('eyJjIjoxfQ')
-    expect(PulseListHistoryInputSchema.parse({ status: 'snoozed', cursor: 'c1' })).toEqual({
+    expect(PulseListHistoryInputSchema.parse({ status: 'dismissed', cursor: 'c1' })).toEqual({
       limit: 20,
-      status: 'snoozed',
+      status: 'dismissed',
       cursor: 'c1',
     })
 
@@ -1376,12 +1370,6 @@ describe('@duedatehq/contracts', () => {
     expect(requestReviewInput.note).toBe('Please review LA County applicability.')
 
     expect(PulseDismissInputSchema.parse({ alertId: alert.id })).toEqual({ alertId: alert.id })
-    expect(
-      PulseSnoozeInputSchema.parse({
-        alertId: alert.id,
-        until: '2026-04-16T18:00:00.000Z',
-      }),
-    ).toEqual({ alertId: alert.id, until: '2026-04-16T18:00:00.000Z' })
     expect(PulseMarkReviewedInputSchema.parse({ alertId: alert.id })).toEqual({
       alertId: alert.id,
     })

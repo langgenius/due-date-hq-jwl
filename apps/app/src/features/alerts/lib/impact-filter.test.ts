@@ -39,7 +39,7 @@ describe('matchesAlertImpactFilter', () => {
 
   it('keeps closed and watch-only rows out of needs action', () => {
     expect(matchesAlertImpactFilter(alert({ status: 'applied' }), 'needs_action')).toBe(false)
-    expect(matchesAlertImpactFilter(alert({ status: 'snoozed' }), 'needs_action')).toBe(false)
+    expect(matchesAlertImpactFilter(alert({ status: 'dismissed' }), 'needs_action')).toBe(false)
     expect(
       matchesAlertImpactFilter(alert({ matchedCount: 0, needsReviewCount: 0 }), 'needs_action'),
     ).toBe(false)

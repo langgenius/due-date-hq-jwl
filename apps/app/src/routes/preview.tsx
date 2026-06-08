@@ -1649,7 +1649,7 @@ export function PreviewRoute() {
                   variant="prominent"
                   icon={HistoryIcon}
                   title="No history yet"
-                  description="Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record."
+                  description="Once you decide on alerts (apply / review / dismiss) they'll show up here as an immutable record."
                   cta={
                     <Button variant="outline" size="sm">
                       Go to alerts
@@ -1661,7 +1661,7 @@ export function PreviewRoute() {
                         What gets recorded
                       </p>
                       <div className="flex flex-wrap items-center justify-center gap-2">
-                        {['Apply', 'Dismiss', 'Snooze', 'Revert'].map((label) => (
+                        {['Apply', 'Review', 'Dismiss', 'Revert'].map((label) => (
                           <span
                             key={label}
                             className="inline-flex items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2.5 py-1 text-xs font-medium text-text-secondary"
@@ -1891,7 +1891,6 @@ export function PreviewRoute() {
           >
             <Row label="AlertStatusBadge" mono="features/pulse/AlertStatusBadge">
               <AlertStatusBadge status="matched" />
-              <AlertStatusBadge status="snoozed" />
               <AlertStatusBadge status="partially_applied" />
               <AlertStatusBadge status="applied" />
               <AlertStatusBadge status="reverted" />

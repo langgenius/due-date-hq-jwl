@@ -17,7 +17,6 @@ export type PulseStatus = (typeof PULSE_STATUSES)[number]
 export const PULSE_FIRM_ALERT_STATUSES = [
   'matched',
   'dismissed',
-  'snoozed',
   'partially_applied',
   'applied',
   'reverted',
@@ -290,7 +289,6 @@ export const pulseFirmAlert = sqliteTable(
     needsReviewCount: integer('needs_review_count').notNull().default(0),
     dismissedBy: text('dismissed_by').references(() => user.id, { onDelete: 'set null' }),
     dismissedAt: integer('dismissed_at', { mode: 'timestamp_ms' }),
-    snoozedUntil: integer('snoozed_until', { mode: 'timestamp_ms' }),
 
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)

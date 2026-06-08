@@ -13,7 +13,6 @@ import { summarizeAlertSources } from './source-health-labels'
 export const ACTIVE_STATUS_FILTER_OPTIONS = ['all', 'active', 'partially_applied'] as const
 export const HISTORY_STATUS_FILTER_OPTIONS = [
   'all',
-  'snoozed',
   'partially_applied',
   'applied',
   'reviewed',

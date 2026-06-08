@@ -573,7 +573,7 @@ function AddFirmDialog({
 //
 // 2026-05-29 (Alerts active/history split): keep this badge scoped to
 // the active queue. Alert history is now CPA-handled alerts and can
-// include snoozed / applied / dismissed rows that should not inflate
+// include applied / dismissed rows that should not inflate
 // the sidebar's needs-attention count.
 function useActiveAlertCount(): number {
   const query = useQuery(orpc.pulse.activeCount.queryOptions({ input: undefined }))

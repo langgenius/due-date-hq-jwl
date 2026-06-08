@@ -15,7 +15,6 @@ export type PulseStatus = z.infer<typeof PulseStatusSchema>
 export const PulseFirmAlertStatusSchema = z.enum([
   'matched',
   'dismissed',
-  'snoozed',
   'partially_applied',
   'applied',
   'reverted',
@@ -25,7 +24,6 @@ export type PulseFirmAlertStatus = z.infer<typeof PulseFirmAlertStatusSchema>
 
 export const PulseHandledFirmAlertStatusSchema = z.enum([
   'dismissed',
-  'snoozed',
   'partially_applied',
   'applied',
   'reverted',
@@ -360,13 +358,6 @@ export const PulseApplyInputSchema = z.object({
 })
 export type PulseApplyInput = z.infer<typeof PulseApplyInputSchema>
 
-export const PulseSnoozeInputSchema = z.object({
-  alertId: EntityIdSchema,
-  until: z.iso.datetime(),
-  reason: z.string().trim().min(1).max(500).optional(),
-})
-export type PulseSnoozeInput = z.infer<typeof PulseSnoozeInputSchema>
-
 export const PulseDismissInputSchema = z.object({
   alertId: EntityIdSchema,
   reason: z.string().trim().min(1).max(500).optional(),
@@ -420,26 +411,15 @@ export const PulseDismissOutputSchema = z.object({
 })
 export type PulseDismissOutput = z.infer<typeof PulseDismissOutputSchema>
 
-export const PulseSnoozeOutputSchema = PulseDismissOutputSchema
-export type PulseSnoozeOutput = z.infer<typeof PulseSnoozeOutputSchema>
-
-// 2026-06-07 (Pencil g5kKJQ): bulk dismiss/snooze for the alerts list
-// bulk-action bar. One round-trip instead of N client-side calls; each
-// alert still gets its own audit event server-side. Alerts that fail
-// (already-terminal, unauthorized, snooze in the past) are returned in
-// `failedIds` rather than aborting the whole batch.
+// 2026-06-07 (Pencil g5kKJQ): bulk dismiss for the alerts list bulk-action
+// bar. One round-trip instead of N client-side calls; each alert still gets
+// its own audit event server-side. Alerts that fail (already-terminal,
+// unauthorized) are returned in `failedIds` rather than aborting the whole batch.
 export const PulseBulkDismissInputSchema = z.object({
   alertIds: z.array(EntityIdSchema).min(1).max(100),
   reason: z.string().trim().min(1).max(500).optional(),
 })
 export type PulseBulkDismissInput = z.infer<typeof PulseBulkDismissInputSchema>
-
-export const PulseBulkSnoozeInputSchema = z.object({
-  alertIds: z.array(EntityIdSchema).min(1).max(100),
-  until: z.iso.datetime(),
-  reason: z.string().trim().min(1).max(500).optional(),
-})
-export type PulseBulkSnoozeInput = z.infer<typeof PulseBulkSnoozeInputSchema>
 
 export const PulseBulkActionOutputSchema = z.object({
   alerts: z.array(PulseAlertPublicSchema),
@@ -608,9 +588,7 @@ export const pulseContract = oc.router({
   applyReviewed: oc.input(PulseAlertIdInputSchema).output(PulseApplyOutputSchema),
   apply: oc.input(PulseApplyInputSchema).output(PulseApplyOutputSchema),
   dismiss: oc.input(PulseDismissInputSchema).output(PulseDismissOutputSchema),
-  snooze: oc.input(PulseSnoozeInputSchema).output(PulseSnoozeOutputSchema),
   bulkDismiss: oc.input(PulseBulkDismissInputSchema).output(PulseBulkActionOutputSchema),
-  bulkSnooze: oc.input(PulseBulkSnoozeInputSchema).output(PulseBulkActionOutputSchema),
   markReviewed: oc.input(PulseMarkReviewedInputSchema).output(PulseMarkReviewedOutputSchema),
   revert: oc.input(PulseAlertIdInputSchema).output(PulseRevertOutputSchema),
   reactivate: oc.input(PulseAlertIdInputSchema).output(PulseReactivateOutputSchema),

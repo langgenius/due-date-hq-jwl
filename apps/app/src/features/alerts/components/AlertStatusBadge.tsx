@@ -1,12 +1,5 @@
 import { useLingui } from '@lingui/react/macro'
-import {
-  AlarmClock,
-  CheckCheck,
-  CircleCheckBig,
-  FileCheck,
-  Undo2,
-  type LucideIcon,
-} from 'lucide-react'
+import { CheckCheck, CircleCheckBig, FileCheck, Undo2, type LucideIcon } from 'lucide-react'
 
 import type { PulseFirmAlertStatus } from '@duedatehq/contracts'
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -21,8 +14,7 @@ interface AlertStatusBadgeProps {
 // vocabulary is alert-specific: CircleCheckBig = the alert is open
 // / active; Undo2 = the alert is in a terminal state that could be
 // reversed (applied / partially_applied / reverted / dismissed);
-// AlarmClock = snoozed (will return later); FileCheck = reviewed
-// (acknowledged + closed).
+// FileCheck = reviewed (acknowledged + closed).
 // 2026-05-26 (Yuqi sixteenth pass #9): `applied` switched from
 // `Undo2` to `CheckCheck` — Yuqi flagged that "applied" should
 // signal "task completed", not "can be undone". The remaining
@@ -30,7 +22,6 @@ interface AlertStatusBadgeProps {
 // the "reverseable terminal state" semantic.
 export const ALERT_STATUS_ICON: Record<PulseFirmAlertStatus, LucideIcon> = {
   matched: CircleCheckBig,
-  snoozed: AlarmClock,
   applied: CheckCheck,
   partially_applied: Undo2,
   reviewed: FileCheck,
@@ -50,14 +41,13 @@ export const ALERT_STATUS_ICON: Record<PulseFirmAlertStatus, LucideIcon> = {
 //     as a SEPARATE small `NEW` chip rendered alongside the status
 //     pill (see AlertCard) when the alert hasn't been actioned
 //     yet. The status pill itself should describe the *workflow*
-//     state (Open / Applied / Snoozed / Dismissed / …), not the
+//     state (Open / Applied / Dismissed / …), not the
 //     read-state — the read-state is a different dimension.
 //   • Variants mapped per terminal-vs-active semantics, matching the
 //     obligation pill tone ladder:
 //       matched           → outline   (Open — quiet, no action yet)
 //       applied / reviewed → success  (terminal good)
 //       partially_applied → warning   (partial, needs attention)
-//       snoozed           → secondary (parked, will return)
 //       dismissed         → secondary (parked, won't return)
 //       reverted          → outline   (undone, back to baseline)
 export function AlertStatusBadge({ status }: AlertStatusBadgeProps) {
@@ -67,7 +57,6 @@ export function AlertStatusBadge({ status }: AlertStatusBadgeProps) {
     { label: string; variant: 'outline' | 'success' | 'warning' | 'secondary' }
   > = {
     matched: { label: t`Open`, variant: 'outline' },
-    snoozed: { label: t`Snoozed`, variant: 'secondary' },
     partially_applied: { label: t`Partially applied`, variant: 'warning' },
     applied: { label: t`Applied`, variant: 'success' },
     reverted: { label: t`Reverted`, variant: 'outline' },

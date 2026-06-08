@@ -2205,14 +2205,6 @@ msgstr "已请求查看提醒"
 msgid "Alert reviewed"
 msgstr "提醒已查看"
 
-#: src/features/audit/audit-log-labels.ts
-msgid "Alert snoozed"
-msgstr "提醒已暂缓"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Alert snoozed for 24h"
-msgstr "提醒已暂缓 24 小时"
-
 #: src/features/alerts/components/PulseSourceMeta.tsx
 msgid "Alert source"
 msgstr "提醒来源"
@@ -2639,8 +2631,8 @@ msgid "Apply tax type suggestions"
 msgstr "应用税种建议"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Apply, snooze, or dismiss to resolve."
-msgstr "应用、稍后提醒或忽略以处理。"
+msgid "Apply, review, or dismiss to resolve."
+msgstr "应用、审核或忽略以处理。"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/clients/ClassificationImpactDialog.tsx
@@ -4942,14 +4934,6 @@ msgstr "无法发送提醒"
 msgid "Couldn't send the code"
 msgstr "无法发送验证码"
 
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Couldn't snooze alert"
-msgstr "无法暂缓提醒"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Couldn't snooze alerts"
-msgstr "无法暂缓提醒"
-
 #: src/routes/account.security.tsx
 #: src/routes/settings.profile.tsx
 msgid "Couldn't start authenticator setup"
@@ -5749,6 +5733,10 @@ msgstr "忽略提醒：{alertTitle}"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Dismiss alerts"
 msgstr "忽略提醒"
+
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "Dismiss brief"
+msgstr "忽略简报"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/alerts/AlertHistoryView.tsx
@@ -10412,8 +10400,8 @@ msgid "Once"
 msgstr "一次"
 
 #: src/features/alerts/AlertsListPage.tsx
-msgid "Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an immutable record. Last 60 days of activity will appear automatically."
-msgstr "一旦您对提醒做出处理（应用 / 忽略 / 暂缓），它们将作为不可更改的记录显示在此处。最近 60 天的活动将自动显示。"
+msgid "Once you decide on alerts (apply / review / dismiss) they'll show up here as an immutable record. Last 60 days of activity will appear automatically."
+msgstr "一旦您对提醒做出处理（应用 / 审核 / 忽略），它们将作为不可更改的记录显示在此处。最近 60 天的活动将自动显示。"
 
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "One unfinished draft import"
@@ -12239,6 +12227,7 @@ msgstr "参考日期"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
+#: src/features/dashboard/daily-brief-card.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Refresh"
 msgstr "刷新"
@@ -12737,8 +12726,10 @@ msgstr "撤回此批次将提交这些更改"
 msgid "review"
 msgstr "预览"
 
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
+#: src/features/dashboard/actions-list.tsx
 #: src/features/onboarding/rule-review-prompt.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/generation-preview-tab.tsx
@@ -14323,9 +14314,6 @@ msgstr "Smart Priority 已保存"
 msgid "SNAPSHOT"
 msgstr "快照"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-#: src/features/alerts/AlertsListPage.tsx
-#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/routes/obligations.tsx
 msgid "Snooze"
 msgstr "暂缓"
@@ -14334,46 +14322,9 @@ msgstr "暂缓"
 msgid "Snooze (coming soon)"
 msgstr "暂缓（即将推出）"
 
-#: src/features/alerts/components/PulseAlertActionsRow.tsx
-msgid "Snooze 24h"
-msgstr "暂缓 24 小时"
-
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "Snooze alert"
-msgstr "暂缓提醒"
-
-#: src/features/alerts/components/PulseAlertActionsRow.tsx
-msgid "Snooze alert: {alertTitle}"
-msgstr "暂缓提醒：{alertTitle}"
-
 #: src/routes/obligations.tsx
 msgid "Snooze selected deadlines (coming soon)"
 msgstr "暂缓所选截止事项（即将推出）"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-#: src/features/alerts/AlertHistoryView.tsx
-#: src/features/alerts/AlertsListPage.tsx
-#: src/features/alerts/components/AlertCard.tsx
-#: src/features/alerts/components/AlertStatusBadge.tsx
-#: src/features/alerts/components/PulseFormRevisedCard.tsx
-#: src/features/audit/audit-log-labels.ts
-msgid "Snoozed"
-msgstr "已暂缓"
-
-#. placeholder {0}: result.alerts.length
-#. placeholder {1}: result.failedIds.length
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Snoozed {0} · {1} couldn't be snoozed"
-msgstr "已暂缓 {0} 条 · {1} 条无法暂缓"
-
-#. placeholder {0}: result.alerts.length
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Snoozed {0} alerts for 24h"
-msgstr "已暂缓 {0} 条提醒 24 小时"
-
-#: src/features/audit/audit-log-labels.ts
-msgid "Snoozed until"
-msgstr "暂缓至"
 
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "SOC 2"
@@ -15450,6 +15401,10 @@ msgstr "此提醒仅供查看，不会应用到期日叠加。"
 msgid "This alert points to the official IRS Revenue Procedure and asserts no specific threshold figures. Review the source before advising clients."
 msgstr "此提醒指向官方 IRS Revenue Procedure，且不声明具体阈值金额。向客户建议前请先复核来源。"
 
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "This brief is out of date — regenerate it"
+msgstr "此简报已过期 —— 请重新生成"
+
 #: src/routes/rules.library.tsx
 msgid "This change takes effect {effectiveLabel}."
 msgstr "此变更将于 {effectiveLabel} 生效。"
@@ -15631,8 +15586,8 @@ msgid "This saves the firm's internal extension plan for this deadline. The inte
 msgstr "这会保存事务所对此截止事项的内部延期计划。内部目标日期必须在申报截止日期当日或之前。它不会更新到期日、修改客户记录或确认对监管方的申报。缴款可能仍需在原始日期前完成。"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "This source is no longer trusted. The historical alert remains visible, but new apply, dismiss, snooze, and undo actions are disabled."
-msgstr "此来源不再受信任。历史提醒仍可查看，但新的应用、忽略、暂缓和撤销操作已停用。"
+msgid "This source is no longer trusted. The historical alert remains visible, but new apply, review, dismiss, and undo actions are disabled."
+msgstr "此来源不再受信任。历史提醒仍可查看，但新的应用、审核、忽略和撤销操作已停用。"
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "This source-defined rule is missing an official source."

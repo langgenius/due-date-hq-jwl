@@ -38,7 +38,7 @@ import { changeKindLabel } from './components/PulseChangeKindChip'
 
 const HISTORY_LIMIT = 50
 
-type HistoryTab = 'all' | 'applied' | 'dismissed' | 'snoozed' | 'reverted' | 'expired'
+type HistoryTab = 'all' | 'applied' | 'dismissed' | 'reverted' | 'expired'
 
 // Single source of truth for the tab ladder — the label travels with
 // the id so the rendered control can never desync from the tab it
@@ -46,15 +46,14 @@ type HistoryTab = 'all' | 'applied' | 'dismissed' | 'snoozed' | 'reverted' | 'ex
 // branch, so both 'reverted' and 'expired' fell through to "Reverted").
 //
 // 2026-06-08 (Pencil hFOEo `rgWeB FilterRow`): the design's segmented
-// control carries exactly FIVE tabs — All / Applied / Dismissed /
-// Snoozed / Reverted. There is no "Expired" tab; expired (aged-out
-// `matched`) rows still surface under "All" with their Expired status
-// badge, and the Expired STAT card above keeps the standalone count.
+// control carries FOUR tabs — All / Applied / Dismissed / Reverted.
+// There is no "Expired" tab; expired (aged-out `matched`) rows still
+// surface under "All" with their Expired status badge, and the Expired
+// STAT card above keeps the standalone count.
 const TABS: { id: HistoryTab; label: React.ReactNode }[] = [
   { id: 'all', label: <Trans>All</Trans> },
   { id: 'applied', label: <Trans>Applied</Trans> },
   { id: 'dismissed', label: <Trans>Dismissed</Trans> },
-  { id: 'snoozed', label: <Trans>Snoozed</Trans> },
   { id: 'reverted', label: <Trans>Reverted</Trans> },
 ]
 
@@ -65,7 +64,6 @@ const STATUS_META: Record<
   applied: { label: 'Applied', variant: 'success' },
   partially_applied: { label: 'Partly applied', variant: 'success' },
   dismissed: { label: 'Dismissed', variant: 'secondary' },
-  snoozed: { label: 'Snoozed', variant: 'warning' },
   // 2026-06-08 (design audit task 9 — red restraint): a handled
   // archive is calm; nothing here is urgent. A revert is a normal
   // logged outcome, not an alarm, so it reads as a neutral chip
@@ -107,11 +105,10 @@ export function AlertHistoryView() {
     const handled = alerts.length
     const applied = by((s) => s === 'applied' || s === 'partially_applied')
     const dismissed = by((s) => s === 'dismissed')
-    const snoozed = by((s) => s === 'snoozed')
     const reverted = by((s) => s === 'reverted')
     const expired = by((s) => s === 'matched')
     const pct = (n: number) => (handled > 0 ? Math.round((n / handled) * 100) : 0)
-    return { handled, applied, dismissed, snoozed, reverted, expired, pct }
+    return { handled, applied, dismissed, reverted, expired, pct }
   }, [alerts])
 
   const query = search.trim().toLowerCase()
@@ -187,12 +184,6 @@ export function AlertHistoryView() {
       label: t`Dismissed`,
       value: stats.dismissed,
       sub: `${stats.pct(stats.dismissed)}%`,
-      subTone: 'text-text-tertiary',
-    },
-    {
-      label: t`Snoozed`,
-      value: stats.snoozed,
-      sub: `${stats.pct(stats.snoozed)}%`,
       subTone: 'text-text-tertiary',
     },
     {

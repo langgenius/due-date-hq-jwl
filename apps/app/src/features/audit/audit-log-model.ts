@@ -151,7 +151,6 @@ export const AUDIT_ACTION_LABEL_KEYS = {
   'pulse.revert': 'pulseRevert',
   'pulse.review_requested': 'pulseReviewRequested',
   'pulse.reviewed': 'pulseReviewed',
-  'pulse.snooze': 'pulseSnooze',
   'pulse.source_revoked': 'pulseSourceRevoked',
   'reminder.bounced': 'reminderBounced',
   'reminder.failed': 'reminderFailed',

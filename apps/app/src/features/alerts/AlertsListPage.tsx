@@ -3,19 +3,18 @@ import { Link } from 'react-router'
 // 2026-06-05 (Yuqi post-merge call — "flat list, not Load More"):
 // reverted main's keyset-paginated `useInfiniteQuery` back to our
 // flat `useQuery` with a 50-item page. Rounds 70-85 + 77 wired
-// row-level Snooze / Dismiss via `useMutation` + sonner toast.
+// row-level Dismiss via `useMutation` + sonner toast.
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { AnimatePresence, motion } from 'motion/react'
 import {
-  AlarmClockIcon,
   AlertCircleIcon,
   ArchiveIcon,
-  BellOffIcon,
   CheckIcon,
   CircleCheckIcon,
   Clock3Icon,
+  FileCheckIcon,
   HistoryIcon,
   ListIcon,
   MapIcon,
@@ -73,7 +72,7 @@ import {
   // `useAlertsHistoryInfiniteQueryOptions` from origin/main are
   // still exported in api.ts; they're just not consumed here.
   // `useAlertsInvalidation` stays for the round 77 row-level
-  // Snooze / Dismiss mutations (re-fetches the list on success).
+  // Dismiss mutation (re-fetches the list on success).
   useAlertsInvalidation,
   useAlertsListQueryOptions,
   useAlertsHistoryQueryOptions,
@@ -233,10 +232,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // the right guard — the same modal family /deadlines + /rules use.
   const [dismissConfirmOpen, setDismissConfirmOpen] = useState(false)
 
-  // 2026-06-04 round 77 (Yuqi "wire to real"): row-level Snooze +
-  // Dismiss buttons in PulseAlertRow flow through `setReasonState`
-  // which opens the reason dialog (rendered below) and on confirm
-  // fires the corresponding orpc mutation.
+  // 2026-06-04 round 77 (Yuqi "wire to real"): the row-level Dismiss
+  // button in PulseAlertRow flows through `setReasonState` which opens
+  // the reason dialog (rendered below) and on confirm fires the orpc
+  // mutation.
   //
   // (Pre-rename naming was `usePulseInvalidation` /
   // `dismissAlertMutation`. Renamed to `useAlertsInvalidation`
@@ -245,9 +244,9 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   //
   // 2026-06-05 (merge with origin/main): invalidation now resets
   // both infinite queries' first pages — the canonical recovery
-  // path after a snooze / dismiss. Per-row Snooze/Dismiss direct-fire
-  // (24h snooze / no-reason dismiss); the drawer carries the full
-  // reason-prompt flow if a CPA wants it.
+  // path after a dismiss. Per-row Dismiss direct-fires (no-reason
+  // dismiss); the drawer carries the full reason-prompt flow if a
+  // CPA wants it.
   const invalidateAlerts = useAlertsInvalidation()
   // 2026-06-08 (design audit task 6 — destructive parity): single-row
   // Dismiss is reversible from History, so the success toast now offers
@@ -288,21 +287,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       },
     }),
   )
-  const snoozeAlertMutation = useMutation(
-    orpc.pulse.snooze.mutationOptions({
-      onSuccess: () => {
-        toast.success(t`Alert snoozed for 24h`)
-        invalidateAlerts()
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't snooze alert`, {
-          description:
-            rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
-        })
-      },
-    }),
-  )
   // 2026-06-07: true batch endpoints — one round-trip + one toast for N
   // selected alerts (replaces the earlier per-alert client loop). The
   // server reports any alerts it couldn't action in `failedIds`.
@@ -320,27 +304,6 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       },
       onError: (err) => {
         toast.error(t`Couldn't dismiss alerts`, {
-          description:
-            rpcErrorMessage(err) ??
-            t`Check your network and try again. If this keeps happening, contact support.`,
-        })
-      },
-    }),
-  )
-  const bulkSnoozeMutation = useMutation(
-    orpc.pulse.bulkSnooze.mutationOptions({
-      onSuccess: (result) => {
-        if (result.failedIds.length > 0) {
-          toast.warning(
-            t`Snoozed ${result.alerts.length} · ${result.failedIds.length} couldn't be snoozed`,
-          )
-        } else {
-          toast.success(t`Snoozed ${result.alerts.length} alerts for 24h`)
-        }
-        invalidateAlerts()
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't snooze alerts`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -497,20 +460,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     setSelectedIds(next ? new Set(sortedAlerts.map((alert) => alert.id)) : new Set())
   }
 
-  // 2026-06-07 (Pencil g5kKJQ `BulkActionBar`): Snooze + Dismiss call
-  // the real batch endpoints (`orpc.pulse.bulkSnooze` / `bulkDismiss`) —
-  // N selected alerts resolve in one round-trip + one toast, with any
-  // un-actionable alerts reported back in `failedIds`. "Apply all",
-  // "Mark read", "Assign", and "Export" from the Pencil bar remain
-  // unwired: Apply requires per-alert source-verification (the
-  // highest-liability path — see AlertDetailDrawer F-041 gate) and the
-  // other three have no contract surface yet.
-  const bulkSnooze = () => {
-    if (selectedIds.size === 0) return
-    const until = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-    bulkSnoozeMutation.mutate({ alertIds: [...selectedIds], until })
-    clearSelection()
-  }
+  // 2026-06-07 (Pencil g5kKJQ `BulkActionBar`): Dismiss calls the real
+  // batch endpoint (`orpc.pulse.bulkDismiss`) — N selected alerts resolve
+  // in one round-trip + one toast, with any un-actionable alerts reported
+  // back in `failedIds`. "Apply all" remains unwired: Apply requires
+  // per-alert source-verification (the highest-liability path — see
+  // AlertDetailDrawer F-041 gate).
   // Opens the confirmation modal instead of dismissing immediately.
   const requestBulkDismiss = () => {
     if (selectedIds.size === 0) return
@@ -1139,7 +1094,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     and "My morning sweep" already forces
                     the "active" status under the hood. History keeps it
                     — its handled-state options (applied / dismissed /
-                    reverted / reviewed / snoozed) are the only way to
+                    reverted / reviewed) are the only way to
                     slice the archive. The `statusFilter` state +
                     `effectiveStatusFilter` mechanism stay intact so
                     morning sweep is unaffected. */}
@@ -1468,30 +1423,22 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   onSelectAll={toggleSelectAll}
                   priorityById={priorityById}
                   // 2026-06-04 round 77 (Yuqi "wire to real"):
-                  // hover-only Snooze + Dismiss buttons in each
-                  // PulseAlertRow route through the same
-                  // `setReasonState` flow the existing
-                  // AlertCard onSnooze/onDismiss callers
-                  // use — reason dialog → mutation → toast.
+                  // hover-only Dismiss button in each
+                  // PulseAlertRow routes through the dismiss
+                  // mutation → toast.
                   // Round 82 (Yuqi "Alert history actions are
-                  // not correct" + "do not defer"): these
-                  // handlers are SUPPRESSED in `historyMode`.
+                  // not correct" + "do not defer"): this
+                  // handler is SUPPRESSED in `historyMode`.
                   // History rows are already-handled alerts
-                  // (applied/dismissed/snoozed/reverted); they
-                  // should not re-snooze or re-dismiss. With
-                  // both handlers undefined the row only
-                  // renders the Review button (round 77's
-                  // conditional `{onSnooze ? … : null}` does
+                  // (applied/dismissed/reverted); they should
+                  // not re-dismiss. With the handler undefined
+                  // the row only renders the Review button (the
+                  // conditional `{onDismiss ? … : null}` does
                   // the hiding). Restoring/un-applying an alert
                   // is a drawer-only action because it requires
                   // the reason + audit ledger entry.
                   {...(!historyMode
                     ? {
-                        onSnooze: (alertId: string) =>
-                          snoozeAlertMutation.mutate({
-                            alertId,
-                            until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-                          }),
                         onDismiss: (alertId: string) => dismissAlertMutation.mutate({ alertId }),
                       }
                     : {})}
@@ -1585,16 +1532,15 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
       {/* Floating BulkActionBar (Pencil g5kKJQ `saDv7`) — dark pill
           anchored to the bottom-center of the viewport while one or
           more alerts are selected. "N selected / of M dispatches"
-          read-out, then the action cluster. Snooze + Dismiss are
-          wired to the looped per-alert mutations; Apply all stays
-          present-but-disabled (bulk apply needs per-alert
-          verification). Assign + Export were removed — they had no
-          backend and no explanation, so they read as dead UI. */}
+          read-out, then the action cluster. Dismiss is wired to the
+          batch mutation; Apply all stays present-but-disabled (bulk
+          apply needs per-alert verification). Assign + Export were
+          removed — they had no backend and no explanation, so they
+          read as dead UI. */}
       {selectionEnabled && selectedCount > 0 ? (
         <BulkActionBar
           selectedCount={selectedCount}
           totalCount={sortedAlerts.length}
-          onSnooze={bulkSnooze}
           onDismiss={requestBulkDismiss}
           onClear={clearSelection}
         />
@@ -1630,19 +1576,16 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
 
 // Floating dark action bar shown while alerts are selected (Pencil
 // g5kKJQ `saDv7`). Fixed to the bottom-center of the viewport with a
-// slide-up entrance. Snooze + Dismiss fire the looped per-alert
-// mutations passed from the page; Apply all is rendered disabled
-// because no bulk RPC backs it yet.
+// slide-up entrance. Dismiss fires the batch mutation passed from the
+// page; Apply all is rendered disabled because no bulk RPC backs it yet.
 function BulkActionBar({
   selectedCount,
   totalCount,
-  onSnooze,
   onDismiss,
   onClear,
 }: {
   selectedCount: number
   totalCount: number
-  onSnooze: () => void
   onDismiss: () => void
   onClear: () => void
 }) {
@@ -1696,15 +1639,6 @@ function BulkActionBar({
             <Trans>Apply each alert from its detail panel to verify the change first.</Trans>
           </TooltipContent>
         </Tooltip>
-
-        <button
-          type="button"
-          onClick={onSnooze}
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium text-white/70 outline-none transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-2 focus-visible:ring-white/40"
-        >
-          <BellOffIcon className="size-3.5" aria-hidden />
-          <Trans>Snooze</Trans>
-        </button>
 
         {/* Dismiss — wired to the looped per-alert dismiss mutation.
             (Pencil labels this slot "Mark read"; the closest wired
@@ -1846,14 +1780,13 @@ function impactFilterLabel(filter: AlertImpactFilter): React.ReactNode {
 
 // 2026-05-26 (Yuqi /alerts thirteenth pass): each non-`all`
 // filter renders a leading lucide icon — the canonical alert-status
-// vocabulary (CircleCheckBig / AlarmClock / Undo2 / FileCheck) is
+// vocabulary (CircleCheckBig / Undo2 / FileCheck) is
 // duplicated here so the dropdown rows read as "[icon] Label" and
 // the active trigger label gets the icon too. Filter values map to
 // the real PulseFirmAlertStatus 1:1 except for `active` → `matched`.
 const STATUS_FILTER_ICON: Record<AlertStatusFilter, LucideIcon | null> = {
   all: null,
   active: ALERT_STATUS_ICON.matched,
-  snoozed: ALERT_STATUS_ICON.snoozed,
   applied: ALERT_STATUS_ICON.applied,
   partially_applied: ALERT_STATUS_ICON.partially_applied,
   reviewed: ALERT_STATUS_ICON.reviewed,
@@ -1869,8 +1802,7 @@ function statusFilterText(filter: AlertStatusFilter, historyMode: boolean): Reac
   if (filter === 'applied') return <Trans>Applied</Trans>
   if (filter === 'dismissed') return <Trans>Dismissed</Trans>
   if (filter === 'reverted') return <Trans>Reverted</Trans>
-  if (filter === 'reviewed') return <Trans>Reviewed</Trans>
-  return <Trans>Snoozed</Trans>
+  return <Trans>Reviewed</Trans>
 }
 
 function statusFilterLabel(filter: AlertStatusFilter, historyMode: boolean): React.ReactNode {
@@ -2034,7 +1966,7 @@ function AlertsEmptyState({
         title={<Trans>No history yet</Trans>}
         description={
           <Trans>
-            Once you decide on alerts (apply / dismiss / snooze) they'll show up here as an
+            Once you decide on alerts (apply / review / dismiss) they'll show up here as an
             immutable record. Last 60 days of activity will appear automatically.
           </Trans>
         }
@@ -2086,8 +2018,8 @@ function AlertsEmptyState({
 function AlertsHistoryRecordLegend() {
   const items = [
     { key: 'apply', icon: CircleCheckIcon, label: <Trans>Apply</Trans> },
+    { key: 'review', icon: FileCheckIcon, label: <Trans>Review</Trans> },
     { key: 'dismiss', icon: XIcon, label: <Trans>Dismiss</Trans> },
-    { key: 'snooze', icon: AlarmClockIcon, label: <Trans>Snooze</Trans> },
     { key: 'revert', icon: Undo2Icon, label: <Trans>Revert</Trans> },
   ]
   return (

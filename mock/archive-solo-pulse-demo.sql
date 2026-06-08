@@ -205,11 +205,11 @@ VALUES
   ('45000000-0000-4000-8000-000000000104', 'FL DOR Bulletin', 'https://floridarevenue.com/taxes/taxesfees/Pages/corporate.aspx', 'mock/pulse/archive-solo-fl-corp.html', CAST(unixepoch('2026-05-07 08:05:00') * 1000 AS INTEGER), 'Very-low-confidence FL DOR bulletin extracts a corporate income deadline extension.', 'Corporate income tax dates may vary by fiscal year, extension election, and taxpayer status; verify the Orange County applicability before applying.', 'FL', '[]', '["fl_corp_income"]', '["c_corp"]', CAST(unixepoch('2026-05-12 00:00:00') * 1000 AS INTEGER), CAST(unixepoch('2026-06-01 00:00:00') * 1000 AS INTEGER), NULL, 0.46, 'approved', 'mock_user_owner_sarah', CAST(unixepoch('2026-05-07 08:15:00') * 1000 AS INTEGER), 1, 1, CAST(unixepoch('2026-05-07 08:06:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-07 08:16:00') * 1000 AS INTEGER));
 
 INSERT INTO pulse_firm_alert
-  (id, pulse_id, firm_id, status, matched_count, needs_review_count, dismissed_by, dismissed_at, snoozed_until, created_at, updated_at)
+  (id, pulse_id, firm_id, status, matched_count, needs_review_count, dismissed_by, dismissed_at, created_at, updated_at)
 VALUES
-  ('46000000-0000-4000-8000-000000000101', '45000000-0000-4000-8000-000000000101', 'mock_firm_solo', 'matched', 1, 1, NULL, NULL, NULL, CAST(unixepoch('2026-05-07 08:32:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-07 08:32:00') * 1000 AS INTEGER)),
-  ('46000000-0000-4000-8000-000000000102', '45000000-0000-4000-8000-000000000102', 'mock_firm_solo', 'matched', 1, 0, NULL, NULL, NULL, CAST(unixepoch('2026-05-07 08:27:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-07 08:27:00') * 1000 AS INTEGER)),
-  ('46000000-0000-4000-8000-000000000103', '45000000-0000-4000-8000-000000000103', 'mock_firm_solo', 'matched', 1, 0, NULL, NULL, NULL, CAST(unixepoch('2026-05-07 08:22:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-07 08:22:00') * 1000 AS INTEGER)),
-  ('46000000-0000-4000-8000-000000000104', '45000000-0000-4000-8000-000000000104', 'mock_firm_solo', 'matched', 1, 0, NULL, NULL, NULL, CAST(unixepoch('2026-05-07 08:17:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-07 08:17:00') * 1000 AS INTEGER));
+  ('46000000-0000-4000-8000-000000000101', '45000000-0000-4000-8000-000000000101', 'mock_firm_solo', 'matched', 1, 1, NULL, NULL, CAST(unixepoch('2026-05-07 08:32:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-07 08:32:00') * 1000 AS INTEGER)),
+  ('46000000-0000-4000-8000-000000000102', '45000000-0000-4000-8000-000000000102', 'mock_firm_solo', 'matched', 1, 0, NULL, NULL, CAST(unixepoch('2026-05-07 08:27:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-07 08:27:00') * 1000 AS INTEGER)),
+  ('46000000-0000-4000-8000-000000000103', '45000000-0000-4000-8000-000000000103', 'mock_firm_solo', 'matched', 1, 0, NULL, NULL, CAST(unixepoch('2026-05-07 08:22:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-07 08:22:00') * 1000 AS INTEGER)),
+  ('46000000-0000-4000-8000-000000000104', '45000000-0000-4000-8000-000000000104', 'mock_firm_solo', 'matched', 1, 0, NULL, NULL, CAST(unixepoch('2026-05-07 08:17:00') * 1000 AS INTEGER), CAST(unixepoch('2026-05-07 08:17:00') * 1000 AS INTEGER));
 
 COMMIT;

@@ -198,7 +198,6 @@ export const AUDIT_CHANGE_PRESENTERS: Record<KnownAuditAction, AuditChangePresen
   'pulse.revert': alertDueDatePresenter,
   'pulse.review_requested': genericPresenter,
   'pulse.reviewed': alertPresenter,
-  'pulse.snooze': alertPresenter,
   'pulse.source_revoked': alertOpsPresenter,
   'reminder.bounced': reminderEventPresenter,
   'reminder.failed': reminderEventPresenter,
@@ -720,7 +719,7 @@ function annualRolloverPresenter(context: AuditChangeContext): AuditChangeView {
 
 function alertPresenter(context: AuditChangeContext): AuditChangeView {
   const rows = changedRowsForKeys(context, ['status']).concat(
-    rowsForKeys(context, ['snoozedUntil', 'matchedCount', 'needsReviewCount']),
+    rowsForKeys(context, ['matchedCount', 'needsReviewCount']),
   )
   return view(headlineFromRows(context, rows), rows, appendGenericNotes(context, rows))
 }

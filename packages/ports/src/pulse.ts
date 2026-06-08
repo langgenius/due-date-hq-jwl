@@ -3,14 +3,7 @@ import type { ClientEntityType, ObligationStatus } from './shared'
 export interface PulseAlertRow {
   id: string
   pulseId: string
-  status:
-    | 'matched'
-    | 'partially_applied'
-    | 'applied'
-    | 'dismissed'
-    | 'snoozed'
-    | 'reverted'
-    | 'reviewed'
+  status: 'matched' | 'partially_applied' | 'applied' | 'dismissed' | 'reverted' | 'reviewed'
   sourceStatus: 'pending_review' | 'approved' | 'rejected' | 'quarantined' | 'source_revoked'
   changeKind:
     | 'deadline_shift'
@@ -255,11 +248,6 @@ export interface PulseDismissReasonInput extends PulseAlertActionInput {
   reason?: string
 }
 
-export interface PulseSnoozeInput extends PulseAlertActionInput {
-  until: Date
-  reason?: string
-}
-
 export interface PulseApplyResult {
   alert: PulseAlertRow
   appliedCount: number
@@ -349,7 +337,6 @@ export interface PulseRepo {
   applyReviewed(input: PulseAlertActionInput): Promise<PulseApplyResult>
   apply(input: PulseApplyInput): Promise<PulseApplyResult>
   dismiss(input: PulseDismissReasonInput): Promise<PulseDismissResult>
-  snooze(input: PulseSnoozeInput): Promise<PulseDismissResult>
   revert(input: PulseAlertActionInput): Promise<PulseRevertResult>
   reactivate(input: PulseAlertActionInput): Promise<PulseDismissResult>
   markReviewed(input: PulseDismissReasonInput): Promise<PulseDismissResult>
