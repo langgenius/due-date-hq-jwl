@@ -49,6 +49,7 @@ import {
 } from './helpers'
 import type { AuthorityRejectionDraft, DeadlineInputRequestDraft } from './types'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
+import { getJurisdictionName, StateBadge } from '@/components/primitives/state-badge'
 import { describeTaxCode } from '@/lib/tax-codes'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
@@ -1465,9 +1466,13 @@ export function ObligationQueueDetailDrawer({
         ) : null}
         {/* 2026-06-08 (Pencil HuYeb /deadlines detail): status line + top
             actions share one row — colored status dot + status label · tax
-            year · period kind · monospaced obligation_id on the left, the
-            Assign / Snooze / Mark-as-filed action cluster on the right. The
-            row clears the corner close X via `pr-10`. */}
+            year · period kind on the left, the Assign / Snooze / Mark-as-filed
+            action cluster on the right. The row clears the corner close X via
+            `pr-10`.
+            2026-06-08 (Yuqi "still very different to the alerts detail"): the
+            monospaced `obligation_id` is dropped — the alerts detail exposes no
+            internal id, and a raw db id in mono was both noise and a mono-
+            restraint violation. */}
         {row ? (
           <div className="flex items-start justify-between gap-3 pr-10">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-1 text-sm">
@@ -1497,9 +1502,6 @@ export function ObligationQueueDetailDrawer({
                   )}
                 </span>
               ) : null}
-              <span className="font-mono text-caption-xs text-text-tertiary">
-                <span aria-hidden>· </span>obligation_id {row.id.slice(0, 10)}
-              </span>
             </div>
             <DeadlineTopActions
               row={row}
@@ -1517,7 +1519,7 @@ export function ObligationQueueDetailDrawer({
             on its own line; the standalone client kicker link was folded
             into the household chip in the row below per the design稿. */}
         {row ? (
-          <h2 className="pr-8 text-2xl font-semibold leading-tight text-text-primary">
+          <h2 className="pr-8 text-[22px] font-semibold leading-[1.25] tracking-[-0.4px] text-text-primary">
             {(() => {
               const meta = describeTaxCode(row.taxType)
               return meta.description ? `${meta.label} — ${meta.description}` : meta.label
@@ -1572,9 +1574,23 @@ export function ObligationQueueDetailDrawer({
             ) : null}
             {row.jurisdiction || row.taxYear || (row.taxPeriodStart && row.taxPeriodEnd) ? (
               <span className="inline-flex flex-wrap items-baseline gap-x-2 text-text-tertiary">
+                {/* 2026-06-08 (Yuqi "still very different to the alerts
+                    detail"): jurisdiction matches the alerts detail header —
+                    the canonical StateBadge seal + code + full name, inline
+                    (was a plain bordered text chip with no seal). */}
                 {row.jurisdiction ? (
-                  <span className="inline-flex items-center rounded border border-divider-regular bg-background-default px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-secondary">
-                    {row.jurisdiction}
+                  <span className="inline-flex h-[22px] shrink-0 items-center gap-1.5 text-text-secondary">
+                    <StateBadge
+                      code={row.jurisdiction}
+                      size="xs"
+                      style={{ width: 16, height: 16 }}
+                    />
+                    <span className="font-mono text-[12px] font-bold tracking-[0.7px] uppercase">
+                      {row.jurisdiction}
+                    </span>
+                    <span className="text-[13px] font-medium">
+                      {getJurisdictionName(row.jurisdiction)}
+                    </span>
                   </span>
                 ) : null}
                 {row.taxYear ? (
