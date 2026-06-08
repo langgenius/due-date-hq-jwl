@@ -63,6 +63,7 @@ import {
   SendIcon,
   PlusIcon,
   SearchIcon,
+  SlidersHorizontalIcon,
   UserRoundIcon,
   XIcon,
 } from 'lucide-react'
@@ -152,7 +153,6 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@duedatehq/ui/components/ui/popover'
-import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Separator } from '@duedatehq/ui/components/ui/separator'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
@@ -178,10 +178,7 @@ import {
   useKeyboardShortcutsBlocked,
 } from '@/components/patterns/keyboard-shell'
 import { useCurrentUserName } from '@/lib/use-current-user-name'
-import {
-  TableHeaderMultiFilter,
-  type TableFilterOption,
-} from '@/components/patterns/table-header-filter'
+import { type TableFilterOption } from '@/components/patterns/table-header-filter'
 import { DestructiveChangePreview } from '@/components/patterns/destructive-change-preview'
 import { EmptyCellMark } from '@/components/patterns/empty-cell-mark'
 import { EmptyState } from '@/components/patterns/empty-state'
@@ -842,6 +839,13 @@ const obligationQueueSearchParamsParsers = {
 } as const
 
 type ObligationQueueSearchParams = inferParserType<typeof obligationQueueSearchParamsParsers>
+// A partial patch for the nuqs `setObligationQueueQuery` setter: every
+// param may be set to `null` to reset it to its parser default. (The state
+// type alone is too strict — array facets infer as non-null `string[]`, but
+// the setter accepts `null` to clear them.)
+type ObligationQueueQueryPatch = Partial<{
+  [K in keyof ObligationQueueSearchParams]: ObligationQueueSearchParams[K] | null
+}>
 type DeadlineDetailQueueSearchState = Pick<
   ObligationQueueSearchParams,
   | 'q'
@@ -1499,7 +1503,6 @@ export function ObligationQueueRoute() {
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   // Anchor for shift-click range selection — last id the user clicked.
   const lastSelectedIdRef = useRef<string | null>(null)
-  const [openHeaderFilter, setOpenHeaderFilter] = useState<string | null>(null)
   const [extendedMemoOpen, setExtendedMemoOpen] = useState(false)
   // P0: confirm gate for the bulk "Remind to sign" floating-bar action.
   const [remindToSignConfirmOpen, setRemindToSignConfirmOpen] = useState(false)
@@ -1656,19 +1659,11 @@ export function ObligationQueueRoute() {
       })) ?? EMPTY_FACET_OPTIONS,
     [facetsQuery.data?.taxTypes],
   )
-  // Status filter options — iterate `statusDropdownOptions` (6 under
-  // v2, 10 under legacy) NOT `ALL_STATUSES`. With v2 labels collapsed,
-  // iterating all 10 raw values produced duplicate filter entries
-  // ("In review" x3 for in_progress/review/extended, "Filed" x2 for
-  // done/paid, "Not started" x2 for pending/not_applicable).
-  const statusOptions = useMemo<FilterOption[]>(
-    () =>
-      statusDropdownOptions.map((status) => ({
-        value: status,
-        label: statusLabels[status],
-      })),
-    [statusDropdownOptions, statusLabels],
-  )
+  // 2026-06-08 (Yuqi /deadlines design parity): `statusOptions` (the
+  // per-column STATUS header filter's option list) was retired with that
+  // header — the status scope tabs at the top of the toolbar own status
+  // filtering now. `statusDropdownOptions` / `statusLabels` are still used
+  // by the scope tabs + row status pills.
   const filtersDisabled = facetsQuery.isLoading
 
   const queryInputWithoutCursor = useMemo<ObligationQueueListInputWithoutCursor>(
@@ -2169,10 +2164,6 @@ export function ObligationQueueRoute() {
     },
     [rowSelection],
   )
-  const setHeaderFilterOpen = useCallback((filterId: string, nextOpen: boolean) => {
-    setOpenHeaderFilter((current) => (nextOpen ? filterId : current === filterId ? null : current))
-  }, [])
-
   const updateStatus = useCallback(
     (input: { id: string; status: ObligationStatus }, previousStatus: ObligationStatus) => {
       // Per-call onSuccess closes over `previousStatus` so the toast
@@ -2282,27 +2273,11 @@ export function ObligationQueueRoute() {
       },
       {
         accessorKey: 'clientName',
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`Client`}
-            open={openHeaderFilter === 'client'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('client', nextOpen)}
-            options={clientOptions}
-            selected={clientQuery}
-            disabled={filtersDisabled}
-            emptyLabel={t`No clients`}
-            searchable
-            searchPlaceholder={t`Search clients`}
-            onSelectedChange={(nextClient) =>
-              void setObligationQueueQuery({
-                client: nextClient.length > 0 ? nextClient : null,
-                obligation: null,
-                row: null,
-              })
-            }
-          />
-        ),
+        // 2026-06-08 (Yuqi /deadlines design parity): the per-column
+        // Client filter dropdown was removed — Client filtering now lives
+        // in the consolidated "Filters" popover in the toolbar (mirrors
+        // /alerts). The header is a plain label.
+        header: () => <span>{t`Client`}</span>,
         cell: ({ row: tableRow, table }) => {
           const isContinuation = continuationRowIds.has(tableRow.original.id)
           // Shift+click the client name → range-select every row
@@ -2516,26 +2491,10 @@ export function ObligationQueueRoute() {
       },
       {
         accessorKey: 'clientState',
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`State`}
-            open={openHeaderFilter === 'state'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('state', nextOpen)}
-            options={stateOptions}
-            selected={stateQuery}
-            disabled={filtersDisabled}
-            emptyLabel={t`No states`}
-            onSelectedChange={(nextState) =>
-              void setObligationQueueQuery({
-                state: nextState.length > 0 ? nextState : null,
-                county: null,
-                obligation: null,
-                row: null,
-              })
-            }
-          />
-        ),
+        // 2026-06-08 (Yuqi /deadlines design parity): per-column State
+        // filter dropdown removed — State filtering moved to the toolbar
+        // "Filters" popover. Plain label header.
+        header: () => <span>{t`State`}</span>,
         // 2026-05-26 (Yuqi /deadlines sixty-fifth pass — State cell
         // canonical): adopt the Alerts page's universal state
         // representation. The bare 2-letter code "CA" / "NY" read
@@ -2563,25 +2522,10 @@ export function ObligationQueueRoute() {
       },
       {
         accessorKey: 'taxType',
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`Filing`}
-            open={openHeaderFilter === 'taxType'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('taxType', nextOpen)}
-            options={taxTypeOptions}
-            selected={taxTypeQuery}
-            disabled={filtersDisabled}
-            emptyLabel={t`No forms`}
-            onSelectedChange={(nextTaxType) =>
-              void setObligationQueueQuery({
-                taxType: nextTaxType.length > 0 ? nextTaxType : null,
-                obligation: null,
-                row: null,
-              })
-            }
-          />
-        ),
+        // 2026-06-08 (Yuqi /deadlines design parity): per-column Filing
+        // filter dropdown removed — Filing filtering moved to the toolbar
+        // "Filters" popover. Plain label header.
+        header: () => <span>{t`Filing`}</span>,
         // 2026-06-04 round 81 (Yuqi "/deadlines cell-by-cell sweep"):
         // FILING cell aligned to /today's ActionsTable canonical
         // primitive — `<TaxCodeBadge>` (bordered chip + mono +
@@ -2815,25 +2759,11 @@ export function ObligationQueueRoute() {
           const bi = order[b.original.status] ?? 99
           return ai - bi
         },
-        header: () => (
-          <TableHeaderMultiFilter
-            trigger="header"
-            label={t`Status`}
-            open={openHeaderFilter === 'status'}
-            onOpenChange={(nextOpen) => setHeaderFilterOpen('status', nextOpen)}
-            options={statusOptions}
-            selected={statusQuery}
-            emptyLabel={t`All statuses`}
-            onSelectedChange={(nextStatus) => {
-              const typedStatus = nextStatus.filter(isObligationStatus)
-              void setObligationQueueQuery({
-                status: typedStatus.length > 0 ? typedStatus : null,
-                obligation: null,
-                row: null,
-              })
-            }}
-          />
-        ),
+        // 2026-06-08 (Yuqi /deadlines design parity): per-column Status
+        // filter dropdown removed — it was redundant with the status scope
+        // tabs at the top of the toolbar (which write the same `status`
+        // param). Plain label header.
+        header: () => <span>{t`Status`}</span>,
         cell: ({ row: tableRow }) => {
           const obligationQueueRow = tableRow.original
           const showRejection = isRejectionVisible({
@@ -2982,29 +2912,18 @@ export function ObligationQueueRoute() {
       assigneeUpdatePending,
       changeSort,
       canUpdateObligationStatus,
-      clientOptions,
-      clientQuery,
       continuationRowIds,
       currentUserName,
       explicitActiveRowId,
-      filtersDisabled,
-      openHeaderFilter,
       openEvidence,
       panelOpenIntent,
       rowsById,
-      setHeaderFilterOpen,
       setObligationQueueQuery,
       sort,
-      stateOptions,
-      stateQuery,
       statusDropdownOptions,
       statusLabels,
-      statusOptions,
-      statusQuery,
       statusUpdatePending,
       t,
-      taxTypeOptions,
-      taxTypeQuery,
       updateStatus,
     ],
   )
@@ -3779,17 +3698,24 @@ export function ObligationQueueRoute() {
               the bar is anchored to the top of the page scroll
               container — there's never table content directly behind
               it (it ends at the table top edge). */}
+          {/* 2026-06-08 (Yuqi /deadlines design parity — Step 5 "fix the
+              toolbar bottom border"): softened `divider-regular` →
+              `divider-subtle` to match /alerts' lighter tab-strip boundary,
+              and added `pb-2` on the tab/search row so the Search field's own
+              rounded border clears the toolbar hairline instead of doubling
+              against it. The border now reads cleanly as the tab-strip /
+              toolbar boundary, not as a second edge under the search. */}
           <div
             ref={filterBarRef}
             className={cn(
-              'sticky top-0 z-20 flex flex-col gap-1.5 border-b border-divider-regular',
+              'sticky top-0 z-20 flex flex-col gap-1.5 border-b border-divider-subtle',
               // Full-page mode: table rows scroll behind the bar, so it needs
               // an opaque fill. In the panel-open split nothing scrolls behind
               // it, so it stays transparent over the inset surface.
               !panelOpenIntent && 'bg-background-default',
             )}
           >
-            <div className="flex flex-wrap items-end gap-3">
+            <div className="flex flex-wrap items-end gap-3 pb-2">
               <nav
                 aria-label={t`Status scopes`}
                 // No horizontal scroll — the user found it disorienting.
@@ -3956,79 +3882,16 @@ export function ObligationQueueRoute() {
               new alerts-style row above keeps the Search anchored,
               and the table's auto-collapse already trims columns
               so the focus mode reads as clean as /alerts'. */}
+          {/* 2026-06-08 (Yuqi /deadlines design parity — "consolidate the
+              filter toolbar to match /alerts"): the four quick-filter chips
+              (Past due / Due this week / Needs evidence / Awaiting signature)
+              were removed from this row — they now live as labeled pill
+              sections inside the single "Filters" popover in the right
+              cluster below, alongside the relocated Filing / Client / State
+              column-header filters. One clean toolbar line remains:
+              Group by · Filters(n) · Columns. */}
           {panelOpenIntent ? null : (
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex flex-wrap items-center gap-1.5">
-                {/* 2026-05-26 (Yuqi /deadlines sixty-fifth pass — page
-                  blink fix): same change as scope tabs — dropped the
-                  `obligation: null, row: null` clears so action-chip
-                  toggles no longer auto-close the detail panel and
-                  trigger its width-collapse animation. */}
-                {/* 2026-05-26 (Yuqi inset-followups B): Past due + Due
-                  this week are now MUTUALLY EXCLUSIVE. Clicking one
-                  clears the other. They're conceptually overlapping
-                  views of the same date axis (Past due = days < 0,
-                  Due this week = 0 ≤ days ≤ 7) so combining them is
-                  meaningless. Needs evidence stays orthogonal — it's
-                  a different axis (audit completeness, not date) so
-                  the user can still combine "Past due AND needs
-                  evidence" to find overdue rows still missing
-                  documents. */}
-                <ObligationQueueActionChip
-                  active={due === 'overdue'}
-                  onClick={() =>
-                    void setObligationQueueQuery({
-                      due: due === 'overdue' ? null : 'overdue',
-                      // Clearing Due this week if it was active — same axis
-                      daysMin: null,
-                      daysMax: null,
-                    })
-                  }
-                >
-                  <Trans>Past due</Trans>
-                </ObligationQueueActionChip>
-                <ObligationQueueActionChip
-                  active={thisWeekFilterActive}
-                  onClick={() =>
-                    void setObligationQueueQuery({
-                      ...nextThisWeekFilterPatch(daysMin, daysMax),
-                      // Clearing Past due if it was active — same axis
-                      due: null,
-                    })
-                  }
-                >
-                  <Trans>Due this week</Trans>
-                </ObligationQueueActionChip>
-                <ObligationQueueActionChip
-                  active={evidence === 'needs'}
-                  onClick={() =>
-                    void setObligationQueueQuery({
-                      evidence: evidence === 'needs' ? null : 'needs',
-                    })
-                  }
-                >
-                  <Trans>Needs evidence</Trans>
-                </ObligationQueueActionChip>
-                <ObligationQueueActionChip
-                  active={awaitingSignature === true}
-                  onClick={() =>
-                    void setObligationQueueQuery({
-                      awaitingSignature: awaitingSignature ? null : true,
-                    })
-                  }
-                >
-                  <Trans>Awaiting signature</Trans>
-                </ObligationQueueActionChip>
-                {/* 2026-06-08 (Pencil HuYeb /deadlines #7): "Projected"
-                    quick-filter chip removed. The `projected` query param +
-                    the per-row Projected badge stay; only the toolbar toggle
-                    is gone. */}
-                {/* "Penalty input needed" chip retired 2026-05-22 with
-                hanxujiang's projected-exposure refactor (30f29dc).
-                The `exposure` query param and its filter pipeline are
-                gone; the surface that asks for penalty inputs lives
-                inside the obligation drawer. */}
-              </div>
+            <div className="flex flex-wrap items-center justify-end gap-3">
               <div className="flex flex-wrap items-center gap-3">
                 {/* "Applied · <chip> · Clear filters" strip removed
                 2026-05-21 — the row chips above are already the
@@ -4121,19 +3984,27 @@ export function ObligationQueueRoute() {
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                {/* 2026-06-08 (density control): the `density` URL param
-                  was threaded to cell padding but had no UI. Shared
-                  <Segmented> wires it up so users can switch row
-                  density without hand-editing the URL. */}
-                <Segmented
-                  size="sm"
-                  ariaLabel={t`Row density`}
-                  value={density}
-                  onValueChange={(next) => void setObligationQueueQuery({ density: next })}
-                  options={[
-                    { value: 'comfortable', label: t`Comfortable` },
-                    { value: 'compact', label: t`Compact` },
-                  ]}
+                {/* 2026-06-08 (Yuqi /deadlines design parity): the single
+                  "Filters" popover — Due / Needs evidence / Awaiting
+                  signature / Filing / Client / State all live here,
+                  mirroring /alerts. The trigger badge counts active facets.
+                  The Row-density Segmented that used to sit here was removed
+                  the same pass — the queue is now always compact. */}
+                <ObligationFiltersPopover
+                  due={due}
+                  thisWeekFilterActive={thisWeekFilterActive}
+                  daysMin={daysMin}
+                  daysMax={daysMax}
+                  evidence={evidence}
+                  awaitingSignature={awaitingSignature}
+                  taxTypeOptions={taxTypeOptions}
+                  taxTypeSelected={taxTypeQuery}
+                  clientOptions={clientOptions}
+                  clientSelected={clientQuery}
+                  stateOptions={stateOptions}
+                  stateSelected={stateQuery}
+                  filtersDisabled={filtersDisabled}
+                  onPatch={(patch) => void setObligationQueueQuery(patch)}
                 />
                 {/* 2026-05-26 (Yuqi feedback — "14 rows is misleading on
                   top right. should say the number of deadlines in
@@ -4990,7 +4861,13 @@ export function ObligationQueueRoute() {
                                       // wins is if a column explicitly sets
                                       // align-top, which would be intentional.
                                       className={cn(
-                                        density === 'compact' && 'px-2 py-1.5',
+                                        // 2026-06-08 (Yuqi /deadlines design
+                                        // parity): density toggle removed —
+                                        // the queue is always compact now, so
+                                        // the cell padding is hardcoded rather
+                                        // than gated on the (retired) `density`
+                                        // control.
+                                        'px-2 py-1.5',
                                         meta?.cellClassName,
                                         indentContinuationCell && 'pl-4',
                                       )}
@@ -13291,43 +13168,284 @@ function ObligationQueueScopeTab({
   )
 }
 
-// Quick-filter chip: ghost when off, soft-tinted when on. Used for the
-// 4 CPA action filters under the scope tabs (Past due, Due this week,
-// Needs evidence, Penalty input needed). Pill-shaped per T3 —
-// indicator, not commit.
-//
-// When active, an inline × renders inside the chip as a visible
-// dismissal affordance. The whole chip is still the click target
-// (clicking anywhere on an active chip toggles it off) — the × is a
-// visual cue so users don't have to guess that "click again to remove."
-function ObligationQueueActionChip({
+// 2026-06-08 (Yuqi /deadlines design parity): `ObligationQueueActionChip`
+// (the pill chrome for the 4 quick-filter chips — Past due / Due this week /
+// Needs evidence / Awaiting signature) was removed with those chips. Those
+// facets now live as pill sections inside `ObligationFiltersPopover` below.
+
+// 2026-06-08 (Yuqi /deadlines design parity — "consolidate the filter
+// toolbar to match /alerts"): the four quick-filter chips (Past due /
+// Due this week / Needs evidence / Awaiting signature) plus the
+// per-column header filters (Filing / Client / State) all collapse into
+// ONE "Filters" popover, mirroring AlertsListPage's `AlertFiltersPopover`
+// (same FilterTrigger + SlidersHorizontal icon + active-count badge + the
+// labeled pill-section layout). Every section writes through the same
+// `setObligationQueueQuery` patch the relocated controls used — this is a
+// pure RELOCATION, the filter behavior is unchanged.
+function ObligationFiltersPopover({
+  due,
+  thisWeekFilterActive,
+  daysMin,
+  daysMax,
+  evidence,
+  awaitingSignature,
+  taxTypeOptions,
+  taxTypeSelected,
+  clientOptions,
+  clientSelected,
+  stateOptions,
+  stateSelected,
+  filtersDisabled,
+  onPatch,
+}: {
+  due: string | null
+  thisWeekFilterActive: boolean
+  daysMin: number | null
+  daysMax: number | null
+  evidence: string | null
+  awaitingSignature: boolean | null
+  taxTypeOptions: readonly FilterOption[]
+  taxTypeSelected: readonly string[]
+  clientOptions: readonly FilterOption[]
+  clientSelected: readonly string[]
+  stateOptions: readonly FilterOption[]
+  stateSelected: readonly string[]
+  filtersDisabled: boolean
+  // Patch type mirrors the nuqs `setObligationQueueQuery` setter — every
+  // param accepts `null` to clear it back to its default (the array facets
+  // default to `[]`, so a non-null state type alone wouldn't allow the
+  // `[] → null` reset the column-header filters used).
+  onPatch: (patch: ObligationQueueQueryPatch) => void
+}) {
+  const { t } = useLingui()
+  // Active-facet count drives the trigger badge — one per active facet:
+  // Due (overdue OR this-week), needs-evidence, awaiting-signature, and
+  // one each for any non-empty Filing / Client / State multi-select.
+  const dueActive = due === 'overdue' || thisWeekFilterActive
+  const activeCount =
+    (dueActive ? 1 : 0) +
+    (evidence === 'needs' ? 1 : 0) +
+    (awaitingSignature === true ? 1 : 0) +
+    (taxTypeSelected.length > 0 ? 1 : 0) +
+    (clientSelected.length > 0 ? 1 : 0) +
+    (stateSelected.length > 0 ? 1 : 0)
+
+  // Toggle one option in a multi-select facet, emitting the canonical
+  // `[] → null` patch the column-header filters used.
+  const toggleMulti = (
+    key: 'taxType' | 'client' | 'state',
+    selected: readonly string[],
+    value: string,
+  ) => {
+    const next = selected.includes(value)
+      ? selected.filter((v) => v !== value)
+      : [...selected, value]
+    onPatch({ [key]: next.length > 0 ? next : null, obligation: null, row: null })
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <FilterTrigger
+            active={activeCount > 0}
+            leadingIcon={SlidersHorizontalIcon}
+            valueLabel={activeCount > 0 ? String(activeCount) : undefined}
+            aria-label={t`Filters`}
+          >
+            <span>
+              <Trans>Filters</Trans>
+            </span>
+          </FilterTrigger>
+        }
+      />
+      <PopoverContent align="end" className="w-[300px] p-3">
+        <div className="flex max-h-[420px] flex-col gap-3.5 overflow-y-auto">
+          {/* Due — single-select (radio) pills. Past due / Due this week
+              are the same date axis, so picking one clears the other. */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+              <Trans>Due</Trans>
+            </span>
+            <div className="flex flex-wrap gap-1">
+              <ObligationFilterPill
+                active={!dueActive}
+                onClick={() => onPatch({ due: null, daysMin: null, daysMax: null })}
+              >
+                <Trans>Any</Trans>
+              </ObligationFilterPill>
+              <ObligationFilterPill
+                active={due === 'overdue'}
+                onClick={() =>
+                  onPatch({
+                    due: due === 'overdue' ? null : 'overdue',
+                    daysMin: null,
+                    daysMax: null,
+                  })
+                }
+              >
+                <Trans>Past due</Trans>
+              </ObligationFilterPill>
+              <ObligationFilterPill
+                active={thisWeekFilterActive}
+                onClick={() =>
+                  onPatch({ ...nextThisWeekFilterPatch(daysMin, daysMax), due: null })
+                }
+              >
+                <Trans>Due this week</Trans>
+              </ObligationFilterPill>
+            </div>
+          </div>
+
+          {/* Needs evidence + Awaiting signature — orthogonal toggles. */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+              <Trans>Other</Trans>
+            </span>
+            <div className="flex flex-wrap gap-1">
+              <ObligationFilterPill
+                active={evidence === 'needs'}
+                onClick={() => onPatch({ evidence: evidence === 'needs' ? null : 'needs' })}
+              >
+                <Trans>Needs evidence</Trans>
+              </ObligationFilterPill>
+              <ObligationFilterPill
+                active={awaitingSignature === true}
+                onClick={() =>
+                  onPatch({ awaitingSignature: awaitingSignature ? null : true })
+                }
+              >
+                <Trans>Awaiting signature</Trans>
+              </ObligationFilterPill>
+            </div>
+          </div>
+
+          {/* Filing — multi-select (taxType). Reuses the FILING column
+              header's `taxTypeOptions` facet source. */}
+          <ObligationMultiFilterSection
+            label={t`Filing`}
+            options={taxTypeOptions}
+            selected={taxTypeSelected}
+            disabled={filtersDisabled}
+            onToggle={(value) => toggleMulti('taxType', taxTypeSelected, value)}
+          />
+
+          {/* Client — multi-select. Reuses the CLIENT column header's
+              `clientOptions` facet source. */}
+          <ObligationMultiFilterSection
+            label={t`Client`}
+            options={clientOptions}
+            selected={clientSelected}
+            disabled={filtersDisabled}
+            onToggle={(value) => toggleMulti('client', clientSelected, value)}
+          />
+
+          {/* State — multi-select. Reuses the STATE column header's
+              `stateOptions` facet source. */}
+          <ObligationMultiFilterSection
+            label={t`State`}
+            options={stateOptions}
+            selected={stateSelected}
+            disabled={filtersDisabled}
+            onToggle={(value) => toggleMulti('state', stateSelected, value)}
+          />
+
+          {activeCount > 0 ? (
+            <button
+              type="button"
+              onClick={() =>
+                onPatch({
+                  due: null,
+                  daysMin: null,
+                  daysMax: null,
+                  evidence: null,
+                  awaitingSignature: null,
+                  taxType: null,
+                  client: null,
+                  state: null,
+                  obligation: null,
+                  row: null,
+                })
+              }
+              className="self-start text-[12px] font-medium text-text-accent underline-offset-2 outline-none hover:underline focus-visible:underline"
+            >
+              <Trans>Clear these filters</Trans>
+            </button>
+          ) : null}
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+// One selectable pill inside the Filters popover — mirrors
+// AlertsListPage's `FilterPillSection` pill chrome (h-7, accent wash when
+// active). Generic across single-select (radio) + toggle usages.
+function ObligationFilterPill({
   active,
   onClick,
+  disabled,
   children,
 }: {
   active: boolean
   onClick: () => void
+  disabled?: boolean | undefined
   children: ReactNode
 }) {
-  // 2026-05-25 (Yuqi Deadlines #2): click target was 22px tall
-  // (px-2.5 py-0.5 text-xs) — too small for filter chips that are
-  // primary triage affordances. Bumped to ~30px (px-3 py-1 text-sm)
-  // so the hit zone matches a real button and the label reads as
-  // body text instead of meta caption.
   return (
     <button
       type="button"
-      aria-pressed={active}
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm transition-colors ${
+      disabled={disabled}
+      aria-pressed={active}
+      className={cn(
+        'inline-flex h-7 max-w-full items-center rounded-md border px-2.5 text-[12px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-50',
         active
-          ? 'border-accent-default bg-accent-tint font-medium text-text-accent'
-          : 'border-divider-regular bg-background-default text-text-secondary hover:border-divider-deep hover:text-text-primary'
-      }`}
+          ? 'border-state-accent-border bg-state-accent-hover text-text-accent'
+          : 'border-divider-subtle text-text-secondary hover:bg-state-base-hover',
+      )}
     >
-      <span>{children}</span>
-      {active ? <XIcon aria-hidden className="size-3.5" /> : null}
+      <span className="truncate">{children}</span>
     </button>
+  )
+}
+
+// A multi-select facet inside the Filters popover — an uppercase label
+// over a wrap of toggle pills. Used for Filing / Client / State, each
+// reusing the same option array the retired column-header filter used.
+function ObligationMultiFilterSection({
+  label,
+  options,
+  selected,
+  disabled,
+  onToggle,
+}: {
+  label: string
+  options: readonly FilterOption[]
+  selected: readonly string[]
+  disabled?: boolean | undefined
+  onToggle: (value: string) => void
+}) {
+  if (options.length === 0) return null
+  const selectedSet = new Set(selected)
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+        {label}
+      </span>
+      <div className="flex flex-wrap gap-1">
+        {options.map((option) => (
+          <ObligationFilterPill
+            key={option.value}
+            active={selectedSet.has(option.value)}
+            disabled={disabled}
+            onClick={() => onToggle(option.value)}
+          >
+            {option.label}
+          </ObligationFilterPill>
+        ))}
+      </div>
+    </div>
   )
 }
 
