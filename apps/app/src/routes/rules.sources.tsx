@@ -21,6 +21,13 @@ export function RulesSourcesRoute() {
     <RulesPageShell
       title={t`Sources`}
       wide
+      // 2026-06-08 (Yuqi list-page width-rhythm standardization): align
+      // /rules/sources with the /today reference — max-w-page-expanded
+      // (via `wide`), 32px horizontal padding (`md:px-8`, overriding the
+      // shell default `md:px-6`), and a 32px section gap (`gap-8`,
+      // overriding the shell default `gap-6`). twMerge resolves these
+      // overrides over the shell base.
+      contentClassName="gap-8 md:px-8"
       breadcrumbs={[{ label: t`Alerts`, to: '/alerts' }, { label: t`Sources` }]}
     >
       <SourcesTab />

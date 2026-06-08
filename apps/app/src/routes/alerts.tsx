@@ -224,7 +224,7 @@ export function AlertsRoute() {
            originally specified gap-28 for this surface; /today
            uses gap-32 per Pencil VmcdD. Aligning both pages on
            gap-8 gives top-level pages a uniform vertical cadence. */
-          'gap-8 md:px-16 transition-[padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
+          'gap-8 md:px-8 transition-[padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
           // 2026-06-08 (Pencil ibEoz): full-page detail is flush —
           // the three panes butt against each other and the viewport,
           // so strip the shell padding / gap / width cap when open.

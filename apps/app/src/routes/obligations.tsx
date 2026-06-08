@@ -3493,7 +3493,7 @@ export function ObligationQueueRoute() {
         // the legacy sticky-pagination behavior at xl+ widths
         // intact: `xl:pb-0` so the pagination footer rides flush at
         // tall viewports where the queue fills the screen.
-        'mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-6 pb-12 md:px-16 md:pt-6 md:pb-12',
+        'mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-6 pb-12 md:px-8 md:pt-6 md:pb-12',
         // 2026-06-08 (Yuqi — "scroll the full page, not a table scroll"):
         // the xl height-cap + overflow-hidden that turned the queue into an
         // inner-table scroll now applies ONLY when the detail panel is open
