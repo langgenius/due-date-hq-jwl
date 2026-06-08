@@ -82,7 +82,15 @@ import {
   uniqueStrings,
   withDeadlineSelectionReview,
 } from './shared'
-import { makePulseOpsRepo, pulseExpiredCondition, pulseNotExpiredConditions } from './ops'
+import { taxAreaForTaxType } from '@duedatehq/core/tax-area'
+import {
+  makePulseOpsRepo,
+  PROTECTIVE_CLAIM_REVIEW_STATUSES,
+  PROTECTIVE_CLAIM_TAX_AREAS,
+  protectiveClaimTaxYears,
+  pulseExpiredCondition,
+  pulseNotExpiredConditions,
+} from './ops'
 import type {
   AlertJoinedRow,
   AlertRecipientRow,
@@ -386,6 +394,71 @@ export function makePulseRepo(db: Db, firmId: string) {
       matchStatus: 'needs_review',
       reason: 'This rule changed in the library — re-verify before relying on it.',
     }))
+  }
+
+  // Review-only protective-claim windows: surface this firm's clients whose
+  // covered-year FED obligations (income / payroll / info) make them candidates
+  // for a protective refund claim. Mirrors the rough scan that computes the
+  // alert's needsReviewCount in the live fan-out (repo/pulse/ops), so the detail
+  // list and the count stay consistent. All are 'needs_review' — protective
+  // claims are advisory, never auto-applied.
+  async function listProtectiveClaimAffectedRows(
+    alert: AlertJoinedRow,
+  ): Promise<PulseAffectedClientRow[]> {
+    const taxYears = protectiveClaimTaxYears(alert.structuredChange)
+    if (taxYears.length === 0) return []
+    const rows = await db
+      .select({
+        obligationId: obligationInstance.id,
+        clientId: client.id,
+        clientName: client.name,
+        state: obligationInstance.jurisdiction,
+        county: client.county,
+        counties: clientFilingProfile.countiesJson,
+        entityType: client.entityType,
+        taxType: obligationInstance.taxType,
+        currentDueDate: obligationInstance.currentDueDate,
+        status: obligationInstance.status,
+      })
+      .from(obligationInstance)
+      .innerJoin(client, eq(obligationInstance.clientId, client.id))
+      .leftJoin(
+        clientFilingProfile,
+        eq(obligationInstance.clientFilingProfileId, clientFilingProfile.id),
+      )
+      .where(
+        and(
+          eq(obligationInstance.firmId, firmId),
+          eq(client.firmId, firmId),
+          eq(obligationInstance.jurisdiction, 'FED'),
+          inArray(obligationInstance.taxYear, taxYears),
+          inArray(obligationInstance.status, PROTECTIVE_CLAIM_REVIEW_STATUSES),
+          isNull(client.deletedAt),
+          isNull(obligationInstance.supersededAt),
+        ),
+      )
+      .orderBy(asc(client.name), asc(obligationInstance.taxType))
+
+    return (rows as CandidateRow[])
+      .filter((row) => {
+        const taxArea = taxAreaForTaxType(row.taxType)
+        return taxArea != null && PROTECTIVE_CLAIM_TAX_AREAS.has(taxArea)
+      })
+      .map((row) => ({
+        obligationId: row.obligationId,
+        clientId: row.clientId,
+        clientName: row.clientName,
+        state: row.state,
+        county: displayCounty(row),
+        entityType: row.entityType,
+        taxType: row.taxType,
+        currentDueDate: row.currentDueDate,
+        status: row.status,
+        newDueDate: null,
+        matchStatus: 'needs_review',
+        reason:
+          'Filed in a covered year — review whether a protective claim is needed by the deadline.',
+      }))
   }
 
   async function listDeadlineSelectionCandidateRows(
@@ -722,6 +795,13 @@ export function makePulseRepo(db: Db, firmId: string) {
     // obligations are backed by the changed rule(s). Structured/application rows win.
     if (!isDueDateOverlayAlert(alert) && alert.reverifyRuleIds.length > 0) {
       for (const row of await listReverifyRuleAffectedRows(alert)) {
+        if (!affected.has(row.obligationId)) affected.set(row.obligationId, row)
+      }
+    }
+    // Protective-claim windows carry no forms/rules to match on; their affected
+    // clients come from the covered-year FED obligation scan instead.
+    if (alert.changeKind === 'protective_claim_window') {
+      for (const row of await listProtectiveClaimAffectedRows(alert)) {
         if (!affected.has(row.obligationId)) affected.set(row.obligationId, row)
       }
     }

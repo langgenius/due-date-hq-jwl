@@ -68,7 +68,7 @@ import type {
 // Fallback claim years when the extract carries no source-backed `claimTaxYears`
 // — the COVID disaster-period refund window (2019-2022 returns).
 const PROTECTIVE_CLAIM_DEFAULT_TAX_YEARS = [2019, 2020, 2021, 2022]
-const PROTECTIVE_CLAIM_TAX_AREAS = new Set([
+export const PROTECTIVE_CLAIM_TAX_AREAS = new Set([
   'income_individual',
   'income_business',
   'payroll_withholding',
@@ -77,7 +77,7 @@ const PROTECTIVE_CLAIM_TAX_AREAS = new Set([
 // A backward-looking protective/refund claim concerns returns already filed as
 // much as ones still open, so the review scan spans open and closed obligations.
 // `not_applicable` is excluded — that obligation explicitly does not apply.
-const PROTECTIVE_CLAIM_REVIEW_STATUSES = [
+export const PROTECTIVE_CLAIM_REVIEW_STATUSES = [
   ...OPEN_STATUSES,
   ...CLOSED_OBLIGATION_STATUSES.filter((status) => status !== 'not_applicable'),
 ]
@@ -89,7 +89,7 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
 // Source-backed claim years from the extract's structuredChange, falling back to
 // the COVID default window. Accepts number or numeric-string years (the AI emits
 // either) and bounds them to plausible tax years.
-function protectiveClaimTaxYears(structuredChange: unknown): number[] {
+export function protectiveClaimTaxYears(structuredChange: unknown): number[] {
   if (!isPlainRecord(structuredChange)) return PROTECTIVE_CLAIM_DEFAULT_TAX_YEARS
   const raw = structuredChange.claimTaxYears
   if (!Array.isArray(raw)) return PROTECTIVE_CLAIM_DEFAULT_TAX_YEARS

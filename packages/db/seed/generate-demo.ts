@@ -2381,12 +2381,15 @@ for (const f of FIRMS) {
       dismissed: true,
       at: '2026-05-13 18:00:00',
     },
-    // 020 — still-open protective window: shows in the active list with review
-    // clients (matchedCount stays 0; needs-review carries the impact).
-    { n: 20, status: 'matched', matched: 0, needsReview: 3, at: '2026-05-20 10:05:00' },
-    // 021 — lapsed protective window: its deadline has passed, so listAlerts hides
-    // it and listHistory surfaces it under the "Expired" tab.
-    { n: 21, status: 'matched', matched: 0, needsReview: 2, at: '2026-01-10 10:05:00' },
+    // 020 — still-open protective window: shows firm-wide in the active list. The
+    // demo firms only carry 2026 obligations, so the live affected-clients scan
+    // (covered years 2019-2022) returns 0 — keep needsReview 0 so the badge
+    // matches the detail. A real firm with covered-year filings shows candidates.
+    { n: 20, status: 'matched', matched: 0, needsReview: 0, at: '2026-05-20 10:05:00' },
+    // 021 — lapsed protective window: deadline passed, so listAlerts hides it and
+    // listHistory surfaces it under the "Expired" tab. No covered-year obligations
+    // in demo data → 0 review clients.
+    { n: 21, status: 'matched', matched: 0, needsReview: 0, at: '2026-01-10 10:05:00' },
   ]
   add(
     'pulse_firm_alert',
