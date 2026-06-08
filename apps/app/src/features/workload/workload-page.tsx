@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from '@duedatehq/ui/components/ui/card'
 import { Progress } from '@duedatehq/ui/components/ui/progress'
+import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import {
   Table,
@@ -100,28 +101,18 @@ export function WorkloadPage() {
         }
         actions={
           <div className="flex items-center gap-2">
-            {/* Window picker — 7 / 14 / 30 day horizon for the load query. */}
-            <div
-              role="group"
-              aria-label={t`Workload window`}
-              className="inline-flex items-center rounded-md border border-divider-subtle bg-background-default p-0.5"
-            >
-              {[7, 14, 30].map((days) => (
-                <button
-                  key={days}
-                  type="button"
-                  onClick={() => setWindowDays(days)}
-                  aria-pressed={windowDays === days}
-                  className={`rounded px-2 py-1 text-caption-xs font-medium tabular-nums transition-colors ${
-                    windowDays === days
-                      ? 'bg-state-accent-active-alt text-text-accent'
-                      : 'text-text-tertiary hover:text-text-secondary'
-                  }`}
-                >
-                  {days}d
-                </button>
-              ))}
-            </div>
+            {/* Window picker — 7 / 14 / 30 day horizon for the load query.
+                2026-06-08 (unification): shared <Segmented> primitive. */}
+            <Segmented
+              ariaLabel={t`Workload window`}
+              value={String(windowDays)}
+              onValueChange={(value) => setWindowDays(Number(value))}
+              options={[
+                { value: '7', label: '7d' },
+                { value: '14', label: '14d' },
+                { value: '30', label: '30d' },
+              ]}
+            />
             {/* 2026-05-26 (step-6 ux-flow audit F2.4): refresh button
                 now announces aria-busy + spins the icon while
                 refetching so the user has a visible signal. */}
