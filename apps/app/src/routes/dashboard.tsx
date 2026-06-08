@@ -1,4 +1,4 @@
-import { AlertCircleIcon, PlusIcon, RotateCwIcon, UploadIcon } from 'lucide-react'
+import { AlertCircleIcon, PlusIcon, RotateCwIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -21,8 +21,7 @@ import { PageHeader } from '@/components/patterns/page-header'
 import { ShortcutHintChip } from '@/components/patterns/kbd'
 import { useMigrationWizard } from '@/features/migration/WizardProvider'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
-import { DashboardActionsList, daysUntilDueFromAsOf } from '@/features/dashboard/actions-list'
-import { DashboardAtAGlance } from '@/features/dashboard/at-a-glance-section'
+import { DashboardActionsList } from '@/features/dashboard/actions-list'
 import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
 // 2026-05-27 (Yuqi feedback round 1): import retained but commented out
 // alongside the section mount. Restore both when ChangesSinceLastSection
@@ -30,7 +29,6 @@ import { DailyBriefCard } from '@/features/dashboard/daily-brief-card'
 // import { ChangesSinceLastSection } from '@/features/dashboard/changes-since-last-section'
 import { NeedsAttentionSection } from '@/features/dashboard/needs-attention-section'
 import { useObligationDrawer } from '@/features/obligations/ObligationDrawerProvider'
-import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
 import type { ObligationStatus } from '@/features/obligations/status-control'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
@@ -190,20 +188,6 @@ export function DashboardRoute() {
   const triageTabs = data?.triageTabs ?? []
   const facets = data?.facets
 
-  // Deadlines due today that still need work — derived from the
-  // server's topRows so the "AT A GLANCE → Today" tile counts the
-  // same rows the action list surfaces, with no extra round-trip.
-  // Filed / completed rows are excluded; those no longer "need
-  // attention before EOD."
-  const TERMINAL_STATUSES = new Set(['done', 'completed', 'paid', 'not_applicable'])
-  const dueTodayCount = data?.topRows
-    ? data.topRows.filter(
-        (row) =>
-          daysUntilDueFromAsOf(row.currentDueDate, data.asOfDate) <= 0 &&
-          !TERMINAL_STATUSES.has(row.status),
-      ).length
-    : undefined
-
   return (
     // 2026-05-25 (GitHub-density direction): page rhythm tightened
     // gap-8 → gap-6 (header → sections), header h1 trimmed from
@@ -274,7 +258,7 @@ export function DashboardRoute() {
        the fold, but Yuqi found the three sections reading too close
        together. 32px gives a clearer "three distinct sections"
        hierarchy without losing too much vertical real estate. */
-    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-6 pb-12 md:px-16 md:pt-6 md:pb-12">
+    <div className="mx-auto flex w-full max-w-page-expanded flex-col gap-6 px-4 pt-6 pb-12 md:px-8 md:pt-6 md:pb-12">
       {/* 2026-05-26 (Yuqi seventy-fourth pass — Today joins the
           page-header family): the hand-rolled <header> is gone.
           /today now routes through the same `<PageHeader>`
@@ -390,24 +374,19 @@ export function DashboardRoute() {
                 first-time keyboardists a path in; mouse users
                 can also click. Mirrors the bottom-of-queue
                 pattern in /deadlines. */}
-            {/* 2026-06-03 (Yuqi Pencil VmcdD — actions order): button
-                cluster reordered to match Pencil. Right-to-left
-                priority: Add deadline (primary blue, the dominant
-                action) → Import clients (outline secondary) → keyboard
-                shortcut chip (smallest, leftmost). */}
             <ShortcutHintChip className="hidden md:inline-flex" />
-            {/* 2026-06-04 round 14 (Yuqi page-feedback "why is
-                Import clients button not working"): dropped the
-                `disabled={!canRunMigration}` attribute that
-                silently swallowed clicks when the current role
-                lacked `migration.run`. Now the button is always
-                visually active; clicks ALWAYS produce feedback —
-                either the wizard opens, or a toast explains why
-                it can't. Permission-gated by a click-time guard
-                instead of native disabled state. */}
+            {/* 2026-06-08 (Yuqi /today ErW76): the PageHeader action
+                cluster was trimmed to a single control. "Add deadline"
+                was removed entirely (creation lives in the deadlines
+                surface, not the daily triage header). "Import clients"
+                collapsed from a labelled outline button to a compact
+                dark icon-only "+" — Pencil's header carries one filled
+                square affordance, not a row of outline buttons. The
+                permission guard + tooltip-via-aria-label are preserved,
+                so clicks still always produce feedback. */}
             <Button
-              variant="outline"
-              size="sm"
+              variant="primary"
+              size="icon-sm"
               onClick={() => {
                 if (!canRunMigration) {
                   toast.error(
@@ -419,29 +398,12 @@ export function DashboardRoute() {
               }}
               aria-label={
                 canRunMigration
-                  ? undefined
+                  ? t`Import clients`
                   : t`Import clients (requires ${requiredRolesLabel('migration.run')} access)`
               }
             >
-              <UploadIcon data-icon="inline-start" />
-              <Trans>Import clients</Trans>
+              <PlusIcon />
             </Button>
-            {/* 2026-06-04 round 45 (Yuqi /today #6 — "buttons are
-                ugly"): Add deadline passed an explicit outline
-                trigger so the /today PageHeader cluster reads as a
-                single uniform button family (Import clients + Add
-                deadline = both outline + small), matching /alerts'
-                all-outline cluster (My morning sweep + Sources +
-                Alert history). The earlier mix of primary blue +
-                outline gray was the visual jar. */}
-            <CreateObligationDialog
-              trigger={
-                <Button type="button" variant="outline" size="sm">
-                  <PlusIcon data-icon="inline-start" />
-                  <Trans>Add deadline</Trans>
-                </Button>
-              }
-            />
           </>
         }
       />
@@ -501,18 +463,11 @@ export function DashboardRoute() {
         onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
       />
 
-      {/* 2026-06-07 (Pencil bAULB — /today "AT A GLANCE" tile row):
-          four equal-width summary tiles (At risk / Today / Morning
-          sweep / Needs you) sourced from the dashboard.load summary
-          (no contract change) + the shared alerts-list cache. Sits
-          between the daily brief and the Alerts hero row, matching
-          the design's section order. */}
-      <DashboardAtAGlance
-        summary={data?.summary}
-        dueTodayCount={dueTodayCount}
-        isLoading={dashboardQuery.isLoading}
-      />
-
+      {/* 2026-06-08 (Yuqi /today #2): the standalone "AT A GLANCE"
+          tile row (Pencil bAULB) was removed — Pencil VJbaH folds the
+          day's headline numbers into the Daily Brief bar (qYrr3) above,
+          so a separate four-tile strip duplicated that signal with extra
+          chrome. The brief now carries the at-a-glance role. */}
       <NeedsAttentionSection />
 
       {/* 2026-05-25 (Yuqi #5): the standalone <ExposureStrip>

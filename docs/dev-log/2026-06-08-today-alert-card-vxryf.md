@@ -15,12 +15,15 @@ the node exactly, using real `PulseAlertPublic` fields (no contract change).
 - **`DEADLINE SHIFTED`** change-kind label added (mono, accent) — was missing
   entirely; reuses the shared `changeKindLabel(alert.changeKind)` helper.
 - **State pill**: bordered mono code (no motif), consistent with the form badge.
-- **Timestamp**: added the `clock-3` icon prefix.
-- **Title + summary**: title 15/600; added the **summary** body line
-  (`alert.summary`, 13/secondary, 2-line clamp) — was missing.
+- **Timestamp**: relative time only, no leading icon (the `clock-3` icon was
+  tried and removed per Yuqi /today feedback #4 — redundant chrome).
+- **Title**: 15/600. The summary body line is **not** rendered on the outer card
+  (Yuqi /today feedback #3 — "do not show details on the outside card"); the full
+  summary lives in the alert detail drawer.
 - **Bottom meta** (`skQVb`): top hairline divider, then "Affects N client" +
   overlapping **client-initial avatars** + `· conf {pct}%` (green) — spacer —
-  **source link** (moved here from under the title) with external-link icon.
+  **source link** (moved here from under the title) with external-link icon,
+  at `text-[11px]` (feedback #5 — smaller font).
 
 ## Reuse / new
 
@@ -37,10 +40,11 @@ the node exactly, using real `PulseAlertPublic` fields (no contract change).
 
 ## Surface note
 
-- VxRyF card fill is `#f9fafb` on a white page with no border. Until the page-level
-  surface-model pass lands, the card keeps its hairline border so it stays visible
-  on the current lighter page wash (documented deviation).
+- VxRyF card fill is `#f9fafb` on a white page with **no border** — the hairline
+  border was dropped (Yuqi "too much use of border"). The `impacted > 0` cards use
+  `bg-background-section` against the white page so they read without a stroke.
 
 ## Verify
 
-- tsgo 0; dashboard tests 14/15; `vp check` 0 errors; strict i18n compile passes.
+- tsgo 0; dashboard feature tests pass; `vp check` 0 errors (mine); no new i18n
+  strings.

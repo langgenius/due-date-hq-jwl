@@ -1,6 +1,6 @@
 import { plural } from '@lingui/core/macro'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { Building2, Clock3, ExternalLinkIcon, Plus } from 'lucide-react'
+import { Building2, ExternalLinkIcon, Plus } from 'lucide-react'
 
 import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -334,7 +334,7 @@ function NeedsAttentionCard({
         // lighter page wash — at rest the white/section fill alone sat too
         // close to the body tone. Border, not shadow, per the standing
         // "no shadows" preference.
-        'group flex h-full w-full min-w-0 flex-col gap-4 rounded-xl border border-divider-regular px-5 py-4 text-left',
+        'group flex h-full w-full min-w-0 flex-col gap-4 rounded-xl px-5 py-4 text-left',
         impacted > 0 ? 'bg-background-section' : 'bg-background-default',
         'transition-colors duration-200 hover:bg-background-subtle',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
@@ -418,10 +418,9 @@ function NeedsAttentionCard({
             <TooltipTrigger
               render={(props) => (
                 <span
-                  className="inline-flex shrink-0 cursor-help items-center gap-1 whitespace-nowrap text-[12px] font-medium text-text-muted tabular-nums outline-none"
+                  className="shrink-0 cursor-help whitespace-nowrap text-[12px] font-medium text-text-muted tabular-nums outline-none"
                   {...props}
                 >
-                  <Clock3 className="size-3 shrink-0" aria-hidden />
                   {formatRelativeTime(alert.publishedAt)}
                 </span>
               )}
@@ -446,17 +445,15 @@ function NeedsAttentionCard({
           {/* Title — Pencil VxRyF 16/600 (kept at 15px for small-screen
               density). `dedupeTitleSource` still strips a leading source
               prefix so the bottom source link doesn't echo it. */}
+          {/* 2026-06-08 (Yuqi audit #3 "do not show details on the outside
+              card"): the summary body line was removed — the title is the
+              card's signal; the full summary lives in the alert drawer. */}
           <h3
             className="line-clamp-2 min-w-0 text-[15px] font-semibold leading-[1.3] text-text-primary"
             title={alert.title}
           >
             {dedupeTitleSource(alert.title, alert.source)}
           </h3>
-          {/* SUMMARY — Pencil VxRyF body line (was missing entirely).
-              Two-line clamp, secondary tone (#676f83). */}
-          <p className="line-clamp-2 min-w-0 text-[13px] leading-[1.5] text-text-secondary">
-            {alert.summary}
-          </p>
         </div>
       </div>
 
@@ -506,7 +503,7 @@ function NeedsAttentionCard({
           <TooltipTrigger
             render={(props) => (
               <span
-                className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-[13px] font-medium text-text-secondary outline-none transition-colors hover:text-text-primary hover:underline"
+                className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-[11px] font-medium text-text-secondary outline-none transition-colors hover:text-text-primary hover:underline"
                 onClick={(event) => {
                   event.stopPropagation()
                   window.open(alert.sourceUrl, '_blank', 'noopener,noreferrer')
