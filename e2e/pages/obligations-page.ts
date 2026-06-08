@@ -4,7 +4,6 @@ export class ObligationQueuePage {
   readonly heading: Locator
   readonly searchInput: Locator
   readonly dueSortButton: Locator
-  readonly statusFilterTrigger: Locator
   // Calendar sync is now an in-place popover button on the Deadlines page
   // (it used to be a link to /deadlines/calendar). The dedicated route
   // still exists and is reachable via ⌘K → "Calendar sync".
@@ -19,8 +18,13 @@ export class ObligationQueuePage {
     // in the filter row above the table. It's always visible, so there is
     // no expand button and no dedicated "Clear search" button anymore.
     this.searchInput = page.getByRole('searchbox', { name: 'Search deadlines' })
-    this.dueSortButton = page.getByRole('button', { name: 'Sort Internal Due' })
-    this.statusFilterTrigger = page.getByRole('button', { name: /^Status(?:\s+\d+)?$/ })
+    // The sortable header renders a button with aria-label `Sort ${columnLabel}`
+    // (ObligationQueueSortableHeader in queue/components/toolbar.tsx). The
+    // internal-due column's label is t`Internal due date`
+    // (use-obligation-queue-columns.tsx), so the accessible name is the full
+    // "Sort Internal due date" — not the shorter "Internal Due" an earlier
+    // spec assumed.
+    this.dueSortButton = page.getByRole('button', { name: 'Sort Internal due date' })
     this.calendarSyncButton = page.getByRole('button', { name: 'Calendar sync' })
     this.columnsButton = page.getByRole('button', { name: 'Columns' })
   }
@@ -40,20 +44,20 @@ export class ObligationQueuePage {
     await this.searchInput.fill('')
   }
 
-  async openStatusFilter() {
-    await this.statusFilterTrigger.click()
-  }
-
-  statusFilterOption(name: string) {
-    return this.page.getByRole('menuitemcheckbox', {
-      name: new RegExp(`^${escapeRegex(name)}(?:\\s+\\d+)?$`),
+  // 2026-06-08 (ad0f900d — filter consolidation): the per-column STATUS header
+  // dropdown was removed (it conflicted with the top tabs). Status is now a
+  // top-level scope-tab bar — each tab is a <button> (aria-pressed) whose
+  // accessible name is the status label followed by its facet count (label and
+  // count are adjacent <span>s, e.g. "In review 1"). Clicking one writes
+  // ?status=<key> via setObligationQueueQuery; there is no popover to escape.
+  statusScopeTab(name: string) {
+    return this.page.getByRole('button', {
+      name: new RegExp(`^${escapeRegex(name)}\\s*\\d*$`),
     })
   }
 
-  async selectStatusFilter(name: string) {
-    await this.openStatusFilter()
-    await this.statusFilterOption(name).click()
-    await this.page.keyboard.press('Escape')
+  async selectStatusScope(name: string) {
+    await this.statusScopeTab(name).click()
   }
 
   statusSelectFor(clientName: string) {

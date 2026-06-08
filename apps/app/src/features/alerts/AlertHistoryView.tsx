@@ -322,13 +322,19 @@ export function AlertHistoryView() {
             <TableBody>
               {historyQuery.isLoading ? (
                 <TableRow className="even:bg-transparent hover:bg-transparent">
-                  <TableCell colSpan={5} className="py-10 text-center text-[13px] text-text-tertiary">
+                  <TableCell
+                    colSpan={5}
+                    className="py-10 text-center text-[13px] text-text-tertiary"
+                  >
                     <Trans>Loading handled alerts…</Trans>
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow className="even:bg-transparent hover:bg-transparent">
-                  <TableCell colSpan={5} className="py-10 text-center text-[13px] text-text-tertiary">
+                  <TableCell
+                    colSpan={5}
+                    className="py-10 text-center text-[13px] text-text-tertiary"
+                  >
                     <Trans>No handled alerts match this view.</Trans>
                   </TableCell>
                 </TableRow>

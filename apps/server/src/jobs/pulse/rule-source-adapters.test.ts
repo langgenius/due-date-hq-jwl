@@ -301,8 +301,8 @@ describe('rule source adapters', () => {
     expect(
       sources.find((candidate) => candidate.id === 'nh.temporary_announcements'),
     ).toMatchObject({
-      title: 'New Hampshire DRA News and Media',
-      url: 'https://www.revenue.nh.gov/news-and-media',
+      title: 'New Hampshire DRA News and Announcements',
+      url: 'https://www.revenue.nh.gov/resource-center/news-and-announcements',
       acquisitionMethod: 'html_watch',
     })
     expect(

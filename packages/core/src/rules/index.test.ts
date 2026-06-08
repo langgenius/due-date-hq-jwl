@@ -227,8 +227,8 @@ describe('@duedatehq/core/rules', () => {
       acquisitionMethod: 'html_watch',
     })
     expect(sourcesById.get('nh.temporary_announcements')).toMatchObject({
-      title: 'New Hampshire DRA News and Media',
-      url: 'https://www.revenue.nh.gov/news-and-media',
+      title: 'New Hampshire DRA News and Announcements',
+      url: 'https://www.revenue.nh.gov/resource-center/news-and-announcements',
       acquisitionMethod: 'html_watch',
     })
     expect(sourcesById.get('vt.temporary_announcements')).toMatchObject({
@@ -369,7 +369,7 @@ describe('@duedatehq/core/rules', () => {
     })
     expect(rowsBySourceId.get('policy-watch.nh.announcements')).toMatchObject({
       quality: 'parser_ready',
-      url: 'https://www.revenue.nh.gov/news-and-media',
+      url: 'https://www.revenue.nh.gov/resource-center/news-and-announcements',
       adapterKind: null,
     })
     expect(rowsBySourceId.get('policy-watch.vt.announcements')).toMatchObject({
@@ -379,7 +379,7 @@ describe('@duedatehq/core/rules', () => {
     })
     expect(rowsBySourceId.get('policy-watch.pa.announcements')).toMatchObject({
       quality: 'parser_ready',
-      url: 'https://www.pa.gov/agencies/revenue/newsroom.html',
+      url: 'https://www.pa.gov/agencies/revenue/newsroom#sortCriteria=%40copapwpeffectivedate%20descending',
       adapterKind: 'html_announcement_list',
     })
     expect(rowsBySourceId.get('policy-watch.oh.announcements')).toMatchObject({

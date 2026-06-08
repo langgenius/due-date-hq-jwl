@@ -8,6 +8,7 @@ targets in 5 bands; STATUS filterable two conflicting ways), consolidated to the
 /alerts pattern: status tabs + ONE Filters popover.
 
 ## Changes (routes/obligations.tsx)
+
 - **Removed the density toggle** (Comfortable/Compact Segmented); cell padding is
   hardcoded compact. ("leave only compact view")
 - **New `ObligationFiltersPopover`** mirroring `AlertFiltersPopover` — one
@@ -26,6 +27,7 @@ targets in 5 bands; STATUS filterable two conflicting ways), consolidated to the
   doubles against the toolbar hairline.
 
 ## Verify
+
 tsgo clean; `/deadlines` — toolbar shows tabs + search + Group by/Filters/Columns
 (no chips, no density). Opening Filters → Past due wrote `?due=overdue`, the
 trigger badged "(1)", table filtered to 12 overdue rows. At 1512×861.

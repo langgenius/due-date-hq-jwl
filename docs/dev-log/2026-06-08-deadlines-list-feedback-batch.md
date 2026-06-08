@@ -13,7 +13,7 @@ Page-feedback pass on the /deadlines LIST (`routes/obligations.tsx` +
 3. **Search moved up beside the status tabs** — the Search field now sits
    right-aligned on the scope-tab row (the nav is `flex-1`), replacing the
    duplicate field in the row below.
-7. **Removed the "Projected" quick-filter chip** — the `projected` query
+4. **Removed the "Projected" quick-filter chip** — the `projected` query
    param + per-row Projected badge stay; only the toolbar toggle is gone.
 
 ## Table
@@ -26,7 +26,7 @@ Page-feedback pass on the /deadlines LIST (`routes/obligations.tsx` +
    typography to `[&_th_button]` (case/size/weight/tracking via `!important`,
    leaving hover/active color intact). Result: every header is uniform.
    Widened the Assignee column 56→76px so the uppercase "ASSIGNEE" fits.
-5/6. **Left-aligned** — Exposure was the one right-aligned column; switched
+   5/6. **Left-aligned** — Exposure was the one right-aligned column; switched
    its header + cells (and the empty-state mark) to left so the whole table
    reads uniformly left-aligned.
 
@@ -34,14 +34,14 @@ Page-feedback pass on the /deadlines LIST (`routes/obligations.tsx` +
 
 9. **Client name `font-medium`** by default (was `font-normal`); the active
    row steps up to `font-semibold`.
-11. **Smaller assignee avatar** — table cell uses `size="sm"` (32→28px).
-10. **State badge** — verified: `<Badge variant="outline" text-xs
-   font-normal tabular-nums>` is identical to the /clients state badge
-   (`ClientFactsWorkspace`). No change — already consistent.
+10. **Smaller assignee avatar** — table cell uses `size="sm"` (32→28px).
+11. **State badge** — verified: `<Badge variant="outline" text-xs
+font-normal tabular-nums>` is identical to the /clients state badge
+    (`ClientFactsWorkspace`). No change — already consistent.
 12. **Status-signal hierarchy** — "Accepted" was a solid-green pill that
-   out-weighted the "Filed" status pill (two competing greens). It's now a
-   soft `Badge variant="success"`, so it reads as a quiet confirmation under
-   the status pill and the red "PAYMENT Nd LATE" stays the single loud signal.
+    out-weighted the "Filed" status pill (two competing greens). It's now a
+    soft `Badge variant="success"`, so it reads as a quiet confirmation under
+    the status pill and the red "PAYMENT Nd LATE" stays the single loud signal.
 
 ## At a glance
 
@@ -54,6 +54,7 @@ Page-feedback pass on the /deadlines LIST (`routes/obligations.tsx` +
    collapsed so no empty band remains.
 
 ## Verify
+
 - `tsgo --noEmit` clean (app), scoped `vp lint` 0 errors (1 pre-existing
   `columnOrder` assertion warning, untouched).
 - `document` no horizontal scroll; `table-container` overflowX 0.

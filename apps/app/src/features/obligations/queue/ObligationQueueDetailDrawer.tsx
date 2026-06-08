@@ -1419,7 +1419,9 @@ export function ObligationQueueDetailDrawer({
             // can't see (build-time expansion) but crashes at runtime.
             const timingNote =
               isDone || isOverdue ? (
-                officialIso ? t`Due ${formatDate(officialIso)}` : null
+                officialIso ? (
+                  t`Due ${formatDate(officialIso)}`
+                ) : null
               ) : row.daysUntilDue >= 0 ? (
                 <Plural value={row.daysUntilDue} one="due in # day" other="due in # days" />
               ) : null
@@ -1449,7 +1451,9 @@ export function ObligationQueueDetailDrawer({
                   compact
                   tone="success"
                   icon={CheckCircle2Icon}
-                  title={row.status === 'completed' ? <Trans>Completed</Trans> : <Trans>Filed</Trans>}
+                  title={
+                    row.status === 'completed' ? <Trans>Completed</Trans> : <Trans>Filed</Trans>
+                  }
                   note={timingNote}
                 />
               )

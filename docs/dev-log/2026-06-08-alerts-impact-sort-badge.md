@@ -7,6 +7,7 @@ most affecting client alert, add a High Impact badge" + "dont need to show the
 date header on map view."
 
 ## Changes
+
 - `lib/impact-level.ts`: extracted `alertImpactCount()` (matchedCount +
   needsReviewCount) as the single impact metric; `alertImpactLevel` reuses it.
 - `AlertsListPage.tsx`:
@@ -26,5 +27,6 @@ date header on map view."
     surface stays intact.
 
 ## Verify
+
 tsgo clean; `/alerts` Sort by Impact → flat list, no day headers, top-3 (3/3/2
 clients) badged HIGH IMPACT, 4th (2 clients) not. Map view rail flat, no headers.

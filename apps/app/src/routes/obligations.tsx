@@ -1600,8 +1600,7 @@ export function ObligationQueueRoute() {
   // label). When the scope is "All" the full status label stays. Mirrors
   // `activeScope` (computed later for the scope-tab bar) but is needed
   // earlier here, inside the column definitions.
-  const singleStatusScopeActive =
-    statusQuery.length === 1 && isObligationStatus(statusQuery[0]!)
+  const singleStatusScopeActive = statusQuery.length === 1 && isObligationStatus(statusQuery[0]!)
   const obligationQuery = useMemo(
     () => cleanEntityIdFilters(obligation ? [obligation] : []),
     [obligation],
@@ -13351,9 +13350,7 @@ function ObligationFiltersPopover({
               </ObligationFilterPill>
               <ObligationFilterPill
                 active={thisWeekFilterActive}
-                onClick={() =>
-                  onPatch({ ...nextThisWeekFilterPatch(daysMin, daysMax), due: null })
-                }
+                onClick={() => onPatch({ ...nextThisWeekFilterPatch(daysMin, daysMax), due: null })}
               >
                 <Trans>Due this week</Trans>
               </ObligationFilterPill>
@@ -13374,9 +13371,7 @@ function ObligationFiltersPopover({
               </ObligationFilterPill>
               <ObligationFilterPill
                 active={awaitingSignature === true}
-                onClick={() =>
-                  onPatch({ awaitingSignature: awaitingSignature ? null : true })
-                }
+                onClick={() => onPatch({ awaitingSignature: awaitingSignature ? null : true })}
               >
                 <Trans>Awaiting signature</Trans>
               </ObligationFilterPill>

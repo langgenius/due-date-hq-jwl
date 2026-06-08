@@ -1,20 +1,24 @@
 # 2026-06-08 — /deadlines: full-page scroll (was inner-table scroll)
 
 ## Feedback
+
 "should be scroll the full page, it is a table scroll and the top card row
-collapses." The queue scrolled *inside the table* while the at-a-glance +
+collapses." The queue scrolled _inside the table_ while the at-a-glance +
 toolbar stayed fixed. Yuqi wants the whole page to scroll as one, with the
 top card row collapsing as it goes.
 
 ## Why it was an inner-table scroll
+
 At xl+ the page container was `xl:h-screen xl:overflow-hidden` and the table
 sat in its own `overflow-y-auto` column — a deliberate "page-flip" layout
 that exists for the **detail-panel split** (the panel needs a full-height
-side rail). So the inner scroll is load-bearing *only* in the panel-open
+side rail). So the inner scroll is load-bearing _only_ in the panel-open
 state.
 
 ## Change — full-page scroll when the panel is closed, split preserved when open
+
 All gated on `panelOpenIntent`:
+
 - Outer page container: `xl:h-screen xl:overflow-hidden xl:pb-0` → panel-open
   only. Closed, the page flows to natural height and the app-shell `<main>`
   scrolls the whole thing (like /today + /alerts).
@@ -29,7 +33,7 @@ All gated on `panelOpenIntent`:
 - Column header `sticky top-0`: panel-open only — full-page mode lets it
   scroll away so it never collides with the sticky filter toolbar.
 - Infinite-scroll IntersectionObserver root: `panelOpenIntent ?
-  scrollContainerRef.current : null` (viewport in full-page mode).
+scrollContainerRef.current : null` (viewport in full-page mode).
 - At-a-glance collapse: moved back into the component, listening to its
   nearest scroll ancestor (now `<main>`, found by overflow-y alone so mount
   timing doesn't matter). Removed the route-level `onScroll`/`collapsed`
@@ -37,9 +41,11 @@ All gated on `panelOpenIntent`:
   mode doesn't over-fetch.
 
 ## Follow-up — "the filters and selections are sticky on top"
+
 On full-page scroll the status filter bar AND the table column header (the
 select-all checkbox + sort/filter controls) must both pin to the top,
 stacked. Changes:
+
 - The sticky filter bar gets a live height measurement (`ResizeObserver` →
   `filterBarHeight`) — it wraps responsively, so the offset can't be
   hard-coded — and an opaque `bg-background-default` (full-page only) so rows
@@ -55,6 +61,7 @@ stacked. Changes:
   it, rows scrolling under. Secondary quick-filter chips scroll away.
 
 ## Verify
+
 - Panel **closed**: `<main>` scrolls the whole page; the filter toolbar pins
   at top with the column header stacked right below it; the at-a-glance
   collapses past 40px and re-expands under 8px; no horizontal scroll; queue

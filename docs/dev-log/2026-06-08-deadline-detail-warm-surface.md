@@ -8,6 +8,7 @@ is the surface model — secondary/detail surfaces = warm light gray; content
 grouped into white cards; borders restrained.
 
 ## Changes (ObligationQueueDetailDrawer.tsx)
+
 - Pane surface `bg-background-default` (white) → `bg-background-canvas-warm`
   (warm gray) — both the master-detail panel-mode `<aside>` and the Sheet drawer.
 - Sticky chrome (date strip, tabs container, TabsList, footer) → warm gray so
@@ -21,5 +22,6 @@ grouped into white cards; borders restrained.
   against the warm pane.
 
 ## Verify
+
 tsgo clean; `/deadlines` detail at 1512×861 — warm gray pane, white metric +
 checklist cards, contained info, no random section dividers.

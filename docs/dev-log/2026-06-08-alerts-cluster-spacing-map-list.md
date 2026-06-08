@@ -4,14 +4,14 @@ Date: 2026-06-08
 
 ## Filter-cluster spacing (`AlertsListPage.tsx`)
 
-Feedback: *"space between search/list/map and all time, filters, state,
-sort by."* Widened the vertical-divider margins (`mx-1` → `mx-3`) so the
+Feedback: _"space between search/list/map and all time, filters, state,
+sort by."_ Widened the vertical-divider margins (`mx-1` → `mx-3`) so the
 left cluster (Search + List/Map) and the right cluster (All time · Filters ·
 State · Sort) read as two clearly separated groups instead of one strip.
 
 ## Map-view alert list (`AlertsListPage.tsx` + `PulseAlertRow.tsx`)
 
-Feedback: *"update the alert list in the map view."* The map view's right
+Feedback: _"update the alert list in the map view."_ The map view's right
 rail still rendered the old facts-grid `AlertCard` / `PulseFormRevisedCard`,
 which diverged from the list view's `PulseAlertRow`.
 

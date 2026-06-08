@@ -64,13 +64,13 @@ test.describe('seeded obligations', () => {
 
     await obligationQueuePage.clearSearch()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
-    await obligationQueuePage.openStatusFilter()
-    await obligationQueuePage.statusFilterOption('In review').click()
+    // 2026-06-08 (ad0f900d): status moved from a header dropdown to a scope-tab
+    // bar — click the "In review" tab directly (no popover to open or escape).
+    await obligationQueuePage.statusScopeTab('In review').click()
     await expect(authenticatedPage).toHaveURL(/\/deadlines\?status=review$/)
     await expect(obligationQueuePage.rowFor('Northstar Dental Group')).toBeVisible()
     await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toBeHidden()
-    await expect(obligationQueuePage.statusFilterOption('In review')).toBeVisible()
-    await authenticatedPage.keyboard.press('Escape')
+    await expect(obligationQueuePage.statusScopeTab('In review')).toBeVisible()
 
     await obligationQueuePage.goto()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)

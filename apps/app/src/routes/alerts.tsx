@@ -10,26 +10,16 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { CountPill } from '@/components/primitives/count-pill'
 import { AlertsListPage } from '@/features/alerts/AlertsListPage'
-import {
-  useActiveAlertCount,
-  useAlertsListQueryOptions,
-  useAlertSourceHealthQueryOptions,
-} from '@/features/alerts/api'
+import { useActiveAlertCount, useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { MorningSweepProvider, useMorningSweep } from '@/features/alerts/MorningSweepContext'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 
-const TOP_ALERTS_LIMIT = 50
 const NATIONAL_MONITORING_JURISDICTION_COUNT = 52
 
 export function AlertsRoute() {
   const { t } = useLingui()
   const { open: panelOpen } = useAlertDrawer()
-  // 2026-05-26 (Yuqi /alerts #9): fetch the alert count here
-  // so the page header can show "Alerts (N)" — same query options
-  // the embedded list uses, so React Query dedupes (one network
-  // request, count rendered in both places).
-  const alertsQuery = useQuery(useAlertsListQueryOptions(TOP_ALERTS_LIMIT))
   // The header count chip reads the SAME authoritative count as the sidebar nav
   // badge and the detail rail head — `pulse.activeCount` (matched +
   // partially_applied, approved, not expired). Earlier this filtered
@@ -43,9 +33,7 @@ export function AlertsRoute() {
   // + a tooltip count. Only enabled sources count toward the health roll-up.
   const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
   const monitoredSources = (sourceHealthQuery.data?.sources ?? []).filter((s) => s.enabled)
-  const unhealthySourceCount = monitoredSources.filter(
-    (s) => s.healthStatus !== 'healthy',
-  ).length
+  const unhealthySourceCount = monitoredSources.filter((s) => s.healthStatus !== 'healthy').length
   const sourceHealthLoaded = monitoredSources.length > 0
   const allSourcesHealthy = sourceHealthLoaded && unhealthySourceCount === 0
   // 2026-05-28 (source automation remediation): this chip is a

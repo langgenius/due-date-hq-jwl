@@ -1026,17 +1026,17 @@ function PulseAlertList({
       {!grouped
         ? alerts.map(renderRow)
         : Array.from(groups.entries()).map(([dayKey, dayAlerts]) => {
-        const { label, isToday } = formatDayHeader(dayKey, firmTimezone, todayKey)
-        const yesterdayKey = (() => {
-          const d = new Date(`${todayKey}T12:00:00.000Z`)
-          d.setUTCDate(d.getUTCDate() - 1)
-          return d.toISOString().slice(0, 10)
-        })()
-        const dayWord = isToday ? t`TODAY` : dayKey === yesterdayKey ? t`YESTERDAY` : null
+            const { label, isToday } = formatDayHeader(dayKey, firmTimezone, todayKey)
+            const yesterdayKey = (() => {
+              const d = new Date(`${todayKey}T12:00:00.000Z`)
+              d.setUTCDate(d.getUTCDate() - 1)
+              return d.toISOString().slice(0, 10)
+            })()
+            const dayWord = isToday ? t`TODAY` : dayKey === yesterdayKey ? t`YESTERDAY` : null
 
-        return (
-          <div key={dayKey} className="flex flex-col">
-            {/* Day header — round 70 (deferred "Day group header
+            return (
+              <div key={dayKey} className="flex flex-col">
+                {/* Day header — round 70 (deferred "Day group header
                 vertical stack instead of horizontal"): weekday/
                 date now stacks vertically on the LEFT (DAY WORD
                 on top, full date below), count on the right. The
@@ -1044,7 +1044,7 @@ function PulseAlertList({
                 count to compete for the same baseline; stacking
                 gives the date a clear hierarchy (label → date)
                 and the count breathes. */}
-            {/* Day header — round 79 (Yuqi #2 "I found this hard
+                {/* Day header — round 79 (Yuqi #2 "I found this hard
                 to read. any way to improve?"): readability fixes
                 applied while keeping the subgroup-divider
                 chrome:
@@ -1059,38 +1059,38 @@ function PulseAlertList({
                     count keeps the quieter `text-text-muted` so
                     the count reads as supporting context, not the
                     lede. */}
-            {/* 2026-06-08 (Yuqi /alerts "no background colour"): the day-group
+                {/* 2026-06-08 (Yuqi /alerts "no background colour"): the day-group
                 band drops its gray fill. Unlike /today's Actions table — where
                 the band groups by STATUS/urgency and earns a solid
                 `bg-background-subtle` fill — this band is just a DATE divider,
                 so a quiet bottom rule (no fill) reads cleaner and keeps the
                 colored-background restraint. The redundant right-side dispatch
                 count stays removed (Today's headers carry just the label). */}
-            {/* 2026-06-08 (Yuqi /alerts "same colour as today's actions table's
+                {/* 2026-06-08 (Yuqi /alerts "same colour as today's actions table's
                 date header"): the day-group band now carries the same
                 `bg-background-subtle` fill + text-secondary uppercase label as
                 the /today Actions table's status-group header. */}
-            <div className="flex items-center border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
-              <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.5px] text-text-secondary uppercase">
-                {isToday ? (
-                  <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
-                ) : null}
-                {dayWord ? <span>{dayWord}</span> : null}
-                {dayWord ? <span className="text-text-muted">·</span> : null}
-                <span>{label}</span>
-              </div>
-            </div>
+                <div className="flex items-center border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.5px] text-text-secondary uppercase">
+                    {isToday ? (
+                      <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
+                    ) : null}
+                    {dayWord ? <span>{dayWord}</span> : null}
+                    {dayWord ? <span className="text-text-muted">·</span> : null}
+                    <span>{label}</span>
+                  </div>
+                </div>
 
-            {/* Alert rows for this day. Round 74: `compact` propagates
+                {/* Alert rows for this day. Round 74: `compact` propagates
                 from whether the detail panel is up — see the
                 `panelOpen` computation below. Round 77: the dismiss
                 handler passes through from AlertsListPage so the
                 hover-revealed action actually fires the orpc
                 mutation. */}
-            {dayAlerts.map(renderRow)}
-          </div>
-        )
-      })}
+                {dayAlerts.map(renderRow)}
+              </div>
+            )
+          })}
     </div>
   )
 }

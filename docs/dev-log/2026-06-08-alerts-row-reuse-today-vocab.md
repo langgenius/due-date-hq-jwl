@@ -11,7 +11,7 @@ interrupt fixes (button height, cropped search ring, sticky filters).
 - **Change-kind type (#1 + #3)**: "Deadline shifted" was rendered in
   `font-mono`, bold, accent-blue — hard to read and unlike Today's card.
   Re-aligned to the NeedsAttentionCard treatment: SANS `text-[11px]
-  font-semibold tracking-[0.4px]` neutral `text-text-tertiary`. One
+font-semibold tracking-[0.4px]` neutral `text-text-tertiary`. One
   change-kind signature across /today + /alerts.
 - **Corner-turn glyph (#2)**: the ACTION sub-clause led with lucide's
   `CornerDownRight` (an arrow). Replaced with a plain elbow SVG (down →

@@ -2,11 +2,12 @@
 
 Date: 2026-06-08
 
-Feedback: *"yes, please rebuild but it should look the same."* (Follow-up to
+Feedback: _"yes, please rebuild but it should look the same."_ (Follow-up to
 the cohesion pass — make the history table share real structure with every
 other table, not just matching tokens.)
 
 ## Change (`AlertHistoryView.tsx`)
+
 The hand-rolled flex grid is replaced with the canonical
 `<Table>/<TableHeader>/<TableBody>/<TableRow>/<TableHead>/<TableCell>`
 primitives — same DOM and style source as every other table in the app:

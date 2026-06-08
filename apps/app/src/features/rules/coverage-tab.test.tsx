@@ -532,7 +532,12 @@ describe('CoverageTab canonical layout', () => {
     await render(<CoverageTab />)
     await waitForText('Entity coverage')
 
-    const tableFrame = document.querySelector('[data-slot="table"]')?.closest('.rounded-md')
+    // The table scroll region is a `SectionFrame` (rules-console-primitives),
+    // whose canonical frame class is `rounded-xl` — `cn`'s tailwind-merge
+    // collapses the frame's base `overflow-hidden` against the `overflow-auto`
+    // this call site passes, so the resolved className keeps `overflow-auto`
+    // (the table scrolls) and drops `overflow-hidden`.
+    const tableFrame = document.querySelector('[data-slot="table"]')?.closest('.rounded-xl')
 
     expect(tableFrame?.className).toContain('overflow-auto')
     expect(tableFrame?.className).toContain('overscroll-auto')
@@ -543,7 +548,12 @@ describe('CoverageTab canonical layout', () => {
     await render(<CoverageTab fitViewport />)
     await waitForText('Entity coverage')
 
-    const tableFrame = document.querySelector('[data-slot="table"]')?.closest('.rounded-md')
+    // The table scroll region is a `SectionFrame` (rules-console-primitives),
+    // whose canonical frame class is `rounded-xl` — `cn`'s tailwind-merge
+    // collapses the frame's base `overflow-hidden` against the `overflow-auto`
+    // this call site passes, so the resolved className keeps `overflow-auto`
+    // (the table scrolls) and drops `overflow-hidden`.
+    const tableFrame = document.querySelector('[data-slot="table"]')?.closest('.rounded-xl')
 
     expect(tableFrame?.className).toContain('overflow-auto')
     expect(tableFrame?.className).toContain('overscroll-contain')

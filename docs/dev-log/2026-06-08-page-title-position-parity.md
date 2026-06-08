@@ -9,9 +9,11 @@ navigating between them. /deadlines already matched /today; /alerts was the
 outlier.
 
 ## Fix
+
 RulesPageShell content wrapper `pt-8` → `pt-6` (rules-console-primitives.tsx). Now
 /today, /deadlines, /alerts, /rules all seat the page title at the same 24px top.
 
 ## Verify
+
 tsgo clean; /alerts title now sits at the same top position as /deadlines at
 1512×861; page otherwise unchanged.

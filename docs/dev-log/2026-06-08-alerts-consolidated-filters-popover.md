@@ -2,8 +2,8 @@
 
 Date: 2026-06-08
 
-Feedback: *"i am thinking to put severity, changes types, tax areas into
-filters. to clean up the space."*
+Feedback: _"i am thinking to put severity, changes types, tax areas into
+filters. to clean up the space."_
 
 ## Change (`AlertsListPage.tsx`)
 

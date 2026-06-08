@@ -5,6 +5,7 @@ Date: 2026-06-08
 Follow-on to the other session's `204101b2` cohesion pass. Yuqi's 12 items:
 
 ## List
+
 - **Lighter row title** (`PulseAlertRow`): `font-medium text-text-primary` →
   `font-normal text-text-secondary`.
 - **Filter-row grouping** (`AlertsListPage`): a `lg+` `flex-1` spacer after the
@@ -21,6 +22,7 @@ Follow-on to the other session's `204101b2` cohesion pass. Yuqi's 12 items:
   tooltip.
 
 ## Detail
+
 - **Primary action at the end** (`AlertDetailDrawer` DrawerActions): already
   `justify-between` — no change.
 - **Dim inactive rail items** (`AlertListRail`): inactive title `text-text-tertiary`,
@@ -35,5 +37,6 @@ Follow-on to the other session's `204101b2` cohesion pass. Yuqi's 12 items:
   detail `<aside>` (no `border-r` existed); rail border + wash carry separation.
 
 ## Verify
+
 tsgo clean; `/alerts` list + detail confirmed in preview at 1512×861 — seal chips
 present, red dot gone, filters grouped, detail footer/banner/facts/border correct.

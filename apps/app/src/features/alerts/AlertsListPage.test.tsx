@@ -115,6 +115,12 @@ vi.mock('@/lib/rpc', () => ({
       bulkDismiss: {
         mutationOptions: () => ({ mutationFn: vi.fn() }),
       },
+      // 2026-06-08: rows expose an inline Undo that re-activates a
+      // just-dismissed alert via `orpc.pulse.reactivate` — same render-time
+      // `mutationOptions(...)` contract as dismiss/bulkDismiss above.
+      reactivate: {
+        mutationOptions: () => ({ mutationFn: vi.fn() }),
+      },
       // 2026-06-07 (Pencil g5kKJQ `IciLB PriorityReasons`): the page
       // seeds the per-row smart-priority inset from the priority
       // queue. The query is disabled without `canViewPriorityQueue`,
@@ -427,8 +433,12 @@ describe('AlertsListPage tax area filter', () => {
     // ("Seeded Client Co") moved to the drawer. Settling probe
     // updated to the count chip the new row chrome renders.
     await waitForText('Affects 1 client')
-    // …and the single-select Tax area filter control is present in the row.
-    expect(document.body.textContent).toContain('Tax area')
+    // 2026-06-08 (Yuqi "fold the filter areas into filters to clean up the
+    // space"): Severity / Change type / Tax area were consolidated into a
+    // single "Filters" popover (AlertFiltersPopover). The Tax area control is
+    // no longer an always-visible chip — it's a labeled section inside that
+    // popover — so the exposed surface is the consolidated trigger.
+    expect(document.querySelector('[aria-label="Filters"]')).not.toBeNull()
   })
 })
 
@@ -437,16 +447,18 @@ describe('AlertsListPage tax area filter', () => {
 // bar. History rows are already-handled, so they are NOT selectable
 // (mirrors the existing history-mode dismiss suppression).
 describe('AlertsListPage bulk selection (Pencil g5kKJQ)', () => {
-  it('renders the Select all strip + a per-row checkbox on the active surface', async () => {
+  it('renders a per-row selection checkbox on the active surface', async () => {
     rpcMocks.listAlertsQueryFn.mockResolvedValue({ alerts: [listAlert()], nextCursor: null })
 
     await render(<AlertsListPage embedded />)
 
     await waitForText('Seeded CA relief')
-    // BulkSelectStrip (`TAamJ`): "Select all" + dispatch count.
-    expect(document.body.textContent).toContain('Select all')
-    // Select-all checkbox + at least one per-row checkbox.
-    expect(document.querySelector('[aria-label="Select all alerts"]')).not.toBeNull()
+    // 2026-06-08 (Yuqi "remove"): the "Select all · N dispatches"
+    // BulkSelectStrip and its select-all checkbox were dropped as redundant
+    // chrome (PulseAlertRow). Per-row checkboxes still drive bulk selection in
+    // selectable mode (the floating BulkActionBar — exercised below — appears
+    // once rows are picked), so there is no top "Select all" strip to assert.
+    expect(document.querySelector('[aria-label="Select all alerts"]')).toBeNull()
     expect(document.querySelector('[aria-label="Select alert: Seeded CA relief"]')).not.toBeNull()
   })
 

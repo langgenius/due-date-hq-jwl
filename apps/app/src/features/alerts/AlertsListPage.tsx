@@ -1129,7 +1129,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-[13px] font-medium text-text-secondary select-none">
                       <Checkbox
                         checked={showSuggestedAction}
-                        onCheckedChange={(next) => setShowSuggestedAction(next === true)}
+                        onCheckedChange={(next) => setShowSuggestedAction(next)}
                       />
                       <Trans>Show suggested action</Trans>
                     </label>

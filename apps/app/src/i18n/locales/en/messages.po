@@ -178,11 +178,6 @@ msgstr "{0, plural, one {# deadline synced from your rules} other {# deadlines s
 msgid "{0, plural, one {# deadline} other {# deadlines}}"
 msgstr "{0, plural, one {# deadline} other {# deadlines}}"
 
-#. placeholder {0}: alerts.length
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "{0, plural, one {# dispatch} other {# dispatches}}"
-msgstr "{0, plural, one {# dispatch} other {# dispatches}}"
-
 #. placeholder {0}: events.length
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "{0, plural, one {# event} other {# events}}"
@@ -256,6 +251,11 @@ msgstr "{0, plural, one {# ongoing} other {# ongoing}}"
 msgid "{0, plural, one {# open filing} other {# open filings}}"
 msgstr "{0, plural, one {# open filing} other {# open filings}}"
 
+#. placeholder {0}: rows.length
+#: src/features/obligations/components/ObligationListRail.tsx
+msgid "{0, plural, one {# open} other {# open}}"
+msgstr "{0, plural, one {# open} other {# open}}"
+
 #. placeholder {0}: group.openCount
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "{0, plural, one {# projected filing} other {# projected filings}}"
@@ -316,6 +316,11 @@ msgstr "{0, plural, one {Applied to # client · logged to audit ledger} other {A
 msgid "{0, plural, one {client imported} other {clients imported}}"
 msgstr "{0, plural, one {client imported} other {clients imported}}"
 
+#. placeholder {0}: row.daysUntilDue
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "{0, plural, one {due in # day} other {due in # days}}"
+msgstr "{0, plural, one {due in # day} other {due in # days}}"
+
 #. placeholder {0}: -days
 #: src/components/primitives/due-date-label.tsx
 msgid "{0, plural, one {filed #d late} other {filed #d late}}"
@@ -346,11 +351,6 @@ msgstr "{0, plural, one {We imported the first 1000 of # row. Split your file to
 msgid "{0, plural, one {You have # deadline due this week} other {You have # deadlines due this week}}"
 msgstr "{0, plural, one {You have # deadline due this week} other {You have # deadlines due this week}}"
 
-#. placeholder {0}: client.name
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "{0} — a quick update from your CPA"
-msgstr "{0} — a quick update from your CPA"
-
 #. placeholder {0}: jurisdictionLabel(row.jurisdiction)
 #. placeholder {1}: isExpanded ? 'collapse' : 'expand'
 #: src/features/rules/coverage-tab.tsx
@@ -369,12 +369,6 @@ msgstr "{0} · {1} rows · started {2}"
 #: src/routes/obligations.tsx
 msgid "{0} · Shift+click to select all of this client's rows"
 msgstr "{0} · Shift+click to select all of this client's rows"
-
-#. placeholder {0}: dayAlerts.length
-#. placeholder {1}: dayAlerts.length === 1 ? t`dispatch` : t`dispatches`
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "{0} {1}"
-msgstr "{0} {1}"
 
 #. placeholder {0}: safePreviewIndex + 1
 #: src/features/obligations/queue/dialogs.tsx
@@ -471,6 +465,11 @@ msgstr "{0} deadlines extended"
 #: src/routes/obligations.tsx
 msgid "{0} deadlines extended · {1} skipped (already extended or past deadline)"
 msgstr "{0} deadlines extended · {1} skipped (already extended or past deadline)"
+
+#. placeholder {0}: groupHeader.lateCount ?? 0
+#: src/routes/obligations.tsx
+msgid "{0} deadlines in this band are past the internal target"
+msgstr "{0} deadlines in this band are past the internal target"
 
 #. placeholder {0}: result.updatedCount
 #. placeholder {1}: v2StatusLabels[vars.status]
@@ -615,12 +614,6 @@ msgstr "{0} other"
 msgid "{0} permissions are set by the product"
 msgstr "{0} permissions are set by the product"
 
-#. placeholder {0}: result.summary.createdCount
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "{0} projected deadlines created"
-msgstr "{0} projected deadlines created"
-
 #. placeholder {0}: preview.acceptReadyCount
 #. placeholder {1}: preview.estimatedObligationCount
 #: src/features/rules/coverage-tab.tsx
@@ -757,6 +750,10 @@ msgstr "{activeSources, plural, one {# source active} other {# sources active}}"
 msgid "{affectedReviewClients, plural, one {# client has state deadlines that need reviewed practice rules first.} other {# clients have state deadlines that need reviewed practice rules first.}}"
 msgstr "{affectedReviewClients, plural, one {# client has state deadlines that need reviewed practice rules first.} other {# clients have state deadlines that need reviewed practice rules first.}}"
 
+#: src/routes/alerts.tsx
+msgid "{alertCount, plural, one {# active} other {# active}}"
+msgstr "{alertCount, plural, one {# active} other {# active}}"
+
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{alertCount} active alerts"
 msgstr "{alertCount} active alerts"
@@ -879,15 +876,6 @@ msgstr "{daysAbs}d late"
 msgid "{daysAgo} days ago"
 msgstr "{daysAgo} days ago"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "{dup, plural, one {Confirmed by # source} other {Confirmed by # sources}}"
-msgstr "{dup, plural, one {Confirmed by # source} other {Confirmed by # sources}}"
-
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "{duplicateCount} already rolled forward · {skippedCount} skipped (no verified Tax Year {targetTaxYear} rule)"
-msgstr "{duplicateCount} already rolled forward · {skippedCount} skipped (no verified Tax Year {targetTaxYear} rule)"
-
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "{durationMonths, plural, one {# month} other {# months}}"
 msgstr "{durationMonths, plural, one {# month} other {# months}}"
@@ -939,6 +927,10 @@ msgstr "{fixedCount} of {totalCount} fixed"
 msgid "{formsText} affected"
 msgstr "{formsText} affected"
 
+#: src/routes/alerts.history.tsx
+msgid "{handledCount} handled alerts · last 90 days"
+msgstr "{handledCount} handled alerts · last 90 days"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "{hiddenDraftCount} more AI drafts"
 msgstr "{hiddenDraftCount} more AI drafts"
@@ -963,10 +955,6 @@ msgstr "{impacted, plural, one {# client} other {# clients}}"
 #: src/features/dashboard/needs-attention-card.tsx
 msgid "{impacted, plural, one {Affects # client} other {Affects # clients}}"
 msgstr "{impacted, plural, one {Affects # client} other {Affects # clients}}"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "{impacted, plural, one {AI extracted the change and matched # client. Confirm or exclude, then Apply.} other {AI extracted the change and matched # clients. Confirm or exclude, then Apply.}}"
-msgstr "{impacted, plural, one {AI extracted the change and matched # client. Confirm or exclude, then Apply.} other {AI extracted the change and matched # clients. Confirm or exclude, then Apply.}}"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "{impacted, plural, one {Matched # open client obligation} other {Matched # open client obligations}}"
@@ -1052,6 +1040,10 @@ msgstr "{outstandingDocsCount, plural, one {# item still needs to be received be
 #: src/routes/obligations.tsx
 msgid "{outstandingMaterials} outstanding"
 msgstr "{outstandingMaterials} outstanding"
+
+#: src/features/obligations/components/ObligationListRail.tsx
+msgid "{overdueCount, plural, one {# overdue} other {# overdue}}"
+msgstr "{overdueCount, plural, one {# overdue} other {# overdue}}"
 
 #: src/components/patterns/app-shell-nav.tsx
 msgid "{ownedFirmCount} of 1 included"
@@ -1256,6 +1248,11 @@ msgstr "{turnaroundDays, plural, one {# day} other {# days}}"
 msgid "{undoClientPart} · {undoObligationPart} removed"
 msgstr "{undoClientPart} · {undoObligationPart} removed"
 
+#. placeholder {0}: monitoredSources.length
+#: src/routes/alerts.tsx
+msgid "{unhealthySourceCount} of {0} sources need attention"
+msgstr "{unhealthySourceCount} of {0} sources need attention"
+
 #: src/components/patterns/alerts-notifications-bell.tsx
 msgid "{unreadCount} unread"
 msgstr "{unreadCount} unread"
@@ -1303,6 +1300,11 @@ msgstr "+ {remaining} more"
 msgid "+ Add file"
 msgstr "+ Add file"
 
+#. placeholder {0}: Math.round( (Date.parse(extensionDeadlineCap) - Date.parse(extensionOriginalDeadline)) / 86_400_000, )
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "+{0} days"
+msgstr "+{0} days"
+
 #. placeholder {0}: sources.length - 6
 #: src/features/rules/coverage-tab.tsx
 msgid "+{0} more"
@@ -1316,10 +1318,6 @@ msgstr "+{hasMore} more"
 msgid "+{hiddenCount} more in Alerts"
 msgstr "+{hiddenCount} more in Alerts"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "+18% YoY"
-msgstr "+18% YoY"
-
 #: src/features/migration/Step3Normalize.tsx
 msgid "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · <2>{needsReview}</2> need review ({affectedClients, plural, one {# client} other {# clients}} affected)"
 msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · <2>{needsReview}</2> need review ({affectedClients, plural, one {# client} other {# clients}} affected)"
@@ -1332,9 +1330,10 @@ msgstr "<0>{totalValues}</0> values across <1>{categoryCount}</1> categories · 
 msgid "~5 minutes of focused work"
 msgstr "~5 minutes of focused work"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "$12,000 / year"
-msgstr "$12,000 / year"
+#. placeholder {0}: formatCents(penalty)
+#: src/routes/obligations.tsx
+msgid "≈{0} penalty"
+msgstr "≈{0} penalty"
 
 #: src/features/alerts/components/PulseAlertsMap.tsx
 msgid "0"
@@ -1390,10 +1389,6 @@ msgstr "1 practice workspace"
 msgid "1 production practice"
 msgstr "1 production practice"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "1.2 MB · uploaded Jan 12"
-msgstr "1.2 MB · uploaded Jan 12"
-
 #: src/routes/billing.checkout.tsx
 #: src/routes/billing.tsx
 msgid "10 seats included"
@@ -1416,10 +1411,6 @@ msgstr "12h"
 msgid "2-3"
 msgstr "2-3"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "218 KB · uploaded Feb 14"
-msgstr "218 KB · uploaded Feb 14"
-
 #: src/routes/settings.profile.tsx
 msgid "24h"
 msgstr "24h"
@@ -1432,14 +1423,6 @@ msgstr "3 seats included"
 #: src/features/reminders/reminders-page.tsx
 msgid "30 / 7 days and overdue"
 msgstr "30 / 7 days and overdue"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "312 KB · updated Mar 4"
-msgstr "312 KB · updated Mar 4"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "4 attached"
-msgstr "4 attached"
 
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "4 min"
@@ -1470,10 +1453,6 @@ msgstr "7+"
 msgid "8879 sent to client for signature"
 msgstr "8879 sent to client for signature"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "94 KB · uploaded Mar 1"
-msgstr "94 KB · uploaded Mar 1"
-
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "A client replied in the portal"
 msgstr "A client replied in the portal"
@@ -1488,7 +1467,6 @@ msgid "A dry run that shows which deadline rules would create for a client befor
 msgstr "A dry run that shows which deadline rules would create for a client before anything is written to the deadline list."
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "A fresh URL — same scope, same privacy mode"
 msgstr "A fresh URL — same scope, same privacy mode"
@@ -1625,6 +1603,7 @@ msgstr "access revoked, history kept"
 msgid "Access to elevated workflow scopes"
 msgstr "Access to elevated workflow scopes"
 
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
 msgid "Account"
 msgstr "Account"
@@ -1698,7 +1677,6 @@ msgid "Active"
 msgstr "Active"
 
 #: src/features/alerts/AlertsListPage.tsx
-#: src/routes/alerts.history.tsx
 msgid "Active alerts"
 msgstr "Active alerts"
 
@@ -1722,7 +1700,7 @@ msgstr "Active members"
 msgid "ACTIVE OBLIGATIONS"
 msgstr "ACTIVE OBLIGATIONS"
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Active plan, seat usage, and subscription portal."
 msgstr "Active plan, seat usage, and subscription portal."
 
@@ -2028,10 +2006,6 @@ msgstr "AI draft ready"
 msgid "AI draft review required"
 msgstr "AI draft review required"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "AI extracted the change. Confirm the deadline details, then Apply."
-msgstr "AI extracted the change. Confirm the deadline details, then Apply."
-
 #: src/features/alerts/components/PulseAIBoundaryChip.tsx
 msgid "AI extracted this from the source. A reviewer must confirm before applying — DueDateHQ never marks an alert verified automatically."
 msgstr "AI extracted this from the source. A reviewer must confirm before applying — DueDateHQ never marks an alert verified automatically."
@@ -2142,6 +2116,10 @@ msgstr "Alert detail"
 msgid "Alert dismissed"
 msgstr "Alert dismissed"
 
+#: src/features/alerts/components/AlertListRail.tsx
+msgid "Alert filter"
+msgstr "Alert filter"
+
 #: src/routes/alerts.history.tsx
 #: src/routes/alerts.tsx
 msgid "Alert history"
@@ -2163,6 +2141,10 @@ msgstr "Alert reactivated"
 #: src/features/audit/audit-log-labels.ts
 msgid "Alert rejected"
 msgstr "Alert rejected"
+
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Alert restored"
+msgstr "Alert restored"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Alert reverted"
@@ -2252,6 +2234,11 @@ msgstr "all"
 #: src/routes/rules.library.tsx
 msgid "All"
 msgstr "All"
+
+#. placeholder {0}: monitoredSources.length
+#: src/routes/alerts.tsx
+msgid "All {0} monitored sources operational"
+msgstr "All {0} monitored sources operational"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -2367,7 +2354,6 @@ msgstr "All sources healthy"
 
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "All statuses"
 msgstr "All statuses"
 
@@ -2479,6 +2465,10 @@ msgstr "Annual rollover generated"
 msgid "Answer each item so your CPA can confirm filing readiness."
 msgstr "Answer each item so your CPA can confirm filing readiness."
 
+#: src/routes/obligations.tsx
+msgid "Any"
+msgstr "Any"
+
 #. placeholder {0}: pendingRegenerate.title
 #: src/features/calendar/calendar-page.tsx
 msgid "Any device subscribed to the current {0} feed will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
@@ -2584,6 +2574,10 @@ msgstr "Apply deadline shift"
 msgid "Apply each alert from its detail panel to verify the change first."
 msgstr "Apply each alert from its detail panel to verify the change first."
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Apply extension"
+msgstr "Apply extension"
+
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Apply mode"
 msgstr "Apply mode"
@@ -2660,7 +2654,7 @@ msgstr "Ask an owner or manager to review and apply this alert. This does not ch
 msgid "Ask the practice owner to send a new invitation."
 msgstr "Ask the practice owner to send a new invitation."
 
-#: src/features/alerts/AlertsListPage.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Assign"
 msgstr "Assign"
 
@@ -2683,6 +2677,10 @@ msgstr "Assign owner for {clientName}"
 msgid "Assigned {count} deadlines to {label}"
 msgstr "Assigned {count} deadlines to {label}"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Assigned to {name}"
+msgstr "Assigned to {name}"
+
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Assigned to you ({assigneeName})"
@@ -2700,6 +2698,10 @@ msgstr "Assigned to you ({name})"
 #: src/routes/obligations.tsx
 msgid "Assignee"
 msgstr "Assignee"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Assignee cleared"
+msgstr "Assignee cleared"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Assignments"
@@ -2799,9 +2801,9 @@ msgstr "Audit history retained for compliance"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.permissions.tsx
-#: src/routes/settings.tsx
 msgid "Audit log"
 msgstr "Audit log"
 
@@ -2825,7 +2827,7 @@ msgstr "Audit timeline"
 msgid "Audit trail"
 msgstr "Audit trail"
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Audit trail for client, rule, status, and team changes."
 msgstr "Audit trail for client, rule, status, and team changes."
 
@@ -2930,11 +2932,19 @@ msgstr "Auto-normalized · {autoNormalized}"
 msgid "automated + decisions"
 msgstr "automated + decisions"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Automatic {extensionDurationMonths}-month extension"
+msgstr "Automatic {extensionDurationMonths}-month extension"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "automatic extension of time to file"
+msgstr "automatic extension of time to file"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "Automatic field matching is unavailable. We used the selected import template and kept the import draft editable."
 msgstr "Automatic field matching is unavailable. We used the selected import template and kept the import draft editable."
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Automation"
 msgstr "Automation"
 
@@ -3010,10 +3020,6 @@ msgstr "Awaiting your decision"
 #: src/routes/migration.new.tsx
 msgid "Back"
 msgstr "Back"
-
-#: src/routes/alerts.history.tsx
-msgid "Back to active alerts"
-msgstr "Back to active alerts"
 
 #: src/routes/billing.checkout.tsx
 msgid "Back to billing"
@@ -3097,7 +3103,6 @@ msgstr "Billed yearly · Save $96/year"
 #: src/routes/billing.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.permissions.tsx
-#: src/routes/settings.tsx
 msgid "Billing"
 msgstr "Billing"
 
@@ -3143,7 +3148,6 @@ msgstr "Billing status is not ready yet."
 #: src/features/dashboard/actions-list.tsx
 #: src/features/dashboard/severity-section.tsx
 #: src/features/obligations/queue/components/panels.tsx
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/obligations/status-control.tsx
 #: src/routes/obligations.tsx
 msgid "Blocked"
@@ -3153,7 +3157,6 @@ msgstr "Blocked"
 msgid "Blocked by"
 msgstr "Blocked by"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Blocked by an upstream obligation"
 msgstr "Blocked by an upstream obligation"
@@ -3181,10 +3184,6 @@ msgstr "Body"
 msgid "Bold"
 msgstr "Bold"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Bookkeeper"
-msgstr "Bookkeeper"
-
 #: src/features/reminders/reminders-page.tsx
 msgid "Bounced or rejected sends"
 msgstr "Bounced or rejected sends"
@@ -3192,10 +3191,6 @@ msgstr "Bounced or rejected sends"
 #: src/features/alerts/MorningSweepDialog.tsx
 msgid "Brewing your briefing…"
 msgstr "Brewing your briefing…"
-
-#: src/features/dashboard/daily-brief-card.tsx
-msgid "Brief scope"
-msgstr "Brief scope"
 
 #: src/features/migration/SuccessModal.tsx
 msgid "Browse your first deadlines"
@@ -3272,11 +3267,6 @@ msgstr "Calculating tax estimate"
 msgid "Calculating the tax estimate"
 msgstr "Calculating the tax estimate"
 
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "Calculating what will be created…"
-msgstr "Calculating what will be created…"
-
 #: src/routes/practice.tsx
 msgid "Calculating…"
 msgstr "Calculating…"
@@ -3307,11 +3297,14 @@ msgstr "Calendar feed link rotated"
 msgid "Calendar feed revoked"
 msgstr "Calendar feed revoked"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Calendar period"
+msgstr "Calendar period"
+
 #: src/features/calendar/calendar-page.tsx
 msgid "Calendar subscription disabled"
 msgstr "Calendar subscription disabled"
 
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Calendar subscription enabled"
 msgstr "Calendar subscription enabled"
@@ -3322,9 +3315,8 @@ msgstr "Calendar subscription updated"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/obligations.tsx
-#: src/routes/settings.tsx
 msgid "Calendar sync"
 msgstr "Calendar sync"
 
@@ -3332,19 +3324,16 @@ msgstr "Calendar sync"
 msgid "Calendar sync on every subscribed device"
 msgstr "Calendar sync on every subscribed device"
 
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Calendar URL"
 msgstr "Calendar URL"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Calendar URL copied"
 msgstr "Calendar URL copied"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Calendar URL regenerated"
 msgstr "Calendar URL regenerated"
@@ -3370,8 +3359,8 @@ msgstr "Calendar year"
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/features/obligations/queue/dialogs.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/account.security.tsx
@@ -3474,13 +3463,10 @@ msgstr "Change role"
 msgid "Change status for {0}"
 msgstr "Change status for {0}"
 
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/AlertStructuredFields.tsx
 msgid "Change type"
 msgstr "Change type"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Change types"
-msgstr "Change types"
 
 #: src/routes/rules.library.tsx
 msgid "Changed 30 days"
@@ -3567,7 +3553,6 @@ msgstr "Check your network and try again."
 #: src/features/notifications/notifications-page.tsx
 #: src/features/obligations/AnnualRolloverDialog.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/reminders/reminder-template-editor-page.tsx
@@ -3588,6 +3573,10 @@ msgstr "Check your network and try again. If this keeps happening, contact suppo
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Checking {label}…"
 msgstr "Checking {label}…"
+
+#: src/routes/alerts.tsx
+msgid "Checking source health…"
+msgstr "Checking source health…"
 
 #: src/features/dashboard/needs-attention-section.tsx
 msgid "checking sources…"
@@ -3715,10 +3704,15 @@ msgstr "Clear all"
 msgid "Clear all states"
 msgstr "Clear all states"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Clear assignee"
+msgstr "Clear assignee"
+
 #: src/features/rules/coverage-tab.tsx
 msgid "Clear filter"
 msgstr "Clear filter"
 
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
@@ -3751,6 +3745,11 @@ msgstr "Clear selection"
 #: src/features/notifications/notifications-page.tsx
 msgid "Clear the search or try a different term to see the full inbox."
 msgstr "Clear the search or try a different term to see the full inbox."
+
+#: src/features/alerts/AlertsListPage.tsx
+#: src/routes/obligations.tsx
+msgid "Clear these filters"
+msgstr "Clear these filters"
 
 #. placeholder {0}: before.node
 #: src/features/evidence/EvidenceDrawerProvider.tsx
@@ -4018,7 +4017,6 @@ msgstr "close"
 #: src/features/clients/FixNeedsFactsSheet.tsx
 #: src/features/migration/WizardShell.tsx
 #: src/features/obligations/AnnualRolloverDialog.tsx
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 #: src/routes/obligations.tsx
 msgid "Close"
@@ -4122,12 +4120,13 @@ msgstr "Complete the deadline details before applying this alert."
 #: src/features/dashboard/actions-list.tsx
 #: src/features/obligations/CompletedKeyDates.tsx
 #: src/features/obligations/queue/components/panels.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/obligations/status-control.tsx
 #: src/routes/obligations.tsx
 msgid "Completed"
 msgstr "Completed"
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Compliance"
 msgstr "Compliance"
 
@@ -4140,14 +4139,6 @@ msgstr "Compliance posture"
 msgid "compliant"
 msgstr "compliant"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Compose email"
-msgstr "Compose email"
-
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Compose email to {name}"
-msgstr "Compose email to {name}"
-
 #. placeholder {0}: Math.round(detail.alert.confidence * 100)
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "conf {0}%"
@@ -4157,15 +4148,15 @@ msgstr "conf {0}%"
 msgid "conf {confidencePct}%"
 msgstr "conf {confidencePct}%"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "conf {confPct}%"
+msgstr "conf {confPct}%"
+
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/migration/Step2Mapping.tsx
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Confidence"
 msgstr "Confidence"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Confidence {confPct}"
-msgstr "Confidence {confPct}"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "confidence {confPct}%"
@@ -4362,10 +4353,6 @@ msgstr "Contract coverage and audit controls"
 msgid "Contract-level model routing, custom coverage, and audit-grade AI controls."
 msgstr "Contract-level model routing, custom coverage, and audit-grade AI controls."
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Controller"
-msgstr "Controller"
-
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -4421,7 +4408,6 @@ msgid "Copy URI"
 msgstr "Copy URI"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Copy URL"
 msgstr "Copy URL"
@@ -4510,7 +4496,6 @@ msgid "Couldn't confirm deadlines"
 msgstr "Couldn't confirm deadlines"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't copy calendar URL"
 msgstr "Couldn't copy calendar URL"
@@ -4583,7 +4568,6 @@ msgstr "Couldn't dismiss alert"
 msgid "Couldn't dismiss alerts"
 msgstr "Couldn't dismiss alerts"
 
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't enable calendar subscription"
 msgstr "Couldn't enable calendar subscription"
@@ -4756,7 +4740,6 @@ msgid "Couldn't read your data"
 msgstr "Couldn't read your data"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Couldn't regenerate calendar URL"
 msgstr "Couldn't regenerate calendar URL"
@@ -4782,6 +4765,10 @@ msgstr "Couldn't request export"
 msgid "Couldn't request review"
 msgstr "Couldn't request review"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Couldn't restore alert"
+msgstr "Couldn't restore alert"
+
 #: src/features/migration/ImportHistoryDrawer.tsx
 msgid "Couldn't revert import"
 msgstr "Couldn't revert import"
@@ -4800,11 +4787,6 @@ msgstr "Couldn't revoke request"
 #: src/routes/settings.profile.tsx
 msgid "Couldn't revoke session"
 msgstr "Couldn't revoke session"
-
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "Couldn't roll deadlines forward"
-msgstr "Couldn't roll deadlines forward"
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "Couldn't roll over deadlines"
@@ -4896,6 +4878,10 @@ msgstr "Couldn't send reminders"
 msgid "Couldn't send the code"
 msgstr "Couldn't send the code"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Couldn't snooze deadline"
+msgstr "Couldn't snooze deadline"
+
 #: src/routes/account.security.tsx
 #: src/routes/settings.profile.tsx
 msgid "Couldn't start authenticator setup"
@@ -4934,6 +4920,10 @@ msgstr "Couldn't undo client"
 #: src/features/migration/Wizard.tsx
 msgid "Couldn't undo import"
 msgstr "Couldn't undo import"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Couldn't update assignee"
+msgstr "Couldn't update assignee"
 
 #: src/features/calendar/calendar-page.tsx
 msgid "Couldn't update calendar subscription"
@@ -5088,11 +5078,6 @@ msgstr "Created"
 #: src/features/audit/audit-log-labels.ts
 msgid "Created deadlines"
 msgstr "Created deadlines"
-
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "Creates {willCreate} projected Tax Year {targetTaxYear} deadlines for {clientCount} clients from their completed Tax Year {sourceTaxYear} returns. Projected deadlines stay hidden from client reminders until you confirm them with the Projected filter."
-msgstr "Creates {willCreate} projected Tax Year {targetTaxYear} deadlines for {clientCount} clients from their completed Tax Year {sourceTaxYear} returns. Projected deadlines stay hidden from client reminders until you confirm them with the Projected filter."
 
 #: src/routes/obligations.tsx
 msgid "Creates the file in this browser."
@@ -5387,6 +5372,10 @@ msgstr "Deadline shift"
 msgid "Deadline shifted"
 msgstr "Deadline shifted"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Deadline snoozed"
+msgstr "Deadline snoozed"
+
 #: src/features/audit/audit-log-labels.ts
 msgid "Deadline status changed"
 msgstr "Deadline status changed"
@@ -5425,6 +5414,12 @@ msgstr "Deadline urgency"
 msgid "Deadline workflow detail panel."
 msgstr "Deadline workflow detail panel."
 
+#. placeholder {0}: row.clientName
+#. placeholder {1}: row.taxType
+#: src/features/obligations/components/ObligationListRail.tsx
+msgid "Deadline: {0} {1}"
+msgstr "Deadline: {0} {1}"
+
 #: src/features/audit/audit-log-labels.ts
 #: src/features/migration/SuccessModal.tsx
 msgid "deadlines"
@@ -5436,6 +5431,7 @@ msgstr "deadlines"
 #: src/features/audit/audit-log-labels.ts
 #: src/features/concepts/concept-help.tsx
 #: src/features/migration/Step4Preview.tsx
+#: src/features/obligations/components/ObligationListRail.tsx
 #: src/features/rules/generation-preview-tab.tsx
 #: src/routes/migration.new.tsx
 #: src/routes/obligations.tsx
@@ -5504,7 +5500,6 @@ msgstr "Decision"
 msgid "Decision memo"
 msgstr "Decision memo"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Decision memo (required)"
 msgstr "Decision memo (required)"
@@ -5720,14 +5715,6 @@ msgstr "Dismissed {0} alerts"
 msgid "Dismissed alerts move off the active board into history. You can reopen them from the History tab."
 msgstr "Dismissed alerts move off the active board into history. You can reopen them from the History tab."
 
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "dispatch"
-msgstr "dispatch"
-
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "dispatches"
-msgstr "dispatches"
-
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "Disposition"
 msgstr "Disposition"
@@ -5740,7 +5727,7 @@ msgstr "Disregarded entity"
 msgid "Distance from the due date"
 msgstr "Distance from the due date"
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Distribution of prep work across the team."
 msgstr "Distribution of prep work across the team."
 
@@ -5776,10 +5763,6 @@ msgstr "Do not use File > Client File Maintenance > Copy/Backup for this import;
 msgid "Docs {attached}/{total}"
 msgstr "Docs {attached}/{total}"
 
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "docs pending"
-msgstr "docs pending"
-
 #. placeholder {0}: item.label
 #: src/features/obligations/ChecklistItemRow.tsx
 msgid "Document {0} already received"
@@ -5799,10 +5782,6 @@ msgstr "Document item removed"
 #: src/routes/obligations.tsx
 msgid "Document list generated"
 msgstr "Document list generated"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "Document previews open here once ingest lands."
-msgstr "Document previews open here once ingest lands."
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -5886,14 +5865,16 @@ msgstr "Dry run"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/reminders/reminders-page.tsx
+#: src/routes/obligations.tsx
 msgid "Due"
 msgstr "Due"
 
 #. placeholder {0}: formatDate(blocker.currentDueDate)
 #. placeholder {0}: formatDate(currentDueDate)
-#. placeholder {0}: rule.overrideDueDate
+#. placeholder {0}: formatDate(officialIso)
 #: src/features/obligations/BlockerContextCard.tsx
 #: src/features/obligations/queue/components/evidence.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/temporary-rules-tab.tsx
 #: src/routes/obligations.tsx
 msgid "Due {0}"
@@ -5906,22 +5887,6 @@ msgstr "Due {0}"
 #: src/routes/obligations.tsx
 msgid "Due date"
 msgstr "Due date"
-
-#: src/routes/obligations.tsx
-msgid "Due date (earliest first)"
-msgstr "Due date (earliest first)"
-
-#: src/routes/obligations.tsx
-msgid "Due date (earliest)"
-msgstr "Due date (earliest)"
-
-#: src/routes/obligations.tsx
-msgid "Due date (latest first)"
-msgstr "Due date (latest first)"
-
-#: src/routes/obligations.tsx
-msgid "Due date (latest)"
-msgstr "Due date (latest)"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
 msgid "Due date change"
@@ -6230,7 +6195,6 @@ msgstr "Enable full feed"
 msgid "Enable redacted feed"
 msgstr "Enable redacted feed"
 
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Enable subscription"
 msgstr "Enable subscription"
@@ -6256,14 +6220,6 @@ msgstr "Encrypted · 7-day session · SSO-ready"
 msgid "End date must be on or after the start date."
 msgstr "End date must be on or after the start date."
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "ENGAGEMENT"
-msgstr "ENGAGEMENT"
-
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Engagement letter signed"
-msgstr "Engagement letter signed"
-
 #: src/routes/settings.profile.tsx
 msgid "English (United States)"
 msgstr "English (United States)"
@@ -6272,7 +6228,6 @@ msgstr "English (United States)"
 msgid "Enter a valid email address"
 msgstr "Enter a valid email address"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Enter below"
 msgstr "Enter below"
@@ -6446,7 +6401,6 @@ msgstr "Every decision captured to audit ledger"
 msgid "Every decision is captured to the audit ledger and reversible for 24 hours."
 msgstr "Every decision is captured to the audit ledger and reversible for 24 hours."
 
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Every device subscribed to the current URL will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
 msgstr "Every device subscribed to the current URL will silently stop syncing. You'll need to share the new URL with everyone who had the old one."
@@ -6579,8 +6533,8 @@ msgstr "Explain rank"
 msgid "Explain Risk profile"
 msgstr "Explain Risk profile"
 
-#: src/features/alerts/AlertsListPage.tsx
 #: src/features/audit/audit-log-page.tsx
+#: src/routes/alerts.history.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
 #: src/routes/settings.permissions.tsx
@@ -6615,6 +6569,10 @@ msgstr "Export end date"
 msgid "Export File In Time client information"
 msgstr "Export File In Time client information"
 
+#: src/routes/alerts.history.tsx
+msgid "Export handled alerts as CSV"
+msgstr "Export handled alerts as CSV"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "Export Karbon contacts"
 msgstr "Export Karbon contacts"
@@ -6638,6 +6596,10 @@ msgstr "Export QuickBooks customers"
 #: src/routes/obligations.tsx
 msgid "Export ready"
 msgstr "Export ready"
+
+#: src/routes/rules.library.tsx
+msgid "Export rules as CSV"
+msgstr "Export rules as CSV"
 
 #: src/routes/obligations.tsx
 msgid "Export selected"
@@ -6675,10 +6637,18 @@ msgstr "Exports all deadlines for one client."
 msgid "Exports deadlines due within the selected date window."
 msgstr "Exports deadlines due within the selected date window."
 
+#: src/routes/obligations.tsx
+msgid "Exposure"
+msgstr "Exposure"
+
 #: src/features/dashboard/extension-chip.tsx
 #: src/features/obligations/status-control.tsx
 msgid "Extended"
 msgstr "Extended"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Extended deadline"
+msgstr "Extended deadline"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -6723,9 +6693,10 @@ msgstr "Extension decided"
 msgid "Extension decision"
 msgstr "Extension decision"
 
+#. placeholder {0}: formatCents(estimatedTaxCents)
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "Extension defers filing, not payment"
-msgstr "Extension defers filing, not payment"
+msgid "Extension defers filing, not payment. Estimated tax of {0} still owed by the original deadline."
+msgstr "Extension defers filing, not payment. Estimated tax of {0} still owed by the original deadline."
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -6740,7 +6711,6 @@ msgstr "Extension history"
 msgid "Extension in progress"
 msgstr "Extension in progress"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Extension length"
 msgstr "Extension length"
@@ -6760,10 +6730,13 @@ msgstr "Extension plan saved"
 msgid "Extension plans saved"
 msgstr "Extension plans saved"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Extension policy"
 msgstr "Extension policy"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Extension rule"
+msgstr "Extension rule"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -6858,6 +6831,10 @@ msgstr "fields"
 msgid "File"
 msgstr "File"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "File extension"
+msgstr "File extension"
+
 #: src/features/migration/Step1Intake.tsx
 msgid "File is larger than 5 MB. Please trim or split the export."
 msgstr "File is larger than 5 MB. Please trim or split the export."
@@ -6919,10 +6896,6 @@ msgstr "Filed return"
 msgid "Filed without extension"
 msgstr "Filed without extension"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Filed YTD"
-msgstr "Filed YTD"
-
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Filed, but the client hasn't signed Form 8879 yet — e-filing is blocked until they sign."
@@ -6941,6 +6914,10 @@ msgstr "Files"
 msgid "Filing"
 msgstr "Filing"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Filing an extension does not extend the time to pay. Schedule an EFTPS payment by the original deadline to avoid interest and penalties."
+msgstr "Filing an extension does not extend the time to pay. Schedule an EFTPS payment by the original deadline to avoid interest and penalties."
+
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Filing and payment."
 msgstr "Filing and payment."
@@ -6949,11 +6926,6 @@ msgstr "Filing and payment."
 #: src/routes/obligations.tsx
 msgid "Filing deadline"
 msgstr "Filing deadline"
-
-#. placeholder {0}: formatDate(row.paymentDueDate)
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "Filing for an extension does not extend the time to pay. Estimated tax is still due {0} to avoid interest and penalties."
-msgstr "Filing for an extension does not extend the time to pay. Estimated tax is still due {0} to avoid interest and penalties."
 
 #: src/features/migration/mapping-target-labels.ts
 msgid "Filing frequency"
@@ -7028,10 +7000,6 @@ msgstr "Filings"
 msgid "Filter by alert status"
 msgstr "Filter by alert status"
 
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Filter by change type"
-msgstr "Filter by change type"
-
 #: src/features/clients/ClientFactsWorkspace.tsx
 msgid "Filter by name or EIN"
 msgstr "Filter by name or EIN"
@@ -7041,17 +7009,9 @@ msgid "Filter by scope"
 msgstr "Filter by scope"
 
 #: src/features/alerts/AlertsListPage.tsx
-msgid "Filter by severity"
-msgstr "Filter by severity"
-
-#: src/features/alerts/AlertsListPage.tsx
 #: src/features/alerts/components/StateTilegram.tsx
 msgid "Filter by state"
 msgstr "Filter by state"
-
-#: src/features/alerts/AlertsListPage.tsx
-msgid "Filter by tax area"
-msgstr "Filter by tax area"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Filter by time range"
@@ -7076,6 +7036,10 @@ msgstr "Filter deadlines"
 #: src/features/obligations/queue/components/toolbar.tsx
 msgid "Filter deadlines  ·  press / to focus"
 msgstr "Filter deadlines  ·  press / to focus"
+
+#: src/features/alerts/AlertHistoryView.tsx
+msgid "Filter handled alerts"
+msgstr "Filter handled alerts"
 
 #: src/features/notifications/notifications-page.tsx
 msgid "Filter inbox"
@@ -7113,6 +7077,11 @@ msgstr "Filter rules…"
 msgid "Filter the rule table by entity"
 msgstr "Filter the rule table by entity"
 
+#: src/features/alerts/AlertsListPage.tsx
+#: src/routes/obligations.tsx
+msgid "Filters"
+msgstr "Filters"
+
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Final countdown before a filing is due"
 msgstr "Final countdown before a filing is due"
@@ -7136,7 +7105,6 @@ msgid "Finish cleaning up the client's books"
 msgstr "Finish cleaning up the client's books"
 
 #: src/features/audit/audit-log-labels.ts
-#: src/features/dashboard/daily-brief-card.tsx
 msgid "Firm"
 msgstr "Firm"
 
@@ -7159,6 +7127,10 @@ msgstr "Fiscal · ends {formatted}"
 #: src/features/clients/ClientCompliancePosturePanel.tsx
 msgid "Fiscal · year-end not set"
 msgstr "Fiscal · year-end not set"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Fiscal period"
+msgstr "Fiscal period"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -7336,7 +7308,6 @@ msgstr "From $319"
 msgid "From $399"
 msgstr "From $399"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "from matched rule"
 msgstr "from matched rule"
@@ -7374,7 +7345,6 @@ msgstr "Generate a list below or add items manually to start collecting."
 msgid "Generate a plain-English recap of this client's recent recorded changes and where the record stands."
 msgstr "Generate a plain-English recap of this client's recent recorded changes and where the record stands."
 
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
 msgstr "Generate a private subscription URL so deadlines assigned to you appear in your personal calendar."
@@ -7391,16 +7361,6 @@ msgstr "Generate document list"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Generate draft"
 msgstr "Generate draft"
-
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "Generate Tax Year {targetTaxYear} deadlines"
-msgstr "Generate Tax Year {targetTaxYear} deadlines"
-
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "Generate Tax Year {targetTaxYear} deadlines?"
-msgstr "Generate Tax Year {targetTaxYear} deadlines?"
 
 #: src/components/primitives/ai-provenance-badge.tsx
 msgid "Generated by AI"
@@ -7481,6 +7441,10 @@ msgstr "Guidance notices"
 msgid "Handled"
 msgstr "Handled"
 
+#: src/routes/alerts.history.tsx
+msgid "Handled alerts · last 90 days"
+msgstr "Handled alerts · last 90 days"
+
 #: src/features/reminders/reminder-template-editor-page.tsx
 msgid "Hawthorn CPA · 412 Oak St, Brooklyn NY"
 msgstr "Hawthorn CPA · 412 Oak St, Brooklyn NY"
@@ -7504,6 +7468,7 @@ msgstr "HIGH"
 msgid "High confidence"
 msgstr "High confidence"
 
+#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/dashboard/needs-attention-card.tsx
 #: src/routes/rules.library.tsx
 msgid "High impact"
@@ -7531,7 +7496,7 @@ msgstr "History"
 msgid "HomeBase contacts CSV"
 msgstr "HomeBase contacts CSV"
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "How DueDateHQ reaches your team, your clients, and your calendars."
 msgstr "How DueDateHQ reaches your team, your clients, and your calendars."
 
@@ -7567,7 +7532,7 @@ msgstr "iCal .ics"
 msgid "Identity facts that drive the deadline generator"
 msgstr "Identity facts that drive the deadline generator"
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Identity, team, and capacity for this practice workspace."
 msgstr "Identity, team, and capacity for this practice workspace."
 
@@ -7759,6 +7724,14 @@ msgstr "Importing clients requires {0} access."
 msgid "Importing…"
 msgstr "Importing…"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "In 2 weeks"
+msgstr "In 2 weeks"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "In 3 days"
+msgstr "In 3 days"
+
 #: src/features/audit/audit-log-page.tsx
 msgid "in current view"
 msgstr "in current view"
@@ -7904,6 +7877,10 @@ msgstr "Internal deadline offset"
 msgid "Internal deadline offset must be between 0 and 365 days."
 msgstr "Internal deadline offset must be between 0 and 365 days."
 
+#: src/routes/obligations.tsx
+msgid "Internal due"
+msgstr "Internal due"
+
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
 #: src/routes/obligations.tsx
 msgid "Internal due date"
@@ -7948,6 +7925,7 @@ msgid "Internal target"
 msgstr "Internal target"
 
 #: src/features/obligations/queue/dialogs.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Internal target date"
 msgstr "Internal target date"
@@ -7957,7 +7935,6 @@ msgid "Invalid rule"
 msgstr "Invalid rule"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Invalidates"
 msgstr "Invalidates"
@@ -7990,7 +7967,7 @@ msgstr "Invite member"
 msgid "Invite sent to {sentTo}"
 msgstr "Invite sent to {sentTo}"
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Invite teammates and manage roles."
 msgstr "Invite teammates and manage roles."
 
@@ -8008,6 +7985,10 @@ msgstr "Invite teammates, change roles, suspend access"
 msgid "IP hash"
 msgstr "IP hash"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "IRS"
+msgstr "IRS"
+
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
 msgid "IRS / CA FTB"
@@ -8022,7 +8003,6 @@ msgid "Issued"
 msgstr "Issued"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Issues"
 msgstr "Issues"
@@ -8111,7 +8091,6 @@ msgstr "Keep your account safe with strong sign-in"
 #: src/features/calendar/calendar-page.tsx
 #: src/features/members/members-page.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Keeps"
 msgstr "Keeps"
@@ -8182,10 +8161,6 @@ msgstr "Last decided {0}"
 #: src/features/rules/sources-tab.tsx
 msgid "Last error: {0}"
 msgstr "Last error: {0}"
-
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Last filed"
-msgstr "Last filed"
 
 #: src/features/obligations/queue/components/panels.tsx
 #: src/routes/obligations.tsx
@@ -8309,10 +8284,6 @@ msgstr "Link only"
 msgid "Link unavailable"
 msgstr "Link unavailable"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Linked to"
-msgstr "Linked to"
-
 #: src/features/alerts/AlertsListPage.tsx
 msgid "List"
 msgstr "List"
@@ -8344,6 +8315,7 @@ msgid "Load"
 msgstr "Load"
 
 #: src/features/notifications/notifications-page.tsx
+#: src/features/obligations/components/ObligationListRail.tsx
 #: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
 msgid "Load more"
@@ -8487,7 +8459,6 @@ msgid "Low impact"
 msgstr "Low impact"
 
 #: src/features/alerts/components/AlertCard.tsx
-#: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "LOW IMPACT"
 msgstr "LOW IMPACT"
 
@@ -8498,10 +8469,6 @@ msgstr "Low match · {pct}%"
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Manage alert sources"
 msgstr "Manage alert sources"
-
-#: src/routes/alerts.history.tsx
-msgid "Manage Alert sources"
-msgstr "Manage Alert sources"
 
 #: src/routes/billing.tsx
 msgid "Manage billing"
@@ -8599,7 +8566,6 @@ msgid "Mark 8879 signed"
 msgstr "Mark 8879 signed"
 
 #: src/components/patterns/alerts-notifications-bell.tsx
-#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/notifications/notifications-page.tsx
 msgid "Mark all read"
 msgstr "Mark all read"
@@ -8607,6 +8573,10 @@ msgstr "Mark all read"
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Mark an outstanding doc as waived when it doesn't apply this year."
 msgstr "Mark an outstanding doc as waived when it doesn't apply this year."
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Mark as filed"
+msgstr "Mark as filed"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -8854,10 +8824,6 @@ msgstr "Materials state changed from {previous} to {next}"
 msgid "Materials still outstanding"
 msgstr "Materials still outstanding"
 
-#: src/features/dashboard/daily-brief-card.tsx
-msgid "Me"
-msgstr "Me"
-
 #: src/features/alerts/components/AlertConfidencePill.tsx
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/clients/CreateClientDialog.tsx
@@ -8873,7 +8839,6 @@ msgid "Medium impact"
 msgstr "Medium impact"
 
 #: src/features/alerts/components/AlertCard.tsx
-#: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "MEDIUM IMPACT"
 msgstr "MEDIUM IMPACT"
 
@@ -8937,7 +8902,6 @@ msgstr "member@example.com"
 #: src/features/members/members-page.tsx
 #: src/routes/route-summary.ts
 #: src/routes/settings.permissions.tsx
-#: src/routes/settings.tsx
 msgid "Members"
 msgstr "Members"
 
@@ -9183,7 +9147,6 @@ msgid "Multiple values"
 msgstr "Multiple values"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "My deadlines"
 msgstr "My deadlines"
@@ -9447,10 +9410,6 @@ msgstr "next {0}"
 msgid "Next active rule (j)"
 msgstr "Next active rule (j)"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Next alert"
-msgstr "Next alert"
-
 #: src/features/clients/ClientCycleArrows.tsx
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -9489,6 +9448,10 @@ msgstr "Next page"
 #: src/routes/obligations.tsx
 msgid "Next step"
 msgstr "Next step"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Next week"
+msgstr "Next week"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Next years"
@@ -9543,6 +9506,10 @@ msgstr "No alerts match."
 #: src/routes/obligations.tsx
 msgid "No assignable members"
 msgstr "No assignable members"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "No assignable teammates"
+msgstr "No assignable teammates"
 
 #: src/features/workload/workload-page.tsx
 msgid "No assigned work"
@@ -9604,7 +9571,6 @@ msgstr "No client emails are suppressed."
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "No clients"
 msgstr "No clients"
 
@@ -9634,6 +9600,10 @@ msgstr "No clients yet"
 msgid "No closed source-year deadlines matched this rollover preview."
 msgstr "No closed source-year deadlines matched this rollover preview."
 
+#: src/features/clients/ClientDetailWorkspace.tsx
+msgid "No contacts yet"
+msgstr "No contacts yet"
+
 #: src/features/alerts/components/AlertReadinessStatus.tsx
 msgid "No current match"
 msgstr "No current match"
@@ -9654,6 +9624,10 @@ msgstr "No deadlines due in the next 7 days"
 #: src/routes/obligations.tsx
 msgid "No deadlines match these filters."
 msgstr "No deadlines match these filters."
+
+#: src/features/obligations/components/ObligationListRail.tsx
+msgid "No deadlines match."
+msgstr "No deadlines match."
 
 #: src/features/clients/ClientWorkPlanPanel.tsx
 #: src/features/obligations/queue/components/toolbar.tsx
@@ -9706,12 +9680,15 @@ msgstr "No export packages yet."
 msgid "No filed {headerFrom} deadlines are eligible to roll into {headerTo} yet."
 msgstr "No filed {headerFrom} deadlines are eligible to roll into {headerTo} yet."
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "No files attached yet."
+msgstr "No files attached yet."
+
 #: src/features/rules/generation-preview-tab.tsx
 msgid "No filing state"
 msgstr "No filing state"
 
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "No forms"
 msgstr "No forms"
 
@@ -9779,11 +9756,6 @@ msgstr "No missing rules"
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "No morning digests have run yet."
 msgstr "No morning digests have run yet."
-
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "No new Tax Year {targetTaxYear} deadlines to create from completed Tax Year {sourceTaxYear} returns."
-msgstr "No new Tax Year {targetTaxYear} deadlines to create from completed Tax Year {sourceTaxYear} returns."
 
 #: src/features/clients/ClientCycleArrows.tsx
 msgid "No next client"
@@ -9912,6 +9884,9 @@ msgid "No rule defined for this entity in {jurisLabel}"
 msgstr "No rule defined for this entity in {jurisLabel}"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "No rule extension"
+msgstr "No rule extension"
+
 #: src/routes/obligations.tsx
 msgid "No rule extension or unknown"
 msgstr "No rule extension or unknown"
@@ -9971,7 +9946,6 @@ msgstr "No state deadlines"
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "No states"
 msgstr "No states"
 
@@ -10214,7 +10188,6 @@ msgstr "Nothing's changed since {0}."
 
 #: src/features/notifications/notification-preferences-page.tsx
 #: src/routes/route-summary.ts
-#: src/routes/settings.tsx
 msgid "Notification preferences"
 msgstr "Notification preferences"
 
@@ -10245,6 +10218,10 @@ msgstr "NY PTET election made"
 msgid "NY PTET payments"
 msgstr "NY PTET payments"
 
+#: src/features/clients/ClientWorkPlanPanel.tsx
+msgid "Obligation ID copied"
+msgstr "Obligation ID copied"
+
 #: src/routes/settings.permissions.tsx
 msgid "Obligation status, filings, internal due dates"
 msgstr "Obligation status, filings, internal due dates"
@@ -10271,10 +10248,9 @@ msgid "Official deadline"
 msgstr "Official deadline"
 
 #: src/routes/obligations.tsx
-msgid "Official due date"
-msgstr "Official due date"
+msgid "Official due"
+msgstr "Official due"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Official form or method"
 msgstr "Official form or method"
@@ -10314,10 +10290,6 @@ msgstr "on track"
 #: src/features/dashboard/severity-section.tsx
 msgid "On your radar — not urgent yet"
 msgstr "On your radar — not urgent yet"
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "ONBOARDING"
-msgstr "ONBOARDING"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Onboarding rules activated"
@@ -10573,6 +10545,10 @@ msgstr "Open Readiness after the rejection is recorded."
 msgid "Open review queue"
 msgstr "Open review queue"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Open rule →"
+msgstr "Open rule →"
+
 #. placeholder {0}: rule.title
 #: src/routes/rules.library.tsx
 msgid "Open rule details for {0}"
@@ -10708,11 +10684,14 @@ msgstr "or press <0>Enter</0>"
 msgid "Original"
 msgstr "Original"
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Original deadline"
+msgstr "Original deadline"
+
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "Original entry"
 msgstr "Original entry"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Original filing deadline"
 msgstr "Original filing deadline"
@@ -10720,6 +10699,7 @@ msgstr "Original filing deadline"
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/obligations/CreateObligationDialog.tsx
 #: src/routes/clients.tsx
+#: src/routes/obligations.tsx
 #: src/routes/rules.library.tsx
 msgid "Other"
 msgstr "Other"
@@ -10749,7 +10729,7 @@ msgstr "Other changes"
 msgid "Other sessions revoked"
 msgstr "Other sessions revoked"
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Outbound deadline reminders to clients and team."
 msgstr "Outbound deadline reminders to clients and team."
 
@@ -10780,13 +10760,10 @@ msgstr "outstanding"
 msgid "Outstanding"
 msgstr "Outstanding"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Outstanding tasks"
-msgstr "Outstanding tasks"
-
 #: src/features/notifications/notifications-page.tsx
 #: src/features/reminders/reminders-page.tsx
 #: src/features/workload/workload-page.tsx
+#: src/routes/obligations.tsx
 msgid "Overdue"
 msgstr "Overdue"
 
@@ -10952,7 +10929,6 @@ msgstr "Partially applied"
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/app-shell-user-menu.tsx
 #: src/features/audit/audit-log-labels.ts
-#: src/features/clients/ClientDetailWorkspace.tsx
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/permissions/permission-gate.tsx
 #: src/lib/required-roles-label.ts
@@ -10982,6 +10958,11 @@ msgstr "Partnership"
 #: src/routes/obligations.tsx
 msgid "Past deadline"
 msgstr "Past deadline"
+
+#. placeholder {0}: Math.abs(row.daysUntilDue)
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Past deadline · {0, plural, one {# day overdue} other {# days overdue}}"
+msgstr "Past deadline · {0, plural, one {# day overdue} other {# days overdue}}"
 
 #: src/routes/obligations.tsx
 msgid "Past due"
@@ -11058,6 +11039,12 @@ msgstr "Payment in progress"
 msgid "Payment model"
 msgstr "Payment model"
 
+#. placeholder {0}: formatCents(row.estimatedTaxDueCents)
+#. placeholder {1}: formatDate(row.paymentDueDate)
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Payment of {0} still due {1}"
+msgstr "Payment of {0} still due {1}"
+
 #: src/features/clients/ClientDetailDrawer.tsx
 #: src/features/clients/ClientPeekHoverCard.tsx
 msgid "Payment overdue on {paymentOverdueCount} filings"
@@ -11082,6 +11069,11 @@ msgstr "Payment stays due on each deadline's original date."
 #: src/routes/obligations.tsx
 msgid "Payment still due"
 msgstr "Payment still due"
+
+#. placeholder {0}: formatDate(row.paymentDueDate)
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Payment still due {0}"
+msgstr "Payment still due {0}"
 
 #: src/features/evidence/extension-decision-evidence.tsx
 msgid "Payment still due by original deadline"
@@ -11248,7 +11240,7 @@ msgstr "Personal inbox"
 msgid "Personal info"
 msgstr "Personal info"
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Personal morning digest preferences and types."
 msgstr "Personal morning digest preferences and types."
 
@@ -11314,7 +11306,7 @@ msgstr "Plan options"
 msgid "Plan summary"
 msgstr "Plan summary"
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Plan, seats, and invoices."
 msgstr "Plan, seats, and invoices."
 
@@ -11330,6 +11322,10 @@ msgstr "Please enter at least 2 characters."
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "Plug in your tools. Walk away with a triage list."
 msgstr "Plug in your tools. Walk away with a triage list."
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Policy"
+msgstr "Policy"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -11349,10 +11345,10 @@ msgstr "Positive whole number."
 
 #: src/features/audit/audit-log-labels.ts
 #: src/features/concepts/concept-help.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/billing.checkout.tsx
 #: src/routes/onboarding.tsx
 #: src/routes/route-summary.ts
-#: src/routes/settings.tsx
 msgid "Practice"
 msgstr "Practice"
 
@@ -11403,14 +11399,14 @@ msgstr "Practice name"
 msgid "Practice name needs at least 2 characters — this is your firm's display name across DueDateHQ."
 msgstr "Practice name needs at least 2 characters — this is your firm's display name across DueDateHQ."
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Practice name, timezone, internal deadline policy, smart priority weighting."
 msgstr "Practice name, timezone, internal deadline policy, smart priority weighting."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/routes/practice.tsx
 #: src/routes/route-summary.ts
-#: src/routes/settings.tsx
 msgid "Practice profile"
 msgstr "Practice profile"
 
@@ -11554,7 +11550,6 @@ msgid "prev"
 msgstr "prev"
 
 #: src/features/obligations/AnnualRolloverDialog.tsx
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/rules/coverage-tab.tsx
 #: src/features/rules/generation-preview-tab.tsx
 msgid "Preview"
@@ -11582,10 +11577,6 @@ msgstr "Preview for {0}"
 #: src/routes/practice.tsx
 msgid "Preview impact as of {0}"
 msgstr "Preview impact as of {0}"
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
-msgid "Preview is coming soon"
-msgstr "Preview is coming soon"
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -11620,10 +11611,6 @@ msgstr "Previewing…"
 #: src/routes/rules.library.tsx
 msgid "Previous"
 msgstr "Previous"
-
-#: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Previous alert"
-msgstr "Previous alert"
 
 #: src/features/clients/ClientCycleArrows.tsx
 msgid "Previous and next client in the filtered list"
@@ -12038,10 +12025,6 @@ msgstr "Recent delivery"
 msgid "Recent digest runs"
 msgstr "Recent digest runs"
 
-#: src/routes/obligations.tsx
-msgid "Recently updated"
-msgstr "Recently updated"
-
 #: src/features/audit/audit-log-labels.ts
 #: src/features/obligations/queue/dialogs.tsx
 #: src/features/reminders/reminders-page.tsx
@@ -12132,13 +12115,16 @@ msgid "Reference"
 msgstr "Reference"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Reference (optional)"
+msgstr "Reference (optional)"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Reference dates"
 msgstr "Reference dates"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/clients/ClientDetailWorkspace.tsx
-#: src/features/dashboard/daily-brief-card.tsx
 #: src/features/workload/workload-page.tsx
 msgid "Refresh"
 msgstr "Refresh"
@@ -12164,7 +12150,6 @@ msgstr "Refreshed {0}"
 msgid "Refreshing the AI mapping"
 msgstr "Refreshing the AI mapping"
 
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Regenerate"
 msgstr "Regenerate"
@@ -12174,25 +12159,21 @@ msgid "Regenerate brief"
 msgstr "Regenerate brief"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Regenerate calendar URL?"
 msgstr "Regenerate calendar URL?"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Regenerate URL"
 msgstr "Regenerate URL"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Regenerating commits these changes"
 msgstr "Regenerating commits these changes"
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Regenerating…"
 msgstr "Regenerating…"
@@ -12337,7 +12318,6 @@ msgstr "Reminder-ready"
 #: src/features/reminders/reminders-page.tsx
 #: src/features/settings/settings-sub-nav.tsx
 #: src/routes/route-summary.ts
-#: src/routes/settings.tsx
 msgid "Reminders"
 msgstr "Reminders"
 
@@ -12384,10 +12364,6 @@ msgstr "Removing this member will commit these changes"
 #: src/features/members/members-page.tsx
 msgid "Removing…"
 msgstr "Removing…"
-
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Renews"
-msgstr "Renews"
 
 #. placeholder {0}: formatDate(activeSubscription.periodEnd)
 #: src/routes/billing.tsx
@@ -12537,10 +12513,6 @@ msgstr "Resume your in-progress import?"
 msgid "Resumed from blocked on {0} after the upstream deadline was completed."
 msgstr "Resumed from blocked on {0} after the upstream deadline was completed."
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Retainer"
-msgstr "Retainer"
-
 #: src/features/rules/temporary-rules-tab.tsx
 msgid "Retracted"
 msgstr "Retracted"
@@ -12658,11 +12630,6 @@ msgstr "Review {count}"
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "Review →"
 msgstr "Review →"
-
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "Review and confirm them with the Projected filter."
-msgstr "Review and confirm them with the Projected filter."
 
 #: src/features/obligations/queue/dialogs.tsx
 #: src/routes/obligations.tsx
@@ -12946,11 +12913,6 @@ msgstr "Roles map to a fixed permission model. Changes here would need a per-rol
 msgid "Roll back this import within 24 hours, no questions asked"
 msgstr "Roll back this import within 24 hours, no questions asked"
 
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "Roll forward"
-msgstr "Roll forward"
-
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "Roll over all {totalCount} (review {requiresReviewCount})"
 msgstr "Roll over all {totalCount} (review {requiresReviewCount})"
@@ -12959,16 +12921,6 @@ msgstr "Roll over all {totalCount} (review {requiresReviewCount})"
 #: src/features/obligations/AnnualRolloverDialog.tsx
 msgid "Rolled over {0} deadlines into {toYear}"
 msgstr "Rolled over {0} deadlines into {toYear}"
-
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "Rolling deadlines forward requires owner, partner, manager, or preparer access."
-msgstr "Rolling deadlines forward requires owner, partner, manager, or preparer access."
-
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "Rolling forward…"
-msgstr "Rolling forward…"
 
 #: src/routes/error.tsx
 msgid "Route failed"
@@ -13096,7 +13048,6 @@ msgstr "Rule notes"
 msgid "Rule queue"
 msgstr "Rule queue"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Rule reference"
 msgstr "Rule reference"
@@ -13290,7 +13241,6 @@ msgstr "Save changes"
 msgid "Save client details"
 msgstr "Save client details"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Save extension"
 msgstr "Save extension"
@@ -13347,6 +13297,10 @@ msgstr "Save the client list as CSV, XLS, or XLSX before uploading."
 #: src/features/migration/Step1Intake.tsx
 msgid "Save the export as EXPORT.CSV or choose your own CSV file name."
 msgstr "Save the export as EXPORT.CSV or choose your own CSV file name."
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Save the firm's internal extension plan. The internal target must be on or before the extended filing deadline. This does not file with the authority or change client records."
+msgstr "Save the firm's internal extension plan. The internal target must be on or before the extended filing deadline. This does not file with the authority or change client records."
 
 #: src/features/alerts/AlertDetailDrawer.tsx
 msgid "Save the reviewed client set before applying when a Pulse has low confidence, review flags, or a preparer escalation."
@@ -13470,7 +13424,6 @@ msgstr "Search by actor, entity, action, or reason — or narrow by time range, 
 
 #: src/features/clients/ClientFactsWorkspace.tsx
 #: src/features/obligations/queue/use-obligation-queue-columns.tsx
-#: src/routes/obligations.tsx
 msgid "Search clients"
 msgstr "Search clients"
 
@@ -13492,6 +13445,7 @@ msgstr "Search clients…"
 msgid "Search deadline categories…"
 msgstr "Search deadline categories…"
 
+#: src/features/obligations/components/ObligationListRail.tsx
 #: src/routes/obligations.tsx
 msgid "Search deadlines"
 msgstr "Search deadlines"
@@ -13590,7 +13544,6 @@ msgid "Select alert: {0}"
 msgstr "Select alert: {0}"
 
 #: src/features/alerts/AlertHistoryView.tsx
-#: src/features/alerts/components/PulseAlertRow.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/onboarding/state-rule-activation-selector.tsx
 #: src/routes/obligations.tsx
@@ -13604,10 +13557,6 @@ msgstr "Select all {count} rules in {label}"
 #: src/routes/rules.library.tsx
 msgid "Select all {totalPending}"
 msgstr "Select all {totalPending}"
-
-#: src/features/alerts/components/PulseAlertRow.tsx
-msgid "Select all alerts"
-msgstr "Select all alerts"
 
 #: src/features/clients/ClientWorkPlanPanel.tsx
 msgid "Select all deadlines in this year"
@@ -13995,6 +13944,10 @@ msgstr "Show me"
 msgid "Show only jurisdictions needing review"
 msgstr "Show only jurisdictions needing review"
 
+#: src/features/alerts/AlertsListPage.tsx
+msgid "Show suggested action"
+msgstr "Show suggested action"
+
 #: src/components/patterns/app-shell-nav.tsx
 msgid "Show work as due this many days before the statutory deadline."
 msgstr "Show work as due this many days before the statutory deadline."
@@ -14184,10 +14137,6 @@ msgstr "Skipped rows"
 msgid "Slack"
 msgstr "Slack"
 
-#: src/routes/obligations.tsx
-msgid "Smart priority"
-msgstr "Smart priority"
-
 #: src/features/concepts/concept-help.tsx
 #: src/features/dashboard/actions-list.tsx
 #: src/routes/practice.tsx
@@ -14214,17 +14163,13 @@ msgstr "Smart Priority saved"
 msgid "SNAPSHOT"
 msgstr "SNAPSHOT"
 
-#: src/routes/obligations.tsx
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 msgid "Snooze"
 msgstr "Snooze"
 
-#: src/routes/obligations.tsx
-msgid "Snooze (coming soon)"
-msgstr "Snooze (coming soon)"
-
-#: src/routes/obligations.tsx
-msgid "Snooze selected deadlines (coming soon)"
-msgstr "Snooze selected deadlines (coming soon)"
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Snooze cleared"
+msgstr "Snooze cleared"
 
 #: src/features/clients/ClientsEmptyState.tsx
 msgid "SOC 2"
@@ -14293,13 +14238,8 @@ msgid "Sort alerts"
 msgstr "Sort alerts"
 
 #: src/features/alerts/AlertsListPage.tsx
-#: src/routes/obligations.tsx
 msgid "Sort by"
 msgstr "Sort by"
-
-#: src/routes/obligations.tsx
-msgid "Sort deadlines within each group"
-msgstr "Sort deadlines within each group"
 
 #: src/features/rules/generation-preview-tab.tsx
 msgid "source"
@@ -14374,6 +14314,9 @@ msgid "Source only"
 msgstr "Source only"
 
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Source or confirmation"
+msgstr "Source or confirmation"
+
 #: src/routes/obligations.tsx
 msgid "Source or confirmation reference"
 msgstr "Source or confirmation reference"
@@ -14434,10 +14377,10 @@ msgstr "Source-constrained summaries"
 msgid "Source-defined rules are skipped from bulk accept. Generate and review their AI draft one by one."
 msgstr "Source-defined rules are skipped from bulk accept. Generate and review their AI draft one by one."
 
+#: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/alerts/AlertsListPage.tsx
 #: src/features/rules/states-rail.tsx
-#: src/routes/alerts.history.tsx
 #: src/routes/route-summary.ts
 #: src/routes/rules.sources.tsx
 msgid "Sources"
@@ -14633,7 +14576,6 @@ msgstr "Submitted"
 msgid "Submitting…"
 msgstr "Submitting…"
 
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ stays the source of truth."
 msgstr "Subscribe from Google Calendar, Apple Calendar, or Outlook. DueDateHQ stays the source of truth."
@@ -14646,7 +14588,7 @@ msgstr "Subscribe from Google Calendar, Apple Calendar, or Outlook. Edits in you
 msgid "Subscribe from web calendar URL"
 msgstr "Subscribe from web calendar URL"
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Subscribe to deadlines from Apple / Google calendars."
 msgstr "Subscribe to deadlines from Apple / Google calendars."
 
@@ -14821,10 +14763,6 @@ msgstr "Target filing year must be exactly one year after the source filing year
 msgid "Target filing year must be the next year after source filing year."
 msgstr "Target filing year must be the next year after source filing year."
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "Tax + bookkeeping"
-msgstr "Tax + bookkeeping"
-
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Tax area"
 msgstr "Tax area"
@@ -14895,6 +14833,11 @@ msgstr "TAX YEAR"
 
 #. placeholder {0}: row.taxYear
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Tax year {0}"
+msgstr "Tax year {0}"
+
+#. placeholder {0}: row.taxYear
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Tax Year {0}"
 msgstr "Tax Year {0}"
@@ -14942,9 +14885,9 @@ msgid "Team member"
 msgstr "Team member"
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
+#: src/features/settings/settings-sub-nav.tsx
 #: src/features/workload/workload-page.tsx
 #: src/routes/route-summary.ts
-#: src/routes/settings.tsx
 msgid "Team workload"
 msgstr "Team workload"
 
@@ -14964,6 +14907,10 @@ msgstr "Team-scale fair-use protection"
 #: src/features/workload/workload-page.tsx
 msgid "Team+"
 msgstr "Team+"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "teammate"
+msgstr "teammate"
 
 #: src/features/reminders/reminders-page.tsx
 msgid "Template"
@@ -15069,7 +15016,6 @@ msgid "The concrete due date calculated from the active target-year practice rul
 msgstr "The concrete due date calculated from the active target-year practice rule. A dash means nothing will be created."
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "The current URL on every subscribed device"
 msgstr "The current URL on every subscribed device"
@@ -15083,7 +15029,6 @@ msgid "The deadline's lifecycle state. Click any row's pill to change its status
 msgstr "The deadline's lifecycle state. Click any row's pill to change its status — the same control as on /deadlines and inside the obligation drawer."
 
 #: src/features/calendar/calendar-page.tsx
-#: src/features/obligations/queue/components/toolbar.tsx
 #: src/routes/obligations.tsx
 msgid "The events themselves — nothing scheduled is removed"
 msgstr "The events themselves — nothing scheduled is removed"
@@ -15297,10 +15242,6 @@ msgstr "This alert is review-only and does not apply due-date overlays."
 msgid "This alert points to the official IRS Revenue Procedure and asserts no specific threshold figures. Review the source before advising clients."
 msgstr "This alert points to the official IRS Revenue Procedure and asserts no specific threshold figures. Review the source before advising clients."
 
-#: src/features/dashboard/daily-brief-card.tsx
-msgid "This brief is out of date — regenerate it"
-msgstr "This brief is out of date — regenerate it"
-
 #: src/routes/rules.library.tsx
 msgid "This change takes effect {effectiveLabel}."
 msgstr "This change takes effect {effectiveLabel}."
@@ -15407,11 +15348,6 @@ msgstr "This looks like an UltraTax CS client data file. Export a Client Listing
 msgid "This member is no longer on the team"
 msgstr "This member is no longer on the team"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "This message is sent via DueDateHQ and logged to the audit ledger."
-msgstr "This message is sent via DueDateHQ and logged to the audit ledger."
-
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "This obligation type has no fixed extension length — enter the extended filing deadline."
 msgstr "This obligation type has no fixed extension length — enter the extended filing deadline."
@@ -15476,7 +15412,6 @@ msgstr "This rule is active for client filings in {0} for {entitySummary}, but i
 msgid "This rule will be active immediately for every client filing in {0} as {1}. You can refine the details after creating it from the rule's detail view."
 msgstr "This rule will be active immediately for every client filing in {0} as {1}. You can refine the details after creating it from the rule's detail view."
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "This saves the firm's internal extension plan for this deadline. The internal target date must be on or before the filing deadline. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."
 msgstr "This saves the firm's internal extension plan for this deadline. The internal target date must be on or before the filing deadline. It does not update the due date, change client records, or confirm an authority filing. Payment may still be due by the original date."
@@ -15508,6 +15443,7 @@ msgid "This template is used when Materials sends a checklist collection request
 msgstr "This template is used when Materials sends a checklist collection request. Variables: client_name, tax_type, due_date, request_url, outstanding_checklist, and received_checklist."
 
 #: src/features/obligations/deadlines-at-a-glance.tsx
+#: src/routes/obligations.tsx
 msgid "This week"
 msgstr "This week"
 
@@ -15524,7 +15460,7 @@ msgstr "Time range"
 msgid "Time zone"
 msgstr "Time zone"
 
-#: src/routes/settings.tsx
+#: src/features/settings/settings-sub-nav.tsx
 msgid "Timestamped event log across the workspace."
 msgstr "Timestamped event log across the workspace."
 
@@ -15582,6 +15518,10 @@ msgstr "Today briefs, Alert summaries, client risk summaries, and guided import 
 #: src/routes/alerts.tsx
 msgid "Toggle morning sweep briefing"
 msgstr "Toggle morning sweep briefing"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Tomorrow"
+msgstr "Tomorrow"
 
 #: src/lib/i18n-error.ts
 msgid "Too many requests. Please try again in a moment."
@@ -15654,11 +15594,6 @@ msgstr "Try a different filter combination, or clear all filters to see the full
 #: src/routes/clients.$clientId.tsx
 msgid "Try again"
 msgstr "Try again"
-
-#: src/features/obligations/queue/components/toolbar.tsx
-#: src/routes/obligations.tsx
-msgid "Try again in a moment."
-msgstr "Try again in a moment."
 
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Try again, or skip this rule for now."
@@ -15761,6 +15696,10 @@ msgstr "UI wage report count"
 msgid "UltraTax DIF files are not supported yet. Export a Client Listing Report and re-save it as CSV or XLSX."
 msgstr "UltraTax DIF files are not supported yet. Export a Client Listing Report and re-save it as CSV or XLSX."
 
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Un-snooze"
+msgstr "Un-snooze"
+
 #: src/features/obligations/ChecklistItemRow.tsx
 msgid "Un-waive"
 msgstr "Un-waive"
@@ -15808,6 +15747,7 @@ msgid "Unconfirm {0}"
 msgstr "Unconfirm {0}"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
+#: src/features/alerts/AlertsListPage.tsx
 #: src/features/migration/ImportHistoryDrawer.tsx
 #: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
@@ -15899,6 +15839,7 @@ msgstr "Unsaved changes · calculate a preview to see the impact"
 
 #: src/features/dashboard/severity-section.tsx
 #: src/features/reminders/reminders-page.tsx
+#: src/routes/obligations.tsx
 msgid "Upcoming"
 msgstr "Upcoming"
 
@@ -15971,14 +15912,14 @@ msgstr "Upload the ZIPs or extracted CSVs so accounts can be matched to contacts
 msgid "Upstream return also blocking — client flagged items separately."
 msgstr "Upstream return also blocking — client flagged items separately."
 
+#: src/routes/obligations.tsx
+msgid "Urgency"
+msgstr "Urgency"
+
 #: src/features/concepts/concept-help.tsx
 #: src/routes/practice.tsx
 msgid "Urgency window"
 msgstr "Urgency window"
-
-#: src/routes/alerts.tsx
-msgid "urgent"
-msgstr "urgent"
 
 #: src/features/notifications/notification-preferences-page.tsx
 msgid "Urgent overrides still come through"
@@ -16228,10 +16169,6 @@ msgstr "View deadlines"
 msgid "View deadlines due this week"
 msgstr "View deadlines due this week"
 
-#: src/features/clients/ClientDetailWorkspace.tsx
-msgid "View engagement letter"
-msgstr "View engagement letter"
-
 #: src/features/alerts/AlertsListPage.tsx
 msgid "View history"
 msgstr "View history"
@@ -16289,13 +16226,11 @@ msgstr "Waiting"
 #: src/features/dashboard/actions-list.tsx
 #: src/features/dashboard/severity-section.tsx
 #: src/features/obligations/queue/components/panels.tsx
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/features/obligations/status-control.tsx
 #: src/routes/obligations.tsx
 msgid "Waiting on client"
 msgstr "Waiting on client"
 
-#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
 #: src/routes/obligations.tsx
 msgid "Waiting on client for materials"
 msgstr "Waiting on client for materials"
@@ -16350,6 +16285,10 @@ msgstr "We couldn't find a header row. Make sure the first line lists your colum
 #: src/routes/error.tsx
 msgid "We couldn't find what you were looking for."
 msgstr "We couldn't find what you were looking for."
+
+#: src/features/dashboard/daily-brief-card.tsx
+msgid "We couldn't generate today's brief."
+msgstr "We couldn't generate today's brief."
 
 #: src/features/dashboard/daily-brief-card.tsx
 msgid "We couldn't generate today's brief. Try again, or check back shortly."
@@ -16447,6 +16386,10 @@ msgstr "What this evidence says"
 msgid "What to do next"
 msgstr "What to do next"
 
+#: src/features/settings/settings-sub-nav.tsx
+msgid "What your role can see and do in this workspace."
+msgstr "What your role can see and do in this workspace."
+
 #: src/features/dashboard/actions-list.tsx
 msgid "What's in this list"
 msgstr "What's in this list"
@@ -16510,6 +16453,10 @@ msgstr "Whole number"
 #: src/features/rules/rule-detail-drawer.tsx
 msgid "Why are you rejecting this rule?"
 msgstr "Why are you rejecting this rule?"
+
+#: src/features/obligations/queue/ObligationQueueDetailDrawer.tsx
+msgid "Why is this extension being filed? (required)"
+msgstr "Why is this extension being filed? (required)"
 
 #: src/features/audit/audit-log-labels.ts
 msgid "Why it failed"
@@ -16595,8 +16542,8 @@ msgid "Works assigned client deadlines and prepares filings."
 msgstr "Works assigned client deadlines and prepares filings."
 
 #: src/routes/settings.tsx
-msgid "Workspace configuration for this practice — identity, team, billing, compliance, and automation."
-msgstr "Workspace configuration for this practice — identity, team, billing, compliance, and automation."
+msgid "Workspace configuration for this practice — account, identity, team, billing, compliance, and automation."
+msgstr "Workspace configuration for this practice — account, identity, team, billing, compliance, and automation."
 
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 msgid "Workspace configuration hub — Practice, team, billing, automation."
@@ -16785,9 +16732,17 @@ msgstr "Your current role doesn't include this permission."
 msgid "Your deadlines and assignments inside DueDateHQ"
 msgstr "Your deadlines and assignments inside DueDateHQ"
 
+#: src/features/settings/settings-sub-nav.tsx
+msgid "Your name, contact details, and display preferences."
+msgstr "Your name, contact details, and display preferences."
+
 #: src/features/migration/WizardShell.tsx
 msgid "Your pasted data and unsaved edits in this wizard will be lost."
 msgstr "Your pasted data and unsaved edits in this wizard will be lost."
+
+#: src/features/settings/settings-sub-nav.tsx
+msgid "Your personal profile and access for this practice."
+msgstr "Your personal profile and access for this practice."
 
 #: src/lib/i18n-error.ts
 msgid "Your practice is suspended. Contact support to restore access."
@@ -16820,10 +16775,6 @@ msgstr "Your top 10 deadlines due this week, ranked by Smart Priority and bucket
 #: src/features/migration/Step3Normalize.tsx
 msgid "Your uploaded file stays unchanged — this clean draft is used only after you import."
 msgstr "Your uploaded file stays unchanged — this clean draft is used only after you import."
-
-#: src/features/clients/ClientFactsWorkspace.tsx
-msgid "YTD REVENUE"
-msgstr "YTD REVENUE"
 
 #: src/features/clients/ClientFactPanels.tsx
 #: src/features/migration/mapping-target-labels.ts

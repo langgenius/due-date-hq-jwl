@@ -8,7 +8,7 @@ button, and the "Needs Action" status copy — left as-is).
 
 ## #1 — Source-health signal on the Sources chip (`routes/alerts.tsx`)
 
-Feedback: *"where is it showing it is all working?"* — the `Sources ·
+Feedback: _"where is it showing it is all working?"_ — the `Sources ·
 Federal + 50 states + DC` selector chip gave no sign that monitoring was
 actually healthy.
 
@@ -22,8 +22,8 @@ actually healthy.
 
 ## #4 — Unified Users icon on every affected-clients line
 
-Feedback (on the AlertCard's `Users` icon): *"love this icon, apply to
-all."*
+Feedback (on the AlertCard's `Users` icon): _"love this icon, apply to
+all."_
 
 - `PulseAlertRow` (the /alerts list rows) and the dashboard
   `NeedsAttentionCard` both used `Building2` on their "Affects N clients"
@@ -32,7 +32,7 @@ all."*
 
 ## #5 — HIGH-only impact badge on the form-revised card (`PulseFormRevisedCard.tsx`)
 
-Feedback: *"give High Impact Alerts the HIGH IMPACT badge."* — the card
+Feedback: _"give High Impact Alerts the HIGH IMPACT badge."_ — the card
 always rendered an impact pill, so quiet form updates wore a noisy "LOW
 IMPACT" badge.
 

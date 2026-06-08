@@ -2,11 +2,12 @@
 
 Date: 2026-06-08
 
-Feedback: *"the Alert detail is looking ugly! avoid using too many frames."*
+Feedback: _"the Alert detail is looking ugly! avoid using too many frames."_
 A cohesive cleanup pass across `AlertDetailDrawer`, `AlertListRail`, and
 `AlertStructuredFields`.
 
 ## Structure / surface
+
 - **Light background (#13)**: the panel `<aside>` sits on a soft `#fafbfc`
   wash instead of stark white. The white SheetHeader/SheetFooter chrome
   frames the top/bottom against it.
@@ -17,6 +18,7 @@ A cohesive cleanup pass across `AlertDetailDrawer`, `AlertListRail`, and
   card dropped its own white fill too.
 
 ## Top bar / navigation
+
 - **Height-matched to the rail (#2)**: the back-strip is `h-[52px]`, aligned
   to the rail's "Alerts · N active" header.
 - **Removed ▲▼ paging buttons (#5)** and wired **ArrowUp/ArrowDown** to
@@ -24,6 +26,7 @@ A cohesive cleanup pass across `AlertDetailDrawer`, `AlertListRail`, and
   arrow keys are ignored while typing in a field. Keeps the "N of M" read-out.
 
 ## Decision banner (#3, #7, #8)
+
 - Now a single compact row: warning icon + "Pending your review" left, the
   confidence/due meta right. Dropped the verbose "AI extracted…" sentence
   (#7) and the source-corroboration chip. The meta uses the **/today card's
@@ -31,6 +34,7 @@ A cohesive cleanup pass across `AlertDetailDrawer`, `AlertListRail`, and
   (#8).
 
 ## Badges
+
 - **Header jurisdiction (#10)**: generic `FlagIcon` → canonical circular
   `StateBadge` motif + code + name.
 - **Rail item (#9, #14)**: added the circular `StateBadge` to the
@@ -38,17 +42,20 @@ A cohesive cleanup pass across `AlertDetailDrawer`, `AlertListRail`, and
   `font-semibold tracking-[0.4px] text-tertiary`.
 
 ## Content
+
 - **DeadlineChangeCard (#11, #15)**: the new date drops 18px → 15px so the
   old→new pair reads as one tidy line, not an oversized headline.
 - **Removed the redundant source link (#16)** above the EXTRACTED FACTS grid
   — the source is already in the header, Provenance, and the Authority cell.
 
 ## Footer (#18)
+
 - Single row: keyboard hints + audit-ledger note on the left (revealed on
   `xl+` where there's room), the DrawerActions cluster filling the rest —
   no more two-row stack.
 
 ## Not done
+
 - **#6 ("what is the responsive rule for this?")** is a question — answered
   inline to Yuqi (the detail pane is `flex-1`, filling the width left of the
   fixed 380px rail; there's no narrow-screen breakpoint yet).
@@ -57,6 +64,7 @@ A cohesive cleanup pass across `AlertDetailDrawer`, `AlertListRail`, and
 - **#1** (Filters consolidation) landed in a prior pass.
 
 ## Preview note
+
 The shared `:5177` dev server is intermittently serving a stale build (the
 `ddhq-deadlines-parity` worktree's `deadlines-at-a-glance.tsx` keeps
 breaking Vite), so this was verified by typecheck + lint + source review.

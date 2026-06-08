@@ -15,4 +15,5 @@ Date: 2026-06-08
   colour").
 
 ## Verify
+
 tsgo clean; `/today` header actions vertically centered; renders at 1512×861.

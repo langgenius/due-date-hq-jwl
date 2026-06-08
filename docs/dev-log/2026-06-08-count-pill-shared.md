@@ -11,6 +11,7 @@ same data, two different looks + two different numbers (all alerts vs matched) +
 two different words (urgent vs active).
 
 ## Fix
+
 - New shared `CountPill` primitive (`components/primitives/count-pill.tsx`): the
   one canonical soft destructive dot-pill (pink fill, red dot, destructive text).
   A status indicator, not a button.
@@ -22,5 +23,6 @@ two different words (urgent vs active).
   dot-pill markup now use `CountPill` (the deadlines rail's "N overdue" too).
 
 ## Verify
+
 tsgo clean; `/alerts` list header and the detail rail head both show "● 7 active"
 in the identical pill at 1512×861.

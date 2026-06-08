@@ -60,7 +60,7 @@ unchanged (already matched the design).
 
 Replaced the flat `DetailRow` list with a **rule card**: form name + "automatic
 extension of time to file", authority · version citation line, an "Open rule"
-link, the amber *defers-filing-not-payment* warning (with the estimated-tax
+link, the amber _defers-filing-not-payment_ warning (with the estimated-tax
 amount), a POLICY / FORM / LENGTH / ORIGINAL / EXTENDED / PAYMENT-STILL-DUE
 facts grid, and RULE NOTES. Below it an **Apply extension** card (heading +
 intent copy, internal-target + source + decision-memo fields wired to the

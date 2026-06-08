@@ -8,6 +8,7 @@ copy-pasted between the alert detail and the deadline detail. Extracted both int
 shared primitives and pointed BOTH panels at them.
 
 ## New shared primitives
+
 - **`JurisdictionLabel`** (`components/primitives/state-badge.tsx`): the detail-
   header jurisdiction treatment — StateBadge seal (16px) + bold mono code + full
   jurisdiction name. Was hand-rolled identically in AlertDetailDrawer and
@@ -20,6 +21,7 @@ shared primitives and pointed BOTH panels at them.
   error/applied/pending banners.
 
 ## Reuse
+
 - `AlertDetailDrawer`: jurisdiction → `<JurisdictionLabel>`; all three
   `DecisionBanners` variants → `<DetailStatusBanner>` (Retry/Undo passed as
   `action`, conf/due as `note`). Dropped the now-unused `StateBadge` import.
@@ -28,6 +30,7 @@ shared primitives and pointed BOTH panels at them.
   `StateBadge`/`getJurisdictionName` direct imports.
 
 ## Verify
+
 tsgo clean; `/alerts` detail (amber "Pending your review" + "CA California") and
 `/deadlines` detail (red "Past deadline · 27 days overdue" + "FED Federal") both
 render correctly at 1512×861 with no new console errors.

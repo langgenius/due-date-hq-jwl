@@ -2,8 +2,8 @@
 
 Date: 2026-06-08
 
-Feedback: *"the checkbox can be slightly smaller, and the table's every
-element should be cohesive with other places' table."*
+Feedback: _"the checkbox can be slightly smaller, and the table's every
+element should be cohesive with other places' table."_
 
 The history table is a hand-rolled flex grid (kept that way to avoid
 horizontal scroll), so it's aligned to the canonical `<Table>` primitive's

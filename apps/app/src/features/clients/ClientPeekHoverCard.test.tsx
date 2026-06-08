@@ -149,6 +149,8 @@ const obligation = {
   efileSubmittedAt: null,
   efileAcceptedAt: null,
   efileRejectedAt: null,
+  assigneeId: null,
+  snoozedUntil: null,
   migrationBatchId: null,
   estimatedTaxDueCents: null,
   estimatedExposureCents: null,

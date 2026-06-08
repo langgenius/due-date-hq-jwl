@@ -7,6 +7,7 @@ Yuqi: standardize the detail experience on the compact item-rail (matching
 and a 380px compact rail becomes the list; the detail pane fills the rest.
 
 ## New
+
 - `features/obligations/components/ObligationListRail.tsx` — mirrors `AlertListRail`:
   "Deadlines · N overdue" head, search, compact items (due date + N-days-late ·
   state/form badges · client · status). Active item gets the 2px left accent.
@@ -14,6 +15,7 @@ and a 380px compact rail becomes the list; the detail pane fills the rest.
   can't fire while display:none).
 
 ## Wired (`routes/obligations.tsx`)
+
 - Render `<ObligationListRail>` when `panelOpenIntent` (rows = the table's current
   filtered/sorted rows, `tableRow.original`); `onSelect` → `openQueueDetail`.
 - Hide the full table (`panelOpenIntent && 'hidden'`) — kept mounted so its
@@ -22,6 +24,7 @@ and a 380px compact rail becomes the list; the detail pane fills the rest.
   space beside the 380px rail.
 
 ## Verify
+
 Preview @ /deadlines: open a deadline → compact rail (28 items) + detail; clicking
 a rail item switches the detail (active accent follows); detail renders fully.
 tsgo clean. (Env note: had to `pnpm db:migrate:local` — local D1 was missing the
