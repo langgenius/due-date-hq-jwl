@@ -390,7 +390,11 @@ export function DashboardRoute() {
             <Button
               variant="primary"
               size="icon-sm"
-              className="rounded-full"
+              // The Button base sets `[corner-shape:squircle]`, which keeps the
+              // corners a superellipse even at rounded-full — so it read as a
+              // rounded square, not a circle. Force `corner-shape:round` for a
+              // true circle.
+              className="rounded-full [corner-shape:round]"
               onClick={() => {
                 if (!canRunMigration) {
                   toast.error(
