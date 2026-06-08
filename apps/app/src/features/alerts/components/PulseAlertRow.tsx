@@ -202,6 +202,7 @@ function PulseAlertRow({
   onToggleSelected,
   priority,
   highImpact = false,
+  showAction = true,
 }: {
   alert: PulseAlertPublic
   active: boolean
@@ -239,6 +240,11 @@ function PulseAlertRow({
    * badge in the head-row meta cluster.
    */
   highImpact?: boolean
+  /**
+   * 2026-06-08 (Yuqi /alerts "show suggested action" checkbox): when false, the
+   * ACTION suggestion line is hidden. Default true.
+   */
+  showAction?: boolean
 }) {
   const { t } = useLingui()
   const detailQuery = useQuery(useAlertDetailQueryOptions(alert.id))
@@ -315,7 +321,10 @@ function PulseAlertRow({
       : t`Effective ${formatMonthDay(detail.effectiveFrom)}`
     : null
   const formLabel = detail?.forms?.[0] ?? null
-  const actionText = deriveActionText(alert.changeKind)
+  // Hidden when the list's "Show suggested action" toggle is off (Yuqi
+  // 2026-06-08). Nulling it here also drops it from `showKeyChange` so the
+  // KeyChange row collapses cleanly when nothing else fills it.
+  const actionText = showAction ? deriveActionText(alert.changeKind) : null
   const showKeyChange = !!(showDateRow || effectiveLabel || formLabel || actionText)
 
   return (
@@ -894,6 +903,7 @@ function PulseAlertList({
   compact,
   grouped = true,
   highImpactIds,
+  showAction = true,
 }: {
   alerts: readonly PulseAlertPublic[]
   openAlertId: string | null
@@ -932,6 +942,11 @@ function PulseAlertList({
    * render a "High impact" badge.
    */
   highImpactIds?: ReadonlySet<string>
+  /**
+   * 2026-06-08 (Yuqi /alerts "show suggested action" checkbox): when false, the
+   * per-row ACTION suggestion line is hidden. Default true.
+   */
+  showAction?: boolean
 }) {
   const { t } = useLingui()
   const { currentFirm } = useCurrentFirm()
@@ -975,6 +990,7 @@ function PulseAlertList({
         : {})}
       priority={priorityById?.get(alert.id)}
       highImpact={highImpactIds?.has(alert.id) ?? false}
+      showAction={showAction}
     />
   )
 

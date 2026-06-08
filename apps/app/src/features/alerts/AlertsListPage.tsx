@@ -33,6 +33,7 @@ import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@duedatehq/ui/components/ui/popover'
+import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -212,6 +213,9 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // state-heatmap. Map mode shows `<PulseAlertsMap>` above the
   // list; clicking a state tile sets the jurisdiction filter.
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
+  // 2026-06-08 (Yuqi /alerts "show suggested action" checkbox): toggles the
+  // per-row ACTION suggestion line. Default on.
+  const [showSuggestedAction, setShowSuggestedAction] = useState(true)
 
   // 2026-06-07 (Pencil g5kKJQ — bulk selection): local selection set
   // of alert ids. Drives the per-row checkboxes, the BulkSelectStrip's
@@ -1119,6 +1123,17 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       />
                     ) : null}
 
+                    {/* 2026-06-08 (Yuqi /alerts "add an option checkbox 'show
+                        suggested action'"): toggles the per-row ACTION
+                        suggestion line across the list. Default on. */}
+                    <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 px-1 text-[13px] font-medium text-text-secondary select-none">
+                      <Checkbox
+                        checked={showSuggestedAction}
+                        onCheckedChange={(next) => setShowSuggestedAction(next === true)}
+                      />
+                      <Trans>Show suggested action</Trans>
+                    </label>
+
                     {/* Reset — 2026-06-04 round 42 (Yuqi list-2 #1 —
                     "reset is close to Any state dropdown, not
                     besides sort by. if nothing is selected, reset
@@ -1278,6 +1293,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                         openAlertId={openAlertId}
                         onReview={openDrawerAndCollapseSidebar}
                         compact
+                        showAction={showSuggestedAction}
                         // 2026-06-08 (Yuqi "dont need to show the date header on
                         // map view"): the map navigator rail renders flat.
                         grouped={false}
@@ -1325,6 +1341,7 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   alerts={sortedAlerts}
                   openAlertId={openAlertId}
                   onReview={openDrawerAndCollapseSidebar}
+                  showAction={showSuggestedAction}
                   // 2026-06-08 (Yuqi "sort by impact … remove the date header"):
                   // day-group headers only make sense chronologically — drop
                   // them when the list is ordered by impact (flat ranked list).
