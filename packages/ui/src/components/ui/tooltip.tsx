@@ -13,18 +13,11 @@ function Tooltip({ ...props }: TooltipPrimitive.Root.Props) {
   return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
 }
 
-function TooltipTrigger({ className, ...props }: TooltipPrimitive.Trigger.Props) {
-  // 2026-06-08 (Yuqi "design the cursor"): tooltip triggers default to the
-  // `help` cursor (the question-mark caret) so a hoverable explanation is
-  // discoverable on approach. Interactive triggers (Button / links) carry
-  // their own `cursor-pointer`, which wins via the rendered element's class.
-  return (
-    <TooltipPrimitive.Trigger
-      data-slot="tooltip-trigger"
-      className={cn('cursor-help', className)}
-      {...props}
-    />
-  )
+function TooltipTrigger({ ...props }: TooltipPrimitive.Trigger.Props) {
+  // No default cursor — a blanket `cursor-help` here applied the `?` caret to
+  // EVERY tooltip trigger (cards, buttons, badges), which is wrong. Triggers
+  // that genuinely want the help caret set `cursor-help` at the call site.
+  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
 }
 
 /**
