@@ -157,10 +157,15 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-divider-subtle bg-divider-subtle sm:grid-cols-4">
         {cells.map((cell) => (
           <div key={cell.key} className="flex flex-col gap-1 bg-background-default px-4 py-3">
-            <span className="font-mono text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+            {/* 2026-06-08 (Yuqi /alerts D4+D5 — restraint): eyebrow label
+                drops `font-mono` (mono is reserved for dates/numbers, not
+                names like "Authority") and steps from bold → semibold; the
+                value drops semibold → normal. Values that ARE dates/numbers
+                still read fine at normal weight with tabular alignment. */}
+            <span className="text-[10px] font-semibold tracking-[0.6px] text-text-muted uppercase">
               {cell.label}
             </span>
-            <span className="min-w-0 truncate text-[13px] font-semibold tracking-[-0.1px] text-text-primary">
+            <span className="min-w-0 truncate text-[13px] font-normal tracking-[-0.1px] text-text-primary">
               {cell.value}
             </span>
           </div>

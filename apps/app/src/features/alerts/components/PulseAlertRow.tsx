@@ -23,6 +23,7 @@ import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -411,21 +412,14 @@ function PulseAlertRow({
             </span>
           ) : null}
 
-          {/* STATE (Pencil `R0fHR sp`) — bordered mono code chip,
-              no fill. */}
-          <Tooltip>
-            <TooltipTrigger
-              render={(props) => (
-                <span
-                  className="inline-flex h-[22px] shrink-0 cursor-help items-center rounded-[6px] border border-divider-regular px-2 font-mono text-[11px] font-semibold text-text-secondary uppercase outline-none"
-                  {...props}
-                >
-                  {alert.jurisdiction}
-                </span>
-              )}
-            />
-            <TooltipContent>{alert.jurisdiction}</TooltipContent>
-          </Tooltip>
+          {/* STATE — 2026-06-08 (Yuqi /alerts): the jurisdiction chip
+              carries the canonical StateBadge seal + 2-letter code,
+              matching the /today card + the AlertListRail (was a plain
+              bordered mono code). */}
+          <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-[6px] border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
+            <StateBadge code={alert.jurisdiction} size="xs" style={{ width: 12, height: 12 }} />
+            {alert.jurisdiction}
+          </span>
 
           {/* FORM PILL (Pencil `RuScV formBadge`) — shared
               TaxCodeBadge primitive (bg-subtle mono code chip). */}
@@ -559,7 +553,7 @@ function PulseAlertRow({
               the same medium-not-bold across both surfaces so the
               type families read in one zone. */}
           <h3
-            className="line-clamp-1 min-w-0 text-[15px] font-medium leading-[1.25] tracking-[-0.25px] text-text-primary"
+            className="line-clamp-1 min-w-0 text-[15px] font-normal leading-[1.25] tracking-[-0.25px] text-text-secondary"
             title={alert.title}
           >
             {alert.title}
@@ -723,7 +717,7 @@ function PulseAlertRow({
               (was Building2 on /alerts + /today). One clients-affected
               glyph across the AlertCard, this row, and the dashboard card. */}
           <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap">
-            <UsersIcon className="size-3.5 shrink-0" aria-hidden />
+            <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
             {impacted > 0 ? (
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />
             ) : (

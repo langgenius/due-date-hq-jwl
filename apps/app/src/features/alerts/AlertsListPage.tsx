@@ -941,6 +941,14 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       ]}
                     />
 
+                    {/* 2026-06-08 (Yuqi /alerts L2 "clear space between the
+                        search + view-toggle cluster and the dropdown
+                        cluster"): a flex-1 spacer sits AFTER List/Map and
+                        pushes the right cluster (All time · Filters · State ·
+                        Sort by) to the end of the row. On narrow viewports the
+                        wrap row reflows the right cluster onto a second line. */}
+                    <span className="hidden flex-1 lg:block" aria-hidden />
+
                     {/* 2026-06-08 (Yuqi /alerts #2 "Sort … in the same row
                     as other filters"): the greedy `flex-1` spacer was
                     removed. In a `flex-wrap` row a growing spacer eats the
@@ -1149,7 +1157,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                             <span className="text-text-tertiary">
                               <Trans>Sort by</Trans>
                             </span>
-                            <span>
+                            {/* 2026-06-08 (Yuqi /alerts L3 "chevron at the END
+                                of the button, after the value"): `mr-auto` on
+                                the value pushes the trailing chevron to the
+                                right edge of the fixed-width chip while the
+                                label + value stay left-aligned. */}
+                            <span className="mr-auto">
                               {sortOrder === 'oldest' ? (
                                 <Trans>Oldest</Trans>
                               ) : sortOrder === 'highest_impact' ? (

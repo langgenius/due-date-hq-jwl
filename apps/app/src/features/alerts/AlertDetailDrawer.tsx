@@ -416,7 +416,12 @@ function DecisionBanners({
     detail.applyReadiness.status !== 'ready'
   ) {
     return (
-      <div className="flex w-full items-center gap-2.5 border-b border-divider-subtle bg-[#fffbeb] px-12 py-2.5">
+      // 2026-06-08 (Yuqi /alerts D3 "banner height matches the
+      // All/Unresolved segmented control in the rail"): the single-line
+      // pending band is pinned to the Segmented size="sm" track height
+      // (h-7 / 28px) — `h-7` + vertical-centered content replaces the
+      // free `py-2.5` so the two horizontal controls read at one height.
+      <div className="flex h-7 w-full items-center gap-2.5 border-b border-divider-subtle bg-[#fffbeb] px-12">
         <CircleAlertIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
         <span className="text-[13px] font-semibold text-text-warning">
           <Trans>Pending your review</Trans>
@@ -1723,7 +1728,11 @@ export function AlertDetailDrawer({
           // instead of stark white, so the (now borderless) content sections
           // read as a calm document. The white SheetHeader/SheetFooter chrome
           // frames the top/bottom against it.
-          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-[#fafbfc] shadow-subtle"
+          // 2026-06-08 (Yuqi /alerts D6 "fewer frames"): the panel's left
+          // border is dropped — the rail's own right border + the soft
+          // #fafbfc wash already separate the detail column from the list,
+          // so the extra hairline read as a redundant frame.
+          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-[#fafbfc] shadow-subtle"
         >
           {/* 2026-06-08: the close affordance moved into the body's
               BackStrip top bar (with prev/next paging), so the

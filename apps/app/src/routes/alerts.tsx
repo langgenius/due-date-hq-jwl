@@ -123,22 +123,9 @@ export function AlertsRoute() {
                 className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[#155aef40] bg-state-accent-hover px-2.5 text-[13px] font-medium text-text-accent transition-colors hover:bg-state-accent-active-alt"
                 aria-label={t`Sources · Federal + 50 states + DC`}
               >
-                {/* Live health dot — green when every monitored source is
-                    healthy, amber when one or more needs attention. This is
-                    the at-a-glance "it's all working" signal; the tooltip
-                    carries the count. While health is still loading the dot
-                    stays a neutral gray so it never falsely reads green. */}
-                <span
-                  className={cn(
-                    'size-1.5 shrink-0 rounded-full',
-                    !sourceHealthLoaded
-                      ? 'bg-text-muted'
-                      : allSourcesHealthy
-                        ? 'bg-text-success'
-                        : 'bg-text-warning',
-                  )}
-                  aria-hidden
-                />
+                {/* 2026-06-08 (Yuqi /alerts): the leading health dot is
+                    dropped — the source-health signal lives in the tooltip
+                    copy below. The chip leads cleanly with the database icon. */}
                 <DatabaseIcon className="size-3 shrink-0" aria-hidden />
                 <Trans>Sources · Federal + 50 states + DC</Trans>
                 <ChevronRightIcon className="size-3 shrink-0" aria-hidden />

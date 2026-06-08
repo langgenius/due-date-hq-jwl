@@ -199,8 +199,16 @@ function RailItem({
             {changeKindLabel(alert.changeKind)}
           </span>
         </div>
-        {/* 2026-06-08 (Yuqi rail feedback): title is MEDIUM weight. */}
-        <span className="line-clamp-2 text-[14px] font-medium leading-[1.35] text-text-secondary">
+        {/* 2026-06-08 (Yuqi /alerts D2 "non-active items read dimmer so
+            the selected one stands out"): the active item's title is
+            text-primary; non-active titles drop to text-tertiary. The 2px
+            left accent on the active row is kept. */}
+        <span
+          className={cn(
+            'line-clamp-2 text-[14px] font-medium leading-[1.35]',
+            active ? 'text-text-primary' : 'text-text-tertiary',
+          )}
+        >
           {alert.title}
         </span>
       </div>
