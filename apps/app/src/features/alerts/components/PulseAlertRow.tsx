@@ -701,9 +701,16 @@ function PulseAlertRow({
                   archive mutations lives in the drawer). */}
         {/* Round 79 (Yuqi #5 "closer?"): dropped the `mt-1` push
             on the bottom row too — same reason as #4. */}
-        <div className="flex items-center gap-2 border-t border-divider-subtle pt-2 text-[12px] text-text-muted">
-          <Building2 className="size-3.5 shrink-0" aria-hidden />
-          <span>
+        {/* 2026-06-08 (Yuqi compact-column wrap bug): in panel-open
+            (compact) mode the list column is ~40% wide, so this meta
+            row wrapped mid-unit — "Affects 2 / clients" and the conf
+            pill split to "94% / conf". Fixed by wrapping as whole
+            units (`flex-wrap gap-y-1`) and `whitespace-nowrap` /
+            `shrink-0` on the text + pill so neither ever breaks
+            internally. */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-[12px] text-text-muted">
+          <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap">
+            <Building2 className="size-3.5 shrink-0" aria-hidden />
             {impacted > 0 ? (
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />
             ) : (
@@ -721,7 +728,7 @@ function PulseAlertRow({
               at medium, destructive-tinted at low. */}
           <span
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold tabular-nums',
+              'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-semibold tabular-nums',
               confidenceTier === 'high'
                 ? 'border-[#17b26a40] bg-[#e8f5ee] text-text-success'
                 : confidenceTier === 'medium'

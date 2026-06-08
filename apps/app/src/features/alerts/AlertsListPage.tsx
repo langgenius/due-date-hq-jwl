@@ -65,6 +65,7 @@ import { MorningSweepPanel } from './MorningSweepDialog'
 import { useAlertDrawer } from './DrawerProvider'
 import { useMorningSweep } from './MorningSweepContext'
 import { AlertDetailDrawer } from './AlertDetailDrawer'
+import { AlertListRail } from './components/AlertListRail'
 import { StateTilegram } from './components/StateTilegram'
 import {
   // 2026-06-05 (Yuqi post-merge call — "flat list, not Load More"):
@@ -752,14 +753,28 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
           The outer two-column gap-6 stays — that's the boundary
           between major page columns (list vs panel) and gap-6 is
           the canonical for major-section separation. */}
-      <div className="flex min-h-0 flex-1 gap-6">
+      <div className={cn('flex min-h-0 flex-1', panelOpen ? '' : 'gap-6')}>
+        {/* 2026-06-08 (Pencil ibEoz `DOga0 List Pane`): when an alert
+            is open the page becomes the full-page detail layout — the
+            left side is the fixed 380px compact alert RAIL (its own
+            head / All·Unresolved / search), NOT the full card list.
+            The card list stays mounted-but-hidden so its filter and
+            scroll state survive closing the detail. */}
+        {panelOpen ? (
+          <AlertListRail alerts={sortedAlerts} activeId={openAlertId} onSelect={openDrawer} />
+        ) : null}
         {/* List column vertical rhythm — 2026-06-04 round 40 (Yuqi
             "更紧一点" / "tighter"): gap between filter row → status
             chips → cards list reduced `gap-3` (12px) → `gap-2`
             (8px). The 12px gap was creating three visually
             separate "sections" inside the list panel; 8px reads
             as a tighter stack of related controls + content. */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto [scrollbar-gutter:stable]">
+        <div
+          className={cn(
+            'flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-y-auto [scrollbar-gutter:stable]',
+            panelOpen && 'hidden',
+          )}
+        >
           {alertsQuery.isLoading ? (
             <SkeletonList sources={sourceHealth} />
           ) : (
@@ -871,7 +886,16 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   Acceptable — those are secondary affordances,
                   and the chrome stays consistent versus the
                   prior wrapping behavior. */}
-              <div className="flex shrink-0 flex-nowrap items-center gap-2 overflow-x-auto">
+              {/* 2026-06-08 (Yuqi "always avoid horizontal scroll"):
+                  the round-71 `flex-nowrap overflow-x-auto` strip
+                  scrolled the trailing Sort/State controls off-screen
+                  below ~1400px (a poor affordance — filters that
+                  scroll out of view get forgotten). Switched to
+                  `flex-wrap`: the row stays a single line whenever it
+                  fits and only reflows to a second line on narrower
+                  viewports, so there is never a horizontal scrollbar.
+                  `gap-y-2` spaces the wrapped rows. */}
+              <div className="flex shrink-0 flex-wrap items-center gap-2 gap-y-2">
                 {/* 2026-06-04 round 39 (Yuqi 3-item filter-row feedback):
                     filter row restructured into a single dense strip.
                     Order LEFT → RIGHT:
@@ -1500,16 +1524,19 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
           {panelOpen ? (
             <motion.div
               key="alert-detail-panel"
-              initial={{ width: 0 }}
+              initial={{ opacity: 0 }}
               animate={{
-                width: '60%',
-                transition: { duration: 0.3, ease: [0.32, 0.72, 0, 1] },
+                opacity: 1,
+                transition: { duration: 0.22, ease: [0.32, 0.72, 0, 1] },
               }}
               exit={{
-                width: 0,
-                transition: { duration: 0.28, ease: [0.32, 0.72, 0, 1] },
+                opacity: 0,
+                transition: { duration: 0.18, ease: [0.32, 0.72, 0, 1] },
               }}
-              className="flex min-h-0 shrink-0 self-stretch overflow-hidden"
+              // 2026-06-08 (Pencil ibEoz): the detail pane now FILLS the
+              // width left of the fixed 380px rail (was an animated 60%
+              // split beside a flexible card list).
+              className="flex min-h-0 min-w-0 flex-1 self-stretch overflow-hidden"
             >
               <motion.div
                 initial={{ y: '100%' }}
@@ -1523,7 +1550,38 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                 }}
                 className="flex h-full w-full min-w-0"
               >
-                <AlertDetailDrawer mode="panel" alertId={openAlertId} onClose={closeDrawer} />
+                {(() => {
+                  // 2026-06-08 (Pencil ibEoz `BackStrip`): thread the
+                  // sorted-list ordering so the drawer's top bar can
+                  // page prev/next + show "N of M". Index is into the
+                  // same `sortedAlerts` the list renders, so paging
+                  // matches the visible order.
+                  const openIndex = sortedAlerts.findIndex((alert) => alert.id === openAlertId)
+                  return (
+                    <AlertDetailDrawer
+                      mode="panel"
+                      alertId={openAlertId}
+                      onClose={closeDrawer}
+                      {...(openIndex >= 0
+                        ? {
+                            position: { index: openIndex, total: sortedAlerts.length },
+                            ...(openIndex > 0
+                              ? {
+                                  onPrev: () =>
+                                    openDrawer(sortedAlerts[openIndex - 1]!.id),
+                                }
+                              : {}),
+                            ...(openIndex < sortedAlerts.length - 1
+                              ? {
+                                  onNext: () =>
+                                    openDrawer(sortedAlerts[openIndex + 1]!.id),
+                                }
+                              : {}),
+                          }
+                        : {})}
+                    />
+                  )
+                })()}
               </motion.div>
             </motion.div>
           ) : null}

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { CoffeeIcon, DatabaseIcon, HistoryIcon } from 'lucide-react'
+import { ChevronRightIcon, CoffeeIcon, DatabaseIcon, HistoryIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
@@ -10,7 +10,6 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { AlertsListPage } from '@/features/alerts/AlertsListPage'
 import { useAlertsListQueryOptions } from '@/features/alerts/api'
-import { PulsingDot } from '@/features/alerts/components/PulsingDot'
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { MorningSweepProvider, useMorningSweep } from '@/features/alerts/MorningSweepContext'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
@@ -19,6 +18,7 @@ const TOP_ALERTS_LIMIT = 50
 const NATIONAL_MONITORING_JURISDICTION_COUNT = 52
 
 export function AlertsRoute() {
+  const { t } = useLingui()
   const { open: panelOpen } = useAlertDrawer()
   // 2026-05-26 (Yuqi /alerts #9): fetch the alert count here
   // so the page header can show "Alerts (N)" — same query options
@@ -83,22 +83,34 @@ export function AlertsRoute() {
           section header uses. Also flipped variant `secondary` →
           `outline` (matches round 81 #3 — /today switched the
           equivalent badge to outline same round). */}
+      {/* 2026-06-08 (Yuqi "study closer at the pencil design" — Pencil
+          g5kKJQ `JMGLU`): the active-count chip is the red destructive
+          pill in the design (#fef3f2 / destructive border + text), not
+          the neutral outline. */}
       {alertCount > 0 ? (
-        <Badge variant="outline" size="lg" className="gap-1 tabular-nums">
+        <Badge variant="destructive" size="lg" className="gap-1 tabular-nums">
           <span>{alertCount}</span>
           <span>
             <Trans>urgent</Trans>
           </span>
         </Badge>
       ) : null}
+      {/* 2026-06-08 (Pencil g5kKJQ `kdHsZ`): the second title chip is
+          the blue Sources SELECTOR — database icon + "Sources · Federal
+          + 50 states + DC" + chevron, linking to /rules/sources — not a
+          passive gray "Monitoring" status chip. Consolidating the
+          source affordance here lets the standalone Sources action
+          button drop out of the cluster (it's now this chip). */}
       {hasNationalMonitoringCoverage ? (
-        // Round 83 (Yuqi #7 "bigger gap between the dot and the
-        // text"): bumped to `gap-1.5` so the PulsingDot doesn't
-        // visually glue to the Monitoring text.
-        <Badge variant="secondary" size="lg" className="gap-1.5">
-          <PulsingDot tone="success" active />
-          <Trans>Monitoring: Federal · 50 States · DC</Trans>
-        </Badge>
+        <Link
+          to="/rules/sources"
+          className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[#155aef40] bg-state-accent-hover px-2.5 text-[13px] font-medium text-text-accent transition-colors hover:bg-state-accent-active-alt"
+          aria-label={t`Sources · Federal + 50 states + DC`}
+        >
+          <DatabaseIcon className="size-3 shrink-0" aria-hidden />
+          <Trans>Sources · Federal + 50 states + DC</Trans>
+          <ChevronRightIcon className="size-3 shrink-0" aria-hidden />
+        </Link>
       ) : null}
     </span>
   )
@@ -120,6 +132,12 @@ export function AlertsRoute() {
         // dragged by a single outer scrollbar.
         lockViewport
         wide
+        // 2026-06-08 (Pencil ibEoz full-page detail): when an alert
+        // detail is open the page becomes the three-pane layout
+        // (icon nav · 380px alert rail · detail). The shell's page
+        // header (Alerts title + chips + actions) is unmounted so the
+        // rail owns its own head — `compact` drops the header cleanly.
+        compact={panelOpen}
         // 2026-05-26 (Yuqi /alerts ninth pass #1): width handling
         // is now PANEL-AWARE.
         //   • Panel closed: keep the default `max-w-page-wide`
@@ -179,7 +197,10 @@ export function AlertsRoute() {
            uses gap-32 per Pencil VmcdD. Aligning both pages on
            gap-8 gives top-level pages a uniform vertical cadence. */
           'gap-8 md:px-16 transition-[padding-bottom] duration-300 ease-apple motion-reduce:transition-none',
-          panelOpen && '!pb-0 md:!pb-0',
+          // 2026-06-08 (Pencil ibEoz): full-page detail is flush —
+          // the three panes butt against each other and the viewport,
+          // so strip the shell padding / gap / width cap when open.
+          panelOpen && '!max-w-none !gap-0 !p-0 md:!p-0',
         )}
         actions={
           // 2026-05-27 (Yuqi header unification pass): reverted from
@@ -216,11 +237,11 @@ export function AlertsRoute() {
                 triggers below. The `sm` size (h-8) sat 4px
                 shorter than the h-10 filter chrome and read as
                 two different button families. */}
+            {/* 2026-06-08 (Pencil g5kKJQ `rOipx`): the standalone
+                Sources button is dropped — the Sources selector now
+                lives in the title row chip (kdHsZ). Actions cluster is
+                My morning sweep + Alert history, matching the design. */}
             <MorningSweepHeaderButton />
-            <Button nativeButton={false} variant="outline" render={<Link to="/rules/sources" />}>
-              <DatabaseIcon data-icon="inline-start" />
-              <Trans>Sources</Trans>
-            </Button>
             <Button nativeButton={false} variant="outline" render={<Link to="/alerts/history" />}>
               <HistoryIcon data-icon="inline-start" />
               <Trans>Alert history</Trans>

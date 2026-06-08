@@ -7,7 +7,7 @@ import { Button } from '@duedatehq/ui/components/ui/button'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
-import { AlertsListPage } from '@/features/alerts/AlertsListPage'
+import { AlertHistoryView } from '@/features/alerts/AlertHistoryView'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
 
 /**
@@ -84,7 +84,7 @@ export function AlertsHistoryRoute() {
         </>
       }
     >
-      <AlertsListPage embedded historyMode />
+      <AlertHistoryView />
     </RulesPageShell>
   )
 }

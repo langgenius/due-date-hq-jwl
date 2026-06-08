@@ -1,15 +1,23 @@
-import { useEffect, useMemo, useState, type MouseEvent } from 'react'
+import { useEffect, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
   Astroid,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronUpIcon,
+  CircleAlertIcon,
   ExternalLinkIcon,
+  FileTextIcon,
+  FlagIcon,
   MailIcon,
+  MapPinIcon,
   MessageSquareIcon,
   RotateCcwIcon,
   ShieldCheckIcon,
   XIcon,
+  ZapIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -29,7 +37,6 @@ import {
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
 import { Label } from '@duedatehq/ui/components/ui/label'
-import { Input } from '@duedatehq/ui/components/ui/input'
 import {
   Sheet,
   SheetContent,
@@ -46,6 +53,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
+import { describeTaxCode } from '@/lib/tax-codes'
 import { formatDate, formatRelativeTime } from '@/lib/utils'
 import { requiredRolesLabel } from '@/lib/required-roles-label'
 import { ConceptLabel } from '@/features/concepts/concept-help'
@@ -53,7 +61,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 // retired with the AlertActivitySection deletion above. Restore if
 // the per-alert audit timeline is ever re-mounted in the drawer.
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
-import { StateBadge, getJurisdictionName } from '@/components/primitives/state-badge'
+import { getJurisdictionName } from '@/components/primitives/state-badge'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
 import { impactBadgeFromAlert, actionPillFromAlert } from './components/pulse-alert-chrome'
@@ -63,7 +71,6 @@ import { AffectedClientsTable } from './components/AffectedClientsTable'
 // (AlertConfidencePill, AlertSourceBadge, AlertSourceStatusBadge,
 // AlertStatusBadge) all went unused after the round 84/85 drawer
 // chrome refactor. Dropped to satisfy no-unused-vars.
-import { AlertDecisionStatusNotice } from './components/AlertReadinessStatus'
 import { AlertStructuredFields } from './components/AlertStructuredFields'
 import { changeKindLabel } from './components/PulseChangeKindChip'
 import {
@@ -104,6 +111,15 @@ interface AlertDetailDrawerProps {
    *   like the obligation drawer on /deadlines.
    */
   mode?: 'sheet' | 'panel'
+  /**
+   * 2026-06-08 (Pencil ibEoz/BbQAK `BackStrip`): prev/next paging
+   * through the surrounding alert list + a "N of M" position read-out.
+   * Threaded from the list surface (which owns the sorted order). All
+   * optional — when absent the top-bar nav simply doesn't render.
+   */
+  onPrev?: () => void
+  onNext?: () => void
+  position?: { index: number; total: number }
 }
 
 // 2026-05-25 (Yuqi critique B): the drawer used to compute its own
@@ -112,10 +128,335 @@ interface AlertDetailDrawerProps {
 // same alert showed green outside and red inside. Both sites now
 // call `alertTone(alert)` so they always agree.
 
+/**
+ * 2026-06-08 (Pencil ibEoz/BbQAK `Qla5h KeyChange`): the prominent
+ * left-accent DEADLINE CHANGE card. Eyebrow + old→new date diff (with
+ * the signed day delta) + a scope-facts line (jurisdiction/county,
+ * affected forms, apply mode). Mirrors the date-diff treatment on the
+ * /alerts list row (`PulseAlertRow`) so the two surfaces read as one
+ * vocabulary. Every value is real `PulseDetail` data; it renders only
+ * for due-date-overlay alerts that carry both dates.
+ */
+function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
+  const oldIso = detail.originalDueDate
+  const newIso = detail.newDueDate
+  if (detail.alert.actionMode !== 'due_date_overlay' || !oldIso || !newIso) return null
+  const fmt = (iso: string) =>
+    new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }).format(new Date(`${iso}T00:00:00.000Z`))
+  const days = Math.round(
+    (new Date(`${newIso}T00:00:00.000Z`).getTime() - new Date(`${oldIso}T00:00:00.000Z`).getTime()) /
+      86_400_000,
+  )
+  const scopeArea =
+    detail.counties.length > 0
+      ? detail.counties.join(', ')
+      : getJurisdictionName(detail.jurisdiction)
+  const formsText = detail.forms
+    .map((form) => describeTaxCode(form).label || form)
+    .filter(Boolean)
+    .join(', ')
+  return (
+    <section
+      className="flex flex-col gap-2.5 bg-background-default"
+      style={{ borderLeftWidth: 3, borderLeftColor: '#f25f4c' }}
+    >
+      <span className="font-mono text-[10px] font-bold tracking-[0.8px] text-text-muted uppercase">
+        <Trans>Deadline change</Trans>
+      </span>
+      <div className="flex flex-wrap items-center gap-2.5">
+        <span className="font-mono text-[13px] font-medium text-text-muted line-through tabular-nums">
+          {fmt(oldIso)}
+        </span>
+        <ArrowRightIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+        <span className="font-mono text-[18px] font-bold tracking-[-0.2px] text-text-primary tabular-nums">
+          {fmt(newIso)}
+        </span>
+        <span className="text-[12px] font-semibold text-text-destructive tabular-nums">
+          {days >= 0 ? `+${days}` : `${days}`} <Trans>days</Trans>
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[12px] font-medium text-text-secondary">
+        <span className="inline-flex items-center gap-1.5">
+          <MapPinIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+          {scopeArea}
+        </span>
+        {formsText ? (
+          <span className="inline-flex items-center gap-1.5">
+            <FileTextIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+            <Trans>{formsText} affected</Trans>
+          </span>
+        ) : null}
+        <span className="inline-flex items-center gap-1.5">
+          <ZapIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+          <Trans>Auto-applied · no opt-in</Trans>
+        </span>
+      </div>
+    </section>
+  )
+}
+
+/**
+ * 2026-06-08 (Pencil ibEoz/BbQAK `gRY5g Activity`): lifecycle timeline.
+ * Each node is a real fact already on the record — received
+ * (publishedAt + source + confidence), matched (impacted obligation
+ * count + scope), reviewed (reviewedAt), and the current resolution
+ * state derived from `status`. No fabricated events; a true per-alert
+ * event feed would be a separate backend addition.
+ */
+function AlertActivityTimeline({ detail }: { detail: PulseDetail }) {
+  const { t } = useLingui()
+  const alert = detail.alert
+  const impacted = alert.matchedCount + alert.needsReviewCount
+  const confPct = Math.round(alert.confidence * 100)
+
+  type Tone = 'muted' | 'accent' | 'success' | 'warning' | 'destructive'
+  const events: { id: string; tone: Tone; title: ReactNode; meta?: ReactNode }[] = []
+  events.push({
+    id: 'received',
+    tone: 'muted',
+    title: <Trans>Received from {alert.source}</Trans>,
+    meta: `${formatDate(alert.publishedAt)} · ${t`confidence ${confPct}%`}`,
+  })
+  if (impacted > 0) {
+    events.push({
+      id: 'matched',
+      tone: 'accent',
+      title: (
+        <Plural
+          value={impacted}
+          one="Matched # open client obligation"
+          other="Matched # open client obligations"
+        />
+      ),
+      meta:
+        detail.counties.length > 0
+          ? `${detail.jurisdiction} · ${detail.counties.join(', ')}`
+          : getJurisdictionName(detail.jurisdiction),
+    })
+  }
+  if (detail.reviewedAt) {
+    events.push({
+      id: 'reviewed',
+      tone: 'success',
+      title: <Trans>Reviewed</Trans>,
+      meta: formatRelativeTime(detail.reviewedAt),
+    })
+  }
+  const current: { tone: Tone; title: ReactNode; meta?: ReactNode } =
+    alert.status === 'applied' || alert.status === 'partially_applied'
+      ? { tone: 'success', title: <Trans>Applied to clients · logged to audit ledger</Trans> }
+      : alert.status === 'dismissed'
+        ? { tone: 'muted', title: <Trans>Dismissed</Trans> }
+        : alert.status === 'snoozed'
+          ? { tone: 'warning', title: <Trans>Snoozed</Trans> }
+          : alert.status === 'reverted'
+            ? { tone: 'destructive', title: <Trans>Reverted</Trans> }
+            : alert.status === 'reviewed'
+              ? { tone: 'success', title: <Trans>Marked reviewed</Trans> }
+              : {
+                  tone: 'warning',
+                  title: <Trans>Awaiting your decision</Trans>,
+                  meta: <Trans>Apply, snooze, or dismiss to resolve.</Trans>,
+                }
+  events.push({ id: 'current', ...current })
+
+  const toneClass: Record<Tone, string> = {
+    muted: 'bg-text-muted',
+    accent: 'bg-state-accent-solid',
+    success: 'bg-text-success',
+    warning: 'bg-text-warning',
+    destructive: 'bg-text-destructive',
+  }
+
+  return (
+    <section className="flex flex-col gap-3">
+      <header className="flex items-baseline gap-2">
+        <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+          <Trans>Activity</Trans>
+        </span>
+        <span className="text-[11px] font-medium text-text-muted tabular-nums">
+          <Plural value={events.length} one="# event" other="# events" />
+        </span>
+      </header>
+      <ol className="flex flex-col">
+        {events.map((event, index) => {
+          const isLast = index === events.length - 1
+          return (
+            <li key={event.id} className="flex gap-3">
+              <div className="flex flex-col items-center">
+                <span
+                  className={cn(
+                    'mt-1 size-2.5 shrink-0 rounded-full ring-2 ring-background-default',
+                    toneClass[event.tone],
+                  )}
+                  aria-hidden
+                />
+                {!isLast ? <span className="w-px flex-1 bg-divider-subtle" aria-hidden /> : null}
+              </div>
+              <div className={cn('flex min-w-0 flex-col gap-0.5', isLast ? '' : 'pb-4')}>
+                <span className="text-[13px] font-medium text-text-primary">{event.title}</span>
+                {event.meta ? (
+                  <span className="text-[11px] text-text-tertiary tabular-nums">{event.meta}</span>
+                ) : null}
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+    </section>
+  )
+}
+
+/**
+ * 2026-06-08 (Pencil ibEoz/BbQAK decision banners): the colored
+ * top-of-panel status banner — amber "Pending your review", red
+ * "Couldn't apply", green "Applied · undo". The design stacks all
+ * three for reference; in code exactly one renders, picked from the
+ * real alert state. Right-side meta (confidence, due-in,
+ * confirmed-by-N-sources) is wired to real fields; the mock's
+ * "rank #X of Y" + exact undo countdown + audit-ref strings are
+ * omitted rather than fabricated.
+ */
+function DecisionBanners({
+  detail,
+  applyError,
+  onRetry,
+  onUndo,
+}: {
+  detail: PulseDetail
+  applyError: boolean
+  onRetry: () => void
+  onUndo: () => void
+}) {
+  const { t } = useLingui()
+  const alert = detail.alert
+  const impacted = alert.matchedCount + alert.needsReviewCount
+  const confPct = Math.round(alert.confidence * 100)
+  const dueInDays = detail.newDueDate
+    ? Math.round(
+        (new Date(`${detail.newDueDate}T00:00:00.000Z`).getTime() - Date.now()) / 86_400_000,
+      )
+    : null
+  const dup = alert.duplicateSourceSnapshotCount
+
+  if (applyError) {
+    return (
+      <div className="flex w-full flex-wrap items-start gap-3 border-b border-divider-subtle bg-[#fee4e2] px-12 py-3">
+        <CircleAlertIcon className="mt-0.5 size-4 shrink-0 text-text-destructive" aria-hidden />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-[13px] font-semibold text-text-destructive">
+            <Trans>Couldn&rsquo;t apply to clients</Trans>
+          </span>
+          <span className="text-[12px] leading-[1.5] text-text-tertiary">
+            <Trans>
+              The change couldn&rsquo;t be written. Your selection was kept — retry, or open the
+              source to re-verify before applying.
+            </Trans>
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="shrink-0 text-[12px] font-semibold text-text-destructive underline-offset-2 hover:underline"
+        >
+          <Trans>Retry now</Trans>
+        </button>
+      </div>
+    )
+  }
+
+  if (alert.status === 'applied' || alert.status === 'partially_applied') {
+    return (
+      <div className="flex w-full flex-wrap items-start gap-3 border-b border-divider-subtle bg-components-badge-bg-green-soft px-12 py-3">
+        <ShieldCheckIcon className="mt-0.5 size-4 shrink-0 text-text-success" aria-hidden />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-[13px] font-semibold text-text-success">
+            {alert.matchedCount > 0 ? (
+              <Plural
+                value={alert.matchedCount}
+                one="Applied to # client · logged to audit ledger"
+                other="Applied to # clients · logged to audit ledger"
+              />
+            ) : (
+              <Trans>Applied · logged to audit ledger</Trans>
+            )}
+          </span>
+          <span className="text-[12px] leading-[1.5] text-text-tertiary">
+            <Trans>You can undo for the next 24 hours. After that, the change is committed.</Trans>
+          </span>
+        </div>
+        {REVERTABLE_STATUSES.has(alert.status) ? (
+          <button
+            type="button"
+            onClick={onUndo}
+            className="shrink-0 text-[12px] font-semibold text-text-success underline-offset-2 hover:underline"
+          >
+            <Trans>Undo</Trans>
+          </button>
+        ) : null}
+      </div>
+    )
+  }
+
+  if (
+    alert.status === 'matched' &&
+    alert.firmImpact !== 'no_current_match' &&
+    detail.applyReadiness.status !== 'ready'
+  ) {
+    return (
+      <div className="flex w-full flex-wrap items-start gap-3 border-b border-divider-subtle bg-[#fffbeb] px-12 py-3">
+        <CircleAlertIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-[13px] font-semibold text-text-warning">
+            <Trans>Pending your review</Trans>
+          </span>
+          <span className="text-[12px] leading-[1.5] text-text-tertiary">
+            {impacted > 0 ? (
+              <Plural
+                value={impacted}
+                one="AI extracted the change and matched # client. Confirm or exclude, then Apply."
+                other="AI extracted the change and matched # clients. Confirm or exclude, then Apply."
+              />
+            ) : (
+              <Trans>AI extracted the change. Confirm the deadline details, then Apply.</Trans>
+            )}
+          </span>
+        </div>
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <span className="font-mono text-[11px] font-bold tracking-[0.2px] text-text-muted tabular-nums">
+            {t`Confidence ${confPct}`}
+            {dueInDays !== null && dueInDays >= 0 ? ` · ${t`due in ${dueInDays} days`}` : ''}
+          </span>
+          {dup > 1 ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-background-default px-2.5 py-0.5 text-[11px] font-semibold text-text-success">
+              <ShieldCheckIcon className="size-3 shrink-0" aria-hidden />
+              <Plural value={dup} one="Confirmed by # source" other="Confirmed by # sources" />
+            </span>
+          ) : null}
+        </div>
+      </div>
+    )
+  }
+
+  return null
+}
+
 // Alert detail drawer: AI summary + structured fields + affected clients + apply
 // / dismiss / revert. Apply is the safer path because the server writes audit +
 // evidence + email outbox in one transaction (see packages/db/src/repo/pulse.ts).
-export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDetailDrawerProps) {
+export function AlertDetailDrawer({
+  alertId,
+  onClose,
+  mode = 'sheet',
+  onPrev,
+  onNext,
+  position,
+}: AlertDetailDrawerProps) {
   const { t, i18n } = useLingui()
   const queryClient = useQueryClient()
   const open = alertId !== null
@@ -400,22 +741,6 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
     }),
   )
 
-  const reviewDueDateDetailsMutation = useMutation(
-    orpc.pulse.reviewDueDateOverlayDetails.mutationOptions({
-      onSuccess: () => {
-        invalidate()
-        toast.success(t`Deadline change confirmed`, {
-          description: t`Selected deadlines are ready for final Apply review.`,
-        })
-      },
-      onError: (err) => {
-        toast.error(t`Couldn't save deadline selection`, {
-          description: i18n._(alertErrorDescriptor(err)),
-        })
-      },
-    }),
-  )
-
   const applyReviewedMutation = useMutation(
     orpc.pulse.applyReviewed.mutationOptions({
       onSuccess: (result) => {
@@ -441,7 +766,6 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
     applyReviewedMutation.isPending ||
     applyMutation.isPending ||
     markReviewedMutation.isPending ||
-    reviewDueDateDetailsMutation.isPending ||
     reviewPriorityMutation.isPending ||
     reactivateMutation.isPending ||
     requestReviewMutation.isPending ||
@@ -503,6 +827,60 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
   // that need both an in-route panel + a floating fallback.
   const body = (
     <>
+      {/* 2026-06-08 (Pencil ibEoz/BbQAK `BackStrip`): top bar — back-to-
+          Alerts breadcrumb on the left, prev/next paging + "N of M"
+          position + close on the right. The close here is the single
+          close affordance (panel mode drops its absolute X; sheet mode
+          hides the primitive's). prev/next render only when the list
+          surface threads paging handlers. */}
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-12 py-2.5">
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex items-center gap-1 text-[13px] font-medium text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:text-text-secondary"
+        >
+          <ChevronLeftIcon className="size-4 shrink-0" aria-hidden />
+          <Trans>Alerts</Trans>
+        </button>
+        <div className="flex items-center gap-1">
+          {position && position.total > 0 ? (
+            <span className="px-1.5 text-[12px] font-medium text-text-muted tabular-nums">
+              {t`${position.index + 1} of ${position.total}`}
+            </span>
+          ) : null}
+          {onPrev || onNext ? (
+            <>
+              <button
+                type="button"
+                onClick={onPrev}
+                disabled={!onPrev}
+                aria-label={t`Previous alert`}
+                className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronUpIcon className="size-4" aria-hidden />
+              </button>
+              <button
+                type="button"
+                onClick={onNext}
+                disabled={!onNext}
+                aria-label={t`Next alert`}
+                className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronDownIcon className="size-4" aria-hidden />
+              </button>
+            </>
+          ) : null}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t`Close alert detail`}
+            className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <XIcon className="size-4" aria-hidden />
+          </button>
+        </div>
+      </div>
+
       {/* 2026-05-26 (Yuqi thirty-seventh pass — panel padding spec):
             header padding bumped to Yuqi's "right panel" spec:
               • padding-inline: calc(var(--spacing) * 12)  → px-12 (48px)
@@ -526,6 +904,19 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
           Padding follows Pencil n9m9B Hero spec (gap 18 → gap-4
           + heavy outer padding via `px-12 py-10` from previous
           round). */}
+      {/* 2026-06-08 (Pencil ibEoz/BbQAK decision banners): the colored
+          status band sits at the very top — full-bleed, above the
+          header meta + title — exactly one band for the alert's real
+          state (amber Pending / red Couldn't-apply / green Applied). */}
+      {detail ? (
+        <DecisionBanners
+          detail={detail}
+          applyError={applyMutation.isError}
+          onRetry={handleApply}
+          onUndo={() => revertMutation.mutate({ alertId: detail.alert.id })}
+        />
+      ) : null}
+
       {/* Round 47 (Yuqi #1 — "reduce the bottom padding"): Hero
           padding `py-10` → `pt-10 pb-6`. The summary line was
           sitting on a 40px floor of dead space before the body
@@ -578,41 +969,28 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
                     `drawerChangeKindLabel` we had here) so the
                     exact wording matches. */}
                 <div className="flex flex-wrap items-center gap-2">
+                  {/* 2026-06-08 (Pencil ibEoz header): impact pill reads
+                      "HIGH IMPACT" (not bare "HIGH"). */}
                   {showSeverityPill ? (
                     <span
                       className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] px-2 text-[11px] font-bold tracking-[0.7px] uppercase"
                       style={{ backgroundColor: severity.bg, color: severity.text }}
                     >
-                      {t`HIGH`}
+                      {t`HIGH IMPACT`}
                     </span>
                   ) : null}
-                  {/* Round 77: state pill aligned to round-75 chrome
-                      used on /today + /alerts row — smaller 16px
-                      motif + 12px code (no bg / no left-right
-                      padding). Drawer state now reads as the same
-                      primitive as the rest of the alert vocabulary. */}
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={(props) => (
-                        <span
-                          className="inline-flex h-[22px] shrink-0 cursor-help items-center gap-1 outline-none"
-                          {...props}
-                        >
-                          <StateBadge
-                            code={detail.alert.jurisdiction}
-                            size="xs"
-                            style={{ width: 16, height: 16 }}
-                          />
-                          <span className="font-mono text-[12px] font-bold tracking-[0.7px] text-text-secondary uppercase">
-                            {detail.alert.jurisdiction}
-                          </span>
-                        </span>
-                      )}
-                    />
-                    <TooltipContent>
+                  {/* 2026-06-08 (Pencil ibEoz header `flag CA California`):
+                      jurisdiction reads as a flag glyph + code + full
+                      state name, inline (no chip). */}
+                  <span className="inline-flex h-[22px] shrink-0 items-center gap-1.5 text-text-secondary">
+                    <FlagIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+                    <span className="font-mono text-[12px] font-bold tracking-[0.7px] uppercase">
+                      {detail.alert.jurisdiction}
+                    </span>
+                    <span className="text-[13px] font-medium">
                       {getJurisdictionName(detail.alert.jurisdiction)}
-                    </TooltipContent>
-                  </Tooltip>
+                    </span>
+                  </span>
                   <span className="inline-flex h-[22px] shrink-0 items-center rounded-[4px] bg-state-accent-hover px-2 font-mono text-[11px] font-bold tracking-[0.7px] text-text-accent uppercase">
                     {changeKindLabel(detail.alert.changeKind)}
                   </span>
@@ -683,48 +1061,11 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
             the action bar with a clean gap between them. Top stays
             py-10 (40px) — header → content rhythm doesn't change. */}
       <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-12 pt-6 pb-24">
-        {/* 2026-06-04 round 47 (Yuqi #5 — "can you fulfill the
-            content and make it information rich?"): SOURCE EXTRACT
-            section per Pencil n9m9B. When the alert has a summary,
-            render it as a styled extract panel — mono quote in a
-            gray-50 rounded panel with citation. Reads as "this is
-            literally what the AI pulled from the source", giving
-            the CPA a verifiable text anchor before the structured
-            fields below. */}
-        {detail && detail.alert.summary && detail.alert.summary.trim().length > 0 ? (
-          <section className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
-                <Trans>Source extract</Trans>
-              </span>
-              {detail.alert.sourceUrl ? (
-                <a
-                  href={detail.alert.sourceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs font-medium text-text-accent hover:underline"
-                >
-                  <Trans>Open original ↗</Trans>
-                </a>
-              ) : null}
-            </div>
-            <blockquote className="rounded-2xl border border-divider-subtle bg-background-section px-5 py-4 font-mono text-[13px] leading-[1.55] text-text-secondary">
-              &ldquo;{detail.alert.summary}&rdquo;
-              <footer className="mt-2 font-sans text-[11px] font-medium text-text-tertiary">
-                {detail.alert.source}
-                {detail.alert.publishedAt ? (
-                  <>
-                    {' · '}
-                    <span className="tabular-nums">
-                      {formatRelativeTime(detail.alert.publishedAt)}
-                    </span>
-                  </>
-                ) : null}
-              </footer>
-            </blockquote>
-          </section>
-        ) : null}
-
+        {/* 2026-06-08 (Pencil ibEoz order): SOURCE EXTRACT moved from
+            the top of the body down to just before Provenance — the
+            design leads with the decision banner + key change + facts +
+            affected clients, and keeps the verbatim quote as a
+            supporting anchor near the bottom. */}
         {detailQuery.isError ? (
           // 2026-05-26 (Yuqi twenty-ninth pass): icon removed from
           // remaining drawer Alerts so the alert chrome is
@@ -753,43 +1094,29 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
         ) : null}
 
         {detail ? (
-          <>
-            <AlertDecisionStatusNotice alert={detail.alert} />
+          // 2026-06-08 (Pencil ibEoz `Aogxu SectionsWrapper`): every
+          // detail section lives in ONE flat-bordered white panel with
+          // internal `divide-y` separators and uniform `px-6 py-4`
+          // padding — replacing the prior set of individually-rounded
+          // floating cards ("乱七八糟的圆角"). Only the green
+          // Ready-to-apply callout stays a separate rounded card above.
+          <div className="flex flex-col divide-y divide-divider-subtle overflow-hidden rounded-[12px] border border-divider-subtle bg-background-default [&>*]:px-6 [&>*]:py-4">
+            {/* 2026-06-08 (Pencil ibEoz/BbQAK `Qla5h KeyChange`): the
+                prominent left-border DEADLINE CHANGE card — the single
+                most scannable fact on the panel. Old → new date with the
+                day delta, then the scope facts (jurisdiction/county,
+                affected forms, apply mode). Real data only; renders for
+                deadline-overlay alerts that carry both dates. */}
+            <DeadlineChangeCard detail={detail} />
 
-            {missingDeadlineDetails ? (
-              <DeadlineDetailsPanel
-                detail={detail}
-                canManage={permissions.canApply}
-                pending={reviewDueDateDetailsMutation.isPending}
-                selection={selection}
-                confirmedReviewIds={confirmedReviewIds}
-                excludedIds={excludedIds}
-                onChangeSelection={setSelection}
-                onToggleNeedsReviewConfirmation={handleToggleNeedsReviewConfirmation}
-                onToggleExcluded={
-                  permissions.canViewPriorityQueue ? handleToggleExcluded : undefined
-                }
-                onSubmit={(input) =>
-                  reviewDueDateDetailsMutation.mutate({
-                    alertId: detail.alert.id,
-                    ...input,
-                  })
-                }
-              />
-            ) : null}
-
-            {/* 2026-05-25 (Yuqi #10): Affected clients moved to
-                  the top of the drawer body. This is THE most
-                  important question the CPA brings to a Alert
-                  — "does this hit my clients?". Previously it was
-                  buried under structured fields + low-confidence
-                  alerts, forcing CPAs to scroll past 200+ pixels of
-                  metadata before seeing the impact list. Empty case
-                  (#10): if the alert has no affected clients, say
-                  so explicitly instead of just hiding the table. */}
+            {/* 2026-06-08 (Yuqi "confirm deadline change是什么?"): the
+                standalone DeadlineDetailsPanel form is gone — it isn't
+                in the ibEoz design and read as a stray empty box. The
+                affected-clients table below IS the confirmation surface
+                (per-row Confirm / Exclude), so it now always renders for
+                due-date alerts regardless of `missingDeadlineDetails`. */}
             {detail.alert.actionMode === 'due_date_overlay' &&
-            detail.alert.firmImpact !== 'no_current_match' &&
-            !missingDeadlineDetails ? (
+            detail.alert.firmImpact !== 'no_current_match' ? (
               <section className="flex flex-col gap-3">
                 {/* Round 47 (Yuqi #5 — "fulfill the content and make
                     it information rich"): section header restyled
@@ -1012,8 +1339,88 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
               />
             ) : null}
 
+            {/* 2026-06-08 (Pencil ibEoz/BbQAK `sbs7M ReadyToApply`): the
+                green ready-to-apply affirmation. Replaces the plain
+                dashed safety-checklist with the design's success callout
+                — confirmed-client summary + AI confidence + an Apply-now
+                shortcut that routes through the same verification gate as
+                the footer. Real data: selected-client count + confidence. */}
             {detail.alert.actionMode === 'due_date_overlay' && deadlineApplyReady ? (
-              <ApplySafetyChecklist />
+              <section className="flex flex-col gap-3 rounded-xl bg-components-badge-bg-green-soft px-5 py-4">
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-text-success/15 text-text-success">
+                    <ShieldCheckIcon className="size-4" aria-hidden />
+                  </span>
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <span className="text-[13px] font-semibold text-text-success">
+                      <Trans>Ready to apply · deadline selection confirmed</Trans>
+                    </span>
+                    <p className="text-[12px] leading-[1.5] text-text-secondary">
+                      <Plural
+                        value={stats?.selectedCount ?? 0}
+                        one="# client confirmed and matched to the new date."
+                        other="# clients confirmed and matched to the new date."
+                      />{' '}
+                      <Trans>
+                        Every decision is captured to the audit ledger and reversible for 24 hours.
+                      </Trans>
+                    </p>
+                  </div>
+                  <span className="hidden shrink-0 font-mono text-[11px] font-bold text-text-success tabular-nums sm:inline">
+                    {t`conf ${Math.round(detail.alert.confidence * 100)}%`}
+                  </span>
+                </div>
+                {canApply ? (
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleApply}
+                      disabled={isMutating}
+                      className="bg-text-success hover:bg-text-success/90"
+                    >
+                      <Trans>Apply now</Trans>
+                      <ArrowRightIcon data-icon="inline-end" />
+                    </Button>
+                  </div>
+                ) : null}
+              </section>
+            ) : null}
+
+            {/* SOURCE EXTRACT (Pencil ibEoz order — near the bottom, a
+                verbatim anchor after the decision content). */}
+            {detail.alert.summary && detail.alert.summary.trim().length > 0 ? (
+              <section className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
+                    <Trans>Source extract</Trans>
+                  </span>
+                  {detail.alert.sourceUrl ? (
+                    <a
+                      href={detail.alert.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs font-medium text-text-accent hover:underline"
+                    >
+                      <Trans>Open original ↗</Trans>
+                    </a>
+                  ) : null}
+                </div>
+                <blockquote className="rounded-lg bg-background-subtle px-5 py-4 font-mono text-[13px] leading-[1.55] text-text-secondary">
+                  &ldquo;{detail.alert.summary}&rdquo;
+                  <footer className="mt-2 font-sans text-[11px] font-medium text-text-tertiary">
+                    {detail.alert.source}
+                    {detail.alert.publishedAt ? (
+                      <>
+                        {' · '}
+                        <span className="tabular-nums">
+                          {formatRelativeTime(detail.alert.publishedAt)}
+                        </span>
+                      </>
+                    ) : null}
+                  </footer>
+                </blockquote>
+              </section>
             ) : null}
 
             {/* Round 47 (Yuqi #5 — "fulfill the content and make it
@@ -1047,7 +1454,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
                       <Trans>Provenance &amp; confidence</Trans>
                     </span>
                   </header>
-                  <div className="grid grid-cols-[1fr_1fr] gap-3 rounded-2xl border border-divider-subtle bg-background-default px-6 py-5">
+                  <div className="grid grid-cols-[1fr_1fr] gap-3">
                     {/* Confidence cell */}
                     <div className="flex flex-col gap-1.5 border-r border-divider-subtle pr-6">
                       <span className="font-mono text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase">
@@ -1113,7 +1520,15 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
                 </section>
               )
             })()}
-          </>
+
+            {/* 2026-06-08 (Pencil ibEoz/BbQAK `gRY5g Activity`): the
+                lifecycle timeline. Built from the alert's real
+                timestamps (received → matched → reviewed → current
+                state) rather than a per-alert event feed (none exists
+                yet) — so every node is a fact already on the record,
+                not a fabricated event. */}
+            <AlertActivityTimeline detail={detail} />
+          </div>
         ) : null}
       </div>
 
@@ -1293,21 +1708,9 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
           // body's scroll surface.
           className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-subtle"
         >
-          {/* 2026-06-01: drawer close button migrated from a hand-
-              rolled size-7 ghost-button frame to the canonical
-              Button primitive (variant=ghost, size=icon-xs). Same
-              28px footprint, same hover+focus chrome, and
-              aria-label is preserved verbatim. */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={onClose}
-            aria-label={t`Close alert detail`}
-            className="absolute right-3 top-3 z-10"
-          >
-            <XIcon aria-hidden />
-          </Button>
+          {/* 2026-06-08: the close affordance moved into the body's
+              BackStrip top bar (with prev/next paging), so the
+              standalone absolute X is gone — one close, top-right. */}
           {body}
         </aside>
         {reviewRequestDialog}
@@ -1324,6 +1727,7 @@ export function AlertDetailDrawer({ alertId, onClose, mode = 'sheet' }: AlertDet
     <Sheet open={open} onOpenChange={(next) => (next ? null : onClose())}>
       <SheetContent
         side="right"
+        showCloseButton={false}
         className="data-[side=right]:top-5 data-[side=right]:right-5 data-[side=right]:bottom-5 data-[side=right]:h-auto data-[side=right]:w-full data-[side=right]:max-w-[100vw] data-[side=right]:rounded-lg sm:data-[side=right]:w-[calc(100vw-2.5rem)] sm:data-[side=right]:max-w-[calc(100vw-2.5rem)] md:data-[side=right]:w-[min(820px,calc(100vw-2.5rem))] md:data-[side=right]:max-w-[min(820px,calc(100vw-2.5rem))] xl:data-[side=right]:w-[min(880px,calc(100vw-2.5rem))] xl:data-[side=right]:max-w-[min(880px,calc(100vw-2.5rem))]"
       >
         {/* sr-only Sheet title + description satisfy Radix Dialog
@@ -1508,202 +1912,6 @@ export function DrawerActions({
         ) : null}
       </div>
     </div>
-  )
-}
-
-type DeadlineDetailsSubmitInput = {
-  newDueDate: string
-  selectedObligationIds: string[]
-  confirmedObligationIds: string[]
-  excludedObligationIds: string[]
-  note?: string
-}
-
-function MissingDetailBadgeLabel({
-  field,
-}: {
-  field: PulseDetail['applyReadiness']['missing'][number]
-}) {
-  switch (field) {
-    case 'original_due_date':
-      return <Trans>Original due date</Trans>
-    case 'new_due_date':
-      return <Trans>New due date</Trans>
-    case 'forms':
-      return <Trans>Forms</Trans>
-    case 'entity_types':
-      return <Trans>Entity types</Trans>
-    case 'affected_clients':
-      return <Trans>Selected deadlines</Trans>
-  }
-  return null
-}
-
-function openNativeDatePicker(event: MouseEvent<HTMLInputElement>) {
-  const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void }
-  input.focus()
-  try {
-    input.showPicker?.()
-  } catch {
-    // Some browsers throw if the picker is unavailable; focus still keeps the field usable.
-  }
-}
-
-// 2026-06-05 (pre-CI green-up): `AlertActivitySection` was
-// declared but never mounted. Deleted to satisfy no-unused-vars;
-// the per-alert audit timeline still lives in EntityAuditActivityPanel
-// — re-mount it here if a future drawer revision wants the Activity
-// section back.
-
-function DeadlineDetailsPanel({
-  detail,
-  canManage,
-  pending,
-  selection,
-  confirmedReviewIds,
-  excludedIds,
-  onChangeSelection,
-  onToggleNeedsReviewConfirmation,
-  onToggleExcluded,
-  onSubmit,
-}: {
-  detail: PulseDetail
-  canManage: boolean
-  pending: boolean
-  selection: ReadonlySet<string>
-  confirmedReviewIds: ReadonlySet<string>
-  excludedIds: ReadonlySet<string>
-  onChangeSelection: (next: Set<string>) => void
-  onToggleNeedsReviewConfirmation: (obligationId: string, confirmed: boolean) => void
-  onToggleExcluded?: ((obligationId: string, excluded: boolean) => void) | undefined
-  onSubmit: (input: DeadlineDetailsSubmitInput) => void
-}) {
-  const [newDueDate, setNewDueDate] = useState(detail.newDueDate ?? '')
-  const [note, setNote] = useState('')
-  const deadlineRows = detail.affectedClients.map((row) => ({
-    ...row,
-    newDueDate: newDueDate || row.newDueDate,
-  }))
-  const stats = computeSelectionStats(deadlineRows, selection, confirmedReviewIds)
-  const selectedObligationIds = Array.from(selection).filter((obligationId) =>
-    deadlineRows.some((row) => row.obligationId === obligationId),
-  )
-  const canSave = canManage && !pending && Boolean(newDueDate) && stats.selectedCount > 0
-
-  return (
-    // 2026-06-01: hand-rolled warning panel swapped to the canonical
-    // Card primitive (size="sm" tone="warning" radius="md"). The
-    // amber border + bg tint, rounded-md chrome, and dense py-4
-    // density are now carried by Card's tone + radius axes — no
-    // per-call border/bg overrides. Content wrapped in CardContent
-    // for the matching px-4 inset. (Card is a `<div>` primitive,
-    // so the element changes from <section> to <div>; the existing
-    // CardContent + h3 + form scopes the landmark equivalently.)
-    <Card size="sm" tone="warning" radius="md">
-      <CardContent className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1">
-          <h3 className="text-sm font-semibold text-text-primary">
-            <Trans>Confirm deadline change</Trans>
-          </h3>
-          <p className="text-sm text-text-secondary">
-            <Trans>
-              Confirm the new due date and choose the existing deadlines that should receive it.
-            </Trans>
-          </p>
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {detail.applyReadiness.missing.map((field) => (
-              <Badge key={field} variant="outline" className="bg-background-default">
-                <MissingDetailBadgeLabel field={field} />
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        <form
-          className="grid gap-3"
-          onSubmit={(event) => {
-            event.preventDefault()
-            if (!canSave) return
-            onSubmit({
-              newDueDate,
-              selectedObligationIds,
-              confirmedObligationIds: Array.from(confirmedReviewIds).filter((obligationId) =>
-                selection.has(obligationId),
-              ),
-              excludedObligationIds: Array.from(excludedIds),
-              ...(note.trim() ? { note: note.trim() } : {}),
-            })
-          }}
-        >
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="pulse-new-due-date">
-              <Trans>New due date</Trans>
-            </Label>
-            <Input
-              id="pulse-new-due-date"
-              type="date"
-              className="cursor-pointer"
-              value={newDueDate}
-              disabled={!canManage || pending}
-              onClick={openNativeDatePicker}
-              onChange={(event) => setNewDueDate(event.target.value)}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-baseline justify-between gap-3">
-              <Label>
-                <Trans>Choose deadlines to apply this date to</Trans>
-              </Label>
-              <span className="text-xs text-text-tertiary">
-                <Trans>{stats.selectedCount} selected</Trans>
-              </span>
-            </div>
-            {deadlineRows.length > 0 ? (
-              <AffectedClientsTable
-                rows={deadlineRows}
-                selection={selection}
-                confirmedReviewIds={confirmedReviewIds}
-                excludedIds={excludedIds}
-                onChangeSelection={onChangeSelection}
-                onToggleNeedsReviewConfirmation={onToggleNeedsReviewConfirmation}
-                onToggleExcluded={onToggleExcluded}
-                readOnly={!canManage || pending}
-              />
-            ) : (
-              <p className="rounded-md border border-divider-subtle bg-background-default px-4 py-3 text-sm text-text-secondary">
-                <Trans>
-                  No open deadlines are available for this alert's jurisdiction. Add or reopen a
-                  deadline before applying this change.
-                </Trans>
-              </p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="pulse-detail-note">
-              <Trans>Review note</Trans>
-            </Label>
-            <Textarea
-              id="pulse-detail-note"
-              value={note}
-              disabled={!canManage || pending}
-              onChange={(event) => setNote(event.target.value)}
-            />
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            {!canManage ? (
-              <p className="text-sm text-text-secondary">
-                <Trans>Only authorized reviewers can confirm deadline changes.</Trans>
-              </p>
-            ) : (
-              <span />
-            )}
-            <Button type="submit" disabled={!canSave}>
-              {pending ? <Trans>Saving…</Trans> : <Trans>Save deadline selection</Trans>}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
   )
 }
 
@@ -2065,28 +2273,6 @@ function SelectionSummary({ stats }: { stats: SelectionStats }) {
         need review
       </Trans>
     </span>
-  )
-}
-
-function ApplySafetyChecklist() {
-  const items: Array<[string, React.ReactNode]> = [
-    ['audit', <Trans key="audit">Logged to audit trail</Trans>],
-    ['evidence', <Trans key="evidence">Alert evidence linked to each deadline</Trans>],
-    [
-      'email',
-      <Trans key="email">Owner and manager digest will be sent when email is available</Trans>,
-    ],
-    ['undo', <Trans key="undo">Undo available for 24 hours</Trans>],
-  ]
-  return (
-    <ul className="grid gap-1 rounded-lg border border-dashed border-divider-regular bg-background-section p-3 text-sm text-text-secondary">
-      {items.map(([key, node]) => (
-        <li key={key} className="flex items-center gap-2">
-          <span aria-hidden className="size-1.5 rounded-full bg-text-success" />
-          {node}
-        </li>
-      ))}
-    </ul>
   )
 }
 
