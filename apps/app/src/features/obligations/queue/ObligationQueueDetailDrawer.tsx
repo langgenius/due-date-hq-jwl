@@ -1784,7 +1784,7 @@ export function ObligationQueueDetailDrawer({
                     // px-12 padding. Inside px-12 re-applies the
                     // canonical inset, so the sticky strip's content
                     // edge still aligns with the rest of the body.
-                    'sticky top-0 z-20 -mx-12 border-b border-divider-subtle bg-background-default px-12 py-3'
+                    'sticky top-0 z-20 -mx-12 bg-background-canvas-warm px-12 py-3'
                   : 'mb-4',
               )}
             >
@@ -1870,7 +1870,7 @@ export function ObligationQueueDetailDrawer({
                 on the TabsContent panels drops the gap below the
                 bar to just `gap-2`, so the bar still reads as the
                 leading edge of the tab content beneath. */}
-            <div className="sticky top-0 z-10 bg-background-default pt-3">
+            <div className="sticky top-0 z-10 bg-background-canvas-warm pt-3">
               {/* 2026-05-26 (Yuqi forty-ninth pass — Figma-Make port
                   from design/deadlines-drawer-rework): tab bar
                   switched from default pill segmented control to the
@@ -1912,7 +1912,7 @@ export function ObligationQueueDetailDrawer({
                     // tab `gap-1` → `gap-6` opens 24px between tabs so
                     // they remain individually scannable now that each
                     // one no longer carries its own `px-2`.
-                    className="flex h-11 w-full justify-start gap-6 border-b border-divider-subtle bg-background-default text-sm"
+                    className="flex h-11 w-full justify-start gap-6 border-b border-divider-subtle bg-background-canvas-warm text-sm"
                   >
                     {/* 2026-05-26 (Yuqi feedback — "tabs can be more
                         obvious, signalling people hey check these
@@ -2063,7 +2063,7 @@ export function ObligationQueueDetailDrawer({
                       tab that owns the source of truth instead of
                       duplicating the editor. */}
                   {checklist.length > 0 && row.status !== 'done' && row.status !== 'completed' ? (
-                    <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle p-4">
+                    <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-default p-4">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
                           <Trans>What's left to do</Trans>
@@ -2135,7 +2135,7 @@ export function ObligationQueueDetailDrawer({
                       rows).
                       // TODO(data): expected-refund total + per-component
                       // withholding breakdown on the obligation detail. */}
-                  <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle p-4">
+                  <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-default p-4">
                     <div className="flex items-end justify-between gap-2">
                       <div className="grid gap-0.5">
                         <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
@@ -2180,7 +2180,7 @@ export function ObligationQueueDetailDrawer({
                       upload/ingest pipeline lands.
                       // TODO(data): source-document attachments (filename,
                       // size, uploadedAt) on the obligation detail. */}
-                  <section className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle p-4">
+                  <section className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle bg-background-default p-4">
                     <div className="flex items-center gap-2 pb-1">
                       <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
                         <Trans>Source docs</Trans>
@@ -2972,7 +2972,7 @@ export function ObligationQueueDetailDrawer({
                     one-time setup that rarely needs revisiting. */}
                   {taxYearProfileEditable ? (
                     <details
-                      className="mt-2 rounded-lg border border-divider-subtle"
+                      className="mt-2 rounded-lg border border-divider-subtle bg-background-default"
                       open={taxYearFiscalMissing || taxYearFiscalInvalid}
                     >
                       <summary className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
@@ -3162,7 +3162,7 @@ export function ObligationQueueDetailDrawer({
                       },
                     ]
                     return (
-                      <section className="overflow-hidden rounded-xl border border-divider-regular">
+                      <section className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
                         <div className="flex items-start justify-between gap-3 px-4 pt-3.5">
                           <div className="flex items-start gap-2">
                             <BookOpenIcon
@@ -3239,7 +3239,7 @@ export function ObligationQueueDetailDrawer({
                       target + decision memo are required by the mutation;
                       the payment callout repeats the "defers filing, not
                       payment" warning next to the action. */}
-                  <section className="flex flex-col gap-3 rounded-xl border border-divider-regular p-4">
+                  <section className="flex flex-col gap-3 rounded-xl border border-divider-regular bg-background-default p-4">
                     <header className="flex flex-col gap-0.5">
                       <h3 className="text-sm font-semibold text-text-primary">
                         <Trans>Apply extension</Trans>
@@ -3378,7 +3378,7 @@ export function ObligationQueueDetailDrawer({
                         <Trans>View all client extensions →</Trans>
                       </Link>
                     </header>
-                    <div className="overflow-hidden rounded-lg border border-divider-subtle">
+                    <div className="overflow-hidden rounded-lg border border-divider-subtle bg-background-default">
                       <div className="hidden grid-cols-[64px_72px_64px_110px_110px_1fr_auto] gap-3 border-b border-divider-subtle bg-background-section px-4 py-2.5 sm:grid">
                         {[
                           t`Year`,
@@ -3692,7 +3692,7 @@ export function ObligationQueueDetailDrawer({
                     />
                   ) : null}
 
-                  <details className="group rounded-lg border border-divider-subtle">
+                  <details className="group rounded-lg border border-divider-subtle bg-background-default">
                     <summary className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-xs font-medium uppercase tracking-wider text-text-tertiary outline-none hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt">
                       <span>
                         <Trans>Authority citation</Trans>
@@ -3889,7 +3889,7 @@ export function ObligationQueueDetailDrawer({
              • `px-12` — match header/body left margin.
            The pt-4 pb-6 vertical rhythm and `min-h-16` stay —
            those already mirror the alert drawer. */
-        <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t-2 border-divider-regular bg-background-default px-12 pt-4 pb-6">
+        <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t border-divider-subtle bg-background-canvas-warm px-12 pt-4 pb-6">
           {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #4): footer now
               mirrors the alerts footer — quiet secondaries on the left
               (Last updated · Request input · Copy link), primary action
@@ -3995,7 +3995,7 @@ export function ObligationQueueDetailDrawer({
         // the tabs-content area scrolls underneath, so a user 30
         // docs deep in the Readiness checklist still sees what
         // row they're on.
-        className="relative flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-subtle"
+        className="relative flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-canvas-warm shadow-subtle"
       >
         {drawerBody}
       </aside>
@@ -4006,7 +4006,7 @@ export function ObligationQueueDetailDrawer({
   // requirement; the visible heading is the <h2> inside `drawerBody`.
   return (
     <Sheet open={obligationId !== null} onOpenChange={(open) => (!open ? onClose() : undefined)}>
-      <SheetContent className="flex flex-col data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none overflow-y-auto">
+      <SheetContent className="flex flex-col bg-background-canvas-warm data-[side=right]:w-full data-[side=right]:max-w-[100vw] sm:data-[side=right]:w-[min(720px,calc(100vw-1rem))] md:data-[side=right]:w-[min(840px,calc(100vw-1.5rem))] xl:data-[side=right]:w-[min(920px,calc(100vw-2rem))] sm:data-[side=right]:max-w-none overflow-y-auto">
         <SheetTitle className="sr-only">{titleText ?? t`Deadline detail`}</SheetTitle>
         <SheetDescription className="sr-only">
           <Trans>Deadline workflow detail panel.</Trans>
