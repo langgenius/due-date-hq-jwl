@@ -658,13 +658,16 @@ export function Wizard({ open, onClose, variant = 'dialog', intro, resumeBatchId
             description: t`${undoClientPart} · ${undoObligationPart} removed`,
           })
           setPendingRevert(null)
-          // Reverting from the success modal also dismisses it before we leave.
-          setSuccessData(null)
+          // Close the whole wizard before leaving — resetAndClose also clears
+          // successData. Without it the Step-4 shell stays mounted over
+          // /deadlines after an undo (a Cluster-3 success-modal regression:
+          // every other post-import nav handler already calls resetAndClose).
+          resetAndClose()
           void navigate('/deadlines')
         },
       },
     )
-  }, [i18n, navigate, pendingRevert, revertMutation, t])
+  }, [i18n, navigate, pendingRevert, resetAndClose, revertMutation, t])
 
   const shellProps = {
     step: state.step,

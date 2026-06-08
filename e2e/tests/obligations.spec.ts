@@ -54,21 +54,21 @@ test.describe('seeded obligations', () => {
     // trigger is visible; the /deadlines/calendar destination is exercised
     // separately by the command-palette test in authenticated-shell.spec.ts.
     await expect(obligationQueuePage.calendarSyncButton).toBeVisible()
-    await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeVisible()
-    await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeVisible()
+    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toBeVisible()
+    await expect(obligationQueuePage.rowFor('Northstar Dental Group')).toBeVisible()
 
     await obligationQueuePage.search('Arbor')
     await expect(authenticatedPage).toHaveURL(/\/deadlines\?q=Arbor$/)
-    await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeVisible()
-    await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeHidden()
+    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toBeVisible()
+    await expect(obligationQueuePage.rowFor('Northstar Dental Group')).toBeHidden()
 
     await obligationQueuePage.clearSearch()
     await expect(authenticatedPage).toHaveURL(/\/deadlines$/)
     await obligationQueuePage.openStatusFilter()
     await obligationQueuePage.statusFilterOption('In review').click()
     await expect(authenticatedPage).toHaveURL(/\/deadlines\?status=review$/)
-    await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeVisible()
-    await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeHidden()
+    await expect(obligationQueuePage.rowFor('Northstar Dental Group')).toBeVisible()
+    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toBeHidden()
     await expect(obligationQueuePage.statusFilterOption('In review')).toBeVisible()
     await authenticatedPage.keyboard.press('Escape')
 

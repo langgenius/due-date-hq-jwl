@@ -58,7 +58,7 @@ test('AC: E2E-MIGRATION-IMPORT-UNDO imports from the wizard and reverts from toa
 
   await migrationWizardPage.continue()
   await expect(
-    authenticatedPage.getByRole('heading', { name: 'AI prepared your columns' }),
+    authenticatedPage.getByRole('heading', { name: 'Review your column mappings' }),
   ).toBeVisible({ timeout: AI_STEP_TIMEOUT })
 
   await migrationWizardPage.continue()
@@ -67,8 +67,8 @@ test('AC: E2E-MIGRATION-IMPORT-UNDO imports from the wizard and reverts from toa
   ).toBeVisible({ timeout: AI_STEP_TIMEOUT })
 
   await migrationWizardPage.continue()
-  await expect(authenticatedPage.getByRole('heading', { name: 'Ready to import' })).toBeVisible()
-  await expect(authenticatedPage.getByText('1 client')).toBeVisible()
+  await expect(authenticatedPage.getByText('Ready to import')).toBeVisible()
+  await expect(authenticatedPage.getByText(importedClient)).toBeVisible()
 
   await migrationWizardPage.importAndGenerate()
 
@@ -106,7 +106,7 @@ test('AC: E2E-MIGRATION-EXPOSURE imports tax inputs into Dashboard and Evidence 
 
   await migrationWizardPage.continue()
   await expect(
-    authenticatedPage.getByRole('heading', { name: 'AI prepared your columns' }),
+    authenticatedPage.getByRole('heading', { name: 'Review your column mappings' }),
   ).toBeVisible({ timeout: AI_STEP_TIMEOUT })
   await migrationWizardPage.mapColumn('Type', 'Entity type')
   await migrationWizardPage.mapColumn('Return Type', 'Tax types')
@@ -119,8 +119,8 @@ test('AC: E2E-MIGRATION-EXPOSURE imports tax inputs into Dashboard and Evidence 
   ).toBeVisible({ timeout: AI_STEP_TIMEOUT })
 
   await migrationWizardPage.continue()
-  await expect(authenticatedPage.getByRole('heading', { name: 'Ready to import' })).toBeVisible()
-  await expect(authenticatedPage.getByText(/\d+ deadlines? to monitor/)).toBeVisible()
+  await expect(authenticatedPage.getByText('Ready to import')).toBeVisible()
+  await expect(authenticatedPage.getByText(importedClient)).toBeVisible()
   await expect(
     authenticatedPage.getByRole('status').filter({ hasText: 'Ready to generate deadlines' }),
   ).toContainText('Ready to generate deadlines')

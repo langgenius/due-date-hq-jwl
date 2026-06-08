@@ -63,7 +63,11 @@ export class MigrationWizardPage {
   }
 
   async openUndoImportConfirmation() {
-    await this.page.getByRole('button', { name: 'Undo import' }).click()
+    // 2026-06-07 (Cluster 3 — SuccessModal "Applied success surface"): the
+    // post-import undo trigger is now "Revert batch" in the success modal; it
+    // opens the "Undo this import?" confirm dialog (whose button stays "Undo
+    // import", handled by confirmUndoImport()).
+    await this.page.getByRole('button', { name: 'Revert batch' }).click()
   }
 
   async confirmUndoImport() {

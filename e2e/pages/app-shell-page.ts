@@ -71,7 +71,10 @@ export class AppShellPage {
   }
 
   commandItem(name: string) {
-    return this.commandDialog.getByText(name, { exact: true })
+    // Scope to the command list (the cmdk listbox). The same labels —
+    // "Deadlines", "Alerts", "Clients" — also render as scope-filter pills
+    // above the list, so an unscoped getByText resolves to two elements.
+    return this.commandDialog.getByRole('listbox').getByText(name, { exact: true })
   }
 
   async openShortcutHelp() {
