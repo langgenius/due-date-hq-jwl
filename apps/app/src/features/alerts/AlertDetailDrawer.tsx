@@ -3,16 +3,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
-  Astroid,
   ChevronLeftIcon,
   CircleAlertIcon,
   ExternalLinkIcon,
   FileTextIcon,
+  LightbulbIcon,
   MailIcon,
   MapPinIcon,
   MessageSquareIcon,
   RotateCcwIcon,
   ShieldCheckIcon,
+  UsersIcon,
   XIcon,
   ZapIcon,
 } from 'lucide-react'
@@ -45,7 +46,6 @@ import {
 import { useOptionalSidebar } from '@duedatehq/ui/components/ui/sidebar'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { Textarea } from '@duedatehq/ui/components/ui/textarea'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { orpc } from '@/lib/rpc'
@@ -144,39 +144,6 @@ function formatDeadlineDate(iso: string): string {
   }).format(new Date(`${iso}T00:00:00.000Z`))
 }
 
-/**
- * 2026-06-08 (Yuqi alert-detail feedback #7/#9 "make AI signals consistent"):
- * one canonical AI affordance shared by every AI-read surface in the detail
- * (the DeadlineChangeCard date diff + the Extracted-facts header). Same
- * Astroid glyph, same size-3.5, same text-text-tertiary, same "AI-extracted"
- * wording + tooltip — so the two surfaces read as one vocabulary.
- */
-function AiExtractedSignal() {
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={(props) => (
-          <span
-            className="inline-flex cursor-help items-center gap-1 text-[11px] font-medium text-text-tertiary outline-none"
-            {...props}
-          >
-            <Astroid className="size-3.5" aria-hidden />
-            <Trans>AI-extracted</Trans>
-          </span>
-        )}
-      />
-      <TooltipContent>
-        <div className="max-w-[260px] text-left">
-          <Trans>
-            The fields below are an AI extraction of the source bulletin. Open the official source
-            to verify before applying changes to clients.
-          </Trans>
-        </div>
-      </TooltipContent>
-    </Tooltip>
-  )
-}
-
 function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
   const oldIso = detail.originalDueDate
   const newIso = detail.newDueDate
@@ -196,16 +163,13 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
     .join(', ')
   return (
     <section className="flex flex-col gap-2.5 rounded-lg border border-divider-subtle bg-background-default p-4">
-      {/* 2026-06-08 (Yuqi alert-detail feedback #10 "indicate AI-extracted"):
-          the date diff below is read by the model from the source bulletin, so
-          the eyebrow carries the same restrained AI affordance as the
-          EXTRACTED FACTS header — the shared <AiExtractedSignal>. Reuses that
-          treatment so the two AI-read surfaces read as one vocabulary. */}
+      {/* 2026-06-08 (Aogxu parity Phase 1, task 3): the AI signal is now the
+          single inline subtitle on the EXTRACTED FACTS header — the hero
+          DEADLINE CHANGE card shows no AI badge (matches the Aogxu mock). */}
       <div className="flex items-center gap-2">
         <span className="text-[12px] font-semibold text-text-secondary">
           <Trans>Deadline change</Trans>
         </span>
-        <AiExtractedSignal />
       </div>
       {/* 2026-06-08 (Yuqi alert-detail feedback #11 "ugly" + #15 "smaller"):
           the new date drops 18px → 15px so the old→new pair reads as one
@@ -237,6 +201,77 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
           <ZapIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
           <Trans>Auto-applied · no opt-in</Trans>
         </span>
+      </div>
+    </section>
+  )
+}
+
+/**
+ * 2026-06-08 (Aogxu parity Phase 1, task 1 — "What this means for your
+ * practice"): the tinted value band that translates the raw date diff into
+ * the firm-facing consequence. Renders only for an auto-applied due-date
+ * overlay that actually matched clients, and only bullets we can derive
+ * honestly from the record:
+ *   • Bullet A — N clients gain ~M months of breathing room (the same day
+ *     delta the hero card shows, expressed in months).
+ *   • Bullet B — relief is automatic for the in-scope addresses (true
+ *     because `actionMode === 'due_date_overlay'` ⇒ auto-applied).
+ * A "payments postponed / no penalties accrue" bullet is intentionally
+ * omitted — that data doesn't exist yet (Phase 3).
+ */
+function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
+  const oldIso = detail.originalDueDate
+  const newIso = detail.newDueDate
+  const matchedCount = detail.alert.matchedCount
+  if (detail.alert.actionMode !== 'due_date_overlay' || !oldIso || !newIso || matchedCount <= 0) {
+    return null
+  }
+  const days = Math.round(
+    (new Date(`${newIso}T00:00:00.000Z`).getTime() -
+      new Date(`${oldIso}T00:00:00.000Z`).getTime()) /
+      86_400_000,
+  )
+  // Only a forward shift earns "breathing room" — a same-day / earlier
+  // deadline wouldn't read honestly, so bullet A is gated to days > 0.
+  const months = Math.max(1, Math.round(days / 30))
+  const scopeArea =
+    detail.counties.length > 0
+      ? detail.counties.join(', ')
+      : getJurisdictionName(detail.jurisdiction)
+
+  return (
+    <section className="flex flex-col gap-3 rounded-lg bg-background-subtle p-4">
+      <header className="flex items-center gap-1.5">
+        <LightbulbIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+        <span className="text-[12px] font-semibold text-text-secondary">
+          <Trans>What this means for your practice</Trans>
+        </span>
+      </header>
+      <div className="grid gap-3 md:grid-cols-2">
+        {days > 0 ? (
+          <div className="flex items-start gap-2.5">
+            <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-state-accent-hover text-text-accent">
+              <UsersIcon className="size-3.5" aria-hidden />
+            </span>
+            <p className="text-[13px] leading-[1.45] text-text-secondary">
+              <Plural
+                value={matchedCount}
+                one="# client gains ~{months} months of breathing room"
+                other="# clients gain ~{months} months of breathing room"
+              />
+            </p>
+          </div>
+        ) : null}
+        <div className="flex items-start gap-2.5">
+          <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-state-success-hover text-text-success">
+            <ShieldCheckIcon className="size-3.5" aria-hidden />
+          </span>
+          <p className="text-[13px] leading-[1.45] text-text-secondary">
+            <Trans>
+              Audit-safe: relief is automatic for {scopeArea} addresses — no opt-in form needed.
+            </Trans>
+          </p>
+        </div>
       </div>
     </section>
   )
@@ -1312,25 +1347,30 @@ export function AlertDetailDrawer({
                 primitive owns its internal layout (Source / Scope
                 fact cards); this just adds the canonical n9m9B
                 label above it. */}
-            {/* 2026-06-04 round 68 (Yuqi "The fields below are an AI
-                extraction… can be in an AI icon besides Extracted
-                FACTS title"): the inline blue/soft caveat banner
-                that used to live inside `<PulseStructuredFields>`
-                now collapses to a tooltip-revealed `<Astroid>` AI
-                icon next to this section's eyebrow. The right-side
-                "AI-extracted · verify before applying" caption is
-                also dropped — duplicate signal. Net: a single 14px
-                icon carries the entire "this is AI, verify it"
-                semantic without claiming a row + chrome. */}
+            {/* 2026-06-08 (Aogxu parity Phase 1, task 3): the AI signal moves
+                from a tooltip-revealed Astroid glyph to an inline muted
+                subtitle next to the title — "AI parsed these from the source —
+                verify before Apply". This is the single AI affordance in the
+                detail now (the DeadlineChangeCard hero dropped its badge), so
+                the signal reads as one consistent caption rather than two. */}
             <section className="flex flex-col gap-3">
-              <header className="flex items-center gap-2">
+              <header className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                 <span className="text-[12px] font-semibold text-text-secondary">
                   <Trans>Extracted facts</Trans>
                 </span>
-                <AiExtractedSignal />
+                <span className="text-[12px] text-text-tertiary">
+                  <Trans>AI parsed these from the source — verify before Apply</Trans>
+                </span>
               </header>
               <AlertStructuredFields detail={detail} />
             </section>
+
+            {/* 2026-06-08 (Aogxu parity Phase 1, task 1): the tinted "What
+                this means for your practice" band — sits right after the raw
+                extracted facts to translate them into firm-facing value.
+                Self-gates to auto-applied due-date overlays with matched
+                clients; otherwise renders nothing. */}
+            <PracticeImpactSection detail={detail} />
 
             {detail.alert.firmImpact !== 'no_current_match' && !canApply ? (
               // ρ ROH-D6: canonical PermissionInlineNotice derives the
@@ -1485,19 +1525,21 @@ export function AlertDetailDrawer({
                 confTier === 'high' ? t`HIGH` : confTier === 'medium' ? t`MEDIUM` : t`LOW`
               return (
                 <section className="flex flex-col gap-3">
+                  {/* 2026-06-08 (Aogxu parity Phase 1, task 4): the section
+                      title softens from "Provenance & confidence" to a plain-
+                      language read, and the layout splits LEFT confidence
+                      (modest %, tier label, one-line guidance) / RIGHT source
+                      + published + audit-ledger note. */}
                   <header className="flex items-baseline justify-between">
                     <span className="text-[12px] font-semibold text-text-secondary">
-                      <Trans>Provenance &amp; confidence</Trans>
+                      <Trans>How confident we are · where this came from</Trans>
                     </span>
                   </header>
                   <div className="grid grid-cols-[1fr_1fr] gap-3">
                     {/* Confidence cell */}
                     <div className="flex flex-col gap-1.5 border-r border-divider-subtle pr-6">
-                      <span className="text-[12px] font-semibold text-text-secondary">
-                        <Trans>AI confidence</Trans>
-                      </span>
                       <div className="flex items-baseline gap-2">
-                        <span className={cn('text-sm font-semibold tabular-nums', confToneClass)}>
+                        <span className={cn('text-xl font-semibold tabular-nums', confToneClass)}>
                           {confPct}%
                         </span>
                         <span
@@ -1506,7 +1548,7 @@ export function AlertDetailDrawer({
                             confToneClass,
                           )}
                         >
-                          {confTierLabel}
+                          <Trans>{confTierLabel} confidence</Trans>
                         </span>
                       </div>
                       <p className="text-xs text-text-tertiary">
@@ -1522,35 +1564,31 @@ export function AlertDetailDrawer({
                       </p>
                     </div>
                     {/* Source / tags cell */}
-                    <div className="flex flex-col gap-1.5 pl-2">
-                      <span className="text-[12px] font-semibold text-text-secondary">
-                        <Trans>Source &amp; audit</Trans>
+                    <div className="flex flex-col gap-1 pl-2 text-xs">
+                      <span className="text-text-secondary">
+                        <Trans>From</Trans>{' '}
+                        {detail.alert.sourceUrl ? (
+                          <a
+                            href={detail.alert.sourceUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-medium text-text-accent hover:underline"
+                          >
+                            {detail.alert.source} ↗
+                          </a>
+                        ) : (
+                          <span className="font-medium text-text-primary">{detail.alert.source}</span>
+                        )}
                       </span>
-                      <div className="flex flex-col gap-1 text-xs">
-                        <span className="text-text-secondary">
-                          <Trans>From</Trans>{' '}
-                          {detail.alert.sourceUrl ? (
-                            <a
-                              href={detail.alert.sourceUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="font-medium text-text-accent hover:underline"
-                            >
-                              {detail.alert.source} ↗
-                            </a>
-                          ) : (
-                            <span className="font-medium text-text-primary">
-                              {detail.alert.source}
-                            </span>
-                          )}
+                      <span className="text-text-tertiary">
+                        <Trans>Published</Trans>{' '}
+                        <span className="tabular-nums">
+                          {formatRelativeTime(detail.alert.publishedAt)}
                         </span>
-                        <span className="text-text-tertiary">
-                          <Trans>Published</Trans>{' '}
-                          <span className="tabular-nums">
-                            {formatRelativeTime(detail.alert.publishedAt)}
-                          </span>
-                        </span>
-                      </div>
+                      </span>
+                      <span className="text-text-tertiary">
+                        <Trans>Audit ledger: every change is logged</Trans>
+                      </span>
                     </div>
                   </div>
                 </section>

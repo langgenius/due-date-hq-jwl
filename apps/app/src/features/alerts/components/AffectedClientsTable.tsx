@@ -146,7 +146,12 @@ export function AffectedClientsTable({
               <TableHead>{t`Form`}</TableHead>
               {isReview ? null : (
                 <>
-                  <TableHead>{t`Due date change`}</TableHead>
+                  {/* 2026-06-08 (Aogxu parity Phase 1, task 2): the single
+                      stacked "Due date change" cell splits into two columns —
+                      OLD DEADLINE (struck-through) + NEW DEADLINE — so the
+                      before/after reads across the row instead of stacked. */}
+                  <TableHead>{t`Old deadline`}</TableHead>
+                  <TableHead>{t`New deadline`}</TableHead>
                   <TableHead>{t`Match`}</TableHead>
                 </>
               )}
@@ -244,23 +249,22 @@ export function AffectedClientsTable({
                   <TableCell className="text-text-secondary">
                     <TaxCodeLabel code={row.taxType} />
                   </TableCell>
-                  {/* 2026-05-26 (Yuqi sixteenth pass #3): due-date
-                      change cell stacks OLD on top + NEW below, both
-                      in mono+tabular. Reads as a vertical "from → to"
-                      so each line is short and the cell stays
-                      narrow — no horizontal sprawl with the arrow
-                      glyph in the middle. */}
+                  {/* 2026-06-08 (Aogxu parity Phase 1, task 2): old → new split
+                      into two columns. OLD is struck-through tertiary; NEW is
+                      the live medium-weight primary value. */}
                   {isReview ? null : (
-                    <TableCell>
-                      <div className="flex flex-col gap-0.5 text-xs tabular-nums leading-tight text-text-primary">
-                        <span className="text-text-tertiary line-through">
+                    <>
+                      <TableCell>
+                        <span className="text-xs tabular-nums leading-tight text-text-tertiary line-through">
                           {formatDate(row.currentDueDate)}
                         </span>
-                        <span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs font-medium tabular-nums leading-tight text-text-primary">
                           {row.newDueDate ? formatDate(row.newDueDate) : <Trans>Unknown</Trans>}
                         </span>
-                      </div>
-                    </TableCell>
+                      </TableCell>
+                    </>
                   )}
                   {isReview ? null : (
                     <TableCell className="relative">

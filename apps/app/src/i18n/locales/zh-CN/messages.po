@@ -795,6 +795,10 @@ msgstr "{confidencePct}% 置信度"
 msgid "{confirmingSources} sources · {confidencePct}% conf"
 msgstr "{confirmingSources} 个来源 · {confidencePct}% 置信度"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{confTierLabel} confidence"
+msgstr ""
+
 #: src/routes/rules.library.tsx
 msgid "{count, plural, one {# rule selected} other {# rules selected}}"
 msgstr "{count, plural, other {已选择 # 条规则}}"
@@ -984,6 +988,10 @@ msgstr "{lateFlag, plural, other {12 个月内有 # 次逾期申报}}"
 #, fuzzy
 msgid "{mapped, plural, one {# column mapped} other {# columns mapped}}"
 msgstr "{0, plural, one {# 列} other {# 列}}"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{matchedCount, plural, one {# client gains ~{months} months of breathing room} other {# clients gain ~{months} months of breathing room}}"
+msgstr ""
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{missingSourceCount} source gaps"
@@ -1998,7 +2006,6 @@ msgstr "AI 具体草案尚未就绪。"
 msgid "AI CONCRETE DRAFTS"
 msgstr "AI 具体草案"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/concepts/concept-help.tsx
 msgid "AI confidence"
 msgstr "AI 置信度"
@@ -2072,6 +2079,10 @@ msgstr "AI 材料清单"
 msgid "AI output id"
 msgstr "AI output id"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "AI parsed these from the source — verify before Apply"
+msgstr ""
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "AI prepared your columns"
 msgstr "AI 已准备列映射"
@@ -2110,8 +2121,8 @@ msgid "AI-generated summary"
 msgstr "AI 生成的摘要"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "AI-read from the alert"
-msgstr "由 AI 从提醒中读取"
+#~ msgid "AI-read from the alert"
+#~ msgstr "由 AI 从提醒中读取"
 
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -2828,6 +2839,10 @@ msgstr "审计历史与现有客户工作"
 msgid "Audit history retained for compliance"
 msgstr "保留审计历史以备合规"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Audit ledger: every change is logged"
+msgstr ""
+
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -2860,6 +2875,10 @@ msgstr "审计轨迹"
 #: src/features/settings/settings-sub-nav.tsx
 msgid "Audit trail for client, rule, status, and team changes."
 msgstr "客户、规则、状态与团队变更的审计追踪。"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Audit-safe: relief is automatic for {scopeArea} addresses — no opt-in form needed."
+msgstr ""
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Auth"
@@ -4186,8 +4205,8 @@ msgid "conf {confidencePct}%"
 msgstr "置信度 {confidencePct}%"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "conf {confPct}%"
-msgstr "置信度 {confPct}%"
+#~ msgid "conf {confPct}%"
+#~ msgstr "置信度 {confPct}%"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/migration/Step2Mapping.tsx
@@ -5935,8 +5954,8 @@ msgid "Due date"
 msgstr "到期日"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
-msgid "Due date change"
-msgstr "截止日变更"
+#~ msgid "Due date change"
+#~ msgstr "截止日变更"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Due dates"
@@ -7549,6 +7568,10 @@ msgstr "历史记录"
 #: src/features/migration/Step1Intake.tsx
 msgid "HomeBase contacts CSV"
 msgstr "HomeBase 联系人 CSV"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "How confident we are · where this came from"
+msgstr ""
 
 #: src/features/settings/settings-sub-nav.tsx
 msgid "How DueDateHQ reaches your team, your clients, and your calendars."
@@ -9402,6 +9425,10 @@ msgstr "需要批量恢复时，新的客户导入会显示在这里。"
 msgid "New custom rule"
 msgstr "新建自定义规则"
 
+#: src/features/alerts/components/AffectedClientsTable.tsx
+msgid "New deadline"
+msgstr ""
+
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "New form version"
 msgstr "新表单版本"
@@ -10340,6 +10367,10 @@ msgstr "Official source registered; rule still needs review"
 #: src/features/rules/coverage-tab.tsx
 msgid "Official sources — pending rules"
 msgstr "官方来源 — 待处理规则"
+
+#: src/features/alerts/components/AffectedClientsTable.tsx
+msgid "Old deadline"
+msgstr ""
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Oldest"
@@ -11849,8 +11880,8 @@ msgid "Protective claim window"
 msgstr "保护性申请窗口"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Provenance & confidence"
-msgstr "出处与置信度"
+#~ msgid "Provenance & confidence"
+#~ msgstr "出处与置信度"
 
 #: src/routes/billing.tsx
 msgid "Provider hosted"
@@ -14362,8 +14393,8 @@ msgid "Source (optional)"
 msgstr "来源（可选）"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Source & audit"
-msgstr "来源与审计"
+#~ msgid "Source & audit"
+#~ msgstr "来源与审计"
 
 #. placeholder {0}: item.sourceId
 #. placeholder {1}: item.retrievedAt
@@ -15141,8 +15172,8 @@ msgid "The events themselves — nothing scheduled is removed"
 msgstr "事件本身不会被删除，已安排内容会保留"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
-msgstr "以下字段是 AI 从源公告中提取的。在对客户应用变更前请打开官方来源进行核实。"
+#~ msgid "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
+#~ msgstr "以下字段是 AI 从源公告中提取的。在对客户应用变更前请打开官方来源进行核实。"
 
 #. placeholder {0}: formatDate(obligation.paymentDueDate ?? '')
 #: src/features/clients/ClientWorkPlanPanel.tsx
@@ -16225,7 +16256,6 @@ msgstr "查看该客户的 {count} 个未完成截止日期"
 msgid "View alert"
 msgstr "查看提醒"
 
-#: src/features/dashboard/actions-list.tsx
 #: src/features/dashboard/needs-attention-section.tsx
 #: src/routes/rules.library.tsx
 msgid "View all"
@@ -16240,6 +16270,7 @@ msgid "View all client extensions →"
 msgstr "查看该客户的所有延期 →"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/dashboard/actions-list.tsx
 msgid "View all deadlines"
 msgstr "查看所有截止日期"
 
@@ -16493,6 +16524,10 @@ msgstr "DueDateHQ 保留什么"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "What this evidence says"
 msgstr "此证据说明了什么"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "What this means for your practice"
+msgstr ""
 
 #: src/features/migration/SuccessModal.tsx
 msgid "What to do next"

@@ -789,6 +789,10 @@ msgstr "{confidencePct}% conf"
 msgid "{confirmingSources} sources · {confidencePct}% conf"
 msgstr "{confirmingSources} sources · {confidencePct}% conf"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{confTierLabel} confidence"
+msgstr "{confTierLabel} confidence"
+
 #: src/routes/rules.library.tsx
 msgid "{count, plural, one {# rule selected} other {# rules selected}}"
 msgstr "{count, plural, one {# rule selected} other {# rules selected}}"
@@ -975,6 +979,10 @@ msgstr "{lateFlag, plural, one {# late filing in 12mo} other {# late filings in 
 #: src/features/migration/Step2Mapping.tsx
 msgid "{mapped, plural, one {# column mapped} other {# columns mapped}}"
 msgstr "{mapped, plural, one {# column mapped} other {# columns mapped}}"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "{matchedCount, plural, one {# client gains ~{months} months of breathing room} other {# clients gain ~{months} months of breathing room}}"
+msgstr "{matchedCount, plural, one {# client gains ~{months} months of breathing room} other {# clients gain ~{months} months of breathing room}}"
 
 #: src/features/rules/coverage-tab.tsx
 msgid "{missingSourceCount} source gaps"
@@ -1974,7 +1982,6 @@ msgstr "AI concrete draft is not ready."
 msgid "AI CONCRETE DRAFTS"
 msgstr "AI CONCRETE DRAFTS"
 
-#: src/features/alerts/AlertDetailDrawer.tsx
 #: src/features/concepts/concept-help.tsx
 msgid "AI confidence"
 msgstr "AI confidence"
@@ -2048,6 +2055,10 @@ msgstr "AI materials checklist"
 msgid "AI output id"
 msgstr "AI output id"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "AI parsed these from the source — verify before Apply"
+msgstr "AI parsed these from the source — verify before Apply"
+
 #: src/features/migration/Step2Mapping.tsx
 msgid "AI prepared your columns"
 msgstr "AI prepared your columns"
@@ -2086,8 +2097,8 @@ msgid "AI-generated summary"
 msgstr "AI-generated summary"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "AI-read from the alert"
-msgstr "AI-read from the alert"
+#~ msgid "AI-read from the alert"
+#~ msgstr "AI-read from the alert"
 
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/audit/audit-log-labels.ts
@@ -2802,6 +2813,10 @@ msgstr "Audit history and existing client work"
 msgid "Audit history retained for compliance"
 msgstr "Audit history retained for compliance"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Audit ledger: every change is logged"
+msgstr "Audit ledger: every change is logged"
+
 #: src/components/patterns/app-shell-nav.tsx
 #: src/components/patterns/keyboard-shell/CommandPalette.tsx
 #: src/features/audit/audit-log-page.tsx
@@ -2834,6 +2849,10 @@ msgstr "Audit trail"
 #: src/features/settings/settings-sub-nav.tsx
 msgid "Audit trail for client, rule, status, and team changes."
 msgstr "Audit trail for client, rule, status, and team changes."
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "Audit-safe: relief is automatic for {scopeArea} addresses — no opt-in form needed."
+msgstr "Audit-safe: relief is automatic for {scopeArea} addresses — no opt-in form needed."
 
 #: src/features/audit/audit-log-page.tsx
 msgid "Auth"
@@ -4153,8 +4172,8 @@ msgid "conf {confidencePct}%"
 msgstr "conf {confidencePct}%"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "conf {confPct}%"
-msgstr "conf {confPct}%"
+#~ msgid "conf {confPct}%"
+#~ msgstr "conf {confPct}%"
 
 #: src/features/audit/audit-event-drawer.tsx
 #: src/features/migration/Step2Mapping.tsx
@@ -5893,8 +5912,8 @@ msgid "Due date"
 msgstr "Due date"
 
 #: src/features/alerts/components/AffectedClientsTable.tsx
-msgid "Due date change"
-msgstr "Due date change"
+#~ msgid "Due date change"
+#~ msgstr "Due date change"
 
 #: src/features/rules/sources-tab.tsx
 msgid "Due dates"
@@ -7499,6 +7518,10 @@ msgstr "History"
 #: src/features/migration/Step1Intake.tsx
 msgid "HomeBase contacts CSV"
 msgstr "HomeBase contacts CSV"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "How confident we are · where this came from"
+msgstr "How confident we are · where this came from"
 
 #: src/features/settings/settings-sub-nav.tsx
 msgid "How DueDateHQ reaches your team, your clients, and your calendars."
@@ -9340,6 +9363,10 @@ msgstr "New client imports will appear here when you need batch recovery."
 msgid "New custom rule"
 msgstr "New custom rule"
 
+#: src/features/alerts/components/AffectedClientsTable.tsx
+msgid "New deadline"
+msgstr "New deadline"
+
 #: src/features/alerts/components/PulseFormRevisedCard.tsx
 msgid "New form version"
 msgstr "New form version"
@@ -10270,6 +10297,10 @@ msgstr "Official source registered; rule still needs review"
 #: src/features/rules/coverage-tab.tsx
 msgid "Official sources — pending rules"
 msgstr "Official sources — pending rules"
+
+#: src/features/alerts/components/AffectedClientsTable.tsx
+msgid "Old deadline"
+msgstr "Old deadline"
 
 #: src/features/alerts/AlertsListPage.tsx
 msgid "Oldest"
@@ -11761,8 +11792,8 @@ msgid "Protective claim window"
 msgstr "Protective claim window"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Provenance & confidence"
-msgstr "Provenance & confidence"
+#~ msgid "Provenance & confidence"
+#~ msgstr "Provenance & confidence"
 
 #: src/routes/billing.tsx
 msgid "Provider hosted"
@@ -14262,8 +14293,8 @@ msgid "Source (optional)"
 msgstr "Source (optional)"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "Source & audit"
-msgstr "Source & audit"
+#~ msgid "Source & audit"
+#~ msgstr "Source & audit"
 
 #. placeholder {0}: item.sourceId
 #. placeholder {1}: item.retrievedAt
@@ -15038,8 +15069,8 @@ msgid "The events themselves — nothing scheduled is removed"
 msgstr "The events themselves — nothing scheduled is removed"
 
 #: src/features/alerts/AlertDetailDrawer.tsx
-msgid "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
-msgstr "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
+#~ msgid "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
+#~ msgstr "The fields below are an AI extraction of the source bulletin. Open the official source to verify before applying changes to clients."
 
 #. placeholder {0}: formatDate(obligation.paymentDueDate ?? '')
 #: src/features/clients/ClientWorkPlanPanel.tsx
@@ -16118,7 +16149,6 @@ msgstr "View {count} open deadlines for this client"
 msgid "View alert"
 msgstr "View alert"
 
-#: src/features/dashboard/actions-list.tsx
 #: src/features/dashboard/needs-attention-section.tsx
 #: src/routes/rules.library.tsx
 msgid "View all"
@@ -16133,6 +16163,7 @@ msgid "View all client extensions →"
 msgstr "View all client extensions →"
 
 #: src/features/clients/ClientDetailDrawer.tsx
+#: src/features/dashboard/actions-list.tsx
 msgid "View all deadlines"
 msgstr "View all deadlines"
 
@@ -16385,6 +16416,10 @@ msgstr "What stays in DueDateHQ"
 #: src/features/evidence/EvidenceDrawerProvider.tsx
 msgid "What this evidence says"
 msgstr "What this evidence says"
+
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "What this means for your practice"
+msgstr "What this means for your practice"
 
 #: src/features/migration/SuccessModal.tsx
 msgid "What to do next"
