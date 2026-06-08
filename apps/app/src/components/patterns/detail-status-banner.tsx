@@ -15,9 +15,9 @@ import { cn } from '@duedatehq/ui/lib/utils'
  * the single implementation they share.
  *
  * Two layouts:
- *   • compact — the h-7 single-line form (title left, optional `note` right),
- *     pinned to the rail segmented-control height. Used for the steady-state
- *     "pending review" / "past deadline" bands.
+ *   • compact — the h-10 single-line form (title left, optional `note` right).
+ *     Used for the steady-state "pending review" / "past deadline" bands.
+ *     (Was h-7; Yuqi 2026-06-08 "too thin, slightly taller".)
  *   • stacked (default) — icon + title + `description`, with an optional
  *     right-side `action` (e.g. Retry / Undo). Used for the richer error /
  *     applied states.
@@ -56,7 +56,7 @@ export function DetailStatusBanner({
     return (
       <div
         className={cn(
-          'flex h-7 w-full items-center gap-2.5 border-b border-divider-subtle px-12',
+          'flex h-10 w-full items-center gap-2.5 border-b border-divider-subtle px-12',
           c.band,
         )}
       >

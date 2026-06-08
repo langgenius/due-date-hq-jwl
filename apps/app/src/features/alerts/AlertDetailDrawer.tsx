@@ -166,9 +166,20 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
       className="flex flex-col gap-2.5 pl-3"
       style={{ borderLeftWidth: 3, borderLeftColor: '#f25f4c' }}
     >
-      <span className="font-mono text-[10px] font-bold tracking-[0.8px] text-text-muted uppercase">
-        <Trans>Deadline change</Trans>
-      </span>
+      {/* 2026-06-08 (Yuqi alert-detail feedback #10 "indicate AI-extracted"):
+          the date diff below is read by the model from the source bulletin, so
+          the eyebrow carries the same restrained AI affordance as the
+          EXTRACTED FACTS header — the <Astroid> glyph + a short label. Reuses
+          that treatment so the two AI-read surfaces read as one vocabulary. */}
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-[10px] font-bold tracking-[0.8px] text-text-muted uppercase">
+          <Trans>Deadline change</Trans>
+        </span>
+        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-text-tertiary">
+          <Astroid className="size-3" aria-hidden />
+          <Trans>AI-read from the alert</Trans>
+        </span>
+      </div>
       {/* 2026-06-08 (Yuqi alert-detail feedback #11 "ugly" + #15 "smaller"):
           the new date drops 18px → 15px so the old→new pair reads as one
           tidy line rather than an oversized headline. */}
@@ -1117,7 +1128,11 @@ export function AlertDetailDrawer({
                 due-date alerts regardless of `missingDeadlineDetails`. */}
             {detail.alert.actionMode === 'due_date_overlay' &&
             detail.alert.firmImpact !== 'no_current_match' ? (
-              <section className="flex flex-col gap-3">
+              // 2026-06-08 (Yuqi alert-detail feedback #11 "gap too large"):
+              // the header→table gap was gap-3 (12px), which left the
+              // "Affected clients" label floating above its table. Tightened
+              // to gap-2 (8px) so the label reads as the table's caption.
+              <section className="flex flex-col gap-2">
                 {/* Round 47 (Yuqi #5 — "fulfill the content and make
                     it information rich"): section header restyled
                     to Pencil n9m9B vocabulary — `font-mono` 11/700
@@ -1571,7 +1586,11 @@ export function AlertDetailDrawer({
           action buttons. It's a single row — the hints + audit-ledger note on
           the left (revealed only on wide panels where there's room), the
           DrawerActions cluster filling the rest. */}
-      <SheetFooter className="min-h-16 flex-row items-center gap-4 border-t-2 border-divider-regular bg-background-default px-12 py-3 sm:flex-row">
+      {/* 2026-06-08 (Yuqi alert-detail feedback #7 "double border"): the
+          `border-t-2 border-divider-regular` read as a heavy/double rule.
+          Softened to a single clean `border-t border-divider-subtle` —
+          matches the deadline detail footer (ObligationQueueDetailDrawer). */}
+      <SheetFooter className="min-h-16 flex-row items-center gap-4 border-t border-divider-subtle bg-background-default px-12 py-3 sm:flex-row">
         {detail ? (
           <div className="hidden shrink-0 items-center gap-3.5 text-text-tertiary xl:flex">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
@@ -1705,16 +1724,18 @@ export function AlertDetailDrawer({
           // list column. `overflow-hidden` retained on the aside
           // so the sticky header/footer don't bleed into the
           // body's scroll surface.
-          // 2026-06-08 (Yuqi alert-detail feedback #13 "give the alert detail
-          // a light background"): the panel sits on a soft `#fafbfc` wash
-          // instead of stark white, so the (now borderless) content sections
-          // read as a calm document. The white SheetHeader/SheetFooter chrome
-          // frames the top/bottom against it.
+          // 2026-06-08 (Yuqi alert-detail feedback #6 "white background, not
+          // gray"): the panel surface is WHITE — the alert detail is a flat
+          // calm-document on white (deadline detail = warm gray; alert detail
+          // = white). The earlier soft `#fafbfc` wash read as the wrong
+          // surface, so the (borderless) content sections now sit directly on
+          // `bg-background-default` and the SheetHeader/SheetFooter chrome
+          // reads continuous with them.
           // 2026-06-08 (Yuqi /alerts D6 "fewer frames"): the panel's left
-          // border is dropped — the rail's own right border + the soft
-          // #fafbfc wash already separate the detail column from the list,
-          // so the extra hairline read as a redundant frame.
-          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-[#fafbfc] shadow-subtle"
+          // border is dropped — the rail's own right border already separates
+          // the detail column from the list, so the extra hairline read as a
+          // redundant frame.
+          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-background-default shadow-subtle"
         >
           {/* 2026-06-08: the close affordance moved into the body's
               BackStrip top bar (with prev/next paging), so the
@@ -1820,13 +1841,13 @@ export function DrawerActions({
     firmImpact !== 'no_current_match' &&
     requiresDeadlineDetails
   return (
-    // Footer two-cluster layout: reversal actions (Undo / Reactivate)
-    // split out to the LEFT cluster, forward actions (Copy email,
-    // Request review, Apply) stay on the RIGHT. `justify-between`
-    // separates the two groups across the full footer width — Undo
-    // lives in the bottom-left corner, away from the primary Apply
-    // CTA on the right. Standard footer pattern: reversal/secondary on
-    // the left, primary action on the right.
+    // 2026-06-08 (Yuqi alert-detail feedback #12 + #13): footer two-cluster
+    // layout. The LEFT cluster holds the secondary/reversal actions — Undo /
+    // Reactivate AND "Copy client email draft" (a supporting action, not a
+    // decision). The RIGHT cluster is the PRIMARY CTA group only — Request
+    // review + Apply / Apply reviewed — so the dominant decision sits flush
+    // right. `justify-between` splits the two groups; `ml-auto` is no longer
+    // needed because the right cluster is the trailing flex child.
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div className="flex flex-wrap items-center gap-2">
         {showRevert ? (
@@ -1854,14 +1875,18 @@ export function DrawerActions({
             <Trans>Reactivate / Re-apply</Trans>
           </Button>
         ) : null}
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
+        {/* 2026-06-08 (Yuqi alert-detail feedback #12 "Copy client email
+            draft — shorter"): the button is `size="sm"` (h-8) so it matches
+            the other footer action buttons rather than the taller default
+            primary CTA on the right. */}
         {firmImpact !== 'no_current_match' ? (
           <Button variant="ghost" size="sm" disabled={isMutating} onClick={onCopyDraft}>
             <MailIcon data-icon="inline-start" />
             <Trans>Copy client email draft</Trans>
           </Button>
         ) : null}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
         {canRequestReview ? (
           <Button size="sm" disabled={isMutating} onClick={onRequestReview}>
             <MessageSquareIcon data-icon="inline-start" />
