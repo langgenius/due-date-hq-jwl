@@ -57,7 +57,10 @@ const STATUS_META: Record<
   snoozed: { label: 'Snoozed', variant: 'warning' },
   reverted: { label: 'Reverted', variant: 'destructive' },
   reviewed: { label: 'Reviewed', variant: 'info' },
-  matched: { label: 'Open', variant: 'info' },
+  // In the history archive, a `matched` alert is only ever one that aged out of
+  // the active queue — listHistory gates matched rows on a passed deadline — so
+  // it reads as "Expired" here, not "Open".
+  matched: { label: 'Expired', variant: 'secondary' },
 }
 
 function matchesTab(status: PulseFirmAlertStatus, tab: HistoryTab): boolean {
