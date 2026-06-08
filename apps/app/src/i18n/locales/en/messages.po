@@ -2085,6 +2085,10 @@ msgstr "AI-assisted (user applied)"
 msgid "AI-generated summary"
 msgstr "AI-generated summary"
 
+#: src/features/alerts/AlertDetailDrawer.tsx
+msgid "AI-read from the alert"
+msgstr "AI-read from the alert"
+
 #: src/features/alerts/AlertHistoryView.tsx
 #: src/features/audit/audit-log-labels.ts
 #: src/features/notifications/notifications-page.tsx

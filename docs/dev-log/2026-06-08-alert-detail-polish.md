@@ -5,6 +5,7 @@ Date: 2026-06-08
 Yuqi review of /alerts?alert=… (items 6-13; 1-5 shipped previously).
 
 ## Shared primitives
+
 - **CountPill taller** (count-pill.tsx): 18px → fixed `h-[22px]` (was "too low in
   height" in the rail head). Reads better in both the rail head and page header.
 - **DetailStatusBanner compact taller** (detail-status-banner.tsx): `h-7` (28px)
@@ -12,6 +13,7 @@ Yuqi review of /alerts?alert=… (items 6-13; 1-5 shipped previously).
   banners.
 
 ## AlertDetailDrawer
+
 - **White surface** (#6): panel-mode aside `bg-[#fafbfc]` → `bg-background-default`
   (white) — alert detail is the white surface.
 - **Footer single border** (#7): `border-t-2 border-divider-regular` →
@@ -26,5 +28,6 @@ Yuqi review of /alerts?alert=… (items 6-13; 1-5 shipped previously).
   primary CTAs; supporting actions (Copy email, Undo) moved left.
 
 ## Verify
+
 tsgo clean; fresh reload renders (no error boundary). Banner 40px, CountPill 22px,
 detail surface white, AI indicator present, primary CTA right-aligned. 1512×861.
