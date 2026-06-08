@@ -4,14 +4,13 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
   ArchiveIcon,
-  Building2,
   CheckCheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  CornerDownRightIcon,
   ExternalLinkIcon,
   SparklesIcon,
   SunIcon,
+  UsersIcon,
 } from 'lucide-react'
 
 import type {
@@ -432,12 +431,16 @@ function PulseAlertRow({
               TaxCodeBadge primitive (bg-subtle mono code chip). */}
           {formLabel ? <TaxCodeBadge code={formLabel} /> : null}
 
-          {/* CHANGE KIND (Pencil `wMx1M`) — plain mono text, no
-              fill, accent-toned. Followed by the real source-
-              corroboration count (`kdiMz`) in success green when the
-              same change was seen across multiple source snapshots. */}
+          {/* CHANGE KIND — 2026-06-08 (Yuqi /alerts #1+#3 "reuse Today's
+              alert card, do not reinvent" / "hard to read, different from
+              Today's"): aligned to the dashboard NeedsAttentionCard's
+              change-kind treatment — SANS (not mono), text-[11px]
+              font-semibold tracking-[0.4px], neutral text-tertiary (not
+              accent). One change-kind type signature across /today + /alerts.
+              Followed by the real source-corroboration count (`kdiMz`) in
+              success green when the same change was seen across snapshots. */}
           <span className="inline-flex min-w-0 shrink-0 items-center gap-1.5">
-            <span className="font-mono text-[10px] font-bold tracking-[0.5px] text-text-accent uppercase">
+            <span className="text-[11px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
               {changeKindLabel(alert.changeKind)}
             </span>
             {confirmingSources > 1 ? (
@@ -615,7 +618,22 @@ function PulseAlertRow({
 
             {actionText ? (
               <div className="flex items-center gap-1.5">
-                <CornerDownRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
+                {/* 2026-06-08 (Yuqi /alerts #2 "not an arrow, just a corner
+                    turn. remove the arrow head."): the leading sub-clause
+                    glyph is a plain elbow (down-then-right) with no
+                    arrowhead, instead of lucide's CornerDownRight. */}
+                <svg
+                  viewBox="0 0 12 12"
+                  className="size-3 shrink-0 text-text-muted"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <path d="M4 2.5v3a1.5 1.5 0 0 0 1.5 1.5H9" />
+                </svg>
                 <div
                   className="inline-flex items-center gap-2 self-start rounded-[4px] px-3 py-1"
                   style={{ backgroundColor: '#FFFBEB' }}
@@ -700,8 +718,12 @@ function PulseAlertRow({
             `shrink-0` on the text + pill so neither ever breaks
             internally. */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-divider-subtle pt-2 text-[12px] text-text-muted">
+          {/* 2026-06-08 (Yuqi /alerts #4 "love this icon, apply to all"):
+              the affected-clients line uses the Users icon everywhere now
+              (was Building2 on /alerts + /today). One clients-affected
+              glyph across the AlertCard, this row, and the dashboard card. */}
           <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap">
-            <Building2 className="size-3.5 shrink-0" aria-hidden />
+            <UsersIcon className="size-3.5 shrink-0" aria-hidden />
             {impacted > 0 ? (
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />
             ) : (
@@ -747,19 +769,24 @@ function PulseAlertRow({
             className="ml-auto inline-flex items-center gap-1 opacity-0 transition-opacity group-hover/row:opacity-100"
             aria-hidden={!active}
           >
+            {/* 2026-06-08 (Yuqi "button styles are different to others"):
+                Dismiss uses the canonical <Button> primitive (outline xs) so
+                it matches Review beside it and every other button in the app,
+                instead of a hand-rolled bordered button. */}
             {onDismiss ? (
-              <button
+              <Button
                 type="button"
+                variant="outline"
+                size="xs"
                 onClick={(event) => {
                   event.stopPropagation()
                   onDismiss()
                 }}
-                className="inline-flex items-center gap-1 rounded-md border border-divider-regular bg-background-default px-2 py-1 text-[12px] font-medium text-text-secondary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                 aria-label={t`Dismiss alert`}
               >
-                <ArchiveIcon className="size-3" aria-hidden />
+                <ArchiveIcon data-icon="inline-start" />
                 <Trans>Dismiss</Trans>
-              </button>
+              </Button>
             ) : null}
             {/* Round 83 (Yuqi #14 "accent primary button"):
                 Review promoted from outline to canonical
@@ -841,13 +868,21 @@ function PulseAlertList({
   selectable = false,
   selectedIds,
   onToggleSelected,
-  onSelectAll,
   priorityById,
+  compact,
 }: {
   alerts: readonly PulseAlertPublic[]
   openAlertId: string | null
   onReview: (alertId: string) => void
   onDismiss?: (alertId: string) => void
+  /**
+   * 2026-06-08 (Yuqi "update the alert list in the map view"): force
+   * compact rows regardless of whether a detail panel is open. The map
+   * view's right rail is ~420px, so it renders the same compact rows the
+   * panel-open list uses. When omitted, compactness is derived from
+   * `openAlertId` (a row is compact while the detail panel is up).
+   */
+  compact?: boolean
   /**
    * 2026-06-07 (Pencil g5kKJQ): bulk-selection wiring. When
    * `selectable`, every row grows a leading checkbox and the list
@@ -870,17 +905,9 @@ function PulseAlertList({
   // alert is currently the active one. When panelOpen, every row
   // renders in `compact` mode — the 100px time rail is hidden
   // and the relative time relocates to an inline tooltip slot.
-  const panelOpen = openAlertId !== null
-
-  // Tri-state for the BulkSelectStrip's "Select all" checkbox:
-  // unchecked when nothing is selected, checked when every alert is
-  // selected, indeterminate in between.
-  const selectedCount = alerts.reduce(
-    (count, alert) => count + (selectedIds?.has(alert.id) ? 1 : 0),
-    0,
-  )
-  const allSelected = alerts.length > 0 && selectedCount === alerts.length
-  const someSelected = selectedCount > 0 && !allSelected
+  // 2026-06-08: an explicit `compact` prop (map view's narrow rail)
+  // overrides the derived value.
+  const panelOpen = compact ?? openAlertId !== null
 
   // Group alerts by firm-local date, preserving the (already
   // sort-ordered) array order. Map preserves insertion order so
@@ -911,30 +938,11 @@ function PulseAlertList({
     // rounded radius + inner row borders carry the visual
     // boundary on their own; the clip wasn't earning its keep.
     <div className="flex flex-col rounded-[12px] border border-divider-regular bg-background-default">
-      {/* BulkSelectStrip (Pencil g5kKJQ `TAamJ`) — "Select all"
-          tri-state checkbox + dispatch count. Only renders in
-          selectable (active) mode; history rows aren't
-          bulk-actionable. */}
-      {selectable ? (
-        <div className="flex items-center gap-3 border-b border-divider-subtle bg-background-subtle px-6 py-3">
-          <Checkbox
-            checked={allSelected}
-            indeterminate={someSelected}
-            onCheckedChange={(next) => onSelectAll?.(next)}
-            aria-label={t`Select all alerts`}
-            className="size-[18px] rounded-[4px]"
-          />
-          <span className="text-[13px] font-medium text-text-secondary">
-            <Trans>Select all</Trans>
-          </span>
-          <span className="text-divider-regular" aria-hidden>
-            ·
-          </span>
-          <span className="text-[13px] font-medium text-text-muted tabular-nums">
-            <Plural value={alerts.length} one="# dispatch" other="# dispatches" />
-          </span>
-        </div>
-      ) : null}
+      {/* 2026-06-08 (Yuqi "remove"): the BulkSelectStrip ("Select all · N
+          dispatches", Pencil `TAamJ`) is removed. Per-row checkboxes still
+          drive bulk selection in selectable mode, and the floating
+          BulkActionBar appears once rows are picked — the top strip was
+          redundant chrome (its count duplicated the per-day bands). */}
 
       {Array.from(groups.entries()).map(([dayKey, dayAlerts]) => {
         const { label, isToday } = formatDayHeader(dayKey, firmTimezone, todayKey)
@@ -970,7 +978,14 @@ function PulseAlertList({
                     count keeps the quieter `text-text-muted` so
                     the count reads as supporting context, not the
                     lede. */}
-            <div className="flex items-center justify-between border-b border-divider-subtle px-5 py-2">
+            {/* 2026-06-08 (Yuqi /alerts #4 "remove?" + #5 "slight gray
+                like today's actions this week table"): the day-group band
+                now carries the same slight-gray fill as the /today Actions
+                table's status-group header (#e9ebf0), and the redundant
+                right-side dispatch count is removed — Today's section
+                headers carry just the label, no count, so this matches
+                that vocabulary instead of reinventing a second heading. */}
+            <div className="flex items-center border-b border-divider-subtle bg-[#e9ebf0] px-5 py-2">
               <div className="flex items-center gap-1.5 text-[11px] font-medium tracking-[0.4px] text-text-tertiary uppercase">
                 {isToday ? (
                   <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
@@ -979,17 +994,6 @@ function PulseAlertList({
                 {dayWord ? <span className="text-text-muted">·</span> : null}
                 <span>{label}</span>
               </div>
-              {/* 2026-06-08 (Yuqi /alerts #4 "thin, same gray, lower
-                  caps, 1 dispatch"): the count drops the bold/uppercase/
-                  tracking eyebrow treatment — now a thin, normal-case
-                  muted-gray label so it reads as quiet supporting context
-                  ("1 dispatch"), not a second heading competing with the
-                  date. */}
-              <span className="text-[12px] font-normal text-text-muted tabular-nums">
-                <Trans>
-                  {dayAlerts.length} {dayAlerts.length === 1 ? t`dispatch` : t`dispatches`}
-                </Trans>
-              </span>
             </div>
 
             {/* Alert rows for this day. Round 74: `compact` propagates

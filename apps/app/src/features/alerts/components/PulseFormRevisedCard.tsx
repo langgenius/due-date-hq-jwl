@@ -80,12 +80,13 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
   const detailQuery = useQuery(useAlertDetailQueryOptions(alert.id))
   const firstForm = detailQuery.data?.forms?.[0]
 
-  const severityLabel =
-    severity.id === 'high'
-      ? t`HIGH IMPACT`
-      : severity.id === 'medium'
-        ? t`MEDIUM IMPACT`
-        : t`LOW IMPACT`
+  // 2026-06-08 (Yuqi /alerts #5 "give High Impact Alerts the HIGH IMPACT
+  // badge"): the impact pill is gated to HIGH only — matching AlertCard
+  // (rounds 66/84: "LOW / MEDIUM render nothing; absence IS the signal").
+  // The form-revised card previously always rendered a pill, so quiet
+  // form updates wore a noisy "LOW IMPACT" badge; now only the genuinely
+  // high-impact ones carry the red HIGH IMPACT chip.
+  const severityLabel = t`HIGH IMPACT`
   const actionLabel = actionPill
     ? actionPill.id === 'needs-action'
       ? t`Needs Action`
@@ -140,13 +141,16 @@ function PulseFormRevisedCard({ alert, onReview, facts, className }: PulseFormRe
         {/* uHKcq left cluster, gap-2 (8px). */}
         <div className="flex min-w-0 items-center gap-2">
           {/* l6Xgs severity pill: 11/600 ls 0.8, rounded-4, fill +
-              text from impactBadgeFromAlert(). padding [3,8,2,8]. */}
-          <span
-            className="inline-flex shrink-0 items-center rounded-[4px] px-2 pt-[3px] pb-[2px] text-[11px] font-semibold tracking-[0.8px]"
-            style={{ backgroundColor: severity.bg, color: severity.text }}
-          >
-            {severityLabel}
-          </span>
+              text from impactBadgeFromAlert(). padding [3,8,2,8].
+              Gated to HIGH only (see severityLabel note above). */}
+          {severity.id === 'high' ? (
+            <span
+              className="inline-flex shrink-0 items-center rounded-[4px] px-2 pt-[3px] pb-[2px] text-[11px] font-semibold tracking-[0.8px]"
+              style={{ backgroundColor: severity.bg, color: severity.text }}
+            >
+              {severityLabel}
+            </span>
+          ) : null}
           {/* Mclbt source caption: 12/500 muted. */}
           <span className="truncate text-xs font-medium text-text-muted">{alert.source}</span>
           {/* QJ04z change-kind text-badge: 12/500 purple #6B21A8 ls 0.8

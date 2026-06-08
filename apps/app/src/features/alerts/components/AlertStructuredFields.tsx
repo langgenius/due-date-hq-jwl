@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { CopyIcon, ExternalLinkIcon } from 'lucide-react'
+import { CopyIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 import type { PulseDetail } from '@duedatehq/contracts'
@@ -146,21 +146,10 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
         </div>
       ) : null}
 
-      {/* Open-source affordance + fact grid (Pencil `b4syg`). */}
-      {detail.alert.sourceUrl ? (
-        <div className="flex justify-end">
-          <Button
-            nativeButton={false}
-            variant="link"
-            size="sm"
-            className="h-6"
-            render={<a href={detail.alert.sourceUrl} target="_blank" rel="noopener noreferrer" />}
-          >
-            {detail.alert.source}
-            <ExternalLinkIcon data-icon="inline-end" />
-          </Button>
-        </div>
-      ) : null}
+      {/* 2026-06-08 (Yuqi alert-detail feedback #16 "remove"): the
+          right-aligned source link above the fact grid is dropped — the
+          source is already named in the header meta, the Provenance section,
+          and the Authority cell, so this was a redundant fourth instance. */}
 
       {/* Pencil ibEoz `noWOa`: the fact grid keeps its OWN 1px border +
           radius-8 inside the section (the section itself is borderless;

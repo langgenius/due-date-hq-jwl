@@ -22,6 +22,7 @@ import {
   SatelliteDishIcon,
   SearchIcon,
   Settings2Icon,
+  SlidersHorizontalIcon,
   Undo2Icon,
   XIcon,
   type LucideIcon,
@@ -82,14 +83,11 @@ import {
 } from './api'
 import { useAlertPermissions } from './lib/alert-permissions'
 import type { AlertPriorityInfo } from './components/PulseAlertRow'
-import { AlertCard } from './components/AlertCard'
 import { PulseAlertList } from './components/PulseAlertRow'
-import { PulseFormRevisedCard } from './components/PulseFormRevisedCard'
 import { PulseAlertsMap } from './components/PulseAlertsMap'
 import { ALERT_STATUS_ICON } from './components/AlertStatusBadge'
 import { PulsingDot } from './components/PulsingDot'
 import {
-  isAlertImpactFilter,
   matchesAlertImpactFilter,
   ALERT_IMPACT_FILTER_OPTIONS,
   type AlertImpactFilter,
@@ -99,9 +97,7 @@ import {
   ACTIVE_STATUS_FILTER_OPTIONS,
   CHANGE_KIND_FILTER_OPTIONS,
   HISTORY_STATUS_FILTER_OPTIONS,
-  isChangeKindFilter,
   isStatusFilter,
-  isTaxAreaFilter,
   matchesChangeKindFilter,
   matchesStatusFilter,
   matchesTaxAreaFilter,
@@ -859,7 +855,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   fits and only reflows to a second line on narrower
                   viewports, so there is never a horizontal scrollbar.
                   `gap-y-2` spaces the wrapped rows. */}
-              <div className="flex shrink-0 flex-wrap items-center gap-2 gap-y-2">
+              {/* 2026-06-08 (Yuqi "should the search bar/filters stay when
+                  you scroll up?" — yes): the filter row is sticky to the top
+                  of the scrolling list column so search + filters stay
+                  reachable while paging through alerts. `bg-background-inset`
+                  (the page wash) + `pb-2` keep the cards reading cleanly as
+                  they scroll underneath; `z-20` sits above the rows. */}
+              <div className="sticky top-0 z-20 flex shrink-0 flex-wrap items-center gap-2 gap-y-2 border-b border-divider-subtle bg-background-inset pb-3">
                 {/* 2026-06-04 round 39 (Yuqi 3-item filter-row feedback):
                     filter row restructured into a single dense strip.
                     Order LEFT → RIGHT:
@@ -896,7 +898,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     screens, stepping up to 220 / 260 at sm / lg — so the
                     filter cluster keeps more room to stay on one line on
                     narrower viewports instead of holding a fixed 260px. */}
-                <label className="inline-flex h-9 w-[180px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt sm:w-[200px]">
+                {/* 2026-06-08 (Yuqi "when search is active, it is cropped"):
+                    the focus ring is INSET so the surrounding
+                    `overflow-y-auto` list column can't clip it (an outset
+                    ring-2 was getting cropped at the column's top/left
+                    edge). */}
+                <label className="inline-flex h-9 w-[180px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-inset focus-within:ring-state-accent-active-alt sm:w-[200px]">
                   <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
                   <input
                     type="search"
@@ -943,19 +950,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     off onto a THIRD line by itself. Without the spacer the
                     controls flow left-to-right and Sort stays adjacent to its
                     sibling filters, wrapping with them as one group. */}
-                    {/* 2026-06-08 (Yuqi /alerts "space between search +
-                    list/map, and the rest of dropdown"): a FIXED (non-growing)
-                    vertical hairline divider separates the left cluster
-                    (Search + View toggle) from the dropdown cluster. Unlike
-                    the old `flex-1` spacer it doesn't grow to fill the line,
-                    so it gives a clear visual gap without forcing the filters
-                    to wrap onto a new line. `shrink-0` keeps it intact; the
-                    `mx-1` adds a touch of air on each side on top of the
-                    row's `gap-2`. */}
-                    <span
-                      className="mx-1 h-6 w-px shrink-0 self-center bg-divider-regular"
-                      aria-hidden
-                    />
+                    {/* 2026-06-08 (Yuqi "a line, fill the width"): the short
+                    vertical divider between the Search/View cluster and the
+                    dropdowns is replaced by a full-width hairline under the
+                    whole sticky toolbar (the `border-b` on the row container
+                    above), so the filter bar reads as a defined toolbar with
+                    a clean bottom edge against the scrolling list. */}
 
                     {/* Last 24 hours — time-range filter */}
                     <DropdownMenu>
@@ -1002,91 +1002,21 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       </DropdownMenuContent>
                     </DropdownMenu>
 
-                    {/* Severity — was "All impact" / per-tier label; now
-                    uses static label "Severity" + valueLabel counter
-                    so the chip reads "Severity / any" or "Severity /
-                    high" exactly per Pencil T3GhR iOxIZ. */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <FilterTrigger
-                            active={impactFilter !== 'all'}
-                            // 2026-06-04 round 71 (Yuqi #13 "any -
-                            // remove"): drop the "any" value-label
-                            // when no severity is selected. The chip
-                            // now reads "Severity" alone at rest; the
-                            // current value renders only when one is
-                            // actually picked.
-                            // Round 83 (Yuqi #20 "when a filter is
-                            // selected, the selected item is showing
-                            // the code form - like 'needs_action',
-                            // instead of Needs action"): humanize via
-                            // `impactFilterLabel`. Same `<Trans>`
-                            // labels the dropdown items use.
-                            valueLabel={
-                              impactFilter === 'all' ? undefined : impactFilterLabel(impactFilter)
-                            }
-                            aria-label={t`Filter by severity`}
-                          >
-                            <span>
-                              <Trans>Severity</Trans>
-                            </span>
-                          </FilterTrigger>
-                        }
-                      />
-                      <DropdownMenuContent align="start" className="min-w-[180px]">
-                        <DropdownMenuRadioGroup
-                          value={impactFilter}
-                          onValueChange={(value) => {
-                            if (typeof value === 'string' && isAlertImpactFilter(value))
-                              setImpactFilter(value)
-                          }}
-                        >
-                          {ALERT_IMPACT_FILTER_OPTIONS.map((option) => (
-                            <DropdownMenuRadioItem key={option} value={option}>
-                              {impactFilterLabel(option)}
-                            </DropdownMenuRadioItem>
-                          ))}
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    {/* Change types — label/value pattern. */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <FilterTrigger
-                            active={changeKindFilter !== 'all'}
-                            // Round 83 #20: humanize via changeKindFilterLabel
-                            valueLabel={
-                              changeKindFilter === 'all'
-                                ? undefined
-                                : changeKindFilterLabel(changeKindFilter)
-                            }
-                            aria-label={t`Filter by change type`}
-                          >
-                            <span>
-                              <Trans>Change types</Trans>
-                            </span>
-                          </FilterTrigger>
-                        }
-                      />
-                      <DropdownMenuContent align="start" className="min-w-[180px]">
-                        <DropdownMenuRadioGroup
-                          value={changeKindFilter}
-                          onValueChange={(value) => {
-                            if (typeof value === 'string' && isChangeKindFilter(value))
-                              setChangeKindFilter(value)
-                          }}
-                        >
-                          {CHANGE_KIND_FILTER_OPTIONS.map((option) => (
-                            <DropdownMenuRadioItem key={option} value={option}>
-                              {changeKindFilterLabel(option)}
-                            </DropdownMenuRadioItem>
-                          ))}
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {/* 2026-06-08 (Yuqi "put severity, change types, tax
+                        areas into filters to clean up the space"): the three
+                        single-select dropdowns are consolidated into ONE
+                        "Filters" popover (each as a labeled pill section).
+                        The trigger carries a count of how many of the three
+                        are active. Time range, State, and Sort stay separate
+                        as their own controls. */}
+                    <AlertFiltersPopover
+                      impactFilter={impactFilter}
+                      onImpactChange={setImpactFilter}
+                      changeKindFilter={changeKindFilter}
+                      onChangeKindChange={setChangeKindFilter}
+                      taxAreaFilter={taxAreaFilter}
+                      onTaxAreaChange={setTaxAreaFilter}
+                    />
 
                     {/* Status dropdown — HISTORY MODE ONLY. 2026-06-05:
                     removed from the active queue (Yuqi — "Status is
@@ -1134,52 +1064,8 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       </DropdownMenu>
                     ) : null}
 
-                    {/* Tax area — 2026-06-05: single-select service-line filter
-                    (Individual / Business income / Sales & use / Payroll /
-                    Franchise / Information). Mirrors the Change types
-                    dropdown; keeps alerts whose server-derived `taxAreas`
-                    include the pick. Alerts that could not be classified
-                    surface only under "all". */}
-                    <DropdownMenu>
-                      {/* 2026-06-05 (merge with origin/main): HEAD had a
-                      duplicate Status trigger here, leftover from when
-                      Status sat in this slot before the historyMode
-                      wrapper above moved it. Main introduced the
-                      service-line Tax area filter in this slot — the
-                      surrounding DropdownMenuContent below already
-                      drives `taxAreaFilter`, so this is the correct
-                      trigger. Status stays history-only above. */}
-                      <DropdownMenuTrigger
-                        render={
-                          <FilterTrigger
-                            active={taxAreaFilter !== 'all'}
-                            valueLabel={
-                              taxAreaFilter === 'all' ? t`all` : taxAreaFilterLabel(taxAreaFilter)
-                            }
-                            aria-label={t`Filter by tax area`}
-                          >
-                            <span>
-                              <Trans>Tax area</Trans>
-                            </span>
-                          </FilterTrigger>
-                        }
-                      />
-                      <DropdownMenuContent align="start" className="min-w-[180px]">
-                        <DropdownMenuRadioGroup
-                          value={taxAreaFilter}
-                          onValueChange={(value) => {
-                            if (typeof value === 'string' && isTaxAreaFilter(value))
-                              setTaxAreaFilter(value)
-                          }}
-                        >
-                          {TAX_AREA_FILTER_OPTIONS.map((option) => (
-                            <DropdownMenuRadioItem key={option} value={option}>
-                              {taxAreaFilterLabel(option)}
-                            </DropdownMenuRadioItem>
-                          ))}
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {/* Tax area filter moved into the consolidated
+                        "Filters" popover above (2026-06-08). */}
 
                     {/* 2026-06-04 round 71 (Yuqi #14 "Filter by source -
                     remove this") + 2026-06-05 (Yuqi — "all sources
@@ -1356,29 +1242,27 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     {isFilteredEmpty ? (
                       <FilteredEmptyState onClearFilters={resetFilters} />
                     ) : (
-                      <div className="flex flex-col gap-2">
-                        {sortedAlerts.map((alert) => {
-                          if (alert.changeKind === 'form_instruction') {
-                            return (
-                              <PulseFormRevisedCard
-                                key={alert.id}
-                                alert={alert}
-                                onReview={() => openDrawerAndCollapseSidebar(alert.id)}
-                              />
-                            )
-                          }
-                          return (
-                            <AlertCard
-                              key={alert.id}
-                              alert={alert}
-                              active={alert.id === openAlertId}
-                              compactClients
-                              showReadiness={false}
-                              onReview={() => openDrawerAndCollapseSidebar(alert.id)}
-                            />
-                          )
-                        })}
-                      </div>
+                      // 2026-06-08 (Yuqi "update the alert list in the map
+                      // view"): the right rail now renders the SAME
+                      // PulseAlertList rows as the main list (forced
+                      // `compact` for the ~420px width), instead of the old
+                      // facts-grid AlertCard / PulseFormRevisedCard. One row
+                      // design across list + map. Bulk-selection is off here
+                      // (the map rail is a navigator, not a bulk surface).
+                      <PulseAlertList
+                        alerts={sortedAlerts}
+                        openAlertId={openAlertId}
+                        onReview={openDrawerAndCollapseSidebar}
+                        compact
+                        selectable={false}
+                        priorityById={priorityById}
+                        {...(!historyMode
+                          ? {
+                              onDismiss: (alertId: string) =>
+                                dismissAlertMutation.mutate({ alertId }),
+                            }
+                          : {})}
+                      />
                     )}
                   </div>
                 </div>
@@ -1767,6 +1651,141 @@ function FilteredEmptyState({ onClearFilters }: { onClearFilters: () => void }) 
         </Button>
       </span>
     </StatusBanner>
+  )
+}
+
+/**
+ * 2026-06-08 (Yuqi "put severity, change types, tax areas into filters to
+ * clean up the space"): the consolidated filter control. One trigger
+ * ("Filters" + a count of active facets) opens a popover with the three
+ * single-select facets — Severity, Change type, Tax area — each rendered as
+ * a labeled pill row. Replaces the three separate dropdown chips so the
+ * filter row reads as Search · List/Map · Filters · State · Sort.
+ */
+function AlertFiltersPopover({
+  impactFilter,
+  onImpactChange,
+  changeKindFilter,
+  onChangeKindChange,
+  taxAreaFilter,
+  onTaxAreaChange,
+}: {
+  impactFilter: AlertImpactFilter
+  onImpactChange: (value: AlertImpactFilter) => void
+  changeKindFilter: AlertChangeKindFilter
+  onChangeKindChange: (value: AlertChangeKindFilter) => void
+  taxAreaFilter: AlertTaxAreaFilter
+  onTaxAreaChange: (value: AlertTaxAreaFilter) => void
+}) {
+  const { t } = useLingui()
+  const activeCount =
+    (impactFilter !== 'all' ? 1 : 0) +
+    (changeKindFilter !== 'all' ? 1 : 0) +
+    (taxAreaFilter !== 'all' ? 1 : 0)
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <FilterTrigger
+            active={activeCount > 0}
+            leadingIcon={SlidersHorizontalIcon}
+            valueLabel={activeCount > 0 ? String(activeCount) : undefined}
+            aria-label={t`Filters`}
+          >
+            <span>
+              <Trans>Filters</Trans>
+            </span>
+          </FilterTrigger>
+        }
+      />
+      <PopoverContent align="start" className="w-[264px] p-3">
+        <div className="flex flex-col gap-3.5">
+          <FilterPillSection
+            label={t`Severity`}
+            value={impactFilter}
+            options={ALERT_IMPACT_FILTER_OPTIONS}
+            getLabel={impactFilterLabel}
+            onSelect={onImpactChange}
+          />
+          <FilterPillSection
+            label={t`Change type`}
+            value={changeKindFilter}
+            options={CHANGE_KIND_FILTER_OPTIONS}
+            getLabel={changeKindFilterLabel}
+            onSelect={onChangeKindChange}
+          />
+          <FilterPillSection
+            label={t`Tax area`}
+            value={taxAreaFilter}
+            options={TAX_AREA_FILTER_OPTIONS}
+            getLabel={taxAreaFilterLabel}
+            onSelect={onTaxAreaChange}
+          />
+          {activeCount > 0 ? (
+            <button
+              type="button"
+              onClick={() => {
+                onImpactChange('all')
+                onChangeKindChange('all')
+                onTaxAreaChange('all')
+              }}
+              className="self-start text-[12px] font-medium text-text-accent underline-offset-2 outline-none hover:underline focus-visible:underline"
+            >
+              <Trans>Clear these filters</Trans>
+            </button>
+          ) : null}
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+/**
+ * One facet inside the Filters popover — an uppercase section label over a
+ * wrap of selectable pills (single-select; the active pill takes the accent
+ * wash). Generic over the facet's string union so each section reuses its
+ * existing option array + humanized label helper.
+ */
+function FilterPillSection<T extends string>({
+  label,
+  value,
+  options,
+  getLabel,
+  onSelect,
+}: {
+  label: string
+  value: T
+  options: readonly T[]
+  getLabel: (option: T) => React.ReactNode
+  onSelect: (option: T) => void
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+        {label}
+      </span>
+      <div className="flex flex-wrap gap-1">
+        {options.map((option) => {
+          const active = option === value
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onSelect(option)}
+              aria-pressed={active}
+              className={cn(
+                'inline-flex h-7 items-center rounded-md border px-2.5 text-[12px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                active
+                  ? 'border-state-accent-border bg-state-accent-hover text-text-accent'
+                  : 'border-divider-subtle text-text-secondary hover:bg-state-base-hover',
+              )}
+            >
+              {getLabel(option)}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 

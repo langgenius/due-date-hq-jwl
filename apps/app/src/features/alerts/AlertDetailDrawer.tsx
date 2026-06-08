@@ -4,13 +4,10 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
   ArrowRightIcon,
   Astroid,
-  ChevronDownIcon,
   ChevronLeftIcon,
-  ChevronUpIcon,
   CircleAlertIcon,
   ExternalLinkIcon,
   FileTextIcon,
-  FlagIcon,
   MailIcon,
   MapPinIcon,
   MessageSquareIcon,
@@ -61,7 +58,7 @@ import { ConceptLabel } from '@/features/concepts/concept-help'
 // retired with the AlertActivitySection deletion above. Restore if
 // the per-alert audit timeline is ever re-mounted in the drawer.
 import { PermissionInlineNotice } from '@/features/permissions/permission-gate'
-import { getJurisdictionName } from '@/components/primitives/state-badge'
+import { getJurisdictionName, StateBadge } from '@/components/primitives/state-badge'
 import { aiConfidenceTier, isLowAiConfidence } from '@/features/_surface-vocabulary/ai-confidence'
 
 import { impactBadgeFromAlert, actionPillFromAlert } from './components/pulse-alert-chrome'
@@ -165,18 +162,21 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
     .join(', ')
   return (
     <section
-      className="flex flex-col gap-2.5 bg-background-default"
+      className="flex flex-col gap-2.5 pl-3"
       style={{ borderLeftWidth: 3, borderLeftColor: '#f25f4c' }}
     >
       <span className="font-mono text-[10px] font-bold tracking-[0.8px] text-text-muted uppercase">
         <Trans>Deadline change</Trans>
       </span>
-      <div className="flex flex-wrap items-center gap-2.5">
-        <span className="font-mono text-[13px] font-medium text-text-muted line-through tabular-nums">
+      {/* 2026-06-08 (Yuqi alert-detail feedback #11 "ugly" + #15 "smaller"):
+          the new date drops 18px → 15px so the old→new pair reads as one
+          tidy line rather than an oversized headline. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-mono text-[12px] font-medium text-text-muted line-through tabular-nums">
           {formatDeadlineDate(oldIso)}
         </span>
-        <ArrowRightIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-        <span className="font-mono text-[18px] font-bold tracking-[-0.2px] text-text-primary tabular-nums">
+        <ArrowRightIcon className="size-3 shrink-0 text-text-muted" aria-hidden />
+        <span className="font-mono text-[15px] font-bold tracking-[-0.2px] text-text-primary tabular-nums">
           {formatDeadlineDate(newIso)}
         </span>
         <span className="text-[12px] font-semibold text-text-destructive tabular-nums">
@@ -336,14 +336,12 @@ function DecisionBanners({
 }) {
   const { t } = useLingui()
   const alert = detail.alert
-  const impacted = alert.matchedCount + alert.needsReviewCount
   const confPct = Math.round(alert.confidence * 100)
   const dueInDays = detail.newDueDate
     ? Math.round(
         (new Date(`${detail.newDueDate}T00:00:00.000Z`).getTime() - Date.now()) / 86_400_000,
       )
     : null
-  const dup = alert.duplicateSourceSnapshotCount
 
   if (applyError) {
     return (
@@ -404,42 +402,34 @@ function DecisionBanners({
     )
   }
 
+  // 2026-06-08 (Yuqi alert-detail feedback #3 "more compact, colour cohesive"
+  // + #7 "remove" the description line + #8 "match Today's card"): the pending
+  // band is now a single compact row — warning icon + "Pending your review" on
+  // the left, and the confidence/due meta on the right in the SAME sans
+  // `conf 94% · due in 8 days` treatment the /today alert card uses (was a bold
+  // mono "Confidence 94"). The verbose "AI extracted…" sentence and the
+  // source-corroboration chip are dropped — the affected-clients table below
+  // already carries the confirm/exclude flow.
   if (
     alert.status === 'matched' &&
     alert.firmImpact !== 'no_current_match' &&
     detail.applyReadiness.status !== 'ready'
   ) {
     return (
-      <div className="flex w-full flex-wrap items-start gap-3 border-b border-divider-subtle bg-[#fffbeb] px-12 py-3">
-        <CircleAlertIcon className="mt-0.5 size-4 shrink-0 text-text-warning" aria-hidden />
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[13px] font-semibold text-text-warning">
-            <Trans>Pending your review</Trans>
-          </span>
-          <span className="text-[12px] leading-[1.5] text-text-tertiary">
-            {impacted > 0 ? (
-              <Plural
-                value={impacted}
-                one="AI extracted the change and matched # client. Confirm or exclude, then Apply."
-                other="AI extracted the change and matched # clients. Confirm or exclude, then Apply."
-              />
-            ) : (
-              <Trans>AI extracted the change. Confirm the deadline details, then Apply.</Trans>
-            )}
-          </span>
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <span className="font-mono text-[11px] font-bold tracking-[0.2px] text-text-muted tabular-nums">
-            {t`Confidence ${confPct}`}
-            {dueInDays !== null && dueInDays >= 0 ? ` · ${t`due in ${dueInDays} days`}` : ''}
-          </span>
-          {dup > 1 ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-background-default px-2.5 py-0.5 text-[11px] font-semibold text-text-success">
-              <ShieldCheckIcon className="size-3 shrink-0" aria-hidden />
-              <Plural value={dup} one="Confirmed by # source" other="Confirmed by # sources" />
-            </span>
+      <div className="flex w-full items-center gap-2.5 border-b border-divider-subtle bg-[#fffbeb] px-12 py-2.5">
+        <CircleAlertIcon className="size-4 shrink-0 text-text-warning" aria-hidden />
+        <span className="text-[13px] font-semibold text-text-warning">
+          <Trans>Pending your review</Trans>
+        </span>
+        <span className="ml-auto flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-text-tertiary tabular-nums">
+          <span>{t`conf ${confPct}%`}</span>
+          {dueInDays !== null && dueInDays >= 0 ? (
+            <>
+              <span aria-hidden>·</span>
+              <span>{t`due in ${dueInDays} days`}</span>
+            </>
           ) : null}
-        </div>
+        </span>
       </div>
     )
   }
@@ -479,6 +469,35 @@ export function AlertDetailDrawer({
       setAutoCollapsed(false)
     }
   }, [open, setAutoCollapsed])
+
+  // 2026-06-08 (Yuqi alert-detail feedback #4 "make the navigation better" +
+  // #5 "remove up/down arrow option"): with the ▲▼ buttons gone, ArrowUp /
+  // ArrowDown page prev/next through the surrounding list (the left rail
+  // remains the primary click navigator). Ignored while typing in a field so
+  // it never hijacks search/text input.
+  useEffect(() => {
+    if (!open || (!onPrev && !onNext)) return undefined
+    const handler = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return
+      }
+      if (event.key === 'ArrowUp' && onPrev) {
+        event.preventDefault()
+        onPrev()
+      } else if (event.key === 'ArrowDown' && onNext) {
+        event.preventDefault()
+        onNext()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [open, onPrev, onNext])
   const detailQuery = useQuery(useAlertDetailQueryOptions(alertId))
   const detail = detailQuery.data
   const permissions = useAlertPermissions()
@@ -834,7 +853,13 @@ export function AlertDetailDrawer({
           close affordance (panel mode drops its absolute X; sheet mode
           hides the primitive's). prev/next render only when the list
           surface threads paging handlers. */}
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-12 py-2.5">
+      {/* 2026-06-08 (Yuqi alert-detail feedback #2 "height should match the
+          left alert-list header" + #5 "remove up/down arrow option" + #4
+          "better navigation"): the top bar is height-matched to the rail's
+          ListHead (`py-3.5`), and the redundant ▲▼ paging buttons are gone —
+          the alert RAIL on the left is the navigator, so the bar just reads
+          "‹ Alerts … N of M … ✕". */}
+      <div className="flex h-[52px] shrink-0 items-center justify-between gap-3 border-b border-divider-subtle px-12">
         <button
           type="button"
           onClick={onClose}
@@ -843,33 +868,11 @@ export function AlertDetailDrawer({
           <ChevronLeftIcon className="size-4 shrink-0" aria-hidden />
           <Trans>Alerts</Trans>
         </button>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           {position && position.total > 0 ? (
-            <span className="px-1.5 text-[12px] font-medium text-text-muted tabular-nums">
+            <span className="text-[12px] font-medium text-text-muted tabular-nums">
               {t`${position.index + 1} of ${position.total}`}
             </span>
-          ) : null}
-          {onPrev || onNext ? (
-            <>
-              <button
-                type="button"
-                onClick={onPrev}
-                disabled={!onPrev}
-                aria-label={t`Previous alert`}
-                className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <ChevronUpIcon className="size-4" aria-hidden />
-              </button>
-              <button
-                type="button"
-                onClick={onNext}
-                disabled={!onNext}
-                aria-label={t`Next alert`}
-                className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <ChevronDownIcon className="size-4" aria-hidden />
-              </button>
-            </>
           ) : null}
           <button
             type="button"
@@ -981,8 +984,17 @@ export function AlertDetailDrawer({
                   {/* 2026-06-08 (Pencil ibEoz header `flag CA California`):
                       jurisdiction reads as a flag glyph + code + full
                       state name, inline (no chip). */}
+                  {/* 2026-06-08 (Yuqi alert-detail feedback #10 "wrong badge
+                      style"): the jurisdiction uses the canonical circular
+                      StateBadge motif + mono code + full name (same as the
+                      /today card + /alerts row), replacing the generic flag
+                      glyph. */}
                   <span className="inline-flex h-[22px] shrink-0 items-center gap-1.5 text-text-secondary">
-                    <FlagIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+                    <StateBadge
+                      code={detail.alert.jurisdiction}
+                      size="xs"
+                      style={{ width: 16, height: 16 }}
+                    />
                     <span className="font-mono text-[12px] font-bold tracking-[0.7px] uppercase">
                       {detail.alert.jurisdiction}
                     </span>
@@ -1093,17 +1105,15 @@ export function AlertDetailDrawer({
         ) : null}
 
         {detail ? (
-          // 2026-06-08 (Pencil ibEoz `Aogxu SectionsWrapper`): every
-          // detail section lives in ONE flat-bordered white panel with
-          // internal `divide-y` separators and uniform `px-6 py-4`
-          // padding — replacing the prior set of individually-rounded
-          // floating cards ("乱七八糟的圆角"). Only the green
-          // Ready-to-apply callout stays a separate rounded card above.
-          // 2026-06-08 (Yuqi Browser #1): keep this wrapper out of
-          // flex-shrink. The body owns `overflow-y-auto`; if this panel
-          // shrinks, its own `overflow-hidden` clips Provenance/Activity
-          // instead of giving the body scroll height.
-          <div className="flex shrink-0 flex-col divide-y divide-divider-subtle overflow-hidden rounded-[12px] border border-divider-subtle bg-background-default [&>*]:px-6 [&>*]:py-4">
+          // 2026-06-08 (Yuqi alert-detail feedback #12 "remove frame" +
+          // "avoid using too many frames"): the sections no longer live in a
+          // bordered white card-within-a-card. They're a flat `divide-y`
+          // stack flush with the body's `px-12` margin, sitting directly on
+          // the panel's light wash — so the detail reads as one calm document
+          // instead of a card nested inside a card. `[&>*]:py-5` keeps the
+          // vertical rhythm; horizontal padding comes from the body.
+          // (Kept out of flex-shrink so the body owns the scroll height.)
+          <div className="flex shrink-0 flex-col divide-y divide-divider-subtle [&>*]:py-5">
             {/* 2026-06-08 (Pencil ibEoz/BbQAK `Qla5h KeyChange`): the
                 prominent left-border DEADLINE CHANGE card — the single
                 most scannable fact on the panel. Old → new date with the
@@ -1569,9 +1579,14 @@ export function AlertDetailDrawer({
           permission-gated / mutation-state logic stays put. The
           shelf grows to two rows of content + `pt-3 pb-5` so the
           kbd row + buttons don't crowd vertically. */}
-      <SheetFooter className="min-h-20 flex-col items-stretch gap-3 border-t-2 border-divider-regular bg-background-default px-12 pt-3 pb-5 sm:flex-col">
+      {/* 2026-06-08 (Yuqi alert-detail feedback #18 "should always be in one
+          line"): the footer no longer stacks the keyboard-hints row above the
+          action buttons. It's a single row — the hints + audit-ledger note on
+          the left (revealed only on wide panels where there's room), the
+          DrawerActions cluster filling the rest. */}
+      <SheetFooter className="min-h-16 flex-row items-center gap-4 border-t-2 border-divider-regular bg-background-default px-12 py-3 sm:flex-row">
         {detail ? (
-          <div className="flex flex-wrap items-center gap-3.5 text-text-tertiary">
+          <div className="hidden shrink-0 items-center gap-3.5 text-text-tertiary xl:flex">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
               <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-divider-regular bg-background-section px-1 font-mono text-[10px] font-semibold text-text-secondary">
                 A
@@ -1591,7 +1606,7 @@ export function AlertDetailDrawer({
             </span>
           </div>
         ) : null}
-        <div className="flex w-full">
+        <div className="flex min-w-0 flex-1">
           {detail ? (
             <DrawerActions
               alertStatus={detail.alert.status}
@@ -1703,7 +1718,12 @@ export function AlertDetailDrawer({
           // list column. `overflow-hidden` retained on the aside
           // so the sticky header/footer don't bleed into the
           // body's scroll surface.
-          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-background-default shadow-subtle"
+          // 2026-06-08 (Yuqi alert-detail feedback #13 "give the alert detail
+          // a light background"): the panel sits on a soft `#fafbfc` wash
+          // instead of stark white, so the (now borderless) content sections
+          // read as a calm document. The white SheetHeader/SheetFooter chrome
+          // frames the top/bottom against it.
+          className="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-divider-subtle bg-[#fafbfc] shadow-subtle"
         >
           {/* 2026-06-08: the close affordance moved into the body's
               BackStrip top bar (with prev/next paging), so the

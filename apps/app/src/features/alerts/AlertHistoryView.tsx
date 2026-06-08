@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { SearchIcon } from 'lucide-react'
@@ -7,6 +7,14 @@ import type { PulseAlertPublic, PulseFirmAlertStatus } from '@duedatehq/contract
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@duedatehq/ui/components/ui/table'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { getJurisdictionName } from '@/components/primitives/state-badge'
@@ -261,7 +269,7 @@ export function AlertHistoryView() {
               indeterminate={someSelected}
               onCheckedChange={(next) => toggleAll(next)}
               aria-label={t`Select all`}
-              className="size-[18px] rounded-[4px]"
+              className="size-4 rounded-[4px]"
             />
             <span className="text-[13px] font-semibold text-text-accent tabular-nums">
               <Plural value={selected.size} one="# alert selected" other="# alerts selected" />
@@ -276,66 +284,87 @@ export function AlertHistoryView() {
           </div>
         ) : null}
 
-        {/* TABLE */}
-        <div className="flex flex-col rounded-xl border border-divider-regular bg-background-default">
-          {/* Header row */}
-          <div className="flex items-center gap-3 border-b border-divider-subtle px-4 py-2.5 text-[11px] font-bold tracking-[0.6px] text-text-muted uppercase">
-            <span className="flex w-5 shrink-0 items-center">
-              <Checkbox
-                checked={allVisibleSelected}
-                indeterminate={someSelected}
-                onCheckedChange={(next) => toggleAll(next)}
-                aria-label={t`Select all`}
-                className="size-[18px] rounded-[4px]"
-              />
-            </span>
-            <span className="w-[84px] shrink-0">
-              <Trans>Date</Trans>
-            </span>
-            <span className="w-[52px] shrink-0">
-              <Trans>Juris</Trans>
-            </span>
-            <span className="min-w-0 flex-1">
-              <Trans>Alert</Trans>
-            </span>
-            <span className="w-[112px] shrink-0">
-              <Trans>Status</Trans>
-            </span>
-          </div>
-
-          {historyQuery.isLoading ? (
-            <div className="px-4 py-10 text-center text-[13px] text-text-tertiary">
-              <Trans>Loading handled alerts…</Trans>
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="px-4 py-10 text-center text-[13px] text-text-tertiary">
-              <Trans>No handled alerts match this view.</Trans>
-            </div>
-          ) : (
-            groups.map(([month, monthAlerts]) => (
-              <div key={month} className="flex flex-col">
-                <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-4 py-2">
-                  <span className="text-[11px] font-bold tracking-[0.6px] text-text-secondary uppercase">
-                    {month}
-                  </span>
-                  <span className="text-[11px] font-semibold tracking-[0.6px] text-text-muted uppercase tabular-nums">
-                    <Plural value={monthAlerts.length} one="# handled" other="# handled" />
-                  </span>
-                </div>
-                {monthAlerts.map((alert) => (
-                  <HistoryRow
-                    key={alert.id}
-                    alert={alert}
-                    active={alert.id === alertId}
-                    selected={selected.has(alert.id)}
-                    firmTimezone={firmTimezone}
-                    onToggle={(next) => toggleOne(alert.id, next)}
-                    onOpen={() => openDrawer(alert.id)}
+        {/* TABLE — 2026-06-08 (Yuqi "rebuild but it should look the same"):
+            rebuilt on the canonical <Table> primitive so the history table
+            shares the exact same DOM + style source as every other table.
+            `table-fixed` + the truncating ALERT cell keep the
+            no-horizontal-scroll guarantee the prior flex grid had; zebra is
+            disabled (per-row `even:bg-transparent`) to match the calm alerts
+            surfaces. Month bands + loading/empty render as full-width
+            `colSpan` rows. */}
+        <div className="overflow-hidden rounded-xl border border-divider-regular bg-background-default">
+          <Table className="table-fixed">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[52px]">
+                  <Checkbox
+                    checked={allVisibleSelected}
+                    indeterminate={someSelected}
+                    onCheckedChange={(next) => toggleAll(next)}
+                    aria-label={t`Select all`}
+                    className="size-4 rounded-[4px]"
                   />
-                ))}
-              </div>
-            ))
-          )}
+                </TableHead>
+                <TableHead className="w-[104px]">
+                  <Trans>Date</Trans>
+                </TableHead>
+                <TableHead className="w-[72px]">
+                  <Trans>Juris</Trans>
+                </TableHead>
+                <TableHead>
+                  <Trans>Alert</Trans>
+                </TableHead>
+                <TableHead className="w-[132px]">
+                  <Trans>Status</Trans>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {historyQuery.isLoading ? (
+                <TableRow className="even:bg-transparent hover:bg-transparent">
+                  <TableCell colSpan={5} className="py-10 text-center text-[13px] text-text-tertiary">
+                    <Trans>Loading handled alerts…</Trans>
+                  </TableCell>
+                </TableRow>
+              ) : filtered.length === 0 ? (
+                <TableRow className="even:bg-transparent hover:bg-transparent">
+                  <TableCell colSpan={5} className="py-10 text-center text-[13px] text-text-tertiary">
+                    <Trans>No handled alerts match this view.</Trans>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                groups.map(([month, monthAlerts]) => (
+                  <Fragment key={month}>
+                    {/* Month band — same gray-200 (#e9ebf0) group-header band
+                        the /today Actions table uses. */}
+                    <TableRow className="even:bg-transparent hover:bg-transparent">
+                      <TableCell colSpan={5} className="bg-[#e9ebf0] px-5 py-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold tracking-[0.5px] text-text-secondary uppercase">
+                            {month}
+                          </span>
+                          <span className="text-[11px] font-semibold tracking-[0.5px] text-text-muted uppercase tabular-nums">
+                            <Plural value={monthAlerts.length} one="# handled" other="# handled" />
+                          </span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    {monthAlerts.map((alert) => (
+                      <HistoryRow
+                        key={alert.id}
+                        alert={alert}
+                        active={alert.id === alertId}
+                        selected={selected.has(alert.id)}
+                        firmTimezone={firmTimezone}
+                        onToggle={(next) => toggleOne(alert.id, next)}
+                        onOpen={() => openDrawer(alert.id)}
+                      />
+                    ))}
+                  </Fragment>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
       {/* Detail drawer — the /alerts/history route owns its panel
@@ -379,8 +408,7 @@ function HistoryRow({
   const impacted = alert.matchedCount + alert.needsReviewCount
 
   return (
-    <div
-      role="button"
+    <TableRow
       tabIndex={0}
       aria-label={t`Alert: ${alert.title}`}
       onClick={onOpen}
@@ -390,73 +418,86 @@ function HistoryRow({
           onOpen()
         }
       }}
+      // `[&>td]:py-3` keeps the prior compact row height (the canonical cell
+      // default is py-4). `even:bg-*` disables the canonical zebra; active
+      // rows keep the accent wash on hover too.
       className={cn(
-        'flex cursor-pointer items-center gap-3 border-b border-divider-subtle px-4 py-3 outline-none transition-colors last:border-b-0',
+        'cursor-pointer outline-none [&>td]:py-3',
         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-state-accent-active-alt',
-        active ? 'bg-state-accent-hover' : 'hover:bg-state-base-hover',
+        active
+          ? 'bg-state-accent-hover even:bg-state-accent-hover hover:bg-state-accent-hover'
+          : 'even:bg-transparent',
       )}
     >
-      <span className="flex w-5 shrink-0 items-center" onClick={(event) => event.stopPropagation()}>
+      {/* Checkbox */}
+      <TableCell onClick={(event) => event.stopPropagation()}>
         <Checkbox
           checked={selected}
           onCheckedChange={(next) => onToggle(next)}
           aria-label={t`Select alert: ${alert.title}`}
-          className="size-[18px] rounded-[4px]"
+          className="size-4 rounded-[4px]"
         />
-      </span>
+      </TableCell>
 
       {/* DATE */}
-      <div className="flex w-[84px] shrink-0 flex-col">
-        <span className="text-[12px] font-semibold text-text-primary">{dateLabel}</span>
-        {relativeSub ? (
-          <span className="text-[10px] font-medium text-text-muted">{relativeSub}</span>
-        ) : null}
-      </div>
+      <TableCell>
+        <div className="flex flex-col">
+          <span className="text-[12px] font-semibold text-text-primary">{dateLabel}</span>
+          {relativeSub ? (
+            <span className="text-[10px] font-medium text-text-muted">{relativeSub}</span>
+          ) : null}
+        </div>
+      </TableCell>
 
       {/* JURIS */}
-      <span className="w-[52px] shrink-0">
+      <TableCell>
         <span className="inline-flex h-[20px] items-center rounded-md bg-background-subtle px-2 text-[11px] font-semibold text-text-secondary uppercase">
           {alert.jurisdiction}
         </span>
-      </span>
+      </TableCell>
 
-      {/* ALERT — flex-1 min-w-0 so the row never overflows. */}
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-[13px] font-semibold text-text-primary" title={alert.title}>
-          {alert.title}
-        </span>
-        <span className="flex min-w-0 items-center gap-2 truncate text-[11px] text-text-tertiary">
-          <span className="shrink-0 font-semibold tracking-[0.3px] text-text-muted uppercase">
-            {changeKindLabel(alert.changeKind)}
+      {/* ALERT — table-fixed column + truncation so the row never overflows. */}
+      <TableCell className="overflow-hidden">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span
+            className="truncate text-[13px] font-semibold text-text-primary"
+            title={alert.title}
+          >
+            {alert.title}
           </span>
-          <span aria-hidden className="text-divider-regular">
-            ·
+          <span className="flex min-w-0 items-center gap-2 truncate text-[11px] text-text-tertiary">
+            <span className="shrink-0 font-semibold tracking-[0.3px] text-text-muted uppercase">
+              {changeKindLabel(alert.changeKind)}
+            </span>
+            <span aria-hidden className="text-divider-regular">
+              ·
+            </span>
+            <span className="truncate">{alert.source}</span>
+            {impacted > 0 ? (
+              <>
+                <span aria-hidden className="text-divider-regular">
+                  ·
+                </span>
+                <span className="shrink-0 tabular-nums">
+                  <Plural value={impacted} one="# client" other="# clients" />
+                </span>
+              </>
+            ) : (
+              <>
+                <span aria-hidden className="text-divider-regular">
+                  ·
+                </span>
+                <span className="shrink-0">{getJurisdictionName(alert.jurisdiction)}</span>
+              </>
+            )}
           </span>
-          <span className="truncate">{alert.source}</span>
-          {impacted > 0 ? (
-            <>
-              <span aria-hidden className="text-divider-regular">
-                ·
-              </span>
-              <span className="shrink-0 tabular-nums">
-                <Plural value={impacted} one="# client" other="# clients" />
-              </span>
-            </>
-          ) : (
-            <>
-              <span aria-hidden className="text-divider-regular">
-                ·
-              </span>
-              <span className="shrink-0">{getJurisdictionName(alert.jurisdiction)}</span>
-            </>
-          )}
-        </span>
-      </div>
+        </div>
+      </TableCell>
 
       {/* STATUS */}
-      <span className="w-[112px] shrink-0">
+      <TableCell>
         <Badge variant={status.variant}>{status.label}</Badge>
-      </span>
-    </div>
+      </TableCell>
+    </TableRow>
   )
 }

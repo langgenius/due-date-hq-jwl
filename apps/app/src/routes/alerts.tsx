@@ -10,7 +10,7 @@ import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { AlertsListPage } from '@/features/alerts/AlertsListPage'
-import { useAlertsListQueryOptions } from '@/features/alerts/api'
+import { useAlertsListQueryOptions, useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
 import { MorningSweepProvider, useMorningSweep } from '@/features/alerts/MorningSweepContext'
 import { RulesPageShell } from '@/features/rules/rules-console-primitives'
@@ -27,6 +27,18 @@ export function AlertsRoute() {
   // request, count rendered in both places).
   const alertsQuery = useQuery(useAlertsListQueryOptions(TOP_ALERTS_LIMIT))
   const alertCount = alertsQuery.data?.alerts.length ?? 0
+  // 2026-06-08 (Yuqi /alerts #1 "where is it showing it is all working?"):
+  // the Sources selector chip carries a live health dot so the CPA can SEE
+  // monitoring is healthy at a glance. Same `listSourceHealth` query the
+  // list page polls (React Query dedupes), reduced to a green/amber signal
+  // + a tooltip count. Only enabled sources count toward the health roll-up.
+  const sourceHealthQuery = useQuery(useAlertSourceHealthQueryOptions())
+  const monitoredSources = (sourceHealthQuery.data?.sources ?? []).filter((s) => s.enabled)
+  const unhealthySourceCount = monitoredSources.filter(
+    (s) => s.healthStatus !== 'healthy',
+  ).length
+  const sourceHealthLoaded = monitoredSources.length > 0
+  const allSourcesHealthy = sourceHealthLoaded && unhealthySourceCount === 0
   // 2026-05-28 (source automation remediation): this chip is a
   // product coverage metric, not an adapter/source-health count.
   // Parser-backed baseline sources can grow to hundreds of adapters
@@ -103,15 +115,48 @@ export function AlertsRoute() {
           source affordance here lets the standalone Sources action
           button drop out of the cluster (it's now this chip). */}
       {hasNationalMonitoringCoverage ? (
-        <Link
-          to="/rules/sources"
-          className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[#155aef40] bg-state-accent-hover px-2.5 text-[13px] font-medium text-text-accent transition-colors hover:bg-state-accent-active-alt"
-          aria-label={t`Sources · Federal + 50 states + DC`}
-        >
-          <DatabaseIcon className="size-3 shrink-0" aria-hidden />
-          <Trans>Sources · Federal + 50 states + DC</Trans>
-          <ChevronRightIcon className="size-3 shrink-0" aria-hidden />
-        </Link>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Link
+                to="/rules/sources"
+                className="inline-flex h-6 items-center gap-1.5 rounded-full border border-[#155aef40] bg-state-accent-hover px-2.5 text-[13px] font-medium text-text-accent transition-colors hover:bg-state-accent-active-alt"
+                aria-label={t`Sources · Federal + 50 states + DC`}
+              >
+                {/* Live health dot — green when every monitored source is
+                    healthy, amber when one or more needs attention. This is
+                    the at-a-glance "it's all working" signal; the tooltip
+                    carries the count. While health is still loading the dot
+                    stays a neutral gray so it never falsely reads green. */}
+                <span
+                  className={cn(
+                    'size-1.5 shrink-0 rounded-full',
+                    !sourceHealthLoaded
+                      ? 'bg-text-muted'
+                      : allSourcesHealthy
+                        ? 'bg-text-success'
+                        : 'bg-text-warning',
+                  )}
+                  aria-hidden
+                />
+                <DatabaseIcon className="size-3 shrink-0" aria-hidden />
+                <Trans>Sources · Federal + 50 states + DC</Trans>
+                <ChevronRightIcon className="size-3 shrink-0" aria-hidden />
+              </Link>
+            }
+          />
+          <TooltipContent>
+            {!sourceHealthLoaded ? (
+              <Trans>Checking source health…</Trans>
+            ) : allSourcesHealthy ? (
+              <Trans>All {monitoredSources.length} monitored sources operational</Trans>
+            ) : (
+              <Trans>
+                {unhealthySourceCount} of {monitoredSources.length} sources need attention
+              </Trans>
+            )}
+          </TooltipContent>
+        </Tooltip>
       ) : null}
     </span>
   )
@@ -290,7 +335,11 @@ function MorningSweepHeaderButton() {
         render={
           <Button
             variant={sweep.digestOpen ? 'secondary' : 'outline'}
-            size="icon-sm"
+            // 2026-06-08 (Yuqi "different height"): icon-sm (32px) sat
+            // shorter than the h-9 "Alert history" button beside it. `icon`
+            // (size-9 / 36px) makes the coffee button the same height so the
+            // two header actions align.
+            size="icon"
             onClick={sweep.toggleDigest}
             aria-pressed={sweep.digestOpen}
             aria-expanded={sweep.digestOpen}

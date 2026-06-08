@@ -6,6 +6,7 @@ import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
 import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
@@ -181,13 +182,20 @@ function RailItem({
       {/* Content — badge meta row + 2-line title. */}
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          <span className="inline-flex h-[20px] shrink-0 items-center rounded-[6px] border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
+          {/* 2026-06-08 (Yuqi alert-detail feedback #9 "missing the circular
+              rounded state badge"): the jurisdiction chip carries the
+              canonical StateBadge motif + code, matching the /today card +
+              /alerts row. */}
+          <span className="inline-flex h-[20px] shrink-0 items-center gap-1 rounded-[6px] border border-divider-regular px-1.5 text-[11px] font-semibold text-text-secondary uppercase">
+            <StateBadge code={alert.jurisdiction} size="xs" style={{ width: 12, height: 12 }} />
             {alert.jurisdiction}
           </span>
           {form ? <TaxCodeBadge code={form} /> : null}
-          {/* 2026-06-08 (Yuqi rail feedback): change-kind reads GRAY in
-              the quiet rail (not accent-blue like the main list). */}
-          <span className="text-[10px] font-bold tracking-[0.5px] text-text-muted uppercase">
+          {/* 2026-06-08 (Yuqi feedback #14 "same style as Today's alert"):
+              change-kind matches the /today card's treatment — sans
+              font-semibold tracking-[0.4px] text-tertiary (was font-bold
+              text-muted). */}
+          <span className="text-[10px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
             {changeKindLabel(alert.changeKind)}
           </span>
         </div>
