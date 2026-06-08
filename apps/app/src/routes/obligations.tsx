@@ -3695,11 +3695,11 @@ export function ObligationQueueRoute() {
           // panel-open split. Closed, the row flows to natural height so the
           // whole page scrolls.
           panelOpenIntent && 'xl:min-h-0 xl:flex-1 xl:items-stretch',
-          // 2026-06-08 (Yuqi): in the detail (master-detail) state the page is
-          // a recessed #f2f2f2 surface so the white list card + white detail
-          // panel read as distinct panes (icon rail · list · detail), instead
-          // of blending into the white list-view background.
-          activeDetailId && 'rounded-xl bg-[#f2f2f2] p-3',
+          // 2026-06-08 (Yuqi "why encapsulated in a frame?"): dropped the
+          // recessed #f2f2f2 tray around the master-detail. The rail + detail
+          // now sit directly on the white page, separated by the rail's
+          // border-r hairline — matching /alerts (no tray) and the
+          // restraint-on-nested-surfaces rule.
         )}
       >
         {/* 2026-06-08 (Yuqi "standardize on compact rail"): when a deadline is
