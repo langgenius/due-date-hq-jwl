@@ -375,7 +375,6 @@ function DecisionBanners({
 }) {
   const { t } = useLingui()
   const alert = detail.alert
-  const confPct = Math.round(alert.confidence * 100)
   const dueInDays = detail.newDueDate
     ? Math.round(
         (new Date(`${detail.newDueDate}T00:00:00.000Z`).getTime() - Date.now()) / 86_400_000,
@@ -463,16 +462,15 @@ function DecisionBanners({
         tone="warning"
         icon={CircleAlertIcon}
         title={<Trans>Pending your review</Trans>}
+        // 2026-06-08 (Yuqi "banner conf and the AI-confidence section say the
+        // same thing"): the confidence % is dropped from this banner — it lives
+        // in the dedicated "AI confidence" block below (which for low-confidence
+        // alerts is the prominent actionable warning). The banner now carries
+        // only status + the due-date timing.
         note={
-          <>
-            <span>{t`conf ${confPct}%`}</span>
-            {dueInDays !== null && dueInDays >= 0 ? (
-              <>
-                <span aria-hidden>·</span>
-                <span>{t`due in ${dueInDays} days`}</span>
-              </>
-            ) : null}
-          </>
+          dueInDays !== null && dueInDays >= 0 ? (
+            <span>{t`due in ${dueInDays} days`}</span>
+          ) : null
         }
       />
     )
@@ -1613,7 +1611,10 @@ export function AlertDetailDrawer({
           `border-t-2 border-divider-regular` read as a heavy/double rule.
           Softened to a single clean `border-t border-divider-subtle` —
           matches the deadline detail footer (ObligationQueueDetailDrawer). */}
-      <SheetFooter className="min-h-16 flex-row items-center gap-4 border-t border-divider-subtle bg-background-default px-12 py-3 sm:flex-row">
+      {/* 2026-06-08 (Yuqi "space between the description and actions"): the
+          gap between the left kbd-hints/audit-ledger note and the action cluster
+          bumped gap-4 → gap-8 so the note doesn't butt against the first button. */}
+      <SheetFooter className="min-h-16 flex-row items-center gap-8 border-t border-divider-subtle bg-background-default px-12 py-3 sm:flex-row">
         {detail ? (
           <div className="hidden shrink-0 items-center gap-3.5 text-text-tertiary xl:flex">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
