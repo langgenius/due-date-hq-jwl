@@ -234,6 +234,7 @@ import { BlockerContextCard } from '@/features/obligations/BlockerContextCard'
 import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
 import { CompletedKeyDates } from '@/features/obligations/CompletedKeyDates'
 import { ObligationPanelDispatcher } from '@/features/obligations/ObligationPanelDispatcher'
+import { ObligationListRail } from '@/features/obligations/components/ObligationListRail'
 import { StageActions, type StageTask } from '@/features/obligations/StageActions'
 import { formatTaxCode } from '@/lib/tax-codes'
 import { TaxCodeBadge, TaxCodeLabel } from '@/components/primitives/tax-code-label'
@@ -3701,6 +3702,19 @@ export function ObligationQueueRoute() {
           activeDetailId && 'rounded-xl bg-[#f2f2f2] p-3',
         )}
       >
+        {/* 2026-06-08 (Yuqi "standardize on compact rail"): when a deadline is
+            open the full table is hidden and a compact item-rail becomes the
+            list (master-detail), mirroring /alerts. Table stays mounted (hidden)
+            so its filter/sort/scroll state survives closing the detail. */}
+        {panelOpenIntent ? (
+          <ObligationListRail
+            rows={tableRows.map((tableRow) => tableRow.original)}
+            activeId={activeDetailId}
+            onSelect={(id) => openQueueDetail(id, activeDetailTab)}
+            hasNextPage={hasNextPage}
+            onLoadMore={() => void fetchNextPage()}
+          />
+        ) : null}
         <div
           className={cn(
             // 2026-05-27 (Yuqi follow-up — "tab和时间filter和下面table的
@@ -3725,7 +3739,7 @@ export function ObligationQueueRoute() {
             // The horizontal clip stays as `overflow-x-clip` (not -hidden) —
             // `clip` doesn't force overflow-y to `auto`, so it can't turn the
             // column back into a vertical scroll container.
-            panelOpenIntent && 'xl:min-h-0 xl:overflow-hidden',
+            panelOpenIntent && 'hidden',
             !activeDetailId && 'overflow-x-clip',
           )}
         >
@@ -5098,7 +5112,7 @@ export function ObligationQueueRoute() {
               // tandem so the available width = full viewport (minus
               // sidebar) at xl+. Below xl the drawer is full width
               // (mobile sheet pattern).
-              className="flex min-h-0 self-stretch overflow-hidden w-full xl:basis-3/5 xl:shrink-0 xl:grow-0"
+              className="flex min-h-0 self-stretch overflow-hidden w-full xl:flex-1 xl:min-w-0"
             >
               <motion.div
                 initial={{ y: '100%' }}
