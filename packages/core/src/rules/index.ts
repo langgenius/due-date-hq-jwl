@@ -5866,6 +5866,23 @@ export const RULE_SOURCES = hydrateRuleSources([
     notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
     lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
   },
+  {
+    id: 'ny.dtf_disaster_relief',
+    jurisdiction: 'NY',
+    title: 'New York Tax Department Disaster Relief N-Notices',
+    // N-Notices announce a new due date for filing/paying because of a natural
+    // disaster (tax.ny.gov). Dedicated relief watch — upgrades NY from the
+    // press-release index; ny.temporary_announcements stays as a secondary signal.
+    url: 'https://www.tax.ny.gov/pubs_and_bulls/n_notices/notices.htm',
+    sourceType: 'emergency_relief',
+    acquisitionMethod: 'html_watch',
+    cadence: 'weekly',
+    priority: 'high',
+    healthStatus: 'healthy',
+    isEarlyWarning: false,
+    notificationChannels: ['source_change', 'practice_rule_review', 'practice_rule_preview'],
+    lastReviewedOn: DISASTER_RELIEF_VERIFIED_AT,
+  },
   // Tier B — states that publish per-event / dated relief pages rather than a
   // single standing page. The URL below was the live, verified relief page on
   // DISASTER_RELIEF_VERIFIED_AT; refresh it when the state supersedes it for a

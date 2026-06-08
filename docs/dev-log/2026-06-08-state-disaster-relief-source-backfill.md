@@ -88,5 +88,12 @@ Result: no open `relief_or_disaster_signal` gaps remain — relief is covered fo
 FED + CA + ~45 states (dedicated, Tier B, or index-level) and not-required for the
 5 federal-only states. TX/WA stay comprehensive; AL/NY gain relief (still standard
 on other roles). Validated against the worktree core: core 64, server pulse jobs
-60, rule-source-adapters 11. (NY uses the Press Office index; the N-Notice index
-`tax.ny.gov/pubs_and_bulls/n_notices` is a stronger future target.)
+60, rule-source-adapters 11.
+
+### NY upgrade
+
+NY now has a dedicated relief watch `ny.dtf_disaster_relief` on the official
+N-Notice index (`tax.ny.gov/pubs_and_bulls/n_notices/notices.htm`) — N-Notices
+announce new filing/payment due dates "because of a natural disaster", a stronger
+signal than the press-release index. `ny.temporary_announcements` keeps its
+index-level relief role as a secondary signal. URL re-verified live (HTTP 200).

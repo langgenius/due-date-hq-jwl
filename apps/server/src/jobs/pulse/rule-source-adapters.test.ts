@@ -505,11 +505,11 @@ describe('rule source adapters', () => {
       ruleSourceWatchIds: expect.arrayContaining(['wa.esd_quarterly_tax_wage_reports']),
       reliefOrDisasterSourceIds: expect.arrayContaining(['wa.dor_disaster_relief']),
     })
-    // NY relief is now covered at the index level (press office); multi_agency
+    // NY relief is covered by the dedicated N-Notice disaster watch; multi_agency
     // is still missing, so NY stays standard.
     expect(byJurisdiction.get('NY')).toMatchObject({
       missingRoles: expect.arrayContaining(['multi_agency_sources']),
-      reliefOrDisasterSourceIds: expect.arrayContaining(['ny.temporary_announcements']),
+      reliefOrDisasterSourceIds: expect.arrayContaining(['ny.dtf_disaster_relief']),
       emailSignalSourceIds: expect.arrayContaining(['ny.email_services']),
     })
     // FL/MA gain relief coverage but stay standard: multi_agency is still missing.
