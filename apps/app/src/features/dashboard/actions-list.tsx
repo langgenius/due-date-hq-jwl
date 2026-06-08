@@ -937,7 +937,7 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
                 <button
                   type="button"
                   aria-label={t`About Actions this week`}
-                  className="inline-flex size-4 cursor-help items-center justify-center rounded text-text-accent outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="inline-flex size-4 cursor-help items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   {...props}
                 >
                   <SparklesIcon className="size-3.5" aria-hidden />

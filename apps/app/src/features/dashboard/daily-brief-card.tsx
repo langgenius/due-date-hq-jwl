@@ -47,6 +47,48 @@ export function DailyBriefCard({
   // state; while it's generating the status label shows the spinner.
   const canRefresh = !isPending
 
+  // 2026-06-08 (Yuqi "in one line, thin banner if it failed"): a failed brief
+  // collapses to a single thin banner — title · Failed · short message · inline
+  // retry — instead of the full card with body prose.
+  if (brief.status === 'failed' && !refreshing) {
+    return (
+      <section
+        aria-label={t`Daily brief`}
+        className="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[14px] border border-state-accent-border bg-state-accent-hover px-[18px] py-2.5"
+      >
+        <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+          <Trans>Daily Brief</Trans>
+        </h2>
+        <span className="text-[11px] font-medium tracking-[0.4px] text-text-secondary uppercase">
+          <Trans>Failed</Trans>
+        </span>
+        <span className="min-w-0 flex-1 truncate text-xs text-text-tertiary">
+          <Trans>We couldn't generate today's brief.</Trans>
+        </span>
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={onRefresh}
+            aria-label={t`Regenerate brief`}
+            className="inline-flex size-7 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+          >
+            <RotateCwIcon className="size-3.5" aria-hidden />
+          </button>
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t`Dismiss brief`}
+              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+            >
+              <XIcon className="size-3.5" aria-hidden />
+            </button>
+          ) : null}
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section
       aria-label={t`Daily brief`}
