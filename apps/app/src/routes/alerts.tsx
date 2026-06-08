@@ -1,14 +1,15 @@
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Trans, useLingui } from '@lingui/react/macro'
+import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { ChevronRightIcon, CoffeeIcon, DatabaseIcon, HistoryIcon } from 'lucide-react'
 import { Link } from 'react-router'
 
-import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { CountPill } from '@/components/primitives/count-pill'
 import { AlertsListPage } from '@/features/alerts/AlertsListPage'
 import { useAlertsListQueryOptions, useAlertSourceHealthQueryOptions } from '@/features/alerts/api'
 import { useAlertDrawer } from '@/features/alerts/DrawerProvider'
@@ -26,7 +27,16 @@ export function AlertsRoute() {
   // the embedded list uses, so React Query dedupes (one network
   // request, count rendered in both places).
   const alertsQuery = useQuery(useAlertsListQueryOptions(TOP_ALERTS_LIMIT))
-  const alertCount = alertsQuery.data?.alerts.length ?? 0
+  // The header count chip reads the SAME metric the rail head shows — alerts
+  // still needing action (status === 'matched') — so the page header and the
+  // detail rail head display an identical "N active" pill (Yuqi 2026-06-08:
+  // "ensure Alert and Alert detail use the same style"). Previously the header
+  // counted ALL alerts and labeled them "urgent", so it read 8/urgent next to
+  // the rail's 7/active.
+  const alertCount = useMemo(
+    () => alertsQuery.data?.alerts.filter((a) => a.status === 'matched').length ?? 0,
+    [alertsQuery.data],
+  )
   // 2026-06-08 (Yuqi /alerts #1 "where is it showing it is all working?"):
   // the Sources selector chip carries a live health dot so the CPA can SEE
   // monitoring is healthy at a glance. Same `listSourceHealth` query the
@@ -96,17 +106,15 @@ export function AlertsRoute() {
           section header uses. Also flipped variant `secondary` →
           `outline` (matches round 81 #3 — /today switched the
           equivalent badge to outline same round). */}
-      {/* 2026-06-08 (Yuqi "study closer at the pencil design" — Pencil
-          g5kKJQ `JMGLU`): the active-count chip is the red destructive
-          pill in the design (#fef3f2 / destructive border + text), not
-          the neutral outline. */}
+      {/* 2026-06-08 (Pencil g5kKJQ `JMGLU` + Yuqi "same style as the detail"):
+          the active-count chip is the shared soft `CountPill` (the same dot-pill
+          the rail head uses), not a solid destructive Badge that read as a
+          tappable button. Same metric ("N active" = matched) and same look in
+          both the page header and the detail rail head. */}
       {alertCount > 0 ? (
-        <Badge variant="destructive" size="lg" className="gap-1 tabular-nums">
-          <span>{alertCount}</span>
-          <span>
-            <Trans>urgent</Trans>
-          </span>
-        </Badge>
+        <CountPill>
+          <Plural value={alertCount} one="# active" other="# active" />
+        </CountPill>
       ) : null}
       {/* 2026-06-08 (Pencil g5kKJQ `kdHsZ`): the second title chip is
           the blue Sources SELECTOR — database icon + "Sources · Federal

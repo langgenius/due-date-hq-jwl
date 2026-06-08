@@ -5,6 +5,7 @@ import { SearchIcon } from 'lucide-react'
 import type { ObligationQueueRow } from '@duedatehq/contracts'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { CountPill } from '@/components/primitives/count-pill'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { ObligationStatusReadBadge } from '@/features/obligations/status-control'
@@ -60,10 +61,9 @@ export function ObligationListRail({
           <Trans>Deadlines</Trans>
         </span>
         {overdueCount > 0 ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fef3f2] px-2 py-[3px] text-[12px] font-medium text-text-destructive tabular-nums">
-            <span className="size-1.5 rounded-full bg-text-destructive" aria-hidden />
+          <CountPill>
             <Plural value={overdueCount} one="# overdue" other="# overdue" />
-          </span>
+          </CountPill>
         ) : (
           <span className="text-[12px] font-medium text-text-tertiary tabular-nums">
             <Plural value={rows.length} one="# open" other="# open" />

@@ -6,6 +6,7 @@ import type { PulseAlertPublic } from '@duedatehq/contracts'
 import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
+import { CountPill } from '@/components/primitives/count-pill'
 import { StateBadge } from '@/components/primitives/state-badge'
 import { TaxCodeBadge } from '@/components/primitives/tax-code-label'
 import { useCurrentFirm } from '@/features/billing/use-billing-data'
@@ -71,10 +72,9 @@ export function AlertListRail({
           <Trans>Alerts</Trans>
         </span>
         {activeCount > 0 ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fef3f2] px-2 py-[3px] text-[12px] font-medium text-text-destructive tabular-nums">
-            <span className="size-1.5 rounded-full bg-text-destructive" aria-hidden />
+          <CountPill>
             <Plural value={activeCount} one="# active" other="# active" />
-          </span>
+          </CountPill>
         ) : null}
       </div>
 
