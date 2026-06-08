@@ -4230,7 +4230,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'ct.temporary_announcements',
     jurisdiction: 'CT',
     title: 'Connecticut DRS Media Room',
-    url: 'https://portal.ct.gov/drs/news---press-releases/media-room',
+    url: 'https://portal.ct.gov/drs/press-room/press-releases',
     alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
@@ -4243,7 +4243,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'de.temporary_announcements',
     jurisdiction: 'DE',
     title: 'Delaware Division of Revenue News',
-    url: 'https://revenue.delaware.gov/press-and-media/',
+    url: 'https://news.delaware.gov/category/finance/division-of-revenue/',
     alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
@@ -4262,7 +4262,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'hi.temporary_announcements',
     jurisdiction: 'HI',
     title: 'Hawaii DOTAX News',
-    url: 'https://tax.hawaii.gov/news/',
+    url: 'https://tax.hawaii.gov/news/a2_1media/',
   },
   {
     id: 'ia.temporary_announcements',
@@ -4392,11 +4392,14 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'nd.temporary_announcements',
     jurisdiction: 'ND',
-    title: 'North Dakota Tax and Legislative Changes',
-    url: 'https://www.tax.nd.gov/news/tax-legislative-changes',
-    acquisitionMethod: 'api_watch',
-    adapterKind: 'rss_or_announcement_list',
-    feedUrl: 'https://www.tax.nd.gov/news/tax-legislative-changes',
+    title: 'North Dakota Office of State Tax Commissioner News',
+    // /news/tax-legislative-changes is a hub; /news is the parent newsroom that
+    // renders the reverse-chron dated release list as server-side HTML. Same
+    // RI-style correction: this is an HTML listing, not an RSS/Atom feed, so it
+    // is html_watch (not api_watch with feedUrl pointed at the same HTML page).
+    url: 'https://www.tax.nd.gov/news',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
   },
   {
     id: 'ne.temporary_announcements',
@@ -4437,8 +4440,11 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'ny.temporary_announcements',
     jurisdiction: 'NY',
-    title: 'New York Tax Department Press Office',
-    url: 'https://www.tax.ny.gov/press/',
+    title: 'New York Tax Department Press Releases',
+    // /press/ is only a hub and /press/rel/ a bare year index; the dated release
+    // list lives on the per-year page. {year} resolves to the current year at
+    // fetch time (resolveAnnouncementYearUrl) so the watcher follows the live year.
+    url: 'https://www.tax.ny.gov/press/rel/{year}/',
     // Index-level relief signal: NY announces disaster due-date changes via
     // press releases + N-Notices; no single dedicated relief landing page.
     alertCoverageRoles: ['relief_or_disaster_signal'],
@@ -4493,13 +4499,16 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'pa.temporary_announcements',
     jurisdiction: 'PA',
-    title: 'Pennsylvania DOR PA Tax Update Newsletter',
-    url: 'https://www.pa.gov/agencies/revenue/resources/pa-tax-update-newsletter#sortCriteria=%40copapwpyear%20descending%2C%40copapwpissuedate%20descending',
-    // Index-level relief signal: PA Revenue surfaces disaster relief via the PA
-    // Tax Update newsletter; relief is otherwise federal/PEMA-driven.
+    title: 'Pennsylvania DOR Newsroom',
+    // Switched from the PA Tax Update newsletter (quarterly PDFs) to the DOR
+    // Newsroom, which renders a reverse-chron dated press-release list as HTML
+    // (sorted by effective date) — a better change-detection signal than the
+    // newsletter PDF index, hence html_watch instead of pdf_watch.
+    // Index-level relief signal: PA surfaces disaster relief via DOR newsroom
+    // releases; relief is otherwise federal/PEMA-driven.
     alertCoverageRoles: ['relief_or_disaster_signal'],
-    acquisitionMethod: 'pdf_watch',
-    adapterKind: 'pdf_index',
+    acquisitionMethod: 'html_watch',
+    adapterKind: 'html_announcement_list',
   },
   {
     id: 'ri.temporary_announcements',
