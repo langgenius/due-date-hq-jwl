@@ -236,8 +236,12 @@ function ActionsTable({
           as "item number" in a list, not as a sortable table
           column. */}
       {/* 2026-06-08 (Yuqi "高度更矮"): shorten rows — drop the canonical
-          TableCell py-4 (16px) to py-2.5 (10px) on every cell. */}
-      <Table className="[&_td]:py-2.5">
+          TableCell py-4 (16px) to py-2.5 (10px) on every cell.
+          2026-06-08 (Yuqi /today #7 "no alternating background colour for
+          the table"): opt every body row out of the canonical zebra
+          (`even:bg-background-section/40`) so the table reads as one flat
+          white surface — status-group header bands carry the structure. */}
+      <Table className="[&_td]:py-2.5 [&_tbody_tr]:even:bg-transparent">
         <TableBody>
           {rows.map((row) => {
             const currentStatusGroup = classifyStatusGroup(row.status)
@@ -269,7 +273,7 @@ function ActionsTable({
                 // would alternate tint with row position).
                 <TableRow
                   key={`${currentStatusGroup}-divider`}
-                  className="cursor-default even:bg-transparent hover:!bg-background-subtle"
+                  className="cursor-default even:bg-transparent hover:!bg-[#e9ebf0]"
                   aria-hidden="false"
                 >
                   {/* 2026-06-04 round 84 (Yuqi "apply table design
@@ -282,9 +286,13 @@ function ActionsTable({
                       brings /today's matching primitive up to
                       the same readable scale so both surfaces
                       share one token combo end-to-end. */}
+                  {/* 2026-06-08 (Yuqi /today #6 "darker header"): the
+                      status-group band steps gray-100 → gray-200 and the
+                      label to text-primary so it reads as a real header
+                      dividing the lifecycle groups, not a faint whisper. */}
                   <TableCell
                     colSpan={7}
-                    className="bg-background-subtle px-[18px] py-2 text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase"
+                    className="bg-[#e9ebf0] px-[18px] py-2 text-[12px] font-semibold tracking-[0.5px] text-text-primary uppercase"
                   >
                     <StatusGroupLabel kind={currentStatusGroup} />
                   </TableCell>
@@ -522,10 +530,8 @@ function ActionsTableRow({
           {row.status === 'extended' ? <ExtensionChip /> : null}
         </div>
       </TableCell>
-      {/* DUE cell stacks: relative countdown + absolute internal due date.
-          Right padding aligned to 18px so the table's right content edge
-          matches the brief + alert-card surfaces above. */}
-      <TableCell className="pr-[18px]">
+      {/* DUE cell stacks: relative countdown + absolute internal due date. */}
+      <TableCell>
         <div className="flex flex-col gap-0.5">
           <DueDateLabel
             days={days}
@@ -538,8 +544,30 @@ function ActionsTableRow({
           </span>
         </div>
       </TableCell>
-      {/* Chevron cell dropped (Yuqi round 4): hover-to-expand isn't
-          wired; the row's whole-row click opens the drawer. */}
+      {/* 2026-06-08 (Yuqi "hover each row shows a review button"): a
+          hover-revealed Review action, matching the /alerts row pattern.
+          The button reserves its own trailing column so the reveal never
+          jitters the table; it's invisible at rest (opacity-0) and fades in
+          on row hover/focus. The whole-row click still opens the drawer —
+          this is the explicit affordance for users who want a visible CTA.
+          `tabIndex={-1}` keeps it out of the tab order (the row itself is
+          the focusable target); `aria-hidden` mirrors that. */}
+      <TableCell className="pr-[18px] text-right">
+        <Button
+          type="button"
+          size="xs"
+          variant="outline"
+          tabIndex={-1}
+          aria-hidden
+          onClick={(event) => {
+            event.stopPropagation()
+            onClick()
+          }}
+          className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+        >
+          <Trans>Review</Trans>
+        </Button>
+      </TableCell>
     </TableRow>
   )
 }

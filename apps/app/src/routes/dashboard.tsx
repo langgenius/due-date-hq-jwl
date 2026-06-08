@@ -1,5 +1,5 @@
 import { AlertCircleIcon, PlusIcon, RotateCwIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { parseAsArrayOf, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
@@ -100,6 +100,8 @@ function cleanEntityIdFilters(values: readonly string[]): string[] {
   return cleanStringFilters(values).filter((value) => UUID_RE.test(value))
 }
 
+const BRIEF_DISMISSED_STORAGE_KEY = 'ddhq:dashboard:brief-dismissed'
+
 export function DashboardRoute() {
   const { t } = useLingui()
   const navigate = useNavigate()
@@ -118,6 +120,15 @@ export function DashboardRoute() {
     setDashboardParams,
   ] = useQueryStates(dashboardSearchParamsParsers)
   const queryClient = useQueryClient()
+  // 2026-06-08 (Yuqi /today #8 "able to close it"): the Daily Brief is
+  // dismissable. We persist the dismissal keyed to the brief's generation
+  // stamp so closing it hides THIS brief but a freshly regenerated brief
+  // (new stamp) returns on its own. localStorage so the choice survives a
+  // reload within the day.
+  const [dismissedBriefKey, setDismissedBriefKey] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null
+    return window.localStorage.getItem(BRIEF_DISMISSED_STORAGE_KEY)
+  })
   const dashboardAsOfDate = ISO_DATE_RE.test(asOfDate) ? asOfDate : null
   const clientQuery = useMemo(() => cleanEntityIdFilters(client), [client])
   const taxTypeQuery = useMemo(() => cleanStringFilters(taxType), [taxType])
@@ -389,7 +400,10 @@ export function DashboardRoute() {
                 so clicks still always produce feedback. */}
             <Button
               variant="primary"
-              size="icon-sm"
+              // 2026-06-08 (Yuqi /today #3 "slightly smaller"): icon-sm (32px)
+              // → icon-xs (28px) so the lone "+" affordance sits quieter in
+              // the header cluster next to the synced stamp + shortcut chip.
+              size="icon-xs"
               // The Button base sets `[corner-shape:squircle]`, which keeps the
               // corners a superellipse even at rounded-full — so it read as a
               // rounded square, not a circle. Force `corner-shape:round` for a
@@ -462,14 +476,33 @@ export function DashboardRoute() {
           citations that deep-link each claim back to its obligation.
           `dashboard.load` already returns `brief`; the card renders
           null when none exists (feature-off firms). */}
-      <DailyBriefCard
-        brief={data?.brief ?? null}
-        scope={briefScope}
-        onScopeChange={(scope) => void setDashboardParams({ brief: scope })}
-        onRefresh={() => requestBriefRefresh.mutate({ scope: briefScope })}
-        refreshing={requestBriefRefresh.isPending}
-        onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
-      />
+      {(() => {
+        const brief = data?.brief ?? null
+        // Key the dismissal to the brief's generation stamp so a NEW brief
+        // (different stamp) reappears even after a prior one was closed.
+        const briefKey = brief?.generatedAt ?? brief?.status ?? null
+        if (brief && briefKey && dismissedBriefKey === briefKey) return null
+        return (
+          <DailyBriefCard
+            brief={brief}
+            scope={briefScope}
+            onScopeChange={(scope) => void setDashboardParams({ brief: scope })}
+            onRefresh={() => requestBriefRefresh.mutate({ scope: briefScope })}
+            refreshing={requestBriefRefresh.isPending}
+            onOpenObligation={(obligationId) => openObligationDrawer(obligationId)}
+            onClose={
+              briefKey
+                ? () => {
+                    setDismissedBriefKey(briefKey)
+                    if (typeof window !== 'undefined') {
+                      window.localStorage.setItem(BRIEF_DISMISSED_STORAGE_KEY, briefKey)
+                    }
+                  }
+                : undefined
+            }
+          />
+        )
+      })()}
 
       {/* 2026-06-08 (Yuqi /today #2): the standalone "AT A GLANCE"
           tile row (Pencil bAULB) was removed — Pencil VJbaH folds the

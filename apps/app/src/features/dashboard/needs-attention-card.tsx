@@ -456,8 +456,10 @@ function NeedsAttentionCard({
           {/* 2026-06-08 (Yuqi audit #3 "do not show details on the outside
               card"): the summary body line was removed — the title is the
               card's signal; the full summary lives in the alert drawer. */}
+          {/* 2026-06-08 (Yuqi /today #5 "1px or 2px bigger"): title bumped
+              14px → 15px so it reads as the card's clear anchor line. */}
           <h3
-            className="line-clamp-2 min-w-0 text-sm font-semibold leading-[1.3] text-text-primary"
+            className="line-clamp-2 min-w-0 text-[15px] font-semibold leading-[1.3] text-text-primary"
             title={alert.title}
           >
             {dedupeTitleSource(alert.title, alert.source)}
@@ -496,7 +498,11 @@ function NeedsAttentionCard({
                       className={cn(
                         // One neutral tone + the card's font (#11). Initials
                         // carry identity; the full name is on hover (#10).
-                        'inline-flex size-5 cursor-help items-center justify-center rounded-full bg-background-subtle text-[10px] font-semibold text-text-secondary ring-[1.5px] ring-background-section outline-none',
+                        // 2026-06-08 (Yuqi /today #4 "client avatar darker
+                        // colour"): fill stepped gray-100 → gray-200 and the
+                        // initials to text-primary so the avatars read against
+                        // the card's gray-50 surface instead of dissolving in.
+                        'inline-flex size-5 cursor-help items-center justify-center rounded-full bg-[#e9ebf0] text-[10px] font-semibold text-text-primary ring-[1.5px] ring-background-section outline-none',
                         index > 0 && '-ml-1.5',
                       )}
                       {...props}

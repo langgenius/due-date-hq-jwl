@@ -344,21 +344,18 @@ function PulseAlertRow({
         // arbitrary Pencil value that diverged from the table
         // primitive. Time rail still owns the left 100px when not
         // compact.
-        // 2026-06-04 round 83 (Yuqi #11 "same logic as today's
-        // alert card's client. if there are affected clients,
-        // then use slightly darker gray"): row bg mirrors
-        // NeedsAttentionCard's impacted-conditional bg (round 80).
-        //   • impacted > 0 → `bg-background-section` (darker)
-        //   • impacted === 0 → `bg-background-default` (white)
-        // Active row still wins (state-accent-hover); hover steps
-        // to base-hover in both cases.
+        // 2026-06-08 (Yuqi "table of alerts, no alternating row of
+        // colours"): rows are now a FLAT uniform white surface. The
+        // prior round-83 rule tinted impacted rows (`impacted > 0` →
+        // `bg-background-section`) and left no-match rows white, which
+        // read as arbitrary zebra striping down the list. Client impact
+        // is already carried by the "Affects N clients" meta + the
+        // High-impact pill, so the receding fill was redundant signal.
+        // Every non-active row is `bg-background-default`; active still
+        // wins with the accent wash; hover steps to base-hover.
         'group/row flex cursor-pointer gap-[10px] border-b border-divider-subtle px-5 py-3 outline-none transition-colors',
         'focus-visible:bg-state-base-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-        active
-          ? 'bg-state-accent-hover'
-          : impacted > 0
-            ? 'bg-background-section hover:bg-state-base-hover'
-            : 'bg-background-default hover:bg-state-base-hover',
+        active ? 'bg-state-accent-hover' : 'bg-background-default hover:bg-state-base-hover',
       )}
     >
       {/* Bulk-select checkbox (Pencil g5kKJQ `gT3zO chk`, 18px).
@@ -1020,7 +1017,13 @@ function PulseAlertList({
                 {dayWord ? <span className="text-text-muted">·</span> : null}
                 <span>{label}</span>
               </div>
-              <span className="text-[12px] font-semibold tracking-[0.5px] text-text-muted uppercase tabular-nums">
+              {/* 2026-06-08 (Yuqi /alerts #4 "thin, same gray, lower
+                  caps, 1 dispatch"): the count drops the bold/uppercase/
+                  tracking eyebrow treatment — now a thin, normal-case
+                  muted-gray label so it reads as quiet supporting context
+                  ("1 dispatch"), not a second heading competing with the
+                  date. */}
+              <span className="text-[12px] font-normal text-text-muted tabular-nums">
                 <Trans>
                   {dayAlerts.length} {dayAlerts.length === 1 ? t`dispatch` : t`dispatches`}
                 </Trans>

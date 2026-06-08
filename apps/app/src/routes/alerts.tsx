@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { MVP_RULE_JURISDICTIONS } from '@duedatehq/core/rules'
 import { cn } from '@duedatehq/ui/lib/utils'
 
@@ -278,20 +279,33 @@ function MorningSweepHeaderButton() {
   // pattern the filter-active state used. When the panel's "Show me
   // just these alerts" CTA fires it sets the filter via
   // `sweep.toggle()` independently.
+  // 2026-06-08 (Yuqi /alerts #1 "reduce to a coffee icon"): the labelled
+  // "My morning sweep" pill collapses to an icon-only Coffee button so the
+  // header action cluster stays compact. The label moves to the tooltip +
+  // aria-label so the affordance stays discoverable and accessible. The
+  // active (digest-open) state keeps the filled `secondary` treatment.
   return (
-    <Button
-      variant={sweep.digestOpen ? 'secondary' : 'outline'}
-      size="sm"
-      onClick={sweep.toggleDigest}
-      aria-pressed={sweep.digestOpen}
-      aria-expanded={sweep.digestOpen}
-      aria-controls="morning-sweep-panel-title"
-      aria-label={t`Toggle morning sweep briefing`}
-    >
-      {/* Round 51 — CoffeeIcon (morning ritual anchor). Pairs with
-          the panel header's SparklesIcon (AI signal). */}
-      <CoffeeIcon data-icon="inline-start" />
-      <Trans>My morning sweep</Trans>
-    </Button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            variant={sweep.digestOpen ? 'secondary' : 'outline'}
+            size="icon-sm"
+            onClick={sweep.toggleDigest}
+            aria-pressed={sweep.digestOpen}
+            aria-expanded={sweep.digestOpen}
+            aria-controls="morning-sweep-panel-title"
+            aria-label={t`Toggle morning sweep briefing`}
+          >
+            {/* Round 51 — CoffeeIcon (morning ritual anchor). Pairs with
+                the panel header's SparklesIcon (AI signal). */}
+            <CoffeeIcon />
+          </Button>
+        }
+      />
+      <TooltipContent>
+        <Trans>My morning sweep</Trans>
+      </TooltipContent>
+    </Tooltip>
   )
 }

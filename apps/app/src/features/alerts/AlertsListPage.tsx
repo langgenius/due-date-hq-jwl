@@ -926,8 +926,13 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                     narrow viewports via the parent's flex-wrap. */}
                 {/* Search — round 83 #16 ("slightly smaller"):
                     h-10 → h-9 to match the now-shorter
-                    FilterTrigger and View-toggle siblings. */}
-                <label className="inline-flex h-9 w-[260px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt">
+                    FilterTrigger and View-toggle siblings.
+                    2026-06-08 (Yuqi /alerts #3 "can be reduced if screen
+                    smaller"): width is now responsive — 180px on small
+                    screens, stepping up to 220 / 260 at sm / lg — so the
+                    filter cluster keeps more room to stay on one line on
+                    narrower viewports instead of holding a fixed 260px. */}
+                <label className="inline-flex h-9 w-[180px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt sm:w-[220px] lg:w-[260px]">
                   <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
                   <input
                     type="search"
@@ -990,9 +995,28 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                       </button>
                     </div>
 
-                    {/* Spacer — pushes the dropdown cluster to the
-                    right edge per #8. */}
-                    <span className="flex-1" aria-hidden />
+                    {/* 2026-06-08 (Yuqi /alerts #2 "Sort … in the same row
+                    as other filters"): the greedy `flex-1` spacer was
+                    removed. In a `flex-wrap` row a growing spacer eats the
+                    rest of line 1, forcing the whole dropdown cluster —
+                    Time / Severity / Change types / Tax area / State / Sort
+                    — onto a second line, and on narrower viewports Sort wrapped
+                    off onto a THIRD line by itself. Without the spacer the
+                    controls flow left-to-right and Sort stays adjacent to its
+                    sibling filters, wrapping with them as one group. */}
+                    {/* 2026-06-08 (Yuqi /alerts "space between search +
+                    list/map, and the rest of dropdown"): a FIXED (non-growing)
+                    vertical hairline divider separates the left cluster
+                    (Search + View toggle) from the dropdown cluster. Unlike
+                    the old `flex-1` spacer it doesn't grow to fill the line,
+                    so it gives a clear visual gap without forcing the filters
+                    to wrap onto a new line. `shrink-0` keeps it intact; the
+                    `mx-1` adds a touch of air on each side on top of the
+                    row's `gap-2`. */}
+                    <span
+                      className="mx-1 h-6 w-px shrink-0 self-center bg-divider-regular"
+                      aria-hidden
+                    />
 
                     {/* Last 24 hours — time-range filter */}
                     <DropdownMenu>

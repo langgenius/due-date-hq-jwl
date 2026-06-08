@@ -1,6 +1,6 @@
 import { Fragment, type ReactNode } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { ExternalLinkIcon, RotateCwIcon } from 'lucide-react'
+import { ExternalLinkIcon, RotateCwIcon, XIcon } from 'lucide-react'
 
 import type { DashboardBriefPublic, DashboardBriefScope } from '@duedatehq/contracts'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
@@ -31,6 +31,7 @@ export function DailyBriefCard({
   onRefresh,
   refreshing,
   onOpenObligation,
+  onClose,
 }: {
   brief: DashboardBriefPublic | null
   scope: DashboardBriefScope
@@ -38,6 +39,7 @@ export function DailyBriefCard({
   onRefresh: () => void
   refreshing: boolean
   onOpenObligation: (obligationId: string) => void
+  onClose?: (() => void) | undefined
 }) {
   const { t } = useLingui()
   if (!brief) return null
@@ -50,7 +52,10 @@ export function DailyBriefCard({
   return (
     <section
       aria-label={t`Daily brief`}
-      className="group flex flex-col gap-1 rounded-[14px] border border-state-accent-border bg-state-accent-hover p-[18px]"
+      // 2026-06-08 (Yuqi /today #1 "top padding reduce"): the section's
+      // top padding is trimmed (pt-3 vs the 18px on the other sides) so the
+      // title row sits closer to the top edge and the card reads tighter.
+      className="group flex flex-col gap-1 rounded-[14px] border border-state-accent-border bg-state-accent-hover px-[18px] pt-3 pb-[18px]"
     >
       {/* TopRow — Pencil qYrr3 `LfcWh` */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -60,9 +65,13 @@ export function DailyBriefCard({
           <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-primary transition-colors group-hover:text-text-accent">
             <Trans>Daily Brief</Trans>
           </h2>
-          <BriefFreshness brief={brief} pending={isPending} />
+          <BriefFreshness
+            brief={brief}
+            pending={isPending}
+            onRefresh={canRefresh ? onRefresh : undefined}
+          />
         </div>
-        {/* Right — scope toggle + icon-only refresh */}
+        {/* Right — scope toggle + icon-only refresh + dismiss */}
         <div className="flex shrink-0 items-center gap-2.5">
           <BriefScopeToggle value={scope} onChange={onScopeChange} />
           {canRefresh ? (
@@ -73,6 +82,19 @@ export function DailyBriefCard({
               className="inline-flex size-7 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
             >
               <RotateCwIcon className="size-3.5" aria-hidden />
+            </button>
+          ) : null}
+          {/* 2026-06-08 (Yuqi /today #8 "able to close it"): dismiss the
+              brief for the day. The parent persists the dismissal keyed to
+              this brief's generation, so a freshly regenerated brief returns. */}
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t`Dismiss brief`}
+              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+            >
+              <XIcon className="size-3.5" aria-hidden />
             </button>
           ) : null}
         </div>
@@ -113,7 +135,16 @@ export function DailyBriefCard({
  * title. The dot's color is the only freshness cue (green = fresh, amber =
  * outdated, red = failed), so the rest of the title row reads neutral.
  */
-function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pending: boolean }) {
+function BriefFreshness({
+  brief,
+  pending,
+  onRefresh,
+}: {
+  brief: DashboardBriefPublic
+  pending: boolean
+  onRefresh?: (() => void) | undefined
+}) {
+  const { t } = useLingui()
   if (pending) {
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5">
@@ -143,6 +174,40 @@ function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pendi
   }
   const stale = brief.status === 'stale'
   const age = brief.generatedAt ? formatRelativeTime(brief.generatedAt) : null
+
+  // 2026-06-08 (Yuqi /today #2 "what do you do when it's outdated"): the
+  // stale state is no longer a dead label — it's the affordance. When the
+  // brief is outdated it renders as an amber "Outdated · Refresh" button
+  // that regenerates on click, so the next step is obvious from the chip
+  // itself rather than relying on the separate icon-only refresh control.
+  if (stale && onRefresh) {
+    return (
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <button
+              type="button"
+              onClick={onRefresh}
+              className="group/stale inline-flex shrink-0 items-center gap-1.5 rounded-full text-text-warning outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+            >
+              <span className="size-1.5 rounded-full bg-text-warning" aria-hidden />
+              <span className="font-mono text-[11px] font-medium tracking-[0.4px] uppercase">
+                <Trans>Outdated</Trans>
+              </span>
+              <span className="inline-flex items-center gap-0.5 font-mono text-[11px] font-medium tracking-[0.4px] text-text-warning/70 uppercase transition-colors group-hover/stale:text-text-warning">
+                <RotateCwIcon className="size-2.5" aria-hidden />
+                <Trans>Refresh</Trans>
+              </span>
+            </button>
+          }
+        />
+        <TooltipContent>
+          <Trans>This brief is out of date — regenerate it</Trans>
+        </TooltipContent>
+      </Tooltip>
+    )
+  }
+
   return (
     <span className="inline-flex shrink-0 items-center gap-1.5">
       <span
