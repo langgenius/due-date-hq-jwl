@@ -282,7 +282,7 @@ function ActionsTable({
                       share one token combo end-to-end. */}
                   <TableCell
                     colSpan={7}
-                    className="bg-background-subtle px-5 py-2 text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase"
+                    className="bg-background-subtle px-[18px] py-2 text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase"
                   >
                     <StatusGroupLabel kind={currentStatusGroup} />
                   </TableCell>
@@ -389,7 +389,7 @@ function ActionsTableRow({
           override for the narrow rank column (canonical px-5
           would push the mono number off-center). text-center is
           structural. */}
-      <TableCell className="px-3 text-center">
+      <TableCell className="pr-2 pl-[18px] text-left">
         <Tooltip>
           <TooltipTrigger
             render={(props) => (
@@ -520,8 +520,10 @@ function ActionsTableRow({
           {row.status === 'extended' ? <ExtensionChip /> : null}
         </div>
       </TableCell>
-      {/* DUE cell stacks: relative countdown + absolute internal due date. */}
-      <TableCell>
+      {/* DUE cell stacks: relative countdown + absolute internal due date.
+          Right padding aligned to 18px so the table's right content edge
+          matches the brief + alert-card surfaces above. */}
+      <TableCell className="pr-[18px]">
         <div className="flex flex-col gap-0.5">
           <DueDateLabel
             days={days}
