@@ -23,7 +23,10 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   await rulesConsolePage.goto()
 
   await expect(authenticatedPage).toHaveURL(/\/rules\/library(?:\?view=matrix)?$/)
-  await expect(authenticatedPage.getByRole('button', { name: /Start review\s+\d+/ })).toBeVisible({
+  // The header's "Start review N" / "New rule" actions are conditional on the
+  // review-queue and active scope; assert the always-rendered "Rule library
+  // overview" section instead to confirm the library route rendered its console.
+  await expect(authenticatedPage.getByText('Rule library overview')).toBeVisible({
     timeout: 20_000,
   })
 
@@ -38,7 +41,7 @@ test('AC: E2E-RULES-TABS each former rules tab is now a dedicated route', async 
   await expect(authenticatedPage).toHaveURL(/\/rules\/library$/)
   await authenticatedPage.goto('/rules/library?filter=pending')
   await expect(authenticatedPage).toHaveURL(/\/rules\/library\?filter=pending/)
-  await expect(authenticatedPage.getByRole('button', { name: /Start review\s+\d+/ })).toBeVisible({
+  await expect(authenticatedPage.getByText('Rule library overview')).toBeVisible({
     timeout: 20_000,
   })
 })

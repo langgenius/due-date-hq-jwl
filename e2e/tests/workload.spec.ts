@@ -84,15 +84,15 @@ test.describe('seeded team workload', () => {
     await expect(authenticatedPage).toHaveURL(/\/deadlines\?.*assignee=M\.(?:\+|%20)Chen/)
     await expect(authenticatedPage).toHaveURL(/\/deadlines\?.*due=overdue/)
     await expect(obligationQueuePage.heading).toBeVisible()
-    await expect(authenticatedPage.getByText('Arbor & Vale LLC')).toBeVisible()
-    await expect(authenticatedPage.getByText('Northstar Dental Group')).toBeHidden()
+    await expect(obligationQueuePage.rowFor('Arbor & Vale LLC')).toBeVisible()
+    await expect(obligationQueuePage.rowFor('Northstar Dental Group')).toBeHidden()
 
     await workloadPage.goto()
     await workloadPage.rowFor('Unassigned').getByRole('button', { name: 'Open' }).click()
 
     await expect(authenticatedPage).toHaveURL(/\/deadlines\?owner=unassigned$/)
-    await expect(authenticatedPage.getByText('Unassigned Foundry LLC')).toBeVisible()
-    await expect(authenticatedPage.getByText('Copperline Studios')).toBeHidden()
+    await expect(obligationQueuePage.rowFor('Unassigned Foundry LLC')).toBeVisible()
+    await expect(obligationQueuePage.rowFor('Copperline Studios')).toBeHidden()
   })
 })
 
