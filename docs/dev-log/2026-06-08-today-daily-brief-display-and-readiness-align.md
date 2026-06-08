@@ -9,12 +9,12 @@ Two Yuqi /today fixes after the At-a-glance removal.
 The Daily Brief card (`daily-brief-card.tsx`) renders `null` when `data.brief`
 is null. It was null in the demo (and in real use after an overnight roll-over)
 because the repo's `load` fetched the brief via `findLatestBrief`, which
-**exact-matches `asOfDate`**. The dashboard loads with *today's* date, but the
+**exact-matches `asOfDate`**. The dashboard loads with _today's_ date, but the
 seeded/persisted brief carries the date it was generated (e.g. `2026-06-02`), so
 the equality never held and the card disappeared.
 
 `findLatestBrief`'s exact match is correct for the **refresh** path (it wants
-*today's* pending/ready brief), so that was left untouched. Added a separate
+_today's_ pending/ready brief), so that was left untouched. Added a separate
 display lookup, `findBriefForDisplay`, that returns the most recent brief
 generated **on or before** `asOfDate` (`lte(asOfDate)`, ordered `asOfDate desc`).
 A daily brief should persist and surface its own staleness via the freshness chip

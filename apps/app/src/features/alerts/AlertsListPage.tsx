@@ -1567,14 +1567,12 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                             position: { index: openIndex, total: sortedAlerts.length },
                             ...(openIndex > 0
                               ? {
-                                  onPrev: () =>
-                                    openDrawer(sortedAlerts[openIndex - 1]!.id),
+                                  onPrev: () => openDrawer(sortedAlerts[openIndex - 1]!.id),
                                 }
                               : {}),
                             ...(openIndex < sortedAlerts.length - 1
                               ? {
-                                  onNext: () =>
-                                    openDrawer(sortedAlerts[openIndex + 1]!.id),
+                                  onNext: () => openDrawer(sortedAlerts[openIndex + 1]!.id),
                                 }
                               : {}),
                           }

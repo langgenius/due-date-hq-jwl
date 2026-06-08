@@ -5,11 +5,12 @@ Date: 2026-06-08
 Pulled the source of truth (Pencil `VJbaH` + sub-frames) to stop guessing. The
 diagnosis: the page had lost surface definition. The app uses a **tinted page /
 white card** model, but the alert cards were filled `bg-background-section`
-(gray) — so the *important* cards receded into the page wash, and with no border
+(gray) — so the _important_ cards receded into the page wash, and with no border
 and a near-white page tint there was nothing to define an edge. Everything
 flattened into one gray mush → "粗糙 / 没有重点".
 
 Pencil geometry confirmed from the canvas:
+
 - Alert card (`VxRyF`): radius **14**, padding **18**, gap 16, fill `#f9fafb`,
   **no border** — but that works because the design's page is pure white.
 - Actions table (`ErW76 > bmdxt`): radius **14**, white fill, `#10182814` 1px
@@ -39,7 +40,7 @@ hairline + 32px rhythm give the structure the flat wash lacked.
 The design is white-page + gray-cards; the app is tinted-page + white-cards
 (committed in 755d767d). Rather than flip the global surface model (high blast
 radius — white cards on a white page would vanish app-wide), this matches the
-design's *refinement* (radius 14 / hairline / 32px) within the app's existing
+design's _refinement_ (radius 14 / hairline / 32px) within the app's existing
 model. A full white-page migration would be a separate, app-wide change.
 
 ## Verify

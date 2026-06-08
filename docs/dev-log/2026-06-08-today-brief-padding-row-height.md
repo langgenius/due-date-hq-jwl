@@ -5,7 +5,7 @@ Date: 2026-06-08
 Three page-feedback items.
 
 - **#1 Daily Brief padding** (`daily-brief-card.tsx`): outer padding `px-[18px]
-  py-4` (18/16) → `p-[18px]` (18 all sides) so it matches the alert cards below.
+py-4` (18/16) → `p-[18px]` (18 all sides) so it matches the alert cards below.
   Confirmed in preview: brief padding 18px == card padding 18px.
 - **#2 Import "+" button**: already fully round — `rounded-full` is applied and the
   32×32 square clamps to a circle (computed radius confirms). No change needed.

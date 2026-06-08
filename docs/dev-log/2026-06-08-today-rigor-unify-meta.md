@@ -5,11 +5,11 @@ Date: 2026-06-08
 The alert card's top meta row carried three different badge treatments that, side
 by side, read as ad-hoc — the opposite of rigorous:
 
-| element        | before                                   |
-|----------------|------------------------------------------|
+| element        | before                                                       |
+| -------------- | ------------------------------------------------------------ |
 | jurisdiction   | `rounded-md` `px-2 py-[2px]` mono 11/600, border-**regular** |
-| form (TaxCode) | `rounded-[5px]` `px-3 py-1` mono **12**/medium, gray fill |
-| change-kind    | plain mono 10/600                        |
+| form (TaxCode) | `rounded-[5px]` `px-3 py-1` mono **12**/medium, gray fill    |
+| change-kind    | plain mono 10/600                                            |
 
 Pencil `VxRyF` actually defines the jurisdiction and form badges as the **same**
 pill (radius 6, padding [2,8], mono 11/600, hairline) — the form only adds a gray

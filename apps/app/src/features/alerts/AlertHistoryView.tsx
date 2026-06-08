@@ -149,7 +149,12 @@ export function AlertHistoryView() {
     })
 
   const statCards: { label: string; value: number; sub?: string; subTone?: string }[] = [
-    { label: t`Handled`, value: stats.handled, sub: t`last 90 days`, subTone: 'text-text-tertiary' },
+    {
+      label: t`Handled`,
+      value: stats.handled,
+      sub: t`last 90 days`,
+      subTone: 'text-text-tertiary',
+    },
     {
       label: t`Applied`,
       value: stats.applied,
@@ -178,101 +183,76 @@ export function AlertHistoryView() {
 
   return (
     <>
-    <div className="flex flex-col gap-6">
-      {/* STATS — derived from real loaded data. Responsive grid wraps
+      <div className="flex flex-col gap-6">
+        {/* STATS — derived from real loaded data. Responsive grid wraps
           on narrow viewports (2 → 3 → 5 cols) so it never scrolls. */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {statCards.map((card) => (
-          <div
-            key={card.label}
-            className="flex flex-col gap-1 rounded-xl border border-divider-subtle bg-background-default px-4 py-3"
-          >
-            <span className="text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
-              {card.label}
-            </span>
-            <span className="text-[22px] font-semibold text-text-primary tabular-nums">
-              {card.value}
-            </span>
-            {card.sub ? (
-              <span className={cn('text-[10px] font-medium tabular-nums', card.subTone)}>
-                {card.sub}
-              </span>
-            ) : null}
-          </div>
-        ))}
-      </div>
-
-      {/* TABS + SEARCH — wraps instead of scrolling on small screens. */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex flex-wrap items-center gap-1">
-          {TABS.map((entry) => (
-            <button
-              key={entry.id}
-              type="button"
-              onClick={() => setTab(entry.id)}
-              aria-pressed={tab === entry.id}
-              className={cn(
-                'inline-flex h-8 items-center rounded-lg px-3 text-[13px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
-                tab === entry.id
-                  ? 'bg-state-accent-hover text-text-accent'
-                  : 'text-text-secondary hover:bg-state-base-hover',
-              )}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {statCards.map((card) => (
+            <div
+              key={card.label}
+              className="flex flex-col gap-1 rounded-xl border border-divider-subtle bg-background-default px-4 py-3"
             >
-              {entry.id === 'all' ? (
-                <Trans>All</Trans>
-              ) : entry.id === 'applied' ? (
-                <Trans>Applied</Trans>
-              ) : entry.id === 'dismissed' ? (
-                <Trans>Dismissed</Trans>
-              ) : entry.id === 'snoozed' ? (
-                <Trans>Snoozed</Trans>
-              ) : (
-                <Trans>Reverted</Trans>
-              )}
-            </button>
+              <span className="text-[10px] font-bold tracking-[0.6px] text-text-muted uppercase">
+                {card.label}
+              </span>
+              <span className="text-[22px] font-semibold text-text-primary tabular-nums">
+                {card.value}
+              </span>
+              {card.sub ? (
+                <span className={cn('text-[10px] font-medium tabular-nums', card.subTone)}>
+                  {card.sub}
+                </span>
+              ) : null}
+            </div>
           ))}
         </div>
-        <label className="inline-flex h-9 min-w-0 flex-1 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-3 sm:max-w-[280px]">
-          <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-          <input
-            type="search"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={t`Search handled alerts`}
-            aria-label={t`Search handled alerts`}
-            className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-text-primary outline-none placeholder:text-text-muted"
-          />
-        </label>
-      </div>
 
-      {/* BULK BAR — appears when rows are selected. */}
-      {selected.size > 0 ? (
-        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-state-accent-border bg-state-accent-hover px-4 py-2.5">
-          <Checkbox
-            checked={allVisibleSelected}
-            indeterminate={someSelected}
-            onCheckedChange={(next) => toggleAll(next)}
-            aria-label={t`Select all`}
-            className="size-[18px] rounded-[4px]"
-          />
-          <span className="text-[13px] font-semibold text-text-accent tabular-nums">
-            <Plural value={selected.size} one="# alert selected" other="# alerts selected" />
-          </span>
-          <button
-            type="button"
-            onClick={() => setSelected(new Set())}
-            className="text-[13px] font-medium text-text-accent underline-offset-2 hover:underline"
-          >
-            <Trans>Clear</Trans>
-          </button>
+        {/* TABS + SEARCH — wraps instead of scrolling on small screens. */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="inline-flex flex-wrap items-center gap-1">
+            {TABS.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                onClick={() => setTab(entry.id)}
+                aria-pressed={tab === entry.id}
+                className={cn(
+                  'inline-flex h-8 items-center rounded-lg px-3 text-[13px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                  tab === entry.id
+                    ? 'bg-state-accent-hover text-text-accent'
+                    : 'text-text-secondary hover:bg-state-base-hover',
+                )}
+              >
+                {entry.id === 'all' ? (
+                  <Trans>All</Trans>
+                ) : entry.id === 'applied' ? (
+                  <Trans>Applied</Trans>
+                ) : entry.id === 'dismissed' ? (
+                  <Trans>Dismissed</Trans>
+                ) : entry.id === 'snoozed' ? (
+                  <Trans>Snoozed</Trans>
+                ) : (
+                  <Trans>Reverted</Trans>
+                )}
+              </button>
+            ))}
+          </div>
+          <label className="inline-flex h-9 min-w-0 flex-1 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-3 sm:max-w-[280px]">
+            <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={t`Search handled alerts`}
+              aria-label={t`Search handled alerts`}
+              className="min-w-0 flex-1 bg-transparent text-[13px] font-medium text-text-primary outline-none placeholder:text-text-muted"
+            />
+          </label>
         </div>
-      ) : null}
 
-      {/* TABLE */}
-      <div className="flex flex-col rounded-xl border border-divider-regular bg-background-default">
-        {/* Header row */}
-        <div className="flex items-center gap-3 border-b border-divider-subtle px-4 py-2.5 text-[11px] font-bold tracking-[0.6px] text-text-muted uppercase">
-          <span className="flex w-5 shrink-0 items-center">
+        {/* BULK BAR — appears when rows are selected. */}
+        {selected.size > 0 ? (
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-state-accent-border bg-state-accent-hover px-4 py-2.5">
             <Checkbox
               checked={allVisibleSelected}
               indeterminate={someSelected}
@@ -280,56 +260,81 @@ export function AlertHistoryView() {
               aria-label={t`Select all`}
               className="size-[18px] rounded-[4px]"
             />
-          </span>
-          <span className="w-[84px] shrink-0">
-            <Trans>Date</Trans>
-          </span>
-          <span className="w-[52px] shrink-0">
-            <Trans>Juris</Trans>
-          </span>
-          <span className="min-w-0 flex-1">
-            <Trans>Alert</Trans>
-          </span>
-          <span className="w-[112px] shrink-0">
-            <Trans>Status</Trans>
-          </span>
-        </div>
+            <span className="text-[13px] font-semibold text-text-accent tabular-nums">
+              <Plural value={selected.size} one="# alert selected" other="# alerts selected" />
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelected(new Set())}
+              className="text-[13px] font-medium text-text-accent underline-offset-2 hover:underline"
+            >
+              <Trans>Clear</Trans>
+            </button>
+          </div>
+        ) : null}
 
-        {historyQuery.isLoading ? (
-          <div className="px-4 py-10 text-center text-[13px] text-text-tertiary">
-            <Trans>Loading handled alerts…</Trans>
+        {/* TABLE */}
+        <div className="flex flex-col rounded-xl border border-divider-regular bg-background-default">
+          {/* Header row */}
+          <div className="flex items-center gap-3 border-b border-divider-subtle px-4 py-2.5 text-[11px] font-bold tracking-[0.6px] text-text-muted uppercase">
+            <span className="flex w-5 shrink-0 items-center">
+              <Checkbox
+                checked={allVisibleSelected}
+                indeterminate={someSelected}
+                onCheckedChange={(next) => toggleAll(next)}
+                aria-label={t`Select all`}
+                className="size-[18px] rounded-[4px]"
+              />
+            </span>
+            <span className="w-[84px] shrink-0">
+              <Trans>Date</Trans>
+            </span>
+            <span className="w-[52px] shrink-0">
+              <Trans>Juris</Trans>
+            </span>
+            <span className="min-w-0 flex-1">
+              <Trans>Alert</Trans>
+            </span>
+            <span className="w-[112px] shrink-0">
+              <Trans>Status</Trans>
+            </span>
           </div>
-        ) : filtered.length === 0 ? (
-          <div className="px-4 py-10 text-center text-[13px] text-text-tertiary">
-            <Trans>No handled alerts match this view.</Trans>
-          </div>
-        ) : (
-          groups.map(([month, monthAlerts]) => (
-            <div key={month} className="flex flex-col">
-              <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-4 py-2">
-                <span className="text-[11px] font-bold tracking-[0.6px] text-text-secondary uppercase">
-                  {month}
-                </span>
-                <span className="text-[11px] font-semibold tracking-[0.6px] text-text-muted uppercase tabular-nums">
-                  <Plural value={monthAlerts.length} one="# handled" other="# handled" />
-                </span>
-              </div>
-              {monthAlerts.map((alert) => (
-                <HistoryRow
-                  key={alert.id}
-                  alert={alert}
-                  active={alert.id === alertId}
-                  selected={selected.has(alert.id)}
-                  firmTimezone={firmTimezone}
-                  onToggle={(next) => toggleOne(alert.id, next)}
-                  onOpen={() => openDrawer(alert.id)}
-                />
-              ))}
+
+          {historyQuery.isLoading ? (
+            <div className="px-4 py-10 text-center text-[13px] text-text-tertiary">
+              <Trans>Loading handled alerts…</Trans>
             </div>
-          ))
-        )}
+          ) : filtered.length === 0 ? (
+            <div className="px-4 py-10 text-center text-[13px] text-text-tertiary">
+              <Trans>No handled alerts match this view.</Trans>
+            </div>
+          ) : (
+            groups.map(([month, monthAlerts]) => (
+              <div key={month} className="flex flex-col">
+                <div className="flex items-center justify-between border-b border-divider-subtle bg-background-subtle px-4 py-2">
+                  <span className="text-[11px] font-bold tracking-[0.6px] text-text-secondary uppercase">
+                    {month}
+                  </span>
+                  <span className="text-[11px] font-semibold tracking-[0.6px] text-text-muted uppercase tabular-nums">
+                    <Plural value={monthAlerts.length} one="# handled" other="# handled" />
+                  </span>
+                </div>
+                {monthAlerts.map((alert) => (
+                  <HistoryRow
+                    key={alert.id}
+                    alert={alert}
+                    active={alert.id === alertId}
+                    selected={selected.has(alert.id)}
+                    firmTimezone={firmTimezone}
+                    onToggle={(next) => toggleOne(alert.id, next)}
+                    onOpen={() => openDrawer(alert.id)}
+                  />
+                ))}
+              </div>
+            ))
+          )}
+        </div>
       </div>
-    </div>
       {/* Detail drawer — the /alerts/history route owns its panel
           (DrawerProvider skips the fallback Sheet here), so render it
           inline. Sheet mode floats the detail over the full-width
@@ -382,10 +387,7 @@ function HistoryRow({
         active ? 'bg-state-accent-hover' : 'hover:bg-state-base-hover',
       )}
     >
-      <span
-        className="flex w-5 shrink-0 items-center"
-        onClick={(event) => event.stopPropagation()}
-      >
+      <span className="flex w-5 shrink-0 items-center" onClick={(event) => event.stopPropagation()}>
         <Checkbox
           checked={selected}
           onCheckedChange={(next) => onToggle(next)}

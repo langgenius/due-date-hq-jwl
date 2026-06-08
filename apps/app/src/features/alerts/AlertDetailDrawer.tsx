@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import {
@@ -149,7 +149,8 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
       timeZone: 'UTC',
     }).format(new Date(`${iso}T00:00:00.000Z`))
   const days = Math.round(
-    (new Date(`${newIso}T00:00:00.000Z`).getTime() - new Date(`${oldIso}T00:00:00.000Z`).getTime()) /
+    (new Date(`${newIso}T00:00:00.000Z`).getTime() -
+      new Date(`${oldIso}T00:00:00.000Z`).getTime()) /
       86_400_000,
   )
   const scopeArea =
