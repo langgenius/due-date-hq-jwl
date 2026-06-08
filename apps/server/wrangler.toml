@@ -161,10 +161,12 @@ AI_GATEWAY_MODEL_REASONING = "google/gemini-3.5-flash"
 AI_GATEWAY_QUALITY_REASONING_EFFORT = "high"
 AI_GATEWAY_FAST_REASONING_EFFORT = "low"
 PULSE_BROWSERLESS_URL = "https://production-sfo.browserless.io/content"
-# Emptied: browserless was 400-failing these news pages. They now fetch direct
-# (with the browser UA), matching the rest of the fleet. Re-add IDs here only for
-# sources that genuinely need a headless browser.
-PULSE_BROWSERLESS_SOURCE_IDS = ""
+# The old 400-failures were a client bug (invalid fields sent to /content),
+# fixed in browserless.ts. Re-add IDs here only for sources that genuinely need
+# a headless browser. mt/pa render their newsroom list client-side (JS), so a
+# direct fetch sees an empty shell — they need browserless. Verify in prod
+# source-health (/rules/sources) after deploy; revert if browserless regresses.
+PULSE_BROWSERLESS_SOURCE_IDS = "mt.temporary_announcements,pa.temporary_announcements"
 
 # Current stage uses a single top-level Worker configuration.
 # Add named environments only when each env has its own complete bindings
