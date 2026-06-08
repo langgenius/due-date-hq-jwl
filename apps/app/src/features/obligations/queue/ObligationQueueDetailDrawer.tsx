@@ -10,10 +10,8 @@ import {
   StatutoryDatesPanel,
 } from './components/panels'
 import {
-  AlertPanel,
   type ArtifactStatusCell,
   AuthorityFactStrip,
-  DetailRow,
   DropdownTriggerButton,
   EmptyPanel,
   EvidenceArtifactStatusGrid,
@@ -51,13 +49,14 @@ import {
 } from './helpers'
 import type { AuthorityRejectionDraft, DeadlineInputRequestDraft } from './types'
 import { IsoDatePicker, isValidIsoDate } from '@/components/primitives/iso-date-picker'
-import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
+import { describeTaxCode } from '@/lib/tax-codes'
 import { usePracticeTimezone } from '@/features/firm/practice-timezone'
 import { ChecklistItemRow } from '@/features/obligations/ChecklistItemRow'
 import { deadlineDetailHref } from '@/features/obligations/deadline-detail-url'
 import { isTabVisibleForType, tabsForObligationType } from '@/features/obligations/obligation-type'
 import {
   type ObligationStatus,
+  ObligationStatusReadBadge,
   useLifecycleV2StatusLabels,
   useStatusLabels,
 } from '@/features/obligations/status-control'
@@ -66,8 +65,15 @@ import { useFirmPermission } from '@/features/permissions/permission-gate'
 import { clientDetailPath } from '@/features/clients/client-url'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
-import { cn, formatDate, formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
 import {
+  cn,
+  formatCents,
+  formatDate,
+  formatDatePretty,
+  formatDateTimeWithTimezone,
+} from '@/lib/utils'
+import {
+  type MemberAssigneeOption,
   type ObligationPrepStage,
   type ObligationQueueDetailTab,
   type ObligationQueueRow,
@@ -82,8 +88,10 @@ import { Checkbox } from '@duedatehq/ui/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Input } from '@duedatehq/ui/components/ui/input'
@@ -98,8 +106,8 @@ import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  AlarmClockIcon,
   AlertTriangleIcon,
-  ArrowUpRightIcon,
   BookOpenIcon,
   CalendarClockIcon,
   CheckCircle2Icon,
@@ -116,12 +124,130 @@ import {
   PlusIcon,
   RefreshCwIcon,
   SendIcon,
+  UserPlusIcon,
+  UsersIcon,
   XIcon,
 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
+
+// 2026-06-08 (Pencil HuYeb /deadlines detail): the header's top-right
+// action cluster — Assign (assignee picker), Snooze (preset defer), and
+// Mark-as-filed (status → Filed). Extracted as a small component so the
+// dropdown state stays local and the header JSX reads cleanly.
+function DeadlineTopActions({
+  row,
+  assignableMembers,
+  onAssign,
+  onSnooze,
+  onMarkFiled,
+  assignPending,
+  snoozePending,
+  markFiledPending,
+}: {
+  row: ObligationQueueRow
+  assignableMembers: MemberAssigneeOption[]
+  onAssign: (assigneeId: string | null) => void
+  onSnooze: (snoozedUntil: string | null) => void
+  onMarkFiled: () => void
+  assignPending: boolean
+  snoozePending: boolean
+  markFiledPending: boolean
+}) {
+  const { t } = useLingui()
+  // `done` / `paid` / `completed` already read as "Filed"/terminal, so the
+  // primary action is a no-op there — disable rather than re-file.
+  const isFiled = row.status === 'done' || row.status === 'completed' || row.status === 'paid'
+  // Relative snooze presets. App code, so wall-clock `Date.now()` is fine
+  // (unlike workflow scripts); the server stores the resolved instant.
+  const snoozePresets: Array<{ label: string; days: number }> = [
+    { label: t`Tomorrow`, days: 1 },
+    { label: t`In 3 days`, days: 3 },
+    { label: t`Next week`, days: 7 },
+    { label: t`In 2 weeks`, days: 14 },
+  ]
+  return (
+    <div className="flex shrink-0 items-center gap-1.5">
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="outline" size="sm" className="h-8 gap-1.5" disabled={assignPending}>
+              <UserPlusIcon className="size-3.5" aria-hidden />
+              <Trans>Assign</Trans>
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end" className="w-56">
+          {assignableMembers.length > 0 ? (
+            <DropdownMenuRadioGroup
+              value={row.assigneeId ?? ''}
+              onValueChange={(value) => onAssign(value || null)}
+            >
+              {assignableMembers.map((member) => (
+                <DropdownMenuRadioItem key={member.assigneeId} value={member.assigneeId}>
+                  {member.name}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          ) : (
+            <DropdownMenuItem disabled>
+              <Trans>No assignable teammates</Trans>
+            </DropdownMenuItem>
+          )}
+          {row.assigneeId ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onAssign(null)}>
+                <Trans>Clear assignee</Trans>
+              </DropdownMenuItem>
+            </>
+          ) : null}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="outline" size="sm" className="h-8 gap-1.5" disabled={snoozePending}>
+              <AlarmClockIcon className="size-3.5" aria-hidden />
+              <Trans>Snooze</Trans>
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end" className="w-48">
+          {snoozePresets.map((preset) => (
+            <DropdownMenuItem
+              key={preset.days}
+              onClick={() =>
+                onSnooze(new Date(Date.now() + preset.days * 86_400_000).toISOString())
+              }
+            >
+              {preset.label}
+            </DropdownMenuItem>
+          ))}
+          {row.snoozedUntil ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onSnooze(null)}>
+                <Trans>Un-snooze</Trans>
+              </DropdownMenuItem>
+            </>
+          ) : null}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button
+        size="sm"
+        className="h-8 gap-1.5"
+        disabled={isFiled || markFiledPending}
+        onClick={onMarkFiled}
+      >
+        <CheckIcon className="size-3.5" aria-hidden />
+        <Trans>Mark as filed</Trans>
+      </Button>
+    </div>
+  )
+}
 
 export function ObligationQueueDetailDrawer({
   obligationId,
@@ -247,6 +373,14 @@ export function ObligationQueueDetailDrawer({
       ),
     [requestRecipientsQuery.data],
   )
+  // 2026-06-08 (Pencil HuYeb /deadlines detail — top "Assign" action):
+  // the full assignable roster (every role, not just owner/partner) so a
+  // deadline can be handed to any teammate. Drives the Assign dropdown.
+  const assignableMembersQuery = useQuery({
+    ...orpc.members.listAssignable.queryOptions({ input: undefined }),
+    enabled: obligationId !== null,
+  })
+  const assignableMembers = assignableMembersQuery.data ?? []
   const requestDeadlineTipMutation = useMutation(
     orpc.obligations.requestDeadlineTipRefresh.mutationOptions({
       onMutate: (variables) => {
@@ -740,6 +874,50 @@ export function ObligationQueueDetailDrawer({
       },
       onError: (err) => {
         toast.error(t`Couldn't mark e-file rejected`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  // 2026-06-08 (Pencil HuYeb /deadlines detail — top actions): per-deadline
+  // assignee + snooze. Both reuse the status-update output shape (obligation
+  // + auditId) and invalidate the detail + queue so the header, the table's
+  // Assignee column, and the snooze-driven list filter all re-read.
+  const assignMutation = useMutation(
+    orpc.obligations.assign.mutationOptions({
+      onSuccess: (result) => {
+        invalidateDetail()
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        const name = result.obligation.assigneeId
+          ? (assignableMembers.find((m) => m.assigneeId === result.obligation.assigneeId)?.name ??
+            t`teammate`)
+          : null
+        toast.success(name ? t`Assigned to ${name}` : t`Assignee cleared`, {
+          description: t`Audit ${result.auditId.slice(0, 8)}`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't update assignee`, {
+          description:
+            rpcErrorMessage(err) ??
+            t`Check your network and try again. If this keeps happening, contact support.`,
+        })
+      },
+    }),
+  )
+  const snoozeMutation = useMutation(
+    orpc.obligations.snooze.mutationOptions({
+      onSuccess: (result) => {
+        invalidateDetail()
+        void queryClient.invalidateQueries({ queryKey: orpc.obligations.list.key() })
+        toast.success(result.obligation.snoozedUntil ? t`Deadline snoozed` : t`Snooze cleared`, {
+          description: t`Audit ${result.auditId.slice(0, 8)}`,
+        })
+      },
+      onError: (err) => {
+        toast.error(t`Couldn't snooze deadline`, {
           description:
             rpcErrorMessage(err) ??
             t`Check your network and try again. If this keeps happening, contact support.`,
@@ -1270,48 +1448,12 @@ export function ObligationQueueDetailDrawer({
             wrapper providing one. Sheet mode skips this since Radix's
             SheetContent already renders an X in the top-right corner.
 
-            2026-05-23: a copy-link icon button sits next to the close
-            button per Figma so the CPA can grab a deep-link to this
-            drawer (short obligation ref + tab) without scrolling to the
-            sticky footer. Both buttons live in the top-right corner
-            cluster. Sheet mode keeps the link-copy in the footer
-            since Radix already owns the corner there. */}
-        {mode === 'panel' && row ? (
-          // 2026-05-27 (Yuqi drawer parity): close-button cluster
-          // pinned at `right-3 top-3` to match AlertDetailDrawer's
-          // close affordance (AlertDetailDrawer.tsx L1112). Both
-          // drawers' close X now sit at the identical corner inset.
-          <div className="absolute right-3 top-3 flex items-center gap-0.5">
-            <button
-              type="button"
-              aria-label={t`Copy link to this deadline`}
-              title={t`Copy link to this deadline`}
-              onClick={async () => {
-                const url = new URL(
-                  deadlineDetailHref({ obligationId: row.id, tab: activeTab }),
-                  window.location.origin,
-                )
-                try {
-                  await navigator.clipboard.writeText(url.toString())
-                  toast.success(t`Link copied`)
-                } catch {
-                  toast.error(t`Couldn't copy link — your browser blocked clipboard access.`)
-                }
-              }}
-              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-            >
-              <LinkIcon className="size-4" aria-hidden />
-            </button>
-            <button
-              type="button"
-              aria-label={t`Close deadline detail`}
-              onClick={onClose}
-              className="inline-flex size-7 items-center justify-center rounded-md text-text-tertiary outline-none hover:bg-state-base-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-            >
-              <XIcon className="size-4" aria-hidden />
-            </button>
-          </div>
-        ) : mode === 'panel' ? (
+            2026-06-08 (Pencil HuYeb /deadlines detail): the corner cluster
+            collapses to the close X only. The deep-link copy moved fully to
+            the sticky footer ("Copy link to this deadline") — the design
+            稿 puts the Assign / Snooze / Mark-as-filed actions in this
+            corner instead (rendered on the status row below). */}
+        {mode === 'panel' ? (
           <button
             type="button"
             aria-label={t`Close deadline detail`}
@@ -1321,167 +1463,133 @@ export function ObligationQueueDetailDrawer({
             <XIcon className="size-4" aria-hidden />
           </button>
         ) : null}
-        {/* Client kicker — small label above the form code so the user
-            knows whose return this is without burying the form
-            identity. The whole row (name + arrow) is one click target
-            that navigates to the client detail page. Title attribute
-            carries the verb. */}
-        {row?.clientId && row.clientName ? (
-          <button
-            type="button"
-            aria-label={t`Open ${row.clientName}`}
-            title={t`Open ${row.clientName}`}
-            onClick={() => {
-              // Use the canonical slug-based client path so we land on
-              // the detail page directly instead of hitting the raw-id
-              // redirect (matches clientDetailPath usage in
-              // ClientFactsWorkspace / ClientCycleArrows).
-              void navigate(clientDetailPath({ id: row.clientId, name: row.clientName }))
-            }}
-            // 2026-05-26 (Yuqi feedback #14): client link bumped from
-            // text-xs / icon size-3 → text-sm / icon size-3.5, and the
-            // name from font-medium → font-semibold. The kicker was
-            // reading as quieter-than-form-title, but the client is
-            // the row's true primary identity (form is the secondary
-            // identifier). Bigger text gives the client the visual
-            // anchor it deserves.
-            className="group/clientlink inline-flex w-fit cursor-pointer items-center gap-1 rounded-sm pr-8 text-left text-sm text-text-secondary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
-          >
-            <span className="font-semibold">{titleText}</span>
-            <ArrowUpRightIcon
-              aria-hidden
-              className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover/clientlink:text-text-accent"
+        {/* 2026-06-08 (Pencil HuYeb /deadlines detail): status line + top
+            actions share one row — colored status dot + status label · tax
+            year · period kind · monospaced obligation_id on the left, the
+            Assign / Snooze / Mark-as-filed action cluster on the right. The
+            row clears the corner close X via `pr-10`. */}
+        {row ? (
+          <div className="flex items-start justify-between gap-3 pr-10">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-1 text-sm">
+              <span className="inline-flex items-center gap-2 font-medium text-text-primary">
+                <span
+                  className={cn(
+                    'size-2 shrink-0 rounded-full',
+                    row.daysUntilDue < 0
+                      ? 'bg-text-destructive'
+                      : row.status === 'done' || row.status === 'completed' || row.status === 'paid'
+                        ? 'bg-text-success'
+                        : 'bg-text-tertiary',
+                  )}
+                  aria-hidden
+                />
+                {statusLabels[row.status]}
+              </span>
+              {row.taxYear ? (
+                <span className="text-text-tertiary">
+                  <span aria-hidden>· </span>
+                  <Trans>Tax year {row.taxYear}</Trans>
+                  <span aria-hidden> · </span>
+                  {row.taxYearType === 'fiscal' ? (
+                    <Trans>Fiscal period</Trans>
+                  ) : (
+                    <Trans>Calendar period</Trans>
+                  )}
+                </span>
+              ) : null}
+              <span className="font-mono text-caption-xs text-text-tertiary">
+                <span aria-hidden>· </span>obligation_id {row.id.slice(0, 10)}
+              </span>
+            </div>
+            <DeadlineTopActions
+              row={row}
+              assignableMembers={assignableMembers}
+              onAssign={(assigneeId) => assignMutation.mutate({ id: row.id, assigneeId })}
+              onSnooze={(snoozedUntil) => snoozeMutation.mutate({ id: row.id, snoozedUntil })}
+              onMarkFiled={() => changeStatus(row.id, 'done', row.status)}
+              assignPending={assignMutation.isPending}
+              snoozePending={snoozeMutation.isPending}
+              markFiledPending={changeStatusMutation.isPending}
             />
-          </button>
-        ) : row?.clientId ? (
-          <div className="flex items-center gap-1 pr-8 text-xs text-text-tertiary">
-            <span className="font-medium">{titleText ?? <Trans>Deadline detail</Trans>}</span>
-            <span
-              aria-label={t`Client record missing`}
-              title={t`Client record missing — deadline may be orphaned`}
-              className="inline-flex items-center text-text-warning"
-            >
-              <AlertTriangleIcon className="size-3" aria-hidden />
-            </span>
           </div>
         ) : null}
-        {row
-          ? (() => {
-              // 2026-05-26 (Yuqi fifty-first pass — Figma-Make flag
-              // chips from design/deadlines-drawer-rework): the
-              // status pill names the workflow state ("Waiting on
-              // client") but doesn't carry overdue urgency or the
-              // exact blocked-by name. Three augmenting Badge chips
-              // appear next to the pill when relevant:
-              //   • Waiting on client — when status is
-              //     'waiting_on_client'
-              //   • Blocked — when status is 'blocked'
-              //   • N days overdue — when daysUntilDue < 0 on a
-              //     non-terminal row
-              // 2026-05-26 (Yuqi fifty-third pass — pill dedup wired):
-              // when a flag chip names the specific sub-state (waiting
-              // / blocked), pass `displayStatus='in_progress'` to the
-              // pill so it shows the generic verb-of-motion instead of
-              // repeating the chip's noun. Reads as:
-              //   pill: "In progress"  chip: "Waiting on client"
-              // (instead of "Waiting on client" twice). The dropdown
-              // still operates on the real `row.status` — displayStatus
-              // only affects the trigger's rendered label/icon/variant.
-              // Overdue chip doesn't trigger the dedup since "overdue"
-              // is a date concern, not a workflow state.
-              const showWaitingChip = row.status === 'waiting_on_client'
-              const showBlockedChip = row.status === 'blocked'
-              // `pillDisplayStatus` retired with the drawer-header
-              // status control removal (feedback #4). The dedup logic
-              // it powered (showing "In progress" pill while the chip
-              // says "Waiting on client") doesn't apply when the pill
-              // doesn't exist on this surface.
-              return (
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pr-8">
-                  {/* 2026-05-26 (Yuqi feedback #12): h1 size matched
-                      to Alert's panel title — text-2xl. Was text-lg
-                      which read as a quieter "label" than the alert
-                      drawer's authoritative h1. Both drawers now use
-                      the same anchor weight. */}
-                  <h2 className="text-2xl font-semibold leading-tight text-text-primary">
-                    <TaxCodeLabel code={row.taxType} className="cursor-default" />
-                  </h2>
-                  {/* 2026-05-26 (Yuqi feedback #4): dropped the drawer
-                      header's ObligationQueueStatusControl. With the
-                      table's Status column visible (per #8) AND
-                      interactive, the same control rendered TWICE on
-                      the same screen (once in the row, once in the
-                      drawer header) — "appeared again, bad UX." The
-                      table cell's pill is the canonical interactive
-                      affordance; the drawer header now just carries
-                      the form title + meta chip cluster. */}
-                  {showWaitingChip ? (
-                    <Badge
-                      variant="warning"
-                      className="h-6 text-caption-xs uppercase tracking-wide"
-                      title={t`Waiting on client for materials`}
-                    >
-                      <Trans>Waiting on client</Trans>
-                    </Badge>
-                  ) : null}
-                  {showBlockedChip ? (
-                    <Badge
-                      variant="warning"
-                      className="h-6 border-state-warning-border bg-state-warning-solid/15 text-caption-xs uppercase tracking-wide text-text-warning"
-                      title={t`Blocked by an upstream obligation`}
-                    >
-                      <Trans>Blocked</Trans>
-                    </Badge>
-                  ) : null}
-                  {/* Overdue + payment-late labels moved into the
-                      Filing / Internal / Payment deadline tiles below. */}
-                  {latestInputRequest ? (
-                    <Badge
-                      variant="secondary"
-                      className="h-6 gap-1 text-caption-xs uppercase tracking-wide"
-                      title={latestInputRequestTitle}
-                    >
-                      <MessageSquareText className="size-3.5" aria-hidden />
-                      <Trans>Input requested</Trans>
-                    </Badge>
-                  ) : null}
-                </div>
-              )
-            })()
-          : null}
-        {row && (row.taxYear || row.jurisdiction || row.taxPeriodStart) ? (
-          // 2026-05-23: expanded meta line under h2 to surface the
-          // full tax-period context the Figma shows — jurisdiction,
-          // "Tax Year YYYY", and the period span (start — end).
-          // Earlier shape ("TY 2025 · FED") was terse to a fault: the
-          // CPA reading the drawer header had to open the dates panel
-          // to know which period was being filed. Spelling it out
-          // here makes the drawer self-contained as a header.
-          //
-          // 2026-05-25 (Yuqi Deadlines #15): meta line was text-xs
-          // (12px) — too quiet next to the now-text-xl form code
-          // title. Bumped to text-sm (14px) so the context reads
-          // as a real subtitle, not buried metadata.
-          <p className="flex flex-wrap items-baseline gap-x-2 text-sm text-text-tertiary">
-            {row.jurisdiction ? (
-              <>
-                <span className="inline-flex items-center rounded border border-divider-regular bg-background-default px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-secondary">
-                  {row.jurisdiction}
-                </span>
-                <span aria-hidden>·</span>
-              </>
-            ) : null}
-            {row.taxYear ? (
-              <span className="tabular-nums font-semibold text-text-primary">
-                <Trans>Tax Year {row.taxYear}</Trans>
+        {/* 2026-06-08 (Pencil HuYeb /deadlines detail): the form title sits
+            on its own line; the standalone client kicker link was folded
+            into the household chip in the row below per the design稿. */}
+        {row ? (
+          <h2 className="pr-8 text-2xl font-semibold leading-tight text-text-primary">
+            {(() => {
+              const meta = describeTaxCode(row.taxType)
+              return meta.description ? `${meta.label} — ${meta.description}` : meta.label
+            })()}
+          </h2>
+        ) : null}
+        {/* 2026-06-08 (Pencil HuYeb /deadlines detail): single chip row
+            under the title — a clickable client-household chip (navigates
+            to the client), the canonical status badge (subsumes the old
+            waiting/blocked flag chips), the input-requested flag, and the
+            jurisdiction / tax-year / period meta. */}
+        {row ? (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 pr-8 text-sm">
+            {row.clientId && row.clientName ? (
+              <button
+                type="button"
+                aria-label={t`Open ${row.clientName}`}
+                title={t`Open ${row.clientName}`}
+                onClick={() =>
+                  void navigate(clientDetailPath({ id: row.clientId, name: row.clientName }))
+                }
+                className="group/clientlink inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-divider-regular bg-background-default px-2.5 py-1 text-caption font-medium text-text-secondary outline-none transition-colors hover:border-state-accent-border hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+              >
+                <UsersIcon
+                  className="size-3.5 shrink-0 text-text-tertiary transition-colors group-hover/clientlink:text-text-accent"
+                  aria-hidden
+                />
+                {row.clientName}
+              </button>
+            ) : row.clientId ? (
+              <span
+                className="inline-flex items-center gap-1 text-caption text-text-warning"
+                title={t`Client record missing — deadline may be orphaned`}
+              >
+                <AlertTriangleIcon className="size-3.5" aria-hidden />
+                <Trans>Client record missing</Trans>
               </span>
             ) : null}
-            {row.taxPeriodStart && row.taxPeriodEnd ? (
-              <span className="tabular-nums text-text-secondary">
-                {formatDate(row.taxPeriodStart)} — {formatDate(row.taxPeriodEnd)}
+            <ObligationStatusReadBadge
+              status={row.status}
+              className="h-6 text-caption-xs uppercase tracking-wide"
+            />
+            {latestInputRequest ? (
+              <Badge
+                variant="secondary"
+                className="h-6 gap-1 text-caption-xs uppercase tracking-wide"
+                title={latestInputRequestTitle}
+              >
+                <MessageSquareText className="size-3.5" aria-hidden />
+                <Trans>Input requested</Trans>
+              </Badge>
+            ) : null}
+            {row.jurisdiction || row.taxYear || (row.taxPeriodStart && row.taxPeriodEnd) ? (
+              <span className="inline-flex flex-wrap items-baseline gap-x-2 text-text-tertiary">
+                {row.jurisdiction ? (
+                  <span className="inline-flex items-center rounded border border-divider-regular bg-background-default px-1.5 py-0.5 text-caption-xs font-medium uppercase tracking-eyebrow-tight text-text-secondary">
+                    {row.jurisdiction}
+                  </span>
+                ) : null}
+                {row.taxYear ? (
+                  <span className="tabular-nums font-semibold text-text-primary">
+                    <Trans>Tax Year {row.taxYear}</Trans>
+                  </span>
+                ) : null}
+                {row.taxPeriodStart && row.taxPeriodEnd ? (
+                  <span className="tabular-nums text-text-secondary">
+                    {formatDate(row.taxPeriodStart)} — {formatDate(row.taxPeriodEnd)}
+                  </span>
+                ) : null}
               </span>
             ) : null}
-          </p>
+          </div>
         ) : null}
         {/* 2026-05-23: dropped the canonical-forward-action row
             (`ObligationDrawerStatusActions`) per critique. The
@@ -2957,159 +3065,244 @@ export function ObligationQueueDetailDrawer({
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.18, ease: [0.32, 0.72, 0, 1] }}
               >
-                <div className="grid gap-3">
-                  <AlertPanel>
-                    <Trans>
-                      This saves the firm's internal extension plan for this deadline. The internal
-                      target date must be on or before the filing deadline. It does not update the
-                      due date, change client records, or confirm an authority filing. Payment may
-                      still be due by the original date.
-                    </Trans>
-                  </AlertPanel>
-                  {/* 2026-05-26 (Yuqi sixty-sixth pass — cross-tab
-                      visual unity): the "Example" panel previously
-                      wore a bordered card chrome
-                      (`rounded-lg border border-divider-regular`)
-                      that didn't appear anywhere else in the drawer.
-                      Summary uses self-framed components; Materials
-                      uses flat sections with `<h3>` headers. Now
-                      Extension also reads as a flat section — header
-                      + content, no extra card frame around the rule
-                      facts. */}
-                  <section className="flex flex-col gap-2">
-                    <header className="flex items-baseline gap-2">
+                <div className="grid gap-4">
+                  {/* 2026-06-08 (Pencil HuYeb /deadlines detail — Extension
+                      tab): the matched-rule facts render as a Form 7004
+                      card — title + citation + "Open rule", the
+                      defers-filing-not-payment warning, a POLICY/FORM facts
+                      grid, and the rule notes — replacing the earlier flat
+                      DetailRow list so the rule reads as one authoritative
+                      reference card. */}
+                  {(() => {
+                    const extensionFormName =
+                      extensionPolicy?.formName ?? row.extensionFormName ?? null
+                    const extensionAuthority = row.authority ?? t`IRS`
+                    const estimatedTaxCents =
+                      typeof row.estimatedTaxDueCents === 'number' ? row.estimatedTaxDueCents : null
+                    const extensionPolicyLabel = extensionPolicy?.available
+                      ? extensionDurationMonths !== null
+                        ? t`Automatic ${extensionDurationMonths}-month extension`
+                        : t`Rule allows extension`
+                      : t`No rule extension`
+                    const extensionLengthLabel =
+                      isValidIsoDate(extensionOriginalDeadline) &&
+                      extensionDeadlineCap &&
+                      isValidIsoDate(extensionDeadlineCap)
+                        ? t`+${Math.round(
+                            (Date.parse(extensionDeadlineCap) -
+                              Date.parse(extensionOriginalDeadline)) /
+                              86_400_000,
+                          )} days`
+                        : extensionDurationMonths !== null
+                          ? t`${extensionDurationMonths} months`
+                          : t`Not specified`
+                    const paymentStillDue = row.paymentDueDate ?? row.baseDueDate
+                    const facts: Array<{ label: string; value: string; warn?: boolean }> = [
+                      { label: t`Policy`, value: extensionPolicyLabel },
+                      { label: t`Form`, value: extensionFormName ?? t`Not specified` },
+                      { label: t`Length`, value: extensionLengthLabel },
+                      { label: t`Original deadline`, value: formatDate(extensionOriginalDeadline) },
+                      {
+                        label: t`Extended deadline`,
+                        value: extensionDeadlineCap ? formatDate(extensionDeadlineCap) : '—',
+                      },
+                      {
+                        label: t`Payment still due`,
+                        value: estimatedTaxCents
+                          ? `${formatDate(paymentStillDue)} · ${formatCents(estimatedTaxCents)}`
+                          : formatDate(paymentStillDue),
+                        warn: true,
+                      },
+                    ]
+                    return (
+                      <section className="overflow-hidden rounded-xl border border-divider-regular">
+                        <div className="flex items-start justify-between gap-3 px-4 pt-3.5">
+                          <div className="flex items-start gap-2">
+                            <BookOpenIcon
+                              className="mt-0.5 size-4 shrink-0 text-text-accent"
+                              aria-hidden
+                            />
+                            <div className="flex flex-col gap-0.5">
+                              <h3 className="text-sm font-semibold text-text-primary">
+                                {extensionFormName
+                                  ? `${extensionFormName} — ${t`automatic extension of time to file`}`
+                                  : (detail.matchedRule?.title ?? t`Extension rule`)}
+                              </h3>
+                              <span className="font-mono text-caption-xs text-text-tertiary">
+                                {[
+                                  extensionAuthority,
+                                  row.ruleVersion ? `v.${row.ruleVersion}` : null,
+                                ]
+                                  .filter(Boolean)
+                                  .join(' · ')}
+                              </span>
+                            </div>
+                          </div>
+                          {detail.matchedRule ? (
+                            <Link
+                              to={`/rules/${encodeURIComponent(detail.matchedRule.id)}`}
+                              className="shrink-0 text-caption font-semibold text-text-accent hover:underline"
+                            >
+                              <Trans>Open rule →</Trans>
+                            </Link>
+                          ) : null}
+                        </div>
+                        {estimatedTaxCents && estimatedTaxCents > 0 ? (
+                          <p className="flex items-start gap-1.5 px-4 pb-1 pt-2 text-caption text-text-warning">
+                            <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                            <Trans>
+                              Extension defers filing, not payment. Estimated tax of{' '}
+                              {formatCents(estimatedTaxCents)} still owed by the original deadline.
+                            </Trans>
+                          </p>
+                        ) : null}
+                        <dl className="mt-2 grid grid-cols-1 border-t border-divider-subtle sm:grid-cols-2">
+                          {facts.map((cell) => (
+                            <div
+                              key={cell.label}
+                              className="flex flex-col gap-0.5 border-b border-divider-subtle px-4 py-2.5 sm:[&:nth-child(odd)]:border-r"
+                            >
+                              <dt className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                                {cell.label}
+                              </dt>
+                              <dd
+                                className={cn(
+                                  'text-sm tabular-nums',
+                                  cell.warn ? 'text-text-warning' : 'text-text-primary',
+                                )}
+                              >
+                                {cell.value}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                        <div className="flex flex-col gap-0.5 px-4 py-2.5">
+                          <dt className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                            <Trans>Rule notes</Trans>
+                          </dt>
+                          <dd className="text-caption text-text-secondary">
+                            {extensionPolicy?.notes ?? t`No matched rule`}
+                          </dd>
+                        </div>
+                      </section>
+                    )
+                  })()}
+                  {/* Apply-extension card — saves the firm's internal
+                      extension plan via decideExtension. The internal
+                      target + decision memo are required by the mutation;
+                      the payment callout repeats the "defers filing, not
+                      payment" warning next to the action. */}
+                  <section className="flex flex-col gap-3 rounded-xl border border-divider-regular p-4">
+                    <header className="flex flex-col gap-0.5">
                       <h3 className="text-sm font-semibold text-text-primary">
-                        <Trans>Rule reference</Trans>
+                        <Trans>Apply extension</Trans>
                       </h3>
-                      <span className="text-caption-xs text-text-tertiary">
-                        <Trans>from matched rule</Trans>
-                      </span>
+                      <p className="text-caption text-text-tertiary">
+                        <Trans>
+                          Save the firm's internal extension plan. The internal target must be on or
+                          before the extended filing deadline. This does not file with the authority
+                          or change client records.
+                        </Trans>
+                      </p>
                     </header>
-                    <div className="grid gap-1.5">
-                      <DetailRow
-                        label={<Trans>Extension policy</Trans>}
-                        value={
-                          detail.matchedRule?.extensionPolicy.available
-                            ? t`Rule allows extension`
-                            : t`No rule extension or unknown`
+                    {extensionNeedsManualDeadline ? (
+                      <label className="flex flex-col gap-1">
+                        <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                          <Trans>Extended filing deadline</Trans>
+                        </span>
+                        <IsoDatePicker
+                          value={extensionDraft.extendedFilingDate}
+                          invalid={extensionManualDeadlineInvalid}
+                          ariaLabel={t`Extended filing deadline`}
+                          placeholder={t`Extended filing deadline`}
+                          onValueChange={(extendedFilingDate) =>
+                            setExtensionDraft((current) => ({ ...current, extendedFilingDate }))
+                          }
+                        />
+                      </label>
+                    ) : null}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="flex flex-col gap-1">
+                        <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                          <Trans>Internal target date</Trans>
+                        </span>
+                        <IsoDatePicker
+                          value={extensionDraft.internalTargetDate}
+                          invalid={internalTargetDateInvalid}
+                          maxIsoDate={extensionDeadlineCap}
+                          ariaLabel={t`Internal extension target date`}
+                          placeholder={t`Internal extension target date`}
+                          onValueChange={(internalTargetDate) =>
+                            setExtensionDraft((current) => ({ ...current, internalTargetDate }))
+                          }
+                        />
+                      </label>
+                      <label className="flex flex-col gap-1">
+                        <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                          <Trans>Source or confirmation</Trans>
+                        </span>
+                        <Input
+                          aria-label={t`Extension source`}
+                          placeholder={t`Reference (optional)`}
+                          value={extensionDraft.source}
+                          onChange={(event) =>
+                            setExtensionDraft((current) => ({
+                              ...current,
+                              source: event.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+                    </div>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-caption-xs uppercase tracking-eyebrow-tight text-text-tertiary">
+                        <Trans>Decision memo</Trans>
+                      </span>
+                      <Textarea
+                        aria-label={t`Decision memo`}
+                        aria-required="true"
+                        placeholder={t`Why is this extension being filed? (required)`}
+                        value={extensionDraft.memo}
+                        onChange={(event) =>
+                          setExtensionDraft((current) => ({ ...current, memo: event.target.value }))
                         }
                       />
-                      <DetailRow
-                        label={<Trans>Official form or method</Trans>}
-                        value={detail.matchedRule?.extensionPolicy.formName ?? t`Not specified`}
-                      />
-                      <DetailRow
-                        label={<Trans>Extension length</Trans>}
-                        value={
-                          extensionDurationMonths !== null
-                            ? t`${extensionDurationMonths} months`
-                            : t`Not specified`
+                    </label>
+                    {row.paymentDueDate ? (
+                      <PaymentStillDueCallout
+                        title={
+                          typeof row.estimatedTaxDueCents === 'number' &&
+                          row.estimatedTaxDueCents > 0
+                            ? t`Payment of ${formatCents(row.estimatedTaxDueCents)} still due ${formatDate(row.paymentDueDate)}`
+                            : t`Payment still due ${formatDate(row.paymentDueDate)}`
                         }
-                      />
-                      <DetailRow
-                        label={<Trans>Original filing deadline</Trans>}
-                        value={formatDate(extensionOriginalDeadline)}
-                      />
-                      <DetailRow
-                        label={<Trans>Extended filing deadline</Trans>}
-                        value={
-                          extensionDeadlineCap ? formatDate(extensionDeadlineCap) : t`Enter below`
-                        }
-                      />
-                      <DetailRow
-                        label={<Trans>Payment still due</Trans>}
-                        value={formatDate(row.paymentDueDate ?? row.baseDueDate)}
-                      />
-                      <DetailRow
-                        label={<Trans>Rule notes</Trans>}
-                        value={detail.matchedRule?.extensionPolicy.notes ?? t`No matched rule`}
-                      />
+                      >
+                        <Trans>
+                          Filing an extension does not extend the time to pay. Schedule an EFTPS
+                          payment by the original deadline to avoid interest and penalties.
+                        </Trans>
+                      </PaymentStillDueCallout>
+                    ) : null}
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      {row.extensionDecidedAt ? (
+                        <span className="mr-auto text-caption text-text-tertiary">
+                          <Trans>
+                            Last decided{' '}
+                            {formatDateTimeWithTimezone(row.extensionDecidedAt, practiceTimezone)}
+                          </Trans>
+                        </span>
+                      ) : null}
+                      <Button
+                        variant="outline"
+                        onClick={() => setExtensionDraft(emptyExtensionPlanDraft())}
+                      >
+                        <Trans>Cancel</Trans>
+                      </Button>
+                      <Button onClick={saveExtensionDecision} disabled={saveExtensionPlanDisabled}>
+                        <Trans>File extension</Trans>
+                      </Button>
                     </div>
                   </section>
-                  {/* Cluster 2 (Extension design `Ls3vb`): the design
-                      surfaces the "extension defers filing, not payment"
-                      warning twice (warn-note + payment-due card). The
-                      drawer carries it once, as a single amber callout,
-                      when a distinct payment date is on file. Filing
-                      Form 7004 buys time to FILE, never time to PAY. */}
-                  {row.paymentDueDate ? (
-                    <PaymentStillDueCallout
-                      title={<Trans>Extension defers filing, not payment</Trans>}
-                    >
-                      <Trans>
-                        Filing for an extension does not extend the time to pay. Estimated tax is
-                        still due {formatDate(row.paymentDueDate)} to avoid interest and penalties.
-                      </Trans>
-                    </PaymentStillDueCallout>
-                  ) : null}
-                  {extensionNeedsManualDeadline ? (
-                    <div className="flex flex-col gap-1">
-                      <span className="text-caption-xs text-text-tertiary">
-                        <Trans>
-                          This obligation type has no fixed extension length — enter the extended
-                          filing deadline.
-                        </Trans>
-                      </span>
-                      <IsoDatePicker
-                        value={extensionDraft.extendedFilingDate}
-                        invalid={extensionManualDeadlineInvalid}
-                        ariaLabel={t`Extended filing deadline`}
-                        placeholder={t`Extended filing deadline`}
-                        onValueChange={(extendedFilingDate) =>
-                          setExtensionDraft((current) => ({ ...current, extendedFilingDate }))
-                        }
-                      />
-                    </div>
-                  ) : null}
-                  <IsoDatePicker
-                    value={extensionDraft.internalTargetDate}
-                    invalid={internalTargetDateInvalid}
-                    maxIsoDate={extensionDeadlineCap}
-                    ariaLabel={t`Internal extension target date`}
-                    placeholder={t`Internal extension target date`}
-                    onValueChange={(internalTargetDate) =>
-                      setExtensionDraft((current) => ({ ...current, internalTargetDate }))
-                    }
-                  />
-                  <Input
-                    aria-label={t`Extension source`}
-                    placeholder={t`Source or confirmation reference`}
-                    value={extensionDraft.source}
-                    onChange={(event) =>
-                      setExtensionDraft((current) => ({ ...current, source: event.target.value }))
-                    }
-                  />
-                  <Textarea
-                    aria-label={t`Decision memo`}
-                    aria-required="true"
-                    placeholder={t`Decision memo (required)`}
-                    value={extensionDraft.memo}
-                    onChange={(event) =>
-                      setExtensionDraft((current) => ({ ...current, memo: event.target.value }))
-                    }
-                  />
-                  <div className="flex flex-wrap items-center gap-3">
-                    <Button
-                      className="w-fit"
-                      onClick={saveExtensionDecision}
-                      disabled={saveExtensionPlanDisabled}
-                    >
-                      <Trans>Save extension</Trans>
-                    </Button>
-                    {/* Decided-at hint replaces the prior right-sidebar
-                          status block. Current status + internal target
-                          date were duplicates of the drawer header + the
-                          form fields above; only "Decided at" was unique
-                          info, so it lives here as a quiet footnote. */}
-                    {row.extensionDecidedAt ? (
-                      <span className="text-xs text-text-tertiary">
-                        <Trans>
-                          Last decided{' '}
-                          {formatDateTimeWithTimezone(row.extensionDecidedAt, practiceTimezone)}
-                        </Trans>
-                      </span>
-                    ) : null}
-                  </div>
                   {/* Cluster 2 (Extension design `Ls3vb > muzOr`):
                       prior-year extension history table. The obligation
                       detail carries this year's extension decision only —

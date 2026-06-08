@@ -215,7 +215,6 @@ import {
 } from '@/features/obligations/status-control'
 import { BlockedByChip, isBlockedByVisible } from '@/features/obligations/blocked-by-chip'
 import { CreateObligationDialog } from '@/features/obligations/CreateObligationDialog'
-import { AnnualRolloverDialog } from '@/features/obligations/AnnualRolloverDialog'
 import { paymentOverdueDays } from '@/features/obligations/payment-overdue'
 import {
   DEADLINE_DETAIL_TABS,
@@ -289,9 +288,11 @@ const DEFAULT_DENSITY: ObligationQueueDensity = 'comfortable'
 // headers (with aggregate metadata). `filing` clusters rows under
 // filing-type section headers.
 // 2026-06-06 (Yuqi feedback): remove `urgency` as a grouping dimension.
-// Group-by now exposes Due date, Client, and Filing; legacy URLs with
-// `?group=urgency` fall back to the default `due`.
-const GROUP_OPTIONS = ['due', 'client', 'filing'] as const
+// 2026-06-08 (Yuqi /deadlines design parity): urgency grouping re-added — the
+// production design clusters deadlines into OVERDUE / THIS WEEK / UPCOMING
+// bands. `urgency` sits next to `due` in the dropdown since both are
+// due-date-derived; both legacy and new `?group=urgency` URLs now resolve.
+const GROUP_OPTIONS = ['due', 'urgency', 'client', 'filing'] as const
 type ObligationQueueGroup = (typeof GROUP_OPTIONS)[number]
 const DEFAULT_GROUP: ObligationQueueGroup = 'due'
 const DEADLINE_TIP_REFRESH_POLL_INTERVAL_MS = 3_000
@@ -577,7 +578,7 @@ const DAY_MS = 86_400_000
 // dropped so the shared text-xs token is no longer in use.
 // Width of the Due column. Tokenized so the magic-number doesn't fight
 // long client-name wraps if the table layout shifts.
-const OBLIGATION_QUEUE_DUE_COL_WIDTH = 'w-[180px]'
+const OBLIGATION_QUEUE_DUE_COL_WIDTH = 'w-[110px]'
 const NON_HIDEABLE_COLUMNS = new Set(['select'])
 // Columns that ship hidden by default and are opt-in via the
 // Columns dropdown. The default visible set was trimmed to 6
@@ -610,6 +611,7 @@ const DEFAULT_COLUMN_ORDER = [
   'assigneeName',
   'currentDueDate',
   'filingDueDate',
+  'estimatedExposureCents',
   'status',
   'smartPriority',
   'dueDateExact',
@@ -640,6 +642,12 @@ const PANEL_OPEN_AUTO_HIDDEN_COLUMN_IDS = [
   'assigneeName',
   'evidenceCount',
   'smartPriority',
+  // 2026-06-08 (Yuqi): with the panel open the list shrinks to ~2/5 width, so
+  // the fixed-width columns no longer all fit. Keep only the row anchor
+  // (Filing + Client + Internal due + Status); Official due + Exposure auto-hide
+  // alongside the state-cluster columns and come back when the panel closes.
+  'filingDueDate',
+  'estimatedExposureCents',
 ] as const
 const OBLIGATION_QUEUE_ROW_CONTROL_SELECTOR =
   'button,a[href],input,label,select,textarea,[role="button"],[role="checkbox"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[role="option"],[role="radio"],[role="tab"],[data-slot="checkbox"]'
@@ -1446,6 +1454,22 @@ export function ObligationQueueRoute() {
   // when it nears the viewport). `scrollContainerRef` is the observer
   // root + the element we scroll back to top on a sort change.
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+  // 2026-06-08 (Yuqi — full-page scroll): in full-page mode the filter bar
+  // pins to the page top; the table's column header (select-all + sort/
+  // filter controls) must pin right BELOW it. We measure the sticky filter
+  // bar's live height so the header's sticky `top` offset tracks it (the bar
+  // wraps responsively, so a hard-coded offset would drift).
+  const filterBarRef = useRef<HTMLDivElement | null>(null)
+  const [filterBarHeight, setFilterBarHeight] = useState(0)
+  useEffect(() => {
+    const element = filterBarRef.current
+    if (!element) return undefined
+    const measure = () => setFilterBarHeight(element.offsetHeight)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
   const loadMoreSentinelRef = useRef<HTMLTableRowElement | null>(null)
   // 2026-05-26 (Yuqi feedback pivot): responsive rows-per-page now
   // derived from a container's clientHeight via ResizeObserver, not
@@ -1513,6 +1537,7 @@ export function ObligationQueueRoute() {
   // or Filing visibly regroups the rows.
   const sorting = useMemo<SortingState>(() => {
     const baseSort = getSortingState(sort)
+    if (group === 'urgency') return [{ id: 'currentDueDate', desc: false }, ...baseSort]
     if (group === 'client') return [{ id: 'clientName', desc: false }, ...baseSort]
     if (group === 'filing') return [{ id: 'taxType', desc: false }, ...baseSort]
     return baseSort
@@ -1939,9 +1964,11 @@ export function ObligationQueueRoute() {
     const groupSortKeyOf = (obligationQueueRow: ObligationQueueRow) =>
       group === 'due'
         ? ''
-        : group === 'filing'
-          ? formatTaxCode(obligationQueueRow.taxType).toLocaleLowerCase()
-          : `${obligationQueueRow.clientName.toLocaleLowerCase()}\u0000${obligationQueueRow.clientId}`
+        : group === 'urgency'
+          ? String(URGENCY_BAND_ORDER.indexOf(urgencyBandOf(obligationQueueRow)))
+          : group === 'filing'
+            ? formatTaxCode(obligationQueueRow.taxType).toLocaleLowerCase()
+            : `${obligationQueueRow.clientName.toLocaleLowerCase()}\u0000${obligationQueueRow.clientId}`
     return rows.toSorted((a, b) => {
       const groupDelta = groupSortKeyOf(a).localeCompare(groupSortKeyOf(b))
       if (groupDelta !== 0) return groupDelta
@@ -1999,7 +2026,7 @@ export function ObligationQueueRoute() {
         groupKey: string
         count: number
         label: string
-        kind: 'client' | 'filing'
+        kind: 'client' | 'filing' | 'urgency'
         clientId?: string
         lateCount?: number
         earliestDueDate?: string
@@ -2017,10 +2044,23 @@ export function ObligationQueueRoute() {
     // groups. The rows are already sorted with the relevant group key
     // as primary sort (see `sorting` useMemo earlier), so adjacent rows
     // of the same group cluster naturally.
+    const urgencyBandLabels: Record<UrgencyBand, string> = {
+      overdue: t`Overdue`,
+      this_week: t`This week`,
+      upcoming: t`Upcoming`,
+    }
     const groupKeyOf = (r: ObligationQueueRow) =>
-      group === 'filing' ? formatTaxCode(r.taxType) : r.clientId
+      group === 'urgency'
+        ? urgencyBandOf(r)
+        : group === 'filing'
+          ? formatTaxCode(r.taxType)
+          : r.clientId
     const groupLabelOf = (r: ObligationQueueRow) =>
-      group === 'filing' ? formatTaxCode(r.taxType) : r.clientName
+      group === 'urgency'
+        ? urgencyBandLabels[urgencyBandOf(r)]
+        : group === 'filing'
+          ? formatTaxCode(r.taxType)
+          : r.clientName
     let i = 0
     while (i < orderedRows.length) {
       const start = orderedRows[i]!
@@ -2040,7 +2080,7 @@ export function ObligationQueueRoute() {
       map.set(start.id, {
         groupKey: startKey,
         label: groupLabelOf(start),
-        kind: group === 'filing' ? 'filing' : 'client',
+        kind: group === 'urgency' ? 'urgency' : group === 'filing' ? 'filing' : 'client',
         ...(group === 'client' ? { clientId: start.clientId } : {}),
         count: j - i,
         lateCount,
@@ -2049,7 +2089,7 @@ export function ObligationQueueRoute() {
       i = j
     }
     return map
-  }, [orderedRows, group])
+  }, [orderedRows, group, t])
   // 2026-05-25 (Yuqi /deadlines fourth pass #6): collapsible grouping.
   // State is local + transient — not URL-bound — because expand/collapse
   // is a per-view scroll-state preference, not a deep-linkable filter.
@@ -2324,8 +2364,11 @@ export function ObligationQueueRoute() {
                   if (event.shiftKey) event.preventDefault()
                 }}
                 className={cn(
+                  // 2026-06-08 (Pencil HuYeb /deadlines #9): client name is
+                  // font-medium by default (was font-normal); the active row
+                  // steps up to semibold so the selection still reads.
                   'line-clamp-2 min-w-0 flex-1 text-sm leading-tight text-text-primary',
-                  tableRow.original.id === explicitActiveRowId ? 'font-medium' : 'font-normal',
+                  tableRow.original.id === explicitActiveRowId ? 'font-semibold' : 'font-medium',
                 )}
                 title={t`${tableRow.original.clientName} · Shift+click to select all of this client's rows`}
               >
@@ -2355,7 +2398,7 @@ export function ObligationQueueRoute() {
             </div>
           )
         },
-        meta: { cellClassName: 'w-[240px]' },
+        meta: { headerClassName: 'w-[168px]', cellClassName: 'w-[168px]' },
       },
       {
         // Smart Priority — second data column (right after Client) per
@@ -2455,14 +2498,20 @@ export function ObligationQueueRoute() {
             currentUserName !== null &&
             assigneeName.trim().toLowerCase() === currentUserName.toLowerCase()
           return (
+            // 2026-06-08 (Pencil HuYeb /deadlines #11): smaller avatar in
+            // the table row (md 32px → sm 28px).
             <AssigneeAvatar
               name={assigneeName}
               isMine={isMine}
+              size="sm"
               title={isMine ? t`Assigned to you (${assigneeName})` : assigneeName}
             />
           )
         },
-        meta: { cellClassName: 'w-[90px]' },
+        // 2026-06-08 (Pencil HuYeb /deadlines #4): widened from 56→76px so
+        // the canonical uppercase "ASSIGNEE" header fits without colliding
+        // with the next column. Status fills the remainder, so no overflow.
+        meta: { headerClassName: 'w-[76px]', cellClassName: 'w-[76px]' },
       },
       {
         accessorKey: 'clientState',
@@ -2509,7 +2558,7 @@ export function ObligationQueueRoute() {
             </Badge>
           )
         },
-        meta: { cellClassName: 'w-[160px] text-text-secondary' },
+        meta: { headerClassName: 'w-[64px]', cellClassName: 'w-[64px] text-text-secondary' },
       },
       {
         accessorKey: 'taxType',
@@ -2540,12 +2589,12 @@ export function ObligationQueueRoute() {
         // same chip primitive now; /deadlines was the lone outlier
         // showing the form as plain text.
         cell: (info) => <TaxCodeBadge code={info.getValue<string>()} />,
-        meta: { cellClassName: 'w-[180px] text-text-secondary' },
+        meta: { headerClassName: 'w-[104px]', cellClassName: 'w-[104px] text-text-secondary' },
       },
       {
         accessorKey: 'currentDueDate',
         header: () => {
-          const label = t`Internal due date`
+          const label = t`Internal due`
           // 2026-05-26 (Yuqi /deadlines sixty-fifth pass #5): dropped
           // the RangeHeaderFilterDropdown icon button. Yuqi's call:
           // "remove. Sort by is doing the same thing." The dropdown
@@ -2581,7 +2630,10 @@ export function ObligationQueueRoute() {
             status={tableRow.original.status}
           />
         ),
-        meta: { cellClassName: `tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}` },
+        meta: {
+          headerClassName: OBLIGATION_QUEUE_DUE_COL_WIDTH,
+          cellClassName: `tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}`,
+        },
       },
       {
         // 2026-06-04 (Yuqi h4bQ2): OFFICIAL DUE DATE — the statutory
@@ -2591,7 +2643,7 @@ export function ObligationQueueRoute() {
         // rule carries no statutory filing date.
         accessorKey: 'filingDueDate',
         id: 'filingDueDate',
-        header: () => <span className="whitespace-nowrap">{t`Official due date`}</span>,
+        header: () => <span className="whitespace-nowrap">{t`Official due`}</span>,
         cell: (info) => {
           const value = info.getValue<string | null>()
           if (!value) return <EmptyCellMark />
@@ -2600,8 +2652,8 @@ export function ObligationQueueRoute() {
           )
         },
         meta: {
-          headerClassName: 'w-[210px] min-w-[210px] !whitespace-nowrap',
-          cellClassName: 'w-[210px] min-w-[210px] tabular-nums',
+          headerClassName: 'w-[110px]',
+          cellClassName: 'w-[110px] tabular-nums',
         },
       },
       {
@@ -2630,7 +2682,10 @@ export function ObligationQueueRoute() {
             </span>
           )
         },
-        meta: { cellClassName: `tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}` },
+        meta: {
+          headerClassName: OBLIGATION_QUEUE_DUE_COL_WIDTH,
+          cellClassName: `tabular-nums ${OBLIGATION_QUEUE_DUE_COL_WIDTH}`,
+        },
       },
       // "Projected risk" column removed 2026-05-21 per UX call —
       // the dollar exposure number lives inside the obligation drawer
@@ -2686,6 +2741,44 @@ export function ObligationQueueRoute() {
               )}
             </button>
           )
+        },
+      },
+      {
+        // 2026-06-08 (Yuqi /deadlines design parity): EXPOSURE column restored
+        // per the production design — the headline estimated-$ exposure with
+        // the accrued-penalty figure as a subline. Reverses the 2026-05-21
+        // "remove per-row $" call (the contract un-omits estimatedExposureCents
+        // again; see packages/contracts/src/obligation-queue.ts). Null exposure
+        // → em-dash; coordinators without dollar visibility receive null from
+        // the server (hideDollars), so the column reads "—" for them too.
+        accessorKey: 'estimatedExposureCents',
+        id: 'estimatedExposureCents',
+        // 2026-06-08 (Pencil HuYeb /deadlines #5/#6): Exposure was the one
+        // right-aligned column — left-align it so every header + cell in the
+        // table reads left-aligned and uniform.
+        header: () => <span>{t`Exposure`}</span>,
+        cell: ({ row: tableRow }) => {
+          const exposure = tableRow.original.estimatedExposureCents
+          if (exposure === null) {
+            return <EmptyCellMark />
+          }
+          const penalty = tableRow.original.accruedPenaltyCents
+          return (
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-xs font-medium tabular-nums text-text-primary">
+                {formatCents(exposure)}
+              </span>
+              {penalty !== null && penalty > 0 ? (
+                <span className="text-caption-xs tabular-nums text-text-tertiary">
+                  {t`≈${formatCents(penalty)} penalty`}
+                </span>
+              ) : null}
+            </div>
+          )
+        },
+        meta: {
+          headerClassName: 'w-[88px]',
+          cellClassName: 'w-[88px] tabular-nums',
         },
       },
       {
@@ -2761,7 +2854,23 @@ export function ObligationQueueRoute() {
           // signals; this is a date-state signal).
           const paymentLateDays = paymentOverdueDays(obligationQueueRow, Date.now())
           return (
-            <div className="flex items-center gap-1.5">
+            // 2026-06-08 (Yuqi "no horizontal scroll"): the Status cell can
+            // stack a pill + several signal badges (payment-late / awaiting-
+            // signature / accepted). Bound the cell and wrap the badges to a
+            // second line instead of letting the row push the table past the
+            // viewport. Keeps the column the trailing flex column without it
+            // forcing horizontal overflow.
+            <div
+              className={cn(
+                'flex items-center gap-1.5',
+                // Wrap the signal badges to a second line only in the full
+                // (panel-closed) layout. In the compact panel-open layout the
+                // status renders as a couple of small icons that must stay on
+                // one row — wrapping there stacks them vertically and breaks
+                // the cell.
+                !panelOpenIntent && 'flex-wrap',
+              )}
+            >
               <ObligationQueueStatusControl
                 row={obligationQueueRow}
                 labels={statusLabels}
@@ -2808,14 +2917,21 @@ export function ObligationQueueRoute() {
                   </Badge>
                 )
               ) : null}
+              {/* 2026-06-08 (Pencil HuYeb /deadlines #12): "Accepted" was a
+                  solid-green pill that out-weighted the Filed status pill,
+                  making two green elements compete. It's now a soft success
+                  Badge — a quiet confirmation that reinforces Filed rather
+                  than shouting over it, leaving the red Payment-late chip as
+                  the single high-attention signal. */}
               {obligationQueueRow.efileAcceptedAt && obligationQueueRow.status !== 'completed' ? (
-                <span
-                  className="inline-flex items-center gap-1 rounded-full bg-state-success-solid px-2 py-0.5 text-caption-xs font-medium text-text-inverted"
+                <Badge
+                  variant="success"
+                  className="h-5 gap-1 px-1.5 text-caption-xs"
                   title={`${t`Authority accepted the return`} · ${formatDatePretty(obligationQueueRow.efileAcceptedAt.slice(0, 10))}`}
                 >
                   <CheckCircle2Icon className="size-3" aria-hidden />
                   <Trans>Accepted</Trans>
-                </span>
+                </Badge>
               ) : null}
               {paymentLateDays !== null ? (
                 panelOpenIntent ? (
@@ -2962,11 +3078,17 @@ export function ObligationQueueRoute() {
           }
         }
       },
-      { root: scrollContainerRef.current, rootMargin: '256px 0px' },
+      // 2026-06-08 (Yuqi — full-page scroll): when the page scrolls as one
+      // (panel closed) the sentinel intersects the viewport (root: null);
+      // in the panel-open split the queue scrolls inside its own container.
+      {
+        root: panelOpenIntent ? scrollContainerRef.current : null,
+        rootMargin: '256px 0px',
+      },
     )
     observer.observe(node)
     return () => observer.disconnect()
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage, tableRows.length])
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, tableRows.length, panelOpenIntent])
   // 2026-05-26 (Yuqi feedback #2): lateCount / dueThisWeekCount /
   // blockedCount / waitingOnClientCount were the inputs for the
   // page subtitle metrics ("13 late · 4 due this week · ..."). The
@@ -3411,7 +3533,13 @@ export function ObligationQueueRoute() {
         // intact: `xl:pb-0` so the pagination footer rides flush at
         // tall viewports where the queue fills the screen.
         'mx-auto flex w-full max-w-page-expanded flex-col gap-8 px-4 pt-6 pb-12 md:px-16 md:pt-6 md:pb-12',
-        'xl:h-screen xl:overflow-hidden xl:pb-0',
+        // 2026-06-08 (Yuqi — "scroll the full page, not a table scroll"):
+        // the xl height-cap + overflow-hidden that turned the queue into an
+        // inner-table scroll now applies ONLY when the detail panel is open
+        // (the side-by-side split needs a full-height rail). With the panel
+        // closed the whole page scrolls naturally like /today + /alerts, and
+        // the at-a-glance card row collapses as it scrolls away.
+        panelOpenIntent && 'xl:h-screen xl:overflow-hidden xl:pb-0',
       )}
     >
       {/* 2026-05-26 (Yuqi /deadlines #4): title now carries the
@@ -3501,9 +3629,11 @@ export function ObligationQueueRoute() {
               <Trans>Export</Trans>
             </Button>
             <CalendarSyncPopover />
-            {/* Pencil c7xPK — annual rollover. Wired to the real engine
-                (obligations.previewAnnualRollover / createAnnualRollover). */}
-            <AnnualRolloverDialog />
+            {/* 2026-06-08 (Yuqi page feedback): "Annual rollover" toolbar
+                button removed. The rollover engine + the
+                `RollForwardAction` ("Generate Tax Year … deadlines") chip in
+                the filter row still ship; this top-bar dialog trigger is
+                gone. */}
             {/* 2026-05-26 (audit P0 #8 — Q1): the /deadlines queue
                 had no labeled primary CTA — the most common CPA
                 mid-day task ("I just learned client X owes a thing,
@@ -3559,10 +3689,16 @@ export function ObligationQueueRoute() {
       <div
         className={cn(
           'flex min-w-0 flex-col gap-4 xl:flex-row',
-          // Always constrain the row height at xl+ so the inner
-          // queue column can scroll independently and the sticky
-          // pagination footer pins to the viewport.
-          'xl:min-h-0 xl:flex-1 xl:items-stretch',
+          // 2026-06-08 (Yuqi — full-page scroll): the xl height-constraint
+          // (so the queue column scrolls independently) only applies in the
+          // panel-open split. Closed, the row flows to natural height so the
+          // whole page scrolls.
+          panelOpenIntent && 'xl:min-h-0 xl:flex-1 xl:items-stretch',
+          // 2026-06-08 (Yuqi): in the detail (master-detail) state the page is
+          // a recessed #f2f2f2 surface so the white list card + white detail
+          // panel read as distinct panes (icon rail · list · detail), instead
+          // of blending into the white list-view background.
+          activeDetailId && 'rounded-xl bg-[#f2f2f2] p-3',
         )}
       >
         <div
@@ -3580,15 +3716,17 @@ export function ObligationQueueRoute() {
             // gap only affects filter→table spacing — no other gap in
             // the queue column shifts.
             'flex min-w-0 flex-1 flex-col gap-4',
-            // 2026-05-26 (Yuqi /deadlines feedback — page-flip
-            // pattern): the queue column is `overflow-hidden` at xl+
-            // so neither axis can scroll. Vertical fit is owned by
-            // the table-card's responsive page-size hook (below);
-            // horizontal fit by the cell `break-words` rules. Any
-            // residual 1-2px overflow is silently clipped — the
-            // pagination handles "what doesn't fit."
-            'xl:min-h-0 xl:overflow-hidden',
-            !activeDetailId && 'overflow-x-hidden',
+            // 2026-05-26 (Yuqi /deadlines feedback — page-flip pattern): in
+            // the panel-open split the queue column is `overflow-hidden` at
+            // xl+ so it scrolls independently of the page.
+            // 2026-06-08 (Yuqi — full-page scroll): closed, that clip is OFF
+            // so `position: sticky` on the filter bar can pin to the page
+            // (an `overflow:hidden` ancestor would scope sticky to itself).
+            // The horizontal clip stays as `overflow-x-clip` (not -hidden) —
+            // `clip` doesn't force overflow-y to `auto`, so it can't turn the
+            // column back into a vertical scroll container.
+            panelOpenIntent && 'xl:min-h-0 xl:overflow-hidden',
+            !activeDetailId && 'overflow-x-clip',
           )}
         >
           {/* Filter bar — two rows now:
@@ -3627,7 +3765,16 @@ export function ObligationQueueRoute() {
               the bar is anchored to the top of the page scroll
               container — there's never table content directly behind
               it (it ends at the table top edge). */}
-          <div className="sticky top-0 z-10 flex flex-col gap-1.5 border-b border-divider-regular">
+          <div
+            ref={filterBarRef}
+            className={cn(
+              'sticky top-0 z-20 flex flex-col gap-1.5 border-b border-divider-regular',
+              // Full-page mode: table rows scroll behind the bar, so it needs
+              // an opaque fill. In the panel-open split nothing scrolls behind
+              // it, so it stays transparent over the inset surface.
+              !panelOpenIntent && 'bg-background-default',
+            )}
+          >
             <div className="flex flex-wrap items-end gap-3">
               <nav
                 aria-label={t`Status scopes`}
@@ -3689,14 +3836,31 @@ export function ObligationQueueRoute() {
                   />
                 ))}
               </nav>
-              {/* 2026-06-05 (Yuqi page-feedback #5 — "isn't there is a
-                  search already, on the above tab row"): the collapsible
-                  icon-button search next to the scope tabs is removed.
-                  The fixed search field in the /alerts-style filter row
-                  below is the single search affordance for the page.
-                  Keeps the `/` hotkey alive — see `useAppHotkey('/')` —
-                  but the ref now targets the fixed field, not the
-                  collapsible one. */}
+              {/* 2026-06-08 (Pencil HuYeb /deadlines #3): the Search field
+                  sits on the scope-tab row, right-aligned (the nav is
+                  flex-1 so it pushes Search to the trailing edge). The
+                  separate filter-row search + the Sort-by control below
+                  were removed (#2). */}
+              <label className="inline-flex h-9 w-[260px] shrink-0 items-center gap-2 self-center rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt">
+                <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
+                <input
+                  ref={searchInputRef}
+                  type="search"
+                  value={searchInput}
+                  onChange={(event) => {
+                    const nextSearch = event.target.value
+                    void setObligationQueueQuery(
+                      { q: nextSearch || null, obligation: null, row: null },
+                      nextSearch === ''
+                        ? undefined
+                        : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
+                    )
+                  }}
+                  placeholder={t`Search deadlines`}
+                  aria-label={t`Search deadlines`}
+                  className="min-w-0 flex-1 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-tertiary"
+                />
+              </label>
             </div>
           </div>
 
@@ -3712,89 +3876,14 @@ export function ObligationQueueRoute() {
               the `/` hotkey; this new search field is a parallel
               affordance in the canonical /alerts spot so both
               filter primitives coexist as Yuqi requested. */}
-          <div className="flex shrink-0 flex-nowrap items-center gap-2 overflow-x-auto">
-            <label className="inline-flex h-9 w-[260px] shrink-0 items-center gap-2 rounded-xl border border-divider-regular bg-background-default px-4 outline-none transition-colors focus-within:ring-2 focus-within:ring-state-accent-active-alt">
-              <SearchIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
-              <input
-                ref={searchInputRef}
-                type="search"
-                value={searchInput}
-                onChange={(event) => {
-                  const nextSearch = event.target.value
-                  void setObligationQueueQuery(
-                    { q: nextSearch || null, obligation: null, row: null },
-                    nextSearch === ''
-                      ? undefined
-                      : { limitUrlUpdates: queryInputUrlUpdateRateLimit },
-                  )
-                }}
-                placeholder={t`Search deadlines`}
-                aria-label={t`Search deadlines`}
-                className="min-w-0 flex-1 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-tertiary"
-              />
-            </label>
-            {/* 2026-06-05 (Yuqi DS alignment — "the right panel
-                opening mechanism should be the same as alert
-                detail. now it's chaotic"): when the detail panel
-                is up the filter row collapses to ONLY the Search
-                field — same Round 68 collapse behavior /alerts
-                ships. Keeps the panel-open layout from wrapping
-                Sort + Reset to a second line. */}
+          {/* 2026-06-08 (Pencil HuYeb /deadlines #2 + #3): the Sort-by
+              control and the duplicate search field were removed — Search
+              moved up to the scope-tab row. This row now carries only the
+              Reset affordance, and `empty:hidden` collapses it when no
+              filters are active. */}
+          <div className="flex shrink-0 flex-nowrap items-center gap-2 overflow-x-auto empty:hidden">
             {panelOpenIntent ? null : (
               <>
-                <DropdownMenu>
-                  {/* 2026-06-05 (page-feedback #6): the previous
-                      "Sort by · Due ↑" copy read like another Group-by
-                      value. The trigger now prefixes the verb ("Sort"),
-                      spells the dimension and direction out longhand
-                      ("Due date (earliest first)"), and the dropdown
-                      options match. */}
-                  <DropdownMenuTrigger
-                    render={
-                      <FilterTrigger
-                        noLeadingIcon
-                        active={sort !== DEFAULT_SORT}
-                        valueLabel={
-                          sort === 'smart_priority'
-                            ? t`Smart priority`
-                            : sort === 'due_desc'
-                              ? t`Due date (latest)`
-                              : sort === 'updated_desc'
-                                ? t`Recently updated`
-                                : t`Due date (earliest)`
-                        }
-                        aria-label={t`Sort deadlines within each group`}
-                      >
-                        <span className="text-text-tertiary">
-                          <Trans>Sort by</Trans>
-                        </span>
-                      </FilterTrigger>
-                    }
-                  />
-                  <DropdownMenuContent align="start" className="min-w-[200px]">
-                    <DropdownMenuRadioGroup
-                      value={sort}
-                      onValueChange={(next) => {
-                        if (isObligationQueueSort(next)) {
-                          changeSort(next)
-                        }
-                      }}
-                    >
-                      <DropdownMenuRadioItem value="smart_priority">
-                        <Trans>Smart priority</Trans>
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="due_asc">
-                        <Trans>Due date (earliest first)</Trans>
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="due_desc">
-                        <Trans>Due date (latest first)</Trans>
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="updated_desc">
-                        <Trans>Recently updated</Trans>
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
                 {due !== null ||
                 thisWeekFilterActive ||
                 evidence !== null ||
@@ -3916,16 +4005,10 @@ export function ObligationQueueRoute() {
                 >
                   <Trans>Awaiting signature</Trans>
                 </ObligationQueueActionChip>
-                <ObligationQueueActionChip
-                  active={projected === true}
-                  onClick={() =>
-                    void setObligationQueueQuery({
-                      projected: projected ? null : true,
-                    })
-                  }
-                >
-                  <Trans>Projected</Trans>
-                </ObligationQueueActionChip>
+                {/* 2026-06-08 (Pencil HuYeb /deadlines #7): "Projected"
+                    quick-filter chip removed. The `projected` query param +
+                    the per-row Projected badge stay; only the toolbar toggle
+                    is gone. */}
                 {/* "Penalty input needed" chip retired 2026-05-22 with
                 hanxujiang's projected-exposure refactor (30f29dc).
                 The `exposure` query param and its filter pipeline are
@@ -3978,6 +4061,8 @@ export function ObligationQueueRoute() {
                             <Trans>Client</Trans>
                           ) : group === 'filing' ? (
                             <Trans>Filing</Trans>
+                          ) : group === 'urgency' ? (
+                            <Trans>Urgency</Trans>
                           ) : (
                             <Trans>Due date</Trans>
                           )}
@@ -3997,13 +4082,21 @@ export function ObligationQueueRoute() {
                     <DropdownMenuRadioGroup
                       value={group}
                       onValueChange={(next) => {
-                        if (next === 'due' || next === 'client' || next === 'filing') {
+                        if (
+                          next === 'due' ||
+                          next === 'urgency' ||
+                          next === 'client' ||
+                          next === 'filing'
+                        ) {
                           void setObligationQueueQuery({ group: next })
                         }
                       }}
                     >
                       <DropdownMenuRadioItem value="due">
                         <Trans>Due date</Trans>
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="urgency">
+                        <Trans>Urgency</Trans>
                       </DropdownMenuRadioItem>
                       <DropdownMenuRadioItem value="client">
                         <Trans>Client</Trans>
@@ -4450,7 +4543,17 @@ export function ObligationQueueRoute() {
               // and the empty area below the last row now reads as
               // the page surface, not a bordered "this is the data
               // card and it has nothing in it" frame.
-              className="flex min-h-0 flex-1 flex-col overflow-hidden"
+              // 2026-06-08 (Yuqi — full-page scroll + sticky header): the
+              // card chrome (height cap + overflow-hidden + rounded border)
+              // only applies in the panel-open split. In full-page mode the
+              // `overflow-hidden` would scope the sticky column header to
+              // this card instead of the page, so the table flows borderless
+              // and the header can pin to the page below the filter bar.
+              className={cn(
+                'flex flex-col',
+                panelOpenIntent &&
+                  'min-h-0 flex-1 overflow-hidden rounded-xl border border-divider-subtle',
+              )}
             >
               {/* 2026-05-26 (Yuqi feedback — pagination position +
                   empty-row background): wrap Table in a flex-1 rows-
@@ -4485,7 +4588,11 @@ export function ObligationQueueRoute() {
                   surface. */}
               <div
                 ref={scrollContainerRef}
-                className="flex min-h-0 flex-1 flex-col overflow-y-auto"
+                // 2026-06-08 (Yuqi — full-page scroll): the inner scroll
+                // (overflow-y-auto + flex-1 height cap) only applies in the
+                // panel-open split; with the panel closed the table grows to
+                // its natural height and the page scrolls as one.
+                className={cn('flex flex-col', panelOpenIntent && 'min-h-0 flex-1 overflow-y-auto')}
               >
                 {/* 2026-06-04 round 23 (Yuqi "apply the style from
                     Today's Action table to Deadline's table"): the
@@ -4507,13 +4614,31 @@ export function ObligationQueueRoute() {
                     text. The earlier "14px for dense queue" intentional
                     deviation is dropped — design-system consistency
                     wins over per-row density bias. */}
-                <Table className="rounded-none border-0 [&_th]:!whitespace-normal [&_td]:!whitespace-normal [&_td]:!align-middle [&_td]:break-words [&_td]:text-[13px]">
+                {/* 2026-06-08 (Pencil HuYeb /deadlines #4): the interactive
+                    header triggers (sortable + faceted-filter buttons) reset
+                    text-transform/size, so they rendered sentence-case while
+                    plain columns inherited the canonical uppercase eyebrow —
+                    a mixed header row. Force the canonical typography
+                    (11px/semibold/uppercase/tracking/tertiary) onto those
+                    header buttons so the whole row matches the Today / Alerts
+                    tables. `!important` beats the per-component overrides;
+                    hover/active color still wins via its own selector. */}
+                <Table className="table-fixed rounded-none border-0 [&_th]:!whitespace-normal [&_th]:px-3 [&_th_button]:!text-[11px] [&_th_button]:!font-semibold [&_th_button]:!uppercase [&_th_button]:!tracking-[0.5px] [&_td]:!whitespace-normal [&_td]:px-3 [&_td]:!align-middle [&_td]:break-words [&_td]:text-[13px]">
                   {/* 2026-06-04 (Yuqi infinite scroll): header pinned to
                       the top of the scroll container so column labels stay
                       visible as the buffer scrolls. `bg-background-section`
                       is already on the canonical TableHeader, so the sticky
                       row stays opaque over scrolling content. */}
-                  <TableHeader className="sticky top-0 z-10">
+                  {/* 2026-06-08 (Yuqi — "filters and selections sticky on
+                      top"): the column header (select-all + sort/filter
+                      controls) pins below the filter bar. In the panel-open
+                      split it sticks to top-0 of its own scroll container; in
+                      full-page mode it sticks just below the page-pinned
+                      filter bar, offset by its measured height. */}
+                  <TableHeader
+                    className={cn('sticky z-10', panelOpenIntent && 'top-0')}
+                    style={panelOpenIntent ? undefined : { top: filterBarHeight }}
+                  >
                     {table.getHeaderGroups().map((headerGroup) => (
                       <TableRow key={headerGroup.id}>
                         {headerGroup.headers.map((header) => {
@@ -4521,17 +4646,13 @@ export function ObligationQueueRoute() {
                           return (
                             <TableHead
                               key={header.id}
-                              // 2026-06-06 (Yuqi browser feedback):
-                              // Deadline column labels should read as
-                              // sentence case ("Assignee", "Official due
-                              // date"), not the global TableHead uppercase
-                              // eyebrow treatment. Keep this route-local so
-                              // other table surfaces keep their current
-                              // primitive default.
-                              className={cn(
-                                'text-sm font-medium normal-case tracking-normal text-text-secondary',
-                                meta?.headerClassName,
-                              )}
+                              // 2026-06-08 (Pencil HuYeb /deadlines #4):
+                              // dropped the route-local sentence-case header
+                              // override so the column labels match the
+                              // canonical TableHead treatment used by the
+                              // Today / Alerts tables (11px semibold uppercase
+                              // tertiary eyebrow, left-aligned).
+                              className={cn(meta?.headerClassName)}
                               colSpan={header.colSpan}
                               aria-sort={obligationQueueColumnAriaSort(header.column.id, sort)}
                             >
@@ -4639,9 +4760,11 @@ export function ObligationQueueRoute() {
                         // 2026-05-26 (Yuqi sixty-second pass — generalized
                         // collapse): collapse Set is keyed by groupKey.
                         const rowGroupKey =
-                          group === 'filing'
-                            ? formatTaxCode(tableRow.original.taxType)
-                            : tableRow.original.clientId
+                          group === 'urgency'
+                            ? urgencyBandOf(tableRow.original)
+                            : group === 'filing'
+                              ? formatTaxCode(tableRow.original.taxType)
+                              : tableRow.original.clientId
                         const headerCollapsed = groupHeader
                           ? collapsedQueueGroups.has(groupHeader.groupKey)
                           : false
@@ -4649,7 +4772,7 @@ export function ObligationQueueRoute() {
                         // rows; Filing mode hides every non-header row in
                         // the collapsed filing cluster.
                         const isHiddenContinuation =
-                          group === 'filing'
+                          group === 'filing' || group === 'urgency'
                             ? !groupHeader && collapsedQueueGroups.has(rowGroupKey)
                             : continuationRowIds.has(tableRow.original.id) &&
                               collapsedQueueGroups.has(rowGroupKey)
@@ -4718,7 +4841,9 @@ export function ObligationQueueRoute() {
                                           title={
                                             groupHeader.kind === 'client'
                                               ? t`${groupHeader.lateCount ?? 0} of this client's deadlines are past the internal target`
-                                              : t`${groupHeader.lateCount ?? 0} of this filing type's deadlines are past the internal target`
+                                              : groupHeader.kind === 'urgency'
+                                                ? t`${groupHeader.lateCount ?? 0} deadlines in this band are past the internal target`
+                                                : t`${groupHeader.lateCount ?? 0} of this filing type's deadlines are past the internal target`
                                           }
                                         >
                                           <Plural
@@ -13128,15 +13253,18 @@ function ObligationQueueScopeTab({
       // "active tab in blue" pattern reads on screen. Inactive
       // tabs keep their hover-deepen-border affordance.
       className={cn(
-        'relative -mb-px flex shrink-0 items-center gap-1.5 py-3 text-base whitespace-nowrap transition-colors',
+        // 2026-06-08 (Pencil HuYeb /deadlines #1 — "smaller"): tab text
+        // text-base→text-sm, py-3→py-2, icon size-4→size-3.5, count
+        // text-sm→text-xs so the scope strip reads more compact.
+        'relative -mb-px flex shrink-0 items-center gap-1.5 py-2 text-sm whitespace-nowrap transition-colors',
         active
           ? 'font-semibold text-state-accent-solid'
           : 'border-b-2 border-transparent text-text-secondary hover:border-divider-deep hover:text-text-primary',
       )}
     >
-      {Icon ? <Icon className={cn('size-4', iconColor)} aria-hidden /> : null}
+      {Icon ? <Icon className={cn('size-3.5', iconColor)} aria-hidden /> : null}
       {hideLabel ? null : <span>{label}</span>}
-      <span className="text-sm tabular-nums text-text-tertiary">{count}</span>
+      <span className="text-xs tabular-nums text-text-tertiary">{count}</span>
       {active ? (
         <motion.span
           layoutId="scope-tab-underline"

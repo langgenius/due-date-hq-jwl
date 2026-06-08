@@ -31,8 +31,10 @@ import {
   backfillObligationSignatureLoop,
   bulkRemindObligationSignature,
   bulkUpdateObligationStatus,
+  assignObligation,
   decideObligationExtension,
   markObligationFiledRejected,
+  snoozeObligation,
   previewObligationSignatureReminder,
   remindObligationSignature,
   toObligationPublic,
@@ -803,6 +805,28 @@ const markFiledRejected = os.obligations.markFiledRejected.handler(async ({ inpu
   return result
 })
 
+const assign = os.obligations.assign.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const result = await assignObligation(scoped, userId, input)
+  await enqueueDashboardBriefRefresh(context.env, {
+    firmId: tenant.firmId,
+    reason: 'status_change',
+  }).catch(() => false)
+  return result
+})
+
+const snooze = os.obligations.snooze.handler(async ({ input, context }) => {
+  await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
+  const { scoped, tenant, userId } = requireTenant(context)
+  const result = await snoozeObligation(scoped, userId, input)
+  await enqueueDashboardBriefRefresh(context.env, {
+    firmId: tenant.firmId,
+    reason: 'status_change',
+  }).catch(() => false)
+  return result
+})
+
 const updateBlockedBy = os.obligations.updateBlockedBy.handler(async ({ input, context }) => {
   await requireCurrentFirmRole(context, OBLIGATION_STATUS_WRITE_ROLES)
   const { scoped, tenant, userId } = requireTenant(context)
@@ -1280,6 +1304,8 @@ export const obligationsHandlers = {
   listByClient,
   updateStatus,
   markFiledRejected,
+  assign,
+  snooze,
   updateBlockedBy,
   updatePrepStage,
   updateReviewStage,

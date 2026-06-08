@@ -7,6 +7,7 @@ import { compareSmartPriority, rankSmartPriorities } from '@duedatehq/core/prior
 import type { ObligationReadiness } from '@duedatehq/core/obligation-workflow'
 import type { SmartPriorityBreakdown } from '@duedatehq/ports/priority'
 import type { Db } from '../client'
+import { user } from '../schema/auth'
 import { evidenceLink } from '../schema/audit'
 import { client, clientFilingProfile } from '../schema/clients'
 import { firmProfile } from '../schema/firm'
@@ -145,6 +146,8 @@ export interface ObligationQueueListRow {
   clientState: string | null
   clientCounty: string | null
   assigneeName: string | null
+  assigneeId: string | null
+  snoozedUntil: Date | null
   daysUntilDue: number
   evidenceCount: number
   accruedPenaltyCents: number | null
@@ -286,6 +289,11 @@ interface ObligationQueueRawJoinedRow {
   clientState: string | null
   clientCounty: string | null
   assigneeName: string | null
+  // Per-deadline override (Pencil HuYeb). `assigneeId` is the
+  // obligation-level assignee user id; its display name is resolved in
+  // hydrateRows and wins over the client-level `assigneeName` above.
+  assigneeId: string | null
+  snoozedUntil: Date | null
   clientEntityType: string
   clientEstimatedTaxLiabilityCents: number | null
   clientEquityOwnerCount: number | null
@@ -533,19 +541,44 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
     return counts
   }
 
+  // Per-deadline assignee name resolution (Pencil HuYeb). Looks up the
+  // display names for obligation-level assignee user ids so they can win
+  // over the client-level `assigneeName` in hydrateRows.
+  async function loadUserNames(userIds: string[]): Promise<Map<string, string>> {
+    if (userIds.length === 0) return new Map()
+    const reads = []
+    for (let i = 0; i < userIds.length; i += ID_LOOKUP_BATCH_SIZE) {
+      const chunk = userIds.slice(i, i + ID_LOOKUP_BATCH_SIZE)
+      reads.push(
+        db.select({ id: user.id, name: user.name }).from(user).where(inArray(user.id, chunk)),
+      )
+    }
+    const rows = (await Promise.all(reads)).flat()
+    return new Map(rows.map((row) => [row.id, row.name]))
+  }
+
   async function hydrateRows(
     rawRows: ObligationQueueRawJoinedRow[],
     input: Pick<ObligationQueueListInput, 'asOfDate'> = {},
   ): Promise<ObligationQueueListRow[]> {
     const obligationIds = rawRows.map((row) => row.id)
     const statuses = new Map(rawRows.map((row) => [row.id, row.status]))
-    const [overlayDueDateSet, evidenceCounts, readinessById, smartPriorityProfile] =
-      await Promise.all([
-        listActiveOverlayDueDateSet(db, firmId, obligationIds),
-        listEvidenceCounts(obligationIds),
-        loadDerivedReadinessByObligation(db, firmId, statuses),
-        loadSmartPriorityProfile(),
-      ])
+    const assigneeUserIds = [
+      ...new Set(rawRows.map((row) => row.assigneeId).filter((id): id is string => Boolean(id))),
+    ]
+    const [
+      overlayDueDateSet,
+      evidenceCounts,
+      readinessById,
+      smartPriorityProfile,
+      assigneeNamesById,
+    ] = await Promise.all([
+      listActiveOverlayDueDateSet(db, firmId, obligationIds),
+      listEvidenceCounts(obligationIds),
+      loadDerivedReadinessByObligation(db, firmId, statuses),
+      loadSmartPriorityProfile(),
+      loadUserNames(assigneeUserIds),
+    ])
     const { statutory: overlayStatutory, internal: overlayInternal } = overlayDueDateSet
     const asOfDate = getAsOfDate(input)
     const asOfDateOnly = asOfDate.toISOString().slice(0, 10)
@@ -583,6 +616,10 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         currentDueDate,
         readiness: readinessById.get(row.id) ?? 'ready',
         evidenceCount: evidenceCounts.get(row.id) ?? 0,
+        // Obligation-level assignee wins over the client default.
+        assigneeName: row.assigneeId
+          ? (assigneeNamesById.get(row.assigneeId) ?? row.assigneeName)
+          : row.assigneeName,
         clientState: normalizeStateCode(row.clientState),
         clientCounty: normalizeNullableText(row.clientCounty),
         daysUntilDue: daysUntilDue(currentDueDate, asOfDate),
@@ -779,6 +816,8 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
           clientState: obligationInstance.jurisdiction,
           clientCounty: clientCountySql,
           assigneeName: client.assigneeName,
+          assigneeId: obligationInstance.assigneeId,
+          snoozedUntil: obligationInstance.snoozedUntil,
           clientEntityType: client.entityType,
           clientEstimatedTaxLiabilityCents: client.estimatedTaxLiabilityCents,
           clientEquityOwnerCount: client.equityOwnerCount,
@@ -799,6 +838,12 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
         sort !== 'updated_desc' && input.cursor ? decodeCursor(input.cursor) : null
       const rows = (await hydrateRows(rawRows, input))
         .filter((row) => (obligationIds.length > 0 ? obligationIds.includes(row.id) : true))
+        // Snoozed deadlines drop out of the default queue until the snooze
+        // instant passes (Pencil HuYeb). Deep-links via listByIds are
+        // unaffected, so a snoozed row can still be opened directly.
+        .filter((row) =>
+          row.snoozedUntil ? row.snoozedUntil.getTime() <= getAsOfDate(input).getTime() : true,
+        )
         .filter((row) => isWithinDueFilter(row, input))
         .filter((row) => isWithinDaysRange(row, input))
         .filter((row) =>
@@ -908,6 +953,8 @@ export function makeObligationQueueRepo(db: Db, firmId: string) {
                 string | null
               >`coalesce(json_extract(${clientFilingProfile.countiesJson}, '$[0]'), ${client.county})`,
               assigneeName: client.assigneeName,
+              assigneeId: obligationInstance.assigneeId,
+              snoozedUntil: obligationInstance.snoozedUntil,
               clientEntityType: client.entityType,
               clientEstimatedTaxLiabilityCents: client.estimatedTaxLiabilityCents,
               clientEquityOwnerCount: client.equityOwnerCount,

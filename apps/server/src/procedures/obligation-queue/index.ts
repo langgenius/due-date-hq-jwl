@@ -87,8 +87,11 @@ interface RawRow {
   efileSubmittedAt: Date | null
   efileAcceptedAt: Date | null
   efileRejectedAt: Date | null
+  assigneeId: string | null
+  snoozedUntil: Date | null
   migrationBatchId: string | null
   estimatedTaxDueCents: number | null
+  estimatedExposureCents: number | null
   penaltyBreakdownJson: unknown
   missingPenaltyFactsJson: unknown
   penaltySourceRefsJson: unknown
@@ -221,8 +224,11 @@ function toRow(
     efileSubmittedAt: row.efileSubmittedAt?.toISOString() ?? null,
     efileAcceptedAt: row.efileAcceptedAt?.toISOString() ?? null,
     efileRejectedAt: row.efileRejectedAt?.toISOString() ?? null,
+    assigneeId: row.assigneeId ?? null,
+    snoozedUntil: row.snoozedUntil?.toISOString() ?? null,
     migrationBatchId: row.migrationBatchId,
     estimatedTaxDueCents: opts.hideDollars ? null : row.estimatedTaxDueCents,
+    estimatedExposureCents: opts.hideDollars ? null : row.estimatedExposureCents,
     penaltyBreakdown: opts.hideDollars ? [] : parsePenaltyBreakdown(row.penaltyBreakdownJson),
     missingPenaltyFacts: opts.hideDollars ? [] : parseStringArray(row.missingPenaltyFactsJson),
     penaltySourceRefs: opts.hideDollars ? [] : parsePenaltySourceRefs(row.penaltySourceRefsJson),

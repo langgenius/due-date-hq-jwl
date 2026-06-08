@@ -1,4 +1,5 @@
 import type { ComponentType, ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CircleAlertIcon, Clock3Icon, FlameIcon } from 'lucide-react'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
 
@@ -65,6 +66,36 @@ export function DeadlinesAtAGlance({
 }) {
   const { t } = useLingui()
 
+  // 2026-06-08 (Yuqi — full-page scroll): collapse this card row as the page
+  // scrolls (hysteresis: collapse >40px, expand <8px). The whole /deadlines
+  // page now scrolls as one (the table no longer has its own scroll), so the
+  // nearest scrollable ancestor is the app-shell main — found at mount. The
+  // row only renders when the detail panel is closed, which is exactly when
+  // the page scrolls, so the ancestor lookup always lands on the page scroll.
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [collapsed, setCollapsed] = useState(false)
+  useEffect(() => {
+    const node = rootRef.current
+    if (!node) return undefined
+    // Find the nearest scrollable ancestor by overflow-y alone — NOT by
+    // current scrollHeight (the page often still fits at mount, before rows
+    // finish loading, which would miss the real scroll root).
+    let scroller: HTMLElement | null = node.parentElement
+    while (scroller) {
+      const style = getComputedStyle(scroller)
+      if (/(auto|scroll)/.test(style.overflowY)) break
+      scroller = scroller.parentElement
+    }
+    const target: HTMLElement | Window = scroller ?? window
+    const read = () => {
+      const top = scroller ? scroller.scrollTop : window.scrollY
+      setCollapsed((prev) => (prev ? top > 8 : top > 40))
+    }
+    read()
+    target.addEventListener('scroll', read, { passive: true })
+    return () => target.removeEventListener('scroll', read)
+  }, [])
+
   const openRows = rows.filter((row) => !TERMINAL_STATUSES.has(row.status))
 
   const mostOverdue = openRows
@@ -77,89 +108,102 @@ export function DeadlinesAtAGlance({
   const effectiveReviewCount = reviewCount > 0 ? reviewCount : reviewRows.length
 
   return (
-    <section aria-label={t`At a glance`} className="grid grid-cols-1 gap-3 md:grid-cols-3">
-      <NarrativeTile
-        icon={FlameIcon}
-        tone="destructive"
-        label={<Trans>Today</Trans>}
-        loading={isLoading}
-        headline={
-          mostOverdue ? (
-            <Trans>
-              {mostOverdue.clientName} is {Math.abs(mostOverdue.daysUntilDue)} days overdue —
-              highest exposure
-            </Trans>
-          ) : (
-            <Trans>Nothing overdue — you&apos;re clear</Trans>
-          )
-        }
-        sub={
-          mostOverdue ? (
-            <Trans>
-              Most overdue open deadline · due {formatDueDate(mostOverdue.currentDueDate)}
-            </Trans>
-          ) : (
-            <Trans>No open deadline has slipped past its due date</Trans>
-          )
-        }
-        onClick={() => onOpenScope('overdue')}
-        ariaLabel={t`View overdue deadlines`}
-      />
-      <NarrativeTile
-        icon={Clock3Icon}
-        tone="warning"
-        label={<Trans>This week</Trans>}
-        loading={isLoading}
-        headline={
-          thisWeekRows.length > 0 ? (
-            <Trans>
-              {formatClientList(thisWeekRows.map((row) => row.clientName))} are filing soon
-            </Trans>
-          ) : (
-            <Trans>No deadlines due in the next 7 days</Trans>
-          )
-        }
-        sub={
-          thisWeekRows.length > 0 ? (
-            <Plural
-              value={thisWeekRows.length}
-              one="# deadline due in the next 7 days"
-              other="# deadlines due in the next 7 days"
-            />
-          ) : (
-            <Trans>The week ahead is clear</Trans>
-          )
-        }
-        onClick={() => onOpenScope('this_week')}
-        ariaLabel={t`View deadlines due this week`}
-      />
-      <NarrativeTile
-        icon={CircleAlertIcon}
-        tone="accent"
-        label={<Trans>Needs you</Trans>}
-        loading={isLoading}
-        headline={
-          reviewHeadlineClient ? (
-            <Trans>{reviewHeadlineClient} is waiting on your review</Trans>
-          ) : (
-            <Trans>Nothing is waiting on your review</Trans>
-          )
-        }
-        sub={
-          effectiveReviewCount > 0 ? (
-            <Plural
-              value={effectiveReviewCount}
-              one="# item awaiting your eyes"
-              other="# items awaiting your eyes"
-            />
-          ) : (
-            <Trans>Your review queue is empty</Trans>
-          )
-        }
-        onClick={() => onOpenScope('review')}
-        ariaLabel={t`View items needing your review`}
-      />
-    </section>
+    <div
+      ref={rootRef}
+      className={cn(
+        'grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out',
+        collapsed
+          ? 'pointer-events-none -mt-8 grid-rows-[0fr] opacity-0'
+          : 'grid-rows-[1fr] opacity-100',
+      )}
+      aria-hidden={collapsed}
+    >
+      <div className="overflow-hidden">
+        <section aria-label={t`At a glance`} className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <NarrativeTile
+            icon={FlameIcon}
+            tone="destructive"
+            label={<Trans>Today</Trans>}
+            loading={isLoading}
+            headline={
+              mostOverdue ? (
+                <Trans>
+                  {mostOverdue.clientName} is {Math.abs(mostOverdue.daysUntilDue)} days overdue —
+                  highest exposure
+                </Trans>
+              ) : (
+                <Trans>Nothing overdue — you&apos;re clear</Trans>
+              )
+            }
+            sub={
+              mostOverdue ? (
+                <Trans>
+                  Most overdue open deadline · due {formatDueDate(mostOverdue.currentDueDate)}
+                </Trans>
+              ) : (
+                <Trans>No open deadline has slipped past its due date</Trans>
+              )
+            }
+            onClick={() => onOpenScope('overdue')}
+            ariaLabel={t`View overdue deadlines`}
+          />
+          <NarrativeTile
+            icon={Clock3Icon}
+            tone="warning"
+            label={<Trans>This week</Trans>}
+            loading={isLoading}
+            headline={
+              thisWeekRows.length > 0 ? (
+                <Trans>
+                  {formatClientList(thisWeekRows.map((row) => row.clientName))} are filing soon
+                </Trans>
+              ) : (
+                <Trans>No deadlines due in the next 7 days</Trans>
+              )
+            }
+            sub={
+              thisWeekRows.length > 0 ? (
+                <Plural
+                  value={thisWeekRows.length}
+                  one="# deadline due in the next 7 days"
+                  other="# deadlines due in the next 7 days"
+                />
+              ) : (
+                <Trans>The week ahead is clear</Trans>
+              )
+            }
+            onClick={() => onOpenScope('this_week')}
+            ariaLabel={t`View deadlines due this week`}
+          />
+          <NarrativeTile
+            icon={CircleAlertIcon}
+            tone="accent"
+            label={<Trans>Needs you</Trans>}
+            loading={isLoading}
+            headline={
+              reviewHeadlineClient ? (
+                <Trans>{reviewHeadlineClient} is waiting on your review</Trans>
+              ) : (
+                <Trans>Nothing is waiting on your review</Trans>
+              )
+            }
+            sub={
+              effectiveReviewCount > 0 ? (
+                <Plural
+                  value={effectiveReviewCount}
+                  one="# item awaiting your eyes"
+                  other="# items awaiting your eyes"
+                />
+              ) : (
+                <Trans>Your review queue is empty</Trans>
+              )
+            }
+            onClick={() => onOpenScope('review')}
+            ariaLabel={t`View items needing your review`}
+          />
+        </section>
+      </div>
+    </div>
   )
 }
 

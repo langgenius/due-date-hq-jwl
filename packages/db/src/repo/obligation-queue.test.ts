@@ -40,6 +40,8 @@ interface FakeRow {
   clientState: string | null
   clientCounty: string | null
   assigneeName: string | null
+  assigneeId: string | null
+  snoozedUntil: Date | null
 }
 
 interface FakeReadinessRequest {
@@ -183,6 +185,8 @@ function makeRow(over: Partial<FakeRow> = {}): FakeRow {
     clientState: over.clientState ?? 'CA',
     clientCounty: over.clientCounty ?? 'Orange',
     assigneeName: over.assigneeName ?? null,
+    assigneeId: over.assigneeId ?? null,
+    snoozedUntil: over.snoozedUntil ?? null,
   }
 }
 

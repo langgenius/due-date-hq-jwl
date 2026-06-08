@@ -95,6 +95,8 @@ export const router = os.router({
     updateTaxYearProfile: obligationsHandlers.updateTaxYearProfile,
     updateStatus: obligationsHandlers.updateStatus,
     markFiledRejected: obligationsHandlers.markFiledRejected,
+    assign: obligationsHandlers.assign,
+    snooze: obligationsHandlers.snooze,
     updateBlockedBy: obligationsHandlers.updateBlockedBy,
     updatePrepStage: obligationsHandlers.updatePrepStage,
     updateReviewStage: obligationsHandlers.updateReviewStage,

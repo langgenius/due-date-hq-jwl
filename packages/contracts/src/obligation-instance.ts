@@ -94,6 +94,12 @@ export const ObligationInstancePublicSchema = z.object({
   efileSubmittedAt: z.iso.datetime().nullable(),
   efileAcceptedAt: z.iso.datetime().nullable(),
   efileRejectedAt: z.iso.datetime().nullable(),
+  // Per-deadline ownership + snooze (Pencil HuYeb /deadlines detail).
+  // `assigneeId` overrides the client-level assignee; NULL = inherit the
+  // client default. `snoozedUntil` defers the row from the default queue
+  // view / needs-attention strip until the instant passes; NULL = active.
+  assigneeId: z.string().nullable(),
+  snoozedUntil: z.iso.datetime().nullable(),
   migrationBatchId: EntityIdSchema.nullable(),
   estimatedTaxDueCents: z.number().int().min(0).nullable(),
   estimatedExposureCents: z.number().int().min(0).nullable(),

@@ -94,7 +94,12 @@ export const ObligationQueueListInputSchema = z.object({
 export type ObligationQueueListInput = z.infer<typeof ObligationQueueListInputSchema>
 
 export const ObligationQueueRowSchema = ObligationInstancePublicSchema.omit({
-  estimatedExposureCents: true,
+  // 2026-06-08 (Yuqi /deadlines design parity): estimatedExposureCents is
+  // un-omitted to power the production design's EXPOSURE column (per-row $
+  // headline + accrued-penalty subtext). The 2026-05-21 "remove per-row $"
+  // call is intentionally reversed here per the design-supersedes decision.
+  // exposureStatus / exposureCalculatedAt stay omitted — the queue only needs
+  // the headline number, not the calc provenance.
   exposureStatus: true,
   exposureCalculatedAt: true,
 }).extend({

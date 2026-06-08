@@ -23,7 +23,7 @@ import {
   TaxPeriodSourceSchema,
   ObligationTypeSchema,
 } from './shared/enums'
-import { EntityIdSchema } from './shared/ids'
+import { EntityIdSchema, TenantIdSchema } from './shared/ids'
 
 export {
   ObligationInstancePublicSchema,
@@ -203,6 +203,27 @@ export const ObligationStatusUpdateOutputSchema = z.object({
   obligation: ObligationInstancePublicSchema,
   auditId: EntityIdSchema,
 })
+
+// Per-deadline assignee (Pencil HuYeb /deadlines detail). `assigneeId`
+// null clears the obligation override and lets the row fall back to the
+// client-level assignee. Reuses the status-update output shape so the UI
+// can surface the audit reference inline.
+export const ObligationAssignInputSchema = z.object({
+  id: EntityIdSchema,
+  // user.id is a text id (not necessarily a UUID), matching how the
+  // client-level assignee + MemberAssigneeOption represent it.
+  assigneeId: TenantIdSchema.nullable(),
+})
+export type ObligationAssignInput = z.infer<typeof ObligationAssignInputSchema>
+
+// Snooze a deadline until an instant. `snoozedUntil` null un-snoozes
+// (clears the defer). Reuses the status-update output shape.
+export const ObligationSnoozeInputSchema = z.object({
+  id: EntityIdSchema,
+  snoozedUntil: z.iso.datetime().nullable(),
+  reason: z.string().trim().max(280).optional(),
+})
+export type ObligationSnoozeInput = z.infer<typeof ObligationSnoozeInputSchema>
 
 // Filed → e-file rejected → In review unwind (PDF anti-pattern #3:
 // Filed ≠ Done). Caller must hold a row in `done` ("Filed"). Server
@@ -736,6 +757,8 @@ export const obligationsContract = oc.router({
   markFiledRejected: oc
     .input(ObligationMarkFiledRejectedInputSchema)
     .output(ObligationStatusUpdateOutputSchema),
+  assign: oc.input(ObligationAssignInputSchema).output(ObligationStatusUpdateOutputSchema),
+  snooze: oc.input(ObligationSnoozeInputSchema).output(ObligationStatusUpdateOutputSchema),
   updateBlockedBy: oc
     .input(ObligationUpdateBlockedByInputSchema)
     .output(ObligationStatusUpdateOutputSchema),

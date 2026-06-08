@@ -731,6 +731,27 @@ export function makeObligationsRepo(db: Db, firmId: string) {
         .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
     },
 
+    // Per-deadline assignee override (Pencil HuYeb). Sets the
+    // obligation-level assignee_id; NULL clears it so the row falls back
+    // to the client-level assignee. The service layer reads `before`,
+    // writes the audit row, and re-reads `after`.
+    async setAssignee(id: string, assigneeId: string | null): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({ assigneeId })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
+    // Snooze a deadline until an instant. NULL un-snoozes. Like the
+    // prep/review setters this is an unguarded single-column write; the
+    // service layer owns the audit trail.
+    async setSnoozedUntil(id: string, snoozedUntil: Date | null): Promise<void> {
+      await db
+        .update(obligationInstance)
+        .set({ snoozedUntil })
+        .where(and(eq(obligationInstance.firmId, firmId), eq(obligationInstance.id, id)))
+    },
+
     async updateExtensionDecision(
       id: string,
       patch: {

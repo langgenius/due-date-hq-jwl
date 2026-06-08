@@ -253,6 +253,15 @@ export const obligationInstance = sqliteTable(
     efileAcceptedAt: integer('efile_accepted_at', { mode: 'timestamp_ms' }),
     efileRejectedAt: integer('efile_rejected_at', { mode: 'timestamp_ms' }),
 
+    // 2026-06-08 (Pencil HuYeb /deadlines detail — per-deadline ownership +
+    // snooze): `assigneeId` is resolved per-obligation and OVERRIDES the
+    // client-level assignee (client.assignee_id) so a single return can be
+    // handed to one preparer without reassigning the whole client. NULL falls
+    // back to the client default. `snoozedUntil` defers the deadline from the
+    // default queue view / needs-attention strip until the chosen date passes.
+    assigneeId: text('assignee_id').references(() => user.id, { onDelete: 'set null' }),
+    snoozedUntil: integer('snoozed_until', { mode: 'timestamp_ms' }),
+
     // Nullable: rows created outside of a migration batch (manual add,
     // Pulse-apply in Phase 1 via exception) do not carry a batch id.
     migrationBatchId: text('migration_batch_id'),

@@ -88,6 +88,11 @@ export interface ObligationInstanceRow {
   efileSubmittedAt: Date | null
   efileAcceptedAt: Date | null
   efileRejectedAt: Date | null
+  // Per-deadline ownership + snooze (Pencil HuYeb). `assigneeId` overrides
+  // the client-level assignee; `snoozedUntil` defers the row from the
+  // default queue until the instant passes.
+  assigneeId: string | null
+  snoozedUntil: Date | null
   migrationBatchId: string | null
   estimatedTaxDueCents: number | null
   estimatedExposureCents: number | null
@@ -294,6 +299,14 @@ export interface ObligationsRepo {
    * service layer (isLegalEfileTransition), not here.
    */
   setEfileState(id: string, efileState: ObligationEfileState): Promise<void>
+  /**
+   * Per-deadline ownership + snooze (Pencil HuYeb). `setAssignee` sets the
+   * obligation-level assignee (NULL clears it back to the client default);
+   * `setSnoozedUntil` defers the row from the default queue (NULL un-snoozes).
+   * Service-layer caller adds firm scope + audit write.
+   */
+  setAssignee(id: string, assigneeId: string | null): Promise<void>
+  setSnoozedUntil(id: string, snoozedUntil: Date | null): Promise<void>
   /**
    * Lifecycle v2: when the obligation identified by
    * `parentObligationInstanceId` reaches `completed`, every child row

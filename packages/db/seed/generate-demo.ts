@@ -2297,10 +2297,15 @@ for (const f of FIRMS) {
   )
 
   // calendar_subscription — owner's iCal feed.
+  // 2026-06-08: id prefix was '681' (3 chars) which overflowed the first
+  // UUID group to 9 chars (681000000-…), so the seeded ids failed the
+  // `id: z.uuid()` output schema and every calendar.* RPC 500'd ("Output
+  // validation failed"). Switched to the unused 2-char prefix '71' so the
+  // first group is a valid 8 chars (71000000-…).
   add(
     'calendar_subscription',
     row(
-      s(sid('681', i, 1)),
+      s(sid('71', i, 1)),
       s(f.id),
       s('my'),
       s(f.owner),

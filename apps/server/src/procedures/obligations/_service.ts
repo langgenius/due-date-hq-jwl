@@ -22,6 +22,8 @@ import type {
   SignatureReminderSample,
   ObligationStatusUpdateInput,
   ObligationStatusUpdateOutput,
+  ObligationAssignInput,
+  ObligationSnoozeInput,
   ObligationUpdateBlockedByInput,
   ObligationUpdateEfileStateInput,
   ObligationUpdatePrepStageInput,
@@ -101,6 +103,8 @@ interface ObligationRow {
   efileSubmittedAt?: Date | null
   efileAcceptedAt?: Date | null
   efileRejectedAt?: Date | null
+  assigneeId?: string | null
+  snoozedUntil?: Date | null
   migrationBatchId: string | null
   estimatedTaxDueCents: number | null
   estimatedExposureCents: number | null
@@ -211,6 +215,8 @@ export function toObligationPublic(
     efileSubmittedAt: row.efileSubmittedAt?.toISOString() ?? null,
     efileAcceptedAt: row.efileAcceptedAt?.toISOString() ?? null,
     efileRejectedAt: row.efileRejectedAt?.toISOString() ?? null,
+    assigneeId: row.assigneeId ?? null,
+    snoozedUntil: row.snoozedUntil?.toISOString() ?? null,
     migrationBatchId: row.migrationBatchId,
     estimatedTaxDueCents: row.estimatedTaxDueCents,
     estimatedExposureCents: row.estimatedExposureCents,
@@ -466,6 +472,110 @@ export async function updateObligationStatus(
       )
     }
   }
+
+  return {
+    obligation: await toObligationPublicFromScoped(scoped, after),
+    auditId,
+  }
+}
+
+/**
+ * assignObligation — set or clear the per-deadline assignee (Pencil HuYeb).
+ *
+ * `assigneeId` null clears the obligation override so the row falls back to
+ * the client-level assignee. Same read-before / write / read-after / audit
+ * invariant as updateObligationStatus.
+ */
+export async function assignObligation(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationAssignInput,
+): Promise<ObligationStatusUpdateOutput> {
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.id} not found in current firm.`,
+    })
+  }
+
+  if ((before.assigneeId ?? null) === (input.assigneeId ?? null)) {
+    return {
+      obligation: await toObligationPublicFromScoped(scoped, before),
+      auditId: '00000000-0000-0000-0000-000000000000',
+    }
+  }
+
+  await scoped.obligations.setAssignee(input.id, input.assigneeId)
+
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated deadline could not be re-read.',
+    })
+  }
+
+  const { id: auditId } = await scoped.audit.write({
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.id,
+    action: 'obligation.assignee.updated',
+    before: { assigneeId: before.assigneeId ?? null },
+    after: { assigneeId: after.assigneeId ?? null },
+  })
+
+  return {
+    obligation: await toObligationPublicFromScoped(scoped, after),
+    auditId,
+  }
+}
+
+/**
+ * snoozeObligation — defer a deadline until an instant, or un-snooze
+ * (Pencil HuYeb). `snoozedUntil` null clears the defer. Snoozed rows drop
+ * out of the default queue view / needs-attention strip until the instant
+ * passes (filtered in the obligation-queue repo). Same audit invariant.
+ */
+export async function snoozeObligation(
+  scoped: ScopedRepo,
+  userId: string,
+  input: ObligationSnoozeInput,
+): Promise<ObligationStatusUpdateOutput> {
+  const before = await scoped.obligations.findById(input.id)
+  if (!before) {
+    throw new ORPCError('NOT_FOUND', {
+      message: `Deadline ${input.id} not found in current firm.`,
+    })
+  }
+
+  const nextUntil = input.snoozedUntil ? new Date(input.snoozedUntil) : null
+  await scoped.obligations.setSnoozedUntil(input.id, nextUntil)
+
+  const after = await scoped.obligations.findById(input.id)
+  if (!after) {
+    throw new ORPCError('INTERNAL_SERVER_ERROR', {
+      message: 'Updated deadline could not be re-read.',
+    })
+  }
+
+  const auditPayload: {
+    actorId: string
+    entityType: string
+    entityId: string
+    action: 'obligation.snooze.set' | 'obligation.snooze.cleared'
+    before: { snoozedUntil: string | null }
+    after: { snoozedUntil: string | null }
+    reason?: string
+  } = {
+    actorId: userId,
+    entityType: 'obligation_instance',
+    entityId: input.id,
+    action: nextUntil ? 'obligation.snooze.set' : 'obligation.snooze.cleared',
+    before: { snoozedUntil: before.snoozedUntil?.toISOString() ?? null },
+    after: { snoozedUntil: after.snoozedUntil?.toISOString() ?? null },
+  }
+  if (input.reason !== undefined) auditPayload.reason = input.reason
+
+  const { id: auditId } = await scoped.audit.write(auditPayload)
 
   return {
     obligation: await toObligationPublicFromScoped(scoped, after),

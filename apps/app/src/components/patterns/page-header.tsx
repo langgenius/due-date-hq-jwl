@@ -113,7 +113,7 @@ export function PageHeader({
        eyebrow row sits TIGHTER against the title block. */
     <header className={cn('flex flex-col gap-2', className)}>
       {eyebrowRow}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
         <div className="flex min-w-0 flex-col gap-2">
           {/* `min-w-0` so the title block can shrink when the actions
               cluster sits beside it at lg+ and the page narrows
