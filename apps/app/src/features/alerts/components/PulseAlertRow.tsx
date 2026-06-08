@@ -972,14 +972,14 @@ function PulseAlertList({
                     count keeps the quieter `text-text-muted` so
                     the count reads as supporting context, not the
                     lede. */}
-            {/* 2026-06-08 (Yuqi /alerts #4 "remove?" + #5 "slight gray
-                like today's actions this week table"): the day-group band
-                now carries the same slight-gray fill as the /today Actions
-                table's status-group header (#e9ebf0), and the redundant
-                right-side dispatch count is removed — Today's section
-                headers carry just the label, no count, so this matches
-                that vocabulary instead of reinventing a second heading. */}
-            <div className="flex items-center border-b border-divider-subtle bg-[#e9ebf0] px-5 py-2">
+            {/* 2026-06-08 (Yuqi /alerts "no background colour"): the day-group
+                band drops its gray fill. Unlike /today's Actions table — where
+                the band groups by STATUS/urgency and earns a solid
+                `bg-background-subtle` fill — this band is just a DATE divider,
+                so a quiet bottom rule (no fill) reads cleaner and keeps the
+                colored-background restraint. The redundant right-side dispatch
+                count stays removed (Today's headers carry just the label). */}
+            <div className="flex items-center border-b border-divider-subtle px-5 py-2">
               <div className="flex items-center gap-1.5 text-[11px] font-medium tracking-[0.4px] text-text-tertiary uppercase">
                 {isToday ? (
                   <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />

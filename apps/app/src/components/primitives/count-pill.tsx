@@ -17,7 +17,11 @@ export function CountPill({ children, className }: { children: ReactNode; classN
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full bg-[#fef3f2] px-2 py-[3px] text-[12px] font-medium text-text-destructive tabular-nums',
+        // `leading-none` so the pill keeps its own ~18px height instead of
+        // inheriting the line-height of whatever title it sits beside — next to
+        // the 28px page-header title the inherited 32px line-box made it 38px
+        // tall (Yuqi 2026-06-08 "so tall?").
+        'inline-flex items-center gap-1.5 rounded-full bg-[#fef3f2] px-2 py-[3px] text-[12px] leading-none font-medium text-text-destructive tabular-nums',
         className,
       )}
     >
