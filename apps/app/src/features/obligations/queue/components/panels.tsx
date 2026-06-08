@@ -510,31 +510,27 @@ export function DeadlineTile({
   // its real estate with red on top of those, stacking the alarm. A
   // neutral surface with the date value in red (via `valueTone`) +
   // the destructive border keeps the cue without flooding.
+  // 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #2): tile chrome aligned
+  // to the alerts detail's fact/section cards — `rounded-lg border
+  // border-divider-subtle` with a `text-[11px]` uppercase eyebrow
+  // (font-semibold, text-text-tertiary) + value. The success tile keeps
+  // its tinted surface as the terminal state cue; destructive/primary
+  // tiles sit on the same neutral subtle-bordered card as the alerts
+  // facts, with urgency carried by the red value + the restrained inline
+  // "N days overdue" note (no filled pill — mirrors the alerts red delta).
   const surfaceClass =
     tone === 'success'
       ? 'border-state-success-border bg-state-success-hover'
-      : tone === 'destructive'
-        ? 'border-divider-regular bg-background-default'
-        : tone === 'primary'
-          ? 'border-divider-regular bg-background-default'
-          : 'border-divider-subtle bg-background-default'
+      : 'border-divider-subtle bg-background-default'
   const labelToneClass = tone === 'success' ? 'text-text-success' : 'text-text-tertiary'
   const valueClass = valueTone === 'tertiary' ? 'text-text-tertiary' : 'text-text-primary'
-  // Tile labels use the canonical eyebrow treatment — uppercase + tracking
-  // — so "FILING DEADLINE / INTERNAL TARGET / PAYMENT DUE" read as TILE
-  // LABELS (consistent with the rest of the drawer eyebrows + the
-  // dashboard summary tiles). Date value uses the canonical sans + tabular-
-  // nums (NOT font-mono — mono made the number read as "code-y" when it's
-  // just a date; tabular-nums alone keeps columnar alignment).
   return (
-    <div className={cn('flex flex-col gap-0.5 rounded-md border px-2.5 py-1.5', surfaceClass)}>
+    <div className={cn('flex flex-col gap-1 rounded-lg border px-3 py-2.5', surfaceClass)}>
       <span
         className={cn(
-          // `text-[10px]` not `text-caption-xs` — twMerge collapses
-          // custom font-size tokens against `text-text-destructive`.
-          'text-[10px] leading-tight font-medium uppercase tracking-eyebrow-tight',
+          'text-[11px] leading-tight font-semibold uppercase tracking-wide',
           labelToneClass,
-          primary && 'font-semibold',
+          primary && 'tracking-[0.6px]',
         )}
       >
         {label}
@@ -544,7 +540,10 @@ export function DeadlineTile({
           {date ? formatDate(date) : '—'}
         </span>
         {lateLabel ? (
-          <span className="inline-flex items-center rounded-full bg-state-destructive-hover px-2 py-0.5 text-[10px] font-medium uppercase tracking-eyebrow-tight text-text-destructive">
+          // 2026-06-08 (parity #2): restrained inline red note — no filled
+          // pill — consistent with how the alerts detail shows its red
+          // `+N days` delta.
+          <span className="text-[11px] font-semibold text-text-destructive tabular-nums">
             {lateLabel}
           </span>
         ) : null}

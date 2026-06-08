@@ -1399,6 +1399,83 @@ export function ObligationQueueDetailDrawer({
   const titleText = row?.clientName ?? null
   const drawerBody = (
     <>
+      {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #1): thin h-7 top
+          status banner mirroring AlertDetailDrawer's DecisionBanners
+          (L424). One band, colored by deadline state — red when overdue,
+          green when filed/completed, amber otherwise — carrying the
+          status text on the left and a quiet timing note on the right.
+          This subsumes the inline status-dot+label that used to sit on
+          the header status row. */}
+      {row
+        ? (() => {
+            const isDone =
+              row.status === 'done' || row.status === 'completed' || row.status === 'paid'
+            const isOverdue = row.daysUntilDue < 0 && !isDone
+            const officialIso = row.filingDueDate ?? row.baseDueDate ?? row.currentDueDate
+            const tone = isOverdue ? 'overdue' : isDone ? 'done' : 'pending'
+            const bandClass =
+              tone === 'overdue'
+                ? 'bg-[#fee4e2]'
+                : tone === 'done'
+                  ? 'bg-components-badge-bg-green-soft'
+                  : 'bg-[#fffbeb]'
+            const textClass =
+              tone === 'overdue'
+                ? 'text-text-destructive'
+                : tone === 'done'
+                  ? 'text-text-success'
+                  : 'text-text-warning'
+            const Icon =
+              tone === 'overdue'
+                ? AlertTriangleIcon
+                : tone === 'done'
+                  ? CheckCircle2Icon
+                  : AlarmClockIcon
+            // Count strings use the <Plural>/<Trans> COMPONENTS (not the
+            // `plural()`/`i18n._` macro pair) — the macro expands to reference an
+            // `i18n` binding that isn't in this component's scope, which tsgo
+            // can't see (build-time expansion) but crashes at runtime.
+            const label =
+              tone === 'overdue' ? (
+                <Trans>
+                  Past deadline ·{' '}
+                  <Plural
+                    value={Math.abs(row.daysUntilDue)}
+                    one="# day overdue"
+                    other="# days overdue"
+                  />
+                </Trans>
+              ) : tone === 'done' ? (
+                row.status === 'completed' ? <Trans>Completed</Trans> : <Trans>Filed</Trans>
+              ) : (
+                statusLabels[row.status]
+              )
+            const timingNote =
+              tone === 'done' ? (
+                officialIso ? t`Due ${formatDate(officialIso)}` : null
+              ) : row.daysUntilDue >= 0 ? (
+                <Plural value={row.daysUntilDue} one="due in # day" other="due in # days" />
+              ) : officialIso ? (
+                t`Due ${formatDate(officialIso)}`
+              ) : null
+            return (
+              <div
+                className={cn(
+                  'flex h-7 w-full items-center gap-2.5 border-b border-divider-subtle px-12',
+                  bandClass,
+                )}
+              >
+                <Icon className={cn('size-4 shrink-0', textClass)} aria-hidden />
+                <span className={cn('text-[13px] font-semibold', textClass)}>{label}</span>
+                {timingNote ? (
+                  <span className="ml-auto shrink-0 text-[12px] font-medium text-text-tertiary tabular-nums">
+                    {timingNote}
+                  </span>
+                ) : null}
+              </div>
+            )
+          })()
+        : null}
       {/* Header — flipped 2026-05-23. The drawer is a per-obligation
           surface, so the obligation identity (Form 1040, Form 1120-S)
           deserves the primary slot, not the client. Earlier shape
@@ -1444,7 +1521,11 @@ export function ObligationQueueDetailDrawer({
       {/* 2026-05-27 (Yuqi "remove top padding"): header pt-10 → pt-4
           so the title sits closer to the top of the drawer. Bottom
           spacing kept (pb-10) for the breathing gap before tabs. */}
-      <header className="relative flex flex-col gap-1.5 px-12 pt-8 pb-2">
+      {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #3): header rhythm
+          aligned to the alerts SheetHeader (`px-12 pt-10 pb-6`) so both
+          right-rail drawers share the same paper-document header spacing.
+          The corner close X (parity #4) still anchors this header. */}
+      <header className="relative flex flex-col gap-1.5 px-12 pt-10 pb-6">
         {/* Panel mode owns its own close button — there's no Sheet
             wrapper providing one. Sheet mode skips this since Radix's
             SheetContent already renders an X in the top-right corner.
@@ -1464,55 +1545,28 @@ export function ObligationQueueDetailDrawer({
             <XIcon className="size-4" aria-hidden />
           </button>
         ) : null}
-        {/* 2026-06-08 (Pencil HuYeb /deadlines detail): status line + top
-            actions share one row — colored status dot + status label · tax
-            year · period kind on the left, the Assign / Snooze / Mark-as-filed
-            action cluster on the right. The row clears the corner close X via
-            `pr-10`.
+        {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #1): the status
+            dot + label that used to lead this row is gone — the new top
+            status banner carries the status, mirroring the alerts detail.
+            The row keeps only the tax year · period meta. The Assign /
+            Snooze / Mark-as-filed cluster moved to the sticky footer
+            (parity #4) so primary actions are right-aligned at the bottom
+            like the alerts footer.
             2026-06-08 (Yuqi "still very different to the alerts detail"): the
             monospaced `obligation_id` is dropped — the alerts detail exposes no
             internal id, and a raw db id in mono was both noise and a mono-
             restraint violation. */}
-        {row ? (
-          <div className="flex items-start justify-between gap-3 pr-10">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-1 text-sm">
-              <span className="inline-flex items-center gap-2 font-medium text-text-primary">
-                <span
-                  className={cn(
-                    'size-2 shrink-0 rounded-full',
-                    row.daysUntilDue < 0
-                      ? 'bg-text-destructive'
-                      : row.status === 'done' || row.status === 'completed' || row.status === 'paid'
-                        ? 'bg-text-success'
-                        : 'bg-text-tertiary',
-                  )}
-                  aria-hidden
-                />
-                {statusLabels[row.status]}
-              </span>
-              {row.taxYear ? (
-                <span className="text-text-tertiary">
-                  <span aria-hidden>· </span>
-                  <Trans>Tax year {row.taxYear}</Trans>
-                  <span aria-hidden> · </span>
-                  {row.taxYearType === 'fiscal' ? (
-                    <Trans>Fiscal period</Trans>
-                  ) : (
-                    <Trans>Calendar period</Trans>
-                  )}
-                </span>
-              ) : null}
-            </div>
-            <DeadlineTopActions
-              row={row}
-              assignableMembers={assignableMembers}
-              onAssign={(assigneeId) => assignMutation.mutate({ id: row.id, assigneeId })}
-              onSnooze={(snoozedUntil) => snoozeMutation.mutate({ id: row.id, snoozedUntil })}
-              onMarkFiled={() => changeStatus(row.id, 'done', row.status)}
-              assignPending={assignMutation.isPending}
-              snoozePending={snoozeMutation.isPending}
-              markFiledPending={changeStatusMutation.isPending}
-            />
+        {row && row.taxYear ? (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pr-10 text-sm text-text-tertiary">
+            <span>
+              <Trans>Tax year {row.taxYear}</Trans>
+              <span aria-hidden> · </span>
+              {row.taxYearType === 'fiscal' ? (
+                <Trans>Fiscal period</Trans>
+              ) : (
+                <Trans>Calendar period</Trans>
+              )}
+            </span>
           </div>
         ) : null}
         {/* 2026-06-08 (Pencil HuYeb /deadlines detail): the form title sits
@@ -1657,7 +1711,10 @@ export function ObligationQueueDetailDrawer({
           // consistency; the body's pt-10 buffer mirrors the alert drawer's
           // header → body breathing room.
           // 2026-05-27 (Yuqi "remove padding-top"): pt-10 dropped.
-          'flex flex-col gap-4 px-12 pb-12',
+          // 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #3): body gap-4 →
+          // gap-6 and pb-12 → pb-24 to match the alerts body rhythm
+          // (`px-12 pb-24`) and clear the sticky footer.
+          'flex flex-col gap-6 px-12 pb-24',
           // 2026-05-26 (Yuqi feedback #1): added scrollbar-gutter:stable
           // on the panel-mode body. Different tabs render different
           // content heights (Summary is short, Materials is long).
@@ -3859,22 +3916,27 @@ export function ObligationQueueDetailDrawer({
            The pt-4 pb-6 vertical rhythm and `min-h-16` stay —
            those already mirror the alert drawer. */
         <div className="sticky bottom-0 mt-auto flex min-h-16 flex-wrap items-center justify-between gap-2 border-t-2 border-divider-regular bg-background-default px-12 pt-4 pb-6">
-          {/* 2026-05-26 (Yuqi feedback #7): "Last updated" stacked
-              vertically — label on line 1, timestamp on line 2.
-              Single-line layout was getting cramped at narrower
-              panel widths with the action cluster on the right. */}
-          <span className="flex flex-col text-xs leading-tight text-text-tertiary">
-            <span>
-              <Trans>Last updated</Trans>
+          {/* 2026-06-08 (Yuqi /deadlines ↔ /alerts parity #4): footer now
+              mirrors the alerts footer — quiet secondaries on the left
+              (Last updated · Request input · Copy link), primary action
+              cluster on the right (Assign · Snooze · Mark as filed), moved
+              out of the header. The corner close X keeps the close path,
+              so the footer's duplicate "Close" text button is dropped to
+              avoid crowding the action row. */}
+          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+            {/* 2026-05-26 (Yuqi feedback #7): "Last updated" stacked
+                vertically — label on line 1, timestamp on line 2. */}
+            <span className="flex flex-col text-xs leading-tight text-text-tertiary">
+              <span>
+                <Trans>Last updated</Trans>
+              </span>
+              <span className="tabular-nums">
+                {formatDateTimeWithTimezone(row.updatedAt, practiceTimezone)}
+              </span>
             </span>
-            <span className="tabular-nums">
-              {formatDateTimeWithTimezone(row.updatedAt, practiceTimezone)}
-            </span>
-          </span>
-          <div className="flex items-center gap-2">
             {canRequestInput ? (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={openRequestInputDialog}
                 disabled={requestInputMutation.isPending}
@@ -3883,12 +3945,10 @@ export function ObligationQueueDetailDrawer({
                 <Trans>Request input</Trans>
               </Button>
             ) : null}
-            {/* Footer CTA used to duplicate the header's "Open client
-                  detail" link. Repurposed as the shareability slot —
-                  copies a deep link that round-trips to the same
-                  obligation + tab the user is reading right now. */}
+            {/* Quiet shareability slot — copies a deep link that
+                round-trips to the same obligation + tab being read. */}
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={async () => {
                 const url = new URL(
@@ -3906,10 +3966,17 @@ export function ObligationQueueDetailDrawer({
               <LinkIcon data-icon="inline-start" />
               <Trans>Copy link to this deadline</Trans>
             </Button>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <Trans>Close</Trans>
-            </Button>
           </div>
+          <DeadlineTopActions
+            row={row}
+            assignableMembers={assignableMembers}
+            onAssign={(assigneeId) => assignMutation.mutate({ id: row.id, assigneeId })}
+            onSnooze={(snoozedUntil) => snoozeMutation.mutate({ id: row.id, snoozedUntil })}
+            onMarkFiled={() => changeStatus(row.id, 'done', row.status)}
+            assignPending={assignMutation.isPending}
+            snoozePending={snoozeMutation.isPending}
+            markFiledPending={changeStatusMutation.isPending}
+          />
         </div>
       ) : null}
     </>
