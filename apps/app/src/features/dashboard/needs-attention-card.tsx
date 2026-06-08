@@ -327,8 +327,13 @@ function NeedsAttentionCard({
         // `impacted ? gray : white` split made the *important* cards
         // recede into the wash — removed; impact is carried by the High-
         // impact pill + "Affects N clients", not by a receding fill.
-        'group flex h-full w-full min-w-0 flex-col gap-4 rounded-[14px] border border-divider-subtle bg-background-default p-[18px] text-left',
-        'transition-colors duration-200 hover:border-divider-regular hover:bg-background-section',
+        // 2026-06-08 (Yuqi "alert card needs a different colour to the
+        // action table"): alert cards take the source VxRyF gray fill
+        // (#f9fafb = bg-background-section) while the Actions table stays
+        // white. Different surface colors split the two regions and let
+        // the white table — your work — read as the focal point.
+        'group flex h-full w-full min-w-0 flex-col gap-4 rounded-[14px] border border-divider-subtle bg-background-section p-[18px] text-left',
+        'transition-colors duration-200 hover:border-divider-regular hover:bg-background-subtle',
         'outline-none focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
       )}
       data-tone={tone}
@@ -485,7 +490,7 @@ function NeedsAttentionCard({
                       className={cn(
                         // One neutral tone + the card's font (#11). Initials
                         // carry identity; the full name is on hover (#10).
-                        'inline-flex size-5 cursor-help items-center justify-center rounded-full bg-background-subtle text-[10px] font-semibold text-text-secondary ring-[1.5px] ring-background-default outline-none',
+                        'inline-flex size-5 cursor-help items-center justify-center rounded-full bg-background-subtle text-[10px] font-semibold text-text-secondary ring-[1.5px] ring-background-section outline-none',
                         index > 0 && '-ml-1.5',
                       )}
                       {...props}
@@ -502,7 +507,7 @@ function NeedsAttentionCard({
                 batched load may carry fewer names than the count), so any
                 remainder renders as a "+N" chip to reconcile with the count. */}
             {impacted > avatars.length ? (
-              <span className="-ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-background-subtle px-1 text-[10px] font-semibold text-text-tertiary ring-[1.5px] ring-background-default">
+              <span className="-ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-background-subtle px-1 text-[10px] font-semibold text-text-tertiary ring-[1.5px] ring-background-section">
                 +{impacted - avatars.length}
               </span>
             ) : null}

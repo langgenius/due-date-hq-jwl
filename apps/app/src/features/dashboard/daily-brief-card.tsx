@@ -50,14 +50,14 @@ export function DailyBriefCard({
   return (
     <section
       aria-label={t`Daily brief`}
-      className="flex flex-col gap-2 rounded-[14px] border border-divider-subtle bg-background-subtle px-[18px] py-4"
+      className="flex flex-col gap-2 rounded-[14px] border border-state-accent-border bg-state-accent-hover px-[18px] py-4"
     >
       {/* TopRow — Pencil qYrr3 `LfcWh` */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Left — sparkles + title + freshness (dot + mono age) */}
         <div className="flex min-w-0 items-center gap-2.5">
           <Astroid className="size-3.5 shrink-0 text-text-accent" aria-hidden />
-          <h2 className="text-[18px] leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+          <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-primary">
             <Trans>Daily Brief</Trans>
           </h2>
           <BriefFreshness brief={brief} pending={isPending} />
@@ -269,7 +269,7 @@ function CitationChip({
       type="button"
       onClick={onOpen}
       aria-label={t`Citation ${n} — open deadline`}
-      className="mx-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[4px] bg-state-accent-hover px-1.5 align-text-bottom font-mono text-[11px] leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+      className="mx-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[4px] border border-state-accent-border bg-background-default px-1.5 align-text-bottom font-mono text-[11px] leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-hover focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
     >
       {n}
     </button>
