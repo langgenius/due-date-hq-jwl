@@ -420,12 +420,13 @@ function PulseAlertRow({
           ) : null}
 
           {/* HIGH IMPACT — 2026-06-08 (Yuqi "top 3 most affecting client
-              alert → High Impact badge"): the three alerts hitting the most
-              clients carry an amber impact flag. Amber (not red) keeps the one
-              red urgent cue per surface intact while still reading as "this one
-              matters most." */}
+              alert → High Impact badge"; then "should not be the same colour as
+              the action"): the three alerts hitting the most clients carry a soft
+              destructive flag (the row's impact IS its urgent cue). Destructive
+              red, NOT amber — amber is reserved for the ACTION pill below, so the
+              two never read as the same signal. */}
           {highImpact ? (
-            <span className="inline-flex h-[20px] shrink-0 items-center rounded-[6px] border border-[#f5c97b] bg-[#fffaeb] px-1.5 text-[11px] font-semibold tracking-[0.3px] text-text-warning uppercase">
+            <span className="inline-flex h-[20px] shrink-0 items-center rounded-[6px] border border-[#fecdca] bg-[#fef3f2] px-1.5 text-[11px] font-semibold tracking-[0.3px] text-text-destructive uppercase">
               <Trans>High impact</Trans>
             </span>
           ) : null}
@@ -734,7 +735,16 @@ function PulseAlertRow({
               the affected-clients line uses the Users icon everywhere now
               (was Building2 on /alerts + /today). One clients-affected
               glyph across the AlertCard, this row, and the dashboard card. */}
-          <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap">
+          {/* 2026-06-08 (Yuqi "if there are affected clients, text is darker
+              gray — same logic as today's alert card"): impacted rows step to
+              text-secondary; no-match advisories stay muted. Mirrors the
+              dashboard NeedsAttentionCard affects-clients line. */}
+          <span
+            className={cn(
+              'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap',
+              impacted > 0 ? 'text-text-secondary' : 'text-text-muted',
+            )}
+          >
             <UsersIcon className="size-3.5 shrink-0" strokeWidth={1.5} aria-hidden />
             {impacted > 0 ? (
               <Plural value={impacted} one="Affects # client" other="Affects # clients" />
@@ -1035,8 +1045,12 @@ function PulseAlertList({
                 so a quiet bottom rule (no fill) reads cleaner and keeps the
                 colored-background restraint. The redundant right-side dispatch
                 count stays removed (Today's headers carry just the label). */}
-            <div className="flex items-center border-b border-divider-subtle px-5 py-2">
-              <div className="flex items-center gap-1.5 text-[11px] font-medium tracking-[0.4px] text-text-tertiary uppercase">
+            {/* 2026-06-08 (Yuqi /alerts "same colour as today's actions table's
+                date header"): the day-group band now carries the same
+                `bg-background-subtle` fill + text-secondary uppercase label as
+                the /today Actions table's status-group header. */}
+            <div className="flex items-center border-b border-divider-subtle bg-background-subtle px-5 py-1.5">
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.5px] text-text-secondary uppercase">
                 {isToday ? (
                   <SunIcon className="size-3 shrink-0 text-text-accent" aria-hidden />
                 ) : null}

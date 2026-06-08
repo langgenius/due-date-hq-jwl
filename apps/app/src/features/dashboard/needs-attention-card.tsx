@@ -426,7 +426,7 @@ function NeedsAttentionCard({
             <TooltipTrigger
               render={(props) => (
                 <span
-                  className="shrink-0 whitespace-nowrap text-xs font-medium text-text-muted tabular-nums outline-none"
+                  className="shrink-0 whitespace-nowrap text-xs font-normal text-text-muted tabular-nums outline-none"
                   {...props}
                 >
                   {formatRelativeTime(alert.publishedAt)}

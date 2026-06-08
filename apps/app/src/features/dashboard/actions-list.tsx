@@ -292,7 +292,7 @@ function ActionsTable({
                       dividing the lifecycle groups, not a faint whisper. */}
                   <TableCell
                     colSpan={8}
-                    className="bg-background-subtle px-[18px] py-2 text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase"
+                    className="bg-background-subtle px-[18px] py-1.5 text-[11px] font-semibold tracking-[0.5px] text-text-secondary uppercase"
                   >
                     <StatusGroupLabel kind={currentStatusGroup} />
                   </TableCell>
