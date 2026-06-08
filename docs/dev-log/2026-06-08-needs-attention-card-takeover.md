@@ -19,5 +19,6 @@ rewrite of the card that was on disk **plus** the accumulated Yuqi fixes:
   CA label without its boxy frame.
 
 ## Verify
+
 tsgo clean; computed cursors on CA / date / avatar = `default`, date `11px`;
 source link `pointer`. Page renders cleanly at 1512×861.
