@@ -50,7 +50,7 @@ export function DailyBriefCard({
   return (
     <section
       aria-label={t`Daily brief`}
-      className="flex flex-col gap-2.5 rounded-2xl border border-divider-subtle bg-background-default px-[18px] py-4"
+      className="flex flex-col gap-2.5 rounded-[14px] border border-divider-subtle bg-background-default px-[18px] py-4"
     >
       {/* TopRow — Pencil qYrr3 `LfcWh` */}
       <div className="flex flex-wrap items-center justify-between gap-3">

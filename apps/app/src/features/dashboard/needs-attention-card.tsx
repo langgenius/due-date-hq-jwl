@@ -378,7 +378,7 @@ function NeedsAttentionCard({
               <TooltipTrigger
                 render={(props) => (
                   <span
-                    className="inline-flex shrink-0 cursor-help items-center rounded-md border border-divider-regular px-2 py-[2px] font-mono text-[11px] font-semibold text-text-secondary outline-none"
+                    className="inline-flex shrink-0 cursor-help items-center rounded-md border border-divider-subtle px-2 py-[2px] font-mono text-[11px] font-semibold text-text-secondary outline-none"
                     {...props}
                   >
                     {alert.jurisdiction}
@@ -388,10 +388,17 @@ function NeedsAttentionCard({
               <TooltipContent>{alert.jurisdiction}</TooltipContent>
             </Tooltip>
 
-            {/* FORM badge — Pencil VxRyF top-row position (was wrongly
-                moved to the bottom row in a prior pass). Reuses the
-                canonical TaxCodeBadge mono pill. */}
-            {alertForm ? <TaxCodeBadge code={alertForm} /> : null}
+            {/* FORM badge — Pencil VxRyF: the form pill is the *same*
+                pill as the jurisdiction one (radius 6, px-2 py-[2px], mono
+                11/600, hairline) — it only adds a gray fill. Override the
+                shared TaxCodeBadge chrome so the two badges read as one
+                unified system, not two near-misses. */}
+            {alertForm ? (
+              <TaxCodeBadge
+                code={alertForm}
+                className="rounded-md border-divider-subtle px-2 py-[2px] text-[11px] font-semibold tracking-normal"
+              />
+            ) : null}
 
             {/* CHANGE KIND — e.g. "DEADLINE SHIFTED", mono, plain text.
                 Neutral (Yuqi "reduce the colour variety here to two"): this
