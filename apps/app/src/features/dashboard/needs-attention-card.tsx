@@ -53,16 +53,6 @@ import { resolveUSFirmTimezone } from '@/features/firm/timezone-model'
 // chip row pushes to the bottom edge via the parent's `justify-between`.
 const CARD_MIN_HEIGHT_CLASS = 'min-h-[160px]'
 
-// Affected-client avatar tones (Pencil VxRyF bottom-meta stack). The
-// canvas uses decorative pastel hexes with no token equivalent, so we
-// rotate through existing state-hover token pairs — meaning, not exact
-// color, is what matters (overlapping initials of the matched clients).
-const AVATAR_TONES = [
-  'bg-state-accent-hover text-text-accent',
-  'bg-state-warning-hover text-text-warning',
-  'bg-state-success-hover text-text-success',
-] as const
-
 // 2026-06-04 round 19 (Yuqi Pencil vMnz5 — "for the clients
 // — and hover will show the exact client in tooltip"): this now
 // returns the FULL deduplicated list of affected client names so
@@ -175,7 +165,7 @@ function NeedsAttentionCard({
   // overlapping initial-avatars of the matched clients.
   const confidencePct = Math.round(alert.confidence * 100)
   const alertForm = alert.forms[0] ?? firstForm
-  const avatars = allNames.slice(0, 3).map((name, index) => ({
+  const avatars = allNames.slice(0, 3).map((name) => ({
     name,
     initials: name
       .split(/\s+/)
@@ -183,7 +173,6 @@ function NeedsAttentionCard({
       .join('')
       .slice(0, 2)
       .toUpperCase(),
-    tone: AVATAR_TONES[index % AVATAR_TONES.length] ?? AVATAR_TONES[0],
   }))
   // 2026-06-05 (pre-CI green-up): `confidencePct` + `confidenceToneCls`
   // went unused after the round 81 inline source treatment.
@@ -401,10 +390,11 @@ function NeedsAttentionCard({
                 canonical TaxCodeBadge mono pill. */}
             {alertForm ? <TaxCodeBadge code={alertForm} /> : null}
 
-            {/* CHANGE KIND — Pencil VxRyF: e.g. "DEADLINE SHIFTED", mono
-                accent, plain text (no pill). Reuses the shared
-                changeKindLabel helper from the alerts feature. */}
-            <span className="shrink-0 font-mono text-[10px] font-bold tracking-[0.5px] text-text-accent uppercase">
+            {/* CHANGE KIND — e.g. "DEADLINE SHIFTED", mono, plain text.
+                Neutral (Yuqi "reduce the colour variety here to two"): this
+                is a category label, not a signal — red is reserved for the
+                one urgent cue (High impact). */}
+            <span className="shrink-0 font-mono text-[10px] font-semibold tracking-[0.5px] text-text-tertiary uppercase">
               {changeKindLabel(alert.changeKind)}
             </span>
           </div>
@@ -477,8 +467,10 @@ function NeedsAttentionCard({
                 key={avatar.name}
                 title={avatar.name}
                 className={cn(
-                  'inline-flex size-5 items-center justify-center rounded-full font-mono text-[8px] font-bold ring-[1.5px] ring-background-section',
-                  avatar.tone,
+                  // Single neutral tone (Yuqi: "reduce the colour variety
+                  // here to two"). The rainbow per-client tones were pure
+                  // decoration; the initials carry the identity.
+                  'inline-flex size-5 items-center justify-center rounded-full bg-background-subtle font-mono text-[8px] font-semibold text-text-secondary ring-[1.5px] ring-background-section',
                   index > 0 && '-ml-1.5',
                 )}
               >
@@ -491,7 +483,7 @@ function NeedsAttentionCard({
         <span aria-hidden className="text-text-muted">
           ·
         </span>
-        <span className="font-mono text-[12px] font-semibold tabular-nums text-text-success">
+        <span className="font-mono text-[12px] font-medium tabular-nums text-text-secondary">
           <Trans>conf {confidencePct}%</Trans>
         </span>
 

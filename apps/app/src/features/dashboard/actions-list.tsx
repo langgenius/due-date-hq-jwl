@@ -938,7 +938,7 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
           subtitle reads as a direct continuation of the h2, not
           as a separate caption line. */}
       <div className="flex flex-col">
-        <h2 className="flex items-center gap-1.5 text-xl font-semibold tracking-tight text-text-primary">
+        <h2 className="flex items-center gap-1.5 text-base font-semibold tracking-tight text-text-primary">
           <Trans>Actions this week</Trans>
           <Tooltip>
             <TooltipTrigger

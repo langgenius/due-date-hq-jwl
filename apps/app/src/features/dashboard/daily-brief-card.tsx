@@ -3,9 +3,6 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { Astroid, ExternalLinkIcon, RotateCwIcon } from 'lucide-react'
 
 import type { DashboardBriefPublic, DashboardBriefScope } from '@duedatehq/contracts'
-import { Badge } from '@duedatehq/ui/components/ui/badge'
-import { Button } from '@duedatehq/ui/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@duedatehq/ui/components/ui/card'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
 import { TextLink } from '@duedatehq/ui/components/ui/text-link'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
@@ -16,16 +13,16 @@ import { formatRelativeTime } from '@/lib/utils'
 type DashboardBriefCitation = NonNullable<DashboardBriefPublic['citations']>[number]
 
 /**
- * DailyBriefCard — surfaces the server-generated dashboard brief that
- * `dashboard.load` already returns but the route never rendered. The
- * brief is an AI narrative of the firm's day; each `[n]` token in the
- * text resolves to a citation that deep-links to the obligation it's
- * about, so a claim like "3 returns are overdue [1][2][3]" is clickable
- * back to the underlying work (evidence traceability, not decoration).
+ * DailyBriefCard — the AI narrative of the firm's day. Rebuilt to Pencil
+ * `qYrr3`: a white card with a single hairline border (no shadow), a calm
+ * title row (sparkles + "Daily Brief" + one status dot + a mono age label),
+ * a Firm/Me pill toggle and an icon-only refresh, then the prose. Each
+ * `[n]` token resolves to an accent citation chip that deep-links back to
+ * the obligation it cites (evidence traceability, not decoration).
  *
- * Renders nothing when no brief exists (feature-off firms). Status drives
- * the chrome: pending → skeleton + "Generating…"; stale → "Outdated" +
- * emphasized Refresh; failed → quiet error + Retry; ready → prose.
+ * The single status dot carries freshness, so the rest of the card stays
+ * neutral — the body prose is the one thing meant to be read. Renders
+ * nothing when no brief exists (feature-off firms).
  */
 export function DailyBriefCard({
   brief,
@@ -47,65 +44,128 @@ export function DailyBriefCard({
 
   const isPending = brief.status === 'pending' || refreshing
   // Refresh is only meaningful once a brief exists in some terminal-ish
-  // state; while it's generating we show the spinner in the chip instead.
+  // state; while it's generating the status label shows the spinner.
   const canRefresh = !isPending
 
   return (
-    <Card className="bg-background-section">
-      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
-        <CardTitle className="flex items-center gap-2 text-sm font-semibold text-text-primary">
-          <Astroid className="size-4 text-text-accent" aria-hidden />
-          <Trans>Your daily brief</Trans>
-        </CardTitle>
-        <div className="flex items-center gap-2">
+    <section
+      aria-label={t`Daily brief`}
+      className="flex flex-col gap-2.5 rounded-2xl border border-divider-subtle bg-background-default px-[18px] py-4"
+    >
+      {/* TopRow — Pencil qYrr3 `LfcWh` */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Left — sparkles + title + freshness (dot + mono age) */}
+        <div className="flex min-w-0 items-center gap-2.5">
+          <Astroid className="size-3.5 shrink-0 text-text-accent" aria-hidden />
+          <h2 className="text-[18px] leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+            <Trans>Daily Brief</Trans>
+          </h2>
+          <BriefFreshness brief={brief} pending={isPending} />
+        </div>
+        {/* Right — scope toggle + icon-only refresh */}
+        <div className="flex shrink-0 items-center gap-2.5">
           <BriefScopeToggle value={scope} onChange={onScopeChange} />
-          <BriefFreshnessChip brief={brief} pending={isPending} />
           {canRefresh ? (
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              size="sm"
-              className="h-7 gap-1.5 px-2 text-text-secondary"
               onClick={onRefresh}
               aria-label={t`Regenerate brief`}
+              className="inline-flex size-7 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
             >
               <RotateCwIcon className="size-3.5" aria-hidden />
-              <span className="hidden sm:inline">
-                <Trans>Regenerate</Trans>
-              </span>
-            </Button>
+            </button>
           ) : null}
         </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        {isPending ? (
-          <div className="grid gap-2" aria-busy>
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-[92%]" />
-            <Skeleton className="h-4 w-[64%]" />
-          </div>
-        ) : brief.status === 'failed' ? (
-          <p className="text-sm text-text-tertiary">
-            <Trans>We couldn't generate today's brief. Try again, or check back shortly.</Trans>
-          </p>
-        ) : brief.text ? (
-          <p className="text-sm leading-relaxed text-text-secondary">
-            <BriefProse
-              text={brief.text}
-              citations={brief.citations}
-              onOpenObligation={onOpenObligation}
-            />
-          </p>
-        ) : (
-          <p className="text-sm text-text-tertiary">
-            <Trans>No brief for this view yet.</Trans>
-          </p>
-        )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Body — Pencil qYrr3 `zgUBx`: prose at 14/normal, primary ink,
+          with inline accent citation chips. */}
+      {isPending ? (
+        <div className="grid gap-2" aria-busy>
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-[88%]" />
+          <Skeleton className="h-4 w-[60%]" />
+        </div>
+      ) : brief.status === 'failed' ? (
+        <p className="text-sm text-text-tertiary">
+          <Trans>We couldn't generate today's brief. Try again, or check back shortly.</Trans>
+        </p>
+      ) : brief.text ? (
+        <p className="text-sm leading-[1.5] font-normal text-text-primary">
+          <BriefProse
+            text={brief.text}
+            citations={brief.citations}
+            onOpenObligation={onOpenObligation}
+          />
+        </p>
+      ) : (
+        <p className="text-sm text-text-tertiary">
+          <Trans>No brief for this view yet.</Trans>
+        </p>
+      )}
+    </section>
   )
 }
 
+/**
+ * Freshness signal — Pencil qYrr3 `kcUpS` + `v5X2Y`: one small status dot
+ * followed by a mono, uppercase age label, both sitting just after the
+ * title. The dot's color is the only freshness cue (green = fresh, amber =
+ * outdated, red = failed), so the rest of the title row reads neutral.
+ */
+function BriefFreshness({ brief, pending }: { brief: DashboardBriefPublic; pending: boolean }) {
+  if (pending) {
+    return (
+      <span className="inline-flex shrink-0 items-center gap-1.5">
+        <RotateCwIcon className="size-3 animate-spin text-text-secondary" aria-hidden />
+        <span className="font-mono text-[11px] font-medium tracking-[0.4px] text-text-secondary uppercase">
+          <Trans>Generating</Trans>
+        </span>
+      </span>
+    )
+  }
+  if (brief.status === 'failed') {
+    const label = (
+      <span className="inline-flex shrink-0 items-center gap-1.5">
+        <span className="size-1.5 rounded-full bg-text-destructive" aria-hidden />
+        <span className="font-mono text-[11px] font-medium tracking-[0.4px] text-text-destructive uppercase">
+          <Trans>Failed</Trans>
+        </span>
+      </span>
+    )
+    if (!brief.errorCode) return label
+    return (
+      <Tooltip>
+        <TooltipTrigger render={label} />
+        <TooltipContent>{brief.errorCode}</TooltipContent>
+      </Tooltip>
+    )
+  }
+  const stale = brief.status === 'stale'
+  const age = brief.generatedAt ? formatRelativeTime(brief.generatedAt) : null
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1.5">
+      <span
+        className={cn('size-1.5 rounded-full', stale ? 'bg-text-warning' : 'bg-text-success')}
+        aria-hidden
+      />
+      <span
+        className={cn(
+          'font-mono text-[11px] font-medium tracking-[0.4px] tabular-nums uppercase',
+          stale ? 'text-text-warning' : 'text-text-secondary',
+        )}
+      >
+        {stale ? <Trans>Outdated</Trans> : (age ?? <Trans>Live</Trans>)}
+      </span>
+    </span>
+  )
+}
+
+/**
+ * Firm / Me scope toggle — Pencil qYrr3 `ni1JL`: a pill track in the
+ * subtle surface; the active scope is a white pill with a hairline border,
+ * the inactive one is borderless and quieter.
+ */
 function BriefScopeToggle({
   value,
   onChange,
@@ -118,7 +178,7 @@ function BriefScopeToggle({
     <div
       role="group"
       aria-label={t`Brief scope`}
-      className="inline-flex items-center rounded-md border border-divider-subtle bg-background-default p-0.5"
+      className="inline-flex items-center gap-0.5 rounded-lg bg-background-section p-0.5"
     >
       <ScopeButton active={value === 'firm'} onClick={() => onChange('firm')}>
         <Trans>Firm</Trans>
@@ -145,53 +205,14 @@ function ScopeButton({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'rounded px-2 py-0.5 text-caption-xs font-medium transition-colors',
+        'rounded-md px-2.5 py-[3px] text-xs transition-colors',
         active
-          ? 'bg-state-accent-active-alt text-text-accent'
-          : 'text-text-tertiary hover:text-text-secondary',
+          ? 'border border-divider-subtle bg-background-default font-semibold text-text-primary'
+          : 'border border-transparent font-medium text-text-secondary hover:text-text-primary',
       )}
     >
       {children}
     </button>
-  )
-}
-
-function BriefFreshnessChip({ brief, pending }: { brief: DashboardBriefPublic; pending: boolean }) {
-  if (pending) {
-    return (
-      <Badge variant="secondary" size="sm" className="gap-1">
-        <RotateCwIcon className="size-3 animate-spin" aria-hidden />
-        <Trans>Generating…</Trans>
-      </Badge>
-    )
-  }
-  if (brief.status === 'failed') {
-    const chip = (
-      <Badge variant="destructive" size="sm">
-        <Trans>Couldn't generate</Trans>
-      </Badge>
-    )
-    if (!brief.errorCode) return chip
-    return (
-      <Tooltip>
-        <TooltipTrigger render={chip} />
-        <TooltipContent>{brief.errorCode}</TooltipContent>
-      </Tooltip>
-    )
-  }
-  if (brief.status === 'stale') {
-    return (
-      <Badge variant="warning" size="sm">
-        <Trans>Outdated</Trans>
-      </Badge>
-    )
-  }
-  // ready
-  if (!brief.generatedAt) return null
-  return (
-    <span className="text-caption-xs tabular-nums text-text-tertiary">
-      <Trans>Updated {formatRelativeTime(brief.generatedAt)}</Trans>
-    </span>
   )
 }
 
@@ -241,12 +262,14 @@ function CitationChip({
   onOpen: () => void
 }) {
   const { t } = useLingui()
+  // Pencil qYrr3 `Cite`: a tight accent pill (#eff4ff fill, accent mono
+  // numeral). The accent is the card's single chromatic accent.
   const chip = (
     <button
       type="button"
       onClick={onOpen}
       aria-label={t`Citation ${n} — open deadline`}
-      className="mx-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded bg-state-accent-active-alt px-1 align-text-top text-[10px] font-medium tabular-nums leading-none text-text-accent hover:bg-state-accent-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+      className="mx-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[4px] bg-state-accent-hover px-1.5 align-text-bottom font-mono text-[11px] leading-none font-semibold text-text-accent tabular-nums hover:bg-state-accent-active focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
     >
       {n}
     </button>
