@@ -4410,8 +4410,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
   {
     id: 'nh.temporary_announcements',
     jurisdiction: 'NH',
-    title: 'New Hampshire DRA News and Media',
-    url: 'https://www.revenue.nh.gov/news-and-media',
+    title: 'New Hampshire DRA News and Announcements',
+    // /news-and-media 301-redirects here (the resource-center news & announcements
+    // page); point straight at the canonical target instead of the redirect.
+    url: 'https://www.revenue.nh.gov/resource-center/news-and-announcements',
   },
   {
     id: 'nj.temporary_announcements',
@@ -4545,7 +4547,10 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'tn.temporary_announcements',
     jurisdiction: 'TN',
     title: 'Tennessee DOR Revenue News',
-    url: 'https://www.tn.gov/revenue/revenue-news.html',
+    // /revenue/revenue-news.html is a hub; /content/tn/revenue/news.html is the
+    // AEM path that serves the actual reverse-chron dated news list (important
+    // notices + enforcement releases) and is the form that fetches reliably.
+    url: 'https://www.tn.gov/content/tn/revenue/news.html',
   },
   {
     id: 'tx.temporary_announcements',
