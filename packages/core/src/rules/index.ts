@@ -4500,6 +4500,12 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     id: 'pa.temporary_announcements',
     jurisdiction: 'PA',
     title: 'Pennsylvania DOR Newsroom',
+    // 2026-06-08: `url` was omitted when this source switched to the DOR
+    // Newsroom — it's required by the source type, and its absence crashed the
+    // worker at boot (resolveAnnouncementYearUrl reads `url.includes`). Added
+    // the canonical pa.gov/revenue newsroom URL (same path scheme as the other
+    // pa.gov revenue sources + the sibling `newsroom.html` convention).
+    url: 'https://www.pa.gov/agencies/revenue/newsroom.html',
     // Switched from the PA Tax Update newsletter (quarterly PDFs) to the DOR
     // Newsroom, which renders a reverse-chron dated press-release list as HTML
     // (sorted by effective date) — a better change-detection signal than the
