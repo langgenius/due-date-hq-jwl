@@ -64,9 +64,7 @@ export function PulsingDot({ tone = 'success', active = true, className, label }
       data-tone={tone}
       data-active={active || undefined}
     >
-      <span
-        className={cn('relative inline-flex size-2 rounded-full', FILL_BY_TONE[tone])}
-      />
+      <span className={cn('relative inline-flex size-2 rounded-full', FILL_BY_TONE[tone])} />
     </span>
   )
 }

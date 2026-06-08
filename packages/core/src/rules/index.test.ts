@@ -379,8 +379,8 @@ describe('@duedatehq/core/rules', () => {
     })
     expect(rowsBySourceId.get('policy-watch.pa.announcements')).toMatchObject({
       quality: 'parser_ready',
-      url: 'https://www.pa.gov/agencies/revenue/resources/pa-tax-update-newsletter#sortCriteria=%40copapwpyear%20descending%2C%40copapwpissuedate%20descending',
-      adapterKind: 'pdf_index',
+      url: 'https://www.pa.gov/agencies/revenue/newsroom.html',
+      adapterKind: 'html_announcement_list',
     })
     expect(rowsBySourceId.get('policy-watch.oh.announcements')).toMatchObject({
       quality: 'parser_ready',

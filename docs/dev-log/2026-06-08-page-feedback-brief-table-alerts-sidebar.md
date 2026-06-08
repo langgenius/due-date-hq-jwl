@@ -5,6 +5,7 @@ Date: 2026-06-08
 Batch of Yuqi page-feedback items across /today, /alerts, and the sidebar.
 
 ## Daily Brief (`daily-brief-card.tsx`)
+
 - **Lighter card:** blue `bg-state-accent-hover` + accent border → white
   `bg-background-default` + neutral hairline (pull colored region back per the
   surface model).
@@ -15,6 +16,7 @@ Batch of Yuqi page-feedback items across /today, /alerts, and the sidebar.
   failed) — calmer, less alarming when a brief fails.
 
 ## Actions table (`actions-list.tsx`)
+
 - **Fixed the right-end artifact:** the status-group header was `colSpan={7}` but
   the row has 8 cells (the hover Review column) — the 8th showed white. Now `colSpan={8}`.
 - **Lighter row text:** the action verb `text-text-primary` → `text-text-secondary`.
@@ -22,6 +24,7 @@ Batch of Yuqi page-feedback items across /today, /alerts, and the sidebar.
   (key was on the inner row) → `<Fragment key={row.obligationId}>`.
 
 ## /alerts (`AlertsListPage.tsx`, `PulseAlertRow.tsx`)
+
 - **Filter row on one line:** search width capped (`sm:w-[200px]`, was up to 260)
   so Search · List/Map · (spacer gap) · the dropdowns · Sort all fit one line at 1512.
 - **Subtle date-group header:** dropped the gray `bg-background-subtle` band and
@@ -29,6 +32,7 @@ Batch of Yuqi page-feedback items across /today, /alerts, and the sidebar.
   `px-5` inset matching the alert rows.
 
 ## Sidebar (`packages/ui/.../sidebar.tsx`)
+
 - Menu items more spaced out (`gap-0.5` → `gap-1`) and more icon↔label breathing
   room (`gap-2.5` → `gap-3`).
 

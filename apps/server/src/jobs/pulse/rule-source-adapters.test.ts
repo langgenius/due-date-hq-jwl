@@ -187,7 +187,15 @@ describe('rule source adapters', () => {
     expect(automatedAdapter.allowEmptyParse).toBe(true)
     expect(noisyItems).toEqual([])
 
-    const pdfSource = hiddenSources.find((source) => source.jurisdiction === 'PA')!
+    // PA's live policy-watch source is now an HTML newsroom (auto-promoted); no
+    // registry source uses pdf_index any more, so synthesise a PDF-index variant
+    // to keep the PDF-index fallback path under test.
+    const paSource = hiddenSources.find((source) => source.jurisdiction === 'PA')!
+    const pdfSource = {
+      ...paSource,
+      acquisitionMethod: 'pdf_watch' as const,
+      adapterKind: 'pdf_index' as const,
+    }
     const pdfAdapter = createPolicyWatchAdapter(pdfSource)
     expect(isPolicyWatchAdapterEligible(pdfSource), pdfSource.id).toBe(true)
     expect(isPolicyWatchPulsePromoted(pdfSource), pdfSource.id).toBe(false)
