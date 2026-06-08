@@ -3,7 +3,6 @@ import { Plural, Trans, useLingui } from '@lingui/react/macro'
 import { SearchIcon } from 'lucide-react'
 
 import type { PulseAlertPublic } from '@duedatehq/contracts'
-import { Segmented } from '@duedatehq/ui/components/ui/segmented'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { CountPill } from '@/components/primitives/count-pill'
@@ -27,7 +26,6 @@ import { changeKindLabel } from './PulseChangeKindChip'
  * implementation rendered the full card list beside a slide-over
  * panel, which was the wrong skeleton.
  */
-type RailTab = 'all' | 'unresolved'
 
 export function AlertListRail({
   alerts,
@@ -44,32 +42,29 @@ export function AlertListRail({
   const { currentFirm } = useCurrentFirm()
   const firmTimezone = resolveUSFirmTimezone(currentFirm?.timezone)
 
-  const [tab, setTab] = useState<RailTab>('all')
   const [search, setSearch] = useState('')
-  // 2026-06-09 (Yuqi /alerts D11): focusing the icon-only search expands it to
-  // fill the whole filter bar and hides the All/Unresolved Segmented. It
-  // collapses back only when blurred AND empty — a live query keeps it open.
-  const [searchFocused, setSearchFocused] = useState(false)
-  const searchExpanded = searchFocused || search.trim() !== ''
 
   // "N active" head count uses the SAME authoritative source as the sidebar
   // badge and the page-header pill (`pulse.activeCount` = matched +
   // partially_applied, approved, not expired) — NOT a count of the rows handed
-  // to this rail (which are capped at the list limit and miss partially_applied).
-  // The Unresolved tab below still filters the visible rows by `matched`.
+  // to this rail (which are capped at the list limit).
   const activeCount = useActiveAlertCount()
 
+  // 2026-06-09 (Yuqi /alerts D10): the All/Unresolved segmented is removed from
+  // the rail — every alert in the active queue is already unresolved, so the
+  // toggle was a near-no-op here (it lives on the main list page where the
+  // distinction matters). The rail now filters by search only, and the search
+  // owns the full filter bar.
   const query = search.trim().toLowerCase()
   const visible = useMemo(
     () =>
       alerts.filter(
         (a) =>
-          (tab === 'all' || a.status === 'matched') &&
-          (query === '' ||
-            a.title.toLowerCase().includes(query) ||
-            a.source.toLowerCase().includes(query)),
+          query === '' ||
+          a.title.toLowerCase().includes(query) ||
+          a.source.toLowerCase().includes(query),
       ),
-    [alerts, tab, query],
+    [alerts, query],
   )
 
   return (
@@ -100,45 +95,18 @@ export function AlertListRail({
         ) : null}
       </div>
 
-      {/* FilterRow — All / Unresolved segmented control + search.
-          2026-06-09 (Yuqi /alerts D11): when the search is active (focused or
-          carrying a query) it claims the full bar and the Segmented unmounts;
-          when blurred + empty the Segmented returns and the search collapses
-          back to its icon-only resting state. */}
+      {/* FilterRow — full-width search (the All/Unresolved segmented was removed,
+          see D10 above). */}
       <div className="flex shrink-0 items-center gap-2 border-b border-divider-subtle px-4 py-2.5">
-        {!searchExpanded ? (
-          <Segmented
-            size="sm"
-            ariaLabel={t`Alert filter`}
-            value={tab}
-            onValueChange={setTab}
-            options={[
-              { value: 'all', label: <Trans>All</Trans> },
-              { value: 'unresolved', label: <Trans>Unresolved</Trans> },
-            ]}
-          />
-        ) : null}
-        <span className="flex-1" aria-hidden />
-        <label
-          className={cn(
-            'inline-flex h-7 items-center gap-1.5 rounded-md text-text-muted transition-[width,background-color,padding] focus-within:bg-state-base-hover',
-            searchExpanded
-              ? 'w-full bg-state-base-hover px-2'
-              : 'w-7 justify-center px-0 hover:bg-state-base-hover',
-          )}
-        >
+        <label className="inline-flex h-7 w-full items-center gap-2 rounded-md px-2 text-text-muted transition-colors focus-within:bg-state-base-hover hover:bg-state-base-hover">
           <SearchIcon className="size-3.5 shrink-0" aria-hidden />
           <input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
+            placeholder={t`Search alerts`}
             aria-label={t`Search alerts`}
-            className={cn(
-              'min-w-0 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-muted',
-              searchExpanded ? 'flex-1' : 'w-0',
-            )}
+            className="min-w-0 flex-1 bg-transparent text-[13px] text-text-primary outline-none placeholder:text-text-muted"
           />
         </label>
       </div>
