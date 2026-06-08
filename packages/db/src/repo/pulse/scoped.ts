@@ -84,7 +84,7 @@ import {
   uniqueStrings,
   withDeadlineSelectionReview,
 } from './shared'
-import { makePulseOpsRepo, pulseNotExpiredConditions } from './ops'
+import { makePulseOpsRepo, pulseExpiredCondition, pulseNotExpiredConditions } from './ops'
 import type {
   AlertJoinedRow,
   AlertRecipientRow,
@@ -1242,9 +1242,16 @@ export function makePulseRepo(db: Db, firmId: string) {
     ): Promise<{ alerts: PulseAlertRow[]; nextCursor: string | null }> {
       const limit = Math.min(Math.max(opts.limit ?? 20, 1), 100)
       const cursor = opts.cursor ? decodePulseAlertCursor(opts.cursor) : null
+      const now = new Date()
       const statusFilter = opts.status
         ? eq(pulseFirmAlert.status, opts.status)
-        : inArray(pulseFirmAlert.status, PULSE_HANDLED_ALERT_STATUSES)
+        : or(
+            inArray(pulseFirmAlert.status, PULSE_HANDLED_ALERT_STATUSES),
+            // A 'matched' alert that aged out of the active queue (its deadline
+            // passed, so listAlerts now hides it) is not "handled" and would
+            // otherwise vanish — surface it in history next to dismissed/applied.
+            and(eq(pulseFirmAlert.status, 'matched'), pulseExpiredCondition(now)),
+          )
       const rows = await db
         .select({
           alertId: pulseFirmAlert.id,
@@ -1295,10 +1302,12 @@ export function makePulseRepo(db: Db, firmId: string) {
         .orderBy(desc(pulse.publishedAt), desc(pulseFirmAlert.id))
         .limit(limit + 1)
 
-      // SQL already restricts to handled statuses, so this guard only narrows
-      // the type — it never drops rows, which keeps the slice/hasMore math
-      // below correct.
-      const handled = rows.filter((row) => isHandledFirmAlertStatus(row.alertStatus))
+      // SQL restricts to handled statuses plus 'matched' rows that expired out of
+      // the active queue; keep both so this guard never drops a row, which keeps
+      // the slice/hasMore math below correct.
+      const handled = rows.filter(
+        (row) => isHandledFirmAlertStatus(row.alertStatus) || row.alertStatus === 'matched',
+      )
       const hasMore = handled.length > limit
       const page = hasMore ? handled.slice(0, limit) : handled
       const lastRow = page[page.length - 1]

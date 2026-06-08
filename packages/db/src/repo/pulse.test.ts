@@ -461,7 +461,12 @@ describe('makePulseRepo', () => {
     expect(alerts[2]?.duplicateSourceSnapshotCount).toBe(1)
   })
 
-  it('keeps unhandled matched alerts out of alert history', async () => {
+  it('surfaces expired matched alerts in history alongside handled ones', async () => {
+    // A 'matched' alert that aged out of the active queue (deadline passed) is
+    // neither active nor handled; listHistory's SQL re-includes it via
+    // `and(status='matched', pulseExpiredCondition)`. The chain double can't model
+    // the SQL date filter, so this asserts the JS guard no longer drops matched
+    // rows — SQL is what bounds them to expired ones in production.
     const handledStatuses = [
       'dismissed',
       'snoozed',
@@ -472,7 +477,7 @@ describe('makePulseRepo', () => {
     ] as const
     const { db } = fakeDb([
       [
-        ALERT,
+        ALERT, // alertStatus 'matched' — stands in for an expired-out-of-active row
         ...handledStatuses.map((status) => ({
           ...ALERT,
           alertId: `alert-${status}`,
@@ -484,7 +489,7 @@ describe('makePulseRepo', () => {
 
     const { alerts } = await repo.listHistory({ limit: 50 })
 
-    expect(alerts.map((alert) => alert.status)).toEqual([...handledStatuses])
+    expect(alerts.map((alert) => alert.status)).toEqual(['matched', ...handledStatuses])
   })
 
   it('paginates active alerts with a keyset cursor and reports the next page', async () => {

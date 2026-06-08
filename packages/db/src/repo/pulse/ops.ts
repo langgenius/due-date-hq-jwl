@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, or } from 'drizzle-orm'
 import type { BatchItem } from 'drizzle-orm/batch'
 import { CLOSED_OBLIGATION_STATUSES } from '@duedatehq/core/obligation-workflow'
 import { taxAreaForTaxType } from '@duedatehq/core/tax-area'
@@ -127,6 +127,18 @@ export function pulseNotExpiredConditions(now: Date) {
     or(isNull(pulse.parsedEffectiveUntil), gte(pulse.parsedEffectiveUntil, now)),
     or(isNull(pulse.protectiveActionDeadline), gte(pulse.protectiveActionDeadline, now)),
   ]
+}
+
+// Inverse of pulseNotExpiredConditions: at least one populated deadline axis has
+// already passed. listHistory uses it so a `matched` alert that aged out of the
+// active queue (e.g. a protective window past its actionDeadline) still surfaces
+// in Alert history instead of vanishing — it is neither active nor "handled".
+export function pulseExpiredCondition(now: Date) {
+  return or(
+    and(isNotNull(pulse.parsedNewDueDate), lt(pulse.parsedNewDueDate, now)),
+    and(isNotNull(pulse.parsedEffectiveUntil), lt(pulse.parsedEffectiveUntil, now)),
+    and(isNotNull(pulse.protectiveActionDeadline), lt(pulse.protectiveActionDeadline, now)),
+  )
 }
 
 export function makePulseOpsRepo(db: Db) {
