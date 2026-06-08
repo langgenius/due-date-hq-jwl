@@ -139,6 +139,18 @@ const MULTI_AGENCY_REQUIRED_JURISDICTIONS = new Set<RuleJurisdiction>([
   'MA',
 ])
 
+// Jurisdictions with no broad state income tax: disaster tax relief is driven by
+// the federal FEMA/IRS process (already covered by the FED sources), and they
+// publish no standing state relief page. relief_or_disaster_signal is therefore
+// not required for their comprehensive coverage rather than reported as missing.
+const RELIEF_FEDERAL_ONLY_JURISDICTIONS = new Set<RuleJurisdiction>([
+  'AK',
+  'NV',
+  'NH',
+  'SD',
+  'WY',
+])
+
 const TAX_TYPE_COVERAGE_DOMAINS = new Set([
   'business_income_return',
   'franchise_or_entity_tax',
@@ -465,7 +477,10 @@ function coveredComprehensiveRoles(input: {
 }
 
 function requiredRolesForJurisdiction(jurisdiction: RuleJurisdiction): AlertSourceCoverageRole[] {
-  const roles: AlertSourceCoverageRole[] = [...BASE_COMPREHENSIVE_ALERT_SOURCE_ROLES]
+  let roles: AlertSourceCoverageRole[] = [...BASE_COMPREHENSIVE_ALERT_SOURCE_ROLES]
+  if (RELIEF_FEDERAL_ONLY_JURISDICTIONS.has(jurisdiction)) {
+    roles = roles.filter((role) => role !== 'relief_or_disaster_signal')
+  }
   if (jurisdiction === 'FED') {
     roles.push('rights_window_signal')
   }

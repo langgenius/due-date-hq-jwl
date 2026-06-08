@@ -67,3 +67,26 @@ A manual check of the four checker-unreachable pages found:
 
 Net relief coverage is unchanged in count (MD still covered, now index-level). Dedicated
 Tier A relief pages: 23; index-level (RI, MD): 2; Tier B event pages: 10.
+
+## Full-coverage pass — index-level relief + federal-only N/A
+
+Closed the remaining `relief_or_disaster_signal` gaps so every jurisdiction is
+resolved (covered or not-required):
+
+- **Index-level coverage (11 states):** AL, AZ, AR, CT, DE, KS, NM, NY, OH, OR, PA
+  have no dedicated relief page but post disaster relief on their official DOR
+  news / press / tax-alert index. Tagged that existing index source with
+  `alertCoverageRoles: ['relief_or_disaster_signal']` — a weaker, index-level
+  signal (the extract layer must pick the relief item out of general news).
+- **Federal-only (5 states):** AK, NV, NH, SD, WY have no broad state income tax;
+  disaster relief is federally driven (FEMA/IRS, already covered) with no standing
+  state page. Added `RELIEF_FEDERAL_ONLY_JURISDICTIONS` in rule-source-adapters so
+  relief is **not required** for their comprehensive coverage rather than reported
+  as a gap.
+
+Result: no open `relief_or_disaster_signal` gaps remain — relief is covered for
+FED + CA + ~45 states (dedicated, Tier B, or index-level) and not-required for the
+5 federal-only states. TX/WA stay comprehensive; AL/NY gain relief (still standard
+on other roles). Validated against the worktree core: core 64, server pulse jobs
+60, rule-source-adapters 11. (NY uses the Press Office index; the N-Notice index
+`tax.ny.gov/pubs_and_bulls/n_notices` is a stronger future target.)

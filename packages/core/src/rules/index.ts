@@ -4187,18 +4187,25 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'AL',
     title: 'Alabama DOR News',
     url: 'https://www.revenue.alabama.gov/news/',
+    // Index-level relief signal: AL has no dedicated relief page; it posts
+    // disaster filing extensions here (mirrors IRS-designated areas).
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'ar.temporary_announcements',
     jurisdiction: 'AR',
     title: 'Arkansas DFA News',
     url: 'https://www.dfa.arkansas.gov/about/news/',
+    // Index-level relief signal: AR posts disaster relief via DFA news +
+    // gubernatorial orders; no dedicated relief page.
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'az.temporary_announcements',
     jurisdiction: 'AZ',
     title: 'Arizona DOR News Center',
     url: 'https://azdor.gov/news-center',
+    alertCoverageRoles: ['relief_or_disaster_signal'],
     acquisitionMethod: 'api_watch',
     adapterKind: 'rss_or_announcement_list',
     feedUrl: 'https://azdor.gov/news-center',
@@ -4224,6 +4231,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'CT',
     title: 'Connecticut DRS Media Room',
     url: 'https://portal.ct.gov/drs/news---press-releases/media-room',
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'dc.temporary_announcements',
@@ -4236,6 +4244,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'DE',
     title: 'Delaware Division of Revenue News',
     url: 'https://revenue.delaware.gov/press-and-media/',
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'fl.temporary_announcements',
@@ -4284,6 +4293,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'KS',
     title: 'Kansas DOR Press Releases',
     url: 'https://www.ksrevenue.gov/pressreleases.html',
+    alertCoverageRoles: ['relief_or_disaster_signal'],
     acquisitionMethod: 'api_watch',
     adapterKind: 'rss_or_announcement_list',
     feedUrl: 'https://www.ksrevenue.gov/pressreleases.html',
@@ -4411,6 +4421,9 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'NM',
     title: 'New Mexico TRD News Alerts',
     url: 'https://www.tax.newmexico.gov/news-alerts/',
+    // Index-level relief signal: NM posts disaster filing-extension relief as
+    // news alerts / B-100 bulletins here; no dedicated relief page.
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'nv.temporary_announcements',
@@ -4426,6 +4439,9 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'NY',
     title: 'New York Tax Department Press Office',
     url: 'https://www.tax.ny.gov/press/',
+    // Index-level relief signal: NY announces disaster due-date changes via
+    // press releases + N-Notices; no single dedicated relief landing page.
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'oh.temporary_announcements',
@@ -4453,6 +4469,7 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'OH',
     title: 'Ohio Department of Taxation Tax Alerts',
     url: 'https://tax.ohio.gov/taxalerts',
+    alertCoverageRoles: ['relief_or_disaster_signal'],
     acquisitionMethod: 'html_watch',
     adapterKind: 'html_announcement_list',
     sourceNotes:
@@ -4469,12 +4486,18 @@ const STATE_TEMPORARY_ANNOUNCEMENT_SOURCES: readonly {
     jurisdiction: 'OR',
     title: 'Oregon DOR Newsroom Press Releases',
     url: 'https://apps.oregon.gov/oregon-newsroom/OR/DOR/Posts/Search?type=Press+Release',
+    // Index-level relief signal: OR posts wildfire/disaster relief via DOR
+    // newsroom releases; no dedicated relief landing page.
+    alertCoverageRoles: ['relief_or_disaster_signal'],
   },
   {
     id: 'pa.temporary_announcements',
     jurisdiction: 'PA',
     title: 'Pennsylvania DOR PA Tax Update Newsletter',
     url: 'https://www.pa.gov/agencies/revenue/resources/pa-tax-update-newsletter#sortCriteria=%40copapwpyear%20descending%2C%40copapwpissuedate%20descending',
+    // Index-level relief signal: PA Revenue surfaces disaster relief via the PA
+    // Tax Update newsletter; relief is otherwise federal/PEMA-driven.
+    alertCoverageRoles: ['relief_or_disaster_signal'],
     acquisitionMethod: 'pdf_watch',
     adapterKind: 'pdf_index',
   },

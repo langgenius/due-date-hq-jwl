@@ -505,8 +505,11 @@ describe('rule source adapters', () => {
       ruleSourceWatchIds: expect.arrayContaining(['wa.esd_quarterly_tax_wage_reports']),
       reliefOrDisasterSourceIds: expect.arrayContaining(['wa.dor_disaster_relief']),
     })
+    // NY relief is now covered at the index level (press office); multi_agency
+    // is still missing, so NY stays standard.
     expect(byJurisdiction.get('NY')).toMatchObject({
-      missingRoles: expect.arrayContaining(['relief_or_disaster_signal', 'multi_agency_sources']),
+      missingRoles: expect.arrayContaining(['multi_agency_sources']),
+      reliefOrDisasterSourceIds: expect.arrayContaining(['ny.temporary_announcements']),
       emailSignalSourceIds: expect.arrayContaining(['ny.email_services']),
     })
     // FL/MA gain relief coverage but stay standard: multi_agency is still missing.
@@ -527,12 +530,15 @@ describe('rule source adapters', () => {
       primaryWebSourceIds: expect.arrayContaining(['oh.sales_tax_rate_changes']),
       emailSignalSourceIds: expect.arrayContaining(['oh.temporary_announcements']),
     })
+    // AL relief is now covered at the index level (DOR news); email_signal is
+    // still missing.
     expect(byJurisdiction.get('AL')).toMatchObject({
       primaryWebSourceIds: expect.arrayContaining(['al.temporary_announcements']),
       emailSignalSourceIds: [],
-      reliefOrDisasterSourceIds: [],
-      missingRoles: expect.arrayContaining(['email_signal', 'relief_or_disaster_signal']),
+      reliefOrDisasterSourceIds: expect.arrayContaining(['al.temporary_announcements']),
+      missingRoles: expect.arrayContaining(['email_signal']),
     })
+    expect(byJurisdiction.get('AL')?.missingRoles).not.toContain('relief_or_disaster_signal')
     expect(byJurisdiction.get('AL')?.requiredRoles).not.toContain('multi_agency_sources')
     expect(byJurisdiction.get('AL')?.requiredRoles).not.toContain('rights_window_signal')
     expect(byJurisdiction.get('NY')?.requiredRoles).toContain('multi_agency_sources')
