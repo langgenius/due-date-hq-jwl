@@ -873,6 +873,7 @@ function FilingPlanYearSection({
                             if (typeof window === 'undefined') return
                             try {
                               void window.navigator.clipboard?.writeText(obligation.id)
+                              toast.success(t`Obligation ID copied`)
                             } catch {
                               // Clipboard can throw in sandboxed iframes.
                             }

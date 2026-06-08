@@ -17,7 +17,6 @@ import {
   DropdownTriggerButton,
   EmptyPanel,
   EvidenceArtifactStatusGrid,
-  FileArtifactRow,
   MaterialsProgressLegend,
   PaymentStillDueCallout,
 } from './components/primitives'
@@ -64,6 +63,7 @@ import {
 } from '@/features/obligations/status-control'
 import { useLifecycleV2 } from '@/features/obligations/use-lifecycle-v2'
 import { useFirmPermission } from '@/features/permissions/permission-gate'
+import { clientDetailPath } from '@/features/clients/client-url'
 import { orpc } from '@/lib/rpc'
 import { rpcErrorMessage } from '@/lib/rpc-error'
 import { cn, formatDate, formatDatePretty, formatDateTimeWithTimezone } from '@/lib/utils'
@@ -1332,7 +1332,11 @@ export function ObligationQueueDetailDrawer({
             aria-label={t`Open ${row.clientName}`}
             title={t`Open ${row.clientName}`}
             onClick={() => {
-              void navigate(`/clients/${encodeURIComponent(row.clientId)}`)
+              // Use the canonical slug-based client path so we land on
+              // the detail page directly instead of hitting the raw-id
+              // redirect (matches clientDetailPath usage in
+              // ClientFactsWorkspace / ClientCycleArrows).
+              void navigate(clientDetailPath({ id: row.clientId, name: row.clientName }))
             }}
             // 2026-05-26 (Yuqi feedback #14): client link bumped from
             // text-xs / icon size-3 → text-sm / icon size-3.5, and the
@@ -2012,14 +2016,13 @@ export function ObligationQueueDetailDrawer({
                     </dl>
                   </section>
                   {/* Cluster 2 (Summary design `d4YrtC > D9cnC`):
-                      Source docs card — the attached source files with a
-                      Preview action per row. The contract's `evidence`
-                      array is rule/extraction evidence (sourceType,
-                      verbatimQuote …), not file artifacts with filenames
-                      + byte sizes, so there's no real attachment list to
-                      bind to. Rendered as a static design placeholder so
-                      the Summary tab matches the canvas; Preview is a
-                      stub toast until the upload/ingest pipeline lands.
+                      Source docs card. The contract's `evidence` array is
+                      rule/extraction evidence (sourceType, verbatimQuote
+                      …), not file artifacts with filenames + byte sizes,
+                      so there is no real attachment list to bind to. We
+                      render an honest empty state rather than fabricated
+                      filenames — restore a real list once the
+                      upload/ingest pipeline lands.
                       // TODO(data): source-document attachments (filename,
                       // size, uploadedAt) on the obligation detail. */}
                   <section className="flex flex-col gap-1.5 rounded-lg border border-divider-subtle p-4">
@@ -2027,12 +2030,6 @@ export function ObligationQueueDetailDrawer({
                       <h3 className="text-caption-xs font-semibold uppercase tracking-wide text-text-tertiary">
                         <Trans>Source docs</Trans>
                       </h3>
-                      <Badge
-                        variant="outline"
-                        className="h-[18px] rounded-full px-2 text-caption-xs font-semibold text-text-secondary"
-                      >
-                        <Trans>4 attached</Trans>
-                      </Badge>
                       <button
                         type="button"
                         onClick={() =>
@@ -2045,33 +2042,9 @@ export function ObligationQueueDetailDrawer({
                         <Trans>+ Add file</Trans>
                       </button>
                     </div>
-                    {[
-                      { name: 'W2-hudsonwells-2026.pdf', meta: t`218 KB · uploaded Feb 14` },
-                      { name: '1099-NEC-atlas.pdf', meta: t`94 KB · uploaded Mar 1` },
-                      { name: 'schedule-c-deductions.xlsx', meta: t`312 KB · updated Mar 4` },
-                      { name: 'prior-year-1040.pdf', meta: t`1.2 MB · uploaded Jan 12` },
-                    ].map((file) => (
-                      <FileArtifactRow
-                        key={file.name}
-                        icon={<FileTextIcon className="size-4" aria-hidden />}
-                        name={file.name}
-                        meta={file.meta}
-                        actions={
-                          <Button
-                            type="button"
-                            size="xs"
-                            variant="outline"
-                            onClick={() =>
-                              toast.info(t`Preview is coming soon`, {
-                                description: t`Document previews open here once ingest lands.`,
-                              })
-                            }
-                          >
-                            <Trans>Preview</Trans>
-                          </Button>
-                        }
-                      />
-                    ))}
+                    <p className="py-1 text-caption text-text-tertiary">
+                      <Trans>No files attached yet.</Trans>
+                    </p>
                   </section>
                   <AuthorityResponsePanel
                     row={row}

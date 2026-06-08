@@ -22,7 +22,6 @@ import {
   RefreshCwIcon,
   ScrollTextIcon,
   SettingsIcon,
-  SquarePenIcon,
   Trash2Icon,
   UserRoundIcon,
 } from 'lucide-react'
@@ -81,7 +80,6 @@ import { useAuditActionLabels } from '@/features/audit/audit-log-labels'
 import { formatAuditActionLabel } from '@/features/audit/audit-log-model'
 
 import { ClientCycleArrows } from './ClientCycleArrows'
-import { EmailComposeDialog } from './EmailComposeDialog'
 import { ClientNotesPanel } from './ClientNotesPanel'
 import { ClientNotesStrip } from './ClientNotesStrip'
 import { ClientTitleSwitcher } from './ClientTitleSwitcher'
@@ -1445,36 +1443,29 @@ export function ClientDetailWorkspace({
 
 /**
  * 2026-06-07 (Pencil tZ0BB + thUSa — /clients/[id] pixel pass):
- * persistent right rail. Three stacked cards — Snapshot, Engagement,
- * Contacts — matching the canvas RightRail frame (320px, 14px radius
- * cards, 18px padding, uppercase mono section labels).
+ * persistent right rail. Renders only cards backed by real data.
  *
  * Data sourcing:
  *   - Snapshot › Open deadlines → live (`openCount`).
- *   - Snapshot › Filed YTD / Outstanding tasks / Last filed →
- *     TODO(data): no YTD-filed count, task count, or last-filed event
- *     in the contracts. Static fallbacks per the canvas.
- *   - Engagement (type / letter / retainer / renews) →
- *     TODO(data): engagement-plan + retainer fields are not in the
- *     ClientPublic contract. Static fallbacks per the canvas.
  *   - Contacts → live primary contact + email when present
- *     (buildClientHeaderContactItems); static sample list otherwise.
+ *     (buildClientHeaderContactItems); honest "No contacts yet" empty
+ *     state otherwise. Never fabricated.
+ *
+ * Removed (no contract field backs them — invented compliance figures
+ * are a trust bug): Snapshot Filed-YTD / Outstanding-tasks / Last-filed,
+ * and the entire Engagement card (retainer, engagement letter, renews).
+ * Restore once the underlying fields ship. Per-contact Compose is also
+ * gone until a messages.send RPC exists.
  */
 function ClientDetailRail({ client, openCount }: { client: ClientPublic; openCount: number }) {
   const { t } = useLingui()
   const contactItems = useMemo(() => buildClientHeaderContactItems(client), [client])
   const primaryContactName = contactItems.find((item) => item.kind === 'contact')?.value ?? null
   const primaryContactEmail = contactItems.find((item) => item.kind === 'email')?.value ?? null
-  // Compose modal (Pencil W7onE). Opening it from a contact prefills the
-  // recipient + client context; sending is gated behind a future
-  // email-send RPC (the modal flags this — see EmailComposeDialog).
-  const [composeFor, setComposeFor] = useState<{ name: string; email: string } | null>(null)
-
-  // TODO(data): the engagement plan, retainer, last-filed event, and
-  // YTD/outstanding counts are not in the contracts. Static fallbacks
-  // mirror the canvas so the rail reads complete; swap to live data
-  // when those fields ship.
-  const contacts =
+  // Only render the real primary contact derived from the client
+  // record. When there is none, the Contacts card shows an honest empty
+  // state — never fabricated people/emails.
+  const contacts: { name: string; role: string; email: string | null }[] =
     primaryContactName || primaryContactEmail
       ? [
           {
@@ -1483,15 +1474,16 @@ function ClientDetailRail({ client, openCount }: { client: ClientPublic; openCou
             email: primaryContactEmail,
           },
         ]
-      : [
-          { name: 'Sarah Hudson', role: t`Partner`, email: 'sarah@hudsonwells.com' },
-          { name: 'Tom Wells', role: t`Controller`, email: 'tom@hudsonwells.com' },
-          { name: 'Lisa Chen', role: t`Bookkeeper`, email: 'lisa@hudsonwells.com' },
-        ]
+      : []
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-[18px] overflow-y-auto">
-      {/* Snapshot card */}
+      {/* Snapshot card. Only `openCount` is a real, computed value.
+          Filed-YTD / outstanding-tasks / last-filed and the entire
+          Engagement card (retainer, engagement letter, renewal) were
+          removed because no contract field backs them — showing
+          invented compliance figures is a trust bug. Restore those
+          rows once the underlying fields ship. */}
       <section className="flex flex-col gap-[14px] rounded-2xl border border-divider-regular bg-background-default p-[18px]">
         <RailSectionLabel>{t`SNAPSHOT`}</RailSectionLabel>
         <div className="flex flex-col gap-0.5">
@@ -1502,146 +1494,47 @@ function ClientDetailRail({ client, openCount }: { client: ClientPublic; openCou
             <Trans>Open deadlines</Trans>
           </span>
         </div>
-        <div className="h-px w-full bg-divider-regular" />
-        <RailMetricRow label={t`Filed YTD`} value="11" />
-        <RailMetricRow label={t`Outstanding tasks`} value="3" />
-        <div className="flex flex-col gap-1 border-t border-divider-regular pt-2.5">
-          <span className="text-[11px] text-text-tertiary">
-            <Trans>Last filed</Trans>
-          </span>
-          <span className="text-sm font-medium text-text-primary">
-            Feb 28, 2026 — Form 1099 batch
-          </span>
-        </div>
-      </section>
-
-      {/* Engagement card */}
-      <section className="flex flex-col gap-[14px] rounded-2xl border border-divider-regular bg-background-default p-[18px]">
-        <RailSectionLabel>{t`ENGAGEMENT`}</RailSectionLabel>
-        <span className="text-[15px] font-semibold text-text-primary">
-          <Trans>Tax + bookkeeping</Trans>
-        </span>
-        <div className="flex flex-col gap-2">
-          <RailStackRow label={t`Engagement letter signed`} value="Jan 14, 2026" />
-          <RailStackRow label={t`Retainer`} value={t`$12,000 / year`} />
-          <RailStackRow label={t`Renews`} value="Jan 14, 2027" />
-        </div>
-        <div className="border-t border-divider-regular pt-2.5">
-          <button
-            type="button"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-text-accent outline-none hover:underline focus-visible:underline"
-          >
-            <Trans>View engagement letter</Trans>
-            <ChevronRightIcon className="size-3.5" aria-hidden />
-          </button>
-        </div>
       </section>
 
       {/* Contacts card */}
       <section className="flex flex-col gap-[14px] rounded-2xl border border-divider-regular bg-background-default p-[18px]">
         <RailSectionLabel>{t`CONTACTS`}</RailSectionLabel>
-        <div className="flex flex-col gap-3">
-          {contacts.map((contact) => (
-            <div key={contact.name} className="flex items-center gap-2.5">
-              <AssigneeAvatar name={contact.name} isMine={false} title={contact.name} />
-              <div className="flex min-w-0 flex-col gap-0.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="truncate text-sm font-semibold text-text-primary">
-                    {contact.name}
-                  </span>
-                  <span aria-hidden className="size-[3px] shrink-0 rounded-full bg-text-muted" />
-                  <span className="shrink-0 text-xs text-text-secondary">{contact.role}</span>
+        {contacts.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            {contacts.map((contact) => (
+              <div key={contact.name} className="flex items-center gap-2.5">
+                <AssigneeAvatar name={contact.name} isMine={false} title={contact.name} />
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-sm font-semibold text-text-primary">
+                      {contact.name}
+                    </span>
+                    <span aria-hidden className="size-[3px] shrink-0 rounded-full bg-text-muted" />
+                    <span className="shrink-0 text-xs text-text-secondary">{contact.role}</span>
+                  </div>
+                  {contact.email ? (
+                    <span className="truncate text-[11px] text-text-tertiary">{contact.email}</span>
+                  ) : null}
                 </div>
-                {contact.email ? (
-                  <span className="truncate font-mono text-[11px] text-text-tertiary">
-                    {contact.email}
-                  </span>
-                ) : null}
+                {/* Compose intentionally not rendered: EmailComposeDialog
+                    has no messages.send RPC, so the dialog can never
+                    actually send. Restore the per-contact compose
+                    affordance once email sending is real. */}
               </div>
-              {contact.email ? (
-                <ComposeContactButton
-                  name={contact.name}
-                  email={contact.email}
-                  onCompose={setComposeFor}
-                />
-              ) : null}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <span className="text-sm text-text-tertiary">
+            <Trans>No contacts yet</Trans>
+          </span>
+        )}
       </section>
-
-      <EmailComposeDialog
-        open={composeFor !== null}
-        onOpenChange={(next) => {
-          if (!next) setComposeFor(null)
-        }}
-        recipientName={composeFor?.name ?? ''}
-        recipientEmail={composeFor?.email ?? null}
-        defaultSubject={t`${client.name} — a quick update from your CPA`}
-        contextRows={[
-          { id: 'linked', label: <Trans>Linked to</Trans>, value: client.name },
-          {
-            id: 'open',
-            label: <Trans>Open deadlines</Trans>,
-            value: <span className="tabular-nums">{openCount}</span>,
-          },
-        ]}
-        senderNote={
-          <Trans>This message is sent via DueDateHQ and logged to the audit ledger.</Trans>
-        }
-      />
     </div>
-  )
-}
-
-// Per-contact compose trigger. Takes `email` as a non-null string so
-// the recipient payload needs no type assertion at the call site.
-function ComposeContactButton({
-  name,
-  email,
-  onCompose,
-}: {
-  name: string
-  email: string
-  onCompose: (recipient: { name: string; email: string }) => void
-}) {
-  const { t } = useLingui()
-  return (
-    <Button
-      variant="ghost"
-      size="icon-sm"
-      className="ml-auto shrink-0"
-      aria-label={t`Compose email to ${name}`}
-      title={t`Compose email`}
-      onClick={() => onCompose({ name, email })}
-    >
-      <SquarePenIcon />
-    </Button>
   )
 }
 
 function RailSectionLabel({ children }: { children: ReactNode }) {
   return <span className="text-[10px] font-bold tracking-wide text-text-muted">{children}</span>
-}
-
-function RailMetricRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-2">
-      <span className="text-sm text-text-secondary">{label}</span>
-      <span className="font-mono text-sm font-semibold text-text-primary tabular-nums">
-        {value}
-      </span>
-    </div>
-  )
-}
-
-function RailStackRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-[11px] text-text-tertiary">{label}</span>
-      <span className="text-sm font-medium text-text-primary">{value}</span>
-    </div>
-  )
 }
 
 type ClientDetailTabKey = 'work' | 'info' | 'activity'

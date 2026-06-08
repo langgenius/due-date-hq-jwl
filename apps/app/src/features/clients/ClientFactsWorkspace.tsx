@@ -1735,10 +1735,11 @@ function ClientsKpiStrip({
     return <Skeleton className="h-[78px] w-full rounded-2xl" aria-busy="true" />
   }
 
-  // TODO(data): YTD revenue and onboarding doc counts are not in the
-  // ClientPublic / obligations contracts. Static fallbacks match the
-  // canvas figures so the strip reads complete; swap to live data when
-  // engagement-revenue + onboarding-status fields ship.
+  // Only real, computed metrics are shown. YTD revenue and onboarding
+  // doc counts are not in the ClientPublic / obligations contracts, so
+  // those tiles were removed rather than filled with fabricated figures
+  // — add them back once engagement-revenue + onboarding-status fields
+  // ship and can be bound to live data.
   const columns: {
     key: string
     label: string
@@ -1761,25 +1762,11 @@ function ClientsKpiStrip({
       captionTone: 'text-text-secondary',
     },
     {
-      key: 'revenue',
-      label: t`YTD REVENUE`,
-      value: '$284K',
-      caption: t`+18% YoY`,
-      captionTone: 'text-text-success',
-    },
-    {
       key: 'risk',
       label: t`AT RISK`,
       value: String(atRiskCount),
       caption: atRiskCount > 0 ? t`need attention` : t`on track`,
       captionTone: atRiskCount > 0 ? 'text-text-warning' : 'text-text-secondary',
-    },
-    {
-      key: 'onboarding',
-      label: t`ONBOARDING`,
-      value: '2',
-      caption: t`docs pending`,
-      captionTone: 'text-text-secondary',
     },
   ]
 
@@ -1791,13 +1778,13 @@ function ClientsKpiStrip({
             <div aria-hidden className="hidden h-11 w-px shrink-0 bg-divider-regular sm:block" />
           ) : null}
           <div className="flex flex-1 flex-col gap-1 px-3 sm:px-5">
-            <span className="font-mono text-[10px] font-bold tracking-wider text-text-muted">
+            <span className="text-[10px] font-bold tracking-wider text-text-muted">
               {column.label}
             </span>
             <span className="text-[22px] font-semibold leading-none tracking-tight text-text-primary tabular-nums">
               {column.value}
             </span>
-            <span className={cn('font-mono text-[10px] font-medium', column.captionTone)}>
+            <span className={cn('text-[10px] font-medium', column.captionTone)}>
               {column.caption}
             </span>
           </div>
