@@ -27,6 +27,17 @@ interface ProtectiveClaimFacts {
   authorityRefs: string[]
 }
 
+// 2026-06-08 (Aogxu parity Phase 3): AI-extracted facts for deadline-shift
+// alerts, read from the freeform `structuredChange.deadlineShift` block. All
+// fields are optional — OLD alerts carry no `deadlineShift`, so the reader
+// returns null and the grid falls back to the generic cells.
+interface DeadlineShiftFacts {
+  reliefType: string | null
+  deadlineTypes: Array<'filing' | 'payment'>
+  optInRequired: boolean | null
+  penaltyRelief: boolean | null
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -75,6 +86,47 @@ function protectiveClaimFacts(detail: PulseDetail): ProtectiveClaimFacts | null 
   return hasAnyFact ? facts : null
 }
 
+function deadlineTypeList(value: unknown): Array<'filing' | 'payment'> {
+  if (!Array.isArray(value)) return []
+  const seen = new Set<'filing' | 'payment'>()
+  for (const item of value) {
+    if (item === 'filing' || item === 'payment') seen.add(item)
+  }
+  // Stable filing-before-payment order so "Filing + Payment" reads consistently.
+  return (['filing', 'payment'] as const).filter((kind) => seen.has(kind))
+}
+
+function optionalBool(value: unknown): boolean | null {
+  return typeof value === 'boolean' ? value : null
+}
+
+// 2026-06-08 (Aogxu parity Phase 3): mirror of `protectiveClaimFacts`. Reads the
+// AI-extracted `deadlineShift` block from the freeform `structuredChange` for
+// `deadline_shift` alerts. Returns null when the alert isn't a deadline shift or
+// carries no deadlineShift facts (every OLD alert) — the grid then keeps its
+// generic cells, so nothing breaks or renders empty. The block is conventionally
+// nested under `structuredChange.deadlineShift`; we also tolerate the keys being
+// written at the top level of `structuredChange`.
+function deadlineShiftFacts(detail: PulseDetail): DeadlineShiftFacts | null {
+  if (detail.alert.changeKind !== 'deadline_shift') return null
+  if (!isRecord(detail.structuredChange)) return null
+  const block = isRecord(detail.structuredChange.deadlineShift)
+    ? detail.structuredChange.deadlineShift
+    : detail.structuredChange
+  const facts: DeadlineShiftFacts = {
+    reliefType: compactText(block.reliefType),
+    deadlineTypes: deadlineTypeList(block.deadlineTypes),
+    optInRequired: optionalBool(block.optInRequired),
+    penaltyRelief: optionalBool(block.penaltyRelief),
+  }
+  const hasAnyFact =
+    facts.reliefType !== null ||
+    facts.deadlineTypes.length > 0 ||
+    facts.optInRequired !== null ||
+    facts.penaltyRelief !== null
+  return hasAnyFact ? facts : null
+}
+
 /**
  * 2026-06-08 (Pencil ibEoz/BbQAK `b4syg ExtractedFacts`): rebuilt from
  * the two stacked Source/Scope FactCards into the design's flat fact
@@ -114,24 +166,56 @@ export function AlertStructuredFields({ detail }: AlertStructuredFieldsProps) {
   const applyModeValue =
     detail.alert.actionMode === 'due_date_overlay' ? t`Auto-applied` : t`Review only`
   const protectiveFacts = protectiveClaimFacts(detail)
+  const deadlineFacts = deadlineShiftFacts(detail)
+
+  // 2026-06-08 (Aogxu parity Phase 3): for deadline-shift alerts that carry
+  // AI-extracted relief facts, the design's three trailing slots show RELIEF
+  // TYPE / DEADLINE TYPES / OPT-IN instead of the generic Change type / Entity
+  // types / Apply mode. When those facts are ABSENT (every OLD alert), we keep
+  // the generic cells so the grid never shows empty. Each AI-derived cell stays
+  // under the section's existing "AI parsed — verify before Apply" subtitle.
+  const deadlineTypesValue =
+    deadlineFacts && deadlineFacts.deadlineTypes.length > 0
+      ? deadlineFacts.deadlineTypes
+          .map((kind) => (kind === 'filing' ? t`Filing` : t`Payment`))
+          .join(' + ')
+      : null
+  const reliefCell = deadlineFacts?.reliefType
+    ? {
+        key: 'reliefType',
+        label: <Trans>Relief type</Trans>,
+        value: deadlineFacts.reliefType,
+      }
+    : {
+        key: 'change',
+        label: <Trans>Change type</Trans>,
+        value: changeKindLabel(detail.alert.changeKind),
+      }
+  const deadlineTypesCell = deadlineTypesValue
+    ? { key: 'deadlineTypes', label: <Trans>Deadline types</Trans>, value: deadlineTypesValue }
+    : { key: 'entities', label: <Trans>Entity types</Trans>, value: entityValue }
+  const optInCell =
+    deadlineFacts && deadlineFacts.optInRequired !== null
+      ? {
+          key: 'optIn',
+          label: <Trans>Opt-in</Trans>,
+          value: deadlineFacts.optInRequired ? t`Required` : t`Not required`,
+        }
+      : { key: 'apply', label: <Trans>Apply mode</Trans>, value: applyModeValue }
 
   const cells: Array<{ key: string; label: ReactNode; value: ReactNode }> = [
     { key: 'authority', label: <Trans>Authority</Trans>, value: detail.alert.source },
     { key: 'effective', label: <Trans>Effective</Trans>, value: effectiveValue },
     { key: 'forms', label: <Trans>Affected forms</Trans>, value: formsValue },
-    {
-      key: 'change',
-      label: <Trans>Change type</Trans>,
-      value: changeKindLabel(detail.alert.changeKind),
-    },
+    reliefCell,
     { key: 'jurisdiction', label: <Trans>Jurisdiction</Trans>, value: jurisdictionValue },
     {
       key: 'published',
       label: <Trans>Published</Trans>,
       value: formatDate(detail.alert.publishedAt),
     },
-    { key: 'entities', label: <Trans>Entity types</Trans>, value: entityValue },
-    { key: 'apply', label: <Trans>Apply mode</Trans>, value: applyModeValue },
+    deadlineTypesCell,
+    optInCell,
   ]
 
   return (

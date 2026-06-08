@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as z from 'zod'
 import { createAI } from './index'
+import { PulseDeadlineShiftFactsSchema } from './pulse'
 import { redactMigrationInput } from './pii'
 import type { AiPorts, VectorMatch } from './ports'
 import { modelForPromptTier } from './router'
@@ -448,6 +449,89 @@ describe('@duedatehq/ai', () => {
       }),
     })
     expect(result.refusal).toBeNull()
+  })
+
+  it('accepts deadline-shift Pulse extracts that carry deadlineShift relief facts', async () => {
+    // 2026-06-08 (Aogxu parity Phase 3): the extractor must pass through the
+    // AI-extracted deadlineShift block in the freeform structuredChange. We can
+    // only assert the schema/shape here — live LLM extraction quality (whether
+    // the model populates these honestly) needs a real run + prompt review.
+    callGatewayMock.mockResolvedValueOnce({
+      output: {
+        classification: 'regulatory_change',
+        changeKind: 'deadline_shift',
+        actionMode: 'due_date_overlay',
+        summary: 'Disaster relief postpones filing and payment deadlines for Los Angeles County.',
+        sourceExcerpt: 'filing and payment deadlines postponed to October 15, 2026',
+        jurisdiction: 'CA',
+        counties: ['Los Angeles'],
+        forms: ['federal_1040'],
+        entityTypes: ['individual'],
+        originalDueDate: '2026-04-15',
+        newDueDate: '2026-10-15',
+        effectiveFrom: '2026-04-15',
+        effectiveUntil: null,
+        affectedRuleIds: [],
+        structuredChange: {
+          deadlineShift: {
+            kind: 'deadline_shift',
+            reliefType: 'Disaster (auto-applied)',
+            deadlineTypes: ['filing', 'payment'],
+            optInRequired: false,
+            penaltyRelief: true,
+          },
+        },
+        confidence: 0.92,
+      },
+      model: 'test-model',
+    })
+    const ai = createAI(CONFIGURED_ENV)
+
+    const result = await ai.extractPulse({
+      sourceId: 'irs.disaster',
+      title: 'IRS CA storm relief',
+      officialSourceUrl: 'https://www.irs.gov/newsroom/tax-relief-in-disaster-situations',
+      rawText: 'filing and payment deadlines postponed to October 15, 2026',
+    })
+
+    expect(result.refusal).toBeNull()
+    expect(result.result).toMatchObject({
+      changeKind: 'deadline_shift',
+      structuredChange: {
+        deadlineShift: {
+          reliefType: 'Disaster (auto-applied)',
+          deadlineTypes: ['filing', 'payment'],
+          optInRequired: false,
+          penaltyRelief: true,
+        },
+      },
+    })
+
+    // The exported facts schema parses the extracted block and the UI relies on
+    // it to read relief type / deadline types / opt-in safely.
+    const structuredChange = result.result?.structuredChange as {
+      deadlineShift: unknown
+    } | null
+    const facts = PulseDeadlineShiftFactsSchema.parse(structuredChange?.deadlineShift)
+    expect(facts).toEqual({
+      reliefType: 'Disaster (auto-applied)',
+      deadlineTypes: ['filing', 'payment'],
+      optInRequired: false,
+      penaltyRelief: true,
+    })
+  })
+
+  it('keeps PulseDeadlineShiftFactsSchema backward-compatible with absent/partial facts', () => {
+    // Old alerts carry no deadlineShift facts at all — an empty object must
+    // parse (the UI then falls back to its generic cells). Partial facts must
+    // parse too — the model omits any key the source doesn't support (F-041).
+    expect(PulseDeadlineShiftFactsSchema.parse({})).toEqual({})
+    expect(PulseDeadlineShiftFactsSchema.parse({ reliefType: 'Disaster (auto-applied)' })).toEqual({
+      reliefType: 'Disaster (auto-applied)',
+    })
+    expect(PulseDeadlineShiftFactsSchema.parse({ deadlineTypes: ['filing'] })).toEqual({
+      deadlineTypes: ['filing'],
+    })
   })
 
   it('rejects Pulse extract output when the excerpt is not in the source', async () => {

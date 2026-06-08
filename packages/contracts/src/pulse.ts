@@ -188,6 +188,27 @@ export const PulseAffectedClientSchema = z.object({
 })
 export type PulseAffectedClient = z.infer<typeof PulseAffectedClientSchema>
 
+// 2026-06-08 (Aogxu parity Phase 3): AI-extracted facts for `deadline_shift`
+// alerts, carried inside the freeform `structuredChange` JSON (no DB migration —
+// `structuredChange` stays `unknown`/freeform end-to-end). This schema is the
+// safe parser the UI uses to read those keys; it is intentionally lenient
+// (`.partial()`-style optionals + a passthrough) so OLD alerts that lack the
+// `deadlineShift` block, or carry only some of its keys, degrade gracefully
+// rather than throw. Every field is AI-derived and stays behind the existing
+// "AI parsed — verify before Apply" gate (F-041) — the extractor only populates
+// these when the source clearly states them, never on a guess.
+export const PulseDeadlineShiftFactsSchema = z.object({
+  // Free text, e.g. "Disaster (auto-applied)". Source-stated relief category.
+  reliefType: z.string().min(1).nullable().optional(),
+  // Which kinds of deadline the relief postpones. Empty/absent when unclear.
+  deadlineTypes: z.array(z.enum(['filing', 'payment'])).optional(),
+  // Whether the taxpayer must file an opt-in/election to get the relief.
+  optInRequired: z.boolean().nullable().optional(),
+  // Whether penalties (e.g. on postponed estimated payments) are abated.
+  penaltyRelief: z.boolean().nullable().optional(),
+})
+export type PulseDeadlineShiftFacts = z.infer<typeof PulseDeadlineShiftFactsSchema>
+
 export const PulseDetailSchema = z.object({
   alert: PulseAlertPublicSchema,
   jurisdiction: PulseJurisdictionSchema,

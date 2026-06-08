@@ -217,9 +217,25 @@ function DeadlineChangeCard({ detail }: { detail: PulseDetail }) {
  *     delta the hero card shows, expressed in months).
  *   • Bullet B — relief is automatic for the in-scope addresses (true
  *     because `actionMode === 'due_date_overlay'` ⇒ auto-applied).
- * A "payments postponed / no penalties accrue" bullet is intentionally
- * omitted — that data doesn't exist yet (Phase 3).
+ *   • Bullet C — payments postponed / no penalties accrue. ENABLED in Phase 3
+ *     only when the AI-extracted deadline-shift facts say so: the relief covers
+ *     'payment' deadlines AND penaltyRelief === true. Otherwise omitted (Phase 1
+ *     behavior) — old alerts carry no such facts, so nothing changes for them.
  */
+function deadlineShiftPaymentRelief(detail: PulseDetail): boolean {
+  if (detail.alert.changeKind !== 'deadline_shift') return false
+  const raw = detail.structuredChange
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return false
+  const record = raw as Record<string, unknown>
+  const blockRaw = record.deadlineShift
+  const block =
+    typeof blockRaw === 'object' && blockRaw !== null && !Array.isArray(blockRaw)
+      ? (blockRaw as Record<string, unknown>)
+      : record
+  const deadlineTypes = Array.isArray(block.deadlineTypes) ? block.deadlineTypes : []
+  return deadlineTypes.includes('payment') && block.penaltyRelief === true
+}
+
 function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
   const oldIso = detail.originalDueDate
   const newIso = detail.newDueDate
@@ -227,6 +243,7 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
   if (detail.alert.actionMode !== 'due_date_overlay' || !oldIso || !newIso || matchedCount <= 0) {
     return null
   }
+  const showPaymentsBullet = deadlineShiftPaymentRelief(detail)
   const days = Math.round(
     (new Date(`${newIso}T00:00:00.000Z`).getTime() -
       new Date(`${oldIso}T00:00:00.000Z`).getTime()) /
@@ -273,6 +290,19 @@ function PracticeImpactSection({ detail }: { detail: PulseDetail }) {
             </Trans>
           </p>
         </div>
+        {showPaymentsBullet ? (
+          <div className="flex items-start gap-2.5">
+            <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-state-success-hover text-text-success">
+              <ShieldCheckIcon className="size-3.5" aria-hidden />
+            </span>
+            <p className="text-[13px] leading-[1.45] text-text-secondary">
+              <Trans>
+                Estimated payments due {formatDeadlineDate(oldIso)} are also postponed — no penalties
+                accrue.
+              </Trans>
+            </p>
+          </div>
+        ) : null}
       </div>
     </section>
   )
