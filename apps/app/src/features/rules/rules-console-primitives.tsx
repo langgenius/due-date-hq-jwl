@@ -108,7 +108,11 @@ export function RulesPageShell({
             as /today; this is that one-line change. */}
         <div
           className={cn(
-            'mx-auto flex w-full flex-col gap-6 px-4 pt-8 pb-4 md:px-6 md:pb-6',
+            // 2026-06-08 (Yuqi "page title at the same position across pages"):
+            // top padding pt-8 → pt-6 (24px) so RulesPageShell pages (/alerts,
+            // /rules) sit at the same title height as /today + /deadlines (both
+            // pt-6). Was the 8px-lower outlier.
+            'mx-auto flex w-full flex-col gap-6 px-4 pt-6 pb-4 md:px-6 md:pb-6',
             wide ? 'max-w-page-expanded' : 'max-w-page-wide',
             lockViewport && 'h-full min-h-0',
             contentClassName,
