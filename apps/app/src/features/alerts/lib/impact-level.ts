@@ -24,10 +24,21 @@ import type { PulseAlertPublic } from '@duedatehq/contracts'
  */
 export type ImpactLevel = 'low' | 'medium' | 'high'
 
+/**
+ * Raw client-impact magnitude — `matchedCount + needsReviewCount`. The number
+ * the "Affects N clients" row line shows, the "highest impact" sort orders by,
+ * and the top-3 "High impact" badge ranks on. One definition so they agree.
+ */
+export function alertImpactCount(
+  alert: Pick<PulseAlertPublic, 'matchedCount' | 'needsReviewCount'>,
+): number {
+  return alert.matchedCount + alert.needsReviewCount
+}
+
 export function alertImpactLevel(
   alert: Pick<PulseAlertPublic, 'matchedCount' | 'needsReviewCount'>,
 ): ImpactLevel {
-  const impacted = alert.matchedCount + alert.needsReviewCount
+  const impacted = alertImpactCount(alert)
   if (impacted >= 5) return 'high'
   if (impacted >= 2) return 'medium'
   return 'low'

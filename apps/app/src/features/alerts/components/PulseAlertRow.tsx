@@ -201,6 +201,7 @@ function PulseAlertRow({
   selected = false,
   onToggleSelected,
   priority,
+  highImpact = false,
 }: {
   alert: PulseAlertPublic
   active: boolean
@@ -232,6 +233,12 @@ function PulseAlertRow({
    * entirely — just relocated to a quieter slot).
    */
   compact?: boolean
+  /**
+   * 2026-06-08 (Yuqi "top 3 most affecting client alert → High Impact badge"):
+   * this alert ranks in the top 3 by client impact; render the "High impact"
+   * badge in the head-row meta cluster.
+   */
+  highImpact?: boolean
 }) {
   const { t } = useLingui()
   const detailQuery = useQuery(useAlertDetailQueryOptions(alert.id))
@@ -409,6 +416,17 @@ function PulseAlertRow({
               }}
             >
               {levelPill.label}
+            </span>
+          ) : null}
+
+          {/* HIGH IMPACT — 2026-06-08 (Yuqi "top 3 most affecting client
+              alert → High Impact badge"): the three alerts hitting the most
+              clients carry an amber impact flag. Amber (not red) keeps the one
+              red urgent cue per surface intact while still reading as "this one
+              matters most." */}
+          {highImpact ? (
+            <span className="inline-flex h-[20px] shrink-0 items-center rounded-[6px] border border-[#f5c97b] bg-[#fffaeb] px-1.5 text-[11px] font-semibold tracking-[0.3px] text-text-warning uppercase">
+              <Trans>High impact</Trans>
             </span>
           ) : null}
 
@@ -864,6 +882,8 @@ function PulseAlertList({
   onToggleSelected,
   priorityById,
   compact,
+  grouped = true,
+  highImpactIds,
 }: {
   alerts: readonly PulseAlertPublic[]
   openAlertId: string | null
@@ -889,6 +909,19 @@ function PulseAlertList({
   onSelectAll?: (next: boolean) => void
   /** Smart-priority inset data keyed by alert id (Pencil `IciLB`). */
   priorityById?: ReadonlyMap<string, AlertPriorityInfo>
+  /**
+   * 2026-06-08 (Yuqi "sort by impact … remove the date header"): when false the
+   * list renders FLAT — no per-day header bands. Used by the impact sort (where
+   * chronological grouping is meaningless) and the map view's navigator rail.
+   * Defaults to true (the chronological newest/oldest list).
+   */
+  grouped?: boolean
+  /**
+   * 2026-06-08 (Yuqi "top 3 most affecting client alert → High Impact badge"):
+   * ids of the alerts that rank in the top 3 by client impact. Rows in this set
+   * render a "High impact" badge.
+   */
+  highImpactIds?: ReadonlySet<string>
 }) {
   const { t } = useLingui()
   const { currentFirm } = useCurrentFirm()
@@ -917,6 +950,24 @@ function PulseAlertList({
     }
   }
 
+  const renderRow = (alert: PulseAlertPublic) => (
+    <PulseAlertRow
+      key={alert.id}
+      alert={alert}
+      active={alert.id === openAlertId}
+      onReview={() => onReview(alert.id)}
+      {...(onDismiss ? { onDismiss: () => onDismiss(alert.id) } : {})}
+      compact={panelOpen}
+      selectable={selectable}
+      selected={selectedIds?.has(alert.id) ?? false}
+      {...(onToggleSelected
+        ? { onToggleSelected: (next: boolean) => onToggleSelected(alert.id, next) }
+        : {})}
+      priority={priorityById?.get(alert.id)}
+      highImpact={highImpactIds?.has(alert.id) ?? false}
+    />
+  )
+
   return (
     // 2026-06-04 round 73 (Yuqi "apply these table design
     // guideline and rules to Alert and Deadlines"): list frame
@@ -938,7 +989,12 @@ function PulseAlertList({
           BulkActionBar appears once rows are picked — the top strip was
           redundant chrome (its count duplicated the per-day bands). */}
 
-      {Array.from(groups.entries()).map(([dayKey, dayAlerts]) => {
+      {/* 2026-06-08 (Yuqi "sort by impact … remove the date header"): flat
+          (ungrouped) rendering for the impact sort + the map navigator rail —
+          no per-day header bands, just the rows in their incoming order. */}
+      {!grouped
+        ? alerts.map(renderRow)
+        : Array.from(groups.entries()).map(([dayKey, dayAlerts]) => {
         const { label, isToday } = formatDayHeader(dayKey, firmTimezone, todayKey)
         const yesterdayKey = (() => {
           const d = new Date(`${todayKey}T12:00:00.000Z`)
@@ -996,22 +1052,7 @@ function PulseAlertList({
                 handler passes through from AlertsListPage so the
                 hover-revealed action actually fires the orpc
                 mutation. */}
-            {dayAlerts.map((alert) => (
-              <PulseAlertRow
-                key={alert.id}
-                alert={alert}
-                active={alert.id === openAlertId}
-                onReview={() => onReview(alert.id)}
-                {...(onDismiss ? { onDismiss: () => onDismiss(alert.id) } : {})}
-                compact={panelOpen}
-                selectable={selectable}
-                selected={selectedIds?.has(alert.id) ?? false}
-                {...(onToggleSelected
-                  ? { onToggleSelected: (next: boolean) => onToggleSelected(alert.id, next) }
-                  : {})}
-                priority={priorityById?.get(alert.id)}
-              />
-            ))}
+            {dayAlerts.map(renderRow)}
           </div>
         )
       })}

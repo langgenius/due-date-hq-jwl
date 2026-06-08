@@ -92,7 +92,7 @@ import {
   ALERT_IMPACT_FILTER_OPTIONS,
   type AlertImpactFilter,
 } from './lib/impact-filter'
-import { alertImpactLevel } from './lib/impact-level'
+import { alertImpactCount } from './lib/impact-level'
 import {
   ACTIVE_STATUS_FILTER_OPTIONS,
   CHANGE_KIND_FILTER_OPTIONS,
@@ -410,23 +410,17 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
   // `filteredAlerts` so the Sort by dropdown actually reorders
   // the cards.
   const sortedAlerts = useMemo(() => {
-    const tierRank = (a: PulseAlertPublic) => {
-      // 2026-06-05: rank by REAL client impact (matchedCount +
-      // needsReviewCount via `alertImpactLevel`), not inverted AI
-      // confidence — so "Highest impact" agrees with the card badge
-      // and the Impact filter. high → 3 (sorts first when we DESC by
-      // rank), medium → 2, low → 1.
-      const level = alertImpactLevel(a)
-      if (level === 'high') return 3
-      if (level === 'medium') return 2
-      return 1
-    }
     const next = [...filteredAlerts]
     if (sortOrder === 'oldest') {
       next.sort((a, b) => new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime())
     } else if (sortOrder === 'highest_impact') {
+      // 2026-06-08 (Yuqi "sort by impact — how many clients are affecting"):
+      // rank by the actual impacted-client count (matchedCount +
+      // needsReviewCount — the same number the "Affects N clients" row line and
+      // the High Impact badge use), not the coarse high/med/low tier. Ties
+      // broken by recency.
       next.sort((a, b) => {
-        const diff = tierRank(b) - tierRank(a)
+        const diff = alertImpactCount(b) - alertImpactCount(a)
         if (diff !== 0) return diff
         return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
       })
@@ -436,6 +430,23 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
     }
     return next
   }, [filteredAlerts, sortOrder])
+
+  // 2026-06-08 (Yuqi "for the top 3 most affecting client alert, add a High
+  // Impact badge"): the three alerts hitting the most clients, ranked by the
+  // same impact count the sort uses. Zero-impact alerts never qualify (an
+  // advisory with no matched clients isn't "high impact" just for placing in a
+  // short list). Independent of the current sort order so the flag is stable.
+  const highImpactIds = useMemo(() => {
+    const ranked = filteredAlerts
+      .filter((a) => alertImpactCount(a) > 0)
+      .toSorted(
+        (a, b) =>
+          alertImpactCount(b) - alertImpactCount(a) ||
+          new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
+      )
+      .slice(0, 3)
+    return new Set(ranked.map((a) => a.id))
+  }, [filteredAlerts])
   // 2026-06-07 (Pencil g5kKJQ — bulk selection plumbing). Selection
   // is pruned to the currently-loaded alert ids so a filter change
   // that hides a selected row also drops it from the action bar.
@@ -1267,6 +1278,10 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                         openAlertId={openAlertId}
                         onReview={openDrawerAndCollapseSidebar}
                         compact
+                        // 2026-06-08 (Yuqi "dont need to show the date header on
+                        // map view"): the map navigator rail renders flat.
+                        grouped={false}
+                        highImpactIds={highImpactIds}
                         selectable={false}
                         priorityById={priorityById}
                         {...(!historyMode
@@ -1310,6 +1325,11 @@ export function AlertsListPage({ embedded = false, historyMode = false }: Alerts
                   alerts={sortedAlerts}
                   openAlertId={openAlertId}
                   onReview={openDrawerAndCollapseSidebar}
+                  // 2026-06-08 (Yuqi "sort by impact … remove the date header"):
+                  // day-group headers only make sense chronologically — drop
+                  // them when the list is ordered by impact (flat ranked list).
+                  grouped={sortOrder !== 'highest_impact'}
+                  highImpactIds={highImpactIds}
                   // 2026-06-07 (Pencil g5kKJQ): bulk-selection +
                   // smart-priority insets. Selection is active-surface
                   // + list-view only; priority insets come from the
