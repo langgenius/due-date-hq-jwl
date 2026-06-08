@@ -37,13 +37,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: cn(
-          'border-components-button-primary-border bg-components-button-primary-bg text-components-button-primary-text shadow-xs',
+          'border-components-button-primary-border bg-components-button-primary-bg text-components-button-primary-text',
           'hover:border-components-button-primary-border-hover hover:bg-components-button-primary-bg-hover',
           'aria-expanded:bg-components-button-primary-bg-hover',
-          'disabled:border-components-button-primary-border-disabled disabled:bg-components-button-primary-bg-disabled disabled:text-components-button-primary-text-disabled disabled:shadow-none',
+          'disabled:border-components-button-primary-border-disabled disabled:bg-components-button-primary-bg-disabled disabled:text-components-button-primary-text-disabled',
         ),
         secondary: cn(
-          'border-components-button-secondary-border bg-components-button-secondary-bg text-components-button-secondary-text shadow-xs',
+          'border-components-button-secondary-border bg-components-button-secondary-bg text-components-button-secondary-text',
           'hover:border-components-button-secondary-border-hover hover:bg-components-button-secondary-bg-hover',
           'aria-expanded:border-components-button-secondary-border-hover aria-expanded:bg-components-button-secondary-bg-hover',
           'disabled:border-components-button-secondary-border-disabled disabled:bg-components-button-secondary-bg-disabled disabled:text-components-button-secondary-text-disabled',
@@ -61,18 +61,18 @@ const buttonVariants = cva(
           'disabled:text-components-button-ghost-text-disabled',
         ),
         accent: cn(
-          'border-components-button-accent-border bg-components-button-accent-bg text-components-button-accent-text shadow-xs',
+          'border-components-button-accent-border bg-components-button-accent-bg text-components-button-accent-text',
           'hover:bg-components-button-accent-bg-hover',
           'aria-expanded:bg-components-button-accent-bg-hover',
           'disabled:bg-components-button-accent-bg-disabled disabled:text-components-button-accent-text-disabled',
         ),
         'destructive-primary': cn(
-          'border-components-button-destructive-primary-border bg-components-button-destructive-primary-bg text-components-button-destructive-primary-text shadow-xs',
+          'border-components-button-destructive-primary-border bg-components-button-destructive-primary-bg text-components-button-destructive-primary-text',
           'hover:border-components-button-destructive-primary-border-hover hover:bg-components-button-destructive-primary-bg-hover',
-          'disabled:bg-components-button-destructive-primary-bg-disabled disabled:text-components-button-destructive-primary-text-disabled disabled:shadow-none',
+          'disabled:bg-components-button-destructive-primary-bg-disabled disabled:text-components-button-destructive-primary-text-disabled',
         ),
         'destructive-secondary': cn(
-          'border-components-button-destructive-secondary-border bg-components-button-destructive-secondary-bg text-components-button-destructive-secondary-text shadow-xs',
+          'border-components-button-destructive-secondary-border bg-components-button-destructive-secondary-bg text-components-button-destructive-secondary-text',
           'hover:border-components-button-destructive-secondary-border-hover hover:bg-components-button-destructive-secondary-bg-hover',
           'disabled:bg-components-button-destructive-secondary-bg-disabled disabled:text-components-button-destructive-secondary-text-disabled',
         ),
@@ -90,39 +90,41 @@ const buttonVariants = cva(
         // These are intentionally NOT exported via type narrowing; they alias
         // onto the Dify-style variants above.
         default: cn(
-          'border-components-button-primary-border bg-components-button-primary-bg text-components-button-primary-text shadow-xs',
+          'border-components-button-primary-border bg-components-button-primary-bg text-components-button-primary-text',
           'hover:border-components-button-primary-border-hover hover:bg-components-button-primary-bg-hover',
-          'disabled:border-components-button-primary-border-disabled disabled:bg-components-button-primary-bg-disabled disabled:text-components-button-primary-text-disabled disabled:shadow-none',
+          'disabled:border-components-button-primary-border-disabled disabled:bg-components-button-primary-bg-disabled disabled:text-components-button-primary-text-disabled',
         ),
         outline: cn(
-          'border-components-button-secondary-border bg-components-button-secondary-bg text-components-button-secondary-text shadow-xs',
+          'border-components-button-secondary-border bg-components-button-secondary-bg text-components-button-secondary-text',
           'hover:border-components-button-secondary-border-hover hover:bg-components-button-secondary-bg-hover',
           'aria-expanded:bg-components-button-secondary-bg-hover',
           'disabled:bg-components-button-secondary-bg-disabled disabled:text-components-button-secondary-text-disabled',
         ),
         destructive: cn(
-          'border-components-button-destructive-secondary-border bg-components-button-destructive-secondary-bg text-components-button-destructive-secondary-text shadow-xs',
+          'border-components-button-destructive-secondary-border bg-components-button-destructive-secondary-bg text-components-button-destructive-secondary-text',
           'hover:border-components-button-destructive-secondary-border-hover hover:bg-components-button-destructive-secondary-bg-hover',
           'disabled:bg-components-button-destructive-secondary-bg-disabled disabled:text-components-button-destructive-secondary-text-disabled',
         ),
       },
       size: {
-        // 2026-06-04 round 3 (Yuqi feedback #8 "all buttons have
-        // bigger rounded corners"): radius scale bumped one tier
-        // across every size — xs 8→10, sm 10→12, default 12→16,
-        // lg 14→18. Same iOS-HIG continuous-corner shape via
-        // `[corner-shape:squircle]` on the base class; the bump
-        // just makes the rounding more present at every scale.
+        // 2026-06-08 (Yuqi product-wide rework — "buttons look ugly and
+        // coarse, flatter & quieter"): radius scale stepped DOWN one tier
+        // across every size — xs 10→6, sm 12→8, default 16→10, lg 18→12.
+        // The earlier rounds kept bumping radii UP until the chips read as
+        // chunky/coarse; this returns to crisper proportions. The iOS-HIG
+        // continuous-corner shape (`[corner-shape:squircle]` on the base
+        // class) is kept — it does the smoothing; the radius just stops
+        // shouting. Shadows are dropped per-variant below for a flat look.
         default:
-          'h-9 gap-1.5 rounded-2xl px-2.5 text-sm in-data-[slot=button-group]:rounded-2xl has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
-        xs: "h-7 gap-1 rounded-[10px] px-2 text-xs in-data-[slot=button-group]:rounded-[10px] has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: 'h-8 gap-1.5 rounded-xl px-2.5 text-sm in-data-[slot=button-group]:rounded-xl has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
-        lg: 'h-10 gap-1.5 rounded-[18px] px-3 text-base font-semibold has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5',
-        icon: 'size-9 rounded-2xl in-data-[slot=button-group]:rounded-2xl',
+          'h-9 gap-1.5 rounded-[10px] px-2.5 text-sm in-data-[slot=button-group]:rounded-[10px] has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        xs: "h-7 gap-1 rounded-md px-2 text-xs in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: 'h-8 gap-1.5 rounded-lg px-2.5 text-sm in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+        lg: 'h-10 gap-1.5 rounded-xl px-3 text-base font-semibold has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5',
+        icon: 'size-9 rounded-[10px] in-data-[slot=button-group]:rounded-[10px]',
         'icon-xs':
-          "size-7 rounded-[10px] in-data-[slot=button-group]:rounded-[10px] [&_svg:not([class*='size-'])]:size-3",
-        'icon-sm': 'size-8 rounded-xl in-data-[slot=button-group]:rounded-xl',
-        'icon-lg': 'size-10 rounded-[18px] in-data-[slot=button-group]:rounded-[18px]',
+          "size-7 rounded-md in-data-[slot=button-group]:rounded-md [&_svg:not([class*='size-'])]:size-3",
+        'icon-sm': 'size-8 rounded-lg in-data-[slot=button-group]:rounded-lg',
+        'icon-lg': 'size-10 rounded-xl in-data-[slot=button-group]:rounded-xl',
       },
     },
     defaultVariants: {
