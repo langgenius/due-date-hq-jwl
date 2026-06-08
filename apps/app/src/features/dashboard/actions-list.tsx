@@ -273,7 +273,7 @@ function ActionsTable({
                 // would alternate tint with row position).
                 <TableRow
                   key={`${currentStatusGroup}-divider`}
-                  className="cursor-default even:bg-transparent hover:!bg-[#e9ebf0]"
+                  className="cursor-default even:bg-transparent hover:!bg-background-subtle"
                   aria-hidden="false"
                 >
                   {/* 2026-06-04 round 84 (Yuqi "apply table design
@@ -292,7 +292,7 @@ function ActionsTable({
                       dividing the lifecycle groups, not a faint whisper. */}
                   <TableCell
                     colSpan={8}
-                    className="bg-[#e9ebf0] px-[18px] py-2 text-[12px] font-semibold tracking-[0.5px] text-text-primary uppercase"
+                    className="bg-background-subtle px-[18px] py-2 text-[12px] font-semibold tracking-[0.5px] text-text-secondary uppercase"
                   >
                     <StatusGroupLabel kind={currentStatusGroup} />
                   </TableCell>
@@ -386,7 +386,7 @@ function ActionsTableRow({
       // but rows can now contain a 2-line stacked cell (action +
       // why-now, due-date + relative date) without feeling
       // suffocated.
-      className="group cursor-pointer focus-visible:bg-state-base-hover focus-visible:outline-none [&_td]:py-3"
+      className="group cursor-pointer hover:!bg-state-base-hover focus-visible:bg-state-base-hover focus-visible:outline-none [&_td]:py-3"
     >
       {/* 2026-06-04 round 11 (Yuqi "don't like the dedicated Smart
           Priority chip - too complicated and useless"): chip
@@ -498,7 +498,7 @@ function ActionsTableRow({
             is reserved when factors exist (opacity-0 keeps layout
             in place) so hover doesn't jitter the table. */}
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium text-text-secondary">{prompt}</span>
+          <span className="text-sm font-normal text-text-secondary">{prompt}</span>
           {allRowFactors.length > 0 ? (
             <span
               className={cn(
@@ -555,7 +555,7 @@ function ActionsTableRow({
         <Button
           type="button"
           size="xs"
-          variant="outline"
+          variant="ghost"
           tabIndex={-1}
           aria-hidden
           onClick={(event) => {

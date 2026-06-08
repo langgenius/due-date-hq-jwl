@@ -44,14 +44,6 @@ const FILL_BY_TONE: Record<PulsingDotTone, string> = {
   disabled: 'bg-components-badge-status-light-disabled-bg',
 }
 
-const HALO_BY_TONE: Record<PulsingDotTone, string> = {
-  success: 'shadow-status-indicator-green',
-  warning: 'shadow-status-indicator-warning',
-  error: 'shadow-status-indicator-red',
-  normal: 'shadow-status-indicator-blue',
-  disabled: 'shadow-status-indicator-gray',
-}
-
 const RING_BY_TONE: Record<PulsingDotTone, string> = {
   success: 'bg-text-success/40',
   warning: 'bg-text-warning/40',
@@ -93,11 +85,7 @@ export function PulsingDot({ tone = 'success', active = true, className, label }
         />
       ) : null}
       <span
-        className={cn(
-          'relative inline-flex size-2 rounded-full',
-          FILL_BY_TONE[tone],
-          HALO_BY_TONE[tone],
-        )}
+        className={cn('relative inline-flex size-2 rounded-full', FILL_BY_TONE[tone])}
       />
     </span>
   )

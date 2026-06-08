@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from 'react'
+import { Fragment } from 'react'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { ExternalLinkIcon, RotateCwIcon, XIcon } from 'lucide-react'
 
@@ -26,8 +26,6 @@ type DashboardBriefCitation = NonNullable<DashboardBriefPublic['citations']>[num
  */
 export function DailyBriefCard({
   brief,
-  scope,
-  onScopeChange,
   onRefresh,
   refreshing,
   onOpenObligation,
@@ -55,7 +53,7 @@ export function DailyBriefCard({
       // 2026-06-08 (Yuqi /today #1 "top padding reduce"): the section's
       // top padding is trimmed (pt-3 vs the 18px on the other sides) so the
       // title row sits closer to the top edge and the card reads tighter.
-      className="group flex flex-col gap-1 rounded-[14px] border border-divider-subtle bg-background-default px-[18px] pt-3 pb-[18px]"
+      className="group flex flex-col gap-1 rounded-[14px] border border-state-accent-border bg-state-accent-hover px-[18px] pt-3 pb-[18px]"
     >
       {/* TopRow — Pencil qYrr3 `LfcWh` */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -73,7 +71,6 @@ export function DailyBriefCard({
         </div>
         {/* Right — scope toggle + icon-only refresh + dismiss */}
         <div className="flex shrink-0 items-center gap-2.5">
-          <BriefScopeToggle value={scope} onChange={onScopeChange} />
           {canRefresh && brief.status !== 'failed' ? (
             <button
               type="button"
@@ -161,7 +158,7 @@ function BriefFreshness({
     // icon right after the label, so recovery lives on the FAILED chip
     // itself (the separate right-side regenerate button hides while failed).
     const failedText = (
-      <span className="text-[11px] font-medium tracking-[0.4px] text-text-destructive uppercase">
+      <span className="text-[11px] font-medium tracking-[0.4px] text-text-secondary uppercase">
         <Trans>Failed</Trans>
       </span>
     )
@@ -180,7 +177,7 @@ function BriefFreshness({
             type="button"
             onClick={onRefresh}
             aria-label={t`Regenerate brief`}
-            className="inline-flex size-5 items-center justify-center rounded-md text-text-tertiary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
+            className="inline-flex size-5 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-background-section hover:text-text-primary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt focus-visible:outline-none"
           >
             <RotateCwIcon className="size-3" aria-hidden />
           </button>
@@ -209,61 +206,6 @@ function BriefFreshness({
         {stale ? <Trans>Outdated</Trans> : (age ?? <Trans>Live</Trans>)}
       </span>
     </span>
-  )
-}
-
-/**
- * Firm / Me scope toggle — Pencil qYrr3 `ni1JL`: a pill track in the
- * subtle surface; the active scope is a white pill with a hairline border,
- * the inactive one is borderless and quieter.
- */
-function BriefScopeToggle({
-  value,
-  onChange,
-}: {
-  value: DashboardBriefScope
-  onChange: (scope: DashboardBriefScope) => void
-}) {
-  const { t } = useLingui()
-  return (
-    <div
-      role="group"
-      aria-label={t`Brief scope`}
-      className="inline-flex items-center gap-0.5 rounded-lg bg-background-section p-0.5"
-    >
-      <ScopeButton active={value === 'firm'} onClick={() => onChange('firm')}>
-        <Trans>Firm</Trans>
-      </ScopeButton>
-      <ScopeButton active={value === 'me'} onClick={() => onChange('me')}>
-        <Trans>Me</Trans>
-      </ScopeButton>
-    </div>
-  )
-}
-
-function ScopeButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        'rounded-md px-2.5 py-[3px] text-xs transition-colors',
-        active
-          ? 'border border-divider-subtle bg-background-default font-semibold text-text-primary'
-          : 'border border-transparent font-medium text-text-secondary hover:text-text-primary',
-      )}
-    >
-      {children}
-    </button>
   )
 }
 
