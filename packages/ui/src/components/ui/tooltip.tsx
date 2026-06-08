@@ -13,8 +13,18 @@ function Tooltip({ ...props }: TooltipPrimitive.Root.Props) {
   return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
 }
 
-function TooltipTrigger({ ...props }: TooltipPrimitive.Trigger.Props) {
-  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
+function TooltipTrigger({ className, ...props }: TooltipPrimitive.Trigger.Props) {
+  // 2026-06-08 (Yuqi "design the cursor"): tooltip triggers default to the
+  // `help` cursor (the question-mark caret) so a hoverable explanation is
+  // discoverable on approach. Interactive triggers (Button / links) carry
+  // their own `cursor-pointer`, which wins via the rendered element's class.
+  return (
+    <TooltipPrimitive.Trigger
+      data-slot="tooltip-trigger"
+      className={cn('cursor-help', className)}
+      {...props}
+    />
+  )
 }
 
 /**
@@ -45,7 +55,11 @@ function TooltipContent({
         <TooltipPrimitive.Popup
           data-slot="tooltip-content"
           className={cn(
-            'inline-flex w-fit max-w-xs items-center gap-1.5 rounded-md border border-components-panel-border-subtle bg-components-tooltip-bg px-2 py-1 text-xs text-components-tooltip-text shadow-md backdrop-blur-[5px]',
+            // 2026-06-08 (Yuqi "tooltip should be more designed"): softer
+            // radius (lg), roomier padding, medium-weight type, a layered
+            // shadow + crisper blur — reads as an intentional floating chip,
+            // not a flat label.
+            'inline-flex w-fit max-w-xs items-center gap-1.5 rounded-lg border border-components-panel-border bg-components-tooltip-bg px-2.5 py-1.5 text-xs font-medium leading-snug text-components-tooltip-text shadow-lg backdrop-blur-[6px]',
             overlayPopupAnimationClassName,
             'has-data-[slot=kbd]:pr-1.5 **:data-[slot=kbd]:relative **:data-[slot=kbd]:isolate **:data-[slot=kbd]:z-50 **:data-[slot=kbd]:rounded-sm',
             className,
