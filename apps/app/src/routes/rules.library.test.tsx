@@ -32,6 +32,7 @@ const rpcMocks = vi.hoisted(() => ({
   acceptTemplateMutationFn: vi.fn(),
   verifyCandidateMutationFn: vi.fn(),
   rejectTemplateMutationFn: vi.fn(),
+  rejectCandidateMutationFn: vi.fn(),
   previewRuleImpactQueryFn: vi.fn(),
   createCustomRuleMutationFn: vi.fn(),
 }))
@@ -156,6 +157,12 @@ vi.mock('@/lib/rpc', () => ({
       rejectTemplate: {
         mutationOptions: (options: Record<string, unknown>) => ({
           mutationFn: rpcMocks.rejectTemplateMutationFn,
+          ...options,
+        }),
+      },
+      rejectCandidate: {
+        mutationOptions: (options: Record<string, unknown>) => ({
+          mutationFn: rpcMocks.rejectCandidateMutationFn,
           ...options,
         }),
       },
@@ -490,6 +497,8 @@ beforeEach(() => {
   rpcMocks.verifyCandidateMutationFn.mockResolvedValue({})
   rpcMocks.rejectTemplateMutationFn.mockReset()
   rpcMocks.rejectTemplateMutationFn.mockResolvedValue({})
+  rpcMocks.rejectCandidateMutationFn.mockReset()
+  rpcMocks.rejectCandidateMutationFn.mockResolvedValue({})
   rpcMocks.previewRuleImpactQueryFn.mockReset()
   rpcMocks.previewRuleImpactQueryFn.mockResolvedValue({
     selectedCount: 1,

@@ -1,11 +1,19 @@
-import { useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plural, Trans, useLingui } from '@lingui/react/macro'
-import { AlertTriangleIcon, Astroid, TriangleAlertIcon } from 'lucide-react'
+import {
+  AlertTriangleIcon,
+  Astroid,
+  CheckIcon,
+  SparklesIcon,
+  TriangleAlertIcon,
+  XIcon,
+} from 'lucide-react'
 import { toast, type ExternalToast } from 'sonner'
 
 import type {
   ObligationRule,
+  RuleBulkImpactPreview,
   RuleConcreteDraft,
   RuleConcreteDraftCacheEntry,
   RuleEvidence,
@@ -16,7 +24,9 @@ import { Alert, AlertDescription, AlertTitle } from '@duedatehq/ui/components/ui
 import { Badge } from '@duedatehq/ui/components/ui/badge'
 import { Button } from '@duedatehq/ui/components/ui/button'
 import { Card } from '@duedatehq/ui/components/ui/card'
+import { Dialog, DialogContent, DialogTitle } from '@duedatehq/ui/components/ui/dialog'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
+import { Textarea } from '@duedatehq/ui/components/ui/textarea'
 import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EntityAuditActivityPanel } from '@/features/audit/entity-audit-activity-panel'
@@ -28,10 +38,13 @@ import { TaxCodeLabel } from '@/components/primitives/tax-code-label'
 import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 
 import {
+  ENTITY_LABELS,
   formatEnumLabel,
   humanizeDueDateLogic,
+  jurisdictionLabel,
   RULE_AUTHORITY_ROLE_DESCRIPTION,
   RULE_AUTHORITY_ROLE_LABEL,
+  type EntityKey,
 } from './rules-console-model'
 import { JurisdictionCode } from './rules-console-primitives'
 import { MatchedPulseBlock } from './matched-pulse-block'
@@ -343,12 +356,20 @@ export function CandidateReviewSection({
   deferQueryInvalidation = false,
   onActionComplete,
   chrome = 'card',
+  confirmImpact = false,
 }: {
   rule: ObligationRule
   concreteDraft?: RuleConcreteDraftCacheEntry | null
   concreteDraftLoading?: boolean
   deferQueryInvalidation?: boolean
   onActionComplete?: () => void | Promise<void>
+  /**
+   * When true, the Accept action first opens a "Confirm impact" dialog
+   * (Pencil `jpoZx`) summarizing the real downstream deadline impact
+   * (from `previewRuleImpact`) before committing. Used by the single-rule
+   * detail panel; the batch-review queue keeps the fast one-click accept.
+   */
+  confirmImpact?: boolean
   /**
    * 2026-05-27 (Yuqi follow-up — "Practice review在最下面而且需要
    * 滑动才能看到"): the review action is the WHY of the dialog —
@@ -371,6 +392,7 @@ export function CandidateReviewSection({
       concreteDraftLoading={concreteDraftLoading}
       deferQueryInvalidation={deferQueryInvalidation}
       chrome={chrome}
+      confirmImpact={confirmImpact}
       {...(onActionComplete ? { onActionComplete } : {})}
     />
   )
@@ -383,6 +405,7 @@ function CandidateReviewForm({
   deferQueryInvalidation = false,
   onActionComplete,
   chrome = 'card',
+  confirmImpact = false,
 }: {
   rule: ObligationRule
   concreteDraft: RuleConcreteDraftCacheEntry | null
@@ -390,10 +413,12 @@ function CandidateReviewForm({
   deferQueryInvalidation?: boolean
   onActionComplete?: () => void | Promise<void>
   chrome?: 'card' | 'flat'
+  confirmImpact?: boolean
 }) {
   const { t } = useLingui()
   const queryClient = useQueryClient()
   const [acceptCompleting, setAcceptCompleting] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const acceptToastIdRef = useRef<string | number | null>(null)
   const sourceDefined = rule.dueDateLogic.kind === 'source_defined_calendar'
   const reviewSourceId = rule.sourceIds[0] ?? rule.evidence[0]?.sourceId ?? ''
@@ -452,6 +477,61 @@ function CandidateReviewForm({
       }),
     )
     acceptToastIdRef.current = null
+  }
+
+  // ---- Reject flow (Pencil DvLC9 reject popover) ---------------------
+  // Rejecting needs an explicit reason (free-text on the wire). The UI
+  // offers preset reasons + an "Other" note. Mirrors the accept flow's
+  // in-flight + error handling; rejecting writes no obligations, so it
+  // only invalidates the rule/review/audit caches (not obligations).
+  const [rejectOpen, setRejectOpen] = useState(false)
+  const [rejecting, setRejecting] = useState(false)
+  function handleRejectSuccess() {
+    setRejecting(false)
+    setRejectOpen(false)
+    toast.success(t`Rule rejected`)
+    void (async () => {
+      try {
+        await onActionComplete?.()
+      } finally {
+        window.requestAnimationFrame(() => {
+          if (!deferQueryInvalidation) invalidateRules()
+        })
+      }
+    })()
+  }
+  function handleRejectError(error: unknown) {
+    setRejecting(false)
+    toast.error(t`Couldn't reject rule`, {
+      description: rpcErrorMessage(error) ?? t`Check the rule version and try again.`,
+    })
+  }
+  const rejectTemplateMutation = useMutation(
+    orpc.rules.rejectTemplate.mutationOptions({
+      onSuccess: handleRejectSuccess,
+      onError: handleRejectError,
+    }),
+  )
+  const rejectCandidateMutation = useMutation(
+    orpc.rules.rejectCandidate.mutationOptions({
+      onSuccess: handleRejectSuccess,
+      onError: handleRejectError,
+    }),
+  )
+  const rejectPending = rejectTemplateMutation.isPending || rejectCandidateMutation.isPending
+  function submitReject(reason: string) {
+    const trimmed = reason.trim()
+    if (trimmed.length === 0 || rejecting || rejectPending) return
+    setRejecting(true)
+    if (sourceDefined) {
+      rejectCandidateMutation.mutate({ ruleId: rule.id, reason: trimmed })
+    } else {
+      rejectTemplateMutation.mutate({
+        ruleId: rule.id,
+        expectedVersion: rule.version,
+        reason: trimmed,
+      })
+    }
   }
 
   const acceptMutation = useMutation(
@@ -536,7 +616,9 @@ function CandidateReviewForm({
   }
 
   const isPending = acceptMutation.isPending || verifyMutation.isPending
-  const reviewDisabled = isPending || acceptCompleting
+  // Any in-flight decision (accept OR reject) locks both actions so a
+  // double-submit / accept-while-rejecting race can't fire two writes.
+  const reviewDisabled = isPending || acceptCompleting || rejecting || rejectPending
   const draftUnavailableMessage =
     sourceDefined && reviewSourceId.length === 0
       ? t`This source-defined rule is missing an official source.`
@@ -614,16 +696,61 @@ function CandidateReviewForm({
       ) : null}
 
       <div className="flex justify-end gap-2">
+        {/* Reject lives only in the single-rule detail review (the
+            `confirmImpact` context). The batch queue is accept/skip-only
+            — skipping defers a rule without a destructive decision. Reject
+            does NOT depend on a concrete draft being ready (unlike Accept). */}
+        {confirmImpact ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setRejectOpen(true)}
+            disabled={reviewDisabled}
+            data-rule-action="reject"
+          >
+            <Trans>Reject</Trans>
+          </Button>
+        ) : null}
         <Button
           type="button"
           size="sm"
-          onClick={submitAccept}
+          onClick={confirmImpact ? () => setConfirmOpen(true) : submitAccept}
           disabled={acceptDisabled}
           data-rule-action="accept"
         >
           <Trans>Accept rule</Trans>
         </Button>
       </div>
+      {confirmImpact ? (
+        <ConfirmImpactDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          rule={rule}
+          impact={impactQuery.data ?? null}
+          loading={impactQuery.isLoading}
+          errored={impactQuery.isError}
+          isPending={reviewDisabled}
+          onConfirm={() => {
+            setConfirmOpen(false)
+            submitAccept()
+          }}
+        />
+      ) : null}
+      {confirmImpact ? (
+        <RejectReasonDialog
+          open={rejectOpen}
+          onOpenChange={(next) => {
+            // Don't allow closing mid-submit so the result toast lands on
+            // a known state.
+            if (rejecting || rejectPending) return
+            setRejectOpen(next)
+          }}
+          rule={rule}
+          pending={rejecting || rejectPending}
+          onSubmit={submitReject}
+        />
+      ) : null}
     </>
   )
   if (chrome === 'card') {
@@ -634,6 +761,288 @@ function CandidateReviewForm({
     )
   }
   return <section className="flex flex-col gap-3">{body}</section>
+}
+
+/**
+ * `ConfirmImpactDialog` — the accept-time impact confirmation (Pencil
+ * `jpoZx`). Styled like the design's confirm-impact modal but populated
+ * ONLY with the real aggregate `previewRuleImpact` data we have
+ * (estimated deadlines + entity distribution) — no fabricated per-client
+ * rows. Shown from the single-rule detail panel before committing accept.
+ */
+function ConfirmImpactDialog({
+  open,
+  onOpenChange,
+  rule,
+  impact,
+  loading,
+  errored,
+  isPending,
+  onConfirm,
+}: {
+  open: boolean
+  onOpenChange: (next: boolean) => void
+  rule: ObligationRule
+  impact: RuleBulkImpactPreview | null
+  loading: boolean
+  errored: boolean
+  isPending: boolean
+  onConfirm: () => void
+}) {
+  const { t } = useLingui()
+  const deadlines = impact?.estimatedObligationCount ?? 0
+  const entityRows = (impact?.entityCounts ?? []).filter((row) => row.count > 0)
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="w-[min(560px,calc(100vw-2rem))] max-w-[560px] gap-0 overflow-hidden p-0"
+      >
+        {/* Header */}
+        <div className="flex items-start gap-3 border-b border-divider-subtle px-5 py-4">
+          <span
+            aria-hidden
+            className="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-state-accent-hover"
+          >
+            <SparklesIcon className="size-[18px] text-text-accent" />
+          </span>
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <DialogTitle className="text-lg font-semibold text-text-primary">
+              <Trans>Confirm impact</Trans>
+            </DialogTitle>
+            <p className="text-[13px] text-text-tertiary">
+              <Trans>
+                Accepting activates this rule for client filings in{' '}
+                {jurisdictionLabel(rule.jurisdiction)}.
+              </Trans>
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label={t`Close`}
+            onClick={() => onOpenChange(false)}
+            className="-mr-1 -mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+          >
+            <XIcon className="size-4" aria-hidden />
+          </button>
+        </div>
+        {/* Honest aggregate stats — only the numbers the API provides. */}
+        <div className="flex items-center gap-5 border-b border-divider-subtle bg-background-subtle px-5 py-4">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-lg font-bold text-text-primary tabular-nums">
+              {loading ? '—' : errored ? '—' : deadlines}
+            </span>
+            <span className="text-[11px] font-medium text-text-muted">
+              {deadlines === 1 ? t`deadline generated` : t`deadlines generated`}
+            </span>
+          </div>
+          <span className="h-8 w-px shrink-0 bg-divider-subtle" aria-hidden />
+          <div className="flex flex-col gap-0.5">
+            <span className="text-lg font-bold text-text-primary tabular-nums">
+              {rule.entityApplicability.length}
+            </span>
+            <span className="text-[11px] font-medium text-text-muted">
+              {rule.entityApplicability.length === 1 ? t`entity type` : t`entity types`}
+            </span>
+          </div>
+        </div>
+        {/* Body — real entity distribution, or an honest activation note. */}
+        <div className="flex flex-col gap-3 px-5 py-4">
+          {loading ? (
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          ) : errored ? (
+            <p className="text-sm text-text-secondary">
+              <Trans>
+                Couldn&apos;t load the impact preview. You can still accept — the rule will activate
+                for client filings in {jurisdictionLabel(rule.jurisdiction)}.
+              </Trans>
+            </p>
+          ) : deadlines > 0 ? (
+            <>
+              <p className="text-xs text-text-tertiary">
+                <Trans>These deadlines will be created across your current clients:</Trans>
+              </p>
+              <ul className="flex flex-col">
+                {entityRows.map((row, index) => (
+                  <li
+                    key={row.key}
+                    className={cn(
+                      'flex items-center justify-between py-2',
+                      index > 0 && 'border-t border-divider-subtle',
+                    )}
+                  >
+                    <span className="text-sm text-text-secondary">
+                      {ENTITY_LABELS[row.key as EntityKey] ?? row.key}
+                    </span>
+                    <span className="text-sm font-semibold text-text-primary tabular-nums">
+                      {row.count}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p className="text-sm text-text-secondary">
+              <Trans>
+                No client deadlines will be generated yet — accepting activates this rule for future
+                filings.
+              </Trans>
+            </p>
+          )}
+        </div>
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-2 border-t border-divider-subtle px-5 py-4">
+          <Button type="button" variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button type="button" size="sm" onClick={onConfirm} disabled={isPending}>
+            <CheckIcon data-icon="inline-start" />
+            <Trans>Accept & apply</Trans>
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/**
+ * `RejectReasonDialog` — the reject-with-reason step (Pencil DvLC9 reject
+ * popover). Offers preset reasons + an "Other" free-text note; the chosen
+ * reason is sent as the rule's reject `reason` string. Reject is blocked
+ * until a reason is selected (and a note typed when "Other"). State resets
+ * each time the dialog opens so a prior selection never leaks across rules.
+ */
+function RejectReasonDialog({
+  open,
+  onOpenChange,
+  rule,
+  pending,
+  onSubmit,
+}: {
+  open: boolean
+  onOpenChange: (next: boolean) => void
+  rule: ObligationRule
+  pending: boolean
+  onSubmit: (reason: string) => void
+}) {
+  const { t } = useLingui()
+  const presets = [
+    { key: 'errors', label: t`Contains errors` },
+    { key: 'wrong_source', label: t`Source or jurisdiction is incorrect` },
+    { key: 'duplicate', label: t`Duplicate of an existing rule` },
+    { key: 'other', label: t`Other (see note)` },
+  ] as const
+  const [selected, setSelected] = useState<string | null>(null)
+  const [note, setNote] = useState('')
+  // Reset when (re)opened so a prior selection never leaks into the next
+  // rejection.
+  useEffect(() => {
+    if (open) {
+      setSelected(null)
+      setNote('')
+    }
+  }, [open])
+  const isOther = selected === 'other'
+  const trimmedNote = note.trim()
+  const reason = isOther ? trimmedNote : (presets.find((p) => p.key === selected)?.label ?? '')
+  const canSubmit = reason.length > 0 && !pending
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="w-[min(480px,calc(100vw-2rem))] max-w-[480px] gap-0 overflow-hidden p-0"
+      >
+        <div className="flex items-start gap-3 border-b border-divider-subtle px-5 py-4">
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <DialogTitle className="text-lg font-semibold text-text-primary">
+              <Trans>Reject rule</Trans>
+            </DialogTitle>
+            <p className="truncate text-[13px] text-text-tertiary" title={rule.title}>
+              {rule.title}
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label={t`Close`}
+            onClick={() => onOpenChange(false)}
+            disabled={pending}
+            className="-mr-1 -mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-text-tertiary outline-none transition-colors hover:bg-state-base-hover hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt disabled:opacity-40"
+          >
+            <XIcon className="size-4" aria-hidden />
+          </button>
+        </div>
+        <div className="flex flex-col gap-2 px-5 py-4">
+          <span className="text-xs font-medium text-text-secondary">
+            <Trans>Why are you rejecting this rule?</Trans>
+          </span>
+          <div className="flex flex-col gap-1.5" role="radiogroup" aria-label={t`Reject reason`}>
+            {presets.map((preset) => {
+              const active = selected === preset.key
+              return (
+                <button
+                  key={preset.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setSelected(preset.key)}
+                  className={cn(
+                    'flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                    active
+                      ? 'border-state-accent-solid bg-state-accent-hover text-text-primary'
+                      : 'border-divider-regular text-text-secondary hover:bg-state-base-hover',
+                  )}
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'flex size-4 shrink-0 items-center justify-center rounded-full border',
+                      active ? 'border-state-accent-solid' : 'border-divider-deep',
+                    )}
+                  >
+                    {active ? <span className="size-2 rounded-full bg-state-accent-solid" /> : null}
+                  </span>
+                  {preset.label}
+                </button>
+              )
+            })}
+          </div>
+          {isOther ? (
+            <Textarea
+              autoFocus
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              maxLength={1000}
+              placeholder={t`Add a short note explaining the rejection…`}
+              className="mt-1 min-h-20 text-sm"
+            />
+          ) : null}
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-divider-subtle px-5 py-4">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+            disabled={pending}
+          >
+            <Trans>Cancel</Trans>
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={() => onSubmit(reason)}
+            disabled={!canSubmit}
+          >
+            <Trans>Reject rule</Trans>
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 function AiDraftReviewPanel({

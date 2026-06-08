@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import {
   LandmarkIcon,
@@ -78,6 +78,9 @@ export function JurisdictionRail({
 }) {
   const { t } = useLingui()
   const query = search.trim().toLowerCase()
+  // Filter toggle (rail header funnel icon): when on, the list collapses
+  // to only jurisdictions with rules still awaiting review.
+  const [reviewOnly, setReviewOnly] = useState(false)
 
   const federal = useMemo(() => items.find((it) => it.jurisdiction === 'FED') ?? null, [items])
   const states = useMemo(
@@ -89,9 +92,10 @@ export function JurisdictionRail({
   )
 
   const matches = (it: RailJurisdiction) =>
-    !query ||
-    it.label.toLowerCase().includes(query) ||
-    it.jurisdiction.toLowerCase().includes(query)
+    (!query ||
+      it.label.toLowerCase().includes(query) ||
+      it.jurisdiction.toLowerCase().includes(query)) &&
+    (!reviewOnly || it.reviewCount > 0)
 
   const federalVisible = federal && matches(federal) ? federal : null
   const visibleStates = states.filter(matches)
@@ -105,8 +109,10 @@ export function JurisdictionRail({
       )}
       aria-label={t`Jurisdictions`}
     >
-      {/* Header — eyebrow + title row + search pill. */}
-      <div className="shrink-0 px-3.5 pt-1">
+      {/* Header — eyebrow + title row + search pill. Top padding matches
+          the main panel's `pt-6 md:pt-8` so the rail eyebrow lines up with
+          the page eyebrow instead of sitting jammed against the top. */}
+      <div className="shrink-0 px-3.5 pt-6 md:pt-8">
         <div className="flex flex-col gap-2.5 pb-4">
           <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
             <Trans>Rule library</Trans>
@@ -116,12 +122,25 @@ export function JurisdictionRail({
               <Trans>Jurisdictions</Trans>
             </span>
             <span className="flex-1" />
-            <span
-              className="inline-flex size-[22px] items-center justify-center rounded-md text-text-secondary"
-              aria-hidden
+            <button
+              type="button"
+              onClick={() => setReviewOnly((v) => !v)}
+              aria-pressed={reviewOnly}
+              title={
+                reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`
+              }
+              aria-label={
+                reviewOnly ? t`Show all jurisdictions` : t`Show only jurisdictions needing review`
+              }
+              className={cn(
+                'inline-flex size-[22px] shrink-0 items-center justify-center rounded-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-state-accent-active-alt',
+                reviewOnly
+                  ? 'bg-state-accent-hover text-text-accent'
+                  : 'text-text-secondary hover:bg-state-base-hover',
+              )}
             >
               <ListFilterIcon className="size-3.5" />
-            </span>
+            </button>
           </div>
         </div>
         <div className="pb-3">
@@ -226,9 +245,9 @@ export function JurisdictionRail({
             </>
           ) : null}
 
-          {query && shownStateCount === 0 && !federalVisible ? (
+          {(query || reviewOnly) && shownStateCount === 0 && !federalVisible ? (
             <p className="px-3 py-6 text-center text-xs text-text-tertiary">
-              {t`No jurisdictions match "${search}"`}
+              {query ? t`No jurisdictions match "${search}"` : t`No jurisdictions need review`}
             </p>
           ) : null}
         </div>

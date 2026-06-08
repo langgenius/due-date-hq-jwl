@@ -19,9 +19,7 @@ import {
   LinkIcon,
   Loader2,
   MessageSquareText,
-  MoreHorizontalIcon,
   PlusIcon,
-  RadioTowerIcon,
   SearchIcon,
   XIcon,
 } from 'lucide-react'
@@ -51,12 +49,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@duedatehq/ui/components/ui/dialog'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@duedatehq/ui/components/ui/dropdown-menu'
 import { Input } from '@duedatehq/ui/components/ui/input'
 import { Label } from '@duedatehq/ui/components/ui/label'
 import { Skeleton } from '@duedatehq/ui/components/ui/skeleton'
@@ -74,7 +66,7 @@ import { cn } from '@duedatehq/ui/lib/utils'
 
 import { EmptyState } from '@/components/patterns/empty-state'
 import { FloatingActionBar } from '@/components/patterns/floating-action-bar'
-import { KbdHint, ShortcutHintChip } from '@/components/patterns/kbd'
+import { KbdHint } from '@/components/patterns/kbd'
 import {
   isInteractiveEventTarget,
   useAppHotkey,
@@ -922,29 +914,39 @@ function OverviewStatusCoverageCard({
   active,
   review,
   draft,
+  archived,
+  className,
 }: {
   total: number
   active: number
   review: number
   draft: number
+  archived: number
+  className?: string
 }) {
+  const { t } = useLingui()
   const segments = [
     { key: 'active', flex: active, barClass: 'bg-state-success-solid' },
     { key: 'review', flex: review, barClass: 'bg-state-warning-solid' },
     { key: 'draft', flex: draft, barClass: 'bg-state-accent-solid' },
   ].filter((seg) => seg.flex > 0)
-  const chips: Array<{ key: string; label: string; count: number; dotClass: string }> = [
-    { key: 'active', label: 'Active', count: active, dotClass: 'bg-state-success-solid' },
-    {
-      key: 'review',
-      label: 'Awaiting review',
-      count: review,
-      dotClass: 'bg-state-warning-solid',
-    },
-    { key: 'draft', label: 'Draft', count: draft, dotClass: 'bg-state-accent-solid' },
+  // Per-status breakdown rows — overall segmented bar up top, then an
+  // itemized list (label · proportion bar · count) that carries the
+  // card's weight in the 2-column dashboard.
+  const breakdown = [
+    { key: 'active', label: t`Active`, count: active, tone: 'bg-state-success-solid' },
+    { key: 'review', label: t`Awaiting review`, count: review, tone: 'bg-state-warning-solid' },
+    { key: 'draft', label: t`Draft`, count: draft, tone: 'bg-state-accent-solid' },
+    { key: 'archived', label: t`Archived`, count: archived, tone: 'bg-divider-deep' },
   ]
+  const pct = (n: number) => (total > 0 ? `${Math.round((n / total) * 100)}%` : '0%')
   return (
-    <div className="flex shrink-0 flex-col gap-3.5 rounded-xl border border-divider-subtle bg-background-default px-[22px] py-5">
+    <div
+      className={cn(
+        'flex shrink-0 flex-col gap-4 rounded-xl border border-divider-subtle bg-background-default px-[22px] py-5',
+        className,
+      )}
+    >
       <div className="flex flex-col gap-0.5">
         <span className="text-base font-semibold text-text-primary">
           <Trans>Status coverage</Trans>
@@ -963,18 +965,21 @@ function OverviewStatusCoverageCard({
           <span key={seg.key} className={cn('block', seg.barClass)} style={{ flex: seg.flex }} />
         ))}
       </div>
-      <div className="flex flex-wrap gap-2">
-        {chips.map((chip) => (
-          <span
-            key={chip.key}
-            className="inline-flex items-center gap-1.5 rounded-full bg-background-subtle px-2 py-1"
-          >
-            <span aria-hidden className={cn('size-1.5 rounded-full', chip.dotClass)} />
-            <span className="text-[11px] font-medium text-text-secondary">{chip.label}</span>
-            <span className="text-[11px] font-semibold tabular-nums text-text-primary">
-              {chip.count}
+      <div className="flex flex-col gap-2.5 pt-1">
+        {breakdown.map((row) => (
+          <div key={row.key} className="flex items-center gap-3">
+            <span aria-hidden className={cn('size-2 shrink-0 rounded-full', row.tone)} />
+            <span className="w-28 shrink-0 text-sm text-text-secondary">{row.label}</span>
+            <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-background-subtle">
+              <span
+                className={cn('block h-full rounded-full', row.tone)}
+                style={{ width: pct(row.count) }}
+              />
             </span>
-          </span>
+            <span className="w-10 shrink-0 text-right text-sm font-semibold tabular-nums text-text-primary">
+              {row.count}
+            </span>
+          </div>
         ))}
       </div>
     </div>
@@ -992,16 +997,23 @@ function OverviewRecentChangesCard({
   rules,
   onRuleClick,
   onViewAll,
+  className,
 }: {
   rules: ObligationRule[]
   onRuleClick: (rule: ObligationRule) => void
   onViewAll: () => void
+  className?: string
 }) {
   const changeKindLabels = useRuleChangeKindLabels()
   const now = Date.now()
   if (rules.length === 0) return null
   return (
-    <div className="flex shrink-0 flex-col gap-3.5 rounded-xl border border-divider-subtle bg-background-default px-[22px] py-5">
+    <div
+      className={cn(
+        'flex shrink-0 flex-col gap-3.5 rounded-xl border border-divider-subtle bg-background-default px-[22px] py-5',
+        className,
+      )}
+    >
       <div className="flex items-center gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-base font-semibold text-text-primary">
@@ -1843,53 +1855,26 @@ export function RulesLibraryRoute() {
   // brand-new (unseeded) rule. Restored the header CTA on every
   // scope; the gap-row prefilled action remains as a quicker path
   // for the specific row case.
+  // Per-jurisdiction detail header — leaned to a two-button cluster
+  // (Yuqi 2026-06-08): the shortcut chip, ⋯ (Export coverage), and the
+  // standalone Sources button were dropped — Sources now lives in the
+  // rail, Export on the overview header, and `?` still opens shortcuts.
+  // The detail view keeps its two contextually-useful actions: New rule
+  // + Start review (the latter only when a review queue exists).
   const headerActions = (
     <>
-      {/* 2026-05-27 (Step 6 UX flows audit H2.7): shortcut
-          discoverability chip — same primitive as /today and
-          /clients. The rule library has J/K/Enter/e/Esc/Cmd-K
-          shortcuts but no surface hint that `?` opens help. */}
-      <ShortcutHintChip className="hidden md:inline-flex" />
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button variant="outline" size="icon-sm" aria-label={t`More library actions`}>
-              <MoreHorizontalIcon className="size-4" aria-hidden />
-            </Button>
-          }
-        />
-        <DropdownMenuContent align="end" className="min-w-[200px]">
-          <DropdownMenuItem onClick={handleExport}>
-            <ArrowUpRightIcon className="size-4" aria-hidden />
-            <Trans>Export coverage</Trans>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <Button variant="outline" size="sm" render={<Link to="/rules/sources" />}>
-        <RadioTowerIcon data-icon="inline-start" />
-        <Trans>Sources</Trans>
+      <Button variant="outline" size="sm" onClick={openNewRule}>
+        <PlusIcon data-icon="inline-start" />
+        <Trans>New rule</Trans>
       </Button>
       {reviewCount > 0 ? (
-        <>
-          <Button variant="outline" size="sm" onClick={openNewRule}>
-            <PlusIcon data-icon="inline-start" />
-            <Trans>New rule</Trans>
-          </Button>
-          <Button size="sm" onClick={startReviewAll}>
-            <Trans>Start review</Trans>
-            <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 text-xs tabular-nums text-text-accent">
-              {reviewCount}
-            </span>
-          </Button>
-        </>
-      ) : (
-        // No-review baseline: + New rule promotes to the primary
-        // slot so the header always carries a single primary action.
-        <Button size="sm" onClick={openNewRule}>
-          <PlusIcon data-icon="inline-start" />
-          <Trans>New rule</Trans>
+        <Button size="sm" onClick={startReviewAll}>
+          <Trans>Start review</Trans>
+          <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-sm bg-background-default px-1.5 text-xs tabular-nums text-text-accent">
+            {reviewCount}
+          </span>
         </Button>
-      )}
+      ) : null}
     </>
   )
 
@@ -2157,13 +2142,13 @@ export function RulesLibraryRoute() {
     // / entity stats; the "All jurisdictions" overview keeps today's
     // grouped + paginated table. The rail is lg+ only — narrow viewports
     // fall back to the overview pane full-width.
-    <div
-      className={cn(
-        'mx-auto flex w-full max-w-page-expanded flex-col px-4 pt-6 pb-0 md:px-6 md:pt-8 md:pb-0',
-        'xl:h-screen xl:overflow-hidden',
-      )}
-    >
-      <div className="flex min-h-0 flex-1 gap-4">
+    <div className={cn('flex w-full flex-col', 'xl:h-screen xl:overflow-hidden')}>
+      {/* 2026-06-08 (Yuqi): the jurisdiction rail is hoisted OUT of the
+          centered max-w content container so it sits flush against the
+          global app sidebar (full-height secondary sidebar, Pencil
+          O0pyRO), rather than floating inside the padded right panel.
+          The content padding + width cap now live on the main column. */}
+      <div className="flex min-h-0 flex-1">
         <JurisdictionRail
           items={railItems}
           totalRuleCount={totalRules}
@@ -2176,60 +2161,64 @@ export function RulesLibraryRoute() {
           className="hidden lg:flex"
         />
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4">
-          {selectedGroup ? (
-            <PageHeader
-              breadcrumbs={[{ label: t`Rule library`, to: '/rules/library' }]}
-              title={
-                <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                  <span>{selectedGroup.label}</span>
-                  <JurisdictionStatusChips
-                    reviewCount={selectedGroup.pendingReviewCount}
-                    activeCount={
-                      (jurisdictionStatusCounts?.active ?? 0) +
-                      (jurisdictionStatusCounts?.verified ?? 0)
-                    }
-                    sourcesHealthy
-                  />
-                </span>
-              }
-              actions={headerActions}
-            />
-          ) : (
-            // Overview header (Pencil O0pyRO): a sentence-case status
-            // eyebrow with a green sync dot, the "Rule library overview"
-            // title, and a lean two-button action cluster (Export +
-            // Add new rule). The catalog totals live in the KPI strip
-            // and status-coverage card below, so the title no longer
-            // carries count/review badges; "Start review" lives in the
-            // ActionHero and "Sources" in the jurisdiction rail.
-            <PageHeader
-              eyebrow={
-                !statsLoading ? (
-                  <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 tracking-normal normal-case">
-                    <PulsingDot tone="success" label={t`Library in sync`} />
-                    <span className="text-[13px] font-medium text-text-tertiary">
-                      <Trans>Federal + {stateCount} states</Trans>
-                    </span>
-                    <span aria-hidden className="text-text-muted">
-                      ·
-                    </span>
-                    <span className="text-[13px] font-medium text-text-tertiary">
-                      <Plural
-                        value={activeSources}
-                        one="# source active"
-                        other="# sources active"
-                      />
-                    </span>
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          {/* Inner panel is centered + width-capped (like /today) so the
+              overview reads as a focused dashboard with side breathing
+              room, not an edge-to-edge wall. */}
+          <div className="mx-auto flex min-h-0 w-full max-w-page-expanded flex-1 flex-col gap-6 px-5 pt-6 pb-0 md:px-8 md:pt-8 md:pb-0">
+            {selectedGroup ? (
+              <PageHeader
+                breadcrumbs={[{ label: t`Rule library`, to: '/rules/library' }]}
+                title={
+                  <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                    <span>{selectedGroup.label}</span>
+                    <JurisdictionStatusChips
+                      reviewCount={selectedGroup.pendingReviewCount}
+                      activeCount={
+                        (jurisdictionStatusCounts?.active ?? 0) +
+                        (jurisdictionStatusCounts?.verified ?? 0)
+                      }
+                      sourcesHealthy
+                    />
                   </span>
-                ) : undefined
-              }
-              title={<Trans>Rule library overview</Trans>}
-              actions={overviewHeaderActions}
-            />
-          )}
+                }
+                actions={headerActions}
+              />
+            ) : (
+              // Overview header (Pencil O0pyRO): a sentence-case status
+              // eyebrow with a green sync dot, the "Rule library overview"
+              // title, and a lean two-button action cluster (Export +
+              // Add new rule). The catalog totals live in the KPI strip
+              // and status-coverage card below, so the title no longer
+              // carries count/review badges; "Start review" lives in the
+              // ActionHero and "Sources" in the jurisdiction rail.
+              <PageHeader
+                eyebrow={
+                  !statsLoading ? (
+                    <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 tracking-normal normal-case">
+                      <PulsingDot tone="success" label={t`Library in sync`} />
+                      <span className="text-[13px] font-medium text-text-tertiary">
+                        <Trans>Federal + {stateCount} states</Trans>
+                      </span>
+                      <span aria-hidden className="text-text-muted">
+                        ·
+                      </span>
+                      <span className="text-[13px] font-medium text-text-tertiary">
+                        <Plural
+                          value={activeSources}
+                          one="# source active"
+                          other="# sources active"
+                        />
+                      </span>
+                    </span>
+                  ) : undefined
+                }
+                title={<Trans>Rule library overview</Trans>}
+                actions={overviewHeaderActions}
+              />
+            )}
 
-          {/* Overview summary surfaces (Pencil O0pyRO) — ActionHero
+            {/* Overview summary surfaces (Pencil O0pyRO) — ActionHero
               review callout + Status coverage card + Recent changes
               card. Rendered only on the "All jurisdictions" overview
               (no jurisdiction selected, not mid-search). They read from
@@ -2237,182 +2226,202 @@ export function RulesLibraryRoute() {
               the table's behavior (infinite scroll / batch review / gap
               rows) is untouched — these are an additive scannable header
               for the catalog. */}
-          {!selectedGroup && !isSearching && !statsLoading ? (
-            <>
-              {totalPendingReview > 0 && !heroSnoozed ? (
-                <OverviewActionHero
-                  reviewCount={totalPendingReview}
-                  oldestRelative={oldestReviewRelative}
-                  riskBreakdown={pendingRisk}
-                  onOpenReview={startReviewAll}
-                  onRemindLater={remindHeroLater}
-                />
-              ) : null}
-              {/* Overview KPI band (Pencil O0pyRO KPI Strip) — catalog-wide
+            {!selectedGroup && !isSearching && !statsLoading ? (
+              <>
+                {totalPendingReview > 0 && !heroSnoozed ? (
+                  <OverviewActionHero
+                    reviewCount={totalPendingReview}
+                    oldestRelative={oldestReviewRelative}
+                    riskBreakdown={pendingRisk}
+                    onOpenReview={startReviewAll}
+                    onRemindLater={remindHeroLater}
+                  />
+                ) : null}
+                {/* Overview KPI band (Pencil O0pyRO KPI Strip) — catalog-wide
                   Total / Jurisdictions / Changed 30d / Pending review,
                   built on the shared KpiStrip. */}
-              <KpiStrip
-                stats={[
-                  {
-                    key: 'total',
-                    label: t`Total rules`,
-                    value: totalRules,
-                    sub: t`${totalActive} active`,
-                    subClass: 'text-text-success',
-                  },
-                  {
-                    key: 'jurisdictions',
-                    label: t`Jurisdictions`,
-                    value: jurisdictionCount,
-                    sub: t`Federal + ${stateCount} states`,
-                    subClass: 'text-text-tertiary',
-                  },
-                  {
-                    key: 'changed',
-                    label: t`Changed 30 days`,
-                    value: changedLast30,
-                    sub: t`Last 30 days`,
-                    subClass: 'text-text-tertiary',
-                  },
-                  {
-                    key: 'pending',
-                    label: t`Pending review`,
-                    value: totalPendingReview,
-                    sub: oldestReviewRelative ? t`oldest ${oldestReviewRelative}` : t`All clear`,
-                    subClass: totalPendingReview > 0 ? 'text-text-warning' : 'text-text-success',
-                  },
-                ]}
-              />
-              <OverviewStatusCoverageCard
-                total={totalRules}
-                active={totalActive}
-                review={totalPendingReview}
-                draft={totalDraft}
-              />
-              <OverviewRecentChangesCard
-                rules={recentChanges}
-                onRuleClick={handleRuleClick}
-                onViewAll={() => void setScope('review')}
-              />
-            </>
-          ) : null}
+                <KpiStrip
+                  size="lg"
+                  stats={[
+                    {
+                      key: 'total',
+                      label: t`Total rules`,
+                      value: totalRules,
+                      sub: t`${totalActive} active`,
+                      subClass: 'text-text-success',
+                    },
+                    {
+                      key: 'jurisdictions',
+                      label: t`Jurisdictions`,
+                      value: jurisdictionCount,
+                      sub: t`Federal + ${stateCount} states`,
+                      subClass: 'text-text-tertiary',
+                    },
+                    {
+                      key: 'changed',
+                      label: t`Changed 30 days`,
+                      value: changedLast30,
+                      sub: t`Last 30 days`,
+                      subClass: 'text-text-tertiary',
+                    },
+                    {
+                      key: 'pending',
+                      label: t`Pending review`,
+                      value: totalPendingReview,
+                      sub: oldestReviewRelative ? t`oldest ${oldestReviewRelative}` : t`All clear`,
+                      subClass: totalPendingReview > 0 ? 'text-text-warning' : 'text-text-success',
+                    },
+                  ]}
+                />
+                {/* Dashboard row — Status coverage + Recent changes side by
+                    side (equal height) only at 2xl+, where the pane (after
+                    the two sidebars) is wide enough; stacked below so the
+                    feed isn't crushed. Breaks the flat vertical stack into a
+                    real overview grid. */}
+                <div className="flex flex-col gap-6 2xl:flex-row 2xl:items-stretch">
+                  <div className="flex min-w-0 2xl:flex-[3]">
+                    <OverviewStatusCoverageCard
+                      total={totalRules}
+                      active={totalActive}
+                      review={totalPendingReview}
+                      draft={totalDraft}
+                      archived={totalArchived}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex min-w-0 2xl:flex-[2]">
+                    <OverviewRecentChangesCard
+                      rules={recentChanges}
+                      onRuleClick={handleRuleClick}
+                      onViewAll={() => void setScope('review')}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </>
+            ) : null}
 
-          {/* KPI strip — 4-stat band (Total / Effective / Pending /
+            {/* KPI strip — 4-stat band (Total / Effective / Pending /
               Deprecated) for the selected jurisdiction (Pencil O0pyRO
               KPI Strip). Only rendered in the per-jurisdiction detail
               pane; the All overview keeps the grouped table below. */}
-          {selectedGroup && jurisdictionStatusCounts ? (
-            <JurisdictionKpiStrip
-              total={selectedGroup.ruleCount}
-              effective={jurisdictionStatusCounts.active + jurisdictionStatusCounts.verified}
-              pending={selectedGroup.pendingReviewCount}
-              deprecated={jurisdictionStatusCounts.archived + jurisdictionStatusCounts.deprecated}
-              jurisdictionLabel={selectedGroup.label}
-            />
-          ) : null}
+            {selectedGroup && jurisdictionStatusCounts ? (
+              <JurisdictionKpiStrip
+                total={selectedGroup.ruleCount}
+                effective={jurisdictionStatusCounts.active + jurisdictionStatusCounts.verified}
+                pending={selectedGroup.pendingReviewCount}
+                deprecated={jurisdictionStatusCounts.archived + jurisdictionStatusCounts.deprecated}
+                jurisdictionLabel={selectedGroup.label}
+              />
+            ) : null}
 
-          {/* Progress bar — completion meter. Scoped to the selected
+            {/* Progress bar — completion meter. Scoped to the selected
               jurisdiction when one is active. Yuqi explicitly asked for
               this to stay ("把进度条放回来"). */}
-          <RuleReviewProgressBar
-            {...(statsLoading
-              ? ({ loading: true } as const)
-              : ({ statusCounts: jurisdictionStatusCounts ?? statusCounts } as const))}
-          />
+            <RuleReviewProgressBar
+              {...(statsLoading
+                ? ({ loading: true } as const)
+                : ({ statusCounts: jurisdictionStatusCounts ?? statusCounts } as const))}
+            />
 
-          {/* Scope tabs — All / Active / Requires review / Archive /
+            {/* Scope tabs — All / Active / Requires review / Archive /
               Missing. Counts scope to the selected jurisdiction when
               one is active; otherwise pinned to the unfiltered catalog. */}
-          <ScopeTabBand
-            activeScope={activeScope}
-            totalAll={jurisdictionTabCounts ? jurisdictionTabCounts.all : totalRules}
-            totalActive={jurisdictionTabCounts ? jurisdictionTabCounts.active : totalActive}
-            totalReview={jurisdictionTabCounts ? jurisdictionTabCounts.review : totalPendingReview}
-            totalArchived={jurisdictionTabCounts ? jurisdictionTabCounts.archived : totalArchived}
-            totalMissing={jurisdictionTabCounts ? jurisdictionTabCounts.missing : totalGapEntities}
-            onChange={(next) => void setScope(next === 'all' ? null : next)}
-          />
+            <ScopeTabBand
+              activeScope={activeScope}
+              totalAll={jurisdictionTabCounts ? jurisdictionTabCounts.all : totalRules}
+              totalActive={jurisdictionTabCounts ? jurisdictionTabCounts.active : totalActive}
+              totalReview={
+                jurisdictionTabCounts ? jurisdictionTabCounts.review : totalPendingReview
+              }
+              totalArchived={jurisdictionTabCounts ? jurisdictionTabCounts.archived : totalArchived}
+              totalMissing={
+                jurisdictionTabCounts ? jurisdictionTabCounts.missing : totalGapEntities
+              }
+              onChange={(next) => void setScope(next === 'all' ? null : next)}
+            />
 
-          {/* Filter row — entity-filter chips + collapsible search.
+            {/* Filter row — entity-filter chips + collapsible search.
               Chips scope to the selected jurisdiction when one is
               active. */}
-          <div className="flex shrink-0 items-center justify-between gap-3">
-            {statsLoading ? (
-              <EntityChipRowSkeleton />
-            ) : (
-              <EntityChipRow
-                entityStats={selectedGroup ? jurisdictionEntityStats : entityStats}
-                activeEntity={activeEntity}
-                onSelect={(entity) => void setEntityFilter(entity)}
-                onClear={() => void setEntityFilter(null)}
-              />
-            )}
-            <RuleSearchControl
-              inputRef={searchInputRef}
-              value={search ?? ''}
-              open={searchOpen}
-              onOpenChange={setSearchOpen}
-              onChange={(next) => void setSearch(next || null)}
-            />
-          </div>
-
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-              {rulesQuery.isLoading || coverageQuery.isLoading ? (
-                <LoadingState />
-              ) : selectedGroup ? (
-                // Selected jurisdiction → flat per-state table.
-                <JurisdictionRuleTable
-                  rules={jurisdictionTableRules}
-                  jurisdictionLabel={selectedGroup.label}
-                  gapEntities={selectedGroup.gapEntities}
-                  showGaps={activeScope === 'missing'}
-                  tierLabels={tierLabels}
-                  selectedRuleIds={selectedRuleIds}
-                  onToggleRuleSelection={toggleRuleSelection}
-                  onToggleRulesSelection={toggleRulesSelection}
-                  focusedRowId={focusedRowId}
-                  onRuleClick={handleRuleClick}
-                  onAddRule={(entity) =>
-                    setNewRuleSeed({ jurisdiction: selectedGroup.jurisdiction, entity })
-                  }
-                />
-              ) : isSearching ? (
-                // All overview + active rule search → flat global results.
-                <SearchResultsTable
-                  activeRuleId={ruleId}
-                  rules={matchedRules}
-                  query={searchLower}
-                  onRuleClick={handleRuleClick}
-                  focusedRowId={focusedRowId}
-                />
-              ) : groups.length === 0 ? (
-                activeScope === 'missing' ? (
-                  <MissingRulesEmptyState onViewAll={() => void setScope(null)} />
-                ) : (
-                  <RulesLibraryEmptyState onNewRule={openNewRule} />
-                )
+            <div className="flex shrink-0 items-center justify-between gap-3">
+              {statsLoading ? (
+                <EntityChipRowSkeleton />
               ) : (
-                // All overview → grouped jurisdiction table (infinite scroll).
-                <GroupedRulesTable
-                  activeScope={activeScope}
-                  activeRuleId={ruleId}
-                  groups={groups}
-                  expanded={expanded}
-                  onToggle={toggleGroup}
-                  onExpandAll={expandAll}
-                  onCollapseAll={collapseAll}
-                  onRuleClick={handleRuleClick}
-                  onAddRule={handleAddRule}
-                  selectedRuleIds={selectedRuleIds}
-                  onToggleRuleSelection={toggleRuleSelection}
-                  onToggleRulesSelection={toggleRulesSelection}
-                  focusedRowId={focusedRowId}
-                  totalGroupCount={totalGroupCount}
-                  hasMoreGroups={hasMoreGroups}
-                  onLoadMore={loadMoreGroups}
+                <EntityChipRow
+                  entityStats={selectedGroup ? jurisdictionEntityStats : entityStats}
+                  activeEntity={activeEntity}
+                  onSelect={(entity) => void setEntityFilter(entity)}
+                  onClear={() => void setEntityFilter(null)}
                 />
               )}
+              <RuleSearchControl
+                inputRef={searchInputRef}
+                value={search ?? ''}
+                open={searchOpen}
+                onOpenChange={setSearchOpen}
+                onChange={(next) => void setSearch(next || null)}
+              />
+            </div>
+
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+                {rulesQuery.isLoading || coverageQuery.isLoading ? (
+                  <LoadingState />
+                ) : selectedGroup ? (
+                  // Selected jurisdiction → flat per-state table.
+                  <JurisdictionRuleTable
+                    rules={jurisdictionTableRules}
+                    jurisdictionLabel={selectedGroup.label}
+                    gapEntities={selectedGroup.gapEntities}
+                    showGaps={activeScope === 'missing'}
+                    tierLabels={tierLabels}
+                    selectedRuleIds={selectedRuleIds}
+                    onToggleRuleSelection={toggleRuleSelection}
+                    onToggleRulesSelection={toggleRulesSelection}
+                    focusedRowId={focusedRowId}
+                    onRuleClick={handleRuleClick}
+                    onAddRule={(entity) =>
+                      setNewRuleSeed({ jurisdiction: selectedGroup.jurisdiction, entity })
+                    }
+                  />
+                ) : isSearching ? (
+                  // All overview + active rule search → flat global results.
+                  <SearchResultsTable
+                    activeRuleId={ruleId}
+                    rules={matchedRules}
+                    query={searchLower}
+                    onRuleClick={handleRuleClick}
+                    focusedRowId={focusedRowId}
+                  />
+                ) : groups.length === 0 ? (
+                  activeScope === 'missing' ? (
+                    <MissingRulesEmptyState onViewAll={() => void setScope(null)} />
+                  ) : (
+                    <RulesLibraryEmptyState onNewRule={openNewRule} />
+                  )
+                ) : (
+                  // All overview → grouped jurisdiction table (infinite scroll).
+                  <GroupedRulesTable
+                    activeScope={activeScope}
+                    activeRuleId={ruleId}
+                    groups={groups}
+                    expanded={expanded}
+                    onToggle={toggleGroup}
+                    onExpandAll={expandAll}
+                    onCollapseAll={collapseAll}
+                    onRuleClick={handleRuleClick}
+                    onAddRule={handleAddRule}
+                    selectedRuleIds={selectedRuleIds}
+                    onToggleRuleSelection={toggleRuleSelection}
+                    onToggleRulesSelection={toggleRulesSelection}
+                    focusedRowId={focusedRowId}
+                    totalGroupCount={totalGroupCount}
+                    hasMoreGroups={hasMoreGroups}
+                    onLoadMore={loadMoreGroups}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -3275,7 +3284,7 @@ function GroupedRulesTable({
               <TableHead className="min-w-[260px]">
                 <Trans>Rule</Trans>
               </TableHead>
-              <TableHead className="w-[140px]">
+              <TableHead className="hidden w-[140px] xl:table-cell">
                 <Trans>Form</Trans>
               </TableHead>
               {ENTITY_KEYS.map((entity) => (
@@ -3294,7 +3303,7 @@ function GroupedRulesTable({
                 the pending-review count into the Tier cell as a
                 number-only chip next to the gap chip + progress
                 bar. */}
-              <TableHead className="w-[140px]">
+              <TableHead className="hidden w-[140px] 2xl:table-cell">
                 {/* 2026-05-28 (Yuqi rename): "Tier" implied subscription
                   tier; the actual values (Basic / Annual rolling /
                   Exception / Applicability review) describe rule
@@ -3576,8 +3585,9 @@ function GroupHeaderRow({
         </div>
       </TableCell>
       {/* Form column on the state row: unique rule count, not the
-          per-entity applicability-slot total. */}
-      <TableCell className="py-2">
+          per-entity applicability-slot total. Hidden below xl to match
+          the header (frees width for the Rule + entity matrix). */}
+      <TableCell className="hidden py-2 xl:table-cell">
         <span className="text-sm font-medium tabular-nums text-text-primary">
           {group.ruleCount}
         </span>
@@ -3597,7 +3607,7 @@ function GroupHeaderRow({
           </TableCell>
         )
       })}
-      <TableCell className="py-2">
+      <TableCell className="hidden py-2 2xl:table-cell">
         {/* 2026-05-27 (Yuqi follow-up — "数字应该写在右边" + brown
             tone unify): the per-row chip moved to the RIGHT of the
             progress bar. The bar paints active (green) LEFT → review
@@ -3854,7 +3864,7 @@ function RuleTableRow({
           </span>
         </div>
       </TableCell>
-      <TableCell className="py-2">
+      <TableCell className="hidden py-2 xl:table-cell">
         <FormCell formName={rule.formName} taxType={rule.taxType} />
       </TableCell>
       {/* Per-entity applicability dots — one per ENTITY_KEY. Status-
@@ -3873,7 +3883,7 @@ function RuleTableRow({
           chevron. Keyboard/touch affordance now lives in the row's
           hover bg + the ⋯ menu. Left-aligned so the Type label
           stacks with the progress bar column above. */}
-      <TableCell className="py-2">
+      <TableCell className="hidden py-2 2xl:table-cell">
         <div className="flex items-center gap-2 text-xs text-text-secondary">
           <span>{tierLabels[rule.ruleTier]}</span>
           <span className="ml-auto inline-flex items-center">
@@ -4420,6 +4430,8 @@ function RuleDetailPanel({
               rule={rule}
               concreteDraft={concreteDraft}
               chrome="flat"
+              confirmImpact
+              onActionComplete={onClose}
             />
           </div>
         )}

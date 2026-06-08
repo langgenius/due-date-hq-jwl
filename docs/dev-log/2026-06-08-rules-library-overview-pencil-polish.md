@@ -82,9 +82,157 @@ page (`listRules`, `coverage`, `listSources`).
   - Added the `listTemporaryRules` stub to the `orpc` mock (the new query was
     crashing every test on render). 19/19 pass.
 
+## Round 3 — rail flush, leaner detail header, table fits at narrow widths
+
+- **Rail flush against the global sidebar** (`rules.library.tsx`): the
+  jurisdiction rail was hoisted OUT of the centered `max-w-page-expanded`
+  padded container so it sits flush against the app sidebar as a full-height
+  secondary sidebar (Pencil O0pyRO). Content padding + width cap moved onto
+  the main column. Verified: at 1280 the rail's left edge is flush at the
+  sidebar's right edge (x=220).
+
+- **Per-jurisdiction detail header leaned** to two buttons (`rules.library.tsx`,
+  Yuqi): `headerActions` dropped the shortcut chip, ⋯ (Export coverage), and
+  the standalone Sources button → now just **New rule + Start review N**.
+  Removed the now-unused `ShortcutHintChip`, `DropdownMenu*`, `MoreHorizontalIcon`,
+  `RadioTowerIcon` imports.
+
+- **Per-jurisdiction table column-collapse bug fixed** (`jurisdiction-rule-table.tsx`):
+  it was `table-fixed` with fixed columns summing ~692px, so at a 708px pane
+  (viewport 1280 + rail) the Rule column collapsed to **14px** and headers
+  overlapped. Rebalanced the fixed columns (Form 140→100, Entities 124→112,
+  Due 220→140, Status 116→108, all tightened to `px-2`) and clamped the
+  due-date text to 3 lines. Rule now gets 154px at 1280 / ~314px at 1440 —
+  fits the pane, no overlap, no scroll.
+
+- **Overview entity matrix hides less-important columns when narrow**
+  (`rules.library.tsx`, Yuqi): the 10-column grouped table clipped its right
+  edge below ~1440. Form is now `hidden xl:table-cell` and Type is
+  `hidden 2xl:table-cell` (CSS-hidden columns are 0-width, so the
+  `colSpan` full-width rows still span correctly). The Type cell's ⋯ menu
+  only held non-critical conveniences (open/copy-id/copy-link, all reachable
+  via the row click), so hiding it <2xl is an acceptable degradation. Fits at
+  1280 (722 ≤ 724 pane), 1440, and shows the full matrix at 1536+.
+
+## Round 4 — accept-time "Confirm impact" (honest aggregate)
+
+Pencil `jpoZx` ("/rules/[ruleId]/review — confirm impact modal") designs a
+per-client impact preview (8 named clients, $ amounts, deadline diffs,
+created/retired/conflict counts). **None of that per-client data exists** —
+`previewRuleImpact` → `RuleBulkImpactPreviewSchema` only returns aggregates
+(`estimatedObligationCount`, `entityCounts[]`, `jurisdictionCounts[]`, …). Per
+the repo's no-fake-data norm, we built the **honest aggregate** version
+instead of fabricating clients (Yuqi's call).
+
+- `apps/app/src/features/rules/rule-detail-drawer.tsx`
+  - New `ConfirmImpactDialog` — matches the Pencil chrome (sparkles header,
+    stats strip, footer with check + Accept & apply) but shows only real
+    numbers: estimated deadlines generated + entity-type count, with the
+    real `entityCounts` breakdown when > 0, or an honest "No client deadlines
+    will be generated yet — accepting activates this rule for future filings."
+  - `CandidateReviewSection`/`CandidateReviewForm` gain a `confirmImpact` prop.
+    When set, the Accept button opens the dialog (real `previewRuleImpact`
+    data) before committing; the dialog's Accept & apply runs the same
+    `submitAccept`.
+- `apps/app/src/routes/rules.library.tsx`
+  - The single-rule **detail panel** passes `confirmImpact`. The **batch
+    review** queue (RuleDetailCompact) keeps the fast one-click accept — so
+    the 19 existing batch-accept tests are unaffected.
+
+Still TODO (agreed order Review → Sources → gaps): Sources/Temporary rail-shell
+embedding (full shared shell), then the small gaps (collapsible rail for
+1024–1200, empty/loading states). The per-client confirm-impact + applied-next
+(`Rrk1M`) await a backend per-client impact API.
+
+## Round 5 — review-modal reject flow + edge-case hardening
+
+The rule review/detail is a **modal popup** (Pencil `xSv9n` preview transition,
+`jpoZx` confirm impact, `DvLC9` detail + reject). The current Dialog format is
+correct; this round adds the missing reject flow and hardens every edge case.
+
+- `apps/app/src/features/rules/rule-detail-drawer.tsx`
+  - New `RejectReasonDialog` (Pencil `DvLC9` reject popover): preset reasons
+    (Contains errors / Source or jurisdiction incorrect / Duplicate / Other)
+    as a radiogroup + an "Other" free-text note. Wired to `rejectTemplate`
+    (template rules) / `rejectCandidate` (source-defined), mirroring the
+    accept branch. Reject is **detail-panel only** (gated on `confirmImpact`);
+    the batch queue stays accept/skip-only (a test enforces "no Reject" there).
+  - Edge cases: reason required (submit disabled until a reason is picked;
+    "Other" requires a non-blank note); state resets on each open; dialog
+    can't be dismissed mid-submit; success/error toasts incl. the
+    version-conflict (409) message; reject writes no obligations so it only
+    invalidates rule/review/audit caches.
+  - Mutual exclusion: `reviewDisabled` now also covers reject in-flight, so
+    accept and reject can't both fire (no double-write race).
+  - `ConfirmImpactDialog` gained an `errored` state — on a failed impact
+    preview it shows "—" + "Couldn't load the impact preview, you can still
+    accept" instead of a misleading "0 deadlines".
+- `apps/app/src/routes/rules.library.tsx`
+  - Detail panel passes `onActionComplete={onClose}` so the modal closes after
+    a decision (accept or reject).
+- `apps/app/src/routes/rules.library.test.tsx`
+  - Added `rejectCandidate` to the orpc mock (the shared form now calls it).
+    19/19 pass.
+
+## Round 6 — overview breathing room (Yuqi: "没有 overview 的感觉，太满，很闷")
+
+- **Rail top padding** (`states-rail.tsx`): the rail header was `pt-1` (jammed
+  to the top) while the main panel had `pt-8` — the "RULE LIBRARY" eyebrow sat
+  ~36px above the page eyebrow. Bumped the rail header to `pt-6 md:pt-8` so the
+  two eyebrows line up.
+- **Centered, capped panel** (`rules.library.tsx`): the main content was
+  `flex-1` left-aligned, so it filled edge-to-edge into a dense wall. Wrapped
+  it in a test-matched `min-h-0 min-w-0 flex-1 flex-col` shell with an inner
+  `mx-auto max-w-page-expanded` panel — same centered-with-side-margins feel as
+  `/today`. The rail still hugs the global sidebar; only the content panel
+  centers.
+- **Vertical + horizontal rhythm**: card gap `gap-4 → gap-6` (24px, matches the
+  Pencil `gap24`), padding `px-4 md:px-6 → px-5 md:px-8` for more side air.
+
+Verified at 1280 / 1512 / 1920 — eyebrows aligned, cards breathe, no h-scroll;
+19 tests pass.
+
+## Round 7 — more aggressive overview dashboard (Yuqi: "可以更 aggressive")
+
+- **Bigger KPI band**: `KpiStrip` gained a `size="lg"` (32px values, roomier
+  padding); the overview uses it so the headline numbers read as a hero stat
+  row.
+- **2-column dashboard**: Status coverage + Recent changes now sit side-by-side
+  at `2xl+` (equal height), stacked below — breaks the flat vertical stack into
+  a real overview grid. Gated at `2xl` (not `xl`) because the two sidebars eat
+  ~500px, so the columns only split when the pane is genuinely wide.
+- **Richer Status coverage card**: replaced the three pill-chips with a
+  per-status **breakdown** (Active / Awaiting review / Draft / Archived) — each
+  a dot + label + proportion bar + count — so the card carries real weight
+  next to the feed instead of sitting half-empty. Added an `archived` prop +
+  `className` passthrough on both overview cards.
+
+Verified at 1280 (stacked) / 1680 / 1920 (2-column). 19 tests pass, types +
+lint clean.
+
+## Round 8 — links/actions audit
+
+Audited every interactive element on the rule library. One dead affordance
+found + fixed:
+
+- **Rail filter icon** was a decorative `<span aria-hidden>` (looked like a
+  button, did nothing). Wired it to a real **"needs-review only" toggle**
+  (`states-rail.tsx`): funnels the jurisdiction list to entries with
+  `reviewCount > 0`, with active styling + `aria-pressed` + a labelled tooltip,
+  and an honest empty state ("No jurisdictions need review").
+
+Everything else confirmed wired: header Export (`handleExport`) / Add new rule
+(`openNewRule`); ActionHero Open review queue (`startReviewAll`) / Remind me
+Friday (`remindHeroLater`); rail Overview/Federal/state selects, Sources +
+Temporary `Link`s, search; Recent-changes rows (open detail) + View all; scope
+tabs; entity chips; table rows; detail Accept (confirm-impact) / Reject (reason
+dialog); evidence links; bulk-review bar + batch modal. KPI strip and
+status-coverage breakdown are display-only (no dead buttons).
+
 ## Responsive
 
-Verified at 1440 / 768 / 375. Rail hides `<lg` (unchanged). KPI strip reflows
+Verified at 1440 / 768 / 375 (overview cards) and 1280 (rail flush + both
+tables fit). Rail hides `<lg` (unchanged). KPI strip reflows
 to a 2×2 grid on mobile. The ActionHero now stacks until `xl` — the rail eats
 ~288px at lg–xl, so switching to the horizontal layout at `sm` cramped the
 body/CTA; `xl:flex-row` keeps it readable everywhere. No page-level or table

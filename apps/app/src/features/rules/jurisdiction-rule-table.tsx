@@ -137,19 +137,19 @@ export function JurisdictionRuleTable({
                 </span>
               ) : null}
             </TableHead>
-            <TableHead>
+            <TableHead className="min-w-0">
               <Trans>Rule</Trans>
             </TableHead>
-            <TableHead className="w-[140px]">
+            <TableHead className="w-[100px] px-2">
               <Trans>Form</Trans>
             </TableHead>
-            <TableHead className="w-[124px]">
+            <TableHead className="w-[112px] px-2">
               <Trans>Entities</Trans>
             </TableHead>
-            <TableHead className="w-[220px]">
+            <TableHead className="w-[140px] px-2">
               <Trans>Due date</Trans>
             </TableHead>
-            <TableHead className="w-[116px]">
+            <TableHead className="w-[108px] px-2">
               <Trans>Status</Trans>
             </TableHead>
             <TableHead className="w-12" aria-label={t`Actions`} />
@@ -283,7 +283,7 @@ function JurisdictionRuleRow({
 
       {/* Form — clamps to its column so a long form name doesn't widen
           the table. */}
-      <TableCell className="py-2.5 align-top">
+      <TableCell className="px-2 py-2.5 align-top">
         {rule.formName?.trim() && rule.formName.trim() !== '—' ? (
           <span className="line-clamp-2 text-xs text-text-secondary" title={rule.formName}>
             {rule.formName}
@@ -298,7 +298,7 @@ function JurisdictionRuleRow({
           cluster (not a native title per 6px dot, which was almost
           impossible to hover) — shows the full entity legend so it's
           clear which dot is which and whether it applies. */}
-      <TableCell className="py-2.5 align-top">
+      <TableCell className="px-2 py-2.5 align-top">
         <Tooltip>
           <TooltipTrigger
             render={
@@ -352,17 +352,17 @@ function JurisdictionRuleRow({
         </Tooltip>
       </TableCell>
 
-      {/* Due date — humanized rule logic. Wider column (220px) + full
-          wrap so the last word isn't truncated; the misleading
-          import-time "updated" subline was removed (coworker feedback). */}
-      <TableCell className="py-2.5 align-top">
-        <span className="text-xs whitespace-normal text-text-secondary" title={dueLogic}>
+      {/* Due date — humanized rule logic, clamped to 3 lines so a long
+          description stays inside its (now narrower) column instead of
+          starving the Rule column under table-fixed. Full text on hover. */}
+      <TableCell className="px-2 py-2.5 align-top">
+        <span className="line-clamp-3 text-xs text-text-secondary" title={dueLogic}>
           {dueLogic}
         </span>
       </TableCell>
 
       {/* Status. */}
-      <TableCell className="py-2.5 align-top">
+      <TableCell className="px-2 py-2.5 align-top">
         <Badge variant={STATUS_BADGE_VARIANT[tone]}>{STATUS_LABEL_SHORT[rule.status]}</Badge>
       </TableCell>
 
@@ -485,13 +485,32 @@ export interface KpiStat {
  * wrap to a 2-up grid so the values never crush together or force the
  * card to scroll horizontally.
  */
-export function KpiStrip({ stats }: { stats: KpiStat[] }) {
+export function KpiStrip({
+  stats,
+  size = 'default',
+}: {
+  stats: KpiStat[]
+  /** `lg` renders larger values + roomier padding for the overview dashboard. */
+  size?: 'default' | 'lg'
+}) {
+  const lg = size === 'lg'
   return (
-    <div className="grid shrink-0 grid-cols-2 gap-y-4 rounded-xl border border-divider-subtle bg-background-default px-2 py-[18px] sm:flex sm:items-center sm:gap-y-0">
+    <div
+      className={cn(
+        'grid shrink-0 grid-cols-2 gap-y-4 rounded-xl border border-divider-subtle bg-background-default px-2 sm:flex sm:items-center sm:gap-y-0',
+        lg ? 'py-6' : 'py-[18px]',
+      )}
+    >
       {stats.map((stat, index) => (
         <Fragment key={stat.key}>
           {index > 0 ? (
-            <span className="hidden h-11 w-px shrink-0 bg-divider-subtle sm:block" aria-hidden />
+            <span
+              className={cn(
+                'hidden w-px shrink-0 bg-divider-subtle sm:block',
+                lg ? 'h-12' : 'h-11',
+              )}
+              aria-hidden
+            />
           ) : null}
           <div className="flex min-w-0 flex-1 flex-col gap-1 px-4">
             <span className="text-caption-xs font-bold tracking-eyebrow text-text-muted uppercase">
@@ -499,7 +518,8 @@ export function KpiStrip({ stats }: { stats: KpiStat[] }) {
             </span>
             <span
               className={cn(
-                'text-2xl font-semibold tabular-nums',
+                'font-semibold tabular-nums',
+                lg ? 'text-[32px] leading-none' : 'text-2xl',
                 stat.valueClass ?? 'text-text-primary',
               )}
             >
