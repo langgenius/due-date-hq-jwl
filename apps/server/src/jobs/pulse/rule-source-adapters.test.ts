@@ -485,35 +485,41 @@ describe('rule source adapters', () => {
       emailSignalSourceIds: expect.arrayContaining(['ca.ftb_tax_news']),
       ruleSourceWatchIds: expect.arrayContaining(['ca.cdtfa_sales_use_filing_dates']),
     })
+    // TX/WA now reach comprehensive: relief was their only missing required role
+    // before a verified state disaster-relief source was registered.
     expect(byJurisdiction.get('TX')).toMatchObject({
-      coverageLevel: 'standard',
+      coverageLevel: 'comprehensive',
       parserStatus: 'web_primary',
-      coveredRoles: expect.arrayContaining(['multi_agency_sources']),
-      missingRoles: expect.arrayContaining(['relief_or_disaster_signal']),
+      coveredRoles: expect.arrayContaining(['multi_agency_sources', 'relief_or_disaster_signal']),
       explicitLiveSourceIds: expect.arrayContaining(['tx.cpa.rss']),
       emailSignalSourceIds: expect.arrayContaining(['tx.temporary_announcements']),
       ruleSourceWatchIds: expect.arrayContaining(['tx.ui_wage_report_due_dates']),
-      reliefOrDisasterSourceIds: [],
+      reliefOrDisasterSourceIds: expect.arrayContaining(['tx.comptroller_disaster_relief']),
     })
     expect(byJurisdiction.get('WA')).toMatchObject({
-      coverageLevel: 'standard',
+      coverageLevel: 'comprehensive',
       parserStatus: 'web_primary',
-      coveredRoles: expect.arrayContaining(['multi_agency_sources']),
-      missingRoles: expect.arrayContaining(['relief_or_disaster_signal']),
+      coveredRoles: expect.arrayContaining(['multi_agency_sources', 'relief_or_disaster_signal']),
       explicitLiveSourceIds: expect.arrayContaining(['wa.dor.news', 'wa.dor.whats_new']),
       emailSignalSourceIds: expect.arrayContaining(['wa.news']),
       ruleSourceWatchIds: expect.arrayContaining(['wa.esd_quarterly_tax_wage_reports']),
+      reliefOrDisasterSourceIds: expect.arrayContaining(['wa.dor_disaster_relief']),
     })
     expect(byJurisdiction.get('NY')).toMatchObject({
       missingRoles: expect.arrayContaining(['relief_or_disaster_signal', 'multi_agency_sources']),
       emailSignalSourceIds: expect.arrayContaining(['ny.email_services']),
     })
+    // FL/MA gain relief coverage but stay standard: multi_agency is still missing.
     expect(byJurisdiction.get('FL')).toMatchObject({
-      missingRoles: expect.arrayContaining(['relief_or_disaster_signal', 'multi_agency_sources']),
+      coverageLevel: 'standard',
+      missingRoles: expect.arrayContaining(['multi_agency_sources']),
+      reliefOrDisasterSourceIds: expect.arrayContaining(['fl.dor_disaster_relief']),
       emailSignalSourceIds: expect.arrayContaining(['fl.tips']),
     })
     expect(byJurisdiction.get('MA')).toMatchObject({
-      missingRoles: expect.arrayContaining(['relief_or_disaster_signal', 'multi_agency_sources']),
+      coverageLevel: 'standard',
+      missingRoles: expect.arrayContaining(['multi_agency_sources']),
+      reliefOrDisasterSourceIds: expect.arrayContaining(['ma.dor_disaster_relief']),
       emailSignalSourceIds: expect.arrayContaining(['ma.temporary_announcements']),
     })
     expect(byJurisdiction.get('OH')).toMatchObject({
