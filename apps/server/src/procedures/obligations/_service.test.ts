@@ -469,6 +469,12 @@ function buildScoped(firmId: string, rows: Row[]) {
     async catchUpStillOpenWindows() {
       return unused('pulse.catchUpStillOpenWindows')
     },
+    async listAlertNotes() {
+      return unused('pulse.listAlertNotes')
+    },
+    async addAlertNote() {
+      return unused('pulse.addAlertNote')
+    },
   }
 
   const repo: ScopedRepo = {

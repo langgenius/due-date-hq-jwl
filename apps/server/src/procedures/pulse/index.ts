@@ -1036,6 +1036,82 @@ const requestReview = os.pulse.requestReview.handler(async ({ input, context }) 
   }),
 )
 
+// Team notes (Pencil Aogxu §7): internal discussion threaded on an alert.
+// Any active firm member may write — capturing their userId for authorship —
+// so the write path uses the full member-role set (mirrors the read-side
+// "any firm member" rule). The repo verifies the alert belongs to the firm.
+const PULSE_NOTE_AUTHOR_ROLES = [
+  'owner',
+  'partner',
+  'manager',
+  'preparer',
+  'coordinator',
+] as const
+
+interface PulseAlertNoteRow {
+  id: string
+  alertId: string
+  authorId: string
+  authorName: string
+  body: string
+  parentNoteId: string | null
+  createdAt: Date
+}
+
+function toAlertNotePublic(row: PulseAlertNoteRow) {
+  return {
+    id: row.id,
+    alertId: row.alertId,
+    authorId: row.authorId,
+    authorName: row.authorName,
+    body: row.body,
+    parentNoteId: row.parentNoteId,
+    createdAt: row.createdAt.toISOString(),
+  }
+}
+
+// Read: any firm member can see the alert's team notes.
+const listAlertNotes = os.pulse.listAlertNotes.handler(async ({ input, context }) => {
+  const { scoped } = requireTenant(context)
+  try {
+    const notes = await scoped.pulse.listAlertNotes(input.alertId)
+    return { notes: notes.map(toAlertNotePublic) }
+  } catch (error) {
+    return mapPulseError(error)
+  }
+})
+
+// Write: capture the author's userId via the full member-role check, write the
+// note, then best-effort record a `pulse.note_added` audit event.
+const addAlertNote = os.pulse.addAlertNote.handler(async ({ input, context }) => {
+  const { userId } = await requireCurrentFirmRole(context, PULSE_NOTE_AUTHOR_ROLES)
+  const { scoped } = requireTenant(context)
+  try {
+    const note = await scoped.pulse.addAlertNote({
+      alertId: input.alertId,
+      body: input.body,
+      parentNoteId: input.parentNoteId ?? null,
+      userId,
+    })
+    await scoped.audit
+      .write({
+        actorId: userId,
+        entityType: 'pulse_firm_alert',
+        entityId: input.alertId,
+        action: 'pulse.note_added',
+        after: {
+          noteId: note.id,
+          alertId: input.alertId,
+          parentNoteId: note.parentNoteId,
+        },
+      })
+      .catch(() => undefined)
+    return toAlertNotePublic(note)
+  } catch (error) {
+    return mapPulseError(error)
+  }
+})
+
 /**
  * 2026-06-04 round 50 (Yuqi "continue your phase 2 and 3" —
  * morning sweep AI summary): in-memory cache for the briefing
@@ -1298,5 +1374,7 @@ export const pulseHandlers = {
   revert,
   reactivate,
   requestReview,
+  listAlertNotes,
+  addAlertNote,
   morningSweepSummary,
 }

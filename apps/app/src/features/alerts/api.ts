@@ -165,6 +165,30 @@ export function useAlertSourceHealthQueryOptions() {
   }
 }
 
+// Team notes (Pencil Aogxu §7) — internal discussion threaded on an alert.
+// Query is gated on a non-null alertId so a closed drawer never round-trips;
+// the empty-string input is the same enabled-false pattern useAlertDetail uses.
+export function useAlertNotesQueryOptions(alertId: string | null) {
+  return {
+    ...orpc.pulse.listAlertNotes.queryOptions({
+      input: { alertId: alertId ?? '' },
+      enabled: alertId !== null,
+    }),
+  }
+}
+
+// Refresh the notes list for one alert after a successful add. Scoped to the
+// single alert's query key so adding a note doesn't refetch unrelated surfaces.
+export function useAlertNotesInvalidation(alertId: string | null): () => void {
+  const queryClient = useQueryClient()
+  return useCallback(() => {
+    if (alertId === null) return
+    void queryClient.invalidateQueries({
+      queryKey: orpc.pulse.listAlertNotes.queryKey({ input: { alertId } }),
+    })
+  }, [queryClient, alertId])
+}
+
 export function useAlertDetailQueryOptions(alertId: string | null) {
   return {
     ...orpc.pulse.getDetail.queryOptions({

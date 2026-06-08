@@ -685,6 +685,12 @@ function buildScopedRepo(
     async catchUpStillOpenWindows() {
       return unexpectedRepoCall('pulse.catchUpStillOpenWindows')
     },
+    async listAlertNotes() {
+      return unexpectedRepoCall('pulse.listAlertNotes')
+    },
+    async addAlertNote() {
+      return unexpectedRepoCall('pulse.addAlertNote')
+    },
   }
 
   const repo: ScopedRepo = {

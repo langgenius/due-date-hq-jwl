@@ -30,11 +30,13 @@ import {
 } from '../../schema/overlay'
 import {
   pulse,
+  pulseAlertNote,
   pulseApplication,
   pulseFirmAlert,
   pulsePriorityReview,
   pulseSourceState,
   type NewPulse,
+  type NewPulseAlertNote,
   type NewPulseApplication,
   type NewPulseFirmAlert,
   type NewPulsePriorityReview,
@@ -95,6 +97,8 @@ import type {
   AlertJoinedRow,
   AlertRecipientRow,
   ApplicationRow,
+  PulseAddAlertNoteInput,
+  PulseAlertNoteRow,
   CandidateRow,
   DeadlineSelectionReviewSnapshot,
   EffectiveCandidateRow,
@@ -2343,6 +2347,73 @@ export function makePulseRepo(db: Db, firmId: string) {
       const counts = await refreshAlertCounts(input.alertId, updated)
       updated = { ...updated, ...counts }
       return { alert: toAlert(updated), auditId }
+    },
+
+    // Internal team notes on an alert (Pencil Aogxu §7). Firm-scoped by the
+    // closure firmId; ordered oldest → newest, joined to the author's display
+    // name (user.name) so the UI renders without a second lookup — mirrors the
+    // member/user join used by listPulseDigestRecipients.
+    async listAlertNotes(alertId: string): Promise<PulseAlertNoteRow[]> {
+      const rows = await db
+        .select({
+          id: pulseAlertNote.id,
+          alertId: pulseAlertNote.alertId,
+          authorId: pulseAlertNote.authorId,
+          authorName: user.name,
+          body: pulseAlertNote.body,
+          parentNoteId: pulseAlertNote.parentNoteId,
+          createdAt: pulseAlertNote.createdAt,
+        })
+        .from(pulseAlertNote)
+        .leftJoin(user, eq(pulseAlertNote.authorId, user.id))
+        .where(and(eq(pulseAlertNote.firmId, firmId), eq(pulseAlertNote.alertId, alertId)))
+        .orderBy(asc(pulseAlertNote.createdAt), asc(pulseAlertNote.id))
+
+      return rows.map((row) => ({
+        id: row.id,
+        alertId: row.alertId,
+        authorId: row.authorId,
+        // `leftJoin` so a note authored by a since-removed user still renders.
+        authorName: row.authorName ?? 'Unknown',
+        body: row.body,
+        parentNoteId: row.parentNoteId,
+        createdAt: row.createdAt,
+      }))
+    },
+
+    async addAlertNote(input: PulseAddAlertNoteInput): Promise<PulseAlertNoteRow> {
+      // Verify the alert belongs to this firm before writing — getAlert throws
+      // PulseRepoError('not_found') for a missing / cross-firm / non-approved
+      // alert, so a note can't be attached to another firm's alert.
+      const alert = await getAlert(input.alertId, { includeSourceRevoked: true })
+      const now = input.now ?? new Date()
+      const row: NewPulseAlertNote = {
+        id: crypto.randomUUID(),
+        firmId,
+        alertId: alert.alertId,
+        authorId: input.userId,
+        body: input.body,
+        parentNoteId: input.parentNoteId ?? null,
+        createdAt: now,
+        updatedAt: now,
+      }
+      await db.insert(pulseAlertNote).values(row)
+
+      const [name] = await db
+        .select({ name: user.name })
+        .from(user)
+        .where(eq(user.id, input.userId))
+        .limit(1)
+
+      return {
+        id: row.id,
+        alertId: alert.alertId,
+        authorId: input.userId,
+        authorName: name?.name ?? 'Unknown',
+        body: input.body,
+        parentNoteId: input.parentNoteId ?? null,
+        createdAt: now,
+      }
     },
   }
 }

@@ -134,6 +134,27 @@ export interface PulseRuleMatchRow {
   matchReason: 'affected_rule' | 'reverify_rule' | 'scope'
 }
 
+// Mirrors @duedatehq/ports PulseAlertNoteRow. One internal team note threaded
+// on a firm's alert (Pencil Aogxu §7), with the author's resolved display name.
+export interface PulseAlertNoteRow {
+  id: string
+  alertId: string
+  authorId: string
+  authorName: string
+  body: string
+  parentNoteId: string | null
+  createdAt: Date
+}
+
+// Mirrors @duedatehq/ports PulseAddAlertNoteInput.
+export interface PulseAddAlertNoteInput {
+  alertId: string
+  body: string
+  parentNoteId?: string | null
+  userId: string
+  now?: Date
+}
+
 export interface PulseApplyResult {
   alert: PulseAlertRow
   appliedCount: number

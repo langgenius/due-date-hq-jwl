@@ -180,6 +180,27 @@ export interface PulsePriorityQueueItemRow {
   review: PulsePriorityReviewRow | null
 }
 
+// One internal team note threaded on a firm's alert (Pencil Aogxu §7). The
+// author's display name is resolved server-side (member/user join) so the UI
+// never needs a second lookup. `parentNoteId` is the flat reply pointer.
+export interface PulseAlertNoteRow {
+  id: string
+  alertId: string
+  authorId: string
+  authorName: string
+  body: string
+  parentNoteId: string | null
+  createdAt: Date
+}
+
+export interface PulseAddAlertNoteInput {
+  alertId: string
+  body: string
+  parentNoteId?: string | null
+  userId: string
+  now?: Date
+}
+
 export interface PulseSeedInput {
   pulseId?: string
   alertId?: string
@@ -340,4 +361,11 @@ export interface PulseRepo {
   revert(input: PulseAlertActionInput): Promise<PulseRevertResult>
   reactivate(input: PulseAlertActionInput): Promise<PulseDismissResult>
   markReviewed(input: PulseDismissReasonInput): Promise<PulseDismissResult>
+  /**
+   * Internal team notes threaded on an alert (Pencil Aogxu §7). Firm-scoped:
+   * notes are visible to every member of the alert's firm. Ordered oldest →
+   * newest; each row carries the author's resolved display name.
+   */
+  listAlertNotes(alertId: string): Promise<PulseAlertNoteRow[]>
+  addAlertNote(input: PulseAddAlertNoteInput): Promise<PulseAlertNoteRow>
 }

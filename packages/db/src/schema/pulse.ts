@@ -398,6 +398,53 @@ export const pulseApplication = sqliteTable(
   ],
 )
 
+/**
+ * pulse_alert_note — internal team notes / discussion threaded on a firm's
+ * alert (Pencil Aogxu §7 "Team notes"). Firm-scoped collaboration: any firm
+ * member can read + add. `parentNoteId` is a flat self-reference so a note can
+ * mark itself a reply to another; v1 stores the thread flat (no nesting
+ * enforced) — the UI renders a single list with an inline Reply affordance.
+ */
+export const pulseAlertNote = sqliteTable(
+  'pulse_alert_note',
+  {
+    id: text('id').primaryKey(),
+    firmId: text('firm_id')
+      .notNull()
+      .references(() => firmProfile.id, { onDelete: 'cascade' }),
+    alertId: text('alert_id')
+      .notNull()
+      .references(() => pulseFirmAlert.id, { onDelete: 'cascade' }),
+    // Match pulse_application.applied_by: a note's authorship is an audit-grade
+    // fact, so the author row is `restrict` (a user with notes can't be hard-
+    // deleted out from under the record).
+    authorId: text('author_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'restrict' }),
+    body: text('body').notNull(),
+    // Flat self-ref: nullable, points at another note in the same thread. Not a
+    // FK constraint cycle risk — references the same table; deletes cascade from
+    // the alert, so an orphan parent pointer can only survive if a single note
+    // is removed (not supported in v1), in which case the UI treats it as a
+    // top-level note.
+    parentNoteId: text('parent_note_id'),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index('idx_pulse_alert_note_firm_alert_time').on(
+      table.firmId,
+      table.alertId,
+      table.createdAt,
+    ),
+  ],
+)
+
 export const pulseRelations = relations(pulse, ({ many, one }) => ({
   firmAlerts: many(pulseFirmAlert),
   applications: many(pulseApplication),
@@ -482,8 +529,25 @@ export const pulseApplicationRelations = relations(pulseApplication, ({ one }) =
   }),
 }))
 
+export const pulseAlertNoteRelations = relations(pulseAlertNote, ({ one }) => ({
+  firm: one(firmProfile, {
+    fields: [pulseAlertNote.firmId],
+    references: [firmProfile.id],
+  }),
+  alert: one(pulseFirmAlert, {
+    fields: [pulseAlertNote.alertId],
+    references: [pulseFirmAlert.id],
+  }),
+  author: one(user, {
+    fields: [pulseAlertNote.authorId],
+    references: [user.id],
+  }),
+}))
+
 export type Pulse = typeof pulse.$inferSelect
 export type NewPulse = typeof pulse.$inferInsert
+export type PulseAlertNote = typeof pulseAlertNote.$inferSelect
+export type NewPulseAlertNote = typeof pulseAlertNote.$inferInsert
 export type PulseSourceSnapshot = typeof pulseSourceSnapshot.$inferSelect
 export type NewPulseSourceSnapshot = typeof pulseSourceSnapshot.$inferInsert
 export type PulseSourceState = typeof pulseSourceState.$inferSelect

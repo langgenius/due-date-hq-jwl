@@ -347,6 +347,27 @@ export const PulseAlertSourceCoverageSchema = z.object({
 })
 export type PulseAlertSourceCoverage = z.infer<typeof PulseAlertSourceCoverageSchema>
 
+// Internal team note threaded on an alert (Pencil Aogxu §7). `authorName` is
+// resolved server-side (member/user join); `parentNoteId` is the flat reply
+// pointer (v1 stores the thread flat). `createdAt` is an ISO timestamp.
+export const PulseAlertNoteSchema = z.object({
+  id: EntityIdSchema,
+  alertId: EntityIdSchema,
+  authorId: z.string().min(1),
+  authorName: z.string().min(1),
+  body: z.string().min(1),
+  parentNoteId: EntityIdSchema.nullable(),
+  createdAt: z.iso.datetime(),
+})
+export type PulseAlertNote = z.infer<typeof PulseAlertNoteSchema>
+
+export const PulseAddAlertNoteInputSchema = z.object({
+  alertId: EntityIdSchema,
+  body: z.string().trim().min(1).max(2000),
+  parentNoteId: z.string().nullable().optional(),
+})
+export type PulseAddAlertNoteInput = z.infer<typeof PulseAddAlertNoteInputSchema>
+
 export const PulseAlertIdInputSchema = z.object({ alertId: EntityIdSchema })
 export const PulseSourceHealthInputSchema = z.object({ sourceId: z.string().min(1) })
 export type PulseSourceHealthInput = z.infer<typeof PulseSourceHealthInputSchema>
@@ -593,6 +614,12 @@ export const pulseContract = oc.router({
   revert: oc.input(PulseAlertIdInputSchema).output(PulseRevertOutputSchema),
   reactivate: oc.input(PulseAlertIdInputSchema).output(PulseReactivateOutputSchema),
   requestReview: oc.input(PulseRequestReviewInputSchema).output(PulseRequestReviewOutputSchema),
+  // Team notes (Pencil Aogxu §7) — internal discussion threaded on an alert.
+  // `listAlertNotes` reads (any firm member); `addAlertNote` writes a note.
+  listAlertNotes: oc
+    .input(PulseAlertIdInputSchema)
+    .output(z.object({ notes: z.array(PulseAlertNoteSchema) })),
+  addAlertNote: oc.input(PulseAddAlertNoteInputSchema).output(PulseAlertNoteSchema),
   /**
    * Opt-in catch-up: materialize the still-open, high-value regulatory windows
    * (protective-claim windows + unexpired deadline shifts) the caller's firm

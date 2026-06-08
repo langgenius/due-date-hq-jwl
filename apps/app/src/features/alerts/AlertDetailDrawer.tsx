@@ -70,6 +70,7 @@ import { AffectedClientsTable } from './components/AffectedClientsTable'
 // AlertStatusBadge) all went unused after the round 84/85 drawer
 // chrome refactor. Dropped to satisfy no-unused-vars.
 import { AlertStructuredFields } from './components/AlertStructuredFields'
+import { AlertTeamNotes } from './components/AlertTeamNotes'
 import { changeKindLabel } from './components/PulseChangeKindChip'
 import {
   useAlertsInvalidation,
@@ -1602,6 +1603,12 @@ export function AlertDetailDrawer({
                 yet) — so every node is a fact already on the record,
                 not a fabricated event. */}
             <AlertActivityTimeline detail={detail} />
+
+            {/* 2026-06-08 (Pencil Aogxu §7 "Team notes"): internal team
+                discussion threaded on the alert — the LAST section in the body.
+                Any firm member can read + add a note (with a quiet Reply
+                affordance). Wired to pulse.listAlertNotes / pulse.addAlertNote. */}
+            <AlertTeamNotes alertId={detail.alert.id} />
           </div>
         ) : null}
       </div>

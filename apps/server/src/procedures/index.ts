@@ -151,6 +151,9 @@ export const router = os.router({
     revert: pulseHandlers.revert,
     reactivate: pulseHandlers.reactivate,
     requestReview: pulseHandlers.requestReview,
+    // Team notes (Pencil Aogxu §7) — order mirrors pulseContract.
+    listAlertNotes: pulseHandlers.listAlertNotes,
+    addAlertNote: pulseHandlers.addAlertNote,
     catchUpStillOpenWindows: pulseHandlers.catchUpStillOpenWindows,
     // 2026-06-05 (pre-CI green-up): `morningSweepSummary` was defined
     // on pulseContract + implemented in the handlers module but never
