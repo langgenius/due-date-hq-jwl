@@ -204,7 +204,7 @@ function NeedsAttentionSection() {
           The section h2's are second-tier titles under the page
           h1, NOT same-tier; this resets the hierarchy. */}
       <div className="flex items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight text-text-primary">
+        <h2 className="flex items-center gap-2 text-[14px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
           <Trans>Alerts</Trans>
           {totalAlertCount > 0 ? (
             // 2026-06-04 round 45 (Yuqi /today feedback #2 — "just

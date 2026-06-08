@@ -6,9 +6,7 @@ import type { PulseAffectedClient, PulseAlertPublic } from '@duedatehq/contracts
 import { Tooltip, TooltipContent, TooltipTrigger } from '@duedatehq/ui/components/ui/tooltip'
 import { cn } from '@duedatehq/ui/lib/utils'
 
-// 2026-06-05 (pre-CI green-up): `aiConfidenceTier` import retired
-// after the round 81 inline source treatment dropped the confidence
-// pill. Re-import if the pill is ever restored.
+import { aiConfidenceTier } from '@/features/_surface-vocabulary/ai-confidence'
 import { alertTone } from '@/features/alerts/alert-tone'
 // PulseSourceMeta was retired from this card in round 81 — source
 // now renders inline in the subject block via `<ExternalLinkIcon>` +
@@ -165,6 +163,14 @@ function NeedsAttentionCard({
   // VxRyF bottom-meta data: confidence %, the alert's own form code, and
   // overlapping initial-avatars of the matched clients.
   const confidencePct = Math.round(alert.confidence * 100)
+  // 2026-06-08 (Yuqi /today hover emphasis): at rest the confidence pill
+  // stays neutral; on card hover it switches to its confidence-tier color
+  // (high → green, medium → amber, low → red) via the canonical helper.
+  const confidenceHoverToneClass = {
+    high: 'group-hover:text-text-success',
+    medium: 'group-hover:text-text-warning',
+    low: 'group-hover:text-text-destructive',
+  }[aiConfidenceTier(alert.confidence)]
   const alertForm = alert.forms[0] ?? firstForm
   const avatars = allNames.slice(0, 3).map((name) => ({
     name,
@@ -412,7 +418,7 @@ function NeedsAttentionCard({
 
             {/* CHANGE KIND — e.g. "DEADLINE SHIFTED", plain label. Neutral
                 (two-color rule) + card font (#11). */}
-            <span className="shrink-0 text-[11px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
+            <span className="shrink-0 text-[11px] font-semibold tracking-[0.4px] text-text-tertiary uppercase transition-colors group-hover:text-text-accent">
               {changeKindLabel(alert.changeKind)}
             </span>
           </div>
@@ -531,7 +537,12 @@ function NeedsAttentionCard({
         <span aria-hidden className="text-text-muted">
           ·
         </span>
-        <span className="text-xs font-medium tabular-nums text-text-secondary">
+        <span
+          className={cn(
+            'text-xs font-medium tabular-nums text-text-secondary transition-colors',
+            confidenceHoverToneClass,
+          )}
+        >
           <Trans>conf {confidencePct}%</Trans>
         </span>
 

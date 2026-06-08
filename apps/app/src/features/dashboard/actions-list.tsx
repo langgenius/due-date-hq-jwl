@@ -292,7 +292,7 @@ function ActionsTable({
                       dividing the lifecycle groups, not a faint whisper. */}
                   <TableCell
                     colSpan={8}
-                    className="bg-background-subtle px-[18px] py-1.5 text-[11px] font-semibold tracking-[0.5px] text-text-secondary uppercase"
+                    className="bg-background-subtle px-[18px] py-1 text-[11px] font-semibold tracking-[0.5px] text-text-secondary uppercase"
                   >
                     <StatusGroupLabel kind={currentStatusGroup} />
                   </TableCell>
@@ -498,7 +498,9 @@ function ActionsTableRow({
             is reserved when factors exist (opacity-0 keeps layout
             in place) so hover doesn't jitter the table. */}
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-normal text-text-secondary">{prompt}</span>
+          <span className="text-sm font-normal text-text-secondary transition-colors group-hover:font-medium group-hover:text-text-primary">
+            {prompt}
+          </span>
           {allRowFactors.length > 0 ? (
             <span
               className={cn(
@@ -929,7 +931,7 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
           subtitle reads as a direct continuation of the h2, not
           as a separate caption line. */}
       <div className="flex flex-col">
-        <h2 className="flex items-center gap-1.5 text-base font-semibold tracking-tight text-text-primary">
+        <h2 className="flex items-center gap-1.5 text-[14px] font-semibold tracking-[0.4px] text-text-tertiary uppercase">
           <Trans>Actions this week</Trans>
           <Tooltip>
             <TooltipTrigger
@@ -937,7 +939,7 @@ function ActionsListHeader({ onOpenAll }: { count: number | null; onOpenAll: () 
                 <button
                   type="button"
                   aria-label={t`About Actions this week`}
-                  className="inline-flex size-4 cursor-help items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
+                  className="inline-flex size-4 cursor-default items-center justify-center rounded text-text-tertiary outline-none transition-colors hover:text-text-accent focus-visible:ring-2 focus-visible:ring-state-accent-active-alt"
                   {...props}
                 >
                   <SparklesIcon className="size-3.5" aria-hidden />

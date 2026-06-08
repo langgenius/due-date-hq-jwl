@@ -54,18 +54,18 @@ export function DailyBriefCard({
     return (
       <section
         aria-label={t`Daily brief`}
-        className="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[14px] border border-state-accent-border bg-state-accent-hover px-[18px] py-2.5"
+        className="group flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[14px] bg-state-accent-hover px-[18px] py-2.5"
       >
-        <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-primary">
+        <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-accent">
           <Trans>Daily Brief</Trans>
         </h2>
-        <span className="text-[11px] font-medium tracking-[0.4px] text-text-tertiary uppercase">
-          <Trans>Failed</Trans>
-        </span>
         <span className="min-w-0 flex-1 truncate text-xs text-text-tertiary">
           <Trans>We couldn't generate today's brief.</Trans>
         </span>
         <div className="flex shrink-0 items-center gap-1">
+          <span className="text-[11px] font-medium tracking-[0.4px] text-text-tertiary uppercase">
+            <Trans>Failed</Trans>
+          </span>
           <button
             type="button"
             onClick={onRefresh}
@@ -95,14 +95,14 @@ export function DailyBriefCard({
       // 2026-06-08 (Yuqi /today #1 "top padding reduce"): the section's
       // top padding is trimmed (pt-3 vs the 18px on the other sides) so the
       // title row sits closer to the top edge and the card reads tighter.
-      className="group flex flex-col gap-1 rounded-[14px] border border-state-accent-border bg-state-accent-hover px-[18px] pt-3 pb-[18px]"
+      className="group flex flex-col gap-1 rounded-[14px] bg-state-accent-hover px-[18px] pt-3 pb-[18px]"
     >
       {/* TopRow — Pencil qYrr3 `LfcWh` */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Left — title + freshness (dot + mono age). Yuqi: icon removed;
             the title takes the dark brand color on hover. */}
         <div className="flex min-w-0 items-center gap-2.5">
-          <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-primary transition-colors group-hover:text-text-accent">
+          <h2 className="text-base leading-tight font-semibold tracking-[-0.01em] text-text-accent">
             <Trans>Daily Brief</Trans>
           </h2>
           <BriefFreshness
